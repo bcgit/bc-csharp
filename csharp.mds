@@ -1,0 +1,20 @@
+<Combine fileversion="2.0" outputpath="build/bin/">
+  <Configurations active="Release">
+    <Configuration name="Debug" ctype="CombineConfiguration">
+      <Entry build="True" name="crypto" configuration="Debug" />
+      <Entry build="True" name="crypto-test" configuration="Debug" />
+    </Configuration>
+    <Configuration name="Release" ctype="CombineConfiguration">
+      <Entry build="True" name="crypto" configuration="Release" />
+      <Entry build="True" name="crypto-test" configuration="Release" />
+    </Configuration>
+  </Configurations>
+  <StartMode startupentry="crypto-test" single="True">
+    <Execute type="None" entry="crypto" />
+    <Execute type="None" entry="crypto-test" />
+  </StartMode>
+  <Entries>
+    <Entry filename="crypto/crypto.mdp" />
+    <Entry filename="crypto-test/crypto-test.mdp" />
+  </Entries>
+</Combine>

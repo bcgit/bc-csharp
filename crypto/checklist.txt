@@ -1,0 +1,16 @@
+-----------------
+Release Checklist
+-----------------
+
+- Update to latest from CVS
+- Run 'nant -t:net-1.1 clean test'
+- Run 'nant -t:netcf-1.0 clean compile-release'
+- Edit AssemblyInfo.cs: Change version and check copyright
+- Edit NBuild.build: Change version
+- Edit License.html: Check copyright
+- Edit Readme.html: Add release notes
+- Commit changes to CVS
+- Tag CVS HEAD with "release-${version}" 
+- Place BouncyCastle.snk in parent directory
+- Run 'nant -t:net-1.1 clean dist'
+
