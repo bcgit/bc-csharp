@@ -1,0 +1,37 @@
+# Set default behaviour, in case users don't have core.autocrlf set.
+*          text=auto
+
+# Explicitly declare text files we want to always be normalized and converted 
+# to native line endings on checkout.
+*.build    text diff=xml
+*.cs       text diff=csharp
+*.csproj   text diff=xml
+*.eml      text
+*.html     text diff=html
+*.mdp      text diff=xml
+*.mds      text diff=xml
+*.nunit    text diff=xml
+*.pem      text
+*.README   text
+*.sln      text
+*.txt      text
+*.xml      text diff=xml
+
+# Denote all files that are truly binary and should not be modified.
+*.bin      binary
+*.cer      binary
+*.crl      binary
+*.crt      binary
+*.data     binary
+*.dsa      binary
+*.jpg      binary
+*.jpeg     binary
+*.key      binary
+*.p12      binary
+*.p7m      binary
+*.png      binary
+*.pri      binary
+*.pub      binary
+*.rsa      binary
+*.sec      binary
+*.sig      binary
