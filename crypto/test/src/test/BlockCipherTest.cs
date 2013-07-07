@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 
 using NUnit.Framework;
@@ -351,7 +352,7 @@ namespace Org.BouncyCastle.Tests
 
             rand = new FixedSecureRandom();
 
-            string[] parts = Platform.ToUpperInvariant(algorithm).Split('/');
+            string[] parts = algorithm.ToUpper(CultureInfo.InvariantCulture).Split('/');
             string baseAlgorithm = parts[0];
             string mode = parts.Length > 1 ? parts[1] : null;
 
@@ -390,7 +391,7 @@ namespace Org.BouncyCastle.Tests
                 inCipher = CipherUtilities.GetCipher(algorithm);
                 outCipher = CipherUtilities.GetCipher(algorithm);
 
-                if (!Platform.ToUpperInvariant(inCipher.AlgorithmName).StartsWith(baseAlgorithm))
+                if (!inCipher.AlgorithmName.ToUpper(CultureInfo.InvariantCulture).StartsWith(baseAlgorithm))
                 {
                     Fail("wrong cipher returned!");
                 }
