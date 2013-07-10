@@ -105,20 +105,30 @@ namespace Org.BouncyCastle.Crypto.Macs
             get { return cipher.AlgorithmName; }
         }
 
-        private static byte[] doubleLu(
-            byte[] inBytes)
+        private static int ShiftLeft(byte[] block, byte[] output)
         {
-            int FirstBit = (inBytes[0] & 0xFF) >> 7;
-            byte[] ret = new byte[inBytes.Length];
-            for (int i = 0; i < inBytes.Length - 1; i++)
+            int i = 16;
+            uint bit = 0;
+            while (--i >= 0)
             {
-                ret[i] = (byte)((inBytes[i] << 1) + ((inBytes[i + 1] & 0xFF) >> 7));
+                uint b = block[i];
+                output[i] = (byte)((b << 1) | bit);
+                bit = (b >> 7) & 1;
             }
-            ret[inBytes.Length - 1] = (byte)(inBytes[inBytes.Length - 1] << 1);
-            if (FirstBit == 1)
-            {
-                ret[inBytes.Length - 1] ^= inBytes.Length == 16 ? CONSTANT_128 : CONSTANT_64;
-            }
+            return (int)bit;
+        }
+
+        private static byte[] DoubleLu(byte[] input)
+        {
+            byte[] ret = new byte[input.Length];
+            int carry = ShiftLeft(input, ret);
+            int xor = input.Length == 16 ? CONSTANT_128 : CONSTANT_64;
+
+            /*
+             * NOTE: This construction is an attempt at a constant-time implementation.
+             */
+            ret[input.Length - 1] ^= (byte)(xor >> ((1 - carry) << 3));
+
             return ret;
         }
 
@@ -132,8 +142,8 @@ namespace Org.BouncyCastle.Crypto.Macs
                 //initializes the L, Lu, Lu2 numbers
                 L = new byte[ZEROES.Length];
                 cipher.ProcessBlock(ZEROES, 0, L, 0);
-                Lu = doubleLu(L);
-                Lu2 = doubleLu(Lu);
+                Lu = DoubleLu(L);
+                Lu2 = DoubleLu(Lu);
             }
             else if (parameters != null)
             {
