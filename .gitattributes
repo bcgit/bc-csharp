@@ -8,8 +8,6 @@
 *.csproj   text diff=xml
 *.eml      text
 *.html     text diff=html
-*.mdp      text diff=xml
-*.mds      text diff=xml
 *.nunit    text diff=xml
 *.pem      text
 *.README   text
