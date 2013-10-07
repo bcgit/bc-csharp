@@ -1,0 +1,1 @@
+D:\Development\Git\bc-csharp\crypto\obj\Debug\ResolveAssemblyReference.cache
