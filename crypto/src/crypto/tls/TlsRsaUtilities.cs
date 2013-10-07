@@ -1,42 +1,49 @@
-using System;
+using Org.BouncyCastle.Crypto.Encodings;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Parameters;
 using System.IO;
 
-using Org.BouncyCastle.Crypto.Encodings;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Security;
+namespace Org.BouncyCastle.Crypto.Tls {
 
-namespace Org.BouncyCastle.Crypto.Tls
+public static class TlsRSAUtilities
 {
-	public abstract class TlsRsaUtilities
-	{
-		public static byte[] GenerateEncryptedPreMasterSecret(SecureRandom random,
-			RsaKeyParameters rsaServerPublicKey, Stream output)
-		{
-			/*
-			 * Choose a PremasterSecret and send it encrypted to the server
-			 */
-			byte[] premasterSecret = new byte[48];
-			random.NextBytes(premasterSecret);
-			TlsUtilities.WriteVersion(premasterSecret, 0);
+    public static byte[] GenerateEncryptedPreMasterSecret(TlsContext context, RsaKeyParameters rsaServerPublicKey,
+                                                          Stream output)
+    {
+        /*
+         * Choose a PremasterSecret and send it encrypted to the server
+         */
+        byte[] premasterSecret = new byte[48];
+        context.SecureRandom.NextBytes(premasterSecret);
+        TlsUtilities.WriteVersion(context.ClientVersion, premasterSecret, 0);
 
-			Pkcs1Encoding encoding = new Pkcs1Encoding(new RsaBlindedEngine());
-			encoding.Init(true, new ParametersWithRandom(rsaServerPublicKey, random));
+        Pkcs1Encoding encoding = new Pkcs1Encoding(new RsaBlindedEngine());
+        encoding.Init(true, new ParametersWithRandom(rsaServerPublicKey, context.SecureRandom));
 
-			try
-			{
-				byte[] keData = encoding.ProcessBlock(premasterSecret, 0, premasterSecret.Length);
-                TlsUtilities.WriteOpaque16(keData, output);
-			}
-			catch (InvalidCipherTextException)
-			{
-				/*
-				* This should never happen, only during decryption.
-				*/
-				throw new TlsFatalAlert(AlertDescription.internal_error);
-			}
+        try
+        {
+            byte[] encryptedPreMasterSecret = encoding.ProcessBlock(premasterSecret, 0, premasterSecret.Length);
 
-			return premasterSecret;
-		}
-	}
+            if (context.ServerVersion.IsSSL)
+            {
+                // TODO Do any SSLv3 servers actually expect the length?
+                output.Write(encryptedPreMasterSecret, 0, encryptedPreMasterSecret.Length);
+            }
+            else
+            {
+                TlsUtilities.WriteOpaque16(encryptedPreMasterSecret, output);
+            }
+        }
+        catch (InvalidCipherTextException e)
+        {
+            /*
+             * This should never happen, only during decryption.
+             */
+            throw new TlsFatalAlert(AlertDescription.internal_error, e);
+        }
+
+        return premasterSecret;
+    }
+}
+
 }

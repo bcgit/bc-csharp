@@ -465,7 +465,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			X509Name name = X509Name.getInstance(tag, false);
 
-			if (!name.equals(new X509Name("CN=AA")))
+			if (!name.Equals(new X509Name("CN=AA")))
 			{
 				Fail("failed to recover tagged name");
 			}

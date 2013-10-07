@@ -10,37 +10,37 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class DefaultTlsAgreementCredentials
         : TlsAgreementCredentials
     {
-        protected Certificate clientCert;
-        protected AsymmetricKeyParameter clientPrivateKey;
+        protected Certificate certificate;
+        protected AsymmetricKeyParameter privateKey;
 
         protected IBasicAgreement basicAgreement;
         protected bool truncateAgreement;
 
-        public DefaultTlsAgreementCredentials(Certificate clientCertificate, AsymmetricKeyParameter clientPrivateKey)
+        public DefaultTlsAgreementCredentials(Certificate certificate, AsymmetricKeyParameter privateKey)
         {
-            if (clientCertificate == null)
+            if (certificate == null)
             {
                 throw new ArgumentNullException("clientCertificate");
             }
-            if (clientCertificate.certs.Length == 0)
+            if (certificate.IsEmpty)
             {
                 throw new ArgumentException("cannot be empty", "clientCertificate");
             }
-            if (clientPrivateKey == null)
+            if (privateKey == null)
             {
                 throw new ArgumentNullException("clientPrivateKey");
             }
-            if (!clientPrivateKey.IsPrivate)
+            if (!privateKey.IsPrivate)
             {
                 throw new ArgumentException("must be private", "clientPrivateKey");
             }
 
-            if (clientPrivateKey is DHPrivateKeyParameters)
+            if (privateKey is DHPrivateKeyParameters)
             {
                 basicAgreement = new DHBasicAgreement();
                 truncateAgreement = true;
             }
-            else if (clientPrivateKey is ECPrivateKeyParameters)
+            else if (privateKey is ECPrivateKeyParameters)
             {
                 basicAgreement = new ECDHBasicAgreement();
                 truncateAgreement = false;
@@ -48,28 +48,26 @@ namespace Org.BouncyCastle.Crypto.Tls
             else
             {
                 throw new ArgumentException("type not supported: "
-                    + clientPrivateKey.GetType().FullName, "clientPrivateKey");
+                    + privateKey.GetType().FullName, "clientPrivateKey");
             }
 
-            this.clientCert = clientCertificate;
-            this.clientPrivateKey = clientPrivateKey;
+            this.certificate = certificate;
+            this.privateKey = privateKey;
         }
 
         public virtual Certificate Certificate
         {
-            get { return clientCert; }
+            get { return certificate; }
         }
 
         public virtual byte[] GenerateAgreement(AsymmetricKeyParameter serverPublicKey)
         {
-            basicAgreement.Init(clientPrivateKey);
+            basicAgreement.Init(privateKey);
             BigInteger agreementValue = basicAgreement.CalculateAgreement(serverPublicKey);
-
             if (truncateAgreement)
             {
                 return BigIntegers.AsUnsignedByteArray(agreementValue);
             }
-
             return BigIntegers.AsUnsignedByteArray(basicAgreement.GetFieldSize(), agreementValue);
         }
     }

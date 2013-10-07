@@ -13,6 +13,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 			this.alertDescription = alertDescription;
 		}
 
+        public TlsFatalAlert(AlertDescription alertDescription, Exception e)
+            : base (e.Message, e)
+        {
+            this.alertDescription = alertDescription;
+        }
+
 		public AlertDescription AlertDescription
 		{
 			get { return alertDescription; }

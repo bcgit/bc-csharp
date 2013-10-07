@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			byte[] buf = new byte[8 + iv.Length];
 
 			Array.Copy(iv, 0, block, 0, iv.Length);
-			Array.Copy(input, inOff, block, iv.Length, inLen);
+			Array.Copy(input, 0, block, iv.Length, inLen);
 
 			engine.Init(true, param);
 
@@ -140,8 +140,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 			byte[]  a = new byte[iv.Length];
 			byte[]  buf = new byte[8 + iv.Length];
 
-			Array.Copy(input, inOff, a, 0, iv.Length);
-            Array.Copy(input, inOff + iv.Length, block, 0, inLen - iv.Length);
+			Array.Copy(input, 0, a, 0, iv.Length);
+			Array.Copy(input, iv.Length, block, 0, inLen - iv.Length);
 
 			engine.Init(false, param);
 

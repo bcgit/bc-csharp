@@ -16,18 +16,21 @@ namespace Org.BouncyCastle.Crypto.Tls
     * ECDH key exchange (see RFC 4492)
     */
     internal class TlsECDHKeyExchange
-        : TlsKeyExchange
+        : AbstractTlsKeyExchange
     {
-        protected TlsClientContext context;
-        protected KeyExchangeAlgorithm keyExchange;
         protected TlsSigner tlsSigner;
+        protected NamedCurve[] namedCurves;
+        protected ECPointFormat[] clientECPointFormats, serverECPointFormats;
 
         protected AsymmetricKeyParameter serverPublicKey;
-        protected ECPublicKeyParameters ecAgreeServerPublicKey;
         protected TlsAgreementCredentials agreementCredentials;
-        protected ECPrivateKeyParameters ecAgreeClientPrivateKey = null;
 
-        internal TlsECDHKeyExchange(TlsClientContext context, KeyExchangeAlgorithm keyExchange)
+        protected ECPrivateKeyParameters ecAgreePrivateKey;
+        protected ECPublicKeyParameters ecAgreePublicKey;
+
+        public TlsECDHKeyExchange(KeyExchangeAlgorithm keyExchange, IList supportedSignatureAlgorithms, NamedCurve[] namedCurves,
+                                    ECPointFormat[] clientECPointFormats, ECPointFormat[] serverECPointFormats)
+            : base(keyExchange, supportedSignatureAlgorithms)
         {
             switch (keyExchange)
             {
@@ -42,23 +45,40 @@ namespace Org.BouncyCastle.Crypto.Tls
                     this.tlsSigner = null;
                     break;
                 default:
-                    throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+                    throw new ArgumentException("unsupported key exchange algorithm");
             }
 
-            this.context = context;
             this.keyExchange = keyExchange;
+            this.namedCurves = namedCurves;
+            this.clientECPointFormats = clientECPointFormats;
+            this.serverECPointFormats = serverECPointFormats;
         }
 
-        public virtual void SkipServerCertificate()
+        public override void Init(TlsContext context)
+        {
+            base.Init(context);
+
+            if (this.tlsSigner != null)
+            {
+                this.tlsSigner.Init(context);
+            }
+        }
+
+        public override void SkipServerCredentials()
         {
             throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public virtual void ProcessServerCertificate(Certificate serverCertificate)
+        public override void ProcessServerCertificate(Certificate serverCertificate)
         {
-            X509CertificateStructure x509Cert = serverCertificate.certs[0];
-            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            if (serverCertificate.IsEmpty)
+            {
+                throw new TlsFatalAlert(AlertDescription.bad_certificate);
+            }
 
+            var x509Cert = serverCertificate.GetCertificateAt(0);
+
+            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
             try
             {
                 this.serverPublicKey = PublicKeyFactory.CreateKey(keyInfo);
@@ -72,7 +92,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 try
                 {
-                    this.ecAgreeServerPublicKey = ValidateECPublicKey((ECPublicKeyParameters)this.serverPublicKey);
+                    this.ecAgreePublicKey = TlsECCUtils.ValidateECPublicKey((ECPublicKeyParameters)this.serverPublicKey);
                 }
                 catch (InvalidCastException)
                 {
@@ -90,7 +110,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
             }
-            
+            base.ProcessServerCertificate(serverCertificate);
+
             // TODO
             /*
             * Perform various checks per RFC2246 7.4.2: "Unless otherwise specified, the
@@ -98,18 +119,24 @@ namespace Org.BouncyCastle.Crypto.Tls
             * certificate key."
             */
         }
-        
-        public virtual void SkipServerKeyExchange()
+
+        public override bool RequiresServerKeyExchange
         {
-            // do nothing
+            get
+            {
+                switch (keyExchange)
+                {
+                    case KeyExchangeAlgorithm.ECDHE_ECDSA:
+                    case KeyExchangeAlgorithm.ECDHE_RSA:
+                    case KeyExchangeAlgorithm.ECDH_anon:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
         }
 
-        public virtual void ProcessServerKeyExchange(Stream input)
-        {
-            throw new TlsFatalAlert(AlertDescription.unexpected_message);
-        }
-
-        public virtual void ValidateCertificateRequest(CertificateRequest certificateRequest)
+        public override void ValidateCertificateRequest(CertificateRequest certificateRequest)
         {
             /*
              * RFC 4492 3. [...] The ECDSA_fixed_ECDH and RSA_fixed_ECDH mechanisms are usable
@@ -134,12 +161,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        public virtual void SkipClientCredentials()
-        {
-            this.agreementCredentials = null;
-        }
-
-        public virtual void ProcessClientCredentials(TlsCredentials clientCredentials)
+        public override void ProcessClientCredentials(TlsCredentials clientCredentials)
         {
             if (clientCredentials is TlsAgreementCredentials)
             {
@@ -157,80 +179,50 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        public virtual void GenerateClientKeyExchange(Stream output)
+        public override void GenerateClientKeyExchange(Stream output)
         {
             if (agreementCredentials == null)
             {
-                GenerateEphemeralClientKeyExchange(ecAgreeServerPublicKey.Parameters, output);
+                this.ecAgreePrivateKey = TlsECCUtils.GenerateEphemeralClientKeyExchange(context.SecureRandom,
+                    serverECPointFormats, ecAgreePublicKey.Parameters, output);
             }
         }
 
-        public virtual byte[] GeneratePremasterSecret()
+        public override void ProcessClientCertificate(Certificate clientCertificate)
+        {
+            // TODO Extract the public key
+            // TODO If the certificate is 'fixed', take the public key as ecAgreeClientPublicKey
+        }
+
+        public override void ProcessClientKeyExchange(Stream input)
+        {
+            if (ecAgreePublicKey != null)
+            {
+                // For ecdsa_fixed_ecdh and rsa_fixed_ecdh, the key arrived in the client certificate
+                return;
+            }
+
+            byte[] point = TlsUtilities.ReadOpaque8(input);
+
+            ECDomainParameters curve_params = this.ecAgreePrivateKey.Parameters;
+
+            this.ecAgreePublicKey = TlsECCUtils.ValidateECPublicKey(TlsECCUtils.DeserializeECPublicKey(
+                serverECPointFormats, curve_params, point));
+        }
+
+        public override byte[] GeneratePremasterSecret()
         {
             if (agreementCredentials != null)
             {
-                return agreementCredentials.GenerateAgreement(ecAgreeServerPublicKey);
+                return agreementCredentials.GenerateAgreement(ecAgreePublicKey);
             }
 
-            return CalculateECDHBasicAgreement(ecAgreeServerPublicKey, ecAgreeClientPrivateKey);
-        }
+            if (ecAgreePrivateKey != null)
+            {
+                return TlsECCUtils.CalculateECDHBasicAgreement(ecAgreePublicKey, ecAgreePrivateKey);
+            }
 
-        protected virtual bool AreOnSameCurve(ECDomainParameters a, ECDomainParameters b)
-        {
-            // TODO Move to ECDomainParameters.Equals() or other utility method?
-            return a.Curve.Equals(b.Curve) && a.G.Equals(b.G) && a.N.Equals(b.N) && a.H.Equals(b.H);
-        }
-
-        protected virtual byte[] ExternalizeKey(ECPublicKeyParameters keyParameters)
-        {
-            // TODO Add support for compressed encoding and SPF extension
-
-            /*
-             * RFC 4492 5.7. ...an elliptic curve point in uncompressed or compressed format.
-             * Here, the format MUST conform to what the server has requested through a
-             * Supported Point Formats Extension if this extension was used, and MUST be
-             * uncompressed if this extension was not used.
-             */
-            return keyParameters.Q.GetEncoded();
-        }
-
-        protected virtual AsymmetricCipherKeyPair GenerateECKeyPair(ECDomainParameters ecParams)
-        {
-            ECKeyPairGenerator keyPairGenerator = new ECKeyPairGenerator();
-            ECKeyGenerationParameters keyGenerationParameters = new ECKeyGenerationParameters(ecParams,
-                context.SecureRandom);
-            keyPairGenerator.Init(keyGenerationParameters);
-            return keyPairGenerator.GenerateKeyPair();
-        }
-
-        protected virtual void GenerateEphemeralClientKeyExchange(ECDomainParameters ecParams, Stream output)
-        {
-            AsymmetricCipherKeyPair ecAgreeClientKeyPair = GenerateECKeyPair(ecParams);
-            this.ecAgreeClientPrivateKey = (ECPrivateKeyParameters)ecAgreeClientKeyPair.Private;
-
-            byte[] keData = ExternalizeKey((ECPublicKeyParameters)ecAgreeClientKeyPair.Public);
-            TlsUtilities.WriteOpaque8(keData, output);
-        }
-
-        protected virtual byte[] CalculateECDHBasicAgreement(ECPublicKeyParameters publicKey,
-            ECPrivateKeyParameters privateKey)
-        {
-            ECDHBasicAgreement basicAgreement = new ECDHBasicAgreement();
-            basicAgreement.Init(privateKey);
-            BigInteger agreementValue = basicAgreement.CalculateAgreement(publicKey);
-
-            /*
-             * RFC 4492 5.10. Note that this octet string (Z in IEEE 1363 terminology) as output by
-             * FE2OSP, the Field Element to Octet String Conversion Primitive, has constant length for
-             * any given field; leading zeros found in this octet string MUST NOT be truncated.
-             */
-            return BigIntegers.AsUnsignedByteArray(basicAgreement.GetFieldSize(), agreementValue);
-        }
-
-        protected virtual ECPublicKeyParameters ValidateECPublicKey(ECPublicKeyParameters key)
-        {
-            // TODO Check RFC 4492 for validation
-            return key;
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
     }
 }

@@ -4,15 +4,18 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    public interface TlsSigner
-    {
-        byte[] GenerateRawSignature(SecureRandom random, AsymmetricKeyParameter privateKey,
-            byte[] md5andsha1);
-        bool VerifyRawSignature(byte[] sigBytes, AsymmetricKeyParameter publicKey, byte[] md5andsha1);
+	public interface TlsSigner
+	{
+        void Init(TlsContext context);
 
-        ISigner CreateSigner(SecureRandom random, AsymmetricKeyParameter privateKey);
-        ISigner CreateVerifyer(AsymmetricKeyParameter publicKey);
+        byte[] GenerateRawSignature(AsymmetricKeyParameter privateKey, byte[] md5AndSha1);
 
-        bool IsValidPublicKey(AsymmetricKeyParameter publicKey);
-    }
+        bool VerifyRawSignature(byte[] sigBytes, AsymmetricKeyParameter publicKey, byte[] md5AndSha1);
+
+        ISigner CreateSigner(AsymmetricKeyParameter privateKey);
+
+		ISigner CreateVerifyer(AsymmetricKeyParameter publicKey);
+
+		bool IsValidPublicKey(AsymmetricKeyParameter publicKey);
+	}
 }

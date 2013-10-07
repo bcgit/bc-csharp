@@ -12,17 +12,16 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using System.Collections;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /// <summary>
-    /// TLS 1.1 SRP key exchange.
-    /// </summary>
+	/// <summary>
+	/// TLS 1.1 SRP key exchange.
+	/// </summary>
     internal class TlsSrpKeyExchange
-        : TlsKeyExchange
+        : AbstractTlsKeyExchange
     {
-        protected TlsClientContext context;
-        protected KeyExchangeAlgorithm keyExchange;
         protected TlsSigner tlsSigner;
         protected byte[] identity;
         protected byte[] password;
@@ -33,8 +32,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected BigInteger B = null;
         protected Srp6Client srpClient = new Srp6Client();
 
-        internal TlsSrpKeyExchange(TlsClientContext context, KeyExchangeAlgorithm keyExchange,
-            byte[] identity, byte[] password)
+        public TlsSrpKeyExchange(KeyExchangeAlgorithm keyExchange, IList supportedSignatureAlgorithms, byte[] identity, byte[] password)
+            : base(keyExchange, supportedSignatureAlgorithms)
         {
             switch (keyExchange)
             {
@@ -51,13 +50,22 @@ namespace Org.BouncyCastle.Crypto.Tls
                     throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
             }
 
-            this.context = context;
             this.keyExchange = keyExchange;
             this.identity = identity;
             this.password = password;
         }
 
-        public virtual void SkipServerCertificate()
+        public override void Init(TlsContext context)
+        {
+            base.Init(context);
+
+            if (this.tlsSigner != null)
+            {
+                this.tlsSigner.Init(context);
+            }
+        }
+
+        public override void SkipServerCredentials()
         {
             if (tlsSigner != null)
             {
@@ -65,21 +73,25 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        public virtual void ProcessServerCertificate(Certificate serverCertificate)
+        public override void ProcessServerCertificate(Certificate serverCertificate)
         {
             if (tlsSigner == null)
             {
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             }
 
-            X509CertificateStructure x509Cert = serverCertificate.certs[0];
-            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            if (serverCertificate.IsEmpty)
+            {
+                throw new TlsFatalAlert(AlertDescription.bad_certificate);
+            }
 
+            var x509Cert = serverCertificate.GetCertificateAt(0);
+
+            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
             try
             {
                 this.serverPublicKey = PublicKeyFactory.CreateKey(keyInfo);
             }
-//			catch (RuntimeException)
             catch (Exception)
             {
                 throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
@@ -91,6 +103,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+            base.ProcessServerCertificate(serverCertificate);
 
             // TODO
             /*
@@ -100,12 +113,15 @@ namespace Org.BouncyCastle.Crypto.Tls
             */
         }
 
-        public virtual void SkipServerKeyExchange()
+        public override bool RequiresServerKeyExchange
         {
-            throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            get
+            {
+                return true;
+            }
         }
 
-        public virtual void ProcessServerKeyExchange(Stream input)
+        public override void ProcessServerKeyExchange(Stream input)
         {
             SecurityParameters securityParameters = context.SecurityParameters;
 
@@ -114,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (tlsSigner != null)
             {
-                signer = InitSigner(tlsSigner, securityParameters);
+                signer = InitVerifyer(tlsSigner, securityParameters);
                 sigIn = new SignerStream(input, signer, null);
             }
 
@@ -125,9 +141,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (signer != null)
             {
-                byte[] sigByte = TlsUtilities.ReadOpaque16(input);
+                DigitallySigned signed_params = DigitallySigned.Parse(context, input);
 
-                if (!signer.VerifySignature(sigByte))
+                if (!signer.VerifySignature(signed_params.Signature))
                 {
                     throw new TlsFatalAlert(AlertDescription.decrypt_error);
                 }
@@ -157,29 +173,23 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.srpClient.Init(N, g, new Sha1Digest(), context.SecureRandom);
         }
 
-        public virtual void ValidateCertificateRequest(CertificateRequest certificateRequest)
+        public override void ValidateCertificateRequest(CertificateRequest certificateRequest)
         {
             throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public virtual void SkipClientCredentials()
-        {
-            // OK
-        }
-        
-        public virtual void ProcessClientCredentials(TlsCredentials clientCredentials)
+        public override void ProcessClientCredentials(TlsCredentials clientCredentials)
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
-        public virtual void GenerateClientKeyExchange(Stream output)
+        public override void GenerateClientKeyExchange(Stream output)
         {
-            byte[] keData = BigIntegers.AsUnsignedByteArray(srpClient.GenerateClientCredentials(s,
-                this.identity, this.password));
-            TlsUtilities.WriteOpaque16(keData, output);
+            BigInteger A = srpClient.GenerateClientCredentials(s, this.identity, this.password);
+            TlsUtilities.WriteOpaque16(BigIntegers.AsUnsignedByteArray(A), output);
         }
 
-        public virtual byte[] GeneratePremasterSecret()
+        public override byte[] GeneratePremasterSecret()
         {
             try
             {
@@ -192,7 +202,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected virtual ISigner InitSigner(TlsSigner tlsSigner, SecurityParameters securityParameters)
+        protected ISigner InitVerifyer(TlsSigner tlsSigner, SecurityParameters securityParameters)
         {
             ISigner signer = tlsSigner.CreateVerifyer(this.serverPublicKey);
             signer.BlockUpdate(securityParameters.clientRandom, 0, securityParameters.clientRandom.Length);

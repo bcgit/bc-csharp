@@ -50,6 +50,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public ByteQueue()
             : this(DefaultCapacity)
         {
+
         }
 
         public ByteQueue(int capacity)
@@ -63,10 +64,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <param name="len">How many bytes to read at all.</param>
         /// <param name="skip">How many bytes from our data to skip.</param>
         public void Read(
-            byte[]	buf,
-            int		offset,
-            int		len,
-            int		skip)
+            byte[] buf,
+            int offset,
+            int len,
+            int skip)
         {
             if ((available - skip) < len)
             {
@@ -76,7 +77,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 throw new TlsException("Buffer size of " + buf.Length + " is too small for a read of " + len + " bytes");
             }
-            Array.Copy(databuf, skipped + skip, buf, offset, len);
+            Buffer.BlockCopy(databuf, skipped + skip, buf, offset, len);
         }
 
         /// <summary>Add some data to our buffer.</summary>
@@ -84,9 +85,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <param name="offset">How many bytes to skip at the beginning of the array.</param>
         /// <param name="len">How many bytes to read from the array.</param>
         public void AddData(
-            byte[]	data,
-            int		offset,
-            int		len)
+            byte[] data,
+            int offset,
+            int len)
         {
             if ((skipped + available + len) > databuf.Length)
             {
@@ -94,17 +95,16 @@ namespace Org.BouncyCastle.Crypto.Tls
                 if (desiredSize > databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];
-                    Array.Copy(databuf, skipped, tmp, 0, available);
+                    Buffer.BlockCopy(databuf, skipped, tmp, 0, available);
                     databuf = tmp;
                 }
                 else
                 {
-                    Array.Copy(databuf, skipped, databuf, 0, available);
+                    Buffer.BlockCopy(databuf, skipped, databuf, 0, available);
                 }
                 skipped = 0;
             }
-
-            Array.Copy(data, offset, databuf, skipped + available, len);
+            Buffer.BlockCopy(data, offset, databuf, skipped + available, len);
             available += len;
         }
 
@@ -123,6 +123,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             */
             available -= i;
             skipped += i;
+
+            /*
+            * If more than half of our data is skipped, we will move the data
+            * in the buffer.
+            */
+            if (skipped > (databuf.Length / 2))
+            {
+                Buffer.BlockCopy(databuf, skipped, databuf, 0, available);
+                skipped = 0;
+            }
         }
 
         public void RemoveData(byte[] buf, int off, int len, int skip)

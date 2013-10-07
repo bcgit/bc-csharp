@@ -33,17 +33,22 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		/// <exception cref="IOException"></exception>
 		public PemObject ReadPemObject()
 		{
-			string line = reader.ReadLine();
+            string line = reader.ReadLine();
 
-			if (line != null && line.StartsWith(BeginString))
-			{
-				line = line.Substring(BeginString.Length);
-				int index = line.IndexOf('-');
-				string type = line.Substring(0, index);
+            while (line != null && !line.StartsWith(BeginString))
+            {
+                line = reader.ReadLine();
+            }
 
-				if (index > 0)
-					return LoadObject(type);
-			}
+            if (line != null)           
+            {
+                line = line.Substring(BeginString.Length);
+                int index = line.IndexOf('-');
+                string type = line.Substring(0, index);
+
+                if (index > 0)
+                    return LoadObject(type);
+            }
 
 			return null;
 		}

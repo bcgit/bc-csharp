@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		private byte[] encryptOnWrite(byte[] dataBytes)
 		{
 			MemoryStream encryptedDataStream = new MemoryStream();
-			IBufferedCipher outCipher = createCipher(true);
+			IBufferedCipher outCipher = CreateCipher(true);
 			CipherStream outCipherStream = new CipherStream(encryptedDataStream, null, outCipher);
 			outCipherStream.Write(dataBytes, 0, dataBytes.Length);
 			Assert.AreEqual(0L, encryptedDataStream.Position % outCipher.GetBlockSize());
@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		{
 			MemoryStream dataStream = new MemoryStream(dataBytes, false);
 			MemoryStream encryptedDataStream = new MemoryStream();
-			IBufferedCipher inCipher = createCipher(true);
+			IBufferedCipher inCipher = CreateCipher(true);
 			CipherStream inCipherStream = new CipherStream(dataStream, inCipher, null);
 
 			int ch;
@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		{
 			MemoryStream encryptedDataStream = new MemoryStream(encryptedDataBytes, false);
 			MemoryStream dataStream = new MemoryStream();
-			IBufferedCipher inCipher = createCipher(false);
+			IBufferedCipher inCipher = CreateCipher(false);
 			CipherStream inCipherStream = new CipherStream(encryptedDataStream, inCipher, null);
 
 			int ch;
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		{
 			MemoryStream encryptedDataStream = new MemoryStream(encryptedDataBytes, false);
 			MemoryStream dataStream = new MemoryStream();
-			IBufferedCipher outCipher = createCipher(false);
+			IBufferedCipher outCipher = CreateCipher(false);
 			CipherStream outCipherStream = new CipherStream(dataStream, null, outCipher);
 
 			int ch;
@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 			return dataBytes;
 		}
 
-		private IBufferedCipher createCipher(bool forEncryption)
+		private IBufferedCipher CreateCipher(bool forEncryption)
 		{
 //			IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CFB/NoPadding");
 

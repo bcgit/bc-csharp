@@ -223,10 +223,17 @@ namespace Org.BouncyCastle.Utilities
 			}
 		}
 
-        public static byte[] Copy(byte[] data, int off, int len)
+        public static byte[] Copy(byte[] data, int offset, int count)
         {
-            byte[] result = new byte[len];
-            Array.Copy(data, off, result, 0, len);
+            byte[] result = new byte[count];
+            Buffer.BlockCopy(data, offset, result, 0, result.Length);
+            return result;
+        }
+
+        public static byte[] CopyOfRange(byte[] data, int off, int to)
+        {
+            byte[] result = new byte[to - off];
+            Buffer.BlockCopy(data, off, result, 0, result.Length);
             return result;
         }
 	}
