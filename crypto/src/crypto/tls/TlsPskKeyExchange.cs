@@ -217,7 +217,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             else if (this.keyExchange == KeyExchangeAlgorithm.RSA_PSK)
             {
-                this.premasterSecret = TlsRSAUtils.GenerateEncryptedPreMasterSecret(context, this.rsaServerPublicKey,
+                this.premasterSecret = TlsRSAUtilities.GenerateEncryptedPreMasterSecret(context, this.rsaServerPublicKey,
                     output);
             }
         }

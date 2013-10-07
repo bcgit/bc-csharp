@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void GenerateClientKeyExchange(Stream output)
         {
-            this.premasterSecret = TlsRSAUtils.GenerateEncryptedPreMasterSecret(context, this.rsaServerPublicKey, output);
+            this.premasterSecret = TlsRSAUtilities.GenerateEncryptedPreMasterSecret(context, this.rsaServerPublicKey, output);
         }
 
         public override void ProcessClientKeyExchange(Stream input)
