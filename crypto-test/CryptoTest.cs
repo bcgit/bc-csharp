@@ -14,6 +14,7 @@ namespace crypto_test
 
 			try
 			{
+                Org.BouncyCastle.Crypto.Tls.Test.AllTests.Main(args);
 				Org.BouncyCastle.Asn1.Tests.RegressionTest.Main(args);
 				//Org.BouncyCastle.Bcpg.OpenPgp.Tests.Dsa2Test.?
 				Org.BouncyCastle.Bcpg.OpenPgp.Tests.RegressionTest.Main(args);
