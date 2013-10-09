@@ -158,7 +158,7 @@ namespace Org.BouncyCastle.Crypto
 			if (outLength > 0 && pos < outLength)
 			{
 				byte[] tmp = new byte[pos];
-				Array.Copy(outBytes, 0, tmp, 0, pos);
+				Buffer.BlockCopy(outBytes, 0, tmp, 0, pos);
 				outBytes = tmp;
 			}
 
@@ -184,7 +184,7 @@ namespace Org.BouncyCastle.Crypto
 			if (outLength > 0 && pos < outLength)
 			{
 				byte[] tmp = new byte[pos];
-				Array.Copy(outBytes, 0, tmp, 0, pos);
+				Buffer.BlockCopy(outBytes, 0, tmp, 0, pos);
 				outBytes = tmp;
 			}
 
@@ -233,7 +233,7 @@ namespace Org.BouncyCastle.Crypto
 			int gapLen = buf.Length - bufOff;
 			if (length > gapLen)
 			{
-				Array.Copy(input, inOff, buf, bufOff, gapLen);
+				Buffer.BlockCopy(input, inOff, buf, bufOff, gapLen);
 				resultLen += cipher.ProcessBlock(buf, 0, output, outOff);
 				bufOff = 0;
 				length -= gapLen;
@@ -245,7 +245,7 @@ namespace Org.BouncyCastle.Crypto
 					inOff += blockSize;
 				}
 			}
-			Array.Copy(input, inOff, buf, bufOff, length);
+			Buffer.BlockCopy(input, inOff, buf, bufOff, length);
 			bufOff += length;
 			if (bufOff == buf.Length)
 			{
@@ -268,7 +268,7 @@ namespace Org.BouncyCastle.Crypto
 				if (pos < outBytes.Length)
 				{
 					byte[] tmp = new byte[pos];
-					Array.Copy(outBytes, 0, tmp, 0, pos);
+					Buffer.BlockCopy(outBytes, 0, tmp, 0, pos);
 					outBytes = tmp;
 				}
 			}
@@ -305,7 +305,7 @@ namespace Org.BouncyCastle.Crypto
 				if (pos < outBytes.Length)
 				{
 					byte[] tmp = new byte[pos];
-					Array.Copy(outBytes, 0, tmp, 0, pos);
+					Buffer.BlockCopy(outBytes, 0, tmp, 0, pos);
 					outBytes = tmp;
 				}
 			}
@@ -351,7 +351,7 @@ namespace Org.BouncyCastle.Crypto
 	
 					// NB: Can't copy directly, or we may write too much output
 					cipher.ProcessBlock(buf, 0, buf, 0);
-					Array.Copy(buf, 0, output, outOff, bufOff);
+					Buffer.BlockCopy(buf, 0, output, outOff, bufOff);
 				}
 
 				return bufOff;

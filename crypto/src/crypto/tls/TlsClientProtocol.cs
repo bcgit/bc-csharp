@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected CertificateStatus certificateStatus = null;
         protected CertificateRequest certificateRequest = null;
 
-        private static SecureRandom createSecureRandom()
+        private static SecureRandom CreateSecureRandom()
         {
             /*
              * We use our threaded seed generator to generate a good random seed. If the user has a
@@ -40,8 +40,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             return random;
         }
 
+        public TlsClientProtocol(Stream stream)
+            : this(stream, stream)
+        {
+
+        }
+
         public TlsClientProtocol(Stream input, Stream output)
-            : this(input, output, createSecureRandom())
+            : this(input, output, CreateSecureRandom())
         {
 
         }

@@ -662,7 +662,7 @@ namespace Org.BouncyCastle.Crypto.Tls
          * Add a 'signature_algorithms' extension to existing extensions.
          *
          * @param extensions                   A {@link Hashtable} to add the extension to.
-         * @param supportedSignatureAlgorithms {@link ArrayList} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @param supportedSignatureAlgorithms {@link IList} containing at least 1 {@link SignatureAndHashAlgorithm}.
          * @throws IOException
          */
         public static void AddSignatureAlgorithmsExtension(IDictionary extensions, IList supportedSignatureAlgorithms)
@@ -674,7 +674,7 @@ namespace Org.BouncyCastle.Crypto.Tls
          * Get a 'signature_algorithms' extension from extensions.
          *
          * @param extensions A {@link Hashtable} to get the extension from, if it is present.
-         * @return A {@link ArrayList} containing at least 1 {@link SignatureAndHashAlgorithm}, or null.
+         * @return A {@link IList} containing at least 1 {@link SignatureAndHashAlgorithm}, or null.
          * @throws IOException
          */
         public static IList GetSignatureAlgorithmsExtension(IDictionary extensions)
@@ -686,7 +686,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         /**
          * Create a 'signature_algorithms' extension value.
          *
-         * @param supportedSignatureAlgorithms A {@link ArrayList} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @param supportedSignatureAlgorithms A {@link IList} containing at least 1 {@link SignatureAndHashAlgorithm}.
          * @return A byte array suitable for use as an extension value.
          * @throws IOException
          */
@@ -704,7 +704,7 @@ namespace Org.BouncyCastle.Crypto.Tls
          * Read 'signature_algorithms' extension data.
          *
          * @param extensionData The extension data.
-         * @return A {@link ArrayList} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @return A {@link IList} containing at least 1 {@link SignatureAndHashAlgorithm}.
          * @throws IOException
          */
         public static IList ReadSignatureAlgorithmsExtension(byte[] extensionData)

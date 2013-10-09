@@ -1,9 +1,10 @@
 using System.IO;
 using System.Collections;
 using System;
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Tls
 {
-
 
     public class ServerNameList
     {
@@ -75,7 +76,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             MemoryStream buf = new MemoryStream(data);
 
-            var server_name_list = new ArrayList();
+            var server_name_list = Platform.CreateArrayList();
             while (buf.Length - buf.Position > 0)
             {
                 ServerName entry = ServerName.Parse(buf);

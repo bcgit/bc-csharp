@@ -143,8 +143,8 @@ public class IETFUtils
 
                 if (pTok.hasMoreTokens())
                 {
-                    ArrayList oids = new ArrayList();
-                    ArrayList values = new ArrayList();
+                    IList oids = Platform.CreateArrayList();
+                    IList values = Platform.CreateArrayList();                    
 
                     oids.Add(oid);
                     values.Add(unescape(value));
@@ -222,7 +222,7 @@ public class IETFUtils
 
     public static string[] findAttrNamesForOID(
         DerObjectIdentifier oid,
-        Hashtable            lookup)
+        IDictionary            lookup)
     {
         int count = 0;
         foreach( var en in lookup.Values)
@@ -250,7 +250,7 @@ public class IETFUtils
 
     public static DerObjectIdentifier decodeAttrName(
         string      name,
-        Hashtable   lookUp)
+        IDictionary   lookUp)
     {
         if (name.ToUpper().StartsWith("OID."))
         {
@@ -289,7 +289,7 @@ public class IETFUtils
     public static void appendRDN(
         StringBuilder          buf,
         RDN                   rdn,
-        Hashtable             oidSymbols)
+        IDictionary           oidSymbols)
     {
         if (rdn.isMultiValued())
         {
@@ -319,7 +319,7 @@ public class IETFUtils
     public static void appendTypeAndValue(
         StringBuilder          buf,
         AttributeTypeAndValue typeAndValue,
-        Hashtable             oidSymbols)
+        IDictionary           oidSymbols)
     {
         string  sym = (string)oidSymbols[typeAndValue.Type];
 
@@ -406,7 +406,7 @@ public class IETFUtils
 
         while (endBuf >= 0 && vBuf[endBuf] == ' ')
         {
-            vBuf.Insert(endBuf, '\\');
+            vBuf.Insert(endBuf, "\\");
             endBuf--;
         }
 

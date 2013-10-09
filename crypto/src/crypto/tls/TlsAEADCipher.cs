@@ -137,8 +137,8 @@ public class TlsAEADCipher : TlsCipher
         }
 
         byte[] nonce = new byte[this.decryptImplicitNonce.Length + nonce_explicit_length];
-        Array.Copy(decryptImplicitNonce, 0, nonce, 0, decryptImplicitNonce.Length);
-        Array.Copy(ciphertext, offset, nonce, decryptImplicitNonce.Length, nonce_explicit_length);
+        Buffer.BlockCopy(decryptImplicitNonce, 0, nonce, 0, decryptImplicitNonce.Length);
+        Buffer.BlockCopy(ciphertext, offset, nonce, decryptImplicitNonce.Length, nonce_explicit_length);
 
         int ciphertextOffset = offset + nonce_explicit_length;
         int ciphertextLength = len - nonce_explicit_length;

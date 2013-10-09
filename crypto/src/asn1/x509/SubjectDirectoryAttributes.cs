@@ -88,9 +88,9 @@ namespace Org.BouncyCastle.Asn1.X509
 #endif
 
         /**
-		 * Constructor from an ArrayList of attributes.
+		 * Constructor from an IList of attributes.
 		 *
-		 * The ArrayList consists of attributes of type {@link Attribute Attribute}
+		 * The IList consists of attributes of type {@link Attribute Attribute}
 		 *
 		 * @param attributes The attributes.
 		 *

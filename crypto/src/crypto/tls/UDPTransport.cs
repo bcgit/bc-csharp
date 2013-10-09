@@ -9,12 +9,12 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected const int MAX_IP_OVERHEAD = MIN_IP_OVERHEAD + 64;
         protected const int UDP_OVERHEAD = 8;
 
-        protected readonly Socket socket;
-        protected readonly int receiveLimit, sendLimit;
+        private readonly Socket socket;
+        private readonly int receiveLimit, sendLimit;
 
         public UDPTransport(Socket socket, int mtu)
         {
-            if (!socket.IsBound || !socket.Connected)
+            if (!socket.Connected)
             {
                 throw new ArgumentException("'socket' must be bound and connected");
             }
@@ -46,7 +46,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public int Receive(byte[] buf, int off, int len, int waitMillis)
         {
+#if CF
+            socket.Poll(waitMillis * 1000, SelectMode.SelectRead); 
+#else
             socket.ReceiveTimeout = waitMillis;
+#endif
             return socket.Receive(buf, off, len, SocketFlags.None);
         }
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1.X509;
 using System.Collections;
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls 
 {
@@ -18,7 +19,7 @@ public class OCSPStatusRequest
 
     /**
      * @param responderIDList
-     *            a {@link ArrayList} of {@link ResponderID}, specifying the list of trusted OCSP
+     *            a {@link IList} of {@link ResponderID}, specifying the list of trusted OCSP
      *            responders. An empty list has the special meaning that the responders are
      *            implicitly known to the server - e.g., by prior arrangement.
      * @param requestExtensions
@@ -31,7 +32,7 @@ public class OCSPStatusRequest
     }
 
     /**
-     * @return a {@link ArrayList} of {@link ResponderID}
+     * @return a {@link IList} of {@link ResponderID}
      */
     public IList ResponderIDList
     {
@@ -102,7 +103,7 @@ public class OCSPStatusRequest
      */
     public static OCSPStatusRequest Parse(Stream input) 
     {
-        ArrayList responderIDList = new ArrayList();
+        IList responderIDList = Platform.CreateArrayList();
         {
             int length = TlsUtilities.ReadUint16(input);
             if (length > 0)

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.IO;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -10,9 +11,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         private TlsHandshakeHash hash = new DeferredHash();
 
-        private Hashtable currentInboundFlight = new Hashtable();
-        private Hashtable previousInboundFlight = null;
-        private ArrayList outboundFlight = new ArrayList();
+        private IDictionary currentInboundFlight =  Platform.CreateHashtable(); 
+        private IDictionary previousInboundFlight = null;
+        private IList outboundFlight = Platform.CreateArrayList();
         private bool sending = true;
 
         private int message_seq = 0, next_receive_seq = 0;
@@ -311,7 +312,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             ResetAll(currentInboundFlight);
             previousInboundFlight = currentInboundFlight;
-            currentInboundFlight = new Hashtable();
+            currentInboundFlight = Platform.CreateHashtable();
         }
 
         private void ResendOutboundFlight()
@@ -378,7 +379,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             fragment.SendToRecordLayer(recordLayer);
         }
 
-        private static bool CheckAll(Hashtable inboundFlight)
+        private static bool CheckAll(IDictionary inboundFlight)
         {
             foreach(var value in inboundFlight.Values) 
             {
@@ -390,7 +391,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return true;
         }
 
-        private static void ResetAll(Hashtable inboundFlight)
+        private static void ResetAll(IDictionary inboundFlight)
         {
             foreach (var value in inboundFlight.Values)
             {

@@ -667,7 +667,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                      */
                     if (this.serverExtensions == null)
                     {
-                        this.serverExtensions = new Hashtable();
+                        this.serverExtensions = Platform.CreateHashtable();
                     }
 
                     /*

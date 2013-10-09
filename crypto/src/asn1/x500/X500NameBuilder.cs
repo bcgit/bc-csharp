@@ -1,13 +1,15 @@
 using Org.BouncyCastle.Asn1.X500.Style;
 using System.Collections;
 using Org.BouncyCastle.Asn1.Crmf;
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1.X500
 {
 
     public class X500NameBuilder
     {
         private X500NameStyle template;
-        private IList rdns = new ArrayList();
+        private IList rdns = Platform.CreateArrayList();
 
         public X500NameBuilder()
             : this(BCStyle.INSTANCE)

@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         // Hashtable is (Integer -> byte[])
         IDictionary GetServerExtensions();
 
-        // ArrayList is (SupplementalDataEntry)
+        // IList is (SupplementalDataEntry)
         IList GetServerSupplementalData();
 
         TlsCredentials Credentials { get; }
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         CertificateRequest GetCertificateRequest();
 
-        // ArrayList is (SupplementalDataEntry)
+        // IList is (SupplementalDataEntry)
         void ProcessClientSupplementalData(IList clientSupplementalData);
 
         /**

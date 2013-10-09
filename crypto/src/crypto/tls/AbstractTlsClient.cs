@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 if (clientExtensions == null)
                 {
-                    clientExtensions = new Hashtable();
+                    clientExtensions = Platform.CreateHashtable();
                 }
 
                 TlsECCUtils.AddSupportedEllipticCurvesExtension(clientExtensions, namedCurves);

@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 					if (debug)
 					{
-						Console.WriteLine("Constructing lookup ArrayList for " + actualPrimeValue);
+						Console.WriteLine("Constructing lookup IList for " + actualPrimeValue);
 					}
 
 					BigInteger accJ = BigInteger.Zero;
@@ -184,8 +184,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 						}
 						throw new InvalidCipherTextException("Error in lookup Array for "
 										+ ((BigInteger)primes[i]).IntValue
-										+ ": Size mismatch. Expected ArrayList with length "
-										+ ((BigInteger)primes[i]).IntValue + " but found ArrayList of length "
+										+ ": Size mismatch. Expected IList with length "
+										+ ((BigInteger)primes[i]).IntValue + " but found IList of length "
 										+ lookup[i].Count);
 					}
 					int lookedup = al.IndexOf(exp);

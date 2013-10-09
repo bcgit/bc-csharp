@@ -319,7 +319,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                         this.retransmitEpoch = null;
                     }
 
-                    Array.Copy(plaintext, 0, buf, off, plaintext.Length);
+                    Buffer.BlockCopy(plaintext, 0, buf, off, plaintext.Length);
                     return plaintext.Length;
                 }
                 catch (IOException e)
@@ -510,6 +510,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsUtilities.WriteUint16(recordEpoch, record, 3);
             TlsUtilities.WriteUint48(recordSequenceNumber, record, 5);
             TlsUtilities.WriteUint16(record.Length - RECORD_HEADER_LENGTH, record, 11);
+
             //Array.Copy(ciphertext, 0, record, RECORD_HEADER_LENGTH, ciphertext.Length);
 
             transport.Send(record, 0, record.Length);

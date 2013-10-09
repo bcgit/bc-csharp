@@ -10,12 +10,12 @@ public class TlsSRTPUtils
 {
     public const ExtensionType EXT_use_srtp = ExtensionType.use_srtp;
 
-    public static void AddUseSRTPExtension(Hashtable extensions, UseSRTPData useSRTPData)
+    public static void AddUseSRTPExtension(IDictionary extensions, UseSRTPData useSRTPData)
     {
         extensions[EXT_use_srtp] = CreateUseSRTPExtension(useSRTPData);
     }
 
-    public static UseSRTPData GetUseSRTPExtension(Hashtable extensions)
+    public static UseSRTPData GetUseSRTPExtension(IDictionary extensions)
     {
         byte[] extensionData = TlsUtilities.GetExtensionData(extensions, EXT_use_srtp);
         return extensionData == null ? null : ReadUseSRTPExtension(extensionData);

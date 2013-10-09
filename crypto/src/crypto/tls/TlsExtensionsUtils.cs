@@ -1,6 +1,7 @@
 using System.Collections;
 using System.IO;
 using System;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls 
 {
@@ -15,7 +16,7 @@ public class TlsExtensionsUtils
 
     public static IDictionary EnsureExtensionsInitialised(IDictionary extensions)
     {
-        return extensions == null ? new Hashtable() : extensions;
+        return extensions == null ? Platform.CreateHashtable() : extensions;
     }
     public static void AddHeartbeatExtension(IDictionary extensions, HeartbeatExtension heartbeatExtension)
     {

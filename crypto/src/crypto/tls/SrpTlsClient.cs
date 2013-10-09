@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             IDictionary clientExtensions = Platform.CreateHashtable();
             if (clientExtensions == null)
             {
-                clientExtensions = new Hashtable();
+                clientExtensions = Platform.CreateHashtable();
             }
 
             MemoryStream srpData = new MemoryStream();

@@ -71,11 +71,11 @@ namespace Org.BouncyCastle.Asn1.X509
 		/**
 		 * Constructor from given targets.
 		 * <p>
-		 * The ArrayList is copied.</p>
+		 * The IList is copied.</p>
 		 * 
-		 * @param targets An <code>ArrayList</code> of {@link Target}s.
+		 * @param targets An <code>IList</code> of {@link Target}s.
 		 * @see Target
-		 * @throws ArgumentException if the ArrayList contains not only Targets.
+		 * @throws ArgumentException if the IList contains not only Targets.
 		 */
 		public Targets(
 			Target[] targets)
@@ -84,9 +84,9 @@ namespace Org.BouncyCastle.Asn1.X509
 		}
 
 		/**
-		 * Returns the targets in an <code>ArrayList</code>.
+		 * Returns the targets in an <code>IList</code>.
 		 * <p>
-		 * The ArrayList is cloned before it is returned.</p>
+		 * The IList is cloned before it is returned.</p>
 		 * 
 		 * @return Returns the targets.
 		 */

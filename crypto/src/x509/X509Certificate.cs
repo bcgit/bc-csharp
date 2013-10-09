@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.X509
     {
         private readonly X509CertificateStructure c;
 //        private Hashtable pkcs12Attributes = new Hashtable();
-//        private ArrayList pkcs12Ordering = new ArrayList();
+//        private IList pkcs12Ordering = Platform.CreateArrayList();
 		private readonly BasicConstraints basicConstraints;
 		private readonly bool[] keyUsage;
 

@@ -911,7 +911,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected internal static Hashtable ReadExtensions(MemoryStream input)
+        protected internal static IDictionary ReadExtensions(MemoryStream input)
         {
             if (input.Length - input.Position  < 1)
             {
@@ -925,7 +925,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             MemoryStream buf = new MemoryStream(extBytes);
 
             // Integer -> byte[]
-            Hashtable extensions = new Hashtable();
+            IDictionary extensions = Platform.CreateHashtable();
 
             while (buf.Length - buf.Position > 0)
             {
@@ -935,7 +935,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 /*
                  * RFC 3546 2.3 There MUST NOT be more than one extension of the same type.
                  */
-                if (extensions.ContainsKey(extension_type))
+                if (extensions.Contains(extension_type))
                 {
                     extensions[extension_type] = extension_data;
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
@@ -955,7 +955,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             MemoryStream buf = new MemoryStream(supp_data);
 
-            var supplementalData = new ArrayList();
+            var supplementalData = Platform.CreateArrayList();
 
             while (buf.Length - buf.Position > 0)
             {

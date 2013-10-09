@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -17,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Tls
          * @param type
          *            see {@link CertChainType} for valid constants.
          * @param urlAndHashList
-         *            a {@link ArrayList} of {@link URLAndHash}.
+         *            a {@link IList} of {@link URLAndHash}.
          */
         public CertificateURL(short type, IList urlAndHashList)
         {
@@ -46,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /**
-         * @return a {@link ArrayList} of {@link URLAndHash} 
+         * @return a {@link IList} of {@link URLAndHash} 
          */
         public IEnumerable URLAndHashList
         {
@@ -104,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             MemoryStream buf = new MemoryStream(urlAndHashListData);
 
-            ArrayList url_and_hash_list = new ArrayList();
+            IList url_and_hash_list = Platform.CreateArrayList();
             while (buf.Length - buf.Position > 0)
             {
                 URLAndHash url_and_hash = URLAndHash.parse(context, buf);

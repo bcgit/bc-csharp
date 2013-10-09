@@ -5,6 +5,8 @@ using System;
 using System.Text;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1.X500.Style {
 
 
@@ -186,12 +188,12 @@ public class BCStyle : X500NameStyle
      * default look up table translating OID values into their common symbols following
      * the convention in RFC 2253 with a few extras
      */
-    private static readonly Hashtable DefaultSymbols = new Hashtable();
+    private static readonly IDictionary DefaultSymbols = Platform.CreateHashtable();
 
     /**
      * look up table translating common symbols into their OIDS.
      */
-    private static readonly Hashtable DefaultLookUp = new Hashtable();
+    private static readonly IDictionary DefaultLookUp = Platform.CreateHashtable();
 
     static BCStyle()
     {

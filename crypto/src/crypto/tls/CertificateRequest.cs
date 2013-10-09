@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using Org.BouncyCastle.Asn1.X500;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {   
@@ -76,7 +77,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             else
             {
-                var derEncodings = new ArrayList(certificateAuthorities.Count);
+                var derEncodings = Platform.CreateArrayList(certificateAuthorities.Count);
 
                 int totalLength = 0;
                 for (int i = 0; i < certificateAuthorities.Count; ++i)
@@ -124,7 +125,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 supportedSignatureAlgorithms = TlsUtilities.ParseSupportedSignatureAlgorithms(false, input);
             }
 
-            var certificateAuthorities = new ArrayList();
+            var certificateAuthorities = Platform.CreateArrayList();
             byte[] certAuthData = TlsUtilities.ReadOpaque16(input);
             MemoryStream bis = new MemoryStream(certAuthData);
 

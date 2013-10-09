@@ -363,7 +363,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                      */
                     if (state.serverExtensions == null)
                     {
-                        state.serverExtensions = new Hashtable();
+                        state.serverExtensions = Platform.CreateHashtable();
                     }
 
                     /*

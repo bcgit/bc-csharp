@@ -1,5 +1,6 @@
 using System.Collections;
 using System;
+using Org.BouncyCastle.Utilities;
 
 
 namespace Org.BouncyCastle.Crypto.Tls
@@ -10,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private readonly HandshakeType msg_type;
         private readonly byte[] body;
 
-        private ArrayList missing = new ArrayList();
+        private IList missing = Platform.CreateArrayList();
 
         public DTLSReassembler(HandshakeType msg_type, int length)
         {

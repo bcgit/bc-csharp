@@ -127,9 +127,9 @@ namespace Org.BouncyCastle.Pkix
 //			SetTrustAnchors(trustAnchors);
 //
 //			this.initialPolicies = new HashSet();
-//			this.certPathCheckers = new ArrayList();
-//			this.stores = new ArrayList();
-//			this.additionalStores = new ArrayList();
+//			this.certPathCheckers = Platform.CreateArrayList();
+//			this.stores = Platform.CreateArrayList();
+//			this.additionalStores = Platform.CreateArrayList();
 //			this.trustedACIssuers = new HashSet();
 //			this.necessaryACAttributes = new HashSet();
 //			this.prohibitedACAttributes = new HashSet();

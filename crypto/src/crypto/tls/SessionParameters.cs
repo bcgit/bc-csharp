@@ -137,7 +137,7 @@ public sealed class SessionParameters
         }
     }
 
-    public Hashtable ReadServerExtensions() 
+    public IDictionary ReadServerExtensions() 
     {
         if (encodedServerExtensions == null)
         {

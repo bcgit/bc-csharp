@@ -298,7 +298,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         [Obsolete]
         public X509Extensions(
-            ArrayList	ordering,
+            IList	ordering,
             Hashtable	extensions)
         {
             if (ordering == null)
@@ -319,8 +319,8 @@ namespace Org.BouncyCastle.Asn1.X509
 		/**
 		 * Constructor from two vectors
 		 *
-		 * @param objectIDs an ArrayList of the object identifiers.
-		 * @param values an ArrayList of the extension values.
+		 * @param objectIDs an IList of the object identifiers.
+		 * @param values an IList of the extension values.
 		 */
         [Obsolete]
 		public X509Extensions(
