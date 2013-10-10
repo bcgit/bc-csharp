@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				//
 				// state tests
 				//
-				byte[] buf = new byte[16];
+				byte[] buf = new byte[_engine.GetBlockSize()];
 
 				try
 				{
