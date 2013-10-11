@@ -42,6 +42,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Threefish256Test(),
             new Threefish512Test(),
             new Threefish1024Test(),
+            new SkeinDigestTest(),
+            new SkeinMacTest(),
             new Cast5Test(),
             new Cast6Test(),
             new Gost28147Test(),
