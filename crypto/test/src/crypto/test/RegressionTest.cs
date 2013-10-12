@@ -115,6 +115,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new NullTest(),
             new SipHashTest(),
             new OcbTest(),
+			new Sm3DigestTest()
         };
 
         public static void Main(
