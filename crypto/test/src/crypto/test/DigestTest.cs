@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -35,9 +36,9 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			for (int i = 0; i < input.Length - 1; i++)
 			{
-				byte[] m = toByteArray(input[i]);
+				byte[] msg = toByteArray(input[i]);
 
-				vectorTest(digest, i, resBuf, m, Hex.Decode(results[i]));
+				vectorTest(digest, i, resBuf, msg, Hex.Decode(results[i]));
 			}
 
 			byte[] lastV = toByteArray(input[input.Length - 1]);
@@ -67,6 +68,45 @@ namespace Org.BouncyCastle.Crypto.Tests
 			if (!AreEqual(lastDigest, resBuf))
 			{
 				Fail("failing second clone vector test", results[results.Length - 1], Hex.ToHexString(resBuf));
+			}
+
+			//
+			// memo test
+			//
+			IMemoable m = (IMemoable)digest;
+
+			digest.BlockUpdate(lastV, 0, lastV.Length/2);
+
+			// copy the Digest
+			IMemoable copy1 = m.Copy();
+			IMemoable copy2 = copy1.Copy();
+
+			digest.BlockUpdate(lastV, lastV.Length/2, lastV.Length - lastV.Length/2);
+			digest.DoFinal(resBuf, 0);
+
+			if (!AreEqual(lastDigest, resBuf))
+			{
+				Fail("failing memo vector test", results[results.Length - 1], Hex.ToHexString(resBuf));
+			}
+
+			m.Reset(copy1);
+
+			digest.BlockUpdate(lastV, lastV.Length/2, lastV.Length - lastV.Length/2);
+			digest.DoFinal(resBuf, 0);
+
+			if (!AreEqual(lastDigest, resBuf))
+			{
+				Fail("failing memo reset vector test", results[results.Length - 1], Hex.ToHexString(resBuf));
+			}
+
+			IDigest md = (IDigest)copy2;
+
+			md.BlockUpdate(lastV, lastV.Length/2, lastV.Length - lastV.Length/2);
+			md.DoFinal(resBuf, 0);
+
+			if (!AreEqual(lastDigest, resBuf))
+			{
+				Fail("failing memo copy vector test", results[results.Length - 1], Hex.ToHexString(resBuf));
 			}
 		}
 

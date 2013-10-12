@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 	/// </remarks>
 	/// <seealso cref="Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/>
 	public class SkeinEngine
-		//	    : IMemoable
+		: IMemoable
 	{
 		/// <summary>
 		/// 256 bit block size - Skein-256
@@ -565,20 +565,20 @@ namespace Org.BouncyCastle.Crypto.Digests
 			return existing;
 		}
 
-		//	    public IMemoable Copy()
-		//	    {
-		//	        return new SkeinEngine(this);
-		//	    }
-		//
-		//	    public void Reset(IMemoable other)
-		//	    {
-		//	        SkeinEngine s = (SkeinEngine)other;
-		//	        if ((getBlockSize() != s.getBlockSize()) || (outputSizeBytes != s.outputSizeBytes))
-		//	        {
-		//	            throw new IllegalArgumentException("Incompatible parameters in provided SkeinEngine.");
-		//	        }
-		//	        copyIn(s);
-		//	    }
+		public IMemoable Copy()
+		{
+			return new SkeinEngine(this);
+		}
+
+		public void Reset(IMemoable other)
+		{
+			SkeinEngine s = (SkeinEngine)other;
+			if ((BlockSize != s.BlockSize) || (outputSizeBytes != s.outputSizeBytes))
+			{
+				throw new MemoableResetException("Incompatible parameters in provided SkeinEngine.");
+			}
+			CopyIn(s);
+		}
 
 		public int OutputSize
 		{

@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 	/// <seealso cref="Org.BouncyCastle.Crypto.Digests.SkeinEngine"/>
 	/// <seealso cref="Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/>
 	public class SkeinDigest
-		: IDigest//, IMemoable
+		: IDigest, IMemoable
 	{
 		/// <summary>
 		/// 256 bit block size - Skein-256
@@ -57,16 +57,16 @@ namespace Org.BouncyCastle.Crypto.Digests
 			this.engine = new SkeinEngine(digest.engine);
 		}
 
-		//	    public void Reset(IMemoable other)
-		//	    {
-		//	        SkeinDigest d = (SkeinDigest)other;
-		//	        engine.reset(d.engine);
-		//	    }
-		//
-		//	    public IMemoable copy()
-		//	    {
-		//	        return new SkeinDigest(this);
-		//	    }
+		public void Reset(IMemoable other)
+		{
+			SkeinDigest d = (SkeinDigest)other;
+			engine.Reset(d.engine);
+		}
+
+		public IMemoable Copy()
+		{
+			return new SkeinDigest(this);
+		}
 
 		public String AlgorithmName
 		{
