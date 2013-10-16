@@ -65,6 +65,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 			get { return cipher.GetUnderlyingCipher().AlgorithmName + "/EAX"; }
 		}
 
+		public IBlockCipher GetUnderlyingCipher()
+		{
+			return cipher;
+		}
+
 		public virtual int GetBlockSize()
 		{
 			return cipher.GetBlockSize();
