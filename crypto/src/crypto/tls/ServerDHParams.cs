@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 {
     public class ServerDHParams
     {
-        protected DHPublicKeyParameters publicKey;
+        private DHPublicKeyParameters publicKey;
 
         public ServerDHParams(DHPublicKeyParameters publicKey)
         {

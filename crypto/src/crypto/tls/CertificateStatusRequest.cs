@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
     public class CertificateStatusRequest
     {
-        protected CertificateStatusType statusType;
+        private CertificateStatusType statusType;
         protected Object request;
 
         public CertificateStatusRequest(short statusType, Object request)

@@ -8,8 +8,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         : TlsSignerCredentials
     {
         protected TlsContext context;
-        protected Certificate certificate;
-        protected AsymmetricKeyParameter privateKey;
+        private Certificate _certificate;
+        private AsymmetricKeyParameter privateKey;
 
         protected TlsSigner signer;
 
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.signer.Init(context);
 
             this.context = context;
-            this.certificate = certificate;
+            this._certificate = certificate;
             this.privateKey = privateKey;
         }
 
@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             get
             {
-                return certificate;
+                return _certificate;
             }
         }
 

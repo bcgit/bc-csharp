@@ -128,6 +128,7 @@
     <Compile Include="test\src\crypto\tls\MockDatagramAssociation.cs" />
     <Compile Include="test\src\crypto\tls\MockDTLSClient.cs" />
     <Compile Include="test\src\crypto\tls\MockDTLSServer.cs" />
+    <Compile Include="test\src\crypto\tls\TlsTransportMSFTInteropTest.cs" />
     <Compile Include="test\src\crypto\tls\UnreliableDatagramTransport.cs" />
     <None Include="NBuild.build" />
     <None Include="testcfg.nunit" />
@@ -4491,6 +4492,7 @@
     <Compile Include="test\src\tsp\test\TSPTestUtil.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\src\util\io\DualStream.cs" />
     <Compile Include="test\src\util\io\pem\test\AllTests.cs">
       <SubType>Code</SubType>
     </Compile>

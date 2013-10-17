@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
     public class ServerName
     {
-        protected NameType nameType;
+        private NameType nameType;
         protected Object name;
 
         public ServerName(short nameType, Object name)

@@ -93,6 +93,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void HandleChangeCipherSpecMessage()
         {
+
         }
 
         protected abstract void HandleHandshakeMessage(HandshakeType type, byte[] buf);
@@ -1129,6 +1130,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                 : base(length + 4)
             {
                 this.outer = outer;
+
+                SetLength(4); 
 
                 TlsUtilities.WriteUint8((byte)handshakeType, this);
                 // Reserve space for length

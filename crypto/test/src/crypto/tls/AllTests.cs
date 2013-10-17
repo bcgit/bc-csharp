@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Test
     {
         private static ITest[] tests = new ITest[]
         {
+            new TLSProtocolMSFTInteropTest(),
             new DTLSProtocolTest(),
             new TLSProtocolTest(), 
         };

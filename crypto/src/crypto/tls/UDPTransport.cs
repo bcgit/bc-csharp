@@ -46,8 +46,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public int Receive(byte[] buf, int off, int len, int waitMillis)
         {
-#if CF
-            socket.Poll(waitMillis * 1000, SelectMode.SelectRead); 
+#if CF || PocketPC
+            socket.Poll(waitMillis * 1000, SelectMode.SelectRead);
 #else
             socket.ReceiveTimeout = waitMillis;
 #endif
@@ -79,5 +79,4 @@ namespace Org.BouncyCastle.Crypto.Tls
             Close();
         }
     }
-
 }

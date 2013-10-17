@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
     public class DTLSServerProtocol : DTLSProtocol
     {
-        protected bool verifyRequests = true;
+        private bool verifyRequests = true;
 
         public DTLSServerProtocol(SecureRandom secureRandom)
             : base(secureRandom)

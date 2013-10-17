@@ -10,8 +10,8 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class DefaultTlsAgreementCredentials
         : TlsAgreementCredentials
     {
-        protected Certificate certificate;
-        protected AsymmetricKeyParameter privateKey;
+        private Certificate certificate;
+        private AsymmetricKeyParameter privateKey;
 
         protected IBasicAgreement basicAgreement;
         protected bool truncateAgreement;

@@ -1,1 +1,0 @@
-D:\Development\Git\bc-csharp\crypto-test\obj\Debug\ResolveAssemblyReference.cache

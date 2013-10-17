@@ -9,8 +9,8 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class DefaultTlsEncryptionCredentials : TlsEncryptionCredentials
     {
         protected TlsContext context;
-        protected Certificate certificate;
-        protected AsymmetricKeyParameter privateKey;
+        private Certificate certificate;
+        private AsymmetricKeyParameter privateKey;
 
         public DefaultTlsEncryptionCredentials(TlsContext context, Certificate certificate,
                                                AsymmetricKeyParameter privateKey)
