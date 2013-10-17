@@ -10,7 +10,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 	/**
 	 * Implementation of Daniel J. Bernstein's Salsa20 stream cipher, Snuffle 2005
 	 */
-	[CLSCompliantAttribute(false)]
 	public class Salsa20Engine
 		: IStreamCipher
 	{
@@ -30,8 +29,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 		 * during encryption and decryption
 		 */
 		private int		 index = 0;
-		protected uint[] engineState = new uint[StateSize]; // state
-		protected uint[] x = new uint[StateSize]; // internal buffer
+		internal uint[] engineState = new uint[StateSize]; // state
+		internal uint[] x = new uint[StateSize]; // internal buffer
 		private byte[]	 keyStream = new byte[StateSize * 4]; // expanded state, 64 bytes
 		private bool	 initialised = false;
 
@@ -242,7 +241,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			Pack.UInt32_To_LE(x, output, 0);
 		}
 
-		protected internal static void SalsaCore(int rounds, uint[] input, uint[] x)
+		internal static void SalsaCore(int rounds, uint[] input, uint[] x)
 		{
 			if (input.Length != 16) {
 				throw new ArgumentException();
@@ -334,7 +333,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		 *
 		 * @return  rotated x
 		 */
-		protected static uint R(uint x, int y)
+		internal static uint R(uint x, int y)
 		{
 			return (x << y) | (x >> (32 - y));
 		}

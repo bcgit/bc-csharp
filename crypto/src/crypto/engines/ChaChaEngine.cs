@@ -6,7 +6,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 	/**
 	 * Implementation of Daniel J. Bernstein's ChaCha stream cipher.
 	 */
-	[CLSCompliantAttribute(false)]
 	public class ChaChaEngine
 		: Salsa20Engine
 	{
@@ -101,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 	     *
 	     * @return  keystream
 	     */
-		protected internal static void ChachaCore(int rounds, uint[] input, uint[] x)
+		internal static void ChachaCore(int rounds, uint[] input, uint[] x)
 		{
 			if (input.Length != 16) {
 				throw new ArgumentException();
