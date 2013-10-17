@@ -283,11 +283,11 @@ namespace Org.BouncyCastle.Crypto.Generators
 		}
 
 		/**
-		 * Generates a permuted ArrayList from the original one. The original List
+		 * Generates a permuted IList from the original one. The original List
 		 * is not modified
 		 *
 		 * @param arr
-		 *            the ArrayList to be permuted
+		 *            the IList to be permuted
 		 * @param rand
 		 *            the source of Randomness for permutation
 		 * @return a new IList with the permuted elements.

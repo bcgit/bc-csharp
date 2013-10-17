@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		/**
 		 * Returns the targets in this target information extension.
 		 * <p>
-		 * The ArrayList is cloned before it is returned.</p>
+		 * The IList is cloned before it is returned.</p>
 		 * 
 		 * @return Returns the targets.
 		 */

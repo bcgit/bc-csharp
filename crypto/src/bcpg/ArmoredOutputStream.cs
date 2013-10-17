@@ -97,8 +97,13 @@ namespace Org.BouncyCastle.Bcpg
         private static readonly string	footerStart = "-----END PGP ";
         private static readonly string	footerTail = "-----";
 
+#if !SL5
         private static readonly string version = "BCPG C# v"
-			+ Assembly.GetExecutingAssembly().GetName().Version;
+            + Assembly.GetExecutingAssembly().GetName().Version; 
+#else
+        private static readonly string version = "BCPG C# v"
+            + Assembly.GetExecutingAssembly().FullName; 
+#endif
 
 		private readonly IDictionary headers;
 

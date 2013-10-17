@@ -66,7 +66,14 @@ namespace Org.BouncyCastle.Asn1
                 cs[i] = (char)((str[2 * i] << 8) | (str[2 * i + 1] & 0xff));
             }
 
-			this.str = new string(cs);
+            if (cs[cs.Length - 1] == 0)
+            {
+                this.str = new string(cs, 0, cs.Length - 1);
+            }
+            else
+            {
+                this.str = new string(cs, 0, cs.Length);
+            }   
         }
 
         /**

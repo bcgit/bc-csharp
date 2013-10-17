@@ -9,11 +9,19 @@ namespace Org.BouncyCastle.Crypto.Tls
 	public interface TlsKeyExchange
 	{
 		/// <exception cref="IOException"/>
-		void SkipServerCertificate();
+        void Init(TlsContext context);
+
+        void SkipServerCredentials();
+
+        void ProcessServerCredentials(TlsCredentials serverCredentials);
 
 		/// <exception cref="IOException"/>
 		void ProcessServerCertificate(Certificate serverCertificate);
 
+        bool  RequiresServerKeyExchange { get; } 
+
+        byte[] GenerateServerKeyExchange();
+        
 		/// <exception cref="IOException"/>
 		void SkipServerKeyExchange();
 
@@ -29,8 +37,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 		/// <exception cref="IOException"/>
 		void ProcessClientCredentials(TlsCredentials clientCredentials);
 		
-		/// <exception cref="IOException"/>
+        void ProcessClientCertificate(Certificate clientCertificate);
+
 		void GenerateClientKeyExchange(Stream output);
+
+        void ProcessClientKeyExchange(Stream input);
 
 		/// <exception cref="IOException"/>
 		byte[] GeneratePremasterSecret();

@@ -9,5 +9,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 		alert = 21,
 		handshake = 22,
 		application_data = 23,
+        heartbeat = 24
 	}
 }

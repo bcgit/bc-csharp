@@ -21,6 +21,26 @@ namespace Org.BouncyCastle.Crypto.Tls
 		internal X509CertificateStructure[] certs;
 
 		/**
+		* Private constructor from a cert array.
+		*
+		* @param certs The certs the chain should contain.
+		*/
+		public Certificate(X509CertificateStructure[] certs)
+		{
+			if (certs == null)
+				throw new ArgumentNullException("certs");
+
+			this.certs = certs;
+		}
+
+
+		/// <returns>An array which contains the certs, this chain contains.</returns>
+		public X509CertificateStructure[] GetCerts()
+		{
+			return (X509CertificateStructure[]) certs.Clone();
+		}
+
+		/**
 		* Parse the ServerCertificate message.
 		*
 		* @param inStr The stream where to parse from.
@@ -84,28 +104,23 @@ namespace Org.BouncyCastle.Crypto.Tls
 			}
 		}
 
-		/**
-		* Private constructor from a cert array.
-		*
-		* @param certs The certs the chain should contain.
-		*/
-		public Certificate(X509CertificateStructure[] certs)
-		{
-			if (certs == null)
-				throw new ArgumentNullException("certs");
-
-			this.certs = certs;
-		}
-
-		/// <returns>An array which contains the certs, this chain contains.</returns>
-		public X509CertificateStructure[] GetCerts()
-		{
-			return (X509CertificateStructure[]) certs.Clone();
-		}
 
 		public bool IsEmpty
 		{
 			get { return certs.Length == 0; }
 		}
+
+        public int Length
+        {
+            get
+            {
+                return certs.Length;
+            }
+        }
+
+        public X509CertificateStructure GetCertificateAt(int index)
+        {
+            return certs[index];
+        }
 	}
 }

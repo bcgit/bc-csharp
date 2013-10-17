@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Crypto
 			if (outLength > 0 && pos < outLength)
 			{
 				byte[] tmp = new byte[pos];
-				Array.Copy(outBytes, 0, tmp, 0, pos);
+				Buffer.BlockCopy(outBytes, 0, tmp, 0, pos);
 				outBytes = tmp;
 			}
 
@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Crypto
 			if (outLength > 0 && pos < outLength)
 			{
 				byte[] tmp = new byte[pos];
-				Array.Copy(outBytes, 0, tmp, 0, pos);
+				Buffer.BlockCopy(outBytes, 0, tmp, 0, pos);
 				outBytes = tmp;
 			}
 
@@ -181,7 +181,7 @@ namespace Org.BouncyCastle.Crypto
             if (pos < outBytes.Length)
 			{
 				byte[] tmp = new byte[pos];
-				Array.Copy(outBytes, 0, tmp, 0, pos);
+				Buffer.BlockCopy(outBytes, 0, tmp, 0, pos);
 				outBytes = tmp;
 			}
 
@@ -207,7 +207,7 @@ namespace Org.BouncyCastle.Crypto
             if (pos < outBytes.Length)
 			{
 				byte[] tmp = new byte[pos];
-				Array.Copy(outBytes, 0, tmp, 0, pos);
+				Buffer.BlockCopy(outBytes, 0, tmp, 0, pos);
 				outBytes = tmp;
 			}
 

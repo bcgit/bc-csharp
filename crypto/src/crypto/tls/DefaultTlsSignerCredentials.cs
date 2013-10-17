@@ -7,65 +7,70 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class DefaultTlsSignerCredentials
         : TlsSignerCredentials
     {
-        protected TlsClientContext context;
-        protected Certificate clientCert;
-        protected AsymmetricKeyParameter clientPrivateKey;
+        protected TlsContext context;
+        private Certificate _certificate;
+        private AsymmetricKeyParameter privateKey;
 
-        protected TlsSigner clientSigner;
+        protected TlsSigner signer;
 
-        public DefaultTlsSignerCredentials(TlsClientContext context,
-            Certificate clientCertificate, AsymmetricKeyParameter clientPrivateKey)
+        public DefaultTlsSignerCredentials(TlsContext context,
+            Certificate certificate, AsymmetricKeyParameter privateKey)
         {
-            if (clientCertificate == null)
+            if (certificate == null)
             {
                 throw new ArgumentNullException("clientCertificate");
             }
-            if (clientCertificate.certs.Length == 0)
+            if (certificate.IsEmpty)
             {
                 throw new ArgumentException("cannot be empty", "clientCertificate");
             }
-            if (clientPrivateKey == null)
+            if (privateKey == null)
             {
                 throw new ArgumentNullException("clientPrivateKey");
             }
-            if (!clientPrivateKey.IsPrivate)
+            if (!privateKey.IsPrivate)
             {
                 throw new ArgumentException("must be private", "clientPrivateKey");
             }
 
-            if (clientPrivateKey is RsaKeyParameters)
+            if (privateKey is RsaKeyParameters)
             {
-                clientSigner = new TlsRsaSigner();
+                signer = new TlsRsaSigner();
             }
-            else if (clientPrivateKey is DsaPrivateKeyParameters)
+            else if (privateKey is DsaPrivateKeyParameters)
             {
-                clientSigner = new TlsDssSigner();
+                signer = new TlsDssSigner();
             }
-            else if (clientPrivateKey is ECPrivateKeyParameters)
+            else if (privateKey is ECPrivateKeyParameters)
             {
-                clientSigner = new TlsECDsaSigner();
+                signer = new TlsECDsaSigner();
             }
             else
             {
                 throw new ArgumentException("type not supported: "
-                    + clientPrivateKey.GetType().FullName, "clientPrivateKey");
+                    + privateKey.GetType().FullName, "clientPrivateKey");
             }
 
+            this.signer.Init(context);
+
             this.context = context;
-            this.clientCert = clientCertificate;
-            this.clientPrivateKey = clientPrivateKey;
+            this._certificate = certificate;
+            this.privateKey = privateKey;
         }
 
         public virtual Certificate Certificate
         {
-            get { return clientCert; }
+            get
+            {
+                return _certificate;
+            }
         }
 
         public virtual byte[] GenerateCertificateSignature(byte[] md5andsha1)
         {
             try
             {
-                return clientSigner.GenerateRawSignature(context.SecureRandom, clientPrivateKey, md5andsha1);
+                return signer.GenerateRawSignature(privateKey, md5andsha1);
             }
             catch (CryptoException)
             {

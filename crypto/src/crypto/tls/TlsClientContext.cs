@@ -4,12 +4,8 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-	public interface TlsClientContext
+	public interface TlsClientContext : TlsContext
 	{
-		SecureRandom SecureRandom { get; }
-
-		SecurityParameters SecurityParameters { get; }
-
-		object UserObject { get; set; }
+		
 	}
 }

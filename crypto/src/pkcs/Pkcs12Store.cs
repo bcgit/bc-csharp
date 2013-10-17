@@ -1198,7 +1198,8 @@ namespace Org.BouncyCastle.Pkcs
             {
                 get
                 {
-                    string lower = Platform.ToLowerInvariant(alias);
+                    alias = alias.Trim();
+                    string lower = Platform.ToLowerInvariant(alias).Trim();
                     string k = (string)keys[lower];
 
                     if (k == null)
@@ -1208,6 +1209,7 @@ namespace Org.BouncyCastle.Pkcs
                 }
                 set
                 {
+                    alias = alias.Trim();
                     string lower = Platform.ToLowerInvariant(alias);
                     string k = (string)keys[lower];
                     if (k != null)
