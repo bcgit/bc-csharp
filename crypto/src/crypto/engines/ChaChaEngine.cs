@@ -3,24 +3,24 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-	/**
-	 * Implementation of Daniel J. Bernstein's ChaCha stream cipher.
-	 */
+	/// <summary>
+	/// Implementation of Daniel J. Bernstein's ChaCha stream cipher.
+	/// </summary>
 	public class ChaChaEngine
 		: Salsa20Engine
 	{
 
-		/**
-     	* Creates a 20 rounds ChaCha engine.
-     	*/
+		/// <summary>
+		/// Creates a 20 rounds ChaCha engine.
+		/// </summary>
 		public ChaChaEngine()
 		{
 		}
 
-		/**
-		 * Creates a ChaCha engine with a specific number of rounds.
-		 * @param rounds the number of rounds (must be an even number).
-		 */
+		/// <summary>
+		/// Creates a ChaCha engine with a specific number of rounds.
+		/// </summary>
+		/// <param name="rounds">the number of rounds (must be an even number).</param>
 		public ChaChaEngine(int rounds)
 			: base(rounds)
 		{
@@ -93,13 +93,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 			Pack.UInt32_To_LE(x, output, 0);
 		}
 
-		/**
-	     * ChacCha function
-	     *
-	     * @param   input   input data
-	     *
-	     * @return  keystream
-	     */
+		/// <summary>
+		/// ChacCha function.
+		/// </summary>
+		/// <param name="rounds">The number of ChaCha rounds to execute</param>
+		/// <param name="input">The input words.</param>
+		/// <param name="x">The ChaCha state to modify.</param>
 		internal static void ChachaCore(int rounds, uint[] input, uint[] x)
 		{
 			if (input.Length != 16) {

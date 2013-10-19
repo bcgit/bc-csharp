@@ -4,11 +4,12 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-	/**
-	 * Implementation of Daniel J. Bernstein's XSalsa20 stream cipher - Salsa20 with an extended nonce.
-	 * <p>
-	 * XSalsa20 requires a 256 bit key, and a 192 bit nonce.
-	 */
+	/// <summary>
+	/// Implementation of Daniel J. Bernstein's XSalsa20 stream cipher - Salsa20 with an extended nonce.
+	/// </summary>
+	/// <remarks>
+	/// XSalsa20 requires a 256 bit key, and a 192 bit nonce.
+	/// </remarks>
 	public class XSalsa20Engine 
 		: Salsa20Engine
 	{
@@ -23,11 +24,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return 24; }
 		}
 
-		/**
-		 * XSalsa20 key generation: process 256 bit input key and 128 bits of the input nonce
-		 * using a core Salsa20 function without input addition to produce 256 bit working key
-		 * and use that with the remaining 64 bits of nonce to initialize a standard Salsa20 engine state.
-		 */
+		/// <summary>
+		/// XSalsa20 key generation: process 256 bit input key and 128 bits of the input nonce
+		/// using a core Salsa20 function without input addition to produce 256 bit working key
+		/// and use that with the remaining 64 bits of nonce to initialize a standard Salsa20 engine state.
+		/// </summary>
 		protected override void SetKey(byte[] keyBytes, byte[] ivBytes)
 		{
 			if (keyBytes.Length != 32)

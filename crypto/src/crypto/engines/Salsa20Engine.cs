@@ -7,9 +7,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-	/**
-	 * Implementation of Daniel J. Bernstein's Salsa20 stream cipher, Snuffle 2005
-	 */
+	/// <summary>
+	/// Implementation of Daniel J. Bernstein's Salsa20 stream cipher, Snuffle 2005
+	/// </summary>
 	public class Salsa20Engine
 		: IStreamCipher
 	{
@@ -39,18 +39,18 @@ namespace Org.BouncyCastle.Crypto.Engines
 		 */
 		private uint cW0, cW1, cW2;
 
-		/**
-		 * Creates a 20 round Salsa20 engine.
-		 */
+		/// <summary>
+		/// Creates a 20 round Salsa20 engine.
+		/// </summary>
 		public Salsa20Engine()
 			: this(DEFAULT_ROUNDS)
 		{
 		}
 
-		/**
-		 * Creates a Salsa20 engine with a specific number of rounds.
-		 * @param rounds the number of rounds (must be an even number).
-		 */
+		/// <summary>
+		/// Creates a Salsa20 engine with a specific number of rounds.
+		/// </summary>
+		/// <param name="rounds">the number of rounds (must be an even number).</param>
 		public Salsa20Engine(int rounds)
 		{
 			if (rounds <= 0 || (rounds & 1) != 0)
@@ -61,14 +61,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			this.rounds = rounds;
 		}
 
-		/**
-		 * initialise a Salsa20 cipher.
-		 *
-		 * @param forEncryption whether or not we are for encryption.
-		 * @param params the parameters required to set up the cipher.
-		 * @exception ArgumentException if the params argument is
-		 * inappropriate.
-		 */
 		public void Init(
 			bool				forEncryption, 
 			ICipherParameters	parameters)
