@@ -2297,6 +2297,9 @@
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationReason.cs" />
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationReasonTags.cs" />
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationKeyTags.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/macs/Poly1305.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/generators/Poly1305KeyGenerator.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/Poly1305Test.cs" />
   </Contents>
   <References>
     <ProjectReference type="Assembly" localcopy="True" refto="test/lib/nunit.core.dll" />
