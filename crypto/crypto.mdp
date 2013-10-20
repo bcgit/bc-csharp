@@ -2297,6 +2297,21 @@
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationReason.cs" />
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationReasonTags.cs" />
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationKeyTags.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/engines/ThreefishEngine.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/parameters/TweakableBlockCipherParameters.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/Threefish256Test.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/Threefish512Test.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/Threefish1024Test.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/parameters/SkeinParameters.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/digests/SkeinDigest.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/digests/SkeinEngine.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/SkeinDigestTest.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/SkeinMacTest.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/macs/SkeinMac.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/util/IMemoable.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/util/MemoableResetException.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/digests/Sm3Digest.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/Sm3DigestTest.cs" />
   </Contents>
   <References>
     <ProjectReference type="Assembly" localcopy="True" refto="test/lib/nunit.core.dll" />

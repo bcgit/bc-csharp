@@ -206,10 +206,50 @@ namespace Org.BouncyCastle.Utilities
 			return data == null ? null : (byte[]) data.Clone();
 		}
 
+		public static byte[] Clone(
+			byte[] data, 
+			byte[] existing)
+		{
+			if (data == null)
+			{
+				return null;
+			}
+			if ((existing == null) || (existing.Length != data.Length))
+			{
+				return Clone(data);
+			}
+			Array.Copy(data, 0, existing, 0, existing.Length);
+			return existing;
+		}
+
 		public static int[] Clone(
 			int[] data)
 		{
 			return data == null ? null : (int[]) data.Clone();
+		}
+
+		[CLSCompliantAttribute(false)]
+		public static ulong[] Clone(
+			ulong[] data)
+		{
+			return data == null ? null : (ulong[]) data.Clone();
+		}
+
+		[CLSCompliantAttribute(false)]
+		public static ulong[] Clone(
+			ulong[] data, 
+			ulong[] existing)
+		{
+			if (data == null)
+			{
+				return null;
+			}
+			if ((existing == null) || (existing.Length != data.Length))
+			{
+				return Clone(data);
+			}
+			Array.Copy(data, 0, existing, 0, existing.Length);
+			return existing;
 		}
 
 		public static void Fill(

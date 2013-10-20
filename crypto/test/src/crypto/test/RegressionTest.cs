@@ -39,6 +39,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SkipjackTest(),
             new BlowfishTest(),
             new TwofishTest(),
+            new Threefish256Test(),
+            new Threefish512Test(),
+            new Threefish1024Test(),
+            new SkeinDigestTest(),
+            new SkeinMacTest(),
             new Cast5Test(),
             new Cast6Test(),
             new Gost28147Test(),
@@ -110,6 +115,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new NullTest(),
             new SipHashTest(),
             new OcbTest(),
+			new Sm3DigestTest()
         };
 
         public static void Main(
