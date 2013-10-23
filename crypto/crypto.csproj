@@ -3567,6 +3567,7 @@
     <Compile Include="test\src\asn1\test\EncryptedPrivateKeyInfoTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\src\asn1\test\EnumeratedTest.cs" />
     <Compile Include="test\src\asn1\test\EqualsAndHashCodeTest.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1
         public DerEnumerated(
             byte[]   bytes)
         {
-            this.bytes = bytes;
+            this.bytes = Arrays.Clone(bytes);
         }
 
         public BigInteger Value
