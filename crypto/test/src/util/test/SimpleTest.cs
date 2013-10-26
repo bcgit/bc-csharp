@@ -115,23 +115,13 @@ namespace Org.BouncyCastle.Utilities.Test
 		private static string GetFullName(
 			string name)
 		{
-// TODO MonoDevelop/Visual Studio embedded resource ids still inconsistent
-#if BC_BUILD_MONODEVELOP
-			return "test.data." + name;
-#else
-			return "crypto.test.data." + name;
-#endif
+			return "UnitTests.data." + name;
 		}
 
 		private static string GetShortName(
 			string fullName)
 		{
-// TODO MonoDevelop/Visual Studio embedded resource ids still inconsistent
-#if BC_BUILD_MONODEVELOP
-			return fullName.Substring("test.data.".Length);
-#else
-			return fullName.Substring("crypto.test.data.".Length);
-#endif
+			return fullName.Substring("UnitTests.data.".Length);
 		}
 
 #if NETCF_1_0 || NETCF_2_0
