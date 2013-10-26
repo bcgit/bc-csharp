@@ -5,7 +5,7 @@
 # to native line endings on checkout.
 *.build    text diff=xml
 *.cs       text diff=csharp
-*.csproj   text diff=xml
+*.csproj   text diff=xml eol=crlf
 *.eml      text
 *.html     text diff=html
 *.mdp      text diff=xml
@@ -13,7 +13,7 @@
 *.nunit    text diff=xml
 *.pem      text
 *.README   text
-*.sln      text
+*.sln      text eol=crlf
 *.txt      text
 *.xml      text diff=xml
 
