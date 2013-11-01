@@ -100,6 +100,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new CMacTest(),
             new EaxTest(),
             new GcmTest(),
+            new GMacTest(),
             new HCFamilyTest(),
             new HCFamilyVecTest(),
             new IsaacTest(),
