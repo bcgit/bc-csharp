@@ -3324,6 +3324,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\engines\ChaChaEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\engines\DESedeEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3495,6 +3500,11 @@
                 />
                 <File
                     RelPath = "src\crypto\engines\VMPCKSA3Engine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\engines\XSalsa20Engine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -9567,6 +9577,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\ChaChaTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\CipherTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -10033,6 +10048,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\WhirlpoolDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\XSalsa20Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
