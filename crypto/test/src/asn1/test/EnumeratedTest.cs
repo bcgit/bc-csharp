@@ -1,10 +1,12 @@
-﻿namespace crypto.test.src.asn1.test
+﻿using System;
+
+using NUnit.Framework;
+
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Utilities.Encoders;
+
+namespace Org.BouncyCastle.Asn1.Tests
 {
-    using NUnit.Framework;
-
-    using Org.BouncyCastle.Asn1;
-    using Org.BouncyCastle.Utilities.Encoders;
-
     /// <summary>
     /// Tests used to verify correct decoding of the ENUMERATED type.
     /// </summary>
