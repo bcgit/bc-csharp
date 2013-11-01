@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 		/// This will produce an authentication code the length of the block size of the cipher.
 		/// </remarks>
 		/// <param name="cipher">the cipher to be used in GCM mode to generate the MAC.</param>
-		/// <param name="macSizeBits">the mac size to generate, in bits. Must be a multiple of 8 and >= 96 and <= 128.</param>
+		/// <param name="macSizeBits">the mac size to generate, in bits. Must be a multiple of 8, between 96 and 128 (inclusive).</param>
 		public GMac(GcmBlockCipher cipher, int macSizeBits)
 	    {
 	        this.cipher = cipher;
