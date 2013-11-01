@@ -3679,6 +3679,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\macs\GMac.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\macs\GOST28147Mac.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -9678,6 +9683,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\GCMTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\GMacTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
