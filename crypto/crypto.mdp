@@ -851,6 +851,7 @@
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/DERUTF8StringTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/EncryptedPrivateKeyInfoTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/EqualsAndHashCodeTest.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/EnumeratedTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/GeneralizedTimeTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/GenerationTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/InputStreamTest.cs" />
