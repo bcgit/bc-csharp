@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 
@@ -11,13 +12,13 @@ namespace Org.BouncyCastle.Crypto.Generators
 	/// </summary>
 	/// <remarks>
 	/// Poly1305 keys are 256 bit keys consisting of a 128 bit secret key used for the underlying block
-	/// cipher followed by a 128 bit {@code r} value used for the polynomial portion of the Mac. <br>
+	/// cipher followed by a 128 bit {@code r} value used for the polynomial portion of the Mac. <br/>
 	/// The {@code r} value has a specific format with some bits required to be cleared, resulting in an
-	/// effective 106 bit key. <br>
+	/// effective 106 bit key. <br/>
 	/// A separately generated 256 bit key can be modified to fit the Poly1305 key format by using the
 	/// {@link #clamp(byte[])} method to clear the required bits.
 	/// </remarks>
-	/// <seealso cref="Org.Bouncycastle.Crypto.Macs.Poly1305"/>
+	/// <seealso cref="Poly1305"/>
 	public class Poly1305KeyGenerator
 		: CipherKeyGenerator
 	{
@@ -51,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 		/// <summary>
 		/// Modifies an existing 32 byte key value to comply with the requirements of the Poly1305 key by
-		/// clearing required bits in the <code>r</code> (second 16 bytes) portion of the key.<br>
+		/// clearing required bits in the <code>r</code> (second 16 bytes) portion of the key.<br/>
 		/// Specifically:
 		/// <ul>
 		/// <li>r[3], r[7], r[11], r[15] have top four bits clear (i.e., are {0, 1, . . . , 15})</li>
