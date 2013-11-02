@@ -112,6 +112,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SCryptTest(),
             new NullTest(),
             new SipHashTest(),
+            new Poly1305Test(),
             new OcbTest(),
         };
 

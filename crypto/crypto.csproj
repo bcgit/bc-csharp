@@ -3629,6 +3629,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\generators\Poly1305KeyGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\generators\RSABlindingFactorGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3690,6 +3695,11 @@
                 />
                 <File
                     RelPath = "src\crypto\macs\HMac.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\macs\Poly1305.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -9828,6 +9838,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\Pkcs5Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\Poly1305Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
