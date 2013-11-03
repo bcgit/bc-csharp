@@ -851,6 +851,7 @@
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/DERUTF8StringTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/EncryptedPrivateKeyInfoTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/EqualsAndHashCodeTest.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/EnumeratedTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/GeneralizedTimeTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/GenerationTest.cs" />
     <File subtype="Code" buildaction="Compile" name="test/src/asn1/test/InputStreamTest.cs" />
@@ -2297,6 +2298,15 @@
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationReason.cs" />
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationReasonTags.cs" />
     <File subtype="Code" buildaction="Compile" name="src/bcpg/sig/RevocationKeyTags.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/engines/ChaChaEngine.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/engines/XSalsa20Engine.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/ChaChaTest.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/XSalsa20Test.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/macs/GMac.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/GMacTest.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/macs/Poly1305.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/generators/Poly1305KeyGenerator.cs" />
+    <File subtype="Code" buildaction="Compile" name="test/src/crypto/test/Poly1305Test.cs" />
   </Contents>
   <References>
     <ProjectReference type="Assembly" localcopy="True" refto="test/lib/nunit.core.dll" />

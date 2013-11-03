@@ -69,6 +69,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 			get { return cipher.AlgorithmName + "/GCM"; }
 		}
 
+		public IBlockCipher GetUnderlyingCipher()
+		{
+			return cipher;
+		}
+
 		public virtual int GetBlockSize()
 		{
 			return BlockSize;

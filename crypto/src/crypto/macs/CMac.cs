@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         private static int ShiftLeft(byte[] block, byte[] output)
         {
-            int i = 16;
+            int i = block.Length;
             uint bit = 0;
             while (--i >= 0)
             {

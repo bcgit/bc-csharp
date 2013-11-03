@@ -94,10 +94,13 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Rfc3211WrapTest(),
             new SeedTest(),
             new NaccacheSternTest(),
-            new Salsa20Test(),
+			new Salsa20Test(),
+			new XSalsa20Test(),
+			new ChaChaTest(),
             new CMacTest(),
             new EaxTest(),
             new GcmTest(),
+            new GMacTest(),
             new HCFamilyTest(),
             new HCFamilyVecTest(),
             new IsaacTest(),
@@ -109,6 +112,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SCryptTest(),
             new NullTest(),
             new SipHashTest(),
+            new Poly1305Test(),
             new OcbTest(),
         };
 
