@@ -73,6 +73,7 @@
     <Compile Include="src\asn1\test\DataGroupHashUnitTest.cs" />
     <Compile Include="src\asn1\test\DeclarationOfMajorityUnitTest.cs" />
     <Compile Include="src\asn1\test\EncryptedPrivateKeyInfoTest.cs" />
+    <Compile Include="src\asn1\test\EnumeratedTest.cs" />
     <Compile Include="src\asn1\test\EqualsAndHashCodeTest.cs" />
     <Compile Include="src\asn1\test\EssCertIDv2UnitTest.cs" />
     <Compile Include="src\asn1\test\GeneralNameTest.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="src\crypto\test\BlowfishTest.cs" />
     <Compile Include="src\crypto\test\CAST6Test.cs" />
     <Compile Include="src\crypto\test\CCMTest.cs" />
+    <Compile Include="src\crypto\test\ChaChaTest.cs" />
     <Compile Include="src\crypto\test\CMacTest.cs" />
     <Compile Include="src\crypto\test\CTSTest.cs" />
     <Compile Include="src\crypto\test\CamelliaLightTest.cs" />
@@ -169,6 +171,7 @@
     <Compile Include="src\crypto\test\ElGamalTest.cs" />
     <Compile Include="src\crypto\test\EqualsHashCodeTest.cs" />
     <Compile Include="src\crypto\test\GCMTest.cs" />
+    <Compile Include="src\crypto\test\GMacTest.cs" />
     <Compile Include="src\crypto\test\GOST28147MacTest.cs" />
     <Compile Include="src\crypto\test\GOST28147Test.cs" />
     <Compile Include="src\crypto\test\GOST3410Test.cs" />
@@ -199,6 +202,7 @@
     <Compile Include="src\crypto\test\PaddingTest.cs" />
     <Compile Include="src\crypto\test\Pkcs12Test.cs" />
     <Compile Include="src\crypto\test\Pkcs5Test.cs" />
+    <Compile Include="src\crypto\test\Poly1305Test.cs" />
     <Compile Include="src\crypto\test\RC2Test.cs" />
     <Compile Include="src\crypto\test\RC2WrapTest.cs" />
     <Compile Include="src\crypto\test\RC4Test.cs" />
@@ -244,6 +248,7 @@
     <Compile Include="src\crypto\test\VMPCMacTest.cs" />
     <Compile Include="src\crypto\test\VMPCTest.cs" />
     <Compile Include="src\crypto\test\WhirlpoolDigestTest.cs" />
+    <Compile Include="src\crypto\test\XSalsa20Test.cs" />
     <Compile Include="src\crypto\test\XTEATest.cs" />
     <Compile Include="src\math\ec\test\AllTests.cs" />
     <Compile Include="src\math\ec\test\ECPointPerformanceTest.cs" />

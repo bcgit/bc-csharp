@@ -682,6 +682,7 @@
     <Compile Include="src\crypto\engines\CamelliaWrapEngine.cs" />
     <Compile Include="src\crypto\engines\Cast5Engine.cs" />
     <Compile Include="src\crypto\engines\Cast6Engine.cs" />
+    <Compile Include="src\crypto\engines\ChaChaEngine.cs" />
     <Compile Include="src\crypto\engines\DesEdeEngine.cs" />
     <Compile Include="src\crypto\engines\DesEdeWrapEngine.cs" />
     <Compile Include="src\crypto\engines\DesEngine.cs" />
@@ -717,6 +718,7 @@
     <Compile Include="src\crypto\engines\TwofishEngine.cs" />
     <Compile Include="src\crypto\engines\VMPCEngine.cs" />
     <Compile Include="src\crypto\engines\VMPCKSA3Engine.cs" />
+    <Compile Include="src\crypto\engines\XSalsa20Engine.cs" />
     <Compile Include="src\crypto\engines\XTEAEngine.cs" />
     <Compile Include="src\crypto\generators\BaseKdfBytesGenerator.cs" />
     <Compile Include="src\crypto\generators\DHBasicKeyPairGenerator.cs" />
@@ -741,6 +743,7 @@
     <Compile Include="src\crypto\generators\Pkcs12ParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\Pkcs5S1ParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\Pkcs5S2ParametersGenerator.cs" />
+    <Compile Include="src\crypto\generators\Poly1305KeyGenerator.cs" />
     <Compile Include="src\crypto\generators\RSABlindingFactorGenerator.cs" />
     <Compile Include="src\crypto\generators\RsaKeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\SCrypt.cs" />
@@ -752,8 +755,10 @@
     <Compile Include="src\crypto\macs\CbcBlockCipherMac.cs" />
     <Compile Include="src\crypto\macs\CfbBlockCipherMac.cs" />
     <Compile Include="src\crypto\macs\GOST28147Mac.cs" />
+    <Compile Include="src\crypto\macs\GMac.cs" />
     <Compile Include="src\crypto\macs\HMac.cs" />
     <Compile Include="src\crypto\macs\ISO9797Alg3Mac.cs" />
+    <Compile Include="src\crypto\macs\Poly1305.cs" />
     <Compile Include="src\crypto\macs\SipHash.cs" />
     <Compile Include="src\crypto\macs\VMPCMac.cs" />
     <Compile Include="src\crypto\modes\CbcBlockCipher.cs" />
