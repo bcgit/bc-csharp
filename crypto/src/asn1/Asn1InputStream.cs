@@ -319,9 +319,9 @@ namespace Org.BouncyCastle.Asn1
             switch (tagNo)
             {
                 case Asn1Tags.Boolean:
-                    return new DerBoolean(GetBuffer(defIn, tmpBuffers));
+                    return DerBoolean.FromOctetString(GetBuffer(defIn, tmpBuffers));
                 case Asn1Tags.Enumerated:
-                    return new DerEnumerated(GetBuffer(defIn, tmpBuffers));
+                    return DerEnumerated.FromOctetString(GetBuffer(defIn, tmpBuffers));
                 case Asn1Tags.ObjectIdentifier:
                     return DerObjectIdentifier.FromOctetString(GetBuffer(defIn, tmpBuffers));
             }
