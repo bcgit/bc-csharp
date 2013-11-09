@@ -8,7 +8,7 @@
     <ProjectGuid>{4C235092-820C-4DEB-9074-D356FB797D8B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Org.BouncyCastle</RootNamespace>
-    <AssemblyName>crypto</AssemblyName>
+    <AssemblyName>BouncyCastle</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -25,7 +25,7 @@
     <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
     <DefineConstants>TRACE;INCLUDE_IDEA;</DefineConstants>
-    <DocumentationFile>doc\crypto.xml</DocumentationFile>
+    <DocumentationFile>doc\BouncyCastle.xml</DocumentationFile>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
