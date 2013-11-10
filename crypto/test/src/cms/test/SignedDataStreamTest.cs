@@ -1211,5 +1211,25 @@ namespace Org.BouncyCastle.Cms.Tests
 			Assert.AreEqual(SignCert, a[0]);
 			Assert.AreEqual(OrigCert, a[1]);
 		}
+
+        [Test]
+        public void TestCertsOnly()
+        {
+            IList certList = new ArrayList();
+            certList.Add(OrigCert);
+            certList.Add(SignCert);
+
+            IX509Store x509Certs = X509StoreFactory.Create(
+                "Certificate/Collection",
+                new X509CollectionStoreParameters(certList));
+
+            MemoryStream bOut = new MemoryStream();
+
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
+            gen.AddCertificates(x509Certs);
+            gen.Open(bOut).Close();
+
+            CheckSigParseable(bOut.ToArray());
+        }
 	}
 }

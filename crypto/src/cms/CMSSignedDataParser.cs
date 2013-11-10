@@ -170,11 +170,6 @@ namespace Org.BouncyCastle.Cms
 			{
 				throw new CmsException("io exception: " + e.Message, e);
 			}
-
-			if (_digests.Count < 1)
-			{
-				throw new CmsException("no digests could be created for message.");
-			}
 		}
 
 		/**
