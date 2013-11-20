@@ -1064,22 +1064,33 @@ namespace Org.BouncyCastle.Crypto.Tls
             while (len > 0)
             {
                 /*
-                 * Protect against known IV attack!
-                 *
-                 * DO NOT REMOVE THIS LINE, EXCEPT YOU KNOW EXACTLY WHAT
-                 * YOU ARE DOING HERE.
+                 * RFC 5246 6.2.1. Zero-length fragments of Application data MAY be sent as they are
+                 * potentially useful as a traffic analysis countermeasure.
+                 * 
+                 * NOTE: Actually, implementations appear to have settled on 1/n-1 record splitting.
                  */
-                SafeWriteMessage(ContentType.application_data, emptybuf, 0, 0);
 
-                /*
-                * We are only allowed to write fragments up to 2^14 bytes.
-                */
-                int toWrite = System.Math.Min(len, 1 << 14);
+                //if (this.splitApplicationDataRecords)
+                {
+                    /*
+                     * Protect against known IV attack!
+                     * 
+                     * DO NOT REMOVE THIS CODE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
+                     */
+                    SafeWriteMessage(ContentType.application_data, buf, offset, 1);
+                    ++offset;
+                    --len;
+                }
 
-                SafeWriteMessage(ContentType.application_data, buf, offset, toWrite);
-
-                offset += toWrite;
-                len -= toWrite;
+                if (len > 0)
+                {
+                    // Fragment data according to the current fragment limit.
+                    //int toWrite = System.Math.Min(len, recordStream.GetPlaintextLimit());
+                    int toWrite = System.Math.Min(len, 1 << 14);
+                    SafeWriteMessage(ContentType.application_data, buf, offset, toWrite);
+                    offset += toWrite;
+                    len -= toWrite;
+                }
             }
         }
 
