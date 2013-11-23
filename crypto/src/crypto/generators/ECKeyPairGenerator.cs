@@ -81,6 +81,11 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
 
             this.random = parameters.Random;
+
+            if (this.random == null)
+            {
+                this.random = new SecureRandom();
+            }
         }
 
         /**
