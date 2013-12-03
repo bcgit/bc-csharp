@@ -1678,11 +1678,11 @@ namespace Org.BouncyCastle.Math
                     bitsCorrect <<= 1;
                 }
                 while (bitsCorrect < pow);
+            }
 
-                if (x.sign < 0)
-                {
-                    x = x.Add(m);
-                }
+            if (x.sign < 0)
+            {
+                x = x.Add(m);
             }
 
             return x;
