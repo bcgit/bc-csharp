@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Math.EC
 			return Equals(other);
 		}
 
-		protected bool Equals(
+		protected virtual bool Equals(
 			ECFieldElement other)
 		{
 			return ToBigInteger().Equals(other.ToBigInteger());
@@ -48,7 +48,12 @@ namespace Org.BouncyCastle.Math.EC
 		{
 			return this.ToBigInteger().ToString(2);
 		}
-	}
+
+        public virtual byte[] GetEncoded()
+        {
+            return BigIntegers.AsUnsignedByteArray((FieldSize + 7) / 8, ToBigInteger());
+        }
+    }
 
 	public class FpFieldElement
 		: ECFieldElement
