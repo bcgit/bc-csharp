@@ -179,7 +179,7 @@ namespace Org.BouncyCastle.Math.EC
             if (bit0 != yTilde)
             {
                 // Use the other root
-                beta = FromBigInteger(q.Subtract(betaValue));
+                beta = beta.Negate();
             }
 
             return new FpPoint(this, x, beta, true);
