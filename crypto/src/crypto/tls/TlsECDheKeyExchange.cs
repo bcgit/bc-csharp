@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     */
     internal class TlsECDheKeyExchange : TlsECDHKeyExchange
     {
-        internal TlsECDheKeyExchange(TlsClientContext context, KeyExchangeAlgorithm keyExchange)
+        internal TlsECDheKeyExchange(TlsClientContext context, int keyExchange)
             : base(context, keyExchange)
         {
         }
@@ -30,13 +30,13 @@ namespace Org.BouncyCastle.Crypto.Tls
             ISigner signer = InitSigner(tlsSigner, securityParameters);
             Stream sigIn = new SignerStream(input, signer, null);
 
-            ECCurveType curveType = (ECCurveType)TlsUtilities.ReadUint8(sigIn);
+            byte curveType = TlsUtilities.ReadUint8(sigIn);
             ECDomainParameters curve_params;
 
             //  Currently, we only support named curves
             if (curveType == ECCurveType.named_curve)
             {
-                NamedCurve namedCurve = (NamedCurve)TlsUtilities.ReadUint16(sigIn);
+                int namedCurve = TlsUtilities.ReadUint16(sigIn);
 
                 // TODO Check namedCurve is one we offered?
 

@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         private TlsClientContextImpl tlsClientContext = null;
         private TlsClient tlsClient = null;
-        private CipherSuite[] offeredCipherSuites = null;
+        private int[] offeredCipherSuites = null;
         private byte[] offeredCompressionMethods = null;
         private TlsKeyExchange keyExchange = null;
         private TlsAuthentication authentication = null;
@@ -120,15 +120,15 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         internal void ProcessData(
-            ContentType	protocol,
-            byte[]		buf,
-            int			offset,
-            int			len)
+            byte    contentType,
+            byte[]	buf,
+            int		offset,
+            int		len)
         {
             /*
             * Have a look at the protocol type, and add it to the correct queue.
             */
-            switch (protocol)
+            switch (contentType)
             {
                 case ContentType.change_cipher_spec:
                     ProcessChangeCipherSpec(buf, offset, len);
@@ -175,7 +175,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     byte[] beginning = new byte[4];
                     handshakeQueue.Read(beginning, 0, 4, 0);
                     MemoryStream bis = new MemoryStream(beginning, false);
-                    HandshakeType type = (HandshakeType)TlsUtilities.ReadUint8(bis);
+                    byte handshakeType = TlsUtilities.ReadUint8(bis);
                     int len = TlsUtilities.ReadUint24(bis);
 
                     /*
@@ -195,7 +195,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                          * including, this finished message. [..] Note: [Also,] Hello Request
                          * messages are omitted from handshake hashes.
                          */
-                        switch (type)
+                        switch (handshakeType)
                         {
                             case HandshakeType.hello_request:
                             case HandshakeType.finished:
@@ -209,7 +209,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                         /*
                         * Now, parse the message.
                         */
-                        ProcessHandshakeMessage(type, buf);
+                        ProcessHandshakeMessage(handshakeType, buf);
                         read = true;
                     }
                 }
@@ -217,14 +217,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             while (read);
         }
 
-        private void ProcessHandshakeMessage(HandshakeType type, byte[] buf)
+        private void ProcessHandshakeMessage(byte handshakeType, byte[] buf)
         {
             MemoryStream inStr = new MemoryStream(buf, false);
 
             /*
             * Check the type.
             */
-            switch (type)
+            switch (handshakeType)
             {
                 case HandshakeType.certificate:
                 {
@@ -322,7 +322,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                              * Find out which CipherSuite the server has chosen and check that
                              * it was one of the offered ones.
                              */
-                            CipherSuite selectedCipherSuite = (CipherSuite)TlsUtilities.ReadUint16(inStr);
+                            int selectedCipherSuite = TlsUtilities.ReadUint16(inStr);
                             if (!ArrayContains(offeredCipherSuites, selectedCipherSuite)
                                 || selectedCipherSuite == CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV)
                             {
@@ -362,7 +362,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                              * containing no extensions.
                              */
 
-                            // ExtensionType -> byte[]
+                            // Int32 -> byte[]
                             IDictionary serverExtensions = Platform.CreateHashtable();
 
                             if (inStr.Position < inStr.Length)
@@ -373,7 +373,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                                 MemoryStream ext = new MemoryStream(extBytes, false);
                                 while (ext.Position < ext.Length)
                                 {
-                                    ExtensionType extType = (ExtensionType)TlsUtilities.ReadUint16(ext);
+                                    int extType = TlsUtilities.ReadUint16(ext);
                                     byte[] extValue = TlsUtilities.ReadOpaque16(ext);
 
                                     // Note: RFC 5746 makes a special case for EXT_RenegotiationInfo
@@ -835,7 +835,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             this.offeredCipherSuites = this.tlsClient.GetCipherSuites();
 
-            // ExtensionType -> byte[]
+            // Int32 -> byte[]
             this.clientExtensions = this.tlsClient.GetClientExtensions();
 
             // Cipher Suites (and SCSV)
@@ -888,7 +888,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 MemoryStream ext = new MemoryStream();
 
-                foreach (ExtensionType extType in clientExtensions.Keys)
+                foreach (int extType in clientExtensions.Keys)
                 {
                     WriteExtension(ext, extType, (byte[])clientExtensions[extType]);
                 }
@@ -989,7 +989,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        private void SafeWriteMessage(ContentType type, byte[] buf, int offset, int len)
+        private void SafeWriteMessage(byte type, byte[] buf, int offset, int len)
         {
             try
             {
@@ -1186,7 +1186,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return closed; }
         }
 
-        private static bool ArrayContains(CipherSuite[] a, CipherSuite n)
+        private static bool ArrayContains(byte[] a, byte n)
         {
             for (int i = 0; i < a.Length; ++i)
             {
@@ -1196,7 +1196,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return false;
         }
 
-        private static bool ArrayContains(byte[] a, byte n)
+        private static bool ArrayContains(int[] a, int n)
         {
             for (int i = 0; i < a.Length; ++i)
             {
@@ -1213,9 +1213,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             return buf.ToArray();
         }
 
-        private static void WriteExtension(Stream output, ExtensionType extType, byte[] extValue)
+        private static void WriteExtension(Stream output, int extType, byte[] extValue)
         {
-            TlsUtilities.WriteUint16((int)extType, output);
+            TlsUtilities.WriteUint16(extType, output);
             TlsUtilities.WriteOpaque16(extValue, output);
         }
     }

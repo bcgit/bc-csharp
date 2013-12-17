@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         : TlsKeyExchange
     {
         protected TlsClientContext context;
-        protected KeyExchangeAlgorithm keyExchange;
+        protected int keyExchange;
         protected TlsPskIdentity pskIdentity;
 
         protected byte[] psk_identity_hint = null;
@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected RsaKeyParameters rsaServerPublicKey = null;
         protected byte[] premasterSecret;
 
-        internal TlsPskKeyExchange(TlsClientContext context, KeyExchangeAlgorithm keyExchange,
+        internal TlsPskKeyExchange(TlsClientContext context, int keyExchange,
             TlsPskIdentity pskIdentity)
         {
             switch (keyExchange)

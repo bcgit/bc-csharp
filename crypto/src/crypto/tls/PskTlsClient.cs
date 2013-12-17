@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected TlsClientContext context;
 
         protected byte selectedCompressionMethod;
-        protected CipherSuite selectedCipherSuite;
+        protected int selectedCipherSuite;
 
         public PskTlsClient(TlsPskIdentity pskIdentity)
             : this(new DefaultTlsCipherFactory(), pskIdentity)
@@ -30,9 +30,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.context = context;
         }
 
-        public virtual CipherSuite[] GetCipherSuites()
+        public virtual int[] GetCipherSuites()
         {
-            return new CipherSuite[] {
+            return new int[] {
                 CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA,
                 CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA,
                 CipherSuite.TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             // Currently ignored 
         }
 
-        public virtual void NotifySelectedCipherSuite(CipherSuite selectedCipherSuite)
+        public virtual void NotifySelectedCipherSuite(int selectedCipherSuite)
         {
             this.selectedCipherSuite = selectedCipherSuite;
         }
@@ -183,7 +183,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected virtual TlsKeyExchange CreatePskKeyExchange(KeyExchangeAlgorithm keyExchange)
+        protected virtual TlsKeyExchange CreatePskKeyExchange(int keyExchange)
         {
             return new TlsPskKeyExchange(context, keyExchange, pskIdentity);
         }

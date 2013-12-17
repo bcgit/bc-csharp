@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         : TlsKeyExchange
     {
         protected TlsClientContext context;
-        protected KeyExchangeAlgorithm keyExchange;
+        protected int keyExchange;
         protected TlsSigner tlsSigner;
         protected byte[] identity;
         protected byte[] password;
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected BigInteger B = null;
         protected Srp6Client srpClient = new Srp6Client();
 
-        internal TlsSrpKeyExchange(TlsClientContext context, KeyExchangeAlgorithm keyExchange,
+        internal TlsSrpKeyExchange(TlsClientContext context, int keyExchange,
             byte[] identity, byte[] password)
         {
             switch (keyExchange)

@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected TlsClientContext context;
 
         protected byte selectedCompressionMethod;
-        protected CipherSuite selectedCipherSuite;
+        protected int selectedCipherSuite;
 
         public DefaultTlsClient()
             : this(new DefaultTlsCipherFactory())
@@ -36,9 +36,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.context = context;
         }
 
-        public virtual CipherSuite[] GetCipherSuites()
+        public virtual int[] GetCipherSuites()
         {
-            return new CipherSuite[] {
+            return new int[] {
                 CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
                 CipherSuite.TLS_DHE_DSS_WITH_AES_256_CBC_SHA,
                 CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             // Currently ignored
         }
 
-        public virtual void NotifySelectedCipherSuite(CipherSuite selectedCipherSuite)
+        public virtual void NotifySelectedCipherSuite(int selectedCipherSuite)
         {
             this.selectedCipherSuite = selectedCipherSuite;
         }
@@ -244,22 +244,22 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected virtual TlsKeyExchange CreateDHKeyExchange(KeyExchangeAlgorithm keyExchange)
+        protected virtual TlsKeyExchange CreateDHKeyExchange(int keyExchange)
         {
             return new TlsDHKeyExchange(context, keyExchange);
         }
 
-        protected virtual TlsKeyExchange CreateDheKeyExchange(KeyExchangeAlgorithm keyExchange)
+        protected virtual TlsKeyExchange CreateDheKeyExchange(int keyExchange)
         {
             return new TlsDheKeyExchange(context, keyExchange);
         }
 
-        protected virtual TlsKeyExchange CreateECDHKeyExchange(KeyExchangeAlgorithm keyExchange)
+        protected virtual TlsKeyExchange CreateECDHKeyExchange(int keyExchange)
         {
             return new TlsECDHKeyExchange(context, keyExchange);
         }
 
-        protected virtual TlsKeyExchange CreateECDheKeyExchange(KeyExchangeAlgorithm keyExchange)
+        protected virtual TlsKeyExchange CreateECDheKeyExchange(int keyExchange)
         {
             return new TlsECDheKeyExchange(context, keyExchange);
         }
