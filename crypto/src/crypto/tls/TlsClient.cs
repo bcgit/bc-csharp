@@ -28,9 +28,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <returns>
         /// An array of <see cref="CompressionMethod"/>, each specifying a supported compression method.
         /// </returns>
-        CompressionMethod[] GetCompressionMethods();
+        byte[] GetCompressionMethods();
 
-		/// <summary>
+        /// <summary>
 		/// Get the (optional) table of client extensions to be included in (extended) client hello.
 		/// </summary>
 		/// <returns>
@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <param name="selectedCompressionMethod">
         /// A <see cref="CompressionMethod"/>
         /// </param>
-        void NotifySelectedCompressionMethod(CompressionMethod selectedCompressionMethod);
+        void NotifySelectedCompressionMethod(byte selectedCompressionMethod);
 
 		/// <summary>
 		/// Report whether the server supports secure renegotiation

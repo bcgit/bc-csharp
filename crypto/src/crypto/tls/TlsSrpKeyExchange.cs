@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             }
 
-            X509CertificateStructure x509Cert = serverCertificate.certs[0];
+            X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
             SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
 
             try

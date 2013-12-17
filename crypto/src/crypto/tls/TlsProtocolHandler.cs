@@ -40,8 +40,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         private const short CS_SERVER_CHANGE_CIPHER_SPEC_RECEIVED = 11;
         private const short CS_DONE = 12;
 
-        private static readonly byte[] emptybuf = new byte[0];
-
         private static readonly string TLS_ERROR_MESSAGE = "Internal TLS error, this could be an attack";
 
         /*
@@ -70,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private TlsClientContextImpl tlsClientContext = null;
         private TlsClient tlsClient = null;
         private CipherSuite[] offeredCipherSuites = null;
-        private CompressionMethod[] offeredCompressionMethods = null;
+        private byte[] offeredCompressionMethods = null;
         private TlsKeyExchange keyExchange = null;
         private TlsAuthentication authentication = null;
         private CertificateRequest certificateRequest = null;
@@ -337,7 +335,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                              * Find out which CompressionMethod the server has chosen and check that
                              * it was one of the offered ones.
                              */
-                            CompressionMethod selectedCompressionMethod = (CompressionMethod)TlsUtilities.ReadUint8(inStr);
+                            byte selectedCompressionMethod = TlsUtilities.ReadUint8(inStr);
                             if (!ArrayContains(offeredCompressionMethods, selectedCompressionMethod))
                             {
                                 this.FailWithError(AlertLevel.fatal, AlertDescription.illegal_parameter);
@@ -431,7 +429,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                                     byte[] renegExtValue = (byte[])serverExtensions[ExtensionType.renegotiation_info];
 
                                     if (!Arrays.ConstantTimeAreEqual(renegExtValue,
-                                        CreateRenegotiationInfo(emptybuf)))
+                                        CreateRenegotiationInfo(TlsUtilities.EmptyBytes)))
                                     {
                                         this.FailWithError(AlertLevel.fatal, AlertDescription.handshake_failure);
                                     }
@@ -626,29 +624,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                                 this.FailWithError(AlertLevel.fatal, AlertDescription.handshake_failure);
                             }
 
-                            int numTypes = TlsUtilities.ReadUint8(inStr);
-                            ClientCertificateType[] certificateTypes = new ClientCertificateType[numTypes];
-                            for (int i = 0; i < numTypes; ++i)
-                            {
-                                certificateTypes[i] = (ClientCertificateType)TlsUtilities.ReadUint8(inStr);
-                            }
-
-                            byte[] authorities = TlsUtilities.ReadOpaque16(inStr);
+                            this.certificateRequest = CertificateRequest.Parse(//getContext(),
+                                inStr);
 
                             AssertEmpty(inStr);
 
-                            IList authorityDNs = Platform.CreateArrayList();
-
-                            MemoryStream bis = new MemoryStream(authorities, false);
-                            while (bis.Position < bis.Length)
-                            {
-                                byte[] dnBytes = TlsUtilities.ReadOpaque16(bis);
-                                // TODO Switch to X500Name when available
-                                authorityDNs.Add(X509Name.GetInstance(Asn1Object.FromByteArray(dnBytes)));
-                            }
-
-                            this.certificateRequest = new CertificateRequest(certificateTypes,
-                                authorityDNs);
                             this.keyExchange.ValidateCertificateRequest(this.certificateRequest);
 
                             break;
@@ -899,7 +879,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 TlsUtilities.WriteUint8((byte)offeredCompressionMethods.Length, outStr);
                 for (int i = 0; i < offeredCompressionMethods.Length; ++i)
                 {
-                    TlsUtilities.WriteUint8((byte)offeredCompressionMethods[i], outStr);
+                    TlsUtilities.WriteUint8(offeredCompressionMethods[i], outStr);
                 }
             }
 
@@ -1123,7 +1103,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         * @param alertDescription The exact alert message.
         * @throws IOException If alert was fatal.
         */
-        private void FailWithError(AlertLevel alertLevel, AlertDescription	alertDescription)
+        private void FailWithError(byte alertLevel, byte alertDescription)
         {
             /*
             * Check if the connection is still open.
@@ -1155,11 +1135,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        internal void SendAlert(AlertLevel alertLevel, AlertDescription alertDescription)
+        internal void SendAlert(byte alertLevel, byte alertDescription)
         {
-            byte[] error = new byte[2];
-            error[0] = (byte)alertLevel;
-            error[1] = (byte)alertDescription;
+            byte[] error = new byte[] { alertLevel, alertDescription };
 
             rs.WriteMessage(ContentType.alert, error, 0, 2);
         }
@@ -1218,7 +1196,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return false;
         }
 
-        private static bool ArrayContains(CompressionMethod[] a, CompressionMethod n)
+        private static bool ArrayContains(byte[] a, byte n)
         {
             for (int i = 0; i < a.Length; ++i)
             {

@@ -72,8 +72,8 @@ namespace Org.BouncyCastle.Crypto.Tls
              * prohibited because the use of a long-term ECDH client key would jeopardize the
              * forward secrecy property of these algorithms.
              */
-            ClientCertificateType[] types = certificateRequest.CertificateTypes;
-            foreach (ClientCertificateType type in types)
+            byte[] types = certificateRequest.CertificateTypes;
+            foreach (byte type in types)
             {
                 switch (type)
                 {

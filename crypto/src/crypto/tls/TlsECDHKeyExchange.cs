@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual void ProcessServerCertificate(Certificate serverCertificate)
         {
-            X509CertificateStructure x509Cert = serverCertificate.certs[0];
+            X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
             SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
 
             try
@@ -117,8 +117,8 @@ namespace Org.BouncyCastle.Crypto.Tls
              * prohibited because the use of a long-term ECDH client key would jeopardize the
              * forward secrecy property of these algorithms.
              */
-            ClientCertificateType[] types = certificateRequest.CertificateTypes;
-            foreach (ClientCertificateType type in types)
+            byte[] types = certificateRequest.CertificateTypes;
+            foreach (byte type in types)
             {
                 switch (type)
                 {

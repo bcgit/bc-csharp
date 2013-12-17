@@ -700,7 +700,6 @@
     <File subtype="Code" buildaction="Compile" name="src/openssl/PEMUtilities.cs" />
     <File subtype="Code" buildaction="Compile" name="src/openssl/PEMWriter.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/generators/OpenSSLPBEParametersGenerator.cs" />
-    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/TlsException.cs" />
     <File subtype="Code" buildaction="Compile" name="src/asn1/x509/X509ExtensionsGenerator.cs" />
     <File subtype="Code" buildaction="Compile" name="src/security/GeneratorUtilities.cs" />
     <File subtype="Code" buildaction="Compile" name="src/x509/extension/SubjectKeyIdentifierStructure.cs" />
@@ -2179,15 +2178,18 @@
     <File subtype="Code" buildaction="Compile" name="src/util/collections/UnmodifiableListProxy.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/AlertDescription.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/AlertLevel.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/CipherSuite.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/ClientCertificateType.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/CompressionMethod.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/ContentType.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/ECCurveType.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/ECPointFormat.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/ExtensionType.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/HandshakeType.cs" />
-    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/ClientCertificateType.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/HashAlgorithm.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/NamedCurve.cs" />
-    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/CipherSuite.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/SignatureAlgorithm.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/SignatureAndHashAlgorithm.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/TlsDheKeyExchange.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/TlsDsaSigner.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/TlsECDsaSigner.cs" />

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -16,6 +17,41 @@ namespace Org.BouncyCastle.Crypto.Tls
     /// <remarks>Some helper functions for MicroTLS.</remarks>
     public class TlsUtilities
     {
+        public static readonly byte[] EmptyBytes = new byte[0];
+
+        public static void CheckUint8(int i)
+        {
+            if (!IsValidUint8(i))
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        public static void CheckUint16(int i)
+        {
+            if (!IsValidUint16(i))
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        public static void CheckUint24(int i)
+        {
+            if (!IsValidUint24(i))
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        public static bool IsValidUint8(int i)
+        {
+            return (i & 0xFF) == i;
+        }
+
+        public static bool IsValidUint16(int i)
+        {
+            return (i & 0xFFFF) == i;
+        }
+
+        public static bool IsValidUint24(int i)
+        {
+            return (i & 0xFFFFFF) == i;
+        }
+
         internal static void WriteUint8(byte i, Stream os)
         {
             os.WriteByte(i);
@@ -99,6 +135,13 @@ namespace Org.BouncyCastle.Crypto.Tls
             os.Write(uints, 0, uints.Length);
         }
 
+        public static void WriteUint8ArrayWithUint8Length(byte[] uints, Stream output)
+        {
+            CheckUint8(uints.Length);
+            WriteUint8((byte)uints.Length, output);
+            WriteUint8Array(uints, output);
+        }
+
         internal static void WriteUint16Array(int[] uints, Stream os)
         {
             for (int i = 0; i < uints.Length; ++i)
@@ -140,6 +183,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             return (i1 << 16) | (i2 << 8) | i3;
         }
 
+        public static byte[] ReadFully(int length, Stream input)
+        {
+            if (length < 1)
+                return EmptyBytes;
+            byte[] buf = new byte[length];
+            if (length != Streams.ReadFully(input, buf))
+                throw new EndOfStreamException();
+            return buf;
+        }
+
         internal static void ReadFully(byte[] buf, Stream inStr)
         {
             if (Streams.ReadFully(inStr, buf, 0, buf.Length) < buf.Length)
@@ -162,6 +215,12 @@ namespace Org.BouncyCastle.Crypto.Tls
             return bytes;
         }
 
+        public static byte[] ReadOpaque24(Stream input)
+        {
+            int length = ReadUint24(input);
+            return ReadFully(length, input);
+        }
+
         internal static void CheckVersion(byte[] readVersion)
         {
             if ((readVersion[0] != 3) || (readVersion[1] != 1))
@@ -178,6 +237,30 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 throw new TlsFatalAlert(AlertDescription.protocol_version);
             }
+        }
+
+        public static Asn1Object ReadAsn1Object(byte[] encoding)
+        {
+            Asn1InputStream asn1 = new Asn1InputStream(encoding);
+            Asn1Object result = asn1.ReadObject();
+            if (null == result)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+            if (null != asn1.ReadObject())
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+            return result;
+        }
+
+        public static Asn1Object ReadDerObject(byte[] encoding)
+        {
+            /*
+             * NOTE: The current ASN.1 parsing code can't enforce DER-only parsing, but since DER is
+             * canonical, we can check it by re-encoding the result and comparing to the original.
+             */
+            Asn1Object result = ReadAsn1Object(encoding);
+            byte[] check = result.GetEncoded(Asn1Encodable.Der);
+            if (!Arrays.AreEqual(check, encoding))
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+            return result;
         }
 
         internal static void WriteGmtUnixTime(byte[] buf, int offset)
@@ -199,6 +282,35 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             buf[offset] = 3;
             buf[offset + 1] = 1;
+        }
+
+        public static void EncodeSupportedSignatureAlgorithms(IList supportedSignatureAlgorithms, bool allowAnonymous,
+            Stream output)
+        {
+            if (supportedSignatureAlgorithms == null || supportedSignatureAlgorithms.Count < 1
+                || supportedSignatureAlgorithms.Count >= (1 << 15))
+            {
+                throw new ArgumentException("must have length from 1 to (2^15 - 1)", "supportedSignatureAlgorithms");
+            }
+
+            // supported_signature_algorithms
+            int length = 2 * supportedSignatureAlgorithms.Count;
+            TlsUtilities.CheckUint16(length);
+            TlsUtilities.WriteUint16(length, output);
+
+            foreach (SignatureAndHashAlgorithm entry in supportedSignatureAlgorithms)
+            {
+                if (!allowAnonymous && entry.Signature == SignatureAlgorithm.anonymous)
+                {
+                    /*
+                     * RFC 5246 7.4.1.4.1 The "anonymous" value is meaningless in this context but used
+                     * in Section 7.4.3. It MUST NOT appear in this extension.
+                     */
+                    throw new ArgumentException(
+                        "SignatureAlgorithm.anonymous MUST NOT appear in the signature_algorithms extension");
+                }
+                entry.Encode(output);
+            }
         }
 
         private static void hmac_hash(IDigest digest, byte[] secret, byte[] seed, byte[] output)

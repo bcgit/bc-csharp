@@ -4324,6 +4324,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\HashAlgorithm.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\ICertificateVerifyer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4360,6 +4365,16 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\SecurityParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\SignatureAlgorithm.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\SignatureAndHashAlgorithm.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4465,11 +4480,6 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsECDsaSigner.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\crypto\tls\TlsException.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
