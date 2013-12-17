@@ -8,13 +8,13 @@
       <Output directory="bin/Debug/" assembly="crypto" assemblyKeyFile="." />
       <Build debugmode="True" target="Library" />
       <Execution consolepause="True" runwithwarnings="False" runtime="MsNet" clr-version="Net_1_1" />
-      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="True" unsafecodeallowed="False" generateoverflowchecks="True" definesymbols="BC_BUILD_MONODEVELOP;INCLUDE_IDEA;NET_1_1" generatexmldocumentation="False" langversion="ISO_1" ctype="CSharpCompilerParameters" />
+      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="True" unsafecodeallowed="False" generateoverflowchecks="True" definesymbols="BC_BUILD_MONODEVELOP;NET_1_1" generatexmldocumentation="False" langversion="ISO_1" ctype="CSharpCompilerParameters" />
     </Configuration>
     <Configuration name="Release" ctype="DotNetProjectConfiguration">
       <Output directory="bin/Release/" assembly="crypto" />
       <Build debugmode="False" target="Library" />
       <Execution consolepause="True" runwithwarnings="False" runtime="MsNet" clr-version="Net_1_1" />
-      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="True" unsafecodeallowed="False" generateoverflowchecks="True" definesymbols="BC_BUILD_MONODEVELOP;INCLUDE_IDEA;NET_1_1" generatexmldocumentation="False" langversion="ISO_1" ctype="CSharpCompilerParameters" />
+      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="True" unsafecodeallowed="False" generateoverflowchecks="True" definesymbols="BC_BUILD_MONODEVELOP;NET_1_1" generatexmldocumentation="False" langversion="ISO_1" ctype="CSharpCompilerParameters" />
     </Configuration>
   </Configurations>
   <Contents>

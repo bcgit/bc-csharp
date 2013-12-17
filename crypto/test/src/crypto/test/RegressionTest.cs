@@ -42,9 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Cast5Test(),
             new Cast6Test(),
             new Gost28147Test(),
-#if INCLUDE_IDEA
             new IdeaTest(),
-#endif
             new RsaBlindedTest(),
             new RsaTest(),
             new ISO9796Test(),

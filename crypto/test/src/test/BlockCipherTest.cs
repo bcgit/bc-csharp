@@ -356,13 +356,6 @@ namespace Org.BouncyCastle.Tests
             string baseAlgorithm = parts[0];
             string mode = parts.Length > 1 ? parts[1] : null;
 
-#if !INCLUDE_IDEA
-            if (baseAlgorithm.Equals("IDEA"))
-            {
-                return;
-            }
-#endif
-
             try
             {
                 keyGen = GeneratorUtilities.GetKeyGenerator(baseAlgorithm);

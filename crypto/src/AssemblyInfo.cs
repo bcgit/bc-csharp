@@ -9,17 +9,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-#if INCLUDE_IDEA
-[assembly: AssemblyTitle("BouncyCastle.CryptoExt")]
-[assembly: AssemblyDescription("Bouncy Castle Cryptography API (Extended)")]
-#else
 [assembly: AssemblyTitle("BouncyCastle.Crypto")]
 [assembly: AssemblyDescription("Bouncy Castle Cryptography API")]
-#endif
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("The Legion of the Bouncy Castle")]
 [assembly: AssemblyProduct("Bouncy Castle for .NET")]
-[assembly: AssemblyCopyright("Copyright (C) 2000-2011")]
+[assembly: AssemblyCopyright("Copyright (C) 2000-2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
