@@ -682,6 +682,8 @@
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/Certificate.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/CombinedHash.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/ICertificateVerifyer.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/PrfAlgorithm.cs" />
+    <File subtype="Code" buildaction="Compile" name="src/crypto/tls/ProtocolVersion.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/RecordStream.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/TlsMac.cs" />
     <File subtype="Code" buildaction="Compile" name="src/crypto/tls/TlsProtocolHandler.cs" />
