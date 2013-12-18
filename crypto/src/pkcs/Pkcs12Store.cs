@@ -1132,8 +1132,7 @@ namespace Org.BouncyCastle.Pkcs
 
             IMac mac = (IMac) PbeUtilities.CreateEngine(oid);
             mac.Init(cipherParams);
-            mac.BlockUpdate(data, 0, data.Length);
-            return MacUtilities.DoFinal(mac);
+            return MacUtilities.DoFinal(mac, data);
         }
 
         private static byte[] CryptPbeData(

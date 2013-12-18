@@ -230,12 +230,17 @@ namespace Org.BouncyCastle.Security
             return (string) algorithms[oid.Id];
         }
 
-        public static byte[] DoFinal(
-            IMac mac)
+        public static byte[] DoFinal(IMac mac)
         {
             byte[] b = new byte[mac.GetMacSize()];
             mac.DoFinal(b, 0);
             return b;
+        }
+
+        public static byte[] DoFinal(IMac mac, byte[] input)
+        {
+            mac.BlockUpdate(input, 0, input.Length);
+            return DoFinal(mac);
         }
     }
 }
