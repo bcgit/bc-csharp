@@ -2269,6 +2269,7 @@ namespace Org.BouncyCastle.Math
             }
 
             uint y0 = (uint)y[n - 1];
+            int aMax;
 
             {
                 ulong xi = (uint)x[n - 1];
@@ -2292,7 +2293,7 @@ namespace Org.BouncyCastle.Math
                 }
 
                 a[1] = (int)carry;
-                a[0] = (int)(carry >> 32);
+                aMax = (int)(carry >> 32);
             }
 
             for (int i = n - 2; i >= 0; --i)
@@ -2319,10 +2320,12 @@ namespace Org.BouncyCastle.Math
                     carry = (carry >> 32) + (prod1 >> 32) + (prod2 >> 32);
                 }
 
-                carry += (uint)a[0];
+                carry += (uint)aMax;
                 a[1] = (int)carry;
-                a[0] = (int)(carry >> 32);
+                aMax = (int)(carry >> 32);
             }
+
+            a[0] = aMax;
 
             if (!smallMontyModulus && CompareTo(0, a, 0, m) >= 0)
             {
@@ -2345,6 +2348,7 @@ namespace Org.BouncyCastle.Math
             }
 
             ulong x0 = (uint)x[n - 1];
+            int aMax;
 
             {
                 ulong carry = x0 * x0;
@@ -2366,7 +2370,7 @@ namespace Org.BouncyCastle.Math
                 }
 
                 a[1] = (int)carry;
-                a[0] = (int)(carry >> 32);
+                aMax = (int)(carry >> 32);
             }
 
             for (int i = n - 2; i >= 0; --i)
@@ -2406,10 +2410,12 @@ namespace Org.BouncyCastle.Math
                     carry = (carry >> 32) + (prod1 >> 31) + (prod2 >> 32);
                 }
 
-                carry += (uint)a[0];
+                carry += (uint)aMax;
                 a[1] = (int)carry;
-                a[0] = (int)(carry >> 32);
+                aMax = (int)(carry >> 32);
             }
+
+            a[0] = aMax;
 
             if (!smallMontyModulus && CompareTo(0, a, 0, m) >= 0)
             {
