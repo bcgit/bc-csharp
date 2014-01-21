@@ -474,11 +474,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\asn1\DERUnknownTag.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\asn1\DERUTCTime.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
