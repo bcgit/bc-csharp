@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 	/// including the SHA-256 which was a origin for
 	/// this specification.
 	/// </remarks>
-	public class Sm3Digest
+	public class SM3Digest
 		: GeneralDigest
 	{
 		private const int DIGEST_LENGTH = 32;   // bytes
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 		// Round constant T for processBlock() which is 32 bit integer rolled left up to (63 MOD 32) bit positions.
 		private static readonly uint[] T = new uint[64];
 
-		static Sm3Digest()
+		static SM3Digest()
 		{
 			for (int i = 0; i < 16; ++i)
 			{
@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 		/// <summary>
 		/// Standard constructor
 		/// </summary>
-		public Sm3Digest()
+		public SM3Digest()
 		{
 			Reset();
 		}
@@ -64,13 +64,13 @@ namespace Org.BouncyCastle.Crypto.Digests
 		/// Copy constructor.  This will copy the state of the provided
 		/// message digest.
 		/// </summary>
-		public Sm3Digest(Sm3Digest t)
+		public SM3Digest(SM3Digest t)
 			: base(t)
 		{
 			CopyIn(t);
 		}
 
-		private void CopyIn(Sm3Digest t)
+		private void CopyIn(SM3Digest t)
 		{
 			Array.Copy(t.V, 0, this.V, 0, this.V.Length);
 			Array.Copy(t.inwords, 0, this.inwords, 0, this.inwords.Length);
@@ -89,12 +89,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 
 		public override IMemoable Copy()
 		{
-			return new Sm3Digest(this);
+			return new SM3Digest(this);
 		}
 
 		public override void Reset(IMemoable other)
 		{
-			Sm3Digest d = (Sm3Digest)other;
+			SM3Digest d = (SM3Digest)other;
 
 			base.CopyIn(d);
 			CopyIn(d);

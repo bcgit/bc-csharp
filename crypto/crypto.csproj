@@ -3254,6 +3254,21 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\digests\SkeinDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\SkeinEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\SM3Digest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\digests\TigerDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3499,6 +3514,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\engines\ThreefishEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\engines\TwofishEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3715,6 +3735,11 @@
                 />
                 <File
                     RelPath = "src\crypto\macs\SipHash.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\macs\SkeinMac.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4135,6 +4160,16 @@
                 />
                 <File
                     RelPath = "src\crypto\parameters\RSAPrivateCrtKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\SkeinParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\TweakableBlockCipherParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -5419,7 +5454,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\util\IMemoable.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\util\Integers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\util\MemoableResetException.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -10107,7 +10152,22 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\SkeinDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\SkeinMacTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\SkipjackTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\SM3DigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -10128,6 +10188,21 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\TigerDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\Threefish1024Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\Threefish256Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\Threefish512Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	 * standard vector test for SM3 digest from chinese specification
 	 */
 	[TestFixture]
-	public class Sm3DigestTest
+	public class SM3DigestTest
 	    : DigestTest
 	{
 	    private static string[] messages = {
@@ -39,8 +39,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 	    private static string sixtyFourKdigest = "97049bdc8f0736bc7300eafa9980aeb9cf00f24f7ec3a8f1f8884954d7655c1d";
 	    private static string million_a_digest = "c8aaf89429554029e231941a2acc0ad61ff2a5acd8fadd25847a3a732b3b02c3";
 
-	    internal Sm3DigestTest()
-			: base(new Sm3Digest(), messages, digests)
+	    internal SM3DigestTest()
+			: base(new SM3Digest(), messages, digests)
 	    {
 	    }
 
@@ -54,13 +54,13 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 	    protected override IDigest CloneDigest(IDigest digest)
 	    {
-	        return new Sm3Digest((Sm3Digest)digest);
+	        return new SM3Digest((SM3Digest)digest);
 	    }
 
 		public static void Main(
 			string[] args)
 		{
-			RunTest(new Sm3DigestTest());
+			RunTest(new SM3DigestTest());
 		}
 
 		[Test]
