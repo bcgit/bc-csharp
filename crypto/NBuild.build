@@ -53,6 +53,20 @@
     <property name="nunit-console" value="nunit-console" />
     <property name="switch" value="-" />
   </target>
+  <target name="set-mono-3.5-framework-props">
+    <property name="compile-defines" value="NET_1_1" />
+    <property name="debug-extension" value="dll.mdb" />
+    <property name="enable-nostdlib" value="false" />
+    <property name="nunit-console" value="nunit-console" />
+    <property name="switch" value="-" />
+  </target>
+  <target name="set-mono-4.0-framework-props">
+    <property name="compile-defines" value="NET_1_1" />
+    <property name="debug-extension" value="dll.mdb" />
+    <property name="enable-nostdlib" value="false" />
+    <property name="nunit-console" value="nunit-console" />
+    <property name="switch" value="-" />
+  </target>
   <target name="set-net-1.1-framework-props">
     <property name="compile-defines" value="NET_1_1" />
     <property name="debug-extension" value="pdb" />
