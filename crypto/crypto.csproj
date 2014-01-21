@@ -2199,6 +2199,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\x9\ECNamedCurveTable.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\x9\KeySpecificInfo.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3255,6 +3260,11 @@
                 />
                 <File
                     RelPath = "src\crypto\digests\WhirlpoolDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\ec\CustomNamedCurves.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4669,6 +4679,46 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\field\FiniteFields.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\field\GF2Polynomial.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\field\GenericPolynomialExtensionField.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\field\IExtensionField.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\field\IFiniteField.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\field\IPolynomial.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\field\IPolynomialExtensionField.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\field\PrimeField.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\ocsp\BasicOCSPResp.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5365,6 +5415,11 @@
                 />
                 <File
                     RelPath = "src\util\Enums.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\util\Integers.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
