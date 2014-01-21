@@ -10,12 +10,8 @@ using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Utilities
 {
-    internal sealed class Enums
+    internal abstract class Enums
     {
-        private Enums()
-        {
-        }
-
         internal static Enum GetEnumValue(System.Type enumType, string s)
         {
             if (!enumType.IsEnum)
