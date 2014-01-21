@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     /// Following the naming conventions used in the C source code to enable easy review of the implementation.
     /// </remarks>
     public class Sha3Digest
-        : IDigest
+        : IDigest, IMemoable
     {
         private static readonly ulong[] KeccakRoundConstants = KeccakInitializeRoundConstants();
 
@@ -103,6 +103,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public Sha3Digest(Sha3Digest source)
         {
+			CopyIn(source);
+		}
+
+		private void CopyIn(Sha3Digest source)
+		{
             Array.Copy(source.state, 0, this.state, 0, source.state.Length);
             Array.Copy(source.dataQueue, 0, this.dataQueue, 0, source.dataQueue.Length);
             this.rate = source.rate;
@@ -537,5 +542,19 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             Array.Copy(byteState, 0, data, 0, laneCount * 8);
         }
+
+		public IMemoable Copy()
+		{
+			return new Sha3Digest(this);
+		}
+
+		public void Reset(IMemoable other)
+		{
+			Sha3Digest d = (Sha3Digest)other;
+
+			CopyIn(d);
+		}
+
+
     }
 }

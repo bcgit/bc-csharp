@@ -236,6 +236,30 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        [CLSCompliantAttribute(false)]
+        public static ulong[] Clone(
+            ulong[] data)
+        {
+            return data == null ? null : (ulong[]) data.Clone();
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static ulong[] Clone(
+            ulong[] data, 
+            ulong[] existing)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+            if ((existing == null) || (existing.Length != data.Length))
+            {
+                return Clone(data);
+            }
+            Array.Copy(data, 0, existing, 0, existing.Length);
+            return existing;
+        }
+
         public static byte[] Copy(byte[] data, int off, int len)
         {
             byte[] result = new byte[len];
