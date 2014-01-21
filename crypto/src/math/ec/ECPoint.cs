@@ -59,29 +59,36 @@ namespace Org.BouncyCastle.Math.EC
             get { return withCompression; }
         }
 
-        public override bool Equals(
-            object obj)
+        public override bool Equals(object obj)
         {
-            if (obj == this)
+            return Equals(obj as ECPoint);
+        }
+
+        public virtual bool Equals(ECPoint other)
+        {
+            if (this == other)
                 return true;
-
-            ECPoint o = obj as ECPoint;
-
-            if (o == null)
+            if (null == other)
                 return false;
 
-            if (this.IsInfinity)
-                return o.IsInfinity;
+            bool i1 = IsInfinity, i2 = other.IsInfinity;
+            if (i1 || i2)
+            {
+                return i1 && i2;
+            }
 
-            return x.Equals(o.x) && y.Equals(o.y);
+            return X.Equals(other.X) && Y.Equals(other.Y);
         }
 
         public override int GetHashCode()
         {
-            if (this.IsInfinity)
-                return 0;
-
-            return x.GetHashCode() ^ y.GetHashCode();
+            int hc = 0;
+            if (!IsInfinity)
+            {
+                hc ^= X.GetHashCode() * 17;
+                hc ^= Y.GetHashCode() * 257;
+            }
+            return hc;
         }
 
 //		/**

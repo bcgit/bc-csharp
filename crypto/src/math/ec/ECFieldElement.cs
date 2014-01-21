@@ -39,23 +39,17 @@ namespace Org.BouncyCastle.Math.EC
             return ToBigInteger().TestBit(0);
         }
 
-        public override bool Equals(
-            object obj)
+        public override bool Equals(object obj)
         {
-            if (obj == this)
-                return true;
-
-            ECFieldElement other = obj as ECFieldElement;
-
-            if (other == null)
-                return false;
-
-            return Equals(other);
+            return Equals(obj as ECFieldElement);
         }
 
-        public virtual bool Equals(
-            ECFieldElement other)
+        public virtual bool Equals(ECFieldElement other)
         {
+            if (this == other)
+                return true;
+            if (null == other)
+                return false;
             return ToBigInteger().Equals(other.ToBigInteger());
         }
 
