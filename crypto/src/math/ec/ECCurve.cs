@@ -114,12 +114,13 @@ namespace Org.BouncyCastle.Math.EC
      */
     public class FpCurve : ECCurve
     {
-        private readonly BigInteger q;
+        private readonly BigInteger q, r;
         private readonly FpPoint infinity;
 
         public FpCurve(BigInteger q, BigInteger a, BigInteger b)
         {
             this.q = q;
+            this.r = FpFieldElement.CalculateResidue(q);
             this.a = FromBigInteger(a);
             this.b = FromBigInteger(b);
             this.infinity = new FpPoint(this, null, null);
@@ -142,7 +143,7 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
-            return new FpFieldElement(this.q, x);
+            return new FpFieldElement(this.q, this.r, x);
         }
 
         public override ECPoint CreatePoint(
