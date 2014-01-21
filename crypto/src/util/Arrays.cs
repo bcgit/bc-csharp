@@ -219,21 +219,26 @@ namespace Org.BouncyCastle.Utilities
             return data == null ? null : (byte[]) data.Clone();
         }
 
+        public static byte[] Clone(
+            byte[] data, 
+            byte[] existing)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+            if ((existing == null) || (existing.Length != data.Length))
+            {
+                return Clone(data);
+            }
+            Array.Copy(data, 0, existing, 0, existing.Length);
+            return existing;
+        }
+
         public static int[] Clone(
             int[] data)
         {
             return data == null ? null : (int[]) data.Clone();
-        }
-
-        public static void Fill(
-            byte[]	buf,
-            byte	b)
-        {
-            int i = buf.Length;
-            while (i > 0)
-            {
-                buf[--i] = b;
-            }
         }
 
         [CLSCompliantAttribute(false)]
@@ -258,6 +263,17 @@ namespace Org.BouncyCastle.Utilities
             }
             Array.Copy(data, 0, existing, 0, existing.Length);
             return existing;
+        }
+
+        public static void Fill(
+            byte[]	buf,
+            byte	b)
+        {
+            int i = buf.Length;
+            while (i > 0)
+            {
+                buf[--i] = b;
+            }
         }
 
         public static byte[] Copy(byte[] data, int off, int len)
