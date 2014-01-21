@@ -1,73 +1,129 @@
 using System;
+using System.Collections;
+using System.Text;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Math.EC.Tests
 {
-	/**
-	* Compares the performance of the the window NAF point multiplication against
-	* conventional point multiplication.
-	*/
-	[TestFixture, Explicit]
-	public class ECPointPerformanceTest
-	{
-		public const int NUM_ROUNDS = 100;
+    /**
+    * Compares the performance of the the window NAF point multiplication against
+    * conventional point multiplication.
+    */
+    [TestFixture, Explicit]
+    public class ECPointPerformanceTest
+    {
+        public const int PRE_ROUNDS = 10;
+        public const int NUM_ROUNDS = 100;
 
-		private void randMult(string curveName)
-		{
-			X9ECParameters spec = SecNamedCurves.GetByName(curveName);
+        private void RandMult(string curveName)
+        {
+            X9ECParameters spec = ECNamedCurveTable.GetByName(curveName);
+            if (spec != null)
+            {
+                RandMult(curveName, spec);
+            }
 
-			BigInteger n = spec.N;
-			ECPoint g = (ECPoint) spec.G;
-			SecureRandom random = new SecureRandom(); //SecureRandom.getInstance("SHA1PRNG", "SUN");
-			BigInteger k = new BigInteger(n.BitLength - 1, random);
+            spec = CustomNamedCurves.GetByName(curveName);
+            if (spec != null)
+            {
+                RandMult(curveName + " (custom)", spec);
+            }
+        }
 
-			ECPoint qMultiply = null;
-			long startTime = DateTimeUtilities.CurrentUnixMs();
-			for (int i = 0; i < NUM_ROUNDS; i++)
-			{
-				qMultiply = g.Multiply(k);
-			}
-			long endTime = DateTimeUtilities.CurrentUnixMs();
+        private void RandMult(string label, X9ECParameters spec)
+        {
+            ECPoint G = (ECPoint)spec.G;
+            BigInteger n = spec.N;
+            SecureRandom random = new SecureRandom();
+            random.SetSeed(DateTimeUtilities.CurrentUnixMs());
 
-			double avgDuration = (double) (endTime - startTime) / NUM_ROUNDS;
-			Console.WriteLine(curveName);
-			Console.Write("Millis   : ");
-			Console.WriteLine(avgDuration);
-			Console.WriteLine();
-		}
+            Console.WriteLine(label);
 
-		[Test]
-		public void TestMultiply()
-		{
-			randMult("sect163k1");
-			randMult("sect163r2");
-			randMult("sect233k1");
-			randMult("sect233r1");
-			randMult("sect283k1");
-			randMult("sect283r1");
-			randMult("sect409k1");
-			randMult("sect409r1");
-			randMult("sect571k1");
-			randMult("sect571r1");
-			randMult("secp224k1");
-			randMult("secp224r1");
-			randMult("secp256k1");
-			randMult("secp256r1");
-			randMult("secp521r1");
-		}
+            double avgDuration = RandMult(random, G, n);
+            string coordName = "AFFINE";
+            StringBuilder sb = new StringBuilder();
+            sb.Append("  ");
+            sb.Append(coordName);
+            for (int j = coordName.Length; j < 30; ++j)
+            {
+                sb.Append(' ');
+            }
+            sb.Append(": ");
+            sb.Append(avgDuration);
+            sb.Append("ms");
+            Console.WriteLine(sb.ToString());
+        }
 
-		// public static void Main(string argv[])
-		// {
-		// ECMultiplyPerformanceTest test = new ECMultiplyPerformanceTest();
-		// Test.testMultiply();
-		// }
-	}
+        private double RandMult(SecureRandom random, ECPoint g, BigInteger n)
+        {
+            BigInteger[] ks = new BigInteger[128];
+            for (int i = 0; i < ks.Length; ++i)
+            {
+                ks[i] = new BigInteger(n.BitLength - 1, random);
+            }
+
+            int ki = 0;
+            ECPoint p = g;
+            for (int i = 1; i <= PRE_ROUNDS; i++)
+            {
+                BigInteger k = ks[ki];
+                p = g.Multiply(k);
+                if (++ki == ks.Length)
+                {
+                    ki = 0;
+                    g = p;
+                }
+            }
+            long startTime = DateTimeUtilities.CurrentUnixMs();
+            for (int i = 1; i <= NUM_ROUNDS; i++)
+            {
+                BigInteger k = ks[ki];
+                p = g.Multiply(k);
+                if (++ki == ks.Length)
+                {
+                    ki = 0;
+                    g = p;
+                }
+            }
+            long endTime = DateTimeUtilities.CurrentUnixMs();
+
+            return (double)(endTime - startTime) / NUM_ROUNDS;
+        }
+
+        [Test]
+        public void TestMultiply()
+        {
+            ArrayList nameList = new ArrayList();
+            CollectionUtilities.AddRange(nameList, ECNamedCurveTable.Names);
+            string[] names = (string[])nameList.ToArray(typeof(string));
+            Array.Sort(names);
+            ISet oids = new HashSet();
+            foreach (string name in names)
+            {
+                DerObjectIdentifier oid = ECNamedCurveTable.GetOid(name);
+                if (!oids.Contains(oid))
+                {
+                    oids.Add(oid);
+                    RandMult(name);
+                }
+            }
+        }
+
+        public static void Main(string[] args)
+        {
+            new ECPointPerformanceTest().TestMultiply();
+        }
+    }
 }
