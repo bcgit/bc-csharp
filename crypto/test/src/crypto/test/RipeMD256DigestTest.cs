@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		readonly static string million_a_digest = "ac953744e10e31514c150d4d8d7b677342e33399788296e43ae4850ce4f97978";
 
-		internal RipeMD256DigestTest()
+		public RipeMD256DigestTest()
 			: base(new RipeMD256Digest(), messages, digests)
 		{
 		}

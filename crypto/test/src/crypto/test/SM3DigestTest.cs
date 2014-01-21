@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	    private static string sixtyFourKdigest = "97049bdc8f0736bc7300eafa9980aeb9cf00f24f7ec3a8f1f8884954d7655c1d";
 	    private static string million_a_digest = "c8aaf89429554029e231941a2acc0ad61ff2a5acd8fadd25847a3a732b3b02c3";
 
-	    internal SM3DigestTest()
+	    public SM3DigestTest()
 			: base(new SM3Digest(), messages, digests)
 	    {
 	    }

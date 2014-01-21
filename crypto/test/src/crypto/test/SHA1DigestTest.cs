@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			"32d10c7b8cf96570ca04ce37f2a19d84240d3a89"
 		};
 
-		internal Sha1DigestTest()
+		public Sha1DigestTest()
 			: base(new Sha1Digest(), messages, digests)
 		{
 		}

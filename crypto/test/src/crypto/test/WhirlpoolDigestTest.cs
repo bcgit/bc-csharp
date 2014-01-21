@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		private static string _thirtyOneZeros = "3E3F188F8FEBBEB17A933FEAF7FE53A4858D80C915AD6A1418F0318E68D49B4E459223CD414E0FBC8A57578FD755D86E827ABEF4070FC1503E25D99E382F72BA";
 
-		internal WhirlpoolDigestTest()
+		public WhirlpoolDigestTest()
 			: base(new WhirlpoolDigest(), messages, digests)
 		{
 		}

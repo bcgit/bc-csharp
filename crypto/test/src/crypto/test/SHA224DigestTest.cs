@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 		// 1 million 'a'
 		private static string million_a_digest = "20794655980c91d8bbb4c1ea97618a4bf03f42581948b2ee4ee7ad67";
 
-		internal Sha224DigestTest()
+		public Sha224DigestTest()
 			: base(new Sha224Digest(), messages, digests)
 		{
 		}

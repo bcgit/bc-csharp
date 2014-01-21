@@ -48,35 +48,35 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         readonly static string hash64k = "FDF4F5B35139F48E710E421BE5AF411DE1A8AAC333F26204";
 
-		internal TigerDigestTest()
-			: base(new TigerDigest(), messages, digests)
-		{
-		}
+        public TigerDigestTest()
+            : base(new TigerDigest(), messages, digests)
+        {
+        }
 
-		public override void PerformTest()
-		{
-			base.PerformTest();
+        public override void PerformTest()
+        {
+            base.PerformTest();
 
-			sixtyFourKTest(hash64k);
-		}
+            sixtyFourKTest(hash64k);
+        }
 
-		protected override IDigest CloneDigest(IDigest digest)
-		{
-			return new TigerDigest((TigerDigest)digest);
-		}
+        protected override IDigest CloneDigest(IDigest digest)
+        {
+            return new TigerDigest((TigerDigest)digest);
+        }
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new TigerDigestTest());
-		}
+        public static void Main(
+            string[] args)
+        {
+            RunTest(new TigerDigestTest());
+        }
 
-		[Test]
-		public void TestFunction()
-		{
-			string resultText = Perform().ToString();
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
 
-			Assert.AreEqual(Name + ": Okay", resultText);
-		}
+            Assert.AreEqual(Name + ": Okay", resultText);
+        }
     }
 }
