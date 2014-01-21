@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Math.EC
             return Equals(other);
         }
 
-        protected virtual bool Equals(
+        public virtual bool Equals(
             ECFieldElement other)
         {
             return ToBigInteger().Equals(other.ToBigInteger());
@@ -379,7 +379,7 @@ namespace Org.BouncyCastle.Math.EC
             return Equals(other);
         }
 
-        protected bool Equals(
+        public virtual bool Equals(
             FpFieldElement other)
         {
             return q.Equals(other.q) && base.Equals(other);
@@ -1255,7 +1255,7 @@ namespace Org.BouncyCastle.Math.EC
             return Equals(other);
         }
 
-        protected bool Equals(
+        public virtual bool Equals(
             F2mFieldElement other)
         {
             return m == other.m
