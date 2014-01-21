@@ -13,8 +13,8 @@ namespace Org.BouncyCastle.Crypto.Tls
      * <p/>
      * <pre>
      * struct {
-     *     ClientCertificateType certificate_types<1..2^8-1>;
-     *     DistinguishedName certificate_authorities<3..2^16-1>;
+     *     ClientCertificateType certificate_types&lt;1..2^8-1&gt;;
+     *     DistinguishedName certificate_authorities&lt;3..2^16-1&gt;
      * } CertificateRequest;
      * </pre>
      *
