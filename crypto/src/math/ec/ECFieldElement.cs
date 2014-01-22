@@ -974,6 +974,26 @@ namespace Org.BouncyCastle.Math.EC
             this.x = x;
         }
 
+        public override int BitLength
+        {
+            get { return x.Degree(); }
+        }
+
+        public override bool IsOne
+        {
+            get { return x.IsOne(); }
+        }
+
+        public override bool IsZero
+        {
+            get { return x.IsZero(); }
+        }
+
+        public override bool TestBitZero()
+        {
+            return x.TestBitZero();
+        }
+
         public override BigInteger ToBigInteger()
         {
             return x.ToBigInteger();
