@@ -16,7 +16,6 @@ namespace Org.BouncyCastle.Math.EC
         internal readonly ECCurve			curve;
         internal readonly ECFieldElement	x, y;
         internal readonly bool				withCompression;
-        internal ECMultiplier				multiplier = null;
         internal PreCompInfo				preCompInfo = null;
 
         protected internal ECPoint(
@@ -47,6 +46,18 @@ namespace Org.BouncyCastle.Math.EC
         public ECFieldElement Y
         {
             get { return y; }
+        }
+
+
+        /**
+         * Normalization ensures that any projective coordinate is 1, and therefore that the x, y
+         * coordinates reflect those of the equivalent point in an affine coordinate system.
+         * 
+         * @return a new ECPoint instance representing the same point, but with normalized coordinates
+         */
+        public virtual ECPoint Normalize()
+        {
+            return this;
         }
 
         public bool IsInfinity
@@ -91,17 +102,6 @@ namespace Org.BouncyCastle.Math.EC
             return hc;
         }
 
-//		/**
-//		 * Mainly for testing. Explicitly set the <code>ECMultiplier</code>.
-//		 * @param multiplier The <code>ECMultiplier</code> to be used to multiply
-//		 * this <code>ECPoint</code>.
-//		 */
-//		internal void SetECMultiplier(
-//			ECMultiplier multiplier)
-//		{
-//			this.multiplier = multiplier;
-//		}
-
         /**
          * Sets the <code>PreCompInfo</code>. Used by <code>ECMultiplier</code>s
          * to save the precomputation for this <code>ECPoint</code> to store the
@@ -136,23 +136,6 @@ namespace Org.BouncyCastle.Math.EC
         public virtual ECPoint ThreeTimes()
         {
             return TwicePlus(this);
-        }
-
-        /**
-        * Sets the appropriate <code>ECMultiplier</code>, unless already set. 
-        */
-        internal virtual void AssertECMultiplier()
-        {
-            if (this.multiplier == null)
-            {
-                lock (this)
-                {
-                    if (this.multiplier == null)
-                    {
-                        this.multiplier = new WNafMultiplier();
-                    }
-                }
-            }
         }
     }
 
@@ -222,8 +205,7 @@ namespace Org.BouncyCastle.Math.EC
             if (k.SignValue == 0)
                 return this.curve.Infinity;
 
-            AssertECMultiplier();
-            return this.multiplier.Multiply(this, k, preCompInfo);
+            return this.Curve.GetMultiplier().Multiply(this, k, preCompInfo);
         }
     }
 
@@ -271,7 +253,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             get
             {
-                return this.Y.ToBigInteger().TestBit(0);
+                return this.Y.TestBitZero();
             }
         }
 
@@ -541,8 +523,7 @@ namespace Org.BouncyCastle.Math.EC
                 // X9.62 4.2.2 and 4.3.6:
                 // if x = 0 then ypTilde := 0, else ypTilde is the rightmost
                 // bit of y * x^(-1)
-                return this.X.ToBigInteger().SignValue != 0
-                    && this.Y.Multiply(this.X.Invert()).ToBigInteger().TestBit(0);
+                return !this.X.IsZero && this.Y.Divide(this.X).TestBitZero();
             }
         }
 
@@ -658,7 +639,7 @@ namespace Org.BouncyCastle.Math.EC
 
             // if x1 == 0, then (x1, y1) == (x1, x1 + y1)
             // and hence this = -this and thus 2(x1, y1) == infinity
-            if (this.x.ToBigInteger().SignValue == 0)
+            if (this.x.IsZero)
                 return this.curve.Infinity;
 
             F2mFieldElement lambda = (F2mFieldElement) this.x.Add(this.y.Divide(this.x));
@@ -673,30 +654,6 @@ namespace Org.BouncyCastle.Math.EC
         public override ECPoint Negate()
         {
             return new F2mPoint(curve, this.x, this.x.Add(this.y), withCompression);
-        }
-
-        /**
-         * Sets the appropriate <code>ECMultiplier</code>, unless already set. 
-         */
-        internal override void AssertECMultiplier()
-        {
-            if (this.multiplier == null)
-            {
-                lock (this)
-                {
-                    if (this.multiplier == null)
-                    {
-                        if (((F2mCurve) this.curve).IsKoblitz)
-                        {
-                            this.multiplier = new WTauNafMultiplier();
-                        }
-                        else
-                        {
-                            this.multiplier = new WNafMultiplier();
-                        }
-                    }
-                }
-            }
         }
     }
 }

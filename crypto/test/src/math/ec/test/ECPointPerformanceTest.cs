@@ -27,6 +27,9 @@ namespace Org.BouncyCastle.Math.EC.Tests
         public const int PRE_ROUNDS = 10;
         public const int NUM_ROUNDS = 100;
 
+        private static string[] COORD_NAMES = new string[]{ "AFFINE", "HOMOGENEOUS", "JACOBIAN", "JACOBIAN-CHUDNOVSKY",
+            "JACOBIAN-MODIFIED", "LAMBDA-AFFINE", "LAMBDA-PROJECTIVE", "SKEWED" };
+
         private void RandMult(string curveName)
         {
             X9ECParameters spec = ECNamedCurveTable.GetByName(curveName);
@@ -44,26 +47,45 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
         private void RandMult(string label, X9ECParameters spec)
         {
+            ECCurve C = spec.Curve;
             ECPoint G = (ECPoint)spec.G;
             BigInteger n = spec.N;
+
             SecureRandom random = new SecureRandom();
             random.SetSeed(DateTimeUtilities.CurrentUnixMs());
 
             Console.WriteLine(label);
 
-            double avgDuration = RandMult(random, G, n);
-            string coordName = "AFFINE";
-            StringBuilder sb = new StringBuilder();
-            sb.Append("  ");
-            sb.Append(coordName);
-            for (int j = coordName.Length; j < 30; ++j)
+            int[] coords = ECCurve.GetAllCoordinateSystems();
+            for (int i = 0; i < coords.Length; ++i)
             {
-                sb.Append(' ');
+                int coord = coords[i];
+                if (C.SupportsCoordinateSystem(coord))
+                {
+                    ECCurve c = C;
+                    ECPoint g = G;
+
+                    if (c.CoordinateSystem != coord)
+                    {
+                        c = C.Configure().SetCoordinateSystem(coord).Create();
+                        g = c.ImportPoint(G);
+                    }
+
+                    double avgDuration = RandMult(random, g, n);
+                    string coordName = COORD_NAMES[coord];
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("  ");
+                    sb.Append(coordName);
+                    for (int j = coordName.Length; j < 30; ++j)
+                    {
+                        sb.Append(' ');
+                    }
+                    sb.Append(": ");
+                    sb.Append(avgDuration);
+                    sb.Append("ms");
+                    Console.WriteLine(sb.ToString());
+                }
             }
-            sb.Append(": ");
-            sb.Append(avgDuration);
-            sb.Append("ms");
-            Console.WriteLine(sb.ToString());
         }
 
         private double RandMult(SecureRandom random, ECPoint g, BigInteger n)

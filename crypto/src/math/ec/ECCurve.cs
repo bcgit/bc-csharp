@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Org.BouncyCastle.Math.EC.Abc;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Field;
 using Org.BouncyCastle.Utilities;
 
@@ -10,8 +11,71 @@ namespace Org.BouncyCastle.Math.EC
     /// <remarks>Base class for an elliptic curve.</remarks>
     public abstract class ECCurve
     {
+        public const int COORD_AFFINE = 0;
+        public const int COORD_HOMOGENEOUS = 1;
+        public const int COORD_JACOBIAN = 2;
+        public const int COORD_JACOBIAN_CHUDNOVSKY = 3;
+        public const int COORD_JACOBIAN_MODIFIED = 4;
+        public const int COORD_LAMBDA_AFFINE = 5;
+        public const int COORD_LAMBDA_PROJECTIVE = 6;
+        public const int COORD_SKEWED = 7;
+
+        public static int[] GetAllCoordinateSystems()
+        {
+            return new int[]{ COORD_AFFINE, COORD_HOMOGENEOUS, COORD_JACOBIAN, COORD_JACOBIAN_CHUDNOVSKY,
+                COORD_JACOBIAN_MODIFIED, COORD_LAMBDA_AFFINE, COORD_LAMBDA_PROJECTIVE, COORD_SKEWED };
+        }
+
+        public class Config
+        {
+            protected ECCurve outer;
+            protected int coord;
+            protected ECMultiplier multiplier;
+
+            internal Config(ECCurve outer, int coord, ECMultiplier multiplier)
+            {
+                this.outer = outer;
+                this.coord = coord;
+                this.multiplier = multiplier;
+            }
+
+            public Config SetCoordinateSystem(int coord)
+            {
+                this.coord = coord;
+                return this;
+            }
+
+            public Config SetMultiplier(ECMultiplier multiplier)
+            {
+                this.multiplier = multiplier;
+                return this;
+            }
+
+            public ECCurve Create()
+            {
+                if (!outer.SupportsCoordinateSystem(coord))
+                {
+                    throw new InvalidOperationException("unsupported coordinate system");
+                }
+
+                ECCurve c = outer.CloneCurve();
+                if (c == outer)
+                {
+                    throw new InvalidOperationException("implementation returned current curve");
+                }
+
+                c.m_coord = coord;
+                c.m_multiplier = multiplier;
+
+                return c;
+            }
+        }
+
         protected IFiniteField m_field;
         protected ECFieldElement m_a, m_b;
+
+        protected int m_coord = COORD_AFFINE;
+        protected ECMultiplier m_multiplier = null;
 
         protected ECCurve(IFiniteField field)
         {
@@ -20,7 +84,48 @@ namespace Org.BouncyCastle.Math.EC
 
         public abstract int FieldSize { get; }
         public abstract ECFieldElement FromBigInteger(BigInteger x);
+
+        public virtual Config Configure()
+        {
+            return new Config(this, this.m_coord, this.m_multiplier);
+        }
+
+        public virtual ECPoint CreatePoint(BigInteger x, BigInteger y)
+        {
+            return CreatePoint(x, y, false);
+        }
+
         public abstract ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression);
+
+        protected abstract ECCurve CloneCurve();
+
+        protected virtual ECMultiplier CreateDefaultMultiplier()
+        {
+            return new WNafMultiplier();
+        }
+
+        public virtual bool SupportsCoordinateSystem(int coord)
+        {
+            return coord == COORD_AFFINE;
+        }
+
+        public virtual ECPoint ImportPoint(ECPoint p)
+        {
+            if (this == p.Curve)
+            {
+                return p;
+            }
+            if (p.IsInfinity)
+            {
+                return Infinity;
+            }
+
+            // TODO Default behaviour could be improved if the two curves have the same coordinate system by copying any Z coordinates.
+            p = p.Normalize();
+
+            return CreatePoint(p.X.ToBigInteger(), p.Y.ToBigInteger(), p.withCompression);
+        }
+
         public abstract ECPoint Infinity { get; }
 
         public virtual IFiniteField Field
@@ -36,6 +141,11 @@ namespace Org.BouncyCastle.Math.EC
         public virtual ECFieldElement B
         {
             get { return m_b; }
+        }
+
+        public virtual int CoordinateSystem
+        {
+            get { return m_coord; }
         }
 
         public virtual bool Equals(ECCurve other)
@@ -62,6 +172,21 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         protected abstract ECPoint DecompressPoint(int yTilde, BigInteger X1);
+
+        /**
+         * Sets the default <code>ECMultiplier</code>, unless already set. 
+         */
+        public virtual ECMultiplier GetMultiplier()
+        {
+            lock (this)
+            {
+                if (this.m_multiplier == null)
+                {
+                    this.m_multiplier = CreateDefaultMultiplier();
+                }
+                return this.m_multiplier;
+            }
+        }
 
         /**
          * Decode a point on this curve from its ASN.1 encoding. The different
@@ -126,37 +251,58 @@ namespace Org.BouncyCastle.Math.EC
     public class FpCurve
         : ECCurve
     {
-        private readonly BigInteger q, r;
-        private readonly FpPoint infinity;
+        private const int FP_DEFAULT_COORDS = COORD_AFFINE;
+
+        protected readonly BigInteger m_q, m_r;
+        protected readonly FpPoint m_infinity;
 
         public FpCurve(BigInteger q, BigInteger a, BigInteger b)
             : base(FiniteFields.GetPrimeField(q))
         {
-            this.q = q;
-            this.r = FpFieldElement.CalculateResidue(q);
+            this.m_q = q;
+            this.m_r = FpFieldElement.CalculateResidue(q);
+            this.m_infinity = new FpPoint(this, null, null);
+
             this.m_a = FromBigInteger(a);
             this.m_b = FromBigInteger(b);
-            this.infinity = new FpPoint(this, null, null);
+            this.m_coord = FP_DEFAULT_COORDS;
         }
 
-        public BigInteger Q
+        protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b)
+            : base(FiniteFields.GetPrimeField(q))
         {
-            get { return q; }
+            this.m_q = q;
+            this.m_r = r;
+            this.m_infinity = new FpPoint(this, null, null);
+
+            this.m_a = a;
+            this.m_b = b;
+            this.m_coord = FP_DEFAULT_COORDS;
+        }
+
+        protected override ECCurve CloneCurve()
+        {
+            return new FpCurve(m_q, m_r, m_a, m_b);
+        }
+
+        public virtual BigInteger Q
+        {
+            get { return m_q; }
         }
 
         public override ECPoint Infinity
         {
-            get { return infinity; }
+            get { return m_infinity; }
         }
 
         public override int FieldSize
         {
-            get { return q.BitLength; }
+            get { return m_q.BitLength; }
         }
 
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
-            return new FpFieldElement(this.q, this.r, x);
+            return new FpFieldElement(this.m_q, this.m_r, x);
         }
 
         public override ECPoint CreatePoint(
@@ -206,6 +352,8 @@ namespace Org.BouncyCastle.Math.EC
      */
     public class F2mCurve : ECCurve
     {
+        private const int F2M_DEFAULT_COORDS = COORD_AFFINE;
+
         private static IFiniteField BuildField(int m, int k1, int k2, int k3)
         {
             if (k1 == 0)
@@ -280,7 +428,7 @@ namespace Org.BouncyCastle.Math.EC
         /**
          * The point at infinity on this curve.
          */
-        private readonly F2mPoint infinity;
+        protected readonly F2mPoint m_infinity;
 
         /**
          * The parameter <code>&#956;</code> of the elliptic curve if this is
@@ -417,7 +565,7 @@ namespace Org.BouncyCastle.Math.EC
             this.k3 = k3;
             this.n = n;
             this.h = h;
-            this.infinity = new F2mPoint(this, null, null);
+            this.m_infinity = new F2mPoint(this, null, null);
 
             if (k1 == 0)
                 throw new ArgumentException("k1 must be > 0");
@@ -438,11 +586,43 @@ namespace Org.BouncyCastle.Math.EC
 
             this.m_a = FromBigInteger(a);
             this.m_b = FromBigInteger(b);
+            this.m_coord = F2M_DEFAULT_COORDS;
+        }
+
+        protected F2mCurve(int m, int k1, int k2, int k3, ECFieldElement a, ECFieldElement b, BigInteger order, BigInteger cofactor)
+            : base(BuildField(m, k1, k2, k3))
+        {
+            this.m = m;
+            this.k1 = k1;
+            this.k2 = k2;
+            this.k3 = k3;
+            this.n = order;
+            this.h = cofactor;
+
+            this.m_infinity = new F2mPoint(this, null, null);
+            this.m_a = a;
+            this.m_b = b;
+            this.m_coord = F2M_DEFAULT_COORDS;
+        }
+
+        protected override ECCurve CloneCurve()
+        {
+            return new F2mCurve(m, k1, k2, k3, m_a, m_b, n, h);
+        }
+
+        protected override ECMultiplier CreateDefaultMultiplier()
+        {
+            if (IsKoblitz)
+            {
+                return new WTauNafMultiplier();
+            }
+
+            return base.CreateDefaultMultiplier();
         }
 
         public override ECPoint Infinity
         {
-            get { return infinity; }
+            get { return m_infinity; }
         }
 
         public override int FieldSize
@@ -459,7 +639,7 @@ namespace Org.BouncyCastle.Math.EC
          * Returns true if this is a Koblitz curve (ABC curve).
          * @return true if this is a Koblitz curve (ABC curve), false otherwise
          */
-        public bool IsKoblitz
+        public virtual bool IsKoblitz
         {
             get
             {
@@ -473,7 +653,7 @@ namespace Org.BouncyCastle.Math.EC
          * @throws ArgumentException if the given ECCurve is not a
          * Koblitz curve.
          */
-        internal sbyte GetMu()
+        internal virtual sbyte GetMu()
         {
             if (mu == 0)
             {
@@ -494,7 +674,7 @@ namespace Org.BouncyCastle.Math.EC
          * <code>s<sub>1</sub></code> used for partial modular reduction for
          * Koblitz curves.
          */
-        internal BigInteger[] GetSi()
+        internal virtual BigInteger[] GetSi()
         {
             if (si == null)
             {
@@ -539,7 +719,7 @@ namespace Org.BouncyCastle.Math.EC
             else
             {
                 ECFieldElement beta = xp.Add(m_a).Add(m_b.Multiply(xp.Square().Invert()));
-                ECFieldElement z = solveQuadradicEquation(beta);
+                ECFieldElement z = SolveQuadradicEquation(beta);
 
                 if (z == null)
                     throw new ArithmeticException("Invalid point compression");
@@ -565,21 +745,23 @@ namespace Org.BouncyCastle.Math.EC
          * @return the solution for <code>z<sup>2</sup> + z = beta</code> or
          *         <code>null</code> if no solution exists.
          */
-        private ECFieldElement solveQuadradicEquation(ECFieldElement beta)
+        private ECFieldElement SolveQuadradicEquation(ECFieldElement beta)
         {
-            if (beta.ToBigInteger().SignValue == 0)
+            if (beta.IsZero)
             {
-                return FromBigInteger(BigInteger.Zero);
+                return beta;
             }
 
+            ECFieldElement zeroElement = FromBigInteger(BigInteger.Zero);
+
             ECFieldElement z = null;
-            ECFieldElement gamma = FromBigInteger(BigInteger.Zero);
+            ECFieldElement gamma = null;
 
-            while (gamma.ToBigInteger().SignValue == 0)
+            Random rand = new Random();
+            do
             {
-                ECFieldElement t = FromBigInteger(new BigInteger(m, new Random()));
-                z = FromBigInteger(BigInteger.Zero);
-
+                ECFieldElement t = FromBigInteger(new BigInteger(m, rand));
+                z = zeroElement;
                 ECFieldElement w = beta;
                 for (int i = 1; i <= m - 1; i++)
                 {
@@ -587,12 +769,14 @@ namespace Org.BouncyCastle.Math.EC
                     z = z.Square().Add(w2.Multiply(t));
                     w = w2.Add(beta);
                 }
-                if (w.ToBigInteger().SignValue != 0)
+                if (!w.IsZero)
                 {
                     return null;
                 }
                 gamma = z.Square().Add(z);
             }
+            while (gamma.IsZero);
+
             return z;
         }
 

@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 {
                     p[i] = curve.CreatePoint(
                         new BigInteger(pointSource[2 * i].ToString()),
-                        new BigInteger(pointSource[2 * i + 1].ToString()), false);
+                        new BigInteger(pointSource[2 * i + 1].ToString()));
                 }
             }
         }
