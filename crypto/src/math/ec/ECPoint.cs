@@ -128,6 +128,16 @@ namespace Org.BouncyCastle.Math.EC
         public abstract ECPoint Twice();
         public abstract ECPoint Multiply(BigInteger b);
 
+        public virtual ECPoint TwicePlus(ECPoint b)
+        {
+            return Twice().Add(b);
+        }
+
+        public virtual ECPoint ThreeTimes()
+        {
+            return TwicePlus(this);
+        }
+
         /**
         * Sets the appropriate <code>ECMultiplier</code>, unless already set. 
         */
@@ -139,7 +149,7 @@ namespace Org.BouncyCastle.Math.EC
                 {
                     if (this.multiplier == null)
                     {
-                        this.multiplier = new FpNafMultiplier();
+                        this.multiplier = new WNafMultiplier();
                     }
                 }
             }
@@ -270,54 +280,184 @@ namespace Org.BouncyCastle.Math.EC
             ECPoint b)
         {
             if (this.IsInfinity)
-                return b;
-
-            if (b.IsInfinity)
-                return this;
-
-            // Check if b = this or b = -this
-            if (this.x.Equals(b.x))
             {
-                if (this.y.Equals(b.y))
-                {
-                    // this = b, i.e. this must be doubled
-                    return this.Twice();
-                }
-
-                Debug.Assert(this.y.Equals(b.y.Negate()));
-
-                // this = -b, i.e. the result is the point at infinity
-                return this.curve.Infinity;
+                return b;
+            }
+            if (b.IsInfinity)
+            {
+                return this;
+            }
+            if (this == b)
+            {
+                return Twice();
             }
 
-            ECFieldElement gamma = b.y.Subtract(this.y).Divide(b.x.Subtract(this.x));
+            ECFieldElement X1 = this.x, Y1 = this.y;
+            ECFieldElement X2 = b.x, Y2 = b.y;
 
-            ECFieldElement x3 = gamma.Square().Subtract(this.x).Subtract(b.x);
-            ECFieldElement y3 = gamma.Multiply(this.x.Subtract(x3)).Subtract(this.y);
+            ECFieldElement dx = X2.Subtract(X1), dy = Y2.Subtract(Y1);
 
-            return new FpPoint(curve, x3, y3, withCompression);
+            if (dx.IsZero)
+            {
+                if (dy.IsZero)
+                {
+                    // this == b, i.e. this must be doubled
+                    return Twice();
+                }
+
+                // this == -b, i.e. the result is the point at infinity
+                return curve.Infinity;
+            }
+
+            ECFieldElement gamma = dy.Divide(dx);
+            ECFieldElement X3 = gamma.Square().Subtract(X1).Subtract(X2);
+            ECFieldElement Y3 = gamma.Multiply(X1.Subtract(X3)).Subtract(Y1);
+
+            return new FpPoint(curve, X3, Y3, this.withCompression);
         }
 
         // B.3 pg 62
         public override ECPoint Twice()
         {
-            // Twice identity element (point at infinity) is identity
             if (this.IsInfinity)
+            {
                 return this;
+            }
 
-            // if y1 == 0, then (x1, y1) == (x1, -y1)
-            // and hence this = -this and thus 2(x1, y1) == infinity
-            if (this.y.ToBigInteger().SignValue == 0)
-                return this.curve.Infinity;
+            ECFieldElement Y1 = this.y;
+            if (Y1.IsZero) 
+            {
+                return curve.Infinity;
+            }
 
-            ECFieldElement TWO = this.curve.FromBigInteger(BigInteger.Two);
-            ECFieldElement THREE = this.curve.FromBigInteger(BigInteger.Three);
-            ECFieldElement gamma = this.x.Square().Multiply(THREE).Add(curve.a).Divide(y.Multiply(TWO));
+            ECFieldElement X1 = this.x;
 
-            ECFieldElement x3 = gamma.Square().Subtract(this.x.Multiply(TWO));
-            ECFieldElement y3 = gamma.Multiply(this.x.Subtract(x3)).Subtract(this.y);
+            ECFieldElement X1Squared = X1.Square();
+            ECFieldElement gamma = Three(X1Squared).Add(this.Curve.A).Divide(Two(Y1));
+            ECFieldElement X3 = gamma.Square().Subtract(Two(X1));
+            ECFieldElement Y3 = gamma.Multiply(X1.Subtract(X3)).Subtract(Y1);
 
-            return new FpPoint(curve, x3, y3, this.withCompression);
+            return new FpPoint(curve, X3, Y3, this.withCompression);
+        }
+
+        public override ECPoint TwicePlus(ECPoint b)
+        {
+            if (this == b)
+            {
+                return ThreeTimes();
+            }
+            if (this.IsInfinity)
+            {
+                return b;
+            }
+            if (b.IsInfinity)
+            {
+                return Twice();
+            }
+
+            ECFieldElement Y1 = this.y;
+            if (Y1.IsZero)
+            {
+                return b;
+            }
+
+            ECFieldElement X1 = this.x;
+            ECFieldElement X2 = b.x, Y2 = b.y;
+
+            ECFieldElement dx = X2.Subtract(X1), dy = Y2.Subtract(Y1);
+
+            if (dx.IsZero)
+            {
+                if (dy.IsZero)
+                {
+                    // this == b i.e. the result is 3P
+                    return ThreeTimes();
+                }
+
+                // this == -b, i.e. the result is P
+                return this;
+            }
+
+            /*
+             * Optimized calculation of 2P + Q, as described in "Trading Inversions for
+             * Multiplications in Elliptic Curve Cryptography", by Ciet, Joye, Lauter, Montgomery.
+             */
+
+            ECFieldElement X = dx.Square(), Y = dy.Square();
+            ECFieldElement d = X.Multiply(Two(X1).Add(X2)).Subtract(Y);
+            if (d.IsZero)
+            {
+                return curve.Infinity;
+            }
+
+            ECFieldElement D = d.Multiply(dx);
+            ECFieldElement I = D.Invert();
+            ECFieldElement L1 = d.Multiply(I).Multiply(dy);
+            ECFieldElement L2 = Two(Y1).Multiply(X).Multiply(dx).Multiply(I).Subtract(L1);
+            ECFieldElement X4 = (L2.Subtract(L1)).Multiply(L1.Add(L2)).Add(X2);
+            ECFieldElement Y4 = (X1.Subtract(X4)).Multiply(L2).Subtract(Y1);
+
+            return new FpPoint(curve, X4, Y4, this.withCompression);
+        }
+
+        public override ECPoint ThreeTimes()
+        {
+            if (this.IsInfinity || this.y.IsZero)
+            {
+                return this;
+            }
+
+            ECFieldElement X1 = this.x, Y1 = this.y;
+
+            ECFieldElement _2Y1 = Two(Y1);
+            ECFieldElement X = _2Y1.Square();
+            ECFieldElement Z = Three(X1.Square()).Add(this.Curve.A);
+            ECFieldElement Y = Z.Square();
+
+            ECFieldElement d = Three(X1).Multiply(X).Subtract(Y);
+            if (d.IsZero)
+            {
+                return this.Curve.Infinity;
+            }
+
+            ECFieldElement D = d.Multiply(_2Y1);
+            ECFieldElement I = D.Invert();
+            ECFieldElement L1 = d.Multiply(I).Multiply(Z);
+            ECFieldElement L2 = X.Square().Multiply(I).Subtract(L1);
+
+            ECFieldElement X4 = (L2.Subtract(L1)).Multiply(L1.Add(L2)).Add(X1);
+            ECFieldElement Y4 = (X1.Subtract(X4)).Multiply(L2).Subtract(Y1);
+            return new FpPoint(curve, X4, Y4, this.withCompression);
+        }
+
+        protected virtual ECFieldElement Two(ECFieldElement x)
+        {
+            return x.Add(x);
+        }
+
+        protected virtual ECFieldElement Three(ECFieldElement x)
+        {
+            return Two(x).Add(x);
+        }
+
+        protected virtual ECFieldElement Four(ECFieldElement x)
+        {
+            return Two(Two(x));
+        }
+
+        protected virtual ECFieldElement Eight(ECFieldElement x)
+        {
+            return Four(Two(x));
+        }
+
+        protected virtual ECFieldElement DoubleProductFromSquares(ECFieldElement a, ECFieldElement b,
+            ECFieldElement aSquared, ECFieldElement bSquared)
+        {
+            /*
+             * NOTE: If squaring in the field is faster than multiplication, then this is a quicker
+             * way to calculate 2.A.B, if A^2 and B^2 are already known.
+             */
+            return a.Add(b).Square().Subtract(aSquared).Subtract(bSquared);
         }
 
         // D.3.2 pg 102 (see Note:)
@@ -334,23 +474,6 @@ namespace Org.BouncyCastle.Math.EC
         public override ECPoint Negate()
         {
             return new FpPoint(this.curve, this.x, this.y.Negate(), this.withCompression);
-        }
-
-        /**
-         * Sets the default <code>ECMultiplier</code>, unless already set. 
-         */
-        internal override void AssertECMultiplier()
-        {
-            if (this.multiplier == null)
-            {
-                lock (this)
-                {
-                    if (this.multiplier == null)
-                    {
-                        this.multiplier = new WNafMultiplier();
-                    }
-                }
-            }
         }
     }
 

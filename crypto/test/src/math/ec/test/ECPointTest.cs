@@ -220,6 +220,25 @@ namespace Org.BouncyCastle.Math.EC.Tests
             implTestTwice(F2m.p);
         }
 
+        private void implTestThreeTimes(ECPoint[] p)
+        {
+            ECPoint P = p[0];
+            ECPoint _3P = P.Add(P).Add(P);
+            Assert.AreEqual(_3P, P.ThreeTimes(), "ThreeTimes incorrect");
+            Assert.AreEqual(_3P, P.TwicePlus(P), "TwicePlus incorrect");
+        }
+
+        /**
+         * Calls <code>implTestThreeTimes()</code> for <code>Fp</code> and
+         * <code>F2m</code>.
+         */
+        [Test]
+        public void TestThreeTimes()
+        {
+            implTestThreeTimes(Fp.p);
+            implTestThreeTimes(F2m.p);
+        }
+
         /**
          * Goes through all points on an elliptic curve and checks, if adding a
          * point <code>k</code>-times is the same as multiplying the point by
