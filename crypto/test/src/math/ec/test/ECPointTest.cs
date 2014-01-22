@@ -411,21 +411,10 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private void implTestEncoding(ECPoint p)
         {
             // Not Point Compression
-            ECPoint unCompP;
+            ECPoint unCompP = p.Curve.CreatePoint(p.X.ToBigInteger(), p.Y.ToBigInteger(), false);
 
             // Point compression
-            ECPoint compP;
-
-            if (p is FpPoint)
-            {
-                unCompP = new FpPoint(p.Curve, p.X, p.Y, false);
-                compP = new FpPoint(p.Curve, p.X, p.Y, true);
-            }
-            else
-            {
-                unCompP = new F2mPoint(p.Curve, p.X, p.Y, false);
-                compP = new F2mPoint(p.Curve, p.X, p.Y, true);
-            }
+            ECPoint compP = p.Curve.CreatePoint(p.X.ToBigInteger(), p.Y.ToBigInteger(), true);
 
             byte[] unCompBarr = unCompP.GetEncoded();
             ECPoint decUnComp = p.Curve.DecodePoint(unCompBarr);

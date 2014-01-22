@@ -2,52 +2,63 @@ using System;
 using System.Collections;
 
 using Org.BouncyCastle.Math.EC.Abc;
+using Org.BouncyCastle.Math.Field;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC
 {
     /// <remarks>Base class for an elliptic curve.</remarks>
     public abstract class ECCurve
     {
-        internal ECFieldElement a, b;
+        protected IFiniteField m_field;
+        protected ECFieldElement m_a, m_b;
+
+        protected ECCurve(IFiniteField field)
+        {
+            this.m_field = field;
+        }
 
         public abstract int FieldSize { get; }
         public abstract ECFieldElement FromBigInteger(BigInteger x);
         public abstract ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression);
         public abstract ECPoint Infinity { get; }
 
-        public ECFieldElement A
+        public virtual IFiniteField Field
         {
-            get { return a; }
+            get { return m_field; }
         }
 
-        public ECFieldElement B
+        public virtual ECFieldElement A
         {
-            get { return b; }
+            get { return m_a; }
         }
 
-        public override bool Equals(
-            object obj)
+        public virtual ECFieldElement B
         {
-            if (obj == this)
+            get { return m_b; }
+        }
+
+        public virtual bool Equals(ECCurve other)
+        {
+            if (this == other)
                 return true;
-
-            ECCurve other = obj as ECCurve;
-
-            if (other == null)
+            if (null == other)
                 return false;
-
-            return Equals(other);
+            return Field.Equals(other.Field)
+                && A.Equals(other.A)
+                && B.Equals(other.B);
         }
 
-        protected bool Equals(
-            ECCurve other)
+        public override bool Equals(object obj) 
         {
-            return a.Equals(other.a) && b.Equals(other.b);
+            return Equals(obj as ECCurve);
         }
 
         public override int GetHashCode()
         {
-            return a.GetHashCode() ^ b.GetHashCode();
+            return Field.GetHashCode()
+                ^ Integers.RotateLeft(A.GetHashCode(), 8)
+                ^ Integers.RotateLeft(B.GetHashCode(), 16);
         }
 
         protected abstract ECPoint DecompressPoint(int yTilde, BigInteger X1);
@@ -112,17 +123,19 @@ namespace Org.BouncyCastle.Math.EC
     /**
      * Elliptic curve over Fp
      */
-    public class FpCurve : ECCurve
+    public class FpCurve
+        : ECCurve
     {
         private readonly BigInteger q, r;
         private readonly FpPoint infinity;
 
         public FpCurve(BigInteger q, BigInteger a, BigInteger b)
+            : base(FiniteFields.GetPrimeField(q))
         {
             this.q = q;
             this.r = FpFieldElement.CalculateResidue(q);
-            this.a = FromBigInteger(a);
-            this.b = FromBigInteger(b);
+            this.m_a = FromBigInteger(a);
+            this.m_b = FromBigInteger(b);
             this.infinity = new FpPoint(this, null, null);
         }
 
@@ -164,7 +177,7 @@ namespace Org.BouncyCastle.Math.EC
             BigInteger	X1)
         {
             ECFieldElement x = FromBigInteger(X1);
-            ECFieldElement alpha = x.Multiply(x.Square().Add(a)).Add(b);
+            ECFieldElement alpha = x.Multiply(x.Square().Add(m_a)).Add(m_b);
             ECFieldElement beta = alpha.Sqrt();
 
             //
@@ -185,31 +198,6 @@ namespace Org.BouncyCastle.Math.EC
 
             return new FpPoint(this, x, beta, true);
         }
-
-        public override bool Equals(
-            object obj)
-        {
-            if (obj == this)
-                return true;
-
-            FpCurve other = obj as FpCurve;
-
-            if (other == null)
-                return false;
-
-            return Equals(other);
-        }
-
-        protected bool Equals(
-            FpCurve other)
-        {
-            return base.Equals(other) && q.Equals(other.q);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode() ^ q.GetHashCode();
-        }
     }
 
     /**
@@ -218,6 +206,36 @@ namespace Org.BouncyCastle.Math.EC
      */
     public class F2mCurve : ECCurve
     {
+        private static IFiniteField BuildField(int m, int k1, int k2, int k3)
+        {
+            if (k1 == 0)
+            {
+                throw new ArgumentException("k1 must be > 0");
+            }
+
+            if (k2 == 0)
+            {
+                if (k3 != 0)
+                {
+                    throw new ArgumentException("k3 must be 0 if k2 == 0");
+                }
+
+                return FiniteFields.GetBinaryExtensionField(new int[]{ 0, k1, m });
+            }
+
+            if (k2 <= k1)
+            {
+                throw new ArgumentException("k2 must be > k1");
+            }
+
+            if (k3 <= k2)
+            {
+                throw new ArgumentException("k3 must be > k2");
+            }
+
+            return FiniteFields.GetBinaryExtensionField(new int[]{ 0, k1, k2, k3, m });
+        }
+
         /**
          * The exponent <code>m</code> of <code>F<sub>2<sup>m</sup></sub></code>.
          */
@@ -391,6 +409,7 @@ namespace Org.BouncyCastle.Math.EC
             BigInteger	b,
             BigInteger	n,
             BigInteger	h)
+            : base(BuildField(m, k1, k2, k3))
         {
             this.m = m;
             this.k1 = k1;
@@ -417,8 +436,8 @@ namespace Org.BouncyCastle.Math.EC
                     throw new ArgumentException("k3 must be > k2");
             }
 
-            this.a = FromBigInteger(a);
-            this.b = FromBigInteger(b);
+            this.m_a = FromBigInteger(a);
+            this.m_b = FromBigInteger(b);
         }
 
         public override ECPoint Infinity
@@ -444,10 +463,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             get
             {
-                return n != null && h != null
-                    && (a.ToBigInteger().Equals(BigInteger.Zero)
-                        || a.ToBigInteger().Equals(BigInteger.One))
-                    && b.ToBigInteger().Equals(BigInteger.One);
+                return n != null && h != null && m_a.BitLength <= 1 && m_b.IsOne;
             }
         }
 
@@ -514,7 +530,7 @@ namespace Org.BouncyCastle.Math.EC
             ECFieldElement yp = null;
             if (xp.ToBigInteger().SignValue == 0)
             {
-                yp = (F2mFieldElement)b;
+                yp = (F2mFieldElement)m_b;
                 for (int i = 0; i < m - 1; i++)
                 {
                     yp = yp.Square();
@@ -522,7 +538,7 @@ namespace Org.BouncyCastle.Math.EC
             }
             else
             {
-                ECFieldElement beta = xp.Add(a).Add(b.Multiply(xp.Square().Invert()));
+                ECFieldElement beta = xp.Add(m_a).Add(m_b.Multiply(xp.Square().Invert()));
                 ECFieldElement z = solveQuadradicEquation(beta);
 
                 if (z == null)
@@ -578,35 +594,6 @@ namespace Org.BouncyCastle.Math.EC
                 gamma = z.Square().Add(z);
             }
             return z;
-        }
-
-        public override bool Equals(
-            object obj)
-        {
-            if (obj == this)
-                return true;
-
-            F2mCurve other = obj as F2mCurve;
-
-            if (other == null)
-                return false;
-
-            return Equals(other);
-        }
-
-        protected bool Equals(
-            F2mCurve other)
-        {
-            return m == other.m
-                && k1 == other.k1
-                && k2 == other.k2
-                && k3 == other.k3
-                && base.Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode() ^ m ^ k1 ^ k2 ^ k3;
         }
 
         public int M
