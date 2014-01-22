@@ -216,7 +216,7 @@ namespace Org.BouncyCastle.Utilities
         public static byte[] Clone(
             byte[] data)
         {
-            return data == null ? null : (byte[]) data.Clone();
+            return data == null ? null : (byte[])data.Clone();
         }
 
         public static byte[] Clone(
@@ -238,7 +238,12 @@ namespace Org.BouncyCastle.Utilities
         public static int[] Clone(
             int[] data)
         {
-            return data == null ? null : (int[]) data.Clone();
+            return data == null ? null : (int[])data.Clone();
+        }
+
+        public static long[] Clone(long[] data)
+        {
+            return data == null ? null : (long[])data.Clone();
         }
 
         [CLSCompliantAttribute(false)]

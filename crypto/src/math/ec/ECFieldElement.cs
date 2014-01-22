@@ -873,41 +873,38 @@ namespace Org.BouncyCastle.Math.EC
          */
         private int m;
 
-        /**
-         * Tpb: The integer <code>k</code> where <code>x<sup>m</sup> +
-         * x<sup>k</sup> + 1</code> represents the reduction polynomial
-         * <code>f(z)</code>.<br/>
-         * Ppb: The integer <code>k1</code> where <code>x<sup>m</sup> +
-         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-         * represents the reduction polynomial <code>f(z)</code>.<br/>
-         */
-        private int k1;
+        ///**
+        // * Tpb: The integer <code>k</code> where <code>x<sup>m</sup> +
+        // * x<sup>k</sup> + 1</code> represents the reduction polynomial
+        // * <code>f(z)</code>.<br/>
+        // * Ppb: The integer <code>k1</code> where <code>x<sup>m</sup> +
+        // * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+        // * represents the reduction polynomial <code>f(z)</code>.<br/>
+        // */
+        //private int k1;
+
+        ///**
+        // * Tpb: Always set to <code>0</code><br/>
+        // * Ppb: The integer <code>k2</code> where <code>x<sup>m</sup> +
+        // * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+        // * represents the reduction polynomial <code>f(z)</code>.<br/>
+        // */
+        //private int k2;
+
+        ///**
+        //    * Tpb: Always set to <code>0</code><br/>
+        //    * Ppb: The integer <code>k3</code> where <code>x<sup>m</sup> +
+        //    * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+        //    * represents the reduction polynomial <code>f(z)</code>.<br/>
+        //    */
+        //private int k3;
+
+        private int[] ks;
 
         /**
-         * Tpb: Always set to <code>0</code><br/>
-         * Ppb: The integer <code>k2</code> where <code>x<sup>m</sup> +
-         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-         * represents the reduction polynomial <code>f(z)</code>.<br/>
+         * The <code>LongArray</code> holding the bits.
          */
-        private int k2;
-
-        /**
-            * Tpb: Always set to <code>0</code><br/>
-            * Ppb: The integer <code>k3</code> where <code>x<sup>m</sup> +
-            * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            * represents the reduction polynomial <code>f(z)</code>.<br/>
-            */
-        private int k3;
-
-        /**
-         * The <code>IntArray</code> holding the bits.
-         */
-        private IntArray x;
-
-        /**
-         * The number of <code>int</code>s required to hold <code>m</code> bits.
-         */
-        private readonly int t;
+        private LongArray x;
 
         /**
             * Constructor for Ppb.
@@ -931,13 +928,10 @@ namespace Org.BouncyCastle.Math.EC
             int			k3,
             BigInteger	x)
         {
-            // t = m / 32 rounded up to the next integer
-            this.t = (m + 31) >> 5;
-            this.x = new IntArray(x, t);
-
             if ((k2 == 0) && (k3 == 0))
             {
                 this.representation = Tpb;
+                this.ks = new int[] { k1 };
             }
             else
             {
@@ -947,15 +941,11 @@ namespace Org.BouncyCastle.Math.EC
                     throw new ArgumentException("k2 must be larger than 0");
 
                 this.representation = Ppb;
+                this.ks = new int[] { k1, k2, k3 };
             }
 
-            if (x.SignValue < 0)
-                throw new ArgumentException("x value cannot be negative");
-
             this.m = m;
-            this.k1 = k1;
-            this.k2 = k2;
-            this.k3 = k3;
+            this.x = new LongArray(x);
         }
 
         /**
@@ -976,23 +966,12 @@ namespace Org.BouncyCastle.Math.EC
             // Set k1 to k, and set k2 and k3 to 0
         }
 
-        private F2mFieldElement(int m, int k1, int k2, int k3, IntArray x)
+        private F2mFieldElement(int m, int[] ks, LongArray x)
         {
-            t = (m + 31) >> 5;
-            this.x = x;
             this.m = m;
-            this.k1 = k1;
-            this.k2 = k2;
-            this.k3 = k3;
-
-            if ((k2 == 0) && (k3 == 0))
-            {
-                this.representation = Tpb;
-            }
-            else
-            {
-                this.representation = Ppb;
-            }
+            this.representation = (ks.Length == 1) ? Tpb : Ppb;
+            this.ks = ks;
+            this.x = x;
         }
 
         public override BigInteger ToBigInteger()
@@ -1034,19 +1013,15 @@ namespace Org.BouncyCastle.Math.EC
             F2mFieldElement aF2m = (F2mFieldElement)a;
             F2mFieldElement bF2m = (F2mFieldElement)b;
 
-            if ((aF2m.m != bF2m.m) || (aF2m.k1 != bF2m.k1)
-                || (aF2m.k2 != bF2m.k2) || (aF2m.k3 != bF2m.k3))
-            {
-                throw new ArgumentException("Field elements are not "
-                    + "elements of the same field F2m");
-            }
-
             if (aF2m.representation != bF2m.representation)
             {
                 // Should never occur
-                throw new ArgumentException(
-                    "One of the field "
-                    + "elements are not elements has incorrect representation");
+                throw new ArgumentException("One of the F2m field elements has incorrect representation");
+            }
+
+            if ((aF2m.m != bF2m.m) || !Arrays.AreEqual(aF2m.ks, bF2m.ks))
+            {
+                throw new ArgumentException("Field elements are not elements of the same field F2m");
             }
         }
 
@@ -1056,10 +1031,10 @@ namespace Org.BouncyCastle.Math.EC
             // No check performed here for performance reasons. Instead the
             // elements involved are checked in ECPoint.F2m
             // checkFieldElements(this, b);
-            IntArray iarrClone = (IntArray) this.x.Copy();
-            F2mFieldElement bF2m = (F2mFieldElement) b;
-            iarrClone.AddShifted(bF2m.x, 0);
-            return new F2mFieldElement(m, k1, k2, k3, iarrClone);
+            LongArray iarrClone = this.x.Copy();
+            F2mFieldElement bF2m = (F2mFieldElement)b;
+            iarrClone.AddShiftedByWords(bF2m.x, 0);
+            return new F2mFieldElement(m, ks, iarrClone);
         }
 
         public override ECFieldElement Subtract(
@@ -1079,10 +1054,7 @@ namespace Org.BouncyCastle.Math.EC
             // No check performed here for performance reasons. Instead the
             // elements involved are checked in ECPoint.F2m
             // checkFieldElements(this, b);
-            F2mFieldElement bF2m = (F2mFieldElement) b;
-            IntArray mult = x.Multiply(bF2m.x, m);
-            mult.Reduce(m, new int[]{k1, k2, k3});
-            return new F2mFieldElement(m, k1, k2, k3, mult);
+            return new F2mFieldElement(m, ks, x.ModMultiply(((F2mFieldElement)b).x, m, ks));
         }
 
         public override ECFieldElement Divide(
@@ -1101,76 +1073,12 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECFieldElement Square()
         {
-            IntArray squared = x.Square(m);
-            squared.Reduce(m, new int[]{k1, k2, k3});
-            return new F2mFieldElement(m, k1, k2, k3, squared);
+            return new F2mFieldElement(m, ks, x.ModSquare(m, ks));
         }
 
         public override ECFieldElement Invert()
         {
-            // Inversion in F2m using the extended Euclidean algorithm
-            // Input: A nonzero polynomial a(z) of degree at most m-1
-            // Output: a(z)^(-1) mod f(z)
-
-            // u(z) := a(z)
-            IntArray uz = (IntArray)this.x.Copy();
-
-            // v(z) := f(z)
-            IntArray vz = new IntArray(t);
-            vz.SetBit(m);
-            vz.SetBit(0);
-            vz.SetBit(this.k1);
-            if (this.representation == Ppb)
-            {
-                vz.SetBit(this.k2);
-                vz.SetBit(this.k3);
-            }
-
-            // g1(z) := 1, g2(z) := 0
-            IntArray g1z = new IntArray(t);
-            g1z.SetBit(0);
-            IntArray g2z = new IntArray(t);
-
-            // while u != 0
-            while (uz.GetUsedLength() > 0)
-//            while (uz.bitLength() > 1)
-            {
-                // j := deg(u(z)) - deg(v(z))
-                int j = uz.BitLength - vz.BitLength;
-
-                // If j < 0 then: u(z) <-> v(z), g1(z) <-> g2(z), j := -j
-                if (j < 0)
-                {
-                    IntArray uzCopy = uz;
-                    uz = vz;
-                    vz = uzCopy;
-
-                    IntArray g1zCopy = g1z;
-                    g1z = g2z;
-                    g2z = g1zCopy;
-
-                    j = -j;
-                }
-
-                // u(z) := u(z) + z^j * v(z)
-                // Note, that no reduction modulo f(z) is required, because
-                // deg(u(z) + z^j * v(z)) <= max(deg(u(z)), j + deg(v(z)))
-                // = max(deg(u(z)), deg(u(z)) - deg(v(z)) + deg(v(z))
-                // = deg(u(z))
-                // uz = uz.xor(vz.ShiftLeft(j));
-                // jInt = n / 32
-                int jInt = j >> 5;
-                // jInt = n % 32
-                int jBit = j & 0x1F;
-                IntArray vzShift = vz.ShiftLeft(jBit);
-                uz.AddShifted(vzShift, jInt);
-
-                // g1(z) := g1(z) + z^j * g2(z)
-//                g1z = g1z.xor(g2z.ShiftLeft(j));
-                IntArray g2zShift = g2z.ShiftLeft(jBit);
-                g1z.AddShifted(g2zShift, jInt);
-            }
-            return new F2mFieldElement(this.m, this.k1, this.k2, this.k3, g2z);
+            return new F2mFieldElement(this.m, this.ks, this.x.ModInverse(m, ks));
         }
 
         public override ECFieldElement Sqrt()
@@ -1210,7 +1118,7 @@ namespace Org.BouncyCastle.Math.EC
             */
         public int K1
         {
-            get { return this.k1; }
+            get { return this.ks[0]; }
         }
 
         /**
@@ -1221,7 +1129,7 @@ namespace Org.BouncyCastle.Math.EC
             */
         public int K2
         {
-            get { return this.k2; }
+            get { return this.ks.Length >= 2 ? this.ks[1] : 0; }
         }
 
         /**
@@ -1232,7 +1140,7 @@ namespace Org.BouncyCastle.Math.EC
             */
         public int K3
         {
-            get { return this.k3; }
+            get { return this.ks.Length >= 3 ? this.ks[2] : 0; }
         }
 
         public override bool Equals(
@@ -1252,22 +1160,15 @@ namespace Org.BouncyCastle.Math.EC
         public virtual bool Equals(
             F2mFieldElement other)
         {
-            return m == other.m
-                && k1 == other.k1
-                && k2 == other.k2
-                && k3 == other.k3
-                && representation == other.representation
-                && base.Equals(other);
+            return ((this.m == other.m)
+                && (this.representation == other.representation)
+                && Arrays.AreEqual(this.ks, other.ks)
+                && (this.x.Equals(other.x)));
         }
 
         public override int GetHashCode()
         {
-            return m.GetHashCode()
-                ^	k1.GetHashCode()
-                ^	k2.GetHashCode()
-                ^	k3.GetHashCode()
-                ^	representation.GetHashCode()
-                ^	base.GetHashCode();
+            return x.GetHashCode() ^ m ^ Arrays.GetHashCode(ks);
         }
     }
 }
