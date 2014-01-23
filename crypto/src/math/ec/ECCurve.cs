@@ -109,6 +109,28 @@ namespace Org.BouncyCastle.Math.EC
             return coord == COORD_AFFINE;
         }
 
+        public virtual PreCompInfo GetPreCompInfo(ECPoint p)
+        {
+            CheckPoint(p);
+            return p.m_preCompInfo;
+        }
+
+        /**
+         * Sets the <code>PreCompInfo</code> for a point on this curve. Used by
+         * <code>ECMultiplier</code>s to save the precomputation for this <code>ECPoint</code> for use
+         * by subsequent multiplication.
+         * 
+         * @param point
+         *            The <code>ECPoint</code> to store precomputations for.
+         * @param preCompInfo
+         *            The values precomputed by the <code>ECMultiplier</code>.
+         */
+        public virtual void SetPreCompInfo(ECPoint point, PreCompInfo preCompInfo)
+        {
+            CheckPoint(point);
+            point.m_preCompInfo = preCompInfo;
+        }
+
         public virtual ECPoint ImportPoint(ECPoint p)
         {
             if (this == p.Curve)
@@ -123,7 +145,56 @@ namespace Org.BouncyCastle.Math.EC
             // TODO Default behaviour could be improved if the two curves have the same coordinate system by copying any Z coordinates.
             p = p.Normalize();
 
-            return CreatePoint(p.X.ToBigInteger(), p.Y.ToBigInteger(), p.withCompression);
+            return CreatePoint(p.X.ToBigInteger(), p.Y.ToBigInteger(), p.IsCompressed);
+        }
+
+        /**
+         * Normalization ensures that any projective coordinate is 1, and therefore that the x, y
+         * coordinates reflect those of the equivalent point in an affine coordinate system. Where more
+         * than one point is to be normalized, this method will generally be more efficient than
+         * normalizing each point separately.
+         * 
+         * @param points
+         *            An array of points that will be updated in place with their normalized versions,
+         *            where necessary
+         */
+        public virtual void NormalizeAll(ECPoint[] points)
+        {
+            CheckPoints(points);
+
+            if (this.CoordinateSystem == ECCurve.COORD_AFFINE)
+            {
+                return;
+            }
+
+            /*
+             * Figure out which of the points actually need to be normalized
+             */
+            ECFieldElement[] zs = new ECFieldElement[points.Length];
+            int[] indices = new int[points.Length];
+            int count = 0;
+            for (int i = 0; i < points.Length; ++i)
+            {
+                ECPoint p = points[i];
+                if (null != p && !p.IsNormalized())
+                {
+                    zs[count] = p.GetZCoord(0);
+                    indices[count++] = i;
+                }
+            }
+
+            if (count == 0)
+            {
+                return;
+            }
+
+            ECAlgorithms.MontgomeryTrick(zs, 0, count);
+
+            for (int j = 0; j < count; ++j)
+            {
+                int index = indices[j];
+                points[index] = points[index].Normalize(zs[j]);
+            }
         }
 
         public abstract ECPoint Infinity { get; }
@@ -146,6 +217,25 @@ namespace Org.BouncyCastle.Math.EC
         public virtual int CoordinateSystem
         {
             get { return m_coord; }
+        }
+
+        protected virtual void CheckPoint(ECPoint point)
+        {
+            if (null == point || (this != point.Curve))
+                throw new ArgumentException("must be non-null and on this curve", "point");
+        }
+
+        protected virtual void CheckPoints(ECPoint[] points)
+        {
+            if (points == null)
+                throw new ArgumentNullException("points");
+
+            for (int i = 0; i < points.Length; ++i)
+            {
+                ECPoint point = points[i];
+                if (null != point && this != point.Curve)
+                    throw new ArgumentException("entries must be null or on this curve", "points");
+            }
         }
 
         public virtual bool Equals(ECCurve other)

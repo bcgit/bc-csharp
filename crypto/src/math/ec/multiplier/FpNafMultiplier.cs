@@ -1,38 +1,27 @@
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
     /**
-    * Class implementing the NAF (Non-Adjacent Form) multiplication algorithm.
-    */
-    internal class FpNafMultiplier
+     * Class implementing the NAF (Non-Adjacent Form) multiplication algorithm (left-to-right).
+     */
+    public class FpNafMultiplier
         : ECMultiplier
     {
-        /**
-        * D.3.2 pg 101
-        * @see org.bouncycastle.math.ec.multiplier.ECMultiplier#multiply(org.bouncycastle.math.ec.ECPoint, java.math.BigInteger)
-        */
-        public ECPoint Multiply(ECPoint p, BigInteger k, PreCompInfo preCompInfo)
+        public virtual ECPoint Multiply(ECPoint p, BigInteger k)
         {
-            // TODO Probably should try to add this
-            // BigInteger e = k.Mod(n); // n == order of p
-            BigInteger e = k;
-            BigInteger h = e.Multiply(BigInteger.Three);
+            int[] naf = WNafUtilities.GenerateCompactNaf(k);
 
-            ECPoint neg = p.Negate();
-            ECPoint R = p;
+            ECPoint addP = p.Normalize(), subP = addP.Negate();
 
-            for (int i = h.BitLength - 2; i > 0; --i)
-            {             
-                bool hBit = h.TestBit(i);
-                bool eBit = e.TestBit(i);
+            ECPoint R = p.Curve.Infinity;
 
-                if (hBit == eBit)
-                {
-                    R = R.Twice();
-                }
-                else
-                {
-                    R = R.TwicePlus(hBit ? p : neg);
-                }
+            int i = naf.Length;
+            while (--i >= 0)
+            {
+                int ni = naf[i];
+                int digit = ni >> 16, zeroes = ni & 0xFFFF;
+
+                R = R.TwicePlus(digit < 0 ? subP : addP);
+                R = R.TimesPow2(zeroes);
             }
 
             return R;

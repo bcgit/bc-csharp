@@ -4709,6 +4709,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\multiplier\WNafUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\multiplier\WTauNafMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

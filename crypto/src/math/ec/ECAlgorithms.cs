@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Field;
 
 namespace Org.BouncyCastle.Math.EC
@@ -105,32 +106,35 @@ namespace Org.BouncyCastle.Math.EC
         internal static ECPoint ImplShamirsTrick(ECPoint P, BigInteger k,
             ECPoint Q, BigInteger l)
         {
-            int m = System.Math.Max(k.BitLength, l.BitLength);
-            ECPoint Z = P.Add(Q);
-            ECPoint R = P.Curve.Infinity;
+            ECCurve curve = P.Curve;
+            ECPoint infinity = curve.Infinity;
 
-            for (int i = m - 1; i >= 0; --i)
+            // TODO conjugate co-Z addition (ZADDC) can return both of these
+            ECPoint PaddQ = P.Add(Q);
+            ECPoint PsubQ = P.Subtract(Q);
+
+            ECPoint[] points = new ECPoint[] { Q, PsubQ, P, PaddQ };
+            curve.NormalizeAll(points);
+
+            ECPoint[] table = new ECPoint[] {
+            points[3].Negate(), points[2].Negate(), points[1].Negate(),
+            points[0].Negate(), infinity, points[0],
+            points[1], points[2], points[3] };
+
+            byte[] jsf = WNafUtilities.GenerateJsf(k, l);
+
+            ECPoint R = infinity;
+
+            int i = jsf.Length;
+            while (--i >= 0)
             {
-                R = R.Twice();
+                int jsfi = jsf[i];
 
-                if (k.TestBit(i))
-                {
-                    if (l.TestBit(i))
-                    {
-                        R = R.Add(Z);
-                    }
-                    else
-                    {
-                        R = R.Add(P);
-                    }
-                }
-                else
-                {
-                    if (l.TestBit(i))
-                    {
-                        R = R.Add(Q);
-                    }
-                }
+                // NOTE: The shifting ensures the sign is extended correctly
+                int kDigit = ((jsfi << 24) >> 28), lDigit = ((jsfi << 28) >> 28);
+
+                int index = 4 + (kDigit * 3) + lDigit;
+                R = R.TwicePlus(table[index]);
             }
 
             return R;
