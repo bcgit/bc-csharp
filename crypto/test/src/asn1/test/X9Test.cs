@@ -19,13 +19,13 @@ namespace Org.BouncyCastle.Asn1.Tests
     public class X9Test
         : SimpleTest
     {
-        private static readonly byte[] namedPub = Base64.Decode("MBowEwYHKoZIzj0CAQYIKoZIzj0DAQEDAwADAQ==");
+        private static readonly byte[] namedPub = Base64.Decode("MDcwEwYHKoZIzj0CAQYIKoZIzj0DAQEDIAADG5xRI+Iki/JrvL20hoDUa7Cggzorv5B9yyqSMjYu");
         private static readonly byte[] expPub = Base64.Decode(
-              "MIHfMIHXBgcqhkjOPQIBMIHLAgEBMCkGByqGSM49AQECHn///////////////3///////4AAAA"
+              "MIH8MIHXBgcqhkjOPQIBMIHLAgEBMCkGByqGSM49AQECHn///////////////3///////4AAAA"
             + "AAAH///////zBXBB5///////////////9///////+AAAAAAAB///////wEHiVXBfoqMGZUsfTL"
             + "A9anUKMMJQEC1JiHF9m6FattPgMVAH1zdBaP/jRxtgqFdoahlHXTv6L/BB8DZ2iujhi7ks/PAF"
             + "yUmqLG2UhT0OZgu/hUsclQX+laAh5///////////////9///+XXetBs6YFfDxDIUZSZVECAQED"
-            + "AwADAQ==");
+            + "IAADG5xRI+Iki/JrvL20hoDUa7Cggzorv5B9yyqSMjYu");
 
         private static readonly byte[] namedPriv = Base64.Decode("MCICAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQEECDAGAgEBBAEK");
         private static readonly byte[] expPriv = Base64.Decode(
