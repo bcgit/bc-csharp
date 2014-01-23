@@ -123,8 +123,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         {
             try
             {
-                FpPoint bad = new FpPoint(Fp.curve, new FpFieldElement(
-                    Fp.q, new BigInteger("12")), null);
+                ECPoint bad = Fp.curve.CreatePoint(BigInteger.ValueOf(12), null);
                 Assert.Fail();
             }
             catch (ArgumentException)
@@ -134,8 +133,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             try
             {
-                FpPoint bad = new FpPoint(Fp.curve, null,
-                    new FpFieldElement(Fp.q, new BigInteger("12")));
+                ECPoint bad = Fp.curve.CreatePoint(null, BigInteger.ValueOf(12));
                 Assert.Fail();
             }
             catch (ArgumentException)
