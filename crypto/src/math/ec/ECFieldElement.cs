@@ -79,8 +79,14 @@ namespace Org.BouncyCastle.Math.EC
             int bitLength = p.BitLength;
             if (bitLength > 128)
             {
-                BigInteger firstWord = p.ShiftRight(bitLength - 64);
-                if (firstWord.LongValue == -1L)
+                /*
+                 * NOTE: Due to poor performance of BigInteger.Mod in C#, the residue-based reduction is
+                 * currently faster even for e.g. P-256, where the prime has 32 leading 1 bits.
+                 */
+                //BigInteger firstWord = p.ShiftRight(bitLength - 64);
+                //if (firstWord.LongValue == -1L)
+                BigInteger firstWord = p.ShiftRight(bitLength - 32);
+                if (firstWord.IntValue == -1)
                 {
                     return BigInteger.One.ShiftLeft(bitLength).Subtract(p);
                 }
