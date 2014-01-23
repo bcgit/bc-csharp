@@ -4649,12 +4649,17 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\IntArray.cs"
+                    RelPath = "src\math\ec\LongArray.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\LongArray.cs"
+                    RelPath = "src\math\ec\Mod.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\Nat.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

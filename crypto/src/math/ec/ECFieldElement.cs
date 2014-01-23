@@ -138,13 +138,7 @@ namespace Org.BouncyCastle.Math.EC
         public override ECFieldElement Subtract(
             ECFieldElement b)
         {
-            BigInteger x2 = b.ToBigInteger();
-            BigInteger x3 = x.Subtract(x2);
-            if (x3.SignValue < 0)
-            {
-                x3 = x3.Add(q);
-            }
-            return new FpFieldElement(q, r, x3);
+            return new FpFieldElement(q, r, ModSubtract(x, b.ToBigInteger()));
         }
 
         public override ECFieldElement Multiply(
@@ -156,7 +150,7 @@ namespace Org.BouncyCastle.Math.EC
         public override ECFieldElement Divide(
             ECFieldElement b)
         {
-            return new FpFieldElement(q, r, ModMult(x, b.ToBigInteger().ModInverse(q)));
+            return new FpFieldElement(q, r, ModMult(x, ModInverse(b.ToBigInteger())));
         }
 
         public override ECFieldElement Negate()
@@ -172,7 +166,7 @@ namespace Org.BouncyCastle.Math.EC
         public override ECFieldElement Invert()
         {
             // TODO Modular inversion can be faster for a (Generalized) Mersenne Prime.
-            return new FpFieldElement(q, r, x.ModInverse(q));
+            return new FpFieldElement(q, r, ModInverse(x));
         }
 
         // D.1.4 91
@@ -318,6 +312,18 @@ namespace Org.BouncyCastle.Math.EC
             return _2x;
         }
 
+        protected virtual BigInteger ModInverse(BigInteger x)
+        {
+            // Our BigInteger.ModInverse performance is quite poor, so use the new Nat/Mod classes here
+            //return x.ModInverse(q);
+            int len = (FieldSize + 31) >> 5;
+            uint[] p = Nat.FromBigInteger(len, q);
+            uint[] n = Nat.FromBigInteger(len, x);
+            uint[] z = Nat.Create(len);
+            Mod.Invert(p, n, z);
+            return Nat.ToBigInteger(len, z);
+        }
+
         protected virtual BigInteger ModMult(BigInteger x1, BigInteger x2)
         {
             return ModReduce(x1.Multiply(x2));
@@ -357,6 +363,16 @@ namespace Org.BouncyCastle.Math.EC
                 x = x.Mod(q);
             }
             return x;
+        }
+
+        protected virtual BigInteger ModSubtract(BigInteger x1, BigInteger x2)
+        {
+            BigInteger x3 = x1.Subtract(x2);
+            if (x3.SignValue < 0)
+            {
+                x3 = x3.Add(q);
+            }
+            return x3;
         }
 
         public override bool Equals(
@@ -1067,7 +1083,7 @@ namespace Org.BouncyCastle.Math.EC
         public override ECFieldElement Multiply(
             ECFieldElement b)
         {
-            // Right-to-left comb multiplication in the IntArray
+            // Right-to-left comb multiplication in the LongArray
             // Input: Binary polynomials a(z) and b(z) of degree at most m-1
             // Output: c(z) = a(z) * b(z) mod f(z)
 
