@@ -1729,48 +1729,32 @@ namespace Org.BouncyCastle.Math
          * @param a    First number to calculate gcd for
          * @param b    Second number to calculate gcd for
          * @param u1Out      the return object for the u1 value
-         * @param u2Out      the return object for the u2 value
          * @return     The greatest common divisor of a and b
          */
-        private static BigInteger ExtEuclid(
-            BigInteger	    a,
-            BigInteger	    b,
-            out BigInteger  u1Out)
-            //BigInteger	    u2Out)
+        private static BigInteger ExtEuclid(BigInteger a, BigInteger b, out BigInteger u1Out)
         {
-            BigInteger u1 = One;
-            BigInteger u3 = a;
-            BigInteger v1 = Zero;
-            BigInteger v3 = b;
+            BigInteger u1 = One, v1 = Zero;
+            BigInteger u3 = a, v3 = b;
 
-            while (v3.sign > 0)
+            if (v3.sign > 0)
             {
-                BigInteger[] q = u3.DivideAndRemainder(v3);
+                for (;;)
+                {
+                    BigInteger[] q = u3.DivideAndRemainder(v3);
+                    u3 = v3;
+                    v3 = q[1];
 
-                BigInteger tmp = v1.Multiply(q[0]);
-                BigInteger tn = u1.Subtract(tmp);
-                u1 = v1;
-                v1 = tn;
+                    BigInteger oldU1 = u1;
+                    u1 = v1;
 
-                u3 = v3;
-                v3 = q[1];
+                    if (v3.sign <= 0)
+                        break;
+
+                    v1 = oldU1.Subtract(v1.Multiply(q[0]));
+                }
             }
 
-            //if (u1Out != null)
-            //{
-            //    u1Out.sign = u1.sign;
-            //    u1Out.magnitude = u1.magnitude;
-            //}
             u1Out = u1;
-
-            //if (u2Out != null)
-            //{
-            //    BigInteger tmp = u1.Multiply(a);
-            //    tmp = u3.Subtract(tmp);
-            //    BigInteger res = tmp.Divide(b);
-            //    u2Out.sign = res.sign;
-            //    u2Out.magnitude = res.magnitude;
-            //}
 
             return u3;
         }
