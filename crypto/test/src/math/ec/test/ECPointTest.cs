@@ -426,22 +426,45 @@ namespace Org.BouncyCastle.Math.EC.Tests
             AssertPointsEqual("Error decoding compressed point", p, decComp);
         }
 
-        private void ImplAddSubtractMultiplyTwiceEncodingTest(X9ECParameters x9ECParameters)
+        private void ImplAddSubtractMultiplyTwiceEncodingTest(ECCurve curve, ECPoint q, BigInteger n)
         {
-            BigInteger n = x9ECParameters.N;
-
-            // The generator is multiplied by random b to get random q
-            BigInteger b = new BigInteger(n.BitLength, secRand);
-            ECPoint g = x9ECParameters.G;
-            ECPoint q = g.Multiply(b).Normalize();
-
             // Get point at infinity on the curve
-            ECPoint infinity = x9ECParameters.Curve.Infinity;
+            ECPoint infinity = curve.Infinity;
 
             ImplTestAddSubtract(q, infinity);
             ImplTestMultiply(q, n.BitLength);
             ImplTestMultiply(infinity, n.BitLength);
             ImplTestEncoding(q);
+        }
+
+        private void ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(X9ECParameters x9ECParameters)
+        {
+            BigInteger n = x9ECParameters.N;
+            ECPoint G = x9ECParameters.G;
+            ECCurve C = x9ECParameters.Curve;
+
+            int[] coords = ECCurve.GetAllCoordinateSystems();
+            for (int i = 0; i < coords.Length; ++i)
+            {
+                int coord = coords[i];
+                if (C.SupportsCoordinateSystem(coord))
+                {
+                    ECCurve c = C;
+                    ECPoint g = G;
+
+                    if (c.CoordinateSystem != coord)
+                    {
+                        c = C.Configure().SetCoordinateSystem(coord).Create();
+                        g = c.ImportPoint(G);
+                    }
+
+                    // The generator is multiplied by random b to get random q
+                    BigInteger b = new BigInteger(n.BitLength, secRand);
+                    ECPoint q = g.Multiply(b).Normalize();
+
+                    ImplAddSubtractMultiplyTwiceEncodingTest(c, q, n);
+                }
+            }
         }
 
         /**
@@ -452,15 +475,15 @@ namespace Org.BouncyCastle.Math.EC.Tests
         [Test]
         public void TestAddSubtractMultiplyTwiceEncoding()
         {
-            foreach (string name in SecNamedCurves.Names)
+            foreach (string name in ECNamedCurveTable.Names)
             {
-                X9ECParameters x9ECParameters = SecNamedCurves.GetByName(name);
-                ImplAddSubtractMultiplyTwiceEncodingTest(x9ECParameters);
+                X9ECParameters x9ECParameters = ECNamedCurveTable.GetByName(name);
+                ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9ECParameters);
 
                 x9ECParameters = CustomNamedCurves.GetByName(name);
                 if (x9ECParameters != null)
                 {
-                    ImplAddSubtractMultiplyTwiceEncodingTest(x9ECParameters);
+                    ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9ECParameters);
                 }
             }
         }
