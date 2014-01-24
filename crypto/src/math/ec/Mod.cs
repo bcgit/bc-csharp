@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Utilities;
 
@@ -9,6 +10,8 @@ namespace Org.BouncyCastle.Math.EC
         public static void Invert(uint[] p, uint[] x, uint[] z)
         {
             int len = p.Length;
+            if (Nat.IsZero(len, x))
+                throw new ArgumentException("cannot be 0", "x");
             if (Nat.IsOne(len, x))
             {
                 Array.Copy(x, 0, z, 0, len);
@@ -18,19 +21,21 @@ namespace Org.BouncyCastle.Math.EC
             uint[] u = Nat.Copy(len, x);
             uint[] a = Nat.Create(len);
             a[0] = 1;
+            int ac = 0;
 
             if ((u[0] & 1) == 0)
             {
-                InversionStep(p, u, len, a);
+                InversionStep(p, u, len, a, ref ac);
             }
             if (Nat.IsOne(len, u))
             {
-                Array.Copy(a, 0, z, 0, len);
+                InversionResult(p, ac, a, z);
                 return;
             }
 
             uint[] v = Nat.Copy(len, p);
             uint[] b = Nat.Create(len);
+            int bc = 0;
 
             int uvLen = len;
 
@@ -43,29 +48,25 @@ namespace Org.BouncyCastle.Math.EC
 
                 if (Nat.Gte(len, u, v))
                 {
-                    Subtract(p, a, b, a);
                     Nat.Sub(len, u, v, u);
-                    if ((u[0] & 1) == 0)
-                    {
-                        InversionStep(p, u, uvLen, a);
-                    }
+                    Debug.Assert((u[0] & 1) == 0);
+                    ac += Nat.Sub(len, a, b, a) - bc;
+                    InversionStep(p, u, uvLen, a, ref ac);
                     if (Nat.IsOne(len, u))
                     {
-                        Array.Copy(a, 0, z, 0, len);
+                        InversionResult(p, ac, a, z);
                         return;
                     }
                 }
                 else
                 {
-                    Subtract(p, b, a, b);
                     Nat.Sub(len, v, u, v);
-                    if ((v[0] & 1) == 0)
-                    {
-                        InversionStep(p, v, uvLen, b);
-                    }
+                    Debug.Assert((v[0] & 1) == 0);
+                    bc += Nat.Sub(len, b, a, b) - ac;
+                    InversionStep(p, v, uvLen, b, ref bc);
                     if (Nat.IsOne(len, v))
                     {
-                        Array.Copy(b, 0, z, 0, len);
+                        InversionResult(p, bc, b, z);
                         return;
                     }
                 }
@@ -82,7 +83,19 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        private static void InversionStep(uint[] p, uint[] u, int uLen, uint[] x)
+        private static void InversionResult(uint[] p, int ac, uint[] a, uint[] z)
+        {
+            if (ac < 0)
+            {
+                Nat.Add(p.Length, a, p, z);
+            }
+            else
+            {
+                Array.Copy(a, 0, z, 0, p.Length);
+            }
+        }
+
+        private static void InversionStep(uint[] p, uint[] u, int uLen, uint[] x, ref int xc)
         {
             int len = p.Length;
             int count = 0;
@@ -103,8 +116,20 @@ namespace Org.BouncyCastle.Math.EC
 
             for (int i = 0; i < count; ++i)
             {
-                uint c = (x[0] & 1) == 0 ? 0 : Nat.Add(len, x, p, x);
-                Nat.ShiftDownBit(x, len, c);
+                if ((x[0] & 1) != 0)
+                {
+                    if (xc < 0)
+                    {
+                        xc += (int)Nat.Add(len, x, p, x);
+                    }
+                    else
+                    {
+                        xc += Nat.Sub(len, x, p, x);
+                    }
+                }
+
+                Debug.Assert(xc == 0 || xc == -1);
+                Nat.ShiftDownBit(x, len, (uint)xc);
             }
         }
 
