@@ -135,15 +135,11 @@ namespace Org.BouncyCastle.Math.EC.Tests
             ISet oids = new HashSet();
             foreach (string name in names)
             {
-                //if (name.StartsWith("P-"))
-                //if (name.Equals("secp256r1"))
+                DerObjectIdentifier oid = ECNamedCurveTable.GetOid(name);
+                if (!oids.Contains(oid))
                 {
-                    DerObjectIdentifier oid = ECNamedCurveTable.GetOid(name);
-                    if (!oids.Contains(oid))
-                    {
-                        oids.Add(oid);
-                        RandMult(name);
-                    }
+                    oids.Add(oid);
+                    RandMult(name);
                 }
             }
         }
