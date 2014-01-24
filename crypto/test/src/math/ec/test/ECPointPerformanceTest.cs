@@ -57,6 +57,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             Console.WriteLine(label);
 
             int[] coords = ECCurve.GetAllCoordinateSystems();
+            //int[] coords = new int[] { ECCurve.COORD_HOMOGENEOUS };
             for (int i = 0; i < coords.Length; ++i)
             {
                 int coord = coords[i];
@@ -134,11 +135,15 @@ namespace Org.BouncyCastle.Math.EC.Tests
             ISet oids = new HashSet();
             foreach (string name in names)
             {
-                DerObjectIdentifier oid = ECNamedCurveTable.GetOid(name);
-                if (!oids.Contains(oid))
+                //if (name.StartsWith("P-"))
+                //if (name.Equals("secp256r1"))
                 {
-                    oids.Add(oid);
-                    RandMult(name);
+                    DerObjectIdentifier oid = ECNamedCurveTable.GetOid(name);
+                    if (!oids.Contains(oid))
+                    {
+                        oids.Add(oid);
+                        RandMult(name);
+                    }
                 }
             }
         }

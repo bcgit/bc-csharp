@@ -84,10 +84,10 @@ namespace Org.BouncyCastle.Crypto.Signers
                     }
                     while (k.SignValue == 0 || k.CompareTo(n) >= 0);
 
-                    ECPoint p = key.Parameters.G.Multiply(k);
+                    ECPoint p = key.Parameters.G.Multiply(k).Normalize();
 
                     // 5.3.3
-                    BigInteger x = p.X.ToBigInteger();
+                    BigInteger x = p.AffineXCoord.ToBigInteger();
 
                     r = x.Mod(n);
                 }
@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
                 BigInteger d = ((ECPrivateKeyParameters)key).D;
 
-                s = k.ModInverse(n).Multiply(e.Add(d.Multiply(r).Mod(n))).Mod(n);
+                s = k.ModInverse(n).Multiply(e.Add(d.Multiply(r))).Mod(n);
             }
             while (s.SignValue == 0);
 
@@ -131,12 +131,12 @@ namespace Org.BouncyCastle.Crypto.Signers
             ECPoint G = key.Parameters.G;
             ECPoint Q = ((ECPublicKeyParameters) key).Q;
 
-            ECPoint point = ECAlgorithms.SumOfTwoMultiplies(G, u1, Q, u2);
+            ECPoint point = ECAlgorithms.SumOfTwoMultiplies(G, u1, Q, u2).Normalize();
 
             if (point.IsInfinity)
                 return false;
 
-            BigInteger v = point.X.ToBigInteger().Mod(n);
+            BigInteger v = point.AffineXCoord.ToBigInteger().Mod(n);
 
             return v.Equals(r);
         }

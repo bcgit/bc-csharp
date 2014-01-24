@@ -99,6 +99,8 @@ namespace Org.BouncyCastle.Math.EC
 
         protected abstract ECCurve CloneCurve();
 
+        protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression);
+
         protected virtual ECMultiplier CreateDefaultMultiplier()
         {
             return new WNafMultiplier();
@@ -145,7 +147,7 @@ namespace Org.BouncyCastle.Math.EC
             // TODO Default behaviour could be improved if the two curves have the same coordinate system by copying any Z coordinates.
             p = p.Normalize();
 
-            return CreatePoint(p.X.ToBigInteger(), p.Y.ToBigInteger(), p.IsCompressed);
+            return CreatePoint(p.XCoord.ToBigInteger(), p.YCoord.ToBigInteger(), p.IsCompressed);
         }
 
         /**
@@ -375,6 +377,20 @@ namespace Org.BouncyCastle.Math.EC
             return new FpCurve(m_q, m_r, m_a, m_b);
         }
 
+        public override bool SupportsCoordinateSystem(int coord)
+        {
+            switch (coord)
+            {
+                case COORD_AFFINE:
+                case COORD_HOMOGENEOUS:
+                //case COORD_JACOBIAN:
+                //case COORD_JACOBIAN_MODIFIED:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public virtual BigInteger Q
         {
             get { return m_q; }
@@ -393,6 +409,11 @@ namespace Org.BouncyCastle.Math.EC
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
             return new FpFieldElement(this.m_q, this.m_r, x);
+        }
+
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
+        {
+            return new FpPoint(this, x, y, withCompression);
         }
 
         public override ECPoint CreatePoint(
@@ -708,6 +729,11 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             return base.CreateDefaultMultiplier();
+        }
+
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
+        {
+            return new F2mPoint(this, x, y, withCompression);
         }
 
         public override ECPoint Infinity

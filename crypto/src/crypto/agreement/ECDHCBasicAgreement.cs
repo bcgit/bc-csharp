@@ -52,11 +52,15 @@ namespace Org.BouncyCastle.Crypto.Agreement
         {
             ECPublicKeyParameters pub = (ECPublicKeyParameters) pubKey;
             ECDomainParameters parameters = pub.Parameters;
-            ECPoint P = pub.Q.Multiply(parameters.H.Multiply(key.D));
 
-            // if ( p.IsInfinity ) throw new Exception("Invalid public key");
+            BigInteger hd = parameters.H.Multiply(key.D).Mod(parameters.N);
 
-            return P.X.ToBigInteger();
+            ECPoint P = pub.Q.Multiply(hd).Normalize();
+
+            if (P.IsInfinity)
+                throw new InvalidOperationException("Infinity is not a valid agreement value for ECDHC");
+
+            return P.AffineXCoord.ToBigInteger();
         }
     }
 }
