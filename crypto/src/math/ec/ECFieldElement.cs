@@ -77,19 +77,23 @@ namespace Org.BouncyCastle.Math.EC
         internal static BigInteger CalculateResidue(BigInteger p)
         {
             int bitLength = p.BitLength;
-            //if (bitLength > 128)
-            if (bitLength > 64)
+            if (bitLength > 128)
+            //if (bitLength > 64)
             {
                 /*
                  * NOTE: Due to poor performance of BigInteger.Mod in C#, the residue-based reduction is
                  * currently faster even for e.g. P-256, where the prime has 32 leading 1 bits.
                  */
-                //BigInteger firstWord = p.ShiftRight(bitLength - 64);
-                //if (firstWord.LongValue == -1L)
-                BigInteger firstWord = p.ShiftRight(bitLength - 32);
-                if (firstWord.IntValue == -1)
+                BigInteger firstWord = p.ShiftRight(bitLength - 64);
+                if (firstWord.LongValue == -1L)
+                //BigInteger firstWord = p.ShiftRight(bitLength - 32);
+                //if (firstWord.IntValue == -1)
                 {
                     return BigInteger.One.ShiftLeft(bitLength).Subtract(p);
+                }
+                if ((bitLength & 31) == 0)
+                {
+                    return BigInteger.One.ShiftLeft(bitLength << 1).Divide(p).Negate();
                 }
             }
             return null;
@@ -338,7 +342,11 @@ namespace Org.BouncyCastle.Math.EC
 
         protected virtual BigInteger ModReduce(BigInteger x)
         {
-            if (r != null)
+            if (r == null)
+            {
+                x = x.Mod(q);
+            }
+            else
             {
                 bool negative = x.SignValue < 0;
                 if (negative)
@@ -346,17 +354,35 @@ namespace Org.BouncyCastle.Math.EC
                     x = x.Abs();
                 }
                 int qLen = q.BitLength;
-                BigInteger qMod = BigInteger.One.ShiftLeft(qLen);
-                bool rIsOne = r.Equals(BigInteger.One);
-                while (x.BitLength > (qLen + 1))
+                if (r.SignValue > 0)
                 {
-                    BigInteger u = x.ShiftRight(qLen);
-                    BigInteger v = x.Remainder(qMod);
-                    if (!rIsOne)
+                    BigInteger qMod = BigInteger.One.ShiftLeft(qLen);
+                    bool rIsOne = r.Equals(BigInteger.One);
+                    while (x.BitLength > (qLen + 1))
                     {
-                        u = u.Multiply(r);
+                        BigInteger u = x.ShiftRight(qLen);
+                        BigInteger v = x.Remainder(qMod);
+                        if (!rIsOne)
+                        {
+                            u = u.Multiply(r);
+                        }
+                        x = u.Add(v);
                     }
-                    x = u.Add(v);
+                }
+                else
+                {
+                    BigInteger mu = r.Negate();
+                    BigInteger u = mu.Multiply(x.ShiftRight(qLen - 32));
+                    BigInteger quot = u.ShiftRight(qLen + 32);
+                    BigInteger v = quot.Multiply(q);
+                    BigInteger bk1 = BigInteger.One.ShiftLeft(qLen + 32);
+                    v = v.Remainder(bk1);
+                    x = x.Remainder(bk1);
+                    x = x.Subtract(v);
+                    if (x.SignValue < 0)
+                    {
+                        x = x.Add(bk1);
+                    }
                 }
                 while (x.CompareTo(q) >= 0)
                 {
@@ -366,10 +392,6 @@ namespace Org.BouncyCastle.Math.EC
                 {
                     x = q.Subtract(x);
                 }
-            }
-            else
-            {
-                x = x.Mod(q);
             }
             return x;
         }
