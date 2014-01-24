@@ -77,7 +77,8 @@ namespace Org.BouncyCastle.Math.EC
         internal static BigInteger CalculateResidue(BigInteger p)
         {
             int bitLength = p.BitLength;
-            if (bitLength > 128)
+            //if (bitLength > 128)
+            if (bitLength > 64)
             {
                 /*
                  * NOTE: Due to poor performance of BigInteger.Mod in C#, the residue-based reduction is
@@ -345,11 +346,13 @@ namespace Org.BouncyCastle.Math.EC
                     x = x.Abs();
                 }
                 int qLen = q.BitLength;
+                BigInteger qMod = BigInteger.One.ShiftLeft(qLen);
+                bool rIsOne = r.Equals(BigInteger.One);
                 while (x.BitLength > (qLen + 1))
                 {
                     BigInteger u = x.ShiftRight(qLen);
-                    BigInteger v = x.Subtract(u.ShiftLeft(qLen));
-                    if (!r.Equals(BigInteger.One))
+                    BigInteger v = x.Remainder(qMod);
+                    if (!rIsOne)
                     {
                         u = u.Multiply(r);
                     }
