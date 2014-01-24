@@ -106,8 +106,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
                 //    BigInteger Vx = tempPair.getPublic().getW().getAffineX();
                 ECPublicKeyParameters V = (ECPublicKeyParameters) tempPair.Public; // get temp's public key
-                ECPoint vq = V.Q.Normalize();
-                BigInteger Vx = vq.AffineXCoord.ToBigInteger(); // get the point's x coordinate
+                BigInteger Vx = V.Q.AffineXCoord.ToBigInteger(); // get the point's x coordinate
 
                 r = Vx.Add(e).Mod(n);
             }

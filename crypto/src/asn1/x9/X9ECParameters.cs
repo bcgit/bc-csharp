@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Asn1.X9
             byte[]		seed)
         {
             this.curve = curve;
-            this.g = g;
+            this.g = g.Normalize();
             this.n = n;
             this.h = h;
             this.seed = seed;
