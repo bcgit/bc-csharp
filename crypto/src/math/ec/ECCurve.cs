@@ -343,7 +343,7 @@ namespace Org.BouncyCastle.Math.EC
     public class FpCurve
         : ECCurve
     {
-        private const int FP_DEFAULT_COORDS = COORD_AFFINE;
+        private const int FP_DEFAULT_COORDS = COORD_HOMOGENEOUS;
 
         protected readonly BigInteger m_q, m_r;
         protected readonly FpPoint m_infinity;
