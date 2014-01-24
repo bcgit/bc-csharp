@@ -224,7 +224,7 @@ namespace Org.BouncyCastle.Math.EC
             return true;
         }
 
-        public static bool isZeroExt(int len, uint[] xx)
+        public static bool IsZeroExt(int len, uint[] xx)
         {
             if (xx[0] != 0)
             {
@@ -264,21 +264,6 @@ namespace Org.BouncyCastle.Math.EC
                 c >>= 32;
             }
             while (++i < len);
-            return (uint)c;
-        }
-
-        public static uint SquareWordAddExt(int len, uint[] x, int xPos, uint[] zz)
-        {
-            // assert xPos > 0 && xPos < len;
-            ulong c = 0, xVal = (ulong)x[xPos];
-            int i = 0;
-            do
-            {
-                c += xVal * x[i] + zz[xPos + i];
-                zz[xPos + i] = (uint)c;
-                c >>= 32;
-            }
-            while (++i < xPos);
             return (uint)c;
         }
 
@@ -406,6 +391,21 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             ShiftUpBit(zz, extLen, x[0] << 31);
+        }
+
+        public static uint SquareWordAddExt(int len, uint[] x, int xPos, uint[] zz)
+        {
+            // assert xPos > 0 && xPos < len;
+            ulong c = 0, xVal = (ulong)x[xPos];
+            int i = 0;
+            do
+            {
+                c += xVal * x[i] + zz[xPos + i];
+                zz[xPos + i] = (uint)c;
+                c >>= 32;
+            }
+            while (++i < xPos);
+            return (uint)c;
         }
 
         public static int Sub(int len, uint[] x, uint[] y, uint[] z)
