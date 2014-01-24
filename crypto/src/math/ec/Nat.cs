@@ -457,17 +457,17 @@ namespace Org.BouncyCastle.Math.EC
             return (int)c;
         }
 
-        public static uint SubFromExt(int len, uint[] x, int xOff, uint[] zz, int zzOff)
+        public static int SubFromExt(int len, uint[] x, int xOff, uint[] zz, int zzOff)
         {
             // assert zzOff <= len;
-            ulong c = 0;
+            long c = 0;
             for (int i = 0; i < len; ++i)
             {
-                c += (ulong)zz[zzOff + i] - x[xOff + i];
+                c += (long)zz[zzOff + i] - x[xOff + i];
                 zz[zzOff + i] = (uint)c;
                 c >>= 32;
             }
-            return (uint)c;
+            return (int)c;
         }
 
         public static BigInteger ToBigInteger(int len, uint[] x)
