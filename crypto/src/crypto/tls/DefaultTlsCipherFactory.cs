@@ -50,19 +50,24 @@ namespace Org.BouncyCastle.Crypto.Tls
                 CreateDigest(digestAlgorithm), CreateDigest(digestAlgorithm), cipherKeySize);
         }
 
-        protected virtual IStreamCipher CreateRC4StreamCipher()
+        protected virtual IBlockCipher CreateAesEngine()
         {
-            return new RC4Engine();
+            return new AesEngine();
         }
 
         protected virtual IBlockCipher CreateAesBlockCipher()
         {
-            return new CbcBlockCipher(new AesFastEngine());
+            return new CbcBlockCipher(CreateAesEngine());
         }
 
         protected virtual IBlockCipher CreateDesEdeBlockCipher()
         {
             return new CbcBlockCipher(new DesEdeEngine());
+        }
+
+        protected virtual IStreamCipher CreateRC4StreamCipher()
+        {
+            return new RC4Engine();
         }
 
         /// <exception cref="IOException"></exception>
