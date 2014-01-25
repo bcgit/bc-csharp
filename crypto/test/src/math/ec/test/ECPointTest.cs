@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             /**
              * Creates the points on the curve with literature values.
              */
-            internal static void createPoints()
+            internal static void CreatePoints()
             {
                 for (int i = 0; i < pointSource.Length / 2; i++)
                 {
@@ -73,34 +73,30 @@ namespace Org.BouncyCastle.Math.EC.Tests
             internal const int k1 = 1;
 
             // a = z^3
-            internal static readonly F2mFieldElement aTpb = new F2mFieldElement(m, k1,
-                new BigInteger("8", 16));
+            internal static readonly BigInteger aTpb = new BigInteger("1000", 2);
 
             // b = z^3 + 1
-            internal static readonly F2mFieldElement bTpb = new F2mFieldElement(m, k1,
-                new BigInteger("9", 16));
+            internal static readonly BigInteger bTpb = new BigInteger("1001", 2);
 
-            internal static readonly F2mCurve curve = new F2mCurve(m, k1, aTpb
-                .ToBigInteger(), bTpb.ToBigInteger());
+            internal static readonly F2mCurve curve = new F2mCurve(m, k1, aTpb, bTpb);
 
-            internal static readonly F2mPoint infinity = (F2mPoint) curve.Infinity;
+            internal static readonly F2mPoint infinity = (F2mPoint)curve.Infinity;
 
-            internal static readonly string[] pointSource = { "2", "f", "c", "c", "1", "1", "b", "2" };
+            internal static readonly String[] pointSource = { "0010", "1111", "1100", "1100",
+                    "0001", "0001", "1011", "0010" };
 
-            internal static F2mPoint[] p = new F2mPoint[pointSource.Length / 2];
+            internal static readonly ECPoint[] p = new ECPoint[pointSource.Length / 2];
 
             /**
              * Creates the points on the curve with literature values.
              */
-            internal static void createPoints()
+            internal static void CreatePoints()
             {
                 for (int i = 0; i < pointSource.Length / 2; i++)
                 {
-                    F2mFieldElement x = new F2mFieldElement(m, k1,
-                        new BigInteger(pointSource[2 * i], 16));
-                    F2mFieldElement y = new F2mFieldElement(m, k1,
-                        new BigInteger(pointSource[2 * i + 1], 16));
-                    p[i] = new F2mPoint(curve, x, y);
+                    p[i] = curve.CreatePoint(
+                        new BigInteger(pointSource[2 * i], 2),
+                        new BigInteger(pointSource[2 * i + 1], 2));
                 }
             }
         }
@@ -109,10 +105,10 @@ namespace Org.BouncyCastle.Math.EC.Tests
         public void setUp()
         {
 //			fp = new ECPointTest.Fp();
-            Fp.createPoints();
+            Fp.CreatePoints();
 
 //			f2m = new ECPointTest.F2m();
-            F2m.createPoints();
+            F2m.CreatePoints();
         }
 
         /**
