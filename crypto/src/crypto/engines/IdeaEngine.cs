@@ -1,5 +1,3 @@
-#if INCLUDE_IDEA
-
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
@@ -12,26 +10,26 @@ namespace Org.BouncyCastle.Crypto.Engines
     * This implementation is based on the "HOWTO: INTERNATIONAL DATA ENCRYPTION ALGORITHM"
     * implementation summary by Fauzan Mirza (F.U.Mirza@sheffield.ac.uk). (baring 1 typo at the
     * end of the mulinv function!).
-	* </p>
+    * </p>
     * <p>
     * It can be found at ftp://ftp.funet.fi/pub/crypt/cryptography/symmetric/idea/
-	* </p>
+    * </p>
     * <p>
-	* Note 1: This algorithm is patented in the USA, Japan, and Europe including
+    * Note 1: This algorithm is patented in the USA, Japan, and Europe including
     * at least Austria, France, Germany, Italy, Netherlands, Spain, Sweden, Switzerland
     * and the United Kingdom. Non-commercial use is free, however any commercial
     * products are liable for royalties. Please see
     * <a href="http://www.mediacrypt.com">www.mediacrypt.com</a> for
     * further details. This announcement has been included at the request of
     * the patent holders.
-	* </p>
-	* <p>
-	* Note 2: Due to the requests concerning the above, this algorithm is now only
-	* included in the extended assembly. It is not included in the default distributions.
-	* </p>
+    * </p>
+    * <p>
+    * Note 2: Due to the requests concerning the above, this algorithm is now only
+    * included in the extended assembly. It is not included in the default distributions.
+    * </p>
     */
     public class IdeaEngine
-		: IBlockCipher
+        : IBlockCipher
     {
         private const int  BLOCK_SIZE = 8;
         private int[] workingKey;
@@ -54,28 +52,28 @@ namespace Org.BouncyCastle.Crypto.Engines
             ICipherParameters	parameters)
         {
             if (!(parameters is KeyParameter))
-				throw new ArgumentException("invalid parameter passed to IDEA init - " + parameters.GetType().ToString());
+                throw new ArgumentException("invalid parameter passed to IDEA init - " + parameters.GetType().ToString());
 
-			workingKey = GenerateWorkingKey(forEncryption,
-				((KeyParameter)parameters).GetKey());
+            workingKey = GenerateWorkingKey(forEncryption,
+                ((KeyParameter)parameters).GetKey());
         }
 
-		public string AlgorithmName
+        public string AlgorithmName
         {
             get { return "IDEA"; }
         }
 
-		public bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
+        public bool IsPartialBlockOkay
+        {
+            get { return false; }
+        }
 
-		public int GetBlockSize()
+        public int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-		public int ProcessBlock(
+        public int ProcessBlock(
             byte[] input,
             int inOff,
             byte[] output,
@@ -228,7 +226,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * Common Divisor algorithm. Zero and one are self inverse.
         * <p>
         * i.e. x * MulInv(x) == 1 (modulo BASE)
-		* </p>
+        * </p>
         */
         private int MulInv(
             int x)
@@ -261,7 +259,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * Return the additive inverse of x.
         * <p>
         * i.e. x + AddInv(x) == 0
-		* </p>
+        * </p>
         */
         int AddInv(
             int x)
@@ -337,5 +335,3 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
     }
 }
-
-#endif

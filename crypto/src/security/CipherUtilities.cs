@@ -389,11 +389,9 @@ namespace Org.BouncyCastle.Security
                 case CipherAlgorithm.HC256:
                     streamCipher = new HC256Engine();
                     break;
-#if INCLUDE_IDEA
                 case CipherAlgorithm.IDEA:
                     blockCipher = new IdeaEngine();
                     break;
-#endif
                 case CipherAlgorithm.NOEKEON:
                     blockCipher = new NoekeonEngine();
                     break;
@@ -716,9 +714,7 @@ namespace Org.BouncyCastle.Security
                 case CipherAlgorithm.DES: return new DesEngine();
                 case CipherAlgorithm.DESEDE: return new DesEdeEngine();
                 case CipherAlgorithm.GOST28147: return new Gost28147Engine();
-#if INCLUDE_IDEA
                 case CipherAlgorithm.IDEA: return new IdeaEngine();
-#endif
                 case CipherAlgorithm.NOEKEON: return new NoekeonEngine();
                 case CipherAlgorithm.RC2: return new RC2Engine();
                 case CipherAlgorithm.RC5: return new RC532Engine();

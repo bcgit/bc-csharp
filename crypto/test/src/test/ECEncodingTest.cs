@@ -112,8 +112,8 @@ namespace Org.BouncyCastle.Tests
 					pubKey = SetPublicUncompressed(pubKey, false);
 				}
 
-				byte[] x = pubKey.Q.X.ToBigInteger().ToByteArrayUnsigned();
-				byte[] y = pubKey.Q.Y.ToBigInteger().ToByteArrayUnsigned();
+				byte[] x = pubKey.Q.AffineXCoord.ToBigInteger().ToByteArrayUnsigned();
+				byte[] y = pubKey.Q.AffineYCoord.ToBigInteger().ToByteArrayUnsigned();
 				if (x.Length == y.Length)
 				{
 					success = true;
@@ -219,10 +219,10 @@ namespace Org.BouncyCastle.Tests
 			ECPublicKeyParameters	key,
 			bool					withCompression)
 		{
-			ECPoint p = key.Q;
+			ECPoint p = key.Q.Normalize();
 			return new ECPublicKeyParameters(
 				key.AlgorithmName,
-				p.Curve.CreatePoint(p.X.ToBigInteger(), p.Y.ToBigInteger(), withCompression),
+				p.Curve.CreatePoint(p.XCoord.ToBigInteger(), p.YCoord.ToBigInteger(), withCompression),
 				key.Parameters);
 		}
 

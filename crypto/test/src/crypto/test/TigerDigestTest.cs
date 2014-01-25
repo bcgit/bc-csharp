@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Tests
      */
     [TestFixture]
     public class TigerDigestTest
-        : ITest
+        : DigestTest
     {
         readonly static string[] messages =
         {
@@ -48,88 +48,30 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         readonly static string hash64k = "FDF4F5B35139F48E710E421BE5AF411DE1A8AAC333F26204";
 
-        public string Name
+        public TigerDigestTest()
+            : base(new TigerDigest(), messages, digests)
         {
-			get { return "Tiger"; }
         }
 
-		public ITestResult Perform()
+        public override void PerformTest()
         {
-            IDigest digest = new TigerDigest();
-            byte[] resBuf = new byte[digest.GetDigestSize()];
+            base.PerformTest();
 
-            for (int i = 0; i < messages.Length; i++)
-            {
-                byte[] m = Encoding.ASCII.GetBytes(messages[i]);
-                digest.BlockUpdate(m, 0, m.Length);
-                digest.DoFinal(resBuf, 0);
+            sixtyFourKTest(hash64k);
+        }
 
-                if (!Arrays.AreEqual(resBuf, Hex.Decode(digests[i])))
-                {
-                    return new SimpleTestResult(false, Name + ": Vector " + i + " failed got " + Hex.ToHexString(resBuf));
-                }
-            }
-
-            //
-            // test 2
-            //
-            byte[] mm = Encoding.ASCII.GetBytes(messages[messages.Length-1]);
-
-            digest.BlockUpdate(mm, 0, mm.Length/2);
-
-            // clone the IDigest
-            IDigest d = new TigerDigest((TigerDigest)digest);
-
-            digest.BlockUpdate(mm, mm.Length/2, mm.Length - mm.Length/2);
-            digest.DoFinal(resBuf, 0);
-
-            if (!Arrays.AreEqual(resBuf, Hex.Decode(digests[digests.Length-1])))
-            {
-                return new SimpleTestResult(false,
-                    "Tiger failing clone test"
-                    + SimpleTest.NewLine
-                    + "    expected: " + digests[digests.Length-1]
-                    + SimpleTest.NewLine
-                    + "    got     : " + Hex.ToHexString(resBuf));
-            }
-
-            d.BlockUpdate(mm, mm.Length/2, mm.Length - mm.Length/2);
-            d.DoFinal(resBuf, 0);
-
-            if (!Arrays.AreEqual(resBuf, Hex.Decode(digests[digests.Length-1])))
-            {
-                return new SimpleTestResult(false,
-                    "Tiger failing clone test - part 2"
-                    + SimpleTest.NewLine
-                    + "    expected: " +  digests[digests.Length-1]
-                    + SimpleTest.NewLine
-                    + "    got     : " + Hex.ToHexString(resBuf));
-            }
-
-            for (int i = 0; i < 65536; i++)
-            {
-                digest.Update((byte)(i & 0xff));
-            }
-            digest.DoFinal(resBuf, 0);
-
-            if (!Arrays.AreEqual(resBuf, Hex.Decode(hash64k)))
-            {
-                return new SimpleTestResult(false, Name + ": Million a's failed");
-            }
-
-            return new SimpleTestResult(true, Name + ": Okay");
+        protected override IDigest CloneDigest(IDigest digest)
+        {
+            return new TigerDigest((TigerDigest)digest);
         }
 
         public static void Main(
             string[] args)
         {
-            ITest test = new TigerDigestTest();
-            ITestResult result = test.Perform();
-
-            Console.WriteLine(result);
+            RunTest(new TigerDigestTest());
         }
 
-		[Test]
+        [Test]
         public void TestFunction()
         {
             string resultText = Perform().ToString();

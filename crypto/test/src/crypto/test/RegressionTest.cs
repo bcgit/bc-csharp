@@ -39,12 +39,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SkipjackTest(),
             new BlowfishTest(),
             new TwofishTest(),
+            new Threefish256Test(),
+            new Threefish512Test(),
+            new Threefish1024Test(),
+            new SkeinDigestTest(),
+            new SkeinMacTest(),
             new Cast5Test(),
             new Cast6Test(),
             new Gost28147Test(),
-#if INCLUDE_IDEA
             new IdeaTest(),
-#endif
             new RsaBlindedTest(),
             new RsaTest(),
             new ISO9796Test(),
@@ -94,9 +97,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Rfc3211WrapTest(),
             new SeedTest(),
             new NaccacheSternTest(),
-			new Salsa20Test(),
-			new XSalsa20Test(),
-			new ChaChaTest(),
+            new Salsa20Test(),
+            new XSalsa20Test(),
+            new ChaChaTest(),
             new CMacTest(),
             new EaxTest(),
             new GcmTest(),
@@ -114,6 +117,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SipHashTest(),
             new Poly1305Test(),
             new OcbTest(),
+            new SM3DigestTest()
         };
 
         public static void Main(

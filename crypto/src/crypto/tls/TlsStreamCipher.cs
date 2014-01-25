@@ -18,40 +18,40 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected TlsMac readMac;
 
         public TlsStreamCipher(TlsClientContext context, IStreamCipher encryptCipher,
-			IStreamCipher decryptCipher, IDigest writeDigest, IDigest readDigest, int cipherKeySize)
-		{
-			this.context = context;
-			this.encryptCipher = encryptCipher;
-			this.decryptCipher = decryptCipher;
+            IStreamCipher decryptCipher, IDigest writeDigest, IDigest readDigest, int cipherKeySize)
+        {
+            this.context = context;
+            this.encryptCipher = encryptCipher;
+            this.decryptCipher = decryptCipher;
 
             int prfSize = (2 * cipherKeySize) + writeDigest.GetDigestSize()
                 + readDigest.GetDigestSize();
 
-			SecurityParameters securityParameters = context.SecurityParameters;
+            SecurityParameters securityParameters = context.SecurityParameters;
 
-			byte[] keyBlock = TlsUtilities.PRF(securityParameters.masterSecret, "key expansion",
-				TlsUtilities.Concat(securityParameters.serverRandom, securityParameters.clientRandom),
-				prfSize);
+            byte[] keyBlock = TlsUtilities.PRF(securityParameters.masterSecret, "key expansion",
+                TlsUtilities.Concat(securityParameters.serverRandom, securityParameters.clientRandom),
+                prfSize);
 
-			int offset = 0;
+            int offset = 0;
 
-			// Init MACs
-			writeMac = CreateTlsMac(writeDigest, keyBlock, ref offset);
-			readMac = CreateTlsMac(readDigest, keyBlock, ref offset);
+            // Init MACs
+            writeMac = CreateTlsMac(writeDigest, keyBlock, ref offset);
+            readMac = CreateTlsMac(readDigest, keyBlock, ref offset);
 
-			// Build keys
-			KeyParameter encryptKey = CreateKeyParameter(keyBlock, ref offset, cipherKeySize);
-			KeyParameter decryptKey = CreateKeyParameter(keyBlock, ref offset, cipherKeySize);
+            // Build keys
+            KeyParameter encryptKey = CreateKeyParameter(keyBlock, ref offset, cipherKeySize);
+            KeyParameter decryptKey = CreateKeyParameter(keyBlock, ref offset, cipherKeySize);
 
-			if (offset != prfSize)
+            if (offset != prfSize)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             // Init Ciphers
             encryptCipher.Init(true, encryptKey);
             decryptCipher.Init(false, decryptKey);
-		}
+        }
 
-        public byte[] EncodePlaintext(ContentType type, byte[] plaintext, int offset, int len)
+        public byte[] EncodePlaintext(byte type, byte[] plaintext, int offset, int len)
         {
             byte[] mac = writeMac.CalculateMac(type, plaintext, offset, len);
             int size = len + mac.Length;
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return outbuf;
         }
 
-        public byte[] DecodeCiphertext(ContentType type, byte[] ciphertext, int offset, int len)
+        public byte[] DecodeCiphertext(byte type, byte[] ciphertext, int offset, int len)
         {
             byte[] deciphered = new byte[len];
             decryptCipher.ProcessBytes(ciphertext, offset, len, deciphered, 0);

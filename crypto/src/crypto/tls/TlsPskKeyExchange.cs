@@ -8,42 +8,42 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-	internal class TlsPskKeyExchange
-		: TlsKeyExchange
-	{
-		protected TlsClientContext context;
-		protected KeyExchangeAlgorithm keyExchange;
-		protected TlsPskIdentity pskIdentity;
+    internal class TlsPskKeyExchange
+        : TlsKeyExchange
+    {
+        protected TlsClientContext context;
+        protected int keyExchange;
+        protected TlsPskIdentity pskIdentity;
 
-		protected byte[] psk_identity_hint = null;
+        protected byte[] psk_identity_hint = null;
 
-		protected DHPublicKeyParameters dhAgreeServerPublicKey = null;
-		protected DHPrivateKeyParameters dhAgreeClientPrivateKey = null;
+        protected DHPublicKeyParameters dhAgreeServerPublicKey = null;
+        protected DHPrivateKeyParameters dhAgreeClientPrivateKey = null;
 
         protected AsymmetricKeyParameter serverPublicKey = null;
         protected RsaKeyParameters rsaServerPublicKey = null;
-		protected byte[] premasterSecret;
+        protected byte[] premasterSecret;
 
-		internal TlsPskKeyExchange(TlsClientContext context, KeyExchangeAlgorithm keyExchange,
-			TlsPskIdentity pskIdentity)
-		{
-			switch (keyExchange)
-			{
-				case KeyExchangeAlgorithm.PSK:
-				case KeyExchangeAlgorithm.RSA_PSK:
-				case KeyExchangeAlgorithm.DHE_PSK:
-					break;
-				default:
-					throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
-			}
+        internal TlsPskKeyExchange(TlsClientContext context, int keyExchange,
+            TlsPskIdentity pskIdentity)
+        {
+            switch (keyExchange)
+            {
+                case KeyExchangeAlgorithm.PSK:
+                case KeyExchangeAlgorithm.RSA_PSK:
+                case KeyExchangeAlgorithm.DHE_PSK:
+                    break;
+                default:
+                    throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+            }
 
-			this.context = context;
-			this.keyExchange = keyExchange;
-			this.pskIdentity = pskIdentity;
-		}
+            this.context = context;
+            this.keyExchange = keyExchange;
+            this.pskIdentity = pskIdentity;
+        }
 
-		public virtual void SkipServerCertificate()
-		{
+        public virtual void SkipServerCertificate()
+        {
             if (keyExchange == KeyExchangeAlgorithm.RSA_PSK)
             {
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
@@ -51,13 +51,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         public virtual void ProcessServerCertificate(Certificate serverCertificate)
-		{
+        {
             if (keyExchange != KeyExchangeAlgorithm.RSA_PSK)
             {
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             }
 
-            X509CertificateStructure x509Cert = serverCertificate.certs[0];
+            X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
             SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
 
             try
@@ -88,107 +88,107 @@ namespace Org.BouncyCastle.Crypto.Tls
             */
         }
 
-		public virtual void SkipServerKeyExchange()
-		{
+        public virtual void SkipServerKeyExchange()
+        {
             if (keyExchange == KeyExchangeAlgorithm.DHE_PSK)
             {
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             }
 
-            this.psk_identity_hint = new byte[0];
-		}
+            this.psk_identity_hint = TlsUtilities.EmptyBytes;
+        }
 
-		public virtual void ProcessServerKeyExchange(Stream input)
-		{
-			this.psk_identity_hint = TlsUtilities.ReadOpaque16(input);
+        public virtual void ProcessServerKeyExchange(Stream input)
+        {
+            this.psk_identity_hint = TlsUtilities.ReadOpaque16(input);
 
-			if (this.keyExchange == KeyExchangeAlgorithm.DHE_PSK)
-			{
-				byte[] pBytes = TlsUtilities.ReadOpaque16(input);
-				byte[] gBytes = TlsUtilities.ReadOpaque16(input);
-				byte[] YsBytes = TlsUtilities.ReadOpaque16(input);
+            if (this.keyExchange == KeyExchangeAlgorithm.DHE_PSK)
+            {
+                byte[] pBytes = TlsUtilities.ReadOpaque16(input);
+                byte[] gBytes = TlsUtilities.ReadOpaque16(input);
+                byte[] YsBytes = TlsUtilities.ReadOpaque16(input);
 
-				BigInteger p = new BigInteger(1, pBytes);
-				BigInteger g = new BigInteger(1, gBytes);
-				BigInteger Ys = new BigInteger(1, YsBytes);
-				
-				this.dhAgreeServerPublicKey = TlsDHUtilities.ValidateDHPublicKey(
-					new DHPublicKeyParameters(Ys, new DHParameters(p, g)));
-			}
-			else if (this.psk_identity_hint.Length == 0)
-			{
-				// TODO Should we enforce that this message should have been skipped if hint is empty?
-				//throw new TlsFatalAlert(AlertDescription.unexpected_message);
-			}
-		}
+                BigInteger p = new BigInteger(1, pBytes);
+                BigInteger g = new BigInteger(1, gBytes);
+                BigInteger Ys = new BigInteger(1, YsBytes);
+                
+                this.dhAgreeServerPublicKey = TlsDHUtilities.ValidateDHPublicKey(
+                    new DHPublicKeyParameters(Ys, new DHParameters(p, g)));
+            }
+            else if (this.psk_identity_hint.Length == 0)
+            {
+                // TODO Should we enforce that this message should have been skipped if hint is empty?
+                //throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            }
+        }
 
-		public virtual void ValidateCertificateRequest(CertificateRequest certificateRequest)
-		{
-			throw new TlsFatalAlert(AlertDescription.unexpected_message);
-		}
+        public virtual void ValidateCertificateRequest(CertificateRequest certificateRequest)
+        {
+            throw new TlsFatalAlert(AlertDescription.unexpected_message);
+        }
 
-		public virtual void SkipClientCredentials()
-		{
-			// OK
-		}
+        public virtual void SkipClientCredentials()
+        {
+            // OK
+        }
 
-		public virtual void ProcessClientCredentials(TlsCredentials clientCredentials)
-		{
-			throw new TlsFatalAlert(AlertDescription.internal_error);
-		}
+        public virtual void ProcessClientCredentials(TlsCredentials clientCredentials)
+        {
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
 
-		public virtual void GenerateClientKeyExchange(Stream output)
-		{
-			if (psk_identity_hint == null || psk_identity_hint.Length == 0)
-			{
-				pskIdentity.SkipIdentityHint();
-			}
-			else
-			{
-				pskIdentity.NotifyIdentityHint(psk_identity_hint);
-			}
+        public virtual void GenerateClientKeyExchange(Stream output)
+        {
+            if (psk_identity_hint == null || psk_identity_hint.Length == 0)
+            {
+                pskIdentity.SkipIdentityHint();
+            }
+            else
+            {
+                pskIdentity.NotifyIdentityHint(psk_identity_hint);
+            }
 
-			byte[] psk_identity = pskIdentity.GetPskIdentity();
+            byte[] psk_identity = pskIdentity.GetPskIdentity();
 
-			TlsUtilities.WriteOpaque16(psk_identity, output);
+            TlsUtilities.WriteOpaque16(psk_identity, output);
 
-			if (this.keyExchange == KeyExchangeAlgorithm.RSA_PSK)
-			{
-				this.premasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(
-					context.SecureRandom, this.rsaServerPublicKey, output);
-			}
-			else if (this.keyExchange == KeyExchangeAlgorithm.DHE_PSK)
-			{
-				this.dhAgreeClientPrivateKey = TlsDHUtilities.GenerateEphemeralClientKeyExchange(
-					context.SecureRandom, this.dhAgreeServerPublicKey.Parameters, output);
-			}
-		}
+            if (this.keyExchange == KeyExchangeAlgorithm.RSA_PSK)
+            {
+                this.premasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(
+                    context.SecureRandom, this.rsaServerPublicKey, output);
+            }
+            else if (this.keyExchange == KeyExchangeAlgorithm.DHE_PSK)
+            {
+                this.dhAgreeClientPrivateKey = TlsDHUtilities.GenerateEphemeralClientKeyExchange(
+                    context.SecureRandom, this.dhAgreeServerPublicKey.Parameters, output);
+            }
+        }
 
-		public virtual byte[] GeneratePremasterSecret()
-		{
-			byte[] psk = pskIdentity.GetPsk();
-			byte[] other_secret = GenerateOtherSecret(psk.Length);
+        public virtual byte[] GeneratePremasterSecret()
+        {
+            byte[] psk = pskIdentity.GetPsk();
+            byte[] other_secret = GenerateOtherSecret(psk.Length);
 
-			MemoryStream buf = new MemoryStream(4 + other_secret.Length + psk.Length);
-			TlsUtilities.WriteOpaque16(other_secret, buf);
-			TlsUtilities.WriteOpaque16(psk, buf);
-			return buf.ToArray();
-		}
+            MemoryStream buf = new MemoryStream(4 + other_secret.Length + psk.Length);
+            TlsUtilities.WriteOpaque16(other_secret, buf);
+            TlsUtilities.WriteOpaque16(psk, buf);
+            return buf.ToArray();
+        }
 
-		protected virtual byte[] GenerateOtherSecret(int pskLength)
-		{
-			if (this.keyExchange == KeyExchangeAlgorithm.DHE_PSK)
-			{
-				return TlsDHUtilities.CalculateDHBasicAgreement(dhAgreeServerPublicKey, dhAgreeClientPrivateKey);
-			}
+        protected virtual byte[] GenerateOtherSecret(int pskLength)
+        {
+            if (this.keyExchange == KeyExchangeAlgorithm.DHE_PSK)
+            {
+                return TlsDHUtilities.CalculateDHBasicAgreement(dhAgreeServerPublicKey, dhAgreeClientPrivateKey);
+            }
 
-			if (this.keyExchange == KeyExchangeAlgorithm.RSA_PSK)
-			{
-				return this.premasterSecret;
-			}
+            if (this.keyExchange == KeyExchangeAlgorithm.RSA_PSK)
+            {
+                return this.premasterSecret;
+            }
 
-			return new byte[pskLength];
-		}
+            return new byte[pskLength];
+        }
 
         protected virtual RsaKeyParameters ValidateRsaPublicKey(RsaKeyParameters key)
         {

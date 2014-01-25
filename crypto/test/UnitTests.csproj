@@ -234,6 +234,12 @@
     <Compile Include="src\crypto\test\SHA512HMacTest.cs" />
     <Compile Include="src\crypto\test\SHA512t224DigestTest.cs" />
     <Compile Include="src\crypto\test\SHA512t256DigestTest.cs" />
+    <Compile Include="src\crypto\test\SM3DigestTest.cs" />
+    <Compile Include="src\crypto\test\SkeinDigestTest.cs" />
+    <Compile Include="src\crypto\test\SkeinMacTest.cs" />
+    <Compile Include="src\crypto\test\Threefish1024Test.cs" />
+    <Compile Include="src\crypto\test\Threefish256Test.cs" />
+    <Compile Include="src\crypto\test\Threefish512Test.cs" />
     <Compile Include="src\crypto\test\SRP6Test.cs" />
     <Compile Include="src\crypto\test\Salsa20Test.cs" />
     <Compile Include="src\crypto\test\SerpentTest.cs" />

@@ -45,21 +45,21 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public void ReadData()
         {
-            ContentType type = (ContentType)TlsUtilities.ReadUint8(inStr);
+            byte contentType = TlsUtilities.ReadUint8(inStr);
             TlsUtilities.CheckVersion(inStr);
             int size = TlsUtilities.ReadUint16(inStr);
-            byte[] buf = DecodeAndVerify(type, inStr, size);
-            handler.ProcessData(type, buf, 0, buf.Length);
+            byte[] buf = DecodeAndVerify(contentType, inStr, size);
+            handler.ProcessData(contentType, buf, 0, buf.Length);
         }
 
         internal byte[] DecodeAndVerify(
-            ContentType	type,
+            byte        contentType,
             Stream		inStr,
             int			len)
         {
             byte[] buf = new byte[len];
             TlsUtilities.ReadFully(buf, inStr);
-            byte[] decoded = readCipher.DecodeCiphertext(type, buf, 0, buf.Length);
+            byte[] decoded = readCipher.DecodeCiphertext(contentType, buf, 0, buf.Length);
 
             Stream cOut = readCompression.Decompress(buffer);
 
@@ -76,10 +76,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         internal void WriteMessage(
-            ContentType	type,
-            byte[]		message,
-            int			offset,
-            int			len)
+            byte    type,
+            byte[]  message,
+            int		offset,
+            int		len)
         {
             if (type == ContentType.handshake)
             {

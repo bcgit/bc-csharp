@@ -83,7 +83,7 @@
 //			{
 //				BigInteger rand = new BigInteger(inputProps.getProperty(Integer
 //					.ToString(i)), 16);
-//				F2mPoint result = (F2mPoint) g.Multiply(rand);
+//				F2mPoint result = (F2mPoint) g.Multiply(rand).normalize();
 //				string resultStr = pointToString(result);
 //				outputProps.setProperty(i.ToString(), resultStr);
 //			}

@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 throw new ArgumentNullException("clientCertificate");
             }
-            if (clientCertificate.certs.Length == 0)
+            if (clientCertificate.Length == 0)
             {
                 throw new ArgumentException("cannot be empty", "clientCertificate");
             }

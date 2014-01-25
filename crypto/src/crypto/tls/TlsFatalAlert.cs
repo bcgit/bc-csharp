@@ -3,19 +3,19 @@ using System.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-	public class TlsFatalAlert
-		: IOException
-	{
-		private readonly AlertDescription alertDescription;
+    public class TlsFatalAlert
+        : IOException
+    {
+        private readonly byte alertDescription;
 
-		public TlsFatalAlert(AlertDescription alertDescription)
-		{
-			this.alertDescription = alertDescription;
-		}
+        public TlsFatalAlert(byte alertDescription)
+        {
+            this.alertDescription = alertDescription;
+        }
 
-		public AlertDescription AlertDescription
-		{
-			get { return alertDescription; }
-		}
-	}
+        public virtual byte AlertDescription
+        {
+            get { return alertDescription; }
+        }
+    }
 }
