@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Math.EC
         public abstract string FieldName { get; }
         public abstract int FieldSize { get; }
         public abstract ECFieldElement Add(ECFieldElement b);
+        public abstract ECFieldElement AddOne();
         public abstract ECFieldElement Subtract(ECFieldElement b);
         public abstract ECFieldElement Multiply(ECFieldElement b);
         public abstract ECFieldElement Divide(ECFieldElement b);
@@ -144,6 +145,16 @@ namespace Org.BouncyCastle.Math.EC
             ECFieldElement b)
         {
             return new FpFieldElement(q, r, ModAdd(x, b.ToBigInteger()));
+        }
+
+        public override ECFieldElement AddOne()
+        {
+            BigInteger x2 = x.Add(BigInteger.One);
+            if (x2.CompareTo(q) == 0)
+            {
+                x2 = BigInteger.Zero;
+            }
+            return new FpFieldElement(q, r, x2);
         }
 
         public override ECFieldElement Subtract(
@@ -1102,6 +1113,11 @@ namespace Org.BouncyCastle.Math.EC
             F2mFieldElement bF2m = (F2mFieldElement)b;
             iarrClone.AddShiftedByWords(bF2m.x, 0);
             return new F2mFieldElement(m, ks, iarrClone);
+        }
+
+        public override ECFieldElement AddOne()
+        {
+            return new F2mFieldElement(m, ks, x.AddOne());
         }
 
         public override ECFieldElement Subtract(
