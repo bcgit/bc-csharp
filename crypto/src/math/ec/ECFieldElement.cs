@@ -1166,7 +1166,15 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECFieldElement Sqrt()
         {
-            throw new ArithmeticException("Not implemented");
+            LongArray root = this.x;
+            if (root.IsOne() || root.IsZero())
+                return this;
+
+            for (int i = 1; i < m; ++i)
+            {
+                root = root.ModSquare(m, ks);
+            }
+            return new F2mFieldElement(m, ks, root);
         }
 
         /**
