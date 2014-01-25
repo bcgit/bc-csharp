@@ -1879,6 +1879,10 @@ namespace Org.BouncyCastle.Math.EC
              * Output: a(z)^(-1) mod f(z)
              */
             int uzDegree = Degree();
+            if (uzDegree == 0)
+            {
+                throw new InvalidOperationException();
+            }
             if (uzDegree == 1)
             {
                 return this;
