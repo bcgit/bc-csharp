@@ -721,6 +721,19 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mCurve(m, k1, k2, k3, m_a, m_b, n, h);
         }
 
+        public override bool SupportsCoordinateSystem(int coord)
+        {
+            switch (coord)
+            {
+                case COORD_AFFINE:
+                case COORD_HOMOGENEOUS:
+                case COORD_LAMBDA_PROJECTIVE:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         protected override ECMultiplier CreateDefaultMultiplier()
         {
             if (IsKoblitz)
@@ -805,26 +818,39 @@ namespace Org.BouncyCastle.Math.EC
             return si;
         }
 
-        public override ECPoint CreatePoint(
-            BigInteger	X1,
-            BigInteger	Y1,
-            bool		withCompression)
+        public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
         {
-            // TODO Validation of X1, Y1?
-            return new F2mPoint(
-                this,
-                FromBigInteger(X1),
-                FromBigInteger(Y1),
-                withCompression);
+            ECFieldElement X = FromBigInteger(x), Y = FromBigInteger(y);
+
+            switch (this.CoordinateSystem)
+            {
+                case COORD_LAMBDA_AFFINE:
+                case COORD_LAMBDA_PROJECTIVE:
+                {
+                    if (!X.IsZero)
+                    {
+                        // Y becomes Lambda (X + Y/X) here
+                        Y = Y.Divide(X).Add(X);
+                    }
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+            }
+
+            return CreateRawPoint(X, Y, withCompression);
         }
 
         protected override ECPoint DecompressPoint(
             int			yTilde,
             BigInteger	X1)
         {
+
             ECFieldElement xp = FromBigInteger(X1);
             ECFieldElement yp = null;
-            if (xp.ToBigInteger().SignValue == 0)
+            if (xp.IsZero)
             {
                 yp = (F2mFieldElement)m_b;
                 for (int i = 0; i < m - 1; i++)
@@ -840,13 +866,26 @@ namespace Org.BouncyCastle.Math.EC
                 if (z == null)
                     throw new ArithmeticException("Invalid point compression");
 
-                int zBit = z.ToBigInteger().TestBit(0) ? 1 : 0;
-                if (zBit != yTilde)
+                if (z.TestBitZero() != (yTilde == 1))
                 {
-                    z = z.Add(FromBigInteger(BigInteger.One));
+                    z = z.AddOne();
                 }
 
                 yp = xp.Multiply(z);
+
+                switch (this.CoordinateSystem)
+                {
+                    case COORD_LAMBDA_AFFINE:
+                    case COORD_LAMBDA_PROJECTIVE:
+                    {
+                        yp = yp.Divide(xp).Add(xp);
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                }
             }
 
             return new F2mPoint(this, xp, yp, true);
