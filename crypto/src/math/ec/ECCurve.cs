@@ -463,7 +463,7 @@ namespace Org.BouncyCastle.Math.EC
      */
     public class F2mCurve : ECCurve
     {
-        private const int F2M_DEFAULT_COORDS = COORD_AFFINE;
+        private const int F2M_DEFAULT_COORDS = COORD_LAMBDA_PROJECTIVE;
 
         private static IFiniteField BuildField(int m, int k1, int k2, int k3)
         {
@@ -827,7 +827,12 @@ namespace Org.BouncyCastle.Math.EC
                 case COORD_LAMBDA_AFFINE:
                 case COORD_LAMBDA_PROJECTIVE:
                 {
-                    if (!X.IsZero)
+                    if (X.IsZero)
+                    {
+                        if (!Y.Square().Equals(B))
+                            throw new ArgumentException();
+                    }
+                    else
                     {
                         // Y becomes Lambda (X + Y/X) here
                         Y = Y.Divide(X).Add(X);
@@ -847,16 +852,11 @@ namespace Org.BouncyCastle.Math.EC
             int			yTilde,
             BigInteger	X1)
         {
-
             ECFieldElement xp = FromBigInteger(X1);
-            ECFieldElement yp = null;
+            ECFieldElement yp;
             if (xp.IsZero)
             {
-                yp = (F2mFieldElement)m_b;
-                for (int i = 0; i < m - 1; i++)
-                {
-                    yp = yp.Square();
-                }
+                yp = m_b.Sqrt();
             }
             else
             {

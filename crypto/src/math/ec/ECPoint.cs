@@ -907,7 +907,7 @@ namespace Org.BouncyCastle.Math.EC
             bool			withCompression)
             : base(curve, x, y, withCompression)
         {
-            if ((x != null && y == null) || (x == null && y != null))
+            if ((x == null) != (y == null))
             {
                 throw new ArgumentException("Exactly one of the field elements is null");
             }
@@ -1118,7 +1118,12 @@ namespace Org.BouncyCastle.Math.EC
                 case ECCurve.COORD_LAMBDA_PROJECTIVE:
                 {
                     if (X1.IsZero)
+                    {
+                        if (X2.IsZero)
+                            return (F2mPoint)curve.Infinity;
+
                         return b.AddSimple(this);
+                    }
 
                     ECFieldElement L1 = this.RawYCoord, Z1 = this.GetZCoord(0);
                     ECFieldElement L2 = b.RawYCoord, Z2 = b.GetZCoord(0);
@@ -1156,13 +1161,21 @@ namespace Org.BouncyCastle.Math.EC
                     if (X2.IsZero)
                     {
                         // TODO This can probably be optimized quite a bit
+                        ECPoint p = this.Normalize();
+                        X1 = p.RawXCoord;
+                        ECFieldElement Y1 = p.YCoord;
 
-                        ECFieldElement Y1 = this.RawYCoord, Y2 = L2;
+                        ECFieldElement Y2 = L2;
                         ECFieldElement L = Y1.Add(Y2).Divide(X1);
 
                         X3 = L.Square().Add(L).Add(X1).Add(curve.A);
+                        if (X3.IsZero)
+                        {
+                            return new F2mPoint(curve, X3, curve.B.Sqrt(), IsCompressed);
+                        }
+
                         ECFieldElement Y3 = L.Multiply(X1.Add(X3)).Add(X3).Add(Y1);
-                        L3 = X3.IsZero ? Y3 : Y3.Divide(X3).Add(X3);
+                        L3 = Y3.Divide(X3).Add(X3);
                         Z3 = curve.FromBigInteger(BigInteger.One);
                     }
                     else
@@ -1171,13 +1184,19 @@ namespace Org.BouncyCastle.Math.EC
 
                         ECFieldElement AU1 = A.Multiply(U1);
                         ECFieldElement AU2 = A.Multiply(U2);
+
+                        X3 = AU1.Multiply(AU2);
+                        if (X3.IsZero)
+                        {
+                            return new F2mPoint(curve, X3, curve.B.Sqrt(), IsCompressed);
+                        }
+
                         ECFieldElement ABZ2 = A.Multiply(B);
                         if (!Z2IsOne)
                         {
                             ABZ2 = ABZ2.Multiply(Z2);
                         }
 
-                        X3 = AU1.Multiply(AU2);
                         L3 = AU2.Add(B).Square().Add(ABZ2.Multiply(L1.Add(Z1)));
 
                         Z3 = ABZ2;
@@ -1322,6 +1341,11 @@ namespace Org.BouncyCastle.Math.EC
                     ECFieldElement T = L1.Square().Add(L1Z1).Add(aZ1Sq);
 
                     ECFieldElement X3 = T.Square();
+                    if (X3.IsZero)
+                    {
+                        return new F2mPoint(curve, X3, curve.B.Sqrt(), IsCompressed);
+                    }
+
                     ECFieldElement Z3 = Z1IsOne ? T : T.Multiply(Z1Sq);
 
                     ECFieldElement b = curve.B;
@@ -1366,61 +1390,61 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        public override ECPoint TwicePlus(ECPoint b)
-        {
-            if (this.IsInfinity)
-                return b;
-            if (b.IsInfinity)
-                return Twice();
+        //public override ECPoint TwicePlus(ECPoint b)
+        //{
+        //    if (this.IsInfinity)
+        //        return b;
+        //    if (b.IsInfinity)
+        //        return Twice();
 
-            ECCurve curve = this.Curve;
+        //    ECCurve curve = this.Curve;
 
-            ECFieldElement X1 = this.RawXCoord;
-            if (X1.IsZero)
-            {
-                // A point with X == 0 is it's own additive inverse
-                return b;
-            }
+        //    ECFieldElement X1 = this.RawXCoord;
+        //    if (X1.IsZero)
+        //    {
+        //        // A point with X == 0 is it's own additive inverse
+        //        return b;
+        //    }
 
-            int coord = curve.CoordinateSystem;
+        //    int coord = curve.CoordinateSystem;
 
-            switch (coord)
-            {
-                case ECCurve.COORD_LAMBDA_PROJECTIVE:
-                {
-                    // NOTE: twicePlus() only optimized for lambda-affine argument
-                    ECFieldElement X2 = b.RawXCoord, Z2 = b.GetZCoord(0);
-                    if (X2.IsZero || !Z2.IsOne)
-                    {
-                        return Twice().Add(b);
-                    }
+        //    switch (coord)
+        //    {
+        //        case ECCurve.COORD_LAMBDA_PROJECTIVE:
+        //        {
+        //            // NOTE: twicePlus() only optimized for lambda-affine argument
+        //            ECFieldElement X2 = b.RawXCoord, Z2 = b.GetZCoord(0);
+        //            if (X2.IsZero || !Z2.IsOne)
+        //            {
+        //                return Twice().Add(b);
+        //            }
 
-                    ECFieldElement L1 = this.RawYCoord, Z1 = this.GetZCoord(0);
-                    ECFieldElement L2 = b.RawYCoord;
+        //            ECFieldElement L1 = this.RawYCoord, Z1 = this.GetZCoord(0);
+        //            ECFieldElement L2 = b.RawYCoord;
 
-                    ECFieldElement X1Sq = X1.Square();
-                    ECFieldElement L1Sq = L1.Square();
-                    ECFieldElement Z1Sq = Z1.Square();
-                    ECFieldElement L1Z1 = L1.Multiply(Z1);
+        //            ECFieldElement X1Sq = X1.Square();
+        //            ECFieldElement L1Sq = L1.Square();
+        //            ECFieldElement Z1Sq = Z1.Square();
+        //            ECFieldElement L1Z1 = L1.Multiply(Z1);
 
-                    ECFieldElement T = curve.A.Multiply(Z1Sq).Add(L1Sq).Add(L1Z1);
-                    ECFieldElement L2plus1 = L2.AddOne();
-                    ECFieldElement A = curve.A.Add(L2plus1).Multiply(Z1Sq).Add(L1Sq).Multiply(T).Add(X1Sq.Multiply(Z1Sq));
-                    ECFieldElement X2Z1Sq = X2.Multiply(Z1Sq);
-                    ECFieldElement B = X2Z1Sq.Add(T).Square();
+        //            ECFieldElement T = curve.A.Multiply(Z1Sq).Add(L1Sq).Add(L1Z1);
+        //            ECFieldElement L2plus1 = L2.AddOne();
+        //            ECFieldElement A = curve.A.Add(L2plus1).Multiply(Z1Sq).Add(L1Sq).Multiply(T).Add(X1Sq.Multiply(Z1Sq));
+        //            ECFieldElement X2Z1Sq = X2.Multiply(Z1Sq);
+        //            ECFieldElement B = X2Z1Sq.Add(T).Square();
 
-                    ECFieldElement X3 = A.Square().Multiply(X2Z1Sq);
-                    ECFieldElement Z3 = A.Multiply(B).Multiply(Z1Sq);
-                    ECFieldElement L3 = A.Add(B).Square().Multiply(T).Add(L2plus1.Multiply(Z3));
+        //            ECFieldElement X3 = A.Square().Multiply(X2Z1Sq);
+        //            ECFieldElement Z3 = A.Multiply(B).Multiply(Z1Sq);
+        //            ECFieldElement L3 = A.Add(B).Square().Multiply(T).Add(L2plus1.Multiply(Z3));
 
-                    return new F2mPoint(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
-                }
-                default:
-                {
-                    return Twice().Add(b);
-                }
-            }
-        }
+        //            return new F2mPoint(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
+        //        }
+        //        default:
+        //        {
+        //            return Twice().Add(b);
+        //        }
+        //    }
+        //}
 
         public override ECPoint Negate()
         {
