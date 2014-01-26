@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 {
     /**
      * Test vectors from the "work in progress" Internet-Draft <a
-     * href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-03">The OCB Authenticated-Encryption
+     * href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-05">The OCB Authenticated-Encryption
      * Algorithm</a>
      */
     public class OcbTest
@@ -90,6 +90,37 @@ namespace Org.BouncyCastle.Crypto.Tests
             RunLongerTestCase(128, 64, Hex.Decode("B7ECE9D381FE437F"));
             RunLongerTestCase(192, 64, Hex.Decode("DE0574C87FF06DF9"));
             RunLongerTestCase(256, 64, Hex.Decode("833E45FF7D332F7E"));
+
+            DoTestExceptions();
+        }
+
+        private void DoTestExceptions()
+        {
+            OcbBlockCipher ocb = new OcbBlockCipher(new AesFastEngine(), new AesFastEngine());
+
+            try
+            {
+                ocb = new OcbBlockCipher(new DesEngine(), new DesEngine());
+                Fail("incorrect block size not picked up");
+            }
+            catch (ArgumentException e)
+            {
+                // expected
+            }
+
+            try
+            {
+                ocb.Init(false, new KeyParameter(new byte[16]));
+                Fail("illegal argument not picked up");
+            }
+            catch (ArgumentException e)
+            {
+                // expected
+            }
+
+            // TODO
+            //AEADTestUtil.testReset(this, new OCBBlockCipher(new AESEngine(), new AESEngine()), new OCBBlockCipher(new AESEngine(), new AESEngine()), new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[15]));
+            //AEADTestUtil.testTampering(this, ocb, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[15]));
         }
 
         private void RunTestCase(string testName, string[] testVector)
