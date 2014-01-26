@@ -12,6 +12,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Pkcs;
@@ -382,23 +383,15 @@ namespace Org.BouncyCastle.OpenSsl
             string name)
         {
             // TODO ECGost3410NamedCurves support (returns ECDomainParameters though)
-            X9ECParameters ecP = X962NamedCurves.GetByName(name);
 
+            X9ECParameters ecP = CustomNamedCurves.GetByName(name);
             if (ecP == null)
             {
-                ecP = SecNamedCurves.GetByName(name);
-                if (ecP == null)
-                {
-                    ecP = NistNamedCurves.GetByName(name);
-                    if (ecP == null)
-                    {
-                        ecP = TeleTrusTNamedCurves.GetByName(name);
-
-                        if (ecP == null)
-                            throw new Exception("unknown curve name: " + name);
-                    }
-                }
+                ecP = ECNamedCurveTable.GetByName(name);
             }
+
+            if (ecP == null)
+                throw new Exception("unknown curve name: " + name);
 
             //return new ECDomainParameters(ecP.Curve, ecP.G, ecP.N, ecP.H, ecP.GetSeed());
             return ecP;
