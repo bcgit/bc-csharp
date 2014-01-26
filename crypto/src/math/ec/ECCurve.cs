@@ -95,7 +95,11 @@ namespace Org.BouncyCastle.Math.EC
             return CreatePoint(x, y, false);
         }
 
-        public abstract ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression);
+        [Obsolete("Per-point compression property will be removed")]
+        public virtual ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
+        {
+            return CreateRawPoint(FromBigInteger(x), FromBigInteger(y), withCompression);
+        }
 
         protected abstract ECCurve CloneCurve();
 
@@ -343,7 +347,7 @@ namespace Org.BouncyCastle.Math.EC
     public class FpCurve
         : ECCurve
     {
-        private const int FP_DEFAULT_COORDS = COORD_HOMOGENEOUS;
+        private const int FP_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
 
         protected readonly BigInteger m_q, m_r;
         protected readonly FpPoint m_infinity;
@@ -383,8 +387,8 @@ namespace Org.BouncyCastle.Math.EC
             {
                 case COORD_AFFINE:
                 case COORD_HOMOGENEOUS:
-                //case COORD_JACOBIAN:
-                //case COORD_JACOBIAN_MODIFIED:
+                case COORD_JACOBIAN:
+                case COORD_JACOBIAN_MODIFIED:
                     return true;
                 default:
                     return false;
@@ -416,17 +420,26 @@ namespace Org.BouncyCastle.Math.EC
             return new FpPoint(this, x, y, withCompression);
         }
 
-        public override ECPoint CreatePoint(
-            BigInteger	X1,
-            BigInteger	Y1,
-            bool		withCompression)
+        public override ECPoint ImportPoint(ECPoint p)
         {
-            // TODO Validation of X1, Y1?
-            return new FpPoint(
-                this,
-                FromBigInteger(X1),
-                FromBigInteger(Y1),
-                withCompression);
+            if (this != p.Curve && this.CoordinateSystem == COORD_JACOBIAN && !p.IsInfinity)
+            {
+                switch (p.Curve.CoordinateSystem)
+                {
+                    case COORD_JACOBIAN:
+                    case COORD_JACOBIAN_CHUDNOVSKY:
+                    case COORD_JACOBIAN_MODIFIED:
+                        return new FpPoint(this,
+                            FromBigInteger(p.RawXCoord.ToBigInteger()),
+                            FromBigInteger(p.RawYCoord.ToBigInteger()),
+                            new ECFieldElement[] { FromBigInteger(p.GetZCoord(0).ToBigInteger()) },
+                            p.IsCompressed);
+                    default:
+                        break;
+                }
+            }
+
+            return base.ImportPoint(p);
         }
 
         protected override ECPoint DecompressPoint(
@@ -744,16 +757,6 @@ namespace Org.BouncyCastle.Math.EC
             return base.CreateDefaultMultiplier();
         }
 
-        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
-        {
-            return new F2mPoint(this, x, y, withCompression);
-        }
-
-        public override ECPoint Infinity
-        {
-            get { return m_infinity; }
-        }
-
         public override int FieldSize
         {
             get { return m; }
@@ -762,6 +765,46 @@ namespace Org.BouncyCastle.Math.EC
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
             return new F2mFieldElement(this.m, this.k1, this.k2, this.k3, x);
+        }
+
+        public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
+        {
+            ECFieldElement X = FromBigInteger(x), Y = FromBigInteger(y);
+
+            switch (this.CoordinateSystem)
+            {
+                case COORD_LAMBDA_AFFINE:
+                case COORD_LAMBDA_PROJECTIVE:
+                    {
+                        if (X.IsZero)
+                        {
+                            if (!Y.Square().Equals(B))
+                                throw new ArgumentException();
+                        }
+                        else
+                        {
+                            // Y becomes Lambda (X + Y/X) here
+                            Y = Y.Divide(X).Add(X);
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+
+            return CreateRawPoint(X, Y, withCompression);
+        }
+
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
+        {
+            return new F2mPoint(this, x, y, withCompression);
+        }
+
+        public override ECPoint Infinity
+        {
+            get { return m_infinity; }
         }
 
         /**
@@ -816,36 +859,6 @@ namespace Org.BouncyCastle.Math.EC
                 }
             }
             return si;
-        }
-
-        public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
-        {
-            ECFieldElement X = FromBigInteger(x), Y = FromBigInteger(y);
-
-            switch (this.CoordinateSystem)
-            {
-                case COORD_LAMBDA_AFFINE:
-                case COORD_LAMBDA_PROJECTIVE:
-                {
-                    if (X.IsZero)
-                    {
-                        if (!Y.Square().Equals(B))
-                            throw new ArgumentException();
-                    }
-                    else
-                    {
-                        // Y becomes Lambda (X + Y/X) here
-                        Y = Y.Divide(X).Add(X);
-                    }
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-            }
-
-            return CreateRawPoint(X, Y, withCompression);
         }
 
         protected override ECPoint DecompressPoint(

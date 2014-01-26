@@ -189,6 +189,11 @@ namespace Org.BouncyCastle.Math.EC
             get { return m_y; }
         }
 
+        protected internal ECFieldElement[] RawZCoords
+        {
+            get { return m_zs; }
+        }
+
         protected virtual void CheckNormalized()
         {
             if (!IsNormalized())
@@ -202,7 +207,7 @@ namespace Org.BouncyCastle.Math.EC
             return coord == ECCurve.COORD_AFFINE
                 || coord == ECCurve.COORD_LAMBDA_AFFINE
                 || IsInfinity
-                || GetZCoord(0).IsOne;
+                || RawZCoords[0].IsOne;
         }
 
         /**
@@ -227,7 +232,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 default:
                 {
-                    ECFieldElement Z1 = GetZCoord(0);
+                    ECFieldElement Z1 = RawZCoords[0];
                     if (Z1.IsOne)
                     {
                         return this;
@@ -530,6 +535,16 @@ namespace Org.BouncyCastle.Math.EC
             get { return this.AffineYCoord.TestBitZero(); }
         }
 
+        public override ECFieldElement GetZCoord(int index)
+        {
+            if (index == 1 && ECCurve.COORD_JACOBIAN_MODIFIED == this.CurveCoordinateSystem)
+            {
+                return GetJacobianModifiedW();
+            }
+
+            return base.GetZCoord(index);
+        }
+
         // B.3 pg 62
         public override ECPoint Add(
             ECPoint b)
@@ -580,8 +595,8 @@ namespace Org.BouncyCastle.Math.EC
 
                 case ECCurve.COORD_HOMOGENEOUS:
                 {
-                    ECFieldElement Z1 = this.GetZCoord(0);
-                    ECFieldElement Z2 = b.GetZCoord(0);
+                    ECFieldElement Z1 = this.RawZCoords[0];
+                    ECFieldElement Z2 = b.RawZCoords[0];
 
                     bool Z1IsOne = Z1.IsOne;
                     bool Z2IsOne = Z2.IsOne;
@@ -618,6 +633,136 @@ namespace Org.BouncyCastle.Math.EC
                     ECFieldElement Z3 = vCubed.Multiply(w);
 
                     return new FpPoint(curve, X3, Y3, new ECFieldElement[] { Z3 }, IsCompressed);
+                }
+
+                case ECCurve.COORD_JACOBIAN:
+                case ECCurve.COORD_JACOBIAN_MODIFIED:
+                {
+                    ECFieldElement Z1 = this.RawZCoords[0];
+                    ECFieldElement Z2 = b.RawZCoords[0];
+
+                    bool Z1IsOne = Z1.IsOne;
+
+                    ECFieldElement X3, Y3, Z3, Z3Squared = null;
+
+                    if (!Z1IsOne && Z1.Equals(Z2))
+                    {
+                        // TODO Make this available as public method coZAdd?
+
+                        ECFieldElement dx = X1.Subtract(X2), dy = Y1.Subtract(Y2);
+                        if (dx.IsZero)
+                        {
+                            if (dy.IsZero)
+                            {
+                                return Twice();
+                            }
+                            return curve.Infinity;
+                        }
+
+                        ECFieldElement C = dx.Square();
+                        ECFieldElement W1 = X1.Multiply(C), W2 = X2.Multiply(C);
+                        ECFieldElement A1 = W1.Subtract(W2).Multiply(Y1);
+
+                        X3 = dy.Square().Subtract(W1).Subtract(W2);
+                        Y3 = W1.Subtract(X3).Multiply(dy).Subtract(A1);
+                        Z3 = dx;
+
+                        if (Z1IsOne)
+                        {
+                            Z3Squared = C;
+                        }
+                        else
+                        {
+                            Z3 = Z3.Multiply(Z1);
+                        }
+                    }
+                    else
+                    {
+                        ECFieldElement Z1Squared, U2, S2;
+                        if (Z1IsOne)
+                        {
+                            Z1Squared = Z1; U2 = X2; S2 = Y2;
+                        }
+                        else
+                        {
+                            Z1Squared = Z1.Square();
+                            U2 = Z1Squared.Multiply(X2);
+                            ECFieldElement Z1Cubed = Z1Squared.Multiply(Z1);
+                            S2 = Z1Cubed.Multiply(Y2);
+                        }
+
+                        bool Z2IsOne = Z2.IsOne;
+                        ECFieldElement Z2Squared, U1, S1;
+                        if (Z2IsOne)
+                        {
+                            Z2Squared = Z2; U1 = X1; S1 = Y1;
+                        }
+                        else
+                        {
+                            Z2Squared = Z2.Square();
+                            U1 = Z2Squared.Multiply(X1);
+                            ECFieldElement Z2Cubed = Z2Squared.Multiply(Z2);
+                            S1 = Z2Cubed.Multiply(Y1);
+                        }
+
+                        ECFieldElement H = U1.Subtract(U2);
+                        ECFieldElement R = S1.Subtract(S2);
+
+                        // Check if b == this or b == -this
+                        if (H.IsZero)
+                        {
+                            if (R.IsZero)
+                            {
+                                // this == b, i.e. this must be doubled
+                                return this.Twice();
+                            }
+
+                            // this == -b, i.e. the result is the point at infinity
+                            return curve.Infinity;
+                        }
+
+                        ECFieldElement HSquared = H.Square();
+                        ECFieldElement G = HSquared.Multiply(H);
+                        ECFieldElement V = HSquared.Multiply(U1);
+
+                        X3 = R.Square().Add(G).Subtract(Two(V));
+                        Y3 = V.Subtract(X3).Multiply(R).Subtract(S1.Multiply(G));
+
+                        Z3 = H;
+                        if (!Z1IsOne)
+                        {
+                            Z3 = Z3.Multiply(Z1);
+                        }
+                        if (!Z2IsOne)
+                        {
+                            Z3 = Z3.Multiply(Z2);
+                        }
+
+                        // Alternative calculation of Z3 using fast square
+                        //X3 = four(X3);
+                        //Y3 = eight(Y3);
+                        //Z3 = doubleProductFromSquares(Z1, Z2, Z1Squared, Z2Squared).multiply(H);
+
+                        if (Z3 == H)
+                        {
+                            Z3Squared = HSquared;
+                        }
+                    }
+
+                    ECFieldElement[] zs;
+                    if (coord == ECCurve.COORD_JACOBIAN_MODIFIED)
+                    {
+                        // TODO If the result will only be used in a subsequent addition, we don't need W3
+                        ECFieldElement W3 = CalculateJacobianModifiedW(Z3, Z3Squared);
+
+                        zs = new ECFieldElement[] { Z3, W3 };
+                    }
+                    else
+                    {
+                        zs = new ECFieldElement[] { Z3 };
+                    }
+
+                    return new FpPoint(curve, X3, Y3, zs, IsCompressed);
                 }
 
                 default:
@@ -661,7 +806,7 @@ namespace Org.BouncyCastle.Math.EC
 
                 case ECCurve.COORD_HOMOGENEOUS:
                 {
-                    ECFieldElement Z1 = this.GetZCoord(0);
+                    ECFieldElement Z1 = this.RawZCoords[0];
 
                     bool Z1IsOne = Z1.IsOne;
 
@@ -687,6 +832,70 @@ namespace Org.BouncyCastle.Math.EC
                     ECFieldElement Z3 = Two(_4sSquared).Multiply(s);
 
                     return new FpPoint(curve, X3, Y3, new ECFieldElement[] { Z3 }, IsCompressed);
+                }
+
+                case ECCurve.COORD_JACOBIAN:
+                {
+                    ECFieldElement Z1 = this.RawZCoords[0];
+
+                    bool Z1IsOne = Z1.IsOne;
+
+                    ECFieldElement Y1Squared = Y1.Square();
+                    ECFieldElement T = Y1Squared.Square();
+
+                    ECFieldElement a4 = curve.A;
+                    ECFieldElement a4Neg = a4.Negate();
+
+                    ECFieldElement M, S;
+                    if (a4Neg.ToBigInteger().Equals(BigInteger.ValueOf(3)))
+                    {
+                        ECFieldElement Z1Squared = Z1IsOne ? Z1 : Z1.Square();
+                        M = Three(X1.Add(Z1Squared).Multiply(X1.Subtract(Z1Squared)));
+                        S = Four(Y1Squared.Multiply(X1));
+                    }
+                    else
+                    {
+                        ECFieldElement X1Squared = X1.Square();
+                        M = Three(X1Squared);
+                        if (Z1IsOne)
+                        {
+                            M = M.Add(a4);
+                        }
+                        else if (!a4.IsZero)
+                        {
+                            ECFieldElement Z1Squared = Z1IsOne ? Z1 : Z1.Square();
+                            ECFieldElement Z1Pow4 = Z1Squared.Square();
+                            if (a4Neg.BitLength < a4.BitLength)
+                            {
+                                M = M.Subtract(Z1Pow4.Multiply(a4Neg));
+                            }
+                            else
+                            {
+                                M = M.Add(Z1Pow4.Multiply(a4));
+                            }
+                        }
+                        //S = two(doubleProductFromSquares(X1, Y1Squared, X1Squared, T));
+                        S = Four(X1.Multiply(Y1Squared));
+                    }
+
+                    ECFieldElement X3 = M.Square().Subtract(Two(S));
+                    ECFieldElement Y3 = S.Subtract(X3).Multiply(M).Subtract(Eight(T));
+
+                    ECFieldElement Z3 = Two(Y1);
+                    if (!Z1IsOne)
+                    {
+                        Z3 = Z3.Multiply(Z1);
+                    }
+
+                    // Alternative calculation of Z3 using fast square
+                    //ECFieldElement Z3 = doubleProductFromSquares(Y1, Z1, Y1Squared, Z1Squared);
+
+                    return new FpPoint(curve, X3, Y3, new ECFieldElement[] { Z3 }, IsCompressed);
+                }
+
+                case ECCurve.COORD_JACOBIAN_MODIFIED:
+                {
+                    return TwiceJacobianModified(true);
                 }
 
                 default:
@@ -762,6 +971,10 @@ namespace Org.BouncyCastle.Math.EC
 
                     return new FpPoint(Curve, X4, Y4, IsCompressed);
                 }
+                case ECCurve.COORD_JACOBIAN_MODIFIED:
+                {
+                    return TwiceJacobianModified(false).Add(b);
+                }
                 default:
                 {
                     return Twice().Add(b);
@@ -806,6 +1019,10 @@ namespace Org.BouncyCastle.Math.EC
                     ECFieldElement X4 = (L2.Subtract(L1)).Multiply(L1.Add(L2)).Add(X1);
                     ECFieldElement Y4 = (X1.Subtract(X4)).Multiply(L2).Subtract(Y1);
                     return new FpPoint(Curve, X4, Y4, IsCompressed);
+                }
+                case ECCurve.COORD_JACOBIAN_MODIFIED:
+                {
+                    return TwiceJacobianModified(false).Add(this);
                 }
                 default:
                 {
@@ -872,6 +1089,61 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             return new FpPoint(curve, XCoord, YCoord.Negate(), IsCompressed);
+        }
+
+        protected virtual ECFieldElement CalculateJacobianModifiedW(ECFieldElement Z, ECFieldElement ZSquared)
+        {
+            ECFieldElement a4 = this.Curve.A;
+            if (a4.IsZero)
+                return a4;
+
+            if (ZSquared == null)
+            {
+                ZSquared = Z.Square();
+            }
+
+            ECFieldElement W = ZSquared.Square();
+            ECFieldElement a4Neg = a4.Negate();
+            if (a4Neg.BitLength < a4.BitLength)
+            {
+                W = W.Multiply(a4Neg).Negate();
+            }
+            else
+            {
+                W = W.Multiply(a4);
+            }
+            return W;
+        }
+
+        protected virtual ECFieldElement GetJacobianModifiedW()
+        {
+            ECFieldElement[] ZZ = this.RawZCoords;
+            ECFieldElement W = ZZ[1];
+            if (W == null)
+            {
+                // NOTE: Rarely, twicePlus will result in the need for a lazy W1 calculation here
+                ZZ[1] = W = CalculateJacobianModifiedW(ZZ[0], null);
+            }
+            return W;
+        }
+
+        protected FpPoint TwiceJacobianModified(bool calculateW)
+        {
+            ECFieldElement X1 = this.RawXCoord, Y1 = this.RawYCoord, Z1 = this.RawZCoords[0], W1 = GetJacobianModifiedW();
+
+            ECFieldElement X1Squared = X1.Square();
+            ECFieldElement M = Three(X1Squared).Add(W1);
+            ECFieldElement _2Y1 = Two(Y1);
+            ECFieldElement _2Y1Squared = _2Y1.Multiply(Y1);
+            ECFieldElement S = Two(X1.Multiply(_2Y1Squared));
+            ECFieldElement X3 = M.Square().Subtract(Two(S));
+            ECFieldElement _4T = _2Y1Squared.Square();
+            ECFieldElement _8T = Two(_4T);
+            ECFieldElement Y3 = M.Multiply(S.Subtract(X3)).Subtract(_8T);
+            ECFieldElement W3 = calculateW ? Two(_8T.Multiply(W1)) : null;
+            ECFieldElement Z3 = Z1.IsOne ? _2Y1 : _2Y1.Multiply(Z1);
+
+            return new FpPoint(this.Curve, X3, Y3, new ECFieldElement[] { Z3, W3 }, IsCompressed);
         }
     }
 
@@ -961,7 +1233,7 @@ namespace Org.BouncyCastle.Math.EC
                         ECFieldElement Y = L.Subtract(X).Multiply(X);
                         if (ECCurve.COORD_LAMBDA_PROJECTIVE == coord)
                         {
-                            ECFieldElement Z = GetZCoord(0);
+                            ECFieldElement Z = RawZCoords[0];
                             if (!Z.IsOne)
                             {
                                 Y = Y.Divide(Z);
@@ -1082,8 +1354,8 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 case ECCurve.COORD_HOMOGENEOUS:
                 {
-                    ECFieldElement Y1 = this.RawYCoord, Z1 = this.GetZCoord(0);
-                    ECFieldElement Y2 = b.RawYCoord, Z2 = b.GetZCoord(0);
+                    ECFieldElement Y1 = this.RawYCoord, Z1 = this.RawZCoords[0];
+                    ECFieldElement Y2 = b.RawYCoord, Z2 = b.RawZCoords[0];
 
                     bool Z2IsOne = Z2.IsOne;
 
@@ -1125,8 +1397,8 @@ namespace Org.BouncyCastle.Math.EC
                         return b.AddSimple(this);
                     }
 
-                    ECFieldElement L1 = this.RawYCoord, Z1 = this.GetZCoord(0);
-                    ECFieldElement L2 = b.RawYCoord, Z2 = b.GetZCoord(0);
+                    ECFieldElement L1 = this.RawYCoord, Z1 = this.RawZCoords[0];
+                    ECFieldElement L2 = b.RawYCoord, Z2 = b.RawZCoords[0];
 
                     bool Z1IsOne = Z1.IsOne;
                     ECFieldElement U2 = X2, S2 = L2;
@@ -1267,7 +1539,7 @@ namespace Org.BouncyCastle.Math.EC
                 case ECCurve.COORD_HOMOGENEOUS:
                 case ECCurve.COORD_LAMBDA_PROJECTIVE:
                 {
-                    ECFieldElement Y1 = this.RawYCoord, Z1 = this.GetZCoord(0);
+                    ECFieldElement Y1 = this.RawYCoord, Z1 = this.RawZCoords[0];
                     return new F2mPoint(curve, X1.Square(), Y1.Square(), new ECFieldElement[] { Z1.Square() }, IsCompressed);
                 }
                 default:
@@ -1311,7 +1583,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 case ECCurve.COORD_HOMOGENEOUS:
                 {
-                    ECFieldElement Y1 = this.RawYCoord, Z1 = this.GetZCoord(0);
+                    ECFieldElement Y1 = this.RawYCoord, Z1 = this.RawZCoords[0];
 
                     bool Z1IsOne = Z1.IsOne;
                     ECFieldElement X1Z1 = Z1IsOne ? X1 : X1.Multiply(Z1);
@@ -1331,7 +1603,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 case ECCurve.COORD_LAMBDA_PROJECTIVE:
                 {
-                    ECFieldElement L1 = this.RawYCoord, Z1 = this.GetZCoord(0);
+                    ECFieldElement L1 = this.RawYCoord, Z1 = this.RawZCoords[0];
 
                     bool Z1IsOne = Z1.IsOne;
                     ECFieldElement L1Z1 = Z1IsOne ? L1 : L1.Multiply(Z1);
@@ -1413,13 +1685,13 @@ namespace Org.BouncyCastle.Math.EC
         //        case ECCurve.COORD_LAMBDA_PROJECTIVE:
         //        {
         //            // NOTE: twicePlus() only optimized for lambda-affine argument
-        //            ECFieldElement X2 = b.RawXCoord, Z2 = b.GetZCoord(0);
+        //            ECFieldElement X2 = b.RawXCoord, Z2 = b.RawZCoords[0];
         //            if (X2.IsZero || !Z2.IsOne)
         //            {
         //                return Twice().Add(b);
         //            }
 
-        //            ECFieldElement L1 = this.RawYCoord, Z1 = this.GetZCoord(0);
+        //            ECFieldElement L1 = this.RawYCoord, Z1 = this.RawZCoords[0];
         //            ECFieldElement L2 = b.RawYCoord;
 
         //            ECFieldElement X1Sq = X1.Square();
@@ -1467,7 +1739,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 case ECCurve.COORD_HOMOGENEOUS:
                 {
-                    ECFieldElement Y = this.RawYCoord, Z = this.GetZCoord(0);
+                    ECFieldElement Y = this.RawYCoord, Z = this.RawZCoords[0];
                     return new F2mPoint(curve, X, Y.Add(X), new ECFieldElement[] { Z }, IsCompressed);
                 }
                 case ECCurve.COORD_LAMBDA_AFFINE:
@@ -1478,7 +1750,7 @@ namespace Org.BouncyCastle.Math.EC
                 case ECCurve.COORD_LAMBDA_PROJECTIVE:
                 {
                     // L is actually Lambda (X + Y/X) here
-                    ECFieldElement L = this.RawYCoord, Z = this.GetZCoord(0);
+                    ECFieldElement L = this.RawYCoord, Z = this.RawZCoords[0];
                     return new F2mPoint(curve, X, L.Add(Z), new ECFieldElement[] { Z }, IsCompressed);
                 }
                 default:
