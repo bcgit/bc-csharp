@@ -442,12 +442,10 @@ namespace Org.BouncyCastle.Math.EC
             return base.ImportPoint(p);
         }
 
-        protected override ECPoint DecompressPoint(
-            int			yTilde,
-            BigInteger	X1)
+        protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
         {
             ECFieldElement x = FromBigInteger(X1);
-            ECFieldElement alpha = x.Multiply(x.Square().Add(m_a)).Add(m_b);
+            ECFieldElement alpha = x.Square().Add(m_a).Multiply(x).Add(m_b);
             ECFieldElement beta = alpha.Sqrt();
 
             //
@@ -457,10 +455,7 @@ namespace Org.BouncyCastle.Math.EC
             if (beta == null)
                 throw new ArithmeticException("Invalid point compression");
 
-            BigInteger betaValue = beta.ToBigInteger();
-            int bit0 = betaValue.TestBit(0) ? 1 : 0;
-
-            if (bit0 != yTilde)
+            if (beta.TestBitZero() != (yTilde == 1))
             {
                 // Use the other root
                 beta = beta.Negate();
