@@ -55,7 +55,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             get { return this.AffineYCoord.TestBitZero(); }
         }
 
-        // B.3 pg 62
         public override ECPoint Add(ECPoint b)
         {
             if (this.IsInfinity)
@@ -173,7 +172,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return new SecP256K1Point(curve, X3, Y3, zs, IsCompressed);
         }
 
-        // B.3 pg 62
         public override ECPoint Twice()
         {
             if (this.IsInfinity)
@@ -254,13 +252,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return Twice().Add(this);
         }
 
-        // D.3.2 pg 102 (see Note:)
         public override ECPoint Subtract(ECPoint b)
         {
             if (b.IsInfinity)
                 return this;
 
-            // Add -b
             return Add(b.Negate());
         }
 

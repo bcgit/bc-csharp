@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement Divide(ECFieldElement b)
         {
-    //        return Multiply(b.Invert());
+            //return Multiply(b.Invert());
             uint[] z = Nat256.Create();
             Mod.Invert(SecP256K1Field.P, ((SecP256K1FieldElement)b).x, z);
             SecP256K1Field.Multiply(z, x, z);
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement Invert()
         {
-    //        return new SecP256K1FieldElement(ToBigInteger().ModInverse(Q));
+            //return new SecP256K1FieldElement(ToBigInteger().ModInverse(Q));
             uint[] z = Nat256.Create();
             Mod.Invert(SecP256K1Field.P, x, z);
             return new SecP256K1FieldElement(z);
