@@ -78,21 +78,14 @@ namespace Org.BouncyCastle.Math.EC
         internal static BigInteger CalculateResidue(BigInteger p)
         {
             int bitLength = p.BitLength;
-            if (bitLength > 128)
-            //if (bitLength > 64)
+            if (bitLength >= 96)
             {
-                /*
-                 * NOTE: Due to poor performance of BigInteger.Mod in C#, the residue-based reduction is
-                 * currently faster even for e.g. P-256, where the prime has 32 leading 1 bits.
-                 */
                 BigInteger firstWord = p.ShiftRight(bitLength - 64);
                 if (firstWord.LongValue == -1L)
-                //BigInteger firstWord = p.ShiftRight(bitLength - 32);
-                //if (firstWord.IntValue == -1)
                 {
                     return BigInteger.One.ShiftLeft(bitLength).Subtract(p);
                 }
-                if ((bitLength & 31) == 0)
+                if ((bitLength & 7) == 0)
                 {
                     return BigInteger.One.ShiftLeft(bitLength << 1).Divide(p).Negate();
                 }
@@ -382,11 +375,12 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 else
                 {
+                    int d = ((qLen - 1) & 31) + 1;
                     BigInteger mu = r.Negate();
-                    BigInteger u = mu.Multiply(x.ShiftRight(qLen - 32));
-                    BigInteger quot = u.ShiftRight(qLen + 32);
+                    BigInteger u = mu.Multiply(x.ShiftRight(qLen - d));
+                    BigInteger quot = u.ShiftRight(qLen + d);
                     BigInteger v = quot.Multiply(q);
-                    BigInteger bk1 = BigInteger.One.ShiftLeft(qLen + 32);
+                    BigInteger bk1 = BigInteger.One.ShiftLeft(qLen + d);
                     v = v.Remainder(bk1);
                     x = x.Remainder(bk1);
                     x = x.Subtract(v);
