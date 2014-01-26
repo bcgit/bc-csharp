@@ -24,8 +24,8 @@ namespace Org.BouncyCastle.Math.EC.Tests
     [TestFixture, Explicit]
     public class ECPointPerformanceTest
     {
-        public const int PRE_ROUNDS = 10;
-        public const int NUM_ROUNDS = 100;
+        public const int PRE_ROUNDS = 100;
+        public const int NUM_ROUNDS = 1000;
 
         private static string[] COORD_NAMES = new string[]{ "AFFINE", "HOMOGENEOUS", "JACOBIAN", "JACOBIAN-CHUDNOVSKY",
             "JACOBIAN-MODIFIED", "LAMBDA-AFFINE", "LAMBDA-PROJECTIVE", "SKEWED" };
@@ -57,7 +57,6 @@ namespace Org.BouncyCastle.Math.EC.Tests
             Console.WriteLine(label);
 
             int[] coords = ECCurve.GetAllCoordinateSystems();
-            //int[] coords = new int[] { ECCurve.COORD_HOMOGENEOUS };
             for (int i = 0; i < coords.Length; ++i)
             {
                 int coord = coords[i];
