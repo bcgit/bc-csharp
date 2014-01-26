@@ -498,10 +498,7 @@ namespace Org.BouncyCastle.Math.EC
          * @param x affine x co-ordinate
          * @param y affine y co-ordinate
          */
-        public FpPoint(
-            ECCurve			curve,
-            ECFieldElement	x,
-            ECFieldElement	y)
+        public FpPoint(ECCurve curve, ECFieldElement x, ECFieldElement y)
             : this(curve, x, y, false)
         {
         }
@@ -514,11 +511,7 @@ namespace Org.BouncyCastle.Math.EC
          * @param y affine y co-ordinate
          * @param withCompression if true encode with point compression
          */
-        public FpPoint(
-            ECCurve			curve,
-            ECFieldElement	x,
-            ECFieldElement	y,
-            bool			withCompression)
+        public FpPoint(ECCurve curve, ECFieldElement x, ECFieldElement y, bool withCompression)
             : base(curve, x, y, withCompression)
         {
             if ((x == null) != (y == null))
@@ -546,21 +539,14 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         // B.3 pg 62
-        public override ECPoint Add(
-            ECPoint b)
+        public override ECPoint Add(ECPoint b)
         {
             if (this.IsInfinity)
-            {
                 return b;
-            }
             if (b.IsInfinity)
-            {
                 return this;
-            }
             if (this == b)
-            {
                 return Twice();
-            }
 
             ECCurve curve = this.Curve;
             int coord = curve.CoordinateSystem;
@@ -776,17 +762,13 @@ namespace Org.BouncyCastle.Math.EC
         public override ECPoint Twice()
         {
             if (this.IsInfinity)
-            {
                 return this;
-            }
 
             ECCurve curve = this.Curve;
 
             ECFieldElement Y1 = this.RawYCoord;
             if (Y1.IsZero) 
-            {
                 return curve.Infinity;
-            }
 
             int coord = curve.CoordinateSystem;
 
@@ -908,23 +890,15 @@ namespace Org.BouncyCastle.Math.EC
         public override ECPoint TwicePlus(ECPoint b)
         {
             if (this == b)
-            {
                 return ThreeTimes();
-            }
             if (this.IsInfinity)
-            {
                 return b;
-            }
             if (b.IsInfinity)
-            {
                 return Twice();
-            }
 
             ECFieldElement Y1 = this.RawYCoord;
             if (Y1.IsZero)
-            {
                 return b;
-            }
 
             ECCurve curve = this.Curve;
             int coord = curve.CoordinateSystem;
@@ -984,7 +958,7 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECPoint ThreeTimes()
         {
-            if (IsInfinity)
+            if (this.IsInfinity)
                 return this;
 
             ECFieldElement Y1 = this.RawYCoord;
@@ -1026,7 +1000,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 default:
                 {
-                    // NOTE: Be careful about recursions between twicePlus and threeTimes
+                    // NOTE: Be careful about recursions between TwicePlus and ThreeTimes
                     return Twice().Add(this);
                 }
             }
@@ -1076,19 +1050,17 @@ namespace Org.BouncyCastle.Math.EC
         public override ECPoint Negate()
         {
             if (IsInfinity)
-            {
                 return this;
-            }
 
-            ECCurve curve = this.Curve;
+            ECCurve curve = Curve;
             int coord = curve.CoordinateSystem;
 
             if (ECCurve.COORD_AFFINE != coord)
             {
-                return new FpPoint(curve, XCoord, YCoord.Negate(), this.m_zs, IsCompressed);
+                return new FpPoint(curve, RawXCoord, RawYCoord.Negate(), RawZCoords, IsCompressed);
             }
 
-            return new FpPoint(curve, XCoord, YCoord.Negate(), IsCompressed);
+            return new FpPoint(curve, RawXCoord, RawYCoord.Negate(), IsCompressed);
         }
 
         protected virtual ECFieldElement CalculateJacobianModifiedW(ECFieldElement Z, ECFieldElement ZSquared)
