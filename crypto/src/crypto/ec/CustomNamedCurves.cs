@@ -46,8 +46,32 @@ namespace Org.BouncyCastle.Crypto.EC
                 ECPoint G = curve.DecodePoint(Hex.Decode("04"
                     + "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
                     + "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"));
-                //return new X9ECParameters(curve, G, curve.getOrder(), curve.getCofactor(), S);
+                //return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141");
+                BigInteger h = BigInteger.ValueOf(1);
+                return new X9ECParameters(curve, G, n, h, S);
+            }
+        }
+
+        /*
+         * secp256r1
+         */
+        internal class Secp256r1Holder
+            : X9ECParametersHolder
+        {
+            private Secp256r1Holder() {}
+
+            internal static readonly X9ECParametersHolder Instance = new Secp256r1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("C49D360886E704936A6678E1139D26B7819F7E90");
+                ECCurve curve = ConfigureCurve(new SecP256R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296"
+                    + "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5"));
+                //return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+                BigInteger n = FromHex("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
                 BigInteger h = BigInteger.ValueOf(1);
                 return new X9ECParameters(curve, G, n, h, S);
             }
@@ -67,6 +91,9 @@ namespace Org.BouncyCastle.Crypto.EC
         static CustomNamedCurves()
         {
             DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
+            DefineCurve("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
+
+            objIds.Add(Platform.ToLowerInvariant("P-256"), SecObjectIdentifiers.SecP256r1);
         }
 
         public static X9ECParameters GetByName(string name)
