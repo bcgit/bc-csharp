@@ -4724,12 +4724,37 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\multiplier\AbstractECMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\DoubleAddMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\multiplier\ECMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\multiplier\FpNafMultiplier.cs"
+                    RelPath = "src\math\ec\multiplier\MixedNafR2LMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\MontgomeryLadderMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\NafL2RMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\NafR2LMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4744,7 +4769,7 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\multiplier\WNafMultiplier.cs"
+                    RelPath = "src\math\ec\multiplier\WNafL2RMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4765,6 +4790,16 @@
                 />
                 <File
                     RelPath = "src\math\ec\multiplier\WTauNafPreCompInfo.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\ZSignedDigitL2RMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\ZSignedDigitR2LMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

@@ -469,19 +469,9 @@ namespace Org.BouncyCastle.Math.EC
          * @param k The multiplicator.
          * @return <code>k * this</code>.
          */
-        public override ECPoint Multiply(
-            BigInteger k)
+        public override ECPoint Multiply(BigInteger k)
         {
-            if (k.SignValue < 0)
-                throw new ArgumentException("The multiplicator cannot be negative", "k");
-
-            if (this.IsInfinity)
-                return this;
-
-            if (k.SignValue == 0)
-                return Curve.Infinity;
-
-            return Curve.GetMultiplier().Multiply(this, k);
+            return this.Curve.GetMultiplier().Multiply(this, k);
         }
     }
 

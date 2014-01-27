@@ -3,10 +3,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     /**
      * Class implementing the NAF (Non-Adjacent Form) multiplication algorithm (left-to-right).
      */
-    public class FpNafMultiplier
-        : ECMultiplier
+    public class NafL2RMultiplier
+        : AbstractECMultiplier
     {
-        public virtual ECPoint Multiply(ECPoint p, BigInteger k)
+        protected override ECPoint MultiplyPositive(ECPoint p, BigInteger k)
         {
             int[] naf = WNafUtilities.GenerateCompactNaf(k);
 

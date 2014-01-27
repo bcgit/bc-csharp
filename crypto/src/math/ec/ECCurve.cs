@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Math.EC
 
         protected virtual ECMultiplier CreateDefaultMultiplier()
         {
-            return new WNafMultiplier();
+            return new WNafL2RMultiplier();
         }
 
         public virtual bool SupportsCoordinateSystem(int coord)

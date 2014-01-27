@@ -6,8 +6,8 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     * Class implementing the WNAF (Window Non-Adjacent Form) multiplication
     * algorithm.
     */
-    public class WNafMultiplier
-        : ECMultiplier
+    public class WNafL2RMultiplier
+        : AbstractECMultiplier
     {
         /**
          * Multiplies <code>this</code> by an integer <code>k</code> using the
@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          * @return A new <code>ECPoint</code> which equals <code>this</code>
          * multiplied by <code>k</code>.
          */
-        public virtual ECPoint Multiply(ECPoint p, BigInteger k)
+        protected override ECPoint MultiplyPositive(ECPoint p, BigInteger k)
         {
             // Clamp the window width in the range [2, 16]
             int width = System.Math.Max(2, System.Math.Min(16, GetWindowSize(k.BitLength)));

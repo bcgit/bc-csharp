@@ -1,7 +1,7 @@
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
     public class ReferenceMultiplier
-        : ECMultiplier
+        : AbstractECMultiplier
     {
         /**
          * Simple shift-and-add multiplication. Serves as reference implementation
@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          * @param k The factor by which to multiply.
          * @return The result of the point multiplication <code>k * p</code>.
          */
-        public virtual ECPoint Multiply(ECPoint p, BigInteger k)
+        protected override ECPoint MultiplyPositive(ECPoint p, BigInteger k)
         {
             ECPoint q = p.Curve.Infinity;
             int t = k.BitLength;
