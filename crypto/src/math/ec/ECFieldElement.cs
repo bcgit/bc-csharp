@@ -1160,15 +1160,14 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECFieldElement Sqrt()
         {
-            LongArray root = this.x;
-            if (root.IsOne() || root.IsZero())
-                return this;
-
-            for (int i = 1; i < m; ++i)
+            LongArray x1 = this.x;
+            if (x1.IsOne() || x1.IsZero())
             {
-                root = root.ModSquare(m, ks);
+                return this;
             }
-            return new F2mFieldElement(m, ks, root);
+
+            LongArray x2 = x1.ModSquareN(m - 1, m, ks);
+            return new F2mFieldElement(m, ks, x2);
         }
 
         /**
