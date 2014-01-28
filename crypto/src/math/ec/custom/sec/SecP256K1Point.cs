@@ -50,6 +50,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
         }
 
+        protected override ECPoint Detach()
+        {
+            return new SecP256K1Point(null, AffineXCoord, AffineYCoord);
+        }
+
         protected internal override bool CompressionYTilde
         {
             get { return this.AffineYCoord.TestBitZero(); }

@@ -66,10 +66,17 @@ namespace Org.BouncyCastle.Math.EC
             this.m_withCompression = withCompression;
         }
 
+        public ECPoint GetDetachedPoint()
+        {
+            return Normalize().Detach();
+        }
+
         public virtual ECCurve Curve
         {
             get { return m_curve; }
         }
+
+        protected abstract ECPoint Detach();
 
         protected virtual int CurveCoordinateSystem
         {
@@ -511,6 +518,11 @@ namespace Org.BouncyCastle.Math.EC
         internal FpPoint(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
             : base(curve, x, y, zs, withCompression)
         {
+        }
+
+        protected override ECPoint Detach()
+        {
+            return new FpPoint(null, AffineXCoord, AffineYCoord);
         }
 
         protected internal override bool CompressionYTilde
@@ -1172,6 +1184,11 @@ namespace Org.BouncyCastle.Math.EC
             ECCurve curve)
             : this(curve, null, null)
         {
+        }
+
+        protected override ECPoint Detach()
+        {
+            return new F2mPoint(null, AffineXCoord, AffineYCoord);
         }
 
         public override ECFieldElement YCoord
