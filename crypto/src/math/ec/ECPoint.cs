@@ -1245,14 +1245,13 @@ namespace Org.BouncyCastle.Math.EC
                     case ECCurve.COORD_LAMBDA_PROJECTIVE:
                     {
                         // Y is actually Lambda (X + Y/X) here
-                        return Y.Subtract(X).TestBitZero();
+                        return Y.TestBitZero() != X.TestBitZero();
                     }
                     default:
                     {
                         return Y.Divide(X).TestBitZero();
                     }
                 }
-
             }
         }
 
@@ -1312,9 +1311,10 @@ namespace Org.BouncyCastle.Math.EC
                     ECFieldElement Y1 = this.RawYCoord;
                     ECFieldElement Y2 = b.RawYCoord;
 
-                    if (X1.Equals(X2))
+                    ECFieldElement dx = X1.Add(X2), dy = Y1.Add(Y2);
+                    if (dx.IsZero)
                     {
-                        if (Y1.Equals(Y2))
+                        if (dy.IsZero)
                         {
                             return (F2mPoint)Twice();
                         }
@@ -1322,10 +1322,9 @@ namespace Org.BouncyCastle.Math.EC
                         return (F2mPoint)curve.Infinity;
                     }
 
-                    ECFieldElement sumX = X1.Add(X2);
-                    ECFieldElement L = Y1.Add(Y2).Divide(sumX);
+                    ECFieldElement L = dy.Divide(dx);
 
-                    ECFieldElement X3 = L.Square().Add(L).Add(sumX).Add(curve.A);
+                    ECFieldElement X3 = L.Square().Add(L).Add(dx).Add(curve.A);
                     ECFieldElement Y3 = L.Multiply(X1.Add(X3)).Add(X3).Add(Y1);
 
                     return new F2mPoint(curve, X3, Y3, IsCompressed);
@@ -1339,14 +1338,14 @@ namespace Org.BouncyCastle.Math.EC
 
                     ECFieldElement U1 = Z1.Multiply(Y2);
                     ECFieldElement U2 = Z2IsOne ? Y1 : Y1.Multiply(Z2);
-                    ECFieldElement U = U1.Subtract(U2);
+                    ECFieldElement U = U1.Add(U2);
                     ECFieldElement V1 = Z1.Multiply(X2);
                     ECFieldElement V2 = Z2IsOne ? X1 : X1.Multiply(Z2);
-                    ECFieldElement V = V1.Subtract(V2);
+                    ECFieldElement V = V1.Add(V2);
 
-                    if (V1.Equals(V2))
+                    if (V.IsZero)
                     {
-                        if (U1.Equals(U2))
+                        if (U.IsZero)
                         {
                             return (F2mPoint)Twice();
                         }
@@ -1355,13 +1354,17 @@ namespace Org.BouncyCastle.Math.EC
                     }
 
                     ECFieldElement VSq = V.Square();
+                    ECFieldElement VCu = VSq.Multiply(V);
                     ECFieldElement W = Z2IsOne ? Z1 : Z1.Multiply(Z2);
-                    ECFieldElement A = U.Square().Add(U.Multiply(V).Add(VSq.Multiply(curve.A))).Multiply(W).Add(V.Multiply(VSq));
+                    ECFieldElement uv = U.Add(V);
+                    // TODO Delayed modular reduction for sum of products
+                    ECFieldElement A = uv.Multiply(U).Add(VSq.Multiply(curve.A)).Multiply(W).Add(VCu);
 
                     ECFieldElement X3 = V.Multiply(A);
                     ECFieldElement VSqZ2 = Z2IsOne ? VSq : VSq.Multiply(Z2);
-                    ECFieldElement Y3 = VSqZ2.Multiply(U.Multiply(X1).Add(Y1.Multiply(V))).Add(A.Multiply(U.Add(V)));
-                    ECFieldElement Z3 = VSq.Multiply(V).Multiply(W);
+                    // TODO Delayed modular reduction for sum of products
+                    ECFieldElement Y3 = U.Multiply(X1).Add(Y1.Multiply(V)).Multiply(VSqZ2).Add(A.Multiply(uv));
+                    ECFieldElement Z3 = VCu.Multiply(W);
 
                     return new F2mPoint(curve, X3, Y3, new ECFieldElement[] { Z3 }, IsCompressed);
                 }
@@ -1447,6 +1450,7 @@ namespace Org.BouncyCastle.Math.EC
                             ABZ2 = ABZ2.Multiply(Z2);
                         }
 
+                        // TODO Delayed modular reduction for sum of products
                         L3 = AU2.Add(B).Square().Add(ABZ2.Multiply(L1.Add(Z1)));
 
                         Z3 = ABZ2;
@@ -1555,6 +1559,7 @@ namespace Org.BouncyCastle.Math.EC
                     ECFieldElement L1 = Y1.Divide(X1).Add(X1);
 
                     ECFieldElement X3 = L1.Square().Add(L1).Add(curve.A);
+                    // TODO Delayed modular reduction for sum of products
                     ECFieldElement Y3 = X1.Square().Add(X3.Multiply(L1.AddOne()));
 
                     return new F2mPoint(curve, X3, Y3, IsCompressed);
@@ -1571,10 +1576,13 @@ namespace Org.BouncyCastle.Math.EC
                     ECFieldElement S = X1Sq.Add(Y1Z1);
                     ECFieldElement V = X1Z1;
                     ECFieldElement vSquared = V.Square();
-                    ECFieldElement h = S.Square().Add(S.Multiply(V)).Add(curve.A.Multiply(vSquared));
+                    ECFieldElement sv = S.Add(V);
+                    // TODO Delayed modular reduction for sum of products
+                    ECFieldElement h = sv.Multiply(S).Add(curve.A.Multiply(vSquared));
 
                     ECFieldElement X3 = V.Multiply(h);
-                    ECFieldElement Y3 = h.Multiply(S.Add(V)).Add(X1Sq.Square().Multiply(V));
+                    // TODO Delayed modular reduction for sum of products
+                    ECFieldElement Y3 = h.Multiply(sv).Add(X1Sq.Square().Multiply(V));
                     ECFieldElement Z3 = V.Multiply(vSquared);
 
                     return new F2mPoint(curve, X3, Y3, new ECFieldElement[] { Z3 }, IsCompressed);
@@ -1627,7 +1635,8 @@ namespace Org.BouncyCastle.Math.EC
                     else
                     {
                         ECFieldElement X1Z1 = Z1IsOne ? X1 : X1.Multiply(Z1);
-                        L3 = X1Z1.Square().Add(X3).Add(T.Multiply(L1Z1)).Add(Z3);
+                        // TODO Delayed modular reduction for sum of products
+                        L3 = X1Z1.Square().Add(T.Multiply(L1Z1)).Add(X3).Add(Z3);
                     }
 
                     return new F2mPoint(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
@@ -1678,6 +1687,7 @@ namespace Org.BouncyCastle.Math.EC
 
                     ECFieldElement T = curve.A.Multiply(Z1Sq).Add(L1Sq).Add(L1Z1);
                     ECFieldElement L2plus1 = L2.AddOne();
+                    // TODO Delayed modular reduction for sum of products
                     ECFieldElement A = curve.A.Add(L2plus1).Multiply(Z1Sq).Add(L1Sq).Multiply(T).Add(X1Sq.Multiply(Z1Sq));
                     ECFieldElement X2Z1Sq = X2.Multiply(Z1Sq);
                     ECFieldElement B = X2Z1Sq.Add(T).Square();
@@ -1699,6 +1709,7 @@ namespace Org.BouncyCastle.Math.EC
 
                     ECFieldElement X3 = A.Square().Multiply(X2Z1Sq);
                     ECFieldElement Z3 = A.Multiply(B).Multiply(Z1Sq);
+                    // TODO Delayed modular reduction for sum of products
                     ECFieldElement L3 = A.Add(B).Square().Multiply(T).Add(L2plus1.Multiply(Z3));
 
                     return new F2mPoint(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
