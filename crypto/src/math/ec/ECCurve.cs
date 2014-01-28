@@ -871,19 +871,16 @@ namespace Org.BouncyCastle.Math.EC
             return si;
         }
 
-        protected override ECPoint DecompressPoint(
-            int			yTilde,
-            BigInteger	X1)
+        protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
         {
-            ECFieldElement xp = FromBigInteger(X1);
-            ECFieldElement yp;
+            ECFieldElement xp = FromBigInteger(X1), yp;
             if (xp.IsZero)
             {
                 yp = m_b.Sqrt();
             }
             else
             {
-                ECFieldElement beta = xp.Add(m_a).Add(m_b.Multiply(xp.Square().Invert()));
+                ECFieldElement beta = xp.Square().Invert().Multiply(B).Add(A).Add(xp);
                 ECFieldElement z = SolveQuadradicEquation(beta);
 
                 if (z == null)
@@ -894,18 +891,17 @@ namespace Org.BouncyCastle.Math.EC
                     z = z.AddOne();
                 }
 
-                yp = xp.Multiply(z);
-
                 switch (this.CoordinateSystem)
                 {
                     case COORD_LAMBDA_AFFINE:
                     case COORD_LAMBDA_PROJECTIVE:
                     {
-                        yp = yp.Divide(xp).Add(xp);
+                        yp = z.Add(xp);
                         break;
                     }
                     default:
                     {
+                        yp = z.Multiply(xp);
                         break;
                     }
                 }
