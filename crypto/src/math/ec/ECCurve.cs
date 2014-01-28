@@ -71,8 +71,9 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        protected IFiniteField m_field;
+        protected readonly IFiniteField m_field;
         protected ECFieldElement m_a, m_b;
+        protected BigInteger m_order, m_cofactor;
 
         protected int m_coord = COORD_AFFINE;
         protected ECMultiplier m_multiplier = null;
@@ -220,6 +221,16 @@ namespace Org.BouncyCastle.Math.EC
             get { return m_b; }
         }
 
+        public virtual BigInteger Order
+        {
+            get { return m_order; }
+        }
+
+        public virtual BigInteger Cofactor
+        {
+            get { return m_cofactor; }
+        }
+
         public virtual int CoordinateSystem
         {
             get { return m_coord; }
@@ -353,6 +364,11 @@ namespace Org.BouncyCastle.Math.EC
         protected readonly FpPoint m_infinity;
 
         public FpCurve(BigInteger q, BigInteger a, BigInteger b)
+            : this(q, a, b, null, null)
+        {
+        }
+
+        public FpCurve(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor)
             : base(FiniteFields.GetPrimeField(q))
         {
             this.m_q = q;
@@ -361,10 +377,17 @@ namespace Org.BouncyCastle.Math.EC
 
             this.m_a = FromBigInteger(a);
             this.m_b = FromBigInteger(b);
+            this.m_order = order;
+            this.m_cofactor = cofactor;
             this.m_coord = FP_DEFAULT_COORDS;
         }
 
         protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b)
+            : this(q, r, a, b, null, null)
+        {
+        }
+
+        protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b, BigInteger order, BigInteger cofactor)
             : base(FiniteFields.GetPrimeField(q))
         {
             this.m_q = q;
@@ -373,12 +396,14 @@ namespace Org.BouncyCastle.Math.EC
 
             this.m_a = a;
             this.m_b = b;
+            this.m_order = order;
+            this.m_cofactor = cofactor;
             this.m_coord = FP_DEFAULT_COORDS;
         }
 
         protected override ECCurve CloneCurve()
         {
-            return new FpCurve(m_q, m_r, m_a, m_b);
+            return new FpCurve(m_q, m_r, m_a, m_b, m_order, m_cofactor);
         }
 
         public override bool SupportsCoordinateSystem(int coord)
@@ -535,16 +560,6 @@ namespace Org.BouncyCastle.Math.EC
         private readonly int k3;
 
         /**
-         * The order of the base point of the curve.
-         */
-        private readonly BigInteger n;
-
-        /**
-         * The cofactor of the curve.
-         */
-        private readonly BigInteger h;
-
-        /**
          * The point at infinity on this curve.
          */
         protected readonly F2mPoint m_infinity;
@@ -598,8 +613,8 @@ namespace Org.BouncyCastle.Math.EC
          * @param b The coefficient <code>b</code> in the Weierstrass equation
          * for non-supersingular elliptic curves over
          * <code>F<sub>2<sup>m</sup></sub></code>.
-         * @param n The order of the main subgroup of the elliptic curve.
-         * @param h The cofactor of the elliptic curve, i.e.
+         * @param order The order of the main subgroup of the elliptic curve.
+         * @param cofactor The cofactor of the elliptic curve, i.e.
          * <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
          */
         public F2mCurve(
@@ -607,9 +622,9 @@ namespace Org.BouncyCastle.Math.EC
             int			k, 
             BigInteger	a, 
             BigInteger	b,
-            BigInteger	n,
-            BigInteger	h)
-            : this(m, k, 0, 0, a, b, n, h)
+            BigInteger	order,
+            BigInteger	cofactor)
+            : this(m, k, 0, 0, a, b, order, cofactor)
         {
         }
 
@@ -663,8 +678,8 @@ namespace Org.BouncyCastle.Math.EC
          * @param b The coefficient <code>b</code> in the Weierstrass equation
          * for non-supersingular elliptic curves over
          * <code>F<sub>2<sup>m</sup></sub></code>.
-         * @param n The order of the main subgroup of the elliptic curve.
-         * @param h The cofactor of the elliptic curve, i.e.
+         * @param order The order of the main subgroup of the elliptic curve.
+         * @param cofactor The cofactor of the elliptic curve, i.e.
          * <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
          */
         public F2mCurve(
@@ -674,16 +689,16 @@ namespace Org.BouncyCastle.Math.EC
             int			k3,
             BigInteger	a, 
             BigInteger	b,
-            BigInteger	n,
-            BigInteger	h)
+            BigInteger	order,
+            BigInteger	cofactor)
             : base(BuildField(m, k1, k2, k3))
         {
             this.m = m;
             this.k1 = k1;
             this.k2 = k2;
             this.k3 = k3;
-            this.n = n;
-            this.h = h;
+            this.m_order = order;
+            this.m_cofactor = cofactor;
             this.m_infinity = new F2mPoint(this, null, null);
 
             if (k1 == 0)
@@ -715,8 +730,8 @@ namespace Org.BouncyCastle.Math.EC
             this.k1 = k1;
             this.k2 = k2;
             this.k3 = k3;
-            this.n = order;
-            this.h = cofactor;
+            this.m_order = order;
+            this.m_cofactor = cofactor;
 
             this.m_infinity = new F2mPoint(this, null, null);
             this.m_a = a;
@@ -726,7 +741,7 @@ namespace Org.BouncyCastle.Math.EC
 
         protected override ECCurve CloneCurve()
         {
-            return new F2mCurve(m, k1, k2, k3, m_a, m_b, n, h);
+            return new F2mCurve(m, k1, k2, k3, m_a, m_b, m_order, m_cofactor);
         }
 
         public override bool SupportsCoordinateSystem(int coord)
@@ -810,7 +825,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             get
             {
-                return n != null && h != null && m_a.BitLength <= 1 && m_b.IsOne;
+                return m_order != null && m_cofactor != null && m_b.IsOne && (m_a.IsZero || m_a.IsOne);
             }
         }
 
@@ -973,14 +988,16 @@ namespace Org.BouncyCastle.Math.EC
             get { return k3; }
         }
 
+        [Obsolete("Use 'Order' property instead")]
         public BigInteger N
         {
-            get { return n; }
+            get { return m_order; }
         }
 
+        [Obsolete("Use 'Cofactor' property instead")]
         public BigInteger H
         {
-            get { return h; }
+            get { return m_cofactor; }
         }
     }
 }
