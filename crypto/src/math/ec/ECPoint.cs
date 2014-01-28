@@ -1204,12 +1204,11 @@ namespace Org.BouncyCastle.Math.EC
                     {
                         ECFieldElement X = RawXCoord, L = RawYCoord;
 
-                        // TODO The X == 0 stuff needs further thought
                         if (this.IsInfinity || X.IsZero)
                             return L;
 
                         // Y is actually Lambda (X + Y/X) here; convert to affine value on the fly
-                        ECFieldElement Y = L.Subtract(X).Multiply(X);
+                        ECFieldElement Y = L.Add(X).Multiply(X);
                         if (ECCurve.COORD_LAMBDA_PROJECTIVE == coord)
                         {
                             ECFieldElement Z = RawZCoords[0];
