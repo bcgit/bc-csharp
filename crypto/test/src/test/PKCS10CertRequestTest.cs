@@ -177,7 +177,7 @@ namespace Org.BouncyCastle.Tests
             ECPoint q = pubKey.Q.Normalize();
             pubKey = new ECPublicKeyParameters(
                 pubKey.AlgorithmName,
-                q.Curve.CreatePoint(q.XCoord.ToBigInteger(), q.YCoord.ToBigInteger(), false),
+                q.Curve.CreatePoint(q.XCoord.ToBigInteger(), q.YCoord.ToBigInteger()),
                 pubKey.Parameters);
 
             req = new Pkcs10CertificationRequest(

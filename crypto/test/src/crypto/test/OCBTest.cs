@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 ocb = new OcbBlockCipher(new DesEngine(), new DesEngine());
                 Fail("incorrect block size not picked up");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 // expected
             }
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 ocb.Init(false, new KeyParameter(new byte[16]));
                 Fail("illegal argument not picked up");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 // expected
             }

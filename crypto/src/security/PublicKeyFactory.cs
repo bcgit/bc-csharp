@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Security
                 if (ecP == null)
                     return null;
 
-                ECPoint q = ecP.Curve.CreatePoint(new BigInteger(1, x), new BigInteger(1, y), false);
+                ECPoint q = ecP.Curve.CreatePoint(new BigInteger(1, x), new BigInteger(1, y));
 
                 return new ECPublicKeyParameters("ECGOST3410", q, gostParams.PublicKeyParamSet);
             }

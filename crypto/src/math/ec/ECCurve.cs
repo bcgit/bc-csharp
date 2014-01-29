@@ -340,7 +340,7 @@ namespace Org.BouncyCastle.Math.EC
                     BigInteger X1 = new BigInteger(1, encoded, 1, expectedLength);
                     BigInteger Y1 = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
 
-                    p = CreatePoint(X1, Y1, false);
+                    p = CreatePoint(X1, Y1);
                     break;
                 }
 
@@ -777,6 +777,7 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(this.m, this.k1, this.k2, this.k3, x);
         }
 
+        [Obsolete("Per-point compression property will be removed")]
         public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
         {
             ECFieldElement X = FromBigInteger(x), Y = FromBigInteger(y);

@@ -6,7 +6,6 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-
 	/// <summary>
 	/// Implementation of the Threefish tweakable large block cipher in 256, 512 and 1024 bit block
 	/// sizes.
@@ -19,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 	/// Bellare - Tadayoshi Kohno - Jon Callas - Jesse Walker.
 	/// <p/>
 	/// This implementation inlines all round functions, unrolls 8 rounds, and uses 1.2k of static tables
-	/// to speed up key schedule injection. <br>
+	/// to speed up key schedule injection. <br/>
 	/// 2 x block size state is retained by each cipher instance.
 	/// </remarks>
 	public class ThreefishEngine

@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Utilities
 		/// Implementations of this method <em>should</em> try to avoid or minimise memory allocation to perform the reset.
 		/// </remarks>
 		/// <param name="other">an object originally {@link #copy() copied} from an object of the same type as this instance.</param>
-		/// <exception cref="ClassCastException">if the provided object is not of the correct type.</exception>
+		/// <exception cref="InvalidCastException">if the provided object is not of the correct type.</exception>
 		/// <exception cref="MemoableResetException">if the <b>other</b> parameter is in some other way invalid.</exception>
 		void Reset(IMemoable other);
 	}
