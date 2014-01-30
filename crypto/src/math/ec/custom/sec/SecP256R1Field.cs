@@ -115,26 +115,25 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc >>= 32;
 
             int c = (int)cc;
-            if (c > 0)
-            {
-                do
-                {
-                    c += Nat256.Sub(z, P, z);
-                }
-                while (c != 0);
-
-                if (z[7] == P7 && Nat256.Gte(z, P))
-                {
-                    Nat256.Sub(z, P, z);
-                }
-            }
-            else if (c < 0)
+            if (c < 0)
             {
                 do
                 {
                     c += (int)Nat256.Add(z, P, z);
                 }
-                while (c != 0);
+                while (c < 0);
+            }
+            else
+            {
+                while (c > 0)
+                {
+                    c += Nat256.Sub(z, P, z);
+                }
+
+                if (z[7] == P7 && Nat256.Gte(z, P))
+                {
+                    Nat256.Sub(z, P, z);
+                }
             }
         }
 
