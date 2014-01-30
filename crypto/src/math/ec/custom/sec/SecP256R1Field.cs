@@ -145,6 +145,21 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Reduce(tt, z);
         }
 
+        public static void SquareN(uint[] x, int n, uint[] z)
+        {
+            Debug.Assert(n > 0);
+
+            uint[] tt = Nat256.CreateExt();
+            Nat256.Square(x, tt);
+            Reduce(tt, z);
+
+            while (--n > 0)
+            {
+                Nat256.Square(z, tt);
+                Reduce(tt, z);
+            }
+        }
+
         public static void Subtract(uint[] x, uint[] y, uint[] z)
         {
             int c = Nat256.Sub(x, y, z);
