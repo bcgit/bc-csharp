@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Math.EC
                 return x[0] & 1;
             }
             int w = bit >> 5;
-            if ((w - Int32.MinValue) > x.Length)
+            if (w < 0 || w >= x.Length)
             {
                 return 0;
             }
