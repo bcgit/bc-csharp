@@ -126,8 +126,42 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
          */
         public override ECFieldElement Sqrt()
         {
-            ECFieldElement root = new FpFieldElement(Q, ToBigInteger()).Sqrt();
-            return root == null ? null : new SecP256R1FieldElement(root.ToBigInteger());
+            // Raise this element to the exponent 2^254 - 2^222 + 2^190 + 2^94
+
+            uint[] x1 = this.x;
+            if (Nat256.IsZero(x1) || Nat256.IsOne(x1))
+            {
+                return this;
+            }
+
+            uint[] t1 = Nat256.Create();
+            uint[] t2 = Nat256.Create();
+
+            SecP256R1Field.Square(x1, t1);
+            SecP256R1Field.Multiply(t1, x1, t1);
+
+            SecP256R1Field.SquareN(t1, 2, t2);
+            SecP256R1Field.Multiply(t2, t1, t2);
+
+            SecP256R1Field.SquareN(t2, 4, t1);
+            SecP256R1Field.Multiply(t1, t2, t1);
+
+            SecP256R1Field.SquareN(t1, 8, t2);
+            SecP256R1Field.Multiply(t2, t1, t2);
+
+            SecP256R1Field.SquareN(t2, 16, t1);
+            SecP256R1Field.Multiply(t1, t2, t1);
+
+            SecP256R1Field.SquareN(t1, 32, t1);
+            SecP256R1Field.Multiply(t1, x1, t1);
+
+            SecP256R1Field.SquareN(t1, 96, t1);
+            SecP256R1Field.Multiply(t1, x1, t1);
+
+            SecP256R1Field.SquareN(t1, 94, t1);
+            SecP256R1Field.Multiply(t1, t1, t2);
+
+            return Arrays.AreEqual(x1, t2) ? new SecP256R1FieldElement(t1) : null;
         }
 
         public override bool Equals(object obj)
