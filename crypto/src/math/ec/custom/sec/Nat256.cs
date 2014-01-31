@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         // TODO Re-write to allow full range for x?
         public static uint AddDWord(ulong x, uint[] z, int zOff)
         {
-            Debug.Assert(zOff < 6);
+            Debug.Assert(zOff <= 6);
             ulong c = x;
             c += (ulong)z[zOff + 0];
             z[zOff + 0] = (uint)c;
@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint AddWordExt(uint x, uint[] zz, int zzOff)
         {
-            Debug.Assert(zzOff < 15);
+            Debug.Assert(zzOff <= 15);
             ulong c = (ulong)x + zz[zzOff + 0];
             zz[zzOff + 0] = (uint)c;
             c >>= 32;
@@ -147,16 +147,14 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static int Dec(uint[] z, int zOff)
         {
-            Debug.Assert(zOff < 8);
-            int i = zOff;
-            do
+            Debug.Assert(zOff <= 8);
+            for (int i = zOff; i < 8; ++i)
             {
                 if (--z[i] != uint.MaxValue)
                 {
                     return 0;
                 }
             }
-            while (++i < 8);
             return -1;
         }
 
@@ -218,10 +216,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint Inc(uint[] z, int zOff)
         {
-            Debug.Assert(zOff < 8);
+            Debug.Assert(zOff <= 8);
             for (int i = zOff; i < 8; ++i)
             {
-                if (++z[i] != 0)
+                if (++z[i] != uint.MinValue)
                 {
                     return 0;
                 }
@@ -231,10 +229,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint IncExt(uint[] zz, int zzOff)
         {
-            Debug.Assert(zzOff < 16);
+            Debug.Assert(zzOff <= 16);
             for (int i = zzOff; i < 16; ++i)
             {
-                if (++zz[i] != 0)
+                if (++zz[i] != uint.MinValue)
                 {
                     return 0;
                 }
@@ -431,7 +429,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static uint Mul33DWordAdd(uint x, ulong y, uint[] z, int zOff)
         {
             Debug.Assert(x >> 31 == 0);
-            Debug.Assert(zOff < 4);
+            Debug.Assert(zOff <= 4);
             ulong c = 0, xVal = x;
             ulong y00 = y & M;
             c += xVal * y00 + z[zOff + 0];
@@ -452,7 +450,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint MulWordDwordAdd(uint x, ulong y, uint[] z, int zOff)
         {
-            Debug.Assert(zOff < 5);
+            Debug.Assert(zOff <= 5);
             ulong c = 0, xVal = x;
             c += xVal * y + z[zOff + 0];
             z[zOff + 0] = (uint)c;

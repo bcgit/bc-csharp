@@ -32,18 +32,19 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
-        //public static uint AddDWord(int len, ulong x, uint[] z, int zOff)
-        //{
-        //    Debug.Assert(zOff < (len - 2));
-        //    ulong c = x;
-        //    c += (ulong)z[zOff + 0];
-        //    z[zOff + 0] = (uint)c;
-        //    c >>= 32;
-        //    c += (ulong)z[zOff + 1];
-        //    z[zOff + 1] = (uint)c;
-        //    c >>= 32;
-        //    return c == 0 ? 0 : Inc(len, z, zOff + 2);
-        //}
+        // TODO Re-write to allow full range for x?
+        public static uint AddDWord(int len, ulong x, uint[] z, int zOff)
+        {
+            Debug.Assert(zOff <= (len - 2));
+            ulong c = x;
+            c += (ulong)z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[zOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Inc(len, z, zOff + 2);
+        }
 
         public static uint AddExt(int len, uint[] xx, uint[] yy, uint[] zz)
         {
@@ -73,7 +74,8 @@ namespace Org.BouncyCastle.Math.EC
 
         public static uint AddWordExt(int len, uint x, uint[] zz, int zzOff)
         {
-            Debug.Assert(zzOff < ((len << 1) - 1));
+            int extLen = len << 1;
+            Debug.Assert(zzOff <= (extLen - 1));
             ulong c = (ulong)x + zz[zzOff];
             zz[zzOff] = (uint)c;
             c >>= 32;
@@ -100,16 +102,14 @@ namespace Org.BouncyCastle.Math.EC
 
         public static int Dec(int len, uint[] z, int zOff)
         {
-            Debug.Assert(zOff < len);
-            int i = zOff;
-            do
+            Debug.Assert(zOff <= len);
+            for (int i = zOff; i < len; ++i)
             {
                 if (--z[i] != uint.MaxValue)
                 {
                     return 0;
                 }
             }
-            while (++i < len);
             return -1;
         }
 
@@ -172,10 +172,10 @@ namespace Org.BouncyCastle.Math.EC
 
         public static uint Inc(int len, uint[] z, int zOff)
         {
-            Debug.Assert(zOff < len);
+            Debug.Assert(zOff <= len);
             for (int i = zOff; i < len; ++i)
             {
-                if (++z[i] != 0)
+                if (++z[i] != uint.MinValue)
                 {
                     return 0;
                 }
@@ -186,10 +186,10 @@ namespace Org.BouncyCastle.Math.EC
         public static uint IncExt(int len, uint[] zz, int zzOff)
         {
             int extLen = len;
-            Debug.Assert(zzOff < extLen);
+            Debug.Assert(zzOff <= extLen);
             for (int i = zzOff; i < extLen; ++i)
             {
-                if (++zz[i] != 0)
+                if (++zz[i] != uint.MinValue)
                 {
                     return 0;
                 }
@@ -274,7 +274,7 @@ namespace Org.BouncyCastle.Math.EC
 
         public static uint MulWordDwordAdd(int len, uint x, ulong y, uint[] z, int zOff)
         {
-            Debug.Assert(zOff < (len - 3));
+            Debug.Assert(zOff <= (len - 3));
             ulong c = 0, xVal = (ulong)x;
             c += xVal * (uint)y + z[zOff + 0];
             z[zOff + 0] = (uint)c;
@@ -437,17 +437,19 @@ namespace Org.BouncyCastle.Math.EC
             return (int)c;
         }
 
-        //public static int SubDWord(int len, ulong x, uint[] z)
-        //{
-        //    long c = -(long)x;
-        //    c += (long)z[0];
-        //    z[0] = (uint)c;
-        //    c >>= 32;
-        //    c += (long)z[1];
-        //    z[1] = (uint)c;
-        //    c >>= 32;
-        //    return c == 0 ? 0 : Dec(len, z, 2);
-        //}
+        // TODO Re-write to allow full range for x?
+        public static int SubDWord(int len, ulong x, uint[] z)
+        {
+            Debug.Assert(len >= 2);
+            long c = -(long)x;
+            c += (long)z[0];
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (long)z[1];
+            z[1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Dec(len, z, 2);
+        }
 
         public static int SubExt(int len, uint[] xx, uint[] yy, uint[] zz)
         {
