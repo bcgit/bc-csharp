@@ -358,14 +358,30 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Debug.Assert(yyOff <= 8);
             Debug.Assert(zzOff <= 8);
             ulong c = 0, xVal = x;
-            int i = 0;
-            do
-            {
-                c += xVal * yy[yyOff + i] + zz[zzOff + i];
-                zz[zzOff + i] = (uint)c;
-                c >>= 32;
-            }
-            while (++i < 8);
+            c += xVal * yy[yyOff + 0] + zz[zzOff + 0];
+            zz[zzOff + 0] = (uint)c;
+            c >>= 32;
+            c += xVal * yy[yyOff + 1] + zz[zzOff + 1];
+            zz[zzOff + 1] = (uint)c;
+            c >>= 32;
+            c += xVal * yy[yyOff + 2] + zz[zzOff + 2];
+            zz[zzOff + 2] = (uint)c;
+            c >>= 32;
+            c += xVal * yy[yyOff + 3] + zz[zzOff + 3];
+            zz[zzOff + 3] = (uint)c;
+            c >>= 32;
+            c += xVal * yy[yyOff + 4] + zz[zzOff + 4];
+            zz[zzOff + 4] = (uint)c;
+            c >>= 32;
+            c += xVal * yy[yyOff + 5] + zz[zzOff + 5];
+            zz[zzOff + 5] = (uint)c;
+            c >>= 32;
+            c += xVal * yy[yyOff + 6] + zz[zzOff + 6];
+            zz[zzOff + 6] = (uint)c;
+            c >>= 32;
+            c += xVal * yy[yyOff + 7] + zz[zzOff + 7];
+            zz[zzOff + 7] = (uint)c;
+            c >>= 32;
             return (uint)c;
         }
 
