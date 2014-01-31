@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             this.m_b = FromBigInteger(new BigInteger(1,
                 Hex.Decode("5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B")));
             this.m_order = new BigInteger(1, Hex.Decode("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551"));
-            this.m_cofactor = BigInteger.ValueOf(1);
+            this.m_cofactor = BigInteger.One;
             this.m_coord = SecP256R1_DEFAULT_COORDS;
         }
 
@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
         {
             ECFieldElement x = FromBigInteger(X1);
-            ECFieldElement alpha = x.Square().Add(m_a).Multiply(x).Add(m_b);
+            ECFieldElement alpha = x.Square().Add(A).Multiply(x).Add(B);
             ECFieldElement beta = alpha.Sqrt();
 
             //

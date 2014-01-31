@@ -13,7 +13,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             0x00000000, 0x00000000, 0x00000000, 0xFFFFF85E, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
             0xFFFFFFFF, 0xFFFFFFFF };
         private const uint PExt15 = 0xFFFFFFFF;
-        private static readonly ulong PInv = 0x00000001000003D1UL;
+        private const ulong PInv = 0x00000001000003D1UL;
+        private const uint PInvLow = 0x3D1;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
         {
@@ -88,11 +89,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static void Reduce(uint[] tt, uint[] z)
         {
             long extra = -(long)tt[8];
-            extra += (long)Nat256.MulWordAddExt((uint)PInv, tt, 8, tt, 0);
+            extra += (long)Nat256.MulWordAddExt(PInvLow, tt, 8, tt, 0);
             extra += (long)Nat256.AddToExt(tt, 8, tt, 1) << 32;
             extra += (long)tt[8];
 
-            ulong c = Nat256.MulWordDwordAdd((uint)PInv, (ulong)extra, tt, 0);
+            ulong c = Nat256.MulWordDwordAdd(PInvLow, (ulong)extra, tt, 0);
             c += Nat256.AddDWord((ulong)extra, tt, 1);
 
             Debug.Assert(c == 0 || c == 1);

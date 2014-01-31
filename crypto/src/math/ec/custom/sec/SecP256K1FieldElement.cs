@@ -119,7 +119,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return new SecP256K1FieldElement(z);
         }
 
-        // D.1.4 91
         /**
          * return a sqrt root - the routine verifies that the calculation returns the right value - if
          * none exists it returns null.
