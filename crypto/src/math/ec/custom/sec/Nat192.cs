@@ -321,37 +321,38 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
-        public static ulong Mul33AddExt(uint x, uint[] yy, int yyOff, uint[] zz, int zzOff)
+        public static ulong Mul33AddExt(uint w, uint[] xx, int xxOff, uint[] yy, int yyOff, uint[] zz, int zzOff)
         {
-            Debug.Assert(x >> 31 == 0);
+            Debug.Assert(w >> 31 == 0);
+            Debug.Assert(xxOff <= 6);
             Debug.Assert(yyOff <= 6);
             Debug.Assert(zzOff <= 6);
-            ulong c = 0, xVal = x;
-            ulong yy00 = yy[yyOff + 0];
-            c += xVal * yy00 + zz[zzOff + 0];
+            ulong c = 0, wVal = w;
+            ulong xx00 = xx[xxOff + 0];
+            c += wVal * xx00 + yy[yyOff + 0];
             zz[zzOff + 0] = (uint)c;
             c >>= 32;
-            ulong yy01 = yy[yyOff + 1];
-            c += xVal * yy01 + yy00 + zz[zzOff + 1];
+            ulong xx01 = xx[xxOff + 1];
+            c += wVal * xx01 + xx00 + yy[yyOff + 1];
             zz[zzOff + 1] = (uint)c;
             c >>= 32;
-            ulong yy02 = yy[yyOff + 2];
-            c += xVal * yy02 + yy01 + zz[zzOff + 2];
+            ulong xx02 = xx[xxOff + 2];
+            c += wVal * xx02 + xx01 + yy[yyOff + 2];
             zz[zzOff + 2] = (uint)c;
             c >>= 32;
-            ulong yy03 = yy[yyOff + 3];
-            c += xVal * yy03 + yy02 + zz[zzOff + 3];
+            ulong xx03 = xx[xxOff + 3];
+            c += wVal * xx03 + xx02 + yy[yyOff + 3];
             zz[zzOff + 3] = (uint)c;
             c >>= 32;
-            ulong yy04 = yy[yyOff + 4];
-            c += xVal * yy04 + yy03 + zz[zzOff + 4];
+            ulong xx04 = xx[xxOff + 4];
+            c += wVal * xx04 + xx03 + yy[yyOff + 4];
             zz[zzOff + 4] = (uint)c;
             c >>= 32;
-            ulong yy05 = yy[yyOff + 5];
-            c += xVal * yy05 + yy04 + zz[zzOff + 5];
+            ulong xx05 = xx[xxOff + 5];
+            c += wVal * xx05 + xx04 + yy[yyOff + 5];
             zz[zzOff + 5] = (uint)c;
             c >>= 32;
-            c += yy05;
+            c += xx05;
             return c;
         }
 

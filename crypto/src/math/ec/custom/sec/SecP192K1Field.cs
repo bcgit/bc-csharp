@@ -84,19 +84,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
-        public static void Reduce(uint[] tt, uint[] z)
+        public static void Reduce(uint[] xx, uint[] z)
         {
-            ulong c = Nat192.Mul33AddExt(PInv33, tt, 6, tt, 0);
-            c = Nat192.Mul33DWordAdd(PInv33, c, tt, 0);
+            ulong c = Nat192.Mul33AddExt(PInv33, xx, 6, xx, 0, z, 0);
+            c = Nat192.Mul33DWordAdd(PInv33, c, z, 0);
 
             Debug.Assert(c == 0 || c == 1);
 
-            if (c != 0 || (tt[5] == P5 && Nat192.Gte(tt, P)))
+            if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
             {
-                Nat192.AddDWord(PInv, tt, 0);
+                Nat192.AddDWord(PInv, z, 0);
             }
-
-            Array.Copy(tt, 0, z, 0, 6);
         }
 
         public static void Square(uint[] x, uint[] z)
