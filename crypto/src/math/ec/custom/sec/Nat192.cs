@@ -321,6 +321,40 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
+        public static ulong Mul33AddExt(uint x, uint[] yy, int yyOff, uint[] zz, int zzOff)
+        {
+            Debug.Assert(x >> 31 == 0);
+            Debug.Assert(yyOff <= 6);
+            Debug.Assert(zzOff <= 6);
+            ulong c = 0, xVal = x;
+            ulong yy00 = yy[yyOff + 0];
+            c += xVal * yy00 + zz[zzOff + 0];
+            zz[zzOff + 0] = (uint)c;
+            c >>= 32;
+            ulong yy01 = yy[yyOff + 1];
+            c += xVal * yy01 + yy00 + zz[zzOff + 1];
+            zz[zzOff + 1] = (uint)c;
+            c >>= 32;
+            ulong yy02 = yy[yyOff + 2];
+            c += xVal * yy02 + yy01 + zz[zzOff + 2];
+            zz[zzOff + 2] = (uint)c;
+            c >>= 32;
+            ulong yy03 = yy[yyOff + 3];
+            c += xVal * yy03 + yy02 + zz[zzOff + 3];
+            zz[zzOff + 3] = (uint)c;
+            c >>= 32;
+            ulong yy04 = yy[yyOff + 4];
+            c += xVal * yy04 + yy03 + zz[zzOff + 4];
+            zz[zzOff + 4] = (uint)c;
+            c >>= 32;
+            ulong yy05 = yy[yyOff + 5];
+            c += xVal * yy05 + yy04 + zz[zzOff + 5];
+            zz[zzOff + 5] = (uint)c;
+            c >>= 32;
+            c += yy05;
+            return c;
+        }
+
         public static uint MulWordAddExt(uint x, uint[] yy, int yyOff, uint[] zz, int zzOff)
         {
             Debug.Assert(yyOff <= 6);
@@ -345,6 +379,28 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[zzOff + 5] = (uint)c;
             c >>= 32;
             return (uint)c;
+        }
+
+        public static uint Mul33DWordAdd(uint x, ulong y, uint[] z, int zOff)
+        {
+            Debug.Assert(x >> 31 == 0);
+            Debug.Assert(zOff < 2);
+            ulong c = 0, xVal = x;
+            ulong y00 = y & M;
+            c += xVal * y00 + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            ulong y01 = y >> 32;
+            c += xVal * y01 + y00 + z[zOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            c += y01 + z[zOff + 2];
+            z[zOff + 2] = (uint)c;
+            c >>= 32;
+            c += z[zOff + 3];
+            z[zOff + 3] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Inc(z, zOff + 4);
         }
 
         public static uint MulWordDwordAdd(uint x, ulong y, uint[] z, int zOff)

@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             0x00000000, 0xFFFFDC6E, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
         private const uint PExt11 = 0xFFFFFFFF;
         private const ulong PInv = 0x00000001000011C9L;
-        private const uint PInvLow = 0x11C9;
+        private const uint PInv33 = 0x11C9;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
         {
@@ -86,13 +86,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] tt, uint[] z)
         {
-            long extra = -(long)tt[6];
-            extra += (long)Nat192.MulWordAddExt(PInvLow, tt, 6, tt, 0);
-            extra += (long)Nat192.AddToExt(tt, 6, tt, 1) << 32;
-            extra += (long)tt[6];
-
-            ulong c = Nat192.MulWordDwordAdd(PInvLow, (ulong)extra, tt, 0);
-            c += Nat192.AddDWord((ulong)extra, tt, 1);
+            ulong c = Nat192.Mul33AddExt(PInv33, tt, 6, tt, 0);
+            c = Nat192.Mul33DWordAdd(PInv33, c, tt, 0);
 
             Debug.Assert(c == 0 || c == 1);
 
