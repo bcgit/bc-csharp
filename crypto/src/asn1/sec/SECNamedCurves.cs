@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("659EF8BA043916EEDE8911702B22");
                 byte[] S = Hex.Decode("00F50B028E4D696E676875615175290472783FB1");
                 BigInteger n = FromHex("DB7C2ABF62E35E7628DFAC6561C5");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("02"
@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("E87579C11079F43DD824993C2CEE5ED3");
                 byte[] S = Hex.Decode("000E0D4D696E6768756151750CC03A4473D03679");
                 BigInteger n = FromHex("FFFFFFFE0000000075A30D1B9038A115");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("03"
@@ -165,7 +165,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = BigInteger.ValueOf(7);
                 byte[] S = null;
                 BigInteger n = FromHex("0100000000000000000001B8FA16DFAB9ACA16B6B3");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("02"
@@ -196,7 +196,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("1C97BEFC54BD7A8B65ACF89F81D4D4ADC565FA45");
                 byte[] S = Hex.Decode("1053CDE42C14D696E67687561517533BF3F83345");
                 BigInteger n = FromHex("0100000000000000000001F4C8F927AED3CA752257");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("02"
@@ -227,7 +227,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("B4E134D3FB59EB8BAB57274904664D5AF50388BA");
                 byte[] S = Hex.Decode("B99B99B099B323E02709A4D696E6768756151751");
                 BigInteger n = FromHex("0100000000000000000000351EE786A818F3A1A16B");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("02"
@@ -258,7 +258,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = BigInteger.ValueOf(3);
                 byte[] S = null;
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFE26F2FC170F69466A74DEFD8D");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("03"
@@ -289,7 +289,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("64210519E59C80E70FA7E9AB72243049FEB8DEECC146B9B1");
                 byte[] S = Hex.Decode("3045AE6FC8422F64ED579528D38120EAE12196D5");
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22831");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("03"
@@ -320,7 +320,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = BigInteger.ValueOf(5);
                 byte[] S = null;
                 BigInteger n = FromHex("010000000000000000000000000001DCE8D2EC6184CAF0A971769FB1F7");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("03"
@@ -351,7 +351,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("B4050A850C04B3ABF54132565044B0B7D7BFD8BA270B39432355FFB4");
                 byte[] S = Hex.Decode("BD71344799D5C7FCDC45B59FA3B9AB8F6A948BC5");
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFF16A2E0B8F03E13DD29455C5C2A3D");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("02"
@@ -382,7 +382,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = BigInteger.ValueOf(7);
                 byte[] S = null;
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("02"
@@ -413,7 +413,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B");
                 byte[] S = Hex.Decode("C49D360886E704936A6678E1139D26B7819F7E90");
                 BigInteger n = FromHex("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("03"
@@ -444,7 +444,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("B3312FA7E23EE7E4988E056BE3F82D19181D9C6EFE8141120314088F5013875AC656398D8A2ED19D2A85C8EDD3EC2AEF");
                 byte[] S = Hex.Decode("A335926AA319A27A1D00896A6773A4827ACDAC73");
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("03"
@@ -475,7 +475,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger b = FromHex("0051953EB9618E1C9A1F929A21A0B68540EEA2DA725B99B315F3B8B489918EF109E156193951EC7E937B1652C0BD3BB1BF073573DF883D2C34F1EF451FD46B503F00");
                 byte[] S = Hex.Decode("D09E8800291CB85396CC6717393284AAA0DA64BA");
                 BigInteger n = FromHex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409");
-                BigInteger h = BigInteger.ValueOf(1);
+                BigInteger h = BigInteger.One;
 
                 ECCurve curve = new FpCurve(p, a, b);
                 //ECPoint G = curve.DecodePoint(Hex.Decode("02"
@@ -637,8 +637,8 @@ namespace Org.BouncyCastle.Asn1.Sec
 
             protected override X9ECParameters CreateParameters()
             {
-                BigInteger a = BigInteger.ValueOf(1);
-                BigInteger b = BigInteger.ValueOf(1);
+                BigInteger a = BigInteger.One;
+                BigInteger b = BigInteger.One;
                 byte[] S = null;
                 BigInteger n = FromHex("04000000000000000000020108A2E0CC0D99F8A5EF");
                 BigInteger h = BigInteger.ValueOf(2);
@@ -705,7 +705,7 @@ namespace Org.BouncyCastle.Asn1.Sec
 
             protected override X9ECParameters CreateParameters()
             {
-                BigInteger a = BigInteger.ValueOf(1);
+                BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("020A601907B8C953CA1481EB10512F78744A3205FD");
                 byte[] S = Hex.Decode("85E25BFE5C86226CDB12016F7553F9D0E693A268");
                 BigInteger n = FromHex("040000000000000000000292FE77E70C12A4234C33");
@@ -802,7 +802,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             protected override X9ECParameters CreateParameters()
             {
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(1);
+                BigInteger b = BigInteger.One;
                 byte[] S = null;
                 BigInteger n = FromHex("8000000000000000000000000000069D5BB915BCD46EFB1AD5F173ABDF");
                 BigInteger h = BigInteger.ValueOf(4);
@@ -833,7 +833,7 @@ namespace Org.BouncyCastle.Asn1.Sec
 
             protected override X9ECParameters CreateParameters()
             {
-                BigInteger a = BigInteger.ValueOf(1);
+                BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("0066647EDE6C332C7F8C0923BB58213B333B20E9CE4281FE115F7D8F90AD");
                 byte[] S = Hex.Decode("74D59FF07F6B413D0EA14B344B20A2DB049B50C3");
                 BigInteger n = FromHex("01000000000000000000000000000013E974E72F8A6922031D2603CFE0D7");
@@ -866,7 +866,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             protected override X9ECParameters CreateParameters()
             {
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(1);
+                BigInteger b = BigInteger.One;
                 byte[] S = null;
                 BigInteger n = FromHex("2000000000000000000000000000005A79FEC67CB6E91F1C1DA800E478A5");
                 BigInteger h = BigInteger.ValueOf(4);
@@ -900,7 +900,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             protected override X9ECParameters CreateParameters()
             {
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(1);
+                BigInteger b = BigInteger.One;
                 byte[] S = null;
                 BigInteger n = FromHex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE9AE2ED07577265DFF7F94451E061E163C61");
                 BigInteger h = BigInteger.ValueOf(4);
@@ -933,7 +933,7 @@ namespace Org.BouncyCastle.Asn1.Sec
 
             protected override X9ECParameters CreateParameters()
             {
-                BigInteger a = BigInteger.ValueOf(1);
+                BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("027B680AC8B8596DA5A4AF8A19A0303FCA97FD7645309FA2A581485AF6263E313B79A2F5");
                 byte[] S = Hex.Decode("77E2B07370EB0F832A6DD5B62DFC88CD06BB84BE");
                 BigInteger n = FromHex("03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEF90399660FC938A90165B042A7CEFADB307");
@@ -966,7 +966,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             protected override X9ECParameters CreateParameters()
             {
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(1);
+                BigInteger b = BigInteger.One;
                 byte[] S = null;
                 BigInteger n = FromHex("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE5F83B2D4EA20400EC4557D5ED3E3E7CA5B4B5C83B8E01E5FCF");
                 BigInteger h = BigInteger.ValueOf(4);
@@ -997,7 +997,7 @@ namespace Org.BouncyCastle.Asn1.Sec
 
             protected override X9ECParameters CreateParameters()
             {
-                BigInteger a = BigInteger.ValueOf(1);
+                BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("0021A5C2C8EE9FEB5C4B9A753B7B476B7FD6422EF1F3DD674761FA99D6AC27C8A9A197B272822F6CD57A55AA4F50AE317B13545F");
                 byte[] S = Hex.Decode("4099B5A457F9D69F79213D094C4BCD4D4262210B");
                 BigInteger n = FromHex("010000000000000000000000000000000000000000000000000001E2AAD6A612F33307BE5FA47C3C9E052F838164CD37D9A21173");
@@ -1032,7 +1032,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             protected override X9ECParameters CreateParameters()
             {
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(1);
+                BigInteger b = BigInteger.One;
                 byte[] S = null;
                 BigInteger n = FromHex("020000000000000000000000000000000000000000000000000000000000000000000000131850E1F19A63E4B391A8DB917F4138B630D84BE5D639381E91DEB45CFE778F637C1001");
                 BigInteger h = BigInteger.ValueOf(4);
@@ -1065,7 +1065,7 @@ namespace Org.BouncyCastle.Asn1.Sec
 
             protected override X9ECParameters CreateParameters()
             {
-                BigInteger a = BigInteger.ValueOf(1);
+                BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("02F40E7E2221F295DE297117B7F3D62F5C6A97FFCB8CEFF1CD6BA8CE4A9A18AD84FFABBD8EFA59332BE7AD6756A66E294AFD185A78FF12AA520E4DE739BACA0C7FFEFF7F2955727A");
                 byte[] S = Hex.Decode("2AA058F73A0E33AB486B0F610410C53A7F132310");
                 BigInteger n = FromHex("03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE661CE18FF55987308059B186823851EC7DD9CA1161DE93D5174D66E8382E9BB2FE84E47");
