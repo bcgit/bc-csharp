@@ -87,23 +87,34 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             long t06 = tt[6], t07 = tt[7], t08 = tt[8];
             long t09 = tt[9], t10 = tt[10], t11 = tt[11];
 
+            long s0 = t06 + t10;
+            long s1 = t07 + t11;
+
             long cc = 0;
-            cc += (long)tt[0] + t06 + t10;
+            cc += (long)tt[0] + s0;
             z[0] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[1] + t07 + t11;
+            cc += (long)tt[1] + s1;
             z[1] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[2] + t06 + t08 + t10;
+
+            s0 += t08;
+            s1 += t09;
+
+            cc += (long)tt[2] + s0;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[3] + t07 + t09 + t11;
+            cc += (long)tt[3] + s1;
             z[3] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[4] + t08 + t10;
+
+            s0 -= t06;
+            s1 -= t07;
+
+            cc += (long)tt[4] + s0;
             z[4] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[5] + t09 + t11;
+            cc += (long)tt[5] + s1;
             z[5] = (uint)cc;
             cc >>= 32;
 
