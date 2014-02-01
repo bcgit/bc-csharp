@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 if (x_i > y_i)
                     return true;
             }
-            return false;
+            return true;
         }
 
         public static bool GteExt(uint[] xx, uint[] yy)
@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 if (xx_i > yy_i)
                     return true;
             }
-            return false;
+            return true;
         }
 
         public static uint Inc(uint[] z, int zOff)
