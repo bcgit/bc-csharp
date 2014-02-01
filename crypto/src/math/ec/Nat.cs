@@ -185,7 +185,7 @@ namespace Org.BouncyCastle.Math.EC
 
         public static uint IncExt(int len, uint[] zz, int zzOff)
         {
-            int extLen = len;
+            int extLen = len << 1;
             Debug.Assert(zzOff <= extLen);
             for (int i = zzOff; i < extLen; ++i)
             {
