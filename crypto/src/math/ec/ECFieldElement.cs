@@ -390,11 +390,10 @@ namespace Org.BouncyCastle.Math.EC
 
         protected virtual BigInteger ModInverse(BigInteger x)
         {
-            // Our BigInteger.ModInverse performance is quite poor, so use the new Nat/Mod classes here
-            //return x.ModInverse(q);
-            int len = (FieldSize + 31) >> 5;
-            uint[] p = Nat.FromBigInteger(len, q);
-            uint[] n = Nat.FromBigInteger(len, x);
+            int bits = FieldSize;
+            int len = (bits + 31) >> 5;
+            uint[] p = Nat.FromBigInteger(bits, q);
+            uint[] n = Nat.FromBigInteger(bits, x);
             uint[] z = Nat.Create(len);
             Mod.Invert(p, n, z);
             return Nat.ToBigInteger(len, z);

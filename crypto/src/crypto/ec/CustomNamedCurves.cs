@@ -113,6 +113,27 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
+        /*
+         * secp521r1
+         */
+        internal class Secp521r1Holder
+            : X9ECParametersHolder
+        {
+            private Secp521r1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Secp521r1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("D09E8800291CB85396CC6717393284AAA0DA64BA");
+                ECCurve curve = ConfigureCurve(new SecP521R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "00C6858E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66"
+                    + "011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
         private static readonly IDictionary objIds = Platform.CreateHashtable();
         private static readonly IDictionary curves = Platform.CreateHashtable();
         private static readonly IDictionary names = Platform.CreateHashtable();
@@ -130,9 +151,11 @@ namespace Org.BouncyCastle.Crypto.EC
             DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
             DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
             DefineCurve("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
+            DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
 
             objIds.Add(Platform.ToLowerInvariant("P-192"), SecObjectIdentifiers.SecP192r1);
             objIds.Add(Platform.ToLowerInvariant("P-256"), SecObjectIdentifiers.SecP256r1);
+            objIds.Add(Platform.ToLowerInvariant("P-521"), SecObjectIdentifiers.SecP521r1);
         }
 
         public static X9ECParameters GetByName(string name)
