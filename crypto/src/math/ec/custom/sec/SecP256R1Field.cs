@@ -88,29 +88,37 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             long t08 = tt[8], t09 = tt[9], t10 = tt[10], t11 = tt[11];
             long t12 = tt[12], t13 = tt[13], t14 = tt[14], t15 = tt[15];
 
+            long s0 = t08 + t09;
+            long s1 = t09 + t10;
+            long s2 = t10 + t11;
+            long s3 = t11 + t12;
+            long s4 = t12 + t13;
+            long s5 = t13 + t14;
+            long s6 = t14 + t15;
+
             long cc = 0;
-            cc += (long)tt[0] + t08 + t09 - t11 - t12 - t13 - t14;
+            cc += (long)tt[0] + s0 - s3 - s5;
             z[0] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[1] + t09 + t10 - t12 - t13 - t14 - t15;
+            cc += (long)tt[1] + s1 - s4 - s6;
             z[1] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[2] + t10 + t11 - t13 - t14 - t15;
+            cc += (long)tt[2] + s2 - s5 - t15;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[3] + ((t11 + t12) << 1) + t13 - t15 - t08 - t09;
+            cc += (long)tt[3] + (s3 << 1) + t13 - t15 - s0;
             z[3] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[4] + ((t12 + t13) << 1) + t14 - t09 - t10;
+            cc += (long)tt[4] + (s4 << 1) + t14 - s1;
             z[4] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[5] + ((t13 + t14) << 1) + t15 - t10 - t11;
+            cc += (long)tt[5] + (s5 << 1) + t15 - s2;
             z[5] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[6] + ((t14 + t15) << 1) + t14 + t13 - t08 - t09;
+            cc += (long)tt[6] + (s6 << 1) + s5 - s0;
             z[6] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[7] + (t15 << 1) + t15 + t08 - t10 - t11 - t12 - t13;
+            cc += (long)tt[7] + (t15 << 1) + t15 + t08 - s2 - s4;
             z[7] = (uint)cc;
             cc >>= 32;
 
