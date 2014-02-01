@@ -128,9 +128,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             uint[] x1 = this.x;
             if (Nat256.IsZero(x1) || Nat256.IsOne(x1))
-            {
                 return this;
-            }
 
             uint[] t1 = Nat256.Create();
             uint[] t2 = Nat256.Create();
