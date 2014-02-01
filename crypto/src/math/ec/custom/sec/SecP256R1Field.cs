@@ -83,42 +83,42 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
-        public static void Reduce(uint[] tt, uint[] z)
+        public static void Reduce(uint[] xx, uint[] z)
         {
-            long t08 = tt[8], t09 = tt[9], t10 = tt[10], t11 = tt[11];
-            long t12 = tt[12], t13 = tt[13], t14 = tt[14], t15 = tt[15];
+            long xx08 = xx[8], xx09 = xx[9], xx10 = xx[10], xx11 = xx[11];
+            long xx12 = xx[12], xx13 = xx[13], xx14 = xx[14], xx15 = xx[15];
 
-            long s0 = t08 + t09;
-            long s1 = t09 + t10;
-            long s2 = t10 + t11;
-            long s3 = t11 + t12;
-            long s4 = t12 + t13;
-            long s5 = t13 + t14;
-            long s6 = t14 + t15;
+            long t0 = xx08 + xx09;
+            long t1 = xx09 + xx10;
+            long t2 = xx10 + xx11;
+            long t3 = xx11 + xx12;
+            long t4 = xx12 + xx13;
+            long t5 = xx13 + xx14;
+            long t6 = xx14 + xx15;
 
             long cc = 0;
-            cc += (long)tt[0] + s0 - s3 - s5;
+            cc += (long)xx[0] + t0 - t3 - t5;
             z[0] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[1] + s1 - s4 - s6;
+            cc += (long)xx[1] + t1 - t4 - t6;
             z[1] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[2] + s2 - s5 - t15;
+            cc += (long)xx[2] + t2 - t5 - xx15;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[3] + (s3 << 1) + t13 - t15 - s0;
+            cc += (long)xx[3] + (t3 << 1) + xx13 - xx15 - t0;
             z[3] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[4] + (s4 << 1) + t14 - s1;
+            cc += (long)xx[4] + (t4 << 1) + xx14 - t1;
             z[4] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[5] + (s5 << 1) + t15 - s2;
+            cc += (long)xx[5] + (t5 << 1) + xx15 - t2;
             z[5] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[6] + (s6 << 1) + s5 - s0;
+            cc += (long)xx[6] + (t6 << 1) + t5 - t0;
             z[6] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[7] + (t15 << 1) + t15 + t08 - s2 - s4;
+            cc += (long)xx[7] + (xx15 << 1) + xx15 + xx08 - t2 - t4;
             z[7] = (uint)cc;
             cc >>= 32;
 
