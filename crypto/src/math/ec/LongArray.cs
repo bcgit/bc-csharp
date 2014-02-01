@@ -1335,6 +1335,158 @@ namespace Org.BouncyCastle.Math.EC
             return ReduceResult(c, ci[1], cLen, m, ks);
         }
 
+        public LongArray ModReduce(int m, int[] ks)
+        {
+            long[] buf = Arrays.Clone(m_ints);
+            int rLen = ReduceInPlace(buf, 0, buf.Length, m, ks);
+            return new LongArray(buf, 0, rLen);
+        }
+
+        public LongArray Multiply(LongArray other, int m, int[] ks)
+        {
+            /*
+             * Find out the degree of each argument and handle the zero cases
+             */
+            int aDeg = Degree();
+            if (aDeg == 0)
+            {
+                return this;
+            }
+            int bDeg = other.Degree();
+            if (bDeg == 0)
+            {
+                return other;
+            }
+
+            /*
+             * Swap if necessary so that A is the smaller argument
+             */
+            LongArray A = this, B = other;
+            if (aDeg > bDeg)
+            {
+                A = other; B = this;
+                int tmp = aDeg; aDeg = bDeg; bDeg = tmp;
+            }
+
+            /*
+             * Establish the word lengths of the arguments and result
+             */
+            int aLen = (int)((uint)(aDeg + 63) >> 6);
+            int bLen = (int)((uint)(bDeg + 63) >> 6);
+            int cLen = (int)((uint)(aDeg + bDeg + 62) >> 6);
+
+            if (aLen == 1)
+            {
+                long a0 = A.m_ints[0];
+                if (a0 == 1L)
+                {
+                    return B;
+                }
+
+                /*
+                 * Fast path for small A, with performance dependent only on the number of set bits
+                 */
+                long[] c0 = new long[cLen];
+                MultiplyWord(a0, B.m_ints, bLen, c0, 0);
+
+                /*
+                 * Reduce the raw answer against the reduction coefficients
+                 */
+                //return ReduceResult(c0, 0, cLen, m, ks);
+                return new LongArray(c0, 0, cLen);
+            }
+
+            /*
+             * Determine if B will get bigger during shifting
+             */
+            int bMax = (int)((uint)(bDeg + 7 + 63) >> 6);
+
+            /*
+             * Lookup table for the offset of each B in the tables
+             */
+            int[] ti = new int[16];
+
+            /*
+             * Precompute table of all 4-bit products of B
+             */
+            long[] T0 = new long[bMax << 4];
+            int tOff = bMax;
+            ti[1] = tOff;
+            Array.Copy(B.m_ints, 0, T0, tOff, bLen);
+            for (int i = 2; i < 16; ++i)
+            {
+                ti[i] = (tOff += bMax);
+                if ((i & 1) == 0)
+                {
+                    ShiftUp(T0, (int)((uint)tOff >> 1), T0, tOff, bMax, 1);
+                }
+                else
+                {
+                    Add(T0, bMax, T0, tOff - bMax, T0, tOff, bMax);
+                }
+            }
+
+            /*
+             * Second table with all 4-bit products of B shifted 4 bits
+             */
+            long[] T1 = new long[T0.Length];
+            ShiftUp(T0, 0, T1, 0, T0.Length, 4);
+            //        ShiftUp(T0, bMax, T1, bMax, tOff, 4);
+
+            long[] a = A.m_ints;
+            long[] c = new long[cLen << 3];
+
+            int MASK = 0xF;
+
+            /*
+             * Lopez-Dahab (Modified) algorithm
+             */
+
+            for (int aPos = 0; aPos < aLen; ++aPos)
+            {
+                long aVal = a[aPos];
+                int cOff = aPos;
+                for (; ; )
+                {
+                    int u = (int)aVal & MASK;
+                    aVal = (long)((ulong)aVal >> 4);
+                    int v = (int)aVal & MASK;
+                    AddBoth(c, cOff, T0, ti[u], T1, ti[v], bMax);
+                    aVal = (long)((ulong)aVal >> 4);
+                    if (aVal == 0L)
+                    {
+                        break;
+                    }
+                    cOff += cLen;
+                }
+            }
+
+            {
+                int cOff = c.Length;
+                while ((cOff -= cLen) != 0)
+                {
+                    AddShiftedUp(c, cOff - cLen, c, cOff, cLen, 8);
+                }
+            }
+
+            /*
+             * Finally the raw answer is collected, reduce it against the reduction coefficients
+             */
+            //return ReduceResult(c, 0, cLen, m, ks);
+            return new LongArray(c, 0, cLen);
+        }
+
+        public void Reduce(int m, int[] ks)
+        {
+            long[] buf = m_ints;
+            int rLen = ReduceInPlace(buf, 0, buf.Length, m, ks);
+            if (rLen < buf.Length)
+            {
+                m_ints = new long[rLen];
+                Array.Copy(buf, 0, m_ints, 0, rLen);
+            }
+        }
+
         private static LongArray ReduceResult(long[] buf, int off, int len, int m, int[] ks)
         {
             int rLen = ReduceInPlace(buf, off, len, m, ks);
@@ -1544,6 +1696,28 @@ namespace Org.BouncyCastle.Math.EC
             }
     
             return new LongArray(r, 0, len);
+        }
+
+        public LongArray Square(int m, int[] ks)
+        {
+            int len = GetUsedLength();
+            if (len == 0)
+            {
+                return this;
+            }
+
+            int _2len = len << 1;
+            long[] r = new long[_2len];
+
+            int pos = 0;
+            while (pos < _2len)
+            {
+                long mi = m_ints[(uint)pos >> 1];
+                r[pos++] = Interleave2_32to64((int)mi);
+                r[pos++] = Interleave2_32to64((int)((ulong)mi >> 32));
+            }
+
+            return new LongArray(r, 0, r.Length);
         }
 
         private static void SquareInPlace(long[] x, int xLen, int m, int[] ks)

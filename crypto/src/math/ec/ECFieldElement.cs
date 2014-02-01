@@ -35,6 +35,26 @@ namespace Org.BouncyCastle.Math.EC
             get { return 0 == ToBigInteger().SignValue; }
         }
 
+        public virtual ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
+        {
+            return Multiply(b).Subtract(x.Multiply(y));
+        }
+
+        public virtual ECFieldElement MultiplyPlusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
+        {
+            return Multiply(b).Add(x.Multiply(y));
+        }
+
+        public virtual ECFieldElement SquareMinusProduct(ECFieldElement x, ECFieldElement y)
+        {
+            return Square().Subtract(x.Multiply(y));
+        }
+
+        public virtual ECFieldElement SquarePlusProduct(ECFieldElement x, ECFieldElement y)
+        {
+            return Square().Add(x.Multiply(y));
+        }
+
         public virtual bool TestBitZero()
         {
             return ToBigInteger().TestBit(0);
@@ -162,6 +182,27 @@ namespace Org.BouncyCastle.Math.EC
             return new FpFieldElement(q, r, ModMult(x, b.ToBigInteger()));
         }
 
+        public override ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
+        {
+            BigInteger ax = this.x, bx = b.ToBigInteger(), xx = x.ToBigInteger(), yx = y.ToBigInteger();
+            BigInteger ab = ax.Multiply(bx);
+            BigInteger xy = xx.Multiply(yx);
+            return new FpFieldElement(q, r, ModReduce(ab.Subtract(xy)));
+        }
+
+        public override ECFieldElement MultiplyPlusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
+        {
+            BigInteger ax = this.x, bx = b.ToBigInteger(), xx = x.ToBigInteger(), yx = y.ToBigInteger();
+            BigInteger ab = ax.Multiply(bx);
+            BigInteger xy = xx.Multiply(yx);
+            BigInteger sum = ab.Add(xy);
+            if (r != null && r.SignValue < 0 && sum.BitLength > (q.BitLength << 1))
+            {
+                sum = sum.Subtract(q.ShiftLeft(q.BitLength));
+            }
+            return new FpFieldElement(q, r, ModReduce(sum));
+        }
+
         public override ECFieldElement Divide(
             ECFieldElement b)
         {
@@ -178,13 +219,33 @@ namespace Org.BouncyCastle.Math.EC
             return new FpFieldElement(q, r, ModMult(x, x));
         }
 
+        public override ECFieldElement SquareMinusProduct(ECFieldElement x, ECFieldElement y)
+        {
+            BigInteger ax = this.x, xx = x.ToBigInteger(), yx = y.ToBigInteger();
+            BigInteger aa = ax.Multiply(ax);
+            BigInteger xy = xx.Multiply(yx);
+            return new FpFieldElement(q, r, ModReduce(aa.Subtract(xy)));
+        }
+
+        public override ECFieldElement SquarePlusProduct(ECFieldElement x, ECFieldElement y)
+        {
+            BigInteger ax = this.x, xx = x.ToBigInteger(), yx = y.ToBigInteger();
+            BigInteger aa = ax.Multiply(ax);
+            BigInteger xy = xx.Multiply(yx);
+            BigInteger sum = aa.Add(xy);
+            if (r != null && r.SignValue < 0 && sum.BitLength > (q.BitLength << 1))
+            {
+                sum = sum.Subtract(q.ShiftLeft(q.BitLength));
+            }
+            return new FpFieldElement(q, r, ModReduce(sum));
+        }
+
         public override ECFieldElement Invert()
         {
             // TODO Modular inversion can be faster for a (Generalized) Mersenne Prime.
             return new FpFieldElement(q, r, ModInverse(x));
         }
 
-        // D.1.4 91
         /**
          * return a sqrt root - the routine verifies that the calculation
          * returns the right value - if none exists it returns null.
@@ -1134,6 +1195,29 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(m, ks, x.ModMultiply(((F2mFieldElement)b).x, m, ks));
         }
 
+        public override ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
+        {
+            return MultiplyPlusProduct(b, x, y);
+        }
+
+        public override ECFieldElement MultiplyPlusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
+        {
+            LongArray ax = this.x, bx = ((F2mFieldElement)b).x, xx = ((F2mFieldElement)x).x, yx = ((F2mFieldElement)y).x;
+
+            LongArray ab = ax.Multiply(bx, m, ks);
+            LongArray xy = xx.Multiply(yx, m, ks);
+
+            if (ab == ax || ab == bx)
+            {
+                ab = (LongArray)ab.Copy();
+            }
+
+            ab.AddShiftedByWords(xy, 0);
+            ab.Reduce(m, ks);
+
+            return new F2mFieldElement(m, ks, ab);
+        }
+
         public override ECFieldElement Divide(
             ECFieldElement b)
         {
@@ -1151,6 +1235,29 @@ namespace Org.BouncyCastle.Math.EC
         public override ECFieldElement Square()
         {
             return new F2mFieldElement(m, ks, x.ModSquare(m, ks));
+        }
+
+        public override ECFieldElement SquareMinusProduct(ECFieldElement x, ECFieldElement y)
+        {
+            return SquarePlusProduct(x, y);
+        }
+
+        public override ECFieldElement SquarePlusProduct(ECFieldElement x, ECFieldElement y)
+        {
+            LongArray ax = this.x, xx = ((F2mFieldElement)x).x, yx = ((F2mFieldElement)y).x;
+
+            LongArray aa = ax.Square(m, ks);
+            LongArray xy = xx.Multiply(yx, m, ks);
+
+            if (aa == ax)
+            {
+                aa = (LongArray)aa.Copy();
+            }
+
+            aa.AddShiftedByWords(xy, 0);
+            aa.Reduce(m, ks);
+
+            return new F2mFieldElement(m, ks, aa);
         }
 
         public override ECFieldElement Invert()
