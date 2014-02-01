@@ -128,9 +128,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             uint[] x1 = this.x;
             if (Nat192.IsZero(x1) || Nat192.IsOne(x1))
-            {
                 return this;
-            }
 
             uint[] t1 = Nat192.Create();
             uint[] t2 = Nat192.Create();

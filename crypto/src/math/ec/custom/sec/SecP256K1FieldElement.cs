@@ -137,9 +137,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             uint[] x1 = this.x;
             if (Nat256.IsZero(x1) || Nat256.IsOne(x1))
-            {
                 return this;
-            }
 
             uint[] x2 = Nat256.Create();
             SecP256K1Field.Square(x1, x2);

@@ -137,9 +137,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             uint[] x1 = this.x;
             if (Nat192.IsZero(x1) || Nat192.IsOne(x1))
-            {
                 return this;
-            }
 
             uint[] x2 = Nat192.Create();
             SecP192K1Field.Square(x1, x2);
