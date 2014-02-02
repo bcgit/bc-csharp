@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 {
     /**
      * An implementation of the "work in progress" Internet-Draft <a
-     * href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-05">The OCB Authenticated-Encryption
+     * href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-06">The OCB Authenticated-Encryption
      * Algorithm</a>, licensed per:
      * 
      * <blockquote><p><a href="http://www.cs.ucdavis.edu/~rogaway/ocb/license1.pdf">License for
@@ -149,6 +149,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (keyParameter != null)
             {
                 // TODO
+            }
+            else
+            {
+                KtopInput = null;
             }
 
             // hashCipher always used in forward mode
