@@ -85,6 +85,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[16] = c;
         }
 
+        public static void Reduce23(uint[] z)
+        {
+            uint z16 = z[16];
+            uint c = Nat.AddWord(16, z16 >> 9, z) + (z16 & P16);
+            if (c > P16 || (c == P16 && Nat.Eq(16, z, P)))
+            {
+                c += Nat.Inc(16, z, 0);
+                c &= P16;
+            }
+            z[16] = c;
+        }
+
         public static void Square(uint[] x, uint[] z)
         {
             uint[] tt = Nat.Create(34);

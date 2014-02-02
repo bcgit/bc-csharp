@@ -216,12 +216,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             uint[] S = Y1Squared;
             SecP521R1Field.Multiply(Y1Squared, X1.x, S);
-            SecP521R1Field.Twice(S, S);
-            SecP521R1Field.Twice(S, S);
+            Nat.ShiftUpBits(17, S, 2, 0);
+            SecP521R1Field.Reduce23(S);
 
-            SecP521R1Field.Twice(T, t1);
-            SecP521R1Field.Twice(t1, t1);
-            SecP521R1Field.Twice(t1, t1);
+            Nat.ShiftUpBits(17, T, 3, 0, t1);
+            SecP521R1Field.Reduce23(t1);
 
             SecP521R1FieldElement X3 = new SecP521R1FieldElement(T);
             SecP521R1Field.Square(M, X3.x);

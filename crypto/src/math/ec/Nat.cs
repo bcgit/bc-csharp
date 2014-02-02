@@ -59,6 +59,14 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
+        public static uint AddWord(int len, uint x, uint[] z)
+        {
+            ulong c = (ulong)x + z[0];
+            z[0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Inc(len, z, 1);
+        }
+
         public static uint AddWordExt(int len, uint x, uint[] zz, int zzOff)
         {
             int extLen = len << 1;
@@ -333,6 +341,30 @@ namespace Org.BouncyCastle.Math.EC
                 c = next;
             }
             return c >> 31;
+        }
+
+        public static uint ShiftUpBits(int len, uint[] z, int bits, uint c)
+        {
+            Debug.Assert(bits > 0 && bits < 32);
+            for (int i = 0; i < len; ++i)
+            {
+                uint next = z[i];
+                z[i] = (next << bits) | (c >> -bits);
+                c = next;
+            }
+            return c >> -bits;
+        }
+
+        public static uint ShiftUpBits(int len, uint[] x, int bits, uint c, uint[] z)
+        {
+            Debug.Assert(bits > 0 && bits < 32);
+            for (int i = 0; i < len; ++i)
+            {
+                uint next = x[i];
+                z[i] = (next << bits) | (c >> -bits);
+                c = next;
+            }
+            return c >> -bits;
         }
 
         public static void Square(int len, uint[] x, uint[] zz)
