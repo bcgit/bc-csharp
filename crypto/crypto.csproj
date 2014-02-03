@@ -4689,6 +4689,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\custom\sec\Nat512.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\custom\sec\SecP192K1Curve.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

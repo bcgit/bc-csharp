@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static void AddOne(uint[] x, uint[] z)
         {
             Array.Copy(x, 0, z, 0, 16);
-            uint c = Nat.Inc(16, z, 0) + z[16];
+            uint c = Nat.Inc(16, z, 0) + x[16];
             if (c > P16 || (c == P16 && Nat.Eq(16, z, P)))
             {
                 c += Nat.Inc(16, z, 0);
@@ -45,15 +45,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Half(uint[] x, uint[] z)
         {
-            uint c0 = x[0] & 1, x16 = x[16], c512 = x16 & 1;
-            Nat.ShiftDownBit(16, x, c512, z);
-            z[16] = (x16 >> 1) | (c0 << 8);
+            uint x16 = x[16];
+            uint c = Nat.ShiftDownBit(16, x, x16, z);
+            z[16] = (x16 >> 1) | (c >> 23);
         }
 
         public static void Multiply(uint[] x, uint[] y, uint[] z)
         {
-            uint[] tt = Nat.Create(34);
-            Nat.Mul(17, x, y, tt);
+            uint[] tt = Nat.Create(33);
+            ImplMultiply(x, y, tt);
             Reduce(tt, z);
         }
 
@@ -71,10 +71,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            Debug.Assert(xx[33] == 0);
             Debug.Assert(xx[32] >> 18 == 0);
             uint xx32 = xx[32];
-            uint c = Nat.ShiftDownBitsExt(16, xx, 16, 9, xx32, z) >> 23;
+            uint c = Nat.ShiftDownBits(16, xx, 16, 9, xx32, z) >> 23;
             c += xx32 >> 9;
             c += Nat.Add(16, z, xx, z);
             if (c > P16 || (c == P16 && Nat.Eq(16, z, P)))
@@ -99,21 +98,21 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Square(uint[] x, uint[] z)
         {
-            uint[] tt = Nat.Create(34);
-            Nat.Square(17, x, tt);
+            uint[] tt = Nat.Create(33);
+            ImplSquare(x, tt);
             Reduce(tt, z);
         }
 
         public static void SquareN(uint[] x, int n, uint[] z)
         {
             Debug.Assert(n > 0);
-            uint[] tt = Nat.Create(34);
-            Nat.Square(17, x, tt);
+            uint[] tt = Nat.Create(33);
+            ImplSquare(x, tt);
             Reduce(tt, z);
 
             while (--n > 0)
             {
-                Nat.Square(17, z, tt);
+                ImplSquare(z, tt);
                 Reduce(tt, z);
             }
         }
@@ -138,6 +137,22 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c &= P16;
             }
             z[16] = c;
+        }
+
+        protected static void ImplMultiply(uint[] x, uint[] y, uint[] zz)
+        {
+            Nat512.Mul(x, y, zz);
+
+            uint x16 = x[16], y16 = y[16];
+            zz[32] = Nat.Mul31BothAdd(16, x16, y, y16, x, zz, 16) + (x16 * y16);
+        }
+
+        protected static void ImplSquare(uint[] x, uint[] zz)
+        {
+            Nat512.Square(x, zz);
+
+            uint x16 = x[16];
+            zz[32] = Nat.MulWordAdd(16, x16 << 1, x, zz, 16) + (x16 * x16);
         }
     }
 }
