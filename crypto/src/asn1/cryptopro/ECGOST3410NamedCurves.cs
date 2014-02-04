@@ -31,12 +31,14 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             FpCurve curve = new FpCurve(
                 mod_p, // p
                 new BigInteger("115792089237316195423570985008687907853269984665640564039457584007913129639316"), // a
-                new BigInteger("166")); // b
+                new BigInteger("166"), // b
+                mod_q,
+                BigInteger.One);
 
             ECDomainParameters ecParams = new ECDomainParameters(
                 curve,
                 curve.CreatePoint(
-                    BigInteger.One, // x
+                    new BigInteger("1"), // x
                     new BigInteger("64033881142927202683649881450433473985931760268884941288852745803908878638612")), // y
                 mod_q);
 
@@ -48,12 +50,14 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             curve = new FpCurve(
                 mod_p, // p
                 new BigInteger("115792089237316195423570985008687907853269984665640564039457584007913129639316"),
-                new BigInteger("166"));
+                new BigInteger("166"),
+                mod_q,
+                BigInteger.One);
 
             ecParams = new ECDomainParameters(
                 curve,
                 curve.CreatePoint(
-                    BigInteger.One, // x
+                    new BigInteger("1"), // x
                     new BigInteger("64033881142927202683649881450433473985931760268884941288852745803908878638612")), // y
                 mod_q);
 
@@ -65,12 +69,14 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             curve = new FpCurve(
                 mod_p, // p
                 new BigInteger("57896044618658097711785492504343953926634992332820282019728792003956564823190"), // a
-                new BigInteger("28091019353058090096996979000309560759124368558014865957655842872397301267595")); // b
+                new BigInteger("28091019353058090096996979000309560759124368558014865957655842872397301267595"), // b
+                mod_q,
+                BigInteger.One);
 
             ecParams = new ECDomainParameters(
                 curve,
                 curve.CreatePoint(
-                    BigInteger.One, // x
+                    new BigInteger("1"), // x
                     new BigInteger("28792665814854611296992347458380284135028636778229113005756334730996303888124")), // y
                 mod_q); // q
 
@@ -82,13 +88,15 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             curve = new FpCurve(
                 mod_p, // p
                 new BigInteger("70390085352083305199547718019018437841079516630045180471284346843705633502616"),
-                new BigInteger("32858"));
+                new BigInteger("32858"),
+                mod_q,
+                BigInteger.One);
 
             ecParams = new ECDomainParameters(
                 curve,
                 curve.CreatePoint(
-                    BigInteger.Zero, // x
-                    new BigInteger("29818893917731240733471273240314769927240550812383695689146495261604565990247")), // y
+                    new BigInteger("0"),
+                    new BigInteger("29818893917731240733471273240314769927240550812383695689146495261604565990247")),
                 mod_q);
 
             parameters[CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchB] = ecParams;
@@ -98,12 +106,14 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             curve = new FpCurve(
                 mod_p, // p
                 new BigInteger("70390085352083305199547718019018437841079516630045180471284346843705633502616"), // a
-                new BigInteger("32858")); // b
+                new BigInteger("32858"), // b
+                mod_q,
+                BigInteger.One);
 
             ecParams = new ECDomainParameters(
                 curve,
                 curve.CreatePoint(
-                    BigInteger.Zero, // x
+                    new BigInteger("0"), // x
                     new BigInteger("29818893917731240733471273240314769927240550812383695689146495261604565990247")), // y
                 mod_q); // q
 
