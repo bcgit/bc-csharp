@@ -729,7 +729,7 @@ namespace Org.BouncyCastle.Math.EC
                         // Alternative calculation of Z3 using fast square
                         //X3 = four(X3);
                         //Y3 = eight(Y3);
-                        //Z3 = doubleProductFromSquares(Z1, Z2, Z1Squared, Z2Squared).multiply(H);
+                        //Z3 = doubleProductFromSquares(Z1, Z2, Z1Squared, Z2Squared).Multiply(H);
 
                         if (Z3 == H)
                         {
@@ -1005,6 +1005,88 @@ namespace Org.BouncyCastle.Math.EC
                     // NOTE: Be careful about recursions between TwicePlus and ThreeTimes
                     return Twice().Add(this);
                 }
+            }
+        }
+
+        public override ECPoint TimesPow2(int e)
+        {
+            if (e < 0)
+                throw new ArgumentException("cannot be negative", "e");
+            if (e == 0 || this.IsInfinity)
+                return this;
+            if (e == 1)
+                return Twice();
+
+            ECCurve curve = this.Curve;
+
+            ECFieldElement Y1 = this.RawYCoord;
+            if (Y1.IsZero) 
+                return curve.Infinity;
+
+            int coord = curve.CoordinateSystem;
+
+            ECFieldElement W1 = curve.A;
+            ECFieldElement X1 = this.RawXCoord;
+            ECFieldElement Z1 = this.RawZCoords.Length < 1 ? curve.FromBigInteger(BigInteger.One) : this.RawZCoords[0];
+
+            if (!Z1.IsOne)
+            {
+                switch (coord)
+                {
+                case ECCurve.COORD_HOMOGENEOUS:
+                    ECFieldElement Z1Sq = Z1.Square();
+                    X1 = X1.Multiply(Z1);
+                    Y1 = Y1.Multiply(Z1Sq);
+                    W1 = CalculateJacobianModifiedW(Z1, Z1Sq);
+                    break;
+                case ECCurve.COORD_JACOBIAN:
+                    W1 = CalculateJacobianModifiedW(Z1, null);
+                    break;
+                case ECCurve.COORD_JACOBIAN_MODIFIED:
+                    W1 = GetJacobianModifiedW();
+                    break;
+                }
+            }
+
+            for (int i = 0; i < e; ++i)
+            {
+                if (Y1.IsZero) 
+                    return curve.Infinity;
+
+                ECFieldElement X1Squared = X1.Square();
+                ECFieldElement M = Three(X1Squared);
+                ECFieldElement _2Y1 = Two(Y1);
+                ECFieldElement _2Y1Squared = _2Y1.Multiply(Y1);
+                ECFieldElement S = Two(X1.Multiply(_2Y1Squared));
+                ECFieldElement _4T = _2Y1Squared.Square();
+                ECFieldElement _8T = Two(_4T);
+
+                if (!W1.IsZero)
+                {
+                    M = M.Add(W1);
+                    W1 = Two(_8T.Multiply(W1));
+                }
+
+                X1 = M.Square().Subtract(Two(S));
+                Y1 = M.Multiply(S.Subtract(X1)).Subtract(_8T);
+                Z1 = Z1.IsOne ? _2Y1 : _2Y1.Multiply(Z1);
+            }
+
+            switch (coord)
+            {
+            case ECCurve.COORD_AFFINE:
+                ECFieldElement zInv = Z1.Invert(), zInv2 = zInv.Square(), zInv3 = zInv2.Multiply(zInv);
+                return new FpPoint(curve, X1.Multiply(zInv2), Y1.Multiply(zInv3), IsCompressed);
+            case ECCurve.COORD_HOMOGENEOUS:
+                X1 = X1.Multiply(Z1);
+                Z1 = Z1.Multiply(Z1.Square());
+                return new FpPoint(curve, X1, Y1, new ECFieldElement[] { Z1 }, IsCompressed);
+            case ECCurve.COORD_JACOBIAN:
+                return new FpPoint(curve, X1, Y1, new ECFieldElement[] { Z1 }, IsCompressed);
+            case ECCurve.COORD_JACOBIAN_MODIFIED:
+                return new FpPoint(curve, X1, Y1, new ECFieldElement[] { Z1, W1 }, IsCompressed);
+            default:
+                throw new InvalidOperationException("unsupported coordinate system");
             }
         }
 
