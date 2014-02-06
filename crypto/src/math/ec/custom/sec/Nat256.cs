@@ -223,6 +223,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
+        public static uint AddWord(uint x, uint[] z, int zOff)
+        {
+            Debug.Assert(zOff <= 7);
+            ulong c = (ulong)x + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Inc(z, zOff + 1);
+        }
+
         public static uint AddWordExt(uint x, uint[] zz, int zzOff)
         {
             Debug.Assert(zzOff <= 15);
@@ -230,6 +239,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[zzOff + 0] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : IncExt(zz, zzOff + 1);
+        }
+
+        public static void Copy(uint[] x, uint[] z)
+        {
+            z[0] = x[0];
+            z[1] = x[1];
+            z[2] = x[2];
+            z[3] = x[3];
+            z[4] = x[4];
+            z[5] = x[5];
+            z[6] = x[6];
+            z[7] = x[7];
         }
 
         public static uint[] Create()
@@ -248,6 +269,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             for (int i = zOff; i < 8; ++i)
             {
                 if (--z[i] != uint.MaxValue)
+                {
+                    return 0;
+                }
+            }
+            return -1;
+        }
+
+        public static int DecExt(uint[] zz, int zzOff)
+        {
+            Debug.Assert(zzOff <= 16);
+            for (int i = zzOff; i < 16; ++i)
+            {
+                if (--zz[i] != uint.MaxValue)
                 {
                     return 0;
                 }
@@ -637,34 +671,92 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return c;
         }
 
-        public static uint MulWordAddExt(uint x, uint[] yy, int yyOff, uint[] zz, int zzOff)
+        public static uint MulByWord(uint x, uint[] z)
         {
-            Debug.Assert(yyOff <= 8);
-            Debug.Assert(zzOff <= 8);
             ulong c = 0, xVal = x;
-            c += xVal * yy[yyOff + 0] + zz[zzOff + 0];
-            zz[zzOff + 0] = (uint)c;
+            c += xVal * (ulong)z[0];
+            z[0] = (uint)c;
             c >>= 32;
-            c += xVal * yy[yyOff + 1] + zz[zzOff + 1];
-            zz[zzOff + 1] = (uint)c;
+            c += xVal * (ulong)z[1];
+            z[1] = (uint)c;
             c >>= 32;
-            c += xVal * yy[yyOff + 2] + zz[zzOff + 2];
-            zz[zzOff + 2] = (uint)c;
+            c += xVal * (ulong)z[2];
+            z[2] = (uint)c;
             c >>= 32;
-            c += xVal * yy[yyOff + 3] + zz[zzOff + 3];
-            zz[zzOff + 3] = (uint)c;
+            c += xVal * (ulong)z[3];
+            z[3] = (uint)c;
             c >>= 32;
-            c += xVal * yy[yyOff + 4] + zz[zzOff + 4];
-            zz[zzOff + 4] = (uint)c;
+            c += xVal * (ulong)z[4];
+            z[4] = (uint)c;
             c >>= 32;
-            c += xVal * yy[yyOff + 5] + zz[zzOff + 5];
-            zz[zzOff + 5] = (uint)c;
+            c += xVal * (ulong)z[5];
+            z[5] = (uint)c;
             c >>= 32;
-            c += xVal * yy[yyOff + 6] + zz[zzOff + 6];
-            zz[zzOff + 6] = (uint)c;
+            c += xVal * (ulong)z[6];
+            z[6] = (uint)c;
             c >>= 32;
-            c += xVal * yy[yyOff + 7] + zz[zzOff + 7];
-            zz[zzOff + 7] = (uint)c;
+            c += xVal * (ulong)z[7];
+            z[7] = (uint)c;
+            c >>= 32;
+            return (uint)c;
+        }
+
+        public static uint MulByWordAddTo(uint x, uint[] y, uint[] z)
+        {
+            ulong c = 0, xVal = x;
+            c += xVal * (ulong)z[0] + y[0];
+            z[0] = (uint)c;
+            c >>= 32;
+            c += xVal * (ulong)z[1] + y[1];
+            z[1] = (uint)c;
+            c >>= 32;
+            c += xVal * (ulong)z[2] + y[2];
+            z[2] = (uint)c;
+            c >>= 32;
+            c += xVal * (ulong)z[3] + y[3];
+            z[3] = (uint)c;
+            c >>= 32;
+            c += xVal * (ulong)z[4] + y[4];
+            z[4] = (uint)c;
+            c >>= 32;
+            c += xVal * (ulong)z[5] + y[5];
+            z[5] = (uint)c;
+            c >>= 32;
+            c += xVal * (ulong)z[6] + y[6];
+            z[6] = (uint)c;
+            c >>= 32;
+            c += xVal * (ulong)z[7] + y[7];
+            z[7] = (uint)c;
+            c >>= 32;
+            return (uint)c;
+        }
+
+        public static uint MulWordAddTo(uint x, uint[] y, int yOff, uint[] z, int zOff)
+        {
+            ulong c = 0, xVal = x;
+            c += xVal * y[yOff + 0] + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += xVal * y[yOff + 1] + z[zOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            c += xVal * y[yOff + 2] + z[zOff + 2];
+            z[zOff + 2] = (uint)c;
+            c >>= 32;
+            c += xVal * y[yOff + 3] + z[zOff + 3];
+            z[zOff + 3] = (uint)c;
+            c >>= 32;
+            c += xVal * y[yOff + 4] + z[zOff + 4];
+            z[zOff + 4] = (uint)c;
+            c >>= 32;
+            c += xVal * y[yOff + 5] + z[zOff + 5];
+            z[zOff + 5] = (uint)c;
+            c >>= 32;
+            c += xVal * y[yOff + 6] + z[zOff + 6];
+            z[zOff + 6] = (uint)c;
+            c >>= 32;
+            c += xVal * y[yOff + 7] + z[zOff + 7];
+            z[zOff + 7] = (uint)c;
             c >>= 32;
             return (uint)c;
         }
@@ -1235,6 +1327,24 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[zzOff + 7] = (uint)c;
             c >>= 32;
             return (int)c;
+        }
+
+        public static int SubWord(uint x, uint[] z, int zOff)
+        {
+            Debug.Assert(zOff <= 7);
+            long c = (long)z[zOff + 0] - x;
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Dec(z, zOff + 1);
+        }
+
+        public static int SubWordExt(uint x, uint[] zz, int zzOff)
+        {
+            Debug.Assert(zzOff <= 15);
+            long c = (long)zz[zzOff + 0] - x;
+            zz[zzOff + 0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecExt(zz, zzOff + 1);
         }
 
         public static BigInteger ToBigInteger(uint[] x)

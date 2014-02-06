@@ -365,6 +365,17 @@ namespace Org.BouncyCastle.Math.EC
             return c >> 31;
         }
 
+        public static uint ShiftUpBit(int len, uint[] x, int xOff, uint c, uint[] z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                uint next = x[xOff + i];
+                z[i] = (next << 1) | (c >> 31);
+                c = next;
+            }
+            return c >> 31;
+        }
+
         public static uint ShiftUpBits(int len, uint[] z, int bits, uint c)
         {
             Debug.Assert(bits > 0 && bits < 32);
