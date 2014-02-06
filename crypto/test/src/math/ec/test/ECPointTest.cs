@@ -40,9 +40,13 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             internal static readonly BigInteger b = new BigInteger("20");
 
-            internal static readonly FpCurve curve = new FpCurve(q, a, b);
+            internal static readonly BigInteger n = new BigInteger("38");
 
-            internal static readonly FpPoint infinity = (FpPoint) curve.Infinity;
+            internal static readonly BigInteger h = new BigInteger("1");
+
+            internal static readonly ECCurve curve = new FpCurve(q, a, b, n, h);
+
+            internal static readonly ECPoint infinity = curve.Infinity;
 
             internal static readonly int[] pointSource = { 5, 22, 16, 27, 13, 6, 14, 6 };
 
@@ -78,9 +82,13 @@ namespace Org.BouncyCastle.Math.EC.Tests
             // b = z^3 + 1
             internal static readonly BigInteger bTpb = new BigInteger("1001", 2);
 
-            internal static readonly F2mCurve curve = new F2mCurve(m, k1, aTpb, bTpb);
+            internal static readonly BigInteger n = new BigInteger("23");
 
-            internal static readonly F2mPoint infinity = (F2mPoint)curve.Infinity;
+            internal static readonly BigInteger h = new BigInteger("1");
+
+            internal static readonly ECCurve curve = new F2mCurve(m, k1, aTpb, bTpb, n, h);
+
+            internal static readonly ECPoint infinity = curve.Infinity;
 
             internal static readonly String[] pointSource = { "0010", "1111", "1100", "1100",
                     "0001", "0001", "1011", "0010" };
@@ -380,22 +388,22 @@ namespace Org.BouncyCastle.Math.EC.Tests
         [Test]
         public void TestAddSubtractMultiplySimple()
         {
+            int fpBits = Fp.curve.Order.BitLength;
             for (int iFp = 0; iFp < Fp.pointSource.Length / 2; iFp++)
             {
                 ImplTestAddSubtract(Fp.p[iFp], Fp.infinity);
 
-                // Could be any numBits, 6 is chosen at will
-                ImplTestMultiplyAll(Fp.p[iFp], 6);
-                ImplTestMultiplyAll(Fp.infinity, 6);
+                ImplTestMultiplyAll(Fp.p[iFp], fpBits);
+                ImplTestMultiplyAll(Fp.infinity, fpBits);
             }
 
+            int f2mBits = F2m.curve.Order.BitLength;
             for (int iF2m = 0; iF2m < F2m.pointSource.Length / 2; iF2m++)
             {
                 ImplTestAddSubtract(F2m.p[iF2m], F2m.infinity);
 
-                // Could be any numBits, 6 is chosen at will
-                ImplTestMultiplyAll(F2m.p[iF2m], 6);
-                ImplTestMultiplyAll(F2m.infinity, 6);
+                ImplTestMultiplyAll(F2m.p[iF2m], f2mBits);
+                ImplTestMultiplyAll(F2m.infinity, f2mBits);
             }
         }
 
