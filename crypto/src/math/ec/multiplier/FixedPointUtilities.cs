@@ -4,6 +4,12 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 {
     public class FixedPointUtilities
     {
+        public static int GetCombSize(ECCurve c)
+        {
+            BigInteger order = c.Order;
+            return order == null ? c.FieldSize + 1 : order.BitLength;
+        }
+
         public static FixedPointPreCompInfo GetFixedPointPreCompInfo(PreCompInfo preCompInfo)
         {
             if ((preCompInfo != null) && (preCompInfo is FixedPointPreCompInfo))
@@ -24,11 +30,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
             if (lookupTable == null || lookupTable.Length != n)
             {
-                BigInteger order = c.Order;
-                if (order == null)
-                    throw new InvalidOperationException("fixed-point precomputation needs the curve order");
-
-                int bits = order.BitLength;
+                int bits = GetCombSize(c);
                 int d = (bits + width - 1) / width;
 
                 ECPoint[] pow2Table = new ECPoint[width];
