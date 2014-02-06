@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             FixedPointPreCompInfo info = FixedPointUtilities.Precompute(p, width);
             ECPoint[] lookupTable = info.PreComp;
 
-            int d = (c.Order.BitLength + width - 1) / width;
+            int d = (size + width - 1) / width;
 
             ECPoint R = c.Infinity;
 
