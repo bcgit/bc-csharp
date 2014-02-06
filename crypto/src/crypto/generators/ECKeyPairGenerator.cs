@@ -10,6 +10,7 @@ using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -104,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
             while (d.SignValue == 0 || (d.CompareTo(n) >= 0));
 
-            ECPoint q = parameters.G.Multiply(d);
+            ECPoint q = new FixedPointCombMultiplier().Multiply(parameters.G, d);
 
             if (publicKeyParamSet != null)
             {
@@ -133,15 +134,15 @@ namespace Org.BouncyCastle.Crypto.Generators
         internal static ECPublicKeyParameters GetCorrespondingPublicKey(
             ECPrivateKeyParameters privKey)
         {
-            ECDomainParameters parameters = privKey.Parameters;
-            ECPoint q = parameters.G.Multiply(privKey.D);
+            ECDomainParameters ec = privKey.Parameters;
+            ECPoint q = new FixedPointCombMultiplier().Multiply(ec.G, privKey.D);
 
             if (privKey.PublicKeyParamSet != null)
             {
                 return new ECPublicKeyParameters(privKey.AlgorithmName, q, privKey.PublicKeyParamSet);
             }
 
-            return new ECPublicKeyParameters(privKey.AlgorithmName, q, parameters);
+            return new ECPublicKeyParameters(privKey.AlgorithmName, q, ec);
         }
     }
 }
