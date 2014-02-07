@@ -234,7 +234,7 @@ namespace Org.BouncyCastle.Asn1.X9
                     c2m163v1.DecodePoint(
                         Hex.Decode("0307AF69989546103D79329FCC3D74880F33BBE803CB")),
                     n, h,
-                    Hex.Decode("D2COFB15760860DEF1EEF4D696E6768756151754"));
+                    Hex.Decode("D2C0FB15760860DEF1EEF4D696E6768756151754"));
             }
         }
 
