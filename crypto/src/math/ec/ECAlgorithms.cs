@@ -165,8 +165,8 @@ namespace Org.BouncyCastle.Math.EC
 
             for (int i = len - 1; i >= 0; --i)
             {
-                int wiP = i < wnafP.Length ? (sbyte)wnafP[i] : 0;
-                int wiQ = i < wnafQ.Length ? (sbyte)wnafQ[i] : 0;
+                int wiP = i < wnafP.Length ? (int)(sbyte)wnafP[i] : 0;
+                int wiQ = i < wnafQ.Length ? (int)(sbyte)wnafQ[i] : 0;
 
                 if ((wiP | wiQ) == 0)
                 {
