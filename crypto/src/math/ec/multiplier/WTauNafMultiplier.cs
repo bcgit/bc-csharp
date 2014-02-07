@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     public class WTauNafMultiplier
         : AbstractECMultiplier
     {
+        // TODO Create WTauNafUtilities class and move various functionality into it
+        internal static readonly string PRECOMP_NAME = "bc_wtnaf";
+
         /**
         * Multiplies a {@link org.bouncycastle.math.ec.F2mPoint F2mPoint}
         * by <code>k</code> using the reduced <code>&#964;</code>-adic NAF (RTNAF)
@@ -33,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
             ZTauElement rho = Tnaf.PartModReduction(k, m, a, s, mu, (sbyte)10);
 
-            return MultiplyWTnaf(p, rho, curve.GetPreCompInfo(p), a, mu);
+            return MultiplyWTnaf(p, rho, curve.GetPreCompInfo(p, PRECOMP_NAME), a, mu);
         }
 
         /**
@@ -80,7 +83,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                 WTauNafPreCompInfo pre = new WTauNafPreCompInfo();
                 pre.PreComp = pu;
-                curve.SetPreCompInfo(p, pre);
+                curve.SetPreCompInfo(p, PRECOMP_NAME, pre);
             }
             else
             {

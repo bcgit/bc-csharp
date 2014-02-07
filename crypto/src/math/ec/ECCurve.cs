@@ -116,26 +116,40 @@ namespace Org.BouncyCastle.Math.EC
             return coord == COORD_AFFINE;
         }
 
-        public virtual PreCompInfo GetPreCompInfo(ECPoint p)
+        public virtual PreCompInfo GetPreCompInfo(ECPoint point, string name)
         {
-            CheckPoint(p);
-            return p.m_preCompInfo;
+            CheckPoint(point);
+            lock (point)
+            {
+                IDictionary table = point.m_preCompTable;
+                return table == null ? null : (PreCompInfo)table[name];
+            }
         }
 
         /**
-         * Sets the <code>PreCompInfo</code> for a point on this curve. Used by
+         * Adds <code>PreCompInfo</code> for a point on this curve, under a given name. Used by
          * <code>ECMultiplier</code>s to save the precomputation for this <code>ECPoint</code> for use
          * by subsequent multiplication.
          * 
          * @param point
          *            The <code>ECPoint</code> to store precomputations for.
+         * @param name
+         *            A <code>String</code> used to index precomputations of different types.
          * @param preCompInfo
          *            The values precomputed by the <code>ECMultiplier</code>.
          */
-        public virtual void SetPreCompInfo(ECPoint point, PreCompInfo preCompInfo)
+        public virtual void SetPreCompInfo(ECPoint point, string name, PreCompInfo preCompInfo)
         {
             CheckPoint(point);
-            point.m_preCompInfo = preCompInfo;
+            lock (point)
+            {
+                IDictionary table = point.m_preCompTable;
+                if (null == table)
+                {
+                    point.m_preCompTable = table = Platform.CreateHashtable(4);
+                }
+                table[name] = preCompInfo;
+            }
         }
 
         public virtual ECPoint ImportPoint(ECPoint p)

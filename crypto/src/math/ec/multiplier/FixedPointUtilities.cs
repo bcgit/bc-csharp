@@ -4,6 +4,8 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 {
     public class FixedPointUtilities
     {
+        public static readonly string PRECOMP_NAME = "bc_fixed_point";
+
         public static int GetCombSize(ECCurve c)
         {
             BigInteger order = c.Order;
@@ -25,7 +27,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             ECCurve c = p.Curve;
 
             int n = 1 << width;
-            FixedPointPreCompInfo info = GetFixedPointPreCompInfo(c.GetPreCompInfo(p));
+            FixedPointPreCompInfo info = GetFixedPointPreCompInfo(c.GetPreCompInfo(p, PRECOMP_NAME));
             ECPoint[] lookupTable = info.PreComp;
 
             if (lookupTable == null || lookupTable.Length != n)
@@ -60,7 +62,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                 info.PreComp = lookupTable;
 
-                c.SetPreCompInfo(p, info);
+                c.SetPreCompInfo(p, PRECOMP_NAME, info);
             }
 
             return info;

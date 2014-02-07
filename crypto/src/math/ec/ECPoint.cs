@@ -50,7 +50,8 @@ namespace Org.BouncyCastle.Math.EC
         protected internal readonly ECFieldElement[] m_zs;
         protected internal readonly bool m_withCompression;
 
-        protected internal PreCompInfo m_preCompInfo = null;
+        // Dictionary is (string -> PreCompInfo)
+        protected internal IDictionary m_preCompTable = null;
 
         protected ECPoint(ECCurve curve, ECFieldElement	x, ECFieldElement y, bool withCompression)
             : this(curve, x, y, GetInitialZCoords(curve), withCompression)
