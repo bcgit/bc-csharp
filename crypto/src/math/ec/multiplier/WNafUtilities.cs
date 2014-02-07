@@ -307,26 +307,28 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
             if (preCompLen < reqPreCompLen)
             {
-                ECPoint twiceP = wnafPreCompInfo.Twice;
-                if (twiceP == null)
-                {
-                    twiceP = preComp[0].Twice().Normalize();
-                    wnafPreCompInfo.Twice = twiceP;
-                }
-
                 preComp = ResizeTable(preComp, reqPreCompLen);
-
-                /*
-                 * TODO Okeya/Sakurai paper has precomputation trick and  "Montgomery's Trick" to speed this up.
-                 * Also, co-Z arithmetic could avoid the subsequent normalization too.
-                 */
-                for (int i = preCompLen; i < reqPreCompLen; i++)
+                if (reqPreCompLen == 2)
                 {
-                    /*
-                     * Compute the new ECPoints for the precomputation array. The values 1, 3, 5, ...,
-                     * 2^(width-1)-1 times p are computed
-                     */
-                    preComp[i] = twiceP.Add(preComp[i - 1]);
+                    preComp[1] = preComp[0].ThreeTimes();
+                }
+                else
+                {
+                    ECPoint twiceP = wnafPreCompInfo.Twice;
+                    if (twiceP == null)
+                    {
+                        twiceP = preComp[0].Twice().Normalize();
+                        wnafPreCompInfo.Twice = twiceP;
+                    }
+
+                    for (int i = preCompLen; i < reqPreCompLen; i++)
+                    {
+                        /*
+                         * Compute the new ECPoints for the precomputation array. The values 1, 3, 5, ...,
+                         * 2^(width-1)-1 times p are computed
+                         */
+                        preComp[i] = twiceP.Add(preComp[i - 1]);
+                    }
                 }
 
                 /*
