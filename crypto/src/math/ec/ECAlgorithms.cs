@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
             }
 
-            return ImplShamirsTrick(P, a, Q, b);
+            return ImplShamirsTrickWNaf(P, a, Q, b);
         }
 
         /*
@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Math.EC
             ECCurve cp = P.Curve;
             Q = ImportPoint(cp, Q);
 
-            return ImplShamirsTrick(P, k, Q, l);
+            return ImplShamirsTrickJsf(P, k, Q, l);
         }
 
         public static ECPoint ImportPoint(ECCurve c, ECPoint p)
@@ -103,8 +103,7 @@ namespace Org.BouncyCastle.Math.EC
             zs[off] = u;
         }
 
-        internal static ECPoint ImplShamirsTrick(ECPoint P, BigInteger k,
-            ECPoint Q, BigInteger l)
+        internal static ECPoint ImplShamirsTrickJsf(ECPoint P, BigInteger k, ECPoint Q, BigInteger l)
         {
             ECCurve curve = P.Curve;
             ECPoint infinity = curve.Infinity;
@@ -135,6 +134,72 @@ namespace Org.BouncyCastle.Math.EC
 
                 int index = 4 + (kDigit * 3) + lDigit;
                 R = R.TwicePlus(table[index]);
+            }
+
+            return R;
+        }
+
+        internal static ECPoint ImplShamirsTrickWNaf(ECPoint P, BigInteger k, ECPoint Q, BigInteger l)
+        {
+            int widthP = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(k.BitLength)));
+            int widthQ = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(l.BitLength)));
+
+            WNafPreCompInfo infoP = WNafUtilities.Precompute(P, widthP, true);
+            WNafPreCompInfo infoQ = WNafUtilities.Precompute(Q, widthQ, true);
+
+            ECPoint[] preCompP = infoP.PreComp;
+            ECPoint[] preCompQ = infoQ.PreComp;
+            ECPoint[] preCompNegP = infoP.PreCompNeg;
+            ECPoint[] preCompNegQ = infoQ.PreCompNeg;
+
+            byte[] wnafP = WNafUtilities.GenerateWindowNaf(widthP, k);
+            byte[] wnafQ = WNafUtilities.GenerateWindowNaf(widthQ, l);
+
+            int len = System.Math.Max(wnafP.Length, wnafQ.Length);
+
+            ECCurve curve = P.Curve;
+            ECPoint infinity = curve.Infinity;
+
+            ECPoint R = infinity;
+            int zeroes = 0;
+
+            for (int i = len - 1; i >= 0; --i)
+            {
+                int wiP = i < wnafP.Length ? (sbyte)wnafP[i] : 0;
+                int wiQ = i < wnafQ.Length ? (sbyte)wnafQ[i] : 0;
+
+                if ((wiP | wiQ) == 0)
+                {
+                    ++zeroes;
+                    continue;
+                }
+
+                ECPoint r = infinity;
+                if (wiP != 0)
+                {
+                    int nP = System.Math.Abs(wiP);
+                    ECPoint[] tableP = wiP < 0 ? preCompNegP : preCompP;
+                    r = r.Add(tableP[nP >> 1]);
+                }
+                if (wiQ != 0)
+                {
+                    int nQ = System.Math.Abs(wiQ);
+                    ECPoint[] tableQ = wiQ < 0 ? preCompNegQ : preCompQ;
+                    r = r.Add(tableQ[nQ >> 1]);
+                }
+
+                if (zeroes > 0)
+                {
+                    R = R.TimesPow2(zeroes);
+                    zeroes = 0;
+                }
+
+                R = R.TwicePlus(r);
+            }
+
+            if (zeroes > 0)
+            {
+                R = R.TimesPow2(zeroes);
             }
 
             return R;
