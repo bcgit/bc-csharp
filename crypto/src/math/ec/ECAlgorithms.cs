@@ -19,6 +19,35 @@ namespace Org.BouncyCastle.Math.EC
             return c.Field.Dimension == 1;
         }
 
+        public static ECPoint SumOfMultiplies(ECPoint[] ps, BigInteger[] ks)
+        {
+            if (ps == null || ks == null || ps.Length != ks.Length || ps.Length < 1)
+                throw new ArgumentException("point and scalar arrays should be non-null, and of equal, non-zero, length");
+
+            int count = ps.Length;
+            switch (count)
+            {
+                case 1:
+                    return ps[0].Multiply(ks[0]);
+                case 2:
+                    return SumOfTwoMultiplies(ps[0], ks[0], ps[1], ks[1]);
+                default:
+                    break;
+            }
+
+            ECPoint p = ps[0];
+            ECCurve c = p.Curve;
+
+            ECPoint[] imported = new ECPoint[count];
+            imported[0] = p;
+            for (int i = 1; i < count; ++i)
+            {
+                imported[i] = ImportPoint(c, ps[i]);
+            }
+
+            return ImplSumOfMultiplies(imported, ks);
+        }
+
         public static ECPoint SumOfTwoMultiplies(ECPoint P, BigInteger a, ECPoint Q, BigInteger b)
         {
             ECCurve cp = P.Curve;
@@ -186,6 +215,68 @@ namespace Org.BouncyCastle.Math.EC
                     int nQ = System.Math.Abs(wiQ);
                     ECPoint[] tableQ = wiQ < 0 ? preCompNegQ : preCompQ;
                     r = r.Add(tableQ[nQ >> 1]);
+                }
+
+                if (zeroes > 0)
+                {
+                    R = R.TimesPow2(zeroes);
+                    zeroes = 0;
+                }
+
+                R = R.TwicePlus(r);
+            }
+
+            if (zeroes > 0)
+            {
+                R = R.TimesPow2(zeroes);
+            }
+
+            return R;
+        }
+
+        internal static ECPoint ImplSumOfMultiplies(ECPoint[] ps, BigInteger[] ks)
+        {
+            int count = ps.Length;
+            int[] widths = new int[count];
+            WNafPreCompInfo[] infos = new WNafPreCompInfo[count];
+            byte[][] wnafs = new byte[count][];
+
+            int len = 0;
+            for (int i = 0; i < count; ++i)
+            {
+                widths[i] = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(ks[i].BitLength)));
+                infos[i] = WNafUtilities.Precompute(ps[i], widths[i], true);
+                wnafs[i] = WNafUtilities.GenerateWindowNaf(widths[i], ks[i]);
+                len = System.Math.Max(len, wnafs[i].Length);
+            }
+
+            ECCurve curve = ps[0].Curve;
+            ECPoint infinity = curve.Infinity;
+
+            ECPoint R = infinity;
+            int zeroes = 0;
+
+            for (int i = len - 1; i >= 0; --i)
+            {
+                ECPoint r = infinity;
+
+                for (int j = 0; j < count; ++j)
+                {
+                    byte[] wnaf = wnafs[j];
+                    int wi = i < wnaf.Length ? (int)(sbyte)wnaf[i] : 0;
+                    if (wi != 0)
+                    {
+                        int n = System.Math.Abs(wi);
+                        WNafPreCompInfo info = infos[j];
+                        ECPoint[] table = wi < 0 ? info.PreCompNeg : info.PreComp;
+                        r = r.Add(table[n >> 1]);
+                    }
+                }
+
+                if (r == infinity)
+                {
+                    ++zeroes;
+                    continue;
                 }
 
                 if (zeroes > 0)
