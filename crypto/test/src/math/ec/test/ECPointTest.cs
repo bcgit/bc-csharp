@@ -416,16 +416,12 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private void ImplTestEncoding(ECPoint p)
         {
             // Not Point Compression
-            ECPoint unCompP = p.Curve.CreatePoint(p.AffineXCoord.ToBigInteger(), p.AffineYCoord.ToBigInteger(), false);
-
-            // Point compression
-            ECPoint compP = p.Curve.CreatePoint(p.AffineXCoord.ToBigInteger(), p.AffineYCoord.ToBigInteger(), true);
-
-            byte[] unCompBarr = unCompP.GetEncoded();
+            byte[] unCompBarr = p.GetEncoded(false);
             ECPoint decUnComp = p.Curve.DecodePoint(unCompBarr);
             AssertPointsEqual("Error decoding uncompressed point", p, decUnComp);
 
-            byte[] compBarr = compP.GetEncoded();
+            // Point compression
+            byte[] compBarr = p.GetEncoded(true);
             ECPoint decComp = p.Curve.DecodePoint(compBarr);
             AssertPointsEqual("Error decoding compressed point", p, decComp);
         }
