@@ -40,9 +40,13 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             internal static readonly BigInteger b = new BigInteger("20");
 
-            internal static readonly FpCurve curve = new FpCurve(q, a, b);
+            internal static readonly BigInteger n = new BigInteger("38");
 
-            internal static readonly FpPoint infinity = (FpPoint) curve.Infinity;
+            internal static readonly BigInteger h = new BigInteger("1");
+
+            internal static readonly ECCurve curve = new FpCurve(q, a, b, n, h);
+
+            internal static readonly ECPoint infinity = curve.Infinity;
 
             internal static readonly int[] pointSource = { 5, 22, 16, 27, 13, 6, 14, 6 };
 
@@ -51,7 +55,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             /**
              * Creates the points on the curve with literature values.
              */
-            internal static void createPoints()
+            internal static void CreatePoints()
             {
                 for (int i = 0; i < pointSource.Length / 2; i++)
                 {
@@ -73,34 +77,34 @@ namespace Org.BouncyCastle.Math.EC.Tests
             internal const int k1 = 1;
 
             // a = z^3
-            internal static readonly F2mFieldElement aTpb = new F2mFieldElement(m, k1,
-                new BigInteger("8", 16));
+            internal static readonly BigInteger aTpb = new BigInteger("1000", 2);
 
             // b = z^3 + 1
-            internal static readonly F2mFieldElement bTpb = new F2mFieldElement(m, k1,
-                new BigInteger("9", 16));
+            internal static readonly BigInteger bTpb = new BigInteger("1001", 2);
 
-            internal static readonly F2mCurve curve = new F2mCurve(m, k1, aTpb
-                .ToBigInteger(), bTpb.ToBigInteger());
+            internal static readonly BigInteger n = new BigInteger("23");
 
-            internal static readonly F2mPoint infinity = (F2mPoint) curve.Infinity;
+            internal static readonly BigInteger h = new BigInteger("1");
 
-            internal static readonly string[] pointSource = { "2", "f", "c", "c", "1", "1", "b", "2" };
+            internal static readonly ECCurve curve = new F2mCurve(m, k1, aTpb, bTpb, n, h);
 
-            internal static F2mPoint[] p = new F2mPoint[pointSource.Length / 2];
+            internal static readonly ECPoint infinity = curve.Infinity;
+
+            internal static readonly String[] pointSource = { "0010", "1111", "1100", "1100",
+                    "0001", "0001", "1011", "0010" };
+
+            internal static readonly ECPoint[] p = new ECPoint[pointSource.Length / 2];
 
             /**
              * Creates the points on the curve with literature values.
              */
-            internal static void createPoints()
+            internal static void CreatePoints()
             {
                 for (int i = 0; i < pointSource.Length / 2; i++)
                 {
-                    F2mFieldElement x = new F2mFieldElement(m, k1,
-                        new BigInteger(pointSource[2 * i], 16));
-                    F2mFieldElement y = new F2mFieldElement(m, k1,
-                        new BigInteger(pointSource[2 * i + 1], 16));
-                    p[i] = new F2mPoint(curve, x, y);
+                    p[i] = curve.CreatePoint(
+                        new BigInteger(pointSource[2 * i], 2),
+                        new BigInteger(pointSource[2 * i + 1], 2));
                 }
             }
         }
@@ -109,10 +113,10 @@ namespace Org.BouncyCastle.Math.EC.Tests
         public void setUp()
         {
 //			fp = new ECPointTest.Fp();
-            Fp.createPoints();
+            Fp.CreatePoints();
 
 //			f2m = new ECPointTest.F2m();
-            F2m.createPoints();
+            F2m.CreatePoints();
         }
 
         /**
@@ -384,22 +388,22 @@ namespace Org.BouncyCastle.Math.EC.Tests
         [Test]
         public void TestAddSubtractMultiplySimple()
         {
+            int fpBits = Fp.curve.Order.BitLength;
             for (int iFp = 0; iFp < Fp.pointSource.Length / 2; iFp++)
             {
                 ImplTestAddSubtract(Fp.p[iFp], Fp.infinity);
 
-                // Could be any numBits, 6 is chosen at will
-                ImplTestMultiplyAll(Fp.p[iFp], 6);
-                ImplTestMultiplyAll(Fp.infinity, 6);
+                ImplTestMultiplyAll(Fp.p[iFp], fpBits);
+                ImplTestMultiplyAll(Fp.infinity, fpBits);
             }
 
+            int f2mBits = F2m.curve.Order.BitLength;
             for (int iF2m = 0; iF2m < F2m.pointSource.Length / 2; iF2m++)
             {
                 ImplTestAddSubtract(F2m.p[iF2m], F2m.infinity);
 
-                // Could be any numBits, 6 is chosen at will
-                ImplTestMultiplyAll(F2m.p[iF2m], 6);
-                ImplTestMultiplyAll(F2m.infinity, 6);
+                ImplTestMultiplyAll(F2m.p[iF2m], f2mBits);
+                ImplTestMultiplyAll(F2m.infinity, f2mBits);
             }
         }
 
@@ -412,16 +416,12 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private void ImplTestEncoding(ECPoint p)
         {
             // Not Point Compression
-            ECPoint unCompP = p.Curve.CreatePoint(p.AffineXCoord.ToBigInteger(), p.AffineYCoord.ToBigInteger(), false);
-
-            // Point compression
-            ECPoint compP = p.Curve.CreatePoint(p.AffineXCoord.ToBigInteger(), p.AffineYCoord.ToBigInteger(), true);
-
-            byte[] unCompBarr = unCompP.GetEncoded();
+            byte[] unCompBarr = p.GetEncoded(false);
             ECPoint decUnComp = p.Curve.DecodePoint(unCompBarr);
             AssertPointsEqual("Error decoding uncompressed point", p, decUnComp);
 
-            byte[] compBarr = compP.GetEncoded();
+            // Point compression
+            byte[] compBarr = p.GetEncoded(true);
             ECPoint decComp = p.Curve.DecodePoint(compBarr);
             AssertPointsEqual("Error decoding compressed point", p, decComp);
         }

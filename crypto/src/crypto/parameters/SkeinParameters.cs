@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 	/// Parameterised Skein can be used for:
 	/// <ul> 
 	/// <li>MAC generation, by providing a <see cref="SkeinParameters.Builder.SetKey(byte[])">key</see>.</li>
-	/// <li>Randomised hashing, by providing a <see cref="SkeinParameters.Builder.SetNoce(byte[])">nonce</see>.</li>
+	/// <li>Randomised hashing, by providing a <see cref="SkeinParameters.Builder.SetNonce(byte[])">nonce</see>.</li>
 	/// <li>A hash function for digital signatures, associating a
 	/// <see cref="SkeinParameters.Builder.SetPublicKey(byte[])">public key</see> with the message digest.</li>
 	/// <li>A key derivation function, by providing a
@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		}
 
 		/// <summary>
-		/// Obtains the value of the <see cref="PARAM_TYPE_KEY_IDENTIFIER key identifier parameter</see>, or
+		/// Obtains the value of the <see cref="PARAM_TYPE_KEY_IDENTIFIER">key identifier parameter</see>, or
 		/// <code>null</code> if not set.
 		/// </summary>
 		public byte[] GetKeyIdentifier()
@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		}
 
 		/// <summary>
-		/// Obtains the value of the <see cref="PARAM_TYPE_NONCE nonce parameter</see>, or <code>null</code> if
+		/// Obtains the value of the <see cref="PARAM_TYPE_NONCE">nonce parameter</see>, or <code>null</code> if
 		/// not set.
 		/// </summary>
 		public byte[] GetNonce()

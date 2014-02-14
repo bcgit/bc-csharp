@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
@@ -71,15 +72,18 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
 
             BigInteger e = new BigInteger(1, mRev);
-            BigInteger n = key.Parameters.N;
 
-            BigInteger r = null;
-            BigInteger s = null;
+            ECDomainParameters ec = key.Parameters;
+            BigInteger n = ec.N;
+            BigInteger d = ((ECPrivateKeyParameters)key).D;
+
+            BigInteger r, s = null;
+
+            ECMultiplier basePointMultiplier = new FixedPointCombMultiplier();
 
             do // generate s
             {
-                BigInteger k = null;
-
+                BigInteger k;
                 do // generate r
                 {
                     do
@@ -88,15 +92,11 @@ namespace Org.BouncyCastle.Crypto.Signers
                     }
                     while (k.SignValue == 0);
 
-                    ECPoint p = key.Parameters.G.Multiply(k).Normalize();
+                    ECPoint p = basePointMultiplier.Multiply(ec.G, k).Normalize();
 
-                    BigInteger x = p.AffineXCoord.ToBigInteger();
-
-                    r = x.Mod(n);
+                    r = p.AffineXCoord.ToBigInteger().Mod(n);
                 }
                 while (r.SignValue == 0);
-
-                BigInteger d = ((ECPrivateKeyParameters)key).D;
 
                 s = (k.Multiply(e)).Add(d.Multiply(r)).Mod(n);
             }

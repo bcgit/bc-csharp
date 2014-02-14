@@ -534,7 +534,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
             int m = curve.M;
             int a = curve.A.ToBigInteger().IntValue;
             sbyte mu = curve.GetMu();
-            int h = curve.H.IntValue;
+            int h = curve.Cofactor.IntValue;
             int index = m + 3 - a;
             BigInteger[] ui = GetLucas(mu, index, false);
 

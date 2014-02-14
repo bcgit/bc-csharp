@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 {
     /**
      * An implementation of the "work in progress" Internet-Draft <a
-     * href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-03">The OCB Authenticated-Encryption
+     * href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-07">The OCB Authenticated-Encryption
      * Algorithm</a>, licensed per:
      * 
      * <blockquote><p><a href="http://www.cs.ucdavis.edu/~rogaway/ocb/license1.pdf">License for
@@ -45,7 +45,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         /*
          * NONCE-DEPENDENT
          */
-        private byte[] OffsetMAIN_0;
+        private byte[] KtopInput = null;
+        private byte[] Stretch = new byte[24];
+        private byte[] OffsetMAIN_0 = new byte[16];
 
         /*
          * PER-ENCRYPTION/DECRYPTION
@@ -55,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         private long hashBlockCount, mainBlockCount;
         private byte[] OffsetHASH;
         private byte[] Sum;
-        private byte[] OffsetMAIN;
+        private byte[] OffsetMAIN = new byte[16];
         private byte[] Checksum;
 
         // NOTE: The MAC value is preserved after doFinal
@@ -148,6 +150,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 // TODO
             }
+            else
+            {
+                KtopInput = null;
+            }
 
             // hashCipher always used in forward mode
             hashCipher.Init(true, keyParameter);
@@ -165,25 +171,8 @@ namespace Org.BouncyCastle.Crypto.Modes
              * NONCE-DEPENDENT AND PER-ENCRYPTION/DECRYPTION INITIALISATION
              */
 
-            byte[] nonce = new byte[16];
-            Array.Copy(N, 0, nonce, nonce.Length - N.Length, N.Length);
-            nonce[0] = (byte)(macSize << 4);
-            nonce[15 - N.Length] |= 1;
+            int bottom = ProcessNonce(N);
 
-            int bottom = nonce[15] & 0x3F;
-
-            byte[] Ktop = new byte[16];
-            nonce[15] &= 0xC0;
-            hashCipher.ProcessBlock(nonce, 0, Ktop, 0);
-
-            byte[] Stretch = new byte[24];
-            Array.Copy(Ktop, 0, Stretch, 0, 16);
-            for (int i = 0; i < 8; ++i)
-            {
-                Stretch[16 + i] = (byte) (Ktop[i] ^ Ktop[i + 1]);
-            }
-
-            this.OffsetMAIN_0 = new byte[16];
             int bits = bottom % 8, bytes = bottom / 8;
             if (bits == 0)
             {
@@ -207,13 +196,41 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             this.OffsetHASH = new byte[16];
             this.Sum = new byte[16];
-            this.OffsetMAIN = Arrays.Clone(this.OffsetMAIN_0);
+            Array.Copy(OffsetMAIN_0, 0, OffsetMAIN, 0, 16);
             this.Checksum = new byte[16];
 
             if (initialAssociatedText != null)
             {
                 ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
             }
+        }
+
+        protected virtual int ProcessNonce(byte[] N)
+        {
+            byte[] nonce = new byte[16];
+            Array.Copy(N, 0, nonce, nonce.Length - N.Length, N.Length);
+            nonce[0] = (byte)(macSize << 4);
+            nonce[15 - N.Length] |= 1;
+
+            int bottom = nonce[15] & 0x3F;
+            nonce[15] &= 0xC0;
+
+            /*
+             * When used with incrementing nonces, the cipher is only applied once every 64 inits.
+             */
+            if (KtopInput == null || !Arrays.AreEqual(nonce, KtopInput))
+            {
+                byte[] Ktop = new byte[16];
+                KtopInput = nonce;
+                hashCipher.ProcessBlock(KtopInput, 0, Ktop, 0);
+                Array.Copy(Ktop, 0, Stretch, 0, 16);
+                for (int i = 0; i < 8; ++i)
+                {
+                    Stretch[16 + i] = (byte)(Ktop[i] ^ Ktop[i + 1]);
+                }
+            }
+
+            return bottom;
         }
 
         public virtual int GetBlockSize()

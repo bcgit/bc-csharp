@@ -95,6 +95,18 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        [CLSCompliantAttribute(false)]
+        public static bool AreEqual(uint[] a, uint[] b)
+        {
+            if (a == b)
+                return true;
+
+            if (a == null || b == null)
+                return false;
+
+            return HaveSameContents(a, b);
+        }
+
         private static bool HaveSameContents(
             bool[] a,
             bool[] b)
@@ -159,6 +171,20 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        private static bool HaveSameContents(uint[] a, uint[] b)
+        {
+            int i = a.Length;
+            if (i != b.Length)
+                return false;
+            while (i != 0)
+            {
+                --i;
+                if (a[i] != b[i])
+                    return false;
+            }
+            return true;
+        }
+
         public static string ToString(
             object[] a)
         {
@@ -197,9 +223,7 @@ namespace Org.BouncyCastle.Utilities
         public static int GetHashCode(int[] data)
         {
             if (data == null)
-            {
                 return 0;
-            }
 
             int i = data.Length;
             int hc = i + 1;
@@ -208,6 +232,24 @@ namespace Org.BouncyCastle.Utilities
             {
                 hc *= 257;
                 hc ^= data[i];
+            }
+
+            return hc;
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static int GetHashCode(uint[] data)
+        {
+            if (data == null)
+                return 0;
+
+            int i = data.Length;
+            int hc = i + 1;
+
+            while (--i >= 0)
+            {
+                hc *= 257;
+                hc ^= (int)data[i];
             }
 
             return hc;

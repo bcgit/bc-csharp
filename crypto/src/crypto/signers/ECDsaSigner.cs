@@ -1,6 +1,7 @@
 using System;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
@@ -62,20 +63,21 @@ namespace Org.BouncyCastle.Crypto.Signers
          *
          * @param message the message that will be verified later.
          */
-        public BigInteger[] GenerateSignature(
-            byte[] message)
+        public BigInteger[] GenerateSignature(byte[] message)
         {
-            BigInteger n = key.Parameters.N;
+            ECDomainParameters ec = key.Parameters;
+            BigInteger n = ec.N;
             BigInteger e = calculateE(n, message);
+            BigInteger d = ((ECPrivateKeyParameters)key).D;
 
-            BigInteger r = null;
-            BigInteger s = null;
+            BigInteger r, s;
+
+            ECMultiplier basePointMultiplier = new FixedPointCombMultiplier();
 
             // 5.3.2
             do // Generate s
             {
-                BigInteger k = null;
-
+                BigInteger k;
                 do // Generate r
                 {
                     do
@@ -84,16 +86,12 @@ namespace Org.BouncyCastle.Crypto.Signers
                     }
                     while (k.SignValue == 0 || k.CompareTo(n) >= 0);
 
-                    ECPoint p = key.Parameters.G.Multiply(k).Normalize();
+                    ECPoint p = basePointMultiplier.Multiply(ec.G, k).Normalize();
 
                     // 5.3.3
-                    BigInteger x = p.AffineXCoord.ToBigInteger();
-
-                    r = x.Mod(n);
+                    r = p.AffineXCoord.ToBigInteger().Mod(n);
                 }
                 while (r.SignValue == 0);
-
-                BigInteger d = ((ECPrivateKeyParameters)key).D;
 
                 s = k.ModInverse(n).Multiply(e.Add(d.Multiply(r))).Mod(n);
             }

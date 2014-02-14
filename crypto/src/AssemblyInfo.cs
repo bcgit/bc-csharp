@@ -12,9 +12,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("BouncyCastle.Crypto")]
 [assembly: AssemblyDescription("Bouncy Castle Cryptography API")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("The Legion of the Bouncy Castle")]
+[assembly: AssemblyCompany("The Legion of the Bouncy Castle Inc.")]
 [assembly: AssemblyProduct("Bouncy Castle for .NET")]
-[assembly: AssemblyCopyright("Copyright (C) 2000-2013")]
+[assembly: AssemblyCopyright("Copyright (C) 2000-2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -9,8 +9,11 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     * <code>&#964;</code>-adic Non-Adjacent Form) algorithm.
     */
     public class WTauNafMultiplier
-        : ECMultiplier
+        : AbstractECMultiplier
     {
+        // TODO Create WTauNafUtilities class and move various functionality into it
+        internal static readonly string PRECOMP_NAME = "bc_wtnaf";
+
         /**
         * Multiplies a {@link org.bouncycastle.math.ec.F2mPoint F2mPoint}
         * by <code>k</code> using the reduced <code>&#964;</code>-adic NAF (RTNAF)
@@ -19,14 +22,13 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         * @param k The integer by which to multiply <code>k</code>.
         * @return <code>p</code> multiplied by <code>k</code>.
         */
-        public virtual ECPoint Multiply(ECPoint point, BigInteger k)
+        protected override ECPoint MultiplyPositive(ECPoint point, BigInteger k)
         {
             if (!(point is F2mPoint))
                 throw new ArgumentException("Only F2mPoint can be used in WTauNafMultiplier");
 
             F2mPoint p = (F2mPoint)point;
-
-            F2mCurve curve = (F2mCurve) p.Curve;
+            F2mCurve curve = (F2mCurve)p.Curve;
             int m = curve.M;
             sbyte a = (sbyte) curve.A.ToBigInteger().IntValue;
             sbyte mu = curve.GetMu();
@@ -34,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
             ZTauElement rho = Tnaf.PartModReduction(k, m, a, s, mu, (sbyte)10);
 
-            return MultiplyWTnaf(p, rho, curve.GetPreCompInfo(p), a, mu);
+            return MultiplyWTnaf(p, rho, curve.GetPreCompInfo(p, PRECOMP_NAME), a, mu);
         }
 
         /**
@@ -50,16 +52,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         private F2mPoint MultiplyWTnaf(F2mPoint p, ZTauElement lambda,
             PreCompInfo preCompInfo, sbyte a, sbyte mu)
         {
-            ZTauElement[] alpha;
-            if (a == 0)
-            {
-                alpha = Tnaf.Alpha0;
-            }
-            else
-            {
-                // a == 1
-                alpha = Tnaf.Alpha1;
-            }
+            ZTauElement[] alpha = (a == 0) ? Tnaf.Alpha0 : Tnaf.Alpha1;
 
             BigInteger tw = Tnaf.GetTw(mu, Tnaf.Width);
 
@@ -78,11 +71,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         * @param u The the WTNAF of <code>&#955;</code>..
         * @return <code>&#955; * p</code>
         */
-        private static F2mPoint MultiplyFromWTnaf(F2mPoint p, sbyte[] u,
-            PreCompInfo preCompInfo)
+        private static F2mPoint MultiplyFromWTnaf(F2mPoint p, sbyte[] u, PreCompInfo preCompInfo)
         {
             F2mCurve curve = (F2mCurve)p.Curve;
-            sbyte a = (sbyte) curve.A.ToBigInteger().IntValue;
+            sbyte a = (sbyte)curve.A.ToBigInteger().IntValue;
 
             F2mPoint[] pu;
             if ((preCompInfo == null) || !(preCompInfo is WTauNafPreCompInfo))
@@ -91,7 +83,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                 WTauNafPreCompInfo pre = new WTauNafPreCompInfo();
                 pre.PreComp = pu;
-                curve.SetPreCompInfo(p, pre);
+                curve.SetPreCompInfo(p, PRECOMP_NAME, pre);
             }
             else
             {
@@ -99,20 +91,21 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             }
 
             // q = infinity
-            F2mPoint q = (F2mPoint) p.Curve.Infinity;
+            F2mPoint q = (F2mPoint)curve.Infinity;
             for (int i = u.Length - 1; i >= 0; i--)
             {
                 q = Tnaf.Tau(q);
-                if (u[i] != 0)
+                sbyte ui = u[i];
+                if (ui != 0)
                 {
-                    if (u[i] > 0)
+                    if (ui > 0)
                     {
-                        q = q.AddSimple(pu[u[i]]);
+                        q = q.AddSimple(pu[ui]);
                     }
                     else
                     {
                         // u[i] < 0
-                        q = q.SubtractSimple(pu[-u[i]]);
+                        q = q.SubtractSimple(pu[-ui]);
                     }
                 }
             }

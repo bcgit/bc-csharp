@@ -41,15 +41,18 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             SecureRandom k = FixedSecureRandom.From(kData);
 
+            BigInteger n = new BigInteger("6277101735386680763835789423176059013767194773182842284081");
+
             FpCurve curve = new FpCurve(
                 new BigInteger("6277101735386680763835789423207666416083908700390324961279"), // q
                 new BigInteger("fffffffffffffffffffffffffffffffefffffffffffffffc", 16), // a
-                new BigInteger("64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1", 16)); // b
+                new BigInteger("64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1", 16), // b
+                n, BigInteger.One);
 
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012")), // G
-                new BigInteger("6277101735386680763835789423176059013767194773182842284081")); // n
+                n);
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECDSA",
@@ -135,15 +138,18 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             SecureRandom k = FixedSecureRandom.From(kData);
 
+            BigInteger n = new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307");
+
             FpCurve curve = new FpCurve(
                 new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
                 new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
+                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16), // b
+                n, BigInteger.One);
 
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307")); // n
+                n);
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECDSA",
@@ -634,16 +640,18 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             SecureRandom random = new SecureRandom();
 
+            BigInteger n = new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307");
+
             FpCurve curve = new FpCurve(
                 new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
                 new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
+                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16), // b
+                n, BigInteger.One);
 
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307")); // n
-
+                n);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator();
             ECKeyGenerationParameters genParam = new ECKeyGenerationParameters(
@@ -679,16 +687,18 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             SecureRandom random = new SecureRandom();
 
+            BigInteger n = new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307");
+
             FpCurve curve = new FpCurve(
                 new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
                 new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
+                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16), // b
+                n, BigInteger.One);
 
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307")); // n
-
+                n);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator();
             ECKeyGenerationParameters genParam = new ECKeyGenerationParameters(parameters, random);
@@ -822,15 +832,18 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             SecureRandom random = new SecureRandom();
 
+            BigInteger n = new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307");
+
             FpCurve curve = new FpCurve(
                 new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
                 new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
+                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16), // b
+                n, BigInteger.One);
 
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307")); // n
+                n);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator();
 

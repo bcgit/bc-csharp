@@ -19,10 +19,10 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tests
 {
-	[TestFixture]
-	public class NamedCurveTest
-		: SimpleTest
-	{
+    [TestFixture]
+    public class NamedCurveTest
+        : SimpleTest
+    {
 //		private static readonly Hashtable CurveNames = new Hashtable();
 //		private static readonly Hashtable CurveAliases = new Hashtable();
 //
@@ -39,122 +39,109 @@ namespace Org.BouncyCastle.Tests
 //			CurveAliases.Add("secp256r1", "prime256v1");
 //		}
 
-		private static ECDomainParameters GetCurveParameters(
-			string name)
-		{
-			ECDomainParameters ecdp = ECGost3410NamedCurves.GetByName(name);
+        private static ECDomainParameters GetCurveParameters(
+            string name)
+        {
+            ECDomainParameters ecdp = ECGost3410NamedCurves.GetByName(name);
 
-			if (ecdp != null)
-				return ecdp;
+            if (ecdp != null)
+                return ecdp;
 
-            X9ECParameters ecP = X962NamedCurves.GetByName(name);
+            X9ECParameters ecP = ECNamedCurveTable.GetByName(name);
 
-			if (ecP == null)
-            {
-                ecP = SecNamedCurves.GetByName(name);
-                if (ecP == null)
-                {
-					ecP = NistNamedCurves.GetByName(name);
-					if (ecP == null)
-					{
-						ecP = TeleTrusTNamedCurves.GetByName(name);
+            if (ecP == null)
+                throw new Exception("unknown curve name: " + name);
 
-						if (ecP == null)
-							throw new Exception("unknown curve name: " + name);
-					}
-				}
-            }
+            return new ECDomainParameters(ecP.Curve, ecP.G, ecP.N, ecP.H, ecP.GetSeed());
+        }
 
-			return new ECDomainParameters(ecP.Curve, ecP.G, ecP.N, ecP.H, ecP.GetSeed());
-		}
-
-		public void doTestCurve(
-			string name)
-		{
+        public void doTestCurve(
+            string name)
+        {
 //			ECGenParameterSpec ecSpec = new ECGenParameterSpec(name);
-			ECDomainParameters ecSpec = GetCurveParameters(name);
+            ECDomainParameters ecSpec = GetCurveParameters(name);
 
-			IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECDH");
+            IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECDH");
 
 //			g.initialize(ecSpec, new SecureRandom());
-			g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom())); 
+            g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom())); 
 
-			//
-			// a side
-			//
-			AsymmetricCipherKeyPair aKeyPair = g.GenerateKeyPair();
+            //
+            // a side
+            //
+            AsymmetricCipherKeyPair aKeyPair = g.GenerateKeyPair();
 
 //			KeyAgreement aKeyAgree = KeyAgreement.getInstance("ECDHC");
-			IBasicAgreement aKeyAgree = AgreementUtilities.GetBasicAgreement("ECDHC");
+            IBasicAgreement aKeyAgree = AgreementUtilities.GetBasicAgreement("ECDHC");
 
-			aKeyAgree.Init(aKeyPair.Private);
+            aKeyAgree.Init(aKeyPair.Private);
 
-			//
-			// b side
-			//
-			AsymmetricCipherKeyPair bKeyPair = g.GenerateKeyPair();
+            //
+            // b side
+            //
+            AsymmetricCipherKeyPair bKeyPair = g.GenerateKeyPair();
 
 //			KeyAgreement bKeyAgree = KeyAgreement.getInstance("ECDHC");
-			IBasicAgreement bKeyAgree = AgreementUtilities.GetBasicAgreement("ECDHC");
+            IBasicAgreement bKeyAgree = AgreementUtilities.GetBasicAgreement("ECDHC");
 
-			bKeyAgree.Init(bKeyPair.Private);
+            bKeyAgree.Init(bKeyPair.Private);
 
-			//
-			// agreement
-			//
+            //
+            // agreement
+            //
 //			aKeyAgree.doPhase(bKeyPair.Public, true);
 //			bKeyAgree.doPhase(aKeyPair.Public, true);
 //
 //			BigInteger k1 = new BigInteger(aKeyAgree.generateSecret());
 //			BigInteger k2 = new BigInteger(bKeyAgree.generateSecret());
-			BigInteger k1 = aKeyAgree.CalculateAgreement(bKeyPair.Public);
-			BigInteger k2 = bKeyAgree.CalculateAgreement(aKeyPair.Public);
+            BigInteger k1 = aKeyAgree.CalculateAgreement(bKeyPair.Public);
+            BigInteger k2 = bKeyAgree.CalculateAgreement(aKeyPair.Public);
 
-			if (!k1.Equals(k2))
-			{
-				Fail("2-way test failed");
-			}
+            if (!k1.Equals(k2))
+            {
+                Fail("2-way test failed");
+            }
 
-			//
-			// public key encoding test
-			//
+            //
+            // public key encoding test
+            //
 //			byte[]              pubEnc = aKeyPair.Public.getEncoded();
-			byte[] pubEnc = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(aKeyPair.Public).GetDerEncoded();
+            byte[] pubEnc = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(aKeyPair.Public).GetDerEncoded();
 
 //			KeyFactory          keyFac = KeyFactory.getInstance("ECDH");
 //			X509EncodedKeySpec  pubX509 = new X509EncodedKeySpec(pubEnc);
 //			ECPublicKey         pubKey = (ECPublicKey)keyFac.generatePublic(pubX509);
-			ECPublicKeyParameters pubKey = (ECPublicKeyParameters) PublicKeyFactory.CreateKey(pubEnc);
+            ECPublicKeyParameters pubKey = (ECPublicKeyParameters) PublicKeyFactory.CreateKey(pubEnc);
 
 //			if (!pubKey.getW().Equals(((ECPublicKey)aKeyPair.Public).getW()))
-			if (!pubKey.Q.Equals(((ECPublicKeyParameters)aKeyPair.Public).Q))
-			{
-				Fail("public key encoding (Q test) failed");
-			}
+            if (!pubKey.Q.Equals(((ECPublicKeyParameters)aKeyPair.Public).Q))
+            {
+                Fail("public key encoding (Q test) failed");
+            }
 
-			// TODO Put back in?
+            // TODO Put back in?
 //			if (!(pubKey.getParams() is ECNamedCurveSpec))
 //			{
 //				Fail("public key encoding not named curve");
 //			}
 
-			//
-			// private key encoding test
-			//
+            //
+            // private key encoding test
+            //
 //			byte[]              privEnc = aKeyPair.Private.getEncoded();
-			byte[] privEnc = PrivateKeyInfoFactory.CreatePrivateKeyInfo(aKeyPair.Private).GetDerEncoded();
+            byte[] privEnc = PrivateKeyInfoFactory.CreatePrivateKeyInfo(aKeyPair.Private).GetDerEncoded();
 
 //			PKCS8EncodedKeySpec privPKCS8 = new PKCS8EncodedKeySpec(privEnc);
 //			ECPrivateKey        privKey = (ECPrivateKey)keyFac.generatePrivate(privPKCS8);
-			ECPrivateKeyParameters privKey = (ECPrivateKeyParameters) PrivateKeyFactory.CreateKey(privEnc);
+            ECPrivateKeyParameters privKey = (ECPrivateKeyParameters) PrivateKeyFactory.CreateKey(privEnc);
 
 //			if (!privKey.getS().Equals(((ECPrivateKey)aKeyPair.Private).getS()))
-			if (!privKey.D.Equals(((ECPrivateKeyParameters)aKeyPair.Private).D))
-			{
-				Fail("private key encoding (S test) failed");
-			}
+            if (!privKey.D.Equals(((ECPrivateKeyParameters)aKeyPair.Private).D))
+            {
+                Fail("private key encoding (S test) failed");
+            }
 
-			// TODO Put back in?
+            // TODO Put back in?
 //			if (!(privKey.getParams() is ECNamedCurveSpec))
 //			{
 //				Fail("private key encoding not named curve");
@@ -166,81 +153,81 @@ namespace Org.BouncyCastle.Tests
 //				Fail("private key encoding wrong named curve. Expected: "
 //					+ CurveNames[name] + " got " + privSpec.GetName());
 //			}
-		}
+        }
 
-		public void doTestECDsa(
-			string name)
-		{
+        public void doTestECDsa(
+            string name)
+        {
 //			ECGenParameterSpec ecSpec = new ECGenParameterSpec(name);
-			ECDomainParameters ecSpec = GetCurveParameters(name);
+            ECDomainParameters ecSpec = GetCurveParameters(name);
 
-			IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
+            IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
 
 //			g.initialize(ecSpec, new SecureRandom());
-			g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom())); 
+            g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom())); 
 
-			ISigner sgr = SignerUtilities.GetSigner("ECDSA");
-			AsymmetricCipherKeyPair pair = g.GenerateKeyPair();
-			AsymmetricKeyParameter sKey = pair.Private;
-			AsymmetricKeyParameter vKey = pair.Public;
+            ISigner sgr = SignerUtilities.GetSigner("ECDSA");
+            AsymmetricCipherKeyPair pair = g.GenerateKeyPair();
+            AsymmetricKeyParameter sKey = pair.Private;
+            AsymmetricKeyParameter vKey = pair.Public;
 
-			sgr.Init(true, sKey);
+            sgr.Init(true, sKey);
 
-			byte[] message = new byte[] { (byte)'a', (byte)'b', (byte)'c' };
+            byte[] message = new byte[] { (byte)'a', (byte)'b', (byte)'c' };
 
-			sgr.BlockUpdate(message, 0, message.Length);
+            sgr.BlockUpdate(message, 0, message.Length);
 
-			byte[] sigBytes = sgr.GenerateSignature();
+            byte[] sigBytes = sgr.GenerateSignature();
 
-			sgr.Init(false, vKey);
+            sgr.Init(false, vKey);
 
-			sgr.BlockUpdate(message, 0, message.Length);
+            sgr.BlockUpdate(message, 0, message.Length);
 
-			if (!sgr.VerifySignature(sigBytes))
-			{
-				Fail(name + " verification failed");
-			}
+            if (!sgr.VerifySignature(sigBytes))
+            {
+                Fail(name + " verification failed");
+            }
 
-			//
-			// public key encoding test
-			//
+            //
+            // public key encoding test
+            //
 //			byte[]              pubEnc = vKey.getEncoded();
-			byte[] pubEnc = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(vKey).GetDerEncoded();
+            byte[] pubEnc = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(vKey).GetDerEncoded();
 
 //			KeyFactory          keyFac = KeyFactory.getInstance("ECDH");
 //			X509EncodedKeySpec  pubX509 = new X509EncodedKeySpec(pubEnc);
 //			ECPublicKey         pubKey = (ECPublicKey)keyFac.generatePublic(pubX509);
-			ECPublicKeyParameters pubKey = (ECPublicKeyParameters) PublicKeyFactory.CreateKey(pubEnc);
+            ECPublicKeyParameters pubKey = (ECPublicKeyParameters) PublicKeyFactory.CreateKey(pubEnc);
 
 //			if (!pubKey.getW().Equals(((ECPublicKey)vKey).getW()))
-			if (!pubKey.Q.Equals(((ECPublicKeyParameters)vKey).Q))
-			{
-				Fail("public key encoding (Q test) failed");
-			}
+            if (!pubKey.Q.Equals(((ECPublicKeyParameters)vKey).Q))
+            {
+                Fail("public key encoding (Q test) failed");
+            }
 
-			// TODO Put back in?
+            // TODO Put back in?
 //			if (!(pubKey.Parameters is ECNamedCurveSpec))
 //			{
 //				Fail("public key encoding not named curve");
 //			}
 
-			//
-			// private key encoding test
-			//
+            //
+            // private key encoding test
+            //
 //			byte[]              privEnc = sKey.getEncoded();
-			byte[] privEnc = PrivateKeyInfoFactory.CreatePrivateKeyInfo(sKey).GetDerEncoded();
+            byte[] privEnc = PrivateKeyInfoFactory.CreatePrivateKeyInfo(sKey).GetDerEncoded();
 
 //			PKCS8EncodedKeySpec privPKCS8 = new PKCS8EncodedKeySpec(privEnc);
 //			ECPrivateKey        privKey = (ECPrivateKey)keyFac.generatePrivate(privPKCS8);
-			ECPrivateKeyParameters privKey = (ECPrivateKeyParameters) PrivateKeyFactory.CreateKey(privEnc);
+            ECPrivateKeyParameters privKey = (ECPrivateKeyParameters) PrivateKeyFactory.CreateKey(privEnc);
 
 //			if (!privKey.getS().Equals(((ECPrivateKey)sKey).getS()))
-			if (!privKey.D.Equals(((ECPrivateKeyParameters)sKey).D))
-			{
-				Fail("private key encoding (D test) failed");
-			}
+            if (!privKey.D.Equals(((ECPrivateKeyParameters)sKey).D))
+            {
+                Fail("private key encoding (D test) failed");
+            }
 
-			// TODO Put back in?
+            // TODO Put back in?
 //			if (!(privKey.Parameters is ECNamedCurveSpec))
 //			{
 //				Fail("private key encoding not named curve");
@@ -252,42 +239,42 @@ namespace Org.BouncyCastle.Tests
 //			{
 //				Fail("private key encoding wrong named curve. Expected: " + name + " got " + privSpec.GetName());
 //			}
-		}
+        }
 
-		public void doTestECGost(
-			string name)
-		{
+        public void doTestECGost(
+            string name)
+        {
 //			ECGenParameterSpec ecSpec = new ECGenParameterSpec(name);
-			ECDomainParameters ecSpec = GetCurveParameters(name);
+            ECDomainParameters ecSpec = GetCurveParameters(name);
 
-			IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
+            IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
 
 //			g.initialize(ecSpec, new SecureRandom());
-			g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom())); 
+            g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom())); 
 
-			ISigner sgr = SignerUtilities.GetSigner("ECGOST3410");
-			AsymmetricCipherKeyPair pair = g.GenerateKeyPair();
-			AsymmetricKeyParameter sKey = pair.Private;
-			AsymmetricKeyParameter vKey = pair.Public;
+            ISigner sgr = SignerUtilities.GetSigner("ECGOST3410");
+            AsymmetricCipherKeyPair pair = g.GenerateKeyPair();
+            AsymmetricKeyParameter sKey = pair.Private;
+            AsymmetricKeyParameter vKey = pair.Public;
 
-			sgr.Init(true, sKey);
+            sgr.Init(true, sKey);
 
-			byte[] message = new byte[] { (byte)'a', (byte)'b', (byte)'c' };
+            byte[] message = new byte[] { (byte)'a', (byte)'b', (byte)'c' };
 
-			sgr.BlockUpdate(message, 0, message.Length);
+            sgr.BlockUpdate(message, 0, message.Length);
 
-			byte[] sigBytes = sgr.GenerateSignature();
+            byte[] sigBytes = sgr.GenerateSignature();
 
-			sgr.Init(false, vKey);
+            sgr.Init(false, vKey);
 
-			sgr.BlockUpdate(message, 0, message.Length);
+            sgr.BlockUpdate(message, 0, message.Length);
 
-			if (!sgr.VerifySignature(sigBytes))
-			{
-				Fail(name + " verification failed");
-			}
+            if (!sgr.VerifySignature(sigBytes))
+            {
+                Fail(name + " verification failed");
+            }
 
-			// TODO Get this working?
+            // TODO Get this working?
 //			//
 //			// public key encoding test
 //			//
@@ -305,13 +292,13 @@ namespace Org.BouncyCastle.Tests
 //				Fail("public key encoding (Q test) failed");
 //			}
 
-			// TODO Put back in?
+            // TODO Put back in?
 //			if (!(pubKey.Parameters is ECNamedCurveSpec))
 //			{
 //				Fail("public key encoding not named curve");
 //			}
 
-			// TODO Get this working?
+            // TODO Get this working?
 //			//
 //			// private key encoding test
 //			//
@@ -328,7 +315,7 @@ namespace Org.BouncyCastle.Tests
 //				Fail("GOST private key encoding (D test) failed");
 //			}
 
-			// TODO Put back in?
+            // TODO Put back in?
 //			if (!(privKey.Parameters is ECNamedCurveSpec))
 //			{
 //				Fail("GOST private key encoding not named curve");
@@ -340,55 +327,55 @@ namespace Org.BouncyCastle.Tests
 //			{
 //				Fail("GOST private key encoding wrong named curve. Expected: " + name + " got " + privSpec.getName());
 //			}
-		}
+        }
 
-		public override string Name
-		{
-			get { return "NamedCurve"; }
-		}
-	    
-		public override void PerformTest()
-		{
-			doTestCurve("prime192v1"); // X9.62
-			doTestCurve("sect571r1"); // sec
-			doTestCurve("secp224r1");
-			doTestCurve("B-409");   // nist
-			doTestCurve("P-521");
-			doTestCurve("brainpoolp160r1");    // TeleTrusT
+        public override string Name
+        {
+            get { return "NamedCurve"; }
+        }
+        
+        public override void PerformTest()
+        {
+            doTestCurve("prime192v1"); // X9.62
+            doTestCurve("sect571r1"); // sec
+            doTestCurve("secp224r1");
+            doTestCurve("B-409");   // nist
+            doTestCurve("P-521");
+            doTestCurve("brainpoolp160r1");    // TeleTrusT
 
-			foreach (string name in X962NamedCurves.Names)
-			{
-				doTestECDsa(name);
-			}
+            foreach (string name in X962NamedCurves.Names)
+            {
+                doTestECDsa(name);
+            }
 
-			foreach (string name in SecNamedCurves.Names)
-			{
-				doTestECDsa(name);
-			}
+            foreach (string name in SecNamedCurves.Names)
+            {
+                doTestECDsa(name);
+            }
 
-			foreach (string name in TeleTrusTNamedCurves.Names)
-			{
-				doTestECDsa(name);
-			}
+            foreach (string name in TeleTrusTNamedCurves.Names)
+            {
+                doTestECDsa(name);
+            }
 
-			foreach (string name in ECGost3410NamedCurves.Names)
-			{
-				doTestECGost(name);
-			}
-		}
+            foreach (string name in ECGost3410NamedCurves.Names)
+            {
+                doTestECGost(name);
+            }
+        }
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new NamedCurveTest());
-		}
+        public static void Main(
+            string[] args)
+        {
+            RunTest(new NamedCurveTest());
+        }
 
-		[Test]
-		public void TestFunction()
-		{
-			string resultText = Perform().ToString();
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
 
-			Assert.AreEqual(Name + ": Okay", resultText);
-		}
-	}
+            Assert.AreEqual(Name + ": Okay", resultText);
+        }
+    }
 }

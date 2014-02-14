@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Math.EC
             int count = 0;
             while (u[0] == 0)
             {
-                Nat.ShiftDownWord(u, uLen, 0);
+                Nat.ShiftDownWord(uLen, u, 0);
                 count += 32;
             }
 
@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Math.EC
                 int zeroes = GetTrailingZeroes(u[0]);
                 if (zeroes > 0)
                 {
-                    Nat.ShiftDownBits(u, uLen, zeroes, 0);
+                    Nat.ShiftDownBits(uLen, u, zeroes, 0);
                     count += zeroes;
                 }
             }
@@ -129,14 +129,13 @@ namespace Org.BouncyCastle.Math.EC
                 }
 
                 Debug.Assert(xc == 0 || xc == -1);
-                Nat.ShiftDownBit(x, len, (uint)xc);
+                Nat.ShiftDownBit(len, x, (uint)xc);
             }
         }
 
         private static int GetTrailingZeroes(uint x)
         {
-    //        assert x != 0;
-
+            Debug.Assert(x != 0);
             int count = 0;
             while ((x & 1) == 0)
             {

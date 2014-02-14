@@ -1,11 +1,11 @@
 ﻿using System;
 
-using Org.BouncyCastle.Math;
-
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
     public abstract class WNafUtilities
     {
+        public static readonly string PRECOMP_NAME = "bc_wnaf";
+
         private static int[] DEFAULT_WINDOW_SIZE_CUTOFFS = new int[]{ 13, 41, 121, 337, 897, 2305 };
 
         public static int[] GenerateCompactNaf(BigInteger k)
@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          * most one is non-zero.
          * @param k The integer of which the Window NAF is computed.
          * @return The Window NAF of the given width, such that the following holds:
-         * <code>k = &sum;<sub>i=0</sub><sup>l-1</sup> k<sub>i</sub>2<sup>i</sup>
+         * <code>k = &amp;sum;<sub>i=0</sub><sup>l-1</sup> k<sub>i</sub>2<sup>i</sup>
          * </code>, where the <code>k<sub>i</sub></code> denote the elements of the
          * returned <code>byte[]</code>.
          */
@@ -294,7 +294,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         public static WNafPreCompInfo Precompute(ECPoint p, int width, bool includeNegated)
         {
             ECCurve c = p.Curve;
-            WNafPreCompInfo wnafPreCompInfo = GetWNafPreCompInfo(c.GetPreCompInfo(p));
+            WNafPreCompInfo wnafPreCompInfo = GetWNafPreCompInfo(c.GetPreCompInfo(p, PRECOMP_NAME));
             
             ECPoint[] preComp = wnafPreCompInfo.PreComp;
             if (preComp == null)
@@ -307,26 +307,28 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
             if (preCompLen < reqPreCompLen)
             {
-                ECPoint twiceP = wnafPreCompInfo.Twice;
-                if (twiceP == null)
-                {
-                    twiceP = preComp[0].Twice().Normalize();
-                    wnafPreCompInfo.Twice = twiceP;
-                }
-
                 preComp = ResizeTable(preComp, reqPreCompLen);
-
-                /*
-                 * TODO Okeya/Sakurai paper has precomputation trick and  "Montgomery's Trick" to speed this up.
-                 * Also, co-Z arithmetic could avoid the subsequent normalization too.
-                 */
-                for (int i = preCompLen; i < reqPreCompLen; i++)
+                if (reqPreCompLen == 2)
                 {
-                    /*
-                     * Compute the new ECPoints for the precomputation array. The values 1, 3, 5, ...,
-                     * 2^(width-1)-1 times p are computed
-                     */
-                    preComp[i] = twiceP.Add(preComp[i - 1]);
+                    preComp[1] = preComp[0].ThreeTimes();
+                }
+                else
+                {
+                    ECPoint twiceP = wnafPreCompInfo.Twice;
+                    if (twiceP == null)
+                    {
+                        twiceP = preComp[0].Twice().Normalize();
+                        wnafPreCompInfo.Twice = twiceP;
+                    }
+
+                    for (int i = preCompLen; i < reqPreCompLen; i++)
+                    {
+                        /*
+                         * Compute the new ECPoints for the precomputation array. The values 1, 3, 5, ...,
+                         * 2^(width-1)-1 times p are computed
+                         */
+                        preComp[i] = twiceP.Add(preComp[i - 1]);
+                    }
                 }
 
                 /*
@@ -365,7 +367,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 wnafPreCompInfo.PreCompNeg = preCompNeg;
             }
 
-            c.SetPreCompInfo(p, wnafPreCompInfo);
+            c.SetPreCompInfo(p, PRECOMP_NAME, wnafPreCompInfo);
 
             return wnafPreCompInfo;
         }

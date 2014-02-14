@@ -6,8 +6,8 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     * Class implementing the WNAF (Window Non-Adjacent Form) multiplication
     * algorithm.
     */
-    public class WNafMultiplier
-        : ECMultiplier
+    public class WNafL2RMultiplier
+        : AbstractECMultiplier
     {
         /**
          * Multiplies <code>this</code> by an integer <code>k</code> using the
@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          * @return A new <code>ECPoint</code> which equals <code>this</code>
          * multiplied by <code>k</code>.
          */
-        public virtual ECPoint Multiply(ECPoint p, BigInteger k)
+        protected override ECPoint MultiplyPositive(ECPoint p, BigInteger k)
         {
             // Clamp the window width in the range [2, 16]
             int width = System.Math.Max(2, System.Math.Min(16, GetWindowSize(k.BitLength)));
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             int i = wnaf.Length;
 
             /*
-             * NOTE This code optimizes the first window using the precomputed points to substitute an
+             * NOTE: We try to optimize the first window using the precomputed points to substitute an
              * addition for 2 or more doublings.
              */
             if (i > 1)
@@ -43,19 +43,14 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 int n = System.Math.Abs(digit);
                 ECPoint[] table = digit < 0 ? preCompNeg : preComp;
 
-                /*
-                 * NOTE: We use this optimization conservatively, since some coordinate systems have
-                 * significantly cheaper doubling relative to addition.
-                 * 
-                 * (n << 2) selects precomputed values in the lower half of the table
-                 * (n << 3) selects precomputed values in the lower quarter of the table
-                 */
-                //if ((n << 2) < (1 << width))
-                if ((n << 3) < (1 << width))
+                // Optimization can only be used for values in the lower half of the table
+                if ((n << 2) < (1 << width))
                 {
                     int highest = LongArray.BitLengths[n];
-                    int lowBits =  n ^ (1 << (highest - 1));
+
+                    // TODO Get addition/doubling cost ratio from curve and compare to 'scale' to see if worth substituting?
                     int scale = width - highest;
+                    int lowBits = n ^ (1 << (highest - 1));
 
                     int i1 = ((1 << (width - 1)) - 1);
                     int i2 = (lowBits << scale) + 1;
@@ -63,7 +58,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                     zeroes -= scale;
 
-    //              Console.WriteLine("Optimized: 2^" + scale + " * " + n + " = " + i1 + " + " + i2);
+                    //Console.WriteLine("Optimized: 2^" + scale + " * " + n + " = " + i1 + " + " + i2);
                 }
                 else
                 {
