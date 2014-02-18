@@ -2,12 +2,8 @@
 <project name="bccrypto-csharp" default="compile-release" basedir=".">
 
   <!-- Source control properties -->
-  <property name="CVSROOT"
-    value=":pserver:anonymous@cvs.bouncycastle.org:/home/users/bouncy/cvsroot" />
-  <property name="sourcecontrol.usesharpcvslib" value="false" />
-  <property name="CVSCMD" value="C:/Program Files (x86)/CVSNT/cvs.exe" />
-  <!--<property name="CVSCMD" value="C:/Program Files/CVSNT/cvs.exe" />-->
-  <!--<property name="CVSCMD" value="/usr/bin/cvs" />-->
+  <property name="GITURL" value="bcgit@git.bouncycastle.org:bc-csharp" />
+  <property name="GITCMD" value="C:/Program Files (x86)/Git/bin/git.exe" />
 
   <property name="api-debugpath" value="./api/bin/debug" />
   <property name="api-releasepath" value="./api/bin/release" />
@@ -20,12 +16,12 @@
   <property name="dist-path" value="./dist"/>
 
   <!-- Version -->
-  <property name="version" value="1.7"/>
+  <property name="version" value="1.8.0-beta.1"/>
   <property name="name" value="BouncyCastle.Crypto"/>
 
   <property name="OPTIONAL_STRONG_NAME" value="" />
   <if test="${property::exists('use-strong-name') and use-strong-name}">
-    <echo>Compile targets will be signed using keyfile ../BouncyCastle.snk</echo> 
+    <echo>Compile targets will be signed using keyfile ../BouncyCastle.snk</echo>
     <property name="OPTIONAL_STRONG_NAME" value=";STRONG_NAME" />
   </if>
 
@@ -206,29 +202,36 @@
   <target name="dist" depends="init">
     <echo message="Building signed assemblies for release ${version}"/>
     <mkdir dir="${dist-path}"/>
-    <cvs-export cvsfullpath="${CVSCMD}" cvsroot="${CVSROOT}"
-      destination="${dist-path}/src" module="csharp" revision="release-${string::replace(version,'.','_')}" />
 
-    <!-- One version with everything -->
+    <exec program="${GITCMD}" verbose="true" workingdir="..">
+      <arg value="archive" />
+      <arg line="--format zip" />
+      <arg value="--output" />
+      <arg path="${dist-path}/bccrypto-csharp-${version}-src.zip" />
+      <arg value="--prefix" />
+      <arg value="bccrypto-csharp-${version}/" />
+      <arg value="--remote" />
+      <arg value="${GITURL}" />
+      <arg value="release-${version}" />
+      <arg value="-9" />
+    </exec>
+
+    <unzip zipfile="${dist-path}/bccrypto-csharp-${version}-src.zip" todir="${dist-path}/src" />
+
     <csc target="library" noconfig="true" nostdlib="${enable-nostdlib}" output="${dist-path}/${name}.dll"
       verbose="false" debug="false" optimize="true" define="${compile-defines};STRONG_NAME">
       <sources>
-        <include name="${dist-path}/src/csharp/crypto/${api-srcpath}/**/*.cs"/>
-        <include name="${dist-path}/src/csharp/crypto/${bzip2-srcpath}/**/*.cs"/>
+        <include name="${dist-path}/src/bccrypto-csharp-${version}/crypto/${api-srcpath}/**/*.cs"/>
+        <include name="${dist-path}/src/bccrypto-csharp-${version}/crypto/${bzip2-srcpath}/**/*.cs"/>
       </sources>
       <references>
         <include name="mscorlib.dll"/>
         <include name="System.dll"/>
       </references>
     </csc>
-    <zip zipfile="${dist-path}/bccrypto-net-${version}-bin.zip">
+    <zip zipfile="${dist-path}/bccrypto-csharp-${version}-bin.zip" ziplevel="9">
       <fileset basedir="${dist-path}">
         <include name="${name}.dll" />
-      </fileset>
-    </zip>
-    <zip zipfile="${dist-path}/bccrypto-net-${version}-src.zip">
-      <fileset basedir="${dist-path}/src">
-        <include name="**/*"/>
       </fileset>
     </zip>
 
