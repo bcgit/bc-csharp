@@ -257,15 +257,26 @@ namespace Org.BouncyCastle.Asn1
             return sb.ToString();
         }
 
-        private DateTime ParseDateString(
-            string	dateStr,
-            string	formatStr,
-            bool	makeUniversal)
+        private DateTime ParseDateString(string	s, string format, bool makeUniversal)
         {
-            DateTime dt = DateTime.ParseExact(
-                dateStr,
-                formatStr,
-                DateTimeFormatInfo.InvariantInfo);
+            /*
+             * NOTE: DateTime.Kind and DateTimeStyles.AssumeUniversal not available in .NET 1.1
+             */
+            DateTimeStyles style = DateTimeStyles.None;
+            if (format.EndsWith("Z"))
+            {
+                try
+                {
+                    style = (DateTimeStyles)Enum.Parse(typeof(DateTimeStyles), "AssumeUniversal");
+                }
+                catch (Exception)
+                {
+                }
+
+                style |= DateTimeStyles.AdjustToUniversal;
+            }
+
+            DateTime dt = DateTime.ParseExact(s, format, DateTimeFormatInfo.InvariantInfo, style);
 
             return makeUniversal ? dt.ToUniversalTime() : dt;
         }
