@@ -276,8 +276,8 @@ namespace Org.BouncyCastle.Math.EC
             if (null == other)
                 return false;
             return Field.Equals(other.Field)
-                && A.Equals(other.A)
-                && B.Equals(other.B);
+                && A.ToBigInteger().Equals(other.A.ToBigInteger())
+                && B.ToBigInteger().Equals(other.B.ToBigInteger());
         }
 
         public override bool Equals(object obj) 
@@ -288,8 +288,8 @@ namespace Org.BouncyCastle.Math.EC
         public override int GetHashCode()
         {
             return Field.GetHashCode()
-                ^ Integers.RotateLeft(A.GetHashCode(), 8)
-                ^ Integers.RotateLeft(B.GetHashCode(), 16);
+                ^ Integers.RotateLeft(A.ToBigInteger().GetHashCode(), 8)
+                ^ Integers.RotateLeft(B.ToBigInteger().GetHashCode(), 16);
         }
 
         protected abstract ECPoint DecompressPoint(int yTilde, BigInteger X1);
