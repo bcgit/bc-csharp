@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            ulong c = Nat256.Mul33AddExt(PInv33, xx, 8, xx, 0, z, 0);
+            ulong c = Nat256.Mul33Add(PInv33, xx, 8, xx, 0, z, 0);
             c = Nat256.Mul33DWordAdd(PInv33, c, z, 0);
 
             Debug.Assert(c == 0 || c == 1);

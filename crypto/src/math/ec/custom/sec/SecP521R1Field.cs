@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Nat512.Square(x, zz);
 
             uint x16 = x[16];
-            zz[32] = Nat.MulWordAdd(16, x16 << 1, x, zz, 16) + (x16 * x16);
+            zz[32] = Nat.MulWordAddTo(16, x16 << 1, x, 0, zz, 16) + (x16 * x16);
         }
     }
 }

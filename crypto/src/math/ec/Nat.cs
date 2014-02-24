@@ -215,11 +215,21 @@ namespace Org.BouncyCastle.Math.EC
 
         public static void Mul(int len, uint[] x, uint[] y, uint[] zz)
         {
-            zz[len] = (uint)MulWord(len, x[0], y, zz, 0);
+            zz[len] = (uint)MulWord(len, x[0], y, zz);
 
             for (int i = 1; i < len; ++i)
             {
-                zz[i + len] = (uint)MulWordAdd(len, x[i], y, zz, i);
+                zz[i + len] = (uint)MulWordAddTo(len, x[i], y, 0, zz, i);
+            }
+        }
+
+        public static void Mul(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] zz, int zzOff)
+        {
+            zz[len] = (uint)MulWord(len, x[xOff + 0], y, yOff, zz, zzOff);
+
+            for (int i = 1; i < len; ++i)
+            {
+                zz[i + len] = (uint)MulWordAddTo(len, x[xOff + i], y, yOff, zz, zzOff + i);
             }
         }
 
@@ -237,13 +247,27 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
-        public static uint MulWord(int len, uint x, uint[] y, uint[] z, int zOff)
+        public static uint MulWord(int len, uint x, uint[] y, uint[] z)
         {
             ulong c = 0, xVal = (ulong)x;
             int i = 0;
             do
             {
                 c += xVal * y[i];
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            while (++i < len);
+            return (uint)c;
+        }
+
+        public static uint MulWord(int len, uint x, uint[] y, int yOff, uint[] z, int zOff)
+        {
+            ulong c = 0, xVal = (ulong)x;
+            int i = 0;
+            do
+            {
+                c += xVal * y[yOff + i];
                 z[zOff + i] = (uint)c;
                 c >>= 32;
             }
@@ -251,13 +275,13 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
-        public static uint MulWordAdd(int len, uint x, uint[] y, uint[] z, int zOff)
+        public static uint MulWordAddTo(int len, uint x, uint[] y, int yOff, uint[] z, int zOff)
         {
             ulong c = 0, xVal = (ulong)x;
             int i = 0;
             do
             {
-                c += xVal * y[i] + z[zOff + i];
+                c += xVal * y[yOff + i] + z[zOff + i];
                 z[zOff + i] = (uint)c;
                 c >>= 32;
             }
@@ -354,6 +378,17 @@ namespace Org.BouncyCastle.Math.EC
             return c >> 31;
         }
 
+        public static uint ShiftUpBit(int len, uint[] z, int zOff, uint c)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                uint next = z[zOff + i];
+                z[zOff + i] = (next << 1) | (c >> 31);
+                c = next;
+            }
+            return c >> 31;
+        }
+
         public static uint ShiftUpBit(int len, uint[] x, uint c, uint[] z)
         {
             for (int i = 0; i < len; ++i)
@@ -417,22 +452,21 @@ namespace Org.BouncyCastle.Math.EC
 
             for (int i = 1; i < len; ++i)
             {
-                c = SquareWordAddExt(len, x, i, zz);
+                c = SquareWordAdd(x, i, zz);
                 AddWordExt(len, c, zz, i << 1);
             }
 
             ShiftUpBit(extLen, zz, x[0] << 31);
         }
 
-        public static uint SquareWordAddExt(int len, uint[] x, int xPos, uint[] zz)
+        public static uint SquareWordAdd(uint[] x, int xPos, uint[] z)
         {
-            Debug.Assert(xPos > 0 && xPos < len);
             ulong c = 0, xVal = (ulong)x[xPos];
             int i = 0;
             do
             {
-                c += xVal * x[i] + zz[xPos + i];
-                zz[xPos + i] = (uint)c;
+                c += xVal * x[i] + z[xPos + i];
+                z[xPos + i] = (uint)c;
                 c >>= 32;
             }
             while (++i < xPos);

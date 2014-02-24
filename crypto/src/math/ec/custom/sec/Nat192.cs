@@ -319,38 +319,36 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
-        public static ulong Mul33AddExt(uint w, uint[] xx, int xxOff, uint[] yy, int yyOff, uint[] zz, int zzOff)
+        public static ulong Mul33Add(uint w, uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
         {
             Debug.Assert(w >> 31 == 0);
-            Debug.Assert(xxOff <= 6);
-            Debug.Assert(yyOff <= 6);
-            Debug.Assert(zzOff <= 6);
+
             ulong c = 0, wVal = w;
-            ulong xx00 = xx[xxOff + 0];
-            c += wVal * xx00 + yy[yyOff + 0];
-            zz[zzOff + 0] = (uint)c;
+            ulong x0 = x[xOff + 0];
+            c += wVal * x0 + y[yOff + 0];
+            z[zOff + 0] = (uint)c;
             c >>= 32;
-            ulong xx01 = xx[xxOff + 1];
-            c += wVal * xx01 + xx00 + yy[yyOff + 1];
-            zz[zzOff + 1] = (uint)c;
+            ulong x1 = x[xOff + 1];
+            c += wVal * x1 + x0 + y[yOff + 1];
+            z[zOff + 1] = (uint)c;
             c >>= 32;
-            ulong xx02 = xx[xxOff + 2];
-            c += wVal * xx02 + xx01 + yy[yyOff + 2];
-            zz[zzOff + 2] = (uint)c;
+            ulong x2 = x[xOff + 2];
+            c += wVal * x2 + x1 + y[yOff + 2];
+            z[zOff + 2] = (uint)c;
             c >>= 32;
-            ulong xx03 = xx[xxOff + 3];
-            c += wVal * xx03 + xx02 + yy[yyOff + 3];
-            zz[zzOff + 3] = (uint)c;
+            ulong x3 = x[xOff + 3];
+            c += wVal * x3 + x2 + y[yOff + 3];
+            z[zOff + 3] = (uint)c;
             c >>= 32;
-            ulong xx04 = xx[xxOff + 4];
-            c += wVal * xx04 + xx03 + yy[yyOff + 4];
-            zz[zzOff + 4] = (uint)c;
+            ulong x4 = x[xOff + 4];
+            c += wVal * x4 + x3 + y[yOff + 4];
+            z[zOff + 4] = (uint)c;
             c >>= 32;
-            ulong xx05 = xx[xxOff + 5];
-            c += wVal * xx05 + xx04 + yy[yyOff + 5];
-            zz[zzOff + 5] = (uint)c;
+            ulong x5 = x[xOff + 5];
+            c += wVal * x5 + x4 + y[yOff + 5];
+            z[zOff + 5] = (uint)c;
             c >>= 32;
-            c += xx05;
+            c += x5;
             return c;
         }
 
@@ -418,15 +416,14 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return c == 0 ? 0 : Inc(z, zOff + 3);
         }
 
-        public static uint MulWordExt(uint x, uint[] y, uint[] zz, int zzOff)
+        public static uint MulWord(uint x, uint[] y, uint[] z, int zOff)
         {
-            Debug.Assert(zzOff <= 6);
             ulong c = 0, xVal = x;
             int i = 0;
             do
             {
                 c += xVal * y[i];
-                zz[zzOff + i] = (uint)c;
+                z[zOff + i] = (uint)c;
                 c >>= 32;
             }
             while (++i < 6);
@@ -598,21 +595,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[11] += (uint)(zz_10 >> 32);
 
             ShiftUpBit(zz, 12, (uint)x_0 << 31);
-        }
-
-        public static uint SquareWordAddExt(uint[] x, int xPos, uint[] zz)
-        {
-            Debug.Assert(xPos > 0 && xPos < 6);
-            ulong c = 0, xVal = x[xPos];
-            int i = 0;
-            do
-            {
-                c += xVal * x[i] + zz[xPos + i];
-                zz[xPos + i] = (uint)c;
-                c >>= 32;
-            }
-            while (++i < xPos);
-            return (uint)c;
         }
 
         public static int Sub(uint[] x, uint[] y, uint[] z)
