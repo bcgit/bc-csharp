@@ -4689,6 +4689,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\custom\sec\Nat224.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\custom\sec\Nat256.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4735,6 +4740,26 @@
                 />
                 <File
                     RelPath = "src\math\ec\custom\sec\SecP192R1Point.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP224R1Curve.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP224R1Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP224R1FieldElement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP224R1Point.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
