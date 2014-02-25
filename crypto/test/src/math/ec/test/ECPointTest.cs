@@ -434,7 +434,13 @@ namespace Org.BouncyCastle.Math.EC.Tests
             ImplTestAddSubtract(q, infinity);
             ImplTestMultiply(q, n.BitLength);
             ImplTestMultiply(infinity, n.BitLength);
-            ImplTestEncoding(q);
+
+            ECPoint p = q;
+            for (int i = 0; i < 10; ++i)
+            {
+                ImplTestEncoding(p);
+                p = p.Twice();
+            }
         }
 
         private void ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(X9ECParameters x9ECParameters)
