@@ -252,20 +252,44 @@ namespace Org.BouncyCastle.Math.EC
          */
         public override ECFieldElement Sqrt()
         {
+            if (IsZero || IsOne)
+                return this;
+
             if (!q.TestBit(0))
                 throw Platform.CreateNotImplementedException("even value of q");
 
-            // p mod 4 == 3
-            if (q.TestBit(1))
+            if (q.TestBit(1)) // q == 4m + 3
             {
-                // TODO Can this be optimised (inline the Square?)
-                // z = g^(u+1) + p, p = 4u + 3
-                ECFieldElement z = new FpFieldElement(q, r, x.ModPow(q.ShiftRight(2).Add(BigInteger.One), q));
-
-                return z.Square().Equals(this) ? z : null;
+                BigInteger e = q.ShiftRight(2).Add(BigInteger.One);
+                return CheckSqrt(new FpFieldElement(q, r, x.ModPow(e, q)));
             }
 
-            // p mod 4 == 1
+            if (q.TestBit(2)) // q == 8m + 5
+            {
+                BigInteger m = q.ShiftRight(3);
+
+                BigInteger t1 = x.ModPow(m, q);
+                BigInteger t2 = ModMult(t1, x);
+                BigInteger t3 = ModMult(t2, t1);
+
+                if (t3.Equals(BigInteger.One))
+                {
+                    return CheckSqrt(new FpFieldElement(q, r, t2));
+                }
+
+                BigInteger e = m.Add(BigInteger.One);
+
+                // TODO This is constant and could be precomputed
+                BigInteger t4 = BigInteger.ValueOf(4).ModPow(e, q);
+//                BigInteger t4 = BigInteger.Two.ModPow(e.ShiftLeft(1), q);
+
+                BigInteger y = ModMult(t2, t4);
+
+                return CheckSqrt(new FpFieldElement(q, r, ModHalf(y)));
+            }
+
+            // q == 8m + 1
+
             BigInteger qMinusOne = q.Subtract(BigInteger.One);
 
             BigInteger legendreExponent = qMinusOne.ShiftRight(1);
@@ -312,6 +336,11 @@ namespace Org.BouncyCastle.Math.EC
             while (U.Equals(BigInteger.One) || U.Equals(qMinusOne));
 
             return null;
+        }
+
+        private ECFieldElement CheckSqrt(ECFieldElement z)
+        {
+            return z.Square().Equals(this) ? z : null;
         }
 
         private BigInteger[] LucasSequence(
@@ -386,6 +415,15 @@ namespace Org.BouncyCastle.Math.EC
                 _2x = _2x.Subtract(q);
             }
             return _2x;
+        }
+
+        protected virtual BigInteger ModHalf(BigInteger x)
+        {
+            if (x.TestBit(0))
+            {
+                x = q.Subtract(x);
+            }
+            return x.ShiftRight(1);
         }
 
         protected virtual BigInteger ModInverse(BigInteger x)
