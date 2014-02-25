@@ -285,7 +285,7 @@ namespace Org.BouncyCastle.Math.EC
 
                 BigInteger y = ModMult(t2, t4);
 
-                return CheckSqrt(new FpFieldElement(q, r, ModHalf(y)));
+                return CheckSqrt(new FpFieldElement(q, r, ModHalfAbs(y)));
             }
 
             // q == 8m + 1
@@ -312,7 +312,7 @@ namespace Org.BouncyCastle.Math.EC
                     P = new BigInteger(q.BitLength, rand);
                 }
                 while (P.CompareTo(q) >= 0
-                    || !(ModMult(P, P).Subtract(fourX).ModPow(legendreExponent, q).Equals(qMinusOne)));
+                    || !ModReduce(P.Multiply(P).Subtract(fourX)).ModPow(legendreExponent, q).Equals(qMinusOne));
 
                 BigInteger[] result = LucasSequence(P, X, k);
                 U = result[0];
@@ -320,17 +320,7 @@ namespace Org.BouncyCastle.Math.EC
 
                 if (ModMult(V, V).Equals(fourX))
                 {
-                    // Integer division by 2, mod q
-                    if (V.TestBit(0))
-                    {
-                        V = V.Add(q);
-                    }
-
-                    V = V.ShiftRight(1);
-
-                    Debug.Assert(ModMult(V, V).Equals(X));
-
-                    return new FpFieldElement(q, r, V);
+                    return new FpFieldElement(q, r, ModHalfAbs(V));
                 }
             }
             while (U.Equals(BigInteger.One) || U.Equals(qMinusOne));
@@ -418,6 +408,15 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         protected virtual BigInteger ModHalf(BigInteger x)
+        {
+            if (x.TestBit(0))
+            {
+                x = q.Add(x);
+            }
+            return x.ShiftRight(1);
+        }
+
+        protected virtual BigInteger ModHalfAbs(BigInteger x)
         {
             if (x.TestBit(0))
             {
