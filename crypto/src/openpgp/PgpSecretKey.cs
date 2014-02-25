@@ -5,6 +5,7 @@ using System.IO;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -75,28 +76,36 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 pOut.WriteObject(secKey);
 
                 byte[] keyData = bOut.ToArray();
-                byte[] checksumBytes = Checksum(useSha1, keyData, keyData.Length);
+                byte[] checksumData = Checksum(useSha1, keyData, keyData.Length);
 
-                pOut.Write(checksumBytes);
-
-                byte[] bOutData = bOut.ToArray();
+                keyData = Arrays.Concatenate(keyData, checksumData);
 
                 if (encAlgorithm == SymmetricKeyAlgorithmTag.Null)
                 {
                     if (isMasterKey)
                     {
-                        this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, null, null, bOutData);
+                        this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, null, null, keyData);
                     }
                     else
                     {
-                        this.secret = new SecretSubkeyPacket(pub.publicPk, encAlgorithm, null, null, bOutData);
+                        this.secret = new SecretSubkeyPacket(pub.publicPk, encAlgorithm, null, null, keyData);
                     }
                 }
                 else
                 {
                     S2k s2k;
                     byte[] iv;
-                    byte[] encData = EncryptKeyData(bOutData, encAlgorithm, passPhrase, rand, out s2k, out iv);
+
+                    byte[] encData;
+                    if (pub.Version >= 4)
+                    {
+                        encData = EncryptKeyData(keyData, encAlgorithm, passPhrase, rand, out s2k, out iv);
+                    }
+                    else
+                    {
+                        // TODO v3 RSA key encryption
+                        throw Platform.CreateNotImplementedException("v3 RSA");
+                    }
 
                     int s2kUsage = useSha1
                         ?	SecretKeyPacket.UsageSha1
@@ -145,11 +154,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignatureSubpacketVector	hashedPackets,
             PgpSignatureSubpacketVector	unhashedPackets,
             SecureRandom				rand)
-            : this(keyPair.PrivateKey, certifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets), encAlgorithm, passPhrase, useSha1, rand, true)
+            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets), encAlgorithm, passPhrase, useSha1, rand, true)
         {
         }
 
-        private static PgpPublicKey certifiedPublicKey(
+        private static PgpPublicKey CertifiedPublicKey(
             int							certificationLevel,
             PgpKeyPair					keyPair,
             string						id,
@@ -254,6 +263,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return pub.IsMasterKey; }
         }
 
+        /// <summary>Detect if the Secret Key's Private Key is empty or not</summary>
+        public bool IsPrivateKeyEmpty
+        {
+            get
+            {
+                byte[] secKeyData = secret.GetSecretKeyData();
+
+                return secKeyData == null || secKeyData.Length < 1;
+            }
+        }
+
         /// <summary>The algorithm the key is encrypted with.</summary>
         public SymmetricKeyAlgorithmTag KeyEncryptionAlgorithm
         {
@@ -293,9 +313,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             byte[] encData = secret.GetSecretKeyData();
 
             if (alg == SymmetricKeyAlgorithmTag.Null)
+                // TODO Check checksum here?
                 return encData;
 
-            byte[] data;
             IBufferedCipher c = null;
             try
             {
@@ -307,13 +327,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new PgpException("Exception creating cipher", e);
             }
 
-            // TODO Factor this block out as 'encryptData'
+            // TODO Factor this block out as 'decryptData'
             try
             {
                 KeyParameter key = PgpUtilities.MakeKeyFromPassPhrase(secret.EncAlgorithm, secret.S2k, passPhrase);
                 byte[] iv = secret.GetIV();
+                byte[] data;
 
-                if (secret.PublicKeyPacket.Version == 4)
+                if (secret.PublicKeyPacket.Version >= 4)
                 {
                     c.Init(false, new ParametersWithIV(key, iv));
 
@@ -333,6 +354,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 else // version 2 or 3, RSA only.
                 {
                     data = new byte[encData.Length];
+
+                    iv = Arrays.Clone(iv);
 
                     //
                     // read in the four numbers
@@ -359,11 +382,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     }
 
                     //
-                    // verify Checksum
+                    // verify and copy checksum
                     //
+
+                    data[pos] = encData[pos];
+                    data[pos + 1] = encData[pos + 1];
+
                     int cs = ((encData[pos] << 8) & 0xff00) | (encData[pos + 1] & 0xff);
                     int calcCs = 0;
-                    for (int j=0; j < data.Length-2; j++)
+                    for (int j = 0; j < pos; j++)
                     {
                         calcCs += data[j] & 0xff;
                     }
@@ -393,8 +420,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public PgpPrivateKey ExtractPrivateKey(
             char[] passPhrase)
         {
-            byte[] secKeyData = secret.GetSecretKeyData();
-            if (secKeyData == null || secKeyData.Length < 1)
+            if (IsPrivateKeyEmpty)
                 return null;
 
             PublicKeyPacket pubPk = secret.PublicKeyPacket;
@@ -559,11 +585,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SymmetricKeyAlgorithmTag	newEncAlgorithm,
             SecureRandom				rand)
         {
+            if (key.IsPrivateKeyEmpty)
+                throw new PgpException("no private key in this SecretKey - public key present only.");
+
             byte[]	rawKeyData = key.ExtractKeyData(oldPassPhrase);
             int		s2kUsage = key.secret.S2kUsage;
             byte[]	iv = null;
             S2k		s2k = null;
             byte[]	keyData;
+            PublicKeyPacket pubKeyPacket = key.secret.PublicKeyPacket;
 
             if (newEncAlgorithm == SymmetricKeyAlgorithmTag.Null)
             {
@@ -588,7 +618,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 try
                 {
-                    keyData = EncryptKeyData(rawKeyData, newEncAlgorithm, newPassPhrase, rand, out s2k, out iv);
+                    if (pubKeyPacket.Version >= 4)
+                    {
+                        keyData = EncryptKeyData(rawKeyData, newEncAlgorithm, newPassPhrase, rand, out s2k, out iv);
+                    }
+                    else
+                    {
+                        // TODO v3 RSA key encryption
+                        throw Platform.CreateNotImplementedException("v3 RSA");
+                    }
                 }
                 catch (PgpException e)
                 {
@@ -603,13 +641,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SecretKeyPacket secret;
             if (key.secret is SecretSubkeyPacket)
             {
-                secret = new SecretSubkeyPacket(key.secret.PublicKeyPacket,
-                    newEncAlgorithm, s2kUsage, s2k, iv, keyData);
+                secret = new SecretSubkeyPacket(pubKeyPacket, newEncAlgorithm, s2kUsage, s2k, iv, keyData);
             }
             else
             {
-                secret = new SecretKeyPacket(key.secret.PublicKeyPacket,
-                    newEncAlgorithm, s2kUsage, s2k, iv, keyData);
+                secret = new SecretKeyPacket(pubKeyPacket, newEncAlgorithm, s2kUsage, s2k, iv, keyData);
             }
 
             return new PgpSecretKey(secret, key.pub);

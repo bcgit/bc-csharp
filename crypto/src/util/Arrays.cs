@@ -329,5 +329,18 @@ namespace Org.BouncyCastle.Utilities
             Array.Copy(data, off, result, 0, len);
             return result;
         }
+
+        public static byte[] Concatenate(byte[] a, byte[] b)
+        {
+            if (a == null)
+                return Clone(b);
+            if (b == null)
+                return Clone(a);
+
+            byte[] rv = new byte[a.Length + b.Length];
+            Array.Copy(a, 0, rv, 0, a.Length);
+            Array.Copy(b, 0, rv, a.Length, b.Length);
+            return rv;
+        }
     }
 }

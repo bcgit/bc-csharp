@@ -10577,6 +10577,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\openpgp\test\PGPNoPrivateKeyTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\openpgp\test\PGPPacketTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
