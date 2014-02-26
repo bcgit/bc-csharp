@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Array.Copy(x, 0, z, 0, 16);
+            Nat.Copy(16, x, z);
             uint c = Nat.Inc(16, z, 0) + x[16];
             if (c > P16 || (c == P16 && Nat.Eq(16, z, P)))
             {
@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static void Reduce23(uint[] z)
         {
             uint z16 = z[16];
-            uint c = Nat.AddWord(16, z16 >> 9, z) + (z16 & P16);
+            uint c = Nat.AddWord(16, z16 >> 9, z, 0) + (z16 & P16);
             if (c > P16 || (c == P16 && Nat.Eq(16, z, P)))
             {
                 c += Nat.Inc(16, z, 0);

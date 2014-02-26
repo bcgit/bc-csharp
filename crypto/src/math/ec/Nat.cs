@@ -69,10 +69,11 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
-        public static uint AddWord(int len, uint x, uint[] z)
+        public static uint AddWord(int len, uint x, uint[] z, int zOff)
         {
-            ulong c = (ulong)x + z[0];
-            z[0] = (uint)c;
+            Debug.Assert(zOff < len);
+            ulong c = (ulong)x + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : Inc(len, z, 1);
         }
@@ -80,11 +81,16 @@ namespace Org.BouncyCastle.Math.EC
         public static uint AddWordExt(int len, uint x, uint[] zz, int zzOff)
         {
             int extLen = len << 1;
-            Debug.Assert(zzOff <= (extLen - 1));
+            Debug.Assert(zzOff < extLen);
             ulong c = (ulong)x + zz[zzOff];
             zz[zzOff] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : Inc(extLen, zz, zzOff + 1);
+        }
+
+        public static void Copy(int len, uint[] x, uint[] z)
+        {
+            Array.Copy(x, 0, z, 0, len);
         }
 
         public static uint[] Copy(int len, uint[] x)
