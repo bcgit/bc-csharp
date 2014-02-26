@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Array.Copy(x, 0, z, 0, 8);
+            Nat256.Copy(x, z);
             uint c = Nat256.Inc(z, 0);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {

@@ -83,27 +83,56 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
-        public static uint AddToExt(uint[] x, int xOff, uint[] zz, int zzOff)
+        public static uint AddTo(uint[] x, int xOff, uint[] z, int zOff, uint cIn)
         {
-            Debug.Assert(zzOff <= 6);
+            ulong c = cIn;
+            c += (ulong)x[xOff + 0] + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[xOff + 1] + z[zOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[xOff + 2] + z[zOff + 2];
+            z[zOff + 2] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[xOff + 3] + z[zOff + 3];
+            z[zOff + 3] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[xOff + 4] + z[zOff + 4];
+            z[zOff + 4] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[xOff + 5] + z[zOff + 5];
+            z[zOff + 5] = (uint)c;
+            c >>= 32;
+            return (uint)c;
+        }
+
+        public static uint AddToEachOther(uint[] u, int uOff, uint[] v, int vOff)
+        {
             ulong c = 0;
-            c += (ulong)x[xOff + 0] + zz[zzOff + 0];
-            zz[zzOff + 0] = (uint)c;
+            c += (ulong)u[uOff + 0] + v[vOff + 0];
+            u[uOff + 0] = (uint)c;
+            v[vOff + 0] = (uint)c;
             c >>= 32;
-            c += (ulong)x[xOff + 1] + zz[zzOff + 1];
-            zz[zzOff + 1] = (uint)c;
+            c += (ulong)u[uOff + 1] + v[vOff + 1];
+            u[uOff + 1] = (uint)c;
+            v[vOff + 1] = (uint)c;
             c >>= 32;
-            c += (ulong)x[xOff + 2] + zz[zzOff + 2];
-            zz[zzOff + 2] = (uint)c;
+            c += (ulong)u[uOff + 2] + v[vOff + 2];
+            u[uOff + 2] = (uint)c;
+            v[vOff + 2] = (uint)c;
             c >>= 32;
-            c += (ulong)x[xOff + 3] + zz[zzOff + 3];
-            zz[zzOff + 3] = (uint)c;
+            c += (ulong)u[uOff + 3] + v[vOff + 3];
+            u[uOff + 3] = (uint)c;
+            v[vOff + 3] = (uint)c;
             c >>= 32;
-            c += (ulong)x[xOff + 4] + zz[zzOff + 4];
-            zz[zzOff + 4] = (uint)c;
+            c += (ulong)u[uOff + 4] + v[vOff + 4];
+            u[uOff + 4] = (uint)c;
+            v[vOff + 4] = (uint)c;
             c >>= 32;
-            c += (ulong)x[xOff + 5] + zz[zzOff + 5];
-            zz[zzOff + 5] = (uint)c;
+            c += (ulong)u[uOff + 5] + v[vOff + 5];
+            u[uOff + 5] = (uint)c;
+            v[vOff + 5] = (uint)c;
             c >>= 32;
             return (uint)c;
         }
@@ -124,6 +153,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[zzOff + 0] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : IncExt(zz, zzOff + 1);
+        }
+
+        public static void Copy(uint[] x, uint[] z)
+        {
+            z[0] = x[0];
+            z[1] = x[1];
+            z[2] = x[2];
+            z[3] = x[3];
+            z[4] = x[4];
+            z[5] = x[5];
         }
 
         public static uint[] Create()
@@ -162,6 +201,20 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return -1;
         }
 
+        public static bool Diff(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
+        {
+            bool pos = Gte(x, xOff, y, yOff);
+            if (pos)
+            {
+                Sub(x, xOff, y, yOff, z, zOff);
+            }
+            else
+            {
+                Sub(y, yOff, x, xOff, z, zOff);
+            }
+            return pos;
+        }
+
         public static uint[] FromBigInteger(BigInteger x)
         {
             if (x.SignValue < 0 || x.BitLength > 192)
@@ -197,6 +250,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             for (int i = 5; i >= 0; --i)
             {
                 uint x_i = x[i], y_i = y[i];
+                if (x_i < y_i)
+                    return false;
+                if (x_i > y_i)
+                    return true;
+            }
+            return true;
+        }
+
+        public static bool Gte(uint[] x, int xOff, uint[] y, int yOff)
+        {
+            for (int i = 5; i >= 0; --i)
+            {
+                uint x_i = x[xOff + i], y_i = y[yOff + i];
                 if (x_i < y_i)
                     return false;
                 if (x_i > y_i)
@@ -338,6 +404,64 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 zz[i + 5] = (uint)c;
                 c >>= 32;
                 zz[i + 6] = (uint)c;
+            }
+        }
+
+        public static void Mul(uint[] x, int xOff, uint[] y, int yOff, uint[] zz, int zzOff)
+        {
+            ulong y_0 = y[yOff + 0];
+            ulong y_1 = y[yOff + 1];
+            ulong y_2 = y[yOff + 2];
+            ulong y_3 = y[yOff + 3];
+            ulong y_4 = y[yOff + 4];
+            ulong y_5 = y[yOff + 5];
+
+            {
+                ulong c = 0, x_0 = x[xOff + 0];
+                c += x_0 * y_0;
+                zz[zzOff + 0] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_1;
+                zz[zzOff + 1] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_2;
+                zz[zzOff + 2] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_3;
+                zz[zzOff + 3] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_4;
+                zz[zzOff + 4] = (uint)c;
+                c >>= 32;
+                c += x_0 * y_5;
+                zz[zzOff + 5] = (uint)c;
+                c >>= 32;
+                zz[zzOff + 6] = (uint)c;
+            }
+
+            for (int i = 1; i < 6; ++i)
+            {
+                ++zzOff;
+                ulong c = 0, x_i = x[xOff + i];
+                c += x_i * y_0 + zz[zzOff + 0];
+                zz[zzOff + 0] = (uint)c;
+                c >>= 32;
+                c += x_i * y_1 + zz[zzOff + 1];
+                zz[zzOff + 1] = (uint)c;
+                c >>= 32;
+                c += x_i * y_2 + zz[zzOff + 2];
+                zz[zzOff + 2] = (uint)c;
+                c >>= 32;
+                c += x_i * y_3 + zz[zzOff + 3];
+                zz[zzOff + 3] = (uint)c;
+                c >>= 32;
+                c += x_i * y_4 + zz[zzOff + 4];
+                zz[zzOff + 4] = (uint)c;
+                c >>= 32;
+                c += x_i * y_5 + zz[zzOff + 5];
+                zz[zzOff + 5] = (uint)c;
+                c >>= 32;
+                zz[zzOff + 6] = (uint)c;
             }
         }
 
@@ -529,6 +653,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return c >> 31;
         }
 
+        public static uint ShiftUpBit(uint[] x, int xOff, int xLen, uint c)
+        {
+            for (int i = 0; i < xLen; ++i)
+            {
+                uint next = x[xOff + i];
+                x[xOff + i] = (next << 1) | (c >> 31);
+                c = next;
+            }
+            return c >> 31;
+        }
+
         public static uint ShiftUpBit(uint[] x, uint c, uint[] z)
         {
             for (int i = 0; i < 6; ++i)
@@ -636,6 +771,102 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ShiftUpBit(zz, 12, (uint)x_0 << 31);
         }
 
+        public static void Square(uint[] x, int xOff, uint[] zz, int zzOff)
+        {
+            ulong x_0 = x[xOff + 0];
+            ulong zz_1;
+
+            {
+                uint c = 0;
+                int i = 5, j = 12;
+                do
+                {
+                    ulong xVal = x[xOff + i--];
+                    ulong p = xVal * xVal;
+                    zz[zzOff + --j] = (c << 31) | (uint)(p >> 33);
+                    zz[zzOff + --j] = (uint)(p >> 1);
+                    c = (uint)p;
+                }
+                while (i > 0);
+
+                {
+                    ulong p = x_0 * x_0;
+                    zz_1 = (ulong)(c << 31) | (p >> 33);
+                    zz[zzOff + 0] = (uint)(p >> 1);
+                }
+            }
+
+            ulong x_1 = x[xOff + 1];
+            ulong zz_2 = zz[zzOff + 2];
+
+            {
+                zz_1 += x_1 * x_0;
+                zz[zzOff + 1] = (uint)zz_1;
+                zz_2 += zz_1 >> 32;
+            }
+
+            ulong x_2 = x[xOff + 2];
+            ulong zz_3 = zz[zzOff + 3];
+            ulong zz_4 = zz[zzOff + 4];
+            {
+                zz_2 += x_2 * x_0;
+                zz[zzOff + 2] = (uint)zz_2;
+                zz_3 += (zz_2 >> 32) + x_2 * x_1;
+                zz_4 += zz_3 >> 32;
+                zz_3 &= M;
+            }
+
+            ulong x_3 = x[xOff + 3];
+            ulong zz_5 = zz[zzOff + 5];
+            ulong zz_6 = zz[zzOff + 6];
+            {
+                zz_3 += x_3 * x_0;
+                zz[zzOff + 3] = (uint)zz_3;
+                zz_4 += (zz_3 >> 32) + x_3 * x_1;
+                zz_5 += (zz_4 >> 32) + x_3 * x_2;
+                zz_4 &= M;
+                zz_6 += zz_5 >> 32;
+                zz_5 &= M;
+            }
+
+            ulong x_4 = x[xOff + 4];
+            ulong zz_7 = zz[zzOff + 7];
+            ulong zz_8 = zz[zzOff + 8];
+            {
+                zz_4 += x_4 * x_0;
+                zz[zzOff + 4] = (uint)zz_4;
+                zz_5 += (zz_4 >> 32) + x_4 * x_1;
+                zz_6 += (zz_5 >> 32) + x_4 * x_2;
+                zz_5 &= M;
+                zz_7 += (zz_6 >> 32) + x_4 * x_3;
+                zz_6 &= M;
+                zz_8 += zz_7 >> 32;
+                zz_7 &= M;
+            }
+
+            ulong x_5 = x[xOff + 5];
+            ulong zz_9 = zz[zzOff + 9];
+            ulong zz_10 = zz[zzOff + 10];
+            {
+                zz_5 += x_5 * x_0;
+                zz[zzOff + 5] = (uint)zz_5;
+                zz_6 += (zz_5 >> 32) + x_5 * x_1;
+                zz_7 += (zz_6 >> 32) + x_5 * x_2;
+                zz_8 += (zz_7 >> 32) + x_5 * x_3;
+                zz_9 += (zz_8 >> 32) + x_5 * x_4;
+                zz_10 += zz_9 >> 32;
+            }
+
+            zz[zzOff + 6] = (uint)zz_6;
+            zz[zzOff + 7] = (uint)zz_7;
+            zz[zzOff + 8] = (uint)zz_8;
+            zz[zzOff + 9] = (uint)zz_9;
+            zz[zzOff + 10] = (uint)zz_10;
+            zz[zzOff + 11] += (uint)(zz_10 >> 32);
+
+            ShiftUpBit(zz, zzOff, 12, (uint)x_0 << 31);
+        }
+
         public static int Sub(uint[] x, uint[] y, uint[] z)
         {
             long c = 0;
@@ -656,6 +887,30 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c >>= 32;
             c += (long)x[5] - y[5];
             z[5] = (uint)c;
+            c >>= 32;
+            return (int)c;
+        }
+
+        public static int Sub(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
+        {
+            long c = 0;
+            c += (long)x[xOff + 0] - y[yOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (long)x[xOff + 1] - y[yOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            c += (long)x[xOff + 2] - y[yOff + 2];
+            z[zOff + 2] = (uint)c;
+            c >>= 32;
+            c += (long)x[xOff + 3] - y[yOff + 3];
+            z[zOff + 3] = (uint)c;
+            c >>= 32;
+            c += (long)x[xOff + 4] - y[yOff + 4];
+            z[zOff + 4] = (uint)c;
+            c >>= 32;
+            c += (long)x[xOff + 5] - y[yOff + 5];
+            z[zOff + 5] = (uint)c;
             c >>= 32;
             return (int)c;
         }
