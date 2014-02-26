@@ -266,9 +266,7 @@ namespace Org.BouncyCastle.Math.EC
 
             if (q.TestBit(2)) // q == 8m + 5
             {
-                BigInteger m = q.ShiftRight(3);
-
-                BigInteger t1 = x.ModPow(m, q);
+                BigInteger t1 = x.ModPow(q.ShiftRight(3), q);
                 BigInteger t2 = ModMult(t1, x);
                 BigInteger t3 = ModMult(t2, t1);
 
@@ -277,30 +275,24 @@ namespace Org.BouncyCastle.Math.EC
                     return CheckSqrt(new FpFieldElement(q, r, t2));
                 }
 
-                BigInteger e = m.Add(BigInteger.One);
-
                 // TODO This is constant and could be precomputed
-                BigInteger t4 = BigInteger.ValueOf(4).ModPow(e, q);
-//                BigInteger t4 = BigInteger.Two.ModPow(e.ShiftLeft(1), q);
+                BigInteger t4 = BigInteger.Two.ModPow(q.ShiftRight(2), q);
 
                 BigInteger y = ModMult(t2, t4);
 
-                return CheckSqrt(new FpFieldElement(q, r, ModHalfAbs(y)));
+                return CheckSqrt(new FpFieldElement(q, r, y));
             }
 
             // q == 8m + 1
 
-            BigInteger qMinusOne = q.Subtract(BigInteger.One);
-
-            BigInteger legendreExponent = qMinusOne.ShiftRight(1);
+            BigInteger legendreExponent = q.ShiftRight(1);
             if (!(x.ModPow(legendreExponent, q).Equals(BigInteger.One)))
                 return null;
 
-            BigInteger u = qMinusOne.ShiftRight(2);
-            BigInteger k = u.ShiftLeft(1).Add(BigInteger.One);
-
             BigInteger X = this.x;
             BigInteger fourX = ModDouble(ModDouble(X)); ;
+
+            BigInteger k = legendreExponent.Add(BigInteger.One), qMinusOne = q.Subtract(BigInteger.One);
 
             BigInteger U, V;
             Random rand = new Random();
