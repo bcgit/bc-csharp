@@ -145,6 +145,42 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
+        public static void Reduce32(uint x, uint[] z)
+        {
+            long xx08 = x;
+
+            long cc = 0;
+            cc += (long)z[0] + xx08;
+            z[0] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[1];
+            z[1] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[2];
+            z[2] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[3] - xx08;
+            z[3] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[4];
+            z[4] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[5];
+            z[5] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[6] - xx08;
+            z[6] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[7] + xx08;
+            z[7] = (uint)cc;
+            cc >>= 32;
+
+            if (cc != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
+            {
+                Nat256.Sub(z, P, z);
+            }
+        }
+
         public static void Square(uint[] x, uint[] z)
         {
             uint[] tt = Nat256.CreateExt();

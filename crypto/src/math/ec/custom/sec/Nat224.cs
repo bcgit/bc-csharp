@@ -730,6 +730,23 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return c == 0 ? 0 : Inc(z, zOff + 4);
         }
 
+        public static uint Mul33WordAdd(uint x, uint y, uint[] z, int zOff)
+        {
+            Debug.Assert(x >> 31 == 0);
+            Debug.Assert(zOff <= 4);
+            ulong c = 0, yVal = y;
+            c += yVal * x + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += yVal + z[zOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            c += z[zOff + 2];
+            z[zOff + 2] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Inc(z, zOff + 3);
+        }
+
         public static uint MulWordDwordAdd(uint x, ulong y, uint[] z, int zOff)
         {
             Debug.Assert(zOff <= 4);

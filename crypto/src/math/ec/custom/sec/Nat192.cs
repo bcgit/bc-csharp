@@ -108,6 +108,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
+        public static uint AddWord(uint x, uint[] z, int zOff)
+        {
+            Debug.Assert(zOff <= 5);
+            ulong c = (ulong)x + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Inc(z, zOff + 1);
+        }
+
         public static uint AddWordExt(uint x, uint[] zz, int zzOff)
         {
             Debug.Assert(zzOff <= 11);
@@ -131,6 +140,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             Debug.Assert(zOff <= 6);
             for (int i = zOff; i < 6; ++i)
+            {
+                if (--z[i] != uint.MaxValue)
+                {
+                    return 0;
+                }
+            }
+            return -1;
+        }
+
+        public static int DecExt(uint[] z, int zOff)
+        {
+            Debug.Assert(zOff <= 12);
+            for (int i = zOff; i < 12; ++i)
             {
                 if (--z[i] != uint.MaxValue)
                 {
@@ -398,6 +420,23 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[zOff + 3] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : Inc(z, zOff + 4);
+        }
+
+        public static uint Mul33WordAdd(uint x, uint y, uint[] z, int zOff)
+        {
+            Debug.Assert(x >> 31 == 0);
+            Debug.Assert(zOff <=3);
+            ulong c = 0, yVal = y;
+            c += yVal * x + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += yVal + z[zOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            c += z[zOff + 2];
+            z[zOff + 2] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Inc(z, zOff + 3);
         }
 
         public static uint MulWordDwordAdd(uint x, ulong y, uint[] z, int zOff)
@@ -693,6 +732,24 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[zzOff + 5] = (uint)c;
             c >>= 32;
             return (int)c;
+        }
+
+        public static int SubWord(uint x, uint[] z, int zOff)
+        {
+            Debug.Assert(zOff <= 5);
+            long c = (long)z[zOff + 0] - x;
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Dec(z, zOff + 1);
+        }
+
+        public static int SubWordExt(uint x, uint[] zz, int zzOff)
+        {
+            Debug.Assert(zzOff <= 11);
+            long c = (long)zz[zzOff + 0] - x;
+            zz[zzOff + 0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecExt(zz, zzOff + 1);
         }
 
         public static BigInteger ToBigInteger(uint[] x)

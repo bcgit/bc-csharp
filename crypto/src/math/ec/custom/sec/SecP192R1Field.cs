@@ -131,6 +131,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
+        public static void Reduce32(uint x, uint[] z)
+        {
+            uint c = Nat192.AddWord(x, z, 0) + Nat192.AddWord(x, z, 2);
+            if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
+            {
+                Nat192.Sub(z, P, z);
+            }
+        }
+
         public static void Square(uint[] x, uint[] z)
         {
             uint[] tt = Nat192.CreateExt();

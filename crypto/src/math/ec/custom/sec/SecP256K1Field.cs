@@ -99,6 +99,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
+        public static void Reduce32(uint x, uint[] z)
+        {
+            uint c = Nat256.Mul33WordAdd(PInv33, x, z, 0);
+
+            Debug.Assert(c == 0 || c == 1);
+
+            if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
+            {
+                Nat256.AddDWord(PInv, z, 0);
+            }
+        }
+
         public static void Square(uint[] x, uint[] z)
         {
             uint[] tt = Nat256.CreateExt();
