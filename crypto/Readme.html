@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<title>Notes</title>
+		<meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+	</head>
+	<body>
+		<h2><a class="mozTocH2" name="mozTocId533031"></a>The Bouncy Castle Cryptographic 
+			C#® API</h2>
+		<h3><a class="mozTocH3" name="mozTocId685176"></a>Contents:<br>
+		</h3>
+		<ol id="mozToc">
+			<!--mozToc h1 1 h2 2 h3 3 h4 4 h5 5 h6 6--><li><a href="#mozTocId533031">The Bouncy 
+					Castle Cryptographic C#® API</a>
+		<ol>
+			<li>
+		<ol>
+			<li>
+				<a href="#mozTocId685176">Contents: </a>
+			<li>
+				<a href="#mozTocId66345">License &amp; Contributors:</a>
+			<li>
+				<a href="#mozTocId575388">Features:</a>
+			<li>
+				<a href="#mozTocId211208">How To Build.</a>
+			<li>
+				<a href="#mozTocId245743">The Source:</a>
+			<li>
+				<a href="#mozTocId326820">Documentation:</a>
+			<li>
+				<a href="#mozTocId358608">For first time users.</a>
+			<li>
+				<a href="#mozTocId3413">Notes:</a>
+		<ol>
+			<li>
+				<a href="#mozTocId85313">Release 1.7</a>
+			<li>
+				<a href="#mozTocId85312">Release 1.6.1</a>
+			<li>
+				<a href="#mozTocId85311">Release 1.6</a>
+			<li>
+				<a href="#mozTocId85310">Release 1.5</a>
+			<li>
+				<a href="#mozTocId85309">Release 1.4</a>
+			<li>
+				<a href="#mozTocId85308">Release 1.3</a>
+			<li>
+				<a href="#mozTocId85307">Release 1.2</a>
+			<li>
+				<a href="#mozTocId85306">Release 1.1</a>
+			<li>
+				<a href="#mozTocId85305">Release 1.0</a>
+			<li>
+				<a href="#mozTocId85304">Tuesday Febuary 1, 2005</a>
+			<li>
+				<a href="#mozTocId498363">Sunday December 12, 2004</a></li>
+		</ol>
+		<li>
+			<a href="#mozTocId948186">Trademarks. </a>
+		</li>
+		</ol> </li> </ol> </li> </ol>
+		<br>
+		<hr style="WIDTH: 100%; HEIGHT: 2px">
+		<h3><a class="mozTocH3" name="mozTocId66345"></a>License &amp; Contributors:</h3>
+		See <a href="License.html">License</a> &amp; <a href="Contributors.html">Contributors</a>
+		files.<br>
+		&nbsp;<br>
+		<hr style="WIDTH: 100%; HEIGHT: 2px">
+		<br>
+		<h3><a class="mozTocH3" name="mozTocId575388"></a>Features:</h3>
+		<ul>
+			<li>
+			Generation and parsing of PKCS-12 files.
+			<li>
+			X.509: Generators and parsers for V1 and V3 certificates, V2 CRLs and attribute 
+			certificates.
+			<li>
+			PBE algorithms supported by PBEUtil: PBEwithMD2andDES-CBC, 
+			PBEwithMD2andRC2-CBC, PBEwithMD5andDES-CBC, PBEwithMD5andRC2-CBC, 
+			PBEwithSHA1andDES-CBC, PBEwithSHA1andRC2-CBC, PBEwithSHA-1and128bitRC4, 
+			PBEwithSHA-1and40bitRC4, PBEwithSHA-1and3-keyDESEDE-CBC, 
+			PBEwithSHA-1and2-keyDESEDE-CBC, PBEwithSHA-1and128bitRC2-CBC, 
+			PBEwithSHA-1and40bitRC2-CBC, PBEwithHmacSHA-1, PBEwithHmacSHA-224, 
+			PBEwithHmacSHA-256, PBEwithHmacRIPEMD128, PBEwithHmacRIPEMD160, and 
+			PBEwithHmacRIPEMD256.
+			<li>
+			Signature algorithms supported by SignerUtilities: MD2withRSA, MD4withRSA, 
+			MD5withRSA, RIPEMD128withRSA, RIPEMD160withECDSA, RIPEMD160withRSA, 
+			RIPEMD256withRSA, SHA-1withRSA, SHA-224withRSA, SHA-256withRSAandMGF1, 
+			SHA-384withRSAandMGF1, SHA-512withRSAandMGF1, SHA-1withDSA, and SHA-1withECDSA.
+			<li>
+			Symmetric key algorithms: AES, Blowfish, Camellia, CAST5, CAST6, DESede, DES, 
+			GOST28147, HC-128, HC-256, IDEA, ISAAC, NaccacheStern, Noekeon, RC2, RC4, 
+			RC5-32, RC5-64, RC6, Rijndael, Salsa20, SEED, Serpent, Skipjack, TEA/XTEA,
+			Twofish and VMPC.
+			<li>
+			Symmetric key modes: CBC, CFB, CTS, GOFB, OFB, OpenPGPCFB, and SIC (or CTR).
+			<li>
+			Symmetric key paddings: ISO10126d2, ISO7816d4, PKCS-5/7, TBC, X.923, and Zero 
+			Byte.
+			<li>
+			Asymmetric key algorithms: RSA (with blinding), ElGamal, DSA, and ECDSA.
+			<li>
+			Asymmetric key paddings/encodings: ISO9796d1, OAEP, and PKCS-1.
+			<li>
+			AEAD block cipher modes: CCM, EAX, and GCM.
+			<li>
+			Digests: GOST3411, MD2, MD4, MD5, RIPEMD128, RIPEMD160, RIPEMD256, RIPEMD320, 
+			SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, Tiger, and Whirlpool.
+			<li>
+			Signer mechanisms: DSA, ECDSA, ECGOST3410, GOST3410, ISO9796d2, PSS, RSA.
+			<li>
+			Key Agreement: Diffie-Hellman, EC-DH, SRP-6a.
+			<li>
+			Macs: CBCBlockCipher, CFBBlockCipher, GOST28147, HMac, ISO9797 Alg. 3, and VMPCMAC.
+			<li>
+			PBE generators: PKCS-12, and PKCS-5 - schemes 1 and 2.
+			<li>
+			OpenPGP (RFC 2440)
+			<li>
+			Cryptographic Message Syntax (CMS, RFC 3852), including streaming API.
+			<li>
+			Online Certificate Status Protocol (OCSP, RFC 2560).
+			<li>
+			Time Stamp Protocol (TSP, RFC 3161).
+			<li>
+			Elliptic Curve Cryptography (support for F2m and Fp curves).
+			<li>
+				Reading/writing of PEM files, including RSA and DSA keys, with a variety of 
+				encryptions.
+			</li>
+			<li>PKIX certificate path validation</li>
+		</ul>
+		<br>
+		<p><b>Porting notes from the old ASN.1 library</b> For the most part code using the 
+			old subset of ASN.1 classes should be easy to transfer, providing the following 
+			changes are made:
+		</p>
+		<ul>
+			<li>
+			DERObject becomes Asn1Object
+			<li>
+			DEREncodable becomes Asn1Encodable
+			<li>
+			GetDERObject() becomes ToAsn1Object()
+			<li>
+			BERConstructedOctetString becomes BerOctetString
+			<li>
+			If you were using the older mutable DERConstructedSequence/Set and 
+			BERConstructedSequence, use an Asn1EncodableVector in conjunction with 
+			DerSequence/Set and BerSequence
+			<li>
+			BERInputStream and DERInputStream are replaced with Asn1InputStream
+			<li>
+				AsymmetricKeyParameter is now in the Org.Bouncycastle.Crypto namespace</li>
+		</ul>
+		<br>
+		<hr style="WIDTH: 100%; HEIGHT: 2px">
+		<h3><a class="mozTocH3" name="mozTocId211208"></a>How To Build.</h3>
+		<p>
+			The BC C# API uses NAnt (<a href="http://nant.sourceforge.net/">http://nant.sourceforge.net</a>) 
+			to provide a platform independent build environment (suggested version NAnt 0.90).
+			There is also a solution file for Visual Studio, and for MonoDevelop. The API works
+			with .NET Framework 1.1 and above. It has been successfully built and tested with Mono
+			versions from 1.1.13 onwards. The source code can be built for .NET Compact Framework 1.0
+			by setting the compilation flag NETCF_1_0, or .NET Compact Framework 2.0 by setting NETCF_2_0,
+			or Silverlight 2 by setting SILVERLIGHT.
+		</p>
+		Using a command prompt (DOS window), cd into the 'crypto' folder of this 
+		distribution.<br>
+		<br>
+		<span style="FONT-WEIGHT: bold">Use,</span><br>
+		<ul>
+			<li>
+				'<span style="FONT-WEIGHT: bold">nant</span>' without arguments to compile 
+			debug code, the tests and run the tests.
+			<li>
+				'<span style="FONT-WEIGHT: bold">nant compile-release</span>' to compile 
+			release code.
+			<li>
+				'<span style="FONT-WEIGHT: bold">nant compile-debug</span>' to compile 
+			debug code.
+			<LI>
+				'<SPAN style="FONT-WEIGHT: bold">nant test</SPAN>' to run the included unit 
+				tests (using NUnit; you may need to edit the build file to set the location 
+				where NUnit is installed).</LI>
+		</ul>
+		<P>
+			<span style="FONT-WEIGHT: bold">Output:</span><br>
+			<br>
+			&nbsp;&nbsp;&nbsp; The compiled API can be found in the 'api/bin/release' &amp; 
+			'api/bin/debug' directories.<br>
+			&nbsp;&nbsp;&nbsp; The compiled tests can be found in the 'test/bin' directory 
+			(by default a debug build is used for testing).<br>
+		<P>
+			<hr style="WIDTH: 100%; HEIGHT: 2px">
+		<P></P>
+		<h3><a class="mozTocH3" name="mozTocId245743"></a><span style="FONT-WEIGHT: bold">The Source:</span></h3>
+		Source code can be found in the 'src'directory.<br>
+		<br>
+		<hr style="WIDTH: 100%; HEIGHT: 2px">
+		<h3><a class="mozTocH3" name="mozTocId326820"></a><span style="FONT-WEIGHT: bold"></span>Documentation:</h3>
+		<P>There is limited documentation available at the moment. Some of the source 
+			contains XML comments, but this is a work in progress. We will be working to 
+			improve this now that 1.0 is out the door.</P>
+		<P>
+			<hr style="WIDTH: 100%; HEIGHT: 2px">
+		<P></P>
+		<h3><a class="mozTocH3" name="mozTocId358608"></a>For first time users.</h3>
+		&nbsp;<span style="FONT-WEIGHT: bold">Java® heritage,</span><br>
+		<br>
+		The Bouncy Castle C# API is a port of the Bouncy Castle Java APIs. 
+		Approximately %80 of the functionality in the Java build has now been ported. 
+		For the most part, the naming conventions of the .NET platform have been 
+		adopted. The C# API is constantly kept uptodate with bug fixes and new test 
+		cases from the Java build (and vice versa sometimes), thus benefitting from the 
+		large user base and real-world use the Java version has seen.<br>
+		<br>
+		<span style="FONT-WEIGHT: bold">Please consider.</span><br>
+		<br>
+		The Bouncy Castle C# API is a library of transformations that when combined 
+		properly will enable developers to create standard conforming cryptographic 
+		systems. In order to use this API you must have some knowledge of how to build 
+		cryptographic systems, namely what transformations to use and the when, where 
+		and why of their use.<br>
+		Developing good cryptographic systems takes practice and understanding.<br>
+		<br>
+		There are many resources available online and in book shops; please use those 
+		to your advantage.<br>
+		<br>
+		<hr style="WIDTH: 100%; HEIGHT: 2px">
+		<h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
+		<H4><A class="mozTocH4" name="mozTocId85313"></A>Release 1.7, Thursday April 7, 2011</H4>
+<h5>Additional Features and Functionality</h5>
+<ul>
+<li>TLS now supports client authentication.</li>
+<li>TLS now supports compression.</li>
+<li>TLS now supports ECC cipher suites (RFC 4492).</li>
+<li>Library can now be built for Silverlight (2.0 and above).</li>
+<li>ASN.1 classes for CRMF (RFC 4211) and CMP (RFC 4210) have been added.</li>
+<li>Further performance improvements to GCM mode.</li>
+<li>BufferedBlockCipher will now always reset after a DoFinal().</li>
+<li>An IV can now be passed to an Iso9797Alg3Mac</li>
+</ul>
+<h5>Additional Notes</h5>
+<ul>
+<li>See list of resolved issues at
+<a href="http://www.bouncycastle.org/jira/secure/IssueNavigator.jspa?reset=true&&pid=10001&fixfor=10110&sorter/field=issuekey&sorter/order=DESC">
+Bouncy Castle JIRA C# 1.7</a></li>
+</ul>
+		<H4><A class="mozTocH4" name="mozTocId85312"></A>Release 1.6.1, Monday February 8, 2010</H4>
+<ul>
+<li>A point release to rectify some problems with the released assembly of 1.6 version.</li>
+</ul>
+		<H4><A class="mozTocH4" name="mozTocId85311"></A>Release 1.6, Thursday February 4, 2010</H4>
+<h5>Defects Fixed</h5>
+<ul>
+<li>X509DefaultEntryConverter was not recognising telephone number as a PrintableString field. This has been fixed.</li>
+<li>OpenPGP now supports UTF-8 in file names for literal data.</li>
+</ul>
+<h5>Security Advisory</h5>
+<ul>
+<li>This version has been specifically reviewed to eliminate possible timing attacks on algorithms such as GCM and CCM mode.</li>
+</ul>
+<h5>Additional Features and Functionality</h5>
+<ul>
+<li>Support for PSS signatures has been added to CMS.</li>
+<li>SubjectKeyIdentifier now supports both methods specified in RFC 3280, section 4.2.1.2 for generating the identifier.</li>
+<li>Performance of GCM mode has been greatly improved (on average 10x).</li>
+<li>Support for mac lengths of 96, 104, 112, and 120 bits has been added to existing support for 128 bits in GCMBlockCipher.</li>
+<li>Support for raw signatures has been extended to RSA, RSA-PSS and ECDSA. RSA support can be used in CmsSignedDataStreamGenerator to support signatures without signed attributes.</li>
+<li>Support for EC MQV has been added to the light weight API and the CMS library.</li>
+</ul>
+<h5>Additional Notes</h5>
+<ul>
+<li>See list of resolved issues at
+<a href="http://www.bouncycastle.org/jira/secure/IssueNavigator.jspa?reset=true&&pid=10001&fixfor=10100&sorter/field=issuekey&sorter/order=DESC">
+Bouncy Castle JIRA C# 1.6</a></li>
+</ul>
+		<H4><A class="mozTocH4" name="mozTocId85310"></A>Release 1.5, Tuesday August 18, 2009</H4>
+<h5>Defects Fixed</h5>
+<ul>
+<li>Correct the ASN.1 class for AuthorityInformationAccess.</li>
+<li>In the Bcpg libs, armored output now inserts the correct version string.</li>
+<li>EssCertIDv2 encoding now complies with RFC 5035.</li>
+<li>ECDSA now computes correct signatures for oversized hashes when the order of the base point is not a multiple of 8 in compliance with X9.62-2005.</li>
+<li>Standard name "DiffieHellman" is now supported in factory classes.</li>
+<li>Better support for equality tests for '#' encoded entries has been added to X509Name.</li>
+<li>'=' inside a X509Name was not being properly escaped. This has been fixed.</li>
+<li>ApplicationSpecific ASN.1 tags are now recognised in BER data. The GetObject() method now handles processing of arbitrary tags.</li>
+<li>Multiplication by negative powers of two is fixed in BigInteger.</li>
+<li>Multiple countersignature attributes are now correctly collected.</li>
+<li>Two bugs in HC-128 and HC-256 related to sign extension and byte swapping have been fixed. The implementations now pass the latest ecrypt vector tests.</li>
+</ul>
+<h5>Security Advisory</h5>
+<ul>
+<li>The effect of the sign extension bug was to decrease the key space the HC-128 and HC-256 ciphers were operating in and the byte swapping inverted every 32 bits of the generated stream. If you are using either HC-128 or HC-256 you must upgrade to this release.</li>
+</ul>
+<h5>Additional Features and Functionality</h5>
+<ul>
+<li>PKIX certificate path validation</li>
+<li>Accept duplicate PKCS#9 FriendlyName attributes in PKCS#12 keystore.</li>
+<li>Add support for PKCS#5 Scheme 2 keys.</li>
+<li>Camellia performance improved.</li>
+<li>A smaller version of Camellia, CamelliaLightEngine has also been added.</li>
+<li>CmsSignedData generation now supports SubjectKeyIdentifier as well as use of issuer/serial.</li>
+<li>A CMS PBE key holder for UTF8 keys has been added to the CMS API.</li>
+<li>Salt and iteration count can now be recovered from PasswordRecipientInformation.</li>
+<li>Support for reading and extracting personalised certificates in PGP Secret Key rings has been added.</li>
+<li>Support for EAC algorithms has been added to CMS.</li>
+<li>Asn1Dump now supports a verbose mode for displaying the contents of octet and bit strings.</li>
+<li>Support for the SRP-6a protocol has been added.</li>
+</ul>
+<h5>Additional Notes</h5>
+<ul>
+<li>See also the list of resolved issues at
+<a href="http://www.bouncycastle.org/jira/secure/IssueNavigator.jspa?reset=true&&pid=10001&fixfor=10080&sorter/field=issuekey&sorter/order=DESC">
+Bouncy Castle JIRA C# 1.5</a></li>
+</ul>
+		<H4><A class="mozTocH4" name="mozTocId85309"></A>Release 1.4, Thursday August 8, 2008</H4>
+<h5>Defects Fixed</h5>
+<ul>
+<li>The GeneralName string constructor now supports IPv4 and IPv6 address parsing.</li>
+<li>EAX mode was not handling non-zero offsetted data correctly and failing. This has been fixed.</li>
+<li>EAX mode ciphers were not resetting correctly after a DoFinal/Reset. This has been fixed.</li>
+<li>Some boolean parameters to IssuingDistributionPoint were being reversed. This has been fixed.</li><li>A zero length RDN would cause an exception in an X509Name. This has been fixed.</li>
+<li>Specifying a greater than 32bit length for a stream and relying on the default BcpgOutputStream resulted in corrupted data. This has been fixed.</li>
+<li>Pkcs7Padding validation would not fail if pad length was 0. This has been fixed.</li>
+<li>Signature creation time was not being properly initialised in new V4 PGP signature objects although the encoding was correct. This has been fixed.</li>
+<li>The '+' character can now be escaped or quoted in the constructor for X509Name.</li>
+<li>IV handling in CMS for SEED and Camellia was incorrect. This has been fixed.</li>
+<li>ASN.1 stream parser now throws exceptions for unterminated sequences.</li>
+<li>X509CertificateParser/X509CrlParser now handle multiple certificates/CRLs in streams that don't support seeking.</li>
+<li>The CertID class used by the TSP library was incomplete. This has been fixed</li>
+<li>\# is now properly recognised in the X509Name class.</li>
+<li>BigInteger.ModInverse was failing for negative values. This has been fixed.</li>
+<li>CMS API now supports RSASSA-PSS signatures with explicit salt length.</li>
+</ul>
+<h5>Additional Features and Functionality</h5>
+<ul>
+<li>ASN.1 libs now support high tag numbers.</li>
+<li>Galois/Counter Mode (GCM) has been added.</li>
+<li>The TSP API now supports parsing and validation of responses with V2 signing certificate entries.</li>
+<li>Unnecessary local ID attributes on certificates in PKCS12 files are now automatically removed.</li>
+<li>New Pkcs12StoreBuilder class supports generation of PKCS12 files with both certificates and keys protected by 3DES.</li>
+<li>Certifications associated with user attributes can now be created, verified and removed in OpenPGP.</li>
+<li>API support now exists for CMS countersignature reading and production.</li>
+<li>A new class LazyAsn1InputStream supports lazy evaluation of DER sequences and sets, considerably reducing memory requirements in some scenarios.</li>
+<li>KeyPurposeId class has been updated for RFC 4945.</li>
+<li>Initial support has been added for HP_CERTIFICATE_REQUEST in the TLS API.</li>
+<li>PGP example programs now handle blank names in literal data objects.</li>
+<li>The ProofOfPossession class now better supports the underlying ASN.1 structure.</li>
+</ul>
+<h5>Additional Notes</h5>
+<ul>
+<li>Due to problems for some users caused by the presence of the IDEA algorithm, an implementation is no
+longer included in the default assembly. Only the assembly named BouncyCastle.CryptoExt now includes IDEA.</li>
+<li>See also the list of resolved issues at
+<a href="http://www.bouncycastle.org/jira/secure/IssueNavigator.jspa?reset=true&&pid=10001&fixfor=10050&sorter/field=issuekey&sorter/order=DESC">
+Bouncy Castle JIRA C# 1.4</a></li>
+</ul>
+		<H4><A class="mozTocH4" name="mozTocId85308"></A>Release 1.3, Saturday December 8, 2007</H4>
+		<P>
+			ASN.1 stream parsing now handles definite length encodings efficiently.<br>
+			Buffering in the streaming CMS has been reworked. Throughput is now usually higher and the behaviour is more predictable.<br>
+			BcpgInputStream now handles data blocks in the 2**31-&gt;2**32-1 range.<br>
+			Some confusion over the parameters J and L in connection with Diffie-Hellman has been resolved.<br>
+			Added CryptoApiRandomGenerator, a wrapper for RNGCryptoServiceProvider.<br>
+			Added VMPC stream cipher, VMPCMAC and a VMPC-based implementation of IRandomGenerator.<br>
+			Added support in OpenPGP for fetching keyrings by case-insensitive user ID [#BMA-8].<br>
+			Fixed a vulnerability of CMS signatures that do not use signed attributes (Bleichenbacher RSA forgery).<br>
+			Fixed a bug causing second and later encrypted objects to be ignored in KeyBasedFileProcessor example.<br>
+			Fixed case-sensitivity issue with deletion from a PKCS#12 file.<br>
+			Fixed problem overwriting entities in a PKCS#12 file.<br>
+			Fixed PgpUtilities.MakeKeyFromPassPhrase for 8-bit characters [#BMA-13].<br>
+			Fixed duplicate certificate problem in Pkcs12Store.Save [#BMA-12].<br>
+			Fixed NAnt build under Mono [#BMA-10].<br>
+			Fixed BigInteger.ModPow for negative exponents [#BMA-7].<br>
+		</P>
+		<H4><A class="mozTocH4" name="mozTocId85307"></A>Release 1.2, Thursday July 5, 2007</H4>
+		<P>
+			Source now builds on .NET Compact Framework 1.0 (compilation flag NETCF_1_0).<br>
+			Release assembly now signed with a strong name.<br>
+			Added CCM and EAX block cipher modes.<br>
+			Added Noekeon block cipher.<br>
+			Added HC-128, HC-256, and ISAAC stream ciphers.<br>
+			Added RIPEMD160withECDSA signature algorithm.<br>
+			Added support for notation data signature subpackets to OpenPGP.<br>
+			Added support for parsing of experimental signatures to OpenPGP.<br>
+			Added the complete set of SEC-2 EC curves.<br>
+			Added support for implicit tagging to DerApplicationSpecific.<br>
+			Added remaining ASN.1 structures from RFC 3126 to Asn1.Esf namespace.<br>
+			Performance of ECDSA improved.<br>
+			Performance of ASN.1 stream parsing improved.<br>
+			Fixed default private key length for Diffie-Hellman parameters.<br>
+			Fixed DerT61String to correctly support 8-bit characters.<br>
+			Fixed duplicate attribute problem in Pkcs12Store.Save.<br>
+			Fixed a problem writing public keys in OpenPGP [#BMA-5].<br>
+		</P>
+		<H4><A class="mozTocH4" name="mozTocId85306"></A>Release 1.1, Friday May 4, 2007</H4>
+		<P>
+			Added support for writing DSA private keys, and more encodings, in OpenSsl 
+			(PemReader/PemWriter).<br>
+			Removed SharpZipLib dependency.<br>
+			Added RSA blinded signature classes.<br>
+			Added Asn1.IsisMtt namespace (ISIS-MTT ASN.1 classes).<br>
+			Added SEED block cipher engine.<br>
+			Added Salsa20 stream cipher engine.<br>
+			Performance optimisations for F2m elliptic curves.<br>
+			Fixed OpenPGP bug decrypting files with multiple types of encryption on the 
+			session key.<br>
+		</P>
+		<H4><A class="mozTocH4" name="mozTocId85305"></A>Release 1.0, Thursday January 18, 
+			2007</H4>
+		<P>
+			Implementations of CMS, OCSP, OpenPGP, and TSP.<br>
+			Elliptic Curves (F2m and Fp).<br>
+			A basic TLS client.<br>
+			PEM file reading and writing.<br>
+			Symmetric key algorithms: Camellia, GOST28147, NaccacheStern, and TEA/XTEA.<br>
+			Symmetric key modes: GOFB and OpenPGPCFB.<br>
+			Symmetric key paddings: ISO7816d4.<br>
+			Asymmetric key algorithms: RSA blinding.<br>
+			Digests: GOST3411 and Whirlpool.<br>
+			Macs: GOST28147 and ISO9797 Alg 3.<br>
+			Signer mechanisms: ECDSA, ECGOST3410, and GOST3410.<br>
+			...and many more features, bug fixes, and performance improvements.<br>
+		</P>
+		<H4><A class="mozTocH4" name="mozTocId85304"></A>Tuesday Febuary 1, 2005</H4>
+		<P>This is the second beta release of the Bouncy Castle API C# implementation.<BR>
+			Reliability improvement to ASN1InputStream.<BR>
+			The OID entries in SignerUtilities for RSA signature algorithms for SHA-256,<BR>
+			SHA-384, and SHA-512 were pointing creating the wrong signature objects.</P>
+		<h4><a class="mozTocH4" name="mozTocId498363"></a>Sunday December 12, 2004</h4>
+		This is the first beta release of the Bouncy Castle Cryptographic API C# 
+		implementation.<br>
+		The Legion of the Bouncy Castle would like to extend their thanks to all those 
+		who contributed to this API during the alpha stages of its development.<br>
+		Keep up the good work folks.<br>
+		Please send any questions or bug reports to <a href="mailto:%5Cdev-crypto-csharp@bouncycastle.org">
+			dev-crypto-csharp@bouncycastle.org</a><br>
+		<br>
+		<hr style="WIDTH: 100%; HEIGHT: 2px">
+		<h3><a class="mozTocH3" name="mozTocId948186"></a>Trademarks.<br>
+		</h3>
+		C#, .NET, and MSDN are Registered Trademarks of Microsoft. <a href="http://www.microsoft.com">
+			Microsoft.com</a><br>
+		Java is a Registered Trademark of Sun Microsystems. <a href="http://www.sun.com">Sun 
+			Microsystems</a><br>
+		<br>
+		<br>
+		<div style="TEXT-ALIGN: center">© 2007 Legion of the Bouncy Castle<br>
+		</div>
+	</body>
+</html>
