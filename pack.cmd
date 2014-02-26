@@ -1,0 +1,1 @@
+.nuget\nuget.exe pack Portable.BouncyCastle.nuspec -Symbols
