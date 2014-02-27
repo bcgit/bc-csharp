@@ -115,24 +115,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc >>= 32;
 
             int c = (int)cc;
-            if (c < 0)
+            if (c > 0)
             {
-                do
-                {
-                    c += (int)Nat224.Add(z, P, z);
-                }
-                while (c < 0);
+                Reduce32((uint)c, z);
             }
             else
             {
-                while (c > 0)
+                while (c < 0)
                 {
-                    c += Nat224.Sub(z, P, z);
-                }
-
-                if (z[6] == P6 && Nat224.Gte(z, P))
-                {
-                    Nat224.Sub(z, P, z);
+                    c += (int)Nat224.Add(z, P, z);
                 }
             }
         }
