@@ -198,12 +198,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 return true;
             if (null == other)
                 return false;
-            return Arrays.AreEqual(x, other.x);
+            return Nat.Eq(12, x, other.x);
         }
 
         public override int GetHashCode()
         {
-            return Q.GetHashCode() ^ Arrays.GetHashCode(x);
+            return Q.GetHashCode() ^ Arrays.GetHashCode(x, 0, 12);
         }
     }
 }

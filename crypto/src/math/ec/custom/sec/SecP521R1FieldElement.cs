@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP521R1Field.SquareN(x1, 519, t1);
             SecP521R1Field.Square(t1, t2);
 
-            return Arrays.AreEqual(x1, t2) ? new SecP521R1FieldElement(t1) : null;
+            return Nat.Eq(17, x1, t2) ? new SecP521R1FieldElement(t1) : null;
         }
 
         public override bool Equals(object obj)
@@ -155,12 +155,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 return true;
             if (null == other)
                 return false;
-            return Arrays.AreEqual(x, other.x);
+            return Nat.Eq(17, x, other.x);
         }
 
         public override int GetHashCode()
         {
-            return Q.GetHashCode() ^ Arrays.GetHashCode(x);
+            return Q.GetHashCode() ^ Arrays.GetHashCode(x, 0, 17);
         }
     }
 }

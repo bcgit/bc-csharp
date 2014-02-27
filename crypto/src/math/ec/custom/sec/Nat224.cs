@@ -283,6 +283,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return pos;
         }
 
+        public static bool Eq(uint[] x, uint[] y)
+        {
+            for (int i = 6; i >= 0; --i)
+            {
+                if (x[i] != y[i])
+                    return false;
+            }
+            return true;
+        }
+
         public static uint[] FromBigInteger(BigInteger x)
         {
             if (x.SignValue < 0 || x.BitLength > 224)

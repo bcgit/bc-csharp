@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] t2 = x84;
             SecP224K1Field.Square(t1, t2);
 
-            if (Arrays.AreEqual(x1, t2))
+            if (Nat224.Eq(x1, t2))
             {
                 return new SecP224K1FieldElement(t1);
             }
@@ -206,7 +206,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             SecP224K1Field.Square(t1, t2);
 
-            if (Arrays.AreEqual(x1, t2))
+            if (Nat224.Eq(x1, t2))
             {
                 return new SecP224K1FieldElement(t1);
             }
@@ -230,12 +230,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 return true;
             if (null == other)
                 return false;
-            return Arrays.AreEqual(x, other.x);
+            return Nat224.Eq(x, other.x);
         }
 
         public override int GetHashCode()
         {
-            return Q.GetHashCode() ^ Arrays.GetHashCode(x);
+            return Q.GetHashCode() ^ Arrays.GetHashCode(x, 0, 7);
         }
     }
 }

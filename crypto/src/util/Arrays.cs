@@ -220,6 +220,25 @@ namespace Org.BouncyCastle.Utilities
             return hc;
         }
 
+        public static int GetHashCode(byte[] data, int off, int len)
+        {
+            if (data == null)
+            {
+                return 0;
+            }
+
+            int i = len;
+            int hc = i + 1;
+
+            while (--i >= 0)
+            {
+                hc *= 257;
+                hc ^= data[off + i];
+            }
+
+            return hc;
+        }
+
         public static int GetHashCode(int[] data)
         {
             if (data == null)
@@ -232,6 +251,23 @@ namespace Org.BouncyCastle.Utilities
             {
                 hc *= 257;
                 hc ^= data[i];
+            }
+
+            return hc;
+        }
+
+        public static int GetHashCode(int[] data, int off, int len)
+        {
+            if (data == null)
+                return 0;
+
+            int i = len;
+            int hc = i + 1;
+
+            while (--i >= 0)
+            {
+                hc *= 257;
+                hc ^= data[off + i];
             }
 
             return hc;
@@ -250,6 +286,24 @@ namespace Org.BouncyCastle.Utilities
             {
                 hc *= 257;
                 hc ^= (int)data[i];
+            }
+
+            return hc;
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static int GetHashCode(uint[] data, int off, int len)
+        {
+            if (data == null)
+                return 0;
+
+            int i = len;
+            int hc = i + 1;
+
+            while (--i >= 0)
+            {
+                hc *= 257;
+                hc ^= (int)data[off + i];
             }
 
             return hc;
