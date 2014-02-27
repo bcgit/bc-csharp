@@ -130,13 +130,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Twice(uint[] x, uint[] z)
         {
-            uint c = Nat.ShiftUpBit(16, x, 0, z) | (x[16] << 1);
-            if (c > P16 || (c == P16 && Nat.Eq(16, z, P)))
-            {
-                c += Nat.Inc(16, z, 0);
-                c &= P16;
-            }
-            z[16] = c;
+            uint x16 = x[16];
+            uint c = Nat.ShiftUpBit(16, x, x16 << 23, z) | (x16 << 1);
+            z[16] = c & P16;
         }
 
         protected static void ImplMultiply(uint[] x, uint[] y, uint[] zz)
