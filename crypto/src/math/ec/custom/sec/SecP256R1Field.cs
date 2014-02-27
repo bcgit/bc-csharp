@@ -8,6 +8,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         // 2^256 - 2^224 + 2^192 + 2^96 - 1
         internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000,
             0x00000001, 0xFFFFFFFF };
+        private static readonly uint[] _2P = new uint[]{ 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001, 0x00000000, 0x00000000,
+            0x00000002, 0xFFFFFFFE, 0x00000001 };
         private const uint P7 = 0xFFFFFFFF;
         private static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF,
             0xFFFFFFFF, 0xFFFFFFFE, 0x00000001, 0xFFFFFFFE, 0x00000001, 0xFFFFFFFE, 0x00000001, 0x00000001, 0xFFFFFFFE,
@@ -123,24 +125,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc >>= 32;
 
             int c = (int)cc;
-            if (c < 0)
+            if (c > 0)
             {
-                do
-                {
-                    c += (int)Nat256.Add(z, P, z);
-                }
-                while (c < 0);
+                Reduce32((uint)c, z);
             }
             else
             {
-                while (c > 0)
+                while (c < -1)
                 {
-                    c += Nat256.Sub(z, P, z);
+                    c += (int)Nat256.Add(z, _2P, z) + 1;
                 }
-
-                if (z[7] == P7 && Nat256.Gte(z, P))
+                while (c < 0)
                 {
-                    Nat256.Sub(z, P, z);
+                    c += (int)Nat256.Add(z, P, z);
                 }
             }
         }
