@@ -156,6 +156,27 @@ namespace Org.BouncyCastle.Crypto.EC
         }
 
         /*
+         * secp384r1
+         */
+        internal class Secp384r1Holder
+            : X9ECParametersHolder
+        {
+            private Secp384r1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Secp384r1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("A335926AA319A27A1D00896A6773A4827ACDAC73");
+                ECCurve curve = ConfigureCurve(new SecP384R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "AA87CA22BE8B05378EB1C71EF320AD746E1D3B628BA79B9859F741E082542A385502F25DBF55296C3A545E3872760AB7"
+                    + "3617DE4A96262C6F5D9E98BF9292DC29F8F41DBD289A147CE9DA3113B5F0B8C00A60B1CE1D7E819D7A431D7C90EA0E5F"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
+        /*
          * secp521r1
          */
         internal class Secp521r1Holder
@@ -195,11 +216,13 @@ namespace Org.BouncyCastle.Crypto.EC
             DefineCurve("secp224r1", SecObjectIdentifiers.SecP224r1, Secp224r1Holder.Instance);
             DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
             DefineCurve("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
+            DefineCurve("secp384r1", SecObjectIdentifiers.SecP384r1, Secp384r1Holder.Instance);
             DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
 
             objIds.Add(Platform.ToLowerInvariant("P-192"), SecObjectIdentifiers.SecP192r1);
             objIds.Add(Platform.ToLowerInvariant("P-224"), SecObjectIdentifiers.SecP224r1);
             objIds.Add(Platform.ToLowerInvariant("P-256"), SecObjectIdentifiers.SecP256r1);
+            objIds.Add(Platform.ToLowerInvariant("P-384"), SecObjectIdentifiers.SecP384r1);
             objIds.Add(Platform.ToLowerInvariant("P-521"), SecObjectIdentifiers.SecP521r1);
         }
 
