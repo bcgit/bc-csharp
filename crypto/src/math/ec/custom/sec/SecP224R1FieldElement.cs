@@ -124,41 +124,48 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
          */
         public override ECFieldElement Sqrt()
         {
-            //ECFieldElement root = new FpFieldElement(Q, ToBigInteger()).Sqrt();
-            //return root == null ? null : new SecP224R1FieldElement(root.ToBigInteger());
-
             uint[] c = this.x;
             if (Nat224.IsZero(c) || Nat224.IsOne(c))
                 return this;
 
-            uint[] d1 = Mod.Random(SecP224R1Field.P);
-            uint[] e1 = Nat224.Create();
-            e1[0] = 1;
+            uint[] nc = Nat224.Create();
+            SecP224R1Field.Negate(c, nc);
 
-            uint[] f = Nat224.Create();
-            RP(c, d1, e1, f);
-            RS(d1, e1, f);
+            uint[] r = Mod.Random(SecP224R1Field.P);
 
-            uint[] d0 = Nat224.Create();
-            uint[] e0 = Nat224.Create();
-
-            for (int i = 0; i < 95; ++i)
+            for (;;)
             {
-                Nat224.Copy(d1, d0);
-                Nat224.Copy(e1, e0);
+                uint[] d1 = Nat224.Create();
+                Nat224.Copy(r, d1);
+                uint[] e1 = Nat224.Create();
+                e1[0] = 1;
+                uint[] f1 = Nat224.Create();
+                RP(nc, d1, e1, f1);
 
-                RS(d1, e1, f);
+                uint[] d0 = Nat224.Create();
+                uint[] e0 = Nat224.Create();
 
-                if (Nat224.IsZero(d1))
-                    break;
+                for (int k = 1; k < 96; ++k)
+                {
+                    Nat224.Copy(d1, d0);
+                    Nat224.Copy(e1, e0);
+
+                    RS(d1, e1, f1);
+
+                    if (Nat224.IsZero(d1))
+                    {
+                        Mod.Invert(SecP224R1Field.P, e0, f1);
+                        SecP224R1Field.Multiply(f1, d0, f1);
+
+                        SecP224R1Field.Square(f1, d1);
+
+                        return Nat224.Eq(c, d1) ? new SecP224R1FieldElement(f1) : null;
+                    }
+                }
+
+                // Avoid any possible infinite loop due to a bad random number generator
+                SecP224R1Field.AddOne(r, r);
             }
-
-            Mod.Invert(SecP224R1Field.P, e0, f);
-            SecP224R1Field.Multiply(f, d0, f);
-
-            SecP224R1Field.Square(f, d1);
-
-            return Nat224.Eq(c, d1) ? new SecP224R1FieldElement(f) : null;
         }
 
         public override bool Equals(object obj)
@@ -185,27 +192,24 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return Q.GetHashCode() ^ Arrays.GetHashCode(x, 0, 7);
         }
 
-        private static void RM(uint[] nc, uint[] d0, uint[] e0, uint[] d1, uint[] e1, uint[] f)
+        private static void RM(uint[] nc, uint[] d0, uint[] e0, uint[] d1, uint[] e1, uint[] f1)
         {
             uint[] t = Nat224.Create();
             SecP224R1Field.Multiply(e1, e0, t);
             SecP224R1Field.Multiply(t, nc, t);
-            SecP224R1Field.Multiply(d1, d0, f);
-            SecP224R1Field.Add(f, t, f);
+            SecP224R1Field.Multiply(d1, d0, f1);
+            SecP224R1Field.Add(f1, t, f1);
             SecP224R1Field.Multiply(d1, e0, t);
-            Nat224.Copy(f, d1);
+            Nat224.Copy(f1, d1);
             SecP224R1Field.Multiply(e1, d0, e1);
             SecP224R1Field.Add(e1, t, e1);
-            SecP224R1Field.Square(e1, f);
-            SecP224R1Field.Multiply(f, nc, f);
+            SecP224R1Field.Square(e1, f1);
+            SecP224R1Field.Multiply(f1, nc, f1);
         }
 
-        private static void RP(uint[] c, uint[] d1, uint[] e1, uint[] f)
+        private static void RP(uint[] nc, uint[] d1, uint[] e1, uint[] f1)
         {
-            uint[] nc = Nat224.Create();
-            SecP224R1Field.Negate(c, nc);
-
-            Nat224.Copy(nc, f);
+            Nat224.Copy(nc, f1);
 
             uint[] d0 = Nat224.Create();
             uint[] e0 = Nat224.Create();
@@ -218,10 +222,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 int j = 1 << i;
                 while (--j >= 0)
                 {
-                    RS(d1, e1, f);
+                    RS(d1, e1, f1);
                 }
 
-                RM(nc, d0, e0, d1, e1, f);
+                RM(nc, d0, e0, d1, e1, f1);
             }
         }
 
