@@ -16,6 +16,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\lib\net20</OutputPath>
+    <IntermediateOutputPath>obj\Debug\lib\net20</IntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE;INCLUDE_IDEA;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,6 +25,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\lib\net20</OutputPath>
+    <IntermediateOutputPath>obj\Release\lib\net20</IntermediateOutputPath>
     <DefineConstants>TRACE;INCLUDE_IDEA;</DefineConstants>
     <DocumentationFile>doc\BouncyCastle.xml</DocumentationFile>
     <ErrorReport>prompt</ErrorReport>

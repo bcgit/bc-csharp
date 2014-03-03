@@ -17,6 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\lib\MonoTouch</OutputPath>
+    <IntermediateOutputPath>obj\Debug\lib\MonoTouch</IntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE;INCLUDE_IDEA;__MOBILE__;__IOS__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -25,6 +26,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\lib\MonoTouch</OutputPath>
+    <IntermediateOutputPath>obj\Release\lib\MonoTouch</IntermediateOutputPath>
     <DefineConstants>TRACE;INCLUDE_IDEA;__MOBILE__;__IOS__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
