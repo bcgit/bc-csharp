@@ -7,9 +7,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     {
         // 2^224 - 2^96 + 1
         internal static readonly uint[] P = new uint[] { 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        private const uint P6 = 0xFFFFFFFF;
-        private static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF,
+        internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF,
             0xFFFFFFFF, 0x00000000, 0x00000002, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+        private const uint P6 = 0xFFFFFFFF;
         private const uint PExt13 = 0xFFFFFFFF;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc >>= 32;
 
             int c = (int)cc;
-            if (c > 0)
+            if (c >= 0)
             {
                 Reduce32((uint)c, z);
             }
@@ -130,8 +130,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce32(uint x, uint[] z)
         {
-            int c = Nat224.SubWord(x, z, 0) + (int)Nat224.AddWord(x, z, 3);
-            if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
+            if ((x != 0 && (Nat224.SubWord(x, z, 0) + Nat224.AddWord(x, z, 3) != 0))
+                || (z[6] == P6 && Nat224.Gte(z, P)))
             {
                 Nat224.Sub(z, P, z);
             }

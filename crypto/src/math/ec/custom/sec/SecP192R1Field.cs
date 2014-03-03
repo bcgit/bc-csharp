@@ -7,9 +7,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     {
         // 2^192 - 2^64 - 1
         internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        private const uint P5 = 0xFFFFFFFF;
-        private static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000002, 0x00000000, 0x00000001,
+        internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000002, 0x00000000, 0x00000001,
             0x00000000, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+        private const uint P5 = 0xFFFFFFFF;
         private const uint PExt11 = 0xFFFFFFFF;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
@@ -84,57 +84,47 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            long xx06 = xx[6], xx07 = xx[7], xx08 = xx[8];
-            long xx09 = xx[9], xx10 = xx[10], xx11 = xx[11];
+            ulong xx06 = xx[6], xx07 = xx[7], xx08 = xx[8];
+            ulong xx09 = xx[9], xx10 = xx[10], xx11 = xx[11];
 
-            long t0 = xx06 + xx10;
-            long t1 = xx07 + xx11;
+            ulong t0 = xx06 + xx10;
+            ulong t1 = xx07 + xx11;
 
-            long cc = 0;
-            cc += (long)xx[0] + t0;
+            ulong cc = 0;
+            cc += (ulong)xx[0] + t0;
             z[0] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[1] + t1;
+            cc += (ulong)xx[1] + t1;
             z[1] = (uint)cc;
             cc >>= 32;
 
             t0 += xx08;
             t1 += xx09;
 
-            cc += (long)xx[2] + t0;
+            cc += (ulong)xx[2] + t0;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[3] + t1;
+            cc += (ulong)xx[3] + t1;
             z[3] = (uint)cc;
             cc >>= 32;
 
             t0 -= xx06;
             t1 -= xx07;
 
-            cc += (long)xx[4] + t0;
+            cc += (ulong)xx[4] + t0;
             z[4] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[5] + t1;
+            cc += (ulong)xx[5] + t1;
             z[5] = (uint)cc;
             cc >>= 32;
 
-            int c = (int)cc;
-            Debug.Assert(c >= 0);
-            while (c > 0)
-            {
-                c += Nat192.Sub(z, P, z);
-            }
-
-            if (z[5] == P5 && Nat192.Gte(z, P))
-            {
-                Nat192.Sub(z, P, z);
-            }
+            Reduce32((uint)cc, z);
         }
 
         public static void Reduce32(uint x, uint[] z)
         {
-            uint c = Nat192.AddWord(x, z, 0) + Nat192.AddWord(x, z, 2);
-            if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
+            if ((x != 0 && (Nat192.AddWord(x, z, 0) + Nat192.AddWord(x, z, 2) != 0))
+                || (z[5] == P5 && Nat192.Gte(z, P)))
             {
                 Nat192.Sub(z, P, z);
             }

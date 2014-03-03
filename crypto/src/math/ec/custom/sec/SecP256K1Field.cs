@@ -8,10 +8,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         // 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
         internal static readonly uint[] P = new uint[]{ 0xFFFFFC2F, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
             0xFFFFFFFF, 0xFFFFFFFF };
-        private const uint P7 = 0xFFFFFFFF;
-        private static readonly uint[] PExt = new uint[]{ 0x000E90A1, 0x000007A2, 0x00000001, 0x00000000, 0x00000000,
+        internal static readonly uint[] PExt = new uint[]{ 0x000E90A1, 0x000007A2, 0x00000001, 0x00000000, 0x00000000,
             0x00000000, 0x00000000, 0x00000000, 0xFFFFF85E, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
             0xFFFFFFFF, 0xFFFFFFFF };
+        private const uint P7 = 0xFFFFFFFF;
         private const uint PExt15 = 0xFFFFFFFF;
         private const ulong PInv = 0x00000001000003D1UL;
         private const uint PInv33 = 0x3D1;
@@ -88,8 +88,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            ulong c = Nat256.Mul33Add(PInv33, xx, 8, xx, 0, z, 0);
-            c = Nat256.Mul33DWordAdd(PInv33, c, z, 0);
+            ulong cc = Nat256.Mul33Add(PInv33, xx, 8, xx, 0, z, 0);
+            uint c = Nat256.Mul33DWordAdd(PInv33, cc, z, 0);
 
             Debug.Assert(c == 0 || c == 1);
 
@@ -101,11 +101,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce32(uint x, uint[] z)
         {
-            uint c = Nat256.Mul33WordAdd(PInv33, x, z, 0);
-
-            Debug.Assert(c == 0 || c == 1);
-
-            if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
+            if ((x != 0 && Nat256.Mul33WordAdd(PInv33, x, z, 0) != 0)
+                || (z[7] == P7 && Nat256.Gte(z, P)))
             {
                 Nat256.AddDWord(PInv, z, 0);
             }

@@ -8,10 +8,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             // 2^384 - 2^128 - 2^96 + 2^32 - 1
         internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFE, 0xFFFFFFFF,
             0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        private const uint P11 = 0xFFFFFFFF;
-        private static readonly uint[] PExt = new uint[]{ 0x00000001, 0xFFFFFFFE, 0x00000000, 0x00000002, 0x00000000, 0xFFFFFFFE,
+        internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0xFFFFFFFE, 0x00000000, 0x00000002, 0x00000000, 0xFFFFFFFE,
             0x00000000, 0x00000002, 0x00000001, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFE, 0x00000001, 0x00000000,
             0xFFFFFFFE, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+        private const uint P11 = 0xFFFFFFFF;
         private const uint PExt23 = 0xFFFFFFFF;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc >>= 32;
 
             int c = (int)cc;
-            if (c > 0)
+            if (c >= 0)
             {
                 Reduce32((uint)c, z);
             }
@@ -144,34 +144,35 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce32(uint x, uint[] z)
         {
-            long xx12 = x;
-
             long cc = 0;
-            cc += (long)z[0] + xx12;
-            z[0] = (uint)cc;
-            cc >>= 32;
-            cc += (long)z[1] - xx12;
-            z[1] = (uint)cc;
-            cc >>= 32;
-            cc += (long)z[2];
-            z[2] = (uint)cc;
-            cc >>= 32;
-            cc += (long)z[3] + xx12;
-            z[3] = (uint)cc;
-            cc >>= 32;
-            cc += (long)z[4] + xx12;
-            z[4] = (uint)cc;
-            cc >>= 32;
 
-            Debug.Assert(cc >= 0);
-
-            if (cc > 0)
+            if (x != 0)
             {
-                uint c = Nat.AddWord(12, (uint)cc, z, 5);
-                if (c != 0 || (z[11] == P11 && Nat.Gte(12, z, P)))
-                {
-                    Nat.Sub(12, z, P, z);
-                }
+                long xx12 = x;
+
+                cc += (long)z[0] + xx12;
+                z[0] = (uint)cc;
+                cc >>= 32;
+                cc += (long)z[1] - xx12;
+                z[1] = (uint)cc;
+                cc >>= 32;
+                cc += (long)z[2];
+                z[2] = (uint)cc;
+                cc >>= 32;
+                cc += (long)z[3] + xx12;
+                z[3] = (uint)cc;
+                cc >>= 32;
+                cc += (long)z[4] + xx12;
+                z[4] = (uint)cc;
+                cc >>= 32;
+
+                Debug.Assert(cc == 0 || cc == 1);
+            }
+
+            if ((cc != 0 && Nat.Inc(12, z, 5) != 0)
+                || (z[11] == P11 && Nat.Gte(12, z, P)))
+            {
+                Nat.Sub(12, z, P, z);
             }
         }
 

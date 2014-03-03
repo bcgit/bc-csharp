@@ -7,9 +7,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     {
         // 2^192 - 2^32 - 2^12 - 2^8 - 2^7 - 2^6 - 2^3 - 1
         internal static readonly uint[] P = new uint[]{ 0xFFFFEE37, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        private const uint P5 = 0xFFFFFFFF;
-        private static readonly uint[] PExt = new uint[]{ 0x013C4FD1, 0x00002392, 0x00000001, 0x00000000, 0x00000000,
+        internal static readonly uint[] PExt = new uint[]{ 0x013C4FD1, 0x00002392, 0x00000001, 0x00000000, 0x00000000,
             0x00000000, 0xFFFFDC6E, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+        private const uint P5 = 0xFFFFFFFF;
         private const uint PExt11 = 0xFFFFFFFF;
         private const ulong PInv = 0x00000001000011C9L;
         private const uint PInv33 = 0x11C9;
@@ -86,8 +86,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            ulong c = Nat192.Mul33Add(PInv33, xx, 6, xx, 0, z, 0);
-            c = Nat192.Mul33DWordAdd(PInv33, c, z, 0);
+            ulong cc = Nat192.Mul33Add(PInv33, xx, 6, xx, 0, z, 0);
+            uint c = Nat192.Mul33DWordAdd(PInv33, cc, z, 0);
 
             Debug.Assert(c == 0 || c == 1);
 
@@ -99,11 +99,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce32(uint x, uint[] z)
         {
-            uint c = Nat192.Mul33WordAdd(PInv33, x, z, 0);
-
-            Debug.Assert(c == 0 || c == 1);
-
-            if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
+            if ((x != 0 && Nat192.Mul33WordAdd(PInv33, x, z, 0) != 0)
+                || (z[5] == P5 && Nat192.Gte(z, P)))
             {
                 Nat192.AddDWord(PInv, z, 0);
             }
