@@ -132,6 +132,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP224R1Field.Negate(c, nc);
 
             uint[] r = Mod.Random(SecP224R1Field.P);
+            uint[] t = Nat224.Create();
 
             for (;;)
             {
@@ -140,7 +141,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 uint[] e1 = Nat224.Create();
                 e1[0] = 1;
                 uint[] f1 = Nat224.Create();
-                RP(nc, d1, e1, f1);
+                RP(nc, d1, e1, f1, t);
 
                 uint[] d0 = Nat224.Create();
                 uint[] e0 = Nat224.Create();
@@ -150,7 +151,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     Nat224.Copy(d1, d0);
                     Nat224.Copy(e1, e0);
 
-                    RS(d1, e1, f1);
+                    RS(d1, e1, f1, t);
 
                     if (Nat224.IsZero(d1))
                     {
@@ -192,9 +193,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return Q.GetHashCode() ^ Arrays.GetHashCode(x, 0, 7);
         }
 
-        private static void RM(uint[] nc, uint[] d0, uint[] e0, uint[] d1, uint[] e1, uint[] f1)
+        private static void RM(uint[] nc, uint[] d0, uint[] e0, uint[] d1, uint[] e1, uint[] f1, uint[] t)
         {
-            uint[] t = Nat224.Create();
             SecP224R1Field.Multiply(e1, e0, t);
             SecP224R1Field.Multiply(t, nc, t);
             SecP224R1Field.Multiply(d1, d0, f1);
@@ -207,7 +207,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP224R1Field.Multiply(f1, nc, f1);
         }
 
-        private static void RP(uint[] nc, uint[] d1, uint[] e1, uint[] f1)
+        private static void RP(uint[] nc, uint[] d1, uint[] e1, uint[] f1, uint[] t)
         {
             Nat224.Copy(nc, f1);
 
@@ -222,20 +222,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 int j = 1 << i;
                 while (--j >= 0)
                 {
-                    RS(d1, e1, f1);
+                    RS(d1, e1, f1, t);
                 }
 
-                RM(nc, d0, e0, d1, e1, f1);
+                RM(nc, d0, e0, d1, e1, f1, t);
             }
         }
 
-        private static void RS(uint[] d, uint[] e, uint[] f)
+        private static void RS(uint[] d, uint[] e, uint[] f, uint[] t)
         {
             SecP224R1Field.Multiply(e, d, e);
-            uint[] t = Nat224.Create();
+            SecP224R1Field.Twice(e, e);
             SecP224R1Field.Square(d, t);
             SecP224R1Field.Add(f, t, d);
-            SecP224R1Field.Twice(e, e);
             SecP224R1Field.Multiply(f, t, f);
             uint c = Nat.ShiftUpBits(7, f, 2, 0);
             SecP224R1Field.Reduce32(c, f);
