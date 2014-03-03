@@ -83,6 +83,30 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
+        public static uint AddTo(uint[] x, uint[] z)
+        {
+            ulong c = 0;
+            c += (ulong)x[0] + z[0];
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[1] + z[1];
+            z[1] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[2] + z[2];
+            z[2] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[3] + z[3];
+            z[3] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[4] + z[4];
+            z[4] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[5] + z[5];
+            z[5] = (uint)c;
+            c >>= 32;
+            return (uint)c;
+        }
+
         public static uint AddTo(uint[] x, int xOff, uint[] z, int zOff, uint cIn)
         {
             ulong c = cIn;
@@ -1051,27 +1075,50 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (int)c;
         }
 
-        public static int SubFromExt(uint[] x, int xOff, uint[] zz, int zzOff)
+        public static int SubFrom(uint[] x, uint[] z)
         {
-            Debug.Assert(zzOff <= 6);
             long c = 0;
-            c += (long)zz[zzOff + 0] - x[xOff + 0];
-            zz[zzOff + 0] = (uint)c;
+            c += (long)z[0] - x[0];
+            z[0] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 1] - x[xOff + 1];
-            zz[zzOff + 1] = (uint)c;
+            c += (long)z[1] - x[1];
+            z[1] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 2] - x[xOff + 2];
-            zz[zzOff + 2] = (uint)c;
+            c += (long)z[2] - x[2];
+            z[2] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 3] - x[xOff + 3];
-            zz[zzOff + 3] = (uint)c;
+            c += (long)z[3] - x[3];
+            z[3] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 4] - x[xOff + 4];
-            zz[zzOff + 4] = (uint)c;
+            c += (long)z[4] - x[4];
+            z[4] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 5] - x[xOff + 5];
-            zz[zzOff + 5] = (uint)c;
+            c += (long)z[5] - x[5];
+            z[5] = (uint)c;
+            c >>= 32;
+            return (int)c;
+        }
+
+        public static int SubFrom(uint[] x, int xOff, uint[] z, int zOff)
+        {
+            long c = 0;
+            c += (long)z[zOff + 0] - x[xOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 1] - x[xOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 2] - x[xOff + 2];
+            z[zOff + 2] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 3] - x[xOff + 3];
+            z[zOff + 3] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 4] - x[xOff + 4];
+            z[zOff + 4] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 5] - x[xOff + 5];
+            z[zOff + 5] = (uint)c;
             c >>= 32;
             return (int)c;
         }

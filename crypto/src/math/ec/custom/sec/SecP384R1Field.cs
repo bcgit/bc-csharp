@@ -11,6 +11,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0xFFFFFFFE, 0x00000000, 0x00000002, 0x00000000, 0xFFFFFFFE,
             0x00000000, 0x00000002, 0x00000001, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFE, 0x00000001, 0x00000000,
             0xFFFFFFFE, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+        private static readonly uint[] PInv = new uint[]{ 0x00000001, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000001 };
+        private static readonly uint[] PExtInv = new uint[]{ 0xFFFFFFFF, 0x00000001, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFF, 0x00000001,
+            0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001, 0xFFFFFFFE, 0xFFFFFFFF,
+            0x00000001, 0x00000002 };
         private const uint P11 = 0xFFFFFFFF;
         private const uint PExt23 = 0xFFFFFFFF;
 
@@ -19,7 +23,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.Add(12, x, y, z);
             if (c != 0 || (z[11] == P11 && Nat.Gte(12, z, P)))
             {
-                Nat.Sub(12, z, P, z);
+                if (Nat.AddTo(PInv.Length, PInv, z) != 0)
+                {
+                    Nat.IncAt(12, z, PInv.Length);
+                }
             }
         }
 
@@ -28,17 +35,22 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.Add(24, xx, yy, zz);
             if (c != 0 || (zz[23] == PExt23 && Nat.Gte(24, zz, PExt)))
             {
-                Nat.Sub(24, zz, PExt, zz);
+                if (Nat.AddTo(PExtInv.Length, PExtInv, zz) != 0)
+                {
+                    Nat.IncAt(24, zz, PExtInv.Length);
+                }
             }
         }
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Nat.Copy(12, x, z);
-            uint c = Nat.Inc(12, z, 0);
+            uint c = Nat.Inc(12, x, z);
             if (c != 0 || (z[11] == P11 && Nat.Gte(12, z, P)))
             {
-                Nat.Sub(12, z, P, z);
+                if (Nat.AddTo(PInv.Length, PInv, z) != 0)
+                {
+                    Nat.IncAt(12, z, PInv.Length);
+                }
             }
         }
 
@@ -47,7 +59,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] z = Nat.FromBigInteger(384, x);
             if (z[11] == P11 && Nat.Gte(12, z, P))
             {
-                Nat.Sub(12, z, P, z);
+                Nat.SubFrom(12, P, z);
             }
             return z;
         }
@@ -133,12 +145,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             {
                 Reduce32((uint)c, z);
             }
-            else
+            else if (Nat.SubFrom(PInv.Length, PInv, z) != 0)
             {
-                while (c < 0)
-                {
-                    c += (int)Nat256.Add(z, P, z);
-                }
+                Nat.DecAt(12, z, PInv.Length);
             }
         }
 
@@ -169,10 +178,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 Debug.Assert(cc == 0 || cc == 1);
             }
 
-            if ((cc != 0 && Nat.Inc(12, z, 5) != 0)
+            if ((cc != 0 && Nat.IncAt(12, z, 5) != 0)
                 || (z[11] == P11 && Nat.Gte(12, z, P)))
             {
-                Nat.Sub(12, z, P, z);
+                if (Nat.AddTo(PInv.Length, PInv, z) != 0)
+                {
+                    Nat.IncAt(12, z, PInv.Length);
+                }
             }
         }
 
@@ -203,7 +215,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat.Sub(12, x, y, z);
             if (c != 0)
             {
-                Nat.Add(12, z, P, z);
+                if (Nat.SubFrom(PInv.Length, PInv, z) != 0)
+                {
+                    Nat.DecAt(12, z, PInv.Length);
+                }
             }
         }
 
@@ -212,7 +227,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat.Sub(24, xx, yy, zz);
             if (c != 0)
             {
-                Nat.Add(24, zz, PExt, zz);
+                if (Nat.SubFrom(PExtInv.Length, PExtInv, zz) != 0)
+                {
+                    Nat.DecAt(24, zz, PExtInv.Length);
+                }
             }
         }
 
@@ -221,7 +239,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.ShiftUpBit(12, x, 0, z);
             if (c != 0 || (z[11] == P11 && Nat.Gte(12, z, P)))
             {
-                Nat.Sub(12, z, P, z);
+                if (Nat.AddTo(PInv.Length, PInv, z) != 0)
+                {
+                    Nat.IncAt(12, z, PInv.Length);
+                }
             }
         }
     }

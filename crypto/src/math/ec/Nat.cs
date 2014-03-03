@@ -7,6 +7,8 @@ namespace Org.BouncyCastle.Math.EC
 {
     internal abstract class Nat
     {
+        private const ulong M = 0xFFFFFFFFUL;
+
         public static uint Add(int len, uint[] x, uint[] y, uint[] z)
         {
             ulong c = 0;
@@ -43,18 +45,28 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
-        // TODO Re-write to allow full range for x?
-        public static uint AddDWord(int len, ulong x, uint[] z, int zOff)
+        public static uint AddDWordAt(int len, ulong x, uint[] z, int zPos)
         {
-            Debug.Assert(zOff <= (len - 2));
-            ulong c = x;
-            c += (ulong)z[zOff + 0];
-            z[zOff + 0] = (uint)c;
+            Debug.Assert(zPos <= (len - 2));
+            ulong c = (ulong)z[zPos + 0] + (x & M);
+            z[zPos + 0] = (uint)c;
             c >>= 32;
-            c += (ulong)z[zOff + 1];
-            z[zOff + 1] = (uint)c;
+            c += (ulong)z[zPos + 1] + (x >> 32);
+            z[zPos + 1] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Inc(len, z, zOff + 2);
+            return c == 0 ? 0 : IncAt(len, z, zPos + 2);
+        }
+
+        public static uint AddTo(int len, uint[] x, uint[] z)
+        {
+            ulong c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (ulong)x[i] + z[i];
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (uint)c;
         }
 
         public static uint AddTo(int len, uint[] x, int xOff, uint[] z, int zOff)
@@ -69,23 +81,22 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
-        public static uint AddWord(int len, uint x, uint[] z, int zOff)
+        public static uint AddWordAt(int len, uint x, uint[] z, int zPos)
         {
-            Debug.Assert(zOff < len);
-            ulong c = (ulong)x + z[zOff + 0];
-            z[zOff + 0] = (uint)c;
+            Debug.Assert(zPos <= (len - 1));
+            ulong c = (ulong)x + z[zPos];
+            z[zPos] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Inc(len, z, 1);
+            return c == 0 ? 0 : IncAt(len, z, zPos + 1);
         }
 
-        public static uint AddWordExt(int len, uint x, uint[] zz, int zzOff)
+        public static uint AddWordAt(int len, uint x, uint[] z, int zOff, int zPos)
         {
-            int extLen = len << 1;
-            Debug.Assert(zzOff < extLen);
-            ulong c = (ulong)x + zz[zzOff];
-            zz[zzOff] = (uint)c;
+            Debug.Assert(zPos <= (len - 1));
+            ulong c = (ulong)x + z[zOff + zPos];
+            z[zOff + zPos] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Inc(extLen, zz, zzOff + 1);
+            return c == 0 ? 0 : IncAt(len, z, zOff, zPos + 1);
         }
 
         public static void Copy(int len, uint[] x, uint[] z)
@@ -105,12 +116,53 @@ namespace Org.BouncyCastle.Math.EC
             return new uint[len];
         }
 
-        public static int Dec(int len, uint[] z, int zOff)
+        public static int Dec(int len, uint[] z)
         {
-            Debug.Assert(zOff <= len);
-            for (int i = zOff; i < len; ++i)
+            for (int i = 0; i < len; ++i)
             {
                 if (--z[i] != uint.MaxValue)
+                {
+                    return 0;
+                }
+            }
+            return -1;
+        }
+
+        public static int Dec(int len, uint[] x, uint[] z)
+        {
+            int i = 0;
+            while (i < len)
+            {
+                uint c = x[i] - 1;
+                z[i++] = c;
+                if (c != uint.MaxValue)
+                {
+                    Array.Copy(x, i, z, i, len - i);
+                    return 0;
+                }
+            }
+            return -1;
+        }
+
+        public static int DecAt(int len, uint[] z, int zPos)
+        {
+            Debug.Assert(zPos <= len);
+            for (int i = zPos; i < len; ++i)
+            {
+                if (--z[i] != uint.MaxValue)
+                {
+                    return 0;
+                }
+            }
+            return -1;
+        }
+
+        public static int DecAt(int len, uint[] z, int zOff, int zPos)
+        {
+            Debug.Assert(zPos <= len);
+            for (int i = zPos; i < len; ++i)
+            {
+                if (--z[zOff + i] != uint.MaxValue)
                 {
                     return 0;
                 }
@@ -174,12 +226,53 @@ namespace Org.BouncyCastle.Math.EC
             return true;
         }
 
-        public static uint Inc(int len, uint[] z, int zOff)
+        public static uint Inc(int len, uint[] z)
         {
-            Debug.Assert(zOff <= len);
-            for (int i = zOff; i < len; ++i)
+            for (int i = 0; i < len; ++i)
             {
                 if (++z[i] != uint.MinValue)
+                {
+                    return 0;
+                }
+            }
+            return 1;
+        }
+
+        public static uint Inc(int len, uint[] x, uint[] z)
+        {
+            int i = 0;
+            while (i < len)
+            {
+                uint c = x[i] + 1;
+                z[i++] = c;
+                if (c != 0)
+                {
+                    Array.Copy(x, i, z, i, len - i);
+                    return 0;
+                }
+            }
+            return 1;
+        }
+
+        public static uint IncAt(int len, uint[] z, int zPos)
+        {
+            Debug.Assert(zPos <= len);
+            for (int i = zPos; i < len; ++i)
+            {
+                if (++z[i] != uint.MinValue)
+                {
+                    return 0;
+                }
+            }
+            return 1;
+        }
+
+        public static uint IncAt(int len, uint[] z, int zOff, int zPos)
+        {
+            Debug.Assert(zPos <= len);
+            for (int i = zPos; i < len; ++i)
+            {
+                if (++z[zOff + i] != uint.MinValue)
                 {
                     return 0;
                 }
@@ -231,11 +324,11 @@ namespace Org.BouncyCastle.Math.EC
 
         public static void Mul(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] zz, int zzOff)
         {
-            zz[len] = (uint)MulWord(len, x[xOff + 0], y, yOff, zz, zzOff);
+            zz[zzOff + len] = (uint)MulWord(len, x[xOff], y, yOff, zz, zzOff);
 
             for (int i = 1; i < len; ++i)
             {
-                zz[i + len] = (uint)MulWordAddTo(len, x[xOff + i], y, yOff, zz, zzOff + i);
+                zz[zzOff + i + len] = (uint)MulWordAddTo(len, x[xOff + i], y, yOff, zz, zzOff + i);
             }
         }
 
@@ -295,20 +388,20 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
-        public static uint MulWordDwordAdd(int len, uint x, ulong y, uint[] z, int zOff)
+        public static uint MulWordDwordAddAt(int len, uint x, ulong y, uint[] z, int zPos)
         {
-            Debug.Assert(zOff <= (len - 3));
+            Debug.Assert(zPos <= (len - 3));
             ulong c = 0, xVal = (ulong)x;
-            c += xVal * (uint)y + z[zOff + 0];
-            z[zOff + 0] = (uint)c;
+            c += xVal * (uint)y + z[zPos + 0];
+            z[zPos + 0] = (uint)c;
             c >>= 32;
-            c += xVal * (y >> 32) + z[zOff + 1];
-            z[zOff + 1] = (uint)c;
+            c += xVal * (y >> 32) + z[zPos + 1];
+            z[zPos + 1] = (uint)c;
             c >>= 32;
-            c += (ulong)z[zOff + 2];
-            z[zOff + 2] = (uint)c;
+            c += (ulong)z[zPos + 2];
+            z[zPos + 2] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Inc(len, z, zOff + 3);
+            return c == 0 ? 0 : IncAt(len, z, zPos + 3);
         }
 
         public static uint ShiftDownBit(int len, uint[] z, uint c)
@@ -318,6 +411,18 @@ namespace Org.BouncyCastle.Math.EC
             {
                 uint next = z[i];
                 z[i] = (next >> 1) | (c << 31);
+                c = next;
+            }
+            return c << 31;
+        }
+
+        public static uint ShiftDownBit(int len, uint[] z, int zOff, uint c)
+        {
+            int i = len;
+            while (--i >= 0)
+            {
+                uint next = z[zOff + i];
+                z[zOff + i] = (next >> 1) | (c << 31);
                 c = next;
             }
             return c << 31;
@@ -335,27 +440,65 @@ namespace Org.BouncyCastle.Math.EC
             return c << 31;
         }
 
-        public static uint ShiftDownBits(int len, uint[] x, int bits, uint c)
+        public static uint ShiftDownBit(int len, uint[] x, int xOff, uint c, uint[] z, int zOff)
+        {
+            int i = len;
+            while (--i >= 0)
+            {
+                uint next = x[xOff + i];
+                z[zOff + i] = (next >> 1) | (c << 31);
+                c = next;
+            }
+            return c << 31;
+        }
+
+        public static uint ShiftDownBits(int len, uint[] z, int bits, uint c)
+        {
+            Debug.Assert(bits > 0 && bits < 32);
+            int i = len;
+            while (--i >= 0)
+            {
+                uint next = z[i];
+                z[i] = (next >> bits) | (c << -bits);
+                c = next;
+            }
+            return c << -bits;
+        }
+
+        public static uint ShiftDownBits(int len, uint[] z, int zOff, int bits, uint c)
+        {
+            Debug.Assert(bits > 0 && bits < 32);
+            int i = len;
+            while (--i >= 0)
+            {
+                uint next = z[zOff + i];
+                z[zOff + i] = (next >> bits) | (c << -bits);
+                c = next;
+            }
+            return c << -bits;
+        }
+
+        public static uint ShiftDownBits(int len, uint[] x, int bits, uint c, uint[] z)
         {
             Debug.Assert(bits > 0 && bits < 32);
             int i = len;
             while (--i >= 0)
             {
                 uint next = x[i];
-                x[i] = (next >> bits) | (c << -bits);
+                z[i] = (next >> bits) | (c << -bits);
                 c = next;
             }
             return c << -bits;
         }
 
-        public static uint ShiftDownBits(int len, uint[] x, int xOff, int bits, uint c, uint[] z)
+        public static uint ShiftDownBits(int len, uint[] x, int xOff, int bits, uint c, uint[] z, int zOff)
         {
             Debug.Assert(bits > 0 && bits < 32);
             int i = len;
             while (--i >= 0)
             {
                 uint next = x[xOff + i];
-                z[i] = (next >> bits) | (c << -bits);
+                z[zOff + i] = (next >> bits) | (c << -bits);
                 c = next;
             }
             return c << -bits;
@@ -406,12 +549,12 @@ namespace Org.BouncyCastle.Math.EC
             return c >> 31;
         }
 
-        public static uint ShiftUpBit(int len, uint[] x, int xOff, uint c, uint[] z)
+        public static uint ShiftUpBit(int len, uint[] x, int xOff, uint c, uint[] z, int zOff)
         {
             for (int i = 0; i < len; ++i)
             {
                 uint next = x[xOff + i];
-                z[i] = (next << 1) | (c >> 31);
+                z[zOff + i] = (next << 1) | (c >> 31);
                 c = next;
             }
             return c >> 31;
@@ -429,6 +572,18 @@ namespace Org.BouncyCastle.Math.EC
             return c >> -bits;
         }
 
+        public static uint ShiftUpBits(int len, uint[] z, int zOff, int bits, uint c)
+        {
+            Debug.Assert(bits > 0 && bits < 32);
+            for (int i = 0; i < len; ++i)
+            {
+                uint next = z[zOff + i];
+                z[zOff + i] = (next << bits) | (c >> -bits);
+                c = next;
+            }
+            return c >> -bits;
+        }
+
         public static uint ShiftUpBits(int len, uint[] x, int bits, uint c, uint[] z)
         {
             Debug.Assert(bits > 0 && bits < 32);
@@ -436,6 +591,18 @@ namespace Org.BouncyCastle.Math.EC
             {
                 uint next = x[i];
                 z[i] = (next << bits) | (c >> -bits);
+                c = next;
+            }
+            return c >> -bits;
+        }
+
+        public static uint ShiftUpBits(int len, uint[] x, int xOff, int bits, uint c, uint[] z, int zOff)
+        {
+            Debug.Assert(bits > 0 && bits < 32);
+            for (int i = 0; i < len; ++i)
+            {
+                uint next = x[xOff + i];
+                z[zOff + i] = (next << bits) | (c >> -bits);
                 c = next;
             }
             return c >> -bits;
@@ -459,10 +626,34 @@ namespace Org.BouncyCastle.Math.EC
             for (int i = 1; i < len; ++i)
             {
                 c = SquareWordAdd(x, i, zz);
-                AddWordExt(len, c, zz, i << 1);
+                AddWordAt(extLen, c, zz, i << 1);
             }
 
             ShiftUpBit(extLen, zz, x[0] << 31);
+        }
+
+        public static void Square(int len, uint[] x, int xOff, uint[] zz, int zzOff)
+        {
+            int extLen = len << 1;
+            uint c = 0;
+            int j = len, k = extLen;
+            do
+            {
+                ulong xVal = (ulong)x[xOff + --j];
+                ulong p = xVal * xVal;
+                zz[zzOff + --k] = (c << 31) | (uint)(p >> 33);
+                zz[zzOff + --k] = (uint)(p >> 1);
+                c = (uint)p;
+            }
+            while (j > 0);
+
+            for (int i = 1; i < len; ++i)
+            {
+                c = SquareWordAdd(x, xOff, i, zz, zzOff);
+                AddWordAt(extLen, c, zz, zzOff, i << 1);
+            }
+
+            ShiftUpBit(extLen, zz, zzOff, x[xOff] << 31);
         }
 
         public static uint SquareWordAdd(uint[] x, int xPos, uint[] z)
@@ -479,6 +670,21 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
+        public static uint SquareWordAdd(uint[] x, int xOff, int xPos, uint[] z, int zOff)
+        {
+            ulong c = 0, xVal = (ulong)x[xOff + xPos];
+            int i = 0;
+            do
+            {
+                c += xVal * (x[xOff + i] & M) + (z[xPos + zOff] & M);
+                z[xPos + zOff] = (uint)c;
+                c >>= 32;
+                ++zOff;
+            }
+            while (++i < xPos);
+            return (uint)c;
+        }
+
         public static int Sub(int len, uint[] x, uint[] y, uint[] z)
         {
             long c = 0;
@@ -486,6 +692,18 @@ namespace Org.BouncyCastle.Math.EC
             {
                 c += (long)x[i] - y[i];
                 z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (int)c;
+        }
+
+        public static int Sub(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
+        {
+            long c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (long)x[xOff + i] - y[yOff + i];
+                z[zOff + i] = (uint)c;
                 c >>= 32;
             }
             return (int)c;
@@ -515,18 +733,28 @@ namespace Org.BouncyCastle.Math.EC
             return (int)c;
         }
 
-        // TODO Re-write to allow full range for x?
-        public static int SubDWord(int len, ulong x, uint[] z)
+        public static int SubDWordAt(int len, ulong x, uint[] z, int zPos)
         {
-            Debug.Assert(len >= 2);
-            long c = -(long)x;
-            c += (long)z[0];
-            z[0] = (uint)c;
+            Debug.Assert(zPos <= (len - 2));
+            long c = (long)z[zPos + 0] - (long)(x & M);
+            z[zPos + 0] = (uint)c;
             c >>= 32;
-            c += (long)z[1];
-            z[1] = (uint)c;
+            c += (long)z[zPos + 1] - (long)(x >> 32);
+            z[zPos + 1] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Dec(len, z, 2);
+            return c == 0 ? 0 : DecAt(len, z, zPos + 2);
+        }
+
+        public static int SubFrom(int len, uint[] x, uint[] z)
+        {
+            long c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (long)z[i] - x[i];
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (int)c;
         }
 
         public static int SubFrom(int len, uint[] x, int xOff, uint[] z, int zOff)
@@ -539,6 +767,24 @@ namespace Org.BouncyCastle.Math.EC
                 c >>= 32;
             }
             return (int)c;
+        }
+
+        public static int SubWordAt(int len, uint x, uint[] z, int zPos)
+        {
+            Debug.Assert(zPos <= (len - 1));
+            long c = (long)z[zPos] - x;
+            z[zPos] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, zPos + 1);
+        }
+
+        public static int SubWordAt(int len, uint x, uint[] z, int zOff, int zPos)
+        {
+            Debug.Assert(zPos <= (len - 1));
+            long c = (long)z[zOff + zPos] - x;
+            z[zOff + zPos] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, zOff, zPos + 1);
         }
 
         public static BigInteger ToBigInteger(int len, uint[] x)

@@ -47,10 +47,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static uint[] FromBigInteger(BigInteger x)
         {
             uint[] z = Nat256.FromBigInteger(x);
-            if (Nat256.Gte(z, P))
+            while (Nat256.Gte(z, P))
             {
-                Nat256.AddWord(PInv, z, 0);
-                z[7] &= P7;
+                Nat256.SubFrom(P, z);
             }
             return z;
         }
@@ -92,7 +91,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Debug.Assert(xx[15] >> 30 == 0);
 
             uint xx07 = xx[7];
-            Nat.ShiftUpBit(8, xx, 8, xx07, z);
+            Nat.ShiftUpBit(8, xx, 8, xx07, z, 0);
             uint c = Nat256.MulByWordAddTo(PInv, xx, z) << 1;
             uint z07 = z[7];
             z[7] = z07 & P7;

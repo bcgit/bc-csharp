@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat192.Add(x, y, z);
             if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
             {
-                Nat192.Sub(z, P, z);
+                Nat192.SubFrom(P, z);
             }
         }
 
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat192.Inc(z, 0);
             if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
             {
-                Nat192.Sub(z, P, z);
+                Nat192.SubFrom(P, z);
             }
         }
 
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] z = Nat192.FromBigInteger(x);
             if (z[5] == P5 && Nat192.Gte(z, P))
             {
-                Nat192.Sub(z, P, z);
+                Nat192.SubFrom(P, z);
             }
             return z;
         }
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if ((x != 0 && (Nat192.AddWord(x, z, 0) + Nat192.AddWord(x, z, 2) != 0))
                 || (z[5] == P5 && Nat192.Gte(z, P)))
             {
-                Nat192.Sub(z, P, z);
+                Nat192.SubFrom(P, z);
             }
         }
 
@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat192.Sub(x, y, z);
             if (c != 0)
             {
-                Nat192.Add(z, P, z);
+                Nat192.AddTo(P, z);
             }
         }
 
@@ -175,7 +175,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat192.ShiftUpBit(x, 0, z);
             if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
             {
-                Nat192.Sub(z, P, z);
+                Nat192.SubFrom(P, z);
             }
         }
     }

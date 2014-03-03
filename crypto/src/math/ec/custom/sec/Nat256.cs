@@ -69,6 +69,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
+        public static uint Add33To(uint x, uint[] z)
+        {
+            ulong c = (ulong)z[0] + x;
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[1] + 1;
+            z[1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Inc(z, 2);
+        }
+
         public static uint AddBothTo(uint[] x, uint[] y, uint[] z)
         {
             ulong c = 0;
@@ -129,18 +140,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
-        // TODO Re-write to allow full range for x?
-        public static uint AddDWord(ulong x, uint[] z, int zOff)
+        public static uint AddDWordAt(ulong x, uint[] z, int zPos)
         {
-            Debug.Assert(zOff <= 6);
-            ulong c = x;
-            c += (ulong)z[zOff + 0];
-            z[zOff + 0] = (uint)c;
+            Debug.Assert(zPos <= 6);
+            ulong c = (ulong)z[zPos + 0] + (x & M);
+            z[zPos + 0] = (uint)c;
             c >>= 32;
-            c += (ulong)z[zOff + 1];
-            z[zOff + 1] = (uint)c;
+            c += (ulong)z[zPos + 1] + (x >> 32);
+            z[zPos + 1] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Inc(z, zOff + 2);
+            return c == 0 ? 0 : Inc(z, zPos + 2);
         }
 
         public static uint AddExt(uint[] xx, uint[] yy, uint[] zz)
@@ -152,6 +161,36 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 zz[i] = (uint)c;
                 c >>= 32;
             }
+            return (uint)c;
+        }
+
+        public static uint AddTo(uint[] x, uint[] z)
+        {
+            ulong c = 0;
+            c += (ulong)x[ 0] + z[ 0];
+            z[ 0] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[ 1] + z[ 1];
+            z[ 1] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[ 2] + z[ 2];
+            z[ 2] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[ 3] + z[ 3];
+            z[ 3] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[ 4] + z[ 4];
+            z[ 4] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[ 5] + z[ 5];
+            z[ 5] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[ 6] + z[ 6];
+            z[ 6] = (uint)c;
+            c >>= 32;
+            c += (ulong)x[ 7] + z[ 7];
+            z[ 7] = (uint)c;
+            c >>= 32;
             return (uint)c;
         }
 
@@ -1298,6 +1337,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (int)c;
         }
 
+        public static int Sub33From(uint x, uint[] z)
+        {
+            long c = (long)z[0] - x;
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (long)z[1] - 1;
+            z[1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Dec(z, 2);
+        }
+
         public static int SubBothFrom(uint[] x, uint[] y, uint[] z)
         {
             long c = 0;
@@ -1328,17 +1378,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (int)c;
         }
 
-        // TODO Re-write to allow full range for x?
-        public static int SubDWord(ulong x, uint[] z)
+        public static int SubDWordAt(ulong x, uint[] z, int zPos)
         {
-            long c = -(long)x;
-            c += (long)z[0];
-            z[0] = (uint)c;
+            Debug.Assert(zPos <= 6);
+            long c = (long)z[zPos + 0] - (long)(x & M);
+            z[zPos + 0] = (uint)c;
             c >>= 32;
-            c += (long)z[1];
-            z[1] = (uint)c;
+            c += (long)z[zPos + 1] - (long)(x >> 32);
+            z[zPos + 1] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Dec(z, 2);
+            return c == 0 ? 0 : Dec(z, zPos + 2);
         }
 
         public static int SubExt(uint[] xx, uint[] yy, uint[] zz)
@@ -1353,33 +1402,62 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (int)c;
         }
 
-        public static int SubFromExt(uint[] x, int xOff, uint[] zz, int zzOff)
+        public static int SubFrom(uint[] x, uint[] z)
         {
-            Debug.Assert(zzOff <= 8);
             long c = 0;
-            c += (long)zz[zzOff + 0] - x[xOff + 0];
-            zz[zzOff + 0] = (uint)c;
+            c += (long)z[0] - x[0];
+            z[0] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 1] - x[xOff + 1];
-            zz[zzOff + 1] = (uint)c;
+            c += (long)z[1] - x[1];
+            z[1] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 2] - x[xOff + 2];
-            zz[zzOff + 2] = (uint)c;
+            c += (long)z[2] - x[2];
+            z[2] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 3] - x[xOff + 3];
-            zz[zzOff + 3] = (uint)c;
+            c += (long)z[3] - x[3];
+            z[3] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 4] - x[xOff + 4];
-            zz[zzOff + 4] = (uint)c;
+            c += (long)z[4] - x[4];
+            z[4] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 5] - x[xOff + 5];
-            zz[zzOff + 5] = (uint)c;
+            c += (long)z[5] - x[5];
+            z[5] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 6] - x[xOff + 6];
-            zz[zzOff + 6] = (uint)c;
+            c += (long)z[6] - x[6];
+            z[6] = (uint)c;
             c >>= 32;
-            c += (long)zz[zzOff + 7] - x[xOff + 7];
-            zz[zzOff + 7] = (uint)c;
+            c += (long)z[7] - x[7];
+            z[7] = (uint)c;
+            c >>= 32;
+            return (int)c;
+        }
+
+        public static int SubFrom(uint[] x, int xOff, uint[] z, int zOff)
+        {
+            long c = 0;
+            c += (long)z[zOff + 0] - x[xOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 1] - x[xOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 2] - x[xOff + 2];
+            z[zOff + 2] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 3] - x[xOff + 3];
+            z[zOff + 3] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 4] - x[xOff + 4];
+            z[zOff + 4] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 5] - x[xOff + 5];
+            z[zOff + 5] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 6] - x[xOff + 6];
+            z[zOff + 6] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 7] - x[xOff + 7];
+            z[zOff + 7] = (uint)c;
             c >>= 32;
             return (int)c;
         }

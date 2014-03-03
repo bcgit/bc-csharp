@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat224.Add(x, y, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.Sub(z, P, z);
+                Nat224.SubFrom(P, z);
             }
         }
 
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat224.Inc(z, 0);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.Sub(z, P, z);
+                Nat224.SubFrom(P, z);
             }
         }
 
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] z = Nat224.FromBigInteger(x);
             if (z[6] == P6 && Nat224.Gte(z, P))
             {
-                Nat224.Sub(z, P, z);
+                Nat224.SubFrom(P, z);
             }
             return z;
         }
@@ -121,10 +121,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
             else
             {
-                while (c < 0)
-                {
-                    c += (int)Nat224.Add(z, P, z);
-                }
+                Nat224.AddTo(P, z);
             }
         }
 
@@ -133,7 +130,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if ((x != 0 && (Nat224.SubWord(x, z, 0) + Nat224.AddWord(x, z, 3) != 0))
                 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.Sub(z, P, z);
+                Nat224.SubFrom(P, z);
             }
         }
 
@@ -164,7 +161,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat224.Sub(x, y, z);
             if (c != 0)
             {
-                Nat224.Add(z, P, z);
+                Nat224.AddTo(P, z);
             }
         }
 
@@ -182,7 +179,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat224.ShiftUpBit(x, 0, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.Sub(z, P, z);
+                Nat224.SubFrom(P, z);
             }
         }
     }

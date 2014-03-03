@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] z = Nat224.FromBigInteger(x);
             if (z[6] == P6 && Nat224.Gte(z, P))
             {
-                Nat224.AddDWord(PInv, z, 0);
+                Nat224.SubFrom(P, z);
             }
             return z;
         }

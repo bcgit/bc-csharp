@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat256.Add(x, y, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Sub(z, P, z);
+                Nat256.SubFrom(P, z);
             }
         }
 
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat256.Inc(z, 0);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Sub(z, P, z);
+                Nat256.SubFrom(P, z);
             }
         }
 
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] z = Nat256.FromBigInteger(x);
             if (z[7] == P7 && Nat256.Gte(z, P))
             {
-                Nat256.Sub(z, P, z);
+                Nat256.SubFrom(P, z);
             }
             return z;
         }
@@ -133,11 +133,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             {
                 while (c < -1)
                 {
-                    c += (int)Nat256.Add(z, _2P, z) + 1;
+                    c += (int)Nat256.AddTo(_2P, z) + 1;
                 }
                 while (c < 0)
                 {
-                    c += (int)Nat256.Add(z, P, z);
+                    c += (int)Nat256.AddTo(P, z);
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             if (cc != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Sub(z, P, z);
+                Nat256.SubFrom(P, z);
             }
         }
 
@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat256.Sub(x, y, z);
             if (c != 0)
             {
-                Nat256.Add(z, P, z);
+                Nat256.AddTo(P, z);
             }
         }
 
@@ -229,7 +229,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat256.ShiftUpBit(x, 0, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Sub(z, P, z);
+                Nat256.SubFrom(P, z);
             }
         }
     }
