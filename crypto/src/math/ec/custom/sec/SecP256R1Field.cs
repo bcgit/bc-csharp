@@ -26,17 +26,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void AddExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            uint c = Nat256.AddExt(xx, yy, zz);
+            uint c = Nat.Add(16, xx, yy, zz);
             if (c != 0 || Nat256.GteExt(zz, PExt))
             {
-                Nat256.SubExt(zz, PExt, zz);
+                Nat.SubFrom(16, PExt, zz);
             }
         }
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Nat256.Copy(x, z);
-            uint c = Nat256.Inc(z, 0);
+            uint c = Nat.Inc(8, x, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
                 Nat256.SubFrom(P, z);
@@ -217,10 +216,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void SubtractExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            int c = Nat256.SubExt(xx, yy, zz);
+            int c = Nat.Sub(16, xx, yy, zz);
             if (c != 0)
             {
-                Nat256.AddExt(zz, PExt, zz);
+                Nat.AddTo(16, PExt, zz);
             }
         }
 

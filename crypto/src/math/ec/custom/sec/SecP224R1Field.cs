@@ -9,6 +9,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         internal static readonly uint[] P = new uint[] { 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
         internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF,
             0xFFFFFFFF, 0x00000000, 0x00000002, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+        private static readonly uint[] PExtInv = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001, 0x00000000,
+            0x00000000, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001 };
         private const uint P6 = 0xFFFFFFFF;
         private const uint PExt13 = 0xFFFFFFFF;
 
@@ -17,26 +19,28 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat224.Add(x, y, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.SubFrom(P, z);
+                AddPInvTo(z);
             }
         }
 
         public static void AddExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            uint c = Nat224.AddExt(xx, yy, zz);
+            uint c = Nat.Add(14, xx, yy, zz);
             if (c != 0 || (zz[13] == PExt13 && Nat224.GteExt(zz, PExt)))
             {
-                Nat224.SubExt(zz, PExt, zz);
+                if (Nat.AddTo(PExtInv.Length, PExtInv, zz) != 0)
+                {
+                    Nat.IncAt(14, zz, PExtInv.Length);
+                }
             }
         }
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Nat224.Copy(x, z);
-            uint c = Nat224.Inc(z, 0);
+            uint c = Nat.Inc(7, x, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.SubFrom(P, z);
+                AddPInvTo(z);
             }
         }
 
@@ -121,16 +125,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
             else
             {
-                Nat224.AddTo(P, z);
+                SubPInvFrom(z);
             }
         }
 
         public static void Reduce32(uint x, uint[] z)
         {
-            if ((x != 0 && (Nat224.SubWord(x, z, 0) + Nat224.AddWord(x, z, 3) != 0))
+            if ((x != 0 && (Nat.SubWordFrom(7, x, z) + Nat.AddWordAt(7, x, z, 3) != 0))
                 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.SubFrom(P, z);
+                AddPInvTo(z);
             }
         }
 
@@ -161,16 +165,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat224.Sub(x, y, z);
             if (c != 0)
             {
-                Nat224.AddTo(P, z);
+                SubPInvFrom(z);
             }
         }
 
         public static void SubtractExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            int c = Nat224.SubExt(xx, yy, zz);
+            int c = Nat.Sub(14, xx, yy, zz);
             if (c != 0)
             {
-                Nat224.AddExt(zz, PExt, zz);
+                if (Nat.SubFrom(PExtInv.Length, PExtInv, zz) != 0)
+                {
+                    Nat.DecAt(14, zz, PExtInv.Length);
+                }
             }
         }
 
@@ -179,7 +186,53 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.ShiftUpBit(7, x, 0, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.SubFrom(P, z);
+                AddPInvTo(z);
+            }
+        }
+
+        private static void AddPInvTo(uint[] z)
+        {
+            long c = (long)z[0] - 1;
+            z[0] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                c += (long)z[1];
+                z[1] = (uint)c;
+                c >>= 32;
+                c += (long)z[2];
+                z[2] = (uint)c;
+                c >>= 32;
+            }
+            c += (long)z[3] + 1;
+            z[3] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                Nat.IncAt(7, z, 4);
+            }
+        }
+
+        private static void SubPInvFrom(uint[] z)
+        {
+            long c = (long)z[0] + 1;
+            z[0] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                c += (long)z[1];
+                z[1] = (uint)c;
+                c >>= 32;
+                c += (long)z[2];
+                z[2] = (uint)c;
+                c >>= 32;
+            }
+            c += (long)z[3] - 1;
+            z[3] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                Nat.DecAt(7, z, 4);
             }
         }
     }

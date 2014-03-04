@@ -22,29 +22,28 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat256.Add(x, y, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Add33To(PInv33, z);
+                Nat.Add33To(8, PInv33, z);
             }
         }
 
         public static void AddExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            uint c = Nat256.AddExt(xx, yy, zz);
+            uint c = Nat.Add(16, xx, yy, zz);
             if (c != 0 || (zz[15] == PExt15 && Nat256.GteExt(zz, PExt)))
             {
                 if (Nat.AddTo(PExtInv.Length, PExtInv, zz) != 0)
                 {
-                    Nat256.IncExt(zz, PExtInv.Length);
+                    Nat.IncAt(16, zz, PExtInv.Length);
                 }
             }
         }
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Nat256.Copy(x, z);
-            uint c = Nat256.Inc(z, 0);
+            uint c = Nat.Inc(8, x, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Add33To(PInv33, z);
+                Nat.Add33To(8, PInv33, z);
             }
         }
 
@@ -99,7 +98,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Add33To(PInv33, z);
+                Nat.Add33To(8, PInv33, z);
             }
         }
 
@@ -108,7 +107,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if ((x != 0 && Nat256.Mul33WordAdd(PInv33, x, z, 0) != 0)
                 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Add33To(PInv33, z);
+                Nat.Add33To(8, PInv33, z);
             }
         }
 
@@ -139,18 +138,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat256.Sub(x, y, z);
             if (c != 0)
             {
-                Nat256.Sub33From(PInv33, z);
+                Nat.Sub33From(8, PInv33, z);
             }
         }
 
         public static void SubtractExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            int c = Nat256.SubExt(xx, yy, zz);
+            int c = Nat.Sub(16, xx, yy, zz);
             if (c != 0)
             {
                 if (Nat.SubFrom(PExtInv.Length, PExtInv, zz) != 0)
                 {
-                    Nat256.DecExt(zz, PExtInv.Length);
+                    Nat.DecAt(16, zz, PExtInv.Length);
                 }
             }
         }
@@ -160,7 +159,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.ShiftUpBit(8, x, 0, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.Add33To(PInv33, z);
+                Nat.Add33To(8, PInv33, z);
             }
         }
     }

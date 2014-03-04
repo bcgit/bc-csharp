@@ -11,7 +11,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0xFFFFFFFE, 0x00000000, 0x00000002, 0x00000000, 0xFFFFFFFE,
             0x00000000, 0x00000002, 0x00000001, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFE, 0x00000001, 0x00000000,
             0xFFFFFFFE, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        private static readonly uint[] PInv = new uint[]{ 0x00000001, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000001 };
         private static readonly uint[] PExtInv = new uint[]{ 0xFFFFFFFF, 0x00000001, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFF, 0x00000001,
             0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001, 0xFFFFFFFE, 0xFFFFFFFF,
             0x00000001, 0x00000002 };
@@ -23,10 +22,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.Add(12, x, y, z);
             if (c != 0 || (z[11] == P11 && Nat.Gte(12, z, P)))
             {
-                if (Nat.AddTo(PInv.Length, PInv, z) != 0)
-                {
-                    Nat.IncAt(12, z, PInv.Length);
-                }
+                AddPInvTo(z);
             }
         }
 
@@ -47,10 +43,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.Inc(12, x, z);
             if (c != 0 || (z[11] == P11 && Nat.Gte(12, z, P)))
             {
-                if (Nat.AddTo(PInv.Length, PInv, z) != 0)
-                {
-                    Nat.IncAt(12, z, PInv.Length);
-                }
+                AddPInvTo(z);
             }
         }
 
@@ -145,9 +138,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             {
                 Reduce32((uint)c, z);
             }
-            else if (Nat.SubFrom(PInv.Length, PInv, z) != 0)
+            else
             {
-                Nat.DecAt(12, z, PInv.Length);
+                SubPInvFrom(z);
             }
         }
 
@@ -181,10 +174,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if ((cc != 0 && Nat.IncAt(12, z, 5) != 0)
                 || (z[11] == P11 && Nat.Gte(12, z, P)))
             {
-                if (Nat.AddTo(PInv.Length, PInv, z) != 0)
-                {
-                    Nat.IncAt(12, z, PInv.Length);
-                }
+                AddPInvTo(z);
             }
         }
 
@@ -215,10 +205,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat.Sub(12, x, y, z);
             if (c != 0)
             {
-                if (Nat.SubFrom(PInv.Length, PInv, z) != 0)
-                {
-                    Nat.DecAt(12, z, PInv.Length);
-                }
+                SubPInvFrom(z);
             }
         }
 
@@ -239,10 +226,59 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.ShiftUpBit(12, x, 0, z);
             if (c != 0 || (z[11] == P11 && Nat.Gte(12, z, P)))
             {
-                if (Nat.AddTo(PInv.Length, PInv, z) != 0)
-                {
-                    Nat.IncAt(12, z, PInv.Length);
-                }
+                AddPInvTo(z);
+            }
+        }
+
+        private static void AddPInvTo(uint[] z)
+        {
+            long c = (long)z[0] + 1;
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (long)z[1] - 1;
+            z[1] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                c += (long)z[2];
+                z[2] = (uint)c;
+                c >>= 32;
+            }
+            c += (long)z[3] + 1;
+            z[3] = (uint)c;
+            c >>= 32;
+            c += (long)z[4] + 1;
+            z[4] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                Nat.IncAt(12, z, 5);
+            }
+        }
+
+        private static void SubPInvFrom(uint[] z)
+        {
+            long c = (long)z[0] - 1;
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (long)z[1] + 1;
+            z[1] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                c += (long)z[2];
+                z[2] = (uint)c;
+                c >>= 32;
+            }
+            c += (long)z[3] - 1;
+            z[3] = (uint)c;
+            c >>= 32;
+            c += (long)z[4] - 1;
+            z[4] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                Nat.DecAt(12, z, 5);
             }
         }
     }

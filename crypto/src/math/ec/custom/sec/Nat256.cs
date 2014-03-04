@@ -69,17 +69,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
-        public static uint Add33To(uint x, uint[] z)
-        {
-            ulong c = (ulong)z[0] + x;
-            z[0] = (uint)c;
-            c >>= 32;
-            c += (ulong)z[1] + 1;
-            z[1] = (uint)c;
-            c >>= 32;
-            return c == 0 ? 0 : Inc(z, 2);
-        }
-
         public static uint AddBothTo(uint[] x, uint[] y, uint[] z)
         {
             ulong c = 0;
@@ -137,30 +126,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += (ulong)x[xOff + 7] + y[yOff + 7] + z[zOff + 7];
             z[zOff + 7] = (uint)c;
             c >>= 32;
-            return (uint)c;
-        }
-
-        public static uint AddDWordAt(ulong x, uint[] z, int zPos)
-        {
-            Debug.Assert(zPos <= 6);
-            ulong c = (ulong)z[zPos + 0] + (x & M);
-            z[zPos + 0] = (uint)c;
-            c >>= 32;
-            c += (ulong)z[zPos + 1] + (x >> 32);
-            z[zPos + 1] = (uint)c;
-            c >>= 32;
-            return c == 0 ? 0 : Inc(z, zPos + 2);
-        }
-
-        public static uint AddExt(uint[] xx, uint[] yy, uint[] zz)
-        {
-            ulong c = 0;
-            for (int i = 0; i < 16; ++i)
-            {
-                c += (ulong)xx[i] + yy[i];
-                zz[i] = (uint)c;
-                c >>= 32;
-            }
             return (uint)c;
         }
 
@@ -262,24 +227,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
-        public static uint AddWord(uint x, uint[] z, int zOff)
-        {
-            Debug.Assert(zOff <= 7);
-            ulong c = (ulong)x + z[zOff + 0];
-            z[zOff + 0] = (uint)c;
-            c >>= 32;
-            return c == 0 ? 0 : Inc(z, zOff + 1);
-        }
-
-        public static uint AddWordExt(uint x, uint[] zz, int zzOff)
-        {
-            Debug.Assert(zzOff <= 15);
-            ulong c = (ulong)x + zz[zzOff + 0];
-            zz[zzOff + 0] = (uint)c;
-            c >>= 32;
-            return c == 0 ? 0 : IncExt(zz, zzOff + 1);
-        }
-
         public static void Copy(uint[] x, uint[] z)
         {
             z[0] = x[0];
@@ -300,32 +247,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static uint[] CreateExt()
         {
             return new uint[16];
-        }
-
-        public static int Dec(uint[] z, int zOff)
-        {
-            Debug.Assert(zOff <= 8);
-            for (int i = zOff; i < 8; ++i)
-            {
-                if (--z[i] != uint.MaxValue)
-                {
-                    return 0;
-                }
-            }
-            return -1;
-        }
-
-        public static int DecExt(uint[] zz, int zzOff)
-        {
-            Debug.Assert(zzOff <= 16);
-            for (int i = zzOff; i < 16; ++i)
-            {
-                if (--zz[i] != uint.MaxValue)
-                {
-                    return 0;
-                }
-            }
-            return -1;
         }
 
         public static bool Diff(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
@@ -419,32 +340,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     return true;
             }
             return true;
-        }
-
-        public static uint Inc(uint[] z, int zOff)
-        {
-            Debug.Assert(zOff <= 8);
-            for (int i = zOff; i < 8; ++i)
-            {
-                if (++z[i] != uint.MinValue)
-                {
-                    return 0;
-                }
-            }
-            return 1;
-        }
-
-        public static uint IncExt(uint[] zz, int zzOff)
-        {
-            Debug.Assert(zzOff <= 16);
-            for (int i = zzOff; i < 16; ++i)
-            {
-                if (++zz[i] != uint.MinValue)
-                {
-                    return 0;
-                }
-            }
-            return 1;
         }
 
         public static bool IsOne(uint[] x)
@@ -873,7 +768,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += z[zOff + 3];
             z[zOff + 3] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Inc(z, zOff + 4);
+            return c == 0 ? 0 : Nat.IncAt(8, z, zOff, 4);
         }
 
         public static uint Mul33WordAdd(uint x, uint y, uint[] z, int zOff)
@@ -890,7 +785,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += z[zOff + 2];
             z[zOff + 2] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Inc(z, zOff + 3);
+            return c == 0 ? 0 : Nat.IncAt(8, z, zOff, 3);
         }
 
         public static uint MulWordDwordAdd(uint x, ulong y, uint[] z, int zOff)
@@ -906,7 +801,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += z[zOff + 2];
             z[zOff + 2] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Inc(z, zOff + 3);
+            return c == 0 ? 0 : Nat.IncAt(8, z, zOff, 3);
         }
 
         public static uint MulWord(uint x, uint[] y, uint[] z, int zOff)
@@ -1255,17 +1150,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (int)c;
         }
 
-        public static int Sub33From(uint x, uint[] z)
-        {
-            long c = (long)z[0] - x;
-            z[0] = (uint)c;
-            c >>= 32;
-            c += (long)z[1] - 1;
-            z[1] = (uint)c;
-            c >>= 32;
-            return c == 0 ? 0 : Dec(z, 2);
-        }
-
         public static int SubBothFrom(uint[] x, uint[] y, uint[] z)
         {
             long c = 0;
@@ -1293,30 +1177,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += (long)z[7] - x[7] - y[7];
             z[7] = (uint)c;
             c >>= 32;
-            return (int)c;
-        }
-
-        public static int SubDWordAt(ulong x, uint[] z, int zPos)
-        {
-            Debug.Assert(zPos <= 6);
-            long c = (long)z[zPos + 0] - (long)(x & M);
-            z[zPos + 0] = (uint)c;
-            c >>= 32;
-            c += (long)z[zPos + 1] - (long)(x >> 32);
-            z[zPos + 1] = (uint)c;
-            c >>= 32;
-            return c == 0 ? 0 : Dec(z, zPos + 2);
-        }
-
-        public static int SubExt(uint[] xx, uint[] yy, uint[] zz)
-        {
-            long c = 0;
-            for (int i = 0; i < 16; ++i)
-            {
-                c += (long)xx[i] - yy[i];
-                zz[i] = (uint)c;
-                c >>= 32;
-            }
             return (int)c;
         }
 
@@ -1378,24 +1238,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[zOff + 7] = (uint)c;
             c >>= 32;
             return (int)c;
-        }
-
-        public static int SubWord(uint x, uint[] z, int zOff)
-        {
-            Debug.Assert(zOff <= 7);
-            long c = (long)z[zOff + 0] - x;
-            z[zOff + 0] = (uint)c;
-            c >>= 32;
-            return c == 0 ? 0 : Dec(z, zOff + 1);
-        }
-
-        public static int SubWordExt(uint x, uint[] zz, int zzOff)
-        {
-            Debug.Assert(zzOff <= 15);
-            long c = (long)zz[zzOff + 0] - x;
-            zz[zzOff + 0] = (uint)c;
-            c >>= 32;
-            return c == 0 ? 0 : DecExt(zz, zzOff + 1);
         }
 
         public static BigInteger ToBigInteger(uint[] x)

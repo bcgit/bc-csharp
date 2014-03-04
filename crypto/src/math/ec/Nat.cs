@@ -21,6 +21,52 @@ namespace Org.BouncyCastle.Math.EC
             return (uint)c;
         }
 
+        public static uint Add33At(int len, uint x, uint[] z, int zPos)
+        {
+            Debug.Assert(zPos <= (len - 2));
+            ulong c = (ulong)z[zPos + 0] + x;
+            z[zPos + 0] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[zPos + 1] + 1;
+            z[zPos + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, zPos + 2);
+        }
+
+        public static uint Add33At(int len, uint x, uint[] z, int zOff, int zPos)
+        {
+            Debug.Assert(zPos <= (len - 2));
+            ulong c = (ulong)z[zOff + zPos] + x;
+            z[zOff + zPos] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[zOff + zPos + 1] + 1;
+            z[zOff + zPos + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, zOff, zPos + 2);
+        }
+
+        public static uint Add33To(int len, uint x, uint[] z)
+        {
+            ulong c = (ulong)z[0] + x;
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[1] + 1;
+            z[1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, 2);
+        }
+
+        public static uint Add33To(int len, uint x, uint[] z, int zOff)
+        {
+            ulong c = (ulong)z[zOff + 0] + x;
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[zOff + 1] + 1;
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, zOff, 2);
+        }
+
         public static uint AddBothTo(int len, uint[] x, uint[] y, uint[] z)
         {
             ulong c = 0;
@@ -55,6 +101,40 @@ namespace Org.BouncyCastle.Math.EC
             z[zPos + 1] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : IncAt(len, z, zPos + 2);
+        }
+
+        public static uint AddDWordAt(int len, ulong x, uint[] z, int zOff, int zPos)
+        {
+            Debug.Assert(zPos <= (len - 2));
+            ulong c = (ulong)z[zOff + zPos] + (x & M);
+            z[zOff + zPos] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[zOff + zPos + 1] + (x >> 32);
+            z[zOff + zPos + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, zOff, zPos + 2);
+        }
+
+        public static uint AddDWordTo(int len, ulong x, uint[] z)
+        {
+            ulong c = (ulong)z[0] + (x & M);
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[1] + (x >> 32);
+            z[1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, 2);
+        }
+
+        public static uint AddDWordTo(int len, ulong x, uint[] z, int zOff)
+        {
+            ulong c = (ulong)z[zOff + 0] + (x & M);
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (ulong)z[zOff + 1] + (x >> 32);
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, zOff, 2);
         }
 
         public static uint AddTo(int len, uint[] x, uint[] z)
@@ -99,6 +179,22 @@ namespace Org.BouncyCastle.Math.EC
             return c == 0 ? 0 : IncAt(len, z, zOff, zPos + 1);
         }
 
+        public static uint AddWordTo(int len, uint x, uint[] z)
+        {
+            ulong c = (ulong)x + z[0];
+            z[0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, 1);
+        }
+
+        public static uint AddWordTo(int len, uint x, uint[] z, int zOff)
+        {
+            ulong c = (ulong)x + z[zOff];
+            z[zOff] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : IncAt(len, z, zOff, 1);
+        }
+
         public static void Copy(int len, uint[] x, uint[] z)
         {
             Array.Copy(x, 0, z, 0, len);
@@ -134,10 +230,15 @@ namespace Org.BouncyCastle.Math.EC
             while (i < len)
             {
                 uint c = x[i] - 1;
-                z[i++] = c;
+                z[i] = c;
+                ++i;
                 if (c != uint.MaxValue)
                 {
-                    Array.Copy(x, i, z, i, len - i);
+                    while (i < len)
+                    {
+                        z[i] = x[i];
+                        ++i;
+                    }
                     return 0;
                 }
             }
@@ -244,10 +345,15 @@ namespace Org.BouncyCastle.Math.EC
             while (i < len)
             {
                 uint c = x[i] + 1;
-                z[i++] = c;
+                z[i] = c;
+                ++i;
                 if (c != 0)
                 {
-                    Array.Copy(x, i, z, i, len - i);
+                    while (i < len)
+                    {
+                        z[i] = x[i];
+                        ++i;
+                    }
                     return 0;
                 }
             }
@@ -708,6 +814,51 @@ namespace Org.BouncyCastle.Math.EC
             }
             return (int)c;
         }
+        public static int Sub33At(int len, uint x, uint[] z, int zPos)
+        {
+            Debug.Assert(zPos <= (len - 2));
+            long c = (long)z[zPos + 0] - x;
+            z[zPos + 0] = (uint)c;
+            c >>= 32;
+            c += (long)z[zPos + 1] - 1;
+            z[zPos + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, zPos + 2);
+        }
+
+        public static int Sub33At(int len, uint x, uint[] z, int zOff, int zPos)
+        {
+            Debug.Assert(zPos <= (len - 2));
+            long c = (long)z[zOff + zPos] - x;
+            z[zOff + zPos] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + zPos + 1] - 1;
+            z[zOff + zPos + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, zOff, zPos + 2);
+        }
+
+        public static int Sub33From(int len, uint x, uint[] z)
+        {
+            long c = (long)z[0] - x;
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (long)z[1] - 1;
+            z[1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, 2);
+        }
+
+        public static int Sub33From(int len, uint x, uint[] z, int zOff)
+        {
+            long c = (long)z[zOff + 0] - x;
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 1] - 1;
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, zOff, 2);
+        }
 
         public static int SubBothFrom(int len, uint[] x, uint[] y, uint[] z)
         {
@@ -743,6 +894,40 @@ namespace Org.BouncyCastle.Math.EC
             z[zPos + 1] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : DecAt(len, z, zPos + 2);
+        }
+
+        public static int SubDWordAt(int len, ulong x, uint[] z, int zOff, int zPos)
+        {
+            Debug.Assert(zPos <= (len - 2));
+            long c = (long)z[zOff + zPos] - (long)(x & M);
+            z[zOff + zPos] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + zPos + 1] - (long)(x >> 32);
+            z[zOff + zPos + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z,  zOff, zPos + 2);
+        }
+
+        public static int SubDWordFrom(int len, ulong x, uint[] z)
+        {
+            long c = (long)z[0] - (long)(x & M);
+            z[0] = (uint)c;
+            c >>= 32;
+            c += (long)z[1] - (long)(x >> 32);
+            z[1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, 2);
+        }
+
+        public static int SubDWordFrom(int len, ulong x, uint[] z, int zOff)
+        {
+            long c = (long)z[zOff + 0] - (long)(x & M);
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += (long)z[zOff + 1] - (long)(x >> 32);
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, zOff, 2);
         }
 
         public static int SubFrom(int len, uint[] x, uint[] z)
@@ -785,6 +970,22 @@ namespace Org.BouncyCastle.Math.EC
             z[zOff + zPos] = (uint)c;
             c >>= 32;
             return c == 0 ? 0 : DecAt(len, z, zOff, zPos + 1);
+        }
+
+        public static int SubWordFrom(int len, uint x, uint[] z)
+        {
+            long c = (long)z[0] - x;
+            z[0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, 1);
+        }
+
+        public static int SubWordFrom(int len, uint x, uint[] z, int zOff)
+        {
+            long c = (long)z[zOff + 0] - x;
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : DecAt(len, z, zOff, 1);
         }
 
         public static BigInteger ToBigInteger(int len, uint[] x)

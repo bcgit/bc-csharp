@@ -10,9 +10,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             0xFFFFFFFF };
         internal static readonly uint[] PExt = new uint[]{ 0x02C23069, 0x00003526, 0x00000001, 0x00000000, 0x00000000,
             0x00000000, 0x00000000, 0xFFFFCADA, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+        private static readonly uint[] PExtInv = new uint[]{ 0xFD3DCF97, 0xFFFFCAD9, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF,
+            0xFFFFFFFF, 0xFFFFFFFF, 0x00003525, 0x00000002 };
         private const uint P6 = 0xFFFFFFFF;
         private const uint PExt13 = 0xFFFFFFFF;
-        private const ulong PInv = 0x0000000100001A93L; 
         private const uint PInv33 = 0x1A93;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
@@ -20,26 +21,28 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat224.Add(x, y, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.AddDWord(PInv, z, 0);
+                Nat.Add33To(7, PInv33, z);
             }
         }
 
         public static void AddExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            uint c = Nat224.AddExt(xx, yy, zz);
+            uint c = Nat.Add(14, xx, yy, zz);
             if (c != 0 || (zz[13] == PExt13 && Nat224.GteExt(zz, PExt)))
             {
-                Nat224.SubExt(zz, PExt, zz);
+                if (Nat.AddTo(PExtInv.Length, PExtInv, zz) != 0)
+                {
+                    Nat.IncAt(14, zz, PExtInv.Length);
+                }
             }
         }
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Nat224.Copy(x, z);
-            uint c = Nat224.Inc(z, 0);
+            uint c = Nat.Inc(7, x, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.AddDWord(PInv, z, 0);
+                Nat.Add33To(7, PInv33, z);
             }
         }
 
@@ -94,7 +97,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.AddDWord(PInv, z, 0);
+                Nat.Add33To(7, PInv33, z);
             }
         }
 
@@ -103,7 +106,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if ((x != 0 && Nat224.Mul33WordAdd(PInv33, x, z, 0) != 0)
                 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.AddDWord(PInv, z, 0);
+                Nat.Add33To(7, PInv33, z);
             }
         }
 
@@ -134,16 +137,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat224.Sub(x, y, z);
             if (c != 0)
             {
-                Nat224.SubDWord(PInv, z);
+                Nat.Sub33From(7, PInv33, z);
             }
         }
 
         public static void SubtractExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            int c = Nat224.SubExt(xx, yy, zz);
+            int c = Nat.Sub(14, xx, yy, zz);
             if (c != 0)
             {
-                Nat224.AddExt(zz, PExt, zz);
+                if (Nat.SubFrom(PExtInv.Length, PExtInv, zz) != 0)
+                {
+                    Nat.DecAt(14, zz, PExtInv.Length);
+                }
             }
         }
 
@@ -152,7 +158,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.ShiftUpBit(7, x, 0, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
-                Nat224.AddDWord(PInv, z, 0);
+                Nat.Add33To(7, PInv33, z);
             }
         }
     }
