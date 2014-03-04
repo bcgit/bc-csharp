@@ -8,6 +8,7 @@ using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Tests
 {
@@ -443,6 +444,28 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
         }
 
+        private void ImplSqrtTest(ECCurve c)
+        {
+            if (ECAlgorithms.IsFpCurve(c))
+            {
+                BigInteger p = c.Field.Characteristic;
+                BigInteger pMinusOne = p.Subtract(BigInteger.One);
+                BigInteger legendreExponent = p.ShiftRight(1);
+
+                int count = 0;
+                while (count < 10)
+                {
+                    BigInteger nonSquare = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusOne, secRand);
+                    if (!nonSquare.ModPow(legendreExponent, p).Equals(BigInteger.One))
+                    {
+                        ECFieldElement root = c.FromBigInteger(nonSquare).Sqrt();
+                        Assert.IsNull(root);
+                        ++count;
+                    }
+                }
+            }
+        }
+
         private void ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(X9ECParameters x9ECParameters)
         {
             BigInteger n = x9ECParameters.N;
@@ -469,6 +492,8 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     ECPoint q = g.Multiply(b).Normalize();
 
                     ImplAddSubtractMultiplyTwiceEncodingTest(c, q, n);
+
+                    ImplSqrtTest(c);
                 }
             }
         }

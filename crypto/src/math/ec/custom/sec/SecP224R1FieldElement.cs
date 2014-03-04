@@ -134,39 +134,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] r = Mod.Random(SecP224R1Field.P);
             uint[] t = Nat224.Create();
 
-            for (;;)
+            if (!IsSquare(c))
+                return null;
+
+            while (!TrySqrt(nc, r, t))
             {
-                uint[] d1 = Nat224.Create();
-                Nat224.Copy(r, d1);
-                uint[] e1 = Nat224.Create();
-                e1[0] = 1;
-                uint[] f1 = Nat224.Create();
-                RP(nc, d1, e1, f1, t);
-
-                uint[] d0 = Nat224.Create();
-                uint[] e0 = Nat224.Create();
-
-                for (int k = 1; k < 96; ++k)
-                {
-                    Nat224.Copy(d1, d0);
-                    Nat224.Copy(e1, e0);
-
-                    RS(d1, e1, f1, t);
-
-                    if (Nat224.IsZero(d1))
-                    {
-                        Mod.Invert(SecP224R1Field.P, e0, f1);
-                        SecP224R1Field.Multiply(f1, d0, f1);
-
-                        SecP224R1Field.Square(f1, d1);
-
-                        return Nat224.Eq(c, d1) ? new SecP224R1FieldElement(f1) : null;
-                    }
-                }
-
-                // Avoid any possible infinite loop due to a bad random number generator
                 SecP224R1Field.AddOne(r, r);
             }
+
+            SecP224R1Field.Square(t, r);
+
+            return Nat224.Eq(c, r) ? new SecP224R1FieldElement(t) : null;
         }
 
         public override bool Equals(object obj)
@@ -191,6 +169,23 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public override int GetHashCode()
         {
             return Q.GetHashCode() ^ Arrays.GetHashCode(x, 0, 7);
+        }
+
+        private static bool IsSquare(uint[] x)
+        {
+            uint[] t1 = Nat224.Create();
+            uint[] t2 = Nat224.Create();
+            Nat224.Copy(x, t1);
+
+            for (int i = 0; i < 7; ++i)
+            {
+                Nat224.Copy(t1, t2);
+                SecP224R1Field.SquareN(t1, 1 << i, t1);
+                SecP224R1Field.Multiply(t1, t2, t1);
+            }
+
+            SecP224R1Field.SquareN(t1, 95, t1);
+            return Nat224.IsOne(t1);
         }
 
         private static void RM(uint[] nc, uint[] d0, uint[] e0, uint[] d1, uint[] e1, uint[] f1, uint[] t)
@@ -238,6 +233,36 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP224R1Field.Multiply(f, t, f);
             uint c = Nat.ShiftUpBits(7, f, 2, 0);
             SecP224R1Field.Reduce32(c, f);
+        }
+
+        private static bool TrySqrt(uint[] nc, uint[] r, uint[] t)
+        {
+            uint[] d1 = Nat224.Create();
+            Nat224.Copy(r, d1);
+            uint[] e1 = Nat224.Create();
+            e1[0] = 1;
+            uint[] f1 = Nat224.Create();
+            RP(nc, d1, e1, f1, t);
+
+            uint[] d0 = Nat224.Create();
+            uint[] e0 = Nat224.Create();
+
+            for (int k = 1; k < 96; ++k)
+            {
+                Nat224.Copy(d1, d0);
+                Nat224.Copy(e1, e0);
+
+                RS(d1, e1, f1, t);
+
+                if (Nat224.IsZero(d1))
+                {
+                    Mod.Invert(SecP224R1Field.P, e0, t);
+                    SecP224R1Field.Multiply(t, d0, t);
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
