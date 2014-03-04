@@ -923,88 +923,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return (uint)c;
         }
 
-        public static uint ShiftDownBit(uint[] x, int xLen, uint c)
-        {
-            int i = xLen;
-            while (--i >= 0)
-            {
-                uint next = x[i];
-                x[i] = (next >> 1) | (c << 31);
-                c = next;
-            }
-            return c << 31;
-        }
-
-        public static uint ShiftDownBit(uint[] x, uint c, uint[] z)
-        {
-            int i = 8;
-            while (--i >= 0)
-            {
-                uint next = x[i];
-                z[i] = (next >> 1) | (c << 31);
-                c = next;
-            }
-            return c << 31;
-        }
-
-        public static uint ShiftDownBits(uint[] x, int xLen, int bits, uint c)
-        {
-            Debug.Assert(bits > 0 && bits < 32);
-            int i = xLen;
-            while (--i >= 0)
-            {
-                uint next = x[i];
-                x[i] = (next >> bits) | (c << -bits);
-                c = next;
-            }
-            return c << -bits;
-        }
-
-        public static uint ShiftDownWord(uint[] x, int xLen, uint c)
-        {
-            int i = xLen;
-            while (--i >= 0)
-            {
-                uint next = x[i];
-                x[i] = c;
-                c = next;
-            }
-            return c;
-        }
-
-        public static uint ShiftUpBit(uint[] x, int xLen, uint c)
-        {
-            for (int i = 0; i < xLen; ++i)
-            {
-                uint next = x[i];
-                x[i] = (next << 1) | (c >> 31);
-                c = next;
-            }
-            return c >> 31;
-        }
-
-        public static uint ShiftUpBit(uint[] x, int xOff, int xLen, uint c)
-        {
-            for (int i = 0; i < xLen; ++i)
-            {
-                uint next = x[xOff + i];
-                x[xOff + i] = (next << 1) | (c >> 31);
-                c = next;
-            }
-            return c >> 31;
-        }
-
-        public static uint ShiftUpBit(uint[] x, uint c, uint[] z)
-        {
-            for (int i = 0; i < 8; ++i)
-            {
-                uint next = x[i];
-                z[i] = (next << 1) | (c >> 31);
-                c = next;
-            }
-            return c >> 31;
-        }
-
         public static void Square(uint[] x, uint[] zz)
         {
             ulong x_0 = x[0];
@@ -1138,7 +1056,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[14] = (uint)zz_14;
             zz[15] += (uint)(zz_14 >> 32);
 
-            ShiftUpBit(zz, 16, (uint)x_0 << 31);
+            Nat.ShiftUpBit(16, zz, (uint)x_0 << 31);
         }
 
         public static void Square(uint[] x, int xOff, uint[] zz, int zzOff)
@@ -1274,7 +1192,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[zzOff + 14] = (uint)zz_14;
             zz[zzOff + 15] += (uint)(zz_14 >> 32);
 
-            ShiftUpBit(zz, zzOff, 16, (uint)x_0 << 31);
+            Nat.ShiftUpBit(16, zz, zzOff, (uint)x_0 << 31);
         }
 
         public static int Sub(uint[] x, uint[] y, uint[] z)

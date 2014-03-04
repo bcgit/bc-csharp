@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Twice(uint[] x, uint[] z)
         {
-            Nat256.ShiftUpBit(x, 0, z);
+            Nat.ShiftUpBit(8, x, 0, z);
             if (Nat256.Gte(z, P))
             {
                 Nat256.AddWord(PInv, z, 0);

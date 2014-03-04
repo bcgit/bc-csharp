@@ -54,12 +54,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             if ((x[0] & 1) == 0)
             {
-                Nat224.ShiftDownBit(x, 0, z);
+                Nat.ShiftDownBit(7, x, 0, z);
             }
             else
             {
                 uint c = Nat224.Add(x, P, z);
-                Nat224.ShiftDownBit(z, c, z);
+                Nat.ShiftDownBit(7, z, c);
             }
         }
 
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Twice(uint[] x, uint[] z)
         {
-            uint c = Nat224.ShiftUpBit(x, 0, z);
+            uint c = Nat.ShiftUpBit(7, x, 0, z);
             if (c != 0 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
                 Nat224.SubFrom(P, z);
