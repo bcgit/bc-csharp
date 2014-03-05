@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat256.Add(x, y, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.SubFrom(P, z);
+                AddPInvTo(z);
             }
         }
 
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.Inc(8, x, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.SubFrom(P, z);
+                AddPInvTo(z);
             }
         }
 
@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             if (cc != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.SubFrom(P, z);
+                AddPInvTo(z);
             }
         }
 
@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat256.Sub(x, y, z);
             if (c != 0)
             {
-                Nat256.AddTo(P, z);
+                SubPInvFrom(z);
             }
         }
 
@@ -229,8 +229,76 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint c = Nat.ShiftUpBit(8, x, 0, z);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
-                Nat256.SubFrom(P, z);
+                AddPInvTo(z);
             }
+        }
+
+        private static void AddPInvTo(uint[] z)
+        {
+            long c = (long)z[0] + 1;
+            z[0] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                c += (long)z[1];
+                z[1] = (uint)c;
+                c >>= 32;
+                c += (long)z[2];
+                z[2] = (uint)c;
+                c >>= 32;
+            }
+            c += (long)z[3] - 1;
+            z[3] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                c += (long)z[4];
+                z[4] = (uint)c;
+                c >>= 32;
+                c += (long)z[5];
+                z[5] = (uint)c;
+                c >>= 32;
+            }
+            c += (long)z[6] - 1;
+            z[6] = (uint)c;
+            c >>= 32;
+            c += (long)z[7] + 1;
+            z[7] = (uint)c;
+            //c >>= 32;
+        }
+
+        private static void SubPInvFrom(uint[] z)
+        {
+            long c = (long)z[0] - 1;
+            z[0] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                c += (long)z[1];
+                z[1] = (uint)c;
+                c >>= 32;
+                c += (long)z[2];
+                z[2] = (uint)c;
+                c >>= 32;
+            }
+            c += (long)z[3] + 1;
+            z[3] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                c += (long)z[4];
+                z[4] = (uint)c;
+                c >>= 32;
+                c += (long)z[5];
+                z[5] = (uint)c;
+                c >>= 32;
+            }
+            c += (long)z[6] + 1;
+            z[6] = (uint)c;
+            c >>= 32;
+            c += (long)z[7] - 1;
+            z[7] = (uint)c;
+            //c >>= 32;
         }
     }
 }
