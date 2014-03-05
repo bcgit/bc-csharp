@@ -95,8 +95,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             long t1 = xx08 + xx12;
             long t2 = xx09 + xx13;
 
+            const long n = 1;
+
             long cc = 0;
-            cc += (long)xx[0] - t0;
+            cc += (long)xx[0] - t0 + n;
             z[0] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[1] - t1;
@@ -105,7 +107,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc += (long)xx[2] - t2;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[3] + t0 - xx10;
+            cc += (long)xx[3] + t0 - xx10 - n;
             z[3] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[4] + t1 - xx11;
@@ -117,21 +119,41 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc += (long)xx[6] + xx10 - xx13;
             z[6] = (uint)cc;
             cc >>= 32;
+            cc += n;
 
-            int c = (int)cc;
-            if (c >= 0)
-            {
-                Reduce32((uint)c, z);
-            }
-            else
-            {
-                SubPInvFrom(z);
-            }
+            Debug.Assert(cc >= 0);
+
+            Reduce32((uint)cc, z);
         }
 
         public static void Reduce32(uint x, uint[] z)
         {
-            if ((x != 0 && (Nat.SubWordFrom(7, x, z) + Nat.AddWordAt(7, x, z, 3) != 0))
+            long cc = 0;
+
+            if (x != 0)
+            {
+                long xx07 = x;
+
+                cc += (long)z[0] - xx07;
+                z[0] = (uint)cc;
+                cc >>= 32;
+                if (cc != 0)
+                {
+                    cc += (long)z[1];
+                    z[1] = (uint)cc;
+                    cc >>= 32;
+                    cc += (long)z[2];
+                    z[2] = (uint)cc;
+                    cc >>= 32;
+                }
+                cc += (long)z[3] + xx07;
+                z[3] = (uint)cc;
+                cc >>= 32;
+
+                Debug.Assert(cc == 0 || cc == 1);
+            }
+
+            if ((cc != 0 && Nat.IncAt(7, z, 4) != 0)
                 || (z[6] == P6 && Nat224.Gte(z, P)))
             {
                 AddPInvTo(z);

@@ -127,7 +127,29 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce32(uint x, uint[] z)
         {
-            if ((x != 0 && (Nat.AddWordTo(6, x, z) + Nat.AddWordAt(6, x, z, 2) != 0))
+            long cc = 0;
+
+            if (x != 0)
+            {
+                long xx06 = x;
+
+                cc += (long)z[0] + xx06;
+                z[0] = (uint)cc;
+                cc >>= 32;
+                if (cc != 0)
+                {
+                    cc += (long)z[1];
+                    z[1] = (uint)cc;
+                    cc >>= 32;
+                }
+                cc += (long)z[2] + xx06;
+                z[2] = (uint)cc;
+                cc >>= 32;
+
+                Debug.Assert(cc == 0 || cc == 1);
+            }
+
+            if ((cc != 0 && Nat.IncAt(6, z, 3) != 0)
                 || (z[5] == P5 && Nat192.Gte(z, P)))
             {
                 AddPInvTo(z);

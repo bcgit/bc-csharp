@@ -11,8 +11,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF,
             0xFFFFFFFF, 0xFFFFFFFE, 0x00000001, 0xFFFFFFFE, 0x00000001, 0xFFFFFFFE, 0x00000001, 0x00000001, 0xFFFFFFFE,
             0x00000002, 0xFFFFFFFE };
-        private static readonly uint[] _2P = new uint[]{ 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001, 0x00000000, 0x00000000,
-            0x00000002, 0xFFFFFFFE, 0x00000001 };
         private const uint P7 = 0xFFFFFFFF;
         private const uint PExt15 = 0xFFFFFFFE;
 
@@ -98,8 +96,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             long t5 = xx13 + xx14;
             long t6 = xx14 + xx15;
 
+            const long n = 6;
+
             long cc = 0;
-            cc += (long)xx[0] + t0 - t3 - t5;
+            cc += (long)xx[0] + t0 - t3 - t5 - n;
             z[0] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[1] + t1 - t4 - t6;
@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc += (long)xx[2] + t2 - t5 - xx15;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[3] + (t3 << 1) + xx13 - xx15 - t0;
+            cc += (long)xx[3] + (t3 << 1) + xx13 - xx15 - t0 + n;
             z[3] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[4] + (t4 << 1) + xx14 - t1;
@@ -117,29 +117,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc += (long)xx[5] + (t5 << 1) + xx15 - t2;
             z[5] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[6] + (t6 << 1) + t5 - t0;
+            cc += (long)xx[6] + (t6 << 1) + t5 - t0 + n;
             z[6] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[7] + (xx15 << 1) + xx15 + xx08 - t2 - t4;
+            cc += (long)xx[7] + (xx15 << 1) + xx15 + xx08 - t2 - t4 - n;
             z[7] = (uint)cc;
             cc >>= 32;
+            cc += n;
 
-            int c = (int)cc;
-            if (c >= 0)
-            {
-                Reduce32((uint)c, z);
-            }
-            else
-            {
-                while (c < -1)
-                {
-                    c += (int)Nat256.AddTo(_2P, z) + 1;
-                }
-                while (c < 0)
-                {
-                    c += (int)Nat256.AddTo(P, z);
-                }
-            }
+            Debug.Assert(cc >= 0);
+
+            Reduce32((uint)cc, z);
         }
 
         public static void Reduce32(uint x, uint[] z)
@@ -153,21 +141,27 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 cc += (long)z[0] + xx08;
                 z[0] = (uint)cc;
                 cc >>= 32;
-                cc += (long)z[1];
-                z[1] = (uint)cc;
-                cc >>= 32;
-                cc += (long)z[2];
-                z[2] = (uint)cc;
-                cc >>= 32;
+                if (cc != 0)
+                {
+                    cc += (long)z[1];
+                    z[1] = (uint)cc;
+                    cc >>= 32;
+                    cc += (long)z[2];
+                    z[2] = (uint)cc;
+                    cc >>= 32;
+                }
                 cc += (long)z[3] - xx08;
                 z[3] = (uint)cc;
                 cc >>= 32;
-                cc += (long)z[4];
-                z[4] = (uint)cc;
-                cc >>= 32;
-                cc += (long)z[5];
-                z[5] = (uint)cc;
-                cc >>= 32;
+                if (cc != 0)
+                {
+                    cc += (long)z[4];
+                    z[4] = (uint)cc;
+                    cc >>= 32;
+                    cc += (long)z[5];
+                    z[5] = (uint)cc;
+                    cc >>= 32;
+                }
                 cc += (long)z[6] - xx08;
                 z[6] = (uint)cc;
                 cc >>= 32;

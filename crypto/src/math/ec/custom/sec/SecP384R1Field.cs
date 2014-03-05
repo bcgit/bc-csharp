@@ -95,20 +95,22 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             long xx16 = xx[16], xx17 = xx[17], xx18 = xx[18], xx19 = xx[19];
             long xx20 = xx[20], xx21 = xx[21], xx22 = xx[22], xx23 = xx[23];
 
+            const long n = 1;
+
             long cc = 0;
-            cc += (long)xx[0] + xx12 + xx20 + xx21 - xx23;
+            cc += (long)xx[0] + xx12 + xx20 + xx21 - xx23 - n;
             z[0] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[1] + xx13 + xx22 + xx23 - xx12 - xx20;
+            cc += (long)xx[1] + xx13 + xx22 + xx23 - xx12 - xx20 + n;
             z[1] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[2] + xx14 + xx23 - xx13 - xx21;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[3] + xx12 + xx15 + xx20 + xx21 - xx14 - xx22 - xx23;
+            cc += (long)xx[3] + xx12 + xx15 + xx20 + xx21 - xx14 - xx22 - xx23 - n;
             z[3] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[4] + xx12 + xx13 + xx16 + xx20 + ((xx21 - xx23) << 1) + xx22 - xx15;
+            cc += (long)xx[4] + xx12 + xx13 + xx16 + xx20 + ((xx21 - xx23) << 1) + xx22 - xx15 - n;
             z[4] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[5] + xx13 + xx14 + xx17 + xx21 + (xx22 << 1) + xx23 - xx16;
@@ -132,16 +134,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc += (long)xx[11] + xx19 + xx20 + xx23 - xx22;
             z[11] = (uint)cc;
             cc >>= 32;
+            cc += n;
 
-            int c = (int)cc;
-            if (c >= 0)
-            {
-                Reduce32((uint)c, z);
-            }
-            else
-            {
-                SubPInvFrom(z);
-            }
+            Debug.Assert(cc >= 0);
+
+            Reduce32((uint)cc, z);
         }
 
         public static void Reduce32(uint x, uint[] z)
@@ -158,9 +155,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 cc += (long)z[1] - xx12;
                 z[1] = (uint)cc;
                 cc >>= 32;
-                cc += (long)z[2];
-                z[2] = (uint)cc;
-                cc >>= 32;
+                if (cc != 0)
+                {
+                    cc += (long)z[2];
+                    z[2] = (uint)cc;
+                    cc >>= 32;
+                }
                 cc += (long)z[3] + xx12;
                 z[3] = (uint)cc;
                 cc >>= 32;
