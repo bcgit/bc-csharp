@@ -26,9 +26,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static void AddExt(uint[] xx, uint[] yy, uint[] zz)
         {
             Nat.Add(16, xx, yy, zz);
-            if (Nat256.GteExt(zz, PExt))
+            if (Nat.Gte(16, zz, PExt))
             {
-                Nat.SubFrom(16, PExt, zz);
+                SubPExtFrom(zz);
             }
         }
 
@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat.Sub(16, xx, yy, zz);
             if (c != 0)
             {
-                Nat.AddTo(16, PExt, zz);
+                AddPExtTo(zz);
             }
         }
 
@@ -146,6 +146,40 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if (Nat256.Gte(z, P))
             {
                 AddPInvTo(z);
+            }
+        }
+
+        private static void AddPExtTo(uint[] zz)
+        {
+            ulong c = (ulong)zz[0] + PExt[0];
+            zz[0] = (uint)c;
+            c >>= 32;
+
+            int i = 1 - (int)c;
+            i = (i << 3) - i;
+
+            while (++i < 16)
+            {
+                c += (ulong)zz[i] + PExt[i];
+                zz[i] = (uint)c;
+                c >>= 32;
+            }
+        }
+
+        private static void SubPExtFrom(uint[] zz)
+        {
+            long c = (long)zz[0] - PExt[0];
+            zz[0] = (uint)c;
+            c >>= 32;
+
+            int i = 1 + (int)c;
+            i = (i << 3) - i;
+
+            while (++i < 16)
+            {
+                c += (long)zz[i] - PExt[i];
+                zz[i] = (uint)c;
+                c >>= 32;
             }
         }
 

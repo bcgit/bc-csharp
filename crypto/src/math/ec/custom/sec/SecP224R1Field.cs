@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static void AddExt(uint[] xx, uint[] yy, uint[] zz)
         {
             uint c = Nat.Add(14, xx, yy, zz);
-            if (c != 0 || (zz[13] == PExt13 && Nat224.GteExt(zz, PExt)))
+            if (c != 0 || (zz[13] == PExt13 && Nat.Gte(14, zz, PExt)))
             {
                 if (Nat.AddTo(PExtInv.Length, PExtInv, zz) != 0)
                 {

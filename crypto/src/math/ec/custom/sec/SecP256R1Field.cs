@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         private static readonly uint[] _2P = new uint[]{ 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001, 0x00000000, 0x00000000,
             0x00000002, 0xFFFFFFFE, 0x00000001 };
         private const uint P7 = 0xFFFFFFFF;
+        private const uint PExt15 = 0xFFFFFFFE;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
         {
@@ -27,7 +28,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static void AddExt(uint[] xx, uint[] yy, uint[] zz)
         {
             uint c = Nat.Add(16, xx, yy, zz);
-            if (c != 0 || Nat256.GteExt(zz, PExt))
+            if (c != 0 || (zz[15] >= PExt15 && Nat.Gte(16, zz, PExt)))
             {
                 Nat.SubFrom(16, PExt, zz);
             }

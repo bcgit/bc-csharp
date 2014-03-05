@@ -306,19 +306,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return true;
         }
 
-        public static bool GteExt(uint[] xx, uint[] yy)
-        {
-            for (int i = 13; i >= 0; --i)
-            {
-                uint xx_i = xx[i], yy_i = yy[i];
-                if (xx_i < yy_i)
-                    return false;
-                if (xx_i > yy_i)
-                    return true;
-            }
-            return true;
-        }
-
         public static bool IsOne(uint[] x)
         {
             if (x[0] != 1)
@@ -340,18 +327,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             for (int i = 0; i < 7; ++i)
             {
                 if (x[i] != 0)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public static bool IsZeroExt(uint[] xx)
-        {
-            for (int i = 0; i < 14; ++i)
-            {
-                if (xx[i] != 0)
                 {
                     return false;
                 }
