@@ -97,20 +97,22 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             const long n = 1;
 
+            xx12 -= n;
+
             long cc = 0;
-            cc += (long)xx[0] + xx12 + xx20 + xx21 - xx23 - n;
+            cc += (long)xx[0] + xx12 + xx20 + xx21 - xx23;
             z[0] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[1] + xx13 + xx22 + xx23 - xx12 - xx20 + n;
+            cc += (long)xx[1] + xx13 + xx22 + xx23 - xx12 - xx20;
             z[1] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[2] + xx14 + xx23 - xx13 - xx21;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[3] + xx12 + xx15 + xx20 + xx21 - xx14 - xx22 - xx23 - n;
+            cc += (long)xx[3] + xx12 + xx15 + xx20 + xx21 - xx14 - xx22 - xx23;
             z[3] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[4] + xx12 + xx13 + xx16 + xx20 + ((xx21 - xx23) << 1) + xx22 - xx15 - n;
+            cc += (long)xx[4] + xx12 + xx13 + xx16 + xx20 + ((xx21 - xx23) << 1) + xx22 - xx15;
             z[4] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[5] + xx13 + xx14 + xx17 + xx21 + (xx22 << 1) + xx23 - xx16;
