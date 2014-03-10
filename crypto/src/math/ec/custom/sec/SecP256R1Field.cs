@@ -11,8 +11,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF,
             0xFFFFFFFF, 0xFFFFFFFE, 0x00000001, 0xFFFFFFFE, 0x00000001, 0xFFFFFFFE, 0x00000001, 0x00000001, 0xFFFFFFFE,
             0x00000002, 0xFFFFFFFE };
-        private const uint P7 = 0xFFFFFFFF;
-        private const uint PExt15 = 0xFFFFFFFE;
+        internal const uint P7 = 0xFFFFFFFF;
+        internal const uint PExt15 = 0xFFFFFFFE;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
         {
@@ -69,6 +69,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] tt = Nat256.CreateExt();
             Nat256.Mul(x, y, tt);
             Reduce(tt, z);
+        }
+
+        public static void MultiplyAddToExt(uint[] x, uint[] y, uint[] zz)
+        {
+            uint c = Nat256.MulAddTo(x, y, zz);
+            if (c != 0 || (zz[15] >= PExt15 && Nat.Gte(16, zz, PExt)))
+            {
+                Nat.SubFrom(16, PExt, zz);
+            }
         }
 
         public static void Negate(uint[] x, uint[] z)
