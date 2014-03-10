@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             ulong cc = 0;
             cc += (ulong)xx[0] + t0;
-            z[0] = (uint)cc;
+            uint z0 = (uint)cc;
             cc >>= 32;
             cc += (ulong)xx[1] + t1;
             z[1] = (uint)cc;
@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             t1 += xx09;
 
             cc += (ulong)xx[2] + t0;
-            z[2] = (uint)cc;
+            ulong z2 = (uint)cc;
             cc >>= 32;
             cc += (ulong)xx[3] + t1;
             z[3] = (uint)cc;
@@ -122,27 +122,45 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[5] = (uint)cc;
             cc >>= 32;
 
-            Reduce32((uint)cc, z);
+            z2 += cc;
+
+            cc += z0;
+            z[0] = (uint)cc;
+            cc >>= 32;
+            if (cc != 0)
+            {
+                cc += z[1];
+                z[1] = (uint)cc;
+                z2 += cc >> 32;
+            }
+            z[2] = (uint)z2;
+            cc  = z2 >> 32;
+
+            Debug.Assert(cc == 0 || cc == 1);
+
+            if ((cc != 0 && Nat.IncAt(6, z, 3) != 0)
+                || (z[5] == P5 && Nat192.Gte(z, P)))
+            {
+                AddPInvTo(z);
+            }
         }
 
         public static void Reduce32(uint x, uint[] z)
         {
-            long cc = 0;
+            ulong cc = 0;
 
             if (x != 0)
             {
-                long xx06 = x;
-
-                cc += (long)z[0] + xx06;
+                cc += (ulong)z[0] + x;
                 z[0] = (uint)cc;
                 cc >>= 32;
                 if (cc != 0)
                 {
-                    cc += (long)z[1];
+                    cc += (ulong)z[1];
                     z[1] = (uint)cc;
                     cc >>= 32;
                 }
-                cc += (long)z[2] + xx06;
+                cc += (ulong)z[2] + x;
                 z[2] = (uint)cc;
                 cc >>= 32;
 
