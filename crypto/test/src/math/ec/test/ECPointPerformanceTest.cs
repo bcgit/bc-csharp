@@ -24,8 +24,9 @@ namespace Org.BouncyCastle.Math.EC.Tests
     [TestFixture, Explicit]
     public class ECPointPerformanceTest
     {
-        public const int PRE_ROUNDS = 100;
-        public const int NUM_ROUNDS = 1000;
+        internal const int MULTS_PER_ROUND = 100;
+        internal const int PRE_ROUNDS = 1;
+        internal const int NUM_ROUNDS = 10;
 
         private static string[] COORD_NAMES = new string[]{ "AFFINE", "HOMOGENEOUS", "JACOBIAN", "JACOBIAN-CHUDNOVSKY",
             "JACOBIAN-MODIFIED", "LAMBDA-AFFINE", "LAMBDA-PROJECTIVE", "SKEWED" };
@@ -100,28 +101,44 @@ namespace Org.BouncyCastle.Math.EC.Tests
             ECPoint p = g;
             for (int i = 1; i <= PRE_ROUNDS; i++)
             {
-                BigInteger k = ks[ki];
-                p = g.Multiply(k);
-                if (++ki == ks.Length)
+                for (int j = 0; j < MULTS_PER_ROUND; ++j)
                 {
-                    ki = 0;
-                    g = p;
+                    BigInteger k = ks[ki];
+                    p = g.Multiply(k);
+                    if (++ki == ks.Length)
+                    {
+                        ki = 0;
+                        g = p;
+                    }
                 }
             }
-            long startTime = DateTimeUtilities.CurrentUnixMs();
+
+            double minElapsed = Double.MaxValue, maxElapsed = Double.MinValue, totalElapsed = 0.0;
+
             for (int i = 1; i <= NUM_ROUNDS; i++)
             {
-                BigInteger k = ks[ki];
-                p = g.Multiply(k);
-                if (++ki == ks.Length)
-                {
-                    ki = 0;
-                    g = p;
-                }
-            }
-            long endTime = DateTimeUtilities.CurrentUnixMs();
+                long startTime = DateTimeUtilities.CurrentUnixMs();
 
-            return (double)(endTime - startTime) / NUM_ROUNDS;
+                for (int j = 0; j < MULTS_PER_ROUND; ++j)
+                {
+                    BigInteger k = ks[ki];
+                    p = g.Multiply(k);
+                    if (++ki == ks.Length)
+                    {
+                        ki = 0;
+                        g = p;
+                    }
+                }
+
+                long endTime = DateTimeUtilities.CurrentUnixMs();
+
+                double roundElapsed = (double)(endTime - startTime);
+                minElapsed = System.Math.Min(minElapsed, roundElapsed);
+                maxElapsed = System.Math.Max(maxElapsed, roundElapsed);
+                totalElapsed += roundElapsed;
+            }
+
+            return (totalElapsed - minElapsed - maxElapsed) / (NUM_ROUNDS - 2) / MULTS_PER_ROUND;
         }
 
         [Test]
