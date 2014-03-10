@@ -88,16 +88,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            long xx07 = xx[7], xx08 = xx[8], xx09 = xx[9], xx10 = xx[10];
-            long xx11 = xx[11], xx12 = xx[12], xx13 = xx[13];
-
-            long t0 = xx07 + xx11;
-            long t1 = xx08 + xx12;
-            long t2 = xx09 + xx13;
+            long xx10 = xx[10], xx11 = xx[11], xx12 = xx[12], xx13 = xx[13];
 
             const long n = 1;
 
-            t0 -= n;
+            long t0 = (long)xx[7] + xx11 - n;
+            long t1 = (long)xx[8] + xx12;
+            long t2 = (long)xx[9] + xx13;
 
             long cc = 0;
             cc += (long)xx[0] - t0;
