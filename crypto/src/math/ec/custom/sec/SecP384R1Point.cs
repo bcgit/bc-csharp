@@ -76,6 +76,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP384R1FieldElement Z1 = (SecP384R1FieldElement)this.RawZCoords[0];
             SecP384R1FieldElement Z2 = (SecP384R1FieldElement)b.RawZCoords[0];
 
+            uint c;
             uint[] tt1 = Nat.Create(24);
             uint[] tt2 = Nat.Create(24);
             uint[] t3 = Nat.Create(12);
@@ -122,7 +123,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] H = Nat.Create(12);
             SecP384R1Field.Subtract(U1, U2, H);
 
-            uint[] R = Nat.Create(12);// tt2;
+            uint[] R = Nat.Create(12);
             SecP384R1Field.Subtract(S1, S2, R);
 
             // Check if b == this or b == -this
@@ -147,19 +148,21 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] V = t3;
             SecP384R1Field.Multiply(HSquared, U1, V);
 
+            SecP384R1Field.Negate(G, G);
             Nat384.Mul(S1, G, tt1);
+
+            c = Nat.AddBothTo(12, V, V, G);
+            SecP384R1Field.Reduce32(c, G);
 
             SecP384R1FieldElement X3 = new SecP384R1FieldElement(t4);
             SecP384R1Field.Square(R, X3.x);
-            SecP384R1Field.Add(X3.x, G, X3.x);
-            SecP384R1Field.Subtract(X3.x, V, X3.x);
-            SecP384R1Field.Subtract(X3.x, V, X3.x);
+            SecP384R1Field.Subtract(X3.x, G, X3.x);
 
             SecP384R1FieldElement Y3 = new SecP384R1FieldElement(G);
             SecP384R1Field.Subtract(V, X3.x, Y3.x);
             Nat384.Mul(Y3.x, R, tt2);
-            SecP384R1Field.SubtractExt(tt2, tt1, tt2);
-            SecP384R1Field.Reduce(tt2, Y3.x);
+            SecP384R1Field.AddExt(tt1, tt2, tt1);
+            SecP384R1Field.Reduce(tt1, Y3.x);
 
             SecP384R1FieldElement Z3 = new SecP384R1FieldElement(H);
             if (!Z1IsOne)
@@ -189,6 +192,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             SecP384R1FieldElement X1 = (SecP384R1FieldElement)this.RawXCoord, Z1 = (SecP384R1FieldElement)this.RawZCoords[0];
 
+            uint c;
             uint[] t1 = Nat.Create(12);
             uint[] t2 = Nat.Create(12);
 
@@ -212,12 +216,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] M = t2;
             SecP384R1Field.Add(X1.x, Z1Squared, M);
             SecP384R1Field.Multiply(M, t1, M);
-            SecP384R1Field.Twice(M, t1);
-            SecP384R1Field.Add(M, t1, M);
+            c = Nat.AddBothTo(12, M, M, M);
+            SecP384R1Field.Reduce32(c, M);
 
             uint[] S = Y1Squared;
             SecP384R1Field.Multiply(Y1Squared, X1.x, S);
-            uint c = Nat.ShiftUpBits(12, S, 2, 0);
+            c = Nat.ShiftUpBits(12, S, 2, 0);
             SecP384R1Field.Reduce32(c, S);
 
             c = Nat.ShiftUpBits(12, T, 3, 0, t1);
