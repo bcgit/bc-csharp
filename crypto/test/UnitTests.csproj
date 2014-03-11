@@ -285,6 +285,7 @@
     <Compile Include="src\openpgp\test\PGPCompressionTest.cs" />
     <Compile Include="src\openpgp\test\PGPDSAElGamalTest.cs" />
     <Compile Include="src\openpgp\test\PGPDSATest.cs" />
+    <Compile Include="src\openpgp\test\PGPNoPrivateKeyTest.cs" />
     <Compile Include="src\openpgp\test\PGPPBETest.cs" />
     <Compile Include="src\openpgp\test\PGPPacketTest.cs" />
     <Compile Include="src\openpgp\test\PGPRSATest.cs" />

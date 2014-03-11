@@ -959,7 +959,9 @@
     <Compile Include="src\math\ec\abc\ZTauElement.cs" />
     <Compile Include="src\math\ec\custom\sec\Curve25519Field.cs" />
     <Compile Include="src\math\ec\custom\sec\Nat192.cs" />
+    <Compile Include="src\math\ec\custom\sec\Nat224.cs" />
     <Compile Include="src\math\ec\custom\sec\Nat256.cs" />
+    <Compile Include="src\math\ec\custom\sec\Nat384.cs" />
     <Compile Include="src\math\ec\custom\sec\Nat512.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP192K1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP192K1Field.cs" />
@@ -969,6 +971,14 @@
     <Compile Include="src\math\ec\custom\sec\SecP192R1Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP192R1FieldElement.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP192R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP224K1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP224K1Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP224K1FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP224K1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP224R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP224R1Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP224R1FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP224R1Point.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP256K1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP256K1Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP256K1FieldElement.cs" />
@@ -977,6 +987,10 @@
     <Compile Include="src\math\ec\custom\sec\SecP256R1Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP256R1FieldElement.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP256R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP384R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP384R1Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP384R1FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP384R1Point.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP521R1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP521R1Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP521R1FieldElement.cs" />
