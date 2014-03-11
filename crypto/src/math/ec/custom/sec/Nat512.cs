@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Nat256.Mul(dx, dy, tt);
 
             c24 += neg ? Nat.AddTo(16, tt, 0, zz, 8) : (uint)Nat.SubFrom(16, tt, 0, zz, 8);
-            Nat.AddWordExt(16, c24, zz, 24); 
+            Nat.AddWordAt(32, c24, zz, 24); 
         }
 
         public static void Square(uint[] x, uint[] zz)
@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Nat256.Square(dx, m);
 
             c24 += (uint)Nat.SubFrom(16, m, 0, zz, 8);
-            Nat.AddWordExt(16, c24, zz, 24); 
+            Nat.AddWordAt(32, c24, zz, 24); 
         }
     }
 }

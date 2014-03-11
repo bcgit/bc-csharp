@@ -72,6 +72,48 @@ namespace Org.BouncyCastle.Crypto.EC
         }
 
         /*
+         * secp224k1
+         */
+        internal class Secp224k1Holder
+            : X9ECParametersHolder
+        {
+            private Secp224k1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Secp224k1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = null;
+                ECCurve curve = ConfigureCurve(new SecP224K1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "A1455B334DF099DF30FC28A169A467E9E47075A90F7E650EB6B7A45C"
+                    + "7E089FED7FBA344282CAFBD6F7E319F7C0B0BD59E2CA4BDB556D61A5"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
+        /*
+         * secp224r1
+         */
+        internal class Secp224r1Holder
+            : X9ECParametersHolder
+        {
+            private Secp224r1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Secp224r1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("BD71344799D5C7FCDC45B59FA3B9AB8F6A948BC5");
+                ECCurve curve = ConfigureCurve(new SecP224R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "B70E0CBD6BB4BF7F321390B94A03C1D356C21122343280D6115C1D21"
+                    + "BD376388B5F723FB4C22DFE6CD4375A05A07476444D5819985007E34"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
+        /*
          * secp256k1
          */
         internal class Secp256k1Holder
@@ -114,6 +156,27 @@ namespace Org.BouncyCastle.Crypto.EC
         }
 
         /*
+         * secp384r1
+         */
+        internal class Secp384r1Holder
+            : X9ECParametersHolder
+        {
+            private Secp384r1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Secp384r1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("A335926AA319A27A1D00896A6773A4827ACDAC73");
+                ECCurve curve = ConfigureCurve(new SecP384R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "AA87CA22BE8B05378EB1C71EF320AD746E1D3B628BA79B9859F741E082542A385502F25DBF55296C3A545E3872760AB7"
+                    + "3617DE4A96262C6F5D9E98BF9292DC29F8F41DBD289A147CE9DA3113B5F0B8C00A60B1CE1D7E819D7A431D7C90EA0E5F"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
+        /*
          * secp521r1
          */
         internal class Secp521r1Holder
@@ -149,12 +212,17 @@ namespace Org.BouncyCastle.Crypto.EC
         {
             DefineCurve("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
             DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
+            DefineCurve("secp224k1", SecObjectIdentifiers.SecP224k1, Secp224k1Holder.Instance);
+            DefineCurve("secp224r1", SecObjectIdentifiers.SecP224r1, Secp224r1Holder.Instance);
             DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
             DefineCurve("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
+            DefineCurve("secp384r1", SecObjectIdentifiers.SecP384r1, Secp384r1Holder.Instance);
             DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
 
             objIds.Add(Platform.ToLowerInvariant("P-192"), SecObjectIdentifiers.SecP192r1);
+            objIds.Add(Platform.ToLowerInvariant("P-224"), SecObjectIdentifiers.SecP224r1);
             objIds.Add(Platform.ToLowerInvariant("P-256"), SecObjectIdentifiers.SecP256r1);
+            objIds.Add(Platform.ToLowerInvariant("P-384"), SecObjectIdentifiers.SecP384r1);
             objIds.Add(Platform.ToLowerInvariant("P-521"), SecObjectIdentifiers.SecP521r1);
         }
 

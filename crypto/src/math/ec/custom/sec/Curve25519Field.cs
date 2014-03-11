@@ -19,38 +19,34 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Nat256.Add(x, y, z);
             if (Nat256.Gte(z, P))
             {
-                Nat256.AddWord(PInv, z, 0);
-                z[7] &= P7;
+                AddPInvTo(z);
             }
         }
 
         public static void AddExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            Nat256.AddExt(xx, yy, zz);
-            if (Nat256.GteExt(zz, PExt))
+            Nat.Add(16, xx, yy, zz);
+            if (Nat.Gte(16, zz, PExt))
             {
-                Nat256.SubExt(zz, PExt, zz);
+                SubPExtFrom(zz);
             }
         }
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Nat256.Copy(x, z);
-            Nat256.Inc(z, 0);
+            Nat.Inc(8, x, z);
             if (Nat256.Gte(z, P))
             {
-                Nat256.AddWord(PInv, z, 0);
-                z[7] &= P7;
+                AddPInvTo(z);
             }
         }
 
         public static uint[] FromBigInteger(BigInteger x)
         {
             uint[] z = Nat256.FromBigInteger(x);
-            if (Nat256.Gte(z, P))
+            while (Nat256.Gte(z, P))
             {
-                Nat256.AddWord(PInv, z, 0);
-                z[7] &= P7;
+                Nat256.SubFrom(P, z);
             }
             return z;
         }
@@ -92,16 +88,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Debug.Assert(xx[15] >> 30 == 0);
 
             uint xx07 = xx[7];
-            Nat.ShiftUpBit(8, xx, 8, xx07, z);
+            Nat.ShiftUpBit(8, xx, 8, xx07, z, 0);
             uint c = Nat256.MulByWordAddTo(PInv, xx, z) << 1;
             uint z07 = z[7];
             z[7] = z07 & P7;
             c += (z07 >> 31) - (xx07 >> 31);
-            Nat256.AddWord(c * PInv, z, 0);
+            Nat.AddWordTo(8, c * PInv, z);
             if (Nat256.Gte(z, P))
             {
-                Nat256.AddWord(PInv, z, 0);
-                z[7] &= P7;
+                AddPInvTo(z);
             }
         }
 
@@ -132,28 +127,84 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int c = Nat256.Sub(x, y, z);
             if (c != 0)
             {
-                Nat256.SubWord(PInv, z, 0);
-                z[7] &= P7;
+                SubPInvFrom(z);
             }
         }
 
         public static void SubtractExt(uint[] xx, uint[] yy, uint[] zz)
         {
-            int c = Nat256.SubExt(xx, yy, zz);
+            int c = Nat.Sub(16, xx, yy, zz);
             if (c != 0)
             {
-                Nat256.AddExt(zz, PExt, zz);
+                AddPExtTo(zz);
             }
         }
 
         public static void Twice(uint[] x, uint[] z)
         {
-            Nat256.ShiftUpBit(x, 0, z);
+            Nat.ShiftUpBit(8, x, 0, z);
             if (Nat256.Gte(z, P))
             {
-                Nat256.AddWord(PInv, z, 0);
-                z[7] &= P7;
+                AddPInvTo(z);
             }
+        }
+
+        private static void AddPExtTo(uint[] zz)
+        {
+            ulong c = (ulong)zz[0] + PExt[0];
+            zz[0] = (uint)c;
+            c >>= 32;
+
+            int i = 1 - (int)c;
+            i = (i << 3) - i;
+
+            while (++i < 16)
+            {
+                c += (ulong)zz[i] + PExt[i];
+                zz[i] = (uint)c;
+                c >>= 32;
+            }
+        }
+
+        private static void SubPExtFrom(uint[] zz)
+        {
+            long c = (long)zz[0] - PExt[0];
+            zz[0] = (uint)c;
+            c >>= 32;
+
+            int i = 1 + (int)c;
+            i = (i << 3) - i;
+
+            while (++i < 16)
+            {
+                c += (long)zz[i] - PExt[i];
+                zz[i] = (uint)c;
+                c >>= 32;
+            }
+        }
+
+        private static void AddPInvTo(uint[] z)
+        {
+            ulong c = (ulong)z[0] + PInv;
+            z[0] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                Nat.IncAt(7, z, 1);
+            }
+            z[7] &= P7;
+        }
+
+        private static void SubPInvFrom(uint[] z)
+        {
+            long c = (long)z[0] - PInv;
+            z[0] = (uint)c;
+            c >>= 32;
+            if (c != 0)
+            {
+                Nat.DecAt(7, z, 1);
+            }
+            z[7] &= P7;
         }
     }
 }

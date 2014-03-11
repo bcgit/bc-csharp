@@ -252,31 +252,47 @@ namespace Org.BouncyCastle.Math.EC
          */
         public override ECFieldElement Sqrt()
         {
+            if (IsZero || IsOne)
+                return this;
+
             if (!q.TestBit(0))
                 throw Platform.CreateNotImplementedException("even value of q");
 
-            // p mod 4 == 3
-            if (q.TestBit(1))
+            if (q.TestBit(1)) // q == 4m + 3
             {
-                // TODO Can this be optimised (inline the Square?)
-                // z = g^(u+1) + p, p = 4u + 3
-                ECFieldElement z = new FpFieldElement(q, r, x.ModPow(q.ShiftRight(2).Add(BigInteger.One), q));
-
-                return z.Square().Equals(this) ? z : null;
+                BigInteger e = q.ShiftRight(2).Add(BigInteger.One);
+                return CheckSqrt(new FpFieldElement(q, r, x.ModPow(e, q)));
             }
 
-            // p mod 4 == 1
-            BigInteger qMinusOne = q.Subtract(BigInteger.One);
+            if (q.TestBit(2)) // q == 8m + 5
+            {
+                BigInteger t1 = x.ModPow(q.ShiftRight(3), q);
+                BigInteger t2 = ModMult(t1, x);
+                BigInteger t3 = ModMult(t2, t1);
 
-            BigInteger legendreExponent = qMinusOne.ShiftRight(1);
+                if (t3.Equals(BigInteger.One))
+                {
+                    return CheckSqrt(new FpFieldElement(q, r, t2));
+                }
+
+                // TODO This is constant and could be precomputed
+                BigInteger t4 = BigInteger.Two.ModPow(q.ShiftRight(2), q);
+
+                BigInteger y = ModMult(t2, t4);
+
+                return CheckSqrt(new FpFieldElement(q, r, y));
+            }
+
+            // q == 8m + 1
+
+            BigInteger legendreExponent = q.ShiftRight(1);
             if (!(x.ModPow(legendreExponent, q).Equals(BigInteger.One)))
                 return null;
 
-            BigInteger u = qMinusOne.ShiftRight(2);
-            BigInteger k = u.ShiftLeft(1).Add(BigInteger.One);
-
             BigInteger X = this.x;
             BigInteger fourX = ModDouble(ModDouble(X)); ;
+
+            BigInteger k = legendreExponent.Add(BigInteger.One), qMinusOne = q.Subtract(BigInteger.One);
 
             BigInteger U, V;
             Random rand = new Random();
@@ -288,7 +304,7 @@ namespace Org.BouncyCastle.Math.EC
                     P = new BigInteger(q.BitLength, rand);
                 }
                 while (P.CompareTo(q) >= 0
-                    || !(ModMult(P, P).Subtract(fourX).ModPow(legendreExponent, q).Equals(qMinusOne)));
+                    || !ModReduce(P.Multiply(P).Subtract(fourX)).ModPow(legendreExponent, q).Equals(qMinusOne));
 
                 BigInteger[] result = LucasSequence(P, X, k);
                 U = result[0];
@@ -296,22 +312,17 @@ namespace Org.BouncyCastle.Math.EC
 
                 if (ModMult(V, V).Equals(fourX))
                 {
-                    // Integer division by 2, mod q
-                    if (V.TestBit(0))
-                    {
-                        V = V.Add(q);
-                    }
-
-                    V = V.ShiftRight(1);
-
-                    Debug.Assert(ModMult(V, V).Equals(X));
-
-                    return new FpFieldElement(q, r, V);
+                    return new FpFieldElement(q, r, ModHalfAbs(V));
                 }
             }
             while (U.Equals(BigInteger.One) || U.Equals(qMinusOne));
 
             return null;
+        }
+
+        private ECFieldElement CheckSqrt(ECFieldElement z)
+        {
+            return z.Square().Equals(this) ? z : null;
         }
 
         private BigInteger[] LucasSequence(
@@ -386,6 +397,24 @@ namespace Org.BouncyCastle.Math.EC
                 _2x = _2x.Subtract(q);
             }
             return _2x;
+        }
+
+        protected virtual BigInteger ModHalf(BigInteger x)
+        {
+            if (x.TestBit(0))
+            {
+                x = q.Add(x);
+            }
+            return x.ShiftRight(1);
+        }
+
+        protected virtual BigInteger ModHalfAbs(BigInteger x)
+        {
+            if (x.TestBit(0))
+            {
+                x = q.Subtract(x);
+            }
+            return x.ShiftRight(1);
         }
 
         protected virtual BigInteger ModInverse(BigInteger x)

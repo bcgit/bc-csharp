@@ -205,12 +205,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             uint[] S = Y1Squared;
             SecP256K1Field.Multiply(Y1Squared, X1.x, S);
-            SecP256K1Field.Twice(S, S);
-            SecP256K1Field.Twice(S, S);
+            uint c = Nat.ShiftUpBits(8, S, 2, 0);
+            SecP256K1Field.Reduce32(c, S);
 
-            SecP256K1Field.Twice(T, t1);
-            SecP256K1Field.Twice(t1, t1);
-            SecP256K1Field.Twice(t1, t1);
+            c = Nat.ShiftUpBits(8, T, 3, 0, t1);
+            SecP256K1Field.Reduce32(c, t1);
 
             SecP256K1FieldElement X3 = new SecP256K1FieldElement(T);
             SecP256K1Field.Square(M, X3.x);
