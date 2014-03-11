@@ -20,6 +20,10 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class SipHashTest
         : SimpleTest
     {
+        private const int UPDATE_BYTES = 0;
+        private const int UPDATE_FULL = 1;
+        private const int UPDATE_MIX = 2;
+
         public override string Name
         {
             get { return "SipHash"; }
@@ -30,11 +34,19 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] key = Hex.Decode("000102030405060708090a0b0c0d0e0f");
             byte[] input = Hex.Decode("000102030405060708090a0b0c0d0e");
 
+            RunMac(key, input, UPDATE_BYTES);
+            RunMac(key, input, UPDATE_FULL);
+            RunMac(key, input, UPDATE_MIX);
+        }
+
+        private void RunMac(byte[] key, byte[] input, int updateType)
+        {
             long expected = unchecked((long)0xa129ca6149be45e5);
 
             SipHash mac = new SipHash();
             mac.Init(new KeyParameter(key));
-            mac.BlockUpdate(input, 0, input.Length);
+
+            UpdateMac(mac, input, updateType);
 
             long result = mac.DoFinal();
             if (expected != result)
@@ -45,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             // NOTE: Little-endian representation of 0xa129ca6149be45e5
             byte[] expectedBytes = Hex.Decode("e545be4961ca29a1");
 
-            mac.BlockUpdate(input, 0, input.Length);
+            UpdateMac(mac, input, updateType);
 
             byte[] output = new byte[mac.GetMacSize()];
             int len = mac.DoFinal(output, 0);
@@ -59,8 +71,42 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public static void Main(
-            string[] args)
+        private void UpdateMac(SipHash mac, byte[] input, int updateType)
+        {
+            switch (updateType)
+            {
+            case UPDATE_BYTES:
+            {
+                for (int i = 0; i < input.Length; ++i)
+                {
+                    mac.Update(input[i]);
+                }
+                break;
+            }
+            case UPDATE_FULL:
+            {
+                mac.BlockUpdate(input, 0, input.Length);
+                break;
+            }
+            case UPDATE_MIX:
+            {
+                int step = System.Math.Max(1, input.Length / 3);
+                int pos = 0;
+                while (pos < input.Length)
+                {
+                    mac.Update(input[pos++]);
+                    int len = System.Math.Min(input.Length - pos, step);
+                    mac.BlockUpdate(input, pos, len);
+                    pos += len;
+                }
+                break;
+            }
+            default:
+                throw new InvalidOperationException();
+            }
+        }
+
+        public static void Main(string[] args)
         {
             RunTest(new SipHashTest());
         }
