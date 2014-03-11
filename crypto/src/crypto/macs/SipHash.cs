@@ -23,8 +23,8 @@ namespace Org.BouncyCastle.Crypto.Macs
         protected long k0, k1;
         protected long v0, v1, v2, v3, v4;
 
-        protected byte[] buf = new byte[8];
-        protected int bufPos = 0;
+        protected long m = 0;
+        protected int wordPos = 0;
         protected int wordCount = 0;
 
         /// <summary>SipHash-2-4</summary>
@@ -69,34 +69,57 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public virtual void Update(byte input)
         {
-            buf[bufPos] = input;
-            if (++bufPos == buf.Length)
+            m = (long)(((ulong)m >> 8) | ((ulong)input << 56));
+
+            if (++wordPos == 8)
             {
                 ProcessMessageWord();
-                bufPos = 0;
+                wordPos = 0;
             }
         }
 
         public virtual void BlockUpdate(byte[] input, int offset, int length)
         {
-            for (int i = 0; i < length; ++i)
+            int i = 0, fullWords = length & ~7;
+            if (wordPos == 0)
             {
-                buf[bufPos] = input[offset + i];
-                if (++bufPos == buf.Length)
+                for (; i < fullWords; i += 8)
                 {
+                    m = (long)Pack.LE_To_UInt64(input, offset + i);
                     ProcessMessageWord();
-                    bufPos = 0;
+                }
+                for (; i < length; ++i)
+                {
+                    m = (long)(((ulong)m >> 8) | ((ulong)input[offset + i] << 56));
+                }
+                wordPos = length - fullWords;
+            }
+            else
+            {
+                int bits = wordPos << 3;
+                for (; i < fullWords; i += 8)
+                {
+                    ulong n = Pack.LE_To_UInt64(input, offset + i);
+                    m = (long)(((ulong)m >> (64 - bits)) | (n << bits));
+                    ProcessMessageWord();
+                    m = (long)n;
+                }
+                for (; i < length; ++i)
+                {
+                    m = (long)(((ulong)m >> 8) | ((ulong)input[offset + i] << 56));
+
+                    if (++wordPos == 8)
+                    {
+                        ProcessMessageWord();
+                        wordPos = 0;
+                    }
                 }
             }
         }
 
         public virtual long DoFinal()
         {
-            buf[7] = (byte)((wordCount << 3) + bufPos);
-            while (bufPos < 7)
-            {
-                buf[bufPos++] = 0;
-            }
+            m = (long)(((ulong)m >> ((8 - wordPos) << 3)) | ((ulong)((wordCount << 3) + wordPos) << 56));
 
             ProcessMessageWord();
 
@@ -125,15 +148,14 @@ namespace Org.BouncyCastle.Crypto.Macs
             v2 = k0 ^ 0x6c7967656e657261L;
             v3 = k1 ^ 0x7465646279746573L;
 
-            Array.Clear(buf, 0, buf.Length);
-            bufPos = 0;
+            m = 0;
+            wordPos = 0;
             wordCount = 0;
         }
 
         protected virtual void ProcessMessageWord()
         {
             ++wordCount;
-            long m = (long)Pack.LE_To_UInt64(buf, 0);
             v3 ^= m;
             ApplySipRounds(c);
             v0 ^= m;
