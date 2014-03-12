@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
     public class ECPointPerformanceTest
     {
         internal const int MULTS_PER_ROUND = 100;
-        internal const int PRE_ROUNDS = 1;
+        internal const int PRE_ROUNDS = 2;
         internal const int NUM_ROUNDS = 10;
 
         private static string[] COORD_NAMES = new string[]{ "AFFINE", "HOMOGENEOUS", "JACOBIAN", "JACOBIAN-CHUDNOVSKY",
@@ -105,10 +105,13 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 {
                     BigInteger k = ks[ki];
                     p = g.Multiply(k);
+                    if ((ki & 1) != 0)
+                    {
+                        g = p;
+                    }
                     if (++ki == ks.Length)
                     {
                         ki = 0;
-                        g = p;
                     }
                 }
             }
@@ -123,10 +126,13 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 {
                     BigInteger k = ks[ki];
                     p = g.Multiply(k);
+                    if ((ki & 1) != 0)
+                    {
+                        g = p;
+                    }
                     if (++ki == ks.Length)
                     {
                         ki = 0;
-                        g = p;
                     }
                 }
 
