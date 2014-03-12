@@ -21,8 +21,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 throw new InvalidOperationException("fixed-point comb doesn't support scalars larger than the curve order");
             }
 
-            // TODO Call method to let subclasses select width
-            int width = size > 257 ? 6 : 5;
+            int width = GetWidthForCombSize(size);
 
             FixedPointPreCompInfo info = FixedPointUtilities.Precompute(p, width);
             ECPoint[] lookupTable = info.PreComp;
@@ -49,6 +48,11 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             }
 
             return R;
+        }
+
+        protected virtual int GetWidthForCombSize(int combSize)
+        {
+            return combSize > 257 ? 6 : 5;
         }
     }
 }
