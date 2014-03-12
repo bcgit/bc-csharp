@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -37,6 +38,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             RunMac(key, input, UPDATE_BYTES);
             RunMac(key, input, UPDATE_FULL);
             RunMac(key, input, UPDATE_MIX);
+
+            SecureRandom random = new SecureRandom();
+            for (int i = 0; i < 100; ++i)
+            {
+                RandomTest(random);
+            }
         }
 
         private void RunMac(byte[] key, byte[] input, int updateType)
@@ -68,6 +75,33 @@ namespace Org.BouncyCastle.Crypto.Tests
             if (!AreEqual(expectedBytes, output))
             {
                 Fail("Result does not match expected value for DoFinal(byte[],int)");
+            }
+        }
+
+        private void RandomTest(SecureRandom random)
+        {
+            byte[] key = new byte[16];
+            random.NextBytes(key);
+
+            int length = 1 + random.Next(1024);
+            byte[] input = new byte[length];
+            random.NextBytes(input);
+
+            SipHash mac = new SipHash();
+            mac.Init(new KeyParameter(key));
+
+            UpdateMac(mac, input, UPDATE_BYTES);
+            long result1 = mac.DoFinal();
+
+            UpdateMac(mac, input, UPDATE_FULL);
+            long result2 = mac.DoFinal();
+
+            UpdateMac(mac, input, UPDATE_MIX);
+            long result3 = mac.DoFinal();
+
+            if (result1 != result2 || result1 != result3)
+            {
+                Fail("Inconsistent results in random test");
             }
         }
 
