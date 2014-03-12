@@ -67,12 +67,12 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             ECDomainParameters ec = key.Parameters;
             BigInteger n = ec.N;
-            BigInteger e = calculateE(n, message);
+            BigInteger e = CalculateE(n, message);
             BigInteger d = ((ECPrivateKeyParameters)key).D;
 
             BigInteger r, s;
 
-            ECMultiplier basePointMultiplier = new FixedPointCombMultiplier();
+            ECMultiplier basePointMultiplier = CreateBasePointMultiplier();
 
             // 5.3.2
             do // Generate s
@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 return false;
             }
 
-            BigInteger e = calculateE(n, message);
+            BigInteger e = CalculateE(n, message);
             BigInteger c = s.ModInverse(n);
 
             BigInteger u1 = e.Multiply(c).Mod(n);
@@ -139,9 +139,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return v.Equals(r);
         }
 
-        private BigInteger calculateE(
-            BigInteger	n,
-            byte[]		message)
+        protected virtual BigInteger CalculateE(BigInteger n, byte[] message)
         {
             int messageBitLength = message.Length * 8;
             BigInteger trunc = new BigInteger(1, message);
@@ -152,6 +150,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
 
             return trunc;
+        }
+
+        protected virtual ECMultiplier CreateBasePointMultiplier()
+        {
+            return new FixedPointCombMultiplier();
         }
     }
 }
