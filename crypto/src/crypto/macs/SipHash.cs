@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         protected readonly int c, d;
 
         protected long k0, k1;
-        protected long v0, v1, v2, v3, v4;
+        protected long v0, v1, v2, v3;
 
         protected long m = 0;
         protected int wordPos = 0;
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                 for (; i < fullWords; i += 8)
                 {
                     ulong n = Pack.LE_To_UInt64(input, offset + i);
-                    m = (long)(((ulong)m >> (64 - bits)) | (n << bits));
+                    m = (long)((n << bits) | ((ulong)m >> -bits));
                     ProcessMessageWord();
                     m = (long)n;
                 }
@@ -119,7 +119,10 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public virtual long DoFinal()
         {
-            m = (long)(((ulong)m >> ((8 - wordPos) << 3)) | ((ulong)((wordCount << 3) + wordPos) << 56));
+            // NOTE: 2 distinct shifts to avoid "64-bit shift" when wordPos == 0
+            m = (long)((ulong)m >> ((7 - wordPos) << 3));
+            m = (long)((ulong)m >> 8);
+            m = (long)((ulong)m | ((ulong)((wordCount << 3) + wordPos) << 56));
 
             ProcessMessageWord();
 
@@ -163,29 +166,33 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         protected virtual void ApplySipRounds(int n)
         {
+            long r0 = v0, r1 = v1, r2 = v2, r3 = v3;
+
             for (int r = 0; r < n; ++r)
             {
-                v0 += v1;
-                v2 += v3;
-                v1 = RotateLeft(v1, 13);
-                v3 = RotateLeft(v3, 16);
-                v1 ^= v0;
-                v3 ^= v2;
-                v0 = RotateLeft(v0, 32);
-                v2 += v1;
-                v0 += v3;
-                v1 = RotateLeft(v1, 17);
-                v3 = RotateLeft(v3, 21);
-                v1 ^= v2;
-                v3 ^= v0;
-                v2 = RotateLeft(v2, 32);
+                r0 += r1;
+                r2 += r3;
+                r1 = RotateLeft(r1, 13);
+                r3 = RotateLeft(r3, 16);
+                r1 ^= r0;
+                r3 ^= r2;
+                r0 = RotateLeft(r0, 32);
+                r2 += r1;
+                r0 += r3;
+                r1 = RotateLeft(r1, 17);
+                r3 = RotateLeft(r3, 21);
+                r1 ^= r2;
+                r3 ^= r0;
+                r2 = RotateLeft(r2, 32);
             }
+
+            v0 = r0; v1 = r1; v2 = r2; v3 = r3;
         }
 
         protected static long RotateLeft(long x, int n)
         {
             ulong ux = (ulong)x;
-            ux = (ux << n) | (ux >> (64 - n));
+            ux = (ux << n) | (ux >> -n);
             return (long)ux;
         }
     }
