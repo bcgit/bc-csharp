@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Org.BouncyCastle.Math.EC.Abc;
+using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Field;
 using Org.BouncyCastle.Utilities;
@@ -30,18 +31,26 @@ namespace Org.BouncyCastle.Math.EC
         {
             protected ECCurve outer;
             protected int coord;
+            protected ECEndomorphism endomorphism;
             protected ECMultiplier multiplier;
 
-            internal Config(ECCurve outer, int coord, ECMultiplier multiplier)
+            internal Config(ECCurve outer, int coord, ECEndomorphism endomorphism, ECMultiplier multiplier)
             {
                 this.outer = outer;
                 this.coord = coord;
+                this.endomorphism = endomorphism;
                 this.multiplier = multiplier;
             }
 
             public Config SetCoordinateSystem(int coord)
             {
                 this.coord = coord;
+                return this;
+            }
+
+            public Config SetEndomorphism(ECEndomorphism endomorphism)
+            {
+                this.endomorphism = endomorphism;
                 return this;
             }
 
@@ -65,6 +74,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
 
                 c.m_coord = coord;
+                c.m_endomorphism = endomorphism;
                 c.m_multiplier = multiplier;
 
                 return c;
@@ -76,6 +86,7 @@ namespace Org.BouncyCastle.Math.EC
         protected BigInteger m_order, m_cofactor;
 
         protected int m_coord = COORD_AFFINE;
+        protected ECEndomorphism m_endomorphism = null;
         protected ECMultiplier m_multiplier = null;
 
         protected ECCurve(IFiniteField field)
@@ -88,7 +99,7 @@ namespace Org.BouncyCastle.Math.EC
 
         public virtual Config Configure()
         {
-            return new Config(this, this.m_coord, this.m_multiplier);
+            return new Config(this, this.m_coord, this.m_endomorphism, this.m_multiplier);
         }
 
         public virtual ECPoint CreatePoint(BigInteger x, BigInteger y)
@@ -110,6 +121,12 @@ namespace Org.BouncyCastle.Math.EC
 
         protected virtual ECMultiplier CreateDefaultMultiplier()
         {
+            GlvEndomorphism glvEndomorphism = m_endomorphism as GlvEndomorphism;
+            if (glvEndomorphism != null)
+            {
+                return new GlvMultiplier(this, glvEndomorphism);
+            }
+
             return new WNafL2RMultiplier();
         }
 
@@ -295,6 +312,11 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         protected abstract ECPoint DecompressPoint(int yTilde, BigInteger X1);
+
+        public virtual ECEndomorphism GetEndomorphism()
+        {
+            return m_endomorphism;
+        }
 
         /**
          * Sets the default <code>ECMultiplier</code>, unless already set. 

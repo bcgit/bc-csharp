@@ -4649,6 +4649,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\ECPointMap.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\LongArray.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4660,6 +4665,16 @@
                 />
                 <File
                     RelPath = "src\math\ec\Nat.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\ScaleXPointMap.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\ScaleYPointMap.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4865,6 +4880,26 @@
                 />
                 <File
                     RelPath = "src\math\ec\custom\sec\SecP521R1Point.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\ECEndomorphism.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\GlvEndomorphism.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\GlvTypeBEndomorphism.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\GlvTypeBParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

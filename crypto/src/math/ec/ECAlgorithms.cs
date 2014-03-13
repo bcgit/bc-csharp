@@ -168,25 +168,61 @@ namespace Org.BouncyCastle.Math.EC
             return R;
         }
 
-        internal static ECPoint ImplShamirsTrickWNaf(ECPoint P, BigInteger k, ECPoint Q, BigInteger l)
+        internal static ECPoint ImplShamirsTrickWNaf(ECPoint P, BigInteger k,
+            ECPoint Q, BigInteger l)
         {
+            bool negK = k.SignValue < 0, negL = l.SignValue < 0;
+
+            k = k.Abs();
+            l = l.Abs();
+
             int widthP = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(k.BitLength)));
             int widthQ = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(l.BitLength)));
 
             WNafPreCompInfo infoP = WNafUtilities.Precompute(P, widthP, true);
             WNafPreCompInfo infoQ = WNafUtilities.Precompute(Q, widthQ, true);
 
-            ECPoint[] preCompP = infoP.PreComp;
-            ECPoint[] preCompQ = infoQ.PreComp;
-            ECPoint[] preCompNegP = infoP.PreCompNeg;
-            ECPoint[] preCompNegQ = infoQ.PreCompNeg;
+            ECPoint[] preCompP = negK ? infoP.PreCompNeg : infoP.PreComp;
+            ECPoint[] preCompQ = negL ? infoQ.PreCompNeg : infoQ.PreComp;
+            ECPoint[] preCompNegP = negK ? infoP.PreComp : infoP.PreCompNeg;
+            ECPoint[] preCompNegQ = negL ? infoQ.PreComp : infoQ.PreCompNeg;
 
             byte[] wnafP = WNafUtilities.GenerateWindowNaf(widthP, k);
             byte[] wnafQ = WNafUtilities.GenerateWindowNaf(widthQ, l);
 
+            return ImplShamirsTrickWNaf(preCompP, preCompNegP, wnafP, preCompQ, preCompNegQ, wnafQ);
+        }
+
+        internal static ECPoint ImplShamirsTrickWNaf(ECPoint P, BigInteger k, ECPointMap pointMapQ, BigInteger l)
+        {
+            bool negK = k.SignValue < 0, negL = l.SignValue < 0;
+
+            k = k.Abs();
+            l = l.Abs();
+
+            int width = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(System.Math.Max(k.BitLength, l.BitLength))));
+
+            ECPoint Q = WNafUtilities.MapPointWithPrecomp(P, width, true, pointMapQ);
+            WNafPreCompInfo infoP = WNafUtilities.GetWNafPreCompInfo(P);
+            WNafPreCompInfo infoQ = WNafUtilities.GetWNafPreCompInfo(Q);
+
+            ECPoint[] preCompP = negK ? infoP.PreCompNeg : infoP.PreComp;
+            ECPoint[] preCompQ = negL ? infoQ.PreCompNeg : infoQ.PreComp;
+            ECPoint[] preCompNegP = negK ? infoP.PreComp : infoP.PreCompNeg;
+            ECPoint[] preCompNegQ = negL ? infoQ.PreComp : infoQ.PreCompNeg;
+
+            byte[] wnafP = WNafUtilities.GenerateWindowNaf(width, k);
+            byte[] wnafQ = WNafUtilities.GenerateWindowNaf(width, l);
+
+            return ImplShamirsTrickWNaf(preCompP, preCompNegP, wnafP, preCompQ, preCompNegQ, wnafQ);
+        }
+
+        private static ECPoint ImplShamirsTrickWNaf(ECPoint[] preCompP, ECPoint[] preCompNegP, byte[] wnafP,
+            ECPoint[] preCompQ, ECPoint[] preCompNegQ, byte[] wnafQ)
+        {
             int len = System.Math.Max(wnafP.Length, wnafQ.Length);
 
-            ECCurve curve = P.Curve;
+            ECCurve curve = preCompP[0].Curve;
             ECPoint infinity = curve.Infinity;
 
             ECPoint R = infinity;
