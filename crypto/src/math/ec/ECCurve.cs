@@ -106,6 +106,8 @@ namespace Org.BouncyCastle.Math.EC
 
         protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression);
 
+        protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression);
+
         protected virtual ECMultiplier CreateDefaultMultiplier()
         {
             return new WNafL2RMultiplier();
@@ -457,6 +459,11 @@ namespace Org.BouncyCastle.Math.EC
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
         {
             return new FpPoint(this, x, y, withCompression);
+        }
+
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
+        {
+            return new FpPoint(this, x, y, zs, withCompression);
         }
 
         public override ECPoint ImportPoint(ECPoint p)
@@ -825,6 +832,11 @@ namespace Org.BouncyCastle.Math.EC
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
         {
             return new F2mPoint(this, x, y, withCompression);
+        }
+
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
+        {
+            return new F2mPoint(this, x, y, zs, withCompression);
         }
 
         public override ECPoint Infinity

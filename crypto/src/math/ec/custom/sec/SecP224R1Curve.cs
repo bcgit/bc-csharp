@@ -71,6 +71,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return new SecP224R1Point(this, x, y, withCompression);
         }
 
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
+        {
+            return new SecP224R1Point(this, x, y, zs, withCompression);
+        }
+
         protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
         {
             ECFieldElement x = FromBigInteger(X1);
