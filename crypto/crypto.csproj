@@ -4934,6 +4934,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\multiplier\GlvMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\multiplier\MixedNafR2LMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
