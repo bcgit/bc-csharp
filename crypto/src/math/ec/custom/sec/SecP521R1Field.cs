@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint xx32 = xx[32];
             uint c = Nat.ShiftDownBits(16, xx, 16, 9, xx32, z, 0) >> 23;
             c += xx32 >> 9;
-            c += Nat.Add(16, z, xx, z);
+            c += Nat.AddTo(16, xx, z);
             if (c > P16 || (c == P16 && Nat.Eq(16, z, P)))
             {
                 c += Nat.Inc(16, z);
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static void Reduce23(uint[] z)
         {
             uint z16 = z[16];
-            uint c = Nat.AddWordAt(16, z16 >> 9, z, 0) + (z16 & P16);
+            uint c = Nat.AddWordTo(16, z16 >> 9, z) + (z16 & P16);
             if (c > P16 || (c == P16 && Nat.Eq(16, z, P)))
             {
                 c += Nat.Inc(16, z);

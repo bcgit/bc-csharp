@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             BigInteger r, s = null;
 
-            ECMultiplier basePointMultiplier = new FixedPointCombMultiplier();
+            ECMultiplier basePointMultiplier = CreateBasePointMultiplier();
 
             do // generate s
             {
@@ -152,6 +152,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             BigInteger R = point.AffineXCoord.ToBigInteger().Mod(n);
 
             return R.Equals(r);
+        }
+
+        protected virtual ECMultiplier CreateBasePointMultiplier()
+        {
+            return new FixedPointCombMultiplier();
         }
     }
 }

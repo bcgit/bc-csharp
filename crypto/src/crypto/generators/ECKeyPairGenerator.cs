@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
             while (d.SignValue == 0 || (d.CompareTo(n) >= 0));
 
-            ECPoint q = new FixedPointCombMultiplier().Multiply(parameters.G, d);
+            ECPoint q = CreateBasePointMultiplier().Multiply(parameters.G, d);
 
             if (publicKeyParamSet != null)
             {
@@ -117,6 +117,11 @@ namespace Org.BouncyCastle.Crypto.Generators
             return new AsymmetricCipherKeyPair(
                 new ECPublicKeyParameters(algorithm, q, parameters),
                 new ECPrivateKeyParameters(algorithm, d, parameters));
+        }
+
+        protected virtual ECMultiplier CreateBasePointMultiplier()
+        {
+            return new FixedPointCombMultiplier();
         }
 
         internal static X9ECParameters FindECCurveByOid(DerObjectIdentifier oid)

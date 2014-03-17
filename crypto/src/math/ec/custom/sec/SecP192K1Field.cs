@@ -75,6 +75,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Reduce(tt, z);
         }
 
+        public static void MultiplyAddToExt(uint[] x, uint[] y, uint[] zz)
+        {
+            uint c = Nat192.MulAddTo(x, y, zz);
+            if (c != 0 || (zz[11] == PExt11 && Nat.Gte(12, zz, PExt)))
+            {
+                if (Nat.AddTo(PExtInv.Length, PExtInv, zz) != 0)
+                {
+                    Nat.IncAt(12, zz, PExtInv.Length);
+                }
+            }
+        }
+
         public static void Negate(uint[] x, uint[] z)
         {
             if (Nat192.IsZero(x))

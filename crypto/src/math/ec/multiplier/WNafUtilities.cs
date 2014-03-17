@@ -268,6 +268,11 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return wnaf;
         }
 
+        public static WNafPreCompInfo GetWNafPreCompInfo(ECPoint p)
+        {
+            return GetWNafPreCompInfo(p.Curve.GetPreCompInfo(p, PRECOMP_NAME));
+        }
+
         public static WNafPreCompInfo GetWNafPreCompInfo(PreCompInfo preCompInfo)
         {
             if ((preCompInfo != null) && (preCompInfo is WNafPreCompInfo))
@@ -309,6 +314,45 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return w + 2;
         }
 
+        public static ECPoint MapPointWithPrecomp(ECPoint p, int width, bool includeNegated,
+            ECPointMap pointMap)
+        {
+            ECCurve c = p.Curve;
+            WNafPreCompInfo wnafPreCompP = Precompute(p, width, includeNegated);
+
+            ECPoint q = pointMap.Map(p);
+            WNafPreCompInfo wnafPreCompQ = GetWNafPreCompInfo(c.GetPreCompInfo(q, PRECOMP_NAME));
+
+            ECPoint twiceP = wnafPreCompP.Twice;
+            if (twiceP != null)
+            {
+                ECPoint twiceQ = pointMap.Map(twiceP);
+                wnafPreCompQ.Twice = twiceQ;
+            }
+
+            ECPoint[] preCompP = wnafPreCompP.PreComp;
+            ECPoint[] preCompQ = new ECPoint[preCompP.Length];
+            for (int i = 0; i < preCompP.Length; ++i)
+            {
+                preCompQ[i] = pointMap.Map(preCompP[i]);
+            }
+            wnafPreCompQ.PreComp = preCompQ;
+
+            if (includeNegated)
+            {
+                ECPoint[] preCompNegQ = new ECPoint[preCompQ.Length];
+                for (int i = 0; i < preCompNegQ.Length; ++i)
+                {
+                    preCompNegQ[i] = preCompQ[i].Negate();
+                }
+                wnafPreCompQ.PreCompNeg = preCompNegQ;
+            }
+
+            c.SetPreCompInfo(q, PRECOMP_NAME, wnafPreCompQ);
+
+            return q;
+        }
+
         public static WNafPreCompInfo Precompute(ECPoint p, int width, bool includeNegated)
         {
             ECCurve c = p.Curve;
@@ -335,7 +379,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                     ECPoint twiceP = wnafPreCompInfo.Twice;
                     if (twiceP == null)
                     {
-                        twiceP = preComp[0].Twice().Normalize();
+                        twiceP = preComp[0].Twice();
                         wnafPreCompInfo.Twice = twiceP;
                     }
 

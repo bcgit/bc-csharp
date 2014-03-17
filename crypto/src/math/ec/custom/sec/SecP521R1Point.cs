@@ -211,8 +211,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] M = t2;
             SecP521R1Field.Add(X1.x, Z1Squared, M);
             SecP521R1Field.Multiply(M, t1, M);
-            SecP521R1Field.Twice(M, t1);
-            SecP521R1Field.Add(M, t1, M);
+            Nat.AddBothTo(17, M, M, M);
+            SecP521R1Field.Reduce23(M);
 
             uint[] S = Y1Squared;
             SecP521R1Field.Multiply(Y1Squared, X1.x, S);

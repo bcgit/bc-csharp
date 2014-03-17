@@ -74,6 +74,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Reduce(tt, z);
         }
 
+        public static void MultiplyAddToExt(uint[] x, uint[] y, uint[] zz)
+        {
+            uint c = Nat224.MulAddTo(x, y, zz);
+            if (c != 0 || (zz[13] == PExt13 && Nat.Gte(14, zz, PExt)))
+            {
+                if (Nat.AddTo(PExtInv.Length, PExtInv, zz) != 0)
+                {
+                    Nat.IncAt(14, zz, PExtInv.Length);
+                }
+            }
+        }
+
         public static void Negate(uint[] x, uint[] z)
         {
             if (Nat224.IsZero(x))
@@ -88,20 +100,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            long xx07 = xx[7], xx08 = xx[8], xx09 = xx[9], xx10 = xx[10];
-            long xx11 = xx[11], xx12 = xx[12], xx13 = xx[13];
-
-            long t0 = xx07 + xx11;
-            long t1 = xx08 + xx12;
-            long t2 = xx09 + xx13;
+            long xx10 = xx[10], xx11 = xx[11], xx12 = xx[12], xx13 = xx[13];
 
             const long n = 1;
 
-            t0 -= n;
+            long t0 = (long)xx[7] + xx11 - n;
+            long t1 = (long)xx[8] + xx12;
+            long t2 = (long)xx[9] + xx13;
 
             long cc = 0;
             cc += (long)xx[0] - t0;
-            z[0] = (uint)cc;
+            long z0 = (uint)cc;
             cc >>= 32;
             cc += (long)xx[1] - t1;
             z[1] = (uint)cc;
@@ -110,7 +119,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[2] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[3] + t0 - xx10;
-            z[3] = (uint)cc;
+            long z3 = (uint)cc;
             cc >>= 32;
             cc += (long)xx[4] + t1 - xx11;
             z[4] = (uint)cc;
@@ -125,7 +134,30 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             Debug.Assert(cc >= 0);
 
-            Reduce32((uint)cc, z);
+            z3 += cc;
+
+            z0 -= cc;
+            z[0] = (uint)z0;
+            cc = z0 >> 32;
+            if (cc != 0)
+            {
+                cc += (long)z[1];
+                z[1] = (uint)cc;
+                cc >>= 32;
+                cc += (long)z[2];
+                z[2] = (uint)cc;
+                z3 += cc >> 32;
+            }
+            z[3] = (uint)z3;
+            cc = z3 >> 32;
+
+            Debug.Assert(cc == 0 || cc == 1);
+
+            if ((cc != 0 && Nat.IncAt(7, z, 4) != 0)
+                || (z[6] == P6 && Nat224.Gte(z, P)))
+            {
+                AddPInvTo(z);
+            }
         }
 
         public static void Reduce32(uint x, uint[] z)

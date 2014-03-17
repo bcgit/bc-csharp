@@ -91,49 +91,54 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            long xx12 = xx[12], xx13 = xx[13], xx14 = xx[14], xx15 = xx[15];
             long xx16 = xx[16], xx17 = xx[17], xx18 = xx[18], xx19 = xx[19];
             long xx20 = xx[20], xx21 = xx[21], xx22 = xx[22], xx23 = xx[23];
 
             const long n = 1;
 
-            xx12 -= n;
+            long t0 = (long)xx[12] + xx20 - n;
+            long t1 = (long)xx[13] + xx22;
+            long t2 = (long)xx[14] + xx22 + xx23;
+            long t3 = (long)xx[15] + xx23;
+            long t4 = xx17 + xx21;
+            long t5 = xx21 - xx23;
+            long t6 = xx22 - xx23;
 
             long cc = 0;
-            cc += (long)xx[0] + xx12 + xx20 + xx21 - xx23;
+            cc += (long)xx[0] + t0 + t5;
             z[0] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[1] + xx13 + xx22 + xx23 - xx12 - xx20;
+            cc += (long)xx[1] + xx23 - t0 + t1;
             z[1] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[2] + xx14 + xx23 - xx13 - xx21;
+            cc += (long)xx[2] - xx21 - t1 + t2;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[3] + xx12 + xx15 + xx20 + xx21 - xx14 - xx22 - xx23;
+            cc += (long)xx[3] + t0 - t2 + t3 + t5;
             z[3] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[4] + xx12 + xx13 + xx16 + xx20 + ((xx21 - xx23) << 1) + xx22 - xx15;
+            cc += (long)xx[4] + xx16 + xx21 + t0 + t1 - t3 + t5;
             z[4] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[5] + xx13 + xx14 + xx17 + xx21 + (xx22 << 1) + xx23 - xx16;
+            cc += (long)xx[5] - xx16 + t1 + t2 + t4;
             z[5] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[6] + xx14 + xx15 + xx18 + xx22 + (xx23 << 1) - xx17;
+            cc += (long)xx[6] + xx18 - xx17 + t2 + t3;
             z[6] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[7] + xx15 + xx16 + xx19 + xx23 - xx18;
+            cc += (long)xx[7] + xx16 + xx19 - xx18 + t3;
             z[7] = (uint)cc;
             cc >>= 32;
             cc += (long)xx[8] + xx16 + xx17 + xx20 - xx19;
             z[8] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[9] + xx17 + xx18 + xx21 - xx20;
+            cc += (long)xx[9] + xx18 - xx20 + t4;
             z[9] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[10] + xx18 + xx19 + xx22 - xx21;
+            cc += (long)xx[10] + xx18 + xx19 - t5 + t6;
             z[10] = (uint)cc;
             cc >>= 32;
-            cc += (long)xx[11] + xx19 + xx20 + xx23 - xx22;
+            cc += (long)xx[11] + xx19 + xx20 - t6;
             z[11] = (uint)cc;
             cc >>= 32;
             cc += n;

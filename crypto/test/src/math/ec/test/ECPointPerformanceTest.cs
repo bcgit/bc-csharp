@@ -24,8 +24,11 @@ namespace Org.BouncyCastle.Math.EC.Tests
     [TestFixture, Explicit]
     public class ECPointPerformanceTest
     {
-        public const int PRE_ROUNDS = 100;
-        public const int NUM_ROUNDS = 1000;
+        internal const int MILLIS_PER_ROUND = 200;
+        internal const int MILLIS_WARMUP = 1000;
+
+        internal const int MULTS_PER_CHECK = 16;
+        internal const int NUM_ROUNDS = 10;
 
         private static string[] COORD_NAMES = new string[]{ "AFFINE", "HOMOGENEOUS", "JACOBIAN", "JACOBIAN-CHUDNOVSKY",
             "JACOBIAN-MODIFIED", "LAMBDA-AFFINE", "LAMBDA-PROJECTIVE", "SKEWED" };
@@ -71,18 +74,25 @@ namespace Org.BouncyCastle.Math.EC.Tests
                         g = c.ImportPoint(G);
                     }
 
-                    double avgDuration = RandMult(random, g, n);
+                    double avgRate = RandMult(random, g, n);
                     string coordName = COORD_NAMES[coord];
                     StringBuilder sb = new StringBuilder();
                     sb.Append("  ");
                     sb.Append(coordName);
-                    for (int j = coordName.Length; j < 30; ++j)
+                    for (int j = sb.Length; j < 28; ++j)
                     {
                         sb.Append(' ');
                     }
                     sb.Append(": ");
-                    sb.Append(avgDuration);
-                    sb.Append("ms");
+                    sb.Append(avgRate);
+                    sb.Append(" mults/sec");
+                    for (int j = sb.Length; j < 64; ++j)
+                    {
+                        sb.Append(' ');
+                    }
+                    sb.Append('(');
+                    sb.Append(1000.0 / avgRate);
+                    sb.Append(" millis/mult)");
                     Console.WriteLine(sb.ToString());
                 }
             }
@@ -98,30 +108,66 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             int ki = 0;
             ECPoint p = g;
-            for (int i = 1; i <= PRE_ROUNDS; i++)
+
             {
-                BigInteger k = ks[ki];
-                p = g.Multiply(k);
-                if (++ki == ks.Length)
+                long startTime = DateTimeUtilities.CurrentUnixMs();
+                long goalTime = startTime + MILLIS_WARMUP;
+
+                do
                 {
-                    ki = 0;
-                    g = p;
+                    BigInteger k = ks[ki];
+                    p = g.Multiply(k);
+                    if ((ki & 1) != 0)
+                    {
+                        g = p;
+                    }
+                    if (++ki == ks.Length)
+                    {
+                        ki = 0;
+                    }
                 }
+                while (DateTimeUtilities.CurrentUnixMs() < goalTime);
             }
-            long startTime = DateTimeUtilities.CurrentUnixMs();
+
+            double minRate = Double.MaxValue, maxRate = Double.MinValue, totalRate = 0.0;
+
             for (int i = 1; i <= NUM_ROUNDS; i++)
             {
-                BigInteger k = ks[ki];
-                p = g.Multiply(k);
-                if (++ki == ks.Length)
-                {
-                    ki = 0;
-                    g = p;
-                }
-            }
-            long endTime = DateTimeUtilities.CurrentUnixMs();
+                long startTime = DateTimeUtilities.CurrentUnixMs();
+                long goalTime = startTime + MILLIS_PER_ROUND;
+                long count = 0, endTime;
 
-            return (double)(endTime - startTime) / NUM_ROUNDS;
+                do
+                {
+                    ++count;
+
+                    for (int j = 0; j < MULTS_PER_CHECK; ++j)
+                    {
+                        BigInteger k = ks[ki];
+                        p = g.Multiply(k);
+                        if ((ki & 1) != 0)
+                        {
+                            g = p;
+                        }
+                        if (++ki == ks.Length)
+                        {
+                            ki = 0;
+                        }
+                    }
+
+                    endTime = DateTimeUtilities.CurrentUnixMs();
+                }
+                while (endTime < goalTime);
+
+                double roundElapsed = (double)(endTime - startTime);
+                double roundRate = count * MULTS_PER_CHECK * 1000L / roundElapsed;
+
+                minRate = System.Math.Min(minRate, roundRate);
+                maxRate = System.Math.Max(maxRate, roundRate);
+                totalRate += roundRate;
+            }
+
+            return (totalRate - minRate - maxRate) / (NUM_ROUNDS - 2);
         }
 
         [Test]

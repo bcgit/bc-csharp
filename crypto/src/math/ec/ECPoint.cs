@@ -289,6 +289,20 @@ namespace Org.BouncyCastle.Math.EC
             get { return m_withCompression; }
         }
 
+        public virtual ECPoint ScaleX(ECFieldElement scale)
+        {
+            return IsInfinity
+                ? this
+                : Curve.CreateRawPoint(RawXCoord.Multiply(scale), RawYCoord, RawZCoords, IsCompressed);
+        }
+
+        public virtual ECPoint ScaleY(ECFieldElement scale)
+        {
+            return IsInfinity
+                ? this
+                : Curve.CreateRawPoint(RawXCoord, RawYCoord.Multiply(scale), RawZCoords, IsCompressed);
+        }
+
         public override bool Equals(object obj)
         {
             return Equals(obj as ECPoint);
@@ -1306,6 +1320,66 @@ namespace Org.BouncyCastle.Math.EC
                         return RawYCoord;
                     }
                 }
+            }
+        }
+
+        public override ECPoint ScaleX(ECFieldElement scale)
+        {
+            if (this.IsInfinity)
+                return this;
+
+            switch (CurveCoordinateSystem)
+            {
+            case ECCurve.COORD_LAMBDA_AFFINE:
+            {
+                // Y is actually Lambda (X + Y/X) here
+                ECFieldElement X = RawXCoord, L = RawYCoord;
+
+                ECFieldElement X2 = X.Multiply(scale);
+                ECFieldElement L2 = L.Add(X).Divide(scale).Add(X2);
+
+                return Curve.CreateRawPoint(X, L2, RawZCoords, IsCompressed);
+            }
+            case ECCurve.COORD_LAMBDA_PROJECTIVE:
+            {
+                // Y is actually Lambda (X + Y/X) here
+                ECFieldElement X = RawXCoord, L = RawYCoord, Z = RawZCoords[0];
+
+                // We scale the Z coordinate also, to avoid an inversion
+                ECFieldElement X2 = X.Multiply(scale.Square());
+                ECFieldElement L2 = L.Add(X).Add(X2);
+                ECFieldElement Z2 = Z.Multiply(scale);
+
+                return Curve.CreateRawPoint(X, L2, new ECFieldElement[] { Z2 }, IsCompressed);
+            }
+            default:
+            {
+                return base.ScaleX(scale);
+            }
+            }
+        }
+
+        public override ECPoint ScaleY(ECFieldElement scale)
+        {
+            if (this.IsInfinity)
+                return this;
+
+            switch (CurveCoordinateSystem)
+            {
+            case ECCurve.COORD_LAMBDA_AFFINE:
+            case ECCurve.COORD_LAMBDA_PROJECTIVE:
+            {
+                ECFieldElement X = RawXCoord, L = RawYCoord;
+
+                // Y is actually Lambda (X + Y/X) here
+                ECFieldElement L2 = L.Add(X).Multiply(scale).Add(X);
+
+                return Curve.CreateRawPoint(X, L2, RawZCoords, IsCompressed);
+            }
+            default:
+            {
+                return base.ScaleY(scale);
+            }
             }
         }
 
