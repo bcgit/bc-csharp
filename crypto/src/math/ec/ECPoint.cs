@@ -1191,13 +1191,13 @@ namespace Org.BouncyCastle.Math.EC
             ECFieldElement W = ZZ[1];
             if (W == null)
             {
-                // NOTE: Rarely, twicePlus will result in the need for a lazy W1 calculation here
+                // NOTE: Rarely, TwicePlus will result in the need for a lazy W1 calculation here
                 ZZ[1] = W = CalculateJacobianModifiedW(ZZ[0], null);
             }
             return W;
         }
 
-        protected FpPoint TwiceJacobianModified(bool calculateW)
+        protected virtual FpPoint TwiceJacobianModified(bool calculateW)
         {
             ECFieldElement X1 = this.RawXCoord, Y1 = this.RawYCoord, Z1 = this.RawZCoords[0], W1 = GetJacobianModifiedW();
 

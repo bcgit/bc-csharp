@@ -4694,7 +4694,22 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\custom\sec\Curve25519Field.cs"
+                    RelPath = "src\math\ec\custom\djb\Curve25519.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\djb\Curve25519Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\djb\Curve25519FieldElement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\djb\Curve25519Point.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

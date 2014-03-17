@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Org.BouncyCastle.Math.EC.Custom.Sec
+using Org.BouncyCastle.Math.EC.Custom.Sec;
+
+namespace Org.BouncyCastle.Math.EC.Custom.Djb
 {
     internal class Curve25519Field
     {
@@ -190,7 +192,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c >>= 32;
             if (c != 0)
             {
-                Nat.IncAt(7, z, 1);
+                Nat.IncAt(8, z, 1);
             }
             z[7] &= P7;
         }
@@ -202,7 +204,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c >>= 32;
             if (c != 0)
             {
-                Nat.DecAt(7, z, 1);
+                Nat.DecAt(8, z, 1);
             }
             z[7] &= P7;
         }
