@@ -175,17 +175,27 @@ namespace Org.BouncyCastle.Math.EC.Tests
         {
             ArrayList nameList = new ArrayList();
             CollectionUtilities.AddRange(nameList, ECNamedCurveTable.Names);
+            CollectionUtilities.AddRange(nameList, CustomNamedCurves.Names);
+
             string[] names = (string[])nameList.ToArray(typeof(string));
             Array.Sort(names);
             ISet oids = new HashSet();
             foreach (string name in names)
             {
                 DerObjectIdentifier oid = ECNamedCurveTable.GetOid(name);
-                if (!oids.Contains(oid))
+                if (oid == null)
                 {
-                    oids.Add(oid);
-                    RandMult(name);
+                    oid = CustomNamedCurves.GetOid(name);
                 }
+                if (oid != null)
+                {
+                    if (oids.Contains(oid))
+                        continue;
+
+                    oids.Add(oid);
+                }
+
+                RandMult(name);
             }
         }
 

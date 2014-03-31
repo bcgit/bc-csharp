@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Custom.Djb;
 using Org.BouncyCastle.Math.EC.Custom.Sec;
 using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Utilities;
@@ -33,6 +34,38 @@ namespace Org.BouncyCastle.Crypto.EC
         private static ECCurve ConfigureCurveGlv(ECCurve c, GlvTypeBParameters p)
         {
             return c.Configure().SetEndomorphism(new GlvTypeBEndomorphism(c, p)).Create();
+        }
+
+        /*
+         * curve25519
+         */
+        internal class Curve25519Holder
+            : X9ECParametersHolder
+        {
+            private Curve25519Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Curve25519Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = null;
+                ECCurve curve = ConfigureCurve(new Curve25519());
+
+                /*
+                 * NOTE: Curve25519 was specified in Montgomery form. Rewriting in Weierstrass form
+                 * involves substitution of variables, so the base-point x coordinate is 9 + (486662 / 3).
+                 * 
+                 * The Curve25519 paper doesn't say which of the two possible y values the base
+                 * point has. The choice here is guided by language in the Ed25519 paper.
+                 * 
+                 * (The other possible y value is 5F51E65E475F794B1FE122D388B72EB36DC2B28192839E4DD6163A5D81312C14) 
+                 */
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD245A"
+                    + "20AE19A1B8A086B4E01EDD2C7748D14C923D4D7E6D7C61B229E9C5A27ECED3D9"));
+
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
         }
 
         /*
@@ -239,19 +272,35 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        private static readonly IDictionary objIds = Platform.CreateHashtable();
-        private static readonly IDictionary curves = Platform.CreateHashtable();
-        private static readonly IDictionary names = Platform.CreateHashtable();
+        private static readonly IDictionary nameToCurve = Platform.CreateHashtable();
+        private static readonly IDictionary nameToOid = Platform.CreateHashtable();
+        private static readonly IDictionary oidToCurve = Platform.CreateHashtable();
+        private static readonly IDictionary oidToName = Platform.CreateHashtable();
+
+        private static void DefineCurve(string name, X9ECParametersHolder holder)
+        {
+            nameToCurve.Add(name, holder);
+        }
 
         private static void DefineCurve(string name, DerObjectIdentifier oid, X9ECParametersHolder holder)
         {
-            objIds.Add(name, oid);
-            names.Add(oid, name);
-            curves.Add(oid, holder);
+            nameToCurve.Add(name, holder);
+            nameToOid.Add(name, oid);
+            oidToName.Add(oid, name);
+            oidToCurve.Add(oid, holder);
+        }
+
+        private static void DefineCurveAlias(string alias, DerObjectIdentifier oid)
+        {
+            alias = Platform.ToLowerInvariant(alias);
+            nameToOid.Add(alias, oid);
+            nameToCurve.Add(alias, oidToCurve[oid]);
         }
 
         static CustomNamedCurves()
         {
+            DefineCurve("curve25519", Curve25519Holder.Instance);
+
             DefineCurve("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
             DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
             DefineCurve("secp224k1", SecObjectIdentifiers.SecP224k1, Secp224k1Holder.Instance);
@@ -261,18 +310,17 @@ namespace Org.BouncyCastle.Crypto.EC
             DefineCurve("secp384r1", SecObjectIdentifiers.SecP384r1, Secp384r1Holder.Instance);
             DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
 
-            objIds.Add(Platform.ToLowerInvariant("P-192"), SecObjectIdentifiers.SecP192r1);
-            objIds.Add(Platform.ToLowerInvariant("P-224"), SecObjectIdentifiers.SecP224r1);
-            objIds.Add(Platform.ToLowerInvariant("P-256"), SecObjectIdentifiers.SecP256r1);
-            objIds.Add(Platform.ToLowerInvariant("P-384"), SecObjectIdentifiers.SecP384r1);
-            objIds.Add(Platform.ToLowerInvariant("P-521"), SecObjectIdentifiers.SecP521r1);
+            DefineCurveAlias("P-192", SecObjectIdentifiers.SecP192r1);
+            DefineCurveAlias("P-224", SecObjectIdentifiers.SecP224r1);
+            DefineCurveAlias("P-256", SecObjectIdentifiers.SecP256r1);
+            DefineCurveAlias("P-384", SecObjectIdentifiers.SecP384r1);
+            DefineCurveAlias("P-521", SecObjectIdentifiers.SecP521r1);
         }
 
         public static X9ECParameters GetByName(string name)
         {
-            DerObjectIdentifier oid = (DerObjectIdentifier)objIds[Platform.ToLowerInvariant(name)];
-
-            return oid == null ? null : GetByOid(oid);
+            X9ECParametersHolder holder = (X9ECParametersHolder)nameToCurve[Platform.ToLowerInvariant(name)];
+            return holder == null ? null : holder.Parameters;
         }
 
         /**
@@ -283,8 +331,7 @@ namespace Org.BouncyCastle.Crypto.EC
          */
         public static X9ECParameters GetByOid(DerObjectIdentifier oid)
         {
-            X9ECParametersHolder holder = (X9ECParametersHolder)curves[oid];
-
+            X9ECParametersHolder holder = (X9ECParametersHolder)oidToCurve[oid];
             return holder == null ? null : holder.Parameters;
         }
 
@@ -296,7 +343,7 @@ namespace Org.BouncyCastle.Crypto.EC
          */
         public static DerObjectIdentifier GetOid(string name)
         {
-            return (DerObjectIdentifier)objIds[Platform.ToLowerInvariant(name)];
+            return (DerObjectIdentifier)nameToOid[Platform.ToLowerInvariant(name)];
         }
 
         /**
@@ -304,7 +351,7 @@ namespace Org.BouncyCastle.Crypto.EC
          */
         public static string GetName(DerObjectIdentifier oid)
         {
-            return (string)names[oid];
+            return (string)oidToName[oid];
         }
 
         /**
@@ -313,7 +360,7 @@ namespace Org.BouncyCastle.Crypto.EC
          */
         public static IEnumerable Names
         {
-            get { return new EnumerableProxy(objIds.Keys); }
+            get { return new EnumerableProxy(nameToCurve.Keys); }
         }
     }
 }

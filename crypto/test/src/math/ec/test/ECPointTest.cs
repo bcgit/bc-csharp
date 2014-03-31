@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 using NUnit.Framework;
 
@@ -9,6 +10,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Math.EC.Tests
 {
@@ -506,10 +508,17 @@ namespace Org.BouncyCastle.Math.EC.Tests
         [Test]
         public void TestAddSubtractMultiplyTwiceEncoding()
         {
-            foreach (string name in ECNamedCurveTable.Names)
+            ArrayList names = new ArrayList();
+            CollectionUtilities.AddRange(names, ECNamedCurveTable.Names);
+            CollectionUtilities.AddRange(names, CustomNamedCurves.Names);
+
+            foreach (string name in names)
             {
                 X9ECParameters x9ECParameters = ECNamedCurveTable.GetByName(name);
-                ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9ECParameters);
+                if (x9ECParameters != null)
+                {
+                    ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9ECParameters);
+                }
 
                 x9ECParameters = CustomNamedCurves.GetByName(name);
                 if (x9ECParameters != null)
@@ -521,7 +530,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
         private void AssertPointsEqual(string message, ECPoint a, ECPoint b)
         {
-            Assert.AreEqual(a, b, message);
+			Assert.AreEqual(a, b, message);
         }
     }
 }
