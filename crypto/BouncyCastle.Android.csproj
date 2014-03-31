@@ -960,7 +960,10 @@
     <Compile Include="src\math\ec\abc\SimpleBigDecimal.cs" />
     <Compile Include="src\math\ec\abc\Tnaf.cs" />
     <Compile Include="src\math\ec\abc\ZTauElement.cs" />
-    <Compile Include="src\math\ec\custom\sec\Curve25519Field.cs" />
+    <Compile Include="src\math\ec\custom\djb\Curve25519.cs" />
+    <Compile Include="src\math\ec\custom\djb\Curve25519Field.cs" />
+    <Compile Include="src\math\ec\custom\djb\Curve25519FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\djb\Curve25519Point.cs" />
     <Compile Include="src\math\ec\custom\sec\Nat192.cs" />
     <Compile Include="src\math\ec\custom\sec\Nat224.cs" />
     <Compile Include="src\math\ec\custom\sec\Nat256.cs" />
