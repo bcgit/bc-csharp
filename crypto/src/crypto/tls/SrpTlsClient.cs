@@ -35,6 +35,17 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.context = context;
         }
 
+        public virtual bool ShouldUseGmtUnixTime()
+        {
+            /*
+             * draft-mathewson-no-gmtunixtime-00 2. For the reasons we discuss above, we recommend that
+             * TLS implementors MUST by default set the entire value the ClientHello.Random and
+             * ServerHello.Random fields, including gmt_unix_time, to a cryptographically random
+             * sequence.
+             */
+            return false;
+        }
+
         public virtual int[] GetCipherSuites()
         {
             return new int[] {

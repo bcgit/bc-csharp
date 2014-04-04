@@ -4354,6 +4354,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\ExporterLabel.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\ExtensionType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4555,6 +4560,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsNullCompression.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsPeer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

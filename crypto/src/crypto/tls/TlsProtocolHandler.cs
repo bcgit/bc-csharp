@@ -816,9 +816,8 @@ namespace Org.BouncyCastle.Crypto.Tls
              * First, generate some random data.
              */
             this.securityParameters = new SecurityParameters();
-            this.securityParameters.clientRandom = new byte[32];
-            random.NextBytes(securityParameters.clientRandom, 4, 28);
-            TlsUtilities.WriteGmtUnixTime(securityParameters.clientRandom, 0);
+            this.securityParameters.clientRandom = CreateRandomBlock(tlsClient.ShouldUseGmtUnixTime(), random,
+                ExporterLabel.client_random);
 
             this.tlsClientContext = new TlsClientContextImpl(random, securityParameters);
             this.tlsClient = tlsClient;
@@ -1174,6 +1173,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 throw new TlsFatalAlert(AlertDescription.decode_error);
             }
+        }
+
+        protected static byte[] CreateRandomBlock(bool useGMTUnixTime, SecureRandom random, string asciiLabel)
+        {
+            /*
+             * We use the TLS 1.0 PRF on the SecureRandom output, to guard against RNGs where the raw
+             * output could be used to recover the internal state.
+             */
+            byte[] secret = new byte[32];
+            random.NextBytes(secret);
+
+            byte[] seed = new byte[8];
+            // TODO Use high-resolution timer
+            TlsUtilities.WriteUint64(DateTimeUtilities.CurrentUnixMs(), seed, 0);
+
+            byte[] result = TlsUtilities.PRF(secret, asciiLabel, seed, 32);
+
+            if (useGMTUnixTime)
+            {
+                TlsUtilities.WriteGmtUnixTime(result, 0);
+            }
+
+            return result;
         }
 
         internal void Flush()
