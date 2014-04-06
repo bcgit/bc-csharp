@@ -2,10 +2,8 @@
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /**
-     * RFC 5705
-     */
-    public class ExporterLabel
+    /// <summary>RFC 5705</summary>
+    public abstract class ExporterLabel
     {
         /*
          * BC-specific

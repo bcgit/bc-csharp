@@ -29,11 +29,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int srp = 12;
 
         /*
-         * RFC 5077 7.
-         */
-        public const int session_ticket = 35;
-
-        /*
          * RFC 5246 7.4.1.4.
          */
         public const int signature_algorithms = 13;
@@ -47,6 +42,18 @@ namespace Org.BouncyCastle.Crypto.Tls
          * RFC 6520 6.
          */
         public const int heartbeat = 15;
+
+        /*
+         * RFC 5077 7.
+         */
+        public const int session_ticket = 35;
+
+        /*
+         * draft-gutmann-tls-encrypt-then-mac-05
+         * 
+         * NOTE: This value has not yet been reserved by the IETF 
+         */
+        public static readonly int encrypt_then_mac = 66;
 
         /*
          * RFC 5746 3.2.
