@@ -2839,11 +2839,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\cms\NullOutputStream.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\cms\OriginatorId.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5925,6 +5920,11 @@
                 />
                 <File
                     RelPath = "src\util\io\BaseOutputStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\util\io\NullOutputStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
