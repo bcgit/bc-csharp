@@ -22,22 +22,22 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return new FixedPointPreCompInfo();
         }
 
-        public static FixedPointPreCompInfo Precompute(ECPoint p, int width)
+        public static FixedPointPreCompInfo Precompute(ECPoint p, int minWidth)
         {
             ECCurve c = p.Curve;
 
-            int n = 1 << width;
+            int n = 1 << minWidth;
             FixedPointPreCompInfo info = GetFixedPointPreCompInfo(c.GetPreCompInfo(p, PRECOMP_NAME));
             ECPoint[] lookupTable = info.PreComp;
 
-            if (lookupTable == null || lookupTable.Length != n)
+            if (lookupTable == null || lookupTable.Length < n)
             {
                 int bits = GetCombSize(c);
-                int d = (bits + width - 1) / width;
+                int d = (bits + minWidth - 1) / minWidth;
 
-                ECPoint[] pow2Table = new ECPoint[width];
+                ECPoint[] pow2Table = new ECPoint[minWidth];
                 pow2Table[0] = p;
-                for (int i = 1; i < width; ++i)
+                for (int i = 1; i < minWidth; ++i)
                 {
                     pow2Table[i] = pow2Table[i - 1].TimesPow2(d);
                 }
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 lookupTable = new ECPoint[n];
                 lookupTable[0] = c.Infinity;
 
-                for (int bit = width - 1; bit >= 0; --bit)
+                for (int bit = minWidth - 1; bit >= 0; --bit)
                 {
                     ECPoint pow2 = pow2Table[bit];
 
@@ -61,6 +61,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 c.NormalizeAll(lookupTable);
 
                 info.PreComp = lookupTable;
+                info.Width = minWidth;
 
                 c.SetPreCompInfo(p, PRECOMP_NAME, info);
             }
