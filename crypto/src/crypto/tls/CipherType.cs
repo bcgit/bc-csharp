@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -7,18 +7,14 @@ namespace Org.BouncyCastle.Crypto.Tls
     /// Note that the values here are implementation-specific and arbitrary. It is recommended not to
     /// depend on the particular values (e.g. serialization).
     /// </remarks>
-    [Obsolete("Use MacAlgorithm constants instead")]
-    public enum DigestAlgorithm
+    public abstract class CipherType
     {
-        NULL,
-        MD5,
-        SHA,
+        public const int stream = 0;
+        public const int block = 1;
 
         /*
          * RFC 5246
          */
-        SHA256,
-        SHA384,
-        SHA512,
+        public const int aead = 2;
     }
 }

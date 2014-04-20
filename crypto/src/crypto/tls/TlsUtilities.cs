@@ -316,7 +316,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private static void hmac_hash(IDigest digest, byte[] secret, byte[] seed, byte[] output)
         {
             HMac mac = new HMac(digest);
-            KeyParameter param = new KeyParameter(secret);
+            mac.Init(new KeyParameter(secret));
             byte[] a = seed;
             int size = digest.GetDigestSize();
             int iterations = (output.Length + size - 1) / size;
@@ -324,11 +324,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             byte[] buf2 = new byte[mac.GetMacSize()];
             for (int i = 0; i < iterations; i++)
             {
-                mac.Init(param);
                 mac.BlockUpdate(a, 0, a.Length);
                 mac.DoFinal(buf, 0);
                 a = buf;
-                mac.Init(param);
                 mac.BlockUpdate(a, 0, a.Length);
                 mac.BlockUpdate(seed, 0, seed.Length);
                 mac.DoFinal(buf2, 0);

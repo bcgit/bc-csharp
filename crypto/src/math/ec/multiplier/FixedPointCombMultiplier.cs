@@ -21,10 +21,11 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 throw new InvalidOperationException("fixed-point comb doesn't support scalars larger than the curve order");
             }
 
-            int width = GetWidthForCombSize(size);
+            int minWidth = GetWidthForCombSize(size);
 
-            FixedPointPreCompInfo info = FixedPointUtilities.Precompute(p, width);
+            FixedPointPreCompInfo info = FixedPointUtilities.Precompute(p, minWidth);
             ECPoint[] lookupTable = info.PreComp;
+            int width = info.Width;
 
             int d = (size + width - 1) / width;
 

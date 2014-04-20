@@ -2,12 +2,11 @@ using System;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /**
-     * RFC 2246
-     * <p/>
-     * Note that the values here are implementation-specific and arbitrary. It is recommended not to
-     * depend on the particular values (e.g. serialization).
-     */
+    /// <summary>RFC 2246</summary>
+    /// <remarks>
+    /// Note that the values here are implementation-specific and arbitrary. It is recommended not to
+    /// depend on the particular values (e.g. serialization).
+    /// </remarks>
     public abstract class KeyExchangeAlgorithm
     {
         public const int NULL = 0;

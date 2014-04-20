@@ -2,12 +2,11 @@
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /**
-     * RFC 5246
-     * <p/>
-     * Note that the values here are implementation-specific and arbitrary. It is recommended not to
-     * depend on the particular values (e.g. serialization).
-     */
+    /// <summary>RFC 5246</summary>
+    /// <remarks>
+    /// Note that the values here are implementation-specific and arbitrary. It is recommended not to
+    /// depend on the particular values (e.g. serialization).
+    /// </remarks>
     public abstract class PrfAlgorithm
     {
         /*

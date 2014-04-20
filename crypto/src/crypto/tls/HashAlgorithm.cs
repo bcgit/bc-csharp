@@ -2,9 +2,7 @@
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /**
-     * RFC 5246 7.4.1.4.1
-     */
+    /// <summary>RFC 5246 7.4.1.4.1</summary>
     public abstract class HashAlgorithm
     {
         public const byte none = 0;

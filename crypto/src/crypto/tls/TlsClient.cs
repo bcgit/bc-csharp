@@ -5,6 +5,7 @@ using System.IO;
 namespace Org.BouncyCastle.Crypto.Tls
 {
     public interface TlsClient
+        :   TlsPeer
     {
         /// <summary>
         /// Called at the start of a new TLS session, before any other methods.

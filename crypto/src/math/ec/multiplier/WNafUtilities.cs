@@ -268,6 +268,17 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return wnaf;
         }
 
+        public static int GetNafWeight(BigInteger k)
+        {
+            if (k.SignValue == 0)
+                return 0;
+
+            BigInteger _3k = k.ShiftLeft(1).Add(k);
+            BigInteger diff = _3k.Xor(k);
+
+            return diff.BitCount;
+        }
+
         public static WNafPreCompInfo GetWNafPreCompInfo(ECPoint p)
         {
             return GetWNafPreCompInfo(p.Curve.GetPreCompInfo(p, PRECOMP_NAME));

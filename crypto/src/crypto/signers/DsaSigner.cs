@@ -8,129 +8,126 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
-	/**
-	 * The Digital Signature Algorithm - as described in "Handbook of Applied
-	 * Cryptography", pages 452 - 453.
-	 */
-	public class DsaSigner
-		: IDsa
-	{
-		private DsaKeyParameters key;
-		private SecureRandom random;
+    /**
+     * The Digital Signature Algorithm - as described in "Handbook of Applied
+     * Cryptography", pages 452 - 453.
+     */
+    public class DsaSigner
+        : IDsa
+    {
+        protected DsaKeyParameters key = null;
+        protected SecureRandom random = null;
 
-		public string AlgorithmName
-		{
-			get { return "DSA"; }
-		}
+        public virtual string AlgorithmName
+        {
+            get { return "DSA"; }
+        }
 
-		public void Init(
-			bool				forSigning,
-			ICipherParameters	parameters)
-		{
-			if (forSigning)
-			{
-				if (parameters is ParametersWithRandom)
-				{
-					ParametersWithRandom rParam = (ParametersWithRandom)parameters;
+        public virtual void Init(bool forSigning, ICipherParameters	parameters)
+        {
+            SecureRandom providedRandom = null;
 
-					this.random = rParam.Random;
-					parameters = rParam.Parameters;
-				}
-				else
-				{
-					this.random = new SecureRandom();
-				}
+            if (forSigning)
+            {
+                if (parameters is ParametersWithRandom)
+                {
+                    ParametersWithRandom rParam = (ParametersWithRandom)parameters;
 
-				if (!(parameters is DsaPrivateKeyParameters))
-					throw new InvalidKeyException("DSA private key required for signing");
+                    providedRandom = rParam.Random;
+                    parameters = rParam.Parameters;
+                }
 
-				this.key = (DsaPrivateKeyParameters) parameters;
-			}
-			else
-			{
-				if (!(parameters is DsaPublicKeyParameters))
-					throw new InvalidKeyException("DSA public key required for verification");
+                if (!(parameters is DsaPrivateKeyParameters))
+                    throw new InvalidKeyException("DSA private key required for signing");
 
-				this.key = (DsaPublicKeyParameters) parameters;
-			}
-		}
+                this.key = (DsaPrivateKeyParameters)parameters;
+            }
+            else
+            {
+                if (!(parameters is DsaPublicKeyParameters))
+                    throw new InvalidKeyException("DSA public key required for verification");
 
-		/**
-		 * Generate a signature for the given message using the key we were
-		 * initialised with. For conventional DSA the message should be a SHA-1
-		 * hash of the message of interest.
-		 *
-		 * @param message the message that will be verified later.
-		 */
-		public BigInteger[] GenerateSignature(
-			byte[] message)
-		{
-			DsaParameters parameters = key.Parameters;
-			BigInteger q = parameters.Q;
-			BigInteger m = calculateE(q, message);
-			BigInteger k;
+                this.key = (DsaPublicKeyParameters)parameters;
+            }
 
-			do
-			{
-				k = new BigInteger(q.BitLength, random);
-			}
-			while (k.CompareTo(q) >= 0);
+            this.random = InitSecureRandom(forSigning, providedRandom);
+        }
 
-			BigInteger r = parameters.G.ModPow(k, parameters.P).Mod(q);
+        /**
+         * Generate a signature for the given message using the key we were
+         * initialised with. For conventional DSA the message should be a SHA-1
+         * hash of the message of interest.
+         *
+         * @param message the message that will be verified later.
+         */
+        public virtual BigInteger[] GenerateSignature(byte[] message)
+        {
+            DsaParameters parameters = key.Parameters;
+            BigInteger q = parameters.Q;
+            BigInteger m = CalculateE(q, message);
+            BigInteger k;
 
-			k = k.ModInverse(q).Multiply(
-				m.Add(((DsaPrivateKeyParameters)key).X.Multiply(r)));
+            do
+            {
+                k = new BigInteger(q.BitLength, random);
+            }
+            while (k.CompareTo(q) >= 0);
 
-			BigInteger s = k.Mod(q);
+            BigInteger r = parameters.G.ModPow(k, parameters.P).Mod(q);
 
-			return new BigInteger[]{ r, s };
-		}
+            k = k.ModInverse(q).Multiply(
+                m.Add(((DsaPrivateKeyParameters)key).X.Multiply(r)));
 
-		/**
-		 * return true if the value r and s represent a DSA signature for
-		 * the passed in message for standard DSA the message should be a
-		 * SHA-1 hash of the real message to be verified.
-		 */
-		public bool VerifySignature(
-			byte[]		message,
-			BigInteger	r,
-			BigInteger	s)
-		{
-			DsaParameters parameters = key.Parameters;
-			BigInteger q = parameters.Q;
-			BigInteger m = calculateE(q, message);
+            BigInteger s = k.Mod(q);
 
-			if (r.SignValue <= 0 || q.CompareTo(r) <= 0)
-			{
-				return false;
-			}
+            return new BigInteger[]{ r, s };
+        }
 
-			if (s.SignValue <= 0 || q.CompareTo(s) <= 0)
-			{
-				return false;
-			}
+        /**
+         * return true if the value r and s represent a DSA signature for
+         * the passed in message for standard DSA the message should be a
+         * SHA-1 hash of the real message to be verified.
+         */
+        public virtual bool VerifySignature(byte[] message, BigInteger r, BigInteger s)
+        {
+            DsaParameters parameters = key.Parameters;
+            BigInteger q = parameters.Q;
+            BigInteger m = CalculateE(q, message);
 
-			BigInteger w = s.ModInverse(q);
+            if (r.SignValue <= 0 || q.CompareTo(r) <= 0)
+            {
+                return false;
+            }
 
-			BigInteger u1 = m.Multiply(w).Mod(q);
-			BigInteger u2 = r.Multiply(w).Mod(q);
+            if (s.SignValue <= 0 || q.CompareTo(s) <= 0)
+            {
+                return false;
+            }
 
-			BigInteger p = parameters.P;
-			u1 = parameters.G.ModPow(u1, p);
-			u2 = ((DsaPublicKeyParameters)key).Y.ModPow(u2, p);
+            BigInteger w = s.ModInverse(q);
 
-			BigInteger v = u1.Multiply(u2).Mod(p).Mod(q);
+            BigInteger u1 = m.Multiply(w).Mod(q);
+            BigInteger u2 = r.Multiply(w).Mod(q);
 
-			return v.Equals(r);
-		}
+            BigInteger p = parameters.P;
+            u1 = parameters.G.ModPow(u1, p);
+            u2 = ((DsaPublicKeyParameters)key).Y.ModPow(u2, p);
 
-		private BigInteger calculateE(
-			BigInteger	n,
-			byte[]		message)
-		{
-			int length = System.Math.Min(message.Length, n.BitLength / 8);
+            BigInteger v = u1.Multiply(u2).Mod(p).Mod(q);
 
-			return new BigInteger(1, message, 0, length);
-		}
-	}
+            return v.Equals(r);
+        }
+
+        protected virtual BigInteger CalculateE(BigInteger n, byte[] message)
+        {
+            int length = System.Math.Min(message.Length, n.BitLength / 8);
+
+            return new BigInteger(1, message, 0, length);
+        }
+
+        protected virtual SecureRandom InitSecureRandom(bool needed, SecureRandom provided)
+        {
+            return !needed ? null : (provided != null) ? provided : new SecureRandom();
+        }
+    }
 }
