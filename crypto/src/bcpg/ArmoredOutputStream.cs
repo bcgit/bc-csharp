@@ -313,18 +313,57 @@ namespace Org.BouncyCastle.Bcpg
 			}
         }
 
-		private void WriteHeaderEntry(
-			string	name,
-			string	v)
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if (type != null)
+                {
+                    if (bufPtr > 0)
+                    {
+                        Encode(outStream, buf, bufPtr);
+                    }
+
+                    DoWrite(nl + '=');
+
+                    int crcV = crc.Value;
+
+                    buf[0] = ((crcV >> 16) & 0xff);
+                    buf[1] = ((crcV >> 8) & 0xff);
+                    buf[2] = (crcV & 0xff);
+
+                    Encode(outStream, buf, 3);
+
+                    DoWrite(nl);
+                    DoWrite(footerStart);
+                    DoWrite(type);
+                    DoWrite(footerTail);
+                    DoWrite(nl);
+
+                    outStream.Flush();
+
+                    type = null;
+                    start = true;
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
+
+        private void WriteHeaderEntry(
+            string name,
+            string v)
         {
             DoWrite(name + ": " + v + nl);
         }
 
-		private void DoWrite(
-			string s)
+        private void DoWrite(
+            string s)
         {
             byte[] bs = Strings.ToAsciiByteArray(s);
-			outStream.Write(bs, 0, bs.Length);
+            outStream.Write(bs, 0, bs.Length);
         }
     }
 }
