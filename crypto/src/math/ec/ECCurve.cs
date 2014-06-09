@@ -362,23 +362,37 @@ namespace Org.BouncyCastle.Math.EC
                         throw new ArgumentException("Incorrect length for compressed encoding", "encoded");
 
                     int yTilde = encoded[0] & 1;
-                    BigInteger X1 = new BigInteger(1, encoded, 1, expectedLength);
+                    BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
 
-                    p = DecompressPoint(yTilde, X1);
+                    p = DecompressPoint(yTilde, X);
                     break;
                 }
 
                 case 0x04: // uncompressed
+                {
+                    if (encoded.Length != (2 * expectedLength + 1))
+                        throw new ArgumentException("Incorrect length for uncompressed encoding", "encoded");
+
+                    BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
+                    BigInteger Y = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
+
+                    p = CreatePoint(X, Y);
+                    break;
+                }
+
                 case 0x06: // hybrid
                 case 0x07: // hybrid
                 {
                     if (encoded.Length != (2 * expectedLength + 1))
-                        throw new ArgumentException("Incorrect length for uncompressed/hybrid encoding", "encoded");
+                        throw new ArgumentException("Incorrect length for hybrid encoding", "encoded");
 
-                    BigInteger X1 = new BigInteger(1, encoded, 1, expectedLength);
-                    BigInteger Y1 = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
+                    BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
+                    BigInteger Y = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
 
-                    p = CreatePoint(X1, Y1);
+                    if (Y.TestBit(0) != (encoded[0] == 0x07))
+                        throw new ArgumentException("Inconsistent Y coordinate in hybrid encoding", "encoded");
+
+                    p = CreatePoint(X, Y);
                     break;
                 }
 
