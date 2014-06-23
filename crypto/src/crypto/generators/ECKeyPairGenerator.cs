@@ -76,6 +76,10 @@ namespace Org.BouncyCastle.Crypto.Generators
                         throw new InvalidParameterException("unknown key size.");
                 }
 
+                // Set this to make the SubjectPublicKeyInfo contain a named curve
+                // Without it, the SPKI contains explicit curve parameters
+                publicKeyParamSet = oid;
+
                 X9ECParameters ecps = FindECCurveByOid(oid);
 
                 this.parameters = new ECDomainParameters(
