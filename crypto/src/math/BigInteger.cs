@@ -1240,7 +1240,8 @@ namespace Org.BouncyCastle.Math
         public override bool Equals(
             object obj)
         {
-            if (obj == this)
+            // To avoid a "possible unintended reference comparison" warning
+            if (obj == (object)this)
                 return true;
 
             BigInteger biggie = obj as BigInteger;
@@ -3641,7 +3642,7 @@ namespace Org.BouncyCastle.Math
 
         public static bool operator ==(BigInteger val1, BigInteger val2)
         {
-            return val1.IsEqualMagnitude(val2);
+            return val1.sign == val2.sign && val1.IsEqualMagnitude(val2);
         }
 
         public static bool operator >(BigInteger val1, BigInteger val2)
