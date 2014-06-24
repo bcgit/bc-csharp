@@ -3667,7 +3667,7 @@ namespace Org.BouncyCastle.Math
 
         public static bool operator !=(BigInteger val1, BigInteger val2)
         {
-            return !val1.IsEqualMagnitude(val2);
+            return !(val1 == val2);
         }
 
         public static BigInteger operator << (BigInteger val1, int val2)
