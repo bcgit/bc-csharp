@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             IssuerAndSerialNumber existing = obj as IssuerAndSerialNumber;
             if (existing != null)
                 return existing;
-            return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(obj));
+            return IssuerAndSerialNumber.GetInstance(Asn1Sequence.GetInstance(obj));
         }
 
         [Obsolete("Use GetInstance() instead")]

@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return (SignerInfo) obj;
 
             if (obj is Asn1Sequence)
-                return new SignerInfo((Asn1Sequence) obj);
+                return SignerInfo.GetInstance(Asn1Sequence.GetInstance(obj));
 
             throw new ArgumentException("Unknown object in factory: " + obj.GetType().FullName, "obj");
         }
