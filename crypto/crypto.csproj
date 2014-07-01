@@ -10657,6 +10657,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\math\ec\test\ECAlgorithmsTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\math\ec\test\ECPointTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

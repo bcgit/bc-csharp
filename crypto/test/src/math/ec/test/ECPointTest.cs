@@ -530,7 +530,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
         private void AssertPointsEqual(string message, ECPoint a, ECPoint b)
         {
-			Assert.AreEqual(a, b, message);
+            Assert.AreEqual(a, b, message);
         }
     }
 }

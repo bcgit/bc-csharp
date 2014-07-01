@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
     public class AllTests
     {
         public static void Main(
-			string[] args)
+            string[] args)
         {
 //            junit.textui.TestRunner.run(suite());
             EventListener el = new NullListener();
@@ -17,11 +17,12 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
         public static TestSuite suite()
         {
-			TestSuite suite = new TestSuite("EC Math tests");
+            TestSuite suite = new TestSuite("EC Math tests");
 
-			suite.Add(new ECPointTest());
+            suite.Add(new ECAlgorithmsTest());
+            suite.Add(new ECPointTest());
 
-			return suite;
+            return suite;
         }
     }
 }
