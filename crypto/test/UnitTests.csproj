@@ -257,6 +257,7 @@
     <Compile Include="src\crypto\test\XSalsa20Test.cs" />
     <Compile Include="src\crypto\test\XTEATest.cs" />
     <Compile Include="src\math\ec\test\AllTests.cs" />
+    <Compile Include="src\math\ec\test\ECAlgorithmsTests.cs" />
     <Compile Include="src\math\ec\test\ECPointPerformanceTest.cs" />
     <Compile Include="src\math\ec\test\ECPointTest.cs" />
     <Compile Include="src\math\ec\test\F2mProofer.cs" />
