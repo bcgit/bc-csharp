@@ -68,7 +68,8 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     ECCurve c = C;
                     ECPoint g = G;
 
-                    if (c.CoordinateSystem != coord)
+                    bool defaultCoord = (c.CoordinateSystem == coord);
+                    if (!defaultCoord)
                     {
                         c = C.Configure().SetCoordinateSystem(coord).Create();
                         g = c.ImportPoint(G);
@@ -77,9 +78,10 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     double avgRate = RandMult(random, g, n);
                     string coordName = COORD_NAMES[coord];
                     StringBuilder sb = new StringBuilder();
-                    sb.Append("  ");
+                    sb.Append("   ");
+                    sb.Append(defaultCoord ? '*' : ' ');
                     sb.Append(coordName);
-                    for (int j = sb.Length; j < 28; ++j)
+                    for (int j = sb.Length; j < 30; ++j)
                     {
                         sb.Append(' ');
                     }
