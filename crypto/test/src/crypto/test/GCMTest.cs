@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -316,24 +317,63 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             for (int i = 0; i < TestVectors.Length; ++i)
             {
-                runTestCase(TestVectors[i]);
+                RunTestCase(TestVectors[i]);
             }
 
-            randomTests();
-        }    
+            RandomTests();
+            OutputSizeTests();
+            DoTestExceptions();
+        }
 
-        private void runTestCase(
-            string[] testVector)
+        protected IBlockCipher CreateAesEngine()
+        {
+            return new AesFastEngine();
+        }
+
+        private void DoTestExceptions()
+        {
+            GcmBlockCipher gcm = new GcmBlockCipher(CreateAesEngine());
+
+            try
+            {
+                gcm = new GcmBlockCipher(new DesEngine());
+
+                Fail("incorrect block size not picked up");
+            }
+            catch (ArgumentException e)
+            {
+                // expected
+            }
+
+            try
+            {
+                gcm.Init(false, new KeyParameter(new byte[16]));
+
+                Fail("illegal argument not picked up");
+            }
+            catch (ArgumentException e)
+            {
+                // expected
+            }
+
+            // TODO
+            //AEADTestUtil.testReset(this, new GCMBlockCipher(createAESEngine()), new GCMBlockCipher(createAESEngine()), new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]));
+            //AEADTestUtil.testTampering(this, gcm, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]));
+            //AEADTestUtil.testOutputSizes(this, new GCMBlockCipher(createAESEngine()), new AEADParameters(new KeyParameter(
+            //        new byte[16]), 128, new byte[16]));
+            //AEADTestUtil.testBufferSizeChecks(this, new GCMBlockCipher(createAESEngine()), new AEADParameters(
+            //        new KeyParameter(new byte[16]), 128, new byte[16]));
+        }
+
+        private void RunTestCase(string[] testVector)
         {
             for (int macLength = 12; macLength <= 16; ++macLength)
             {
-                runTestCase(testVector, macLength);
+                RunTestCase(testVector, macLength);
             }
         }
 
-        private void runTestCase(
-            string[]	testVector,
-            int			macLength)
+        private void RunTestCase(string[] testVector, int macLength)
         {
             int pos = 0;
             string testName = testVector[pos++];
@@ -349,14 +389,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             Array.Copy(t, T, T.Length);
 
             // Default multiplier
-            runTestCase(null, null, testName, K, IV, A, P, C, T);
+            RunTestCase(null, null, testName, K, IV, A, P, C, T);
 
-            runTestCase(new BasicGcmMultiplier(), new BasicGcmMultiplier(), testName, K, IV, A, P, C, T);
-            runTestCase(new Tables8kGcmMultiplier(), new Tables8kGcmMultiplier(), testName, K, IV, A, P, C, T);
-            runTestCase(new Tables64kGcmMultiplier(), new Tables64kGcmMultiplier(), testName, K, IV, A, P, C, T);
+            RunTestCase(new BasicGcmMultiplier(), new BasicGcmMultiplier(), testName, K, IV, A, P, C, T);
+            RunTestCase(new Tables8kGcmMultiplier(), new Tables8kGcmMultiplier(), testName, K, IV, A, P, C, T);
+            RunTestCase(new Tables64kGcmMultiplier(), new Tables64kGcmMultiplier(), testName, K, IV, A, P, C, T);
         }
 
-        private void runTestCase(
+        private void RunTestCase(
             IGcmMultiplier	encM,
             IGcmMultiplier	decM,
             string			testName,
@@ -372,12 +412,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             Array.Copy(A, 0, fa, 0, fa.Length);
             Array.Copy(A, fa.Length, la, 0, la.Length);
 
-            runTestCase(encM, decM, testName + " all initial associated data", K, IV, A, null, P, C, T);
-            runTestCase(encM, decM, testName + " all subsequent associated data", K, IV, null, A, P, C, T);
-            runTestCase(encM, decM, testName + " split associated data", K, IV, fa, la, P, C, T);
+            RunTestCase(encM, decM, testName + " all initial associated data", K, IV, A, null, P, C, T);
+            RunTestCase(encM, decM, testName + " all subsequent associated data", K, IV, null, A, P, C, T);
+            RunTestCase(encM, decM, testName + " split associated data", K, IV, fa, la, P, C, T);
         }
 
-        private void runTestCase(
+        private void RunTestCase(
             IGcmMultiplier  encM,
             IGcmMultiplier  decM,
             string          testName,
@@ -390,30 +430,29 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[]          T)
         {
             AeadParameters parameters = new AeadParameters(new KeyParameter(K), T.Length * 8, IV, A);
-            GcmBlockCipher encCipher = initCipher(encM, true, parameters);
-            GcmBlockCipher decCipher = initCipher(decM, false, parameters);
-            checkTestCase(encCipher, decCipher, testName, SA, P, C, T);
-            checkTestCase(encCipher, decCipher, testName + " (reused)", SA, P, C, T);
+            GcmBlockCipher encCipher = InitCipher(encM, true, parameters);
+            GcmBlockCipher decCipher = InitCipher(decM, false, parameters);
+            CheckTestCase(encCipher, decCipher, testName, SA, P, C, T);
+            CheckTestCase(encCipher, decCipher, testName + " (reused)", SA, P, C, T);
 
             // Key reuse
-            AeadParameters keyReuseParams = new AeadParameters(null, parameters.MacSize, parameters.GetNonce(), parameters.GetAssociatedText());
+            AeadParameters keyReuseParams = AeadTestUtilities.ReuseKey(parameters);
             encCipher.Init(true, keyReuseParams);
             decCipher.Init(false, keyReuseParams);
-            checkTestCase(encCipher, decCipher, testName + " (key reuse)", SA, P, C, T);
-            checkTestCase(encCipher, decCipher, testName + " (key reuse)", SA, P, C, T);
+            CheckTestCase(encCipher, decCipher, testName + " (key reuse)", SA, P, C, T);
         }
 
-        private GcmBlockCipher initCipher(
+        private GcmBlockCipher InitCipher(
             IGcmMultiplier	m,
             bool			forEncryption,
             AeadParameters	parameters)
         {
-            GcmBlockCipher c = new GcmBlockCipher(new AesFastEngine(), m);
+            GcmBlockCipher c = new GcmBlockCipher(CreateAesEngine(), m);
             c.Init(forEncryption, parameters);
             return c;
         }
 
-        private void checkTestCase(
+        private void CheckTestCase(
             GcmBlockCipher	encCipher,
             GcmBlockCipher	decCipher,
             string			testName,
@@ -476,21 +515,25 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void randomTests()
+        private void RandomTests()
         {
             SecureRandom srng = new SecureRandom();
+            srng.SetSeed(DateTimeUtilities.CurrentUnixMs());
+            RandomTests(srng, null);
+            RandomTests(srng, new BasicGcmMultiplier());
+            RandomTests(srng, new Tables8kGcmMultiplier());
+            RandomTests(srng, new Tables64kGcmMultiplier());
+        }
+
+        private void RandomTests(SecureRandom srng, IGcmMultiplier m)
+        {
             for (int i = 0; i < 10; ++i)
             {
-                randomTest(srng, null);
-                randomTest(srng, new BasicGcmMultiplier()); 
-                randomTest(srng, new Tables8kGcmMultiplier());
-                randomTest(srng, new Tables64kGcmMultiplier()); 
+                RandomTest(srng, m);
             }
         }
 
-        private void randomTest(
-            SecureRandom	srng,
-            IGcmMultiplier	m)
+        private void RandomTest(SecureRandom srng, IGcmMultiplier m)
         {
             int kLength = 16 + 8 * srng.Next(3);
             byte[] K = new byte[kLength];
@@ -512,9 +555,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] IV = new byte[ivLength];
             srng.NextBytes(IV);
 
-            GcmBlockCipher cipher = new GcmBlockCipher(new AesFastEngine(), m);
             AeadParameters parameters = new AeadParameters(new KeyParameter(K), 16 * 8, IV, A);
-            cipher.Init(true, parameters);
+            GcmBlockCipher cipher = InitCipher(m, true, parameters);
             byte[] C = new byte[cipher.GetOutputSize(P.Length)];
             int predicted = cipher.GetUpdateOutputSize(P.Length);
 
@@ -570,6 +612,86 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Fail("decryption produced different mac from encryption");
             }
+
+            //
+            // key reuse test
+            //
+            cipher.Init(false, AeadTestUtilities.ReuseKey(parameters));
+            decP = new byte[cipher.GetOutputSize(C.Length)];
+
+            split = NextInt(srng, SA.Length + 1);
+            cipher.ProcessAadBytes(SA, 0, split);
+            len = cipher.ProcessBytes(C, 0, C.Length, decP, 0);
+            cipher.ProcessAadBytes(SA, split, SA.Length - split);
+
+            len += cipher.DoFinal(decP, len);
+
+            if (!AreEqual(P, decP))
+            {
+                Fail("incorrect decrypt in randomised test");
+            }
+
+            decT = cipher.GetMac();
+            if (!AreEqual(encT, decT))
+            {
+                Fail("decryption produced different mac from encryption");
+            }
+        }
+
+        private void OutputSizeTests()
+        {
+            byte[] K = new byte[16];
+            byte[] A = null;
+            byte[] IV = new byte[16];
+
+            AeadParameters parameters = new AeadParameters(new KeyParameter(K), 16 * 8, IV, A);
+            GcmBlockCipher cipher = InitCipher(null, true, parameters);
+
+            if (cipher.GetUpdateOutputSize(0) != 0)
+            {
+                Fail("incorrect getUpdateOutputSize for initial 0 bytes encryption");
+            }
+
+            if (cipher.GetOutputSize(0) != 16)
+            {
+                Fail("incorrect getOutputSize for initial 0 bytes encryption");
+            }
+
+            cipher.Init(false, parameters);
+
+            if (cipher.GetUpdateOutputSize(0) != 0)
+            {
+                Fail("incorrect getUpdateOutputSize for initial 0 bytes decryption");
+            }
+
+            // NOTE: 0 bytes would be truncated data, but we want it to fail in the doFinal, not here
+            if (cipher.GetOutputSize(0) != 0)
+            {
+                Fail("fragile getOutputSize for initial 0 bytes decryption");
+            }
+
+            if (cipher.GetOutputSize(16) != 0)
+            {
+                Fail("incorrect getOutputSize for initial MAC-size bytes decryption");
+            }
+        }
+
+        private static int NextInt(SecureRandom rand, int n)
+        {
+            if ((n & -n) == n)  // i.e., n is a power of 2
+            {
+                return (int)(((uint)n * (ulong)((uint)rand.NextInt() >> 1)) >> 31);
+            }
+
+            int bits, value;
+            do
+            {
+                bits = (int)((uint)rand.NextInt() >> 1);
+                value = bits % n;
+            }
+            while (bits - value + (n - 1) < 0);
+
+            return value;
         }
 
         public static void Main(

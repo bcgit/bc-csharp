@@ -10057,6 +10057,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\AeadTestUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\AESFastTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
