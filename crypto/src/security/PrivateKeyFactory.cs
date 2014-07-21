@@ -15,6 +15,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
@@ -134,13 +135,23 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
 
-                ECPrivateKeyStructure ec = new ECPrivateKeyStructure(
-                    Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey()));
+                Asn1Object privKey = keyInfo.ParsePrivateKey();
+                ECPrivateKeyStructure ec;
+
+                if (privKey is DerInteger)
+                {
+                    // TODO Do we need to pass any parameters here?
+                    ec = new ECPrivateKeyStructure(((DerInteger)privKey).Value);
+                }
+                else
+                {
+                    ec = ECPrivateKeyStructure.GetInstance(privKey);
+                }
 
                 ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
 
                 if (ecP == null)
-                    return null;
+                    throw new ArgumentException("Unrecognized curve OID for GostR3410x2001 private key");
 
                 return new ECPrivateKeyParameters("ECGOST3410", ec.GetKey(), gostParams.PublicKeyParamSet);
             }
@@ -150,15 +161,7 @@ namespace Org.BouncyCastle.Security
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
 
                 DerOctetString derX = (DerOctetString)keyInfo.ParsePrivateKey();
-                byte[] keyEnc = derX.GetOctets();
-                byte[] keyBytes = new byte[keyEnc.Length];
-
-                for (int i = 0; i != keyEnc.Length; i++)
-                {
-                    keyBytes[i] = keyEnc[keyEnc.Length - 1 - i]; // was little endian
-                }
-
-                BigInteger x = new BigInteger(1, keyBytes);
+                BigInteger x = new BigInteger(1, Arrays.Reverse(derX.GetOctets()));
 
                 return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
             }

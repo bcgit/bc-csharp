@@ -6,113 +6,121 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Sec
 {
-	/**
-	 * the elliptic curve private key object from SEC 1
-	 */
-	public class ECPrivateKeyStructure
-		: Asn1Encodable
-	{
-		private readonly Asn1Sequence seq;
+    /**
+     * the elliptic curve private key object from SEC 1
+     */
+    public class ECPrivateKeyStructure
+        : Asn1Encodable
+    {
+        private readonly Asn1Sequence seq;
 
-		public ECPrivateKeyStructure(
-			Asn1Sequence seq)
-		{
-			if (seq == null)
-				throw new ArgumentNullException("seq");
+        public static ECPrivateKeyStructure GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is ECPrivateKeyStructure)
+                return (ECPrivateKeyStructure)obj;
+            return new ECPrivateKeyStructure(Asn1Sequence.GetInstance(obj));
+        }
 
-			this.seq = seq;
-		}
+        public ECPrivateKeyStructure(
+            Asn1Sequence seq)
+        {
+            if (seq == null)
+                throw new ArgumentNullException("seq");
 
-		public ECPrivateKeyStructure(
-			BigInteger key)
-		{
-			if (key == null)
-				throw new ArgumentNullException("key");
+            this.seq = seq;
+        }
 
-			this.seq = new DerSequence(
-				new DerInteger(1),
-				new DerOctetString(key.ToByteArrayUnsigned()));
-		}
+        public ECPrivateKeyStructure(
+            BigInteger key)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
 
-		public ECPrivateKeyStructure(
-			BigInteger		key,
-			Asn1Encodable	parameters)
-			: this(key, null, parameters)
-		{
-		}
+            this.seq = new DerSequence(
+                new DerInteger(1),
+                new DerOctetString(key.ToByteArrayUnsigned()));
+        }
 
-		public ECPrivateKeyStructure(
-			BigInteger		key,
-			DerBitString	publicKey,
-			Asn1Encodable	parameters)
-		{
-			if (key == null)
-				throw new ArgumentNullException("key");
+        public ECPrivateKeyStructure(
+            BigInteger		key,
+            Asn1Encodable	parameters)
+            : this(key, null, parameters)
+        {
+        }
 
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				new DerInteger(1),
-				new DerOctetString(key.ToByteArrayUnsigned()));
+        public ECPrivateKeyStructure(
+            BigInteger		key,
+            DerBitString	publicKey,
+            Asn1Encodable	parameters)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
 
-			if (parameters != null)
-			{
-				v.Add(new DerTaggedObject(true, 0, parameters));
-			}
+            Asn1EncodableVector v = new Asn1EncodableVector(
+                new DerInteger(1),
+                new DerOctetString(key.ToByteArrayUnsigned()));
 
-			if (publicKey != null)
-			{
-				v.Add(new DerTaggedObject(true, 1, publicKey));
-			}
+            if (parameters != null)
+            {
+                v.Add(new DerTaggedObject(true, 0, parameters));
+            }
 
-			this.seq = new DerSequence(v);
-		}
+            if (publicKey != null)
+            {
+                v.Add(new DerTaggedObject(true, 1, publicKey));
+            }
 
-		public BigInteger GetKey()
-		{
-			Asn1OctetString octs = (Asn1OctetString) seq[1];
+            this.seq = new DerSequence(v);
+        }
 
-			return new BigInteger(1, octs.GetOctets());
-		}
+        public virtual BigInteger GetKey()
+        {
+            Asn1OctetString octs = (Asn1OctetString) seq[1];
 
-		public DerBitString GetPublicKey()
-		{
-			return (DerBitString) GetObjectInTag(1);
-		}
+            return new BigInteger(1, octs.GetOctets());
+        }
 
-		public Asn1Object GetParameters()
-		{
-			return GetObjectInTag(0);
-		}
+        public virtual DerBitString GetPublicKey()
+        {
+            return (DerBitString) GetObjectInTag(1);
+        }
 
-		private Asn1Object GetObjectInTag(
-			int tagNo)
-		{
-			foreach (Asn1Encodable ae in seq)
-			{
-				Asn1Object obj = ae.ToAsn1Object();
+        public virtual Asn1Object GetParameters()
+        {
+            return GetObjectInTag(0);
+        }
 
-				if (obj is Asn1TaggedObject)
-				{
-					Asn1TaggedObject tag = (Asn1TaggedObject) obj;
-					if (tag.TagNo == tagNo)
-					{
-						return tag.GetObject();
-					}
-				}
-			}
+        private Asn1Object GetObjectInTag(int tagNo)
+        {
+            foreach (Asn1Encodable ae in seq)
+            {
+                Asn1Object obj = ae.ToAsn1Object();
 
-			return null;
-		}
+                if (obj is Asn1TaggedObject)
+                {
+                    Asn1TaggedObject tag = (Asn1TaggedObject) obj;
+                    if (tag.TagNo == tagNo)
+                    {
+                        return tag.GetObject();
+                    }
+                }
+            }
 
-		/**
-		 * ECPrivateKey ::= SEQUENCE {
-		 *     version INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
-		 *     privateKey OCTET STRING,
-		 *     parameters [0] Parameters OPTIONAL,
-		 *     publicKey [1] BIT STRING OPTIONAL }
-		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return seq;
-		}
-	}
+            return null;
+        }
+
+        /**
+         * ECPrivateKey ::= SEQUENCE {
+         *     version INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+         *     privateKey OCTET STRING,
+         *     parameters [0] Parameters OPTIONAL,
+         *     publicKey [1] BIT STRING OPTIONAL }
+         */
+        public override Asn1Object ToAsn1Object()
+        {
+            return seq;
+        }
+    }
 }
