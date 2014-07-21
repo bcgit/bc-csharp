@@ -308,18 +308,18 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new DataLengthException("output buffer too short");
             }
 
+            UnPackBlock(input, inOff);
+
             if (forEncryption)
             {
-                UnPackBlock(input, inOff);
-                EncryptBlock();
-                PackBlock(output, outOff);
+                EncryptBlock(WorkingKey);
             }
             else
             {
-                UnPackBlock(input, inOff);
-                DecryptBlock();
-                PackBlock(output, outOff);
+                DecryptBlock(WorkingKey);
             }
+
+            PackBlock(output, outOff);
 
             return BLOCK_SIZE;
         }
@@ -348,94 +348,80 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_LE(C3, bytes, off + 12);
         }
 
-        private void EncryptBlock()
+        private void EncryptBlock(uint[][] KW)
         {
-            uint[][] KW = WorkingKey;
+            uint[] kw = KW[0];
+            uint t0 = this.C0 ^ kw[0];
+            uint t1 = this.C1 ^ kw[1];
+            uint t2 = this.C2 ^ kw[2];
 
-            int r = 0;
-            uint[] kw = KW[r];
-
-            C0 ^= kw[0];
-            C1 ^= kw[1];
-            C2 ^= kw[2];
-            C3 ^= kw[3];
-
-            uint r0, r1, r2, r3;
-
-            while (r < (ROUNDS - 2))
+            uint r0, r1, r2, r3 = this.C3 ^ kw[3];
+            int r = 1;
+            while (r < ROUNDS - 1)
             {
-                kw = KW[++r];
-                r0 = Mcol((uint)S[C0 & 255] ^ (((uint)S[(C1 >> 8) & 255]) << 8) ^ (((uint)S[(C2 >> 16) & 255]) << 16) ^ (((uint)S[(C3 >> 24) & 255]) << 24)) ^ kw[0];
-                r1 = Mcol((uint)S[C1 & 255] ^ (((uint)S[(C2 >> 8) & 255]) << 8) ^ (((uint)S[(C3 >> 16) & 255]) << 16) ^ (((uint)S[(C0 >> 24) & 255]) << 24)) ^ kw[1];
-                r2 = Mcol((uint)S[C2 & 255] ^ (((uint)S[(C3 >> 8) & 255]) << 8) ^ (((uint)S[(C0 >> 16) & 255]) << 16) ^ (((uint)S[(C1 >> 24) & 255]) << 24)) ^ kw[2];
-                r3 = Mcol((uint)S[C3 & 255] ^ (((uint)S[(C0 >> 8) & 255]) << 8) ^ (((uint)S[(C1 >> 16) & 255]) << 16) ^ (((uint)S[(C2 >> 24) & 255]) << 24)) ^ kw[3];
-                kw = KW[++r];
-                C0 = Mcol((uint)S[r0 & 255] ^ (((uint)S[(r1 >> 8) & 255]) << 8) ^ (((uint)S[(r2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24)) ^ kw[0];
-                C1 = Mcol((uint)S[r1 & 255] ^ (((uint)S[(r2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(r0 >> 24) & 255]) << 24)) ^ kw[1];
-                C2 = Mcol((uint)S[r2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(r0 >> 16) & 255]) << 16) ^ (((uint)S[(r1 >> 24) & 255]) << 24)) ^ kw[2];
-                C3 = Mcol((uint)S[r3 & 255] ^ (((uint)S[(r0 >> 8) & 255]) << 8) ^ (((uint)S[(r1 >> 16) & 255]) << 16) ^ (((uint)S[(r2 >> 24) & 255]) << 24)) ^ kw[3];
+                kw = KW[r++];
+                r0 = Mcol((uint)S[t0 & 255] ^ (((uint)S[(t1 >> 8) & 255]) << 8) ^ (((uint)S[(t2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24)) ^ kw[0];
+                r1 = Mcol((uint)S[t1 & 255] ^ (((uint)S[(t2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(t0 >> 24) & 255]) << 24)) ^ kw[1];
+                r2 = Mcol((uint)S[t2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(t0 >> 16) & 255]) << 16) ^ (((uint)S[(t1 >> 24) & 255]) << 24)) ^ kw[2];
+                r3 = Mcol((uint)S[r3 & 255] ^ (((uint)S[(t0 >> 8) & 255]) << 8) ^ (((uint)S[(t1 >> 16) & 255]) << 16) ^ (((uint)S[(t2 >> 24) & 255]) << 24)) ^ kw[3];
+                kw = KW[r++];
+                t0 = Mcol((uint)S[r0 & 255] ^ (((uint)S[(r1 >> 8) & 255]) << 8) ^ (((uint)S[(r2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24)) ^ kw[0];
+                t1 = Mcol((uint)S[r1 & 255] ^ (((uint)S[(r2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(r0 >> 24) & 255]) << 24)) ^ kw[1];
+                t2 = Mcol((uint)S[r2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(r0 >> 16) & 255]) << 16) ^ (((uint)S[(r1 >> 24) & 255]) << 24)) ^ kw[2];
+                r3 = Mcol((uint)S[r3 & 255] ^ (((uint)S[(r0 >> 8) & 255]) << 8) ^ (((uint)S[(r1 >> 16) & 255]) << 16) ^ (((uint)S[(r2 >> 24) & 255]) << 24)) ^ kw[3];
             }
 
-            kw = KW[++r];
-            r0 = Mcol((uint)S[C0 & 255] ^ (((uint)S[(C1 >> 8) & 255]) << 8) ^ (((uint)S[(C2 >> 16) & 255]) << 16) ^ (((uint)S[(C3 >> 24) & 255]) << 24)) ^ kw[0];
-            r1 = Mcol((uint)S[C1 & 255] ^ (((uint)S[(C2 >> 8) & 255]) << 8) ^ (((uint)S[(C3 >> 16) & 255]) << 16) ^ (((uint)S[(C0 >> 24) & 255]) << 24)) ^ kw[1];
-            r2 = Mcol((uint)S[C2 & 255] ^ (((uint)S[(C3 >> 8) & 255]) << 8) ^ (((uint)S[(C0 >> 16) & 255]) << 16) ^ (((uint)S[(C1 >> 24) & 255]) << 24)) ^ kw[2];
-            r3 = Mcol((uint)S[C3 & 255] ^ (((uint)S[(C0 >> 8) & 255]) << 8) ^ (((uint)S[(C1 >> 16) & 255]) << 16) ^ (((uint)S[(C2 >> 24) & 255]) << 24)) ^ kw[3];
+            kw = KW[r++];
+            r0 = Mcol((uint)S[t0 & 255] ^ (((uint)S[(t1 >> 8) & 255]) << 8) ^ (((uint)S[(t2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24)) ^ kw[0];
+            r1 = Mcol((uint)S[t1 & 255] ^ (((uint)S[(t2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(t0 >> 24) & 255]) << 24)) ^ kw[1];
+            r2 = Mcol((uint)S[t2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(t0 >> 16) & 255]) << 16) ^ (((uint)S[(t1 >> 24) & 255]) << 24)) ^ kw[2];
+            r3 = Mcol((uint)S[r3 & 255] ^ (((uint)S[(t0 >> 8) & 255]) << 8) ^ (((uint)S[(t1 >> 16) & 255]) << 16) ^ (((uint)S[(t2 >> 24) & 255]) << 24)) ^ kw[3];
 
             // the final round is a simple function of S
 
-            kw = KW[++r];
-            C0 = (uint)S[r0 & 255] ^ (((uint)S[(r1 >> 8) & 255]) << 8) ^ (((uint)S[(r2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24) ^ kw[0];
-            C1 = (uint)S[r1 & 255] ^ (((uint)S[(r2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(r0 >> 24) & 255]) << 24) ^ kw[1];
-            C2 = (uint)S[r2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(r0 >> 16) & 255]) << 16) ^ (((uint)S[(r1 >> 24) & 255]) << 24) ^ kw[2];
-            C3 = (uint)S[r3 & 255] ^ (((uint)S[(r0 >> 8) & 255]) << 8) ^ (((uint)S[(r1 >> 16) & 255]) << 16) ^ (((uint)S[(r2 >> 24) & 255]) << 24) ^ kw[3];
-
-            Debug.Assert(r == ROUNDS);
+            kw = KW[r];
+            this.C0 = (uint)S[r0 & 255] ^ (((uint)S[(r1 >> 8) & 255]) << 8) ^ (((uint)S[(r2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24) ^ kw[0];
+            this.C1 = (uint)S[r1 & 255] ^ (((uint)S[(r2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(r0 >> 24) & 255]) << 24) ^ kw[1];
+            this.C2 = (uint)S[r2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(r0 >> 16) & 255]) << 16) ^ (((uint)S[(r1 >> 24) & 255]) << 24) ^ kw[2];
+            this.C3 = (uint)S[r3 & 255] ^ (((uint)S[(r0 >> 8) & 255]) << 8) ^ (((uint)S[(r1 >> 16) & 255]) << 16) ^ (((uint)S[(r2 >> 24) & 255]) << 24) ^ kw[3];
         }
 
-        private void DecryptBlock()
+        private void DecryptBlock(uint[][] KW)
         {
-            uint[][] KW = WorkingKey;
+            uint[] kw = KW[ROUNDS];
+            uint t0 = this.C0 ^ kw[0];
+            uint t1 = this.C1 ^ kw[1];
+            uint t2 = this.C2 ^ kw[2];
 
-            int r = ROUNDS;
-            uint[] kw = KW[r];
-
-            C0 ^= kw[0];
-            C1 ^= kw[1];
-            C2 ^= kw[2];
-            C3 ^= kw[3];
-
-            uint r0, r1, r2, r3;
-
-            while (r > 2)
+            uint r0, r1, r2, r3 = this.C3 ^ kw[3];
+            int r = ROUNDS - 1;
+            while (r > 1)
             {
-                kw = KW[--r];
-                r0 = Inv_Mcol((uint)Si[C0 & 255] ^ (((uint)Si[(C3 >> 8) & 255]) << 8) ^ (((uint)Si[(C2 >> 16) & 255]) << 16) ^ ((uint)Si[(C1 >> 24) & 255] << 24)) ^ kw[0];
-                r1 = Inv_Mcol((uint)Si[C1 & 255] ^ (((uint)Si[(C0 >> 8) & 255]) << 8) ^ (((uint)Si[(C3 >> 16) & 255]) << 16) ^ ((uint)Si[(C2 >> 24) & 255] << 24)) ^ kw[1];
-                r2 = Inv_Mcol((uint)Si[C2 & 255] ^ (((uint)Si[(C1 >> 8) & 255]) << 8) ^ (((uint)Si[(C0 >> 16) & 255]) << 16) ^ ((uint)Si[(C3 >> 24) & 255] << 24)) ^ kw[2];
-                r3 = Inv_Mcol((uint)Si[C3 & 255] ^ (((uint)Si[(C2 >> 8) & 255]) << 8) ^ (((uint)Si[(C1 >> 16) & 255]) << 16) ^ ((uint)Si[(C0 >> 24) & 255] << 24)) ^ kw[3];
-                kw = KW[--r];
-                C0 = Inv_Mcol((uint)Si[r0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(r2 >> 16) & 255]) << 16) ^ ((uint)Si[(r1 >> 24) & 255] << 24)) ^ kw[0];
-                C1 = Inv_Mcol((uint)Si[r1 & 255] ^ (((uint)Si[(r0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ ((uint)Si[(r2 >> 24) & 255] << 24)) ^ kw[1];
-                C2 = Inv_Mcol((uint)Si[r2 & 255] ^ (((uint)Si[(r1 >> 8) & 255]) << 8) ^ (((uint)Si[(r0 >> 16) & 255]) << 16) ^ ((uint)Si[(r3 >> 24) & 255] << 24)) ^ kw[2];
-                C3 = Inv_Mcol((uint)Si[r3 & 255] ^ (((uint)Si[(r2 >> 8) & 255]) << 8) ^ (((uint)Si[(r1 >> 16) & 255]) << 16) ^ ((uint)Si[(r0 >> 24) & 255] << 24)) ^ kw[3];
+                kw = KW[r--];
+                r0 = Inv_Mcol((uint)Si[t0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(t2 >> 16) & 255]) << 16) ^ ((uint)Si[(t1 >> 24) & 255] << 24)) ^ kw[0];
+                r1 = Inv_Mcol((uint)Si[t1 & 255] ^ (((uint)Si[(t0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ ((uint)Si[(t2 >> 24) & 255] << 24)) ^ kw[1];
+                r2 = Inv_Mcol((uint)Si[t2 & 255] ^ (((uint)Si[(t1 >> 8) & 255]) << 8) ^ (((uint)Si[(t0 >> 16) & 255]) << 16) ^ ((uint)Si[(r3 >> 24) & 255] << 24)) ^ kw[2];
+                r3 = Inv_Mcol((uint)Si[r3 & 255] ^ (((uint)Si[(t2 >> 8) & 255]) << 8) ^ (((uint)Si[(t1 >> 16) & 255]) << 16) ^ ((uint)Si[(t0 >> 24) & 255] << 24)) ^ kw[3];
+                kw = KW[r--];
+                t0 = Inv_Mcol((uint)Si[r0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(r2 >> 16) & 255]) << 16) ^ ((uint)Si[(r1 >> 24) & 255] << 24)) ^ kw[0];
+                t1 = Inv_Mcol((uint)Si[r1 & 255] ^ (((uint)Si[(r0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ ((uint)Si[(r2 >> 24) & 255] << 24)) ^ kw[1];
+                t2 = Inv_Mcol((uint)Si[r2 & 255] ^ (((uint)Si[(r1 >> 8) & 255]) << 8) ^ (((uint)Si[(r0 >> 16) & 255]) << 16) ^ ((uint)Si[(r3 >> 24) & 255] << 24)) ^ kw[2];
+                r3 = Inv_Mcol((uint)Si[r3 & 255] ^ (((uint)Si[(r2 >> 8) & 255]) << 8) ^ (((uint)Si[(r1 >> 16) & 255]) << 16) ^ ((uint)Si[(r0 >> 24) & 255] << 24)) ^ kw[3];
             }
 
-            kw = KW[--r];
-            r0 = Inv_Mcol((uint)Si[C0 & 255] ^ (((uint)Si[(C3 >> 8) & 255]) << 8) ^ (((uint)Si[(C2 >> 16) & 255]) << 16) ^ ((uint)Si[(C1 >> 24) & 255] << 24)) ^ kw[0];
-            r1 = Inv_Mcol((uint)Si[C1 & 255] ^ (((uint)Si[(C0 >> 8) & 255]) << 8) ^ (((uint)Si[(C3 >> 16) & 255]) << 16) ^ ((uint)Si[(C2 >> 24) & 255] << 24)) ^ kw[1];
-            r2 = Inv_Mcol((uint)Si[C2 & 255] ^ (((uint)Si[(C1 >> 8) & 255]) << 8) ^ (((uint)Si[(C0 >> 16) & 255]) << 16) ^ ((uint)Si[(C3 >> 24) & 255] << 24)) ^ kw[2];
-            r3 = Inv_Mcol((uint)Si[C3 & 255] ^ (((uint)Si[(C2 >> 8) & 255]) << 8) ^ (((uint)Si[(C1 >> 16) & 255]) << 16) ^ ((uint)Si[(C0 >> 24) & 255] << 24)) ^ kw[3];
+            kw = KW[1];
+            r0 = Inv_Mcol((uint)Si[t0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(t2 >> 16) & 255]) << 16) ^ ((uint)Si[(t1 >> 24) & 255] << 24)) ^ kw[0];
+            r1 = Inv_Mcol((uint)Si[t1 & 255] ^ (((uint)Si[(t0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ ((uint)Si[(t2 >> 24) & 255] << 24)) ^ kw[1];
+            r2 = Inv_Mcol((uint)Si[t2 & 255] ^ (((uint)Si[(t1 >> 8) & 255]) << 8) ^ (((uint)Si[(t0 >> 16) & 255]) << 16) ^ ((uint)Si[(r3 >> 24) & 255] << 24)) ^ kw[2];
+            r3 = Inv_Mcol((uint)Si[r3 & 255] ^ (((uint)Si[(t2 >> 8) & 255]) << 8) ^ (((uint)Si[(t1 >> 16) & 255]) << 16) ^ ((uint)Si[(t0 >> 24) & 255] << 24)) ^ kw[3];
 
             // the final round's table is a simple function of Si
 
-            kw = KW[--r];
-            C0 = (uint)Si[r0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(r2 >> 16) & 255]) << 16) ^ (((uint)Si[(r1 >> 24) & 255]) << 24) ^ kw[0];
-            C1 = (uint)Si[r1 & 255] ^ (((uint)Si[(r0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ (((uint)Si[(r2 >> 24) & 255]) << 24) ^ kw[1];
-            C2 = (uint)Si[r2 & 255] ^ (((uint)Si[(r1 >> 8) & 255]) << 8) ^ (((uint)Si[(r0 >> 16) & 255]) << 16) ^ (((uint)Si[(r3 >> 24) & 255]) << 24) ^ kw[2];
-            C3 = (uint)Si[r3 & 255] ^ (((uint)Si[(r2 >> 8) & 255]) << 8) ^ (((uint)Si[(r1 >> 16) & 255]) << 16) ^ (((uint)Si[(r0 >> 24) & 255]) << 24) ^ kw[3];
-
-            Debug.Assert(r == 0);
+            kw = KW[0];
+            this.C0 = (uint)Si[r0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(r2 >> 16) & 255]) << 16) ^ (((uint)Si[(r1 >> 24) & 255]) << 24) ^ kw[0];
+            this.C1 = (uint)Si[r1 & 255] ^ (((uint)Si[(r0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ (((uint)Si[(r2 >> 24) & 255]) << 24) ^ kw[1];
+            this.C2 = (uint)Si[r2 & 255] ^ (((uint)Si[(r1 >> 8) & 255]) << 8) ^ (((uint)Si[(r0 >> 16) & 255]) << 16) ^ (((uint)Si[(r3 >> 24) & 255]) << 24) ^ kw[2];
+            this.C3 = (uint)Si[r3 & 255] ^ (((uint)Si[(r2 >> 8) & 255]) << 8) ^ (((uint)Si[(r1 >> 16) & 255]) << 16) ^ (((uint)Si[(r0 >> 24) & 255]) << 24) ^ kw[3];
         }
     }
 }
