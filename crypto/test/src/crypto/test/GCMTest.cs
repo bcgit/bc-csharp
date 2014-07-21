@@ -340,7 +340,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 Fail("incorrect block size not picked up");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 // expected
             }
@@ -351,7 +351,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 Fail("illegal argument not picked up");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 // expected
             }

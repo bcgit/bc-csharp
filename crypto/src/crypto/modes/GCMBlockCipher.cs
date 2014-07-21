@@ -79,6 +79,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             return BlockSize;
         }
 
+        /// <remarks>
+        /// MAC sizes from 32 bits to 128 bits (must be a multiple of 8) are supported. The default is 128 bits.
+        /// Sizes less than 96 are not recommended, but are supported for specialized applications.
+        /// </remarks>
         public virtual void Init(
             bool				forEncryption,
             ICipherParameters	parameters)
@@ -96,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 initialAssociatedText = param.GetAssociatedText();
 
                 int macSizeBits = param.MacSize;
-                if (macSizeBits < 96 || macSizeBits > 128 || macSizeBits % 8 != 0)
+                if (macSizeBits < 32 || macSizeBits > 128 || macSizeBits % 8 != 0)
                 {
                     throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
                 }
@@ -126,9 +130,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 throw new ArgumentException("IV must be at least 1 byte");
             }
 
-            // TODO This should be configurable by Init parameters
-            // (but must be 16 if nonce length not 12) (BlockSize?)
-//			this.tagLength = 16;
+            // TODO Restrict macSize to 16 if nonce length not 12?
 
             // Cipher always used in forward mode
             // if keyParam is null we're reusing the last key.
@@ -142,6 +144,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 // if keyParam is null we're reusing the last key and the multiplier doesn't need re-init
                 multiplier.Init(H);
                 exp = null;
+            }
+            else if (this.H == null)
+            {
+                throw new ArgumentException("Key must be specified in initial init");
             }
 
             this.J0 = new byte[BlockSize];
@@ -381,7 +387,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             gHASHBlock(S, X);
 
-            // TODO Fix this if tagLength becomes configurable
             // T = MSBt(GCTRk(J0,S))
             byte[] tag = new byte[BlockSize];
             cipher.ProcessBlock(J0, 0, tag, 0);
