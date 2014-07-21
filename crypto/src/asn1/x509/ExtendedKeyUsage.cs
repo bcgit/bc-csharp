@@ -84,10 +84,11 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
 
-            foreach (Asn1Object o in usages)
+            foreach (object usage in usages)
             {
-                v.Add(o);
+                Asn1Encodable o = KeyPurposeID.GetInstance(usage);
 
+                v.Add(o);
                 this.usageTable[o] = o;
             }
 
