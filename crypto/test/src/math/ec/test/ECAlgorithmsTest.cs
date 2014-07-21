@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
     [TestFixture]
     public class ECAlgorithmsTest
     {
-        private const int SCALE = 8;
+        private const int SCALE = 4;
         private static readonly SecureRandom RND = new SecureRandom();
 
         [Test]
