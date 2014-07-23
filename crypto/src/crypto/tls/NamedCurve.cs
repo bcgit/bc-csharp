@@ -58,7 +58,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static bool IsValid(int namedCurve)
         {
-            return namedCurve >= sect163k1 && namedCurve <= brainpoolP512r1;
+            return (namedCurve >= sect163k1 && namedCurve <= brainpoolP512r1)
+                || (namedCurve >= arbitrary_explicit_prime_curves && namedCurve <= arbitrary_explicit_char2_curves);
         }
 
         public static bool RefersToASpecificNamedCurve(int namedCurve)
@@ -71,26 +72,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             default:
                 return true;
             }
-        }
-    }
-
-    internal class NamedCurveHelper
-    {
-        internal static ECDomainParameters GetECParameters(int namedCurve)
-        {
-            if (!NamedCurve.IsValid(namedCurve))
-                return null;
-
-            string curveName = namedCurve.ToString();
-
-            // Lazily created the first time a particular curve is accessed
-            X9ECParameters ecP = SecNamedCurves.GetByName(curveName);
-
-            if (ecP == null)
-                return null;
-
-            // It's a bit inefficient to do this conversion every time
-            return new ECDomainParameters(ecP.Curve, ecP.G, ecP.N, ecP.H, ecP.GetSeed());
         }
     }
 }

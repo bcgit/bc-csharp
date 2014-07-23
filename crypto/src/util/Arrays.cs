@@ -366,6 +366,36 @@ namespace Org.BouncyCastle.Utilities
             return existing;
         }
 
+        public static bool Contains(byte[] a, byte n)
+        {
+            for (int i = 0; i < a.Length; ++i)
+            {
+                if (a[i] == n)
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool Contains(short[] a, short n)
+        {
+            for (int i = 0; i < a.Length; ++i)
+            {
+                if (a[i] == n)
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool Contains(int[] a, int n)
+        {
+            for (int i = 0; i < a.Length; ++i)
+            {
+                if (a[i] == n)
+                    return true;
+            }
+            return false;
+        }
+
         public static void Fill(
             byte[]	buf,
             byte	b)
@@ -384,6 +414,42 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
+        public static byte[] Append(byte[] a, byte b)
+        {
+            if (a == null)
+                return new byte[] { b };
+
+            int length = a.Length;
+            byte[] result = new byte[length + 1];
+            Array.Copy(a, 0, result, 0, length);
+            result[length] = b;
+            return result;
+        }
+
+        public static short[] Append(short[] a, short b)
+        {
+            if (a == null)
+                return new short[] { b };
+
+            int length = a.Length;
+            short[] result = new short[length + 1];
+            Array.Copy(a, 0, result, 0, length);
+            result[length] = b;
+            return result;
+        }
+
+        public static int[] Append(int[] a, int b)
+        {
+            if (a == null)
+                return new int[] { b };
+
+            int length = a.Length;
+            int[] result = new int[length + 1];
+            Array.Copy(a, 0, result, 0, length);
+            result[length] = b;
+            return result;
+        }
+
         public static byte[] Concatenate(byte[] a, byte[] b)
         {
             if (a == null)
@@ -395,6 +461,42 @@ namespace Org.BouncyCastle.Utilities
             Array.Copy(a, 0, rv, 0, a.Length);
             Array.Copy(b, 0, rv, a.Length, b.Length);
             return rv;
+        }
+
+        public static byte[] Prepend(byte[] a, byte b)
+        {
+            if (a == null)
+                return new byte[] { b };
+
+            int length = a.Length;
+            byte[] result = new byte[length + 1];
+            Array.Copy(a, 0, result, 1, length);
+            result[0] = b;
+            return result;
+        }
+
+        public static short[] Prepend(short[] a, short b)
+        {
+            if (a == null)
+                return new short[] { b };
+
+            int length = a.Length;
+            short[] result = new short[length + 1];
+            Array.Copy(a, 0, result, 1, length);
+            result[0] = b;
+            return result;
+        }
+
+        public static int[] Prepend(int[] a, int b)
+        {
+            if (a == null)
+                return new int[] { b };
+
+            int length = a.Length;
+            int[] result = new int[length + 1];
+            Array.Copy(a, 0, result, 1, length);
+            result[0] = b;
+            return result;
         }
 
         public static byte[] Reverse(byte[] a)

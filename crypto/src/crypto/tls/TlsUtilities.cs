@@ -52,43 +52,43 @@ namespace Org.BouncyCastle.Crypto.Tls
             return (i & 0xFFFFFF) == i;
         }
 
-        internal static void WriteUint8(byte i, Stream os)
+        public static void WriteUint8(byte i, Stream os)
         {
             os.WriteByte(i);
         }
 
-        internal static void WriteUint8(byte i, byte[] buf, int offset)
+        public static void WriteUint8(byte i, byte[] buf, int offset)
         {
             buf[offset] = i;
         }
 
-        internal static void WriteUint16(int i, Stream os)
+        public static void WriteUint16(int i, Stream os)
         {
             os.WriteByte((byte)(i >> 8));
             os.WriteByte((byte)i);
         }
 
-        internal static void WriteUint16(int i, byte[] buf, int offset)
+        public static void WriteUint16(int i, byte[] buf, int offset)
         {
             buf[offset] = (byte)(i >> 8);
             buf[offset + 1] = (byte)i;
         }
 
-        internal static void WriteUint24(int i, Stream os)
+        public static void WriteUint24(int i, Stream os)
         {
             os.WriteByte((byte)(i >> 16));
             os.WriteByte((byte)(i >> 8));
             os.WriteByte((byte)i);
         }
 
-        internal static void WriteUint24(int i, byte[] buf, int offset)
+        public static void WriteUint24(int i, byte[] buf, int offset)
         {
             buf[offset] = (byte)(i >> 16);
             buf[offset + 1] = (byte)(i >> 8);
             buf[offset + 2] = (byte)(i);
         }
 
-        internal static void WriteUint64(long i, Stream os)
+        public static void WriteUint64(long i, Stream os)
         {
             os.WriteByte((byte)(i >> 56));
             os.WriteByte((byte)(i >> 48));
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             os.WriteByte((byte)i);
         }
 
-        internal static void WriteUint64(long i, byte[] buf, int offset)
+        public static void WriteUint64(long i, byte[] buf, int offset)
         {
             buf[offset] = (byte)(i >> 56);
             buf[offset + 1] = (byte)(i >> 48);
@@ -112,27 +112,36 @@ namespace Org.BouncyCastle.Crypto.Tls
             buf[offset + 7] = (byte)(i);
         }
 
-        internal static void WriteOpaque8(byte[] buf, Stream os)
+        public static void WriteOpaque8(byte[] buf, Stream os)
         {
             WriteUint8((byte)buf.Length, os);
             os.Write(buf, 0, buf.Length);
         }
 
-        internal static void WriteOpaque16(byte[] buf, Stream os)
+        public static void WriteOpaque16(byte[] buf, Stream os)
         {
             WriteUint16(buf.Length, os);
             os.Write(buf, 0, buf.Length);
         }
 
-        internal static void WriteOpaque24(byte[] buf, Stream os)
+        public static void WriteOpaque24(byte[] buf, Stream os)
         {
             WriteUint24(buf.Length, os);
             os.Write(buf, 0, buf.Length);
         }
 
-        internal static void WriteUint8Array(byte[] uints, Stream os)
+        public static void WriteUint8Array(byte[] uints, Stream os)
         {
             os.Write(uints, 0, uints.Length);
+        }
+
+        public static void WriteUint8Array(byte[] uints, byte[] buf, int offset)
+        {
+            for (int i = 0; i < uints.Length; ++i)
+            {
+                WriteUint8(uints[i], buf, offset);
+                ++offset;
+            }
         }
 
         public static void WriteUint8ArrayWithUint8Length(byte[] uints, Stream output)
@@ -142,7 +151,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             WriteUint8Array(uints, output);
         }
 
-        internal static void WriteUint16Array(int[] uints, Stream os)
+        public static void WriteUint8ArrayWithUint8Length(byte[] uints, byte[] buf, int offset)
+        {
+            CheckUint8(uints.Length);
+            WriteUint8((byte)uints.Length, buf, offset);
+            WriteUint8Array(uints, buf, offset + 1);
+        }
+
+        public static void WriteUint16Array(int[] uints, Stream os)
         {
             for (int i = 0; i < uints.Length; ++i)
             {
@@ -150,7 +166,53 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        internal static byte ReadUint8(Stream inStr)
+        public static void WriteUint16Array(int[] uints, byte[] buf, int offset)
+        {
+            for (int i = 0; i < uints.Length; ++i)
+            {
+                WriteUint16(uints[i], buf, offset);
+                offset += 2;
+            }
+        }
+
+        public static void WriteUint16ArrayWithUint16Length(int[] uints, Stream output)
+        {
+            int length = 2 * uints.Length;
+            CheckUint16(length);
+            WriteUint16(length, output);
+            WriteUint16Array(uints, output);
+        }
+
+        public static void WriteUint16ArrayWithUint16Length(int[] uints, byte[] buf, int offset)
+        {
+            int length = 2 * uints.Length;
+            CheckUint16(length);
+            WriteUint16(length, buf, offset);
+            WriteUint16Array(uints, buf, offset + 2);
+        }
+
+        public static byte[] EncodeOpaque8(byte[] buf)
+        {
+            CheckUint8(buf.Length);
+            return Arrays.Prepend(buf, (byte)buf.Length);
+        }
+
+        public static byte[] EncodeUint8ArrayWithUint8Length(byte[] uints)
+        {
+            byte[] result = new byte[1 + uints.Length];
+            WriteUint8ArrayWithUint8Length(uints, result, 0);
+            return result;
+        }
+
+        public static byte[] EncodeUint16ArrayWithUint16Length(int[] uints)
+        {
+            int length = 2 * uints.Length;
+            byte[] result = new byte[2 + length];
+            WriteUint16ArrayWithUint16Length(uints, result, 0);
+            return result;
+        }
+
+        public static byte ReadUint8(Stream inStr)
         {
             int i = inStr.ReadByte();
             if (i < 0)
@@ -160,7 +222,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return (byte)i;
         }
 
-        internal static int ReadUint16(Stream inStr)
+        public static int ReadUint16(Stream inStr)
         {
             int i1 = inStr.ReadByte();
             int i2 = inStr.ReadByte();
@@ -171,7 +233,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return i1 << 8 | i2;
         }
 
-        internal static int ReadUint24(Stream inStr)
+        public static int ReadUint24(Stream inStr)
         {
             int i1 = inStr.ReadByte();
             int i2 = inStr.ReadByte();
@@ -193,13 +255,13 @@ namespace Org.BouncyCastle.Crypto.Tls
             return buf;
         }
 
-        internal static void ReadFully(byte[] buf, Stream inStr)
+        public static void ReadFully(byte[] buf, Stream inStr)
         {
             if (Streams.ReadFully(inStr, buf, 0, buf.Length) < buf.Length)
                 throw new EndOfStreamException();
         }
 
-        internal static byte[] ReadOpaque8(Stream inStr)
+        public static byte[] ReadOpaque8(Stream inStr)
         {
             byte length = ReadUint8(inStr);
             byte[] bytes = new byte[length];
@@ -207,7 +269,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return bytes;
         }
 
-        internal static byte[] ReadOpaque16(Stream inStr)
+        public static byte[] ReadOpaque16(Stream inStr)
         {
             int length = ReadUint16(inStr);
             byte[] bytes = new byte[length];
@@ -221,7 +283,27 @@ namespace Org.BouncyCastle.Crypto.Tls
             return ReadFully(length, input);
         }
 
-        internal static void CheckVersion(byte[] readVersion)
+        public static byte[] ReadUint8Array(int count, Stream input)
+        {
+            byte[] uints = new byte[count];
+            for (int i = 0; i < count; ++i)
+            {
+                uints[i] = ReadUint8(input);
+            }
+            return uints;
+        }
+
+        public static int[] ReadUint16Array(int count, Stream input)
+        {
+            int[] uints = new int[count];
+            for (int i = 0; i < count; ++i)
+            {
+                uints[i] = ReadUint16(input);
+            }
+            return uints;
+        }
+
+        public static void CheckVersion(byte[] readVersion)
         {
             if ((readVersion[0] != 3) || (readVersion[1] != 1))
             {
@@ -229,7 +311,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        internal static void CheckVersion(Stream inStr)
+        public static void CheckVersion(Stream inStr)
         {
             int i1 = inStr.ReadByte();
             int i2 = inStr.ReadByte();
@@ -263,7 +345,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return result;
         }
 
-        internal static void WriteGmtUnixTime(byte[] buf, int offset)
+        public static void WriteGmtUnixTime(byte[] buf, int offset)
         {
             int t = (int)(DateTimeUtilities.CurrentUnixMs() / 1000L);
             buf[offset] = (byte)(t >> 24);
@@ -272,16 +354,32 @@ namespace Org.BouncyCastle.Crypto.Tls
             buf[offset + 3] = (byte)t;
         }
 
-        internal static void WriteVersion(Stream os)
+        public static void WriteVersion(Stream os)
         {
             os.WriteByte(3);
             os.WriteByte(1);
         }
 
-        internal static void WriteVersion(byte[] buf, int offset)
+        public static void WriteVersion(byte[] buf, int offset)
         {
             buf[offset] = 3;
             buf[offset + 1] = 1;
+        }
+
+        public static byte[] GetExtensionData(Hashtable extensions, int extensionType)
+        {
+            return extensions == null ? null : (byte[])extensions[extensionType];
+        }
+
+        public static bool HasExpectedEmptyExtensionData(Hashtable extensions, int extensionType,
+            byte alertDescription)
+        {
+            byte[] extension_data = GetExtensionData(extensions, extensionType);
+            if (extension_data == null)
+                return false;
+            if (extension_data.Length != 0)
+                throw new TlsFatalAlert(alertDescription);
+            return true;
         }
 
         public static void EncodeSupportedSignatureAlgorithms(IList supportedSignatureAlgorithms, bool allowAnonymous,

@@ -7,6 +7,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         /*
          * RFC 3546 3.1.
          */
-        public const short host_name = 0;
+        public const byte host_name = 0;
     }
 }

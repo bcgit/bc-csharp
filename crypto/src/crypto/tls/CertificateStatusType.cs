@@ -7,6 +7,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         /*
          *  RFC 3546 3.6
          */
-        public const short ocsp = 1;
+        public const byte ocsp = 1;
     }
 }

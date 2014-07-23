@@ -7,10 +7,10 @@ namespace Org.BouncyCastle.Crypto.Tls
      */
     public abstract class HeartbeatMode
     {
-        public const short peer_allowed_to_send = 1;
-        public const short peer_not_allowed_to_send = 2;
+        public const byte peer_allowed_to_send = 1;
+        public const byte peer_not_allowed_to_send = 2;
 
-        public static bool IsValid(short heartbeatMode)
+        public static bool IsValid(byte heartbeatMode)
         {
             return heartbeatMode >= peer_allowed_to_send && heartbeatMode <= peer_not_allowed_to_send;
         }

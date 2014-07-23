@@ -1166,7 +1166,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         * @param is The Stream to check.
         * @throws IOException If is is not empty.
         */
-        internal void AssertEmpty(
+        protected internal static void AssertEmpty(
             MemoryStream inStr)
         {
             if (inStr.Position < inStr.Length)
