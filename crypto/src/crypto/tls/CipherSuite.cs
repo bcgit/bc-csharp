@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int TLS_DH_anon_WITH_AES_256_CBC_SHA = 0x003A;
 
         /*
-         * RFC 4132
+         * RFC 5932
          */
         public const int TLS_RSA_WITH_CAMELLIA_128_CBC_SHA = 0x0041;
         public const int TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA = 0x0042;
@@ -64,12 +64,27 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA = 0x0044;
         public const int TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA = 0x0045;
         public const int TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA = 0x0046;
+
         public const int TLS_RSA_WITH_CAMELLIA_256_CBC_SHA = 0x0084;
         public const int TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA = 0x0085;
         public const int TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA = 0x0086;
         public const int TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA = 0x0087;
         public const int TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA = 0x0088;
         public const int TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA = 0x0089;
+
+        public const int TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BA;
+        public const int TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BB;
+        public const int TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BC;
+        public const int TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BD;
+        public const int TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BE;
+        public const int TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256 = 0x00BF;
+
+        public const int TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C0;
+        public const int TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C1;
+        public const int TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C2;
+        public const int TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C3;
+        public const int TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C4;
+        public const int TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256 = 0x00C5;
 
         /*
          * RFC 4162
@@ -240,6 +255,54 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int TLS_EMPTY_RENEGOTIATION_INFO_SCSV = 0x00FF;
 
         /*
+         * RFC 6367
+         */
+        public const int TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256 = 0xC072;
+        public const int TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384 = 0xC073;
+        public const int TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256 = 0xC074;
+        public const int TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384 = 0xC075;
+        public const int TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0xC076;
+        public const int TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384 = 0xC077;
+        public const int TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256 = 0xC078;
+        public const int TLS_ECDH_RSA_WITH_CAMELLIA_256_CBC_SHA384 = 0xC079;
+
+        public const int TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC07A;
+        public const int TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC07B;
+        public const int TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC07C;
+        public const int TLS_DHE_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC07D;
+        public const int TLS_DH_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC07E;
+        public const int TLS_DH_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC07F;
+        public const int TLS_DHE_DSS_WITH_CAMELLIA_128_GCM_SHA256 = 0xC080;
+        public const int TLS_DHE_DSS_WITH_CAMELLIA_256_GCM_SHA384 = 0xC081;
+        public const int TLS_DH_DSS_WITH_CAMELLIA_128_GCM_SHA256 = 0xC082;
+        public const int TLS_DH_DSS_WITH_CAMELLIA_256_GCM_SHA384 = 0xC083;
+        public const int TLS_DH_anon_WITH_CAMELLIA_128_GCM_SHA256 = 0xC084;
+        public const int TLS_DH_anon_WITH_CAMELLIA_256_GCM_SHA384 = 0xC085;
+        public const int TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC086;
+        public const int TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC087;
+        public const int TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC088;
+        public const int TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC089;
+        public const int TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC08A;
+        public const int TLS_ECDHE_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC08B;
+        public const int TLS_ECDH_RSA_WITH_CAMELLIA_128_GCM_SHA256 = 0xC08C;
+        public const int TLS_ECDH_RSA_WITH_CAMELLIA_256_GCM_SHA384 = 0xC08D;
+
+        public const int TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256 = 0xC08E;
+        public const int TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384 = 0xC08F;
+        public const int TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256 = 0xC090;
+        public const int TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384 = 0xC091;
+        public const int TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256 = 0xC092;
+        public const int TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384 = 0xC093;
+        public const int TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256 = 0xC094;
+        public const int TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384 = 0xC095;
+        public const int TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256 = 0xC096;
+        public const int TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384 = 0xC097;
+        public const int TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256 = 0xC098;
+        public const int TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384 = 0xC099;
+        public const int TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256 = 0xC09A;
+        public const int TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384 = 0xC09B;
+
+        /*
          * RFC 6655
          */
         public const int TLS_RSA_WITH_AES_128_CCM = 0xC09C;
@@ -260,39 +323,30 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int TLS_PSK_DHE_WITH_AES_256_CCM_8 = 0xC0AB;
 
         /*
-         * TBD[draft-josefsson-salsa20-tls-02] 
+         * draft-agl-tls-chacha20poly1305-04
          */
-        const int TLS_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xFF00;
-        const int TLS_RSA_WITH_SALSA20_SHA1 = 0xFF01;
-        const int TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xFF02;
-        const int TLS_DHE_RSA_WITH_SALSA20_SHA1 = 0xFF03;
-        const int TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xFF04;
-        const int TLS_ECDHE_RSA_WITH_SALSA20_SHA1 = 0xFF05;
-        const int TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1 = 0xFF06;
-        const int TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1 = 0xFF07;
-        const int TLS_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xFF08;
-        const int TLS_PSK_WITH_SALSA20_SHA1 = 0xFF09;
-        const int TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xFF0A;
-        const int TLS_DHE_PSK_WITH_SALSA20_SHA1 = 0xFF0B;
-        const int TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xFF0C;
-        const int TLS_RSA_PSK_WITH_SALSA20_SHA1 = 0xFF0D;
-        const int TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xFF0E;
-        const int TLS_ECDHE_PSK_WITH_SALSA20_SHA1 = 0xFF0F;
-        const int TLS_RSA_WITH_ESTREAM_SALSA20_UMAC96 = 0xFF10;
-        const int TLS_RSA_WITH_SALSA20_UMAC96 = 0xFF11;
-        const int TLS_DHE_RSA_WITH_ESTREAM_SALSA20_UMAC96 = 0xFF12;
-        const int TLS_DHE_RSA_WITH_SALSA20_UMAC96 = 0xFF13;
-        const int TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_UMAC96 = 0xFF14;
-        const int TLS_ECDHE_RSA_WITH_SALSA20_UMAC96 = 0xFF15;
-        const int TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_UMAC96 = 0xFF16;
-        const int TLS_ECDHE_ECDSA_WITH_SALSA20_UMAC96 = 0xFF17;
-        const int TLS_PSK_WITH_ESTREAM_SALSA20_UMAC96 = 0xFF18;
-        const int TLS_PSK_WITH_SALSA20_UMAC96 = 0xFF19;
-        const int TLS_DHE_PSK_WITH_ESTREAM_SALSA20_UMAC96 = 0xFF1A;
-        const int TLS_DHE_PSK_WITH_SALSA20_UMAC96 = 0xFF1B;
-        const int TLS_RSA_PSK_WITH_ESTREAM_SALSA20_UMAC96 = 0xFF1C;
-        const int TLS_RSA_PSK_WITH_SALSA20_UMAC96 = 0xFF1D;
-        const int TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_UMAC96 = 0xFF1E;
-        const int TLS_ECDHE_PSK_WITH_SALSA20_UMAC96 = 0xFF1F;
+        public const int TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC13;
+        public const int TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC14;
+        public const int TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC15;
+
+        /*
+         * draft-josefsson-salsa20-tls-04
+         */
+        public const int TLS_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE410;
+        public const int TLS_RSA_WITH_SALSA20_SHA1 = 0xE411;
+        public const int TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE412;
+        public const int TLS_ECDHE_RSA_WITH_SALSA20_SHA1 = 0xE413;
+        public const int TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE414;
+        public const int TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1 = 0xE415;
+        public const int TLS_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE416;
+        public const int TLS_PSK_WITH_SALSA20_SHA1 = 0xE417;
+        public const int TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE418;
+        public const int TLS_ECDHE_PSK_WITH_SALSA20_SHA1 = 0xE419;
+        public const int TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE41A;
+        public const int TLS_RSA_PSK_WITH_SALSA20_SHA1 = 0xE41B;
+        public const int TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE41C;
+        public const int TLS_DHE_PSK_WITH_SALSA20_SHA1 = 0xE41D;
+        public const int TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE41E;
+        public const int TLS_DHE_RSA_WITH_SALSA20_SHA1 = 0xE41F;
     }
 }
