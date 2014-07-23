@@ -4464,6 +4464,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\NewSessionTicket.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\PrfAlgorithm.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

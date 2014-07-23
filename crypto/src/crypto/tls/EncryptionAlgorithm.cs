@@ -50,9 +50,20 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int AES_256_CCM_8 = 18;
 
         /*
-         * TBD[draft-josefsson-salsa20-tls-02] 
+         * RFC 6367
          */
-        const int ESTREAM_SALSA20 = 100;
-        const int SALSA20 = 101;
+        public const int CAMELLIA_128_GCM = 19;
+        public const int CAMELLIA_256_GCM = 20;
+
+        /*
+         * draft-josefsson-salsa20-tls-04 
+         */
+        public const int ESTREAM_SALSA20 = 100;
+        public const int SALSA20 = 101;
+
+        /*
+         * draft-agl-tls-chacha20poly1305-04
+         */
+        public const int AEAD_CHACHA20_POLY1305 = 102;
     }
 }
