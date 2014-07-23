@@ -10,7 +10,13 @@
                 return p.Curve.Infinity;
 
             ECPoint positive = MultiplyPositive(p, k.Abs());
-            return sign > 0 ? positive : positive.Negate();
+            ECPoint result = sign > 0 ? positive : positive.Negate();
+
+            /*
+             * Although the various multipliers ought not to produce invalid output under normal
+             * circumstances, a final check here is advised to guard against fault attacks.
+             */
+            return ECAlgorithms.ValidatePoint(result);
         }
 
         protected abstract ECPoint MultiplyPositive(ECPoint p, BigInteger k);

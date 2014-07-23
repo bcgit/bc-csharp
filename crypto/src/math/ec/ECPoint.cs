@@ -67,6 +67,8 @@ namespace Org.BouncyCastle.Math.EC
             this.m_withCompression = withCompression;
         }
 
+        protected abstract bool SatisfiesCurveEquation();
+
         public ECPoint GetDetachedPoint()
         {
             return Normalize().Detach();
@@ -289,6 +291,30 @@ namespace Org.BouncyCastle.Math.EC
             get { return m_withCompression; }
         }
 
+        public bool IsValid()
+        {
+            if (IsInfinity)
+                return true;
+
+            // TODO Sanity-check the field elements
+
+            ECCurve curve = Curve;
+            if (curve != null)
+            {
+                if (!SatisfiesCurveEquation())
+                    return false;
+
+                BigInteger h = curve.Cofactor;
+                if (h != null && !h.Equals(BigInteger.One)
+                    && ECAlgorithms.ReferenceMultiply(this, h).IsInfinity)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public virtual ECPoint ScaleX(ECFieldElement scale)
         {
             return IsInfinity
@@ -497,14 +523,84 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
+    public abstract class AbstractFpPoint
+        : ECPointBase
+    {
+        protected AbstractFpPoint(ECCurve curve, ECFieldElement x, ECFieldElement y, bool withCompression)
+            : base(curve, x, y, withCompression)
+        {
+        }
+
+        protected AbstractFpPoint(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
+            : base(curve, x, y, zs, withCompression)
+        {
+        }
+
+        protected internal override bool CompressionYTilde
+        {
+            get { return this.AffineYCoord.TestBitZero(); }
+        }
+
+        protected override bool SatisfiesCurveEquation()
+        {
+            ECFieldElement X = this.RawXCoord, Y = this.RawYCoord, A = Curve.A, B = Curve.B;
+            ECFieldElement lhs = Y.Square();
+
+            switch (CurveCoordinateSystem)
+            {
+            case ECCurve.COORD_AFFINE:
+                break;
+            case ECCurve.COORD_HOMOGENEOUS:
+            {
+                ECFieldElement Z = this.RawZCoords[0];
+                if (!Z.IsOne)
+                {
+                    ECFieldElement Z2 = Z.Square(), Z3 = Z.Multiply(Z2);
+                    lhs = lhs.Multiply(Z);
+                    A = A.Multiply(Z2);
+                    B = B.Multiply(Z3);
+                }
+                break;
+            }
+            case ECCurve.COORD_JACOBIAN:
+            case ECCurve.COORD_JACOBIAN_CHUDNOVSKY:
+            case ECCurve.COORD_JACOBIAN_MODIFIED:
+            {
+                ECFieldElement Z = this.RawZCoords[0];
+                if (!Z.IsOne)
+                {
+                    ECFieldElement Z2 = Z.Square(), Z4 = Z2.Square(), Z6 = Z2.Multiply(Z4);
+                    A = A.Multiply(Z4);
+                    B = B.Multiply(Z6);
+                }
+                break;
+            }
+            default:
+                throw new InvalidOperationException("unsupported coordinate system");
+            }
+
+            ECFieldElement rhs = X.Square().Add(A).Multiply(X).Add(B);
+            return lhs.Equals(rhs);
+        }
+
+        public override ECPoint Subtract(ECPoint b)
+        {
+            if (b.IsInfinity)
+                return this;
+
+            // Add -b
+            return Add(b.Negate());
+        }
+    }
+
     /**
      * Elliptic curve points over Fp
      */
     public class FpPoint
-        : ECPointBase
+        : AbstractFpPoint
     {
         /**
-         * Create a point which encodes with point compression.
+         * Create a point which encodes without point compression.
          *
          * @param curve the curve to use
          * @param x affine x co-ordinate
@@ -516,7 +612,7 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         /**
-         * Create a point that encodes with or without point compresion.
+         * Create a point that encodes with or without point compression.
          *
          * @param curve the curve to use
          * @param x affine x co-ordinate
@@ -538,11 +634,6 @@ namespace Org.BouncyCastle.Math.EC
         protected override ECPoint Detach()
         {
             return new FpPoint(null, AffineXCoord, AffineYCoord);
-        }
-
-        protected internal override bool CompressionYTilde
-        {
-            get { return this.AffineYCoord.TestBitZero(); }
         }
 
         public override ECFieldElement GetZCoord(int index)
@@ -1135,16 +1226,6 @@ namespace Org.BouncyCastle.Math.EC
             return a.Add(b).Square().Subtract(aSquared).Subtract(bSquared);
         }
 
-        public override ECPoint Subtract(
-            ECPoint b)
-        {
-            if (b.IsInfinity)
-                return this;
-
-            // Add -b
-            return Add(b.Negate());
-        }
-
         public override ECPoint Negate()
         {
             if (IsInfinity)
@@ -1217,11 +1298,96 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
+    public abstract class AbstractF2mPoint 
+        : ECPointBase
+    {
+        protected AbstractF2mPoint(ECCurve curve, ECFieldElement x, ECFieldElement y, bool withCompression)
+            : base(curve, x, y, withCompression)
+        {
+        }
+
+        protected AbstractF2mPoint(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
+            : base(curve, x, y, zs, withCompression)
+        {
+        }
+
+        protected override bool SatisfiesCurveEquation()
+        {
+            ECCurve curve = Curve;
+            ECFieldElement X = this.RawXCoord, Y = this.RawYCoord, A = curve.A, B = curve.B;
+            ECFieldElement lhs, rhs;
+
+            int coord = curve.CoordinateSystem;
+            if (coord == ECCurve.COORD_LAMBDA_PROJECTIVE)
+            {
+                ECFieldElement Z = this.RawZCoords[0];
+                bool ZIsOne = Z.IsOne;
+
+                if (X.IsZero)
+                {
+                    // NOTE: For x == 0, we expect the affine-y instead of the lambda-y 
+                    lhs = Y.Square();
+                    rhs = B;
+                    if (!ZIsOne)
+                    {
+                        ECFieldElement Z2 = Z.Square();
+                        rhs = rhs.Multiply(Z2);
+                    }
+                }
+                else
+                {
+                    ECFieldElement L = Y, X2 = X.Square();
+                    if (ZIsOne)
+                    {
+                        lhs = L.Square().Add(L).Add(A);
+                        rhs = X2.Square().Add(B);
+                    }
+                    else
+                    {
+                        ECFieldElement Z2 = Z.Square(), Z4 = Z2.Square();
+                        lhs = L.Add(Z).MultiplyPlusProduct(L, A, Z2);
+                        // TODO If sqrt(b) is precomputed this can be simplified to a single square
+                        rhs = X2.SquarePlusProduct(B, Z4);
+                    }
+                    lhs = lhs.Multiply(X2);
+                }
+            }
+            else
+            {
+                lhs = Y.Add(X).Multiply(Y);
+
+                switch (coord)
+                {
+                    case ECCurve.COORD_AFFINE:
+                        break;
+                    case ECCurve.COORD_HOMOGENEOUS:
+                        {
+                            ECFieldElement Z = this.RawZCoords[0];
+                            if (!Z.IsOne)
+                            {
+                                ECFieldElement Z2 = Z.Square(), Z3 = Z.Multiply(Z2);
+                                lhs = lhs.Multiply(Z);
+                                A = A.Multiply(Z);
+                                B = B.Multiply(Z3);
+                            }
+                            break;
+                        }
+                    default:
+                        throw new InvalidOperationException("unsupported coordinate system");
+                }
+
+                rhs = X.Add(A).Multiply(X.Square()).Add(B);
+            }
+
+            return lhs.Equals(rhs);
+        }
+    }
+
     /**
      * Elliptic curve points over F2m
      */
     public class F2mPoint
-        : ECPointBase
+        : AbstractF2mPoint
     {
         /**
          * @param curve base curve

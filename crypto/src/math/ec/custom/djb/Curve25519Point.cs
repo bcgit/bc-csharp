@@ -5,7 +5,7 @@ using Org.BouncyCastle.Math.EC.Custom.Sec;
 namespace Org.BouncyCastle.Math.EC.Custom.Djb
 {
     internal class Curve25519Point
-        : ECPointBase
+        : AbstractFpPoint
     {
         /**
          * Create a point which encodes with point compression.
@@ -46,11 +46,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
         protected override ECPoint Detach()
         {
             return new Curve25519Point(null, AffineXCoord, AffineYCoord);
-        }
-
-        protected internal override bool CompressionYTilde
-        {
-            get { return this.AffineYCoord.TestBitZero(); }
         }
 
         public override ECFieldElement GetZCoord(int index)
@@ -222,14 +217,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
                 return this;
 
             return TwiceJacobianModified(false).Add(this);
-        }
-
-        public override ECPoint Subtract(ECPoint b)
-        {
-            if (b.IsInfinity)
-                return this;
-
-            return Add(b.Negate());
         }
 
         public override ECPoint Negate()

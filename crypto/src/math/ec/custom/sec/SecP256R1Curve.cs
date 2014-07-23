@@ -1,12 +1,11 @@
 ﻿using System;
 
-using Org.BouncyCastle.Math.Field;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP256R1Curve
-        : ECCurve
+        : AbstractFpCurve
     {
         public static readonly BigInteger q = new BigInteger(1,
             Hex.Decode("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"));
@@ -16,7 +15,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected readonly SecP256R1Point m_infinity;
 
         public SecP256R1Curve()
-            : base(FiniteFields.GetPrimeField(q))
+            : base(q)
         {
             this.m_infinity = new SecP256R1Point(this, null, null);
 
@@ -73,28 +72,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
         {
             return new SecP256R1Point(this, x, y, zs, withCompression);
-        }
-
-        protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
-        {
-            ECFieldElement x = FromBigInteger(X1);
-            ECFieldElement alpha = x.Square().Add(A).Multiply(x).Add(B);
-            ECFieldElement beta = alpha.Sqrt();
-
-            //
-            // if we can't find a sqrt we haven't got a point on the
-            // curve - run!
-            //
-            if (beta == null)
-                throw new ArithmeticException("Invalid point compression");
-
-            if (beta.TestBitZero() != (yTilde == 1))
-            {
-                // Use the other root
-                beta = beta.Negate();
-            }
-
-            return new SecP256R1Point(this, x, beta, true);
         }
     }
 }

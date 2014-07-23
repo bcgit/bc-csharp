@@ -3,7 +3,7 @@
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP256K1Point
-        : ECPointBase
+        : AbstractFpPoint
     {
         /**
          * Create a point which encodes with point compression.
@@ -53,11 +53,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected override ECPoint Detach()
         {
             return new SecP256K1Point(null, AffineXCoord, AffineYCoord);
-        }
-
-        protected internal override bool CompressionYTilde
-        {
-            get { return this.AffineYCoord.TestBitZero(); }
         }
 
         public override ECPoint Add(ECPoint b)
@@ -257,14 +252,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             // NOTE: Be careful about recursions between TwicePlus and ThreeTimes
             return Twice().Add(this);
-        }
-
-        public override ECPoint Subtract(ECPoint b)
-        {
-            if (b.IsInfinity)
-                return this;
-
-            return Add(b.Negate());
         }
 
         public override ECPoint Negate()

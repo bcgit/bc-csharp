@@ -49,10 +49,10 @@ namespace Org.BouncyCastle.Math.EC
             GlvEndomorphism glvEndomorphism = c.GetEndomorphism() as GlvEndomorphism;
             if (glvEndomorphism != null)
             {
-                return ImplSumOfMultipliesGlv(imported, ks, glvEndomorphism);
+                return ValidatePoint(ImplSumOfMultipliesGlv(imported, ks, glvEndomorphism));
             }
 
-            return ImplSumOfMultiplies(imported, ks);
+            return ValidatePoint(ImplSumOfMultiplies(imported, ks));
         }
 
         public static ECPoint SumOfTwoMultiplies(ECPoint P, BigInteger a, ECPoint Q, BigInteger b)
@@ -66,17 +66,18 @@ namespace Org.BouncyCastle.Math.EC
                 F2mCurve f2mCurve = (F2mCurve) cp;
                 if (f2mCurve.IsKoblitz)
                 {
-                    return P.Multiply(a).Add(Q.Multiply(b));
+                    return ValidatePoint(P.Multiply(a).Add(Q.Multiply(b)));
                 }
             }
 
             GlvEndomorphism glvEndomorphism = cp.GetEndomorphism() as GlvEndomorphism;
             if (glvEndomorphism != null)
             {
-                return ImplSumOfMultipliesGlv(new ECPoint[] { P, Q }, new BigInteger[] { a, b }, glvEndomorphism);
+                return ValidatePoint(
+                    ImplSumOfMultipliesGlv(new ECPoint[] { P, Q }, new BigInteger[] { a, b }, glvEndomorphism));
             }
 
-            return ImplShamirsTrickWNaf(P, a, Q, b);
+            return ValidatePoint(ImplShamirsTrickWNaf(P, a, Q, b));
         }
 
         /*
@@ -102,7 +103,7 @@ namespace Org.BouncyCastle.Math.EC
             ECCurve cp = P.Curve;
             Q = ImportPoint(cp, Q);
 
-            return ImplShamirsTrickJsf(P, k, Q, l);
+            return ValidatePoint(ImplShamirsTrickJsf(P, k, Q, l));
         }
 
         public static ECPoint ImportPoint(ECCurve c, ECPoint p)
@@ -143,6 +144,47 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             zs[off] = u;
+        }
+
+        /**
+         * Simple shift-and-add multiplication. Serves as reference implementation
+         * to verify (possibly faster) implementations, and for very small scalars.
+         * 
+         * @param p
+         *            The point to multiply.
+         * @param k
+         *            The multiplier.
+         * @return The result of the point multiplication <code>kP</code>.
+         */
+        public static ECPoint ReferenceMultiply(ECPoint p, BigInteger k)
+        {
+            BigInteger x = k.Abs();
+            ECPoint q = p.Curve.Infinity;
+            int t = x.BitLength;
+            if (t > 0)
+            {
+                if (x.TestBit(0))
+                {
+                    q = p;
+                }
+                for (int i = 1; i < t; i++)
+                {
+                    p = p.Twice();
+                    if (x.TestBit(i))
+                    {
+                        q = q.Add(p);
+                    }
+                }
+            }
+            return k.SignValue < 0 ? q.Negate() : q;
+        }
+
+        public static ECPoint ValidatePoint(ECPoint p)
+        {
+            if (!p.IsValid())
+                throw new ArgumentException("Invalid point", "p");
+
+            return p;
         }
 
         internal static ECPoint ImplShamirsTrickJsf(ECPoint P, BigInteger k, ECPoint Q, BigInteger l)
