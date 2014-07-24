@@ -1,3 +1,12 @@
-**/bin
-**/dist
-**/obj
+*.psess
+*.snk
+*.suo
+*.swp
+*.user
+*.vsp
+
+Backup/
+bin/
+dist/
+doc/
+obj/
