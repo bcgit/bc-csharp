@@ -789,6 +789,44 @@ namespace Org.BouncyCastle.Crypto.Tls
             return v;
         }
 
+        public static int GetCipherType(int ciphersuite)
+        {
+            switch (GetEncryptionAlgorithm(ciphersuite))
+            {
+            case EncryptionAlgorithm.AES_128_GCM:
+            case EncryptionAlgorithm.AES_256_GCM:
+            case EncryptionAlgorithm.AES_128_CCM:
+            case EncryptionAlgorithm.AES_128_CCM_8:
+            case EncryptionAlgorithm.AES_256_CCM:
+            case EncryptionAlgorithm.AES_256_CCM_8:
+            case EncryptionAlgorithm.CAMELLIA_128_GCM:
+            case EncryptionAlgorithm.CAMELLIA_256_GCM:
+            case EncryptionAlgorithm.AEAD_CHACHA20_POLY1305:
+                return CipherType.aead;
+
+            case EncryptionAlgorithm.RC2_CBC_40:
+            case EncryptionAlgorithm.IDEA_CBC:
+            case EncryptionAlgorithm.DES40_CBC:
+            case EncryptionAlgorithm.DES_CBC:
+            case EncryptionAlgorithm.cls_3DES_EDE_CBC:
+            case EncryptionAlgorithm.AES_128_CBC:
+            case EncryptionAlgorithm.AES_256_CBC:
+            case EncryptionAlgorithm.CAMELLIA_128_CBC:
+            case EncryptionAlgorithm.CAMELLIA_256_CBC:
+            case EncryptionAlgorithm.SEED_CBC:
+                return CipherType.block;
+
+            case EncryptionAlgorithm.RC4_40:
+            case EncryptionAlgorithm.RC4_128:
+            case EncryptionAlgorithm.ESTREAM_SALSA20:
+            case EncryptionAlgorithm.SALSA20:
+                return CipherType.stream;
+
+            default:
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+        }
+
         public static int GetEncryptionAlgorithm(int ciphersuite)
         {
             switch (ciphersuite)
@@ -1206,55 +1244,17 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static bool IsAeadCipherSuite(int ciphersuite)
         {
-            switch (GetEncryptionAlgorithm(ciphersuite))
-            {
-            case EncryptionAlgorithm.AES_128_GCM:
-            case EncryptionAlgorithm.AES_256_GCM:
-            case EncryptionAlgorithm.AES_128_CCM:
-            case EncryptionAlgorithm.AES_128_CCM_8:
-            case EncryptionAlgorithm.AES_256_CCM:
-            case EncryptionAlgorithm.AES_256_CCM_8:
-            case EncryptionAlgorithm.CAMELLIA_128_GCM:
-            case EncryptionAlgorithm.CAMELLIA_256_GCM:
-            case EncryptionAlgorithm.AEAD_CHACHA20_POLY1305:
-                return true;
-            default:
-                return false;
-            }
+            return CipherType.aead == GetCipherType(ciphersuite);
         }
 
         public static bool IsBlockCipherSuite(int ciphersuite)
         {
-            switch (GetEncryptionAlgorithm(ciphersuite))
-            {
-            case EncryptionAlgorithm.RC2_CBC_40:
-            case EncryptionAlgorithm.IDEA_CBC:
-            case EncryptionAlgorithm.DES40_CBC:
-            case EncryptionAlgorithm.DES_CBC:
-            case EncryptionAlgorithm.cls_3DES_EDE_CBC:
-            case EncryptionAlgorithm.AES_128_CBC:
-            case EncryptionAlgorithm.AES_256_CBC:
-            case EncryptionAlgorithm.CAMELLIA_128_CBC:
-            case EncryptionAlgorithm.CAMELLIA_256_CBC:
-            case EncryptionAlgorithm.SEED_CBC:
-                return true;
-            default:
-                return false;
-            }
+            return CipherType.block == GetCipherType(ciphersuite);
         }
 
         public static bool IsStreamCipherSuite(int ciphersuite)
         {
-            switch (GetEncryptionAlgorithm(ciphersuite))
-            {
-            case EncryptionAlgorithm.RC4_40:
-            case EncryptionAlgorithm.RC4_128:
-            case EncryptionAlgorithm.ESTREAM_SALSA20:
-            case EncryptionAlgorithm.SALSA20:
-                return true;
-            default:
-                return false;
-            }
+            return CipherType.stream == GetCipherType(ciphersuite);
         }
 
         public static bool IsValidCipherSuiteForVersion(int cipherSuite, ProtocolVersion serverVersion)
