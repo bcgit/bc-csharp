@@ -118,6 +118,21 @@ namespace Org.BouncyCastle.Crypto.Tls
             return true;
         }
 
+        public static bool IsSsl(TlsContext context)
+        {
+            return context.ServerVersion.IsSsl;
+        }
+
+        public static bool IsTlsV11(TlsContext context)
+        {
+            return ProtocolVersion.TLSv11.IsEqualOrEarlierVersionOf(context.ServerVersion.GetEquivalentTLSVersion());
+        }
+
+        public static bool IsTlsV12(TlsContext context)
+        {
+            return ProtocolVersion.TLSv12.IsEqualOrEarlierVersionOf(context.ServerVersion.GetEquivalentTLSVersion());
+        }
+
         public static void WriteUint8(byte i, Stream output)
         {
             output.WriteByte(i);
@@ -600,12 +615,12 @@ namespace Org.BouncyCastle.Crypto.Tls
             return VectorOfOne(new SignatureAndHashAlgorithm(HashAlgorithm.sha1, SignatureAlgorithm.rsa));
         }
 
-        public static byte[] GetExtensionData(Hashtable extensions, int extensionType)
+        public static byte[] GetExtensionData(IDictionary extensions, int extensionType)
         {
             return extensions == null ? null : (byte[])extensions[extensionType];
         }
 
-        public static bool HasExpectedEmptyExtensionData(Hashtable extensions, int extensionType,
+        public static bool HasExpectedEmptyExtensionData(IDictionary extensions, int extensionType,
             byte alertDescription)
         {
             byte[] extension_data = GetExtensionData(extensions, extensionType);

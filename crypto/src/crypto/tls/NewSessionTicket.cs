@@ -5,8 +5,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 {
     public class NewSessionTicket
     {
-        protected long mTicketLifetimeHint;
-        protected byte[] mTicket;
+        protected readonly long mTicketLifetimeHint;
+        protected readonly byte[] mTicket;
 
         public NewSessionTicket(long ticketLifetimeHint, byte[] ticket)
         {
