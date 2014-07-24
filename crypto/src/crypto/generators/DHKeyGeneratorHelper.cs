@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -23,7 +24,15 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             if (limit != 0)
             {
-                return new BigInteger(limit, random).SetBit(limit - 1);
+                int minWeight = limit >> 2;
+                for (;;)
+                {
+                    BigInteger x = new BigInteger(limit, random).SetBit(limit - 1);
+                    if (WNafUtilities.GetNafWeight(x) >= minWeight)
+                    {
+                        return x;
+                    }
+                }
             }
 
             BigInteger min = BigInteger.Two;
@@ -40,7 +49,17 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
             BigInteger max = q.Subtract(BigInteger.Two);
 
-            return BigIntegers.CreateRandomInRange(min, max, random);
+            {
+                int minWeight = max.BitLength >> 2;
+                for (;;)
+                {
+                    BigInteger x = BigIntegers.CreateRandomInRange(min, max, random);
+                    if (WNafUtilities.GetNafWeight(x) >= minWeight)
+                    {
+                        return x;
+                    }
+                }
+            }
         }
 
         internal BigInteger CalculatePublic(
