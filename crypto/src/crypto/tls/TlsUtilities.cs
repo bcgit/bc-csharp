@@ -25,13 +25,31 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        public static void CheckUint8(long i)
+        {
+            if (!IsValidUint8(i))
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
         public static void CheckUint16(int i)
         {
             if (!IsValidUint16(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        public static void CheckUint16(long i)
+        {
+            if (!IsValidUint16(i))
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
         public static void CheckUint24(int i)
+        {
+            if (!IsValidUint24(i))
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        public static void CheckUint24(long i)
         {
             if (!IsValidUint24(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -60,15 +78,31 @@ namespace Org.BouncyCastle.Crypto.Tls
             return (i & 0xFF) == i;
         }
 
+        public static bool IsValidUint8(long i)
+        {
+            return (i & 0xFFL) == i;
+        }
+
         public static bool IsValidUint16(int i)
         {
             return (i & 0xFFFF) == i;
+        }
+
+        public static bool IsValidUint16(long i)
+        {
+            return (i & 0xFFFFL) == i;
         }
 
         public static bool IsValidUint24(int i)
         {
             return (i & 0xFFFFFF) == i;
         }
+
+        public static bool IsValidUint24(long i)
+        {
+            return (i & 0xFFFFFFL) == i;
+        }
+
         public static bool IsValidUint32(long i)
         {
             return (i & 0xFFFFFFFFL) == i;
