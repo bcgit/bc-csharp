@@ -387,6 +387,9 @@ namespace Org.BouncyCastle.Math.EC
                     BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
 
                     p = DecompressPoint(yTilde, X);
+                    if (!p.SatisfiesCofactor())
+                        throw new ArgumentException("Invalid point");
+
                     break;
                 }
 

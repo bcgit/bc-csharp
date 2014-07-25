@@ -67,6 +67,12 @@ namespace Org.BouncyCastle.Math.EC
             this.m_withCompression = withCompression;
         }
 
+        protected internal bool SatisfiesCofactor()
+        {
+            BigInteger h = Curve.Cofactor;
+            return h == null || h.Equals(BigInteger.One) || !ECAlgorithms.ReferenceMultiply(this, h).IsInfinity;
+        }
+
         protected abstract bool SatisfiesCurveEquation();
 
         public ECPoint GetDetachedPoint()
@@ -304,12 +310,8 @@ namespace Org.BouncyCastle.Math.EC
                 if (!SatisfiesCurveEquation())
                     return false;
 
-                BigInteger h = curve.Cofactor;
-                if (h != null && !h.Equals(BigInteger.One)
-                    && ECAlgorithms.ReferenceMultiply(this, h).IsInfinity)
-                {
+                if (!SatisfiesCofactor())
                     return false;
-                }
             }
 
             return true;
