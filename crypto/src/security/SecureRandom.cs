@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Security
 		public SecureRandom()
 			: this(sha1Generator)
         {
-			SetSeed(GetSeed(8));
+			SetSeed(GetSeed(20));	// 20 bytes because this is sha1Generator
 		}
 
 		public SecureRandom(
