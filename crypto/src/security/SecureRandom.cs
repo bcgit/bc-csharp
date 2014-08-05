@@ -26,8 +26,12 @@ namespace Org.BouncyCastle.Security
 					gen = new ReversedWindowGenerator(gen, 32);
 					SecureRandom sr = master[0] = new SecureRandom(gen);
 
+					// Even though Ticks has at most 8 or 14 bits of entropy, there's no harm in adding it.
 					sr.SetSeed(DateTime.Now.Ticks);
-					sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(24, true));
+                    
+					// 32 will be enough when ThreadedSeedGenerator is fixed.  Until then, ThreadedSeedGenerator returns low
+					// entropy, and this is not sufficient to be secure. http://www.bouncycastle.org/csharpdevmailarchive/msg00814.html
+					sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(32, true));
 					sr.GenerateSeed(1 + sr.Next(32));
 				}
 
