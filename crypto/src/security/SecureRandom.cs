@@ -22,9 +22,7 @@ namespace Org.BouncyCastle.Security
 			{
 				if (master[0] == null)
 				{
-					IRandomGenerator gen = sha256Generator;
-					gen = new ReversedWindowGenerator(gen, 32);
-					SecureRandom sr = master[0] = new SecureRandom(gen);
+					SecureRandom sr = master[0] = new SecureRandom(sha256Generator);
 
 					// Even though Ticks has at most 8 or 14 bits of entropy, there's no harm in adding it.
 					sr.SetSeed(DateTime.Now.Ticks);
