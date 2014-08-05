@@ -15,6 +15,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
@@ -43,7 +44,7 @@ namespace Org.BouncyCastle.Security
         public static AsymmetricKeyParameter CreateKey(
             PrivateKeyInfo keyInfo)
         {
-            AlgorithmIdentifier algID = keyInfo.AlgorithmID;
+            AlgorithmIdentifier algID = keyInfo.PrivateKeyAlgorithm;
             DerObjectIdentifier algOid = algID.ObjectID;
 
             // TODO See RSAUtil.isRsaOid in Java build
@@ -53,7 +54,7 @@ namespace Org.BouncyCastle.Security
                 || algOid.Equals(PkcsObjectIdentifiers.IdRsaesOaep))
             {
                 RsaPrivateKeyStructure keyStructure = new RsaPrivateKeyStructure(
-                    Asn1Sequence.GetInstance(keyInfo.PrivateKey));
+                    Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey()));
 
                 return new RsaPrivateCrtKeyParameters(
                     keyStructure.Modulus,
@@ -71,7 +72,7 @@ namespace Org.BouncyCastle.Security
             {
                 DHParameter para = new DHParameter(
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
-                DerInteger derX = (DerInteger)keyInfo.PrivateKey;
+                DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
 
                 BigInteger lVal = para.L;
                 int l = lVal == null ? 0 : lVal.IntValue;
@@ -83,7 +84,7 @@ namespace Org.BouncyCastle.Security
             {
                 ElGamalParameter  para = new ElGamalParameter(
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
-                DerInteger derX = (DerInteger)keyInfo.PrivateKey;
+                DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
 
                 return new ElGamalPrivateKeyParameters(
                     derX.Value,
@@ -91,7 +92,7 @@ namespace Org.BouncyCastle.Security
             }
             else if (algOid.Equals(X9ObjectIdentifiers.IdDsa))
             {
-                DerInteger derX = (DerInteger) keyInfo.PrivateKey;
+                DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
                 Asn1Encodable ae = algID.Parameters;
 
                 DsaParameters parameters = null;
@@ -118,7 +119,7 @@ namespace Org.BouncyCastle.Security
                 }
 
                 ECPrivateKeyStructure ec = new ECPrivateKeyStructure(
-                    Asn1Sequence.GetInstance(keyInfo.PrivateKey));
+                    Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey()));
                 BigInteger d = ec.GetKey();
 
                 if (para.IsNamedCurve)
@@ -134,13 +135,23 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
 
-                ECPrivateKeyStructure ec = new ECPrivateKeyStructure(
-                    Asn1Sequence.GetInstance(keyInfo.PrivateKey));
+                Asn1Object privKey = keyInfo.ParsePrivateKey();
+                ECPrivateKeyStructure ec;
+
+                if (privKey is DerInteger)
+                {
+                    // TODO Do we need to pass any parameters here?
+                    ec = new ECPrivateKeyStructure(((DerInteger)privKey).Value);
+                }
+                else
+                {
+                    ec = ECPrivateKeyStructure.GetInstance(privKey);
+                }
 
                 ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
 
                 if (ecP == null)
-                    return null;
+                    throw new ArgumentException("Unrecognized curve OID for GostR3410x2001 private key");
 
                 return new ECPrivateKeyParameters("ECGOST3410", ec.GetKey(), gostParams.PublicKeyParamSet);
             }
@@ -149,16 +160,8 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
 
-                DerOctetString derX = (DerOctetString) keyInfo.PrivateKey;
-                byte[] keyEnc = derX.GetOctets();
-                byte[] keyBytes = new byte[keyEnc.Length];
-
-                for (int i = 0; i != keyEnc.Length; i++)
-                {
-                    keyBytes[i] = keyEnc[keyEnc.Length - 1 - i]; // was little endian
-                }
-
-                BigInteger x = new BigInteger(1, keyBytes);
+                DerOctetString derX = (DerOctetString)keyInfo.ParsePrivateKey();
+                BigInteger x = new BigInteger(1, Arrays.Reverse(derX.GetOctets()));
 
                 return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
             }

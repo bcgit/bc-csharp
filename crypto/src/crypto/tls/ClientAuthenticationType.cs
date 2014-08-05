@@ -7,8 +7,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         /*
          * RFC 5077 4
          */
-        public const short anonymous = 0;
-        public const short certificate_based = 1;
-        public const short psk = 2;
+        public const byte anonymous = 0;
+        public const byte certificate_based = 1;
+        public const byte psk = 2;
     }
 }

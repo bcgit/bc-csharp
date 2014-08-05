@@ -288,35 +288,6 @@ namespace Org.BouncyCastle.Math.EC.Tests
         }
 
         /**
-         * Simple shift-and-add multiplication. Serves as reference implementation
-         * to verify (possibly faster) implementations in
-         * {@link org.bouncycastle.math.ec.ECPoint ECPoint}.
-         *
-         * @param p
-         *            The point to multiply.
-         * @param k
-         *            The multiplier.
-         * @return The result of the point multiplication <code>kP</code>.
-         */
-        private ECPoint Multiply(ECPoint p, BigInteger k)
-        {
-            ECPoint q = p.Curve.Infinity;
-            int t = k.BitLength;
-            for (int i = 0; i < t; i++)
-            {
-                if (i != 0)
-                {
-                    p = p.Twice();
-                }
-                if (k.TestBit(i))
-                {
-                    q = q.Add(p);
-                }
-            }
-            return q;
-        }
-
-        /**
          * Checks, if the point multiplication algorithm of the given point yields
          * the same result as point multiplication done by the reference
          * implementation given in <code>multiply()</code>. This method chooses a
@@ -331,7 +302,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private void ImplTestMultiply(ECPoint p, int numBits)
         {
             BigInteger k = new BigInteger(numBits, secRand);
-            ECPoint reff = Multiply(p, k);
+            ECPoint reff = ECAlgorithms.ReferenceMultiply(p, k);
             ECPoint q = p.Multiply(k);
             AssertPointsEqual("ECPoint.Multiply is incorrect", reff, q);
         }
@@ -355,7 +326,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             do
             {
-                ECPoint reff = Multiply(p, k);
+                ECPoint reff = ECAlgorithms.ReferenceMultiply(p, k);
                 ECPoint q = p.Multiply(k);
                 AssertPointsEqual("ECPoint.Multiply is incorrect", reff, q);
                 k = k.Add(BigInteger.One);

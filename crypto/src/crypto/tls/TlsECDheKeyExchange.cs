@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 // TODO Check namedCurve is one we offered?
 
-                curve_params = NamedCurveHelper.GetECParameters(namedCurve);
+                curve_params = TlsEccUtilities.GetParametersForNamedCurve(namedCurve);
             }
             else
             {

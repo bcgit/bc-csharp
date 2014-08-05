@@ -1,4 +1,12 @@
-**/bin
-**/dist
-**/obj
-crypto/doc/
+*.psess
+*.snk
+*.suo
+*.swp
+*.user
+*.vsp
+
+Backup/
+bin/
+dist/
+doc/
+obj/

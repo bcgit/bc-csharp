@@ -7,9 +7,8 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Modes
 {
     /**
-     * An implementation of the "work in progress" Internet-Draft
-     * <a href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-07">The OCB Authenticated-Encryption
-     * Algorithm</a>, licensed per:
+     * An implementation of <a href="http://tools.ietf.org/html/rfc7253">RFC 7253 on The OCB
+     * Authenticated-Encryption Algorithm</a>, licensed per:
      * 
      * <blockquote><p><a href="http://www.cs.ucdavis.edu/~rogaway/ocb/license1.pdf">License for
      * Open-Source Software Implementations of OCB</a> (Jan 9, 2013) - 'License 1'<br/>
@@ -71,9 +70,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                 throw new ArgumentException("must have a block size of " + BLOCK_SIZE, "hashCipher");
             if (mainCipher == null)
                 throw new ArgumentNullException("mainCipher");
-            if (mainCipher.GetBlockSize() != BLOCK_SIZE) {
+            if (mainCipher.GetBlockSize() != BLOCK_SIZE)
                 throw new ArgumentException("must have a block size of " + BLOCK_SIZE, "mainCipher");
-            }
 
             if (!hashCipher.AlgorithmName.Equals(mainCipher.AlgorithmName))
                 throw new ArgumentException("'hashCipher' and 'mainCipher' must be the same algorithm");
@@ -94,6 +92,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
+            bool oldForEncryption = this.forEncryption;
             this.forEncryption = forEncryption;
             this.macBlock = null;
 
@@ -145,19 +144,17 @@ namespace Org.BouncyCastle.Crypto.Modes
              * KEY-DEPENDENT INITIALISATION
              */
 
-            // if keyParam is null we're reusing the last key.
             if (keyParameter != null)
             {
-                // TODO
-            }
-            else
-            {
+                // hashCipher always used in forward mode
+                hashCipher.Init(true, keyParameter);
+                mainCipher.Init(forEncryption, keyParameter);
                 KtopInput = null;
             }
-
-            // hashCipher always used in forward mode
-            hashCipher.Init(true, keyParameter);
-            mainCipher.Init(forEncryption, keyParameter);
+            else if (oldForEncryption != forEncryption)
+            {
+                throw new ArgumentException("cannot change encrypting state without providing key.");
+            }
 
             this.L_Asterisk = new byte[16];
             hashCipher.ProcessBlock(L_Asterisk, 0, L_Asterisk, 0);
@@ -528,10 +525,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             int n = 0;
-            while ((x & 1L) == 0L)
+            ulong ux = (ulong)x;
+            while ((ux & 1UL) == 0UL)
             {
                 ++n;
-                x >>= 1;
+                ux >>= 1;
             }
             return n;
         }

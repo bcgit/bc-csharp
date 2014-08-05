@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     byte[] derEncoding = certificateAuthority.GetEncoded(Asn1Encodable.Der);
                     derEncodings.Add(derEncoding);
-                    totalLength += derEncoding.Length;
+                    totalLength += derEncoding.Length + 2;
                 }
 
                 TlsUtilities.CheckUint16(totalLength);
@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 foreach (byte[] derEncoding in derEncodings)
                 {
-                    output.Write(derEncoding, 0, derEncoding.Length);
+                    TlsUtilities.WriteOpaque16(derEncoding, output);
                 }
             }
         }

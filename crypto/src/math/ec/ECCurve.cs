@@ -102,6 +102,27 @@ namespace Org.BouncyCastle.Math.EC
             return new Config(this, this.m_coord, this.m_endomorphism, this.m_multiplier);
         }
 
+        public virtual ECPoint ValidatePoint(BigInteger x, BigInteger y)
+        {
+            ECPoint p = CreatePoint(x, y);
+            if (!p.IsValid())
+            {
+                throw new ArgumentException("Invalid point coordinates");
+            }
+            return p;
+        }
+
+        [Obsolete("Per-point compression property will be removed")]
+        public virtual ECPoint ValidatePoint(BigInteger x, BigInteger y, bool withCompression)
+        {
+            ECPoint p = CreatePoint(x, y, withCompression);
+            if (!p.IsValid())
+            {
+                throw new ArgumentException("Invalid point coordinates");
+            }
+            return p;
+        }
+
         public virtual ECPoint CreatePoint(BigInteger x, BigInteger y)
         {
             return CreatePoint(x, y, false);
@@ -185,7 +206,7 @@ namespace Org.BouncyCastle.Math.EC
             // TODO Default behaviour could be improved if the two curves have the same coordinate system by copying any Z coordinates.
             p = p.Normalize();
 
-            return CreatePoint(p.XCoord.ToBigInteger(), p.YCoord.ToBigInteger(), p.IsCompressed);
+            return ValidatePoint(p.XCoord.ToBigInteger(), p.YCoord.ToBigInteger(), p.IsCompressed);
         }
 
         /**
@@ -344,7 +365,8 @@ namespace Org.BouncyCastle.Math.EC
             ECPoint p = null;
             int expectedLength = (FieldSize + 7) / 8;
 
-            switch (encoded[0])
+            byte type = encoded[0];
+            switch (type)
             {
                 case 0x00: // infinity
                 {
@@ -361,10 +383,13 @@ namespace Org.BouncyCastle.Math.EC
                     if (encoded.Length != (expectedLength + 1))
                         throw new ArgumentException("Incorrect length for compressed encoding", "encoded");
 
-                    int yTilde = encoded[0] & 1;
+                    int yTilde = type & 1;
                     BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
 
                     p = DecompressPoint(yTilde, X);
+                    if (!p.SatisfiesCofactor())
+                        throw new ArgumentException("Invalid point");
+
                     break;
                 }
 
@@ -376,7 +401,7 @@ namespace Org.BouncyCastle.Math.EC
                     BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
                     BigInteger Y = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
 
-                    p = CreatePoint(X, Y);
+                    p = ValidatePoint(X, Y);
                     break;
                 }
 
@@ -389,18 +414,51 @@ namespace Org.BouncyCastle.Math.EC
                     BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
                     BigInteger Y = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
 
-                    if (Y.TestBit(0) != (encoded[0] == 0x07))
+                    if (Y.TestBit(0) != (type == 0x07))
                         throw new ArgumentException("Inconsistent Y coordinate in hybrid encoding", "encoded");
 
-                    p = CreatePoint(X, Y);
+                    p = ValidatePoint(X, Y);
                     break;
                 }
 
                 default:
-                    throw new FormatException("Invalid point encoding " + encoded[0]);
+                    throw new FormatException("Invalid point encoding " + type);
             }
 
+            if (type != 0x00 && p.IsInfinity)
+                throw new ArgumentException("Invalid infinity encoding", "encoded");
+
             return p;
+        }
+    }
+
+    public abstract class AbstractFpCurve
+        : ECCurve
+    {
+        protected AbstractFpCurve(BigInteger q)
+            : base(FiniteFields.GetPrimeField(q))
+        {
+        }
+
+        protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
+        {
+            ECFieldElement x = FromBigInteger(X1);
+            ECFieldElement rhs = x.Square().Add(A).Multiply(x).Add(B);
+            ECFieldElement y = rhs.Sqrt();
+
+            /*
+             * If y is not a square, then we haven't got a point on the curve
+             */
+            if (y == null)
+                throw new ArgumentException("Invalid point compression");
+
+            if (y.TestBitZero() != (yTilde == 1))
+            {
+                // Use the other root
+                y = y.Negate();
+            }
+
+            return CreateRawPoint(x, y, true);
         }
     }
 
@@ -408,7 +466,7 @@ namespace Org.BouncyCastle.Math.EC
      * Elliptic curve over Fp
      */
     public class FpCurve
-        : ECCurve
+        : AbstractFpCurve
     {
         private const int FP_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
 
@@ -421,7 +479,7 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         public FpCurve(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor)
-            : base(FiniteFields.GetPrimeField(q))
+            : base(q)
         {
             this.m_q = q;
             this.m_r = FpFieldElement.CalculateResidue(q);
@@ -440,7 +498,7 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b, BigInteger order, BigInteger cofactor)
-            : base(FiniteFields.GetPrimeField(q))
+            : base(q)
         {
             this.m_q = q;
             this.m_r = r;
@@ -523,38 +581,11 @@ namespace Org.BouncyCastle.Math.EC
 
             return base.ImportPoint(p);
         }
-
-        protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
-        {
-            ECFieldElement x = FromBigInteger(X1);
-            ECFieldElement alpha = x.Square().Add(m_a).Multiply(x).Add(m_b);
-            ECFieldElement beta = alpha.Sqrt();
-
-            //
-            // if we can't find a sqrt we haven't got a point on the
-            // curve - run!
-            //
-            if (beta == null)
-                throw new ArithmeticException("Invalid point compression");
-
-            if (beta.TestBitZero() != (yTilde == 1))
-            {
-                // Use the other root
-                beta = beta.Negate();
-            }
-
-            return new FpPoint(this, x, beta, true);
-        }
     }
 
-    /**
-     * Elliptic curves over F2m. The Weierstrass equation is given by
-     * <code>y<sup>2</sup> + xy = x<sup>3</sup> + ax<sup>2</sup> + b</code>.
-     */
-    public class F2mCurve : ECCurve
+    public abstract class AbstractF2mCurve
+        : ECCurve
     {
-        private const int F2M_DEFAULT_COORDS = COORD_LAMBDA_PROJECTIVE;
-
         private static IFiniteField BuildField(int m, int k1, int k2, int k3)
         {
             if (k1 == 0)
@@ -584,6 +615,21 @@ namespace Org.BouncyCastle.Math.EC
 
             return FiniteFields.GetBinaryExtensionField(new int[]{ 0, k1, k2, k3, m });
         }
+
+        protected AbstractF2mCurve(int m, int k1, int k2, int k3)
+            : base(BuildField(m, k1, k2, k3))
+        {
+        }
+    }
+
+    /**
+     * Elliptic curves over F2m. The Weierstrass equation is given by
+     * <code>y<sup>2</sup> + xy = x<sup>3</sup> + ax<sup>2</sup> + b</code>.
+     */
+    public class F2mCurve
+        : AbstractF2mCurve
+    {
+        private const int F2M_DEFAULT_COORDS = COORD_LAMBDA_PROJECTIVE;
 
         /**
          * The exponent <code>m</code> of <code>F<sub>2<sup>m</sup></sub></code>.
@@ -748,7 +794,7 @@ namespace Org.BouncyCastle.Math.EC
             BigInteger	b,
             BigInteger	order,
             BigInteger	cofactor)
-            : base(BuildField(m, k1, k2, k3))
+            : base(m, k1, k2, k3)
         {
             this.m = m;
             this.k1 = k1;
@@ -781,7 +827,7 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         protected F2mCurve(int m, int k1, int k2, int k3, ECFieldElement a, ECFieldElement b, BigInteger order, BigInteger cofactor)
-            : base(BuildField(m, k1, k2, k3))
+            : base(m, k1, k2, k3)
         {
             this.m = m;
             this.k1 = k1;
@@ -936,7 +982,7 @@ namespace Org.BouncyCastle.Math.EC
 
         protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
         {
-            ECFieldElement xp = FromBigInteger(X1), yp;
+            ECFieldElement xp = FromBigInteger(X1), yp = null;
             if (xp.IsZero)
             {
                 yp = m_b.Sqrt();
@@ -946,31 +992,34 @@ namespace Org.BouncyCastle.Math.EC
                 ECFieldElement beta = xp.Square().Invert().Multiply(B).Add(A).Add(xp);
                 ECFieldElement z = SolveQuadradicEquation(beta);
 
-                if (z == null)
-                    throw new ArithmeticException("Invalid point compression");
-
-                if (z.TestBitZero() != (yTilde == 1))
+                if (z != null)
                 {
-                    z = z.AddOne();
-                }
-
-                switch (this.CoordinateSystem)
-                {
-                    case COORD_LAMBDA_AFFINE:
-                    case COORD_LAMBDA_PROJECTIVE:
+                    if (z.TestBitZero() != (yTilde == 1))
                     {
-                        yp = z.Add(xp);
-                        break;
+                        z = z.AddOne();
                     }
-                    default:
+
+                    switch (this.CoordinateSystem)
                     {
-                        yp = z.Multiply(xp);
-                        break;
+                        case COORD_LAMBDA_AFFINE:
+                        case COORD_LAMBDA_PROJECTIVE:
+                        {
+                            yp = z.Add(xp);
+                            break;
+                        }
+                        default:
+                        {
+                            yp = z.Multiply(xp);
+                            break;
+                        }
                     }
                 }
             }
 
-            return new F2mPoint(this, xp, yp, true);
+            if (yp == null)
+                throw new ArgumentException("Invalid point compression");
+
+            return CreateRawPoint(xp, yp, true);
         }
 
         /**

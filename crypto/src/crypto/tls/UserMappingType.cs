@@ -8,6 +8,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         /*
          * RFC 4681
          */
-        public const short upn_domain_hint = 64;
+        public const byte upn_domain_hint = 64;
     }
 }

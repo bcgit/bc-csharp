@@ -49,9 +49,9 @@ namespace Org.BouncyCastle.Math.EC
 
                 if (Nat.Gte(len, u, v))
                 {
-                    Nat.Sub(len, u, v, u);
+                    Nat.SubFrom(len, v, u);
                     Debug.Assert((u[0] & 1) == 0);
-                    ac += Nat.Sub(len, a, b, a) - bc;
+                    ac += Nat.SubFrom(len, b, a) - bc;
                     InversionStep(p, u, uvLen, a, ref ac);
                     if (Nat.IsOne(len, u))
                     {
@@ -61,9 +61,9 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 else
                 {
-                    Nat.Sub(len, v, u, v);
+                    Nat.SubFrom(len, u, v);
                     Debug.Assert((v[0] & 1) == 0);
-                    bc += Nat.Sub(len, b, a, b) - ac;
+                    bc += Nat.SubFrom(len, a, b) - ac;
                     InversionStep(p, v, uvLen, b, ref bc);
                     if (Nat.IsOne(len, v))
                     {
@@ -99,13 +99,23 @@ namespace Org.BouncyCastle.Math.EC
             return s;
         }
 
+        public static void Add(uint[] p, uint[] x, uint[] y, uint[] z)
+        {
+            int len = p.Length;
+            uint c = Nat.Add(len, x, y, z);
+            if (c != 0)
+            {
+                Nat.SubFrom(len, p, z);
+            }
+        }
+
         public static void Subtract(uint[] p, uint[] x, uint[] y, uint[] z)
         {
             int len = p.Length;
             int c = Nat.Sub(len, x, y, z);
             if (c != 0)
             {
-                Nat.Add(len, z, p, z);
+                Nat.AddTo(len, p, z);
             }
         }
 
@@ -146,11 +156,11 @@ namespace Org.BouncyCastle.Math.EC
                 {
                     if (xc < 0)
                     {
-                        xc += (int)Nat.Add(len, x, p, x);
+                        xc += (int)Nat.AddTo(len, p, x);
                     }
                     else
                     {
-                        xc += Nat.Sub(len, x, p, x);
+                        xc += Nat.SubFrom(len, p, x);
                     }
                 }
 

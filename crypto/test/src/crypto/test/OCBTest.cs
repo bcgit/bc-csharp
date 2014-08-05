@@ -6,16 +6,17 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
     /**
-     * Test vectors from the "work in progress" Internet-Draft <a
-     * href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-07">The OCB Authenticated-Encryption
-     * Algorithm</a>
+     * Test vectors from <a href="http://tools.ietf.org/html/rfc7253">RFC 7253 on The OCB
+     * Authenticated-Encryption Algorithm</a>
      */
     public class OcbTest
         : SimpleTest
@@ -120,16 +121,18 @@ namespace Org.BouncyCastle.Crypto.Tests
                 RunTestCase("Test Case " + i, TEST_VECTORS_96[i], 96, K96);
             }
 
-            RunLongerTestCase(128, 128, Hex.Decode("67E944D23256C5E0B6C61FA22FDF1EA2"));
-            RunLongerTestCase(192, 128, Hex.Decode("F673F2C3E7174AAE7BAE986CA9F29E17"));
-            RunLongerTestCase(256, 128, Hex.Decode("D90EB8E9C977C88B79DD793D7FFA161C"));
-            RunLongerTestCase(128, 96, Hex.Decode("77A3D8E73589158D25D01209"));
-            RunLongerTestCase(192, 96, Hex.Decode("05D56EAD2752C86BE6932C5E"));
-            RunLongerTestCase(256, 96, Hex.Decode("5458359AC23B0CBA9E6330DD"));
-            RunLongerTestCase(128, 64, Hex.Decode("192C9B7BD90BA06A"));
-            RunLongerTestCase(192, 64, Hex.Decode("0066BC6E0EF34E24"));
-            RunLongerTestCase(256, 64, Hex.Decode("7D4EA5D445501CBE"));
+            RunLongerTestCase(128, 128, "67E944D23256C5E0B6C61FA22FDF1EA2");
+            RunLongerTestCase(192, 128, "F673F2C3E7174AAE7BAE986CA9F29E17");
+            RunLongerTestCase(256, 128, "D90EB8E9C977C88B79DD793D7FFA161C");
+            RunLongerTestCase(128, 96, "77A3D8E73589158D25D01209");
+            RunLongerTestCase(192, 96, "05D56EAD2752C86BE6932C5E");
+            RunLongerTestCase(256, 96, "5458359AC23B0CBA9E6330DD");
+            RunLongerTestCase(128, 64, "192C9B7BD90BA06A");
+            RunLongerTestCase(192, 64, "0066BC6E0EF34E24");
+            RunLongerTestCase(256, 64, "7D4EA5D445501CBE");
 
+            RandomTests();
+            OutputSizeTests();
             DoTestExceptions();
         }
 
@@ -172,18 +175,20 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             int macLengthBytes = macLengthBits / 8;
 
-            // TODO Variations processing AAD and cipher bytes incrementally
-
             KeyParameter keyParameter = new KeyParameter(K);
-            AeadParameters aeadParameters = new AeadParameters(keyParameter, macLengthBits, N, A);
+            AeadParameters parameters = new AeadParameters(keyParameter, macLengthBits, N, A);
 
-            IAeadBlockCipher encCipher = InitOcbCipher(true, aeadParameters);
-            IAeadBlockCipher decCipher = InitOcbCipher(false, aeadParameters);
+            IAeadBlockCipher encCipher = InitOcbCipher(true, parameters);
+            IAeadBlockCipher decCipher = InitOcbCipher(false, parameters);
 
             CheckTestCase(encCipher, decCipher, testName, macLengthBytes, P, C);
             CheckTestCase(encCipher, decCipher, testName + " (reused)", macLengthBytes, P, C);
 
-            // TODO Key reuse
+            // Key reuse
+            AeadParameters keyReuseParams = AeadTestUtilities.ReuseKey(parameters);
+            encCipher.Init(true, keyReuseParams);
+            decCipher.Init(false, keyReuseParams);
+            CheckTestCase(encCipher, decCipher, testName + " (key reuse)", macLengthBytes, P, C);
         }
 
         private IBlockCipher CreateUnderlyingCipher()
@@ -251,14 +256,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void RunLongerTestCase(int keyLen, int tagLen, byte[] expectedOutput)
+        private void RunLongerTestCase(int keyLen, int tagLen, string expectedOutputHex)
         {
+            byte[] expectedOutput = Hex.Decode(expectedOutputHex);
             byte[] keyBytes = new byte[keyLen / 8];
             keyBytes[keyBytes.Length - 1] = (byte)tagLen;
             KeyParameter key = new KeyParameter(keyBytes);
 
             IAeadBlockCipher c1 = InitOcbCipher(true, new AeadParameters(key, tagLen, CreateNonce(385)));
-
             IAeadBlockCipher c2 = CreateOcbCipher();
 
             long total = 0;
@@ -320,6 +325,177 @@ namespace Org.BouncyCastle.Crypto.Tests
             c1.ProcessAadBytes(output, 0, len);
 
             return len;
+        }
+
+        private void RandomTests()
+        {
+            SecureRandom srng = new SecureRandom();
+            srng.SetSeed(DateTimeUtilities.CurrentUnixMs());
+            for (int i = 0; i < 10; ++i)
+            {
+                RandomTest(srng);
+            }
+        }
+
+        private void RandomTest(SecureRandom srng)
+        {
+            int kLength = 16 + 8 * (System.Math.Abs(srng.NextInt()) % 3);
+            byte[] K = new byte[kLength];
+            srng.NextBytes(K);
+
+            int pLength = (int)((uint)srng.NextInt() >> 16);
+            byte[] P = new byte[pLength];
+            srng.NextBytes(P);
+
+            int aLength = (int)((uint)srng.NextInt() >> 24);
+            byte[] A = new byte[aLength];
+            srng.NextBytes(A);
+
+            int saLength = (int)((uint)srng.NextInt() >> 24);
+            byte[] SA = new byte[saLength];
+            srng.NextBytes(SA);
+
+            int ivLength = 1 + NextInt(srng, 15);
+            byte[] IV = new byte[ivLength];
+            srng.NextBytes(IV);
+
+            AeadParameters parameters = new AeadParameters(new KeyParameter(K), 16 * 8, IV, A);
+            IAeadBlockCipher cipher = InitOcbCipher(true, parameters);
+            byte[] C = new byte[cipher.GetOutputSize(P.Length)];
+            int predicted = cipher.GetUpdateOutputSize(P.Length);
+
+            int split = NextInt(srng, SA.Length + 1);
+            cipher.ProcessAadBytes(SA, 0, split);
+            int len = cipher.ProcessBytes(P, 0, P.Length, C, 0);
+            cipher.ProcessAadBytes(SA, split, SA.Length - split);
+
+            if (predicted != len)
+            {
+                Fail("encryption reported incorrect update length in randomised test");
+            }
+
+            len += cipher.DoFinal(C, len);
+
+            if (C.Length != len)
+            {
+                Fail("encryption reported incorrect length in randomised test");
+            }
+
+            byte[] encT = cipher.GetMac();
+            byte[] tail = new byte[C.Length - P.Length];
+            Array.Copy(C, P.Length, tail, 0, tail.Length);
+
+            if (!AreEqual(encT, tail))
+            {
+                Fail("stream contained wrong mac in randomised test");
+            }
+
+            cipher.Init(false, parameters);
+            byte[] decP = new byte[cipher.GetOutputSize(C.Length)];
+            predicted = cipher.GetUpdateOutputSize(C.Length);
+
+            split = NextInt(srng, SA.Length + 1);
+            cipher.ProcessAadBytes(SA, 0, split);
+            len = cipher.ProcessBytes(C, 0, C.Length, decP, 0);
+            cipher.ProcessAadBytes(SA, split, SA.Length - split);
+
+            if (predicted != len)
+            {
+                Fail("decryption reported incorrect update length in randomised test");
+            }
+
+            len += cipher.DoFinal(decP, len);
+
+            if (!AreEqual(P, decP))
+            {
+                Fail("incorrect decrypt in randomised test");
+            }
+
+            byte[] decT = cipher.GetMac();
+            if (!AreEqual(encT, decT))
+            {
+                Fail("decryption produced different mac from encryption");
+            }
+
+            //
+            // key reuse test
+            //
+            cipher.Init(false, AeadTestUtilities.ReuseKey(parameters));
+            decP = new byte[cipher.GetOutputSize(C.Length)];
+
+            split = NextInt(srng, SA.Length + 1);
+            cipher.ProcessAadBytes(SA, 0, split);
+            len = cipher.ProcessBytes(C, 0, C.Length, decP, 0);
+            cipher.ProcessAadBytes(SA, split, SA.Length - split);
+
+            len += cipher.DoFinal(decP, len);
+
+            if (!AreEqual(P, decP))
+            {
+                Fail("incorrect decrypt in randomised test");
+            }
+
+            decT = cipher.GetMac();
+            if (!AreEqual(encT, decT))
+            {
+                Fail("decryption produced different mac from encryption");
+            }
+        }
+
+        private void OutputSizeTests()
+        {
+            byte[] K = new byte[16];
+            byte[] A = null;
+            byte[] IV = new byte[15];
+
+            AeadParameters parameters = new AeadParameters(new KeyParameter(K), 16 * 8, IV, A);
+            IAeadBlockCipher cipher = InitOcbCipher(true, parameters);
+
+            if (cipher.GetUpdateOutputSize(0) != 0)
+            {
+                Fail("incorrect getUpdateOutputSize for initial 0 bytes encryption");
+            }
+
+            if (cipher.GetOutputSize(0) != 16)
+            {
+                Fail("incorrect getOutputSize for initial 0 bytes encryption");
+            }
+
+            cipher.Init(false, parameters);
+
+            if (cipher.GetUpdateOutputSize(0) != 0)
+            {
+                Fail("incorrect getUpdateOutputSize for initial 0 bytes decryption");
+            }
+
+            // NOTE: 0 bytes would be truncated data, but we want it to fail in the doFinal, not here
+            if (cipher.GetOutputSize(0) != 0)
+            {
+                Fail("fragile getOutputSize for initial 0 bytes decryption");
+            }
+
+            if (cipher.GetOutputSize(16) != 0)
+            {
+                Fail("incorrect getOutputSize for initial MAC-size bytes decryption");
+            }
+        }
+
+        private static int NextInt(SecureRandom rand, int n)
+        {
+            if ((n & -n) == n)  // i.e., n is a power of 2
+            {
+                return (int)(((uint)n * (ulong)((uint)rand.NextInt() >> 1)) >> 31);
+            }
+
+            int bits, value;
+            do
+            {
+                bits = (int)((uint)rand.NextInt() >> 1);
+                value = bits % n;
+            }
+            while (bits - value + (n - 1) < 0);
+
+            return value;
         }
 
         public static void Main(
