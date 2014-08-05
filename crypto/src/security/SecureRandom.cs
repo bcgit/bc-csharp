@@ -28,7 +28,12 @@ namespace Org.BouncyCastle.Security
 
 					// Even though Ticks has at most 8 or 14 bits of entropy, there's no harm in adding it.
 					sr.SetSeed(DateTime.Now.Ticks);
-                    
+					// In addition to Ticks and ThreadedSeedGenerator, also seed from CryptoApiRandomGenerator
+					CryptoApiRandomGenerator systemRNG = new CryptoApiRandomGenerator();
+					byte[] systemSeed = new byte[32];
+					systemRNG.NextBytes(systemSeed);
+					sr.SetSeed(systemSeed);
+					Array.Clear(systemSeed,0,systemSeed.Length);
 					// 32 will be enough when ThreadedSeedGenerator is fixed.  Until then, ThreadedSeedGenerator returns low
 					// entropy, and this is not sufficient to be secure. http://www.bouncycastle.org/csharpdevmailarchive/msg00814.html
 					sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(32, true));
