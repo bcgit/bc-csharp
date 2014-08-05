@@ -138,6 +138,7 @@
     <Compile Include="src\crypto\examples\DESExample.cs" />
     <Compile Include="src\crypto\io\test\AllTests.cs" />
     <Compile Include="src\crypto\io\test\CipherStreamTest.cs" />
+    <Compile Include="src\crypto\test\AeadTestUtilities.cs" />
     <Compile Include="src\crypto\test\AESFastTest.cs" />
     <Compile Include="src\crypto\test\AESLightTest.cs" />
     <Compile Include="src\crypto\test\AESTest.cs" />
