@@ -5949,6 +5949,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\util\Times.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\util\collections\CollectionUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
