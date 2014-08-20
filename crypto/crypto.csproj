@@ -4234,6 +4234,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\signers\HMacDsaKCalculator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\IDsaKCalculator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\signers\ISO9796d2PSSSigner.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4245,6 +4255,11 @@
                 />
                 <File
                     RelPath = "src\crypto\signers\PSSSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\RandomDsaKCalculator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -10208,6 +10223,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\DESTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\DeterministicDSATest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

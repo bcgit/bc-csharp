@@ -1,11 +1,11 @@
 using System;
+
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -15,8 +15,28 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class ECDsaSigner
         : IDsa
     {
+        protected readonly IDsaKCalculator kCalculator;
+
         protected ECKeyParameters key = null;
         protected SecureRandom random = null;
+
+        /**
+         * Default configuration, random K values.
+         */
+        public ECDsaSigner()
+        {
+            this.kCalculator = new RandomDsaKCalculator();
+        }
+
+        /**
+         * Configuration with an alternate, possibly deterministic calculator of K.
+         *
+         * @param kCalculator a K value calculator.
+         */
+        public ECDsaSigner(IDsaKCalculator kCalculator)
+        {
+            this.kCalculator = kCalculator;
+        }
 
         public virtual string AlgorithmName
         {
@@ -50,7 +70,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 this.key = (ECPublicKeyParameters)parameters;
             }
 
-            this.random = InitSecureRandom(forSigning, providedRandom);
+            this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);
         }
 
         // 5.3 pg 28
@@ -68,6 +88,15 @@ namespace Org.BouncyCastle.Crypto.Signers
             BigInteger e = CalculateE(n, message);
             BigInteger d = ((ECPrivateKeyParameters)key).D;
 
+            if (kCalculator.IsDeterministic)
+            {
+                kCalculator.Init(n, d, message);
+            }
+            else
+            {
+                kCalculator.Init(n, random);
+            }
+
             BigInteger r, s;
 
             ECMultiplier basePointMultiplier = CreateBasePointMultiplier();
@@ -78,11 +107,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 BigInteger k;
                 do // Generate r
                 {
-                    do
-                    {
-                        k = new BigInteger(n.BitLength, random);
-                    }
-                    while (k.SignValue == 0 || k.CompareTo(n) >= 0);
+                    k = kCalculator.NextK();
 
                     ECPoint p = basePointMultiplier.Multiply(ec.G, k).Normalize();
 
