@@ -357,7 +357,7 @@ namespace Org.BouncyCastle.Security
 
             if (mechanism.Equals("RSA"))
             {
-                return (new RsaDigestSigner(new NullDigest()));
+                return (new RsaDigestSigner(new NullDigest(), (AlgorithmIdentifier)null));
             }
             if (mechanism.Equals("MD2withRSA"))
             {
