@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class DefaultTlsCipherFactory
         : TlsCipherFactory
     {
-        public virtual TlsCipher CreateCipher(TlsClientContext context,
+        public virtual TlsCipher CreateCipher(TlsContext context,
             int encryptionAlgorithm, DigestAlgorithm digestAlgorithm)
         {
             switch (encryptionAlgorithm)
@@ -29,13 +29,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"></exception>
-        protected virtual TlsCipher CreateRC4Cipher(TlsClientContext context, int cipherKeySize, DigestAlgorithm digestAlgorithm)
+        protected virtual TlsCipher CreateRC4Cipher(TlsContext context, int cipherKeySize, DigestAlgorithm digestAlgorithm)
         {
             return new TlsStreamCipher(context, CreateRC4StreamCipher(), CreateRC4StreamCipher(), CreateDigest(digestAlgorithm), CreateDigest(digestAlgorithm), cipherKeySize);
         }
 
         /// <exception cref="IOException"></exception>
-        protected virtual TlsCipher CreateAesCipher(TlsClientContext context, int cipherKeySize,
+        protected virtual TlsCipher CreateAesCipher(TlsContext context, int cipherKeySize,
             DigestAlgorithm digestAlgorithm)
         {
             return new TlsBlockCipher(context, CreateAesBlockCipher(), CreateAesBlockCipher(),
@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"></exception>
-        protected virtual TlsCipher CreateDesEdeCipher(TlsClientContext context, int cipherKeySize,
+        protected virtual TlsCipher CreateDesEdeCipher(TlsContext context, int cipherKeySize,
             DigestAlgorithm digestAlgorithm)
         {
             return new TlsBlockCipher(context, CreateDesEdeBlockCipher(), CreateDesEdeBlockCipher(),

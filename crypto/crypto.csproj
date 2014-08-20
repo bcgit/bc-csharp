@@ -4269,6 +4269,36 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\AbstractTlsAgreementCredentials.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\AbstractTlsContext.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\AbstractTlsCredentials.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\AbstractTlsEncryptionCredentials.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\AbstractTlsSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\AbstractTlsSignerCredentials.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\AlertDescription.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4385,6 +4415,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\DefaultTlsClient.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\DefaultTlsEncryptionCredentials.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4674,6 +4709,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\TlsEncryptionCredentials.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsFatalAlert.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4735,6 +4775,16 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsRsaSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsServerContext.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsServerContextImpl.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

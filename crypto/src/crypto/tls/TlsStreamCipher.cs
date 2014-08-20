@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 {
     public class TlsStreamCipher : TlsCipher
     {
-        protected TlsClientContext context;
+        protected TlsContext context;
 
         protected IStreamCipher encryptCipher;
         protected IStreamCipher decryptCipher;
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected TlsMac writeMac;
         protected TlsMac readMac;
 
-        public TlsStreamCipher(TlsClientContext context, IStreamCipher encryptCipher,
+        public TlsStreamCipher(TlsContext context, IStreamCipher encryptCipher,
             IStreamCipher decryptCipher, IDigest writeDigest, IDigest readDigest, int cipherKeySize)
         {
             this.context = context;
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             SecurityParameters securityParameters = context.SecurityParameters;
 
-            byte[] keyBlock = TlsUtilities.PRF(securityParameters.masterSecret, "key expansion",
+            byte[] keyBlock = TlsUtilities.PRF(context, securityParameters.masterSecret, "key expansion",
                 TlsUtilities.Concat(securityParameters.serverRandom, securityParameters.clientRandom),
                 prfSize);
 

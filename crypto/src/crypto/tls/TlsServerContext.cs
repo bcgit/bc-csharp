@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    public interface TlsClientContext
-        :   TlsContext
+    public interface TlsServerContext
+        : TlsContext
     {
     }
 }

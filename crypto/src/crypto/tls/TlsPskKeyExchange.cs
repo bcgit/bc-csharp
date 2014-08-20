@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     internal class TlsPskKeyExchange
         : TlsKeyExchange
     {
-        protected TlsClientContext context;
+        protected TlsContext context;
         protected int keyExchange;
         protected TlsPskIdentity pskIdentity;
 
@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected RsaKeyParameters rsaServerPublicKey = null;
         protected byte[] premasterSecret;
 
-        internal TlsPskKeyExchange(TlsClientContext context, int keyExchange,
+        internal TlsPskKeyExchange(TlsContext context, int keyExchange,
             TlsPskIdentity pskIdentity)
         {
             switch (keyExchange)
@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual void GenerateClientKeyExchange(Stream output)
         {
-            if (psk_identity_hint == null || psk_identity_hint.Length == 0)
+            if (psk_identity_hint == null)
             {
                 pskIdentity.SkipIdentityHint();
             }
@@ -152,15 +152,20 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             TlsUtilities.WriteOpaque16(psk_identity, output);
 
-            if (this.keyExchange == KeyExchangeAlgorithm.RSA_PSK)
-            {
-                this.premasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(
-                    context.SecureRandom, this.rsaServerPublicKey, output);
-            }
-            else if (this.keyExchange == KeyExchangeAlgorithm.DHE_PSK)
+            if (this.keyExchange == KeyExchangeAlgorithm.DHE_PSK)
             {
                 this.dhAgreeClientPrivateKey = TlsDHUtilities.GenerateEphemeralClientKeyExchange(
                     context.SecureRandom, this.dhAgreeServerPublicKey.Parameters, output);
+            }
+            else if (this.keyExchange == KeyExchangeAlgorithm.ECDHE_PSK)
+            {
+                // TODO[RFC 5489]
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+            else if (this.keyExchange == KeyExchangeAlgorithm.RSA_PSK)
+            {
+                this.premasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(
+                    context, this.rsaServerPublicKey, output);
             }
         }
 

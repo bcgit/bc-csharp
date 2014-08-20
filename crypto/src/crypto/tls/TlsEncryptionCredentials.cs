@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    public interface TlsAgreementCredentials
+    public interface TlsEncryptionCredentials
         :   TlsCredentials
     {
         /// <exception cref="IOException"></exception>
-        byte[] GenerateAgreement(AsymmetricKeyParameter peerPublicKey);
+        byte[] DecryptPreMasterSecret(byte[] encryptedPreMasterSecret);
     }
 }

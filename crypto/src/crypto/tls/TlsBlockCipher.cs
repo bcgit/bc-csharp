@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class TlsBlockCipher
         : TlsCipher
     {
-        protected TlsClientContext context;
+        protected TlsContext context;
         protected byte[] randomData;
 
         protected IBlockCipher encryptCipher;
@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return rMac; }
         }
 
-        public TlsBlockCipher(TlsClientContext context, IBlockCipher encryptCipher,
+        public TlsBlockCipher(TlsContext context, IBlockCipher encryptCipher,
             IBlockCipher decryptCipher, IDigest writeDigest, IDigest readDigest, int cipherKeySize)
         {
             this.context = context;
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             SecurityParameters securityParameters = context.SecurityParameters;
 
-            byte[] keyBlock = TlsUtilities.PRF(securityParameters.masterSecret, "key expansion",
+            byte[] keyBlock = TlsUtilities.PRF(context, securityParameters.masterSecret, "key expansion",
                 TlsUtilities.Concat(securityParameters.serverRandom, securityParameters.clientRandom),
                 prfSize);
 

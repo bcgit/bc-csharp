@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     internal class TlsRsaKeyExchange
         : TlsKeyExchange
     {
-        protected TlsClientContext context;
+        protected TlsContext context;
 
         protected AsymmetricKeyParameter serverPublicKey = null;
 
@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected byte[] premasterSecret;
 
-        internal TlsRsaKeyExchange(TlsClientContext context)
+        internal TlsRsaKeyExchange(TlsContext context)
         {
             this.context = context;
         }
@@ -110,8 +110,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         
         public virtual void GenerateClientKeyExchange(Stream output)
         {
-            this.premasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(
-                context.SecureRandom, this.rsaServerPublicKey, output);
+            this.premasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(context, this.rsaServerPublicKey, output);
         }
 
         public virtual byte[] GeneratePremasterSecret()

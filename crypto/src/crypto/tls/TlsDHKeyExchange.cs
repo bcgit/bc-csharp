@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     internal class TlsDHKeyExchange
         : TlsKeyExchange
     {
-        protected TlsClientContext context;
+        protected TlsContext context;
         protected int keyExchange;
         protected TlsSigner tlsSigner;
 
@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected TlsAgreementCredentials agreementCredentials;
         protected DHPrivateKeyParameters dhAgreeClientPrivateKey = null;
 
-        internal TlsDHKeyExchange(TlsClientContext context, int keyExchange)
+        internal TlsDHKeyExchange(TlsContext context, int keyExchange)
         {
             switch (keyExchange)
             {

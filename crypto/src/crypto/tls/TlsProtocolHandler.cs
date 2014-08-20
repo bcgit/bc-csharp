@@ -269,9 +269,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                             /*
                              * Calculate our own checksum.
                              */
-                            byte[] expectedServerVerifyData = TlsUtilities.PRF(
-                                securityParameters.masterSecret, "server finished",
-                                rs.GetCurrentHash(), 12);
+                            byte[] expectedServerVerifyData = TlsUtilities.PRF(tlsClientContext,
+                                securityParameters.masterSecret, ExporterLabel.server_finished, rs.GetCurrentHash(), 12);
 
                             /*
                              * Compare both checksums.
@@ -388,7 +387,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                                         continue;
 
                                     // TODO Add session resumption support
-                                    ///*
+                                    //*
                                     // * RFC 3546 2.3. If [...] the older session is resumed, then the server MUST ignore
                                     // * extensions appearing in the client hello, and send a server hello containing no
                                     // * extensions[.]
@@ -546,9 +545,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                              */
                             byte[] pms = this.keyExchange.GeneratePremasterSecret();
 
-                            securityParameters.masterSecret = TlsUtilities.PRF(pms, "master secret",
-                                TlsUtilities.Concat(securityParameters.clientRandom, securityParameters.serverRandom),
-                                48);
+                            securityParameters.masterSecret = TlsUtilities.PRF(tlsClientContext, pms, ExporterLabel.master_secret,
+                                TlsUtilities.Concat(securityParameters.clientRandom, securityParameters.serverRandom), 48);
 
                             // TODO Is there a way to ensure the data is really overwritten?
                             /*
@@ -565,8 +563,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                             /*
                              * Send our finished message.
                              */
-                            byte[] clientVerifyData = TlsUtilities.PRF(securityParameters.masterSecret,
-                                "client finished", rs.GetCurrentHash(), 12);
+                            byte[] clientVerifyData = TlsUtilities.PRF(tlsClientContext, securityParameters.masterSecret,
+                                ExporterLabel.client_finished, rs.GetCurrentHash(), 12);
 
                             MemoryStream bos = new MemoryStream();
                             TlsUtilities.WriteUint8((byte)HandshakeType.finished, bos);
@@ -818,19 +816,22 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (this.tlsClient != null)
                 throw new InvalidOperationException("Connect can only be called once");
 
+            this.tlsClient = tlsClient;
+
+            this.securityParameters = new SecurityParameters();
+
+            this.tlsClientContext = new TlsClientContextImpl(random, securityParameters);
+
+            this.securityParameters.clientRandom = CreateRandomBlock(tlsClient.ShouldUseGmtUnixTime(),
+                tlsClientContext.NonceRandomGenerator);
+
+            this.tlsClient.Init(tlsClientContext);
+
             /*
              * Send Client hello
              *
-             * First, generate some random data.
+             * First, send the client_random data.
              */
-            this.securityParameters = new SecurityParameters();
-            this.securityParameters.clientRandom = CreateRandomBlock(tlsClient.ShouldUseGmtUnixTime(), random,
-                ExporterLabel.client_random);
-
-            this.tlsClientContext = new TlsClientContextImpl(random, securityParameters);
-            this.tlsClient = tlsClient;
-            this.tlsClient.Init(tlsClientContext);
-
             MemoryStream outStr = new MemoryStream();
             TlsUtilities.WriteVersion(outStr);
             outStr.Write(securityParameters.clientRandom, 0, 32);
@@ -1160,20 +1161,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected static byte[] CreateRandomBlock(bool useGMTUnixTime, SecureRandom random, string asciiLabel)
+        protected static byte[] CreateRandomBlock(bool useGMTUnixTime, IRandomGenerator randomGenerator)
         {
-            /*
-             * We use the TLS 1.0 PRF on the SecureRandom output, to guard against RNGs where the raw
-             * output could be used to recover the internal state.
-             */
-            byte[] secret = new byte[32];
-            random.NextBytes(secret);
-
-            byte[] seed = new byte[8];
-            // TODO Use high-resolution timer
-            TlsUtilities.WriteUint64(DateTimeUtilities.CurrentUnixMs(), seed, 0);
-
-            byte[] result = TlsUtilities.PRF(secret, asciiLabel, seed, 32);
+            byte[] result = new byte[32];
+            randomGenerator.NextBytes(result);
 
             if (useGMTUnixTime)
             {

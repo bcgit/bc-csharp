@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     public interface TlsCipherFactory
     {
         /// <exception cref="IOException"></exception>
-        TlsCipher CreateCipher(TlsClientContext context, int encryptionAlgorithm,
+        TlsCipher CreateCipher(TlsContext context, int encryptionAlgorithm,
             DigestAlgorithm digestAlgorithm);
     }
 }

@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     internal class TlsDheKeyExchange
         : TlsDHKeyExchange
     {
-        internal TlsDheKeyExchange(TlsClientContext context, int keyExchange)
+        internal TlsDheKeyExchange(TlsContext context, int keyExchange)
             : base(context, keyExchange)
         {
         }
