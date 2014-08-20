@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             SecurityParameters securityParameters = context.SecurityParameters;
 
-            byte[] keyBlock = TlsUtilities.PRF(context, securityParameters.masterSecret, "key expansion",
+            byte[] keyBlock = TlsUtilities.PRF(context, securityParameters.masterSecret, ExporterLabel.key_expansion,
                 TlsUtilities.Concat(securityParameters.serverRandom, securityParameters.clientRandom),
                 prfSize);
 

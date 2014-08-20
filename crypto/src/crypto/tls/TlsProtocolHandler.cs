@@ -453,6 +453,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                             this.keyExchange = tlsClient.GetKeyExchange();
 
                             connection_state = CS_SERVER_HELLO_RECEIVED;
+
+                            // TODO Just a place-holder until other TLS 1.2 changes arrive
+                            this.securityParameters.prfAlgorithm = PrfAlgorithm.tls_prf_legacy;
+
                             break;
                         default:
                             this.FailWithError(AlertLevel.fatal, AlertDescription.unexpected_message);

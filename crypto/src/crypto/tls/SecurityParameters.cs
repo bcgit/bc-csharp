@@ -11,6 +11,16 @@ namespace Org.BouncyCastle.Crypto.Tls
         internal byte[] clientRandom = null;
         internal byte[] serverRandom = null;
 
+        internal void CopySessionParametersFrom(SecurityParameters other)
+        {
+            //this.entity = other.entity;
+            //this.cipherSuite = other.cipherSuite;
+            //this.compressionAlgorithm = other.compressionAlgorithm;
+            this.prfAlgorithm = other.prfAlgorithm;
+            //this.verifyDataLength = other.verifyDataLength;
+            this.masterSecret = Arrays.Clone(other.masterSecret);
+        }
+
         internal virtual void Clear()
         {
             if (this.masterSecret != null)

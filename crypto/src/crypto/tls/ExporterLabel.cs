@@ -6,12 +6,6 @@ namespace Org.BouncyCastle.Crypto.Tls
     public abstract class ExporterLabel
     {
         /*
-         * BC-specific
-         */
-        internal const string client_random = "client random";
-        internal const string server_random = "server random";
-
-        /*
          * RFC 5246
          */
         public const string client_finished = "client finished";
