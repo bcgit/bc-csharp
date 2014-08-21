@@ -163,25 +163,25 @@ namespace Org.BouncyCastle.Crypto.Tls
                 case CipherSuite.TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA:
                 case CipherSuite.TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA:
                     return cipherFactory.CreateCipher(context, EncryptionAlgorithm.cls_3DES_EDE_CBC,
-                        DigestAlgorithm.SHA);
+                        MacAlgorithm.hmac_sha1);
 
                 case CipherSuite.TLS_PSK_WITH_AES_128_CBC_SHA:
                 case CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA:
                 case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA:
                     return cipherFactory.CreateCipher(context, EncryptionAlgorithm.AES_128_CBC,
-                        DigestAlgorithm.SHA);
+                        MacAlgorithm.hmac_sha1);
 
                 case CipherSuite.TLS_PSK_WITH_AES_256_CBC_SHA:
                 case CipherSuite.TLS_RSA_PSK_WITH_AES_256_CBC_SHA:
                 case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA:
                     return cipherFactory.CreateCipher(context, EncryptionAlgorithm.AES_256_CBC,
-                        DigestAlgorithm.SHA);
+                        MacAlgorithm.hmac_sha1);
 
                 case CipherSuite.TLS_PSK_WITH_RC4_128_SHA:
                 case CipherSuite.TLS_RSA_PSK_WITH_RC4_128_SHA:
                 case CipherSuite.TLS_DHE_PSK_WITH_RC4_128_SHA:
                     return cipherFactory.CreateCipher(context, EncryptionAlgorithm.RC4_128,
-                        DigestAlgorithm.SHA);
+                        MacAlgorithm.hmac_sha1);
 
                 default:
                     /*

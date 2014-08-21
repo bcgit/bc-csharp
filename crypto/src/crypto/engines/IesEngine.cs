@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             inOff += inLen;
 
-            byte[] T1 = Arrays.Copy(in_enc, inOff, macBuf.Length);
+            byte[] T1 = Arrays.CopyOfRange(in_enc, inOff, inOff + macBuf.Length);
 
             if (!Arrays.ConstantTimeAreEqual(T1, macBuf))
                 throw (new InvalidCipherTextException("Invalid MAC."));

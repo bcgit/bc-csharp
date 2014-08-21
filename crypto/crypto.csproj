@@ -4274,6 +4274,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\AbstractTlsCipherFactory.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\AbstractTlsContext.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4355,6 +4360,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\CertificateUrl.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\Chacha20Poly1305.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4604,6 +4614,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\TlsAeadCipher.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsAgreementCredentials.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4715,6 +4730,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsFatalAlert.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsHandshakeHash.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

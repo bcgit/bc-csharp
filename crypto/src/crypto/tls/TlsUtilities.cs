@@ -10,6 +10,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.IO;
@@ -759,6 +760,105 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
+        internal static byte[] CalculateKeyBlock(TlsContext context, int size)
+        {
+            SecurityParameters securityParameters = context.SecurityParameters;
+            byte[] master_secret = securityParameters.MasterSecret;
+            byte[] seed = Concat(securityParameters.ServerRandom, securityParameters.ClientRandom);
+
+            if (IsSsl(context))
+            {
+                return CalculateKeyBlock_Ssl(master_secret, seed, size);
+            }
+
+            return PRF(context, master_secret, ExporterLabel.key_expansion, seed, size);
+        }
+
+        internal static byte[] CalculateKeyBlock_Ssl(byte[] master_secret, byte[] random, int size)
+        {
+            IDigest md5 = CreateHash(HashAlgorithm.md5);
+            IDigest sha1 = CreateHash(HashAlgorithm.sha1);
+            int md5Size = md5.GetDigestSize();
+            byte[] shatmp = new byte[sha1.GetDigestSize()];
+            byte[] tmp = new byte[size + md5Size];
+
+            int i = 0, pos = 0;
+            while (pos < size)
+            {
+                byte[] ssl3Const = SSL3_CONST[i];
+
+                sha1.BlockUpdate(ssl3Const, 0, ssl3Const.Length);
+                sha1.BlockUpdate(master_secret, 0, master_secret.Length);
+                sha1.BlockUpdate(random, 0, random.Length);
+                sha1.DoFinal(shatmp, 0);
+
+                md5.BlockUpdate(master_secret, 0, master_secret.Length);
+                md5.BlockUpdate(shatmp, 0, shatmp.Length);
+                md5.DoFinal(tmp, pos);
+
+                pos += md5Size;
+                ++i;
+            }
+
+            return Arrays.CopyOfRange(tmp, 0, size);
+        }
+
+        internal static byte[] CalculateMasterSecret(TlsContext context, byte[] pre_master_secret)
+        {
+            SecurityParameters securityParameters = context.SecurityParameters;
+            byte[] seed = Concat(securityParameters.ClientRandom, securityParameters.ServerRandom);
+
+            if (IsSsl(context))
+            {
+                return CalculateMasterSecret_Ssl(pre_master_secret, seed);
+            }
+
+            return PRF(context, pre_master_secret, ExporterLabel.master_secret, seed, 48);
+        }
+
+        internal static byte[] CalculateMasterSecret_Ssl(byte[] pre_master_secret, byte[] random)
+        {
+            IDigest md5 = CreateHash(HashAlgorithm.md5);
+            IDigest sha1 = CreateHash(HashAlgorithm.sha1);
+            int md5Size = md5.GetDigestSize();
+            byte[] shatmp = new byte[sha1.GetDigestSize()];
+
+            byte[] rval = new byte[md5Size * 3];
+            int pos = 0;
+
+            for (int i = 0; i < 3; ++i)
+            {
+                byte[] ssl3Const = SSL3_CONST[i];
+
+                sha1.BlockUpdate(ssl3Const, 0, ssl3Const.Length);
+                sha1.BlockUpdate(pre_master_secret, 0, pre_master_secret.Length);
+                sha1.BlockUpdate(random, 0, random.Length);
+                sha1.DoFinal(shatmp, 0);
+
+                md5.BlockUpdate(pre_master_secret, 0, pre_master_secret.Length);
+                md5.BlockUpdate(shatmp, 0, shatmp.Length);
+                md5.DoFinal(rval, pos);
+
+                pos += md5Size;
+            }
+
+            return rval;
+        }
+
+        internal static byte[] CalculateVerifyData(TlsContext context, string asciiLabel, byte[] handshakeHash)
+        {
+            if (IsSsl(context))
+            {
+                return handshakeHash;
+            }
+
+            SecurityParameters securityParameters = context.SecurityParameters;
+            byte[] master_secret = securityParameters.MasterSecret;
+            int verify_data_length = securityParameters.VerifyDataLength;
+
+            return PRF(context, master_secret, asciiLabel, handshakeHash, verify_data_length);
+        }
+
         public static IDigest CreateHash(byte hashAlgorithm)
         {
             switch (hashAlgorithm)
@@ -857,6 +957,130 @@ namespace Org.BouncyCastle.Crypto.Tls
                 default:
                     throw new ArgumentException("unknown HashAlgorithm", "hashAlgorithm");
             }
+        }
+
+        internal static short GetClientCertificateType(Certificate clientCertificate, Certificate serverCertificate)
+        {
+            if (clientCertificate.IsEmpty)
+                return -1;
+
+            X509CertificateStructure x509Cert = clientCertificate.GetCertificateAt(0);
+            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            try
+            {
+                AsymmetricKeyParameter publicKey = PublicKeyFactory.CreateKey(keyInfo);
+                if (publicKey.IsPrivate)
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+
+                /*
+                 * TODO RFC 5246 7.4.6. The certificates MUST be signed using an acceptable hash/
+                 * signature algorithm pair, as described in Section 7.4.4. Note that this relaxes the
+                 * constraints on certificate-signing algorithms found in prior versions of TLS.
+                 */
+
+                /*
+                 * RFC 5246 7.4.6. Client Certificate
+                 */
+
+                /*
+                 * RSA public key; the certificate MUST allow the key to be used for signing with the
+                 * signature scheme and hash algorithm that will be employed in the certificate verify
+                 * message.
+                 */
+                if (publicKey is RsaKeyParameters)
+                {
+                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    return ClientCertificateType.rsa_sign;
+                }
+
+                /*
+                 * DSA public key; the certificate MUST allow the key to be used for signing with the
+                 * hash algorithm that will be employed in the certificate verify message.
+                 */
+                if (publicKey is DsaPublicKeyParameters)
+                {
+                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    return ClientCertificateType.dss_sign;
+                }
+
+                /*
+                 * ECDSA-capable public key; the certificate MUST allow the key to be used for signing
+                 * with the hash algorithm that will be employed in the certificate verify message; the
+                 * public key MUST use a curve and point format supported by the server.
+                 */
+                if (publicKey is ECPublicKeyParameters)
+                {
+                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    // TODO Check the curve and point format
+                    return ClientCertificateType.ecdsa_sign;
+                }
+
+                // TODO Add support for ClientCertificateType.*_fixed_*
+            }
+            catch (Exception)
+            {
+            }
+
+            throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+        }
+
+        internal static void TrackHashAlgorithms(TlsHandshakeHash handshakeHash, IList supportedSignatureAlgorithms)
+        {
+            if (supportedSignatureAlgorithms != null)
+            {
+                foreach (SignatureAndHashAlgorithm signatureAndHashAlgorithm in supportedSignatureAlgorithms)
+                {
+                    byte hashAlgorithm = signatureAndHashAlgorithm.Hash;
+                    handshakeHash.TrackHashAlgorithm(hashAlgorithm);
+                }
+            }
+        }
+
+        public static bool HasSigningCapability(byte clientCertificateType)
+        {
+            switch (clientCertificateType)
+            {
+            case ClientCertificateType.dss_sign:
+            case ClientCertificateType.ecdsa_sign:
+            case ClientCertificateType.rsa_sign:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        public static TlsSigner CreateTlsSigner(byte clientCertificateType)
+        {
+            switch (clientCertificateType)
+            {
+            case ClientCertificateType.dss_sign:
+                return new TlsDssSigner();
+            case ClientCertificateType.ecdsa_sign:
+                return new TlsECDsaSigner();
+            case ClientCertificateType.rsa_sign:
+                return new TlsRsaSigner();
+            default:
+                throw new ArgumentException("not a type with signing capability", "clientCertificateType");
+            }
+        }
+
+        internal static readonly byte[] SSL_CLIENT = {0x43, 0x4C, 0x4E, 0x54};
+        internal static readonly byte[] SSL_SERVER = {0x53, 0x52, 0x56, 0x52};
+
+        // SSL3 magic mix constants ("A", "BB", "CCC", ...)
+        internal static readonly byte[][] SSL3_CONST = GenSsl3Const();
+
+        private static byte[][] GenSsl3Const()
+        {
+            int n = 10;
+            byte[][] arr = new byte[n][];
+            for (int i = 0; i < n; i++)
+            {
+                byte[] b = new byte[i + 1];
+                Arrays.Fill(b, (byte)('A' + i));
+                arr[i] = b;
+            }
+            return arr;
         }
 
         private static IList VectorOfOne(object obj)

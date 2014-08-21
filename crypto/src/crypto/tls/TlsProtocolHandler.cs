@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         /*
         * The Record Stream we use
         */
-        private RecordStream rs;
+        private RecordStream recordStream;
         private SecureRandom random;
 
         private TlsStream tlsStream = null;
@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             Stream			outStr,
             SecureRandom	sr)
         {
-            this.rs = new RecordStream(this, inStr, outStr);
+            this.recordStream = new RecordStream(this, inStr, outStr);
             this.random = sr;
         }
 
@@ -202,8 +202,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                             case HandshakeType.finished:
                                 break;
                             default:
-                                rs.UpdateHandshakeData(beginning, 0, 4);
-                                rs.UpdateHandshakeData(buf, 0, len);
+                                recordStream.UpdateHandshakeData(beginning, 0, 4);
+                                recordStream.UpdateHandshakeData(buf, 0, len);
                                 break;
                         }
 
@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                              * Calculate our own checksum.
                              */
                             byte[] expectedServerVerifyData = TlsUtilities.PRF(tlsClientContext,
-                                securityParameters.masterSecret, ExporterLabel.server_finished, rs.GetCurrentHash(), 12);
+                                securityParameters.masterSecret, ExporterLabel.server_finished, recordStream.GetCurrentHash(), 12);
 
                             /*
                              * Compare both checksums.
@@ -445,6 +445,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                                 tlsClient.NotifySecureRenegotiation(secure_negotiation);
                             }
 
+                            this.securityParameters.cipherSuite = selectedCipherSuite;
+                            this.securityParameters.compressionAlgorithm = selectedCompressionMethod;
+
                             if (clientExtensions != null)
                             {
                                 tlsClient.ProcessServerExtensions(serverExtensions);
@@ -456,6 +459,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                             // TODO Just a place-holder until other TLS 1.2 changes arrive
                             this.securityParameters.prfAlgorithm = PrfAlgorithm.tls_prf_legacy;
+
+                            /*
+                             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify
+                             * verify_data_length has a verify_data_length equal to 12. This includes all
+                             * existing cipher suites.
+                             */
+                            this.securityParameters.verifyDataLength = 12;
 
                             break;
                         default:
@@ -527,7 +537,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                             if (clientCreds != null && clientCreds is TlsSignerCredentials)
                             {
                                 TlsSignerCredentials signerCreds = (TlsSignerCredentials)clientCreds;
-                                byte[] md5andsha1 = rs.GetCurrentHash();
+                                byte[] md5andsha1 = recordStream.GetCurrentHash();
                                 byte[] clientCertificateSignature = signerCreds.GenerateCertificateSignature(
                                     md5andsha1);
                                 SendCertificateVerify(clientCertificateSignature);
@@ -540,7 +550,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                             */
                             byte[] cmessage = new byte[1];
                             cmessage[0] = 1;
-                            rs.WriteMessage(ContentType.change_cipher_spec, cmessage, 0, cmessage.Length);
+                            recordStream.WriteMessage(ContentType.change_cipher_spec, cmessage, 0, cmessage.Length);
 
                             connection_state = CS_CLIENT_CHANGE_CIPHER_SPEC_SEND;
 
@@ -562,20 +572,20 @@ namespace Org.BouncyCastle.Crypto.Tls
                             /*
                              * Initialize our cipher suite
                              */
-                            rs.ClientCipherSpecDecided(tlsClient.GetCompression(), tlsClient.GetCipher());
+                            recordStream.ClientCipherSpecDecided(tlsClient.GetCompression(), tlsClient.GetCipher());
 
                             /*
                              * Send our finished message.
                              */
                             byte[] clientVerifyData = TlsUtilities.PRF(tlsClientContext, securityParameters.masterSecret,
-                                ExporterLabel.client_finished, rs.GetCurrentHash(), 12);
+                                ExporterLabel.client_finished, recordStream.GetCurrentHash(), 12);
 
                             MemoryStream bos = new MemoryStream();
                             TlsUtilities.WriteUint8((byte)HandshakeType.finished, bos);
                             TlsUtilities.WriteOpaque24(clientVerifyData, bos);
                             byte[] message = bos.ToArray();
 
-                            rs.WriteMessage(ContentType.handshake, message, 0, message.Length);
+                            recordStream.WriteMessage(ContentType.handshake, message, 0, message.Length);
 
                             this.connection_state = CS_CLIENT_FINISHED_SEND;
                             break;
@@ -703,7 +713,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     */
                     try
                     {
-                        rs.Close();
+                        recordStream.Close();
                     }
                     catch (Exception)
                     {
@@ -747,7 +757,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     this.FailWithError(AlertLevel.fatal, AlertDescription.unexpected_message);
                 }
 
-                rs.ServerClientSpecReceived();
+                recordStream.ServerClientSpecReceived();
 
                 this.connection_state = CS_SERVER_CHANGE_CIPHER_SPEC_RECEIVED;
             }
@@ -767,7 +777,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             // Patch actual length back in
             TlsUtilities.WriteUint24(message.Length - 4, message, 1);
 
-            rs.WriteMessage(ContentType.handshake, message, 0, message.Length);
+            recordStream.WriteMessage(ContentType.handshake, message, 0, message.Length);
         }
 
         private void SendClientKeyExchange()
@@ -784,7 +794,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             // Patch actual length back in
             TlsUtilities.WriteUint24(message.Length - 4, message, 1);
 
-            rs.WriteMessage(ContentType.handshake, message, 0, message.Length);
+            recordStream.WriteMessage(ContentType.handshake, message, 0, message.Length);
         }
 
         private void SendCertificateVerify(byte[] data)
@@ -799,7 +809,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsUtilities.WriteOpaque16(data, bos);
             byte[] message = bos.ToArray();
 
-            rs.WriteMessage(ContentType.handshake, message, 0, message.Length);
+            recordStream.WriteMessage(ContentType.handshake, message, 0, message.Length);
         }
 
         /// <summary>Connects to the remote system.</summary>
@@ -823,6 +833,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.tlsClient = tlsClient;
 
             this.securityParameters = new SecurityParameters();
+            this.securityParameters.entity = ConnectionEnd.client;
 
             this.tlsClientContext = new TlsClientContextImpl(random, securityParameters);
 
@@ -830,6 +841,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 tlsClientContext.NonceRandomGenerator);
 
             this.tlsClient.Init(tlsClientContext);
+            this.recordStream.Init(tlsClientContext);
 
             /*
              * Send Client hello
@@ -965,7 +977,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             try
             {
-                rs.ReadData();
+                recordStream.ReadData();
             }
             catch (TlsFatalAlert e)
             {
@@ -997,7 +1009,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             try
             {
-                rs.WriteMessage(type, buf, offset, len);
+                recordStream.WriteMessage(type, buf, offset, len);
             }
             catch (TlsFatalAlert e)
             {
@@ -1127,7 +1139,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     this.failedWithError = true;
                 }
                 SendAlert(alertLevel, alertDescription);
-                rs.Close();
+                recordStream.Close();
                 if (alertLevel == AlertLevel.fatal)
                 {
                     throw new IOException(TLS_ERROR_MESSAGE);
@@ -1143,7 +1155,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             byte[] error = new byte[] { alertLevel, alertDescription };
 
-            rs.WriteMessage(ContentType.alert, error, 0, 2);
+            recordStream.WriteMessage(ContentType.alert, error, 0, 2);
         }
 
         /// <summary>Closes this connection</summary>
@@ -1180,7 +1192,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal void Flush()
         {
-            rs.Flush();
+            recordStream.Flush();
         }
 
         internal bool IsClosed
