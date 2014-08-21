@@ -372,8 +372,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
 
-            if (!Arrays.Contains(ecPointFormats, actualFormat))
+            if (actualFormat != ECPointFormat.uncompressed
+                && (ecPointFormats == null || !Arrays.Contains(ecPointFormats, actualFormat)))
+            {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            }
 
             return curve.DecodePoint(encoding);
         }
