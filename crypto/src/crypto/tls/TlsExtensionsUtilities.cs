@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    public class TlsExtensionsUtilities
+    public abstract class TlsExtensionsUtilities
     {
         public static IDictionary EnsureExtensionsInitialised(IDictionary extensions)
         {

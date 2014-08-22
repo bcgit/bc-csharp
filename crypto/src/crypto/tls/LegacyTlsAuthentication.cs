@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     /// </summary>
     [Obsolete]
     public class LegacyTlsAuthentication
-        : TlsAuthentication
+        :   ServerOnlyTlsAuthentication
     {
         protected ICertificateVerifyer verifyer;
 
@@ -16,15 +16,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.verifyer = verifyer;
         }
 
-        public virtual void NotifyServerCertificate(Certificate serverCertificate)
+        public override void NotifyServerCertificate(Certificate serverCertificate)
         {
             if (!this.verifyer.IsValid(serverCertificate.GetCertificateList()))
                 throw new TlsFatalAlert(AlertDescription.user_canceled);
-        }
-
-        public virtual TlsCredentials GetClientCredentials(CertificateRequest certificateRequest)
-        {
-            return null;
         }
     }
 }

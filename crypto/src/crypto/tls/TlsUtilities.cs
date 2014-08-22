@@ -18,7 +18,7 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Crypto.Tls
 {
     /// <remarks>Some helper functions for MicroTLS.</remarks>
-    public class TlsUtilities
+    public abstract class TlsUtilities
     {
         public static readonly byte[] EmptyBytes = new byte[0];
 

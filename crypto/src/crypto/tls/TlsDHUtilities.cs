@@ -12,6 +12,14 @@ namespace Org.BouncyCastle.Crypto.Tls
 {
     public abstract class TlsDHUtilities
     {
+        internal static readonly BigInteger One = BigInteger.One;
+        internal static readonly BigInteger Two = BigInteger.Two;
+
+        public static bool AreCompatibleParameters(DHParameters a, DHParameters b)
+        {
+            return a.P.Equals(b.P) && a.G.Equals(b.G);
+        }
+
         public static byte[] CalculateDHBasicAgreement(DHPublicKeyParameters publicKey,
             DHPrivateKeyParameters privateKey)
         {
@@ -36,15 +44,23 @@ namespace Org.BouncyCastle.Crypto.Tls
         public static DHPrivateKeyParameters GenerateEphemeralClientKeyExchange(SecureRandom random,
             DHParameters dhParams, Stream output)
         {
-            AsymmetricCipherKeyPair dhAgreeClientKeyPair = GenerateDHKeyPair(random, dhParams);
-            DHPrivateKeyParameters dhAgreeClientPrivateKey =
-                (DHPrivateKeyParameters)dhAgreeClientKeyPair.Private;
+            AsymmetricCipherKeyPair kp = GenerateDHKeyPair(random, dhParams);
 
-            BigInteger Yc = ((DHPublicKeyParameters)dhAgreeClientKeyPair.Public).Y;
-            byte[] keData = BigIntegers.AsUnsignedByteArray(Yc);
-            TlsUtilities.WriteOpaque16(keData, output);
+            DHPublicKeyParameters dhPublic = (DHPublicKeyParameters)kp.Public;
+            WriteDHParameter(dhPublic.Y, output);
 
-            return dhAgreeClientPrivateKey;
+            return (DHPrivateKeyParameters)kp.Private;
+        }
+
+        public static DHPrivateKeyParameters GenerateEphemeralServerKeyExchange(SecureRandom random,
+            DHParameters dhParams, Stream output)
+        {
+            AsymmetricCipherKeyPair kp = GenerateDHKeyPair(random, dhParams);
+
+            DHPublicKeyParameters dhPublic = (DHPublicKeyParameters)kp.Public;
+            new ServerDHParams(dhPublic).Encode(output);
+
+            return (DHPrivateKeyParameters)kp.Private;
         }
         
         public static DHPublicKeyParameters ValidateDHPublicKey(DHPublicKeyParameters key)
@@ -58,11 +74,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
-            if (g.CompareTo(BigInteger.Two) < 0 || g.CompareTo(p.Subtract(BigInteger.Two)) > 0)
+            if (g.CompareTo(Two) < 0 || g.CompareTo(p.Subtract(Two)) > 0)
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
-            if (Y.CompareTo(BigInteger.Two) < 0 || Y.CompareTo(p.Subtract(BigInteger.One)) > 0)
+            if (Y.CompareTo(Two) < 0 || Y.CompareTo(p.Subtract(One)) > 0)
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
@@ -70,6 +86,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             // TODO See RFC 2631 for more discussion of Diffie-Hellman validation
 
             return key;
+        }
+
+        public static BigInteger ReadDHParameter(Stream input)
+        {
+            return new BigInteger(1, TlsUtilities.ReadOpaque16(input));
+        }
+
+        public static void WriteDHParameter(BigInteger x, Stream output)
+        {
+            TlsUtilities.WriteOpaque16(BigIntegers.AsUnsignedByteArray(x), output);
         }
     }
 }

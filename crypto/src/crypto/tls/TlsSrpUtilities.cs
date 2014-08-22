@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    public class TlsSrpUtilities
+    public abstract class TlsSrpUtilities
     {
         public static void AddSrpExtension(IDictionary extensions, byte[] identity)
         {
