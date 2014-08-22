@@ -9,6 +9,12 @@ namespace Org.BouncyCastle.Crypto.Tls
         private readonly byte alertDescription;
 
         public TlsFatalAlert(byte alertDescription)
+            : this(alertDescription, null)
+        {
+        }
+
+        public TlsFatalAlert(byte alertDescription, Exception alertCause)
+            :   base("Fatal alert: " + alertDescription, alertCause)
         {
             this.alertDescription = alertDescription;
         }

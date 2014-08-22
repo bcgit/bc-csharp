@@ -76,9 +76,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                     return mSigner.GenerateRawSignature(mPrivateKey, hash);
                 }
             }
-            catch (CryptoException)
+            catch (CryptoException e)
             {
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
         }
 

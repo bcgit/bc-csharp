@@ -39,12 +39,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                     TlsUtilities.WriteOpaque16(encryptedPreMasterSecret, output);
                 }
             }
-            catch (InvalidCipherTextException)
+            catch (InvalidCipherTextException e)
             {
                 /*
                  * This should never happen, only during decryption.
                  */
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
 
             return premasterSecret;

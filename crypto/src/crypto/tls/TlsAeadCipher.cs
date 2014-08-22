@@ -115,9 +115,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 outputPos += encryptCipher.ProcessBytes(plaintext, plaintextOffset, plaintextLength, output, outputPos);
                 outputPos += encryptCipher.DoFinal(output, outputPos);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
 
             if (outputPos != output.Length)
@@ -155,9 +155,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 outputPos += decryptCipher.ProcessBytes(ciphertext, ciphertextOffset, ciphertextLength, output, outputPos);
                 outputPos += decryptCipher.DoFinal(output, outputPos);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.bad_record_mac);
+                throw new TlsFatalAlert(AlertDescription.bad_record_mac, e);
             }
 
             if (outputPos != output.Length)

@@ -389,9 +389,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 ECPoint Y = DeserializeECPoint(ecPointFormats, curve_params.Curve, encoding);
                 return new ECPublicKeyParameters(Y, curve_params);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
             }
         }
 
@@ -531,9 +531,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
             }
         }
 

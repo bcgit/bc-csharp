@@ -63,9 +63,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 this.serverPublicKey = PublicKeyFactory.CreateKey(keyInfo);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
             }
 
             if (tlsSigner == null)
@@ -74,9 +74,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     this.ecAgreeServerPublicKey = ValidateECPublicKey((ECPublicKeyParameters)this.serverPublicKey);
                 }
-                catch (InvalidCastException)
+                catch (InvalidCastException e)
                 {
-                    throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                    throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
                 }
 
                 TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.KeyAgreement);

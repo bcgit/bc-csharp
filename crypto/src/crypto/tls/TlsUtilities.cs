@@ -1016,12 +1016,13 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
 
                 // TODO Add support for ClientCertificateType.*_fixed_*
-            }
-            catch (Exception)
-            {
-            }
 
-            throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+            }
+            catch (Exception e)
+            {
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
+            }
         }
 
         internal static void TrackHashAlgorithms(TlsHandshakeHash handshakeHash, IList supportedSignatureAlgorithms)

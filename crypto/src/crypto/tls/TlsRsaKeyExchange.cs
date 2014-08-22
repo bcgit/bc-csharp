@@ -44,10 +44,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 this.serverPublicKey = PublicKeyFactory.CreateKey(keyInfo);
             }
-//			catch (RuntimeException)
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
             }
 
             // Sanity check the PublicKeyFactory

@@ -79,10 +79,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 this.serverPublicKey = PublicKeyFactory.CreateKey(keyInfo);
             }
-//			catch (RuntimeException)
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
             }
 
             if (!tlsSigner.IsValidPublicKey(this.serverPublicKey))
@@ -149,9 +148,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 this.B = Srp6Utilities.ValidatePublicValue(N, new BigInteger(1, BBytes));
             }
-            catch (CryptoException)
+            catch (CryptoException e)
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
             }
 
             this.srpClient.Init(N, g, new Sha1Digest(), context.SecureRandom);
@@ -186,9 +185,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 // TODO Check if this needs to be a fixed size
                 return BigIntegers.AsUnsignedByteArray(srpClient.CalculateSecret(B));
             }
-            catch (CryptoException)
+            catch (CryptoException e)
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
             }
         }
 
