@@ -634,6 +634,80 @@ namespace Org.BouncyCastle.Crypto.Tls
             return true;
         }
 
+        public static TlsSession ImportSession(byte[] sessionID, SessionParameters sessionParameters)
+        {
+            return new TlsSessionImpl(sessionID, sessionParameters);
+        }
+
+        public static bool IsSignatureAlgorithmsExtensionAllowed(ProtocolVersion clientVersion)
+        {
+            return ProtocolVersion.TLSv12.IsEqualOrEarlierVersionOf(clientVersion.GetEquivalentTLSVersion());
+        }
+
+        /**
+         * Add a 'signature_algorithms' extension to existing extensions.
+         *
+         * @param extensions                   A {@link Hashtable} to add the extension to.
+         * @param supportedSignatureAlgorithms {@link Vector} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @throws IOException
+         */
+        public static void AddSignatureAlgorithmsExtension(IDictionary extensions, IList supportedSignatureAlgorithms)
+        {
+            extensions[ExtensionType.signature_algorithms] = CreateSignatureAlgorithmsExtension(supportedSignatureAlgorithms);
+        }
+
+        /**
+         * Get a 'signature_algorithms' extension from extensions.
+         *
+         * @param extensions A {@link Hashtable} to get the extension from, if it is present.
+         * @return A {@link Vector} containing at least 1 {@link SignatureAndHashAlgorithm}, or null.
+         * @throws IOException
+         */
+        public static IList GetSignatureAlgorithmsExtension(IDictionary extensions)
+        {
+            byte[] extensionData = GetExtensionData(extensions, ExtensionType.signature_algorithms);
+            return extensionData == null ? null : ReadSignatureAlgorithmsExtension(extensionData);
+        }
+
+        /**
+         * Create a 'signature_algorithms' extension value.
+         *
+         * @param supportedSignatureAlgorithms A {@link Vector} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @return A byte array suitable for use as an extension value.
+         * @throws IOException
+         */
+        public static byte[] CreateSignatureAlgorithmsExtension(IList supportedSignatureAlgorithms)
+        {
+            MemoryStream buf = new MemoryStream();
+
+            // supported_signature_algorithms
+            EncodeSupportedSignatureAlgorithms(supportedSignatureAlgorithms, false, buf);
+
+            return buf.ToArray();
+        }
+
+        /**
+         * Read 'signature_algorithms' extension data.
+         *
+         * @param extensionData The extension data.
+         * @return A {@link Vector} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @throws IOException
+         */
+        public static IList ReadSignatureAlgorithmsExtension(byte[] extensionData)
+        {
+            if (extensionData == null)
+                throw new ArgumentNullException("extensionData");
+
+            MemoryStream buf = new MemoryStream(extensionData, false);
+
+            // supported_signature_algorithms
+            IList supported_signature_algorithms = ParseSupportedSignatureAlgorithms(false, buf);
+
+            TlsProtocol.AssertEmpty(buf);
+
+            return supported_signature_algorithms;
+        }
+
         public static void EncodeSupportedSignatureAlgorithms(IList supportedSignatureAlgorithms, bool allowAnonymous,
             Stream output)
         {
@@ -645,8 +719,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             // supported_signature_algorithms
             int length = 2 * supportedSignatureAlgorithms.Count;
-            TlsUtilities.CheckUint16(length);
-            TlsUtilities.WriteUint16(length, output);
+            CheckUint16(length);
+            WriteUint16(length, output);
 
             foreach (SignatureAndHashAlgorithm entry in supportedSignatureAlgorithms)
             {
@@ -661,6 +735,30 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
                 entry.Encode(output);
             }
+        }
+
+        public static IList ParseSupportedSignatureAlgorithms(bool allowAnonymous, Stream input)
+        {
+            // supported_signature_algorithms
+            int length = ReadUint16(input);
+            if (length < 2 || (length & 1) != 0)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+            int count = length / 2;
+            IList supportedSignatureAlgorithms = Platform.CreateArrayList(count);
+            for (int i = 0; i < count; ++i)
+            {
+                SignatureAndHashAlgorithm entry = SignatureAndHashAlgorithm.Parse(input);
+                if (!allowAnonymous && entry.Signature == SignatureAlgorithm.anonymous)
+                {
+                    /*
+                     * RFC 5246 7.4.1.4.1 The "anonymous" value is meaningless in this context but used
+                     * in Section 7.4.3. It MUST NOT appear in this extension.
+                     */
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                }
+                supportedSignatureAlgorithms.Add(entry);
+            }
+            return supportedSignatureAlgorithms;
         }
 
         public static byte[] PRF(TlsContext context, byte[] secret, string asciiLabel, byte[] seed, int size)

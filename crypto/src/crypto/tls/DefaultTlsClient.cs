@@ -12,42 +12,19 @@ using Org.BouncyCastle.Crypto.Parameters;
 namespace Org.BouncyCastle.Crypto.Tls
 {
     public abstract class DefaultTlsClient
-        : TlsClient
+        :   AbstractTlsClient
     {
-        protected TlsCipherFactory cipherFactory;
-
-        protected TlsClientContext context;
-
-        protected byte selectedCompressionMethod;
-        protected int selectedCipherSuite;
-
         public DefaultTlsClient()
-            : this(new DefaultTlsCipherFactory())
+            :   base()
         {
         }
 
         public DefaultTlsClient(TlsCipherFactory cipherFactory)
+            :   base(cipherFactory)
         {
-            this.cipherFactory = cipherFactory;
         }
 
-        public virtual void Init(TlsClientContext context)
-        {
-            this.context = context;
-        }
-
-        public virtual bool ShouldUseGmtUnixTime()
-        {
-            /*
-             * draft-mathewson-no-gmtunixtime-00 2. For the reasons we discuss above, we recommend that
-             * TLS implementors MUST by default set the entire value the ClientHello.Random and
-             * ServerHello.Random fields, including gmt_unix_time, to a cryptographically random
-             * sequence.
-             */
-            return false;
-        }
-
-        public virtual int[] GetCipherSuites()
+        public override int[] GetCipherSuites()
         {
             return new int[] {
                 CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
@@ -63,224 +40,150 @@ namespace Org.BouncyCastle.Crypto.Tls
             };
         }
 
-        public virtual byte[] GetCompressionMethods()
+        public override TlsKeyExchange GetKeyExchange()
         {
-            /*
-             * To offer DEFLATE compression, override this method:
-             *     return new byte[] { CompressionMethod.DEFLATE, CompressionMethod.NULL };
-             */
-
-            return new byte[] { CompressionMethod.NULL };
-        }
-
-        public virtual IDictionary GetClientExtensions()
-        {
-            return null;
-        }
-
-        public virtual void NotifySessionID(byte[] sessionID)
-        {
-            // Currently ignored
-        }
-
-        public virtual void NotifySelectedCipherSuite(int selectedCipherSuite)
-        {
-            this.selectedCipherSuite = selectedCipherSuite;
-        }
-
-        public virtual void NotifySelectedCompressionMethod(byte selectedCompressionMethod)
-        {
-            this.selectedCompressionMethod = selectedCompressionMethod;
-        }
-
-        public virtual void NotifySecureRenegotiation(bool secureRenegotiation)
-        {
-            if (!secureRenegotiation)
+            switch (mSelectedCipherSuite)
             {
+            case CipherSuite.TLS_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_RSA_WITH_RC4_128_SHA:
+                return CreateRsaKeyExchange();
+
+            case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA:
+                return CreateDHKeyExchange(KeyExchangeAlgorithm.DH_DSS);
+
+            case CipherSuite.TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DH_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DH_RSA_WITH_AES_256_CBC_SHA:
+                return CreateDHKeyExchange(KeyExchangeAlgorithm.DH_RSA);
+
+            case CipherSuite.TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
+                return CreateDheKeyExchange(KeyExchangeAlgorithm.DHE_DSS);
+
+            case CipherSuite.TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
+                return CreateDheKeyExchange(KeyExchangeAlgorithm.DHE_RSA);
+
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_RC4_128_SHA:
+                return CreateECDHKeyExchange(KeyExchangeAlgorithm.ECDH_ECDSA);
+
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA:
+                return CreateECDheKeyExchange(KeyExchangeAlgorithm.ECDHE_ECDSA);
+
+            case CipherSuite.TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDH_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDH_RSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDH_RSA_WITH_RC4_128_SHA:
+                return CreateECDHKeyExchange(KeyExchangeAlgorithm.ECDH_RSA);
+
+            case CipherSuite.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_RSA_WITH_RC4_128_SHA:
+                return CreateECDheKeyExchange(KeyExchangeAlgorithm.ECDHE_RSA);
+
+            default:
                 /*
-                 * RFC 5746 3.4.
-                 * If the extension is not present, the server does not support
-                 * secure renegotiation; set secure_renegotiation flag to FALSE.
-                 * In this case, some clients may want to terminate the handshake
-                 * instead of continuing; see Section 4.1 for discussion.
+                 * Note: internal error here; the TlsProtocol implementation verifies that the
+                 * server-selected cipher suite was in the list of client-offered cipher suites, so if
+                 * we now can't produce an implementation, we shouldn't have offered it!
                  */
-//				throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
 
-        public virtual void ProcessServerExtensions(IDictionary serverExtensions)
+        public override TlsCipher GetCipher()
         {
-        }
-
-        public virtual TlsKeyExchange GetKeyExchange()
-        {
-            switch (selectedCipherSuite)
+            switch (mSelectedCipherSuite)
             {
-                case CipherSuite.TLS_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_RSA_WITH_RC4_128_SHA:
-                    return CreateRsaKeyExchange();
+            case CipherSuite.TLS_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.cls_3DES_EDE_CBC,
+                    MacAlgorithm.hmac_sha1);
 
-                case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA:
-                    return CreateDHKeyExchange(KeyExchangeAlgorithm.DH_DSS);
+            case CipherSuite.TLS_RSA_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_ECDH_RSA_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_ECDHE_RSA_WITH_RC4_128_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.RC4_128, MacAlgorithm.hmac_sha1);
 
-                case CipherSuite.TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_DH_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_DH_RSA_WITH_AES_256_CBC_SHA:
-                    return CreateDHKeyExchange(KeyExchangeAlgorithm.DH_RSA);
+            case CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DH_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDH_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_128_CBC,
+                    MacAlgorithm.hmac_sha1);
 
-                case CipherSuite.TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
-                    return CreateDheKeyExchange(KeyExchangeAlgorithm.DHE_DSS);
+            case CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DH_RSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDH_RSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_256_CBC,
+                    MacAlgorithm.hmac_sha1);
 
-                case CipherSuite.TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
-                    return CreateDheKeyExchange(KeyExchangeAlgorithm.DHE_RSA);
-
-                case CipherSuite.TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_ECDH_ECDSA_WITH_RC4_128_SHA:
-                    return CreateECDHKeyExchange(KeyExchangeAlgorithm.ECDH_ECDSA);
-
-                case CipherSuite.TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA:
-                    return CreateECDheKeyExchange(KeyExchangeAlgorithm.ECDHE_ECDSA);
-
-                case CipherSuite.TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_ECDH_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_ECDH_RSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_ECDH_RSA_WITH_RC4_128_SHA:
-                    return CreateECDHKeyExchange(KeyExchangeAlgorithm.ECDH_RSA);
-
-                case CipherSuite.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_RSA_WITH_RC4_128_SHA:
-                    return CreateECDheKeyExchange(KeyExchangeAlgorithm.ECDHE_RSA);
-
-                default:
-                    /*
-                    * Note: internal error here; the TlsProtocolHandler verifies that the
-                    * server-selected cipher suite was in the list of client-offered cipher
-                    * suites, so if we now can't produce an implementation, we shouldn't have
-                    * offered it!
-                    */
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
-        }
-
-        public abstract TlsAuthentication GetAuthentication();
-
-        public virtual TlsCompression GetCompression()
-        {
-            switch (selectedCompressionMethod)
-            {
-                case CompressionMethod.NULL:
-                    return new TlsNullCompression();
-
-                case CompressionMethod.DEFLATE:
-                    return new TlsDeflateCompression();
-
-                default:
-                    /*
-                     * Note: internal error here; the TlsProtocolHandler verifies that the
-                     * server-selected compression method was in the list of client-offered compression
-                     * methods, so if we now can't produce an implementation, we shouldn't have
-                     * offered it!
-                     */
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
-        }
-
-        public virtual TlsCipher GetCipher()
-        {
-            switch (selectedCipherSuite)
-            {
-                case CipherSuite.TLS_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA:
-                    return cipherFactory.CreateCipher(context, EncryptionAlgorithm.cls_3DES_EDE_CBC,
-                        MacAlgorithm.hmac_sha1);
-
-                case CipherSuite.TLS_RSA_WITH_RC4_128_SHA:
-                case CipherSuite.TLS_ECDH_ECDSA_WITH_RC4_128_SHA:
-                case CipherSuite.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA:
-                case CipherSuite.TLS_ECDH_RSA_WITH_RC4_128_SHA:
-                case CipherSuite.TLS_ECDHE_RSA_WITH_RC4_128_SHA:
-                    return cipherFactory.CreateCipher(context, EncryptionAlgorithm.RC4_128, MacAlgorithm.hmac_sha1);
-
-                case CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_DH_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_ECDH_RSA_WITH_AES_128_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:
-                    return cipherFactory.CreateCipher(context, EncryptionAlgorithm.AES_128_CBC,
-                        MacAlgorithm.hmac_sha1);
-
-                case CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_DH_RSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_ECDH_RSA_WITH_AES_256_CBC_SHA:
-                case CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
-                    return cipherFactory.CreateCipher(context, EncryptionAlgorithm.AES_256_CBC,
-                        MacAlgorithm.hmac_sha1);
-
-                default:
-                    /*
-                    * Note: internal error here; the TlsProtocolHandler verifies that the
-                    * server-selected cipher suite was in the list of client-offered cipher
-                    * suites, so if we now can't produce an implementation, we shouldn't have
-                    * offered it!
-                    */
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            default:
+                /*
+                 * Note: internal error here; the TlsProtocol implementation verifies that the
+                 * server-selected cipher suite was in the list of client-offered cipher suites, so if
+                 * we now can't produce an implementation, we shouldn't have offered it!
+                 */
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
 
         protected virtual TlsKeyExchange CreateDHKeyExchange(int keyExchange)
         {
-            return new TlsDHKeyExchange(context, keyExchange);
+            return new TlsDHKeyExchange(mContext, keyExchange);
         }
 
         protected virtual TlsKeyExchange CreateDheKeyExchange(int keyExchange)
         {
-            return new TlsDheKeyExchange(context, keyExchange);
+            return new TlsDheKeyExchange(mContext, keyExchange);
         }
 
         protected virtual TlsKeyExchange CreateECDHKeyExchange(int keyExchange)
         {
-            return new TlsECDHKeyExchange(context, keyExchange);
+            return new TlsECDHKeyExchange(mContext, keyExchange);
         }
 
         protected virtual TlsKeyExchange CreateECDheKeyExchange(int keyExchange)
         {
-            return new TlsECDheKeyExchange(context, keyExchange);
+            return new TlsECDheKeyExchange(mContext, keyExchange);
         }
 
         protected virtual TlsKeyExchange CreateRsaKeyExchange()
         {
-            return new TlsRsaKeyExchange(context);
+            return new TlsRsaKeyExchange(mContext);
         }
     }
 }
