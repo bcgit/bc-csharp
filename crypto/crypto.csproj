@@ -4299,6 +4299,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\AbstractTlsKeyExchange.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\AbstractTlsPeer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

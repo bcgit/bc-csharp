@@ -24,9 +24,18 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mPassword = Arrays.Clone(password);
         }
 
+        protected virtual bool RequireSrpServerExtension
+        {
+            // No explicit guidance in RFC 5054; by default an (empty) extension from server is optional
+            get { return false; }
+        }
+
         public override int[] GetCipherSuites()
         {
-            return new int[] { CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA };
+            return new int[]
+            {
+                CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA
+            };
         }
 
         public override IDictionary GetClientExtensions()
@@ -41,7 +50,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (!TlsUtilities.HasExpectedEmptyExtensionData(serverExtensions, ExtensionType.srp,
                 AlertDescription.illegal_parameter))
             {
-                // No explicit guidance in RFC 5054 here; we allow an optional empty extension from server
+                if (RequireSrpServerExtension)
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
 
             base.ProcessServerExtensions(serverExtensions);
@@ -107,7 +117,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual TlsKeyExchange CreateSrpKeyExchange(int keyExchange)
         {
-            return new TlsSrpKeyExchange(mContext, keyExchange, mIdentity, mPassword);
+            return new TlsSrpKeyExchange(keyExchange, mSupportedSignatureAlgorithms, mIdentity, mPassword);
         }
     }
 }

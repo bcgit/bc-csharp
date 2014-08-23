@@ -486,7 +486,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                             if (connection_state == CS_SERVER_HELLO_RECEIVED)
                             {
                                 // There was no server certificate message; check it's OK
-                                this.keyExchange.SkipServerCertificate();
+                                this.keyExchange.SkipServerCredentials();
                                 this.authentication = null;
 
                                 // There was no server key exchange message; check it's OK
@@ -605,7 +605,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                             if (connection_state == CS_SERVER_HELLO_RECEIVED)
                             {
                                 // There was no server certificate message; check it's OK
-                                this.keyExchange.SkipServerCertificate();
+                                this.keyExchange.SkipServerCredentials();
                                 this.authentication = null;
                             }
 
