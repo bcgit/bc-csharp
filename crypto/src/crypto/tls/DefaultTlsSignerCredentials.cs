@@ -51,6 +51,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new ArgumentException("type not supported: " + privateKey.GetType().FullName, "privateKey");
             }
 
+            this.mSigner.Init(context);
+
             this.mContext = context;
             this.mCertificate = certificate;
             this.mPrivateKey = privateKey;

@@ -73,12 +73,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual TlsHandshakeHash StopTracking()
         {
-            IDigest prfHash = TlsUtilities.CloneHash((byte)mPrfHashAlgorithm, (IDigest)mHashes[mPrfHashAlgorithm]);
+            byte prfHashAlgorithm = (byte)mPrfHashAlgorithm;
+            IDigest prfHash = TlsUtilities.CloneHash(prfHashAlgorithm, (IDigest)mHashes[prfHashAlgorithm]);
             if (mBuf != null)
             {
                 mBuf.UpdateDigest(prfHash);
             }
-            DeferredHash result = new DeferredHash((byte)mPrfHashAlgorithm, prfHash);
+            DeferredHash result = new DeferredHash(prfHashAlgorithm, prfHash);
             result.Init(mContext);
             return result;
         }
@@ -87,14 +88,15 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             CheckStopBuffering();
 
+            byte prfHashAlgorithm = (byte)mPrfHashAlgorithm;
             if (mBuf != null)
             {
-                IDigest prfHash = TlsUtilities.CreateHash((byte)mPrfHashAlgorithm);
+                IDigest prfHash = TlsUtilities.CreateHash(prfHashAlgorithm);
                 mBuf.UpdateDigest(prfHash);
                 return prfHash;
             }
 
-            return TlsUtilities.CloneHash((byte)mPrfHashAlgorithm, (IDigest)mHashes[mPrfHashAlgorithm]);
+            return TlsUtilities.CloneHash(prfHashAlgorithm, (IDigest)mHashes[prfHashAlgorithm]);
         }
 
         public virtual byte[] GetFinalHash(byte hashAlgorithm)
