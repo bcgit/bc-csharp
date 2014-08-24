@@ -148,7 +148,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual byte[] GetCompressionMethods()
         {
-            return new byte[]{ CompressionMethod.NULL };
+            return new byte[]{ CompressionMethod.cls_null };
         }
 
         public virtual void NotifySessionID(byte[] sessionID)
@@ -209,7 +209,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             switch (mSelectedCompressionMethod)
             {
-            case CompressionMethod.NULL:
+            case CompressionMethod.cls_null:
                 return new TlsNullCompression();
 
             case CompressionMethod.DEFLATE:

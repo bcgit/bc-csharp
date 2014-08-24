@@ -4334,11 +4334,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\tls\AlwaysValidVerifyer.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\crypto\tls\BulkCipherAlgorithm.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4464,11 +4459,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\tls\DigestAlgorithm.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\crypto\tls\DigestInputBuffer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4539,22 +4529,7 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\tls\ICertificateVerifyer.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\crypto\tls\KeyExchangeAlgorithm.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\crypto\tls\LegacyTlsAuthentication.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\crypto\tls\LegacyTlsClient.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

@@ -812,17 +812,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             recordStream.WriteMessage(ContentType.handshake, message, 0, message.Length);
         }
 
-        /// <summary>Connects to the remote system.</summary>
-        /// <param name="verifyer">Will be used when a certificate is received to verify
-        /// that this certificate is accepted by the client.</param>
-        /// <exception cref="IOException">If handshake was not successful</exception>
-        [Obsolete("Use version taking TlsClient")]
-        public virtual void Connect(
-            ICertificateVerifyer verifyer)
-        {
-            this.Connect(new LegacyTlsClient(verifyer));
-        }
-
         public virtual void Connect(TlsClient tlsClient)
         {
             if (tlsClient == null)
@@ -1088,20 +1077,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                     len -= toWrite;
                 }
             }
-        }
-
-        /// <summary>A Stream which can be used to send data.</summary>
-        [Obsolete("Use 'Stream' property instead")]
-        public virtual Stream OutputStream
-        {
-            get { return this.tlsStream; }
-        }
-
-        /// <summary>A Stream which can be used to read data.</summary>
-        [Obsolete("Use 'Stream' property instead")]
-        public virtual Stream InputStream
-        {
-            get { return this.tlsStream; }
         }
 
         /// <summary>The secure bidirectional stream for this connection</summary>

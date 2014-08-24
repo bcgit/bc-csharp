@@ -21,15 +21,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected readonly bool usesNonce;
 
         /// <exception cref="IOException"></exception>
-        [Obsolete("Use version with additional 'usesNonce' argument")]
-        public TlsStreamCipher(TlsContext context, IStreamCipher clientWriteCipher,
-            IStreamCipher serverWriteCipher, IDigest clientWriteDigest, IDigest serverWriteDigest,
-            int cipherKeySize)
-            :   this(context, clientWriteCipher, serverWriteCipher, clientWriteDigest, serverWriteDigest, cipherKeySize, false)
-        {
-        }
-
-        /// <exception cref="IOException"></exception>
         public TlsStreamCipher(TlsContext context, IStreamCipher clientWriteCipher,
             IStreamCipher serverWriteCipher, IDigest clientWriteDigest, IDigest serverWriteDigest,
             int cipherKeySize, bool usesNonce)

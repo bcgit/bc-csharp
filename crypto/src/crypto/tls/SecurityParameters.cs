@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     {
         internal int entity = -1;
         internal int cipherSuite = -1;
-        internal byte compressionAlgorithm = CompressionMethod.NULL;
+        internal byte compressionAlgorithm = CompressionMethod.cls_null;
         internal int prfAlgorithm = -1;
         internal int verifyDataLength = -1;
         internal byte[] masterSecret = null;

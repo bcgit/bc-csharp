@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected byte[] GetCompressionMethods()
         {
-            return new byte[]{ CompressionMethod.NULL };
+            return new byte[] { CompressionMethod.cls_null };
         }
 
         protected virtual ProtocolVersion MaximumVersion
@@ -293,7 +293,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             switch (mSelectedCompressionMethod)
             {
-            case CompressionMethod.NULL:
+            case CompressionMethod.cls_null:
                 return new TlsNullCompression();
 
             default:

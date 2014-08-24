@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     /// </summary>
     public abstract class CompressionMethod
     {
-        public const byte NULL = 0;
+        public const byte cls_null = 0;
 
         /*
          * RFC 3749 2

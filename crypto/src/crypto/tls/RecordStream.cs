@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /// <remarks>An implementation of the TLS 1.0 record layer.</remarks>
+    /// <summary>An implementation of the TLS 1.0 record layer.</summary>
     internal class RecordStream
     {
         private TlsProtocolHandler handler;
@@ -16,8 +16,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         private TlsCipher writeCipher = null;
         private long readSeqNo = 0, writeSeqNo = 0;
         private MemoryStream buffer = new MemoryStream();
-
-        private TlsContext context = null;
 
         internal RecordStream(
             TlsProtocolHandler	handler,
@@ -33,7 +31,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal void Init(TlsContext context)
         {
-            this.context = context;
             this.readCipher = new TlsNullCipher(context);
             this.writeCipher = this.readCipher;
             this.hash = new CombinedHash();

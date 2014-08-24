@@ -38,13 +38,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mCertificateList = certificateList;
         }
 
-        /// <returns>An array which contains the certs, this chain contains.</returns>
-        [Obsolete("Use 'GetCertificateList' instead")]
-        public virtual X509CertificateStructure[] GetCerts()
-        {
-            return GetCertificateList();
-        }
-
         /**
          * @return an array of {@link org.bouncycastle.asn1.x509.Certificate} representing a certificate
          *         chain.
