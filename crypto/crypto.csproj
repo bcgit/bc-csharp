@@ -9809,6 +9809,30 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\tls\x509-ca-key.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-key.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-key.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\tls\keystores\client_store.dsa"
                     BuildAction = "EmbeddedResource"
                 />
