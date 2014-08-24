@@ -58,19 +58,31 @@ namespace Org.BouncyCastle.Crypto.Tls
         public virtual ProtocolVersion ClientVersion
         {
             get { return mClientVersion; }
-            set { this.mClientVersion = value; }
+        }
+
+        internal virtual void SetClientVersion(ProtocolVersion clientVersion)
+        {
+            this.mClientVersion = clientVersion;
         }
 
         public virtual ProtocolVersion ServerVersion
         {
             get { return mServerVersion; }
-            set { this.mServerVersion = value; }
+        }
+
+        internal virtual void SetServerVersion(ProtocolVersion serverVersion)
+        {
+            this.mServerVersion = serverVersion;
         }
 
         public virtual TlsSession ResumableSession
         {
             get { return mSession; }
-            set { this.mSession = value; }
+        }
+
+        internal virtual void SetResumableSession(TlsSession session)
+        {
+            this.mSession = session;
         }
 
         public virtual object UserObject

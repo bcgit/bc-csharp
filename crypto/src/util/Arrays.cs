@@ -544,6 +544,19 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        public static int[] Concatenate(int[] a, int[] b)
+        {
+            if (a == null)
+                return Clone(b);
+            if (b == null)
+                return Clone(a);
+
+            int[] rv = new int[a.Length + b.Length];
+            Array.Copy(a, 0, rv, 0, a.Length);
+            Array.Copy(b, 0, rv, a.Length, b.Length);
+            return rv;
+        }
+
         public static byte[] Prepend(byte[] a, byte b)
         {
             if (a == null)

@@ -3089,6 +3089,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\agreement\DHStandardGroups.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\agreement\ECDHBasicAgreement.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4449,6 +4454,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\DefaultTlsServer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\DefaultTlsSignerCredentials.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4695,6 +4705,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsClientContextImpl.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsClientProtocol.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -10892,6 +10907,21 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\XTEATest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\MockTlsClient.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\TlsClientTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\TlsTestUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

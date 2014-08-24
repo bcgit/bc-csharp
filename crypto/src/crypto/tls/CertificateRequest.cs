@@ -123,8 +123,7 @@ namespace Org.BouncyCastle.Crypto.Tls
          * @return a {@link CertificateRequest} object.
          * @throws IOException
          */
-        public static CertificateRequest Parse(//TlsContext context,
-            Stream input)
+        public static CertificateRequest Parse(TlsContext context, Stream input)
         {
             int numTypes = TlsUtilities.ReadUint8(input);
             byte[] certificateTypes = new byte[numTypes];
@@ -133,13 +132,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                 certificateTypes[i] = TlsUtilities.ReadUint8(input);
             }
 
-            // TODO Add TLS 1.2 support here
             IList supportedSignatureAlgorithms = null;
-            //if (TlsUtilities.IsTLSv12(context))
-            //{
-            //    // TODO Check whether SignatureAlgorithm.anonymous is allowed here
-            //    supportedSignatureAlgorithms = TlsUtilities.ParseSupportedSignatureAlgorithms(false, input);
-            //}
+            if (TlsUtilities.IsTlsV12(context))
+            {
+                // TODO Check whether SignatureAlgorithm.anonymous is allowed here
+                supportedSignatureAlgorithms = TlsUtilities.ParseSupportedSignatureAlgorithms(false, input);
+            }
 
             IList certificateAuthorities = Platform.CreateArrayList();
             byte[] certAuthData = TlsUtilities.ReadOpaque16(input);

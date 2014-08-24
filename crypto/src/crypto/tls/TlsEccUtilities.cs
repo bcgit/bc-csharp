@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             int[] namedCurves = TlsUtilities.ReadUint16Array(length / 2, buf);
 
-            TlsProtocolHandler.AssertEmpty(buf);
+            TlsProtocol.AssertEmpty(buf);
 
             return namedCurves;
         }
@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             byte[] ecPointFormats = TlsUtilities.ReadUint8Array(length, buf);
 
-            TlsProtocolHandler.AssertEmpty(buf);
+            TlsProtocol.AssertEmpty(buf);
 
             if (!Arrays.Contains(ecPointFormats, ECPointFormat.uncompressed))
             {

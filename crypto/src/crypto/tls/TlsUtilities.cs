@@ -492,26 +492,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             return uints;
         }
 
-        [Obsolete]
-        public static void CheckVersion(byte[] ReadVersion)
-        {
-            if ((ReadVersion[0] != 3) || (ReadVersion[1] != 1))
-            {
-                throw new TlsFatalAlert(AlertDescription.protocol_version);
-            }
-        }
-
-        [Obsolete]
-        public static void CheckVersion(Stream input)
-        {
-            int i1 = input.ReadByte();
-            int i2 = input.ReadByte();
-            if ((i1 != 3) || (i2 != 1))
-            {
-                throw new TlsFatalAlert(AlertDescription.protocol_version);
-            }
-        }
-
         public static ProtocolVersion ReadVersion(byte[] buf, int offset)
         {
             return ProtocolVersion.Get(buf[offset], buf[offset + 1]);
@@ -575,20 +555,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             buf[offset + 1] = (byte)(t >> 16);
             buf[offset + 2] = (byte)(t >> 8);
             buf[offset + 3] = (byte)t;
-        }
-
-        [Obsolete]
-        public static void WriteVersion(Stream output)
-        {
-            output.WriteByte(3);
-            output.WriteByte(1);
-        }
-
-        [Obsolete]
-        public static void WriteVersion(byte[] buf, int offset)
-        {
-            buf[offset] = 3;
-            buf[offset + 1] = 1;
         }
 
         public static void WriteVersion(ProtocolVersion version, Stream output)

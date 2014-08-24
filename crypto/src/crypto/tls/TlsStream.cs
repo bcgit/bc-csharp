@@ -6,10 +6,9 @@ namespace Org.BouncyCastle.Crypto.Tls
     internal class TlsStream
         : Stream
     {
-        private readonly TlsProtocolHandler handler;
+        private readonly TlsProtocol handler;
 
-        internal TlsStream(
-            TlsProtocolHandler handler)
+        internal TlsStream(TlsProtocol handler)
         {
             this.handler = handler;
         }
