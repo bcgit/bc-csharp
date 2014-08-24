@@ -6,7 +6,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace Org.BouncyCastle.Crypto.Tls.Test
+namespace Org.BouncyCastle.Crypto.Tls.Tests
 {
     internal class MockTlsClient
         :   DefaultTlsClient
@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Test
             }
             if (cause != null)
             {
-                output.WriteLine(cause.StackTrace);
+                output.WriteLine(cause);
             }
         }
 

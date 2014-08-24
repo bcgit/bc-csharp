@@ -5,7 +5,7 @@ using System.Text;
 
 using Org.BouncyCastle.Security;
 
-namespace Org.BouncyCastle.Crypto.Tls.Test
+namespace Org.BouncyCastle.Crypto.Tls.Tests
 {
     /**
      * A simple test designed to conduct a TLS handshake with an external TLS server.

@@ -12,7 +12,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.Utilities.Test;
 
-namespace Org.BouncyCastle.Crypto.Tls.Test
+namespace Org.BouncyCastle.Crypto.Tls.Tests
 {
     public abstract class TlsTestUtilities
     {
