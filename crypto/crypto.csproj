@@ -4874,6 +4874,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\TlsServerProtocol.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsSession.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -10916,7 +10921,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\MockTlsServer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\TlsClientTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\TlsServerTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

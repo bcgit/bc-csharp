@@ -533,7 +533,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected void WriteHandshakeMessage(byte[] buf, int off, int len)
+        protected virtual void WriteHandshakeMessage(byte[] buf, int off, int len)
         {
             while (len > 0)
             {
@@ -698,7 +698,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             message.WriteToRecordStream(this);
         }
 
-        protected byte[] CreateVerifyData(bool isServer)
+        protected virtual byte[] CreateVerifyData(bool isServer)
         {
             TlsContext context = Context;
             string asciiLabel = isServer ? ExporterLabel.server_finished : ExporterLabel.client_finished;
