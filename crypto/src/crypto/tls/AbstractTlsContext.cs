@@ -28,11 +28,14 @@ namespace Org.BouncyCastle.Crypto.Tls
 
        internal AbstractTlsContext(SecureRandom secureRandom, SecurityParameters securityParameters)
         {
-            secureRandom.SetSeed(NextCounterValue());
-            secureRandom.SetSeed(Times.NanoTime());
+            IDigest d = TlsUtilities.CreateHash(HashAlgorithm.sha256);
+            byte[] seed = new byte[d.GetDigestSize()];
+            secureRandom.NextBytes(seed);
 
-            this.mNonceRandom = new DigestRandomGenerator(TlsUtilities.CreateHash(HashAlgorithm.sha256));
-            this.mNonceRandom.AddSeedMaterial(secureRandom.GenerateSeed(32));
+            this.mNonceRandom = new DigestRandomGenerator(d);
+            mNonceRandom.AddSeedMaterial(NextCounterValue());
+            mNonceRandom.AddSeedMaterial(Times.NanoTime());
+            mNonceRandom.AddSeedMaterial(seed);
 
             this.mSecureRandom = secureRandom;
             this.mSecurityParameters = securityParameters;
