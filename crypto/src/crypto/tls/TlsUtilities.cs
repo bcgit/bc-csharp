@@ -870,7 +870,16 @@ namespace Org.BouncyCastle.Crypto.Tls
         internal static byte[] CalculateMasterSecret(TlsContext context, byte[] pre_master_secret)
         {
             SecurityParameters securityParameters = context.SecurityParameters;
-            byte[] seed = Concat(securityParameters.ClientRandom, securityParameters.ServerRandom);
+
+            byte[] seed;
+            if (securityParameters.extendedMasterSecret)
+            {
+                seed = securityParameters.SessionHash;
+            }
+            else
+            {
+                seed = Concat(securityParameters.ClientRandom, securityParameters.ServerRandom);
+            }
 
             if (IsSsl(context))
             {

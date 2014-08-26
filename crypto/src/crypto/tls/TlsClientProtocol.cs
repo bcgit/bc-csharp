@@ -360,10 +360,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                     SendClientKeyExchangeMessage();
                     this.mConnectionState = CS_CLIENT_KEY_EXCHANGE;
 
+                    TlsHandshakeHash prepareFinishHash = mRecordStream.PrepareToFinish();
+                    this.mSecurityParameters.sessionHash = GetCurrentPrfHash(Context, prepareFinishHash, null);
+
                     EstablishMasterSecret(Context, mKeyExchange);
                     mRecordStream.SetPendingConnectionState(Peer.GetCompression(), Peer.GetCipher());
-
-                    TlsHandshakeHash prepareFinishHash = mRecordStream.PrepareToFinish();
 
                     if (clientCreds != null && clientCreds is TlsSignerCredentials)
                     {
@@ -386,7 +387,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                         else
                         {
                             signatureAndHashAlgorithm = null;
-                            hash = GetCurrentPrfHash(Context, prepareFinishHash, null);
+                            hash = mSecurityParameters.SessionHash;
                         }
 
                         byte[] signature = signerCredentials.GenerateCertificateSignature(hash);
@@ -562,7 +563,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             NewSessionTicket newSessionTicket = NewSessionTicket.Parse(buf);
 
-            TlsProtocol.AssertEmpty(buf);
+            AssertEmpty(buf);
 
             mTlsClient.NotifyNewSessionTicket(newSessionTicket);
         }
@@ -635,6 +636,15 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mServerExtensions = ReadExtensions(buf);
 
             /*
+             * draft-ietf-tls-session-hash-01 5.2. If a server receives the "extended_master_secret"
+             * extension, it MUST include the "extended_master_secret" extension in its ServerHello
+             * message.
+             */
+            bool serverSentExtendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mServerExtensions);
+            if (serverSentExtendedMasterSecret != mSecurityParameters.extendedMasterSecret)
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+            /*
              * RFC 3546 2.2 Note that the extended server hello message is only sent in response to an
              * extended client hello message.
              * 
@@ -656,6 +666,25 @@ namespace Org.BouncyCastle.Crypto.Tls
                         continue;
 
                     /*
+                     * RFC 5246 7.4.1.4 An extension type MUST NOT appear in the ServerHello unless the
+                     * same extension type appeared in the corresponding ClientHello. If a client
+                     * receives an extension type in ServerHello that it did not request in the
+                     * associated ClientHello, it MUST abort the handshake with an unsupported_extension
+                     * fatal alert.
+                     */
+                    if (null == TlsUtilities.GetExtensionData(this.mClientExtensions, extType))
+                        throw new TlsFatalAlert(AlertDescription.unsupported_extension);
+
+                    /*
+                     * draft-ietf-tls-session-hash-01 5.2. Implementation note: if the server decides to
+                     * proceed with resumption, the extension does not have any effect. Requiring the
+                     * extension to be included anyway makes the extension negotiation logic easier,
+                     * because it does not depend on whether resumption is accepted or not.
+                     */
+                    if (extType == ExtensionType.extended_master_secret)
+                        continue;
+
+                    /*
                      * RFC 3546 2.3. If [...] the older session is resumed, then the server MUST ignore
                      * extensions appearing in the client hello, and Send a server hello containing no
                      * extensions[.]
@@ -667,16 +696,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                         // TODO[compat-polarssl] PolarSSL test server Sends server extensions e.g. ec_point_formats
     //                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                     }
-
-                    /*
-                     * RFC 5246 7.4.1.4 An extension type MUST NOT appear in the ServerHello unless the
-                     * same extension type appeared in the corresponding ClientHello. If a client
-                     * receives an extension type in ServerHello that it did not request in the
-                     * associated ClientHello, it MUST abort the handshake with an unsupported_extension
-                     * fatal alert.
-                     */
-                    if (null == TlsUtilities.GetExtensionData(this.mClientExtensions, extType))
-                        throw new TlsFatalAlert(AlertDescription.unsupported_extension);
                 }
             }
 
@@ -718,6 +737,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 sessionClientExtensions = null;
                 sessionServerExtensions = this.mSessionParameters.ReadServerExtensions();
+
+                this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
             }
 
             this.mSecurityParameters.cipherSuite = selectedCipherSuite;
@@ -807,6 +828,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             this.mClientExtensions = this.mTlsClient.GetClientExtensions();
+
+            this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mClientExtensions);
 
             HandshakeMessage message = new HandshakeMessage(HandshakeType.client_hello);
 

@@ -18,6 +18,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             extensions[ExtensionType.encrypt_then_mac] = CreateEncryptThenMacExtension();
         }
 
+        public static void AddExtendedMasterSecretExtension(IDictionary extensions)
+        {
+            extensions[ExtensionType.extended_master_secret] = CreateExtendedMasterSecretExtension();
+        }
+
         /// <exception cref="IOException"></exception>
         public static void AddHeartbeatExtension(IDictionary extensions, HeartbeatExtension heartbeatExtension)
         {
@@ -83,6 +88,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"></exception>
+        public static bool HasExtendedMasterSecretExtension(IDictionary extensions)
+        {
+            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.extended_master_secret);
+            return extensionData == null ? false : ReadExtendedMasterSecretExtension(extensionData);
+        }
+
+        /// <exception cref="IOException"></exception>
         public static bool HasTruncatedHMacExtension(IDictionary extensions)
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.truncated_hmac);
@@ -95,6 +107,11 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         public static byte[] CreateEncryptThenMacExtension()
+        {
+            return CreateEmptyExtensionData();
+        }
+
+        public static byte[] CreateExtendedMasterSecretExtension()
         {
             return CreateEmptyExtensionData();
         }
@@ -168,6 +185,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         /// <exception cref="IOException"></exception>
         public static bool ReadEncryptThenMacExtension(byte[] extensionData)
+        {
+            return ReadEmptyExtensionData(extensionData);
+        }
+
+        /// <exception cref="IOException"></exception>
+        public static bool ReadExtendedMasterSecretExtension(byte[] extensionData)
         {
             return ReadEmptyExtensionData(extensionData);
         }

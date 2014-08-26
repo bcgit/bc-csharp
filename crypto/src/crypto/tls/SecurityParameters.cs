@@ -14,21 +14,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         internal byte[] masterSecret = null;
         internal byte[] clientRandom = null;
         internal byte[] serverRandom = null;
+        internal byte[] sessionHash = null;
 
         // TODO Keep these internal, since it's maybe not the ideal place for them
         internal short maxFragmentLength = -1;
         internal bool truncatedHMac = false;
         internal bool encryptThenMac = false;
-
-        internal void CopySessionParametersFrom(SecurityParameters other)
-        {
-            this.entity = other.entity;
-            this.cipherSuite = other.cipherSuite;
-            this.compressionAlgorithm = other.compressionAlgorithm;
-            this.prfAlgorithm = other.prfAlgorithm;
-            this.verifyDataLength = other.verifyDataLength;
-            this.masterSecret = Arrays.Clone(other.masterSecret);
-        }
+        internal bool extendedMasterSecret = false;
 
         internal virtual void Clear()
         {
@@ -89,6 +81,11 @@ namespace Org.BouncyCastle.Crypto.Tls
         public virtual byte[] ServerRandom
         {
             get { return serverRandom; }
+        }
+
+        public virtual byte[] SessionHash
+        {
+            get { return sessionHash; }
         }
     }
 }

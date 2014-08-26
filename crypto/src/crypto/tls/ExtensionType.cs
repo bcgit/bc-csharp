@@ -54,6 +54,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int encrypt_then_mac = 22;
 
         /*
+         * draft-ietf-tls-session-hash-01
+         * 
+         * WARNING: Placeholder value; the real value is TBA
+         */
+        public static readonly int extended_master_secret = 100;
+
+        /*
          * RFC 5746 3.2.
          */
         public const int renegotiation_info = 0xff01;
