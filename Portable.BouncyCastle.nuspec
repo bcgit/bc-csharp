@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Portable.BouncyCastle</id>
-        <version>1.7.0</version>
+        <version>1.7.0.1</version>
         <title>Bouncy Castle PCL</title>
         <authors>Oren Novotny</authors>
         <owners>onovotny</owners>
@@ -27,14 +27,17 @@
  -Cryptographic Message Syntax (CMS, RFC 3852), including streaming API.
  -Online Certificate Status Protocol (OCSP, RFC 2560).
  -Time Stamp Protocol (TSP, RFC 3161).
- -TLS/SSL Client with support for client side authentication.</description>
+ -TLS/SSL Client with support for client side authentication.
+ 
+        Support for .NET 4, Windows Phone 8, Windows Phone App 8.1, Windows 8, Silverlight 5, MonoTouch, MonoAndroid
+        </description>
         <language>en-US</language>
-        <tags>bouncycastle, cryptography, encryption, security, PCL</tags>
+        <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, net4, sl5, monotouch, monoandroid, xamarin</tags>
     </metadata>
     <files>
-        <file src="Crypto\bin\Release\crypto.xml" target="lib\portable-net4+sl5+wp8+win8\crypto.xml" />
-        <file src="Crypto\bin\Release\crypto.pdb" target="lib\portable-net4+sl5+wp8+win8\crypto.pdb" />
-        <file src="Crypto\bin\Release\crypto.dll" target="lib\portable-net4+sl5+wp8+win8\crypto.dll" />
+        <file src="Crypto\bin\Release\crypto.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.xml" />
+        <file src="Crypto\bin\Release\crypto.pdb" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.pdb" />
+        <file src="Crypto\bin\Release\crypto.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.dll" />
         <file src="Crypto\Readme.html" target="Readme.html" />
         <file src="**\*.cs" target="src" exclude="_ReSharper.*\**\*.*;packages\**\*.*;**\Debug\**\*.*;" />
     </files>
