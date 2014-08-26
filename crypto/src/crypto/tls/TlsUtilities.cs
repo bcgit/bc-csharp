@@ -871,22 +871,20 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             SecurityParameters securityParameters = context.SecurityParameters;
 
-            byte[] seed;
-            if (securityParameters.extendedMasterSecret)
-            {
-                seed = securityParameters.SessionHash;
-            }
-            else
-            {
-                seed = Concat(securityParameters.ClientRandom, securityParameters.ServerRandom);
-            }
+            byte[] seed = securityParameters.extendedMasterSecret
+                ?   securityParameters.SessionHash
+                :   Concat(securityParameters.ClientRandom, securityParameters.ServerRandom);
 
             if (IsSsl(context))
             {
                 return CalculateMasterSecret_Ssl(pre_master_secret, seed);
             }
 
-            return PRF(context, pre_master_secret, ExporterLabel.master_secret, seed, 48);
+            string asciiLabel = securityParameters.extendedMasterSecret
+                ? ExporterLabel.extended_master_secret
+                : ExporterLabel.master_secret;
+
+            return PRF(context, pre_master_secret, asciiLabel, seed, 48);
         }
 
         internal static byte[] CalculateMasterSecret_Ssl(byte[] pre_master_secret, byte[] random)
