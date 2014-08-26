@@ -276,7 +276,7 @@ namespace Org.BouncyCastle.OpenSsl
                         if (seq.Count != 9)
                             throw new PemException("malformed sequence in RSA private key");
 
-                        RsaPrivateKeyStructure rsa = new RsaPrivateKeyStructure(seq);
+                        RsaPrivateKeyStructure rsa = RsaPrivateKeyStructure.GetInstance(seq);
 
                         pubSpec = new RsaKeyParameters(false, rsa.Modulus, rsa.PublicExponent);
                         privSpec = new RsaPrivateCrtKeyParameters(
