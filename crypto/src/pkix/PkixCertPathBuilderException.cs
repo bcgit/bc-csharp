@@ -7,7 +7,10 @@ namespace Org.BouncyCastle.Pkix
 	/// <summary>
 	/// Summary description for PkixCertPathBuilderException.
 	/// </summary>
-	public class PkixCertPathBuilderException : GeneralSecurityException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class PkixCertPathBuilderException : GeneralSecurityException
 	{
 		public PkixCertPathBuilderException() : base() { }
 		

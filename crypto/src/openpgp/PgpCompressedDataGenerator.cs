@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			{
 				if (dOut != pkOut)
 				{
-                    dOut.Dispose();
+					dOut.Close();
 					dOut.Flush();
 				}
 
@@ -174,13 +174,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			{
 			}
 
-            protected override void Dispose(bool disposing)
-            {
-                if (disposing)
-                {
-                    Finish();
-                }
-            }
+			public override void Close()
+			{
+				Finish();
+			}
 		}
 
 		private class SafeZOutputStream : ZOutputStream
@@ -190,14 +187,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			{
 			}
 
-            protected override void Dispose(bool disposing)
-            {
-                if (disposing)
-                {
-                    Finish();
-                    End();
-                }
-            }
+			public override void Close()
+			{
+				Finish();
+				End();
+			}
 		}
 	}
 }

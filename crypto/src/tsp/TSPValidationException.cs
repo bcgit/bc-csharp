@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Tsp
 {
 	/**
@@ -6,7 +8,10 @@ namespace Org.BouncyCastle.Tsp
 	 * If a failure code is associated with the exception it can be retrieved using
 	 * the getFailureCode() method.</p>
 	 */
-	public class TspValidationException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class TspValidationException
 		: TspException
 	{
 		private int failureCode;

@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Asn1.Cms
     {
         private readonly IDictionary attributes;
 
-#if !(SILVERLIGHT || PORTABLE)
+#if !SILVERLIGHT
         [Obsolete]
         public AttributeTable(
             Hashtable attrs)
@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return Platform.CreateHashtable(attributes);
         }
 
-#if !(SILVERLIGHT || PORTABLE)
+#if !SILVERLIGHT
         [Obsolete("Use 'ToDictionary' instead")]
 		public Hashtable ToHashtable()
         {
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         }
 #endif
 
-        public Asn1EncodableVector ToAsn1EncodableVector()
+		public Asn1EncodableVector ToAsn1EncodableVector()
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
 

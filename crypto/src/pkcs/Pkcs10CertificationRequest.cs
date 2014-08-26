@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Globalization;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -228,7 +227,7 @@ namespace Org.BouncyCastle.Pkcs
 				throw new ArgumentException("key for signing must be private", "signingKey");
 
 //			DerObjectIdentifier sigOid = SignerUtilities.GetObjectIdentifier(signatureAlgorithm);
-			string algorithmName = signatureAlgorithm.ToUpperInvariant();
+			string algorithmName = Platform.ToUpperInvariant(signatureAlgorithm);
 			DerObjectIdentifier sigOid = (DerObjectIdentifier) algorithms[algorithmName];
 
 			if (sigOid == null)

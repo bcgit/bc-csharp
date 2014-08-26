@@ -12,19 +12,17 @@ namespace Org.BouncyCastle.Asn1.Cms
         private X509Name	name;
         private DerInteger	serialNumber;
 
-        public static IssuerAndSerialNumber GetInstance(
-            object obj)
+        public static IssuerAndSerialNumber GetInstance(object obj)
         {
-            if (obj is IssuerAndSerialNumber)
-                return (IssuerAndSerialNumber)obj;
-
-			if (obj is Asn1Sequence)
-                return new IssuerAndSerialNumber((Asn1Sequence)obj);
-
-			throw new ArgumentException(
-                "Illegal object in IssuerAndSerialNumber: " + obj.GetType().Name);
+            if (obj == null)
+                return null;
+            IssuerAndSerialNumber existing = obj as IssuerAndSerialNumber;
+            if (existing != null)
+                return existing;
+            return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(obj));
         }
 
+        [Obsolete("Use GetInstance() instead")]
         public IssuerAndSerialNumber(
             Asn1Sequence seq)
         {
@@ -32,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.serialNumber = (DerInteger) seq[1];
         }
 
-		public IssuerAndSerialNumber(
+        public IssuerAndSerialNumber(
             X509Name	name,
             BigInteger	serialNumber)
         {
@@ -48,19 +46,19 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.serialNumber = serialNumber;
         }
 
-		public X509Name Name
-		{
-			get { return name; }
-		}
-
-		public DerInteger SerialNumber
-		{
-			get { return serialNumber; }
-		}
-
-		public override Asn1Object ToAsn1Object()
+        public X509Name Name
         {
-			return new DerSequence(name, serialNumber);
+            get { return name; }
+        }
+
+        public DerInteger SerialNumber
+        {
+            get { return serialNumber; }
+        }
+
+        public override Asn1Object ToAsn1Object()
+        {
+            return new DerSequence(name, serialNumber);
         }
     }
 }

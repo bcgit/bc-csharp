@@ -15,6 +15,11 @@ namespace Org.BouncyCastle.Crypto
         void Init(ICipherParameters parameters);
 
         /**
+         * return the field size for the agreement algorithm in bytes.
+         */
+        int GetFieldSize();
+
+        /**
          * given a public key from a given party calculate the next
          * message in the agreement sequence.
          */

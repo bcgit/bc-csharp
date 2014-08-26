@@ -14,63 +14,58 @@ namespace Org.BouncyCastle.Asn1.Cms
         private EncryptedContentInfo	encryptedContentInfo;
         private Asn1Set					unprotectedAttrs;
 
-		public EnvelopedData(
+        public EnvelopedData(
             OriginatorInfo			originatorInfo,
             Asn1Set					recipientInfos,
             EncryptedContentInfo	encryptedContentInfo,
             Asn1Set					unprotectedAttrs)
         {
-            if (originatorInfo != null || unprotectedAttrs != null)
-            {
-                version = new DerInteger(2);
-            }
-            else
-            {
-                version = new DerInteger(0);
-
-				foreach (object o in recipientInfos)
-				{
-                    RecipientInfo ri = RecipientInfo.GetInstance(o);
-
-					if (!ri.Version.Equals(version))
-                    {
-                        version = new DerInteger(2);
-                        break;
-                    }
-                }
-            }
-
-			this.originatorInfo = originatorInfo;
+            this.version = new DerInteger(CalculateVersion(originatorInfo, recipientInfos, unprotectedAttrs));
+            this.originatorInfo = originatorInfo;
             this.recipientInfos = recipientInfos;
             this.encryptedContentInfo = encryptedContentInfo;
             this.unprotectedAttrs = unprotectedAttrs;
         }
 
-		public EnvelopedData(
+        public EnvelopedData(
+            OriginatorInfo originatorInfo,
+            Asn1Set recipientInfos,
+            EncryptedContentInfo encryptedContentInfo,
+            Attributes unprotectedAttrs)
+        {
+            this.version = new DerInteger(CalculateVersion(originatorInfo, recipientInfos, Asn1Set.GetInstance(unprotectedAttrs)));
+            this.originatorInfo = originatorInfo;
+            this.recipientInfos = recipientInfos;
+            this.encryptedContentInfo = encryptedContentInfo;
+            this.unprotectedAttrs = Asn1Set.GetInstance(unprotectedAttrs);
+        }
+
+        [Obsolete("Use 'GetInstance' instead")]
+        public EnvelopedData(
             Asn1Sequence seq)
         {
             int index = 0;
 
-			version = (DerInteger) seq[index++];
+            version = (DerInteger) seq[index++];
 
-			object tmp = seq[index++];
+            object tmp = seq[index++];
 
-			if (tmp is Asn1TaggedObject)
+            if (tmp is Asn1TaggedObject)
             {
                 originatorInfo = OriginatorInfo.GetInstance((Asn1TaggedObject) tmp, false);
                 tmp = seq[index++];
             }
 
-			recipientInfos = Asn1Set.GetInstance(tmp);
+            recipientInfos = Asn1Set.GetInstance(tmp);
             encryptedContentInfo = EncryptedContentInfo.GetInstance(seq[index++]);
 
-			if (seq.Count > index)
+            if (seq.Count > index)
             {
-				unprotectedAttrs = Asn1Set.GetInstance((Asn1TaggedObject) seq[index], false);
+                unprotectedAttrs = Asn1Set.GetInstance((Asn1TaggedObject) seq[index], false);
             }
         }
 
-		/**
+        /**
          * return an EnvelopedData object from a tagged object.
          *
          * @param obj the tagged object holding the object we want.
@@ -86,7 +81,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		/**
+        /**
          * return an EnvelopedData object from the given object.
          *
          * @param obj the object we want converted.
@@ -95,45 +90,39 @@ namespace Org.BouncyCastle.Asn1.Cms
         public static EnvelopedData GetInstance(
             object obj)
         {
-            if (obj == null || obj is EnvelopedData)
-            {
+            if (obj is EnvelopedData)
                 return (EnvelopedData)obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new EnvelopedData((Asn1Sequence)obj);
-            }
-
-			throw new ArgumentException("Invalid EnvelopedData: " + obj.GetType().Name);
+            if (obj == null)
+                return null;
+            return new EnvelopedData(Asn1Sequence.GetInstance(obj));
         }
 
-		public DerInteger Version
-		{
-			get { return version; }
-		}
+        public DerInteger Version
+        {
+            get { return version; }
+        }
 
-		public OriginatorInfo OriginatorInfo
-		{
-			get { return originatorInfo; }
-		}
+        public OriginatorInfo OriginatorInfo
+        {
+            get { return originatorInfo; }
+        }
 
-		public Asn1Set RecipientInfos
-		{
-			get { return recipientInfos; }
-		}
+        public Asn1Set RecipientInfos
+        {
+            get { return recipientInfos; }
+        }
 
-		public EncryptedContentInfo EncryptedContentInfo
-		{
-			get { return encryptedContentInfo; }
-		}
+        public EncryptedContentInfo EncryptedContentInfo
+        {
+            get { return encryptedContentInfo; }
+        }
 
-		public Asn1Set UnprotectedAttrs
-		{
-			get { return unprotectedAttrs; }
-		}
+        public Asn1Set UnprotectedAttrs
+        {
+            get { return unprotectedAttrs; }
+        }
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * EnvelopedData ::= Sequence {
@@ -149,19 +138,39 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             Asn1EncodableVector v = new Asn1EncodableVector(version);
 
-			if (originatorInfo != null)
+            if (originatorInfo != null)
             {
                 v.Add(new DerTaggedObject(false, 0, originatorInfo));
             }
 
-			v.Add(recipientInfos, encryptedContentInfo);
+            v.Add(recipientInfos, encryptedContentInfo);
 
-			if (unprotectedAttrs != null)
+            if (unprotectedAttrs != null)
             {
                 v.Add(new DerTaggedObject(false, 1, unprotectedAttrs));
             }
 
-			return new BerSequence(v);
+            return new BerSequence(v);
+        }
+
+        public static int CalculateVersion(OriginatorInfo originatorInfo, Asn1Set recipientInfos, Asn1Set unprotectedAttrs)
+        {
+            if (originatorInfo != null || unprotectedAttrs != null)
+            {
+                return 2;
+            }
+
+            foreach (object o in recipientInfos)
+            {
+                RecipientInfo ri = RecipientInfo.GetInstance(o);
+
+                if (ri.Version.Value.IntValue != 0)
+                {
+                    return 2;
+                }
+            }
+
+            return 0;
         }
     }
 }

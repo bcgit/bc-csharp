@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return GetDigestName(hashAlgorithm) + "with" + encAlg;
         }
 
-		public static string GetSymmetricCipherName(
+	public static string GetSymmetricCipherName(
             SymmetricKeyAlgorithmTag algorithm)
         {
             switch (algorithm)
@@ -124,12 +124,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 					return "AES";
 				case SymmetricKeyAlgorithmTag.Twofish:
 					return "Twofish";
+				case SymmetricKeyAlgorithmTag.Camellia128:
+					return "Camellia";
+				case SymmetricKeyAlgorithmTag.Camellia192:
+					return "Camellia";
+				case SymmetricKeyAlgorithmTag.Camellia256:
+					return "Camellia";
 				default:
 					throw new PgpException("unknown symmetric algorithm: " + algorithm);
             }
         }
 
-		public static int GetKeySize(SymmetricKeyAlgorithmTag algorithm)
+	public static int GetKeySize(SymmetricKeyAlgorithmTag algorithm)
         {
             int keySize;
             switch (algorithm)
@@ -142,14 +148,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case SymmetricKeyAlgorithmTag.Blowfish:
                 case SymmetricKeyAlgorithmTag.Safer:
                 case SymmetricKeyAlgorithmTag.Aes128:
+                case SymmetricKeyAlgorithmTag.Camellia128:
                     keySize = 128;
                     break;
                 case SymmetricKeyAlgorithmTag.TripleDes:
                 case SymmetricKeyAlgorithmTag.Aes192:
+                case SymmetricKeyAlgorithmTag.Camellia192:
                     keySize = 192;
                     break;
                 case SymmetricKeyAlgorithmTag.Aes256:
                 case SymmetricKeyAlgorithmTag.Twofish:
+                case SymmetricKeyAlgorithmTag.Camellia256:
                     keySize = 256;
                     break;
                 default:
@@ -298,7 +307,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return MakeKey(algorithm, keyBytes);
         }
 
-#if !PORTABLE
 		/// <summary>Write out the passed in file as a literal data packet.</summary>
         public static void WriteFileToLiteralData(
             Stream		output,
@@ -336,7 +344,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			pOut.Close();
 			inputStream.Close();
 		}
-#endif
 
 		private const int ReadAhead = 60;
 

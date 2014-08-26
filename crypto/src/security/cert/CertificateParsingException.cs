@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Security.Certificates
 {
-	public class CertificateParsingException : CertificateException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class CertificateParsingException : CertificateException
 	{
 		public CertificateParsingException() : base() { }
 		public CertificateParsingException(string message) : base(message) { }

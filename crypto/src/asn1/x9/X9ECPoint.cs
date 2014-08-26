@@ -10,25 +10,25 @@ namespace Org.BouncyCastle.Asn1.X9
     {
         private readonly ECPoint p;
 
-		public X9ECPoint(
+        public X9ECPoint(
             ECPoint p)
         {
-            this.p = p;
+            this.p = p.Normalize();
         }
 
-		public X9ECPoint(
+        public X9ECPoint(
             ECCurve			c,
             Asn1OctetString	s)
         {
             this.p = c.DecodePoint(s.GetOctets());
         }
 
-		public ECPoint Point
+        public ECPoint Point
         {
-			get { return p; }
+            get { return p; }
         }
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *  ECPoint ::= OCTET STRING

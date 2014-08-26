@@ -1,248 +1,378 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-	/// <summary>
-	/// A generic TLS 1.0 block cipher. This can be used for AES or 3DES for example.
-	/// </summary>
-	public class TlsBlockCipher
-        : TlsCipher
-	{
-		protected TlsClientContext context;
+    /// <summary>
+    /// A generic TLS 1.0-1.2 / SSLv3 block cipher. This can be used for AES or 3DES for example.
+    /// </summary>
+    public class TlsBlockCipher
+        :   TlsCipher
+    {
+        protected readonly TlsContext context;
+        protected readonly byte[] randomData;
+        protected readonly bool useExplicitIV;
+        protected readonly bool encryptThenMac;
 
-        protected IBlockCipher encryptCipher;
-        protected IBlockCipher decryptCipher;
+        protected readonly IBlockCipher encryptCipher;
+        protected readonly IBlockCipher decryptCipher;
 
-        protected TlsMac wMac;
-        protected TlsMac rMac;
+        protected readonly TlsMac mWriteMac;
+        protected readonly TlsMac mReadMac;
 
-		public virtual TlsMac WriteMac
-		{
-            get { return wMac; }
-		}
+        public virtual TlsMac WriteMac
+        {
+            get { return mWriteMac; }
+        }
 
-		public virtual TlsMac ReadMac
-		{
-            get { return rMac; }
-		}
+        public virtual TlsMac ReadMac
+        {
+            get { return mReadMac; }
+        }
 
-		public TlsBlockCipher(TlsClientContext context, IBlockCipher encryptCipher,
-			IBlockCipher decryptCipher, IDigest writeDigest, IDigest readDigest, int cipherKeySize)
-		{
-			this.context = context;
-			this.encryptCipher = encryptCipher;
-			this.decryptCipher = decryptCipher;
+        /// <exception cref="IOException"></exception>
+        public TlsBlockCipher(TlsContext context, IBlockCipher clientWriteCipher, IBlockCipher serverWriteCipher,
+            IDigest clientWriteDigest, IDigest serverWriteDigest, int cipherKeySize)
+        {
+            this.context = context;
 
-			int prfSize = (2 * cipherKeySize) + writeDigest.GetDigestSize()
-				+ readDigest.GetDigestSize() + encryptCipher.GetBlockSize()
-				+ decryptCipher.GetBlockSize();
+            this.randomData = new byte[256];
+            context.NonceRandomGenerator.NextBytes(randomData);
 
-			SecurityParameters securityParameters = context.SecurityParameters;
+            this.useExplicitIV = TlsUtilities.IsTlsV11(context);
+            this.encryptThenMac = context.SecurityParameters.encryptThenMac;
 
-			byte[] keyBlock = TlsUtilities.PRF(securityParameters.masterSecret, "key expansion",
-				TlsUtilities.Concat(securityParameters.serverRandom, securityParameters.clientRandom),
-				prfSize);
+            int key_block_size = (2 * cipherKeySize) + clientWriteDigest.GetDigestSize()
+                + serverWriteDigest.GetDigestSize();
 
-			int offset = 0;
+            // From TLS 1.1 onwards, block ciphers don't need client_write_IV
+            if (!useExplicitIV)
+            {
+                key_block_size += clientWriteCipher.GetBlockSize() + serverWriteCipher.GetBlockSize();
+            }
 
-			// Init MACs
-			wMac = CreateTlsMac(writeDigest, keyBlock, ref offset);
-            rMac = CreateTlsMac(readDigest, keyBlock, ref offset);
+            byte[] key_block = TlsUtilities.CalculateKeyBlock(context, key_block_size);
 
-			// Build keys
-			KeyParameter encryptKey = CreateKeyParameter(keyBlock, ref offset, cipherKeySize);
-			KeyParameter decryptKey = CreateKeyParameter(keyBlock, ref offset, cipherKeySize);
+            int offset = 0;
 
-			// Add IVs
-			ParametersWithIV encryptParams = CreateParametersWithIV(encryptKey,
-				keyBlock, ref offset, encryptCipher.GetBlockSize());
-			ParametersWithIV decryptParams = CreateParametersWithIV(decryptKey,
-				keyBlock, ref offset, decryptCipher.GetBlockSize());
+            TlsMac clientWriteMac = new TlsMac(context, clientWriteDigest, key_block, offset,
+                clientWriteDigest.GetDigestSize());
+            offset += clientWriteDigest.GetDigestSize();
+            TlsMac serverWriteMac = new TlsMac(context, serverWriteDigest, key_block, offset,
+                serverWriteDigest.GetDigestSize());
+            offset += serverWriteDigest.GetDigestSize();
 
-			if (offset != prfSize)
-				throw new TlsFatalAlert(AlertDescription.internal_error);
+            KeyParameter client_write_key = new KeyParameter(key_block, offset, cipherKeySize);
+            offset += cipherKeySize;
+            KeyParameter server_write_key = new KeyParameter(key_block, offset, cipherKeySize);
+            offset += cipherKeySize;
 
-			// Init Ciphers
-			encryptCipher.Init(true, encryptParams);
-			decryptCipher.Init(false, decryptParams);
-		}
+            byte[] client_write_IV, server_write_IV;
+            if (useExplicitIV)
+            {
+                client_write_IV = new byte[clientWriteCipher.GetBlockSize()];
+                server_write_IV = new byte[serverWriteCipher.GetBlockSize()];
+            }
+            else
+            {
+                client_write_IV = Arrays.CopyOfRange(key_block, offset, offset + clientWriteCipher.GetBlockSize());
+                offset += clientWriteCipher.GetBlockSize();
+                server_write_IV = Arrays.CopyOfRange(key_block, offset, offset + serverWriteCipher.GetBlockSize());
+                offset += serverWriteCipher.GetBlockSize();
+            }
 
-        protected virtual TlsMac CreateTlsMac(IDigest digest, byte[] buf, ref int off)
-		{
-			int len = digest.GetDigestSize();
-			TlsMac mac = new TlsMac(digest, buf, off, len);
-			off += len;
-			return mac;
-		}
+            if (offset != key_block_size)
+            {
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
 
-        protected virtual KeyParameter CreateKeyParameter(byte[] buf, ref int off, int len)
-		{
-			KeyParameter key = new KeyParameter(buf, off, len);
-			off += len;
-			return key;
-		}
+            ICipherParameters encryptParams, decryptParams;
+            if (context.IsServer)
+            {
+                this.mWriteMac = serverWriteMac;
+                this.mReadMac = clientWriteMac;
+                this.encryptCipher = serverWriteCipher;
+                this.decryptCipher = clientWriteCipher;
+                encryptParams = new ParametersWithIV(server_write_key, server_write_IV);
+                decryptParams = new ParametersWithIV(client_write_key, client_write_IV);
+            }
+            else
+            {
+                this.mWriteMac = clientWriteMac;
+                this.mReadMac = serverWriteMac;
+                this.encryptCipher = clientWriteCipher;
+                this.decryptCipher = serverWriteCipher;
+                encryptParams = new ParametersWithIV(client_write_key, client_write_IV);
+                decryptParams = new ParametersWithIV(server_write_key, server_write_IV);
+            }
 
-        protected virtual ParametersWithIV CreateParametersWithIV(KeyParameter key,
-			byte[] buf, ref int off, int len)
-		{
-			ParametersWithIV ivParams = new ParametersWithIV(key, buf, off, len);
-			off += len;
-			return ivParams;
-		}
+            this.encryptCipher.Init(true, encryptParams);
+            this.decryptCipher.Init(false, decryptParams);
+        }
 
-		public virtual byte[] EncodePlaintext(ContentType type, byte[] plaintext, int offset, int len)
-		{
-			int blocksize = encryptCipher.GetBlockSize();
+        public virtual int GetPlaintextLimit(int ciphertextLimit)
+        {
+            int blockSize = encryptCipher.GetBlockSize();
+            int macSize = mWriteMac.Size;
 
-			// Add a random number of extra blocks worth of padding
-            int minPaddingSize = blocksize - ((len + wMac.Size + 1) % blocksize);
-			int maxExtraPadBlocks = (255 - minPaddingSize) / blocksize;
-			int actualExtraPadBlocks = ChooseExtraPadBlocks(context.SecureRandom, maxExtraPadBlocks);
-			int paddingsize = minPaddingSize + (actualExtraPadBlocks * blocksize);
+            int plaintextLimit = ciphertextLimit;
 
-            int totalsize = len + wMac.Size + paddingsize + 1;
-			byte[] outbuf = new byte[totalsize];
-			Array.Copy(plaintext, offset, outbuf, 0, len);
-            byte[] mac = wMac.CalculateMac(type, plaintext, offset, len);
-			Array.Copy(mac, 0, outbuf, len, mac.Length);
-			int paddoffset = len + mac.Length;
-			for (int i = 0; i <= paddingsize; i++)
-			{
-				outbuf[i + paddoffset] = (byte)paddingsize;
-			}
-			for (int i = 0; i < totalsize; i += blocksize)
-			{
-				encryptCipher.ProcessBlock(outbuf, i, outbuf, i);
-			}
-			return outbuf;
-		}
+            // An explicit IV consumes 1 block
+            if (useExplicitIV)
+            {
+                plaintextLimit -= blockSize;
+            }
 
-        public virtual byte[] DecodeCiphertext(ContentType type, byte[] ciphertext, int offset, int len)
-		{
-			// TODO TLS 1.1 (RFC 4346) introduces an explicit IV
+            // Leave room for the MAC, and require block-alignment
+            if (encryptThenMac)
+            {
+                plaintextLimit -= macSize;
+                plaintextLimit -= plaintextLimit % blockSize;
+            }
+            else
+            {
+                plaintextLimit -= plaintextLimit % blockSize;
+                plaintextLimit -= macSize;
+            }
 
-            int minLength = rMac.Size + 1;
-			int blocksize = decryptCipher.GetBlockSize();
-			bool decrypterror = false;
+            // Minimum 1 byte of padding
+            --plaintextLimit;
 
-			/*
-			* ciphertext must be at least (macsize + 1) bytes long
-			*/
-			if (len < minLength)
-			{
-				throw new TlsFatalAlert(AlertDescription.decode_error);
-			}
+            return plaintextLimit;
+        }
 
-			/*
-			* ciphertext must be a multiple of blocksize
-			*/
-			if (len % blocksize != 0)
-			{
-				throw new TlsFatalAlert(AlertDescription.decryption_failed);
-			}
+        public virtual byte[] EncodePlaintext(long seqNo, byte type, byte[] plaintext, int offset, int len)
+        {
+            int blockSize = encryptCipher.GetBlockSize();
+            int macSize = mWriteMac.Size;
 
-			/*
-			* Decrypt all the ciphertext using the blockcipher
-			*/
-			for (int i = 0; i < len; i += blocksize)
-			{
-				decryptCipher.ProcessBlock(ciphertext, i + offset, ciphertext, i + offset);
-			}
+            ProtocolVersion version = context.ServerVersion;
 
-			/*
-			* Check if padding is correct
-			*/
-			int lastByteOffset = offset + len - 1;
+            int enc_input_length = len;
+            if (!encryptThenMac)
+            {
+                enc_input_length += macSize;
+            }
 
-			byte paddingsizebyte = ciphertext[lastByteOffset];
+            int padding_length = blockSize - 1 - (enc_input_length % blockSize);
 
-			int paddingsize = paddingsizebyte;
+            // TODO[DTLS] Consider supporting in DTLS (without exceeding send limit though)
+            if (!version.IsDtls && !version.IsSsl)
+            {
+                // Add a random number of extra blocks worth of padding
+                int maxExtraPadBlocks = (255 - padding_length) / blockSize;
+                int actualExtraPadBlocks = ChooseExtraPadBlocks(context.SecureRandom, maxExtraPadBlocks);
+                padding_length += actualExtraPadBlocks * blockSize;
+            }
 
-			int maxPaddingSize = len - minLength;
-			if (paddingsize > maxPaddingSize)
-			{
-				decrypterror = true;
-				paddingsize = 0;
-			}
-			else
-			{
-				/*
-				* Now, check all the padding-bytes (constant-time comparison).
-				*/
-				byte diff = 0;
-				for (int i = lastByteOffset - paddingsize; i < lastByteOffset; ++i)
-				{
-					diff |= (byte)(ciphertext[i] ^ paddingsizebyte);
-				}
-				if (diff != 0)
-				{
-					/* Wrong padding */
-					decrypterror = true;
-					paddingsize = 0;
-				}
-			}
+            int totalSize = len + macSize + padding_length + 1;
+            if (useExplicitIV)
+            {
+                totalSize += blockSize;
+            }
 
-			/*
-			* We now don't care if padding verification has failed or not, we will calculate
-			* the mac to give an attacker no kind of timing profile he can use to find out if
-			* mac verification failed or padding verification failed.
-			*/
-			int plaintextlength = len - minLength - paddingsize;
-            byte[] calculatedMac = rMac.CalculateMac(type, ciphertext, offset, plaintextlength);
+            byte[] outBuf = new byte[totalSize];
+            int outOff = 0;
 
-			/*
-			* Check all bytes in the mac (constant-time comparison).
-			*/
-			byte[] decryptedMac = new byte[calculatedMac.Length];
-			Array.Copy(ciphertext, offset + plaintextlength, decryptedMac, 0, calculatedMac.Length);
+            if (useExplicitIV)
+            {
+                byte[] explicitIV = new byte[blockSize];
+                context.NonceRandomGenerator.NextBytes(explicitIV);
 
-			if (!Arrays.ConstantTimeAreEqual(calculatedMac, decryptedMac))
-			{
-				decrypterror = true;
-			}
+                encryptCipher.Init(true, new ParametersWithIV(null, explicitIV));
 
-			/*
-			* Now, it is safe to fail.
-			*/
-			if (decrypterror)
-			{
-				throw new TlsFatalAlert(AlertDescription.bad_record_mac);
-			}
+                Array.Copy(explicitIV, 0, outBuf, outOff, blockSize);
+                outOff += blockSize;
+            }
 
-			byte[] plaintext = new byte[plaintextlength];
-			Array.Copy(ciphertext, offset, plaintext, 0, plaintextlength);
-			return plaintext;
-		}
+            int blocks_start = outOff;
 
-		protected virtual int ChooseExtraPadBlocks(SecureRandom r, int max)
-		{
-//			return r.NextInt(max + 1);
+            Array.Copy(plaintext, offset, outBuf, outOff, len);
+            outOff += len;
 
-			uint x = (uint)r.NextInt();
-			int n = LowestBitSet(x);
-			return System.Math.Min(n, max);
-		}
+            if (!encryptThenMac)
+            {
+                byte[] mac = mWriteMac.CalculateMac(seqNo, type, plaintext, offset, len);
+                Array.Copy(mac, 0, outBuf, outOff, mac.Length);
+                outOff += mac.Length;
+            }
 
-        private int LowestBitSet(uint x)
-		{
-			if (x == 0)
-			{
-				return 32;
-			}
+            for (int i = 0; i <= padding_length; i++)
+            {
+                outBuf[outOff++] = (byte)padding_length;
+            }
 
-			int n = 0;
-			while ((x & 1) == 0)
-			{
-				++n;
-				x >>= 1;
-			}
-			return n;
-		}
-	}
+            for (int i = blocks_start; i < outOff; i += blockSize)
+            {
+                encryptCipher.ProcessBlock(outBuf, i, outBuf, i);
+            }
+
+            if (encryptThenMac)
+            {
+                byte[] mac = mWriteMac.CalculateMac(seqNo, type, outBuf, 0, outOff);
+                Array.Copy(mac, 0, outBuf, outOff, mac.Length);
+                outOff += mac.Length;
+            }
+
+    //        assert outBuf.length == outOff;
+
+            return outBuf;
+        }
+
+        /// <exception cref="IOException"></exception>
+        public virtual byte[] DecodeCiphertext(long seqNo, byte type, byte[] ciphertext, int offset, int len)
+        {
+            int blockSize = decryptCipher.GetBlockSize();
+            int macSize = mReadMac.Size;
+
+            int minLen = blockSize;
+            if (encryptThenMac)
+            {
+                minLen += macSize;
+            }
+            else
+            {
+                minLen = System.Math.Max(minLen, macSize + 1);
+            }
+
+            if (useExplicitIV)
+            {
+                minLen += blockSize;
+            }
+
+            if (len < minLen)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+
+            int blocks_length = len;
+            if (encryptThenMac)
+            {
+                blocks_length -= macSize;
+            }
+
+            if (blocks_length % blockSize != 0)
+                throw new TlsFatalAlert(AlertDescription.decryption_failed);
+
+            if (encryptThenMac)
+            {
+                int end = offset + len;
+                byte[] receivedMac = Arrays.CopyOfRange(ciphertext, end - macSize, end);
+                byte[] calculatedMac = mReadMac.CalculateMac(seqNo, type, ciphertext, offset, len - macSize);
+
+                bool badMac = !Arrays.ConstantTimeAreEqual(calculatedMac, receivedMac);
+
+                if (badMac)
+                    throw new TlsFatalAlert(AlertDescription.bad_record_mac);
+            }
+
+            if (useExplicitIV)
+            {
+                decryptCipher.Init(false, new ParametersWithIV(null, ciphertext, offset, blockSize));
+
+                offset += blockSize;
+                blocks_length -= blockSize;
+            }
+
+            for (int i = 0; i < blocks_length; i += blockSize)
+            {
+                decryptCipher.ProcessBlock(ciphertext, offset + i, ciphertext, offset + i);
+            }
+
+            // If there's anything wrong with the padding, this will return zero
+            int totalPad = CheckPaddingConstantTime(ciphertext, offset, blocks_length, blockSize, encryptThenMac ? 0 : macSize);
+
+            int dec_output_length = blocks_length - totalPad;
+
+            if (!encryptThenMac)
+            {
+                dec_output_length -= macSize;
+                int macInputLen = dec_output_length;
+                int macOff = offset + macInputLen;
+                byte[] receivedMac = Arrays.CopyOfRange(ciphertext, macOff, macOff + macSize);
+                byte[] calculatedMac = mReadMac.CalculateMacConstantTime(seqNo, type, ciphertext, offset, macInputLen,
+                    blocks_length - macSize, randomData);
+
+                bool badMac = !Arrays.ConstantTimeAreEqual(calculatedMac, receivedMac);
+
+                if (badMac || totalPad == 0)
+                {
+                    throw new TlsFatalAlert(AlertDescription.bad_record_mac);
+                }
+            }
+
+            return Arrays.CopyOfRange(ciphertext, offset, offset + dec_output_length);
+        }
+
+        protected virtual int CheckPaddingConstantTime(byte[] buf, int off, int len, int blockSize, int macSize)
+        {
+            int end = off + len;
+            byte lastByte = buf[end - 1];
+            int padlen = lastByte & 0xff;
+            int totalPad = padlen + 1;
+
+            int dummyIndex = 0;
+            byte padDiff = 0;
+
+            if ((TlsUtilities.IsSsl(context) && totalPad > blockSize) || (macSize + totalPad > len))
+            {
+                totalPad = 0;
+            }
+            else
+            {
+                int padPos = end - totalPad;
+                do
+                {
+                    padDiff |= (byte)(buf[padPos++] ^ lastByte);
+                }
+                while (padPos < end);
+
+                dummyIndex = totalPad;
+
+                if (padDiff != 0)
+                {
+                    totalPad = 0;
+                }
+            }
+
+            // Run some extra dummy checks so the number of checks is always constant
+            {
+                byte[] dummyPad = randomData;
+                while (dummyIndex < 256)
+                {
+                    padDiff |= (byte)(dummyPad[dummyIndex++] ^ lastByte);
+                }
+                // Ensure the above loop is not eliminated
+                dummyPad[0] ^= padDiff;
+            }
+
+            return totalPad;
+        }
+
+        protected virtual int ChooseExtraPadBlocks(SecureRandom r, int max)
+        {
+            // return r.NextInt(max + 1);
+
+            int x = r.NextInt();
+            int n = LowestBitSet(x);
+            return System.Math.Min(n, max);
+        }
+
+        protected virtual int LowestBitSet(int x)
+        {
+            if (x == 0)
+                return 32;
+
+            uint ux = (uint)x;
+            int n = 0;
+            while ((ux & 1U) == 0)
+            {
+                ++n;
+                ux >>= 1;
+            }
+            return n;
+        }
+    }
 }

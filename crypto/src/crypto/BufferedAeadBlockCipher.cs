@@ -174,23 +174,18 @@ namespace Org.BouncyCastle.Crypto
 
 		public override byte[] DoFinal()
 		{
-			byte[] outBytes = EmptyBuffer;
+            byte[] outBytes = new byte[GetOutputSize(0)];
 
-			int length = GetOutputSize(0);
-			if (length > 0)
+            int pos = DoFinal(outBytes, 0);
+
+            if (pos < outBytes.Length)
 			{
-				outBytes = new byte[length];
-
-				int pos = DoFinal(outBytes, 0);
-				if (pos < outBytes.Length)
-				{
-					byte[] tmp = new byte[pos];
-					Array.Copy(outBytes, 0, tmp, 0, pos);
-					outBytes = tmp;
-				}
+				byte[] tmp = new byte[pos];
+				Array.Copy(outBytes, 0, tmp, 0, pos);
+				outBytes = tmp;
 			}
 
-			return outBytes;
+            return outBytes;
 		}
 
 		public override byte[] DoFinal(
@@ -201,29 +196,22 @@ namespace Org.BouncyCastle.Crypto
 			if (input == null)
 				throw new ArgumentNullException("input");
 
-			int length = GetOutputSize(inLen);
+            byte[] outBytes = new byte[GetOutputSize(inLen)];
 
-			byte[] outBytes = EmptyBuffer;
+            int pos = (inLen > 0)
+				?	ProcessBytes(input, inOff, inLen, outBytes, 0)
+				:	0;
 
-			if (length > 0)
+			pos += DoFinal(outBytes, pos);
+
+            if (pos < outBytes.Length)
 			{
-				outBytes = new byte[length];
-
-				int pos = (inLen > 0)
-					?	ProcessBytes(input, inOff, inLen, outBytes, 0)
-					:	0;
-
-				pos += DoFinal(outBytes, pos);
-
-				if (pos < outBytes.Length)
-				{
-					byte[] tmp = new byte[pos];
-					Array.Copy(outBytes, 0, tmp, 0, pos);
-					outBytes = tmp;
-				}
+				byte[] tmp = new byte[pos];
+				Array.Copy(outBytes, 0, tmp, 0, pos);
+				outBytes = tmp;
 			}
 
-			return outBytes;
+            return outBytes;
 		}
 
 		/**

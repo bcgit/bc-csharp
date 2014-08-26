@@ -5,79 +5,84 @@ using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class ContentInfo
-		: Asn1Encodable
-	{
-		private readonly DerObjectIdentifier	contentType;
-		private readonly Asn1Encodable			content;
+    public class ContentInfo
+        : Asn1Encodable
+    {
+        private readonly DerObjectIdentifier	contentType;
+        private readonly Asn1Encodable			content;
 
-		public static ContentInfo GetInstance(
-			object obj)
-		{
-			if (obj == null || obj is ContentInfo)
-				return (ContentInfo) obj;
+        public static ContentInfo GetInstance(
+            object obj)
+        {
+            if (obj == null || obj is ContentInfo)
+                return (ContentInfo) obj;
 
-			if (obj is Asn1Sequence)
-				return new ContentInfo((Asn1Sequence) obj);
+            if (obj is Asn1Sequence)
+                return new ContentInfo((Asn1Sequence) obj);
 
-			throw new ArgumentException("unknown object in factory: " + obj.GetType().Name);
-		}
+            throw new ArgumentException("unknown object in factory: " + obj.GetType().Name);
+        }
 
-		private ContentInfo(
-			Asn1Sequence seq)
-		{
-			if (seq.Count < 1 || seq.Count > 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
+        public static ContentInfo GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+        }
 
-			contentType = (DerObjectIdentifier) seq[0];
+        private ContentInfo(
+            Asn1Sequence seq)
+        {
+            if (seq.Count < 1 || seq.Count > 2)
+                throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
 
-			if (seq.Count > 1)
-			{
-				Asn1TaggedObject tagged = (Asn1TaggedObject) seq[1];
-				if (!tagged.IsExplicit() || tagged.TagNo != 0)
-					throw new ArgumentException("Bad tag for 'content'", "seq");
+            contentType = (DerObjectIdentifier) seq[0];
 
-				content = tagged.GetObject();
-			}
-		}
+            if (seq.Count > 1)
+            {
+                Asn1TaggedObject tagged = (Asn1TaggedObject) seq[1];
+                if (!tagged.IsExplicit() || tagged.TagNo != 0)
+                    throw new ArgumentException("Bad tag for 'content'", "seq");
 
-		public ContentInfo(
-			DerObjectIdentifier	contentType,
-			Asn1Encodable		content)
-		{
-			this.contentType = contentType;
-			this.content = content;
-		}
+                content = tagged.GetObject();
+            }
+        }
 
-		public DerObjectIdentifier ContentType
-		{
-			get { return contentType; }
-		}
+        public ContentInfo(
+            DerObjectIdentifier	contentType,
+            Asn1Encodable		content)
+        {
+            this.contentType = contentType;
+            this.content = content;
+        }
 
-		public Asn1Encodable Content
-		{
-			get { return content; }
-		}
+        public DerObjectIdentifier ContentType
+        {
+            get { return contentType; }
+        }
 
-		/**
-		 * Produce an object suitable for an Asn1OutputStream.
-		 * <pre>
-		 * ContentInfo ::= Sequence {
-		 *          contentType ContentType,
-		 *          content
-		 *          [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
-		 * </pre>
-		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(contentType);
+        public Asn1Encodable Content
+        {
+            get { return content; }
+        }
 
-			if (content != null)
-			{
-				v.Add(new BerTaggedObject(0, content));
-			}
+        /**
+         * Produce an object suitable for an Asn1OutputStream.
+         * <pre>
+         * ContentInfo ::= Sequence {
+         *          contentType ContentType,
+         *          content
+         *          [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
+         * </pre>
+         */
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(contentType);
 
-			return new BerSequence(v);
-		}
-	}
+            if (content != null)
+            {
+                v.Add(new BerTaggedObject(0, content));
+            }
+
+            return new BerSequence(v);
+        }
+    }
 }

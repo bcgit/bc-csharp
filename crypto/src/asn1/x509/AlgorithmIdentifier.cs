@@ -7,80 +7,79 @@ namespace Org.BouncyCastle.Asn1.X509
     {
         private readonly DerObjectIdentifier	objectID;
         private readonly Asn1Encodable			parameters;
-		private readonly bool					parametersDefined;
+        private readonly bool					parametersDefined;
 
-		public static AlgorithmIdentifier GetInstance(
+        public static AlgorithmIdentifier GetInstance(
             Asn1TaggedObject	obj,
             bool				explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static AlgorithmIdentifier GetInstance(
+        public static AlgorithmIdentifier GetInstance(
             object obj)
         {
             if (obj == null || obj is AlgorithmIdentifier)
                 return (AlgorithmIdentifier) obj;
 
-			if (obj is DerObjectIdentifier)
+            // TODO: delete
+            if (obj is DerObjectIdentifier)
                 return new AlgorithmIdentifier((DerObjectIdentifier) obj);
 
-			if (obj is string)
+            // TODO: delete
+            if (obj is string)
                 return new AlgorithmIdentifier((string) obj);
 
-			if (obj is Asn1Sequence)
-                return new AlgorithmIdentifier((Asn1Sequence) obj);
+            return new AlgorithmIdentifier(Asn1Sequence.GetInstance(obj));
+        }
 
-			throw new ArgumentException("unknown object in factory: " + obj.GetType().Name, "obj");
-		}
-
-		public AlgorithmIdentifier(
+        public AlgorithmIdentifier(
             DerObjectIdentifier objectID)
         {
             this.objectID = objectID;
         }
 
-		public AlgorithmIdentifier(
+        public AlgorithmIdentifier(
             string objectID)
         {
             this.objectID = new DerObjectIdentifier(objectID);
         }
 
-		public AlgorithmIdentifier(
+        public AlgorithmIdentifier(
             DerObjectIdentifier	objectID,
             Asn1Encodable		parameters)
         {
             this.objectID = objectID;
             this.parameters = parameters;
-			this.parametersDefined = true;
+            this.parametersDefined = true;
         }
 
-		internal AlgorithmIdentifier(
+        internal AlgorithmIdentifier(
             Asn1Sequence seq)
         {
-			if (seq.Count < 1 || seq.Count > 2)
-				throw new ArgumentException("Bad sequence size: " + seq.Count);
+            if (seq.Count < 1 || seq.Count > 2)
+                throw new ArgumentException("Bad sequence size: " + seq.Count);
 
-			this.objectID = DerObjectIdentifier.GetInstance(seq[0]);
-			this.parametersDefined = (seq.Count == 2);
+            this.objectID = DerObjectIdentifier.GetInstance(seq[0]);
+            this.parametersDefined = (seq.Count == 2);
 
-			if (parametersDefined)
+            if (parametersDefined)
             {
                 this.parameters = seq[1];
             }
         }
 
-		public virtual DerObjectIdentifier ObjectID
-		{
-			get { return objectID; }
-		}
+        public virtual DerObjectIdentifier ObjectID
+        {
+            get { return objectID; }
+        }
 
-		public Asn1Encodable Parameters
-		{
-			get { return parameters; }
-		}
+        public Asn1Encodable Parameters
+        {
+            get { return parameters; }
+        }
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *      AlgorithmIdentifier ::= Sequence {
@@ -90,21 +89,21 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-			Asn1EncodableVector v = new Asn1EncodableVector(objectID);
+            Asn1EncodableVector v = new Asn1EncodableVector(objectID);
 
-			if (parametersDefined)
-			{
-				if (parameters != null)
-				{
-					v.Add(parameters);
-				}
-				else
-				{
-					v.Add(DerNull.Instance);
-				}
-			}
+            if (parametersDefined)
+            {
+                if (parameters != null)
+                {
+                    v.Add(parameters);
+                }
+                else
+                {
+                    v.Add(DerNull.Instance);
+                }
+            }
 
-			return new DerSequence(v);
+            return new DerSequence(v);
         }
     }
 }

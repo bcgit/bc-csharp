@@ -8,6 +8,9 @@ namespace Org.BouncyCastle.Crypto
      * insufficient input. In general this exception will Get thrown rather
      * than an ArrayOutOfBounds exception.
      */
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
     public class DataLengthException
 		: CryptoException
 	{

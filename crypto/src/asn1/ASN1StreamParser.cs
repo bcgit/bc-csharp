@@ -8,7 +8,9 @@ namespace Org.BouncyCastle.Asn1
 		private readonly Stream _in;
 		private readonly int _limit;
 
-		public Asn1StreamParser(
+        private readonly byte[][] tmpBuffers;
+
+        public Asn1StreamParser(
 			Stream inStream)
 			: this(inStream, Asn1InputStream.FindLimit(inStream))
 		{
@@ -23,7 +25,8 @@ namespace Org.BouncyCastle.Asn1
 
 			this._in = inStream;
 			this._limit = limit;
-		}
+            this.tmpBuffers = new byte[16][];
+        }
 
 		public Asn1StreamParser(
 			byte[] encoding)
@@ -184,9 +187,8 @@ namespace Org.BouncyCastle.Asn1
 						case Asn1Tags.External:
 							return new DerExternalParser(new Asn1StreamParser(defIn));
 						default:
-							// TODO Add DerUnknownTagParser class?
-							return new DerUnknownTag(true, tagNo, defIn.ToArray());
-					}
+                            throw new IOException("unknown tag " + tagNo + " encountered");
+                    }
 				}
 
 				// Some primitive encodings can be handled by parsers too...
@@ -198,7 +200,7 @@ namespace Org.BouncyCastle.Asn1
 
 				try
 				{
-					return Asn1InputStream.CreatePrimitiveDerObject(tagNo, defIn.ToArray());
+					return Asn1InputStream.CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
 				}
 				catch (ArgumentException e)
 				{

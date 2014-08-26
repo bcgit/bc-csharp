@@ -27,8 +27,11 @@ namespace Org.BouncyCastle.Pkix
 	 *
 	 * @see CertPathValidator
 	 **/
-
-	public class PkixCertPathValidatorException : GeneralSecurityException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class PkixCertPathValidatorException
+        : GeneralSecurityException
 	{
 		private Exception cause;
 		private PkixCertPath certPath;

@@ -30,15 +30,10 @@ namespace Org.BouncyCastle.Asn1.Utilities
             get { return s.Position; }
             set { s.Position = value; }
         }
-
-        protected override void Dispose(bool disposing)
+        public override void Close()
         {
-            if (disposing)
-            {
-                s.Dispose();
-            }
+            s.Close();
         }
-
         public override void Flush()
         {
             s.Flush();

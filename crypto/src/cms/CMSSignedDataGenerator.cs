@@ -108,8 +108,8 @@ namespace Org.BouncyCastle.Cms
 				outer._digests.Add(digestOID, hash.Clone());
 
 				sig.Init(true, new ParametersWithRandom(key, random));
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
-                Stream sigStr = new SigOutputStream(sig);
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+				Stream sigStr = new SigOutputStream(sig);
 #else
 				Stream sigStr = new BufferedStream(new SigOutputStream(sig));
 #endif
@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Cms
 					content.Write(sigStr);
                 }
 
-                sigStr.Dispose();
+				sigStr.Close();
 				byte[] sigBytes = sig.GenerateSignature();
 
 				Asn1Set unsignedAttr = null;

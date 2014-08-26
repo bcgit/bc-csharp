@@ -114,8 +114,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			if (ignoreCase)
 			{
-				userId = userId.ToLowerInvariant();
-			}
+                userId = Platform.ToLowerInvariant(userId);
+            }
 
 			foreach (PgpSecretKeyRing secRing in GetKeyRings())
 			{
@@ -124,8 +124,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 					string next = nextUserID;
 					if (ignoreCase)
 					{
-						next = next.ToLowerInvariant();
-					}
+                        next = Platform.ToLowerInvariant(next);
+                    }
 
 					if (matchPartial)
 					{

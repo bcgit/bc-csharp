@@ -75,7 +75,17 @@ namespace Org.BouncyCastle.Asn1
 			return numRead;
 		}
 
-		internal byte[] ToArray()
+        internal void ReadAllIntoByteArray(byte[] buf)
+        {
+            if (_remaining != buf.Length)
+                throw new ArgumentException("buffer length not right for data");
+
+            if ((_remaining -= Streams.ReadFully(_in, buf)) != 0)
+                throw new EndOfStreamException("DEF length " + _originalLength + " object truncated by " + _remaining);
+            SetParentEofDetect(true);
+        }
+
+        internal byte[] ToArray()
 		{
 			if (_remaining == 0)
 				return EmptyBytes;

@@ -3,7 +3,10 @@ using System.IO;
 
 namespace Org.BouncyCastle.Security
 {
-	public class EncryptionException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class EncryptionException
 		: IOException
 	{
 		public EncryptionException(

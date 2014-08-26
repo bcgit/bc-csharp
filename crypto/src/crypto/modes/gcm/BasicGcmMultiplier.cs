@@ -1,5 +1,7 @@
 using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
 	public class BasicGcmMultiplier
@@ -9,10 +11,10 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
 		public void Init(byte[] H)
 		{
-			this.H = (byte[])H.Clone();
+            this.H = Arrays.Clone(H);
 		}
 
-		public void MultiplyH(byte[] x)
+        public void MultiplyH(byte[] x)
 		{
 			GcmUtilities.Multiply(x, H);
 		}

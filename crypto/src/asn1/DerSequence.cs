@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Asn1
 				dOut.WriteObject(obj);
 			}
 
-			dOut.Dispose();
+			dOut.Close();
 
 			byte[] bytes = bOut.ToArray();
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Globalization;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -124,9 +123,9 @@ namespace Org.BouncyCastle.X509
 		internal static DerObjectIdentifier GetAlgorithmOid(
 			string algorithmName)
 		{
-			algorithmName = algorithmName.ToUpperInvariant();
+			algorithmName = Platform.ToUpperInvariant(algorithmName);
 
-			if (algorithms.Contains(algorithmName))
+            if (algorithms.Contains(algorithmName))
 			{
 				return (DerObjectIdentifier) algorithms[algorithmName];
 			}
@@ -143,7 +142,7 @@ namespace Org.BouncyCastle.X509
 				return new AlgorithmIdentifier(sigOid);
 			}
 
-			algorithmName = algorithmName.ToUpperInvariant();
+            algorithmName = Platform.ToUpperInvariant(algorithmName);
 
 			if (exParams.Contains(algorithmName))
 			{

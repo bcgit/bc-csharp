@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Security.Certificates
 {
-	public class CrlException : GeneralSecurityException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class CrlException : GeneralSecurityException
 	{
 		public CrlException() : base() { }
 		public CrlException(string msg) : base(msg) {}

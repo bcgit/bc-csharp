@@ -9,17 +9,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-#if INCLUDE_IDEA
-[assembly: AssemblyTitle("BouncyCastle.CryptoExt")]
-[assembly: AssemblyDescription("Bouncy Castle Cryptography API (Extended)")]
-#else
 [assembly: AssemblyTitle("BouncyCastle.Crypto")]
 [assembly: AssemblyDescription("Bouncy Castle Cryptography API")]
-#endif
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("The Legion of the Bouncy Castle")]
+[assembly: AssemblyCompany("The Legion of the Bouncy Castle Inc.")]
 [assembly: AssemblyProduct("Bouncy Castle for .NET")]
-[assembly: AssemblyCopyright("Copyright (C) 2000-2011")]
+[assembly: AssemblyCopyright("Copyright (C) 2000-2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -30,8 +25,11 @@ using System.Runtime.InteropServices;
 //      Minor Version
 //      Build Number
 //      Revision
+//
+// You can specify all the values or you can default the Revision and Build Numbers
+// by using the '*' as shown below:
 
-[assembly: AssemblyVersion(AssemblyInfo.Version)]
+[assembly: AssemblyVersion("1.8.*")]
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the
@@ -67,6 +65,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyKeyName("")]
 
 [assembly: CLSCompliant(true)]
+[assembly: ComVisible(false)]
 
 // Start with no permissions
 //[assembly: PermissionSet(SecurityAction.RequestOptional, Unrestricted=false)]
@@ -74,9 +73,4 @@ using System.Runtime.InteropServices;
 
 // see Org.BouncyCastle.Crypto.Encodings.Pkcs1Encoding.StrictLengthEnabledProperty
 //[assembly: EnvironmentPermission(SecurityAction.RequestOptional, Read="Org.BouncyCastle.Pkcs1.Strict")]
-
-internal class AssemblyInfo
-{
-    public const string Version = @"1.7.0.0";
-}
 

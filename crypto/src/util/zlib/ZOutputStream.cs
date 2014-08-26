@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
 	{
 		private const int BufferSize = 512;
 
-		protected ZStream z = new ZStream();
+		protected ZStream z;
 		protected int flushLevel = JZlib.Z_NO_FLUSH;
 		// TODO Allow custom buf
 		protected byte[] buf = new byte[BufferSize];
@@ -54,17 +54,28 @@ namespace Org.BouncyCastle.Utilities.Zlib
 		protected Stream output;
 		protected bool closed;
 
-		public ZOutputStream(Stream output)
+        public ZOutputStream(Stream output)
+			: this(output, null)
+        {
+        }
+
+        public ZOutputStream(Stream output, ZStream z)
 			: base()
 		{
 			Debug.Assert(output.CanWrite);
 
-			this.output = output;
-			this.z.inflateInit();
+            if (z == null)
+            {
+                z = new ZStream();
+                z.inflateInit();
+            }
+
+            this.output = output;
+            this.z = z;
 			this.compress = false;
 		}
 
-		public ZOutputStream(Stream output, int level)
+        public ZOutputStream(Stream output, int level)
 			: this(output, level, false)
 		{
 		}
@@ -75,6 +86,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
 			Debug.Assert(output.CanWrite);
 
 			this.output = output;
+            this.z = new ZStream();
 			this.z.deflateInit(level, nowrap);
 			this.compress = true;
 		}
@@ -83,32 +95,29 @@ namespace Org.BouncyCastle.Utilities.Zlib
         public sealed override bool CanSeek { get { return false; } }
         public sealed override bool CanWrite { get { return !closed; } }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (this.closed)
-                    return;
+		public override void Close()
+		{
+			if (this.closed)
+				return;
 
-                try
-                {
-                    try
-                    {
-                        Finish();
-                    }
-                    catch (IOException)
-                    {
-                        // Ignore
-                    }
-                }
-                finally
-                {
-                    this.closed = true;
-                    End();
-                    output.Dispose();
-                    output = null;
-                }
-            }
+			try
+			{
+				try
+				{
+					Finish();
+				}
+				catch (IOException)
+				{
+					// Ignore
+				}
+			}
+			finally
+			{
+				this.closed = true;
+				End();
+				output.Close();
+				output = null;
+			}
 		}
 
 		public virtual void End()

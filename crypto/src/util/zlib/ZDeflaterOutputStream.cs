@@ -135,20 +135,16 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             z.free();
             z=null;
         }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                try{
-                    try { Finish(); }
-                    catch (IOException) { }
-                }
-                finally{
-                    End();
-                    outp.Dispose();
-                    outp = null;
-                }
+        
+        public override void Close() {
+            try{
+                try{Finish();}
+                catch (IOException) {}
+            }
+            finally{
+                End();
+                outp.Close();
+                outp=null;
             }
         }
     }

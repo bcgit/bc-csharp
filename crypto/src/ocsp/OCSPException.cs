@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Ocsp
 {
-	public class OcspException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class OcspException
 		: Exception
 	{
 		public OcspException()

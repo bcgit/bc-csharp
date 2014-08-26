@@ -55,6 +55,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             bool forEncryption,
             ICipherParameters parameters)
         {
+            bool oldEncrypting = this.encrypting;
+
             this.encrypting = forEncryption;
 
             if (parameters is ParametersWithIV)
@@ -74,7 +76,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 
 			Reset();
 
-			cipher.Init(encrypting, parameters);
+            // if null it's an IV changed only.
+            if (parameters != null)
+            {
+                cipher.Init(encrypting, parameters);
+            }
+            else if (oldEncrypting != encrypting)
+            {
+                throw new ArgumentException("cannot change encrypting state without providing key.");
+            }
         }
 
 		/**

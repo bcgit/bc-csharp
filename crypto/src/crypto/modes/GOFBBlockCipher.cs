@@ -98,7 +98,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
 			Reset();
 
-			cipher.Init(true, parameters);
+            // if it's null, key is to be reused.
+            if (parameters != null)
+            {
+                cipher.Init(true, parameters);
+            }
 		}
 
 		/**

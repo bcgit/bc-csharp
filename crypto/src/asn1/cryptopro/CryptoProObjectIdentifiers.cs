@@ -11,10 +11,13 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         public const string GostID = "1.2.643.2.2";
 
 		public static readonly DerObjectIdentifier GostR3411 = new DerObjectIdentifier(GostID + ".9");
+        public static readonly DerObjectIdentifier GostR3411Hmac = new DerObjectIdentifier(GostID + ".10");
 
-		public static readonly DerObjectIdentifier GostR28147Cbc = new DerObjectIdentifier(GostID + ".21");
+        public static readonly DerObjectIdentifier GostR28147Cbc = new DerObjectIdentifier(GostID + ".21");
 
-		public static readonly DerObjectIdentifier GostR3410x94 = new DerObjectIdentifier(GostID + ".20");
+        public static readonly DerObjectIdentifier ID_Gost28147_89_CryptoPro_A_ParamSet = new DerObjectIdentifier(GostID + ".31.1");
+
+        public static readonly DerObjectIdentifier GostR3410x94 = new DerObjectIdentifier(GostID + ".20");
         public static readonly DerObjectIdentifier GostR3410x2001 = new DerObjectIdentifier(GostID + ".19");
         public static readonly DerObjectIdentifier GostR3411x94WithGostR3410x94 = new DerObjectIdentifier(GostID + ".4");
         public static readonly DerObjectIdentifier GostR3411x94WithGostR3410x2001 = new DerObjectIdentifier(GostID + ".3");

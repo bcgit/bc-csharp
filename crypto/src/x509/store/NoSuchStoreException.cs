@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.X509.Store
 {
-	public class NoSuchStoreException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class NoSuchStoreException
 		: X509StoreException
 	{
 		public NoSuchStoreException()

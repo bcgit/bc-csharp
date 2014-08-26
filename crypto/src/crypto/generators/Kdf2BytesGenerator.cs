@@ -19,8 +19,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 		*
 		* @param digest the digest to be used as the source of derived keys.
 		*/
-		public Kdf2BytesGenerator(
-			IDigest  digest)
+		public Kdf2BytesGenerator(IDigest digest)
 			: base(1, digest)
 		{
 		}

@@ -8,52 +8,65 @@ namespace Org.BouncyCastle.Crypto.Parameters
     {
         private readonly byte[] seed;
         private readonly int counter;
+        private readonly int usageIndex;
 
-		public DsaValidationParameters(
+        public DsaValidationParameters(byte[] seed, int counter)
+            : this(seed, counter, -1)
+        {
+        }
+
+        public DsaValidationParameters(
             byte[]	seed,
-            int		counter)
+            int		counter,
+            int     usageIndex)
         {
-			if (seed == null)
-				throw new ArgumentNullException("seed");
+            if (seed == null)
+                throw new ArgumentNullException("seed");
 
-			this.seed = (byte[]) seed.Clone();
+            this.seed = (byte[]) seed.Clone();
             this.counter = counter;
+            this.usageIndex = usageIndex;
         }
 
-		public byte[] GetSeed()
+        public virtual byte[] GetSeed()
         {
-			return (byte[]) seed.Clone();
+            return (byte[]) seed.Clone();
         }
 
-		public int Counter
-		{
-			get { return counter; }
-		}
+        public virtual int Counter
+        {
+            get { return counter; }
+        }
 
-		public override bool Equals(
+        public virtual int UsageIndex
+        {
+            get { return usageIndex; }
+        }
+
+        public override bool Equals(
             object obj)
         {
-			if (obj == this)
-				return true;
+            if (obj == this)
+                return true;
 
-			DsaValidationParameters other = obj as DsaValidationParameters;
+            DsaValidationParameters other = obj as DsaValidationParameters;
 
-			if (other == null)
-				return false;
+            if (other == null)
+                return false;
 
-			return Equals(other);
-		}
+            return Equals(other);
+        }
 
-		protected bool Equals(
-			DsaValidationParameters other)
-		{
-			return counter == other.counter
-				&& Arrays.AreEqual(seed, other.seed);
-		}
-
-		public override int GetHashCode()
+        protected virtual bool Equals(
+            DsaValidationParameters other)
         {
-			return counter.GetHashCode() ^ Arrays.GetHashCode(seed);
-		}
+            return counter == other.counter
+                && Arrays.AreEqual(seed, other.seed);
+        }
+
+        public override int GetHashCode()
+        {
+            return counter.GetHashCode() ^ Arrays.GetHashCode(seed);
+        }
     }
 }

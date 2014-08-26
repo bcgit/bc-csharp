@@ -253,7 +253,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			//
             // hash in the id
             //
-			UpdateWithIdData(0xb4, Strings.ToByteArray(id));
+            UpdateWithIdData(0xb4, Strings.ToUtf8ByteArray(id));
 
 			Update(sigPck.GetSignatureTrailer());
 

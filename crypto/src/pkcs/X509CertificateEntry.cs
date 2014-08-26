@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Pkcs
             this.cert = cert;
         }
 
-#if !(SILVERLIGHT || PORTABLE)
+#if !SILVERLIGHT
         [Obsolete]
         public X509CertificateEntry(
             X509Certificate	cert,

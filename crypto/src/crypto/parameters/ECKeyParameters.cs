@@ -1,145 +1,136 @@
 using System;
-using System.Globalization;
+using System.Collections;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public abstract class ECKeyParameters
-		: AsymmetricKeyParameter
+        : AsymmetricKeyParameter
     {
-		private readonly string algorithm;
-		private readonly ECDomainParameters parameters;
-		private readonly DerObjectIdentifier publicKeyParamSet;
+        private static readonly string[] algorithms = { "EC", "ECDSA", "ECDH", "ECDHC", "ECGOST3410", "ECMQV" };
 
-		protected ECKeyParameters(
-			string				algorithm,
+        private readonly string algorithm;
+        private readonly ECDomainParameters parameters;
+        private readonly DerObjectIdentifier publicKeyParamSet;
+
+        protected ECKeyParameters(
+            string				algorithm,
             bool				isPrivate,
             ECDomainParameters	parameters)
-			: base(isPrivate)
+            : base(isPrivate)
         {
-			if (algorithm == null)
-				throw new ArgumentNullException("algorithm");
-			if (parameters == null)
-				throw new ArgumentNullException("parameters");
+            if (algorithm == null)
+                throw new ArgumentNullException("algorithm");
+            if (parameters == null)
+                throw new ArgumentNullException("parameters");
 
-			this.algorithm = VerifyAlgorithmName(algorithm);
-			this.parameters = parameters;
+            this.algorithm = VerifyAlgorithmName(algorithm);
+            this.parameters = parameters;
         }
 
-		protected ECKeyParameters(
-			string				algorithm,
-			bool				isPrivate,
-			DerObjectIdentifier	publicKeyParamSet)
-			: base(isPrivate)
-		{
-			if (algorithm == null)
-				throw new ArgumentNullException("algorithm");
-			if (publicKeyParamSet == null)
-				throw new ArgumentNullException("publicKeyParamSet");
-
-			this.algorithm = VerifyAlgorithmName(algorithm);
-			this.parameters = LookupParameters(publicKeyParamSet);
-			this.publicKeyParamSet = publicKeyParamSet;
-		}
-
-		public string AlgorithmName
-		{
-			get { return algorithm; }
-		}
-
-		public ECDomainParameters Parameters
+        protected ECKeyParameters(
+            string				algorithm,
+            bool				isPrivate,
+            DerObjectIdentifier	publicKeyParamSet)
+            : base(isPrivate)
         {
-			get { return parameters; }
+            if (algorithm == null)
+                throw new ArgumentNullException("algorithm");
+            if (publicKeyParamSet == null)
+                throw new ArgumentNullException("publicKeyParamSet");
+
+            this.algorithm = VerifyAlgorithmName(algorithm);
+            this.parameters = LookupParameters(publicKeyParamSet);
+            this.publicKeyParamSet = publicKeyParamSet;
         }
 
-		public DerObjectIdentifier PublicKeyParamSet
-		{
-			get { return publicKeyParamSet; }
-		}
+        public string AlgorithmName
+        {
+            get { return algorithm; }
+        }
 
-		public override bool Equals(
-			object obj)
-		{
-			if (obj == this)
-				return true;
+        public ECDomainParameters Parameters
+        {
+            get { return parameters; }
+        }
 
-			ECDomainParameters other = obj as ECDomainParameters;
+        public DerObjectIdentifier PublicKeyParamSet
+        {
+            get { return publicKeyParamSet; }
+        }
 
-			if (other == null)
-				return false;
+        public override bool Equals(
+            object obj)
+        {
+            if (obj == this)
+                return true;
 
-			return Equals(other);
-		}
+            ECDomainParameters other = obj as ECDomainParameters;
 
-		protected bool Equals(
-			ECKeyParameters other)
-		{
-			return parameters.Equals(other.parameters) && base.Equals(other);
-		}
+            if (other == null)
+                return false;
 
-		public override int GetHashCode()
-		{
-			return parameters.GetHashCode() ^ base.GetHashCode();
-		}
+            return Equals(other);
+        }
 
-		internal ECKeyGenerationParameters CreateKeyGenerationParameters(
-			SecureRandom random)
-		{
-			if (publicKeyParamSet != null)
-			{
-				return new ECKeyGenerationParameters(publicKeyParamSet, random);
-			}
+        protected bool Equals(
+            ECKeyParameters other)
+        {
+            return parameters.Equals(other.parameters) && base.Equals(other);
+        }
 
-			return new ECKeyGenerationParameters(parameters, random);
-		}
+        public override int GetHashCode()
+        {
+            return parameters.GetHashCode() ^ base.GetHashCode();
+        }
 
-		private string VerifyAlgorithmName(
-			string algorithm)
-		{
-			string upper = algorithm.ToUpperInvariant();
+        internal ECKeyGenerationParameters CreateKeyGenerationParameters(
+            SecureRandom random)
+        {
+            if (publicKeyParamSet != null)
+            {
+                return new ECKeyGenerationParameters(publicKeyParamSet, random);
+            }
 
-			switch (upper)
-			{
-				case "EC":
-				case "ECDSA":
-				case "ECDH":
-				case "ECDHC":
-				case "ECGOST3410":
-				case "ECMQV":
-					break;
-				default:
-					throw new ArgumentException("unrecognised algorithm: " + algorithm, "algorithm");
-			}
+            return new ECKeyGenerationParameters(parameters, random);
+        }
 
-			return upper;
-		}
+        internal static string VerifyAlgorithmName(string algorithm)
+        {
+            string upper = Platform.ToUpperInvariant(algorithm);
+            if (Array.IndexOf(algorithms, algorithm, 0, algorithms.Length) < 0)
+                throw new ArgumentException("unrecognised algorithm: " + algorithm, "algorithm");
+            return upper;
+        }
 
-		internal static ECDomainParameters LookupParameters(
-			DerObjectIdentifier publicKeyParamSet)
-		{
-			if (publicKeyParamSet == null)
-				throw new ArgumentNullException("publicKeyParamSet");
+        internal static ECDomainParameters LookupParameters(
+            DerObjectIdentifier publicKeyParamSet)
+        {
+            if (publicKeyParamSet == null)
+                throw new ArgumentNullException("publicKeyParamSet");
 
-			ECDomainParameters p = ECGost3410NamedCurves.GetByOid(publicKeyParamSet);
+            ECDomainParameters p = ECGost3410NamedCurves.GetByOid(publicKeyParamSet);
 
-			if (p == null)
-			{
-				X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(publicKeyParamSet);
+            if (p == null)
+            {
+                X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(publicKeyParamSet);
 
-				if (x9 == null)
-				{
-					throw new ArgumentException("OID is not a valid public key parameter set", "publicKeyParamSet");
-				}
+                if (x9 == null)
+                {
+                    throw new ArgumentException("OID is not a valid public key parameter set", "publicKeyParamSet");
+                }
 
-				p = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed());
-			}
+                p = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed());
+            }
 
-			return p;
-		}
-	}
+            return p;
+        }
+    }
 }

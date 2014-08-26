@@ -67,12 +67,11 @@ namespace Org.BouncyCastle.Crypto
 		{
 			this.forEncryption = forEncryption;
 
-			if (parameters is ParametersWithRandom)
-			{
-				parameters = ((ParametersWithRandom) parameters).Parameters;
-			}
+            ParametersWithRandom pwr = parameters as ParametersWithRandom;
+            if (pwr != null)
+                parameters = pwr.Parameters;
 
-			Reset();
+            Reset();
 
 			cipher.Init(forEncryption, parameters);
 		}

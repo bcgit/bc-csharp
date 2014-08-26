@@ -21,8 +21,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             int					ivOff,
             int					ivLen)
         {
-			if (parameters == null)
-				throw new ArgumentNullException("parameters");
+            // NOTE: 'parameters' may be null to imply key re-use
 			if (iv == null)
 				throw new ArgumentNullException("iv");
 

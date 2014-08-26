@@ -3,7 +3,10 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-	public class Asn1Exception
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class Asn1Exception
 		: IOException
 	{
 		public Asn1Exception()

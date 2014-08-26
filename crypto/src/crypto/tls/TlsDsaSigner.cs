@@ -7,45 +7,77 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-	internal abstract class TlsDsaSigner
-		:	TlsSigner
-	{
-		public virtual byte[] CalculateRawSignature(SecureRandom random,
-			AsymmetricKeyParameter privateKey, byte[] md5andsha1)
-		{
-			ISigner s = MakeSigner(new NullDigest(), true, new ParametersWithRandom(privateKey, random));
-			// Note: Only use the SHA1 part of the hash
-			s.BlockUpdate(md5andsha1, 16, 20);
-			return s.GenerateSignature();
-		}
+    public abstract class TlsDsaSigner
+        :	AbstractTlsSigner
+    {
+        public override byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm,
+            AsymmetricKeyParameter privateKey, byte[] hash)
+        {
+            ISigner signer = MakeSigner(algorithm, true, true,
+                new ParametersWithRandom(privateKey, this.mContext.SecureRandom));
+            if (algorithm == null)
+            {
+                // Note: Only use the SHA1 part of the (MD5/SHA1) hash
+                signer.BlockUpdate(hash, 16, 20);
+            }
+            else
+            {
+                signer.BlockUpdate(hash, 0, hash.Length);
+            }
+            return signer.GenerateSignature();
+        }
 
-		public bool VerifyRawSignature(byte[] sigBytes, AsymmetricKeyParameter publicKey, byte[] md5andsha1)
-		{
-			ISigner s = MakeSigner(new NullDigest(), false, publicKey);
-			// Note: Only use the SHA1 part of the hash
-			s.BlockUpdate(md5andsha1, 16, 20);
-			return s.VerifySignature(sigBytes);
-		}
+        public override bool VerifyRawSignature(SignatureAndHashAlgorithm algorithm, byte[] sigBytes,
+            AsymmetricKeyParameter publicKey, byte[] hash)
+        {
+            ISigner signer = MakeSigner(algorithm, true, false, publicKey);
+            if (algorithm == null)
+            {
+                // Note: Only use the SHA1 part of the (MD5/SHA1) hash
+                signer.BlockUpdate(hash, 16, 20);
+            }
+            else
+            {
+                signer.BlockUpdate(hash, 0, hash.Length);
+            }
+            return signer.VerifySignature(sigBytes);
+        }
 
-		public virtual ISigner CreateSigner(SecureRandom random, AsymmetricKeyParameter privateKey)
-		{
-			return MakeSigner(new Sha1Digest(), true, new ParametersWithRandom(privateKey, random));
-		}
+        public override ISigner CreateSigner(SignatureAndHashAlgorithm algorithm, AsymmetricKeyParameter privateKey)
+        {
+            return MakeSigner(algorithm, false, true, privateKey);
+        }
 
-		public virtual ISigner CreateVerifyer(AsymmetricKeyParameter publicKey)
-		{
-			return MakeSigner(new Sha1Digest(), false, publicKey);
-		}
+        public override ISigner CreateVerifyer(SignatureAndHashAlgorithm algorithm, AsymmetricKeyParameter publicKey)
+        {
+            return MakeSigner(algorithm, false, false, publicKey);
+        }
 
-		public abstract bool IsValidPublicKey(AsymmetricKeyParameter publicKey);
+        protected virtual ICipherParameters MakeInitParameters(bool forSigning, ICipherParameters cp)
+        {
+            return cp;
+        }
 
-		protected virtual ISigner MakeSigner(IDigest d, bool forSigning, ICipherParameters cp)
-		{
-			ISigner s = new DsaDigestSigner(CreateDsaImpl(), d);
-			s.Init(forSigning, cp);
-			return s;
-		}
+        protected virtual ISigner MakeSigner(SignatureAndHashAlgorithm algorithm, bool raw, bool forSigning,
+            ICipherParameters cp)
+        {
+            if ((algorithm != null) != TlsUtilities.IsTlsV12(mContext))
+                throw new InvalidOperationException();
 
-		protected abstract IDsa CreateDsaImpl();
-	}
+            // TODO For TLS 1.2+, lift the SHA-1 restriction here
+            if (algorithm != null && (algorithm.Hash != HashAlgorithm.sha1 || algorithm.Signature != SignatureAlgorithm))
+                throw new InvalidOperationException();
+
+            byte hashAlgorithm = algorithm == null ? HashAlgorithm.sha1 : algorithm.Hash;
+            IDigest d = raw ? new NullDigest() : TlsUtilities.CreateHash(hashAlgorithm);
+
+            ISigner s = new DsaDigestSigner(CreateDsaImpl(hashAlgorithm), d);
+            s.Init(forSigning, MakeInitParameters(forSigning, cp));
+            return s;
+        }
+
+        protected abstract byte SignatureAlgorithm { get; }
+
+        protected abstract IDsa CreateDsaImpl(byte hashAlgorithm);
+    }
 }

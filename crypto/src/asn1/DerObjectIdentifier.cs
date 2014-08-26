@@ -4,33 +4,32 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
     public class DerObjectIdentifier
         : Asn1Object
     {
-		private static readonly Regex OidRegex = new Regex(@"\A[0-2](\.[0-9]+)+\z");
+        private readonly string identifier;
 
-		private readonly string identifier;
+        private byte[] body = null;
 
-		/**
+        /**
          * return an Oid from the passed in object
          *
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static DerObjectIdentifier GetInstance(
-            object obj)
+        public static DerObjectIdentifier GetInstance(object obj)
         {
             if (obj == null || obj is DerObjectIdentifier)
-            {
                 return (DerObjectIdentifier) obj;
-            }
-
-			throw new ArgumentException("illegal object in GetInstance: " + obj.GetType().Name, "obj");
+            if (obj is byte[])
+                return FromOctetString((byte[])obj);
+            throw new ArgumentException("illegal object in GetInstance: " + obj.GetType().Name, "obj");
         }
 
-		/**
+        /**
          * return an object Identifier from a tagged object.
          *
          * @param obj the tagged object holding the object we want
@@ -46,27 +45,35 @@ namespace Org.BouncyCastle.Asn1
             return GetInstance(obj.GetObject());
         }
 
-		public DerObjectIdentifier(
+        public DerObjectIdentifier(
             string identifier)
         {
-			if (identifier == null)
-				throw new ArgumentNullException("identifier");
-			if (!OidRegex.IsMatch(identifier))
-				throw new FormatException("string " + identifier + " not an OID");
+            if (identifier == null)
+                throw new ArgumentNullException("identifier");
+            if (!IsValidIdentifier(identifier))
+                throw new FormatException("string " + identifier + " not an OID");
 
-			this.identifier = identifier;
+            this.identifier = identifier;
         }
 
-		// TODO Change to ID?
-		public string Id
+        internal DerObjectIdentifier(DerObjectIdentifier oid, string branchID)
+        {
+            if (!IsValidBranchID(branchID, 0))
+                throw new ArgumentException("string " + branchID + " not a valid OID branch", "branchID");
+
+            this.identifier = oid.Id + "." + branchID;
+        }
+
+        // TODO Change to ID?
+        public string Id
         {
             get { return identifier; }
         }
 
-		public virtual DerObjectIdentifier Branch(string branchID)
-		{
-			return new DerObjectIdentifier(identifier + "." + branchID);
-		}
+        public virtual DerObjectIdentifier Branch(string branchID)
+        {
+            return new DerObjectIdentifier(this, branchID);
+        }
 
         /**
          * Return  true if this oid is an extension of the passed in branch, stem.
@@ -79,164 +86,262 @@ namespace Org.BouncyCastle.Asn1
             return id.Length > stemId.Length && id[stemId.Length] == '.' && id.StartsWith(stemId);
         }
 
-        internal DerObjectIdentifier(
-            byte[] bytes)
-            : this(MakeOidStringFromBytes(bytes))
+        internal DerObjectIdentifier(byte[] bytes)
         {
+            this.identifier = MakeOidStringFromBytes(bytes);
+            this.body = Arrays.Clone(bytes);
         }
 
-		private void WriteField(
+        private void WriteField(
             Stream	outputStream,
             long	fieldValue)
         {
-			byte[] result = new byte[9];
-			int pos = 8;
-			result[pos] = (byte)(fieldValue & 0x7f);
-			while (fieldValue >= (1L << 7))
-			{
-				fieldValue >>= 7;
-				result[--pos] = (byte)((fieldValue & 0x7f) | 0x80);
-			}
-			outputStream.Write(result, pos, 9 - pos);
+            byte[] result = new byte[9];
+            int pos = 8;
+            result[pos] = (byte)(fieldValue & 0x7f);
+            while (fieldValue >= (1L << 7))
+            {
+                fieldValue >>= 7;
+                result[--pos] = (byte)((fieldValue & 0x7f) | 0x80);
+            }
+            outputStream.Write(result, pos, 9 - pos);
         }
 
-		private void WriteField(
-			Stream		outputStream,
-			BigInteger	fieldValue)
-		{
-			int byteCount = (fieldValue.BitLength + 6) / 7;
-			if (byteCount == 0)
-			{
-				outputStream.WriteByte(0);
-			}
-			else
-			{
-				BigInteger tmpValue = fieldValue;
-				byte[] tmp = new byte[byteCount];
-				for (int i = byteCount-1; i >= 0; i--)
-				{
-					tmp[i] = (byte) ((tmpValue.IntValue & 0x7f) | 0x80);
-					tmpValue = tmpValue.ShiftRight(7);
-				}
-				tmp[byteCount-1] &= 0x7f;
-				outputStream.Write(tmp, 0, tmp.Length);
-			}
-		}
+        private void WriteField(
+            Stream		outputStream,
+            BigInteger	fieldValue)
+        {
+            int byteCount = (fieldValue.BitLength + 6) / 7;
+            if (byteCount == 0)
+            {
+                outputStream.WriteByte(0);
+            }
+            else
+            {
+                BigInteger tmpValue = fieldValue;
+                byte[] tmp = new byte[byteCount];
+                for (int i = byteCount-1; i >= 0; i--)
+                {
+                    tmp[i] = (byte) ((tmpValue.IntValue & 0x7f) | 0x80);
+                    tmpValue = tmpValue.ShiftRight(7);
+                }
+                tmp[byteCount-1] &= 0x7f;
+                outputStream.Write(tmp, 0, tmp.Length);
+            }
+        }
+
+        private void DoOutput(MemoryStream bOut)
+        {
+            OidTokenizer tok = new OidTokenizer(identifier);
+
+            string token = tok.NextToken();
+            int first = int.Parse(token) * 40;
+
+            token = tok.NextToken();
+            if (token.Length <= 18)
+            {
+                WriteField(bOut, first + Int64.Parse(token));
+            }
+            else
+            {
+                WriteField(bOut, new BigInteger(token).Add(BigInteger.ValueOf(first)));
+            }
+
+            while (tok.HasMoreTokens)
+            {
+                token = tok.NextToken();
+                if (token.Length <= 18)
+                {
+                    WriteField(bOut, Int64.Parse(token));
+                }
+                else
+                {
+                    WriteField(bOut, new BigInteger(token));
+                }
+            }
+        }
+
+        internal byte[] GetBody()
+        {
+            lock (this)
+            {
+                if (body == null)
+                {
+                    MemoryStream bOut = new MemoryStream();
+                    DoOutput(bOut);
+                    body = bOut.ToArray();
+                }
+            }
+
+            return body;
+        }
 
         internal override void Encode(
             DerOutputStream derOut)
         {
-            OidTokenizer tok = new OidTokenizer(identifier);
-            MemoryStream bOut = new MemoryStream();
-            DerOutputStream dOut = new DerOutputStream(bOut);
-
-			string token = tok.NextToken();
-            int first = int.Parse(token);
-
-			token = tok.NextToken();
-            int second = int.Parse(token);
-
-            WriteField(bOut, first * 40 + second);
-
-            while (tok.HasMoreTokens)
-            {
-				token = tok.NextToken();
-				if (token.Length < 18)
-				{
-					WriteField(bOut, Int64.Parse(token));
-				}
-				else
-				{
-					WriteField(bOut, new BigInteger(token));
-				}
-			}
-
-            dOut.Dispose();
-
-			derOut.WriteEncoded(Asn1Tags.ObjectIdentifier, bOut.ToArray());
+            derOut.WriteEncoded(Asn1Tags.ObjectIdentifier, GetBody());
         }
 
-		protected override int Asn1GetHashCode()
-		{
+        protected override int Asn1GetHashCode()
+        {
             return identifier.GetHashCode();
         }
 
-		protected override bool Asn1Equals(
-			Asn1Object asn1Object)
-		{
-			DerObjectIdentifier other = asn1Object as DerObjectIdentifier;
+        protected override bool Asn1Equals(
+            Asn1Object asn1Object)
+        {
+            DerObjectIdentifier other = asn1Object as DerObjectIdentifier;
 
-			if (other == null)
-				return false;
+            if (other == null)
+                return false;
 
-			return this.identifier.Equals(other.identifier);
+            return this.identifier.Equals(other.identifier);
         }
 
-		public override string ToString()
-		{
-			return identifier;
-		}
+        public override string ToString()
+        {
+            return identifier;
+        }
 
-		private static string MakeOidStringFromBytes(
-			byte[] bytes)
-		{
-			StringBuilder	objId = new StringBuilder();
-			long			value = 0;
-			BigInteger		bigValue = null;
-			bool			first = true;
+        private static bool IsValidBranchID(
+            String branchID, int start)
+        {
+            bool periodAllowed = false;
 
-			for (int i = 0; i != bytes.Length; i++)
-			{
-				int b = bytes[i];
+            int pos = branchID.Length;
+            while (--pos >= start)
+            {
+                char ch = branchID[pos];
 
-				if (value < 0x80000000000000L)
-				{
-					value = value * 128 + (b & 0x7f);
-					if ((b & 0x80) == 0)             // end of number reached
-					{
-						if (first)
-						{
-							switch ((int)value / 40)
-							{
-								case 0:
-									objId.Append('0');
-									break;
-								case 1:
-									objId.Append('1');
-									value -= 40;
-									break;
-								default:
-									objId.Append('2');
-									value -= 80;
-									break;
-							}
-							first = false;
-						}
+                // TODO Leading zeroes?
+                if ('0' <= ch && ch <= '9')
+                {
+                    periodAllowed = true;
+                    continue;
+                }
 
-						objId.Append('.');
-						objId.Append(value);
-						value = 0;
-					}
-				}
-				else
-				{
-					if (bigValue == null)
-					{
-						bigValue = BigInteger.ValueOf(value);
-					}
-					bigValue = bigValue.ShiftLeft(7);
-					bigValue = bigValue.Or(BigInteger.ValueOf(b & 0x7f));
-					if ((b & 0x80) == 0)
-					{
-						objId.Append('.');
-						objId.Append(bigValue);
-						bigValue = null;
-						value = 0;
-					}
-				}
-			}
+                if (ch == '.')
+                {
+                    if (!periodAllowed)
+                        return false;
 
-			return objId.ToString();
-		}
-	}
+                    periodAllowed = false;
+                    continue;
+                }
+
+                return false;
+            }
+
+            return periodAllowed;
+        }
+
+        private static bool IsValidIdentifier(string identifier)
+        {
+            if (identifier.Length < 3 || identifier[1] != '.')
+                return false;
+
+            char first = identifier[0];
+            if (first < '0' || first > '2')
+                return false;
+
+            return IsValidBranchID(identifier, 2);
+        }
+
+        private const long LONG_LIMIT = (long.MaxValue >> 7) - 0x7f;
+
+        private static string MakeOidStringFromBytes(
+            byte[] bytes)
+        {
+            StringBuilder	objId = new StringBuilder();
+            long			value = 0;
+            BigInteger		bigValue = null;
+            bool			first = true;
+
+            for (int i = 0; i != bytes.Length; i++)
+            {
+                int b = bytes[i];
+
+                if (value <= LONG_LIMIT)
+                {
+                    value += (b & 0x7f);
+                    if ((b & 0x80) == 0)             // end of number reached
+                    {
+                        if (first)
+                        {
+                            if (value < 40)
+                            {
+                                objId.Append('0');
+                            }
+                            else if (value < 80)
+                            {
+                                objId.Append('1');
+                                value -= 40;
+                            }
+                            else
+                            {
+                                objId.Append('2');
+                                value -= 80;
+                            }
+                            first = false;
+                        }
+
+                        objId.Append('.');
+                        objId.Append(value);
+                        value = 0;
+                    }
+                    else
+                    {
+                        value <<= 7;
+                    }
+                }
+                else
+                {
+                    if (bigValue == null)
+                    {
+                        bigValue = BigInteger.ValueOf(value);
+                    }
+                    bigValue = bigValue.Or(BigInteger.ValueOf(b & 0x7f));
+                    if ((b & 0x80) == 0)
+                    {
+                        if (first)
+                        {
+                            objId.Append('2');
+                            bigValue = bigValue.Subtract(BigInteger.ValueOf(80));
+                            first = false;
+                        }
+
+                        objId.Append('.');
+                        objId.Append(bigValue);
+                        bigValue = null;
+                        value = 0;
+                    }
+                    else
+                    {
+                        bigValue = bigValue.ShiftLeft(7);
+                    }
+                }
+            }
+
+            return objId.ToString();
+        }
+
+        private static readonly DerObjectIdentifier[] cache = new DerObjectIdentifier[1024];
+
+        internal static DerObjectIdentifier FromOctetString(byte[] enc)
+        {
+            int hashCode = Arrays.GetHashCode(enc);
+            int first = hashCode & 1023;
+
+            lock (cache)
+            {
+                DerObjectIdentifier entry = cache[first];
+                if (entry != null && Arrays.AreEqual(enc, entry.GetBody()))
+                {
+                    return entry;
+                }
+
+                return cache[first] = new DerObjectIdentifier(enc);
+            }
+        }
+    }
 }

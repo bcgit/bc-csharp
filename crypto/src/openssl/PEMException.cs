@@ -3,7 +3,10 @@ using System.IO;
 
 namespace Org.BouncyCastle.OpenSsl
 {
-	public class PemException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class PemException
 		: IOException
 	{
 		public PemException(

@@ -3,180 +3,259 @@ using System.Collections;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-	public class PskTlsClient
-		:TlsClient
-	{
-		protected TlsCipherFactory cipherFactory;
-		protected TlsPskIdentity pskIdentity;
+    public abstract class PskTlsClient
+        :   AbstractTlsClient
+    {
+        protected TlsPskIdentity mPskIdentity;
 
-		protected TlsClientContext context;
+        public PskTlsClient(TlsPskIdentity pskIdentity)
+            :   this(new DefaultTlsCipherFactory(), pskIdentity)
+        {
+        }
 
-		protected CompressionMethod selectedCompressionMethod;
-		protected CipherSuite selectedCipherSuite;
+        public PskTlsClient(TlsCipherFactory cipherFactory, TlsPskIdentity pskIdentity)
+            :   base(cipherFactory)
+        {
+            this.mPskIdentity = pskIdentity;
+        }
 
-		public PskTlsClient(TlsPskIdentity pskIdentity)
-			: this(new DefaultTlsCipherFactory(), pskIdentity)
-		{
-		}
+        public override int[] GetCipherSuites()
+        {
+            return new int[]
+            {
+                CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
+                CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,
+                CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA256,
+                CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA
+            };
+        }
 
-		public PskTlsClient(TlsCipherFactory cipherFactory, TlsPskIdentity pskIdentity)
-		{
-			this.cipherFactory = cipherFactory;
-			this.pskIdentity = pskIdentity;
-		}
+        public override TlsKeyExchange GetKeyExchange()
+        {
+            switch (mSelectedCipherSuite)
+            {
+            case CipherSuite.TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CCM:
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CCM:
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1:
+            case CipherSuite.TLS_DHE_PSK_WITH_NULL_SHA:
+            case CipherSuite.TLS_DHE_PSK_WITH_NULL_SHA256:
+            case CipherSuite.TLS_DHE_PSK_WITH_NULL_SHA384:
+            case CipherSuite.TLS_DHE_PSK_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_DHE_PSK_WITH_SALSA20_SHA1:
+            case CipherSuite.TLS_PSK_DHE_WITH_AES_128_CCM_8:
+            case CipherSuite.TLS_PSK_DHE_WITH_AES_256_CCM_8:
+                return CreatePskKeyExchange(KeyExchangeAlgorithm.DHE_PSK);
 
-		public virtual void Init(TlsClientContext context)
-		{
-			this.context = context;
-		}
+            case CipherSuite.TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_NULL_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_NULL_SHA256:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_NULL_SHA384:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_SALSA20_SHA1:
+                return CreatePskKeyExchange(KeyExchangeAlgorithm.ECDHE_PSK);
 
-		public virtual CipherSuite[] GetCipherSuites()
-		{
-			return new CipherSuite[] {
-				CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA,
-				CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA,
-				CipherSuite.TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
-				CipherSuite.TLS_RSA_PSK_WITH_AES_256_CBC_SHA,
-				CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA,
-				CipherSuite.TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
-				CipherSuite.TLS_PSK_WITH_AES_256_CBC_SHA,
-				CipherSuite.TLS_PSK_WITH_AES_128_CBC_SHA,
-				CipherSuite.TLS_PSK_WITH_3DES_EDE_CBC_SHA,
-			};
-		}
+            case CipherSuite.TLS_PSK_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_PSK_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_PSK_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_PSK_WITH_AES_128_CCM:
+            case CipherSuite.TLS_PSK_WITH_AES_128_CCM_8:
+            case CipherSuite.TLS_PSK_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_PSK_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_PSK_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_PSK_WITH_AES_256_CCM:
+            case CipherSuite.TLS_PSK_WITH_AES_256_CCM_8:
+            case CipherSuite.TLS_PSK_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_PSK_WITH_ESTREAM_SALSA20_SHA1:
+            case CipherSuite.TLS_PSK_WITH_NULL_SHA:
+            case CipherSuite.TLS_PSK_WITH_NULL_SHA256:
+            case CipherSuite.TLS_PSK_WITH_NULL_SHA384:
+            case CipherSuite.TLS_PSK_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_PSK_WITH_SALSA20_SHA1:
+                return CreatePskKeyExchange(KeyExchangeAlgorithm.PSK);
 
-		public virtual IDictionary GetClientExtensions()
-		{
-			return null;
-		}
+            case CipherSuite.TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1:
+            case CipherSuite.TLS_RSA_PSK_WITH_NULL_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_NULL_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_NULL_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_SALSA20_SHA1:
+                return CreatePskKeyExchange(KeyExchangeAlgorithm.RSA_PSK);
 
-		public virtual CompressionMethod[] GetCompressionMethods()
-		{
-			return new CompressionMethod[] { CompressionMethod.NULL };
-		}
+            default:
+                /*
+                    * Note: internal error here; the TlsProtocol implementation verifies that the
+                    * server-selected cipher suite was in the list of client-offered cipher suites, so if
+                    * we now can't produce an implementation, we shouldn't have offered it!
+                    */
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+        }
 
-		public virtual void NotifySessionID(byte[] sessionID)
-		{
-			// Currently ignored 
-		}
+        public override TlsCipher GetCipher()
+        {
+            switch (mSelectedCipherSuite)
+            {
+            case CipherSuite.TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_PSK_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.cls_3DES_EDE_CBC, MacAlgorithm.hmac_sha1);
 
-		public virtual void NotifySelectedCipherSuite(CipherSuite selectedCipherSuite)
-		{
-			this.selectedCipherSuite = selectedCipherSuite;
-		}
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_PSK_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_128_CBC, MacAlgorithm.hmac_sha1);
 
-		public virtual void NotifySelectedCompressionMethod(CompressionMethod selectedCompressionMethod)
-		{
-			this.selectedCompressionMethod = selectedCompressionMethod;
-		}
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_PSK_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA256:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_128_CBC, MacAlgorithm.hmac_sha256);
 
-		public virtual void NotifySecureRenegotiation(bool secureRenegotiation)
-		{
-			if (!secureRenegotiation)
-			{
-				/*
-				 * RFC 5746 3.4. If the extension is not present, the server does not support
-				 * secure renegotiation; set secure_renegotiation flag to FALSE. In this case,
-				 * some clients may want to terminate the handshake instead of continuing; see
-				 * Section 4.1 for discussion.
-				 */
-//				throw new TlsFatalAlert(AlertDescription.handshake_failure);
-			}
-		}
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CCM:
+            case CipherSuite.TLS_PSK_WITH_AES_128_CCM:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_128_CCM, MacAlgorithm.cls_null);
 
-		public virtual void ProcessServerExtensions(IDictionary serverExtensions)
-		{
-		}
+            case CipherSuite.TLS_PSK_DHE_WITH_AES_128_CCM_8:
+            case CipherSuite.TLS_PSK_WITH_AES_128_CCM_8:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_128_CCM_8, MacAlgorithm.cls_null);
 
-		public virtual TlsKeyExchange GetKeyExchange()
-		{
-			switch (selectedCipherSuite)
-			{
-				case CipherSuite.TLS_PSK_WITH_3DES_EDE_CBC_SHA:
-				case CipherSuite.TLS_PSK_WITH_AES_128_CBC_SHA:
-				case CipherSuite.TLS_PSK_WITH_AES_256_CBC_SHA:
-					return CreatePskKeyExchange(KeyExchangeAlgorithm.PSK);
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_PSK_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_128_GCM_SHA256:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_128_GCM, MacAlgorithm.cls_null);
 
-				case CipherSuite.TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA:
-				case CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA:
-				case CipherSuite.TLS_RSA_PSK_WITH_AES_256_CBC_SHA:
-					return CreatePskKeyExchange(KeyExchangeAlgorithm.RSA_PSK);
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_PSK_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_256_CBC_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_256_CBC, MacAlgorithm.hmac_sha1);
 
-				case CipherSuite.TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA:
-				case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA:
-				case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA:
-					return CreatePskKeyExchange(KeyExchangeAlgorithm.DHE_PSK);
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_PSK_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_256_CBC_SHA384:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_256_CBC, MacAlgorithm.hmac_sha384);
 
-				default:
-					/*
-					 * Note: internal error here; the TlsProtocolHandler verifies that the
-					 * server-selected cipher suite was in the list of client-offered cipher
-					 * suites, so if we now can't produce an implementation, we shouldn't have
-					 * offered it!
-					 */
-					throw new TlsFatalAlert(AlertDescription.internal_error);
-			}
-		}
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CCM:
+            case CipherSuite.TLS_PSK_WITH_AES_256_CCM:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_256_CCM, MacAlgorithm.cls_null);
 
-		public virtual TlsAuthentication GetAuthentication()
-		{
-			return null;
-		}
+            case CipherSuite.TLS_PSK_DHE_WITH_AES_256_CCM_8:
+            case CipherSuite.TLS_PSK_WITH_AES_256_CCM_8:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_256_CCM_8, MacAlgorithm.cls_null);
 
-		public virtual TlsCompression GetCompression()
-		{
-			switch (selectedCompressionMethod)
-			{
-				case CompressionMethod.NULL:
-					return new TlsNullCompression();
+            case CipherSuite.TLS_DHE_PSK_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_PSK_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_AES_256_GCM_SHA384:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_256_GCM, MacAlgorithm.cls_null);
 
-				default:
-					/*
-					 * Note: internal error here; the TlsProtocolHandler verifies that the
-					 * server-selected compression method was in the list of client-offered compression
-					 * methods, so if we now can't produce an implementation, we shouldn't have
-					 * offered it!
-					 */
-					throw new TlsFatalAlert(AlertDescription.internal_error);
-			}
-		}
+            case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.CAMELLIA_128_CBC, MacAlgorithm.hmac_sha256);
 
-		public virtual TlsCipher GetCipher()
-		{
-			switch (selectedCipherSuite)
-			{
-				case CipherSuite.TLS_PSK_WITH_3DES_EDE_CBC_SHA:
-				case CipherSuite.TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA:
-				case CipherSuite.TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA:
-					return cipherFactory.CreateCipher(context, EncryptionAlgorithm.cls_3DES_EDE_CBC,
-						DigestAlgorithm.SHA);
-				
-				case CipherSuite.TLS_PSK_WITH_AES_128_CBC_SHA:
-				case CipherSuite.TLS_RSA_PSK_WITH_AES_128_CBC_SHA:
-				case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA:
-					return cipherFactory.CreateCipher(context, EncryptionAlgorithm.AES_128_CBC,
-						DigestAlgorithm.SHA);
+            case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.CAMELLIA_128_GCM, MacAlgorithm.cls_null);
 
-				case CipherSuite.TLS_PSK_WITH_AES_256_CBC_SHA:
-				case CipherSuite.TLS_RSA_PSK_WITH_AES_256_CBC_SHA:
-				case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CBC_SHA:
-					return cipherFactory.CreateCipher(context, EncryptionAlgorithm.AES_256_CBC,
-						DigestAlgorithm.SHA);
+            case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.CAMELLIA_256_CBC, MacAlgorithm.hmac_sha384);
 
-				default:
-					/*
-					 * Note: internal error here; the TlsProtocolHandler verifies that the
-					 * server-selected cipher suite was in the list of client-offered cipher
-					 * suites, so if we now can't produce an implementation, we shouldn't have
-					 * offered it!
-					 */
-					throw new TlsFatalAlert(AlertDescription.internal_error);
-			}
-		}
+            case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.CAMELLIA_256_GCM, MacAlgorithm.cls_null);
 
-		protected virtual TlsKeyExchange CreatePskKeyExchange(KeyExchangeAlgorithm keyExchange)
-		{
-			return new TlsPskKeyExchange(context, keyExchange, pskIdentity);
-		}
-	}
+            case CipherSuite.TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1:
+            case CipherSuite.TLS_PSK_WITH_ESTREAM_SALSA20_SHA1:
+            case CipherSuite.TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.ESTREAM_SALSA20, MacAlgorithm.hmac_sha1);
+
+            case CipherSuite.TLS_DHE_PSK_WITH_NULL_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_NULL_SHA:
+            case CipherSuite.TLS_PSK_WITH_NULL_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_NULL_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.NULL, MacAlgorithm.hmac_sha1);
+
+            case CipherSuite.TLS_DHE_PSK_WITH_NULL_SHA256:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_NULL_SHA256:
+            case CipherSuite.TLS_PSK_WITH_NULL_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_NULL_SHA256:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.NULL, MacAlgorithm.hmac_sha256);
+
+            case CipherSuite.TLS_DHE_PSK_WITH_NULL_SHA384:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_NULL_SHA384:
+            case CipherSuite.TLS_PSK_WITH_NULL_SHA384:
+            case CipherSuite.TLS_RSA_PSK_WITH_NULL_SHA384:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.NULL, MacAlgorithm.hmac_sha384);
+
+            case CipherSuite.TLS_DHE_PSK_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_PSK_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_RSA_PSK_WITH_RC4_128_SHA:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.RC4_128, MacAlgorithm.hmac_sha1);
+
+            case CipherSuite.TLS_DHE_PSK_WITH_SALSA20_SHA1:
+            case CipherSuite.TLS_ECDHE_PSK_WITH_SALSA20_SHA1:
+            case CipherSuite.TLS_PSK_WITH_SALSA20_SHA1:
+            case CipherSuite.TLS_RSA_PSK_WITH_SALSA20_SHA1:
+                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.SALSA20, MacAlgorithm.hmac_sha1);
+
+            default:
+                /*
+                    * Note: internal error here; the TlsProtocol implementation verifies that the
+                    * server-selected cipher suite was in the list of client-offered cipher suites, so if
+                    * we now can't produce an implementation, we shouldn't have offered it!
+                    */
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+        }
+
+        protected virtual TlsKeyExchange CreatePskKeyExchange(int keyExchange)
+        {
+            return new TlsPskKeyExchange(keyExchange, mSupportedSignatureAlgorithms, mPskIdentity, null, mNamedCurves,
+                mClientECPointFormats, mServerECPointFormats);
+        }
+    }
 }

@@ -4,151 +4,159 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
-	/**
-	 * GOST R 34.10-2001 Signature Algorithm
-	 */
-	public class ECGost3410Signer
-		: IDsa
-	{
-		private ECKeyParameters key;
-		private SecureRandom random;
+    /**
+     * GOST R 34.10-2001 Signature Algorithm
+     */
+    public class ECGost3410Signer
+        : IDsa
+    {
+        private ECKeyParameters key;
+        private SecureRandom random;
 
-		public string AlgorithmName
-		{
-			get { return "ECGOST3410"; }
-		}
+        public string AlgorithmName
+        {
+            get { return "ECGOST3410"; }
+        }
 
-		public void Init(
-			bool				forSigning,
-			ICipherParameters	parameters)
-		{
-			if (forSigning)
-			{
-				if (parameters is ParametersWithRandom)
-				{
-					ParametersWithRandom rParam = (ParametersWithRandom)parameters;
+        public void Init(
+            bool				forSigning,
+            ICipherParameters	parameters)
+        {
+            if (forSigning)
+            {
+                if (parameters is ParametersWithRandom)
+                {
+                    ParametersWithRandom rParam = (ParametersWithRandom)parameters;
 
-					this.random = rParam.Random;
-					parameters = rParam.Parameters;
-				}
-				else
-				{
-					this.random = new SecureRandom();
-				}
+                    this.random = rParam.Random;
+                    parameters = rParam.Parameters;
+                }
+                else
+                {
+                    this.random = new SecureRandom();
+                }
 
-				if (!(parameters is ECPrivateKeyParameters))
-					throw new InvalidKeyException("EC private key required for signing");
+                if (!(parameters is ECPrivateKeyParameters))
+                    throw new InvalidKeyException("EC private key required for signing");
 
-				this.key = (ECPrivateKeyParameters) parameters;
-			}
-			else
-			{
-				if (!(parameters is ECPublicKeyParameters))
-					throw new InvalidKeyException("EC public key required for verification");
+                this.key = (ECPrivateKeyParameters) parameters;
+            }
+            else
+            {
+                if (!(parameters is ECPublicKeyParameters))
+                    throw new InvalidKeyException("EC public key required for verification");
 
-				this.key = (ECPublicKeyParameters)parameters;
-			}
-		}
+                this.key = (ECPublicKeyParameters)parameters;
+            }
+        }
 
-		/**
-		 * generate a signature for the given message using the key we were
-		 * initialised with. For conventional GOST3410 the message should be a GOST3411
-		 * hash of the message of interest.
-		 *
-		 * @param message the message that will be verified later.
-		 */
-		public BigInteger[] GenerateSignature(
-			byte[] message)
-		{
-			byte[] mRev = new byte[message.Length]; // conversion is little-endian
-			for (int i = 0; i != mRev.Length; i++)
-			{
-				mRev[i] = message[mRev.Length - 1 - i];
-			}
+        /**
+         * generate a signature for the given message using the key we were
+         * initialised with. For conventional GOST3410 the message should be a GOST3411
+         * hash of the message of interest.
+         *
+         * @param message the message that will be verified later.
+         */
+        public BigInteger[] GenerateSignature(
+            byte[] message)
+        {
+            byte[] mRev = new byte[message.Length]; // conversion is little-endian
+            for (int i = 0; i != mRev.Length; i++)
+            {
+                mRev[i] = message[mRev.Length - 1 - i];
+            }
 
-			BigInteger e = new BigInteger(1, mRev);
-			BigInteger n = key.Parameters.N;
+            BigInteger e = new BigInteger(1, mRev);
 
-			BigInteger r = null;
-			BigInteger s = null;
+            ECDomainParameters ec = key.Parameters;
+            BigInteger n = ec.N;
+            BigInteger d = ((ECPrivateKeyParameters)key).D;
 
-			do // generate s
-			{
-				BigInteger k = null;
+            BigInteger r, s = null;
 
-				do // generate r
-				{
-					do
-					{
-						k = new BigInteger(n.BitLength, random);
-					}
-					while (k.SignValue == 0);
+            ECMultiplier basePointMultiplier = CreateBasePointMultiplier();
 
-					ECPoint p = key.Parameters.G.Multiply(k);
+            do // generate s
+            {
+                BigInteger k;
+                do // generate r
+                {
+                    do
+                    {
+                        k = new BigInteger(n.BitLength, random);
+                    }
+                    while (k.SignValue == 0);
 
-					BigInteger x = p.X.ToBigInteger();
+                    ECPoint p = basePointMultiplier.Multiply(ec.G, k).Normalize();
 
-					r = x.Mod(n);
-				}
-				while (r.SignValue == 0);
+                    r = p.AffineXCoord.ToBigInteger().Mod(n);
+                }
+                while (r.SignValue == 0);
 
-				BigInteger d = ((ECPrivateKeyParameters)key).D;
+                s = (k.Multiply(e)).Add(d.Multiply(r)).Mod(n);
+            }
+            while (s.SignValue == 0);
 
-				s = (k.Multiply(e)).Add(d.Multiply(r)).Mod(n);
-			}
-			while (s.SignValue == 0);
+            return new BigInteger[]{ r, s };
+        }
 
-			return new BigInteger[]{ r, s };
-		}
+        /**
+         * return true if the value r and s represent a GOST3410 signature for
+         * the passed in message (for standard GOST3410 the message should be
+         * a GOST3411 hash of the real message to be verified).
+         */
+        public bool VerifySignature(
+            byte[]		message,
+            BigInteger	r,
+            BigInteger	s)
+        {
+            byte[] mRev = new byte[message.Length]; // conversion is little-endian
+            for (int i = 0; i != mRev.Length; i++)
+            {
+                mRev[i] = message[mRev.Length - 1 - i];
+            }
 
-		/**
-		 * return true if the value r and s represent a GOST3410 signature for
-		 * the passed in message (for standard GOST3410 the message should be
-		 * a GOST3411 hash of the real message to be verified).
-		 */
-		public bool VerifySignature(
-			byte[]		message,
-			BigInteger	r,
-			BigInteger	s)
-		{
-			byte[] mRev = new byte[message.Length]; // conversion is little-endian
-			for (int i = 0; i != mRev.Length; i++)
-			{
-				mRev[i] = message[mRev.Length - 1 - i];
-			}
+            BigInteger e = new BigInteger(1, mRev);
+            BigInteger n = key.Parameters.N;
 
-			BigInteger e = new BigInteger(1, mRev);
-			BigInteger n = key.Parameters.N;
+            // r in the range [1,n-1]
+            if (r.CompareTo(BigInteger.One) < 0 || r.CompareTo(n) >= 0)
+            {
+                return false;
+            }
 
-			// r in the range [1,n-1]
-			if (r.CompareTo(BigInteger.One) < 0 || r.CompareTo(n) >= 0)
-			{
-				return false;
-			}
+            // s in the range [1,n-1]
+            if (s.CompareTo(BigInteger.One) < 0 || s.CompareTo(n) >= 0)
+            {
+                return false;
+            }
 
-			// s in the range [1,n-1]
-			if (s.CompareTo(BigInteger.One) < 0 || s.CompareTo(n) >= 0)
-			{
-				return false;
-			}
+            BigInteger v = e.ModInverse(n);
 
-			BigInteger v = e.ModInverse(n);
+            BigInteger z1 = s.Multiply(v).Mod(n);
+            BigInteger z2 = (n.Subtract(r)).Multiply(v).Mod(n);
 
-			BigInteger z1 = s.Multiply(v).Mod(n);
-			BigInteger z2 = (n.Subtract(r)).Multiply(v).Mod(n);
+            ECPoint G = key.Parameters.G; // P
+            ECPoint Q = ((ECPublicKeyParameters)key).Q;
 
-			ECPoint G = key.Parameters.G; // P
-			ECPoint Q = ((ECPublicKeyParameters)key).Q;
+            ECPoint point = ECAlgorithms.SumOfTwoMultiplies(G, z1, Q, z2).Normalize();
 
-			ECPoint point = ECAlgorithms.SumOfTwoMultiplies(G, z1, Q, z2);
+            if (point.IsInfinity)
+                return false;
 
-			BigInteger R = point.X.ToBigInteger().Mod(n);
+            BigInteger R = point.AffineXCoord.ToBigInteger().Mod(n);
 
-			return R.Equals(r);
-		}
-	}
+            return R.Equals(r);
+        }
+
+        protected virtual ECMultiplier CreateBasePointMultiplier()
+        {
+            return new FixedPointCombMultiplier();
+        }
+    }
 }

@@ -3,7 +3,10 @@ using System;
 namespace Org.BouncyCastle.Security
 {
 	[Obsolete("Never thrown")]
-	public class NoSuchAlgorithmException : GeneralSecurityException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class NoSuchAlgorithmException : GeneralSecurityException
 	{
 		public NoSuchAlgorithmException() : base() {}
 		public NoSuchAlgorithmException(string message) : base(message) {}

@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Globalization;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -114,7 +113,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			if (ignoreCase)
 			{
-				userId = userId.ToLowerInvariant();
+                userId = Platform.ToLowerInvariant(userId);
 			}
 
 			foreach (PgpPublicKeyRing pubRing in GetKeyRings())
@@ -124,8 +123,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 					string next = nextUserID;
 					if (ignoreCase)
 					{
-						next = next.ToLowerInvariant();
-					}
+                        next = Platform.ToLowerInvariant(next);
+                    }
 
 					if (matchPartial)
 					{

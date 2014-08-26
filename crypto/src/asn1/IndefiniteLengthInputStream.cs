@@ -22,12 +22,15 @@ namespace Org.BouncyCastle.Asn1
 			bool eofOn00)
 		{
 			_eofOn00 = eofOn00;
-            CheckForEof();
+            if (_eofOn00)
+            {
+                CheckForEof();
+            }
         }
 
-		private bool CheckForEof()
+        private bool CheckForEof()
 		{
-            if (_lookAhead == 0x00 && _eofOn00)
+            if (_lookAhead == 0x00)
             {
                 int extra = RequireByte();
                 if (extra != 0)
@@ -37,6 +40,7 @@ namespace Org.BouncyCastle.Asn1
 
                 _lookAhead = -1;
                 SetParentEofDetect(true);
+                return true;
             }
             return _lookAhead < 0;
         }
@@ -69,7 +73,7 @@ namespace Org.BouncyCastle.Asn1
 
 		public override int ReadByte()
 		{
-			if (CheckForEof())
+            if (_eofOn00 && CheckForEof())
 				return -1;
 
             int result = _lookAhead;

@@ -1,156 +1,185 @@
 using System;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Crypto;
+
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
-	/**
-	 * EC-DSA as described in X9.62
-	 */
-	public class ECDsaSigner
-		: IDsa
-	{
-		private ECKeyParameters key;
-		private SecureRandom random;
+    /**
+     * EC-DSA as described in X9.62
+     */
+    public class ECDsaSigner
+        : IDsa
+    {
+        protected readonly IDsaKCalculator kCalculator;
 
-		public string AlgorithmName
-		{
-			get { return "ECDSA"; }
-		}
+        protected ECKeyParameters key = null;
+        protected SecureRandom random = null;
 
-		public void Init(
-			bool				forSigning,
-			ICipherParameters	parameters)
-		{
-			if (forSigning)
-			{
-				if (parameters is ParametersWithRandom)
-				{
-					ParametersWithRandom rParam = (ParametersWithRandom) parameters;
+        /**
+         * Default configuration, random K values.
+         */
+        public ECDsaSigner()
+        {
+            this.kCalculator = new RandomDsaKCalculator();
+        }
 
-					this.random = rParam.Random;
-					parameters = rParam.Parameters;
-				}
-				else
-				{
-					this.random = new SecureRandom();
-				}
+        /**
+         * Configuration with an alternate, possibly deterministic calculator of K.
+         *
+         * @param kCalculator a K value calculator.
+         */
+        public ECDsaSigner(IDsaKCalculator kCalculator)
+        {
+            this.kCalculator = kCalculator;
+        }
 
-				if (!(parameters is ECPrivateKeyParameters))
-					throw new InvalidKeyException("EC private key required for signing");
+        public virtual string AlgorithmName
+        {
+            get { return "ECDSA"; }
+        }
 
-				this.key = (ECPrivateKeyParameters) parameters;
-			}
-			else
-			{
-				if (!(parameters is ECPublicKeyParameters))
-					throw new InvalidKeyException("EC public key required for verification");
+        public virtual void Init(bool forSigning, ICipherParameters parameters)
+        {
+            SecureRandom providedRandom = null;
 
-				this.key = (ECPublicKeyParameters) parameters;
-			}
-		}
+            if (forSigning)
+            {
+                if (parameters is ParametersWithRandom)
+                {
+                    ParametersWithRandom rParam = (ParametersWithRandom)parameters;
 
-		// 5.3 pg 28
-		/**
-		 * Generate a signature for the given message using the key we were
-		 * initialised with. For conventional DSA the message should be a SHA-1
-		 * hash of the message of interest.
-		 *
-		 * @param message the message that will be verified later.
-		 */
-		public BigInteger[] GenerateSignature(
-			byte[] message)
-		{
-			BigInteger n = key.Parameters.N;
-			BigInteger e = calculateE(n, message);
+                    providedRandom = rParam.Random;
+                    parameters = rParam.Parameters;
+                }
 
-			BigInteger r = null;
-			BigInteger s = null;
+                if (!(parameters is ECPrivateKeyParameters))
+                    throw new InvalidKeyException("EC private key required for signing");
 
-			// 5.3.2
-			do // Generate s
-			{
-				BigInteger k = null;
+                this.key = (ECPrivateKeyParameters)parameters;
+            }
+            else
+            {
+                if (!(parameters is ECPublicKeyParameters))
+                    throw new InvalidKeyException("EC public key required for verification");
 
-				do // Generate r
-				{
-					do
-					{
-						k = new BigInteger(n.BitLength, random);
-					}
-					while (k.SignValue == 0 || k.CompareTo(n) >= 0);
+                this.key = (ECPublicKeyParameters)parameters;
+            }
 
-					ECPoint p = key.Parameters.G.Multiply(k);
+            this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);
+        }
 
-					// 5.3.3
-					BigInteger x = p.X.ToBigInteger();
+        // 5.3 pg 28
+        /**
+         * Generate a signature for the given message using the key we were
+         * initialised with. For conventional DSA the message should be a SHA-1
+         * hash of the message of interest.
+         *
+         * @param message the message that will be verified later.
+         */
+        public virtual BigInteger[] GenerateSignature(byte[] message)
+        {
+            ECDomainParameters ec = key.Parameters;
+            BigInteger n = ec.N;
+            BigInteger e = CalculateE(n, message);
+            BigInteger d = ((ECPrivateKeyParameters)key).D;
 
-					r = x.Mod(n);
-				}
-				while (r.SignValue == 0);
+            if (kCalculator.IsDeterministic)
+            {
+                kCalculator.Init(n, d, message);
+            }
+            else
+            {
+                kCalculator.Init(n, random);
+            }
 
-				BigInteger d = ((ECPrivateKeyParameters)key).D;
+            BigInteger r, s;
 
-				s = k.ModInverse(n).Multiply(e.Add(d.Multiply(r).Mod(n))).Mod(n);
-			}
-			while (s.SignValue == 0);
+            ECMultiplier basePointMultiplier = CreateBasePointMultiplier();
 
-			return new BigInteger[]{ r, s };
-		}
+            // 5.3.2
+            do // Generate s
+            {
+                BigInteger k;
+                do // Generate r
+                {
+                    k = kCalculator.NextK();
 
-		// 5.4 pg 29
-		/**
-		 * return true if the value r and s represent a DSA signature for
-		 * the passed in message (for standard DSA the message should be
-		 * a SHA-1 hash of the real message to be verified).
-		 */
-		public bool VerifySignature(
-			byte[]		message,
-			BigInteger	r,
-			BigInteger	s)
-		{
-			BigInteger n = key.Parameters.N;
+                    ECPoint p = basePointMultiplier.Multiply(ec.G, k).Normalize();
 
-			// r and s should both in the range [1,n-1]
-			if (r.SignValue < 1 || s.SignValue < 1
-				|| r.CompareTo(n) >= 0 || s.CompareTo(n) >= 0)
-			{
-				return false;
-			}
+                    // 5.3.3
+                    r = p.AffineXCoord.ToBigInteger().Mod(n);
+                }
+                while (r.SignValue == 0);
 
-			BigInteger e = calculateE(n, message);
-			BigInteger c = s.ModInverse(n);
+                s = k.ModInverse(n).Multiply(e.Add(d.Multiply(r))).Mod(n);
+            }
+            while (s.SignValue == 0);
 
-			BigInteger u1 = e.Multiply(c).Mod(n);
-			BigInteger u2 = r.Multiply(c).Mod(n);
+            return new BigInteger[]{ r, s };
+        }
 
-			ECPoint G = key.Parameters.G;
-			ECPoint Q = ((ECPublicKeyParameters) key).Q;
+        // 5.4 pg 29
+        /**
+         * return true if the value r and s represent a DSA signature for
+         * the passed in message (for standard DSA the message should be
+         * a SHA-1 hash of the real message to be verified).
+         */
+        public virtual bool VerifySignature(byte[] message, BigInteger r, BigInteger s)
+        {
+            BigInteger n = key.Parameters.N;
 
-			ECPoint point = ECAlgorithms.SumOfTwoMultiplies(G, u1, Q, u2);
+            // r and s should both in the range [1,n-1]
+            if (r.SignValue < 1 || s.SignValue < 1
+                || r.CompareTo(n) >= 0 || s.CompareTo(n) >= 0)
+            {
+                return false;
+            }
 
-			BigInteger v = point.X.ToBigInteger().Mod(n);
+            BigInteger e = CalculateE(n, message);
+            BigInteger c = s.ModInverse(n);
 
-			return v.Equals(r);
-		}
+            BigInteger u1 = e.Multiply(c).Mod(n);
+            BigInteger u2 = r.Multiply(c).Mod(n);
 
-		private BigInteger calculateE(
-			BigInteger	n,
-			byte[]		message)
-		{
-			int messageBitLength = message.Length * 8;
-			BigInteger trunc = new BigInteger(1, message);
+            ECPoint G = key.Parameters.G;
+            ECPoint Q = ((ECPublicKeyParameters) key).Q;
 
-			if (n.BitLength < messageBitLength)
-			{
-				trunc = trunc.ShiftRight(messageBitLength - n.BitLength);
-			}
+            ECPoint point = ECAlgorithms.SumOfTwoMultiplies(G, u1, Q, u2).Normalize();
 
-			return trunc;
-		}
-	}
+            if (point.IsInfinity)
+                return false;
+
+            BigInteger v = point.AffineXCoord.ToBigInteger().Mod(n);
+
+            return v.Equals(r);
+        }
+
+        protected virtual BigInteger CalculateE(BigInteger n, byte[] message)
+        {
+            int messageBitLength = message.Length * 8;
+            BigInteger trunc = new BigInteger(1, message);
+
+            if (n.BitLength < messageBitLength)
+            {
+                trunc = trunc.ShiftRight(messageBitLength - n.BitLength);
+            }
+
+            return trunc;
+        }
+
+        protected virtual ECMultiplier CreateBasePointMultiplier()
+        {
+            return new FixedPointCombMultiplier();
+        }
+
+        protected virtual SecureRandom InitSecureRandom(bool needed, SecureRandom provided)
+        {
+            return !needed ? null : (provided != null) ? provided : new SecureRandom();
+        }
+    }
 }

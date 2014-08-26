@@ -278,7 +278,7 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
-#if !(SILVERLIGHT || PORTABLE)
+#if !SILVERLIGHT
 		/**
          * constructor from a table of extensions.
          * <p>

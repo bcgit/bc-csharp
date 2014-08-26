@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Globalization;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
@@ -134,7 +133,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		private static void AddSBox(string sBoxName, byte[] sBox)
 		{
-			sBoxes.Add(sBoxName.ToUpperInvariant(), sBox);        
+			sBoxes.Add(Platform.ToUpperInvariant(sBoxName), sBox);        
 		}
 
 		/**
@@ -363,9 +362,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 		public static byte[] GetSBox(
 			string sBoxName)
 		{
-			byte[] sBox = (byte[])sBoxes[sBoxName.ToUpperInvariant()];
+			byte[] sBox = (byte[])sBoxes[Platform.ToUpperInvariant(sBoxName)];
 
-			if (sBox == null)
+            if (sBox == null)
 			{
 				throw new ArgumentException("Unknown S-Box - possible types: "
 					+ "\"Default\", \"E-Test\", \"E-A\", \"E-B\", \"E-C\", \"E-D\", \"D-Test\", \"D-A\".");

@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
-	public class PemGenerationException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class PemGenerationException
 		: Exception
 	{
 		public PemGenerationException()

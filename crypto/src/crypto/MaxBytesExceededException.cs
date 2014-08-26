@@ -6,7 +6,10 @@ namespace Org.BouncyCastle.Crypto
 	/// This exception is thrown whenever a cipher requires a change of key, iv
 	/// or similar after x amount of bytes enciphered
 	/// </summary>
-	public class MaxBytesExceededException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class MaxBytesExceededException
 		: CryptoException
 	{
 		public MaxBytesExceededException()

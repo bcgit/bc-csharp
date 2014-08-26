@@ -3,6 +3,9 @@ using System.IO;
 
 namespace Org.BouncyCastle.Cms
 {
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
     public class CmsStreamException
         : IOException
     {

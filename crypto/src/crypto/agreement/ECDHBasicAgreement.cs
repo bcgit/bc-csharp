@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Crypto;
@@ -20,31 +22,36 @@ namespace Org.BouncyCastle.Crypto.Agreement
      * Section 7.2.2).
      */
     public class ECDHBasicAgreement
-		: IBasicAgreement
+        : IBasicAgreement
     {
         protected internal ECPrivateKeyParameters privKey;
 
-        public void Init(
-			ICipherParameters parameters)
+        public virtual void Init(
+            ICipherParameters parameters)
         {
-			if (parameters is ParametersWithRandom)
-			{
-				parameters = ((ParametersWithRandom)parameters).Parameters;
-			}
+            if (parameters is ParametersWithRandom)
+            {
+                parameters = ((ParametersWithRandom)parameters).Parameters;
+            }
 
-			this.privKey = (ECPrivateKeyParameters)parameters;
+            this.privKey = (ECPrivateKeyParameters)parameters;
+        }
+
+        public virtual int GetFieldSize()
+        {
+            return (privKey.Parameters.Curve.FieldSize + 7) / 8;
         }
 
         public virtual BigInteger CalculateAgreement(
             ICipherParameters pubKey)
         {
             ECPublicKeyParameters pub = (ECPublicKeyParameters) pubKey;
-            ECPoint P = pub.Q.Multiply(privKey.D);
+            ECPoint P = pub.Q.Multiply(privKey.D).Normalize();
 
-            // if ( p.IsInfinity ) throw new Exception("d*Q == infinity");
+            if (P.IsInfinity)
+                throw new InvalidOperationException("Infinity is not a valid agreement value for ECDH");
 
-            return P.X.ToBigInteger();
+            return P.AffineXCoord.ToBigInteger();
         }
     }
-
 }

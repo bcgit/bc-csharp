@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 		/// <summary>The name of the algorithm this cipher implements.</summary>
 		string AlgorithmName { get; }
 
+		/// <summary>The block cipher underlying this algorithm.</summary>
+		IBlockCipher GetUnderlyingCipher();
+
 		/// <summary>Initialise the cipher.</summary>
 		/// <remarks>Parameter can either be an AeadParameters or a ParametersWithIV object.</remarks>
 		/// <param name="forEncryption">Initialise for encryption if true, for decryption if false.</param>
@@ -20,7 +23,19 @@ namespace Org.BouncyCastle.Crypto.Modes
 		/// <returns>The block size for this cipher, in bytes.</returns>
 		int GetBlockSize();
 
-		/**
+        /// <summary>Add a single byte to the associated data check.</summary>
+		/// <remarks>If the implementation supports it, this will be an online operation and will not retain the associated data.</remarks>
+        /// <param name="input">The byte to be processed.</param>
+        void ProcessAadByte(byte input);
+
+        /// <summary>Add a sequence of bytes to the associated data check.</summary>
+		/// <remarks>If the implementation supports it, this will be an online operation and will not retain the associated data.</remarks>
+        /// <param name="inBytes">The input byte array.</param>
+        /// <param name="inOff">The offset into the input array where the data to be processed starts.</param>
+        /// <param name="len">The number of bytes to be processed.</param>
+        void ProcessAadBytes(byte[] inBytes, int inOff, int len);
+
+        /**
 		* Encrypt/decrypt a single byte.
 		*
 		* @param input the byte to be processed.

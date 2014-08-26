@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Globalization;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X9;
@@ -39,7 +38,7 @@ namespace Org.BouncyCastle.Security
 		public static IBasicAgreement GetBasicAgreement(
 			string algorithm)
 		{
-			string upper = algorithm.ToUpperInvariant();
+			string upper = Platform.ToUpperInvariant(algorithm);
 			string mechanism = (string) algorithms[upper];
 
 			if (mechanism == null)
@@ -73,7 +72,7 @@ namespace Org.BouncyCastle.Security
 			string agreeAlgorithm,
 			string wrapAlgorithm)
 		{
-			string upper = agreeAlgorithm.ToUpperInvariant();
+			string upper = Platform.ToUpperInvariant(agreeAlgorithm);
 			string mechanism = (string) algorithms[upper];
 
 			if (mechanism == null)

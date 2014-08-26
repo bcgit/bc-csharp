@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Cms
 			CheckSingleUsage();
 
 			Streams.PipeAll(input, output);
-			input.Dispose();
+			input.Close();
 		}
 
 		[Obsolete]

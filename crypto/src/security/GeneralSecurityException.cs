@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Security
 {
-	public class GeneralSecurityException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class GeneralSecurityException
 		: Exception
 	{
 		public GeneralSecurityException()

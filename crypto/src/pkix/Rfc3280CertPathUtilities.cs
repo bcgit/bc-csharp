@@ -1197,10 +1197,10 @@ namespace Org.BouncyCastle.Pkix
 			}
 			if (certStatus.Status != CertStatus.Unrevoked)
 			{
-				// TODO This format is forced by the NistCertPath tests
-				string formattedDate = certStatus.RevocationDate.Value.ToString(
-					"G", new CultureInfo("en-us"));
-				string message = "Certificate revocation after " + formattedDate;
+				// This format is enforced by the NistCertPath tests
+                string formattedDate = certStatus.RevocationDate.Value.ToString(
+                    "ddd MMM dd HH:mm:ss K yyyy");
+                string message = "Certificate revocation after " + formattedDate;
 				message += ", reason: " + CrlReasons[certStatus.Status];
 				throw new Exception(message);
 			}

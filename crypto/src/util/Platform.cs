@@ -1,8 +1,9 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
-#if SILVERLIGHT || PORTABLE
+#if SILVERLIGHT
 using System.Collections.Generic;
 #else
 using System.Collections;
@@ -10,22 +11,18 @@ using System.Collections;
 
 namespace Org.BouncyCastle.Utilities
 {
-	internal sealed class Platform
-	{
-		private Platform()
-		{
-		}
-
+    internal abstract class Platform
+    {
 #if NETCF_1_0 || NETCF_2_0
-		private static string GetNewLine()
-		{
-			MemoryStream buf = new MemoryStream();
-			StreamWriter w = new StreamWriter(buf, Encoding.UTF8);
-			w.WriteLine();
-			w.Close();
-			byte[] bs = buf.ToArray();
+        private static string GetNewLine()
+        {
+            MemoryStream buf = new MemoryStream();
+            StreamWriter w = new StreamWriter(buf, Encoding.UTF8);
+            w.WriteLine();
+            w.Close();
+            byte[] bs = buf.ToArray();
             return Encoding.UTF8.GetString(bs, 0, bs.Length);
-		}
+        }
 #else
         private static string GetNewLine()
         {
@@ -35,58 +32,58 @@ namespace Org.BouncyCastle.Utilities
 
         internal static int CompareIgnoreCase(string a, string b)
         {
-#if (SILVERLIGHT || PORTABLE)
-            return String.Compare(a, b, StringComparison.OrdinalIgnoreCase);
+#if SILVERLIGHT
+            return String.Compare(a, b, StringComparison.InvariantCultureIgnoreCase);
 #else
             return String.Compare(a, b, true);
 #endif
         }
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
-		internal static string GetEnvironmentVariable(
-			string variable)
-		{
-			return null;
-		}
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+        internal static string GetEnvironmentVariable(
+            string variable)
+        {
+            return null;
+        }
 #else
-		internal static string GetEnvironmentVariable(
-			string variable)
-		{
-			try
-			{
-				return Environment.GetEnvironmentVariable(variable);
-			}
-			catch (System.Security.SecurityException)
-			{
-				// We don't have the required permission to read this environment variable,
-				// which is fine, just act as if it's not set
-				return null;
-			}
-		}
+        internal static string GetEnvironmentVariable(
+            string variable)
+        {
+            try
+            {
+                return Environment.GetEnvironmentVariable(variable);
+            }
+            catch (System.Security.SecurityException)
+            {
+                // We don't have the required permission to read this environment variable,
+                // which is fine, just act as if it's not set
+                return null;
+            }
+        }
 #endif
 
 #if NETCF_1_0
-		internal static Exception CreateNotImplementedException(
-			string message)
-		{
-			return new Exception("Not implemented: " + message);
-		}
+        internal static Exception CreateNotImplementedException(
+            string message)
+        {
+            return new Exception("Not implemented: " + message);
+        }
 
-		internal static bool Equals(
-			object	a,
-			object	b)
-		{
-			return a == b || (a != null && b != null && a.Equals(b));
-		}
+        internal static bool Equals(
+            object	a,
+            object	b)
+        {
+            return a == b || (a != null && b != null && a.Equals(b));
+        }
 #else
-		internal static Exception CreateNotImplementedException(
-			string message)
-		{
-			return new NotImplementedException(message);
-		}
+        internal static Exception CreateNotImplementedException(
+            string message)
+        {
+            return new NotImplementedException(message);
+        }
 #endif
 
-#if SILVERLIGHT || PORTABLE
+#if SILVERLIGHT
         internal static System.Collections.IList CreateArrayList()
         {
             return new List<object>();
@@ -166,6 +163,16 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
+        internal static string ToLowerInvariant(string s)
+        {
+            return s.ToLower(CultureInfo.InvariantCulture);
+        }
+
+        internal static string ToUpperInvariant(string s)
+        {
+            return s.ToUpper(CultureInfo.InvariantCulture);
+        }
+
         internal static readonly string NewLine = GetNewLine();
-	}
+    }
 }

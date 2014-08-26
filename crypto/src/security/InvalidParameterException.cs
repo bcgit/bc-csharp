@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Security
 {
-	public class InvalidParameterException : KeyException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class InvalidParameterException : KeyException
 	{
 		public InvalidParameterException() : base() { }
 		public InvalidParameterException(string message) : base(message) { }

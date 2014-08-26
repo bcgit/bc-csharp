@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Globalization;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -92,9 +91,9 @@ namespace Org.BouncyCastle.Ocsp
 		internal static DerObjectIdentifier GetAlgorithmOid(
 			string algorithmName)
 		{
-			algorithmName = algorithmName.ToUpperInvariant();
+			algorithmName = Platform.ToUpperInvariant(algorithmName);
 
-			if (algorithms.Contains(algorithmName))
+            if (algorithms.Contains(algorithmName))
 			{
 				return (DerObjectIdentifier)algorithms[algorithmName];
 			}

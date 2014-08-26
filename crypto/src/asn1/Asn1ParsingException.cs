@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Asn1
 {
-	public class Asn1ParsingException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class Asn1ParsingException
 		: InvalidOperationException
 	{
 		public Asn1ParsingException()

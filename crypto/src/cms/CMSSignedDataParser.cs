@@ -170,11 +170,6 @@ namespace Org.BouncyCastle.Cms
 			{
 				throw new CmsException("io exception: " + e.Message, e);
 			}
-
-			if (_digests.Count < 1)
-			{
-				throw new CmsException("no digests could be created for message.");
-			}
 		}
 
 		/**
@@ -389,7 +384,7 @@ namespace Org.BouncyCastle.Cms
 
 //			gen.AddSigners(parser.GetSignerInfos());
 
-            contentOut.Dispose();
+			contentOut.Close();
 
 			return outStr;
 		}
@@ -439,7 +434,7 @@ namespace Org.BouncyCastle.Cms
 
 			gen.AddSigners(parser.GetSignerInfos());
 
-            contentOut.Dispose();
+			contentOut.Close();
 
 			return outStr;
 		}

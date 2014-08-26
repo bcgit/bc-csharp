@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Tsp
 {
-	public class TspException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class TspException
 		: Exception
 	{
 		public TspException()

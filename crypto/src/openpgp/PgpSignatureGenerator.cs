@@ -267,9 +267,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			//
             // hash in the id
             //
-			UpdateWithIdData(0xb4, Strings.ToByteArray(id));
+			UpdateWithIdData(0xb4, Strings.ToUtf8ByteArray(id));
 
-			return Generate();
+            return Generate();
         }
 
 		/// <summary>Generate a certification for the passed in userAttributes.</summary>

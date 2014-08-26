@@ -3,7 +3,10 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-	public class StreamOverflowException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class StreamOverflowException
 		: IOException
 	{
 		public StreamOverflowException()

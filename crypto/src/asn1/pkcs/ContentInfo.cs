@@ -11,34 +11,28 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly DerObjectIdentifier	contentType;
         private readonly Asn1Encodable			content;
 
-		public static ContentInfo GetInstance(
-            object obj)
+        public static ContentInfo GetInstance(object obj)
         {
-            if (obj is ContentInfo)
-            {
-                return (ContentInfo) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new ContentInfo((Asn1Sequence) obj);
-            }
-
-			throw new ArgumentException("Unknown object in factory: " + obj.GetType().FullName, "obj");
+            if (obj == null)
+                return null;
+            ContentInfo existing = obj as ContentInfo;
+            if (existing != null)
+                return existing;
+            return new ContentInfo(Asn1Sequence.GetInstance(obj));
         }
 
-		private ContentInfo(
+        private ContentInfo(
             Asn1Sequence seq)
         {
-			contentType = (DerObjectIdentifier) seq[0];
+            contentType = (DerObjectIdentifier) seq[0];
 
-			if (seq.Count > 1)
-			{
-				content = ((Asn1TaggedObject) seq[1]).GetObject();
-			}
+            if (seq.Count > 1)
+            {
+                content = ((Asn1TaggedObject) seq[1]).GetObject();
+            }
         }
 
-		public ContentInfo(
+        public ContentInfo(
             DerObjectIdentifier	contentType,
             Asn1Encodable		content)
         {
@@ -46,17 +40,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             this.content = content;
         }
 
-		public DerObjectIdentifier ContentType
-		{
-			get { return contentType; }
-		}
+        public DerObjectIdentifier ContentType
+        {
+            get { return contentType; }
+        }
 
-		public Asn1Encodable Content
-		{
-			get { return content; }
-		}
+        public Asn1Encodable Content
+        {
+            get { return content; }
+        }
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * ContentInfo ::= Sequence {
@@ -69,12 +63,12 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         {
             Asn1EncodableVector v = new Asn1EncodableVector(contentType);
 
-			if (content != null)
+            if (content != null)
             {
                 v.Add(new BerTaggedObject(0, content));
             }
 
-			return new BerSequence(v);
+            return new BerSequence(v);
         }
     }
 }

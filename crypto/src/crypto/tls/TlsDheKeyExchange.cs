@@ -1,56 +1,105 @@
 using System;
+using System.Collections;
 using System.IO;
 
-using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-	internal class TlsDheKeyExchange
-		: TlsDHKeyExchange
-	{
-		internal TlsDheKeyExchange(TlsClientContext context, KeyExchangeAlgorithm keyExchange)
-			: base(context, keyExchange)
-		{
-		}
+    public class TlsDheKeyExchange
+        :   TlsDHKeyExchange
+    {
+        protected TlsSignerCredentials mServerCredentials = null;
 
-		public override void SkipServerKeyExchange()
-		{
-			throw new TlsFatalAlert(AlertDescription.unexpected_message);
-		}
+        public TlsDheKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, DHParameters dhParameters)
+            :   base(keyExchange, supportedSignatureAlgorithms, dhParameters)
+        {
+        }
 
-		public override void ProcessServerKeyExchange(Stream input)
-		{
-			SecurityParameters securityParameters = context.SecurityParameters;
+        public override void ProcessServerCredentials(TlsCredentials serverCredentials)
+        {
+            if (!(serverCredentials is TlsSignerCredentials))
+                throw new TlsFatalAlert(AlertDescription.internal_error);
 
-			ISigner signer = InitSigner(tlsSigner, securityParameters);
-			Stream sigIn = new SignerStream(input, signer, null);
+            ProcessServerCertificate(serverCredentials.Certificate);
 
-			byte[] pBytes = TlsUtilities.ReadOpaque16(sigIn);
-			byte[] gBytes = TlsUtilities.ReadOpaque16(sigIn);
-			byte[] YsBytes = TlsUtilities.ReadOpaque16(sigIn);
+            this.mServerCredentials = (TlsSignerCredentials)serverCredentials;
+        }
 
-			byte[] sigByte = TlsUtilities.ReadOpaque16(input);
-			if (!signer.VerifySignature(sigByte))
-			{
-				throw new TlsFatalAlert(AlertDescription.bad_certificate);
-			}
+        public override byte[] GenerateServerKeyExchange()
+        {
+            if (this.mDHParameters == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
 
-			BigInteger p = new BigInteger(1, pBytes);
-			BigInteger g = new BigInteger(1, gBytes);
-			BigInteger Ys = new BigInteger(1, YsBytes);
+            DigestInputBuffer buf = new DigestInputBuffer();
 
-			this.dhAgreeServerPublicKey = ValidateDHPublicKey(
-				new DHPublicKeyParameters(Ys, new DHParameters(p, g)));
-		}
+            this.mDHAgreeServerPrivateKey = TlsDHUtilities.GenerateEphemeralServerKeyExchange(context.SecureRandom,
+                this.mDHParameters, buf);
 
-		protected virtual ISigner InitSigner(TlsSigner tlsSigner, SecurityParameters securityParameters)
-		{
-			ISigner signer = tlsSigner.CreateVerifyer(this.serverPublicKey);
-			signer.BlockUpdate(securityParameters.clientRandom, 0, securityParameters.clientRandom.Length);
-			signer.BlockUpdate(securityParameters.serverRandom, 0, securityParameters.serverRandom.Length);
-			return signer;
-		}
-	}
+            /*
+             * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
+             */
+            SignatureAndHashAlgorithm signatureAndHashAlgorithm;
+            IDigest d;
+
+            if (TlsUtilities.IsTlsV12(context))
+            {
+                signatureAndHashAlgorithm = mServerCredentials.SignatureAndHashAlgorithm;
+                if (signatureAndHashAlgorithm == null)
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+
+                d = TlsUtilities.CreateHash(signatureAndHashAlgorithm.Hash);
+            }
+            else
+            {
+                signatureAndHashAlgorithm = null;
+                d = new CombinedHash();
+            }
+
+            SecurityParameters securityParameters = context.SecurityParameters;
+            d.BlockUpdate(securityParameters.clientRandom, 0, securityParameters.clientRandom.Length);
+            d.BlockUpdate(securityParameters.serverRandom, 0, securityParameters.serverRandom.Length);
+            buf.UpdateDigest(d);
+
+            byte[] hash = DigestUtilities.DoFinal(d);
+
+            byte[] signature = mServerCredentials.GenerateCertificateSignature(hash);
+
+            DigitallySigned signed_params = new DigitallySigned(signatureAndHashAlgorithm, signature);
+            signed_params.Encode(buf);
+
+            return buf.ToArray();
+        }
+
+        public override void ProcessServerKeyExchange(Stream input)
+        {
+            SecurityParameters securityParameters = context.SecurityParameters;
+
+            SignerInputBuffer buf = new SignerInputBuffer();
+            Stream teeIn = new TeeInputStream(input, buf);
+
+            ServerDHParams dhParams = ServerDHParams.Parse(teeIn);
+
+            DigitallySigned signed_params = DigitallySigned.Parse(context, input);
+
+            ISigner signer = InitVerifyer(mTlsSigner, signed_params.Algorithm, securityParameters);
+            buf.UpdateSigner(signer);
+            if (!signer.VerifySignature(signed_params.Signature))
+                throw new TlsFatalAlert(AlertDescription.decrypt_error);
+
+            this.mDHAgreeServerPublicKey = TlsDHUtilities.ValidateDHPublicKey(dhParams.PublicKey);
+        }
+
+        protected virtual ISigner InitVerifyer(TlsSigner tlsSigner, SignatureAndHashAlgorithm algorithm,
+            SecurityParameters securityParameters)
+        {
+            ISigner signer = tlsSigner.CreateVerifyer(algorithm, this.mServerPublicKey);
+            signer.BlockUpdate(securityParameters.clientRandom, 0, securityParameters.clientRandom.Length);
+            signer.BlockUpdate(securityParameters.serverRandom, 0, securityParameters.serverRandom.Length);
+            return signer;
+        }
+    }
 }

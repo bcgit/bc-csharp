@@ -2,7 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Cms
 {
-	public class CmsAttributeTableGenerationException
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class CmsAttributeTableGenerationException
 		: CmsException
 	{
 		public CmsAttributeTableGenerationException()

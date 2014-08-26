@@ -636,7 +636,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				content.Write(signedOut);
 			}
-            signedOut.Dispose();
+			signedOut.Close();
 		}
 
 		// RFC3852, section 5.1:
@@ -809,100 +809,96 @@ namespace Org.BouncyCastle.Cms
                 _out.Write(bytes, off, len);
             }
 
-            protected override void Dispose(bool disposing)
+			public override void Close()
             {
-                if (disposing)
-                {
-                    _out.Dispose();
+                _out.Close();
 
-                    // TODO Parent context(s) should really be be closed explicitly
+				// TODO Parent context(s) should really be be closed explicitly
 
-                    _eiGen.Close();
+                _eiGen.Close();
 
-                    outer._digests.Clear();    // clear the current preserved digest state
+				outer._digests.Clear();    // clear the current preserved digest state
 
-                    if (outer._certs.Count > 0)
-                    {
-                        Asn1Set certs = CmsUtilities.CreateBerSetFromList(outer._certs);
+				if (outer._certs.Count > 0)
+				{
+					Asn1Set certs = CmsUtilities.CreateBerSetFromList(outer._certs);
 
-                        WriteToGenerator(_sigGen, new BerTaggedObject(false, 0, certs));
-                    }
+					WriteToGenerator(_sigGen, new BerTaggedObject(false, 0, certs));
+				}
 
-                    if (outer._crls.Count > 0)
-                    {
-                        Asn1Set crls = CmsUtilities.CreateBerSetFromList(outer._crls);
+				if (outer._crls.Count > 0)
+				{
+					Asn1Set crls = CmsUtilities.CreateBerSetFromList(outer._crls);
 
-                        WriteToGenerator(_sigGen, new BerTaggedObject(false, 1, crls));
-                    }
+					WriteToGenerator(_sigGen, new BerTaggedObject(false, 1, crls));
+				}
 
-                    //
-                    // Calculate the digest hashes
-                    //
-                    foreach (DictionaryEntry de in outer._messageDigests)
-                    {
-                        outer._messageHashes.Add(de.Key, DigestUtilities.DoFinal((IDigest)de.Value));
-                    }
+				//
+				// Calculate the digest hashes
+				//
+				foreach (DictionaryEntry de in outer._messageDigests)
+				{
+					outer._messageHashes.Add(de.Key, DigestUtilities.DoFinal((IDigest)de.Value));
+				}
 
-                    // TODO If the digest OIDs for precalculated signers weren't mixed in with
-                    // the others, we could fill in outer._digests here, instead of SignerInfoGenerator.Generate
+				// TODO If the digest OIDs for precalculated signers weren't mixed in with
+				// the others, we could fill in outer._digests here, instead of SignerInfoGenerator.Generate
 
-                    //
-                    // collect all the SignerInfo objects
-                    //
-                    Asn1EncodableVector signerInfos = new Asn1EncodableVector();
+				//
+				// collect all the SignerInfo objects
+				//
+                Asn1EncodableVector signerInfos = new Asn1EncodableVector();
 
-                    //
-                    // add the generated SignerInfo objects
-                    //
-                    {
-                        foreach (DigestAndSignerInfoGeneratorHolder holder in outer._signerInfs)
-                        {
-                            AlgorithmIdentifier digestAlgorithm = holder.DigestAlgorithm;
+				//
+                // add the generated SignerInfo objects
+                //
+				{
+					foreach (DigestAndSignerInfoGeneratorHolder holder in outer._signerInfs)
+					{
+						AlgorithmIdentifier digestAlgorithm = holder.DigestAlgorithm;
 
-                            byte[] calculatedDigest = (byte[])outer._messageHashes[
-                                Helper.GetDigestAlgName(holder.digestOID)];
-                            outer._digests[holder.digestOID] = calculatedDigest.Clone();
+						byte[] calculatedDigest = (byte[])outer._messageHashes[
+							Helper.GetDigestAlgName(holder.digestOID)];
+						outer._digests[holder.digestOID] = calculatedDigest.Clone();
 
-                            signerInfos.Add(holder.signerInf.Generate(_contentOID, digestAlgorithm, calculatedDigest));
-                        }
-                    }
+						signerInfos.Add(holder.signerInf.Generate(_contentOID, digestAlgorithm, calculatedDigest));
+	                }
+				}
 
-                    //
-                    // add the precalculated SignerInfo objects.
-                    //
-                    {
-                        foreach (SignerInformation signer in outer._signers)
-                        {
-                            // TODO Verify the content type and calculated digest match the precalculated SignerInfo
-                            //						if (!signer.ContentType.Equals(_contentOID))
-                            //						{
-                            //							// TODO The precalculated content type did not match - error?
-                            //						}
-                            //
-                            //						byte[] calculatedDigest = (byte[])outer._digests[signer.DigestAlgOid];
-                            //						if (calculatedDigest == null)
-                            //						{
-                            //							// TODO We can't confirm this digest because we didn't calculate it - error?
-                            //						}
-                            //						else
-                            //						{
-                            //							if (!Arrays.AreEqual(signer.GetContentDigest(), calculatedDigest))
-                            //							{
-                            //								// TODO The precalculated digest did not match - error?
-                            //							}
-                            //						}
+				//
+                // add the precalculated SignerInfo objects.
+                //
+				{
+					foreach (SignerInformation signer in outer._signers)
+					{
+						// TODO Verify the content type and calculated digest match the precalculated SignerInfo
+//						if (!signer.ContentType.Equals(_contentOID))
+//						{
+//							// TODO The precalculated content type did not match - error?
+//						}
+//
+//						byte[] calculatedDigest = (byte[])outer._digests[signer.DigestAlgOid];
+//						if (calculatedDigest == null)
+//						{
+//							// TODO We can't confirm this digest because we didn't calculate it - error?
+//						}
+//						else
+//						{
+//							if (!Arrays.AreEqual(signer.GetContentDigest(), calculatedDigest))
+//							{
+//								// TODO The precalculated digest did not match - error?
+//							}
+//						}
 
-                            signerInfos.Add(signer.ToSignerInfo());
-                        }
-                    }
+						signerInfos.Add(signer.ToSignerInfo());
+	                }
+				}
 
-                    WriteToGenerator(_sigGen, new DerSet(signerInfos));
+				WriteToGenerator(_sigGen, new DerSet(signerInfos));
 
-                    _sigGen.Close();
-                    _sGen.Close();
-                }
-
-				base.Dispose(disposing);
+				_sigGen.Close();
+                _sGen.Close();
+				base.Close();
 			}
 
 			private static void WriteToGenerator(

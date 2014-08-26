@@ -10,7 +10,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		private readonly KeyParameter key;
 		private readonly int macSize;
 
-		/**
+        /**
+         * Base constructor.
+         *
+         * @param key key to be used by underlying cipher
+         * @param macSize macSize in bits
+         * @param nonce nonce to be used
+         */
+        public AeadParameters(KeyParameter key, int macSize, byte[] nonce)
+           : this(key, macSize, nonce, null)
+        {
+        }
+
+        /**
 		 * Base constructor.
 		 *
 		 * @param key key to be used by underlying cipher

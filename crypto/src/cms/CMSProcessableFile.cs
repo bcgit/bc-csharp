@@ -1,5 +1,3 @@
-#if !PORTABLE
-
 using System;
 using System.IO;
 
@@ -54,4 +52,3 @@ namespace Org.BouncyCastle.Cms
 		}
 	}
 }
-#endif

@@ -27,13 +27,20 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public static OptionalValidity GetInstance(object obj)
         {
-            if (obj is OptionalValidity)
+            if (obj == null || obj is OptionalValidity)
                 return (OptionalValidity)obj;
 
-            if (obj is Asn1Sequence)
-                return new OptionalValidity((Asn1Sequence)obj);
+            return new OptionalValidity(Asn1Sequence.GetInstance(obj));
+        }
 
-            throw new ArgumentException("Invalid object: " + obj.GetType().Name, "obj");
+        public virtual Time NotBefore
+        {
+            get { return notBefore; }
+        }
+
+        public virtual Time NotAfter
+        {
+            get { return notAfter; }
         }
 
         /**

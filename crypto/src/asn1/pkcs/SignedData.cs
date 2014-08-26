@@ -18,23 +18,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly Asn1Set		crls;
         private readonly Asn1Set		signerInfos;
 
-		public static SignedData GetInstance(
-            object obj)
+        public static SignedData GetInstance(object obj)
         {
-            if (obj is SignedData)
-            {
-                return (SignedData) obj;
-            }
+            if (obj == null)
+                return null;
+            SignedData existing = obj as SignedData;
+            if (existing != null)
+                return existing;
+            return new SignedData(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (obj is Asn1Sequence)
-            {
-                return new SignedData((Asn1Sequence) obj);
-            }
-
-			throw new ArgumentException("Unknown object in factory: " + obj.GetType().FullName, "obj");
-		}
-
-		public SignedData(
+        public SignedData(
             DerInteger        _version,
             Asn1Set           _digestAlgorithms,
             ContentInfo       _contentInfo,
@@ -50,25 +44,25 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             signerInfos      = _signerInfos;
         }
 
-		private SignedData(
+        private SignedData(
             Asn1Sequence seq)
         {
             IEnumerator e = seq.GetEnumerator();
 
-			e.MoveNext();
+            e.MoveNext();
             version = (DerInteger) e.Current;
 
-			e.MoveNext();
+            e.MoveNext();
             digestAlgorithms = (Asn1Set) e.Current;
 
-			e.MoveNext();
+            e.MoveNext();
             contentInfo = ContentInfo.GetInstance(e.Current);
 
-			while (e.MoveNext())
+            while (e.MoveNext())
             {
                 Asn1Object o = (Asn1Object) e.Current;
 
-				//
+                //
                 // an interesting feature of SignedData is that there appear to be varying implementations...
                 // for the moment we ignore anything which doesn't fit.
                 //
@@ -76,16 +70,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 {
                     DerTaggedObject tagged = (DerTaggedObject) o;
 
-					switch (tagged.TagNo)
+                    switch (tagged.TagNo)
                     {
-						case 0:
-							certificates = Asn1Set.GetInstance(tagged, false);
-							break;
-						case 1:
-							crls = Asn1Set.GetInstance(tagged, false);
-							break;
-						default:
-							throw new ArgumentException("unknown tag value " + tagged.TagNo);
+                        case 0:
+                            certificates = Asn1Set.GetInstance(tagged, false);
+                            break;
+                        case 1:
+                            crls = Asn1Set.GetInstance(tagged, false);
+                            break;
+                        default:
+                            throw new ArgumentException("unknown tag value " + tagged.TagNo);
                     }
                 }
                 else
@@ -95,37 +89,37 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             }
         }
 
-		public DerInteger Version
-		{
-			get { return version; }
-		}
+        public DerInteger Version
+        {
+            get { return version; }
+        }
 
-		public Asn1Set DigestAlgorithms
-		{
-			get { return digestAlgorithms; }
-		}
+        public Asn1Set DigestAlgorithms
+        {
+            get { return digestAlgorithms; }
+        }
 
-		public ContentInfo ContentInfo
-		{
-			get { return contentInfo; }
-		}
+        public ContentInfo ContentInfo
+        {
+            get { return contentInfo; }
+        }
 
-		public Asn1Set Certificates
-		{
-			get { return certificates; }
-		}
+        public Asn1Set Certificates
+        {
+            get { return certificates; }
+        }
 
-		public Asn1Set Crls
-		{
-			get { return crls; }
-		}
+        public Asn1Set Crls
+        {
+            get { return crls; }
+        }
 
-		public Asn1Set SignerInfos
-		{
-			get { return signerInfos; }
-		}
+        public Asn1Set SignerInfos
+        {
+            get { return signerInfos; }
+        }
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *  SignedData ::= Sequence {
@@ -143,21 +137,21 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(
-				version, digestAlgorithms, contentInfo);
+                version, digestAlgorithms, contentInfo);
 
-			if (certificates != null)
+            if (certificates != null)
             {
                 v.Add(new DerTaggedObject(false, 0, certificates));
             }
 
-			if (crls != null)
+            if (crls != null)
             {
                 v.Add(new DerTaggedObject(false, 1, crls));
             }
 
-			v.Add(signerInfos);
+            v.Add(signerInfos);
 
-			return new BerSequence(v);
+            return new BerSequence(v);
         }
     }
 }

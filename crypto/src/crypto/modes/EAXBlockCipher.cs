@@ -40,6 +40,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 		private byte[] bufBlock;
 		private int bufOff;
 
+        private bool cipherInitialized;
+        private byte[] initialAssociatedText;
+
 		/**
 		* Constructor that accepts an instance of a block cipher engine.
 		*
@@ -62,6 +65,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 			get { return cipher.GetUnderlyingCipher().AlgorithmName + "/EAX"; }
 		}
 
+		public IBlockCipher GetUnderlyingCipher()
+		{
+			return cipher;
+		}
+
 		public virtual int GetBlockSize()
 		{
 			return cipher.GetBlockSize();
@@ -73,7 +81,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 		{
 			this.forEncryption = forEncryption;
 
-			byte[] nonce, associatedText;
+			byte[] nonce;
 			ICipherParameters keyParam;
 
 			if (parameters is AeadParameters)
@@ -81,7 +89,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 				AeadParameters param = (AeadParameters) parameters;
 
 				nonce = param.GetNonce();
-				associatedText = param.GetAssociatedText();
+                initialAssociatedText = param.GetAssociatedText();
 				macSize = param.MacSize / 8;
 				keyParam = param.Key;
 			}
@@ -90,7 +98,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 				ParametersWithIV param = (ParametersWithIV) parameters;
 
 				nonce = param.GetIV();
-				associatedText = new byte[0];
+                initialAssociatedText = null;
 				macSize = mac.GetMacSize() / 2;
 				keyParam = param.Parameters;
 			}
@@ -99,26 +107,45 @@ namespace Org.BouncyCastle.Crypto.Modes
 				throw new ArgumentException("invalid parameters passed to EAX");
 			}
 
-			byte[] tag = new byte[blockSize];
+            byte[] tag = new byte[blockSize];
 
-			mac.Init(keyParam);
-			tag[blockSize - 1] = (byte) Tag.H;
-			mac.BlockUpdate(tag, 0, blockSize);
-			mac.BlockUpdate(associatedText, 0, associatedText.Length);
-			mac.DoFinal(associatedTextMac, 0);
+            // Key reuse implemented in CBC mode of underlying CMac
+            mac.Init(keyParam);
 
-			tag[blockSize - 1] = (byte) Tag.N;
-			mac.BlockUpdate(tag, 0, blockSize);
-			mac.BlockUpdate(nonce, 0, nonce.Length);
-			mac.DoFinal(nonceMac, 0);
+            tag[blockSize - 1] = (byte)Tag.N;
+            mac.BlockUpdate(tag, 0, blockSize);
+            mac.BlockUpdate(nonce, 0, nonce.Length);
+            mac.DoFinal(nonceMac, 0);
 
-			tag[blockSize - 1] = (byte) Tag.C;
-			mac.BlockUpdate(tag, 0, blockSize);
+            tag[blockSize - 1] = (byte)Tag.H;
+            mac.BlockUpdate(tag, 0, blockSize);
 
-			cipher.Init(true, new ParametersWithIV(keyParam, nonceMac));
+            if (initialAssociatedText != null)
+            {
+                ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
+            }
+
+            // Same BlockCipher underlies this and the mac, so reuse last key on cipher 
+            cipher.Init(true, new ParametersWithIV(null, nonceMac));
 		}
 
-		private void calculateMac()
+        private void InitCipher()
+        {
+            if (cipherInitialized)
+            {
+                return;
+            }
+
+            cipherInitialized = true;
+
+            mac.DoFinal(associatedTextMac, 0);
+
+            byte[] tag = new byte[blockSize];
+            tag[blockSize - 1] = (byte)Tag.C;
+            mac.BlockUpdate(tag, 0, blockSize);
+        }
+
+        private void CalculateMac()
 		{
 			byte[] outC = new byte[blockSize];
 			mac.DoFinal(outC, 0);
@@ -137,7 +164,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 		private void Reset(
 			bool clearMac)
 		{
-			cipher.Reset();
+            cipher.Reset(); // TODO Redundant since the mac will reset it?
 			mac.Reset();
 
 			bufOff = 0;
@@ -148,44 +175,75 @@ namespace Org.BouncyCastle.Crypto.Modes
 				Array.Clear(macBlock, 0, macBlock.Length);
 			}
 
-			byte[] tag = new byte[blockSize];
-			tag[blockSize - 1] = (byte) Tag.C;
-			mac.BlockUpdate(tag, 0, blockSize);
-		}
+            byte[] tag = new byte[blockSize];
+            tag[blockSize - 1] = (byte)Tag.H;
+            mac.BlockUpdate(tag, 0, blockSize);
 
-		public virtual int ProcessByte(
+            cipherInitialized = false;
+
+            if (initialAssociatedText != null)
+            {
+                ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
+            }
+        }
+        
+        public virtual void ProcessAadByte(byte input)
+        {
+            if (cipherInitialized)
+            {
+                throw new InvalidOperationException("AAD data cannot be added after encryption/decription processing has begun.");
+            }
+            mac.Update(input);
+        }
+
+        public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
+        {
+            if (cipherInitialized)
+            {
+                throw new InvalidOperationException("AAD data cannot be added after encryption/decription processing has begun.");
+            }
+            mac.BlockUpdate(inBytes, inOff, len);
+        }
+
+        public virtual int ProcessByte(
 			byte	input,
 			byte[]	outBytes,
 			int		outOff)
 		{
-			return process(input, outBytes, outOff);
+            InitCipher();
+
+            return Process(input, outBytes, outOff);
 		}
 
-		public virtual int ProcessBytes(
+        public virtual int ProcessBytes(
 			byte[]	inBytes,
 			int		inOff,
 			int		len,
 			byte[]	outBytes,
 			int		outOff)
 		{
-			int resultLen = 0;
+            InitCipher();
+
+            int resultLen = 0;
 
 			for (int i = 0; i != len; i++)
 			{
-				resultLen += process(inBytes[inOff + i], outBytes, outOff + resultLen);
+				resultLen += Process(inBytes[inOff + i], outBytes, outOff + resultLen);
 			}
 
-			return resultLen;
+            return resultLen;
 		}
 
 		public virtual int DoFinal(
 			byte[]	outBytes,
 			int		outOff)
 		{
-			int extra = bufOff;
+            InitCipher();
+
+            int extra = bufOff;
 			byte[] tmp = new byte[bufBlock.Length];
 
-			bufOff = 0;
+            bufOff = 0;
 
 			if (forEncryption)
 			{
@@ -196,7 +254,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
 				mac.BlockUpdate(tmp, 0, extra);
 
-				calculateMac();
+				CalculateMac();
 
 				Array.Copy(macBlock, 0, outBytes, outOff + extra, macSize);
 
@@ -216,9 +274,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 					Array.Copy(tmp, 0, outBytes, outOff, extra - macSize);
 				}
 
-				calculateMac();
+				CalculateMac();
 
-				if (!verifyMac(bufBlock, extra - macSize))
+				if (!VerifyMac(bufBlock, extra - macSize))
 					throw new InvalidCipherTextException("mac check in EAX failed");
 
 				Reset(false);
@@ -236,24 +294,35 @@ namespace Org.BouncyCastle.Crypto.Modes
 			return mac;
 		}
 
-		public virtual int GetUpdateOutputSize(
+        public virtual int GetUpdateOutputSize(
 			int len)
 		{
-			return ((len + bufOff) / blockSize) * blockSize;
-		}
+            int totalData = len + bufOff;
+            if (!forEncryption)
+            {
+                if (totalData < macSize)
+                {
+                    return 0;
+                }
+                totalData -= macSize;
+            }
+            return totalData - totalData % blockSize;
+        }
 
 		public virtual int GetOutputSize(
 			int len)
 		{
-			if (forEncryption)
-			{
-				return len + bufOff + macSize;
-			}
+            int totalData = len + bufOff;
 
-			return len + bufOff - macSize;
-		}
+            if (forEncryption)
+            {
+                return totalData + macSize;
+            }
 
-		private int process(
+            return totalData < macSize ? 0 : totalData - macSize;
+        }
+
+		private int Process(
 			byte	b,
 			byte[]	outBytes,
 			int		outOff)
@@ -286,17 +355,16 @@ namespace Org.BouncyCastle.Crypto.Modes
 			return 0;
 		}
 
-		private bool verifyMac(byte[] mac, int off)
+		private bool VerifyMac(byte[] mac, int off)
 		{
-			for (int i = 0; i < macSize; i++)
-			{
-				if (macBlock[i] != mac[off + i])
-				{
-					return false;
-				}
-			}
+            int nonEqual = 0;
 
-			return true;
+            for (int i = 0; i < macSize; i++)
+            {
+                nonEqual |= (macBlock[i] ^ mac[off + i]);
+            }
+
+            return nonEqual == 0;
 		}
 	}
 }

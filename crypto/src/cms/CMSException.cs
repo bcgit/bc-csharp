@@ -2,9 +2,12 @@ using System;
 
 namespace Org.BouncyCastle.Cms
 {
-		public class CmsException
-			: Exception
-		{
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
+    public class CmsException
+		: Exception
+	{
 		public CmsException()
 		{
 		}

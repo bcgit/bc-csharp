@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1.X509
             this.attributes = Platform.CreateHashtable(attrs);
         }
 
-#if !(SILVERLIGHT || PORTABLE)
+#if !SILVERLIGHT
         [Obsolete]
         public AttributeTable(
             Hashtable attrs)
@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 #endif
 
-        public AttributeTable(
+		public AttributeTable(
             Asn1EncodableVector v)
         {
             this.attributes = Platform.CreateHashtable(v.Count);
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return (AttributeX509) attributes[oid];
         }
 
-#if !(SILVERLIGHT || PORTABLE)
+#if !SILVERLIGHT
         [Obsolete("Use 'ToDictionary' instead")]
 		public Hashtable ToHashtable()
         {

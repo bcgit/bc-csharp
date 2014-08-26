@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -15,9 +16,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         private readonly IDerivationFunction kdf;
         private readonly IMac                mac;
         private readonly BufferedBlockCipher cipher;
-		private readonly byte[]              macBuf;
+        private readonly byte[]              macBuf;
 
-		private bool				forEncryption;
+        private bool				forEncryption;
         private ICipherParameters	privParam, pubParam;
         private IesParameters		param;
 
@@ -100,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             if (cipher == null)     // stream mode
             {
-				byte[] Buffer = GenerateKdfBytes(kParam, inLen + (macKeySize / 8));
+                byte[] Buffer = GenerateKdfBytes(kParam, inLen + (macKeySize / 8));
 
                 M = new byte[inLen];
 
@@ -114,13 +115,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             else
             {
                 int cipherKeySize = ((IesWithCipherParameters)param).CipherKeySize;
-				byte[] Buffer = GenerateKdfBytes(kParam, (cipherKeySize / 8) + (macKeySize / 8));
+                byte[] Buffer = GenerateKdfBytes(kParam, (cipherKeySize / 8) + (macKeySize / 8));
 
                 cipher.Init(false, new KeyParameter(Buffer, 0, (cipherKeySize / 8)));
 
-				M = cipher.DoFinal(in_enc, inOff, inLen);
+                M = cipher.DoFinal(in_enc, inOff, inLen);
 
-				macKey = new KeyParameter(Buffer, (cipherKeySize / 8), (macKeySize / 8));
+                macKey = new KeyParameter(Buffer, (cipherKeySize / 8), (macKeySize / 8));
             }
 
             byte[] macIV = param.GetEncodingV();
@@ -130,15 +131,12 @@ namespace Org.BouncyCastle.Crypto.Engines
             mac.BlockUpdate(macIV, 0, macIV.Length);
             mac.DoFinal(macBuf, 0);
 
-			inOff += inLen;
+            inOff += inLen;
 
-			for (int t = 0; t < macBuf.Length; t++)
-            {
-                if (macBuf[t] != in_enc[inOff + t])
-                {
-                    throw (new InvalidCipherTextException("IMac codes failed to equal."));
-                }
-            }
+            byte[] T1 = Arrays.CopyOfRange(in_enc, inOff, inOff + macBuf.Length);
+
+            if (!Arrays.ConstantTimeAreEqual(T1, macBuf))
+                throw (new InvalidCipherTextException("Invalid MAC."));
 
             return M;
         }
@@ -157,12 +155,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             if (cipher == null)     // stream mode
             {
-				byte[] Buffer = GenerateKdfBytes(kParam, inLen + (macKeySize / 8));
+                byte[] Buffer = GenerateKdfBytes(kParam, inLen + (macKeySize / 8));
 
                 C = new byte[inLen + mac.GetMacSize()];
                 c_text_length = inLen;
 
-				for (int i = 0; i != inLen; i++)
+                for (int i = 0; i != inLen; i++)
                 {
                     C[i] = (byte)(input[inOff + i] ^ Buffer[i]);
                 }
@@ -172,22 +170,22 @@ namespace Org.BouncyCastle.Crypto.Engines
             else
             {
                 int cipherKeySize = ((IesWithCipherParameters)param).CipherKeySize;
-				byte[] Buffer = GenerateKdfBytes(kParam, (cipherKeySize / 8) + (macKeySize / 8));
+                byte[] Buffer = GenerateKdfBytes(kParam, (cipherKeySize / 8) + (macKeySize / 8));
 
                 cipher.Init(true, new KeyParameter(Buffer, 0, (cipherKeySize / 8)));
 
                 c_text_length = cipher.GetOutputSize(inLen);
-				byte[] tmp = new byte[c_text_length];
+                byte[] tmp = new byte[c_text_length];
 
-				int len = cipher.ProcessBytes(input, inOff, inLen, tmp, 0);
-				len += cipher.DoFinal(tmp, len);
+                int len = cipher.ProcessBytes(input, inOff, inLen, tmp, 0);
+                len += cipher.DoFinal(tmp, len);
 
-				C = new byte[len + mac.GetMacSize()];
-				c_text_length = len;
+                C = new byte[len + mac.GetMacSize()];
+                c_text_length = len;
 
-				Array.Copy(tmp, 0, C, 0, len);
+                Array.Copy(tmp, 0, C, 0, len);
 
-				macKey = new KeyParameter(Buffer, (cipherKeySize / 8), (macKeySize / 8));
+                macKey = new KeyParameter(Buffer, (cipherKeySize / 8), (macKeySize / 8));
             }
 
             byte[] macIV = param.GetEncodingV();
@@ -202,33 +200,32 @@ namespace Org.BouncyCastle.Crypto.Engines
             return C;
         }
 
-		private byte[] GenerateKdfBytes(
-			KdfParameters	kParam,
-			int				length)
-		{
-			byte[] buf = new byte[length];
+        private byte[] GenerateKdfBytes(
+            KdfParameters	kParam,
+            int				length)
+        {
+            byte[] buf = new byte[length];
 
-			kdf.Init(kParam);
+            kdf.Init(kParam);
 
-			kdf.GenerateBytes(buf, 0, buf.Length);
+            kdf.GenerateBytes(buf, 0, buf.Length);
 
-			return buf;
-		}
+            return buf;
+        }
 
-		public byte[] ProcessBlock(
+        public byte[] ProcessBlock(
             byte[]  input,
             int     inOff,
             int     inLen)
         {
             agree.Init(privParam);
 
-			BigInteger z = agree.CalculateAgreement(pubParam);
+            BigInteger z = agree.CalculateAgreement(pubParam);
 
-			// TODO Is a fixed length result expected?
-			byte[] zBytes = z.ToByteArrayUnsigned();
+            byte[] zBytes = BigIntegers.AsUnsignedByteArray(agree.GetFieldSize(), z);
 
             return forEncryption
-				?	EncryptBlock(input, inOff, inLen, zBytes)
+                ?	EncryptBlock(input, inOff, inLen, zBytes)
                 :	DecryptBlock(input, inOff, inLen, zBytes);
         }
     }

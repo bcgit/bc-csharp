@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Crypto
      * this exception is thrown whenever we find something we don't expect in a
      * message.
      */
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+    [Serializable]
+#endif
     public class InvalidCipherTextException
 		: CryptoException
     {

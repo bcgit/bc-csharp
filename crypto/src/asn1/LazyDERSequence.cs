@@ -7,10 +7,9 @@ namespace Org.BouncyCastle.Asn1
 	internal class LazyDerSequence
 		: DerSequence
 	{
-		private byte[]	encoded;
-		private bool	parsed = false;
+		private byte[] encoded;
 
-		internal LazyDerSequence(
+        internal LazyDerSequence(
 			byte[] encoded)
 		{
 			this.encoded = encoded;
@@ -20,7 +19,7 @@ namespace Org.BouncyCastle.Asn1
 		{
 			lock (this)
 			{
-				if (!parsed)
+				if (encoded != null)
 				{
 					Asn1InputStream e = new LazyAsn1InputStream(encoded);
 
@@ -31,7 +30,6 @@ namespace Org.BouncyCastle.Asn1
 					}
 
 					encoded = null;
-					parsed = true;
 				}
 			}
 		}
@@ -68,7 +66,7 @@ namespace Org.BouncyCastle.Asn1
 		{
 			lock (this)
 			{
-				if (parsed)
+				if (encoded == null)
 				{
 					base.Encode(derOut);
 				}

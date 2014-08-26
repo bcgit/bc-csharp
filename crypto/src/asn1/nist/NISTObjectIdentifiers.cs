@@ -4,9 +4,9 @@ namespace Org.BouncyCastle.Asn1.Nist
 {
     public sealed class NistObjectIdentifiers
     {
-		private NistObjectIdentifiers()
-		{
-		}
+        private NistObjectIdentifiers()
+        {
+        }
 
         //
         // NIST
@@ -17,10 +17,14 @@ namespace Org.BouncyCastle.Asn1.Nist
         //
         public static readonly DerObjectIdentifier NistAlgorithm = new DerObjectIdentifier("2.16.840.1.101.3.4");
 
-        public static readonly DerObjectIdentifier IdSha256 = new DerObjectIdentifier(NistAlgorithm + ".2.1");
-        public static readonly DerObjectIdentifier IdSha384 = new DerObjectIdentifier(NistAlgorithm + ".2.2");
-        public static readonly DerObjectIdentifier IdSha512 = new DerObjectIdentifier(NistAlgorithm + ".2.3");
-        public static readonly DerObjectIdentifier IdSha224 = new DerObjectIdentifier(NistAlgorithm + ".2.4");
+        public static readonly DerObjectIdentifier HashAlgs = NistAlgorithm.Branch("2");
+
+        public static readonly DerObjectIdentifier IdSha256 = HashAlgs.Branch("1");
+        public static readonly DerObjectIdentifier IdSha384 = HashAlgs.Branch("2");
+        public static readonly DerObjectIdentifier IdSha512 = HashAlgs.Branch("3");
+        public static readonly DerObjectIdentifier IdSha224 = HashAlgs.Branch("4");
+        public static readonly DerObjectIdentifier IdSha512_224 = HashAlgs.Branch("5");
+        public static readonly DerObjectIdentifier IdSha512_256 = HashAlgs.Branch("6");
 
         public static readonly DerObjectIdentifier Aes = new DerObjectIdentifier(NistAlgorithm + ".1");
 
@@ -48,14 +52,14 @@ namespace Org.BouncyCastle.Asn1.Nist
         public static readonly DerObjectIdentifier IdAes256Gcm	= new DerObjectIdentifier(Aes + ".46");
         public static readonly DerObjectIdentifier IdAes256Ccm	= new DerObjectIdentifier(Aes + ".47");
 
-		//
-		// signatures
-		//
-		public static readonly DerObjectIdentifier IdDsaWithSha2 = new DerObjectIdentifier(NistAlgorithm + ".3");
+        //
+        // signatures
+        //
+        public static readonly DerObjectIdentifier IdDsaWithSha2 = new DerObjectIdentifier(NistAlgorithm + ".3");
 
-		public static readonly DerObjectIdentifier DsaWithSha224 = new DerObjectIdentifier(IdDsaWithSha2 + ".1");
-		public static readonly DerObjectIdentifier DsaWithSha256 = new DerObjectIdentifier(IdDsaWithSha2 + ".2");
-		public static readonly DerObjectIdentifier DsaWithSha384 = new DerObjectIdentifier(IdDsaWithSha2 + ".3");
-		public static readonly DerObjectIdentifier DsaWithSha512 = new DerObjectIdentifier(IdDsaWithSha2 + ".4"); 
-	}
+        public static readonly DerObjectIdentifier DsaWithSha224 = new DerObjectIdentifier(IdDsaWithSha2 + ".1");
+        public static readonly DerObjectIdentifier DsaWithSha256 = new DerObjectIdentifier(IdDsaWithSha2 + ".2");
+        public static readonly DerObjectIdentifier DsaWithSha384 = new DerObjectIdentifier(IdDsaWithSha2 + ".3");
+        public static readonly DerObjectIdentifier DsaWithSha512 = new DerObjectIdentifier(IdDsaWithSha2 + ".4"); 
+    }
 }

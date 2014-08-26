@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
-using System.Globalization;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509.Store
 {
@@ -17,9 +18,9 @@ namespace Org.BouncyCastle.X509.Store
 			if (type == null)
 				throw new ArgumentNullException("type");
 
-			string[] parts = type.ToUpperInvariant().Split('/');
+			string[] parts = Platform.ToUpperInvariant(type).Split('/');
 
-			if (parts.Length < 2)
+            if (parts.Length < 2)
 				throw new ArgumentException("type");
 
 			if (parts[1] != "COLLECTION")
