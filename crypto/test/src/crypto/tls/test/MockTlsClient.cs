@@ -26,8 +26,8 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         public override void NotifyAlertRaised(byte alertLevel, byte alertDescription, string message, Exception cause)
         {
             TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS client raised alert (AlertLevel." + alertLevel + ", AlertDescription." + alertDescription
-                + ")");
+            output.WriteLine("TLS client raised alert: " + AlertLevel.GetText(alertLevel)
+                + ", " + AlertDescription.GetText(alertDescription));
             if (message != null)
             {
                 output.WriteLine("> " + message);
@@ -41,8 +41,8 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         public override void NotifyAlertReceived(byte alertLevel, byte alertDescription)
         {
             TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS client received alert (AlertLevel." + alertLevel + ", AlertDescription."
-                + alertDescription + ")");
+            output.WriteLine("TLS client received alert: " + AlertLevel.GetText(alertLevel)
+                + ", " + AlertDescription.GetText(alertDescription));
         }
 
         public override int[] GetCipherSuites()
