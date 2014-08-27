@@ -1,3 +1,4 @@
+#if FALSE
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
 	/**
@@ -37,3 +38,4 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 		}
 	}
 }
+#endif

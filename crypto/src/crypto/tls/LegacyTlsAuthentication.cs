@@ -1,3 +1,4 @@
+#if FALSE
 using System;
 
 namespace Org.BouncyCastle.Crypto.Tls
@@ -28,3 +29,4 @@ namespace Org.BouncyCastle.Crypto.Tls
 		}
 	}
 }
+#endif
