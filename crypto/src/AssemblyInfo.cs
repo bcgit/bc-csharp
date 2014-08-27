@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -75,3 +76,28 @@ using System.Runtime.InteropServices;
 // see Org.BouncyCastle.Crypto.Encodings.Pkcs1Encoding.StrictLengthEnabledProperty
 //[assembly: EnvironmentPermission(SecurityAction.RequestOptional, Read="Org.BouncyCastle.Pkcs1.Strict")]
 
+internal class AssemblyInfo
+{
+    private static string version;
+    public static string Version
+    {
+        get
+        {
+            if (version == null)
+            {
+                var ver = (AssemblyVersionAttribute)typeof(AssemblyInfo).Assembly.GetCustomAttributes(typeof(AssemblyVersionAttribute), false).FirstOrDefault();
+                if (ver != null)
+                {
+                    version = ver.Version;
+                }
+
+                // if we're still here, then don't try again
+                if (version == null)
+                    version = string.Empty;
+            }
+
+            return version;
+        }
+        
+    }
+}
