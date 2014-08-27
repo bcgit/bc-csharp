@@ -1094,8 +1094,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                 TlsUtilities.CheckUint24(length);
                 this.Position = 1;
                 TlsUtilities.WriteUint24((int)length, this);
-                protocol.WriteHandshakeMessage(GetBuffer(), 0, (int)Length);
-                this.Close();
+                protocol.WriteHandshakeMessage(ToArray(), 0, (int)Length);
+                this.Dispose();
             }
         }
     }

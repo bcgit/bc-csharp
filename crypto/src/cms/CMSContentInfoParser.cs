@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Cms
 		*/
 		public void Close()
 		{
-			this.data.Close();
+            this.data.Dispose();
 		}
 	}
 }

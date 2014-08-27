@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[]	outBytes,
             int		outOff)
         {
-            byte[] enc = ProcessPacket(data.GetBuffer(), 0, (int)data.Position);
+            byte[] enc = ProcessPacket(data.ToArray(), 0, (int)data.Position);
 
             Array.Copy(enc, 0, outBytes, outOff, enc.Length);
 
@@ -349,7 +349,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
                 if (associatedText.Position > 0)
                 {
-                    cMac.BlockUpdate(associatedText.GetBuffer(), 0, (int)associatedText.Position);
+                    cMac.BlockUpdate(associatedText.ToArray(), 0, (int)associatedText.Position);
                 }
 
                 extra = (extra + textLength) % 16;

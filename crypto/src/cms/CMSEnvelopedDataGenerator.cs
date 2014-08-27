@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Cms
 
 				content.Write(cOut);
 
-				cOut.Close();
+                cOut.Dispose();
 
 				encContent = new BerOctetString(bOut.ToArray());
 			}

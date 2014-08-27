@@ -384,16 +384,22 @@ namespace Org.BouncyCastle.Apache.Bzip2
 //            Close();
 //        }
 
-        public override void Close() {
-            if (closed) {
-                return;
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (closed)
+                {
+                    return;
+                }
+
+                Finish();
+
+                closed = true;
+                
+                bsStream.Dispose();
             }
-
-            Finish();
-
-            closed = true;
-            base.Close();
-            bsStream.Close();
+            base.Dispose(disposing);
         }
 
         public void Finish() {

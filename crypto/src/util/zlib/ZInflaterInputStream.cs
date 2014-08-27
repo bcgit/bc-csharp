@@ -114,8 +114,13 @@ namespace Org.BouncyCastle.Utilities.Zlib {
         public override void WriteByte(byte b) {
         }
 
-        public override void Close() {
-            inp.Close();
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                inp.Dispose();
+            }
+            base.Dispose(disposing);
         }
     
         public override int ReadByte() {

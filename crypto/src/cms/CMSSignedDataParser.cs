@@ -384,7 +384,7 @@ namespace Org.BouncyCastle.Cms
 
 //			gen.AddSigners(parser.GetSignerInfos());
 
-			contentOut.Close();
+            contentOut.Dispose();
 
 			return outStr;
 		}
@@ -434,7 +434,7 @@ namespace Org.BouncyCastle.Cms
 
 			gen.AddSigners(parser.GetSignerInfos());
 
-			contentOut.Close();
+            contentOut.Dispose();
 
 			return outStr;
 		}

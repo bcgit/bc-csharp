@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 this.Position = 0;
                 TlsUtilities.WriteUint16((int)length, this);
                 this.WriteTo(output);
-                this.Close();
+                this.Dispose();
             }
         }
     }

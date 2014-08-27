@@ -98,7 +98,8 @@ namespace Org.BouncyCastle.Bcpg
         private static readonly string	footerTail = "-----";
 
         private static readonly string version = "BCPG C# v"
-			+ Assembly.GetExecutingAssembly().GetName().Version;
+                                                 + Assembly.GetExecutingAssembly()
+                                                           .FullName;//.GetName().Version;
 
 		private readonly IDictionary headers;
 
@@ -280,37 +281,40 @@ namespace Org.BouncyCastle.Bcpg
          * <b>Note</b>: close does nor close the underlying stream. So it is possible to write
          * multiple objects using armoring to a single stream.
          */
-        public override void Close()
+        protected override void Dispose(bool disposing)
         {
-            if (type != null)
+            if (disposing)
             {
-				if (bufPtr > 0)
-				{
-					Encode(outStream, buf, bufPtr);
-				}
+                if (type != null)
+                {
+                    if (bufPtr > 0)
+                    {
+                        Encode(outStream, buf, bufPtr);
+                    }
 
-                DoWrite(nl + '=');
+                    DoWrite(nl + '=');
 
-                int crcV = crc.Value;
+                    int crcV = crc.Value;
 
-				buf[0] = ((crcV >> 16) & 0xff);
-                buf[1] = ((crcV >> 8) & 0xff);
-                buf[2] = (crcV & 0xff);
+                    buf[0] = ((crcV >> 16) & 0xff);
+                    buf[1] = ((crcV >> 8) & 0xff);
+                    buf[2] = (crcV & 0xff);
 
-                Encode(outStream, buf, 3);
+                    Encode(outStream, buf, 3);
 
-                DoWrite(nl);
-                DoWrite(footerStart);
-                DoWrite(type);
-                DoWrite(footerTail);
-                DoWrite(nl);
+                    DoWrite(nl);
+                    DoWrite(footerStart);
+                    DoWrite(type);
+                    DoWrite(footerTail);
+                    DoWrite(nl);
 
-                outStream.Flush();
+                    outStream.Flush();
 
-                type = null;
-                start = true;
-				base.Close();
-			}
+                    type = null;
+                    start = true;
+                }
+            }
+            base.Dispose(disposing);
         }
 
 		private void WriteHeaderEntry(

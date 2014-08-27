@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 int minimumCount = payloadLength + 16;
                 if (Length < minimumCount)
                     return null;
-                return Arrays.CopyOf(GetBuffer(), payloadLength);
+                return Arrays.CopyOf(ToArray(), payloadLength);
             }
         }
     }

@@ -379,12 +379,15 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-		public override void Close()
-        {
-			this.Finish();
-			outStr.Flush();
-			outStr.Close();
-			base.Close();
-        }
+	    protected override void Dispose(bool disposing)
+	    {
+	        if (disposing)
+	        {
+                this.Finish();
+                outStr.Flush();
+                outStr.Dispose();
+	        }
+	        base.Dispose(disposing);
+	    }
     }
 }

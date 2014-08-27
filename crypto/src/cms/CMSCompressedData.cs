@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Cms
 			}
 			finally
 			{
-				zIn.Close();
+				zIn.Dispose();
 			}
         }
 

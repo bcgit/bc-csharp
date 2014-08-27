@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 			if (debug)
 			{
-				Console.WriteLine("Fetching first " + param.CountSmallPrimes + " primes.");
+                System.Diagnostics.Debug.WriteLine("Fetching first " + param.CountSmallPrimes + " primes.");
 			}
 
 			IList smallPrimes = findFirstPrimes(param.CountSmallPrimes);
@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 			long tries = 0;
 			if (debug)
 			{
-				Console.WriteLine("generating p and q");
+                System.Diagnostics.Debug.WriteLine("generating p and q");
 			}
 
 			BigInteger _2au = a.Multiply(u).ShiftLeft(1);
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 				if (!sigma.Gcd(_p.Multiply(_q)).Equals(BigInteger.One))
 				{
-					Console.WriteLine("sigma.gcd(_p.mult(_q)) != 1!\n _p: " + _p +"\n _q: "+ _q );
+                    System.Diagnostics.Debug.WriteLine("sigma.gcd(_p.mult(_q)) != 1!\n _p: " + _p + "\n _q: " + _q);
 					continue;
 				}
 
@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				{
 					if (debug)
 					{
-						Console.WriteLine("key size too small. Should be " + strength + " but is actually "
+                        System.Diagnostics.Debug.WriteLine("key size too small. Should be " + strength + " but is actually "
 							+ p.Multiply(q).BitLength);
 					}
 					continue;
@@ -144,7 +144,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 			if (debug)
 			{
-				Console.WriteLine("needed " + tries + " tries to generate p and q.");
+                System.Diagnostics.Debug.WriteLine("needed " + tries + " tries to generate p and q.");
 			}
 
 			BigInteger n = p.Multiply(q);
@@ -153,7 +153,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 			tries = 0;
 			if (debug)
 			{
-				Console.WriteLine("generating g");
+                System.Diagnostics.Debug.WriteLine("generating g");
 			}
 			for (;;)
 			{
@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 					{
 						if (debug)
 						{
-							Console.WriteLine("g has order phi(n)/" + smallPrimes[i] + "\n g: " + g);
+                            System.Diagnostics.Debug.WriteLine("g has order phi(n)/" + smallPrimes[i] + "\n g: " + g);
 						}
 						divisible = true;
 						break;
@@ -212,7 +212,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				{
 					if (debug)
 					{
-						Console.WriteLine("g has order phi(n)/4\n g:" + g);
+                        System.Diagnostics.Debug.WriteLine("g has order phi(n)/4\n g:" + g);
 					}
 					continue;
 				}
@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				{
 					if (debug)
 					{
-						Console.WriteLine("g has order phi(n)/p'\n g: " + g);
+                        System.Diagnostics.Debug.WriteLine("g has order phi(n)/p'\n g: " + g);
 					}
 					continue;
 				}
@@ -229,7 +229,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				{
 					if (debug)
 					{
-						Console.WriteLine("g has order phi(n)/q'\n g: " + g);
+                        System.Diagnostics.Debug.WriteLine("g has order phi(n)/q'\n g: " + g);
 					}
 					continue;
 				}
@@ -237,7 +237,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				{
 					if (debug)
 					{
-						Console.WriteLine("g has order phi(n)/a\n g: " + g);
+                        System.Diagnostics.Debug.WriteLine("g has order phi(n)/a\n g: " + g);
 					}
 					continue;
 				}
@@ -245,7 +245,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				{
 					if (debug)
 					{
-						Console.WriteLine("g has order phi(n)/b\n g: " + g);
+                        System.Diagnostics.Debug.WriteLine("g has order phi(n)/b\n g: " + g);
 					}
 					continue;
 				}
@@ -253,21 +253,21 @@ namespace Org.BouncyCastle.Crypto.Generators
 			}
 			if (debug)
 			{
-				Console.WriteLine("needed " + tries + " tries to generate g");
-				Console.WriteLine();
-				Console.WriteLine("found new NaccacheStern cipher variables:");
-				Console.WriteLine("smallPrimes: " + CollectionUtilities.ToString(smallPrimes));
-				Console.WriteLine("sigma:...... " + sigma + " (" + sigma.BitLength + " bits)");
-				Console.WriteLine("a:.......... " + a);
-				Console.WriteLine("b:.......... " + b);
-				Console.WriteLine("p':......... " + _p);
-				Console.WriteLine("q':......... " + _q);
-				Console.WriteLine("p:.......... " + p);
-				Console.WriteLine("q:.......... " + q);
-				Console.WriteLine("n:.......... " + n);
-				Console.WriteLine("phi(n):..... " + phi_n);
-				Console.WriteLine("g:.......... " + g);
-				Console.WriteLine();
+                System.Diagnostics.Debug.WriteLine("needed " + tries + " tries to generate g");
+                System.Diagnostics.Debug.WriteLine("");
+                System.Diagnostics.Debug.WriteLine("found new NaccacheStern cipher variables:");
+                System.Diagnostics.Debug.WriteLine("smallPrimes: " + CollectionUtilities.ToString(smallPrimes));
+                System.Diagnostics.Debug.WriteLine("sigma:...... " + sigma + " (" + sigma.BitLength + " bits)");
+                System.Diagnostics.Debug.WriteLine("a:.......... " + a);
+                System.Diagnostics.Debug.WriteLine("b:.......... " + b);
+                System.Diagnostics.Debug.WriteLine("p':......... " + _p);
+                System.Diagnostics.Debug.WriteLine("q':......... " + _q);
+                System.Diagnostics.Debug.WriteLine("p:.......... " + p);
+                System.Diagnostics.Debug.WriteLine("q:.......... " + q);
+                System.Diagnostics.Debug.WriteLine("n:.......... " + n);
+                System.Diagnostics.Debug.WriteLine("phi(n):..... " + phi_n);
+                System.Diagnostics.Debug.WriteLine("g:.......... " + g);
+                System.Diagnostics.Debug.WriteLine("");
 			}
 
 			return new AsymmetricCipherKeyPair(new NaccacheSternKeyParameters(false, g, n, sigma.BitLength),

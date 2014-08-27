@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Cms
 		public void Drain()
 		{
 			Streams.Drain(_in);
-			_in.Close();
+			_in.Dispose();
 		}
 
 		private class FullReaderStream : FilterStream

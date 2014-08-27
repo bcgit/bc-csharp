@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -258,8 +259,8 @@ namespace Org.BouncyCastle.Pkcs
                             }
                             else
                             {
-                                Console.WriteLine("extra " + b.BagID);
-                                Console.WriteLine("extra " + Asn1Dump.DumpAsString(b));
+                                Debug.WriteLine("extra " + b.BagID);
+                                Debug.WriteLine("extra " + Asn1Dump.DumpAsString(b));
                             }
                         }
                     }
@@ -416,15 +417,15 @@ namespace Org.BouncyCastle.Pkcs
                             }
                             else
                             {
-                                Console.WriteLine("extra " + b.BagID);
-                                Console.WriteLine("extra " + Asn1Dump.DumpAsString(b));
+                                Debug.WriteLine("extra " + b.BagID);
+                                Debug.WriteLine("extra " + Asn1Dump.DumpAsString(b));
                             }
                         }
                     }
                     else
                     {
-                        Console.WriteLine("extra " + oid);
-                        Console.WriteLine("extra " + Asn1Dump.DumpAsString(ci.Content));
+                        Debug.WriteLine("extra " + oid);
+                        Debug.WriteLine("extra " + Asn1Dump.DumpAsString(ci.Content));
                     }
                 }
             }

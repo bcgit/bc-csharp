@@ -17,9 +17,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			this.gen = gen;
 		}
 
-		public override void Close()
-		{
-			gen.Close();
-		}
+	    protected override void Dispose(bool disposing)
+	    {
+	        if (disposing)
+	        {
+	            gen.Close();
+	        }
+	        base.Dispose(disposing);
+	    }
 	}
 }

@@ -282,7 +282,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             try
             {
-                mInput.Close();
+                mInput.Dispose();
             }
             catch (IOException)
             {
@@ -290,7 +290,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             try
             {
-                mOutput.Close();
+                mOutput.Dispose();
             }
             catch (IOException)
             {

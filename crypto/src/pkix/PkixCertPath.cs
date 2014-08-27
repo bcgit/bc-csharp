@@ -401,7 +401,7 @@ namespace Org.BouncyCastle.Pkix
 						pWrt.WriteObject(certificates[i]);
 					}
 
-					pWrt.Writer.Close();
+					pWrt.Writer.Dispose();
 				}
 				catch (Exception)
 				{
