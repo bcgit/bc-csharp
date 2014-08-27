@@ -48,6 +48,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         }
 
         [Test]
+        [Ignore("SLOW")]
         public void TestSumOfTwoMultiplies()
         {
             foreach (X9ECParameters x9 in GetTestCurves())
