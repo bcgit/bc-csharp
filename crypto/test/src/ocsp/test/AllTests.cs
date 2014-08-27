@@ -1,3 +1,4 @@
+#if !LIB
 using System;
 
 using NUnit.Core;
@@ -27,3 +28,4 @@ namespace Org.BouncyCastle.Ocsp.Tests
 		}
 	}
 }
+#endif

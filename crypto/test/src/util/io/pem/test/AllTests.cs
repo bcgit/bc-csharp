@@ -1,3 +1,4 @@
+#if !LIB
 using System;
 using System.Collections;
 using System.Collections.Specialized;
@@ -75,3 +76,4 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
         }
 	}
 }
+#endif

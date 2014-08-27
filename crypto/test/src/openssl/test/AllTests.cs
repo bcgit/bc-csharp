@@ -1,3 +1,4 @@
+#if !LIB
 using System;
 using System.IO;
 using System.Text;
@@ -131,3 +132,4 @@ namespace Org.BouncyCastle.OpenSsl.Tests
         }
 	}
 }
+#endif
