@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private static readonly SecureRandom RND = new SecureRandom();
 
         [Test]
+        [Ignore("SLOW! 44 sec")]
         public void TestSumOfMultiplies()
         {
             foreach (X9ECParameters x9 in GetTestCurves())
@@ -48,6 +49,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         }
 
         [Test]
+        [Ignore("SLOW! 1 min")]
         public void TestSumOfTwoMultiplies()
         {
             foreach (X9ECParameters x9 in GetTestCurves())

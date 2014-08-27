@@ -155,8 +155,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			{
 				if (dOut != pkOut)
 				{
+                    dOut.Flush();
 					dOut.Dispose();
-					dOut.Flush();
 				}
 
 				dOut = null;
@@ -190,16 +190,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				: base(output, level, nowrap)
 			{
 			}
-
-		    protected override void Dispose(bool disposing)
-		    {
-		        if (disposing)
-		        {
-                    Finish();
-                    End();
-		        }
-		        base.Dispose(disposing);
-		    }
+		   
 		}
 	}
 }

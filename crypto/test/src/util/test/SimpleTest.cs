@@ -119,7 +119,7 @@ namespace Org.BouncyCastle.Utilities.Test
 #if BC_BUILD_MONODEVELOP
 			return "test.data." + name;
 #else
-			return "crypto.test.data." + name;
+			return "crypto.tests." + name;
 #endif
 		}
 
@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Utilities.Test
 #if BC_BUILD_MONODEVELOP
 			return fullName.Substring("test.data.".Length);
 #else
-			return fullName.Substring("crypto.test.data.".Length);
+			return fullName.Substring("crypto.tests.".Length);
 #endif
 		}
 

@@ -385,9 +385,9 @@ namespace Org.BouncyCastle.Bcpg
 	        {
                 this.Finish();
                 outStr.Flush();
-                outStr.Dispose();
+           //     outStr.Dispose();
 	        }
-	        base.Dispose(disposing);
+	       base.Dispose(disposing);
 	    }
     }
 }
