@@ -1,4 +1,4 @@
-#if !NETCF_1_0
+#if !NETCF_1_0 && !PCL
 
 using System;
 using System.Security.Cryptography;

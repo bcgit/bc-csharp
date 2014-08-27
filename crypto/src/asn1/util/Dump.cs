@@ -1,3 +1,4 @@
+#if !PCL
 using Org.BouncyCastle.Asn1;
 
 using System;
@@ -26,3 +27,4 @@ namespace Org.BouncyCastle.Asn1.Utilities
         }
     }
 }
+#endif

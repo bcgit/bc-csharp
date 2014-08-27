@@ -191,11 +191,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			{
 			}
 
-			public override void Close()
-			{
-				Finish();
-				End();
-			}
+		    protected override void Dispose(bool disposing)
+		    {
+		        if (disposing)
+		        {
+                    Finish();
+                    End();
+		        }
+		        base.Dispose(disposing);
+		    }
 		}
 	}
 }

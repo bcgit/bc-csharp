@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Cms
 		    {
 		        if (disposing)
 		        {
-                    _out.Close();
+                    _out.Dispose();
 
                     // TODO Parent context(s) should really be be closed explicitly
 

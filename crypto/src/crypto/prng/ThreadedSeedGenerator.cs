@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Crypto.Prng
 {
@@ -65,19 +66,22 @@ namespace Org.BouncyCastle.Crypto.Prng
 
 				for (int i = 0; i < end; i++)
 				{
-					while (this.counter == last)
-					{
-						try
-						{
-							Thread.Sleep(1);
-						}
-						catch (Exception)
-						{
-							// ignore
-						}
-					}
+				    using (var mre = new ManualResetEvent(false))
+				    {
+				        while (this.counter == last)
+				        {
+				            try
+				            {
+				                mre.WaitOne(1);
+				            }
+				            catch (Exception)
+				            {
+				                // ignore
+				            }
+				        }
+				    }
 
-					last = this.counter;
+				    last = this.counter;
 
 					if (fast)
 					{

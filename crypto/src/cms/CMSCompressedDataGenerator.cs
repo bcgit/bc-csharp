@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Cms
 
 				content.Write(zOut);
 
-				zOut.Close();
+				zOut.Dispose();
 
 				comAlgId = new AlgorithmIdentifier(new DerObjectIdentifier(compressionOid));
 				comOcts = new BerOctetString(bOut.ToArray());
