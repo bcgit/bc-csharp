@@ -15,24 +15,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto.tests.Net45", "crypt
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU
-		AppStore|Any CPU = AppStore|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Ad-Hoc|Any CPU.ActiveCfg = Release|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Ad-Hoc|Any CPU.Build.0 = Release|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.AppStore|Any CPU.ActiveCfg = Release|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.AppStore|Any CPU.Build.0 = Release|Any CPU
 		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45473847-8AF8-4BAF-B768-442C6875B8CE}.Ad-Hoc|Any CPU.ActiveCfg = Release|Any CPU
-		{45473847-8AF8-4BAF-B768-442C6875B8CE}.Ad-Hoc|Any CPU.Build.0 = Release|Any CPU
-		{45473847-8AF8-4BAF-B768-442C6875B8CE}.AppStore|Any CPU.ActiveCfg = Release|Any CPU
-		{45473847-8AF8-4BAF-B768-442C6875B8CE}.AppStore|Any CPU.Build.0 = Release|Any CPU
 		{45473847-8AF8-4BAF-B768-442C6875B8CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{45473847-8AF8-4BAF-B768-442C6875B8CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45473847-8AF8-4BAF-B768-442C6875B8CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
