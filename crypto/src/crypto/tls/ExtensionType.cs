@@ -61,6 +61,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         public static readonly int extended_master_secret = 100;
 
         /*
+         * draft-ietf-tls-negotiated-ff-dhe-01
+         * 
+         * WARNING: Placeholder value; the real value is TBA
+         */
+        public static readonly int negotiated_ff_dhe_groups = 101;
+
+        /*
          * RFC 5746 3.2.
          */
         public const int renegotiation_info = 0xff01;
