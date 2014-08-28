@@ -23,6 +23,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	        {
 	            gen.Close();
 	        }
+	   //     base.Dispose(disposing);
 	    }
 	}
 }

@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			DateTime now = DateTime.UtcNow;
 
 			// Time classes only have a resolution of seconds
-			now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second);
+			now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second, DateTimeKind.Utc);
 
 			Org.BouncyCastle.Asn1.Cms.Time cmsTime = new Org.BouncyCastle.Asn1.Cms.Time(now);
 			Org.BouncyCastle.Asn1.X509.Time x509Time = new Org.BouncyCastle.Asn1.X509.Time(now);

@@ -14,9 +14,9 @@ namespace Org.BouncyCastle.Utilities.Test
 		{
 		}
 
-		public override void Close()
-		{
-			throw new Exception("Close() called on UncloseableStream");
-		}
+        //public override void Close()
+        //{
+        //    throw new Exception("Close() called on UncloseableStream");
+        //}
 	}
 }

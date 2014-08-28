@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public Time(
             DateTime date)
         {
-            string d = date.ToString("yyyyMMddHHmmss") + "Z";
+            string d = date.ToUniversalTime().ToString("yyyyMMddHHmmss") + "Z";
 
             int year = Int32.Parse(d.Substring(0, 4));
 

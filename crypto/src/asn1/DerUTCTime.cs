@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Asn1
         public DerUtcTime(
             DateTime time)
         {
-            this.time = time.ToString("yyMMddHHmmss") + "Z";
+            this.time = time.ToUniversalTime().ToString("yyMMddHHmmss") + "Z";
         }
 
 		internal DerUtcTime(

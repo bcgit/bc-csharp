@@ -985,7 +985,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             sGen.Generate().Encode(bcOut);
 
-            bcOut.Close();
+            bcOut.Dispose();
 
             //
             // verify generated signature
