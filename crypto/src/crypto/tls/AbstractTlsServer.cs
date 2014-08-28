@@ -233,9 +233,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
             }
 
-            if (this.mMaxFragmentLengthOffered >= 0)
+            if (this.mMaxFragmentLengthOffered >= 0
+                && TlsUtilities.IsValidUint8(mMaxFragmentLengthOffered)
+                && MaxFragmentLength.IsValid((byte)mMaxFragmentLengthOffered))
             {
-                TlsExtensionsUtilities.AddMaxFragmentLengthExtension(CheckServerExtensions(), (byte)this.mMaxFragmentLengthOffered);
+                TlsExtensionsUtilities.AddMaxFragmentLengthExtension(CheckServerExtensions(), (byte)mMaxFragmentLengthOffered);
             }
 
             if (this.mTruncatedHMacOffered && AllowTruncatedHMac)

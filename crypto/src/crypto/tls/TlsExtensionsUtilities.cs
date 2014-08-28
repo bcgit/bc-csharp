@@ -132,9 +132,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <exception cref="IOException"></exception>
         public static byte[] CreateMaxFragmentLengthExtension(byte maxFragmentLength)
         {
-            if (!MaxFragmentLength.IsValid(maxFragmentLength))
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-
             return new byte[]{ maxFragmentLength };
         }
 
@@ -219,12 +216,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (extensionData.Length != 1)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
 
-            byte maxFragmentLength = extensionData[0];
-
-            if (!MaxFragmentLength.IsValid(maxFragmentLength))
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
-            return maxFragmentLength;
+            return extensionData[0];
         }
 
         /// <exception cref="IOException"></exception>
