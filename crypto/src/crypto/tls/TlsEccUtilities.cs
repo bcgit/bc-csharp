@@ -16,31 +16,31 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    public class TlsEccUtilities
+    public abstract class TlsEccUtilities
     {
-        private static readonly string[] curveNames = new string[] { "sect163k1", "sect163r1", "sect163r2", "sect193r1",
+        private static readonly string[] CurveNames = new string[] { "sect163k1", "sect163r1", "sect163r2", "sect193r1",
             "sect193r2", "sect233k1", "sect233r1", "sect239k1", "sect283k1", "sect283r1", "sect409k1", "sect409r1",
             "sect571k1", "sect571r1", "secp160k1", "secp160r1", "secp160r2", "secp192k1", "secp192r1", "secp224k1",
             "secp224r1", "secp256k1", "secp256r1", "secp384r1", "secp521r1",
             "brainpoolP256r1", "brainpoolP384r1", "brainpoolP512r1"};
 
-        public static void AddSupportedEllipticCurvesExtension(Hashtable extensions, int[] namedCurves)
+        public static void AddSupportedEllipticCurvesExtension(IDictionary extensions, int[] namedCurves)
         {
             extensions[ExtensionType.elliptic_curves] = CreateSupportedEllipticCurvesExtension(namedCurves);
         }
 
-        public static void AddSupportedPointFormatsExtension(Hashtable extensions, byte[] ecPointFormats)
+        public static void AddSupportedPointFormatsExtension(IDictionary extensions, byte[] ecPointFormats)
         {
             extensions[ExtensionType.ec_point_formats] = CreateSupportedPointFormatsExtension(ecPointFormats);
         }
 
-        public static int[] GetSupportedEllipticCurvesExtension(Hashtable extensions)
+        public static int[] GetSupportedEllipticCurvesExtension(IDictionary extensions)
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.elliptic_curves);
             return extensionData == null ? null : ReadSupportedEllipticCurvesExtension(extensionData);
         }
 
-        public static byte[] GetSupportedPointFormatsExtension(Hashtable extensions)
+        public static byte[] GetSupportedPointFormatsExtension(IDictionary extensions)
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.ec_point_formats);
             return extensionData == null ? null : ReadSupportedPointFormatsExtension(extensionData);
@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             int[] namedCurves = TlsUtilities.ReadUint16Array(length / 2, buf);
 
-            TlsProtocolHandler.AssertEmpty(buf);
+            TlsProtocol.AssertEmpty(buf);
 
             return namedCurves;
         }
@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             byte[] ecPointFormats = TlsUtilities.ReadUint8Array(length, buf);
 
-            TlsProtocolHandler.AssertEmpty(buf);
+            TlsProtocol.AssertEmpty(buf);
 
             if (!Arrays.Contains(ecPointFormats, ECPointFormat.uncompressed))
             {
@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static string GetNameOfNamedCurve(int namedCurve)
         {
-            return IsSupportedNamedCurve(namedCurve) ? curveNames[namedCurve - 1] : null;
+            return IsSupportedNamedCurve(namedCurve) ? CurveNames[namedCurve - 1] : null;
         }
 
         public static ECDomainParameters GetParametersForNamedCurve(int namedCurve)
@@ -142,7 +142,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static bool HasAnySupportedNamedCurves()
         {
-            return curveNames.Length > 0;
+            return CurveNames.Length > 0;
         }
 
         public static bool ContainsEccCipherSuites(int[] cipherSuites)
@@ -276,7 +276,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static bool IsSupportedNamedCurve(int namedCurve)
         {
-            return (namedCurve > 0 && namedCurve <= curveNames.Length);
+            return (namedCurve > 0 && namedCurve <= CurveNames.Length);
         }
 
         public static bool IsCompressionPreferred(byte[] ecPointFormats, byte compressionFormat)
@@ -372,8 +372,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
 
-            if (!Arrays.Contains(ecPointFormats, actualFormat))
+            if (actualFormat != ECPointFormat.uncompressed
+                && (ecPointFormats == null || !Arrays.Contains(ecPointFormats, actualFormat)))
+            {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            }
 
             return curve.DecodePoint(encoding);
         }
@@ -386,9 +389,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 ECPoint Y = DeserializeECPoint(ecPointFormats, curve_params.Curve, encoding);
                 return new ECPublicKeyParameters(Y, curve_params);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
             }
         }
 
@@ -528,9 +531,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
             }
         }
 

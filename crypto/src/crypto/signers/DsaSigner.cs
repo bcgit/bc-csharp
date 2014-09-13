@@ -1,10 +1,9 @@
 using System;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Crypto;
+
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -15,8 +14,28 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class DsaSigner
         : IDsa
     {
+        protected readonly IDsaKCalculator kCalculator;
+
         protected DsaKeyParameters key = null;
         protected SecureRandom random = null;
+
+        /**
+         * Default configuration, random K values.
+         */
+        public DsaSigner()
+        {
+            this.kCalculator = new RandomDsaKCalculator();
+        }
+
+        /**
+         * Configuration with an alternate, possibly deterministic calculator of K.
+         *
+         * @param kCalculator a K value calculator.
+         */
+        public DsaSigner(IDsaKCalculator kCalculator)
+        {
+            this.kCalculator = kCalculator;
+        }
 
         public virtual string AlgorithmName
         {
@@ -50,7 +69,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 this.key = (DsaPublicKeyParameters)parameters;
             }
 
-            this.random = InitSecureRandom(forSigning, providedRandom);
+            this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);
         }
 
         /**
@@ -65,18 +84,22 @@ namespace Org.BouncyCastle.Crypto.Signers
             DsaParameters parameters = key.Parameters;
             BigInteger q = parameters.Q;
             BigInteger m = CalculateE(q, message);
-            BigInteger k;
+            BigInteger x = ((DsaPrivateKeyParameters)key).X;
 
-            do
+            if (kCalculator.IsDeterministic)
             {
-                k = new BigInteger(q.BitLength, random);
+                kCalculator.Init(q, x, message);
             }
-            while (k.CompareTo(q) >= 0);
+            else
+            {
+                kCalculator.Init(q, random);
+            }
+
+            BigInteger k = kCalculator.NextK();
 
             BigInteger r = parameters.G.ModPow(k, parameters.P).Mod(q);
 
-            k = k.ModInverse(q).Multiply(
-                m.Add(((DsaPrivateKeyParameters)key).X.Multiply(r)));
+            k = k.ModInverse(q).Multiply(m.Add(x.Multiply(r)));
 
             BigInteger s = k.Mod(q);
 

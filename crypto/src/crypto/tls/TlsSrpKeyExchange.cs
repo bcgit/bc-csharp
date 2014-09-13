@@ -1,200 +1,186 @@
 using System;
+using System.Collections;
 using System.IO;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Agreement.Srp;
-using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /// <summary>
-    /// TLS 1.1 SRP key exchange.
-    /// </summary>
-    internal class TlsSrpKeyExchange
-        : TlsKeyExchange
+    /// <summary>(D)TLS SRP key exchange (RFC 5054).</summary>
+    public class TlsSrpKeyExchange
+        :   AbstractTlsKeyExchange
     {
-        protected TlsClientContext context;
-        protected int keyExchange;
-        protected TlsSigner tlsSigner;
-        protected byte[] identity;
-        protected byte[] password;
+        protected TlsSigner mTlsSigner;
+        protected byte[] mIdentity;
+        protected byte[] mPassword;
 
-        protected AsymmetricKeyParameter serverPublicKey = null;
+        protected AsymmetricKeyParameter mServerPublicKey = null;
 
-        protected byte[] s = null;
-        protected BigInteger B = null;
-        protected Srp6Client srpClient = new Srp6Client();
+        protected byte[] mS = null;
+        protected BigInteger mB = null;
+        protected Srp6Client mSrpClient = new Srp6Client();
 
-        internal TlsSrpKeyExchange(TlsClientContext context, int keyExchange,
-            byte[] identity, byte[] password)
+        public TlsSrpKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, byte[] identity, byte[] password)
+            :   base(keyExchange, supportedSignatureAlgorithms)
         {
             switch (keyExchange)
             {
-                case KeyExchangeAlgorithm.SRP:
-                    this.tlsSigner = null;
-                    break;
-                case KeyExchangeAlgorithm.SRP_RSA:
-                    this.tlsSigner = new TlsRsaSigner();
-                    break;
-                case KeyExchangeAlgorithm.SRP_DSS:
-                    this.tlsSigner = new TlsDssSigner();
-                    break;
-                default:
-                    throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+            case KeyExchangeAlgorithm.SRP:
+                this.mTlsSigner = null;
+                break;
+            case KeyExchangeAlgorithm.SRP_RSA:
+                this.mTlsSigner = new TlsRsaSigner();
+                break;
+            case KeyExchangeAlgorithm.SRP_DSS:
+                this.mTlsSigner = new TlsDssSigner();
+                break;
+            default:
+                throw new InvalidOperationException("unsupported key exchange algorithm");
             }
 
-            this.context = context;
-            this.keyExchange = keyExchange;
-            this.identity = identity;
-            this.password = password;
+            this.mIdentity = identity;
+            this.mPassword = password;
         }
 
-        public virtual void SkipServerCertificate()
+        public override void Init(TlsContext context)
         {
-            if (tlsSigner != null)
+            base.Init(context);
+
+            if (this.mTlsSigner != null)
             {
-                throw new TlsFatalAlert(AlertDescription.unexpected_message);
+                this.mTlsSigner.Init(context);
             }
         }
 
-        public virtual void ProcessServerCertificate(Certificate serverCertificate)
+        public override void SkipServerCredentials()
         {
-            if (tlsSigner == null)
-            {
+            if (mTlsSigner != null)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
-            }
+        }
+
+        public override void ProcessServerCertificate(Certificate serverCertificate)
+        {
+            if (mTlsSigner == null)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            if (serverCertificate.IsEmpty)
+                throw new TlsFatalAlert(AlertDescription.bad_certificate);
 
             X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
-            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
 
+            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
             try
             {
-                this.serverPublicKey = PublicKeyFactory.CreateKey(keyInfo);
+                this.mServerPublicKey = PublicKeyFactory.CreateKey(keyInfo);
             }
-//			catch (RuntimeException)
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
             }
 
-            if (!tlsSigner.IsValidPublicKey(this.serverPublicKey))
-            {
+            if (!mTlsSigner.IsValidPublicKey(this.mServerPublicKey))
                 throw new TlsFatalAlert(AlertDescription.certificate_unknown);
-            }
 
             TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
 
-            // TODO
-            /*
-            * Perform various checks per RFC2246 7.4.2: "Unless otherwise specified, the
-            * signing algorithm for the certificate must be the same as the algorithm for the
-            * certificate key."
-            */
+            base.ProcessServerCertificate(serverCertificate);
         }
 
-        public virtual void SkipServerKeyExchange()
+        public override bool RequiresServerKeyExchange
         {
-            throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            get { return true; }
         }
 
-        public virtual void ProcessServerKeyExchange(Stream input)
+        public override void ProcessServerKeyExchange(Stream input)
         {
             SecurityParameters securityParameters = context.SecurityParameters;
 
-            Stream sigIn = input;
-            ISigner signer = null;
+            SignerInputBuffer buf = null;
+            Stream teeIn = input;
 
-            if (tlsSigner != null)
+            if (mTlsSigner != null)
             {
-                signer = InitSigner(tlsSigner, securityParameters);
-                sigIn = new SignerStream(input, signer, null);
+                buf = new SignerInputBuffer();
+                teeIn = new TeeInputStream(input, buf);
             }
 
-            byte[] NBytes = TlsUtilities.ReadOpaque16(sigIn);
-            byte[] gBytes = TlsUtilities.ReadOpaque16(sigIn);
-            byte[] sBytes = TlsUtilities.ReadOpaque8(sigIn);
-            byte[] BBytes = TlsUtilities.ReadOpaque16(sigIn);
+            byte[] NBytes = TlsUtilities.ReadOpaque16(teeIn);
+            byte[] gBytes = TlsUtilities.ReadOpaque16(teeIn);
+            byte[] sBytes = TlsUtilities.ReadOpaque8(teeIn);
+            byte[] BBytes = TlsUtilities.ReadOpaque16(teeIn);
 
-            if (signer != null)
+            if (buf != null)
             {
-                byte[] sigByte = TlsUtilities.ReadOpaque16(input);
+                DigitallySigned signed_params = DigitallySigned.Parse(context, input);
 
-                if (!signer.VerifySignature(sigByte))
-                {
+                ISigner signer = InitVerifyer(mTlsSigner, signed_params.Algorithm, securityParameters);
+                buf.UpdateSigner(signer);
+                if (!signer.VerifySignature(signed_params.Signature))
                     throw new TlsFatalAlert(AlertDescription.decrypt_error);
-                }
             }
 
             BigInteger N = new BigInteger(1, NBytes);
             BigInteger g = new BigInteger(1, gBytes);
 
             // TODO Validate group parameters (see RFC 5054)
-            //throw new TlsFatalAlert(AlertDescription.insufficient_security);
+    //        throw new TlsFatalAlert(AlertDescription.insufficient_security);
 
-            this.s = sBytes;
+            this.mS = sBytes;
 
             /*
-            * RFC 5054 2.5.3: The client MUST abort the handshake with an "illegal_parameter"
-            * alert if B % N = 0.
-            */
+             * RFC 5054 2.5.3: The client MUST abort the handshake with an "illegal_parameter" alert if
+             * B % N = 0.
+             */
             try
             {
-                this.B = Srp6Utilities.ValidatePublicValue(N, new BigInteger(1, BBytes));
+                this.mB = Srp6Utilities.ValidatePublicValue(N, new BigInteger(1, BBytes));
             }
-            catch (CryptoException)
+            catch (CryptoException e)
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
             }
 
-            this.srpClient.Init(N, g, new Sha1Digest(), context.SecureRandom);
+            this.mSrpClient.Init(N, g, TlsUtilities.CreateHash(HashAlgorithm.sha1), context.SecureRandom);
         }
 
-        public virtual void ValidateCertificateRequest(CertificateRequest certificateRequest)
+        public override void ValidateCertificateRequest(CertificateRequest certificateRequest)
         {
             throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public virtual void SkipClientCredentials()
-        {
-            // OK
-        }
-        
-        public virtual void ProcessClientCredentials(TlsCredentials clientCredentials)
+        public override void ProcessClientCredentials(TlsCredentials clientCredentials)
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
-        public virtual void GenerateClientKeyExchange(Stream output)
+        public override void GenerateClientKeyExchange(Stream output)
         {
-            byte[] keData = BigIntegers.AsUnsignedByteArray(srpClient.GenerateClientCredentials(s,
-                this.identity, this.password));
-            TlsUtilities.WriteOpaque16(keData, output);
+            BigInteger A = mSrpClient.GenerateClientCredentials(mS, this.mIdentity, this.mPassword);
+            TlsUtilities.WriteOpaque16(BigIntegers.AsUnsignedByteArray(A), output);
         }
 
-        public virtual byte[] GeneratePremasterSecret()
+        public override byte[] GeneratePremasterSecret()
         {
             try
             {
                 // TODO Check if this needs to be a fixed size
-                return BigIntegers.AsUnsignedByteArray(srpClient.CalculateSecret(B));
+                return BigIntegers.AsUnsignedByteArray(mSrpClient.CalculateSecret(mB));
             }
-            catch (CryptoException)
+            catch (CryptoException e)
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, e);
             }
         }
 
-        protected virtual ISigner InitSigner(TlsSigner tlsSigner, SecurityParameters securityParameters)
+        protected virtual ISigner InitVerifyer(TlsSigner tlsSigner, SignatureAndHashAlgorithm algorithm,
+            SecurityParameters securityParameters)
         {
-            ISigner signer = tlsSigner.CreateVerifyer(this.serverPublicKey);
+            ISigner signer = tlsSigner.CreateVerifyer(algorithm, this.mServerPublicKey);
             signer.BlockUpdate(securityParameters.clientRandom, 0, securityParameters.clientRandom.Length);
             signer.BlockUpdate(securityParameters.serverRandom, 0, securityParameters.serverRandom.Length);
             return signer;

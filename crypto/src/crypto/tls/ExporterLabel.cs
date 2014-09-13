@@ -6,12 +6,6 @@ namespace Org.BouncyCastle.Crypto.Tls
     public abstract class ExporterLabel
     {
         /*
-         * BC-specific
-         */
-        internal const string client_random = "client random";
-        internal const string server_random = "server random";
-
-        /*
          * RFC 5246
          */
         public const string client_finished = "client finished";
@@ -34,5 +28,10 @@ namespace Org.BouncyCastle.Crypto.Tls
          * RFC 5764
          */
         public const string dtls_srtp = "EXTRACTOR-dtls_srtp";
+
+        /*
+         * draft-ietf-tls-session-hash-01
+         */
+        public static readonly string extended_master_secret = "extended master secret";
     }
 }

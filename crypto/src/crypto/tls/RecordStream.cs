@@ -3,164 +3,331 @@ using System.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /// <remarks>An implementation of the TLS 1.0 record layer.</remarks>
+    /// <summary>An implementation of the TLS 1.0/1.1/1.2 record layer, allowing downgrade to SSLv3.</summary>
     internal class RecordStream
     {
-        private TlsProtocolHandler handler;
-        private Stream inStr;
-        private Stream outStr;
-        private CombinedHash hash;
-        private TlsCompression readCompression = null;
-        private TlsCompression writeCompression = null;
-        private TlsCipher readCipher = null;
-        private TlsCipher writeCipher = null;
-        private MemoryStream buffer = new MemoryStream();
+        private const int DEFAULT_PLAINTEXT_LIMIT = (1 << 14);
 
-        internal RecordStream(
-            TlsProtocolHandler	handler,
-            Stream				inStr,
-            Stream				outStr)
+        private TlsProtocol mHandler;
+        private Stream mInput;
+        private Stream mOutput;
+        private TlsCompression mPendingCompression = null, mReadCompression = null, mWriteCompression = null;
+        private TlsCipher mPendingCipher = null, mReadCipher = null, mWriteCipher = null;
+        private long mReadSeqNo = 0, mWriteSeqNo = 0;
+        private MemoryStream mBuffer = new MemoryStream();
+
+        private TlsHandshakeHash mHandshakeHash = null;
+
+        private ProtocolVersion mReadVersion = null, mWriteVersion = null;
+        private bool mRestrictReadVersion = true;
+
+        private int mPlaintextLimit, mCompressedLimit, mCiphertextLimit;
+
+        internal RecordStream(TlsProtocol handler, Stream input, Stream output)
         {
-            this.handler = handler;
-            this.inStr = inStr;
-            this.outStr = outStr;
-            this.hash = new CombinedHash();
-            this.readCompression = new TlsNullCompression();
-            this.writeCompression = this.readCompression;
-            this.readCipher = new TlsNullCipher();
-            this.writeCipher = this.readCipher;
+            this.mHandler = handler;
+            this.mInput = input;
+            this.mOutput = output;
+            this.mReadCompression = new TlsNullCompression();
+            this.mWriteCompression = this.mReadCompression;
         }
 
-        internal void ClientCipherSpecDecided(TlsCompression tlsCompression, TlsCipher tlsCipher)
+        internal virtual void Init(TlsContext context)
         {
-            this.writeCompression = tlsCompression;
-            this.writeCipher = tlsCipher;
+            this.mReadCipher = new TlsNullCipher(context);
+            this.mWriteCipher = this.mReadCipher;
+            this.mHandshakeHash = new DeferredHash();
+            this.mHandshakeHash.Init(context);
+
+            SetPlaintextLimit(DEFAULT_PLAINTEXT_LIMIT);
         }
 
-        internal void ServerClientSpecReceived()
+        internal virtual int GetPlaintextLimit()
         {
-            this.readCompression = this.writeCompression;
-            this.readCipher = this.writeCipher;
+            return mPlaintextLimit;
         }
 
-        public void ReadData()
+        internal virtual void SetPlaintextLimit(int plaintextLimit)
         {
-            byte contentType = TlsUtilities.ReadUint8(inStr);
-            TlsUtilities.CheckVersion(inStr);
-            int size = TlsUtilities.ReadUint16(inStr);
-            byte[] buf = DecodeAndVerify(contentType, inStr, size);
-            handler.ProcessData(contentType, buf, 0, buf.Length);
+            this.mPlaintextLimit = plaintextLimit;
+            this.mCompressedLimit = this.mPlaintextLimit + 1024;
+            this.mCiphertextLimit = this.mCompressedLimit + 1024;
         }
 
-        internal byte[] DecodeAndVerify(
-            byte        contentType,
-            Stream		inStr,
-            int			len)
+        internal virtual ProtocolVersion ReadVersion
         {
-            byte[] buf = new byte[len];
-            TlsUtilities.ReadFully(buf, inStr);
-            byte[] decoded = readCipher.DecodeCiphertext(contentType, buf, 0, buf.Length);
+            get { return mReadVersion; }
+            set { this.mReadVersion = value; }
+        }
 
-            Stream cOut = readCompression.Decompress(buffer);
+        internal virtual void SetWriteVersion(ProtocolVersion writeVersion)
+        {
+            this.mWriteVersion = writeVersion;
+        }
 
-            if (cOut == buffer)
+        /**
+         * RFC 5246 E.1. "Earlier versions of the TLS specification were not fully clear on what the
+         * record layer version number (TLSPlaintext.version) should contain when sending ClientHello
+         * (i.e., before it is known which version of the protocol will be employed). Thus, TLS servers
+         * compliant with this specification MUST accept any value {03,XX} as the record layer version
+         * number for ClientHello."
+         */
+        internal virtual void SetRestrictReadVersion(bool enabled)
+        {
+            this.mRestrictReadVersion = enabled;
+        }
+
+        internal virtual void SetPendingConnectionState(TlsCompression tlsCompression, TlsCipher tlsCipher)
+        {
+            this.mPendingCompression = tlsCompression;
+            this.mPendingCipher = tlsCipher;
+        }
+
+        internal virtual void SentWriteCipherSpec()
+        {
+            if (mPendingCompression == null || mPendingCipher == null)
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+            this.mWriteCompression = this.mPendingCompression;
+            this.mWriteCipher = this.mPendingCipher;
+            this.mWriteSeqNo = 0;
+        }
+
+        internal virtual void ReceivedReadCipherSpec()
+        {
+            if (mPendingCompression == null || mPendingCipher == null)
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+            this.mReadCompression = this.mPendingCompression;
+            this.mReadCipher = this.mPendingCipher;
+            this.mReadSeqNo = 0;
+        }
+
+        internal virtual void FinaliseHandshake()
+        {
+            if (mReadCompression != mPendingCompression || mWriteCompression != mPendingCompression
+                || mReadCipher != mPendingCipher || mWriteCipher != mPendingCipher)
             {
-                return decoded;
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
             }
-
-            cOut.Write(decoded, 0, decoded.Length);
-            cOut.Flush();
-            byte[] contents = buffer.ToArray();
-            buffer.SetLength(0);
-            return contents;
+            this.mPendingCompression = null;
+            this.mPendingCipher = null;
         }
 
-        internal void WriteMessage(
-            byte    type,
-            byte[]  message,
-            int		offset,
-            int		len)
+        internal virtual bool ReadRecord()
         {
-            if (type == ContentType.handshake)
-            {
-                UpdateHandshakeData(message, offset, len);
-            }
+            byte[] recordHeader = TlsUtilities.ReadAllOrNothing(5, mInput);
+            if (recordHeader == null)
+                return false;
 
-            Stream cOut = writeCompression.Compress(buffer);
+            byte type = TlsUtilities.ReadUint8(recordHeader, 0);
 
-            byte[] ciphertext;
-            if (cOut == buffer)
+            /*
+             * RFC 5246 6. If a TLS implementation receives an unexpected record type, it MUST send an
+             * unexpected_message alert.
+             */
+            CheckType(type, AlertDescription.unexpected_message);
+
+            if (!mRestrictReadVersion)
             {
-                ciphertext = writeCipher.EncodePlaintext(type, message, offset, len);
+                int version = TlsUtilities.ReadVersionRaw(recordHeader, 1);
+                if ((version & 0xffffff00) != 0x0300)
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
             else
             {
-                cOut.Write(message, offset, len);
+                ProtocolVersion version = TlsUtilities.ReadVersion(recordHeader, 1);
+                if (mReadVersion == null)
+                {
+                    mReadVersion = version;
+                }
+                else if (!version.Equals(mReadVersion))
+                {
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                }
+            }
+
+            int length = TlsUtilities.ReadUint16(recordHeader, 3);
+            byte[] plaintext = DecodeAndVerify(type, mInput, length);
+            mHandler.ProcessRecord(type, plaintext, 0, plaintext.Length);
+            return true;
+        }
+
+        internal virtual byte[] DecodeAndVerify(byte type, Stream input, int len)
+        {
+            CheckLength(len, mCiphertextLimit, AlertDescription.record_overflow);
+
+            byte[] buf = TlsUtilities.ReadFully(len, input);
+            byte[] decoded = mReadCipher.DecodeCiphertext(mReadSeqNo++, type, buf, 0, buf.Length);
+
+            CheckLength(decoded.Length, mCompressedLimit, AlertDescription.record_overflow);
+
+            /*
+             * TODO RFC5264 6.2.2. Implementation note: Decompression functions are responsible for
+             * ensuring that messages cannot cause internal buffer overflows.
+             */
+            Stream cOut = mReadCompression.Decompress(mBuffer);
+            if (cOut != mBuffer)
+            {
+                cOut.Write(decoded, 0, decoded.Length);
                 cOut.Flush();
-                ciphertext = writeCipher.EncodePlaintext(type, buffer.GetBuffer(), 0, (int)buffer.Position);
-                buffer.SetLength(0);
+                decoded = GetBufferContents();
             }
 
-            byte[] writeMessage = new byte[ciphertext.Length + 5];
-            TlsUtilities.WriteUint8((byte)type, writeMessage, 0);
-            TlsUtilities.WriteVersion(writeMessage, 1);
-            TlsUtilities.WriteUint16(ciphertext.Length, writeMessage, 3);
-            Array.Copy(ciphertext, 0, writeMessage, 5, ciphertext.Length);
-            outStr.Write(writeMessage, 0, writeMessage.Length);
-            outStr.Flush();
+            /*
+             * RFC 5264 6.2.2. If the decompression function encounters a TLSCompressed.fragment that
+             * would decompress to a length in excess of 2^14 bytes, it should report a fatal
+             * decompression failure error.
+             */
+            CheckLength(decoded.Length, mPlaintextLimit, AlertDescription.decompression_failure);
+
+            /*
+             * RFC 5264 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
+             * or ChangeCipherSpec content types.
+             */
+            if (decoded.Length < 1 && type != ContentType.application_data)
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+
+            return decoded;
         }
 
-        internal void UpdateHandshakeData(
-            byte[]	message,
-            int		offset,
-            int		len)
+        internal virtual void WriteRecord(byte type, byte[] plaintext, int plaintextOffset, int plaintextLength)
         {
-            hash.BlockUpdate(message, offset, len);
+            // Never send anything until a valid ClientHello has been received
+            if (mWriteVersion == null)
+                return;
+
+            /*
+             * RFC 5264 6. Implementations MUST NOT send record types not defined in this document
+             * unless negotiated by some extension.
+             */
+            CheckType(type, AlertDescription.internal_error);
+
+            /*
+             * RFC 5264 6.2.1 The length should not exceed 2^14.
+             */
+            CheckLength(plaintextLength, mPlaintextLimit, AlertDescription.internal_error);
+
+            /*
+             * RFC 5264 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
+             * or ChangeCipherSpec content types.
+             */
+            if (plaintextLength < 1 && type != ContentType.application_data)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            if (type == ContentType.handshake)
+            {
+                UpdateHandshakeData(plaintext, plaintextOffset, plaintextLength);
+            }
+
+            Stream cOut = mWriteCompression.Compress(mBuffer);
+
+            byte[] ciphertext;
+            if (cOut == mBuffer)
+            {
+                ciphertext = mWriteCipher.EncodePlaintext(mWriteSeqNo++, type, plaintext, plaintextOffset, plaintextLength);
+            }
+            else
+            {
+                cOut.Write(plaintext, plaintextOffset, plaintextLength);
+                cOut.Flush();
+                byte[] compressed = GetBufferContents();
+
+                /*
+                 * RFC5264 6.2.2. Compression must be lossless and may not increase the content length
+                 * by more than 1024 bytes.
+                 */
+                CheckLength(compressed.Length, plaintextLength + 1024, AlertDescription.internal_error);
+
+                ciphertext = mWriteCipher.EncodePlaintext(mWriteSeqNo++, type, compressed, 0, compressed.Length);
+            }
+
+            /*
+             * RFC 5264 6.2.3. The length may not exceed 2^14 + 2048.
+             */
+            CheckLength(ciphertext.Length, mCiphertextLimit, AlertDescription.internal_error);
+
+            byte[] record = new byte[ciphertext.Length + 5];
+            TlsUtilities.WriteUint8(type, record, 0);
+            TlsUtilities.WriteVersion(mWriteVersion, record, 1);
+            TlsUtilities.WriteUint16(ciphertext.Length, record, 3);
+            Array.Copy(ciphertext, 0, record, 5, ciphertext.Length);
+            mOutput.Write(record, 0, record.Length);
+            mOutput.Flush();
         }
 
-        internal byte[] GetCurrentHash()
+        internal virtual void NotifyHelloComplete()
         {
-            return DoFinal(new CombinedHash(hash));
+            this.mHandshakeHash = mHandshakeHash.NotifyPrfDetermined();
         }
 
-        internal void Close()
+        internal virtual TlsHandshakeHash HandshakeHash
         {
-            IOException e = null;
+            get { return mHandshakeHash; }
+        }
+
+        internal virtual TlsHandshakeHash PrepareToFinish()
+        {
+            TlsHandshakeHash result = mHandshakeHash;
+            this.mHandshakeHash = mHandshakeHash.StopTracking();
+            return result;
+        }
+
+        internal virtual void UpdateHandshakeData(byte[] message, int offset, int len)
+        {
+            mHandshakeHash.BlockUpdate(message, offset, len);
+        }
+
+        internal virtual void SafeClose()
+        {
             try
             {
-                inStr.Close();
+                mInput.Close();
             }
-            catch (IOException ex)
+            catch (IOException)
             {
-                e = ex;
             }
 
             try
             {
-                // NB: This is harmless if outStr == inStr
-                outStr.Close();
+                mOutput.Close();
             }
-            catch (IOException ex)
+            catch (IOException)
             {
-                e = ex;
-            }
-
-            if (e != null)
-            {
-                throw e;
             }
         }
 
-        internal void Flush()
+        internal virtual void Flush()
         {
-            outStr.Flush();
+            mOutput.Flush();
         }
 
-        private static byte[] DoFinal(CombinedHash ch)
+        private byte[] GetBufferContents()
         {
-            byte[] bs = new byte[ch.GetDigestSize()];
-            ch.DoFinal(bs, 0);
-            return bs;
+            byte[] contents = mBuffer.ToArray();
+            mBuffer.SetLength(0);
+            return contents;
+        }
+
+        private static void CheckType(byte type, byte alertDescription)
+        {
+            switch (type)
+            {
+            case ContentType.application_data:
+            case ContentType.alert:
+            case ContentType.change_cipher_spec:
+            case ContentType.handshake:
+            case ContentType.heartbeat:
+                break;
+            default:
+                throw new TlsFatalAlert(alertDescription);
+            }
+        }
+
+        private static void CheckLength(int length, int limit, byte alertDescription)
+        {
+            if (length > limit)
+                throw new TlsFatalAlert(alertDescription);
         }
     }
 }

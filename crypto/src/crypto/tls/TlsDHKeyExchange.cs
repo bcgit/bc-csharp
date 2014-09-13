@@ -1,86 +1,98 @@
 using System;
+using System.Collections;
 using System.IO;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    /// <summary>
-    /// TLS 1.0 DH key exchange.
-    /// </summary>
-    internal class TlsDHKeyExchange
-        : TlsKeyExchange
+    /// <summary>(D)TLS DH key exchange.</summary>
+    public class TlsDHKeyExchange
+        :   AbstractTlsKeyExchange
     {
-        protected TlsClientContext context;
-        protected int keyExchange;
-        protected TlsSigner tlsSigner;
+        protected TlsSigner mTlsSigner;
+        protected DHParameters mDHParameters;
 
-        protected AsymmetricKeyParameter serverPublicKey = null;
-        protected DHPublicKeyParameters dhAgreeServerPublicKey = null;
-        protected TlsAgreementCredentials agreementCredentials;
-        protected DHPrivateKeyParameters dhAgreeClientPrivateKey = null;
+        protected AsymmetricKeyParameter mServerPublicKey;
+        protected DHPublicKeyParameters mDHAgreeServerPublicKey;
+        protected TlsAgreementCredentials mAgreementCredentials;
+        protected DHPrivateKeyParameters mDHAgreeClientPrivateKey;
 
-        internal TlsDHKeyExchange(TlsClientContext context, int keyExchange)
+        protected DHPrivateKeyParameters mDHAgreeServerPrivateKey;
+        protected DHPublicKeyParameters mDHAgreeClientPublicKey;
+
+        public TlsDHKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, DHParameters dhParameters)
+            :   base(keyExchange, supportedSignatureAlgorithms)
         {
             switch (keyExchange)
             {
-                case KeyExchangeAlgorithm.DH_RSA:
-                case KeyExchangeAlgorithm.DH_DSS:
-                    this.tlsSigner = null;
-                    break;
-                case KeyExchangeAlgorithm.DHE_RSA:
-                    this.tlsSigner = new TlsRsaSigner();
-                    break;
-                case KeyExchangeAlgorithm.DHE_DSS:
-                    this.tlsSigner = new TlsDssSigner();
-                    break;
-                default:
-                    throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+            case KeyExchangeAlgorithm.DH_RSA:
+            case KeyExchangeAlgorithm.DH_DSS:
+                this.mTlsSigner = null;
+                break;
+            case KeyExchangeAlgorithm.DHE_RSA:
+                this.mTlsSigner = new TlsRsaSigner();
+                break;
+            case KeyExchangeAlgorithm.DHE_DSS:
+                this.mTlsSigner = new TlsDssSigner();
+                break;
+            default:
+                throw new InvalidOperationException("unsupported key exchange algorithm");
             }
 
-            this.context = context;
-            this.keyExchange = keyExchange;
+            this.mDHParameters = dhParameters;
         }
 
-        public virtual void SkipServerCertificate()
+        public override void Init(TlsContext context)
+        {
+            base.Init(context);
+
+            if (this.mTlsSigner != null)
+            {
+                this.mTlsSigner.Init(context);
+            }
+        }
+
+        public override void SkipServerCredentials()
         {
             throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public virtual void ProcessServerCertificate(Certificate serverCertificate)
+        public override void ProcessServerCertificate(Certificate serverCertificate)
         {
-            X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
-            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            if (serverCertificate.IsEmpty)
+                throw new TlsFatalAlert(AlertDescription.bad_certificate);
 
+            X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
+
+            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
             try
             {
-                this.serverPublicKey = PublicKeyFactory.CreateKey(keyInfo);
+                this.mServerPublicKey = PublicKeyFactory.CreateKey(keyInfo);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
             }
 
-            if (tlsSigner == null)
+            if (mTlsSigner == null)
             {
                 try
                 {
-                    this.dhAgreeServerPublicKey = ValidateDHPublicKey((DHPublicKeyParameters)this.serverPublicKey);
+                    this.mDHAgreeServerPublicKey = TlsDHUtilities.ValidateDHPublicKey((DHPublicKeyParameters)this.mServerPublicKey);
                 }
-                catch (InvalidCastException)
+                catch (InvalidCastException e)
                 {
-                    throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                    throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
                 }
 
                 TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.KeyAgreement);
             }
             else
             {
-                if (!tlsSigner.IsValidPublicKey(this.serverPublicKey))
+                if (!mTlsSigner.IsValidPublicKey(this.mServerPublicKey))
                 {
                     throw new TlsFatalAlert(AlertDescription.certificate_unknown);
                 }
@@ -88,55 +100,51 @@ namespace Org.BouncyCastle.Crypto.Tls
                 TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
             }
 
-            // TODO
-            /*
-            * Perform various checks per RFC2246 7.4.2: "Unless otherwise specified, the
-            * signing algorithm for the certificate must be the same as the algorithm for the
-            * certificate key."
-            */
+            base.ProcessServerCertificate(serverCertificate);
         }
 
-        public virtual void SkipServerKeyExchange()
+        public override bool RequiresServerKeyExchange
         {
-            // OK
-        }
-
-        public virtual void ProcessServerKeyExchange(Stream input)
-        {
-            throw new TlsFatalAlert(AlertDescription.unexpected_message);
-        }
-
-        public virtual void ValidateCertificateRequest(CertificateRequest certificateRequest)
-        {
-            byte[] types = certificateRequest.CertificateTypes;
-            foreach (byte type in types)
+            get
             {
-                switch (type)
+                switch (mKeyExchange)
                 {
-                    case ClientCertificateType.rsa_sign:
-                    case ClientCertificateType.dss_sign:
-                    case ClientCertificateType.rsa_fixed_dh:
-                    case ClientCertificateType.dss_fixed_dh:
-                    case ClientCertificateType.ecdsa_sign:
-                        break;
-                    default:
-                        throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                case KeyExchangeAlgorithm.DHE_DSS:
+                case KeyExchangeAlgorithm.DHE_RSA:
+                case KeyExchangeAlgorithm.DH_anon:
+                    return true;
+                default:
+                    return false;
                 }
             }
         }
 
-        public virtual void SkipClientCredentials()
+        public override void ValidateCertificateRequest(CertificateRequest certificateRequest)
         {
-            this.agreementCredentials = null;
+            byte[] types = certificateRequest.CertificateTypes;
+            for (int i = 0; i < types.Length; ++i)
+            {
+                switch (types[i])
+                {
+                case ClientCertificateType.rsa_sign:
+                case ClientCertificateType.dss_sign:
+                case ClientCertificateType.rsa_fixed_dh:
+                case ClientCertificateType.dss_fixed_dh:
+                case ClientCertificateType.ecdsa_sign:
+                    break;
+                default:
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                }
+            }
         }
 
-        public virtual void ProcessClientCredentials(TlsCredentials clientCredentials)
+        public override void ProcessClientCredentials(TlsCredentials clientCredentials)
         {
             if (clientCredentials is TlsAgreementCredentials)
             {
                 // TODO Validate client cert has matching parameters (see 'areCompatibleParameters')?
 
-                this.agreementCredentials = (TlsAgreementCredentials)clientCredentials;
+                this.mAgreementCredentials = (TlsAgreementCredentials)clientCredentials;
             }
             else if (clientCredentials is TlsSignerCredentials)
             {
@@ -148,54 +156,38 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        public virtual void GenerateClientKeyExchange(Stream output)
+        public override void GenerateClientKeyExchange(Stream output)
         {
             /*
-             * RFC 2246 7.4.7.2 If the client certificate already contains a suitable
-             * Diffie-Hellman key, then Yc is implicit and does not need to be sent again. In
-             * this case, the Client Key Exchange message will be sent, but will be empty.
+             * RFC 2246 7.4.7.2 If the client certificate already contains a suitable Diffie-Hellman
+             * key, then Yc is implicit and does not need to be sent again. In this case, the Client Key
+             * Exchange message will be sent, but will be empty.
              */
-            if (agreementCredentials == null)
+            if (mAgreementCredentials == null)
             {
-                GenerateEphemeralClientKeyExchange(dhAgreeServerPublicKey.Parameters, output);
+                this.mDHAgreeClientPrivateKey = TlsDHUtilities.GenerateEphemeralClientKeyExchange(context.SecureRandom,
+                    mDHAgreeServerPublicKey.Parameters, output);
             }
         }
 
-        public virtual byte[] GeneratePremasterSecret()
+        public override byte[] GeneratePremasterSecret()
         {
-            if (agreementCredentials != null)
+            if (mAgreementCredentials != null)
             {
-                return agreementCredentials.GenerateAgreement(dhAgreeServerPublicKey);
+                return mAgreementCredentials.GenerateAgreement(mDHAgreeServerPublicKey);
             }
 
-            return CalculateDHBasicAgreement(dhAgreeServerPublicKey, dhAgreeClientPrivateKey);
-        }
-        
-        protected virtual bool AreCompatibleParameters(DHParameters a, DHParameters b)
-        {
-            return a.P.Equals(b.P) && a.G.Equals(b.G);
-        }
+            if (mDHAgreeServerPrivateKey != null)
+            {
+                return TlsDHUtilities.CalculateDHBasicAgreement(mDHAgreeClientPublicKey, mDHAgreeServerPrivateKey);
+            }
 
-        protected virtual byte[] CalculateDHBasicAgreement(DHPublicKeyParameters publicKey,
-            DHPrivateKeyParameters privateKey)
-        {
-            return TlsDHUtilities.CalculateDHBasicAgreement(publicKey, privateKey);
-        }
+            if (mDHAgreeClientPrivateKey != null)
+            {
+                return TlsDHUtilities.CalculateDHBasicAgreement(mDHAgreeServerPublicKey, mDHAgreeClientPrivateKey);
+            }
 
-        protected virtual AsymmetricCipherKeyPair GenerateDHKeyPair(DHParameters dhParams)
-        {
-            return TlsDHUtilities.GenerateDHKeyPair(context.SecureRandom, dhParams);
-        }
-
-        protected virtual void GenerateEphemeralClientKeyExchange(DHParameters dhParams, Stream output)
-        {
-            this.dhAgreeClientPrivateKey = TlsDHUtilities.GenerateEphemeralClientKeyExchange(
-                context.SecureRandom, dhParams, output);
-        }
-
-        protected virtual DHPublicKeyParameters ValidateDHPublicKey(DHPublicKeyParameters key)
-        {
-            return TlsDHUtilities.ValidateDHPublicKey(key);
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
     }
 }

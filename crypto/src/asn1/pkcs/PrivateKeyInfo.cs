@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 {
                     return ParsePrivateKey();
                 }
-                catch (IOException e)
+                catch (IOException)
                 {
                     throw new InvalidOperationException("unable to parse private key");
                 }

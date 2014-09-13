@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         private void CheckTestCase(IAeadBlockCipher encCipher, IAeadBlockCipher decCipher, string testName,
             int macLengthBytes, byte[] P, byte[] C)
         {
-            byte[] tag = Arrays.Copy(C, C.Length - macLengthBytes, macLengthBytes);
+            byte[] tag = Arrays.CopyOfRange(C, C.Length - macLengthBytes, C.Length);
 
             {
                 byte[] enc = new byte[encCipher.GetOutputSize(P.Length)];

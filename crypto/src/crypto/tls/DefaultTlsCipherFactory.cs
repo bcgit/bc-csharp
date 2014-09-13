@@ -1,53 +1,146 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
     public class DefaultTlsCipherFactory
-        : TlsCipherFactory
+        :   AbstractTlsCipherFactory
     {
-        public virtual TlsCipher CreateCipher(TlsClientContext context,
-            int encryptionAlgorithm, DigestAlgorithm digestAlgorithm)
+        /// <exception cref="IOException"></exception>
+        public override TlsCipher CreateCipher(TlsContext context, int encryptionAlgorithm, int macAlgorithm)
         {
             switch (encryptionAlgorithm)
             {
-                case EncryptionAlgorithm.cls_3DES_EDE_CBC:
-                    return CreateDesEdeCipher(context, 24, digestAlgorithm);
-                case EncryptionAlgorithm.AES_128_CBC:
-                    return CreateAesCipher(context, 16, digestAlgorithm);
-                case EncryptionAlgorithm.AES_256_CBC:
-                    return CreateAesCipher(context, 32, digestAlgorithm);
-                case EncryptionAlgorithm.RC4_128:
-                    return CreateRC4Cipher(context, 16, digestAlgorithm);
-                default:
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            case EncryptionAlgorithm.cls_3DES_EDE_CBC:
+                return CreateDesEdeCipher(context, macAlgorithm);
+            case EncryptionAlgorithm.AEAD_CHACHA20_POLY1305:
+                // NOTE: Ignores macAlgorithm
+                return CreateChaCha20Poly1305(context);
+            case EncryptionAlgorithm.AES_128_CBC:
+                return CreateAESCipher(context, 16, macAlgorithm);
+            case EncryptionAlgorithm.AES_128_CCM:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Ccm(context, 16, 16);
+            case EncryptionAlgorithm.AES_128_CCM_8:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Ccm(context, 16, 8);
+            case EncryptionAlgorithm.AES_256_CCM:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Ccm(context, 32, 16);
+            case EncryptionAlgorithm.AES_256_CCM_8:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Ccm(context, 32, 8);
+            case EncryptionAlgorithm.AES_128_GCM:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Gcm(context, 16, 16);
+            case EncryptionAlgorithm.AES_256_CBC:
+                return CreateAESCipher(context, 32, macAlgorithm);
+            case EncryptionAlgorithm.AES_256_GCM:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Gcm(context, 32, 16);
+            case EncryptionAlgorithm.CAMELLIA_128_CBC:
+                return CreateCamelliaCipher(context, 16, macAlgorithm);
+            case EncryptionAlgorithm.CAMELLIA_128_GCM:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Camellia_Gcm(context, 16, 16);
+            case EncryptionAlgorithm.CAMELLIA_256_CBC:
+                return CreateCamelliaCipher(context, 32, macAlgorithm);
+            case EncryptionAlgorithm.CAMELLIA_256_GCM:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Camellia_Gcm(context, 32, 16);
+            case EncryptionAlgorithm.ESTREAM_SALSA20:
+                return CreateSalsa20Cipher(context, 12, 32, macAlgorithm);
+            case EncryptionAlgorithm.NULL:
+                return CreateNullCipher(context, macAlgorithm);
+            case EncryptionAlgorithm.RC4_128:
+                return CreateRC4Cipher(context, 16, macAlgorithm);
+            case EncryptionAlgorithm.SALSA20:
+                return CreateSalsa20Cipher(context, 20, 32, macAlgorithm);
+            case EncryptionAlgorithm.SEED_CBC:
+                return CreateSeedCipher(context, macAlgorithm);
+            default:
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
 
         /// <exception cref="IOException"></exception>
-        protected virtual TlsCipher CreateRC4Cipher(TlsClientContext context, int cipherKeySize, DigestAlgorithm digestAlgorithm)
-        {
-            return new TlsStreamCipher(context, CreateRC4StreamCipher(), CreateRC4StreamCipher(), CreateDigest(digestAlgorithm), CreateDigest(digestAlgorithm), cipherKeySize);
-        }
-
-        /// <exception cref="IOException"></exception>
-        protected virtual TlsCipher CreateAesCipher(TlsClientContext context, int cipherKeySize,
-            DigestAlgorithm digestAlgorithm)
+        protected virtual TlsBlockCipher CreateAESCipher(TlsContext context, int cipherKeySize, int macAlgorithm)
         {
             return new TlsBlockCipher(context, CreateAesBlockCipher(), CreateAesBlockCipher(),
-                CreateDigest(digestAlgorithm), CreateDigest(digestAlgorithm), cipherKeySize);
+                CreateHMacDigest(macAlgorithm), CreateHMacDigest(macAlgorithm), cipherKeySize);
         }
 
         /// <exception cref="IOException"></exception>
-        protected virtual TlsCipher CreateDesEdeCipher(TlsClientContext context, int cipherKeySize,
-            DigestAlgorithm digestAlgorithm)
+        protected virtual TlsBlockCipher CreateCamelliaCipher(TlsContext context, int cipherKeySize, int macAlgorithm)
+        {
+            return new TlsBlockCipher(context, CreateCamelliaBlockCipher(),
+                CreateCamelliaBlockCipher(), CreateHMacDigest(macAlgorithm),
+                CreateHMacDigest(macAlgorithm), cipherKeySize);
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsCipher CreateChaCha20Poly1305(TlsContext context)
+        {
+            return new Chacha20Poly1305(context);
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsAeadCipher CreateCipher_Aes_Ccm(TlsContext context, int cipherKeySize, int macSize)
+        {
+            return new TlsAeadCipher(context, CreateAeadBlockCipher_Aes_Ccm(),
+                CreateAeadBlockCipher_Aes_Ccm(), cipherKeySize, macSize);
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsAeadCipher CreateCipher_Aes_Gcm(TlsContext context, int cipherKeySize, int macSize)
+        {
+            return new TlsAeadCipher(context, CreateAeadBlockCipher_Aes_Gcm(),
+                CreateAeadBlockCipher_Aes_Gcm(), cipherKeySize, macSize);
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsAeadCipher CreateCipher_Camellia_Gcm(TlsContext context, int cipherKeySize, int macSize)
+        {
+            return new TlsAeadCipher(context, CreateAeadBlockCipher_Camellia_Gcm(),
+                CreateAeadBlockCipher_Camellia_Gcm(), cipherKeySize, macSize);
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsBlockCipher CreateDesEdeCipher(TlsContext context, int macAlgorithm)
         {
             return new TlsBlockCipher(context, CreateDesEdeBlockCipher(), CreateDesEdeBlockCipher(),
-                CreateDigest(digestAlgorithm), CreateDigest(digestAlgorithm), cipherKeySize);
+                CreateHMacDigest(macAlgorithm), CreateHMacDigest(macAlgorithm), 24);
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsNullCipher CreateNullCipher(TlsContext context, int macAlgorithm)
+        {
+            return new TlsNullCipher(context, CreateHMacDigest(macAlgorithm),
+                CreateHMacDigest(macAlgorithm));
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsStreamCipher CreateRC4Cipher(TlsContext context, int cipherKeySize, int macAlgorithm)
+        {
+            return new TlsStreamCipher(context, CreateRC4StreamCipher(), CreateRC4StreamCipher(),
+                CreateHMacDigest(macAlgorithm), CreateHMacDigest(macAlgorithm), cipherKeySize, false);
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsStreamCipher CreateSalsa20Cipher(TlsContext context, int rounds, int cipherKeySize, int macAlgorithm)
+        {
+            return new TlsStreamCipher(context, CreateSalsa20StreamCipher(rounds), CreateSalsa20StreamCipher(rounds),
+                CreateHMacDigest(macAlgorithm), CreateHMacDigest(macAlgorithm), cipherKeySize, true);
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual TlsBlockCipher CreateSeedCipher(TlsContext context, int macAlgorithm)
+        {
+            return new TlsBlockCipher(context, CreateSeedBlockCipher(), CreateSeedBlockCipher(),
+                CreateHMacDigest(macAlgorithm), CreateHMacDigest(macAlgorithm), 16);
         }
 
         protected virtual IBlockCipher CreateAesEngine()
@@ -55,9 +148,36 @@ namespace Org.BouncyCastle.Crypto.Tls
             return new AesEngine();
         }
 
+        protected virtual IBlockCipher CreateCamelliaEngine()
+        {
+            return new CamelliaEngine();
+        }
+
         protected virtual IBlockCipher CreateAesBlockCipher()
         {
             return new CbcBlockCipher(CreateAesEngine());
+        }
+
+        protected virtual IAeadBlockCipher CreateAeadBlockCipher_Aes_Ccm()
+        {
+            return new CcmBlockCipher(CreateAesEngine());
+        }
+
+        protected virtual IAeadBlockCipher CreateAeadBlockCipher_Aes_Gcm()
+        {
+            // TODO Consider allowing custom configuration of multiplier
+            return new GcmBlockCipher(CreateAesEngine());
+        }
+
+        protected virtual IAeadBlockCipher CreateAeadBlockCipher_Camellia_Gcm()
+        {
+            // TODO Consider allowing custom configuration of multiplier
+            return new GcmBlockCipher(CreateCamelliaEngine());
+        }
+
+        protected virtual IBlockCipher CreateCamelliaBlockCipher()
+        {
+            return new CbcBlockCipher(CreateCamelliaEngine());
         }
 
         protected virtual IBlockCipher CreateDesEdeBlockCipher()
@@ -70,21 +190,35 @@ namespace Org.BouncyCastle.Crypto.Tls
             return new RC4Engine();
         }
 
-        /// <exception cref="IOException"></exception>
-        protected virtual IDigest CreateDigest(DigestAlgorithm digestAlgorithm)
+        protected virtual IStreamCipher CreateSalsa20StreamCipher(int rounds)
         {
-            switch (digestAlgorithm)
+            return new Salsa20Engine(rounds);
+        }
+
+        protected virtual IBlockCipher CreateSeedBlockCipher()
+        {
+            return new CbcBlockCipher(new SeedEngine());
+        }
+
+        /// <exception cref="IOException"></exception>
+        protected virtual IDigest CreateHMacDigest(int macAlgorithm)
+        {
+            switch (macAlgorithm)
             {
-                case DigestAlgorithm.MD5:
-                    return new MD5Digest();
-                case DigestAlgorithm.SHA:
-                    return new Sha1Digest();
-                case DigestAlgorithm.SHA256:
-                    return new Sha256Digest();
-                case DigestAlgorithm.SHA384:
-                    return new Sha384Digest();
-                default:
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            case MacAlgorithm.cls_null:
+                return null;
+            case MacAlgorithm.hmac_md5:
+                return TlsUtilities.CreateHash(HashAlgorithm.md5);
+            case MacAlgorithm.hmac_sha1:
+                return TlsUtilities.CreateHash(HashAlgorithm.sha1);
+            case MacAlgorithm.hmac_sha256:
+                return TlsUtilities.CreateHash(HashAlgorithm.sha256);
+            case MacAlgorithm.hmac_sha384:
+                return TlsUtilities.CreateHash(HashAlgorithm.sha384);
+            case MacAlgorithm.hmac_sha512:
+                return TlsUtilities.CreateHash(HashAlgorithm.sha512);
+            default:
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
     }

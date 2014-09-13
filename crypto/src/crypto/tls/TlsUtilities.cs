@@ -4,10 +4,13 @@ using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.IO;
@@ -15,7 +18,7 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Crypto.Tls
 {
     /// <remarks>Some helper functions for MicroTLS.</remarks>
-    public class TlsUtilities
+    public abstract class TlsUtilities
     {
         public static readonly byte[] EmptyBytes = new byte[0];
 
@@ -489,26 +492,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             return uints;
         }
 
-        [Obsolete]
-        public static void CheckVersion(byte[] ReadVersion)
-        {
-            if ((ReadVersion[0] != 3) || (ReadVersion[1] != 1))
-            {
-                throw new TlsFatalAlert(AlertDescription.protocol_version);
-            }
-        }
-
-        [Obsolete]
-        public static void CheckVersion(Stream input)
-        {
-            int i1 = input.ReadByte();
-            int i2 = input.ReadByte();
-            if ((i1 != 3) || (i2 != 1))
-            {
-                throw new TlsFatalAlert(AlertDescription.protocol_version);
-            }
-        }
-
         public static ProtocolVersion ReadVersion(byte[] buf, int offset)
         {
             return ProtocolVersion.Get(buf[offset], buf[offset + 1]);
@@ -574,20 +557,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             buf[offset + 3] = (byte)t;
         }
 
-        [Obsolete]
-        public static void WriteVersion(Stream output)
-        {
-            output.WriteByte(3);
-            output.WriteByte(1);
-        }
-
-        [Obsolete]
-        public static void WriteVersion(byte[] buf, int offset)
-        {
-            buf[offset] = 3;
-            buf[offset + 1] = 1;
-        }
-
         public static void WriteVersion(ProtocolVersion version, Stream output)
         {
             output.WriteByte((byte)version.MajorVersion);
@@ -631,6 +600,80 @@ namespace Org.BouncyCastle.Crypto.Tls
             return true;
         }
 
+        public static TlsSession ImportSession(byte[] sessionID, SessionParameters sessionParameters)
+        {
+            return new TlsSessionImpl(sessionID, sessionParameters);
+        }
+
+        public static bool IsSignatureAlgorithmsExtensionAllowed(ProtocolVersion clientVersion)
+        {
+            return ProtocolVersion.TLSv12.IsEqualOrEarlierVersionOf(clientVersion.GetEquivalentTLSVersion());
+        }
+
+        /**
+         * Add a 'signature_algorithms' extension to existing extensions.
+         *
+         * @param extensions                   A {@link Hashtable} to add the extension to.
+         * @param supportedSignatureAlgorithms {@link Vector} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @throws IOException
+         */
+        public static void AddSignatureAlgorithmsExtension(IDictionary extensions, IList supportedSignatureAlgorithms)
+        {
+            extensions[ExtensionType.signature_algorithms] = CreateSignatureAlgorithmsExtension(supportedSignatureAlgorithms);
+        }
+
+        /**
+         * Get a 'signature_algorithms' extension from extensions.
+         *
+         * @param extensions A {@link Hashtable} to get the extension from, if it is present.
+         * @return A {@link Vector} containing at least 1 {@link SignatureAndHashAlgorithm}, or null.
+         * @throws IOException
+         */
+        public static IList GetSignatureAlgorithmsExtension(IDictionary extensions)
+        {
+            byte[] extensionData = GetExtensionData(extensions, ExtensionType.signature_algorithms);
+            return extensionData == null ? null : ReadSignatureAlgorithmsExtension(extensionData);
+        }
+
+        /**
+         * Create a 'signature_algorithms' extension value.
+         *
+         * @param supportedSignatureAlgorithms A {@link Vector} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @return A byte array suitable for use as an extension value.
+         * @throws IOException
+         */
+        public static byte[] CreateSignatureAlgorithmsExtension(IList supportedSignatureAlgorithms)
+        {
+            MemoryStream buf = new MemoryStream();
+
+            // supported_signature_algorithms
+            EncodeSupportedSignatureAlgorithms(supportedSignatureAlgorithms, false, buf);
+
+            return buf.ToArray();
+        }
+
+        /**
+         * Read 'signature_algorithms' extension data.
+         *
+         * @param extensionData The extension data.
+         * @return A {@link Vector} containing at least 1 {@link SignatureAndHashAlgorithm}.
+         * @throws IOException
+         */
+        public static IList ReadSignatureAlgorithmsExtension(byte[] extensionData)
+        {
+            if (extensionData == null)
+                throw new ArgumentNullException("extensionData");
+
+            MemoryStream buf = new MemoryStream(extensionData, false);
+
+            // supported_signature_algorithms
+            IList supported_signature_algorithms = ParseSupportedSignatureAlgorithms(false, buf);
+
+            TlsProtocol.AssertEmpty(buf);
+
+            return supported_signature_algorithms;
+        }
+
         public static void EncodeSupportedSignatureAlgorithms(IList supportedSignatureAlgorithms, bool allowAnonymous,
             Stream output)
         {
@@ -642,8 +685,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             // supported_signature_algorithms
             int length = 2 * supportedSignatureAlgorithms.Count;
-            TlsUtilities.CheckUint16(length);
-            TlsUtilities.WriteUint16(length, output);
+            CheckUint16(length);
+            WriteUint16(length, output);
 
             foreach (SignatureAndHashAlgorithm entry in supportedSignatureAlgorithms)
             {
@@ -660,37 +703,76 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        internal static byte[] PRF(byte[] secret, string asciiLabel, byte[] seed, int size)
+        public static IList ParseSupportedSignatureAlgorithms(bool allowAnonymous, Stream input)
         {
-            byte[] label = Strings.ToAsciiByteArray(asciiLabel);
+            // supported_signature_algorithms
+            int length = ReadUint16(input);
+            if (length < 2 || (length & 1) != 0)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+            int count = length / 2;
+            IList supportedSignatureAlgorithms = Platform.CreateArrayList(count);
+            for (int i = 0; i < count; ++i)
+            {
+                SignatureAndHashAlgorithm entry = SignatureAndHashAlgorithm.Parse(input);
+                if (!allowAnonymous && entry.Signature == SignatureAlgorithm.anonymous)
+                {
+                    /*
+                     * RFC 5246 7.4.1.4.1 The "anonymous" value is meaningless in this context but used
+                     * in Section 7.4.3. It MUST NOT appear in this extension.
+                     */
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                }
+                supportedSignatureAlgorithms.Add(entry);
+            }
+            return supportedSignatureAlgorithms;
+        }
 
+        public static byte[] PRF(TlsContext context, byte[] secret, string asciiLabel, byte[] seed, int size)
+        {
+            ProtocolVersion version = context.ServerVersion;
+
+            if (version.IsSsl)
+                throw new InvalidOperationException("No PRF available for SSLv3 session");
+
+            byte[] label = Strings.ToByteArray(asciiLabel);
+            byte[] labelSeed = Concat(label, seed);
+
+            int prfAlgorithm = context.SecurityParameters.PrfAlgorithm;
+
+            if (prfAlgorithm == PrfAlgorithm.tls_prf_legacy)
+                return PRF_legacy(secret, label, labelSeed, size);
+
+            IDigest prfDigest = CreatePrfHash(prfAlgorithm);
+            byte[] buf = new byte[size];
+            HMacHash(prfDigest, secret, labelSeed, buf);
+            return buf;
+        }
+
+        public static byte[] PRF_legacy(byte[] secret, string asciiLabel, byte[] seed, int size)
+        {
+            byte[] label = Strings.ToByteArray(asciiLabel);
+            byte[] labelSeed = Concat(label, seed);
+
+            return PRF_legacy(secret, label, labelSeed, size);
+        }
+
+        internal static byte[] PRF_legacy(byte[] secret, byte[] label, byte[] labelSeed, int size)
+        {
             int s_half = (secret.Length + 1) / 2;
             byte[] s1 = new byte[s_half];
             byte[] s2 = new byte[s_half];
             Array.Copy(secret, 0, s1, 0, s_half);
             Array.Copy(secret, secret.Length - s_half, s2, 0, s_half);
 
-            byte[] ls = Concat(label, seed);
-
-            byte[] buf = new byte[size];
-            byte[] prf = new byte[size];
-            HMacHash(new MD5Digest(), s1, ls, prf);
-            HMacHash(new Sha1Digest(), s2, ls, buf);
+            byte[] b1 = new byte[size];
+            byte[] b2 = new byte[size];
+            HMacHash(CreateHash(HashAlgorithm.md5), s1, labelSeed, b1);
+            HMacHash(CreateHash(HashAlgorithm.sha1), s2, labelSeed, b2);
             for (int i = 0; i < size; i++)
             {
-                buf[i] ^= prf[i];
+                b1[i] ^= b2[i];
             }
-            return buf;
-        }
-
-        internal static byte[] PRF_1_2(IDigest digest, byte[] secret, string asciiLabel, byte[] seed, int size)
-        {
-            byte[] label = Strings.ToAsciiByteArray(asciiLabel);
-            byte[] labelSeed = Concat(label, seed);
-
-            byte[] buf = new byte[size];
-            HMacHash(digest, secret, labelSeed, buf);
-            return buf;
+            return b1;
         }
 
         internal static byte[] Concat(byte[] a, byte[] b)
@@ -733,11 +815,109 @@ namespace Org.BouncyCastle.Crypto.Tls
                     DerBitString ku = KeyUsage.GetInstance(ext);
                     int bits = ku.GetBytes()[0];
                     if ((bits & keyUsageBits) != keyUsageBits)
-                    {
                         throw new TlsFatalAlert(AlertDescription.certificate_unknown);
-                    }
                 }
             }
+        }
+
+        internal static byte[] CalculateKeyBlock(TlsContext context, int size)
+        {
+            SecurityParameters securityParameters = context.SecurityParameters;
+            byte[] master_secret = securityParameters.MasterSecret;
+            byte[] seed = Concat(securityParameters.ServerRandom, securityParameters.ClientRandom);
+
+            if (IsSsl(context))
+                return CalculateKeyBlock_Ssl(master_secret, seed, size);
+
+            return PRF(context, master_secret, ExporterLabel.key_expansion, seed, size);
+        }
+
+        internal static byte[] CalculateKeyBlock_Ssl(byte[] master_secret, byte[] random, int size)
+        {
+            IDigest md5 = CreateHash(HashAlgorithm.md5);
+            IDigest sha1 = CreateHash(HashAlgorithm.sha1);
+            int md5Size = md5.GetDigestSize();
+            byte[] shatmp = new byte[sha1.GetDigestSize()];
+            byte[] tmp = new byte[size + md5Size];
+
+            int i = 0, pos = 0;
+            while (pos < size)
+            {
+                byte[] ssl3Const = SSL3_CONST[i];
+
+                sha1.BlockUpdate(ssl3Const, 0, ssl3Const.Length);
+                sha1.BlockUpdate(master_secret, 0, master_secret.Length);
+                sha1.BlockUpdate(random, 0, random.Length);
+                sha1.DoFinal(shatmp, 0);
+
+                md5.BlockUpdate(master_secret, 0, master_secret.Length);
+                md5.BlockUpdate(shatmp, 0, shatmp.Length);
+                md5.DoFinal(tmp, pos);
+
+                pos += md5Size;
+                ++i;
+            }
+
+            return Arrays.CopyOfRange(tmp, 0, size);
+        }
+
+        internal static byte[] CalculateMasterSecret(TlsContext context, byte[] pre_master_secret)
+        {
+            SecurityParameters securityParameters = context.SecurityParameters;
+
+            byte[] seed = securityParameters.extendedMasterSecret
+                ?   securityParameters.SessionHash
+                :   Concat(securityParameters.ClientRandom, securityParameters.ServerRandom);
+
+            if (IsSsl(context))
+                return CalculateMasterSecret_Ssl(pre_master_secret, seed);
+
+            string asciiLabel = securityParameters.extendedMasterSecret
+                ?   ExporterLabel.extended_master_secret
+                :   ExporterLabel.master_secret;
+
+            return PRF(context, pre_master_secret, asciiLabel, seed, 48);
+        }
+
+        internal static byte[] CalculateMasterSecret_Ssl(byte[] pre_master_secret, byte[] random)
+        {
+            IDigest md5 = CreateHash(HashAlgorithm.md5);
+            IDigest sha1 = CreateHash(HashAlgorithm.sha1);
+            int md5Size = md5.GetDigestSize();
+            byte[] shatmp = new byte[sha1.GetDigestSize()];
+
+            byte[] rval = new byte[md5Size * 3];
+            int pos = 0;
+
+            for (int i = 0; i < 3; ++i)
+            {
+                byte[] ssl3Const = SSL3_CONST[i];
+
+                sha1.BlockUpdate(ssl3Const, 0, ssl3Const.Length);
+                sha1.BlockUpdate(pre_master_secret, 0, pre_master_secret.Length);
+                sha1.BlockUpdate(random, 0, random.Length);
+                sha1.DoFinal(shatmp, 0);
+
+                md5.BlockUpdate(pre_master_secret, 0, pre_master_secret.Length);
+                md5.BlockUpdate(shatmp, 0, shatmp.Length);
+                md5.DoFinal(rval, pos);
+
+                pos += md5Size;
+            }
+
+            return rval;
+        }
+
+        internal static byte[] CalculateVerifyData(TlsContext context, string asciiLabel, byte[] handshakeHash)
+        {
+            if (IsSsl(context))
+                return handshakeHash;
+
+            SecurityParameters securityParameters = context.SecurityParameters;
+            byte[] master_secret = securityParameters.MasterSecret;
+            int verify_data_length = securityParameters.VerifyDataLength;
+
+            return PRF(context, master_secret, asciiLabel, handshakeHash, verify_data_length);
         }
 
         public static IDigest CreateHash(byte hashAlgorithm)
@@ -780,6 +960,189 @@ namespace Org.BouncyCastle.Crypto.Tls
             default:
                 throw new ArgumentException("unknown HashAlgorithm", "hashAlgorithm");
             }
+        }
+
+        public static IDigest CreatePrfHash(int prfAlgorithm)
+        {
+            switch (prfAlgorithm)
+            {
+                case PrfAlgorithm.tls_prf_legacy:
+                    return new CombinedHash();
+                default:
+                    return CreateHash(GetHashAlgorithmForPrfAlgorithm(prfAlgorithm));
+            }
+        }
+
+        public static IDigest ClonePrfHash(int prfAlgorithm, IDigest hash)
+        {
+            switch (prfAlgorithm)
+            {
+                case PrfAlgorithm.tls_prf_legacy:
+                    return new CombinedHash((CombinedHash)hash);
+                default:
+                    return CloneHash(GetHashAlgorithmForPrfAlgorithm(prfAlgorithm), hash);
+            }
+        }
+
+        public static byte GetHashAlgorithmForPrfAlgorithm(int prfAlgorithm)
+        {
+            switch (prfAlgorithm)
+            {
+                case PrfAlgorithm.tls_prf_legacy:
+                    throw new ArgumentException("legacy PRF not a valid algorithm", "prfAlgorithm");
+                case PrfAlgorithm.tls_prf_sha256:
+                    return HashAlgorithm.sha256;
+                case PrfAlgorithm.tls_prf_sha384:
+                    return HashAlgorithm.sha384;
+                default:
+                    throw new ArgumentException("unknown PrfAlgorithm", "prfAlgorithm");
+            }
+        }
+
+        public static DerObjectIdentifier GetOidForHashAlgorithm(byte hashAlgorithm)
+        {
+            switch (hashAlgorithm)
+            {
+                case HashAlgorithm.md5:
+                    return PkcsObjectIdentifiers.MD5;
+                case HashAlgorithm.sha1:
+                    return X509ObjectIdentifiers.IdSha1;
+                case HashAlgorithm.sha224:
+                    return NistObjectIdentifiers.IdSha224;
+                case HashAlgorithm.sha256:
+                    return NistObjectIdentifiers.IdSha256;
+                case HashAlgorithm.sha384:
+                    return NistObjectIdentifiers.IdSha384;
+                case HashAlgorithm.sha512:
+                    return NistObjectIdentifiers.IdSha512;
+                default:
+                    throw new ArgumentException("unknown HashAlgorithm", "hashAlgorithm");
+            }
+        }
+
+        internal static short GetClientCertificateType(Certificate clientCertificate, Certificate serverCertificate)
+        {
+            if (clientCertificate.IsEmpty)
+                return -1;
+
+            X509CertificateStructure x509Cert = clientCertificate.GetCertificateAt(0);
+            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            try
+            {
+                AsymmetricKeyParameter publicKey = PublicKeyFactory.CreateKey(keyInfo);
+                if (publicKey.IsPrivate)
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+
+                /*
+                 * TODO RFC 5246 7.4.6. The certificates MUST be signed using an acceptable hash/
+                 * signature algorithm pair, as described in Section 7.4.4. Note that this relaxes the
+                 * constraints on certificate-signing algorithms found in prior versions of TLS.
+                 */
+
+                /*
+                 * RFC 5246 7.4.6. Client Certificate
+                 */
+
+                /*
+                 * RSA public key; the certificate MUST allow the key to be used for signing with the
+                 * signature scheme and hash algorithm that will be employed in the certificate verify
+                 * message.
+                 */
+                if (publicKey is RsaKeyParameters)
+                {
+                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    return ClientCertificateType.rsa_sign;
+                }
+
+                /*
+                 * DSA public key; the certificate MUST allow the key to be used for signing with the
+                 * hash algorithm that will be employed in the certificate verify message.
+                 */
+                if (publicKey is DsaPublicKeyParameters)
+                {
+                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    return ClientCertificateType.dss_sign;
+                }
+
+                /*
+                 * ECDSA-capable public key; the certificate MUST allow the key to be used for signing
+                 * with the hash algorithm that will be employed in the certificate verify message; the
+                 * public key MUST use a curve and point format supported by the server.
+                 */
+                if (publicKey is ECPublicKeyParameters)
+                {
+                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    // TODO Check the curve and point format
+                    return ClientCertificateType.ecdsa_sign;
+                }
+
+                // TODO Add support for ClientCertificateType.*_fixed_*
+
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+            }
+            catch (Exception e)
+            {
+                throw new TlsFatalAlert(AlertDescription.unsupported_certificate, e);
+            }
+        }
+
+        internal static void TrackHashAlgorithms(TlsHandshakeHash handshakeHash, IList supportedSignatureAlgorithms)
+        {
+            if (supportedSignatureAlgorithms != null)
+            {
+                foreach (SignatureAndHashAlgorithm signatureAndHashAlgorithm in supportedSignatureAlgorithms)
+                {
+                    byte hashAlgorithm = signatureAndHashAlgorithm.Hash;
+                    handshakeHash.TrackHashAlgorithm(hashAlgorithm);
+                }
+            }
+        }
+
+        public static bool HasSigningCapability(byte clientCertificateType)
+        {
+            switch (clientCertificateType)
+            {
+            case ClientCertificateType.dss_sign:
+            case ClientCertificateType.ecdsa_sign:
+            case ClientCertificateType.rsa_sign:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        public static TlsSigner CreateTlsSigner(byte clientCertificateType)
+        {
+            switch (clientCertificateType)
+            {
+            case ClientCertificateType.dss_sign:
+                return new TlsDssSigner();
+            case ClientCertificateType.ecdsa_sign:
+                return new TlsECDsaSigner();
+            case ClientCertificateType.rsa_sign:
+                return new TlsRsaSigner();
+            default:
+                throw new ArgumentException("not a type with signing capability", "clientCertificateType");
+            }
+        }
+
+        internal static readonly byte[] SSL_CLIENT = {0x43, 0x4C, 0x4E, 0x54};
+        internal static readonly byte[] SSL_SERVER = {0x53, 0x52, 0x56, 0x52};
+
+        // SSL3 magic mix constants ("A", "BB", "CCC", ...)
+        internal static readonly byte[][] SSL3_CONST = GenSsl3Const();
+
+        private static byte[][] GenSsl3Const()
+        {
+            int n = 10;
+            byte[][] arr = new byte[n][];
+            for (int i = 0; i < n; i++)
+            {
+                byte[] b = new byte[i + 1];
+                Arrays.Fill(b, (byte)('A' + i));
+                arr[i] = b;
+            }
+            return arr;
         }
 
         private static IList VectorOfOne(object obj)

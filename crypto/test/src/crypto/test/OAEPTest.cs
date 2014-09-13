@@ -315,8 +315,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             // extract the private key info.
             //
             Asn1Object privKeyObj = Asn1Object.FromByteArray(privKeyEnc);
-            RsaPrivateKeyStructure privStruct = new RsaPrivateKeyStructure(
-                (Asn1Sequence)PrivateKeyInfo.GetInstance(privKeyObj).ParsePrivateKey());
+            RsaPrivateKeyStructure privStruct = RsaPrivateKeyStructure.GetInstance(
+                PrivateKeyInfo.GetInstance(privKeyObj).ParsePrivateKey());
 
             RsaKeyParameters pubParameters = new RsaKeyParameters(
                 false,

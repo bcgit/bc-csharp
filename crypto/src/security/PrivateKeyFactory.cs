@@ -53,8 +53,7 @@ namespace Org.BouncyCastle.Security
                 || algOid.Equals(PkcsObjectIdentifiers.IdRsassaPss)
                 || algOid.Equals(PkcsObjectIdentifiers.IdRsaesOaep))
             {
-                RsaPrivateKeyStructure keyStructure = new RsaPrivateKeyStructure(
-                    Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey()));
+                RsaPrivateKeyStructure keyStructure = RsaPrivateKeyStructure.GetInstance(keyInfo.ParsePrivateKey());
 
                 return new RsaPrivateCrtKeyParameters(
                     keyStructure.Modulus,

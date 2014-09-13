@@ -170,6 +170,7 @@
       <resources prefix="crypto" dynamicprefix="true">
         <include name="${test-datapath}/**/*.*"/>
         <exclude name="${test-datapath}/**/README.txt"/>
+        <exclude name="${test-datapath}/tls/*.tmpl"/>
       </resources>
       <references>
         <include name="mscorlib.dll"/>
