@@ -158,6 +158,7 @@
     <Compile Include="src\crypto\test\CipherTest.cs" />
     <Compile Include="src\crypto\test\DESTest.cs" />
     <Compile Include="src\crypto\test\DESedeTest.cs" />
+    <Compile Include="src\crypto\test\DeterministicDSATest.cs" />
     <Compile Include="src\crypto\test\DHKEKGeneratorTest.cs" />
     <Compile Include="src\crypto\test\DHTest.cs" />
     <Compile Include="src\crypto\test\DSATest.cs" />
@@ -257,6 +258,11 @@
     <Compile Include="src\crypto\test\WhirlpoolDigestTest.cs" />
     <Compile Include="src\crypto\test\XSalsa20Test.cs" />
     <Compile Include="src\crypto\test\XTEATest.cs" />
+    <Compile Include="src\crypto\tls\test\MockTlsClient.cs" />
+    <Compile Include="src\crypto\tls\test\MockTlsServer.cs" />
+    <Compile Include="src\crypto\tls\test\TlsClientTest.cs" />
+    <Compile Include="src\crypto\tls\test\TlsServerTest.cs" />
+    <Compile Include="src\crypto\tls\test\TlsTestUtilities.cs" />
     <Compile Include="src\math\ec\test\AllTests.cs" />
     <Compile Include="src\math\ec\test\ECAlgorithmsTest.cs" />
     <Compile Include="src\math\ec\test\ECPointPerformanceTest.cs" />
@@ -1187,6 +1193,16 @@
     <EmbeddedResource Include="data\rsa3\self-testcase-L.pem" />
     <EmbeddedResource Include="data\rsa3\testcases.README" />
     <EmbeddedResource Include="data\scrypt\TestVectors.txt" />
+    <EmbeddedResource Include="data\tls\README.txt" />
+    <EmbeddedResource Include="data\tls\ca.tmpl" />
+    <EmbeddedResource Include="data\tls\client.tmpl" />
+    <EmbeddedResource Include="data\tls\server.tmpl" />
+    <EmbeddedResource Include="data\tls\x509-ca-key.pem" />
+    <EmbeddedResource Include="data\tls\x509-ca.pem" />
+    <EmbeddedResource Include="data\tls\x509-client-key.pem" />
+    <EmbeddedResource Include="data\tls\x509-client.pem" />
+    <EmbeddedResource Include="data\tls\x509-server-key.pem" />
+    <EmbeddedResource Include="data\tls\x509-server.pem" />
     <EmbeddedResource Include="data\tls\keystores\client_store.dsa" />
     <EmbeddedResource Include="data\tls\keystores\client_store.rsa" />
     <EmbeddedResource Include="data\tls\keystores\server_store.dsa" />
