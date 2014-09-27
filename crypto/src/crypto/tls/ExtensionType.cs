@@ -44,14 +44,14 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int heartbeat = 15;
 
         /*
+         * RFC 7366
+         */
+        public const int encrypt_then_mac = 22;
+
+        /*
          * RFC 5077 7.
          */
         public const int session_ticket = 35;
-
-        /*
-         * draft-ietf-tls-encrypt-then-mac-03
-         */
-        public const int encrypt_then_mac = 22;
 
         /*
          * draft-ietf-tls-session-hash-01

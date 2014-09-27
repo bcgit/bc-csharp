@@ -223,9 +223,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (this.mEncryptThenMacOffered && AllowEncryptThenMac)
             {
                 /*
-                 * draft-ietf-tls-encrypt-then-mac-03 3. If a server receives an encrypt-then-MAC
-                 * request extension from a client and then selects a stream or AEAD cipher suite, it
-                 * MUST NOT send an encrypt-then-MAC response extension back to the client.
+                 * RFC 7366 3. If a server receives an encrypt-then-MAC request extension from a client
+                 * and then selects a stream or Authenticated Encryption with Associated Data (AEAD)
+                 * ciphersuite, it MUST NOT send an encrypt-then-MAC response extension back to the
+                 * client.
                  */
                 if (TlsUtilities.IsBlockCipherSuite(this.mSelectedCipherSuite))
                 {
