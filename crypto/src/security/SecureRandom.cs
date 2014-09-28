@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
@@ -10,78 +11,113 @@ namespace Org.BouncyCastle.Security
     public class SecureRandom
         : Random
     {
-        // Note: all objects of this class should be deriving their random data from
-        // a single generator appropriate to the digest being used.
-        private static readonly IRandomGenerator sha1Generator = new DigestRandomGenerator(new Sha1Digest());
-        private static readonly IRandomGenerator sha256Generator = new DigestRandomGenerator(new Sha256Digest());
+        private static long counter = Times.NanoTime();
 
+        private static long NextCounterValue()
+        {
+            return Interlocked.Increment(ref counter);
+        }
+
+#if NETCF_1_0
         private static readonly SecureRandom[] master = { null };
         private static SecureRandom Master
         {
             get
             {
-                if (master[0] == null)
+                lock (master)
                 {
-                    SecureRandom sr = master[0] = new SecureRandom(sha256Generator);
+                    if (master[0] == null)
+                    {
+                        SecureRandom sr = master[0] = GetInstance("SHA256PRNG", false);
 
-                    // Even though Ticks has at most 8 or 14 bits of entropy, there's no harm in adding it.
-                    sr.SetSeed(DateTime.Now.Ticks);
-                    // In addition to Ticks and ThreadedSeedGenerator, also seed from CryptoApiRandomGenerator
-                    CryptoApiRandomGenerator systemRNG = new CryptoApiRandomGenerator();
-                    byte[] systemSeed = new byte[32];
-                    systemRNG.NextBytes(systemSeed);
-                    sr.SetSeed(systemSeed);
-                    Array.Clear(systemSeed,0,systemSeed.Length);
-                    // 32 will be enough when ThreadedSeedGenerator is fixed.  Until then, ThreadedSeedGenerator returns low
-                    // entropy, and this is not sufficient to be secure. http://www.bouncycastle.org/csharpdevmailarchive/msg00814.html
-                    sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(32, true));
+                        // Even though Ticks has at most 8 or 14 bits of entropy, there's no harm in adding it.
+                        sr.SetSeed(DateTime.Now.Ticks);
+
+                        // 32 will be enough when ThreadedSeedGenerator is fixed.  Until then, ThreadedSeedGenerator returns low
+                        // entropy, and this is not sufficient to be secure. http://www.bouncycastle.org/csharpdevmailarchive/msg00814.html
+                        sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(32, true));
+                    }
+
+                    return master[0];
                 }
-
-                return master[0];
             }
         }
-
-        public static SecureRandom GetInstance(
-            string algorithm)
+#else
+        private static readonly SecureRandom master = new SecureRandom(new CryptoApiRandomGenerator());
+        private static SecureRandom Master
         {
-            // TODO Support all digests more generally, by stripping PRNG and calling DigestUtilities?
-            string drgName = Platform.ToUpperInvariant(algorithm);
+            get { return master; }
+        }
+#endif
 
-            if (drgName == "SHA1PRNG")
+        private static DigestRandomGenerator CreatePrng(string digestName, bool autoSeed)
+        {
+            IDigest digest = DigestUtilities.GetDigest(digestName);
+            if (digest == null)
+                return null;
+            DigestRandomGenerator prng = new DigestRandomGenerator(digest);
+            if (autoSeed)
             {
-                SecureRandom newPrng = new SecureRandom(sha1Generator);
-                newPrng.SetSeed(GetSeed(20));
-                return newPrng;
+                prng.AddSeedMaterial(NextCounterValue());
+                prng.AddSeedMaterial(GetSeed(digest.GetDigestSize()));
             }
-            else if (drgName == "SHA256PRNG")
+            return prng;
+        }
+
+        /// <summary>
+        /// Create and auto-seed an instance based on the given algorithm.
+        /// </summary>
+        /// <remarks>Equivalent to GetInstance(algorithm, true)</remarks>
+        /// <param name="algorithm">e.g. "SHA256PRNG"</param>
+        public static SecureRandom GetInstance(string algorithm)
+        {
+            return GetInstance(algorithm, true);
+        }
+
+        /// <summary>
+        /// Create an instance based on the given algorithm, with optional auto-seeding
+        /// </summary>
+        /// <param name="algorithm">e.g. "SHA256PRNG"</param>
+        /// <param name="autoSeed">If true, the instance will be auto-seeded.</param>
+        public static SecureRandom GetInstance(string algorithm, bool autoSeed)
+        {
+            string upper = Platform.ToUpperInvariant(algorithm);
+            if (upper.EndsWith("PRNG"))
             {
-                SecureRandom newPrng = new SecureRandom(sha256Generator);
-                newPrng.SetSeed(GetSeed(32));
-                return newPrng;
+                string digestName = upper.Substring(0, upper.Length - "PRNG".Length);
+                DigestRandomGenerator prng = CreatePrng(digestName, autoSeed);
+                if (prng != null)
+                {
+                    return new SecureRandom(prng);
+                }
             }
 
             throw new ArgumentException("Unrecognised PRNG algorithm: " + algorithm, "algorithm");
         }
 
-        public static byte[] GetSeed(
-            int length)
+        public static byte[] GetSeed(int length)
         {
+#if NETCF_1_0
+            lock (master)
+#endif
             return Master.GenerateSeed(length);
         }
 
-        protected IRandomGenerator generator;
+        protected readonly IRandomGenerator generator;
 
         public SecureRandom()
-            : this(sha1Generator)
+            : this(CreatePrng("SHA256", true))
         {
-            SetSeed(GetSeed(20));	// 20 bytes because this is sha1Generator
         }
 
-        public SecureRandom(
-            byte[] inSeed)
-            : this(sha1Generator)
+        /// <remarks>
+        /// To replicate existing predictable output, replace with GetInstance("SHA1PRNG", false), followed by SetSeed(seed)
+        /// </remarks>
+        [Obsolete("Use GetInstance/SetSeed instead")]
+        public SecureRandom(byte[] seed)
+            : this(CreatePrng("SHA1", false))
         {
-            SetSeed(inSeed);
+            SetSeed(seed);
         }
 
         /// <summary>Use the specified instance of IRandomGenerator as random source.</summary>
@@ -92,15 +128,13 @@ namespace Org.BouncyCastle.Security
         /// implementation.
         /// </remarks>
         /// <param name="generator">The source to generate all random bytes from.</param>
-        public SecureRandom(
-            IRandomGenerator generator)
+        public SecureRandom(IRandomGenerator generator)
             : base(0)
         {
             this.generator = generator;
         }
 
-        public virtual byte[] GenerateSeed(
-            int length)
+        public virtual byte[] GenerateSeed(int length)
         {
             SetSeed(DateTime.Now.Ticks);
 
@@ -109,14 +143,12 @@ namespace Org.BouncyCastle.Security
             return rv;
         }
 
-        public virtual void SetSeed(
-            byte[] inSeed)
+        public virtual void SetSeed(byte[] seed)
         {
-            generator.AddSeedMaterial(inSeed);
+            generator.AddSeedMaterial(seed);
         }
 
-        public virtual void SetSeed(
-            long seed)
+        public virtual void SetSeed(long seed)
         {
             generator.AddSeedMaterial(seed);
         }
@@ -132,8 +164,7 @@ namespace Org.BouncyCastle.Security
             }
         }
 
-        public override int Next(
-            int maxValue)
+        public override int Next(int maxValue)
         {
             if (maxValue < 2)
             {
@@ -162,9 +193,7 @@ namespace Org.BouncyCastle.Security
             return result;
         }
 
-        public override int Next(
-            int	minValue,
-            int	maxValue)
+        public override int Next(int minValue, int maxValue)
         {
             if (maxValue <= minValue)
             {
@@ -187,18 +216,14 @@ namespace Org.BouncyCastle.Security
             }
         }
 
-        public override void NextBytes(
-            byte[] buffer)
+        public override void NextBytes(byte[] buf)
         {
-            generator.NextBytes(buffer);
+            generator.NextBytes(buf);
         }
 
-        public virtual void NextBytes(
-            byte[]	buffer,
-            int		start,
-            int		length)
+        public virtual void NextBytes(byte[] buf, int off, int len)
         {
-            generator.NextBytes(buffer, start, length);
+            generator.NextBytes(buf, off, len);
         }
 
         private static readonly double DoubleScale = System.Math.Pow(2.0, 64.0);

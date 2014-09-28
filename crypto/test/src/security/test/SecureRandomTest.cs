@@ -1,8 +1,10 @@
 using System;
+using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Prng;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security.Tests
 {
@@ -32,16 +34,28 @@ namespace Org.BouncyCastle.Security.Tests
         public void TestSha1Prng()
         {
             SecureRandom random = SecureRandom.GetInstance("SHA1PRNG");
-            random.SetSeed(SecureRandom.GetSeed(20));
 
             CheckSecureRandom(random);
+        }
+
+        [Test]
+        public void TestSha1PrngBackward()
+        {
+            byte[] seed = Encoding.ASCII.GetBytes("backward compatible");
+
+            SecureRandom sx = new SecureRandom(seed);
+            SecureRandom sy = SecureRandom.GetInstance("SHA1PRNG", false); sy.SetSeed(seed);
+
+            byte[] bx = new byte[128]; sx.NextBytes(bx);
+            byte[] by = new byte[128]; sy.NextBytes(by);
+
+            Assert.IsTrue(Arrays.AreEqual(bx, by));
         }
 
         [Test]
         public void TestSha256Prng()
         {
             SecureRandom random = SecureRandom.GetInstance("SHA256PRNG");
-            random.SetSeed(SecureRandom.GetSeed(32));
 
             CheckSecureRandom(random);
         }
@@ -49,8 +63,8 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestThreadedSeed()
         {
-            SecureRandom random = new SecureRandom(
-                new ThreadedSeedGenerator().GenerateSeed(20, false));
+            SecureRandom random = SecureRandom.GetInstance("SHA1PRNG", false);
+            random.SetSeed(new ThreadedSeedGenerator().GenerateSeed(20, false));
 
             CheckSecureRandom(random);
         }
