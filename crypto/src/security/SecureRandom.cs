@@ -22,13 +22,19 @@ namespace Org.BouncyCastle.Security
 			{
 				if (master[0] == null)
 				{
-					IRandomGenerator gen = sha256Generator;
-					gen = new ReversedWindowGenerator(gen, 32);
-					SecureRandom sr = master[0] = new SecureRandom(gen);
+					SecureRandom sr = master[0] = new SecureRandom(sha256Generator);
 
+					// Even though Ticks has at most 8 or 14 bits of entropy, there's no harm in adding it.
 					sr.SetSeed(DateTime.Now.Ticks);
-					sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(24, true));
-					sr.GenerateSeed(1 + sr.Next(32));
+					// In addition to Ticks and ThreadedSeedGenerator, also seed from CryptoApiRandomGenerator
+					CryptoApiRandomGenerator systemRNG = new CryptoApiRandomGenerator();
+					byte[] systemSeed = new byte[32];
+					systemRNG.NextBytes(systemSeed);
+					sr.SetSeed(systemSeed);
+					Array.Clear(systemSeed,0,systemSeed.Length);
+					// 32 will be enough when ThreadedSeedGenerator is fixed.  Until then, ThreadedSeedGenerator returns low
+					// entropy, and this is not sufficient to be secure. http://www.bouncycastle.org/csharpdevmailarchive/msg00814.html
+					sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(32, true));
 				}
 
 				return master[0];
@@ -38,24 +44,20 @@ namespace Org.BouncyCastle.Security
 		public static SecureRandom GetInstance(
 			string algorithm)
 		{
-			// TODO Compared to JDK, we don't auto-seed if the client forgets - problem?
-
 			// TODO Support all digests more generally, by stripping PRNG and calling DigestUtilities?
 			string drgName = Platform.ToUpperInvariant(algorithm);
 
-			IRandomGenerator drg = null;
 			if (drgName == "SHA1PRNG")
 			{
-				drg = sha1Generator;
+				SecureRandom newPrng = new SecureRandom(sha1Generator);
+				newPrng.SetSeed(GetSeed(20));
+				return newPrng;
 			}
 			else if (drgName == "SHA256PRNG")
 			{
-				drg = sha256Generator;
-			}
-
-			if (drg != null)
-			{
-				return new SecureRandom(drg);
+				SecureRandom newPrng = new SecureRandom(sha256Generator);
+				newPrng.SetSeed(GetSeed(32));
+				return newPrng;
 			}
 
 			throw new ArgumentException("Unrecognised PRNG algorithm: " + algorithm, "algorithm");
@@ -72,7 +74,7 @@ namespace Org.BouncyCastle.Security
 		public SecureRandom()
 			: this(sha1Generator)
         {
-			SetSeed(GetSeed(8));
+			SetSeed(GetSeed(20));	// 20 bytes because this is sha1Generator
 		}
 
 		public SecureRandom(
