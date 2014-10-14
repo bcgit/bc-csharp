@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Portable.BouncyCastle</id>
-        <version>1.8-beta3</version>
+        <version>1.8.0-beta4</version>
         <title>Bouncy Castle PCL</title>
         <authors>Oren Novotny</authors>
         <owners>onovotny</owners>
@@ -39,6 +39,5 @@
         <file src="Crypto\bin\Release\crypto.pdb" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.pdb" />
         <file src="Crypto\bin\Release\crypto.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.dll" />
         <file src="Crypto\Readme.html" target="Readme.html" />
-        <file src="**\*.cs" target="src" exclude="_ReSharper.*\**\*.*;packages\**\*.*;**\Debug\**\*.*;" />
     </files>
 </package>
