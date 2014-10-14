@@ -4509,6 +4509,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\FiniteFieldDheGroup.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\HandshakeType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

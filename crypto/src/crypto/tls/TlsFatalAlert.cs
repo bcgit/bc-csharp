@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         public TlsFatalAlert(byte alertDescription, Exception alertCause)
-            :   base("Fatal alert: " + alertDescription, alertCause)
+            : base(Tls.AlertDescription.GetText(alertDescription), alertCause)
         {
             this.alertDescription = alertDescription;
         }

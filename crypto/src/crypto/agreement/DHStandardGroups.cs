@@ -9,19 +9,19 @@ namespace Org.BouncyCastle.Crypto.Agreement
     /// <summary>Standard Diffie-Hellman groups from various IETF specifications.</summary>
     public class DHStandardGroups
     {
+        private static BigInteger FromHex(string hex)
+        {
+            return new BigInteger(1, Hex.Decode(hex));
+        }
+
         private static DHParameters FromPG(string hexP, string hexG)
         {
-            BigInteger p = new BigInteger(1, Hex.Decode(hexP));
-            BigInteger g = new BigInteger(1, Hex.Decode(hexG));
-            return new DHParameters(p, g);
+            return new DHParameters(FromHex(hexP), FromHex(hexG));
         }
 
         private static DHParameters FromPGQ(string hexP, string hexG, string hexQ)
         {
-            BigInteger p = new BigInteger(1, Hex.Decode(hexP));
-            BigInteger g = new BigInteger(1, Hex.Decode(hexG));
-            BigInteger q = new BigInteger(1, Hex.Decode(hexQ));
-            return new DHParameters(p, g, q);
+            return new DHParameters(FromHex(hexP), FromHex(hexG), FromHex(hexQ));
         }
 
         /*

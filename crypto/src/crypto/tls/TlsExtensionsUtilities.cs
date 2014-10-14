@@ -18,6 +18,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             extensions[ExtensionType.encrypt_then_mac] = CreateEncryptThenMacExtension();
         }
 
+        public static void AddExtendedMasterSecretExtension(IDictionary extensions)
+        {
+            extensions[ExtensionType.extended_master_secret] = CreateExtendedMasterSecretExtension();
+        }
+
         /// <exception cref="IOException"></exception>
         public static void AddHeartbeatExtension(IDictionary extensions, HeartbeatExtension heartbeatExtension)
         {
@@ -83,6 +88,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"></exception>
+        public static bool HasExtendedMasterSecretExtension(IDictionary extensions)
+        {
+            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.extended_master_secret);
+            return extensionData == null ? false : ReadExtendedMasterSecretExtension(extensionData);
+        }
+
+        /// <exception cref="IOException"></exception>
         public static bool HasTruncatedHMacExtension(IDictionary extensions)
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.truncated_hmac);
@@ -95,6 +107,11 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         public static byte[] CreateEncryptThenMacExtension()
+        {
+            return CreateEmptyExtensionData();
+        }
+
+        public static byte[] CreateExtendedMasterSecretExtension()
         {
             return CreateEmptyExtensionData();
         }
@@ -115,9 +132,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <exception cref="IOException"></exception>
         public static byte[] CreateMaxFragmentLengthExtension(byte maxFragmentLength)
         {
-            if (!MaxFragmentLength.IsValid(maxFragmentLength))
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-
             return new byte[]{ maxFragmentLength };
         }
 
@@ -173,6 +187,12 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"></exception>
+        public static bool ReadExtendedMasterSecretExtension(byte[] extensionData)
+        {
+            return ReadEmptyExtensionData(extensionData);
+        }
+
+        /// <exception cref="IOException"></exception>
         public static HeartbeatExtension ReadHeartbeatExtension(byte[] extensionData)
         {
             if (extensionData == null)
@@ -196,12 +216,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (extensionData.Length != 1)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
 
-            byte maxFragmentLength = extensionData[0];
-
-            if (!MaxFragmentLength.IsValid(maxFragmentLength))
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
-            return maxFragmentLength;
+            return extensionData[0];
         }
 
         /// <exception cref="IOException"></exception>

@@ -422,14 +422,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             // Verify the CertificateVerify message contains a correct signature.
             try
             {
-                byte[] certificateVerifyHash;
+                byte[] hash;
                 if (TlsUtilities.IsTlsV12(Context))
                 {
-                    certificateVerifyHash = mPrepareFinishHash.GetFinalHash(clientCertificateVerify.Algorithm.Hash);
+                    hash = mPrepareFinishHash.GetFinalHash(clientCertificateVerify.Algorithm.Hash);
                 }
                 else
                 {
-                    certificateVerifyHash = TlsProtocol.GetCurrentPrfHash(Context, mPrepareFinishHash, null);
+                    hash = mSecurityParameters.SessionHash;
                 }
 
                 X509CertificateStructure x509Cert = mPeerCertificate.GetCertificateAt(0);
@@ -439,7 +439,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 TlsSigner tlsSigner = TlsUtilities.CreateTlsSigner((byte)mClientCertificateType);
                 tlsSigner.Init(Context);
                 if (!tlsSigner.VerifyRawSignature(clientCertificateVerify.Algorithm,
-                    clientCertificateVerify.Signature, publicKey, certificateVerifyHash))
+                    clientCertificateVerify.Signature, publicKey, hash))
                 {
                     throw new TlsFatalAlert(AlertDescription.decrypt_error);
                 }
@@ -493,6 +493,8 @@ namespace Org.BouncyCastle.Crypto.Tls
              * extensions.
              */
             this.mClientExtensions = ReadExtensions(buf);
+
+            this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mClientExtensions);
 
             ContextAdmin.SetClientVersion(client_version);
 
@@ -556,10 +558,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             AssertEmpty(buf);
 
+            this.mPrepareFinishHash = mRecordStream.PrepareToFinish();
+            this.mSecurityParameters.sessionHash = GetCurrentPrfHash(Context, mPrepareFinishHash, null);
+
             EstablishMasterSecret(Context, mKeyExchange);
             mRecordStream.SetPendingConnectionState(Peer.GetCompression(), Peer.GetCipher());
-
-            this.mPrepareFinishHash = mRecordStream.PrepareToFinish();
 
             if (!mExpectSessionTicket)
             {
@@ -667,6 +670,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                     this.mServerExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(mServerExtensions);
                     this.mServerExtensions[ExtensionType.renegotiation_info] = CreateRenegotiationInfo(TlsUtilities.EmptyBytes);
                 }
+            }
+
+            if (mSecurityParameters.extendedMasterSecret)
+            {
+                this.mServerExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(mServerExtensions);
+                TlsExtensionsUtilities.AddExtendedMasterSecretExtension(mServerExtensions);
             }
 
             /*
