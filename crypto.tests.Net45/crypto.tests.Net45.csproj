@@ -56,9 +56,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Crypto\crypto.csproj">
+    <ProjectReference Include="..\Crypto\crypto.pcl.csproj">
       <Project>{38872a5f-e87e-4fad-b109-8eb7b2e6a4a0}</Project>
-      <Name>crypto</Name>
+      <Name>crypto.pcl</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
