@@ -28,5 +28,10 @@ namespace Org.BouncyCastle.Crypto.Tls
          * RFC 5764
          */
         public const string dtls_srtp = "EXTRACTOR-dtls_srtp";
+
+        /*
+         * draft-ietf-tls-session-hash-01
+         */
+        public static readonly string extended_master_secret = "extended master secret";
     }
 }

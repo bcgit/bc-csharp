@@ -149,9 +149,6 @@
              @exception ArgumentException if the tagged object cannot
                       be converted.
         </member>
-        <member name="M:Org.BouncyCastle.Asn1.Asn1Set.LessThanOrEqual(System.Byte[],System.Byte[])">
-            return true if a &lt;= b (arrays are assumed padded with zeros).
-        </member>
         <member name="P:Org.BouncyCastle.Asn1.Asn1Set.Item(System.Int32)">
              return the object at the set position indicated by index.
             
@@ -15557,6 +15554,9 @@
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsExtensionsUtilities.HasEncryptThenMacExtension(System.Collections.IDictionary)">
             <exception cref="T:System.IO.IOException"></exception>
         </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsExtensionsUtilities.HasExtendedMasterSecretExtension(System.Collections.IDictionary)">
+            <exception cref="T:System.IO.IOException"></exception>
+        </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsExtensionsUtilities.HasTruncatedHMacExtension(System.Collections.IDictionary)">
             <exception cref="T:System.IO.IOException"></exception>
         </member>
@@ -15576,6 +15576,9 @@
             <exception cref="T:System.IO.IOException"></exception>
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsExtensionsUtilities.ReadEncryptThenMacExtension(System.Byte[])">
+            <exception cref="T:System.IO.IOException"></exception>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsExtensionsUtilities.ReadExtendedMasterSecretExtension(System.Byte[])">
             <exception cref="T:System.IO.IOException"></exception>
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsExtensionsUtilities.ReadHeartbeatExtension(System.Byte[])">
@@ -19984,6 +19987,25 @@
             </summary>
             <param name="mechanism">A string representation of the encoding.</param>
             <returns>A DerObjectIdentifier, null if the Oid is not available.</returns>
+        </member>
+        <member name="M:Org.BouncyCastle.Security.SecureRandom.GetInstance(System.String)">
+            <summary>
+            Create and auto-seed an instance based on the given algorithm.
+            </summary>
+            <remarks>Equivalent to GetInstance(algorithm, true)</remarks>
+            <param name="algorithm">e.g. "SHA256PRNG"</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Security.SecureRandom.GetInstance(System.String,System.Boolean)">
+            <summary>
+            Create an instance based on the given algorithm, with optional auto-seeding
+            </summary>
+            <param name="algorithm">e.g. "SHA256PRNG"</param>
+            <param name="autoSeed">If true, the instance will be auto-seeded.</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Security.SecureRandom.#ctor(System.Byte[])">
+            <remarks>
+            To replicate existing predictable output, replace with GetInstance("SHA1PRNG", false), followed by SetSeed(seed)
+            </remarks>
         </member>
         <member name="M:Org.BouncyCastle.Security.SecureRandom.#ctor(Org.BouncyCastle.Crypto.Prng.IRandomGenerator)">
             <summary>Use the specified instance of IRandomGenerator as random source.</summary>

@@ -2719,6 +2719,7 @@
     <Compile Include="src\crypto\tls\ExtensionType.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\crypto\tls\FiniteFieldDheGroup.cs" />
     <Compile Include="src\crypto\tls\HandshakeType.cs">
       <SubType>Code</SubType>
     </Compile>

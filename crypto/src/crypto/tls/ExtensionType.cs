@@ -44,14 +44,28 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int heartbeat = 15;
 
         /*
+         * RFC 7366
+         */
+        public const int encrypt_then_mac = 22;
+
+        /*
+         * draft-ietf-tls-session-hash-01
+         * 
+         * NOTE: Early code-point assignment
+         */
+        public const int extended_master_secret = 23;
+
+        /*
          * RFC 5077 7.
          */
         public const int session_ticket = 35;
 
         /*
-         * draft-ietf-tls-encrypt-then-mac-03
+         * draft-ietf-tls-negotiated-ff-dhe-01
+         * 
+         * WARNING: Placeholder value; the real value is TBA
          */
-        public const int encrypt_then_mac = 22;
+        public static readonly int negotiated_ff_dhe_groups = 101;
 
         /*
          * RFC 5746 3.2.

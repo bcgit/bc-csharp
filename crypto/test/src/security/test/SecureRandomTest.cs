@@ -1,8 +1,10 @@
 using System;
+using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Prng;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security.Tests
 {
@@ -16,7 +18,7 @@ namespace Org.BouncyCastle.Security.Tests
 			SecureRandom random = new SecureRandom(
 				new CryptoApiRandomGenerator());
 
-			checkSecureRandom(random);
+            CheckSecureRandom(random);
 		}
 #endif
 
@@ -25,34 +27,46 @@ namespace Org.BouncyCastle.Security.Tests
 		{
 			SecureRandom random = new SecureRandom();
 
-			checkSecureRandom(random);
+            CheckSecureRandom(random);
 		}
 
 		[Test]
 		public void TestSha1Prng()
 		{
 			SecureRandom random = SecureRandom.GetInstance("SHA1PRNG");
-			random.SetSeed(SecureRandom.GetSeed(20));
 
-			checkSecureRandom(random);
+            CheckSecureRandom(random);
 		}
 
 		[Test]
+        public void TestSha1PrngBackward()
+        {
+            byte[] seed = Encoding.ASCII.GetBytes("backward compatible");
+
+            SecureRandom sx = new SecureRandom(seed);
+            SecureRandom sy = SecureRandom.GetInstance("SHA1PRNG", false); sy.SetSeed(seed);
+
+            byte[] bx = new byte[128]; sx.NextBytes(bx);
+            byte[] by = new byte[128]; sy.NextBytes(by);
+
+            Assert.IsTrue(Arrays.AreEqual(bx, by));
+        }
+
+        [Test]
 		public void TestSha256Prng()
 		{
 			SecureRandom random = SecureRandom.GetInstance("SHA256PRNG");
-			random.SetSeed(SecureRandom.GetSeed(32));
 
-			checkSecureRandom(random);
+            CheckSecureRandom(random);
 		}
 
 		[Test]
 		public void TestThreadedSeed()
 		{
-			SecureRandom random = new SecureRandom(
-				new ThreadedSeedGenerator().GenerateSeed(20, false));
+            SecureRandom random = SecureRandom.GetInstance("SHA1PRNG", false);
+            random.SetSeed(new ThreadedSeedGenerator().GenerateSeed(20, false));
 
-			checkSecureRandom(random);
+            CheckSecureRandom(random);
 		}
 
 		[Test]
@@ -61,37 +75,38 @@ namespace Org.BouncyCastle.Security.Tests
 			SecureRandom random = new SecureRandom(new VmpcRandomGenerator());
 			random.SetSeed(SecureRandom.GetSeed(32));
 
-			checkSecureRandom(random);
+            CheckSecureRandom(random);
 		}
 
 
-		private static void checkSecureRandom(
-			SecureRandom random)
+        private static void CheckSecureRandom(SecureRandom random)
 		{
 			// Note: This will periodically (< 1e-6 probability) give a false alarm.
 			// That's randomness for you!
-			Assert.IsTrue(runChiSquaredTests(random), "Chi2 test detected possible non-randomness");
+            Assert.IsTrue(RunChiSquaredTests(random), "Chi2 test detected possible non-randomness");
 		}
 
-		private static bool runChiSquaredTests(
-			SecureRandom random)
+        private static bool RunChiSquaredTests(SecureRandom random)
 		{
 			int passes = 0;
 
 			for (int tries = 0; tries < 100; ++tries)
 			{
-				double chi2 = measureChiSquared(random, 1000);
-				if (chi2 < 285.0) // 255 degrees of freedom in test => Q ~ 10.0% for 285
+                double chi2 = MeasureChiSquared(random, 1000);
+
+                // 255 degrees of freedom in test => Q ~ 10.0% for 285
+                if (chi2 < 285.0)
+                {
 					++passes;
 			}
+            }
 
 			return passes > 75;
 		}
 
-		private static double measureChiSquared(
-			SecureRandom	random,
-			int				rounds)
+        private static double MeasureChiSquared(SecureRandom random, int rounds)
 		{
+            byte[] opts = SecureRandom.GetSeed(2);
 			int[] counts = new int[256];
 
 			byte[] bs = new byte[256];
@@ -105,7 +120,7 @@ namespace Org.BouncyCastle.Security.Tests
 				}
 			}
 
-			byte mask = SecureRandom.GetSeed(1)[0];
+            byte mask = opts[0];
 			for (int i = 0; i < rounds; ++i)
 			{
 				random.NextBytes(bs);
@@ -118,7 +133,7 @@ namespace Org.BouncyCastle.Security.Tests
 				++mask;
 			}
 
-			byte shift = SecureRandom.GetSeed(1)[0];
+            byte shift = opts[1];
 			for (int i = 0; i < rounds; ++i)
 			{
 				random.NextBytes(bs);

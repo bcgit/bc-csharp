@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         }
 
         [Test]
-        [Ignore("SLOW! 1 min")]
+        [Ignore("SLOW")]
         public void TestSumOfTwoMultiplies()
         {
             foreach (X9ECParameters x9 in GetTestCurves())

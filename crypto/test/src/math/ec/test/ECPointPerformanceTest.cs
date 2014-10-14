@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         }
 
         [Test]
-        [Ignore("SLOW! 15 min")]
+        [Ignore("SLOW")]
         public void TestMultiply()
         {
             ArrayList nameList = new ArrayList();

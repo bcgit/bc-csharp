@@ -1,3 +1,4 @@
+#if FALSE
 using System;
 
 namespace Org.BouncyCastle.Math.EC.Multiplier
@@ -239,3 +240,4 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 		}
 	}
 }
+#endif
