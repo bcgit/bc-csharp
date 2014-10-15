@@ -27,6 +27,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         ProtocolVersion ClientVersion { get; }
 
+        bool IsFallback { get; }
+
         /// <summary>
         /// Get the list of cipher suites that this client supports.
         /// </summary>

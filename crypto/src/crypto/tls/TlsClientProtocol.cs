@@ -607,7 +607,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             int selectedCipherSuite = TlsUtilities.ReadUint16(buf);
             if (!Arrays.Contains(this.mOfferedCipherSuites, selectedCipherSuite)
                 || selectedCipherSuite == CipherSuite.TLS_NULL_WITH_NULL_NULL
-                || selectedCipherSuite == CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+                || CipherSuite.IsScsv(selectedCipherSuite)
                 || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, server_version))
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
@@ -815,6 +815,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
             }
 
+            bool fallback = this.mTlsClient.IsFallback;
+
             this.mOfferedCipherSuites = this.mTlsClient.GetCipherSuites();
 
             this.mOfferedCompressionMethods = this.mTlsClient.GetCompressionMethods();
@@ -850,14 +852,25 @@ namespace Org.BouncyCastle.Crypto.Tls
                 byte[] renegExtData = TlsUtilities.GetExtensionData(mClientExtensions, ExtensionType.renegotiation_info);
                 bool noRenegExt = (null == renegExtData);
 
-                bool noSCSV = !Arrays.Contains(mOfferedCipherSuites, CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV);
+                bool noRenegScsv = !Arrays.Contains(mOfferedCipherSuites, CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV);
 
-                if (noRenegExt && noSCSV)
+                if (noRenegExt && noRenegScsv)
                 {
                     // TODO Consider whether to default to a client extension instead
     //                this.mClientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(this.mClientExtensions);
     //                this.mClientExtensions[ExtensionType.renegotiation_info] = CreateRenegotiationInfo(TlsUtilities.EmptyBytes);
                     this.mOfferedCipherSuites = Arrays.Append(mOfferedCipherSuites, CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV);
+                }
+
+                /*
+                 * draft-bmoeller-tls-downgrade-scsv-02 4. If a client sends a
+                 * ClientHello.client_version containing a lower value than the latest (highest-valued)
+                 * version supported by the client, it SHOULD include the TLS_FALLBACK_SCSV cipher suite
+                 * value in ClientHello.cipher_suites.
+                 */
+                if (fallback && !Arrays.Contains(mOfferedCipherSuites, CipherSuite.TLS_FALLBACK_SCSV))
+                {
+                    this.mOfferedCipherSuites = Arrays.Append(mOfferedCipherSuites, CipherSuite.TLS_FALLBACK_SCSV);
                 }
 
                 TlsUtilities.WriteUint16ArrayWithUint16Length(mOfferedCipherSuites, message);
