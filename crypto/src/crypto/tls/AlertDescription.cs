@@ -215,7 +215,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const byte unknown_psk_identity = 115;
 
         /*
-         * draft-bmoeller-tls-downgrade-scsv-02
+         * draft-ietf-tls-downgrade-scsv-00
          */
 
         /**
