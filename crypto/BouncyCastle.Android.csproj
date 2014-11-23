@@ -908,6 +908,7 @@
     <Compile Include="src\crypto\tls\CompressionMethod.cs" />
     <Compile Include="src\crypto\tls\ConnectionEnd.cs" />
     <Compile Include="src\crypto\tls\ContentType.cs" />
+    <Compile Include="src\crypto\tls\DatagramTransport.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsCipherFactory.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsClient.cs" />
@@ -917,6 +918,16 @@
     <Compile Include="src\crypto\tls\DeferredHash.cs" />
     <Compile Include="src\crypto\tls\DigestInputBuffer.cs" />
     <Compile Include="src\crypto\tls\DigitallySigned.cs" />
+    <Compile Include="src\crypto\tls\DtlsClientProtocol.cs" />
+    <Compile Include="src\crypto\tls\DtlsEpoch.cs" />
+    <Compile Include="src\crypto\tls\DtlsHandshakeRetransmit.cs" />
+    <Compile Include="src\crypto\tls\DtlsProtocol.cs" />
+    <Compile Include="src\crypto\tls\DtlsReassembler.cs" />
+    <Compile Include="src\crypto\tls\DtlsRecordLayer.cs" />
+    <Compile Include="src\crypto\tls\DtlsReliableHandshake.cs" />
+    <Compile Include="src\crypto\tls\DtlsReplayWindow.cs" />
+    <Compile Include="src\crypto\tls\DtlsServerProtocol.cs" />
+    <Compile Include="src\crypto\tls\DtlsTransport.cs" />
     <Compile Include="src\crypto\tls\ECBasisType.cs" />
     <Compile Include="src\crypto\tls\ECCurveType.cs" />
     <Compile Include="src\crypto\tls\ECPointFormat.cs" />
