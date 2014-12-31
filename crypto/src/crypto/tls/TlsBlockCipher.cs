@@ -262,10 +262,19 @@ namespace Org.BouncyCastle.Crypto.Tls
                 byte[] receivedMac = Arrays.CopyOfRange(ciphertext, end - macSize, end);
                 byte[] calculatedMac = mReadMac.CalculateMac(seqNo, type, ciphertext, offset, len - macSize);
 
-                bool badMac = !Arrays.ConstantTimeAreEqual(calculatedMac, receivedMac);
-
-                if (badMac)
+                bool badMacEtm = !Arrays.ConstantTimeAreEqual(calculatedMac, receivedMac);
+                if (badMacEtm)
+                {
+                    /*
+                     * RFC 7366 3. The MAC SHALL be evaluated before any further processing such as
+                     * decryption is performed, and if the MAC verification fails, then processing SHALL
+                     * terminate immediately. For TLS, a fatal bad_record_mac MUST be generated [2]. For
+                     * DTLS, the record MUST be discarded, and a fatal bad_record_mac MAY be generated
+                     * [4]. This immediate response to a bad MAC eliminates any timing channels that may
+                     * be available through the use of manipulated packet data.
+                     */
                     throw new TlsFatalAlert(AlertDescription.bad_record_mac);
+                }
             }
 
             if (useExplicitIV)
@@ -283,6 +292,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             // If there's anything wrong with the padding, this will return zero
             int totalPad = CheckPaddingConstantTime(ciphertext, offset, blocks_length, blockSize, encryptThenMac ? 0 : macSize);
+            bool badMac = (totalPad == 0);
 
             int dec_output_length = blocks_length - totalPad;
 
@@ -295,13 +305,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 byte[] calculatedMac = mReadMac.CalculateMacConstantTime(seqNo, type, ciphertext, offset, macInputLen,
                     blocks_length - macSize, randomData);
 
-                bool badMac = !Arrays.ConstantTimeAreEqual(calculatedMac, receivedMac);
-
-                if (badMac || totalPad == 0)
-                {
-                    throw new TlsFatalAlert(AlertDescription.bad_record_mac);
-                }
+                badMac |= !Arrays.ConstantTimeAreEqual(calculatedMac, receivedMac);
             }
+
+            if (badMac)
+                throw new TlsFatalAlert(AlertDescription.bad_record_mac);
 
             return Arrays.CopyOfRange(ciphertext, offset, offset + dec_output_length);
         }
