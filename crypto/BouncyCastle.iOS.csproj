@@ -12,14 +12,13 @@
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <AssemblyName>BouncyCastle</AssemblyName>
     <TargetFrameworkIdentifier>Xamarin.iOS</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v1.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\lib\MonoTouch</OutputPath>
-    <IntermediateOutputPath>obj\Debug\lib\MonoTouch</IntermediateOutputPath>
+    <OutputPath>bin\Debug\lib\Xamarin.iOS</OutputPath>
+    <IntermediateOutputPath>obj\Debug\lib\Xamarin.iOS</IntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE;INCLUDE_IDEA;STRONG_NAME;__MOBILE__;__IOS__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,8 +26,8 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\lib\MonoTouch</OutputPath>
-    <IntermediateOutputPath>obj\Release\lib\MonoTouch</IntermediateOutputPath>
+    <OutputPath>bin\Release\lib\Xamarin.iOS</OutputPath>
+    <IntermediateOutputPath>obj\Release\lib\Xamarin.iOS</IntermediateOutputPath>
     <DefineConstants>TRACE;INCLUDE_IDEA;STRONG_NAME;__MOBILE__;__IOS__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
