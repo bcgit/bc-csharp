@@ -374,6 +374,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     .SetCompressionAlgorithm(securityParameters.compressionAlgorithm)
                     .SetMasterSecret(securityParameters.masterSecret)
                     .SetPeerCertificate(serverCertificate)
+                    .SetPskIdentity(securityParameters.pskIdentity)
                     .Build();
 
                 state.tlsSession = TlsUtilities.ImportSession(state.tlsSession.SessionID, state.sessionParameters);
