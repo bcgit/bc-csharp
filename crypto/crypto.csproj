@@ -4344,6 +4344,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\BasicTlsPskIdentity.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\ByteQueue.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4649,6 +4654,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\PskTlsServer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\RecordStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4900,6 +4910,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsPskIdentity.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsPskIdentityManager.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

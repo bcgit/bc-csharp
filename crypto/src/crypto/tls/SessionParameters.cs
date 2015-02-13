@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             private short mCompressionAlgorithm = -1;
             private byte[] mMasterSecret = null;
             private Certificate mPeerCertificate = null;
+            private byte[] mPskIdentity = null;
             private byte[] mEncodedServerExtensions = null;
 
             public Builder()
@@ -26,7 +27,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 Validate(this.mCompressionAlgorithm >= 0, "compressionAlgorithm");
                 Validate(this.mMasterSecret != null, "masterSecret");
                 return new SessionParameters(mCipherSuite, (byte)mCompressionAlgorithm, mMasterSecret, mPeerCertificate,
-                    mEncodedServerExtensions);
+                    mPskIdentity, mEncodedServerExtensions);
             }
 
             public Builder SetCipherSuite(int cipherSuite)
@@ -50,6 +51,12 @@ namespace Org.BouncyCastle.Crypto.Tls
             public Builder SetPeerCertificate(Certificate peerCertificate)
             {
                 this.mPeerCertificate = peerCertificate;
+                return this;
+            }
+
+            public Builder SetPskIdentity(byte[] pskIdentity)
+            {
+                this.mPskIdentity = pskIdentity;
                 return this;
             }
 
@@ -79,15 +86,17 @@ namespace Org.BouncyCastle.Crypto.Tls
         private byte mCompressionAlgorithm;
         private byte[] mMasterSecret;
         private Certificate mPeerCertificate;
+        private byte[] mPskIdentity;
         private byte[] mEncodedServerExtensions;
 
         private SessionParameters(int cipherSuite, byte compressionAlgorithm, byte[] masterSecret,
-            Certificate peerCertificate, byte[] encodedServerExtensions)
+            Certificate peerCertificate, byte[] pskIdentity, byte[] encodedServerExtensions)
         {
             this.mCipherSuite = cipherSuite;
             this.mCompressionAlgorithm = compressionAlgorithm;
             this.mMasterSecret = Arrays.Clone(masterSecret);
             this.mPeerCertificate = peerCertificate;
+            this.mPskIdentity = Arrays.Clone(pskIdentity);
             this.mEncodedServerExtensions = encodedServerExtensions;
         }
 
@@ -102,7 +111,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public SessionParameters Copy()
         {
             return new SessionParameters(mCipherSuite, mCompressionAlgorithm, mMasterSecret, mPeerCertificate,
-                mEncodedServerExtensions);
+                mPskIdentity, mEncodedServerExtensions);
         }
 
         public int CipherSuite
@@ -123,6 +132,11 @@ namespace Org.BouncyCastle.Crypto.Tls
         public Certificate PeerCertificate
         {
             get { return mPeerCertificate; }
+        }
+
+        public byte[] PskIdentity
+        {
+            get { return mPskIdentity; }
         }
 
         public IDictionary ReadServerExtensions()

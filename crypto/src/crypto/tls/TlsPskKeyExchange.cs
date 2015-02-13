@@ -4,7 +4,10 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -13,14 +16,20 @@ namespace Org.BouncyCastle.Crypto.Tls
         :   AbstractTlsKeyExchange
     {
         protected TlsPskIdentity mPskIdentity;
+        protected TlsPskIdentityManager mPskIdentityManager;
+
         protected DHParameters mDHParameters;
         protected int[] mNamedCurves;
         protected byte[] mClientECPointFormats, mServerECPointFormats;
 
         protected byte[] mPskIdentityHint = null;
+        protected byte[] mPsk = null;
 
         protected DHPrivateKeyParameters mDHAgreePrivateKey = null;
         protected DHPublicKeyParameters mDHAgreePublicKey = null;
+
+        protected ECPrivateKeyParameters mECAgreePrivateKey = null;
+        protected ECPublicKeyParameters mECAgreePublicKey = null;
 
         protected AsymmetricKeyParameter mServerPublicKey = null;
         protected RsaKeyParameters mRsaServerPublicKey = null;
@@ -28,7 +37,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected byte[] mPremasterSecret;
 
         public TlsPskKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, TlsPskIdentity pskIdentity,
-            DHParameters dhParameters, int[] namedCurves, byte[] clientECPointFormats, byte[] serverECPointFormats)
+            TlsPskIdentityManager pskIdentityManager, DHParameters dhParameters, int[] namedCurves,
+            byte[] clientECPointFormats, byte[] serverECPointFormats)
             :   base(keyExchange, supportedSignatureAlgorithms)
         {
             switch (keyExchange)
@@ -43,6 +53,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             this.mPskIdentity = pskIdentity;
+            this.mPskIdentityManager = pskIdentityManager;
             this.mDHParameters = dhParameters;
             this.mNamedCurves = namedCurves;
             this.mClientECPointFormats = clientECPointFormats;
@@ -67,8 +78,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override byte[] GenerateServerKeyExchange()
         {
-            // TODO[RFC 4279] Need a server-side PSK API to determine hint and resolve identities to keys
-            this.mPskIdentityHint = null;
+            this.mPskIdentityHint = mPskIdentityManager.GetHint();
 
             if (this.mPskIdentityHint == null && !RequiresServerKeyExchange)
                 return null;
@@ -94,7 +104,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             else if (this.mKeyExchange == KeyExchangeAlgorithm.ECDHE_PSK)
             {
-                // TODO[RFC 5489]
+                this.mECAgreePrivateKey = TlsEccUtilities.GenerateEphemeralServerKeyExchange(context.SecureRandom,
+                    mNamedCurves, mClientECPointFormats, buf);
             }
 
             return buf.ToArray();
@@ -157,7 +168,12 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             else if (this.mKeyExchange == KeyExchangeAlgorithm.ECDHE_PSK)
             {
-                // TODO[RFC 5489]
+                ECDomainParameters ecParams = TlsEccUtilities.ReadECParameters(mNamedCurves, mClientECPointFormats, input);
+
+                byte[] point = TlsUtilities.ReadOpaque8(input);
+
+                this.mECAgreePublicKey = TlsEccUtilities.ValidateECPublicKey(TlsEccUtilities.DeserializeECPublicKey(
+                    mClientECPointFormats, ecParams, point));
             }
         }
 
@@ -183,8 +199,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             byte[] psk_identity = mPskIdentity.GetPskIdentity();
+            if (psk_identity == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            this.mPsk = mPskIdentity.GetPsk();
+            if (mPsk == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
 
             TlsUtilities.WriteOpaque16(psk_identity, output);
+
+            context.SecurityParameters.pskIdentity = psk_identity;
 
             if (this.mKeyExchange == KeyExchangeAlgorithm.DHE_PSK)
             {
@@ -193,8 +217,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             else if (this.mKeyExchange == KeyExchangeAlgorithm.ECDHE_PSK)
             {
-                // TODO[RFC 5489]
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+                this.mECAgreePrivateKey = TlsEccUtilities.GenerateEphemeralClientKeyExchange(context.SecureRandom,
+                    mServerECPointFormats, mECAgreePublicKey.Parameters, output);
             }
             else if (this.mKeyExchange == KeyExchangeAlgorithm.RSA_PSK)
             {
@@ -203,14 +227,59 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
+        public override void ProcessClientKeyExchange(Stream input)
+        {
+            byte[] psk_identity = TlsUtilities.ReadOpaque16(input);
+
+            this.mPsk = mPskIdentityManager.GetPsk(psk_identity);
+            if (mPsk == null)
+                throw new TlsFatalAlert(AlertDescription.unknown_psk_identity);
+
+            context.SecurityParameters.pskIdentity = psk_identity;
+
+            if (this.mKeyExchange == KeyExchangeAlgorithm.DHE_PSK)
+            {
+                BigInteger Yc = TlsDHUtilities.ReadDHParameter(input);
+
+                this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(new DHPublicKeyParameters(Yc, mDHParameters));
+            }
+            else if (this.mKeyExchange == KeyExchangeAlgorithm.ECDHE_PSK)
+            {
+                byte[] point = TlsUtilities.ReadOpaque8(input);
+
+                ECDomainParameters curve_params = this.mECAgreePrivateKey.Parameters;
+
+                this.mECAgreePublicKey = TlsEccUtilities.ValidateECPublicKey(TlsEccUtilities.DeserializeECPublicKey(
+                    mServerECPointFormats, curve_params, point));
+            }
+            else if (this.mKeyExchange == KeyExchangeAlgorithm.RSA_PSK)
+            {
+                byte[] encryptedPreMasterSecret;
+                if (TlsUtilities.IsSsl(context))
+                {
+                    // TODO Do any SSLv3 clients actually include the length?
+                    encryptedPreMasterSecret = Streams.ReadAll(input);
+                }
+                else
+                {
+                    encryptedPreMasterSecret = TlsUtilities.ReadOpaque16(input);
+                }
+
+                this.mPremasterSecret = mServerCredentials.DecryptPreMasterSecret(encryptedPreMasterSecret);
+            }
+        }
+
         public override byte[] GeneratePremasterSecret()
         {
-            byte[] psk = mPskIdentity.GetPsk();
-            byte[] other_secret = GenerateOtherSecret(psk.Length);
+            byte[] other_secret = GenerateOtherSecret(mPsk.Length);
 
-            MemoryStream buf = new MemoryStream(4 + other_secret.Length + psk.Length);
+            MemoryStream buf = new MemoryStream(4 + other_secret.Length + mPsk.Length);
             TlsUtilities.WriteOpaque16(other_secret, buf);
-            TlsUtilities.WriteOpaque16(psk, buf);
+            TlsUtilities.WriteOpaque16(mPsk, buf);
+
+            Arrays.Fill(mPsk, (byte)0);
+            this.mPsk = null;
+
             return buf.ToArray();
         }
 
@@ -228,7 +297,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (this.mKeyExchange == KeyExchangeAlgorithm.ECDHE_PSK)
             {
-                // TODO[RFC 5489]
+                if (mECAgreePrivateKey != null)
+                {
+                    return TlsEccUtilities.CalculateECDHBasicAgreement(mECAgreePublicKey, mECAgreePrivateKey);
+                }
+
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
 

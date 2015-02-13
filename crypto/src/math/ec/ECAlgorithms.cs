@@ -117,6 +117,11 @@ namespace Org.BouncyCastle.Math.EC
 
         public static void MontgomeryTrick(ECFieldElement[] zs, int off, int len)
         {
+            MontgomeryTrick(zs, off, len, null);
+        }
+
+        public static void MontgomeryTrick(ECFieldElement[] zs, int off, int len, ECFieldElement scale)
+        {
             /*
              * Uses the "Montgomery Trick" to invert many field elements, with only a single actual
              * field inversion. See e.g. the paper:
@@ -133,7 +138,14 @@ namespace Org.BouncyCastle.Math.EC
                 c[i] = c[i - 1].Multiply(zs[off + i]);
             }
 
-            ECFieldElement u = c[--i].Invert();
+            --i;
+
+            if (scale != null)
+            {
+                c[i] = c[i].Multiply(scale);
+            }
+
+            ECFieldElement u = c[i].Invert();
 
             while (i > 0)
             {

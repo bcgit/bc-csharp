@@ -435,6 +435,69 @@ namespace Org.BouncyCastle.Crypto.Tls
             return (ECPrivateKeyParameters)kp.Private;
         }
 
+        // TODO Refactor around ServerECDHParams before making this public
+        internal static ECPrivateKeyParameters GenerateEphemeralServerKeyExchange(SecureRandom random, int[] namedCurves,
+            byte[] ecPointFormats, Stream output)
+        {
+            /* First we try to find a supported named curve from the client's list. */
+            int namedCurve = -1;
+            if (namedCurves == null)
+            {
+                // TODO Let the peer choose the default named curve
+                namedCurve = NamedCurve.secp256r1;
+            }
+            else
+            {
+                for (int i = 0; i < namedCurves.Length; ++i)
+                {
+                    int entry = namedCurves[i];
+                    if (NamedCurve.IsValid(entry) && IsSupportedNamedCurve(entry))
+                    {
+                        namedCurve = entry;
+                        break;
+                    }
+                }
+            }
+
+            ECDomainParameters ecParams = null;
+            if (namedCurve >= 0)
+            {
+                ecParams = GetParametersForNamedCurve(namedCurve);
+            }
+            else
+            {
+                /* If no named curves are suitable, check if the client supports explicit curves. */
+                if (Arrays.Contains(namedCurves, NamedCurve.arbitrary_explicit_prime_curves))
+                {
+                    ecParams = GetParametersForNamedCurve(NamedCurve.secp256r1);
+                }
+                else if (Arrays.Contains(namedCurves, NamedCurve.arbitrary_explicit_char2_curves))
+                {
+                    ecParams = GetParametersForNamedCurve(NamedCurve.sect283r1);
+                }
+            }
+
+            if (ecParams == null)
+            {
+                /*
+                 * NOTE: We shouldn't have negotiated ECDHE key exchange since we apparently can't find
+                 * a suitable curve.
+                 */
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+
+            if (namedCurve < 0)
+            {
+                WriteExplicitECParameters(ecPointFormats, ecParams, output);
+            }
+            else
+            {
+                WriteNamedECParameters(namedCurve, output);
+            }
+
+            return GenerateEphemeralClientKeyExchange(random, ecPointFormats, ecParams, output);
+        }
+
         public static ECPublicKeyParameters ValidateECPublicKey(ECPublicKeyParameters key)
         {
             // TODO Check RFC 4492 for validation
