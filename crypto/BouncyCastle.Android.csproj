@@ -1001,6 +1001,7 @@
     <Compile Include="src\crypto\tls\TlsProtocol.cs" />
     <Compile Include="src\crypto\tls\TlsProtocolHandler.cs" />
     <Compile Include="src\crypto\tls\TlsPskIdentity.cs" />
+    <Compile Include="src\crypto\tls\TlsPskIdentityManager.cs" />
     <Compile Include="src\crypto\tls\TlsPskKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsRsaKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsRsaSigner.cs" />
