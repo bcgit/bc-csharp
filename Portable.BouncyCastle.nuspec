@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Portable.BouncyCastle</id>
-        <version>1.8.0-beta4</version>
+        <version>1.8.0-beta4-update1</version>
         <title>Bouncy Castle PCL</title>
         <authors>Oren Novotny</authors>
         <owners>onovotny</owners>
@@ -29,10 +29,10 @@
  -Time Stamp Protocol (TSP, RFC 3161).
  -TLS/SSL Client with support for client side authentication.
  
-        Support for .NET 4, Windows Phone 8, Windows Phone App 8.1, Windows 8, Silverlight 5, MonoTouch, MonoAndroid
+        Support for .NET 4, Windows Phone 8, Windows Phone App 8.1, Windows 8, Silverlight 5, MonoTouch, MonoAndroid, Xamarin.iOS
         </description>
         <language>en-US</language>
-        <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, net4, sl5, monotouch, monoandroid, xamarin</tags>
+        <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, net4, sl5, monotouch, monoandroid, xamarin, xamarin.ios</tags>
     </metadata>
     <files>
         <file src="Crypto\bin\Release\crypto.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.xml" />
