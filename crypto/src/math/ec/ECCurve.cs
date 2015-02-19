@@ -221,26 +221,56 @@ namespace Org.BouncyCastle.Math.EC
          */
         public virtual void NormalizeAll(ECPoint[] points)
         {
-            CheckPoints(points);
+            NormalizeAll(points, 0, points.Length, null);
+        }
 
-            if (this.CoordinateSystem == ECCurve.COORD_AFFINE)
+        /**
+         * Normalization ensures that any projective coordinate is 1, and therefore that the x, y
+         * coordinates reflect those of the equivalent point in an affine coordinate system. Where more
+         * than one point is to be normalized, this method will generally be more efficient than
+         * normalizing each point separately. An (optional) z-scaling factor can be applied; effectively
+         * each z coordinate is scaled by this value prior to normalization (but only one
+         * actual multiplication is needed).
+         * 
+         * @param points
+         *            An array of points that will be updated in place with their normalized versions,
+         *            where necessary
+         * @param off
+         *            The start of the range of points to normalize
+         * @param len
+         *            The length of the range of points to normalize
+         * @param iso
+         *            The (optional) z-scaling factor - can be null
+         */
+        public virtual void NormalizeAll(ECPoint[] points, int off, int len, ECFieldElement iso)
+        {
+            CheckPoints(points, off, len);
+
+            switch (this.CoordinateSystem)
             {
-                return;
+                case ECCurve.COORD_AFFINE:
+                case ECCurve.COORD_LAMBDA_AFFINE:
+                {
+                    if (iso != null)
+                        throw new ArgumentException("not valid for affine coordinates", "iso");
+
+                    return;
+                }
             }
 
             /*
              * Figure out which of the points actually need to be normalized
              */
-            ECFieldElement[] zs = new ECFieldElement[points.Length];
-            int[] indices = new int[points.Length];
+            ECFieldElement[] zs = new ECFieldElement[len];
+            int[] indices = new int[len];
             int count = 0;
-            for (int i = 0; i < points.Length; ++i)
+            for (int i = 0; i < len; ++i)
             {
-                ECPoint p = points[i];
-                if (null != p && !p.IsNormalized())
+                ECPoint p = points[off + i];
+                if (null != p && (iso != null || !p.IsNormalized()))
                 {
                     zs[count] = p.GetZCoord(0);
-                    indices[count++] = i;
+                    indices[count++] = off + i;
                 }
             }
 
@@ -249,7 +279,7 @@ namespace Org.BouncyCastle.Math.EC
                 return;
             }
 
-            ECAlgorithms.MontgomeryTrick(zs, 0, count);
+            ECAlgorithms.MontgomeryTrick(zs, 0, count, iso);
 
             for (int j = 0; j < count; ++j)
             {
@@ -298,12 +328,19 @@ namespace Org.BouncyCastle.Math.EC
 
         protected virtual void CheckPoints(ECPoint[] points)
         {
+            CheckPoints(points, 0, points.Length);
+        }
+
+        protected virtual void CheckPoints(ECPoint[] points, int off, int len)
+        {
             if (points == null)
                 throw new ArgumentNullException("points");
+            if (off < 0 || len < 0 || (off > (points.Length - len)))
+                throw new ArgumentException("invalid range specified", "points");
 
-            for (int i = 0; i < points.Length; ++i)
+            for (int i = 0; i < len; ++i)
             {
-                ECPoint point = points[i];
+                ECPoint point = points[off + i];
                 if (null != point && this != point.Curve)
                     throw new ArgumentException("entries must be null or on this curve", "points");
             }

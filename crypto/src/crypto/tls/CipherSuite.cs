@@ -323,6 +323,14 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int TLS_PSK_DHE_WITH_AES_256_CCM_8 = 0xC0AB;
 
         /*
+         * RFC 7251
+         */
+        public const int TLS_ECDHE_ECDSA_WITH_AES_128_CCM = 0xC0AC;
+        public const int TLS_ECDHE_ECDSA_WITH_AES_256_CCM = 0xC0AD;
+        public const int TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 = 0xC0AE;
+        public const int TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 = 0xC0AF;
+
+        /*
          * draft-agl-tls-chacha20poly1305-04
          */
         public const int TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC13;
@@ -348,5 +356,22 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int TLS_DHE_PSK_WITH_SALSA20_SHA1 = 0xE41D;
         public const int TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE41E;
         public const int TLS_DHE_RSA_WITH_SALSA20_SHA1 = 0xE41F;
+
+        /*
+         * draft-ietf-tls-downgrade-scsv-00
+         */
+        public const int TLS_FALLBACK_SCSV = 0x5600;
+
+        public static bool IsScsv(int cipherSuite)
+        {
+            switch (cipherSuite)
+            {
+            case TLS_EMPTY_RENEGOTIATION_INFO_SCSV:
+            case TLS_FALLBACK_SCSV:
+                return true;
+            default:
+                return false;
+            }
+        }
     }
 }

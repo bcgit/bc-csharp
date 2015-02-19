@@ -13,6 +13,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         void NotifyClientVersion(ProtocolVersion clientVersion);
 
         /// <exception cref="IOException"></exception>
+        void NotifyFallback(bool isFallback);
+
+        /// <exception cref="IOException"></exception>
         void NotifyOfferedCipherSuites(int[] offeredCipherSuites);
 
         /// <exception cref="IOException"></exception>

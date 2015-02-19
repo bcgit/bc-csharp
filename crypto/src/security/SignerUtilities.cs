@@ -261,10 +261,10 @@ namespace Org.BouncyCastle.Security
         }
 
         /// <summary>
-        /// Returns a ObjectIdentifier for a give encoding.
+        /// Returns an ObjectIdentifier for a given encoding.
         /// </summary>
         /// <param name="mechanism">A string representation of the encoding.</param>
-        /// <returns>A DerObjectIdentifier, null if the Oid is not available.</returns>
+        /// <returns>A DerObjectIdentifier, null if the OID is not available.</returns>
         // TODO Don't really want to support this
         public static DerObjectIdentifier GetObjectIdentifier(
             string mechanism)

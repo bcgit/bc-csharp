@@ -339,6 +339,11 @@ namespace Org.BouncyCastle.Utilities
             return data == null ? null : (int[])data.Clone();
         }
 
+        internal static uint[] Clone(uint[] data)
+        {
+            return data == null ? null : (uint[])data.Clone();
+        }
+
         public static long[] Clone(long[] data)
         {
             return data == null ? null : (long[])data.Clone();

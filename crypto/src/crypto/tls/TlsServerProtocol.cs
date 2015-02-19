@@ -453,6 +453,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected virtual void ReceiveClientHelloMessage(MemoryStream buf)
         {
             ProtocolVersion client_version = TlsUtilities.ReadVersion(buf);
+            mRecordStream.SetWriteVersion(client_version);
+
             if (client_version.IsDtls)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
@@ -499,6 +501,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             ContextAdmin.SetClientVersion(client_version);
 
             mTlsServer.NotifyClientVersion(client_version);
+            mTlsServer.NotifyFallback(Arrays.Contains(mOfferedCipherSuites, CipherSuite.TLS_FALLBACK_SCSV));
 
             mSecurityParameters.clientRandom = client_random;
 
@@ -626,7 +629,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             int selectedCipherSuite = mTlsServer.GetSelectedCipherSuite();
             if (!Arrays.Contains(mOfferedCipherSuites, selectedCipherSuite)
                 || selectedCipherSuite == CipherSuite.TLS_NULL_WITH_NULL_NULL
-                || selectedCipherSuite == CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+                || CipherSuite.IsScsv(selectedCipherSuite)
                 || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, server_version))
             {
                 throw new TlsFatalAlert(AlertDescription.internal_error);
