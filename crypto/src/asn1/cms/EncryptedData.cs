@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 	{
 		private readonly DerInteger				version;
 		private readonly EncryptedContentInfo	encryptedContentInfo;
-		private readonly Asn1Set				unprotectedAttrs;
+		private readonly Asn1Sequence				unprotectedAttrs;
 
 		public static EncryptedData GetInstance(
 			object obj)
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 		public EncryptedData(
 			EncryptedContentInfo	encInfo,
-			Asn1Set					unprotectedAttrs)
+			Asn1Sequence			unprotectedAttrs)
 		{
 			if (encInfo == null)
 				throw new ArgumentNullException("encInfo");
@@ -52,7 +52,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			if (seq.Count > 2)
 			{
-				this.unprotectedAttrs = Asn1Set.GetInstance(seq[2]);
+                var taggedObj = seq[2] as Asn1TaggedObject;
+                if (taggedObj == null) {
+                    throw new ArgumentException("Bad unprotected attributes");
+                }
+				this.unprotectedAttrs = Asn1Sequence.GetInstance(taggedObj.GetObject());
 			}
 		}
 
@@ -66,7 +70,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			get { return encryptedContentInfo; }
 		}
 
-		public virtual Asn1Set UnprotectedAttrs
+		public virtual Asn1Sequence UnprotectedAttrs
 		{
 			get { return unprotectedAttrs; }
 		}
