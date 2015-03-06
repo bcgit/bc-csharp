@@ -270,14 +270,19 @@ namespace Org.BouncyCastle.Crypto.Tls
                             break;
                         case HandshakeType.finished:
                         default:
-                            if (type == HandshakeType.finished && this.mExpectedVerifyData == null)
+                        {
+                            TlsContext ctx = Context;
+                            if (type == HandshakeType.finished
+                                && this.mExpectedVerifyData == null
+                                && ctx.SecurityParameters.MasterSecret != null)
                             {
-                                this.mExpectedVerifyData = CreateVerifyData(!Context.IsServer);
+                                this.mExpectedVerifyData = CreateVerifyData(!ctx.IsServer);
                             }
 
                             mRecordStream.UpdateHandshakeData(beginning, 0, 4);
                             mRecordStream.UpdateHandshakeData(buf, 0, len);
                             break;
+                        }
                         }
 
                         /*
@@ -612,6 +617,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void ProcessFinishedMessage(MemoryStream buf)
         {
+            if (mExpectedVerifyData == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
             byte[] verify_data = TlsUtilities.ReadFully(mExpectedVerifyData.Length, buf);
 
             AssertEmpty(buf);
