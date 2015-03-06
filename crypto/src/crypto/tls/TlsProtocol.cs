@@ -99,6 +99,12 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
         }
 
+        protected virtual void CheckReceivedChangeCipherSpec(bool expected)
+        {
+            if (expected != mReceivedChangeCipherSpec)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
+        }
+
         protected virtual void CleanupHandshake()
         {
             if (this.mExpectedVerifyData != null)
@@ -258,6 +264,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                          * Read the message.
                          */
                         byte[] buf = mHandshakeQueue.RemoveData(len, 4);
+
+                        CheckReceivedChangeCipherSpec(mConnectionState == CS_END || type == HandshakeType.finished);
 
                         /*
                          * RFC 2246 7.4.9. The value handshake_messages includes all handshake messages
