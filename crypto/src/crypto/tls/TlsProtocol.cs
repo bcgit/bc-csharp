@@ -759,6 +759,18 @@ namespace Org.BouncyCastle.Crypto.Tls
             return maxFragmentLength;
         }
 
+        protected virtual void RefuseRenegotiation()
+        {
+            /*
+             * RFC 5746 4.5 SSLv3 clients that refuse renegotiation SHOULD use a fatal
+             * handshake_failure alert.
+             */
+            if (TlsUtilities.IsSsl(Context))
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+            RaiseWarning(AlertDescription.no_renegotiation, "Renegotiation not supported");
+        }
+
         /**
          * Make sure the InputStream 'buf' now empty. Fail otherwise.
          *

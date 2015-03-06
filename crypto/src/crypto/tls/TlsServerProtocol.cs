@@ -179,6 +179,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                     break;
                 }
+                case CS_END:
+                {
+                    RefuseRenegotiation();
+                    break;
+                }
                 default:
                     throw new TlsFatalAlert(AlertDescription.unexpected_message);
                 }
