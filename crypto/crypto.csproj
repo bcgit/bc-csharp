@@ -11011,7 +11011,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\PipedStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\TlsClientTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\TlsProtocolTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11022,6 +11032,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\TlsTestUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\UnreliableDatagramTransport.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
