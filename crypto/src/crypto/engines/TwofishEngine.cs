@@ -293,12 +293,11 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (workingKey == null)
                 throw new InvalidOperationException("Twofish not initialised");
-            if ((inOff + BLOCK_SIZE) > input.Length)
-                throw new DataLengthException("input buffer too short");
-            if ((outOff + BLOCK_SIZE) > output.Length)
-                throw new DataLengthException("output buffer too short");
 
-			if (encrypting)
+            Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
+
+            if (encrypting)
             {
                 EncryptBlock(input, inOff, output, outOff);
             }

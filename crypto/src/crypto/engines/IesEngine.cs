@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @param pubParam the recipient's/sender's public key parameters
         * @param param encoding and derivation parameters.
         */
-        public void Init(
+        public virtual void Init(
             bool                     forEncryption,
             ICipherParameters            privParameters,
             ICipherParameters            pubParameters,
@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return buf;
         }
 
-        public byte[] ProcessBlock(
+        public virtual byte[] ProcessBlock(
             byte[]  input,
             int     inOff,
             int     inLen)

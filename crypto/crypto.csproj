@@ -2964,6 +2964,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\Check.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\CipherKeyGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3065,6 +3070,11 @@
                 />
                 <File
                     RelPath = "src\crypto\MaxBytesExceededException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\OutputLengthException.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

@@ -284,6 +284,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[]	output,
             int		outOff)
         {
+            if (input.Length < (inOff + len))
+                throw new DataLengthException("Input buffer too short");
+
             int resultLen = 0;
 
             for (int i = 0; i < len; ++i)
@@ -301,6 +304,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private void OutputBlock(byte[] output, int offset)
         {
+            Check.OutputLength(output, offset, BlockSize, "Output buffer too short");
             if (totalLength == 0)
             {
                 InitCipher();
@@ -325,12 +329,19 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             int extra = bufOff;
-            if (!forEncryption)
+
+            if (forEncryption)
+            {
+                Check.OutputLength(output, outOff, extra + macSize, "Output buffer too short");
+            }
+            else
             {
                 if (extra < macSize)
                     throw new InvalidCipherTextException("data too short");
 
                 extra -= macSize;
+
+                Check.OutputLength(output, outOff, extra, "Output buffer too short");
             }
 
             if (extra > 0)

@@ -106,6 +106,29 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             x[3] = r13;
         }
 
+        internal static void Multiply(ulong[] x, ulong[] y)
+        {
+            ulong r00 = x[0], r01 = x[1], r10 = 0, r11 = 0;
+
+            for (int i = 0; i < 2; ++i)
+            {
+                long bits = (long)y[i];
+                for (int j = 0; j < 64; ++j)
+                {
+                    ulong m1 = (ulong)(bits >> 63); bits <<= 1;
+                    r10 ^= (r00 & m1);
+                    r11 ^= (r01 & m1);
+
+                    ulong m2 = (r01 << 63) >> 8;
+                    r01 = (r01 >> 1) | (r00 << 63);
+                    r00 = (r00 >> 1) ^ (m2 & E1L);
+                }
+            }
+
+            x[0] = r10;
+            x[1] = r11;
+        }
+
         // P is the value with only bit i=1 set
         internal static void MultiplyP(uint[] x)
         {

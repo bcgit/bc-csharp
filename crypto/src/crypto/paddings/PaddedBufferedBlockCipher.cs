@@ -178,10 +178,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
 
 			if (outLength > 0)
 			{
-				if ((outOff + outLength) > output.Length)
-				{
-					throw new DataLengthException("output buffer too short");
-				}
+                Check.OutputLength(output, outOff, outLength, "output buffer too short");
 			}
 
 			int resultLen = 0;
@@ -242,7 +239,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
 					{
 						Reset();
 
-						throw new DataLengthException("output buffer too short");
+						throw new OutputLengthException("output buffer too short");
 					}
 
 					resultLen = cipher.ProcessBlock(buf, 0, output, outOff);

@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public void Init(
+        public virtual void Init(
             bool				forEncryption,
             ICipherParameters	parameters)
         {
@@ -48,17 +48,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.wKey = MakeWorkingKey(((KeyParameter)parameters).GetKey());
         }
 
-		public string AlgorithmName
+        public virtual string AlgorithmName
 		{
 			get { return "Serpent"; }
 		}
 
-		public bool IsPartialBlockOkay
+        public virtual bool IsPartialBlockOkay
 		{
 			get { return false; }
 		}
 
-		public int GetBlockSize()
+        public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception InvalidOperationException if the cipher isn't initialised.
         * @return the number of bytes processed and produced.
         */
-        public  int ProcessBlock(
+        public virtual int ProcessBlock(
             byte[]  input,
             int     inOff,
             byte[]  output,
@@ -84,12 +84,11 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (wKey == null)
                 throw new InvalidOperationException("Serpent not initialised");
-            if ((inOff + BLOCK_SIZE) > input.Length)
-                throw new DataLengthException("input buffer too short");
-            if ((outOff + BLOCK_SIZE) > output.Length)
-                throw new DataLengthException("output buffer too short");
 
-			if (encrypting)
+            Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
+
+            if (encrypting)
             {
                 EncryptBlock(input, inOff, output, outOff);
             }
@@ -101,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 
-        public void Reset()
+        public virtual void Reset()
         {
         }
 
@@ -775,5 +774,4 @@ namespace Org.BouncyCastle.Crypto.Engines
             X0 = RotateRight(x0, 13);
         }
     }
-
 }

@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public void Init(
+        public virtual void Init(
             bool				forEncryption,
             ICipherParameters	parameters)
         {
@@ -58,43 +58,37 @@ namespace Org.BouncyCastle.Crypto.Engines
                 ((KeyParameter)parameters).GetKey());
         }
 
-        public string AlgorithmName
+        public virtual string AlgorithmName
         {
             get { return "IDEA"; }
         }
 
-        public bool IsPartialBlockOkay
+        public virtual bool IsPartialBlockOkay
         {
             get { return false; }
         }
 
-        public int GetBlockSize()
+        public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-        public int ProcessBlock(
+        public virtual int ProcessBlock(
             byte[] input,
             int inOff,
             byte[] output,
             int outOff)
         {
             if (workingKey == null)
-            {
                 throw new InvalidOperationException("IDEA engine not initialised");
-            }
-            if ((inOff + BLOCK_SIZE) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-            if ((outOff + BLOCK_SIZE) > output.Length)
-            {
-                throw new DataLengthException("output buffer too short");
-            }
+
+            Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
+
             IdeaFunc(workingKey, input, inOff, output, outOff);
             return BLOCK_SIZE;
         }
-        public void Reset()
+        public virtual void Reset()
         {
         }
         private static readonly int    MASK = 0xffff;
