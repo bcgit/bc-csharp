@@ -117,27 +117,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 // TODO Provide a way for the user to specify the acceptable hash/signature algorithms.
 
-                byte[] hashAlgorithms = new byte[]{ HashAlgorithm.sha512, HashAlgorithm.sha384, HashAlgorithm.sha256,
-                    HashAlgorithm.sha224, HashAlgorithm.sha1 };
-
-                // TODO Sort out ECDSA signatures and add them as the preferred option here
-                byte[] signatureAlgorithms = new byte[]{ SignatureAlgorithm.rsa };
-
-                this.mSupportedSignatureAlgorithms = Platform.CreateArrayList();
-                for (int i = 0; i < hashAlgorithms.Length; ++i)
-                {
-                    for (int j = 0; j < signatureAlgorithms.Length; ++j)
-                    {
-                        this.mSupportedSignatureAlgorithms.Add(new SignatureAndHashAlgorithm(hashAlgorithms[i],
-                            signatureAlgorithms[j]));
-                    }
-                }
-
-                /*
-                 * RFC 5264 7.4.3. Currently, DSA [DSS] may only be used with SHA-1.
-                 */
-                this.mSupportedSignatureAlgorithms.Add(new SignatureAndHashAlgorithm(HashAlgorithm.sha1,
-                    SignatureAlgorithm.dsa));
+                this.mSupportedSignatureAlgorithms = TlsUtilities.GetDefaultSupportedSignatureAlgorithms();
 
                 clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(clientExtensions);
 

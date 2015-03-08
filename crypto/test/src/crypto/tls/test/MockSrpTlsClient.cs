@@ -8,12 +8,13 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Tls.Tests
 {
-    internal class MockTlsClient
-        :   DefaultTlsClient
+    internal class MockSrpTlsClient
+        :   SrpTlsClient
     {
         internal TlsSession mSession;
 
-        internal MockTlsClient(TlsSession session)
+        internal MockSrpTlsClient(TlsSession session, byte[] identity, byte[] password)
+            :   base(identity, password)
         {
             this.mSession = session;
         }
@@ -26,7 +27,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         public override void NotifyAlertRaised(byte alertLevel, byte alertDescription, string message, Exception cause)
         {
             TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS client raised alert: " + AlertLevel.GetText(alertLevel)
+            output.WriteLine("TLS-SRP client raised alert: " + AlertLevel.GetText(alertLevel)
                 + ", " + AlertDescription.GetText(alertDescription));
             if (message != null)
             {
@@ -41,44 +42,8 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         public override void NotifyAlertReceived(byte alertLevel, byte alertDescription)
         {
             TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS client received alert: " + AlertLevel.GetText(alertLevel)
+            output.WriteLine("TLS-SRP client received alert: " + AlertLevel.GetText(alertLevel)
                 + ", " + AlertDescription.GetText(alertDescription));
-        }
-
-        //public override int[] GetCipherSuites()
-        //{
-        //    return Arrays.Concatenate(base.GetCipherSuites(),
-        //        new int[]
-        //        {
-        //            CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
-        //            CipherSuite.TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1,
-        //            CipherSuite.TLS_ECDHE_RSA_WITH_SALSA20_SHA1,
-        //            CipherSuite.TLS_RSA_WITH_ESTREAM_SALSA20_SHA1,
-        //            CipherSuite.TLS_RSA_WITH_SALSA20_SHA1,
-        //        });
-        //}
-
-        public override IDictionary GetClientExtensions()
-        {
-            IDictionary clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(base.GetClientExtensions());
-            TlsExtensionsUtilities.AddEncryptThenMacExtension(clientExtensions);
-            // TODO[draft-ietf-tls-session-hash-01] Enable once code-point assigned (only for compatible server though)
-//            TlsExtensionsUtilities.AddExtendedMasterSecretExtension(clientExtensions);
-            TlsExtensionsUtilities.AddMaxFragmentLengthExtension(clientExtensions, MaxFragmentLength.pow2_9);
-            TlsExtensionsUtilities.AddTruncatedHMacExtension(clientExtensions);
-            return clientExtensions;
-        }
-
-        public override void NotifyServerVersion(ProtocolVersion serverVersion)
-        {
-            base.NotifyServerVersion(serverVersion);
-
-            Console.WriteLine("TLS client negotiated " + serverVersion);
-        }
-
-        public override TlsAuthentication GetAuthentication()
-        {
-            return new MyTlsAuthentication(mContext);
         }
 
         public override void NotifyHandshakeComplete()
@@ -104,8 +69,32 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             }
         }
 
+        public override ProtocolVersion MinimumVersion
+        {
+            get { return ProtocolVersion.TLSv12; }
+        }
+
+        public override IDictionary GetClientExtensions()
+        {
+            IDictionary clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(base.GetClientExtensions());
+            TlsExtensionsUtilities.AddEncryptThenMacExtension(clientExtensions);
+            return clientExtensions;
+        }
+
+        public override void NotifyServerVersion(ProtocolVersion serverVersion)
+        {
+            base.NotifyServerVersion(serverVersion);
+
+            Console.WriteLine("TLS-SRP client negotiated " + serverVersion);
+        }
+
+        public override TlsAuthentication GetAuthentication()
+        {
+            return new MyTlsAuthentication(mContext);
+        }
+
         internal class MyTlsAuthentication
-            :   TlsAuthentication
+            : ServerOnlyTlsAuthentication
         {
             private readonly TlsContext mContext;
 
@@ -114,10 +103,10 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 this.mContext = context;
             }
 
-            public virtual void NotifyServerCertificate(Certificate serverCertificate)
+            public override void NotifyServerCertificate(Certificate serverCertificate)
             {
                 X509CertificateStructure[] chain = serverCertificate.GetCertificateList();
-                Console.WriteLine("TLS client received server certificate chain of length " + chain.Length);
+                Console.WriteLine("TLS-SRP client received server certificate chain of length " + chain.Length);
                 for (int i = 0; i != chain.Length; i++)
                 {
                     X509CertificateStructure entry = chain[i];
@@ -125,16 +114,6 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                     Console.WriteLine("    Fingerprint:SHA-256 " + TlsTestUtilities.Fingerprint(entry) + " ("
                         + entry.Subject + ")");
                 }
-            }
-
-            public virtual TlsCredentials GetClientCredentials(CertificateRequest certificateRequest)
-            {
-                byte[] certificateTypes = certificateRequest.CertificateTypes;
-                if (certificateTypes == null || !Arrays.Contains(certificateTypes, ClientCertificateType.rsa_sign))
-                    return null;
-
-                return TlsTestUtilities.LoadSignerCredentials(mContext, certificateRequest.SupportedSignatureAlgorithms,
-                    SignatureAlgorithm.rsa, "x509-client.pem", "x509-client-key.pem");
             }
         };
     }

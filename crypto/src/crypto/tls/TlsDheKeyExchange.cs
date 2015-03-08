@@ -36,30 +36,18 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             DigestInputBuffer buf = new DigestInputBuffer();
 
-            this.mDHAgreeServerPrivateKey = TlsDHUtilities.GenerateEphemeralServerKeyExchange(context.SecureRandom,
+            this.mDHAgreePrivateKey = TlsDHUtilities.GenerateEphemeralServerKeyExchange(mContext.SecureRandom,
                 this.mDHParameters, buf);
 
             /*
              * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
              */
-            SignatureAndHashAlgorithm signatureAndHashAlgorithm;
-            IDigest d;
+            SignatureAndHashAlgorithm signatureAndHashAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                mContext, mServerCredentials);
 
-            if (TlsUtilities.IsTlsV12(context))
-            {
-                signatureAndHashAlgorithm = mServerCredentials.SignatureAndHashAlgorithm;
-                if (signatureAndHashAlgorithm == null)
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            IDigest d = TlsUtilities.CreateHash(signatureAndHashAlgorithm);
 
-                d = TlsUtilities.CreateHash(signatureAndHashAlgorithm.Hash);
-            }
-            else
-            {
-                signatureAndHashAlgorithm = null;
-                d = new CombinedHash();
-            }
-
-            SecurityParameters securityParameters = context.SecurityParameters;
+            SecurityParameters securityParameters = mContext.SecurityParameters;
             d.BlockUpdate(securityParameters.clientRandom, 0, securityParameters.clientRandom.Length);
             d.BlockUpdate(securityParameters.serverRandom, 0, securityParameters.serverRandom.Length);
             buf.UpdateDigest(d);
@@ -76,21 +64,22 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void ProcessServerKeyExchange(Stream input)
         {
-            SecurityParameters securityParameters = context.SecurityParameters;
+            SecurityParameters securityParameters = mContext.SecurityParameters;
 
             SignerInputBuffer buf = new SignerInputBuffer();
             Stream teeIn = new TeeInputStream(input, buf);
 
             ServerDHParams dhParams = ServerDHParams.Parse(teeIn);
 
-            DigitallySigned signed_params = DigitallySigned.Parse(context, input);
+            DigitallySigned signed_params = DigitallySigned.Parse(mContext, input);
 
             ISigner signer = InitVerifyer(mTlsSigner, signed_params.Algorithm, securityParameters);
             buf.UpdateSigner(signer);
             if (!signer.VerifySignature(signed_params.Signature))
                 throw new TlsFatalAlert(AlertDescription.decrypt_error);
 
-            this.mDHAgreeServerPublicKey = TlsDHUtilities.ValidateDHPublicKey(dhParams.PublicKey);
+            this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(dhParams.PublicKey);
+            this.mDHParameters = mDHAgreePublicKey.Parameters;
         }
 
         protected virtual ISigner InitVerifyer(TlsSigner tlsSigner, SignatureAndHashAlgorithm algorithm,

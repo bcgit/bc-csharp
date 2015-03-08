@@ -168,6 +168,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                             .SetCompressionAlgorithm(this.mSecurityParameters.compressionAlgorithm)
                             .SetMasterSecret(this.mSecurityParameters.masterSecret)
                             .SetPeerCertificate(this.mPeerCertificate)
+                            .SetPskIdentity(this.mSecurityParameters.pskIdentity)
+                            .SetSrpIdentity(this.mSecurityParameters.srpIdentity)
                             // TODO Consider filtering extensions that aren't relevant to resumed sessions
                             .SetServerExtensions(this.mServerExtensions)
                             .Build();

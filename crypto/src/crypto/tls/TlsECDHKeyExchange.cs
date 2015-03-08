@@ -166,7 +166,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             if (mAgreementCredentials == null)
             {
-                this.mECAgreePrivateKey = TlsEccUtilities.GenerateEphemeralClientKeyExchange(context.SecureRandom,
+                this.mECAgreePrivateKey = TlsEccUtilities.GenerateEphemeralClientKeyExchange(mContext.SecureRandom,
                     mServerECPointFormats, mECAgreePublicKey.Parameters, output);
             }
         }

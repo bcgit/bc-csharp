@@ -338,7 +338,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected TlsKeyExchange CreatePskKeyExchange(int keyExchange)
+        protected virtual TlsKeyExchange CreatePskKeyExchange(int keyExchange)
         {
             return new TlsPskKeyExchange(keyExchange, mSupportedSignatureAlgorithms, null, mPskIdentityManager,
                 GetDHParameters(), mNamedCurves, mClientECPointFormats, mServerECPointFormats);

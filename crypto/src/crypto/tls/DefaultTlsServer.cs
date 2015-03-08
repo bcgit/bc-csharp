@@ -20,6 +20,16 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
         }
 
+        protected virtual TlsSignerCredentials GetDsaSignerCredentials()
+        {
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        protected virtual TlsSignerCredentials GetECDsaSignerCredentials()
+        {
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
         protected virtual TlsEncryptionCredentials GetRsaEncryptionCredentials()
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -45,6 +55,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                 CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
                 CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
                 CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+                CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+                CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+                CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+                CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
+                CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+                CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
                 CipherSuite.TLS_RSA_WITH_AES_256_GCM_SHA384,
                 CipherSuite.TLS_RSA_WITH_AES_128_GCM_SHA256,
                 CipherSuite.TLS_RSA_WITH_AES_256_CBC_SHA256,
@@ -58,6 +74,76 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             switch (mSelectedCipherSuite)
             {
+            case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA256:
+            case CipherSuite.TLS_DH_DSS_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA256:
+            case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_DH_DSS_WITH_DES_CBC_SHA:
+            case CipherSuite.TLS_DH_DSS_WITH_SEED_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_256_CBC_SHA256:
+            case CipherSuite.TLS_DHE_DSS_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256:
+            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_DHE_DSS_WITH_DES_CBC_SHA:
+            case CipherSuite.TLS_DHE_DSS_WITH_SEED_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA:
+                return GetDsaSignerCredentials();
+
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_NULL_SHA:
+            case CipherSuite.TLS_ECDH_ECDSA_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CCM:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_NULL_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA:
+            case CipherSuite.TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1:
+                return GetECDsaSignerCredentials();
+
             case CipherSuite.TLS_RSA_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA:
             case CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256:

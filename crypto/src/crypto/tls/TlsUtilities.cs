@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Crypto.Tls
     public abstract class TlsUtilities
     {
         public static readonly byte[] EmptyBytes = new byte[0];
+        public static readonly short[] EmptyShorts = new short[0];
+        public static readonly int[] EmptyInts = new int[0];
+        public static readonly long[] EmptyLongs = new long[0];
 
         public static void CheckUint8(int i)
         {
@@ -589,6 +592,37 @@ namespace Org.BouncyCastle.Crypto.Tls
             return extensions == null ? null : (byte[])extensions[extensionType];
         }
 
+        public static IList GetDefaultSupportedSignatureAlgorithms()
+        {
+            byte[] hashAlgorithms = new byte[]{ HashAlgorithm.sha1, HashAlgorithm.sha224, HashAlgorithm.sha256,
+                HashAlgorithm.sha384, HashAlgorithm.sha512 };
+            byte[] signatureAlgorithms = new byte[]{ SignatureAlgorithm.rsa, SignatureAlgorithm.dsa,
+                SignatureAlgorithm.ecdsa };
+
+            IList result = Platform.CreateArrayList();
+            for (int i = 0; i < signatureAlgorithms.Length; ++i)
+            {
+                for (int j = 0; j < hashAlgorithms.Length; ++j)
+                {
+                    result.Add(new SignatureAndHashAlgorithm(hashAlgorithms[j], signatureAlgorithms[i]));
+                }
+            }
+            return result;
+        }
+
+        public static SignatureAndHashAlgorithm GetSignatureAndHashAlgorithm(TlsContext context,
+            TlsSignerCredentials signerCredentials)
+        {
+            SignatureAndHashAlgorithm signatureAndHashAlgorithm = null;
+            if (IsTlsV12(context))
+            {
+                signatureAndHashAlgorithm = signerCredentials.SignatureAndHashAlgorithm;
+                if (signatureAndHashAlgorithm == null)
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+            return signatureAndHashAlgorithm;
+        }
+
         public static bool HasExpectedEmptyExtensionData(IDictionary extensions, int extensionType,
             byte alertDescription)
         {
@@ -939,6 +973,13 @@ namespace Org.BouncyCastle.Crypto.Tls
             default:
                 throw new ArgumentException("unknown HashAlgorithm", "hashAlgorithm");
             }
+        }
+
+        public static IDigest CreateHash(SignatureAndHashAlgorithm signatureAndHashAlgorithm)
+        {
+            return signatureAndHashAlgorithm == null
+                ?   new CombinedHash()
+                :   CreateHash(signatureAndHashAlgorithm.Hash);
         }
 
         public static IDigest CloneHash(byte hashAlgorithm, IDigest hash)

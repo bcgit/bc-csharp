@@ -373,21 +373,17 @@ namespace Org.BouncyCastle.Crypto.Tls
                         /*
                          * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
                          */
-                        SignatureAndHashAlgorithm signatureAndHashAlgorithm;
+                        SignatureAndHashAlgorithm signatureAndHashAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                            Context, signerCredentials);
+
                         byte[] hash;
-
-                        if (TlsUtilities.IsTlsV12(Context))
+                        if (signatureAndHashAlgorithm == null)
                         {
-                            signatureAndHashAlgorithm = signerCredentials.SignatureAndHashAlgorithm;
-                            if (signatureAndHashAlgorithm == null)
-                                throw new TlsFatalAlert(AlertDescription.internal_error);
-
-                            hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
+                            hash = mSecurityParameters.SessionHash;
                         }
                         else
                         {
-                            signatureAndHashAlgorithm = null;
-                            hash = mSecurityParameters.SessionHash;
+                            hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
                         }
 
                         byte[] signature = signerCredentials.GenerateCertificateSignature(hash);

@@ -3154,6 +3154,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\agreement\srp\SRP6StandardGroups.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\agreement\srp\SRP6Utilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4174,6 +4179,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\parameters\Srp6GroupParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\parameters\TweakableBlockCipherParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4479,6 +4489,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\DefaultTlsSrpGroupVerifier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\DefaultTlsSignerCredentials.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4684,6 +4699,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\ServerSrpParams.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\ServerName.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4719,7 +4739,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\SimulatedTlsSrpIdentityManager.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\SrpTlsClient.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\SrpTlsServer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4980,6 +5010,21 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsSignerCredentials.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsSrpGroupVerifier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsSrpIdentityManager.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsSrpLoginParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11043,6 +11088,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\MockSrpTlsClient.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\MockSrpTlsServer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\MockTlsClient.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11069,6 +11124,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\TlsPskProtocolTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\TlsSrpProtocolTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

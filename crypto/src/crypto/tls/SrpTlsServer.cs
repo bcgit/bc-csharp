@@ -1,69 +1,99 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    public class SrpTlsClient
-        :   AbstractTlsClient
+    public class SrpTlsServer
+        :   AbstractTlsServer
     {
-        protected TlsSrpGroupVerifier mGroupVerifier;
+        protected TlsSrpIdentityManager mSrpIdentityManager;
 
-        protected byte[] mIdentity;
-        protected byte[] mPassword;
+        protected byte[] mSrpIdentity = null;
+        protected TlsSrpLoginParameters mLoginParameters = null;
 
-        public SrpTlsClient(byte[] identity, byte[] password)
-            :   this(new DefaultTlsCipherFactory(), new DefaultTlsSrpGroupVerifier(), identity, password)
+        public SrpTlsServer(TlsSrpIdentityManager srpIdentityManager)
+            :   this(new DefaultTlsCipherFactory(), srpIdentityManager)
         {
         }
 
-        public SrpTlsClient(TlsCipherFactory cipherFactory, byte[] identity, byte[] password)
-            :   this(cipherFactory, new DefaultTlsSrpGroupVerifier(), identity, password)
-        {
-        }
-
-        public SrpTlsClient(TlsCipherFactory cipherFactory, TlsSrpGroupVerifier groupVerifier,
-            byte[] identity, byte[] password)
+        public SrpTlsServer(TlsCipherFactory cipherFactory, TlsSrpIdentityManager srpIdentityManager)
             :   base(cipherFactory)
         {
-            this.mGroupVerifier = groupVerifier;
-            this.mIdentity = Arrays.Clone(identity);
-            this.mPassword = Arrays.Clone(password);
+            this.mSrpIdentityManager = srpIdentityManager;
         }
 
-        protected virtual bool RequireSrpServerExtension
+        protected virtual TlsSignerCredentials GetDsaSignerCredentials()
         {
-            // No explicit guidance in RFC 5054; by default an (empty) extension from server is optional
-            get { return false; }
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
-        public override int[] GetCipherSuites()
+        protected virtual TlsSignerCredentials GetRsaSignerCredentials()
+        {
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        protected override int[] GetCipherSuites()
         {
             return new int[]
             {
-                CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA
+                CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA,
+                CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA,
+                CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA,
+                CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA,
+                CipherSuite.TLS_SRP_SHA_WITH_AES_256_CBC_SHA,
+                CipherSuite.TLS_SRP_SHA_WITH_AES_128_CBC_SHA
             };
         }
 
-        public override IDictionary GetClientExtensions()
+        public override void ProcessClientExtensions(IDictionary clientExtensions)
         {
-            IDictionary clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(base.GetClientExtensions());
-            TlsSrpUtilities.AddSrpExtension(clientExtensions, this.mIdentity);
-            return clientExtensions;
+            base.ProcessClientExtensions(clientExtensions);
+
+            this.mSrpIdentity = TlsSrpUtilities.GetSrpExtension(clientExtensions);
         }
 
-        public override void ProcessServerExtensions(IDictionary serverExtensions)
+        public override int GetSelectedCipherSuite()
         {
-            if (!TlsUtilities.HasExpectedEmptyExtensionData(serverExtensions, ExtensionType.srp,
-                AlertDescription.illegal_parameter))
+            int cipherSuite = base.GetSelectedCipherSuite();
+
+            if (TlsSrpUtilities.IsSrpCipherSuite(cipherSuite))
             {
-                if (RequireSrpServerExtension)
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                if (mSrpIdentity != null)
+                {
+                    this.mLoginParameters = mSrpIdentityManager.GetLoginParameters(mSrpIdentity);
+                }
+
+                if (mLoginParameters == null)
+                    throw new TlsFatalAlert(AlertDescription.unknown_psk_identity);
             }
 
-            base.ProcessServerExtensions(serverExtensions);
+            return cipherSuite;
+        }
+
+        public override TlsCredentials GetCredentials()
+        {
+            switch (mSelectedCipherSuite)
+            {
+            case CipherSuite.TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_WITH_AES_256_CBC_SHA:
+                return null;
+
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA:
+                return GetDsaSignerCredentials();
+
+            case CipherSuite.TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA:
+                return GetRsaSignerCredentials();
+
+            default:
+                /* Note: internal error here; selected a key exchange we don't implement! */
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
         }
 
         public override TlsKeyExchange GetKeyExchange()
@@ -93,15 +123,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
-        }
-
-        public override TlsAuthentication GetAuthentication()
-        {
-            /*
-             * Note: This method is not called unless a server certificate is sent, which may be the
-             * case e.g. for SRP_DSS or SRP_RSA key exchange.
-             */
-            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
         public override TlsCipher GetCipher()
@@ -135,7 +156,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual TlsKeyExchange CreateSrpKeyExchange(int keyExchange)
         {
-            return new TlsSrpKeyExchange(keyExchange, mSupportedSignatureAlgorithms, mGroupVerifier, mIdentity, mPassword);
+            return new TlsSrpKeyExchange(keyExchange, mSupportedSignatureAlgorithms, mSrpIdentity, mLoginParameters);
         }
     }
 }

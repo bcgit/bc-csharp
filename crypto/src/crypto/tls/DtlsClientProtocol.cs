@@ -317,23 +317,17 @@ namespace Org.BouncyCastle.Crypto.Tls
                 /*
                  * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
                  */
-                SignatureAndHashAlgorithm signatureAndHashAlgorithm;
+                SignatureAndHashAlgorithm signatureAndHashAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                    state.clientContext, signerCredentials);
+
                 byte[] hash;
-
-                if (TlsUtilities.IsTlsV12(state.clientContext))
+                if (signatureAndHashAlgorithm == null)
                 {
-                    signatureAndHashAlgorithm = signerCredentials.SignatureAndHashAlgorithm;
-                    if (signatureAndHashAlgorithm == null)
-                    {
-                        throw new TlsFatalAlert(AlertDescription.internal_error);
-                    }
-
-                    hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
+                    hash = securityParameters.SessionHash;
                 }
                 else
                 {
-                    signatureAndHashAlgorithm = null;
-                    hash = securityParameters.SessionHash;
+                    hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
                 }
 
                 byte[] signature = signerCredentials.GenerateCertificateSignature(hash);
@@ -375,6 +369,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     .SetMasterSecret(securityParameters.masterSecret)
                     .SetPeerCertificate(serverCertificate)
                     .SetPskIdentity(securityParameters.pskIdentity)
+                    .SetSrpIdentity(securityParameters.srpIdentity)
                     .Build();
 
                 state.tlsSession = TlsUtilities.ImportSession(state.tlsSession.SessionID, state.sessionParameters);
