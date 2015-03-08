@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC.Multiplier;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
@@ -13,6 +14,10 @@ namespace Org.BouncyCastle.Crypto.Generators
     public class RsaKeyPairGenerator
         :   IAsymmetricCipherKeyPairGenerator
     {
+        private static readonly int[] SPECIAL_E_VALUES = new int[]{ 3, 5, 17, 257, 65537 };
+        private static readonly int SPECIAL_E_HIGHEST = SPECIAL_E_VALUES[SPECIAL_E_VALUES.Length - 1];
+        private static readonly int SPECIAL_E_BITS = BigInteger.ValueOf(SPECIAL_E_HIGHEST).BitLength;
+
         protected static readonly BigInteger One = BigInteger.One;
         protected static readonly BigInteger DefaultPublicExponent = BigInteger.ValueOf(0x10001);
         protected const int DefaultTests = 100;
@@ -41,20 +46,17 @@ namespace Org.BouncyCastle.Crypto.Generators
                 // p and q values should have a length of half the strength in bits
                 //
                 int strength = parameters.Strength;
-                int pbitlength = (strength + 1) / 2;
-                int qbitlength = strength - pbitlength;
+                int pBitlength = (strength + 1) / 2;
+                int qBitlength = strength - pBitlength;
                 int mindiffbits = strength / 3;
                 int minWeight = strength >> 2;
-
-                //// d lower bound is 2^(strength / 2)
-                //BigInteger dLowerBound = BigInteger.Two.Pow(strength / 2);
 
                 BigInteger e = parameters.PublicExponent;
 
                 // TODO Consider generating safe primes for p, q (see DHParametersHelper.generateSafePrimes)
                 // (then p-1 and q-1 will not consist of only small factors - see "Pollard's algorithm")
 
-                BigInteger p = ChooseRandomPrime(pbitlength, e);
+                BigInteger p = ChooseRandomPrime(pBitlength, e);
                 BigInteger q, n;
 
                 //
@@ -62,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 //
                 for (;;)
                 {
-                    q = ChooseRandomPrime(qbitlength, e);
+                    q = ChooseRandomPrime(qBitlength, e);
 
                     // p and q should not be too close together (or equal!)
                     BigInteger diff = q.Subtract(p).Abs();
@@ -92,7 +94,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 	                 */
                     if (WNafUtilities.GetNafWeight(n) < minWeight)
                     {
-                        p = ChooseRandomPrime(pbitlength, e);
+                        p = ChooseRandomPrime(pBitlength, e);
                         continue;
                     }
 
@@ -108,20 +110,16 @@ namespace Org.BouncyCastle.Crypto.Generators
 
                 BigInteger pSub1 = p.Subtract(One);
                 BigInteger qSub1 = q.Subtract(One);
-                BigInteger phi = pSub1.Multiply(qSub1);
-                //BigInteger lcm = phi.Divide(pSub1.Gcd(qSub1));
+                //BigInteger phi = pSub1.Multiply(qSub1);
+                BigInteger gcd = pSub1.Gcd(qSub1);
+                BigInteger lcm = pSub1.Divide(gcd).Multiply(qSub1);
 
                 //
                 // calculate the private exponent
                 //
-                //BigInteger d = e.ModInverse(lcm);
-                BigInteger d = e.ModInverse(phi);
+                BigInteger d = e.ModInverse(lcm);
 
-                // if d is less than or equal to dLowerBound, we need to start over
-                // also, for backward compatibility, if d is not the same as
-                // e.modInverse(phi), we need to start over
-
-                if (d.BitLength <= qbitlength)// || !d.Multiply(e).Mod(phi).Equals(One))
+                if (d.BitLength <= qBitlength)
                     continue;
 
                 //
@@ -143,6 +141,8 @@ namespace Org.BouncyCastle.Crypto.Generators
         /// <returns>a prime p, with (p-1) relatively prime to e</returns>
         protected virtual BigInteger ChooseRandomPrime(int bitlength, BigInteger e)
         {
+            bool eIsKnownOddPrime = (e.BitLength <= SPECIAL_E_BITS) && Arrays.Contains(SPECIAL_E_VALUES, e.IntValue);
+
             for (;;)
             {
                 BigInteger p = new BigInteger(bitlength, 1, parameters.Random);
@@ -153,7 +153,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 if (!p.IsProbablePrime(parameters.Certainty))
                     continue;
 
-                if (!e.Gcd(p.Subtract(One)).Equals(One))
+                if (!eIsKnownOddPrime && !e.Gcd(p.Subtract(One)).Equals(One))
                     continue;
 
                 return p;
