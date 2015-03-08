@@ -224,10 +224,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             byte[] zBytes = BigIntegers.AsUnsignedByteArray(agree.GetFieldSize(), z);
 
-            return forEncryption
-                ?	EncryptBlock(input, inOff, inLen, zBytes)
-                :	DecryptBlock(input, inOff, inLen, zBytes);
+            try
+            {
+                return forEncryption
+                    ?	EncryptBlock(input, inOff, inLen, zBytes)
+                    :	DecryptBlock(input, inOff, inLen, zBytes);
+            }
+            finally
+            {
+                Array.Clear(zBytes, 0, zBytes.Length);
+            }
         }
     }
-
 }
