@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
             Server server = new Server(serverProtocol);
 
-            Thread serverThread = new Thread(server.Run);
+            Thread serverThread = new Thread(new ThreadStart(server.Run));
             serverThread.Start();
 
             MockTlsClient client = new MockTlsClient(null);
