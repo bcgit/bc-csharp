@@ -14,6 +14,7 @@
 *.pem      text
 *.README   text
 *.sln      text
+*.tmpl     text
 *.txt      text
 *.xml      text diff=xml
 
