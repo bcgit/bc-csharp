@@ -24,6 +24,7 @@
 *.crl      binary
 *.crt      binary
 *.data     binary
+*.dll      binary
 *.dsa      binary
 *.jpg      binary
 *.jpeg     binary

@@ -7,21 +7,20 @@ namespace Org.BouncyCastle.Math.Tests
 {
     public class AllTests
     {
-        public static void Main(
-			string[] args)
+        public static void Main(string[] args)
         {
-//            junit.textui.TestRunner.run(suite());
-            EventListener el = new NullListener();
-            suite().Run(el);
+            Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         }
 
-        public static TestSuite suite()
+        [Suite]
+        public static TestSuite Suite
         {
-			TestSuite suite = new TestSuite("Math tests");
-
-			suite.Add(new BigIntegerTest());
-
-			return suite;
+            get
+            {
+                TestSuite suite = new TestSuite("Math tests");
+                suite.Add(new BigIntegerTest());
+                return suite;
+            }
         }
     }
 }
