@@ -24,14 +24,14 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             this.server = new MockDatagramTransport(this, serverQueue, clientQueue);
         }
 
-        public DatagramTransport getClient()
+        public virtual DatagramTransport Client
         {
-            return client;
+            get { return client; }
         }
 
-        public DatagramTransport getServer()
+        public virtual DatagramTransport Server
         {
-            return server;
+            get { return server; }
         }
 
         private class MockDatagramTransport
@@ -64,8 +64,14 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 {
                     if (receiveQueue.Count < 1)
                     {
-                        Monitor.Wait(waitMillis);
-
+                        try
+                        {
+                            Monitor.Wait(receiveQueue, waitMillis);
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            // TODO Keep waiting until full wait expired?
+                        }
                         if (receiveQueue.Count < 1)
                         {
                             return -1;

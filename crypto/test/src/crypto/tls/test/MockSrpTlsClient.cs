@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 for (int i = 0; i != chain.Length; i++)
                 {
                     X509CertificateStructure entry = chain[i];
-                    // TODO Create Fingerprint based on certificate signature algorithm digest
+                    // TODO Create fingerprint based on certificate signature algorithm digest
                     Console.WriteLine("    fingerprint:SHA-256 " + TlsTestUtilities.Fingerprint(entry) + " ("
                         + entry.Subject + ")");
                 }

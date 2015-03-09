@@ -149,7 +149,13 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 {
                     while (!mCanExit)
                     {
-                        Monitor.Wait(this);
+                        try
+                        {
+                            Monitor.Wait(this);
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                        }
                     }
                 }
             }

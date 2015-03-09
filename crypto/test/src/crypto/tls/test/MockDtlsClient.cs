@@ -8,12 +8,12 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Tls.Tests
 {
-    internal class MockTlsClient
+    public class MockDtlsClient
         :   DefaultTlsClient
     {
-        internal TlsSession mSession;
+        protected TlsSession mSession;
 
-        internal MockTlsClient(TlsSession session)
+        public MockDtlsClient(TlsSession session)
         {
             this.mSession = session;
         }
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         public override void NotifyAlertRaised(byte alertLevel, byte alertDescription, string message, Exception cause)
         {
             TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS client raised alert: " + AlertLevel.GetText(alertLevel)
+            output.WriteLine("DTLS client raised alert: " + AlertLevel.GetText(alertLevel)
                 + ", " + AlertDescription.GetText(alertDescription));
             if (message != null)
             {
@@ -41,8 +41,18 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         public override void NotifyAlertReceived(byte alertLevel, byte alertDescription)
         {
             TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS client received alert: " + AlertLevel.GetText(alertLevel)
+            output.WriteLine("DTLS client received alert: " + AlertLevel.GetText(alertLevel)
                 + ", " + AlertDescription.GetText(alertDescription));
+        }
+
+        public override ProtocolVersion ClientVersion
+        {
+            get { return ProtocolVersion.DTLSv12; }
+        }
+
+        public override ProtocolVersion MinimumVersion
+        {
+            get { return ProtocolVersion.DTLSv10; }
         }
 
         //public override int[] GetCipherSuites()
@@ -63,7 +73,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             IDictionary clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(base.GetClientExtensions());
             TlsExtensionsUtilities.AddEncryptThenMacExtension(clientExtensions);
             // TODO[draft-ietf-tls-session-hash-01] Enable once code-point assigned (only for compatible server though)
-//            TlsExtensionsUtilities.AddExtendedMasterSecretExtension(clientExtensions);
+            //TlsExtensionsUtilities.AddExtendedMasterSecretExtension(clientExtensions);
             TlsExtensionsUtilities.AddMaxFragmentLengthExtension(clientExtensions, MaxFragmentLength.pow2_9);
             TlsExtensionsUtilities.AddTruncatedHMacExtension(clientExtensions);
             return clientExtensions;
@@ -73,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         {
             base.NotifyServerVersion(serverVersion);
 
-            Console.WriteLine("TLS client negotiated " + serverVersion);
+            Console.WriteLine("Negotiated " + serverVersion);
         }
 
         public override TlsAuthentication GetAuthentication()
@@ -117,7 +127,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             public virtual void NotifyServerCertificate(Certificate serverCertificate)
             {
                 X509CertificateStructure[] chain = serverCertificate.GetCertificateList();
-                Console.WriteLine("TLS client received server certificate chain of length " + chain.Length);
+                Console.WriteLine("DTLS client received server certificate chain of length " + chain.Length);
                 for (int i = 0; i != chain.Length; i++)
                 {
                     X509CertificateStructure entry = chain[i];

@@ -11088,12 +11088,37 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\DtlsProtocolTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\DtlsTestCase.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\DtlsTestSuite.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\LoggingDatagramTransport.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\MockDatagramAssociation.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\MockDtlsClient.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\MockDtlsServer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11134,6 +11159,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\PipedStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\PskTlsClientTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
