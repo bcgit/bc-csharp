@@ -4294,6 +4294,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\signers\X931Signer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\AbstractTlsAgreementCredentials.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11064,6 +11069,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\WhirlpoolDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\X931SignerTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
