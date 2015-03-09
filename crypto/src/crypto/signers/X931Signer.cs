@@ -81,10 +81,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
-        [Obsolete]
         public virtual string AlgorithmName
         {
-            get { return digest.AlgorithmName + "withX931"; }
+            get { return digest.AlgorithmName + "with" + cipher.AlgorithmName + "/X9.31"; }
         }
 
         /**
