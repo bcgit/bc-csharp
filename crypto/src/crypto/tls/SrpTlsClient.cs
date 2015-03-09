@@ -68,22 +68,14 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override TlsKeyExchange GetKeyExchange()
         {
-            switch (mSelectedCipherSuite)
+            int keyExchangeAlgorithm = TlsUtilities.GetKeyExchangeAlgorithm(mSelectedCipherSuite);
+
+            switch (keyExchangeAlgorithm)
             {
-            case CipherSuite.TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_WITH_AES_128_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_WITH_AES_256_CBC_SHA:
-                return CreateSrpKeyExchange(KeyExchangeAlgorithm.SRP);
-
-            case CipherSuite.TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA:
-                return CreateSrpKeyExchange(KeyExchangeAlgorithm.SRP_RSA);
-
-            case CipherSuite.TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA:
-                return CreateSrpKeyExchange(KeyExchangeAlgorithm.SRP_DSS);
+            case KeyExchangeAlgorithm.SRP:
+            case KeyExchangeAlgorithm.SRP_DSS:
+            case KeyExchangeAlgorithm.SRP_RSA:
+                return CreateSrpKeyExchange(keyExchangeAlgorithm);
 
             default:
                 /*
@@ -102,35 +94,6 @@ namespace Org.BouncyCastle.Crypto.Tls
              * case e.g. for SRP_DSS or SRP_RSA key exchange.
              */
             throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
-
-        public override TlsCipher GetCipher()
-        {
-            switch (mSelectedCipherSuite)
-            {
-            case CipherSuite.TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA:
-                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.cls_3DES_EDE_CBC, MacAlgorithm.hmac_sha1);
-
-            case CipherSuite.TLS_SRP_SHA_WITH_AES_128_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA:
-                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_128_CBC, MacAlgorithm.hmac_sha1);
-
-            case CipherSuite.TLS_SRP_SHA_WITH_AES_256_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA:
-            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA:
-                return mCipherFactory.CreateCipher(mContext, EncryptionAlgorithm.AES_256_CBC, MacAlgorithm.hmac_sha1);
-
-            default:
-                /*
-                 * Note: internal error here; the TlsProtocol implementation verifies that the
-                 * server-selected cipher suite was in the list of client-offered cipher suites, so if
-                 * we now can't produce an implementation, we shouldn't have offered it!
-                 */
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
         }
 
         protected virtual TlsKeyExchange CreateSrpKeyExchange(int keyExchange)
