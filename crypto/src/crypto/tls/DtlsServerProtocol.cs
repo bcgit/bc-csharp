@@ -538,6 +538,12 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsServerContextImpl context = state.serverContext;
             SecurityParameters securityParameters = context.SecurityParameters;
 
+            /*
+             * TODO[session-hash]
+             * 
+             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
+             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             */
             securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(state.clientExtensions);
 
             context.SetClientVersion(client_version);

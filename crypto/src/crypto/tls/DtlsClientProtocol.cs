@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             DtlsRecordLayer recordLayer = new DtlsRecordLayer(transport, state.clientContext, client, ContentType.handshake);
 
             TlsSession sessionToResume = state.client.GetSessionToResume();
-            if (sessionToResume != null)
+            if (sessionToResume != null && sessionToResume.IsResumable)
             {
                 SessionParameters sessionParameters = sessionToResume.ExportSessionParameters();
                 if (sessionParameters != null)
@@ -142,6 +142,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
 
                 IDictionary sessionServerExtensions = state.sessionParameters.ReadServerExtensions();
+
+                // TODO Check encrypt-then-MAC extension and maybe others
 
                 securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
 
@@ -430,8 +432,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             // Integer -> byte[]
             state.clientExtensions = client.GetClientExtensions();
 
-            securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(state.clientExtensions);
-
             // Cipher Suites (and SCSV)
             {
                 /*
@@ -646,15 +646,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             IDictionary serverExtensions = TlsProtocol.ReadExtensions(buf);
 
             /*
-             * draft-ietf-tls-session-hash-01 5.2. If a server receives the "extended_master_secret"
-             * extension, it MUST include the "extended_master_secret" extension in its ServerHello
-             * message.
-             */
-            bool serverSentExtendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(serverExtensions);
-            if (serverSentExtendedMasterSecret != securityParameters.extendedMasterSecret)
-                throw new TlsFatalAlert(AlertDescription.handshake_failure);
-
-            /*
              * RFC 3546 2.2 Note that the extended server hello message is only sent in response to an
              * extended client hello message. However, see RFC 5746 exception below. We always include
              * the SCSV, so an Extended Server Hello is always allowed.
@@ -682,15 +673,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                      */
                     if (null == TlsUtilities.GetExtensionData(state.clientExtensions, extType))
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension);
-
-                    /*
-                     * draft-ietf-tls-session-hash-01 5.2. Implementation note: if the server decides to
-                     * proceed with resumption, the extension does not have any effect. Requiring the
-                     * extension to be included anyway makes the extension negotiation logic easier,
-                     * because it does not depend on whether resumption is accepted or not.
-                     */
-                    if (extType == ExtensionType.extended_master_secret)
-                        continue;
 
                     /*
                      * RFC 3546 2.3. If [...] the older session is resumed, then the server MUST ignore
@@ -743,6 +725,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 securityParameters.encryptThenMac = serverSentEncryptThenMAC;
 
+                securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(serverExtensions);
+
                 state.maxFragmentLength = EvaluateMaxFragmentLengthExtension(state.clientExtensions, serverExtensions,
                     AlertDescription.illegal_parameter);
 
@@ -754,6 +738,13 @@ namespace Org.BouncyCastle.Crypto.Tls
                 state.expectSessionTicket = TlsUtilities.HasExpectedEmptyExtensionData(serverExtensions,
                     ExtensionType.session_ticket, AlertDescription.illegal_parameter);
             }
+
+            /*
+             * TODO[session-hash]
+             * 
+             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
+             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             */
 
             state.client.NotifySecureRenegotiation(state.secure_renegotiation);
 

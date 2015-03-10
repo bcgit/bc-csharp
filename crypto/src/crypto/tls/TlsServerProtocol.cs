@@ -501,6 +501,12 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
             this.mClientExtensions = ReadExtensions(buf);
 
+            /*
+             * TODO[session-hash]
+             * 
+             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
+             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             */
             this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mClientExtensions);
 
             ContextAdmin.SetClientVersion(client_version);

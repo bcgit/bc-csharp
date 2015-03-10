@@ -72,8 +72,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         {
             IDictionary clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(base.GetClientExtensions());
             TlsExtensionsUtilities.AddEncryptThenMacExtension(clientExtensions);
-            // TODO[draft-ietf-tls-session-hash-01] Enable once code-point assigned (only for compatible server though)
-            //TlsExtensionsUtilities.AddExtendedMasterSecretExtension(clientExtensions);
+            TlsExtensionsUtilities.AddExtendedMasterSecretExtension(clientExtensions);
             TlsExtensionsUtilities.AddMaxFragmentLengthExtension(clientExtensions, MaxFragmentLength.pow2_9);
             TlsExtensionsUtilities.AddTruncatedHMacExtension(clientExtensions);
             return clientExtensions;
