@@ -162,7 +162,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 				x09 += x14; x04 = R(x04 ^ x09, 12);
 				x03 += x04; x14 = R(x14 ^ x03, 8);
 				x09 += x14; x04 = R(x04 ^ x09, 7);
-
 			}
 
 			x[ 0] = x00 + input[ 0];
@@ -182,8 +181,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			x[14] = x14 + input[14];
 			x[15] = x15 + input[15];
 		}
-
 	}
-
 }
 

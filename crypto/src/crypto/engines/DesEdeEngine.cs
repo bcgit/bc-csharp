@@ -70,10 +70,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (workingKey1 == null)
                 throw new InvalidOperationException("DESede engine not initialised");
-            if ((inOff + BLOCK_SIZE) > input.Length)
-                throw new DataLengthException("input buffer too short");
-            if ((outOff + BLOCK_SIZE) > output.Length)
-                throw new DataLengthException("output buffer too short");
+
+            Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
 
             byte[] temp = new byte[BLOCK_SIZE];
 

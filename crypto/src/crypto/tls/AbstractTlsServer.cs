@@ -320,6 +320,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
+        public override TlsCipher GetCipher()
+        {
+            int encryptionAlgorithm = TlsUtilities.GetEncryptionAlgorithm(mSelectedCipherSuite);
+            int macAlgorithm = TlsUtilities.GetMacAlgorithm(mSelectedCipherSuite);
+
+            return mCipherFactory.CreateCipher(mContext, encryptionAlgorithm, macAlgorithm);
+        }
+
         public virtual NewSessionTicket GetNewSessionTicket()
         {
             /*

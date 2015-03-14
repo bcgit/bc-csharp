@@ -427,7 +427,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public static ECPrivateKeyParameters GenerateEphemeralClientKeyExchange(SecureRandom random, byte[] ecPointFormats,
             ECDomainParameters ecParams, Stream output)
         {
-            AsymmetricCipherKeyPair kp = TlsEccUtilities.GenerateECKeyPair(random, ecParams);
+            AsymmetricCipherKeyPair kp = GenerateECKeyPair(random, ecParams);
 
             ECPublicKeyParameters ecPublicKey = (ECPublicKeyParameters)kp.Public;
             WriteECPoint(ecPointFormats, ecPublicKey.Q, output);

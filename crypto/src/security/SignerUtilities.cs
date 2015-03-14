@@ -534,6 +534,26 @@ namespace Org.BouncyCastle.Security
                 return new Iso9796d2Signer(new RsaBlindedEngine(), new RipeMD160Digest(), true);
             }
 
+            if (mechanism.EndsWith("/X9.31"))
+            {
+                string x931 = mechanism.Substring(0, mechanism.Length - "/X9.31".Length);
+                int withPos = x931.IndexOf("WITH");
+                if (withPos > 0)
+                {
+                    int endPos = withPos + "WITH".Length;
+
+                    string digestName = x931.Substring(0, withPos);
+                    IDigest digest = DigestUtilities.GetDigest(digestName);
+
+                    string cipherName = x931.Substring(endPos, x931.Length - endPos);
+                    if (cipherName.Equals("RSA"))
+                    {
+                        IAsymmetricBlockCipher cipher = new RsaBlindedEngine();
+                        return new X931Signer(cipher, digest);
+                    }
+                }
+            }
+
             throw new SecurityUtilityException("Signer " + algorithm + " not recognised.");
         }
 

@@ -9,24 +9,23 @@ namespace Org.BouncyCastle.Tsp.Tests
 {
     public class AllTests
     {
-        public static void Main(
-			string[] args)
+        public static void Main(string[] args)
         {
-            //junit.textui.TestRunner.run(suite());
-            EventListener el = new NullListener();
-            suite().Run(el);
+            Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         }
 
-		public static TestSuite suite()
+        [Suite]
+        public static TestSuite Suite
         {
-            TestSuite suite = new TestSuite("TSP Tests");
-
-			suite.Add(new GenTimeAccuracyUnitTest());
-			suite.Add(new ParseTest());
-			suite.Add(new TimeStampTokenInfoUnitTest());
-			suite.Add(new TspTest());
-
-			return suite;
+            get
+            {
+                TestSuite suite = new TestSuite("TSP Tests");
+                suite.Add(new GenTimeAccuracyUnitTest());
+                suite.Add(new ParseTest());
+                suite.Add(new TimeStampTokenInfoUnitTest());
+                suite.Add(new TspTest());
+                return suite;
+            }
         }
     }
 }

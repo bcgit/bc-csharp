@@ -13,7 +13,8 @@
 *.nunit    text diff=xml
 *.pem      text
 *.README   text
-*.sln      text eol=crlf
+*.sln      text
+*.tmpl     text
 *.txt      text
 *.xml      text diff=xml
 
@@ -23,6 +24,7 @@
 *.crl      binary
 *.crt      binary
 *.data     binary
+*.dll      binary
 *.dsa      binary
 *.jpg      binary
 *.jpeg     binary

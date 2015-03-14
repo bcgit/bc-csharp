@@ -96,6 +96,15 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual byte[] ExportKeyingMaterial(string asciiLabel, byte[] context_value, int length)
         {
+            /*
+             * TODO[session-hash]
+             * 
+             * draft-ietf-tls-session-hash-04 5.4. If a client or server chooses to continue with a full
+             * handshake without the extended master secret extension, [..] the client or server MUST
+             * NOT export any key material based on the new master secret for any subsequent
+             * application-level authentication. In particular, it MUST disable [RFC5705] [..].
+             */
+
             if (context_value != null && !TlsUtilities.IsValidUint16(context_value.Length))
                 throw new ArgumentException("must have length less than 2^16 (or be null)", "context_value");
 

@@ -23,15 +23,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	        return new BigInteger(1, Hex.Decode(hex));
 	    }
 
-		// 1024 bit example prime from RFC5054 and corresponding generator
-		private static readonly BigInteger N_1024 = FromHex("EEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C"
-	            + "9C256576D674DF7496EA81D3383B4813D692C6E0E0D5D8E250B98BE4"
-	            + "8E495C1D6089DAD15DC7D7B46154D6B6CE8EF4AD69B15D4982559B29"
-	            + "7BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA9A"
-	            + "FD5138FE8376435B9FC61D2FC0EB06E3");
-		private static readonly BigInteger g_1024 = BigInteger.Two;
-
-		private readonly SecureRandom random = new SecureRandom();
+        private readonly SecureRandom random = new SecureRandom();
 
 	    public override string Name
 	    {
@@ -42,9 +34,9 @@ namespace Org.BouncyCastle.Crypto.Tests
 	    {
 	    	rfc5054AppendixBTestVectors();
 
-	        testMutualVerification(N_1024, g_1024);
-	        testClientCatchesBadB(N_1024, g_1024);
-	        testServerCatchesBadA(N_1024, g_1024);
+            testMutualVerification(Srp6StandardGroups.rfc5054_1024);
+            testClientCatchesBadB(Srp6StandardGroups.rfc5054_1024);
+            testServerCatchesBadA(Srp6StandardGroups.rfc5054_1024);
 
 			testWithRandomParams(256);
 			testWithRandomParams(384);
@@ -56,8 +48,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 	    	byte[] I = Encoding.UTF8.GetBytes("alice");
 	    	byte[] P = Encoding.UTF8.GetBytes("password123");
 	    	byte[] s = Hex.Decode("BEB25379D1A8581EB5A727673A2441EE");
-	    	BigInteger N = N_1024;
-	    	BigInteger g = g_1024;
+            BigInteger N = Srp6StandardGroups.rfc5054_1024.N;
+            BigInteger g = Srp6StandardGroups.rfc5054_1024.G;
 	    	BigInteger a = FromHex("60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393");
 	    	BigInteger b = FromHex("E487CB59D31AC550471E81F00F6928E01DDA08E974A004F49E61F5D105284D20");
 
@@ -148,13 +140,10 @@ namespace Org.BouncyCastle.Crypto.Tests
 	        paramGen.Init(bits, 25, random);
 	        DHParameters parameters = paramGen.GenerateParameters();
 
-	        BigInteger g = parameters.G;
-	        BigInteger p = parameters.P;
-
-	        testMutualVerification(p, g);
+            testMutualVerification(new Srp6GroupParameters(parameters.P, parameters.G));
 		}
 
-	    private void testMutualVerification(BigInteger N, BigInteger g)
+        private void testMutualVerification(Srp6GroupParameters group)
 	    {
 	        byte[] I = Encoding.UTF8.GetBytes("username");
 	        byte[] P = Encoding.UTF8.GetBytes("password");
@@ -162,16 +151,16 @@ namespace Org.BouncyCastle.Crypto.Tests
 	        random.NextBytes(s);
 
 	        Srp6VerifierGenerator gen = new Srp6VerifierGenerator();
-	        gen.Init(N, g, new Sha256Digest());
+	        gen.Init(group, new Sha256Digest());
 	        BigInteger v = gen.GenerateVerifier(s, I, P);
 
 	        Srp6Client client = new Srp6Client();
-	        client.Init(N, g, new Sha256Digest(), random);
+	        client.Init(group, new Sha256Digest(), random);
 
 	        Srp6Server server = new Srp6Server();
-	        server.Init(N, g, v, new Sha256Digest(), random);
+	        server.Init(group, v, new Sha256Digest(), random);
 
-	        BigInteger A = client.GenerateClientCredentials(s, I, P);
+            BigInteger A = client.GenerateClientCredentials(s, I, P);
 	        BigInteger B = server.GenerateServerCredentials();
 
 	        BigInteger clientS = client.CalculateSecret(B);
@@ -183,7 +172,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	        }
 	    }
 
-	    private void testClientCatchesBadB(BigInteger N, BigInteger g)
+        private void testClientCatchesBadB(Srp6GroupParameters group)
 	    {
 	        byte[] I = Encoding.UTF8.GetBytes("username");
 	        byte[] P = Encoding.UTF8.GetBytes("password");
@@ -191,7 +180,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	        random.NextBytes(s);
 
 	        Srp6Client client = new Srp6Client();
-	        client.Init(N, g, new Sha256Digest(), random);
+	        client.Init(group, new Sha256Digest(), random);
 
 	        client.GenerateClientCredentials(s, I, P);
 
@@ -207,7 +196,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 	        try
 	        {
-	        	client.CalculateSecret(N);
+	        	client.CalculateSecret(group.N);
 	        	Fail("Client failed to detect invalid value for 'B'");
 	        }
 	        catch (CryptoException)
@@ -216,7 +205,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	        }
 	    }
 
-	    private void testServerCatchesBadA(BigInteger N, BigInteger g)
+        private void testServerCatchesBadA(Srp6GroupParameters group)
 	    {
 	        byte[] I = Encoding.UTF8.GetBytes("username");
 	        byte[] P = Encoding.UTF8.GetBytes("password");
@@ -224,11 +213,11 @@ namespace Org.BouncyCastle.Crypto.Tests
 	        random.NextBytes(s);
 
 	        Srp6VerifierGenerator gen = new Srp6VerifierGenerator();
-	        gen.Init(N, g, new Sha256Digest());
+	        gen.Init(group, new Sha256Digest());
 	        BigInteger v = gen.GenerateVerifier(s, I, P);
 
 	        Srp6Server server = new Srp6Server();
-	        server.Init(N, g, v, new Sha256Digest(), random);
+	        server.Init(group, v, new Sha256Digest(), random);
 
 	        server.GenerateServerCredentials();
 
@@ -244,7 +233,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 	        try
 	        {
-	        	server.CalculateSecret(N);
+	        	server.CalculateSecret(group.N);
 	        	Fail("Client failed to detect invalid value for 'A'");
 	        }
 	        catch (CryptoException)

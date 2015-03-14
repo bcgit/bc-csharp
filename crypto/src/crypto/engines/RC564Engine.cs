@@ -51,17 +51,17 @@ namespace Org.BouncyCastle.Crypto.Engines
 //            _S            = null;
         }
 
-        public string AlgorithmName
+        public virtual string AlgorithmName
         {
             get { return "RC5-64"; }
         }
 
-		public bool IsPartialBlockOkay
+        public virtual bool IsPartialBlockOkay
 		{
 			get { return false; }
 		}
 
-		public int GetBlockSize()
+        public virtual int GetBlockSize()
         {
             return 2 * bytesPerWord;
         }
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public void Init(
+        public virtual void Init(
             bool             forEncryption,
             ICipherParameters    parameters)
         {
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             SetKey(p.GetKey());
         }
 
-        public int ProcessBlock(
+        public virtual int ProcessBlock(
             byte[]  input,
             int     inOff,
             byte[]  output,
@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                                         : DecryptBlock(input, inOff, output, outOff);
         }
 
-        public void Reset()
+        public virtual void Reset()
         {
         }
 
@@ -291,5 +291,4 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
     }
-
 }

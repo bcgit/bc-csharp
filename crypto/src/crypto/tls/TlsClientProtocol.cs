@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mRecordStream.Init(mTlsClientContext);
 
             TlsSession sessionToResume = tlsClient.GetSessionToResume();
-            if (sessionToResume != null)
+            if (sessionToResume != null && sessionToResume.IsResumable)
             {
                 SessionParameters sessionParameters = sessionToResume.ExportSessionParameters();
                 if (sessionParameters != null)
@@ -373,21 +373,17 @@ namespace Org.BouncyCastle.Crypto.Tls
                         /*
                          * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
                          */
-                        SignatureAndHashAlgorithm signatureAndHashAlgorithm;
+                        SignatureAndHashAlgorithm signatureAndHashAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                            Context, signerCredentials);
+
                         byte[] hash;
-
-                        if (TlsUtilities.IsTlsV12(Context))
+                        if (signatureAndHashAlgorithm == null)
                         {
-                            signatureAndHashAlgorithm = signerCredentials.SignatureAndHashAlgorithm;
-                            if (signatureAndHashAlgorithm == null)
-                                throw new TlsFatalAlert(AlertDescription.internal_error);
-
-                            hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
+                            hash = mSecurityParameters.SessionHash;
                         }
                         else
                         {
-                            signatureAndHashAlgorithm = null;
-                            hash = mSecurityParameters.SessionHash;
+                            hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
                         }
 
                         byte[] signature = signerCredentials.GenerateCertificateSignature(hash);
@@ -529,15 +525,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 if (this.mConnectionState == CS_END)
                 {
-                    /*
-                     * RFC 5746 4.5 SSLv3 clients that refuse renegotiation SHOULD use a fatal
-                     * handshake_failure alert.
-                     */
-                    if (TlsUtilities.IsSsl(Context))
-                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
-
-                    string message = "Renegotiation not supported";
-                    RaiseWarning(AlertDescription.no_renegotiation, message);
+                    RefuseRenegotiation();
                 }
                 break;
             }
@@ -636,15 +624,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mServerExtensions = ReadExtensions(buf);
 
             /*
-             * draft-ietf-tls-session-hash-01 5.2. If a server receives the "extended_master_secret"
-             * extension, it MUST include the "extended_master_secret" extension in its ServerHello
-             * message.
-             */
-            bool serverSentExtendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mServerExtensions);
-            if (serverSentExtendedMasterSecret != mSecurityParameters.extendedMasterSecret)
-                throw new TlsFatalAlert(AlertDescription.handshake_failure);
-
-            /*
              * RFC 3546 2.2 Note that the extended server hello message is only sent in response to an
              * extended client hello message.
              * 
@@ -674,15 +653,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                      */
                     if (null == TlsUtilities.GetExtensionData(this.mClientExtensions, extType))
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension);
-
-                    /*
-                     * draft-ietf-tls-session-hash-01 5.2. Implementation note: if the server decides to
-                     * proceed with resumption, the extension does not have any effect. Requiring the
-                     * extension to be included anyway makes the extension negotiation logic easier,
-                     * because it does not depend on whether resumption is accepted or not.
-                     */
-                    if (extType == ExtensionType.extended_master_secret)
-                        continue;
 
                     /*
                      * RFC 3546 2.3. If [...] the older session is resumed, then the server MUST ignore
@@ -737,8 +707,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 sessionClientExtensions = null;
                 sessionServerExtensions = this.mSessionParameters.ReadServerExtensions();
-
-                this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
             }
 
             this.mSecurityParameters.cipherSuite = selectedCipherSuite;
@@ -758,6 +726,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 this.mSecurityParameters.encryptThenMac = serverSentEncryptThenMAC;
 
+                this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
+
                 this.mSecurityParameters.maxFragmentLength = ProcessMaxFragmentLengthExtension(sessionClientExtensions,
                     sessionServerExtensions, AlertDescription.illegal_parameter);
 
@@ -775,6 +745,13 @@ namespace Org.BouncyCastle.Crypto.Tls
                     && TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions, ExtensionType.session_ticket,
                         AlertDescription.illegal_parameter);
             }
+
+            /*
+             * TODO[session-hash]
+             * 
+             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
+             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             */
 
             if (sessionClientExtensions != null)
             {
@@ -831,8 +808,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             this.mClientExtensions = this.mTlsClient.GetClientExtensions();
-
-            this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mClientExtensions);
 
             HandshakeMessage message = new HandshakeMessage(HandshakeType.client_hello);
 

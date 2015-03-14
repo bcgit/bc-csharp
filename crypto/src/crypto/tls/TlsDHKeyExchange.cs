@@ -4,6 +4,7 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tls
@@ -16,12 +17,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected DHParameters mDHParameters;
 
         protected AsymmetricKeyParameter mServerPublicKey;
-        protected DHPublicKeyParameters mDHAgreeServerPublicKey;
         protected TlsAgreementCredentials mAgreementCredentials;
-        protected DHPrivateKeyParameters mDHAgreeClientPrivateKey;
 
-        protected DHPrivateKeyParameters mDHAgreeServerPrivateKey;
-        protected DHPublicKeyParameters mDHAgreeClientPublicKey;
+        protected DHPrivateKeyParameters mDHAgreePrivateKey;
+        protected DHPublicKeyParameters mDHAgreePublicKey;
 
         public TlsDHKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, DHParameters dhParameters)
             :   base(keyExchange, supportedSignatureAlgorithms)
@@ -81,7 +80,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 try
                 {
-                    this.mDHAgreeServerPublicKey = TlsDHUtilities.ValidateDHPublicKey((DHPublicKeyParameters)this.mServerPublicKey);
+                    this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey((DHPublicKeyParameters)this.mServerPublicKey);
                 }
                 catch (InvalidCastException e)
                 {
@@ -165,26 +164,40 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
             if (mAgreementCredentials == null)
             {
-                this.mDHAgreeClientPrivateKey = TlsDHUtilities.GenerateEphemeralClientKeyExchange(context.SecureRandom,
-                    mDHAgreeServerPublicKey.Parameters, output);
+                this.mDHAgreePrivateKey = TlsDHUtilities.GenerateEphemeralClientKeyExchange(mContext.SecureRandom,
+                    mDHParameters, output);
             }
+        }
+
+        public override void ProcessClientCertificate(Certificate clientCertificate)
+        {
+            // TODO Extract the public key
+            // TODO If the certificate is 'fixed', take the public key as dhAgreeClientPublicKey
+        }
+
+        public override void ProcessClientKeyExchange(Stream input)
+        {
+            if (mDHAgreePublicKey != null)
+            {
+                // For dss_fixed_dh and rsa_fixed_dh, the key arrived in the client certificate
+                return;
+            }
+
+            BigInteger Yc = TlsDHUtilities.ReadDHParameter(input);
+
+            this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(new DHPublicKeyParameters(Yc, mDHParameters));
         }
 
         public override byte[] GeneratePremasterSecret()
         {
             if (mAgreementCredentials != null)
             {
-                return mAgreementCredentials.GenerateAgreement(mDHAgreeServerPublicKey);
+                return mAgreementCredentials.GenerateAgreement(mDHAgreePublicKey);
             }
 
-            if (mDHAgreeServerPrivateKey != null)
+            if (mDHAgreePrivateKey != null)
             {
-                return TlsDHUtilities.CalculateDHBasicAgreement(mDHAgreeClientPublicKey, mDHAgreeServerPrivateKey);
-            }
-
-            if (mDHAgreeClientPrivateKey != null)
-            {
-                return TlsDHUtilities.CalculateDHBasicAgreement(mDHAgreeServerPublicKey, mDHAgreeClientPrivateKey);
+                return TlsDHUtilities.CalculateDHBasicAgreement(mDHAgreePublicKey, mDHAgreePrivateKey);
             }
 
             throw new TlsFatalAlert(AlertDescription.internal_error);

@@ -614,6 +614,7 @@
     <Compile Include="src\crypto\BufferedCipherBase.cs" />
     <Compile Include="src\crypto\BufferedIesCipher.cs" />
     <Compile Include="src\crypto\BufferedStreamCipher.cs" />
+    <Compile Include="src\crypto\Check.cs" />
     <Compile Include="src\crypto\CipherKeyGenerator.cs" />
     <Compile Include="src\crypto\CryptoException.cs" />
     <Compile Include="src\crypto\DataLengthException.cs" />
@@ -635,6 +636,7 @@
     <Compile Include="src\crypto\InvalidCipherTextException.cs" />
     <Compile Include="src\crypto\KeyGenerationParameters.cs" />
     <Compile Include="src\crypto\MaxBytesExceededException.cs" />
+    <Compile Include="src\crypto\OutputLengthException.cs" />
     <Compile Include="src\crypto\PbeParametersGenerator.cs" />
     <Compile Include="src\crypto\StreamBlockCipher.cs" />
     <Compile Include="src\crypto\agreement\DHAgreement.cs" />
@@ -650,6 +652,7 @@
     <Compile Include="src\crypto\agreement\kdf\ECDHKekGenerator.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6Client.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6Server.cs" />
+    <Compile Include="src\crypto\agreement\srp\SRP6StandardGroups.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6Utilities.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6VerifierGenerator.cs" />
     <Compile Include="src\crypto\digests\GOST3411Digest.cs" />
@@ -854,6 +857,7 @@
     <Compile Include="src\crypto\parameters\RsaKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\RsaPrivateCrtKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\SkeinParameters.cs" />
+    <Compile Include="src\crypto\parameters\Srp6GroupParameters.cs" />
     <Compile Include="src\crypto\parameters\TweakableBlockCipherParameters.cs" />
     <Compile Include="src\crypto\prng\CryptoApiRandomGenerator.cs" />
     <Compile Include="src\crypto\prng\DigestRandomGenerator.cs" />
@@ -876,6 +880,7 @@
     <Compile Include="src\crypto\signers\PssSigner.cs" />
     <Compile Include="src\crypto\signers\RandomDsaKCalculator.cs" />
     <Compile Include="src\crypto\signers\RsaDigestSigner.cs" />
+    <Compile Include="src\crypto\signers\X931Signer.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsCipherFactory.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsClient.cs" />
@@ -889,6 +894,7 @@
     <Compile Include="src\crypto\tls\AbstractTlsSignerCredentials.cs" />
     <Compile Include="src\crypto\tls\AlertDescription.cs" />
     <Compile Include="src\crypto\tls\AlertLevel.cs" />
+    <Compile Include="src\crypto\tls\BasicTlsPskIdentity.cs" />
     <Compile Include="src\crypto\tls\BulkCipherAlgorithm.cs" />
     <Compile Include="src\crypto\tls\ByteQueue.cs" />
     <Compile Include="src\crypto\tls\CertChainType.cs" />
@@ -915,6 +921,7 @@
     <Compile Include="src\crypto\tls\DefaultTlsEncryptionCredentials.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsServer.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsSignerCredentials.cs" />
+    <Compile Include="src\crypto\tls\DefaultTlsSrpGroupVerifier.cs" />
     <Compile Include="src\crypto\tls\DeferredHash.cs" />
     <Compile Include="src\crypto\tls\DigestInputBuffer.cs" />
     <Compile Include="src\crypto\tls\DigitallySigned.cs" />
@@ -951,17 +958,21 @@
     <Compile Include="src\crypto\tls\PrfAlgorithm.cs" />
     <Compile Include="src\crypto\tls\ProtocolVersion.cs" />
     <Compile Include="src\crypto\tls\PskTlsClient.cs" />
+    <Compile Include="src\crypto\tls\PskTlsServer.cs" />
     <Compile Include="src\crypto\tls\RecordStream.cs" />
     <Compile Include="src\crypto\tls\SecurityParameters.cs" />
     <Compile Include="src\crypto\tls\ServerDHParams.cs" />
     <Compile Include="src\crypto\tls\ServerName.cs" />
     <Compile Include="src\crypto\tls\ServerNameList.cs" />
     <Compile Include="src\crypto\tls\ServerOnlyTlsAuthentication.cs" />
+    <Compile Include="src\crypto\tls\ServerSrpParams.cs" />
     <Compile Include="src\crypto\tls\SessionParameters.cs" />
     <Compile Include="src\crypto\tls\SignatureAlgorithm.cs" />
     <Compile Include="src\crypto\tls\SignatureAndHashAlgorithm.cs" />
     <Compile Include="src\crypto\tls\SignerInputBuffer.cs" />
+    <Compile Include="src\crypto\tls\SimulatedTlsSrpIdentityManager.cs" />
     <Compile Include="src\crypto\tls\SrpTlsClient.cs" />
+    <Compile Include="src\crypto\tls\SrpTlsServer.cs" />
     <Compile Include="src\crypto\tls\SrtpProtectionProfile.cs" />
     <Compile Include="src\crypto\tls\Ssl3Mac.cs" />
     <Compile Include="src\crypto\tls\SupplementalDataEntry.cs" />
@@ -1014,7 +1025,10 @@
     <Compile Include="src\crypto\tls\TlsSessionImpl.cs" />
     <Compile Include="src\crypto\tls\TlsSigner.cs" />
     <Compile Include="src\crypto\tls\TlsSignerCredentials.cs" />
+    <Compile Include="src\crypto\tls\TlsSrpGroupVerifier.cs" />
+    <Compile Include="src\crypto\tls\TlsSrpIdentityManager.cs" />
     <Compile Include="src\crypto\tls\TlsSrpKeyExchange.cs" />
+    <Compile Include="src\crypto\tls\TlsSrpLoginParameters.cs" />
     <Compile Include="src\crypto\tls\TlsSrpUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsSrtpUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsStream.cs" />
