@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 
+using Org.BouncyCastle.Asn1.Anssi;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.TeleTrust;
@@ -32,12 +33,17 @@ namespace Org.BouncyCastle.Asn1.X9
 
             if (ecP == null)
             {
+                ecP = NistNamedCurves.GetByName(name);
+            }
+
+            if (ecP == null)
+            {
                 ecP = TeleTrusTNamedCurves.GetByName(name);
             }
 
             if (ecP == null)
             {
-                ecP = NistNamedCurves.GetByName(name);
+                ecP = AnssiNamedCurves.GetByName(name);
             }
 
             return ecP;
@@ -60,12 +66,17 @@ namespace Org.BouncyCastle.Asn1.X9
 
             if (oid == null)
             {
+                oid = NistNamedCurves.GetOid(name);
+            }
+
+            if (oid == null)
+            {
                 oid = TeleTrusTNamedCurves.GetOid(name);
             }
 
             if (oid == null)
             {
-                oid = NistNamedCurves.GetOid(name);
+                oid = AnssiNamedCurves.GetOid(name);
             }
 
             return oid;
@@ -111,6 +122,7 @@ namespace Org.BouncyCastle.Asn1.X9
                 CollectionUtilities.AddRange(v, SecNamedCurves.Names);
                 CollectionUtilities.AddRange(v, NistNamedCurves.Names);
                 CollectionUtilities.AddRange(v, TeleTrusTNamedCurves.Names);
+                CollectionUtilities.AddRange(v, AnssiNamedCurves.Names);
                 return v;
             }
         }

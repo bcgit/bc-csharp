@@ -539,6 +539,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\anssi\ANSSINamedCurves.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\anssi\ANSSIObjectIdentifiers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\bc\BCObjectIdentifiers.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
