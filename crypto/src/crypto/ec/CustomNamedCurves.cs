@@ -272,43 +272,53 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
+
         private static readonly IDictionary nameToCurve = Platform.CreateHashtable();
         private static readonly IDictionary nameToOid = Platform.CreateHashtable();
         private static readonly IDictionary oidToCurve = Platform.CreateHashtable();
         private static readonly IDictionary oidToName = Platform.CreateHashtable();
+        private static readonly IList names = Platform.CreateArrayList();
 
         private static void DefineCurve(string name, X9ECParametersHolder holder)
         {
+            names.Add(name);
+            name = Platform.ToLowerInvariant(name);
             nameToCurve.Add(name, holder);
         }
 
-        private static void DefineCurve(string name, DerObjectIdentifier oid, X9ECParametersHolder holder)
+        private static void DefineCurveWithOid(string name, DerObjectIdentifier oid, X9ECParametersHolder holder)
         {
-            nameToCurve.Add(name, holder);
-            nameToOid.Add(name, oid);
+            names.Add(name);
             oidToName.Add(oid, name);
             oidToCurve.Add(oid, holder);
+            name = Platform.ToLowerInvariant(name);
+            nameToOid.Add(name, oid);
+            nameToCurve.Add(name, holder);
         }
 
-        private static void DefineCurveAlias(string alias, DerObjectIdentifier oid)
+        private static void DefineCurveAlias(string name, DerObjectIdentifier oid)
         {
-            alias = Platform.ToLowerInvariant(alias);
-            nameToOid.Add(alias, oid);
-            nameToCurve.Add(alias, oidToCurve[oid]);
+            object curve = oidToCurve[oid];
+            if (curve == null)
+                throw new InvalidOperationException();
+
+            name = Platform.ToLowerInvariant(name);
+            nameToOid.Add(name, oid);
+            nameToCurve.Add(name, curve);
         }
 
         static CustomNamedCurves()
         {
             DefineCurve("curve25519", Curve25519Holder.Instance);
 
-            DefineCurve("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
-            DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
-            DefineCurve("secp224k1", SecObjectIdentifiers.SecP224k1, Secp224k1Holder.Instance);
-            DefineCurve("secp224r1", SecObjectIdentifiers.SecP224r1, Secp224r1Holder.Instance);
-            DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
-            DefineCurve("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
-            DefineCurve("secp384r1", SecObjectIdentifiers.SecP384r1, Secp384r1Holder.Instance);
-            DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
+            DefineCurveWithOid("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
+            DefineCurveWithOid("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
+            DefineCurveWithOid("secp224k1", SecObjectIdentifiers.SecP224k1, Secp224k1Holder.Instance);
+            DefineCurveWithOid("secp224r1", SecObjectIdentifiers.SecP224r1, Secp224r1Holder.Instance);
+            DefineCurveWithOid("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
+            DefineCurveWithOid("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
+            DefineCurveWithOid("secp384r1", SecObjectIdentifiers.SecP384r1, Secp384r1Holder.Instance);
+            DefineCurveWithOid("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
 
             DefineCurveAlias("P-192", SecObjectIdentifiers.SecP192r1);
             DefineCurveAlias("P-224", SecObjectIdentifiers.SecP224r1);
@@ -360,7 +370,7 @@ namespace Org.BouncyCastle.Crypto.EC
          */
         public static IEnumerable Names
         {
-            get { return new EnumerableProxy(nameToCurve.Keys); }
+            get { return new EnumerableProxy(names); }
         }
     }
 }
