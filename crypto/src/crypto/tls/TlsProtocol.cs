@@ -99,6 +99,18 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
         }
 
+        protected virtual void ApplyMaxFragmentLengthExtension()
+        {
+            if (mSecurityParameters.maxFragmentLength >= 0)
+            {
+                if (!MaxFragmentLength.IsValid((byte)mSecurityParameters.maxFragmentLength))
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+
+                int plainTextLimit = 1 << (8 + mSecurityParameters.maxFragmentLength);
+                mRecordStream.SetPlaintextLimit(plainTextLimit);
+            }
+        }
+
         protected virtual void CheckReceivedChangeCipherSpec(bool expected)
         {
             if (expected != mReceivedChangeCipherSpec)
@@ -164,12 +176,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                     if (this.mSessionParameters == null)
                     {
                         this.mSessionParameters = new SessionParameters.Builder()
-                            .SetCipherSuite(this.mSecurityParameters.cipherSuite)
-                            .SetCompressionAlgorithm(this.mSecurityParameters.compressionAlgorithm)
-                            .SetMasterSecret(this.mSecurityParameters.masterSecret)
+                            .SetCipherSuite(this.mSecurityParameters.CipherSuite)
+                            .SetCompressionAlgorithm(this.mSecurityParameters.CompressionAlgorithm)
+                            .SetMasterSecret(this.mSecurityParameters.MasterSecret)
                             .SetPeerCertificate(this.mPeerCertificate)
-                            .SetPskIdentity(this.mSecurityParameters.pskIdentity)
-                            .SetSrpIdentity(this.mSecurityParameters.srpIdentity)
+                            .SetPskIdentity(this.mSecurityParameters.PskIdentity)
+                            .SetSrpIdentity(this.mSecurityParameters.SrpIdentity)
                             // TODO Consider filtering extensions that aren't relevant to resumed sessions
                             .SetServerExtensions(this.mServerExtensions)
                             .Build();
@@ -761,10 +773,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             byte alertDescription)
         {
             short maxFragmentLength = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(serverExtensions);
-            if (maxFragmentLength >= 0 && !this.mResumedSession)
+            if (maxFragmentLength >= 0)
             {
-                if (maxFragmentLength != TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions))
+                if (!MaxFragmentLength.IsValid((byte)maxFragmentLength)
+                    || (!this.mResumedSession && maxFragmentLength != TlsExtensionsUtilities
+                        .GetMaxFragmentLengthExtension(clientExtensions)))
+                {
                     throw new TlsFatalAlert(alertDescription);
+                }
             }
             return maxFragmentLength;
         }

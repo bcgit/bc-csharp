@@ -224,23 +224,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                     ReceiveServerHelloMessage(buf);
                     this.mConnectionState = CS_SERVER_HELLO;
 
-                    if (this.mSecurityParameters.maxFragmentLength >= 0)
-                    {
-                        int plainTextLimit = 1 << (8 + this.mSecurityParameters.maxFragmentLength);
-                        mRecordStream.SetPlaintextLimit(plainTextLimit);
-                    }
-
-                    this.mSecurityParameters.prfAlgorithm = GetPrfAlgorithm(Context,
-                        this.mSecurityParameters.CipherSuite);
-
-                    /*
-                     * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify
-                     * verify_data_length has a verify_data_length equal to 12. This includes all
-                     * existing cipher suites.
-                     */
-                    this.mSecurityParameters.verifyDataLength = 12;
-
                     this.mRecordStream.NotifyHelloComplete();
+
+                    ApplyMaxFragmentLengthExtension();
 
                     if (this.mResumedSession)
                     {
@@ -558,21 +544,23 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void ReceiveServerHelloMessage(MemoryStream buf)
         {
-            ProtocolVersion server_version = TlsUtilities.ReadVersion(buf);
-            if (server_version.IsDtls)
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            {
+                ProtocolVersion server_version = TlsUtilities.ReadVersion(buf);
+                if (server_version.IsDtls)
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-            // Check that this matches what the server is Sending in the record layer
-            if (!server_version.Equals(this.mRecordStream.ReadVersion))
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                // Check that this matches what the server is Sending in the record layer
+                if (!server_version.Equals(this.mRecordStream.ReadVersion))
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-            ProtocolVersion client_version = Context.ClientVersion;
-            if (!server_version.IsEqualOrEarlierVersionOf(client_version))
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                ProtocolVersion client_version = Context.ClientVersion;
+                if (!server_version.IsEqualOrEarlierVersionOf(client_version))
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-            this.mRecordStream.SetWriteVersion(server_version);
-            ContextAdmin.SetServerVersion(server_version);
-            this.mTlsClient.NotifyServerVersion(server_version);
+                this.mRecordStream.SetWriteVersion(server_version);
+                ContextAdmin.SetServerVersion(server_version);
+                this.mTlsClient.NotifyServerVersion(server_version);
+            }
 
             /*
              * Read the server random
@@ -582,9 +570,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mSelectedSessionID = TlsUtilities.ReadOpaque8(buf);
             if (this.mSelectedSessionID.Length > 32)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
             this.mTlsClient.NotifySessionID(this.mSelectedSessionID);
-
             this.mResumedSession = this.mSelectedSessionID.Length > 0 && this.mTlsSession != null
                 && Arrays.AreEqual(this.mSelectedSessionID, this.mTlsSession.SessionID);
 
@@ -596,11 +582,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (!Arrays.Contains(this.mOfferedCipherSuites, selectedCipherSuite)
                 || selectedCipherSuite == CipherSuite.TLS_NULL_WITH_NULL_NULL
                 || CipherSuite.IsScsv(selectedCipherSuite)
-                || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, server_version))
+                || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, Context.ServerVersion))
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
-
             this.mTlsClient.NotifySelectedCipherSuite(selectedCipherSuite);
 
             /*
@@ -610,7 +595,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             byte selectedCompressionMethod = TlsUtilities.ReadUint8(buf);
             if (!Arrays.Contains(this.mOfferedCompressionMethods, selectedCompressionMethod))
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
             this.mTlsClient.NotifySelectedCompressionMethod(selectedCompressionMethod);
 
             /*
@@ -714,17 +698,19 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (sessionServerExtensions != null)
             {
-                /*
-                 * RFC 7366 3. If a server receives an encrypt-then-MAC request extension from a client
-                 * and then selects a stream or Authenticated Encryption with Associated Data (AEAD)
-                 * ciphersuite, it MUST NOT send an encrypt-then-MAC response extension back to the
-                 * client.
-                 */
-                bool serverSentEncryptThenMAC = TlsExtensionsUtilities.HasEncryptThenMacExtension(sessionServerExtensions);
-                if (serverSentEncryptThenMAC && !TlsUtilities.IsBlockCipherSuite(selectedCipherSuite))
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                {
+                    /*
+                     * RFC 7366 3. If a server receives an encrypt-then-MAC request extension from a client
+                     * and then selects a stream or Authenticated Encryption with Associated Data (AEAD)
+                     * ciphersuite, it MUST NOT send an encrypt-then-MAC response extension back to the
+                     * client.
+                     */
+                    bool serverSentEncryptThenMAC = TlsExtensionsUtilities.HasEncryptThenMacExtension(sessionServerExtensions);
+                    if (serverSentEncryptThenMAC && !TlsUtilities.IsBlockCipherSuite(selectedCipherSuite))
+                        throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-                this.mSecurityParameters.encryptThenMac = serverSentEncryptThenMAC;
+                    this.mSecurityParameters.encryptThenMac = serverSentEncryptThenMAC;
+                }
 
                 this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
 
@@ -757,6 +743,15 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 this.mTlsClient.ProcessServerExtensions(sessionServerExtensions);
             }
+
+            this.mSecurityParameters.prfAlgorithm = GetPrfAlgorithm(Context, this.mSecurityParameters.CipherSuite);
+
+            /*
+             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify
+             * verify_data_length has a verify_data_length equal to 12. This includes all
+             * existing cipher suites.
+             */
+            this.mSecurityParameters.verifyDataLength = 12;
         }
 
         protected virtual void SendCertificateVerifyMessage(DigitallySigned certificateVerify)
