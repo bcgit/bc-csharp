@@ -55,6 +55,16 @@ namespace Org.BouncyCastle.Math.EC
             return Square().Add(x.Multiply(y));
         }
 
+        public virtual ECFieldElement SquarePow(int pow)
+        {
+            ECFieldElement r = this;
+            for (int i = 0; i < pow; ++i)
+            {
+                r = r.Square();
+            }
+            return r;
+        }
+
         public virtual bool TestBitZero()
         {
             return ToBigInteger().TestBit(0);
@@ -812,6 +822,11 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(m, ks, aa);
         }
 
+        public override ECFieldElement SquarePow(int pow)
+        {
+            return pow < 1 ? this : new F2mFieldElement(m, ks, x.ModSquareN(pow, m, ks));
+        }
+
         public override ECFieldElement Invert()
         {
             return new F2mFieldElement(this.m, this.ks, this.x.ModInverse(m, ks));
@@ -819,14 +834,7 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECFieldElement Sqrt()
         {
-            LongArray x1 = this.x;
-            if (x1.IsOne() || x1.IsZero())
-            {
-                return this;
-            }
-
-            LongArray x2 = x1.ModSquareN(m - 1, m, ks);
-            return new F2mFieldElement(m, ks, x2);
+            return (x.IsZero() || x.IsOne()) ? this : SquarePow(m - 1);
         }
 
         /**
