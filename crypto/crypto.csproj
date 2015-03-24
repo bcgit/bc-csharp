@@ -5174,6 +5174,76 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\custom\sec\SecP128R1Curve.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP128R1Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP128R1FieldElement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP128R1Point.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160k1Curve.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160K1Point.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160R1Curve.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160R1Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160R1FieldElement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160R1Point.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160R2Curve.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160R2Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160R2FieldElement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecP160R2Point.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\custom\sec\SecP192K1Curve.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

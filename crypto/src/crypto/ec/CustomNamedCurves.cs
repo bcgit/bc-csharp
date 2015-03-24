@@ -69,14 +69,110 @@ namespace Org.BouncyCastle.Crypto.EC
         }
 
         /*
-         * secp192k1
+         * secp128r1
          */
-        internal class Secp192k1Holder
+        internal class SecP128R1Holder
             : X9ECParametersHolder
         {
-            private Secp192k1Holder() { }
+            private SecP128R1Holder() { }
 
-            internal static readonly X9ECParametersHolder Instance = new Secp192k1Holder();
+            internal static readonly X9ECParametersHolder Instance = new SecP128R1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("000E0D4D696E6768756151750CC03A4473D03679");
+                ECCurve curve = ConfigureCurve(new SecP128R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "161FF7528B899B2D0C28607CA52C5B86"
+                    + "CF5AC8395BAFEB13C02DA292DDED7A83"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        };
+
+        /*
+         * secp160k1
+         */
+        internal class SecP160K1Holder
+            : X9ECParametersHolder
+        {
+            private SecP160K1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new SecP160K1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = null;
+                GlvTypeBParameters glv = new GlvTypeBParameters(
+                    new BigInteger("9ba48cba5ebcb9b6bd33b92830b2a2e0e192f10a", 16),
+                    new BigInteger("c39c6c3b3a36d7701b9c71a1f5804ae5d0003f4", 16),
+                    new BigInteger[]{
+                        new BigInteger("9162fbe73984472a0a9e", 16),
+                        new BigInteger("-96341f1138933bc2f505", 16) },
+                    new BigInteger[]{
+                        new BigInteger("127971af8721782ecffa3", 16),
+                        new BigInteger("9162fbe73984472a0a9e", 16) },
+                    new BigInteger("9162fbe73984472a0a9d0590", 16),
+                    new BigInteger("96341f1138933bc2f503fd44", 16),
+                    176);
+                ECCurve curve = ConfigureCurveGlv(new SecP160K1Curve(), glv);
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "3B4C382CE37AA192A4019E763036F4F5DD4D7EBB"
+                    + "938CF935318FDCED6BC28286531733C3F03C4FEE"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        };
+
+        /*
+         * secp160r1
+         */
+        internal class SecP160R1Holder
+            : X9ECParametersHolder
+        {
+            private SecP160R1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new SecP160R1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("1053CDE42C14D696E67687561517533BF3F83345");
+                ECCurve curve = ConfigureCurve(new SecP160R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "4A96B5688EF573284664698968C38BB913CBFC82"
+                    + "23A628553168947D59DCC912042351377AC5FB32"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        };
+
+        /*
+         * secp160r2
+         */
+        internal class SecP160R2Holder
+            : X9ECParametersHolder
+        {
+            private SecP160R2Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new SecP160R2Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("B99B99B099B323E02709A4D696E6768756151751");
+                ECCurve curve = ConfigureCurve(new SecP160R2Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "52DCB034293A117E1F4FF11B30F7199D3144CE6D"
+                    + "FEAFFEF2E331F296E071FA0DF9982CFEA7D43F2E"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        };
+
+        /*
+         * secp192k1
+         */
+        internal class SecP192K1Holder
+            : X9ECParametersHolder
+        {
+            private SecP192K1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new SecP192K1Holder();
 
             protected override X9ECParameters CreateParameters()
             {
@@ -104,12 +200,12 @@ namespace Org.BouncyCastle.Crypto.EC
         /*
          * secp192r1
          */
-        internal class Secp192r1Holder
+        internal class SecP192R1Holder
             : X9ECParametersHolder
         {
-            private Secp192r1Holder() { }
+            private SecP192R1Holder() { }
 
-            internal static readonly X9ECParametersHolder Instance = new Secp192r1Holder();
+            internal static readonly X9ECParametersHolder Instance = new SecP192R1Holder();
 
             protected override X9ECParameters CreateParameters()
             {
@@ -125,12 +221,12 @@ namespace Org.BouncyCastle.Crypto.EC
         /*
          * secp224k1
          */
-        internal class Secp224k1Holder
+        internal class SecP224K1Holder
             : X9ECParametersHolder
         {
-            private Secp224k1Holder() { }
+            private SecP224K1Holder() { }
 
-            internal static readonly X9ECParametersHolder Instance = new Secp224k1Holder();
+            internal static readonly X9ECParametersHolder Instance = new SecP224K1Holder();
 
             protected override X9ECParameters CreateParameters()
             {
@@ -158,12 +254,12 @@ namespace Org.BouncyCastle.Crypto.EC
         /*
          * secp224r1
          */
-        internal class Secp224r1Holder
+        internal class SecP224R1Holder
             : X9ECParametersHolder
         {
-            private Secp224r1Holder() { }
+            private SecP224R1Holder() { }
 
-            internal static readonly X9ECParametersHolder Instance = new Secp224r1Holder();
+            internal static readonly X9ECParametersHolder Instance = new SecP224R1Holder();
 
             protected override X9ECParameters CreateParameters()
             {
@@ -179,12 +275,12 @@ namespace Org.BouncyCastle.Crypto.EC
         /*
          * secp256k1
          */
-        internal class Secp256k1Holder
+        internal class SecP256K1Holder
             : X9ECParametersHolder
         {
-            private Secp256k1Holder() {}
+            private SecP256K1Holder() {}
 
-            internal static readonly X9ECParametersHolder Instance = new Secp256k1Holder();
+            internal static readonly X9ECParametersHolder Instance = new SecP256K1Holder();
 
             protected override X9ECParameters CreateParameters()
             {
@@ -212,12 +308,12 @@ namespace Org.BouncyCastle.Crypto.EC
         /*
          * secp256r1
          */
-        internal class Secp256r1Holder
+        internal class SecP256R1Holder
             : X9ECParametersHolder
         {
-            private Secp256r1Holder() {}
+            private SecP256R1Holder() {}
 
-            internal static readonly X9ECParametersHolder Instance = new Secp256r1Holder();
+            internal static readonly X9ECParametersHolder Instance = new SecP256R1Holder();
 
             protected override X9ECParameters CreateParameters()
             {
@@ -233,12 +329,12 @@ namespace Org.BouncyCastle.Crypto.EC
         /*
          * secp384r1
          */
-        internal class Secp384r1Holder
+        internal class SecP384R1Holder
             : X9ECParametersHolder
         {
-            private Secp384r1Holder() { }
+            private SecP384R1Holder() { }
 
-            internal static readonly X9ECParametersHolder Instance = new Secp384r1Holder();
+            internal static readonly X9ECParametersHolder Instance = new SecP384R1Holder();
 
             protected override X9ECParameters CreateParameters()
             {
@@ -254,12 +350,12 @@ namespace Org.BouncyCastle.Crypto.EC
         /*
          * secp521r1
          */
-        internal class Secp521r1Holder
+        internal class SecP521R1Holder
             : X9ECParametersHolder
         {
-            private Secp521r1Holder() { }
+            private SecP521R1Holder() { }
 
-            internal static readonly X9ECParametersHolder Instance = new Secp521r1Holder();
+            internal static readonly X9ECParametersHolder Instance = new SecP521R1Holder();
 
             protected override X9ECParameters CreateParameters()
             {
@@ -311,14 +407,21 @@ namespace Org.BouncyCastle.Crypto.EC
         {
             DefineCurve("curve25519", Curve25519Holder.Instance);
 
-            DefineCurveWithOid("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
-            DefineCurveWithOid("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
-            DefineCurveWithOid("secp224k1", SecObjectIdentifiers.SecP224k1, Secp224k1Holder.Instance);
-            DefineCurveWithOid("secp224r1", SecObjectIdentifiers.SecP224r1, Secp224r1Holder.Instance);
-            DefineCurveWithOid("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
-            DefineCurveWithOid("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
-            DefineCurveWithOid("secp384r1", SecObjectIdentifiers.SecP384r1, Secp384r1Holder.Instance);
-            DefineCurveWithOid("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
+            //DefineCurveWithOid("secp112r1", SecObjectIdentifiers.SecP112r1, SecP112R1Holder.Instance);
+            //DefineCurveWithOid("secp112r2", SecObjectIdentifiers.SecP112r2, SecP112R2Holder.Instance);
+            DefineCurveWithOid("secp128r1", SecObjectIdentifiers.SecP128r1, SecP128R1Holder.Instance);
+            //DefineCurveWithOid("secp128r2", SecObjectIdentifiers.SecP128r2, SecP128R2Holder.Instance);
+            DefineCurveWithOid("secp160k1", SecObjectIdentifiers.SecP160k1, SecP160K1Holder.Instance);
+            DefineCurveWithOid("secp160r1", SecObjectIdentifiers.SecP160r1, SecP160R1Holder.Instance);
+            DefineCurveWithOid("secp160r2", SecObjectIdentifiers.SecP160r2, SecP160R2Holder.Instance);
+            DefineCurveWithOid("secp192k1", SecObjectIdentifiers.SecP192k1, SecP192K1Holder.Instance);
+            DefineCurveWithOid("secp192r1", SecObjectIdentifiers.SecP192r1, SecP192R1Holder.Instance);
+            DefineCurveWithOid("secp224k1", SecObjectIdentifiers.SecP224k1, SecP224K1Holder.Instance);
+            DefineCurveWithOid("secp224r1", SecObjectIdentifiers.SecP224r1, SecP224R1Holder.Instance);
+            DefineCurveWithOid("secp256k1", SecObjectIdentifiers.SecP256k1, SecP256K1Holder.Instance);
+            DefineCurveWithOid("secp256r1", SecObjectIdentifiers.SecP256r1, SecP256R1Holder.Instance);
+            DefineCurveWithOid("secp384r1", SecObjectIdentifiers.SecP384r1, SecP384R1Holder.Instance);
+            DefineCurveWithOid("secp521r1", SecObjectIdentifiers.SecP521r1, SecP521R1Holder.Instance);
 
             DefineCurveAlias("P-192", SecObjectIdentifiers.SecP192r1);
             DefineCurveAlias("P-224", SecObjectIdentifiers.SecP224r1);
