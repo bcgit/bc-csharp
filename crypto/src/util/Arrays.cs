@@ -311,6 +311,48 @@ namespace Org.BouncyCastle.Utilities
             return hc;
         }
 
+        [CLSCompliantAttribute(false)]
+        public static int GetHashCode(ulong[] data)
+        {
+            if (data == null)
+                return 0;
+
+            int i = data.Length;
+            int hc = i + 1;
+
+            while (--i >= 0)
+            {
+                ulong di = data[i];
+                hc *= 257;
+                hc ^= (int)di;
+                hc *= 257;
+                hc ^= (int)(di >> 32);
+            }
+
+            return hc;
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static int GetHashCode(ulong[] data, int off, int len)
+        {
+            if (data == null)
+                return 0;
+
+            int i = len;
+            int hc = i + 1;
+
+            while (--i >= 0)
+            {
+                ulong di = data[off + i];
+                hc *= 257;
+                hc ^= (int)di;
+                hc *= 257;
+                hc ^= (int)(di >> 32);
+            }
+
+            return hc;
+        }
+
         public static byte[] Clone(
             byte[] data)
         {
