@@ -98,9 +98,10 @@ namespace Org.BouncyCastle.Cms
 				ISigner sig = Helper.GetSignatureInstance(signatureName);
 
                 byte[] hash;
-
                 if (outer._digests.Contains(digestOID))
+                {
                     hash = (byte[])outer._digests[digestOID];
+                }
                 else
                 {
                     IDigest dig = Helper.GetDigestInstance(digestName);
