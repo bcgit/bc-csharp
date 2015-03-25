@@ -98,12 +98,17 @@ namespace Org.BouncyCastle.Asn1.X9
                 ecP = SecNamedCurves.GetByOid(oid);
             }
 
+            // NOTE: All the NIST curves are currently from SEC, so no point in redundant OID lookup
+
             if (ecP == null)
             {
                 ecP = TeleTrusTNamedCurves.GetByOid(oid);
             }
 
-            // NOTE: All the NIST curves are currently from SEC, so no point in redundant OID lookup
+            if (ecP == null)
+            {
+                ecP = AnssiNamedCurves.GetByOid(oid);
+            }
 
             return ecP;
         }
