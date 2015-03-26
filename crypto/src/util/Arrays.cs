@@ -655,5 +655,21 @@ namespace Org.BouncyCastle.Utilities
 
             return result;
         }
+
+        public static int[] Reverse(int[] a)
+        {
+            if (a == null)
+                return null;
+
+            int p1 = 0, p2 = a.Length;
+            int[] result = new int[p2];
+
+            while (--p2 >= 0)
+            {
+                result[p2] = a[p1++];
+            }
+
+            return result;
+        }
     }
 }

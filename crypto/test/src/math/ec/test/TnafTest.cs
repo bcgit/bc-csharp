@@ -40,7 +40,7 @@
 //		{
 //			X9ECParameters x9ECParameters = SecNamedCurves.GetByName(curveName);
 //
-//			F2mCurve curve = (F2mCurve)x9ECParameters.Curve;
+//			AbstractF2mCurve curve = (AbstractF2mCurve)x9ECParameters.Curve;
 //			BigInteger n = curve.N;
 //
 //			// The generator is multiplied by random b to get random q
