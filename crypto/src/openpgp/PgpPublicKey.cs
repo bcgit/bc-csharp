@@ -266,16 +266,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>The number of valid days from creation time - zero means no expiry.</summary>
+        /// <remarks>WARNING: This method will return 1 for keys with version > 3 that expire in less than 1 day</remarks>
+        [Obsolete("Use 'GetValidSeconds' instead")]
         public int ValidDays
         {
             get
             {
-                if (publicPk.Version > 3)
+                if (publicPk.Version <= 3)
                 {
-                    return (int)(GetValidSeconds() / (24 * 60 * 60));
+                    return publicPk.ValidDays;
                 }
 
-                return publicPk.ValidDays;
+                long expSecs = GetValidSeconds();
+                if (expSecs <= 0)
+                    return 0;
+
+                int days = (int)(expSecs / (24 * 60 * 60));
+                return System.Math.Max(1, days);
             }
         }
 
@@ -294,34 +301,32 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>The number of valid seconds from creation time - zero means no expiry.</summary>
         public long GetValidSeconds()
         {
-            if (publicPk.Version > 3)
+            if (publicPk.Version <= 3)
             {
-                if (IsMasterKey)
-                {
-                    for (int i = 0; i != MasterKeyCertificationTypes.Length; i++)
-                    {
-                        long seconds = GetExpirationTimeFromSig(true, MasterKeyCertificationTypes[i]);
+                return (long)publicPk.ValidDays * (24 * 60 * 60);
+            }
 
-                        if (seconds >= 0)
-                        {
-                            return seconds;
-                        }
-                    }
-                }
-                else
+            if (IsMasterKey)
+            {
+                for (int i = 0; i != MasterKeyCertificationTypes.Length; i++)
                 {
-                    long seconds = GetExpirationTimeFromSig(false, PgpSignature.SubkeyBinding);
-
+                    long seconds = GetExpirationTimeFromSig(true, MasterKeyCertificationTypes[i]);
                     if (seconds >= 0)
                     {
                         return seconds;
                     }
                 }
-
-                return 0;
+            }
+            else
+            {
+                long seconds = GetExpirationTimeFromSig(false, PgpSignature.SubkeyBinding);
+                if (seconds >= 0)
+                {
+                    return seconds;
+                }
             }
 
-            return (long) publicPk.ValidDays * 24 * 60 * 60;
+            return 0;
         }
 
         private long GetExpirationTimeFromSig(
