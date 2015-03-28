@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>10.0.0</ProductVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{A0D302CB-8866-4AB1-98B9-F0772EABF5DF}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -129,6 +129,8 @@
     <Compile Include="src\asn1\LazyDERSet.cs" />
     <Compile Include="src\asn1\LimitedInputStream.cs" />
     <Compile Include="src\asn1\OidTokenizer.cs" />
+    <Compile Include="src\asn1\anssi\ANSSINamedCurves.cs" />
+    <Compile Include="src\asn1\anssi\ANSSIObjectIdentifiers.cs" />
     <Compile Include="src\asn1\bc\BCObjectIdentifiers.cs" />
     <Compile Include="src\asn1\cmp\CAKeyUpdAnnContent.cs" />
     <Compile Include="src\asn1\cmp\CertConfirmContent.cs" />
@@ -667,6 +669,7 @@
     <Compile Include="src\crypto\digests\RipeMD256Digest.cs" />
     <Compile Include="src\crypto\digests\RipeMD320Digest.cs" />
     <Compile Include="src\crypto\digests\SHA3Digest.cs" />
+    <Compile Include="src\crypto\digests\SM3Digest.cs" />
     <Compile Include="src\crypto\digests\Sha1Digest.cs" />
     <Compile Include="src\crypto\digests\Sha224Digest.cs" />
     <Compile Include="src\crypto\digests\Sha256Digest.cs" />
@@ -676,7 +679,6 @@
     <Compile Include="src\crypto\digests\ShortenedDigest.cs" />
     <Compile Include="src\crypto\digests\SkeinDigest.cs" />
     <Compile Include="src\crypto\digests\SkeinEngine.cs" />
-    <Compile Include="src\crypto\digests\SM3Digest.cs" />
     <Compile Include="src\crypto\digests\TigerDigest.cs" />
     <Compile Include="src\crypto\digests\WhirlpoolDigest.cs" />
     <Compile Include="src\crypto\ec\CustomNamedCurves.cs" />
@@ -766,8 +768,8 @@
     <Compile Include="src\crypto\macs\CMac.cs" />
     <Compile Include="src\crypto\macs\CbcBlockCipherMac.cs" />
     <Compile Include="src\crypto\macs\CfbBlockCipherMac.cs" />
-    <Compile Include="src\crypto\macs\GOST28147Mac.cs" />
     <Compile Include="src\crypto\macs\GMac.cs" />
+    <Compile Include="src\crypto\macs\GOST28147Mac.cs" />
     <Compile Include="src\crypto\macs\HMac.cs" />
     <Compile Include="src\crypto\macs\ISO9797Alg3Mac.cs" />
     <Compile Include="src\crypto\macs\Poly1305.cs" />
@@ -904,7 +906,7 @@
     <Compile Include="src\crypto\tls\CertificateStatusRequest.cs" />
     <Compile Include="src\crypto\tls\CertificateStatusType.cs" />
     <Compile Include="src\crypto\tls\CertificateUrl.cs" />
-    <Compile Include="src\crypto\tls\ChaCha20Poly1305.cs" />
+    <Compile Include="src\crypto\tls\Chacha20Poly1305.cs" />
     <Compile Include="src\crypto\tls\ChangeCipherSpec.cs" />
     <Compile Include="src\crypto\tls\CipherSuite.cs" />
     <Compile Include="src\crypto\tls\CipherType.cs" />
@@ -951,8 +953,8 @@
     <Compile Include="src\crypto\tls\KeyExchangeAlgorithm.cs" />
     <Compile Include="src\crypto\tls\MacAlgorithm.cs" />
     <Compile Include="src\crypto\tls\MaxFragmentLength.cs" />
-    <Compile Include="src\crypto\tls\NamedCurve.cs" />
     <Compile Include="src\crypto\tls\NameType.cs" />
+    <Compile Include="src\crypto\tls\NamedCurve.cs" />
     <Compile Include="src\crypto\tls\NewSessionTicket.cs" />
     <Compile Include="src\crypto\tls\OcspStatusRequest.cs" />
     <Compile Include="src\crypto\tls\PrfAlgorithm.cs" />
@@ -996,10 +998,10 @@
     <Compile Include="src\crypto\tls\TlsDheKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsDsaSigner.cs" />
     <Compile Include="src\crypto\tls\TlsDssSigner.cs" />
-    <Compile Include="src\crypto\tls\TlsEccUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsECDHKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsECDheKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsECDsaSigner.cs" />
+    <Compile Include="src\crypto\tls\TlsEccUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsEncryptionCredentials.cs" />
     <Compile Include="src\crypto\tls\TlsExtensionsUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsFatalAlert.cs" />
@@ -1035,8 +1037,8 @@
     <Compile Include="src\crypto\tls\TlsStreamCipher.cs" />
     <Compile Include="src\crypto\tls\TlsUtilities.cs" />
     <Compile Include="src\crypto\tls\UrlAndHash.cs" />
-    <Compile Include="src\crypto\tls\UserMappingType.cs" />
     <Compile Include="src\crypto\tls\UseSrtpData.cs" />
+    <Compile Include="src\crypto\tls\UserMappingType.cs" />
     <Compile Include="src\crypto\util\Pack.cs" />
     <Compile Include="src\math\BigInteger.cs" />
     <Compile Include="src\math\ec\ECAlgorithms.cs" />
@@ -1045,8 +1047,6 @@
     <Compile Include="src\math\ec\ECPoint.cs" />
     <Compile Include="src\math\ec\ECPointMap.cs" />
     <Compile Include="src\math\ec\LongArray.cs" />
-    <Compile Include="src\math\ec\Mod.cs" />
-    <Compile Include="src\math\ec\Nat.cs" />
     <Compile Include="src\math\ec\ScaleXPointMap.cs" />
     <Compile Include="src\math\ec\ScaleYPointMap.cs" />
     <Compile Include="src\math\ec\abc\SimpleBigDecimal.cs" />
@@ -1056,11 +1056,20 @@
     <Compile Include="src\math\ec\custom\djb\Curve25519Field.cs" />
     <Compile Include="src\math\ec\custom\djb\Curve25519FieldElement.cs" />
     <Compile Include="src\math\ec\custom\djb\Curve25519Point.cs" />
-    <Compile Include="src\math\ec\custom\sec\Nat192.cs" />
-    <Compile Include="src\math\ec\custom\sec\Nat224.cs" />
-    <Compile Include="src\math\ec\custom\sec\Nat256.cs" />
-    <Compile Include="src\math\ec\custom\sec\Nat384.cs" />
-    <Compile Include="src\math\ec\custom\sec\Nat512.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP128R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP128R1Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP128R1FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP128R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160K1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160K1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160R1Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160R1FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160R2Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160R2Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160R2FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecP160R2Point.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP192K1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP192K1Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP192K1FieldElement.cs" />
@@ -1093,6 +1102,54 @@
     <Compile Include="src\math\ec\custom\sec\SecP521R1Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP521R1FieldElement.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP521R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT113Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT113FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT113R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT113R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT113R2Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT113R2Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT131Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT131FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT131R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT131R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT131R2Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT131R2Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT163Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT163FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT163K1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT163K1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT163R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT163R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT163R2Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT163R2Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT233Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT233FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT233K1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT233K1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT233R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT233R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT239Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT239FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT239K1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT239K1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT283Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT283FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT283K1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT283K1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT283R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT283R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT409Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT409FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT409K1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT409K1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT409R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT409R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT571Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT571FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT571K1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT571K1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT571R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT571R1Point.cs" />
     <Compile Include="src\math\ec\endo\ECEndomorphism.cs" />
     <Compile Include="src\math\ec\endo\GlvEndomorphism.cs" />
     <Compile Include="src\math\ec\endo\GlvTypeBEndomorphism.cs" />
@@ -1125,6 +1182,19 @@
     <Compile Include="src\math\field\IPolynomial.cs" />
     <Compile Include="src\math\field\IPolynomialExtensionField.cs" />
     <Compile Include="src\math\field\PrimeField.cs" />
+    <Compile Include="src\math\raw\Interleave.cs" />
+    <Compile Include="src\math\raw\Mod.cs" />
+    <Compile Include="src\math\raw\Nat.cs" />
+    <Compile Include="src\math\raw\Nat128.cs" />
+    <Compile Include="src\math\raw\Nat160.cs" />
+    <Compile Include="src\math\raw\Nat192.cs" />
+    <Compile Include="src\math\raw\Nat224.cs" />
+    <Compile Include="src\math\raw\Nat256.cs" />
+    <Compile Include="src\math\raw\Nat320.cs" />
+    <Compile Include="src\math\raw\Nat384.cs" />
+    <Compile Include="src\math\raw\Nat448.cs" />
+    <Compile Include="src\math\raw\Nat512.cs" />
+    <Compile Include="src\math\raw\Nat576.cs" />
     <Compile Include="src\ocsp\BasicOCSPResp.cs" />
     <Compile Include="src\ocsp\BasicOCSPRespGenerator.cs" />
     <Compile Include="src\ocsp\CertificateID.cs" />
@@ -1368,14 +1438,10 @@
     <Compile Include="src\x509\store\X509StoreFactory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="checklist.txt" />
     <None Include="Contributors.html" />
     <None Include="License.html" />
     <None Include="Readme.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="bzip2\" />
-    <Folder Include="src\" />
+    <None Include="checklist.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
 </Project>
