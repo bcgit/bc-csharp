@@ -483,7 +483,9 @@ namespace Org.BouncyCastle.Math.EC.Tests
             CollectionUtilities.AddRange(names, ECNamedCurveTable.Names);
             CollectionUtilities.AddRange(names, CustomNamedCurves.Names);
 
-            foreach (string name in names)
+            ISet uniqNames = new HashSet(names);
+
+            foreach (string name in uniqNames)
             {
                 X9ECParameters x9ECParameters = ECNamedCurveTable.GetByName(name);
                 if (x9ECParameters != null)

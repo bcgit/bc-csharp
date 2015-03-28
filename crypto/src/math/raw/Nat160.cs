@@ -3,9 +3,9 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Utilities;
 
-namespace Org.BouncyCastle.Math.EC.Custom.Sec
+namespace Org.BouncyCastle.Math.Raw
 {
-    internal abstract class Nat192
+    internal abstract class Nat160
     {
         private const ulong M = 0xFFFFFFFFUL;
 
@@ -26,9 +26,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c >>= 32;
             c += (ulong)x[4] + y[4];
             z[4] = (uint)c;
-            c >>= 32;
-            c += (ulong)x[5] + y[5];
-            z[5] = (uint)c;
             c >>= 32;
             return (uint)c;
         }
@@ -51,9 +48,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += (ulong)x[4] + y[4] + z[4];
             z[4] = (uint)c;
             c >>= 32;
-            c += (ulong)x[5] + y[5] + z[5];
-            z[5] = (uint)c;
-            c >>= 32;
             return (uint)c;
         }
 
@@ -74,9 +68,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c >>= 32;
             c += (ulong)x[4] + z[4];
             z[4] = (uint)c;
-            c >>= 32;
-            c += (ulong)x[5] + z[5];
-            z[5] = (uint)c;
             c >>= 32;
             return (uint)c;
         }
@@ -100,8 +91,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[zOff + 4] = (uint)c;
             c >>= 32;
             c += (ulong)x[xOff + 5] + z[zOff + 5];
-            z[zOff + 5] = (uint)c;
-            c >>= 32;
             return (uint)c;
         }
 
@@ -128,10 +117,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             u[uOff + 4] = (uint)c;
             v[vOff + 4] = (uint)c;
             c >>= 32;
-            c += (ulong)u[uOff + 5] + v[vOff + 5];
-            u[uOff + 5] = (uint)c;
-            v[vOff + 5] = (uint)c;
-            c >>= 32;
             return (uint)c;
         }
 
@@ -142,17 +127,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[2] = x[2];
             z[3] = x[3];
             z[4] = x[4];
-            z[5] = x[5];
         }
 
         public static uint[] Create()
         {
-            return new uint[6];
+            return new uint[5];
         }
 
         public static uint[] CreateExt()
         {
-            return new uint[12];
+            return new uint[10];
         }
 
         public static bool Diff(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
@@ -171,7 +155,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static bool Eq(uint[] x, uint[] y)
         {
-            for (int i = 5; i >= 0; --i)
+            for (int i = 4; i >= 0; --i)
             {
                 if (x[i] != y[i])
                     return false;
@@ -181,7 +165,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint[] FromBigInteger(BigInteger x)
         {
-            if (x.SignValue < 0 || x.BitLength > 192)
+            if (x.SignValue < 0 || x.BitLength > 160)
                 throw new ArgumentException();
 
             uint[] z = Create();
@@ -201,7 +185,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 return x[0] & 1;
             }
             int w = bit >> 5;
-            if (w < 0 || w >= 6)
+            if (w < 0 || w >= 5)
             {
                 return 0;
             }
@@ -211,7 +195,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static bool Gte(uint[] x, uint[] y)
         {
-            for (int i = 5; i >= 0; --i)
+            for (int i = 4; i >= 0; --i)
             {
                 uint x_i = x[i], y_i = y[i];
                 if (x_i < y_i)
@@ -224,7 +208,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static bool Gte(uint[] x, int xOff, uint[] y, int yOff)
         {
-            for (int i = 5; i >= 0; --i)
+            for (int i = 4; i >= 0; --i)
             {
                 uint x_i = x[xOff + i], y_i = y[yOff + i];
                 if (x_i < y_i)
@@ -241,7 +225,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             {
                 return false;
             }
-            for (int i = 1; i < 6; ++i)
+            for (int i = 1; i < 5; ++i)
             {
                 if (x[i] != 0)
                 {
@@ -253,7 +237,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static bool IsZero(uint[] x)
         {
-            for (int i = 0; i < 6; ++i)
+            for (int i = 0; i < 5; ++i)
             {
                 if (x[i] != 0)
                 {
@@ -270,7 +254,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong y_2 = y[2];
             ulong y_3 = y[3];
             ulong y_4 = y[4];
-            ulong y_5 = y[5];
 
             {
                 ulong c = 0, x_0 = x[0];
@@ -289,13 +272,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c += x_0 * y_4;
                 zz[4] = (uint)c;
                 c >>= 32;
-                c += x_0 * y_5;
                 zz[5] = (uint)c;
-                c >>= 32;
-                zz[6] = (uint)c;
             }
 
-            for (int i = 1; i < 6; ++i)
+            for (int i = 1; i < 5; ++i)
             {
                 ulong c = 0, x_i = x[i];
                 c += x_i * y_0 + zz[i + 0];
@@ -313,10 +293,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c += x_i * y_4 + zz[i + 4];
                 zz[i + 4] = (uint)c;
                 c >>= 32;
-                c += x_i * y_5 + zz[i + 5];
                 zz[i + 5] = (uint)c;
-                c >>= 32;
-                zz[i + 6] = (uint)c;
             }
         }
 
@@ -327,7 +304,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong y_2 = y[yOff + 2];
             ulong y_3 = y[yOff + 3];
             ulong y_4 = y[yOff + 4];
-            ulong y_5 = y[yOff + 5];
 
             {
                 ulong c = 0, x_0 = x[xOff + 0];
@@ -346,13 +322,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c += x_0 * y_4;
                 zz[zzOff + 4] = (uint)c;
                 c >>= 32;
-                c += x_0 * y_5;
                 zz[zzOff + 5] = (uint)c;
-                c >>= 32;
-                zz[zzOff + 6] = (uint)c;
             }
 
-            for (int i = 1; i < 6; ++i)
+            for (int i = 1; i < 5; ++i)
             {
                 ++zzOff;
                 ulong c = 0, x_i = x[xOff + i];
@@ -371,10 +344,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c += x_i * y_4 + zz[zzOff + 4];
                 zz[zzOff + 4] = (uint)c;
                 c >>= 32;
-                c += x_i * y_5 + zz[zzOff + 5];
                 zz[zzOff + 5] = (uint)c;
-                c >>= 32;
-                zz[zzOff + 6] = (uint)c;
             }
         }
 
@@ -385,10 +355,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong y_2 = y[2];
             ulong y_3 = y[3];
             ulong y_4 = y[4];
-            ulong y_5 = y[5];
 
             ulong zc = 0;
-            for (int i = 0; i < 6; ++i)
+            for (int i = 0; i < 5; ++i)
             {
                 ulong c = 0, x_i = x[i];
                 c += x_i * y_0 + zz[i + 0];
@@ -406,11 +375,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c += x_i * y_4 + zz[i + 4];
                 zz[i + 4] = (uint)c;
                 c >>= 32;
-                c += x_i * y_5 + zz[i + 5];
+                c += zc + zz[i + 5];
                 zz[i + 5] = (uint)c;
-                c >>= 32;
-                c += zc + zz[i + 6];
-                zz[i + 6] = (uint)c;
                 zc = c >> 32;
             }
             return (uint)zc;
@@ -423,10 +389,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong y_2 = y[yOff + 2];
             ulong y_3 = y[yOff + 3];
             ulong y_4 = y[yOff + 4];
-            ulong y_5 = y[yOff + 5];
 
             ulong zc = 0;
-            for (int i = 0; i < 6; ++i)
+            for (int i = 0; i < 5; ++i)
             {
                 ulong c = 0, x_i = x[xOff + i];
                 c += x_i * y_0 + zz[zzOff + 0];
@@ -444,11 +409,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c += x_i * y_4 + zz[zzOff + 4];
                 zz[zzOff + 4] = (uint)c;
                 c >>= 32;
-                c += x_i * y_5 + zz[zzOff + 5];
+                c += zc + zz[zzOff + 5];
                 zz[zzOff + 5] = (uint)c;
-                c >>= 32;
-                c += zc + zz[zzOff + 6];
-                zz[zzOff + 6] = (uint)c;
                 zc = c >> 32;
                 ++zzOff;
             }
@@ -480,18 +442,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += wVal * x4 + x3 + y[yOff + 4];
             z[zOff + 4] = (uint)c;
             c >>= 32;
-            ulong x5 = x[xOff + 5];
-            c += wVal * x5 + x4 + y[yOff + 5];
-            z[zOff + 5] = (uint)c;
-            c >>= 32;
-            c += x5;
+            c += x4;
             return c;
         }
 
         public static uint MulWordAddExt(uint x, uint[] yy, int yyOff, uint[] zz, int zzOff)
         {
-            Debug.Assert(yyOff <= 6);
-            Debug.Assert(zzOff <= 6);
+            Debug.Assert(yyOff <= 5);
+            Debug.Assert(zzOff <= 5);
+
             ulong c = 0, xVal = x;
             c += xVal * yy[yyOff + 0] + zz[zzOff + 0];
             zz[zzOff + 0] = (uint)c;
@@ -508,16 +467,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += xVal * yy[yyOff + 4] + zz[zzOff + 4];
             zz[zzOff + 4] = (uint)c;
             c >>= 32;
-            c += xVal * yy[yyOff + 5] + zz[zzOff + 5];
-            zz[zzOff + 5] = (uint)c;
-            c >>= 32;
             return (uint)c;
         }
 
         public static uint Mul33DWordAdd(uint x, ulong y, uint[] z, int zOff)
         {
             Debug.Assert(x >> 31 == 0);
-            Debug.Assert(zOff <= 2);
+            Debug.Assert(zOff <= 1);
             ulong c = 0, xVal = x;
             ulong y00 = y & M;
             c += xVal * y00 + z[zOff + 0];
@@ -533,13 +489,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += z[zOff + 3];
             z[zOff + 3] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Nat.IncAt(6, z, zOff, 4);
+            return c == 0 ? 0 : Nat.IncAt(5, z, zOff, 4);
         }
 
         public static uint Mul33WordAdd(uint x, uint y, uint[] z, int zOff)
         {
             Debug.Assert(x >> 31 == 0);
-            Debug.Assert(zOff <=3);
+            Debug.Assert(zOff <= 2);
             ulong c = 0, yVal = y;
             c += yVal * x + z[zOff + 0];
             z[zOff + 0] = (uint)c;
@@ -550,12 +506,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += z[zOff + 2];
             z[zOff + 2] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Nat.IncAt(6, z, zOff, 3);
+            return c == 0 ? 0 : Nat.IncAt(5, z, zOff, 3);
         }
 
         public static uint MulWordDwordAdd(uint x, ulong y, uint[] z, int zOff)
         {
-            Debug.Assert(zOff <= 3);
+            Debug.Assert(zOff <= 2);
             ulong c = 0, xVal = x;
             c += xVal * y + z[zOff + 0];
             z[zOff + 0] = (uint)c;
@@ -566,7 +522,21 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += z[zOff + 2];
             z[zOff + 2] = (uint)c;
             c >>= 32;
-            return c == 0 ? 0 : Nat.IncAt(6, z, zOff, 3);
+            return c == 0 ? 0 : Nat.IncAt(5, z, zOff, 3);
+        }
+
+        public static uint MulWordsAdd(uint x, uint y, uint[] z, int zOff)
+        {
+            Debug.Assert(zOff <= 3);
+
+            ulong c = 0, xVal = x, yVal = y;
+            c += yVal * xVal + z[zOff + 0];
+            z[zOff + 0] = (uint)c;
+            c >>= 32;
+            c += z[zOff + 1];
+            z[zOff + 1] = (uint)c;
+            c >>= 32;
+            return c == 0 ? 0 : Nat.IncAt(5, z, zOff, 2);
         }
 
         public static uint MulWord(uint x, uint[] y, uint[] z, int zOff)
@@ -579,7 +549,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 z[zOff + i] = (uint)c;
                 c >>= 32;
             }
-            while (++i < 6);
+            while (++i < 5);
             return (uint)c;
         }
 
@@ -590,7 +560,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             uint c = 0, w;
             {
-                int i = 5, j = 12;
+                int i = 4, j = 10;
                 do
                 {
                     ulong xVal = x[i--];
@@ -658,28 +628,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c = w >> 31;
                 zz_5 += (zz_4 >> 32) + x_4 * x_1;
                 zz_6 += (zz_5 >> 32) + x_4 * x_2;
-                zz_5 &= M;
                 zz_7 += (zz_6 >> 32) + x_4 * x_3;
-                zz_6 &= M;
                 zz_8 += zz_7 >> 32;
-                zz_7 &= M;
             }
 
-            ulong x_5 = x[5];
-            ulong zz_9 = zz[9];
-            ulong zz_10 = zz[10];
-            {
-                zz_5 += x_5 * x_0;
-                w = (uint)zz_5;
-                zz[5] = (w << 1) | c;
-                c = w >> 31;
-                zz_6 += (zz_5 >> 32) + x_5 * x_1;
-                zz_7 += (zz_6 >> 32) + x_5 * x_2;
-                zz_8 += (zz_7 >> 32) + x_5 * x_3;
-                zz_9 += (zz_8 >> 32) + x_5 * x_4;
-                zz_10 += zz_9 >> 32;
-            }
-
+            w = (uint)zz_5;
+            zz[5] = (w << 1) | c;
+            c = w >> 31;
             w = (uint)zz_6;
             zz[6] = (w << 1) | c;
             c = w >> 31;
@@ -689,14 +644,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             w = (uint)zz_8;
             zz[8] = (w << 1) | c;
             c = w >> 31;
-            w = (uint)zz_9;
+            w = zz[9] + (uint)(zz_8 >> 32);
             zz[9] = (w << 1) | c;
-            c = w >> 31;
-            w = (uint)zz_10;
-            zz[10] = (w << 1) | c;
-            c = w >> 31;
-            w = zz[11] + (uint)(zz_10 >> 32);
-            zz[11] = (w << 1) | c;
         }
 
         public static void Square(uint[] x, int xOff, uint[] zz, int zzOff)
@@ -706,7 +655,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             uint c = 0, w;
             {
-                int i = 5, j = 12;
+                int i = 4, j = 10;
                 do
                 {
                     ulong xVal = x[xOff + i--];
@@ -774,28 +723,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 c = w >> 31;
                 zz_5 += (zz_4 >> 32) + x_4 * x_1;
                 zz_6 += (zz_5 >> 32) + x_4 * x_2;
-                zz_5 &= M;
                 zz_7 += (zz_6 >> 32) + x_4 * x_3;
-                zz_6 &= M;
                 zz_8 += zz_7 >> 32;
-                zz_7 &= M;
             }
 
-            ulong x_5 = x[xOff + 5];
-            ulong zz_9 = zz[zzOff + 9];
-            ulong zz_10 = zz[zzOff + 10];
-            {
-                zz_5 += x_5 * x_0;
-                w = (uint)zz_5;
-                zz[zzOff + 5] = (w << 1) | c;
-                c = w >> 31;
-                zz_6 += (zz_5 >> 32) + x_5 * x_1;
-                zz_7 += (zz_6 >> 32) + x_5 * x_2;
-                zz_8 += (zz_7 >> 32) + x_5 * x_3;
-                zz_9 += (zz_8 >> 32) + x_5 * x_4;
-                zz_10 += zz_9 >> 32;
-            }
-
+            w = (uint)zz_5;
+            zz[zzOff + 5] = (w << 1) | c;
+            c = w >> 31;
             w = (uint)zz_6;
             zz[zzOff + 6] = (w << 1) | c;
             c = w >> 31;
@@ -805,14 +739,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             w = (uint)zz_8;
             zz[zzOff + 8] = (w << 1) | c;
             c = w >> 31;
-            w = (uint)zz_9;
+            w = zz[zzOff + 9] + (uint)(zz_8 >> 32);
             zz[zzOff + 9] = (w << 1) | c;
-            c = w >> 31;
-            w = (uint)zz_10;
-            zz[zzOff + 10] = (w << 1) | c;
-            c = w >> 31;
-            w = zz[zzOff + 11] + (uint)(zz_10 >> 32);
-            zz[zzOff + 11] = (w << 1) | c;
         }
 
         public static int Sub(uint[] x, uint[] y, uint[] z)
@@ -832,9 +760,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c >>= 32;
             c += (long)x[4] - y[4];
             z[4] = (uint)c;
-            c >>= 32;
-            c += (long)x[5] - y[5];
-            z[5] = (uint)c;
             c >>= 32;
             return (int)c;
         }
@@ -857,9 +782,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += (long)x[xOff + 4] - y[yOff + 4];
             z[zOff + 4] = (uint)c;
             c >>= 32;
-            c += (long)x[xOff + 5] - y[yOff + 5];
-            z[zOff + 5] = (uint)c;
-            c >>= 32;
             return (int)c;
         }
 
@@ -880,9 +802,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c >>= 32;
             c += (long)z[4] - x[4] - y[4];
             z[4] = (uint)c;
-            c >>= 32;
-            c += (long)z[5] - x[5] - y[5];
-            z[5] = (uint)c;
             c >>= 32;
             return (int)c;
         }
@@ -905,9 +824,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += (long)z[4] - x[4];
             z[4] = (uint)c;
             c >>= 32;
-            c += (long)z[5] - x[5];
-            z[5] = (uint)c;
-            c >>= 32;
             return (int)c;
         }
 
@@ -929,21 +845,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             c += (long)z[zOff + 4] - x[xOff + 4];
             z[zOff + 4] = (uint)c;
             c >>= 32;
-            c += (long)z[zOff + 5] - x[xOff + 5];
-            z[zOff + 5] = (uint)c;
-            c >>= 32;
             return (int)c;
         }
 
         public static BigInteger ToBigInteger(uint[] x)
         {
-            byte[] bs = new byte[24];
-            for (int i = 0; i < 6; ++i)
+            byte[] bs = new byte[20];
+            for (int i = 0; i < 5; ++i)
             {
                 uint x_i = x[i];
                 if (x_i != 0)
                 {
-                    Pack.UInt32_To_BE(x_i, bs, (5 - i) << 2);
+                    Pack.UInt32_To_BE(x_i, bs, (4 - i) << 2);
                 }
             }
             return new BigInteger(1, bs);
@@ -956,7 +869,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[2] = 0;
             z[3] = 0;
             z[4] = 0;
-            z[5] = 0;
         }
     }
 }

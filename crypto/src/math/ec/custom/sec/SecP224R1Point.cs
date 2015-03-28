@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP224R1Point
