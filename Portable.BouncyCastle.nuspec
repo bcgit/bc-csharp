@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Portable.BouncyCastle</id>
-        <version>1.7.0.1</version>
+        <version>1.7.0.2</version>
         <title>Bouncy Castle PCL</title>
         <authors>Oren Novotny</authors>
         <owners>onovotny</owners>
