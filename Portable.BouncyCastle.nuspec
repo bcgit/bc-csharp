@@ -35,9 +35,9 @@
         <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, net4, sl5, monotouch, monoandroid, xamarin</tags>
     </metadata>
     <files>
-        <file src="Crypto\bin\Release\crypto.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.xml" />
-        <file src="Crypto\bin\Release\crypto.pdb" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.pdb" />
-        <file src="Crypto\bin\Release\crypto.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81\crypto.dll" />
+        <file src="Crypto\bin\Release\crypto.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.xml" />
+        <file src="Crypto\bin\Release\crypto.pdb" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.pdb" />
+        <file src="Crypto\bin\Release\crypto.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.dll" />
         <file src="Crypto\Readme.html" target="Readme.html" />
         <file src="**\*.cs" target="src" exclude="_ReSharper.*\**\*.*;packages\**\*.*;**\Debug\**\*.*;" />
     </files>
