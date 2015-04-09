@@ -2,6 +2,9 @@
 using System.Collections;
 using System.IO;
 
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Tls
 {
     public abstract class TlsSrpUtilities
@@ -36,6 +39,36 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsProtocol.AssertEmpty(buf);
 
             return identity;
+        }
+
+        public static BigInteger ReadSrpParameter(Stream input)
+        {
+            return new BigInteger(1, TlsUtilities.ReadOpaque16(input));
+        }
+
+        public static void WriteSrpParameter(BigInteger x, Stream output)
+        {
+            TlsUtilities.WriteOpaque16(BigIntegers.AsUnsignedByteArray(x), output);
+        }
+
+        public static bool IsSrpCipherSuite(int cipherSuite)
+        {
+            switch (cipherSuite)
+            {
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_SRP_SHA_WITH_AES_256_CBC_SHA:
+                return true;
+
+            default:
+                return false;
+            }
         }
     }
 }

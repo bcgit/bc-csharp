@@ -48,17 +48,17 @@ namespace Org.BouncyCastle.Crypto.Engines
 //            _S            = null;
         }
 
-        public string AlgorithmName
+        public virtual string AlgorithmName
         {
             get { return "RC6"; }
         }
 
-		public bool IsPartialBlockOkay
+        public virtual bool IsPartialBlockOkay
 		{
 			get { return false; }
 		}
 
-		public int GetBlockSize()
+        public virtual int GetBlockSize()
         {
             return 4 * bytesPerWord;
         }
@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public void Init(
+        public virtual void Init(
             bool				forEncryption,
             ICipherParameters	parameters)
         {
@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			SetKey(p.GetKey());
         }
 
-        public int ProcessBlock(
+        public virtual int ProcessBlock(
             byte[]	input,
             int		inOff,
             byte[]	output,
@@ -93,17 +93,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 			int blockSize = GetBlockSize();
 			if (_S == null)
 				throw new InvalidOperationException("RC6 engine not initialised");
-			if ((inOff + blockSize) > input.Length)
-				throw new DataLengthException("input buffer too short");
-			if ((outOff + blockSize) > output.Length)
-				throw new DataLengthException("output buffer too short");
 
-			return (forEncryption)
+            Check.DataLength(input, inOff, blockSize, "input buffer too short");
+            Check.OutputLength(output, outOff, blockSize, "output buffer too short");
+
+            return (forEncryption)
 				?	EncryptBlock(input, inOff, output, outOff)
 				:	DecryptBlock(input, inOff, output, outOff);
         }
 
-		public void Reset()
+        public virtual void Reset()
         {
         }
 
@@ -358,5 +357,4 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
     }
-
 }

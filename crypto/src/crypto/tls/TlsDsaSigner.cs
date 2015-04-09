@@ -64,8 +64,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             if ((algorithm != null) != TlsUtilities.IsTlsV12(mContext))
                 throw new InvalidOperationException();
 
-            // TODO For TLS 1.2+, lift the SHA-1 restriction here
-            if (algorithm != null && (algorithm.Hash != HashAlgorithm.sha1 || algorithm.Signature != SignatureAlgorithm))
+            if (algorithm != null && algorithm.Signature != SignatureAlgorithm)
                 throw new InvalidOperationException();
 
             byte hashAlgorithm = algorithm == null ? HashAlgorithm.sha1 : algorithm.Hash;

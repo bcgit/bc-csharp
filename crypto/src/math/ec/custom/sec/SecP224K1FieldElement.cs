@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec

@@ -54,7 +54,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             BigInteger g = TlsDHUtilities.ReadDHParameter(input);
             BigInteger Ys = TlsDHUtilities.ReadDHParameter(input);
 
-            return new ServerDHParams(new DHPublicKeyParameters(Ys, new DHParameters(p, g)));
+            return new ServerDHParams(
+                TlsDHUtilities.ValidateDHPublicKey(new DHPublicKeyParameters(Ys, new DHParameters(p, g))));
         }
     }
 }

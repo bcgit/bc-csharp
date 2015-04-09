@@ -81,7 +81,38 @@ namespace Org.BouncyCastle.Crypto.Tests
 			//
 			checkVectors(4, ccm, K4, 112, N4, A4, A4, T5, C5);
 
-			//
+            // decryption with output specified, non-zero offset.
+            ccm.Init(false, new AeadParameters(new KeyParameter(K2), 48, N2, A2));
+
+            byte[] inBuf = new byte[C2.Length + 10];
+            byte[] outBuf = new byte[ccm.GetOutputSize(C2.Length) + 10];
+
+            Array.Copy(C2, 0, inBuf, 10, C2.Length);
+
+            int len = ccm.ProcessPacket(inBuf, 10, C2.Length, outBuf, 10);
+            byte[] output = ccm.ProcessPacket(C2, 0, C2.Length);
+
+            if (len != output.Length || !isEqual(output, outBuf, 10))
+            {
+                Fail("decryption output incorrect");
+            }
+
+            // encryption with output specified, non-zero offset.
+            ccm.Init(true, new AeadParameters(new KeyParameter(K2), 48, N2, A2));
+
+            int inLen = len;
+            inBuf = outBuf;
+            outBuf = new byte[ccm.GetOutputSize(inLen) + 10];
+
+            len = ccm.ProcessPacket(inBuf, 10, inLen, outBuf, 10);
+            output = ccm.ProcessPacket(inBuf, 10, inLen);
+
+            if (len != output.Length || !isEqual(output, outBuf, 10))
+            {
+                Fail("encryption output incorrect");
+            }
+
+            //
 			// exception tests
 			//
 
@@ -120,6 +151,17 @@ namespace Org.BouncyCastle.Crypto.Tests
 				// expected
 			}
 		}
+
+        private bool isEqual(byte[] exp, byte[] other, int off)
+        {
+            for (int i = 0; i != exp.Length; i++)
+            {
+                if (exp[i] != other[off + i])
+                    return false;
+            }
+
+            return true;
+        }
 
 		private void checkVectors(
 			int count,
@@ -203,7 +245,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			if (!AreEqual(p, dec))
 			{
-                Fail("decrypted stream fails to match in test " + count + " with " + additionalDataType);
+                Fail("decrypted stream fails to match in test " + count + " with " + additionalDataType,
+                    Hex.ToHexString(p), Hex.ToHexString(dec));
             }
 
 			if (!AreEqual(t, ccm.GetMac()))

@@ -106,6 +106,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                     SendServerHelloMessage();
                     this.mConnectionState = CS_SERVER_HELLO;
 
+                    mRecordStream.NotifyHelloComplete();
+
                     IList serverSupplementalData = mTlsServer.GetServerSupplementalData();
                     if (serverSupplementalData != null)
                     {
@@ -177,6 +179,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                     this.mRecordStream.HandshakeHash.SealHashAlgorithms();
 
+                    break;
+                }
+                case CS_END:
+                {
+                    RefuseRenegotiation();
                     break;
                 }
                 default:
@@ -496,6 +503,12 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
             this.mClientExtensions = ReadExtensions(buf);
 
+            /*
+             * TODO[session-hash]
+             * 
+             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
+             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             */
             this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mClientExtensions);
 
             ContextAdmin.SetClientVersion(client_version);
@@ -607,16 +620,18 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             HandshakeMessage message = new HandshakeMessage(HandshakeType.server_hello);
 
-            ProtocolVersion server_version = mTlsServer.GetServerVersion();
-            if (!server_version.IsEqualOrEarlierVersionOf(Context.ClientVersion))
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            {
+                ProtocolVersion server_version = mTlsServer.GetServerVersion();
+                if (!server_version.IsEqualOrEarlierVersionOf(Context.ClientVersion))
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            mRecordStream.ReadVersion = server_version;
-            mRecordStream.SetWriteVersion(server_version);
-            mRecordStream.SetRestrictReadVersion(true);
-            ContextAdmin.SetServerVersion(server_version);
+                mRecordStream.ReadVersion = server_version;
+                mRecordStream.SetWriteVersion(server_version);
+                mRecordStream.SetRestrictReadVersion(true);
+                ContextAdmin.SetServerVersion(server_version);
 
-            TlsUtilities.WriteVersion(server_version, message);
+                TlsUtilities.WriteVersion(server_version, message);
+            }
 
             message.Write(this.mSecurityParameters.serverRandom);
 
@@ -630,7 +645,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (!Arrays.Contains(mOfferedCipherSuites, selectedCipherSuite)
                 || selectedCipherSuite == CipherSuite.TLS_NULL_WITH_NULL_NULL
                 || CipherSuite.IsScsv(selectedCipherSuite)
-                || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, server_version))
+                || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, Context.ServerVersion))
             {
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
@@ -711,12 +726,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                 WriteExtensions(message, this.mServerExtensions);
             }
 
-            if (mSecurityParameters.maxFragmentLength >= 0)
-            {
-                int plainTextLimit = 1 << (8 + mSecurityParameters.maxFragmentLength);
-                mRecordStream.SetPlaintextLimit(plainTextLimit);
-            }
-
             mSecurityParameters.prfAlgorithm = GetPrfAlgorithm(Context, mSecurityParameters.CipherSuite);
 
             /*
@@ -725,9 +734,9 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
             mSecurityParameters.verifyDataLength = 12;
 
-            message.WriteToRecordStream(this);
+            ApplyMaxFragmentLengthExtension();
 
-            this.mRecordStream.NotifyHelloComplete();
+            message.WriteToRecordStream(this);
         }
 
         protected virtual void SendServerHelloDoneMessage()

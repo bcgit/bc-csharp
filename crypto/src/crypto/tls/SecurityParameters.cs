@@ -15,6 +15,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         internal byte[] clientRandom = null;
         internal byte[] serverRandom = null;
         internal byte[] sessionHash = null;
+        internal byte[] pskIdentity = null;
+        internal byte[] srpIdentity = null;
 
         // TODO Keep these internal, since it's maybe not the ideal place for them
         internal short maxFragmentLength = -1;
@@ -86,6 +88,16 @@ namespace Org.BouncyCastle.Crypto.Tls
         public virtual byte[] SessionHash
         {
             get { return sessionHash; }
+        }
+
+        public virtual byte[] PskIdentity
+        {
+            get { return pskIdentity; }
+        }
+
+        public virtual byte[] SrpIdentity
+        {
+            get { return srpIdentity; }
         }
     }
 }

@@ -61,29 +61,19 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
         public override CertificateRequest GetCertificateRequest()
         {
-            IList serverSigAlgs = null;
+            byte[] certificateTypes = new byte[]{ ClientCertificateType.rsa_sign,
+                ClientCertificateType.dss_sign, ClientCertificateType.ecdsa_sign };
 
+            IList serverSigAlgs = null;
             if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(mServerVersion))
             {
-                byte[] hashAlgorithms = new byte[]{ HashAlgorithm.sha512, HashAlgorithm.sha384, HashAlgorithm.sha256,
-                    HashAlgorithm.sha224, HashAlgorithm.sha1 };
-                byte[] signatureAlgorithms = new byte[]{ SignatureAlgorithm.rsa };
-
-                serverSigAlgs = new ArrayList();
-                for (int i = 0; i < hashAlgorithms.Length; ++i)
-                {
-                    for (int j = 0; j < signatureAlgorithms.Length; ++j)
-                    {
-                        serverSigAlgs.Add(new SignatureAndHashAlgorithm(hashAlgorithms[i],
-                            signatureAlgorithms[j]));
-                    }
-                }
+                serverSigAlgs = TlsUtilities.GetDefaultSupportedSignatureAlgorithms();
             }
 
             IList certificateAuthorities = new ArrayList();
             certificateAuthorities.Add(TlsTestUtilities.LoadCertificateResource("x509-ca.pem").Subject);
 
-            return new CertificateRequest(new byte[]{ ClientCertificateType.rsa_sign }, serverSigAlgs, certificateAuthorities);
+            return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
         }
 
         public override void NotifyClientCertificate(Certificate clientCertificate)
@@ -101,37 +91,14 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
         protected override TlsEncryptionCredentials GetRsaEncryptionCredentials()
         {
-            return TlsTestUtilities.LoadEncryptionCredentials(mContext, new string[]{"x509-server.pem", "x509-ca.pem"},
+            return TlsTestUtilities.LoadEncryptionCredentials(mContext, new string[]{ "x509-server.pem", "x509-ca.pem" },
                 "x509-server-key.pem");
         }
 
         protected override TlsSignerCredentials GetRsaSignerCredentials()
         {
-            /*
-             * TODO Note that this code fails to provide default value for the client supported
-             * algorithms if it wasn't sent.
-             */
-            SignatureAndHashAlgorithm signatureAndHashAlgorithm = null;
-            IList sigAlgs = mSupportedSignatureAlgorithms;
-            if (sigAlgs != null)
-            {
-                foreach (SignatureAndHashAlgorithm sigAlg in sigAlgs)
-                {
-                    if (sigAlg.Signature == SignatureAlgorithm.rsa)
-                    {
-                        signatureAndHashAlgorithm = sigAlg;
-                        break;
-                    }
-                }
-
-                if (signatureAndHashAlgorithm == null)
-                {
-                    return null;
-                }
-            }
-
-            return TlsTestUtilities.LoadSignerCredentials(mContext, new string[]{"x509-server.pem", "x509-ca.pem"},
-                "x509-server-key.pem", signatureAndHashAlgorithm);
+            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.rsa,
+                "x509-server.pem", "x509-server-key.pem");
         }
     }
 }

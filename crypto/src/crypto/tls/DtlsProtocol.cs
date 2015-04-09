@@ -33,12 +33,32 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"/>
-        protected static short EvaluateMaxFragmentLengthExtension(IDictionary clientExtensions, IDictionary serverExtensions,
-            byte alertDescription)
+        internal static void ApplyMaxFragmentLengthExtension(DtlsRecordLayer recordLayer, short maxFragmentLength)
+        {
+            if (maxFragmentLength >= 0)
+            {
+                if (!MaxFragmentLength.IsValid((byte)maxFragmentLength))
+                    throw new TlsFatalAlert(AlertDescription.internal_error); 
+
+                int plainTextLimit = 1 << (8 + maxFragmentLength);
+                recordLayer.SetPlaintextLimit(plainTextLimit);
+            }
+        }
+
+        /// <exception cref="IOException"/>
+        protected static short EvaluateMaxFragmentLengthExtension(bool resumedSession, IDictionary clientExtensions,
+            IDictionary serverExtensions, byte alertDescription)
         {
             short maxFragmentLength = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(serverExtensions);
-            if (maxFragmentLength >= 0 && maxFragmentLength != TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions))
-                throw new TlsFatalAlert(alertDescription);
+            if (maxFragmentLength >= 0)
+            {
+                if (!MaxFragmentLength.IsValid((byte)maxFragmentLength)
+                    || (!resumedSession && maxFragmentLength != TlsExtensionsUtilities
+                        .GetMaxFragmentLengthExtension(clientExtensions)))
+                {
+                    throw new TlsFatalAlert(alertDescription);
+                }
+            }
             return maxFragmentLength;
         }
 

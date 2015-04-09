@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
         }
 
-        public string AlgorithmName
+        public virtual string AlgorithmName
         {
             get { return digest.AlgorithmName + "with" + "ISO9796-2S2"; }
         }
@@ -365,7 +365,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <summary> Generate a signature for the loaded message using the key we were
         /// initialised with.
         /// </summary>
-        public byte[] GenerateSignature()
+        public virtual byte[] GenerateSignature()
         {
             int digSize = digest.GetDigestSize();
             byte[] m2Hash = new byte[digSize];

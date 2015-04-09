@@ -52,8 +52,8 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			if (seq.Count > 2)
 			{
-				this.unprotectedAttrs = Asn1Set.GetInstance(seq[2]);
-			}
+                this.unprotectedAttrs = Asn1Set.GetInstance((Asn1TaggedObject)seq[2], false);
+            }
 		}
 
 		public virtual DerInteger Version

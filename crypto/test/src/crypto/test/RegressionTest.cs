@@ -118,7 +118,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SipHashTest(),
             new Poly1305Test(),
             new OcbTest(),
-            new SM3DigestTest()
+            new SM3DigestTest(),
+            new X931SignerTest()
         };
 
         public static void Main(

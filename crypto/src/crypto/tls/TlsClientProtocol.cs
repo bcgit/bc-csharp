@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mRecordStream.Init(mTlsClientContext);
 
             TlsSession sessionToResume = tlsClient.GetSessionToResume();
-            if (sessionToResume != null)
+            if (sessionToResume != null && sessionToResume.IsResumable)
             {
                 SessionParameters sessionParameters = sessionToResume.ExportSessionParameters();
                 if (sessionParameters != null)
@@ -224,23 +224,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                     ReceiveServerHelloMessage(buf);
                     this.mConnectionState = CS_SERVER_HELLO;
 
-                    if (this.mSecurityParameters.maxFragmentLength >= 0)
-                    {
-                        int plainTextLimit = 1 << (8 + this.mSecurityParameters.maxFragmentLength);
-                        mRecordStream.SetPlaintextLimit(plainTextLimit);
-                    }
-
-                    this.mSecurityParameters.prfAlgorithm = GetPrfAlgorithm(Context,
-                        this.mSecurityParameters.CipherSuite);
-
-                    /*
-                     * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify
-                     * verify_data_length has a verify_data_length equal to 12. This includes all
-                     * existing cipher suites.
-                     */
-                    this.mSecurityParameters.verifyDataLength = 12;
-
                     this.mRecordStream.NotifyHelloComplete();
+
+                    ApplyMaxFragmentLengthExtension();
 
                     if (this.mResumedSession)
                     {
@@ -373,21 +359,17 @@ namespace Org.BouncyCastle.Crypto.Tls
                         /*
                          * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
                          */
-                        SignatureAndHashAlgorithm signatureAndHashAlgorithm;
+                        SignatureAndHashAlgorithm signatureAndHashAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                            Context, signerCredentials);
+
                         byte[] hash;
-
-                        if (TlsUtilities.IsTlsV12(Context))
+                        if (signatureAndHashAlgorithm == null)
                         {
-                            signatureAndHashAlgorithm = signerCredentials.SignatureAndHashAlgorithm;
-                            if (signatureAndHashAlgorithm == null)
-                                throw new TlsFatalAlert(AlertDescription.internal_error);
-
-                            hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
+                            hash = mSecurityParameters.SessionHash;
                         }
                         else
                         {
-                            signatureAndHashAlgorithm = null;
-                            hash = mSecurityParameters.SessionHash;
+                            hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
                         }
 
                         byte[] signature = signerCredentials.GenerateCertificateSignature(hash);
@@ -529,15 +511,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 if (this.mConnectionState == CS_END)
                 {
-                    /*
-                     * RFC 5746 4.5 SSLv3 clients that refuse renegotiation SHOULD use a fatal
-                     * handshake_failure alert.
-                     */
-                    if (TlsUtilities.IsSsl(Context))
-                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
-
-                    string message = "Renegotiation not supported";
-                    RaiseWarning(AlertDescription.no_renegotiation, message);
+                    RefuseRenegotiation();
                 }
                 break;
             }
@@ -570,21 +544,23 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void ReceiveServerHelloMessage(MemoryStream buf)
         {
-            ProtocolVersion server_version = TlsUtilities.ReadVersion(buf);
-            if (server_version.IsDtls)
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            {
+                ProtocolVersion server_version = TlsUtilities.ReadVersion(buf);
+                if (server_version.IsDtls)
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-            // Check that this matches what the server is Sending in the record layer
-            if (!server_version.Equals(this.mRecordStream.ReadVersion))
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                // Check that this matches what the server is Sending in the record layer
+                if (!server_version.Equals(this.mRecordStream.ReadVersion))
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-            ProtocolVersion client_version = Context.ClientVersion;
-            if (!server_version.IsEqualOrEarlierVersionOf(client_version))
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                ProtocolVersion client_version = Context.ClientVersion;
+                if (!server_version.IsEqualOrEarlierVersionOf(client_version))
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-            this.mRecordStream.SetWriteVersion(server_version);
-            ContextAdmin.SetServerVersion(server_version);
-            this.mTlsClient.NotifyServerVersion(server_version);
+                this.mRecordStream.SetWriteVersion(server_version);
+                ContextAdmin.SetServerVersion(server_version);
+                this.mTlsClient.NotifyServerVersion(server_version);
+            }
 
             /*
              * Read the server random
@@ -594,9 +570,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mSelectedSessionID = TlsUtilities.ReadOpaque8(buf);
             if (this.mSelectedSessionID.Length > 32)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
             this.mTlsClient.NotifySessionID(this.mSelectedSessionID);
-
             this.mResumedSession = this.mSelectedSessionID.Length > 0 && this.mTlsSession != null
                 && Arrays.AreEqual(this.mSelectedSessionID, this.mTlsSession.SessionID);
 
@@ -608,11 +582,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (!Arrays.Contains(this.mOfferedCipherSuites, selectedCipherSuite)
                 || selectedCipherSuite == CipherSuite.TLS_NULL_WITH_NULL_NULL
                 || CipherSuite.IsScsv(selectedCipherSuite)
-                || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, server_version))
+                || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, Context.ServerVersion))
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
-
             this.mTlsClient.NotifySelectedCipherSuite(selectedCipherSuite);
 
             /*
@@ -622,7 +595,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             byte selectedCompressionMethod = TlsUtilities.ReadUint8(buf);
             if (!Arrays.Contains(this.mOfferedCompressionMethods, selectedCompressionMethod))
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
             this.mTlsClient.NotifySelectedCompressionMethod(selectedCompressionMethod);
 
             /*
@@ -634,15 +606,6 @@ namespace Org.BouncyCastle.Crypto.Tls
              * clients.
              */
             this.mServerExtensions = ReadExtensions(buf);
-
-            /*
-             * draft-ietf-tls-session-hash-01 5.2. If a server receives the "extended_master_secret"
-             * extension, it MUST include the "extended_master_secret" extension in its ServerHello
-             * message.
-             */
-            bool serverSentExtendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mServerExtensions);
-            if (serverSentExtendedMasterSecret != mSecurityParameters.extendedMasterSecret)
-                throw new TlsFatalAlert(AlertDescription.handshake_failure);
 
             /*
              * RFC 3546 2.2 Note that the extended server hello message is only sent in response to an
@@ -674,15 +637,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                      */
                     if (null == TlsUtilities.GetExtensionData(this.mClientExtensions, extType))
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension);
-
-                    /*
-                     * draft-ietf-tls-session-hash-01 5.2. Implementation note: if the server decides to
-                     * proceed with resumption, the extension does not have any effect. Requiring the
-                     * extension to be included anyway makes the extension negotiation logic easier,
-                     * because it does not depend on whether resumption is accepted or not.
-                     */
-                    if (extType == ExtensionType.extended_master_secret)
-                        continue;
 
                     /*
                      * RFC 3546 2.3. If [...] the older session is resumed, then the server MUST ignore
@@ -737,8 +691,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 sessionClientExtensions = null;
                 sessionServerExtensions = this.mSessionParameters.ReadServerExtensions();
-
-                this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
             }
 
             this.mSecurityParameters.cipherSuite = selectedCipherSuite;
@@ -746,17 +698,21 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (sessionServerExtensions != null)
             {
-                /*
-                 * RFC 7366 3. If a server receives an encrypt-then-MAC request extension from a client
-                 * and then selects a stream or Authenticated Encryption with Associated Data (AEAD)
-                 * ciphersuite, it MUST NOT send an encrypt-then-MAC response extension back to the
-                 * client.
-                 */
-                bool serverSentEncryptThenMAC = TlsExtensionsUtilities.HasEncryptThenMacExtension(sessionServerExtensions);
-                if (serverSentEncryptThenMAC && !TlsUtilities.IsBlockCipherSuite(selectedCipherSuite))
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                {
+                    /*
+                     * RFC 7366 3. If a server receives an encrypt-then-MAC request extension from a client
+                     * and then selects a stream or Authenticated Encryption with Associated Data (AEAD)
+                     * ciphersuite, it MUST NOT send an encrypt-then-MAC response extension back to the
+                     * client.
+                     */
+                    bool serverSentEncryptThenMAC = TlsExtensionsUtilities.HasEncryptThenMacExtension(sessionServerExtensions);
+                    if (serverSentEncryptThenMAC && !TlsUtilities.IsBlockCipherSuite(selectedCipherSuite))
+                        throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-                this.mSecurityParameters.encryptThenMac = serverSentEncryptThenMAC;
+                    this.mSecurityParameters.encryptThenMac = serverSentEncryptThenMAC;
+                }
+
+                this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
 
                 this.mSecurityParameters.maxFragmentLength = ProcessMaxFragmentLengthExtension(sessionClientExtensions,
                     sessionServerExtensions, AlertDescription.illegal_parameter);
@@ -776,10 +732,26 @@ namespace Org.BouncyCastle.Crypto.Tls
                         AlertDescription.illegal_parameter);
             }
 
+            /*
+             * TODO[session-hash]
+             * 
+             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
+             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             */
+
             if (sessionClientExtensions != null)
             {
                 this.mTlsClient.ProcessServerExtensions(sessionServerExtensions);
             }
+
+            this.mSecurityParameters.prfAlgorithm = GetPrfAlgorithm(Context, this.mSecurityParameters.CipherSuite);
+
+            /*
+             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify
+             * verify_data_length has a verify_data_length equal to 12. This includes all
+             * existing cipher suites.
+             */
+            this.mSecurityParameters.verifyDataLength = 12;
         }
 
         protected virtual void SendCertificateVerifyMessage(DigitallySigned certificateVerify)
@@ -831,8 +803,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             this.mClientExtensions = this.mTlsClient.GetClientExtensions();
-
-            this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mClientExtensions);
 
             HandshakeMessage message = new HandshakeMessage(HandshakeType.client_hello);
 

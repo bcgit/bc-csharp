@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the params argument is
         * inappropriate.
         */
-        public void Init(
+        public virtual void Init(
             bool				forEncryption, 
             ICipherParameters	parameters)
         {
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             setKey(p.GetKey());
         }
 
-        public byte ReturnByte(
+        public virtual byte ReturnByte(
             byte input)
         {
             if (index == 0) 
@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return output;
         }
 
-        public void ProcessBytes(
+        public virtual void ProcessBytes(
             byte[]	input, 
             int		inOff, 
             int		len, 
@@ -77,10 +77,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (!initialised)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
-            if ((inOff + len) > input.Length)
-                throw new DataLengthException("input buffer too short");
-            if ((outOff + len) > output.Length)
-                throw new DataLengthException("output buffer too short");
+
+            Check.DataLength(input, inOff, len, "input buffer too short");
+            Check.OutputLength(output, outOff, len, "output buffer too short");
 
             for (int i = 0; i < len; i++)
             {
@@ -94,12 +93,12 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        public string AlgorithmName
+        public virtual string AlgorithmName
         {
             get { return "ISAAC"; }
         }
 
-        public void Reset()
+        public virtual void Reset()
         {
             setKey(workingKey);
         }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Org.BouncyCastle.Math.EC.Custom.Sec
+namespace Org.BouncyCastle.Math.Raw
 {
     internal abstract class Nat512
     {

@@ -34,95 +34,20 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override byte[] GenerateServerKeyExchange()
         {
-            /*
-             * First we try to find a supported named curve from the client's list.
-             */
-            int namedCurve = -1;
-            if (mNamedCurves == null)
-            {
-                // TODO Let the peer choose the default named curve
-                namedCurve = NamedCurve.secp256r1;
-            }
-            else
-            {
-                for (int i = 0; i < mNamedCurves.Length; ++i)
-                {
-                    int entry = mNamedCurves[i];
-                    if (NamedCurve.IsValid(entry) && TlsEccUtilities.IsSupportedNamedCurve(entry))
-                    {
-                        namedCurve = entry;
-                        break;
-                    }
-                }
-            }
-
-            ECDomainParameters curve_params = null;
-            if (namedCurve >= 0)
-            {
-                curve_params = TlsEccUtilities.GetParametersForNamedCurve(namedCurve);
-            }
-            else
-            {
-                /*
-                 * If no named curves are suitable, check if the client supports explicit curves.
-                 */
-                if (Arrays.Contains(mNamedCurves, NamedCurve.arbitrary_explicit_prime_curves))
-                {
-                    curve_params = TlsEccUtilities.GetParametersForNamedCurve(NamedCurve.secp256r1);
-                }
-                else if (Arrays.Contains(mNamedCurves, NamedCurve.arbitrary_explicit_char2_curves))
-                {
-                    curve_params = TlsEccUtilities.GetParametersForNamedCurve(NamedCurve.sect283r1);
-                }
-            }
-
-            if (curve_params == null)
-            {
-                /*
-                 * NOTE: We shouldn't have negotiated ECDHE key exchange since we apparently can't find
-                 * a suitable curve.
-                 */
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
-
-            AsymmetricCipherKeyPair kp = TlsEccUtilities.GenerateECKeyPair(context.SecureRandom, curve_params);
-            this.mECAgreePrivateKey = (ECPrivateKeyParameters)kp.Private;
-
             DigestInputBuffer buf = new DigestInputBuffer();
 
-            if (namedCurve < 0)
-            {
-                TlsEccUtilities.WriteExplicitECParameters(mClientECPointFormats, curve_params, buf);
-            }
-            else
-            {
-                TlsEccUtilities.WriteNamedECParameters(namedCurve, buf);
-            }
-
-            ECPublicKeyParameters ecPublicKey = (ECPublicKeyParameters)kp.Public;
-            TlsEccUtilities.WriteECPoint(mClientECPointFormats, ecPublicKey.Q, buf);
+            this.mECAgreePrivateKey = TlsEccUtilities.GenerateEphemeralServerKeyExchange(mContext.SecureRandom, mNamedCurves,
+                mClientECPointFormats, buf);
 
             /*
              * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
              */
-            SignatureAndHashAlgorithm signatureAndHashAlgorithm;
-            IDigest d;
+            SignatureAndHashAlgorithm signatureAndHashAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                mContext, mServerCredentials);
 
-            if (TlsUtilities.IsTlsV12(context))
-            {
-                signatureAndHashAlgorithm = mServerCredentials.SignatureAndHashAlgorithm;
-                if (signatureAndHashAlgorithm == null)
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            IDigest d = TlsUtilities.CreateHash(signatureAndHashAlgorithm);
 
-                d = TlsUtilities.CreateHash(signatureAndHashAlgorithm.Hash);
-            }
-            else
-            {
-                signatureAndHashAlgorithm = null;
-                d = new CombinedHash();
-            }
-
-            SecurityParameters securityParameters = context.SecurityParameters;
+            SecurityParameters securityParameters = mContext.SecurityParameters;
             d.BlockUpdate(securityParameters.clientRandom, 0, securityParameters.clientRandom.Length);
             d.BlockUpdate(securityParameters.serverRandom, 0, securityParameters.serverRandom.Length);
             buf.UpdateDigest(d);
@@ -139,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void ProcessServerKeyExchange(Stream input)
         {
-            SecurityParameters securityParameters = context.SecurityParameters;
+            SecurityParameters securityParameters = mContext.SecurityParameters;
 
             SignerInputBuffer buf = new SignerInputBuffer();
             Stream teeIn = new TeeInputStream(input, buf);
@@ -148,7 +73,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             byte[] point = TlsUtilities.ReadOpaque8(teeIn);
 
-            DigitallySigned signed_params = DigitallySigned.Parse(context, input);
+            DigitallySigned signed_params = DigitallySigned.Parse(mContext, input);
 
             ISigner signer = InitVerifyer(mTlsSigner, signed_params.Algorithm, securityParameters);
             buf.UpdateSigner(signer);

@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Utilities;
 
-namespace Org.BouncyCastle.Math.EC.Custom.Sec
+namespace Org.BouncyCastle.Math.Raw
 {
     internal abstract class Nat256
     {
@@ -239,14 +239,32 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             z[7] = x[7];
         }
 
+        public static void Copy64(ulong[] x, ulong[] z)
+        {
+            z[0] = x[0];
+            z[1] = x[1];
+            z[2] = x[2];
+            z[3] = x[3];
+        }
+
         public static uint[] Create()
         {
             return new uint[8];
         }
 
+        public static ulong[] Create64()
+        {
+            return new ulong[4];
+        }
+
         public static uint[] CreateExt()
         {
             return new uint[16];
+        }
+
+        public static ulong[] CreateExt64()
+        {
+            return new ulong[8];
         }
 
         public static bool Diff(uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
@@ -273,6 +291,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return true;
         }
 
+        public static bool Eq64(ulong[] x, ulong[] y)
+        {
+            for (int i = 3; i >= 0; --i)
+            {
+                if (x[i] != y[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static uint[] FromBigInteger(BigInteger x)
         {
             if (x.SignValue < 0 || x.BitLength > 256)
@@ -284,6 +314,21 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             {
                 z[i++] = (uint)x.IntValue;
                 x = x.ShiftRight(32);
+            }
+            return z;
+        }
+
+        public static ulong[] FromBigInteger64(BigInteger x)
+        {
+            if (x.SignValue < 0 || x.BitLength > 256)
+                throw new ArgumentException();
+
+            ulong[] z = Create64();
+            int i = 0;
+            while (x.SignValue != 0)
+            {
+                z[i++] = (ulong)x.LongValue;
+                x = x.ShiftRight(64);
             }
             return z;
         }
@@ -345,11 +390,39 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return true;
         }
 
+        public static bool IsOne64(ulong[] x)
+        {
+            if (x[0] != 1UL)
+            {
+                return false;
+            }
+            for (int i = 1; i < 4; ++i)
+            {
+                if (x[i] != 0UL)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static bool IsZero(uint[] x)
         {
             for (int i = 0; i < 8; ++i)
             {
                 if (x[i] != 0)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool IsZero64(ulong[] x)
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                if (x[i] != 0UL)
                 {
                     return false;
                 }
@@ -1280,6 +1353,20 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 if (x_i != 0)
                 {
                     Pack.UInt32_To_BE(x_i, bs, (7 - i) << 2);
+                }
+            }
+            return new BigInteger(1, bs);
+        }
+
+        public static BigInteger ToBigInteger64(ulong[] x)
+        {
+            byte[] bs = new byte[32];
+            for (int i = 0; i < 4; ++i)
+            {
+                ulong x_i = x[i];
+                if (x_i != 0L)
+                {
+                    Pack.UInt64_To_BE(x_i, bs, (3 - i) << 3);
                 }
             }
             return new BigInteger(1, bs);
