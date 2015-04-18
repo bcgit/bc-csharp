@@ -480,6 +480,10 @@
     <Compile Include="src\bcpg\Crc24.cs" />
     <Compile Include="src\bcpg\DsaPublicBcpgKey.cs" />
     <Compile Include="src\bcpg\DsaSecretBcpgKey.cs" />
+    <Compile Include="src\bcpg\ECDHPublicBCPGKey.cs" />
+    <Compile Include="src\bcpg\ECDsaPublicBCPGKey.cs" />
+    <Compile Include="src\bcpg\ECPublicBCPGKey.cs" />
+    <Compile Include="src\bcpg\ECSecretBCPGKey.cs" />
     <Compile Include="src\bcpg\ElGamalPublicBcpgKey.cs" />
     <Compile Include="src\bcpg\ElGamalSecretBcpgKey.cs" />
     <Compile Include="src\bcpg\ExperimentalPacket.cs" />

@@ -2324,6 +2324,26 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\bcpg\ECDHPublicBCPGKey.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\bcpg\ECDsaPublicBCPGKey.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\bcpg\ECPublicBCPGKey.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\bcpg\ECSecretBCPGKey.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\bcpg\ElGamalPublicBCPGKey.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
