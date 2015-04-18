@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -103,6 +104,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 else if (key is ElGamalPublicBcpgKey)
                 {
                     this.keyStrength = ((ElGamalPublicBcpgKey)key).P.BitLength;
+                }
+                else if (key is ECPublicBcpgKey)
+                {
+                    this.keyStrength = ECNamedCurveTable.GetByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
                 }
             }
         }
