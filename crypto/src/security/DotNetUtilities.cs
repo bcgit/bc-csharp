@@ -233,7 +233,9 @@ namespace Org.BouncyCastle.Security
 
         private static RSA CreateRSAProvider(RSAParameters rp)
         {
-            RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider();
+            CspParameters csp = new CspParameters();
+            csp.KeyContainerName = string.Format("BouncyCastle-{0}", Guid.NewGuid());
+            RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider(csp);
             rsaCsp.ImportParameters(rp);
             return rsaCsp;
         }

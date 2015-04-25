@@ -4,7 +4,7 @@ using System.Diagnostics;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Math.EC
+namespace Org.BouncyCastle.Math.Raw
 {
     internal abstract class Mod
     {

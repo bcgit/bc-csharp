@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP521R1Field

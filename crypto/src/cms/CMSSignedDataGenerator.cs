@@ -93,19 +93,25 @@ namespace Org.BouncyCastle.Cms
             {
                 AlgorithmIdentifier digAlgId = DigestAlgorithmID;
 				string digestName = Helper.GetDigestAlgName(digestOID);
-				IDigest dig = Helper.GetDigestInstance(digestName);
 
 				string signatureName = digestName + "with" + Helper.GetEncryptionAlgName(encOID);
 				ISigner sig = Helper.GetSignatureInstance(signatureName);
 
-				// TODO Optimise the case where more than one signer with same digest
-				if (content != null)
+                byte[] hash;
+                if (outer._digests.Contains(digestOID))
                 {
-                    content.Write(new DigOutputStream(dig));
-				}
-
-				byte[] hash = DigestUtilities.DoFinal(dig);
-				outer._digests.Add(digestOID, hash.Clone());
+                    hash = (byte[])outer._digests[digestOID];
+                }
+                else
+                {
+                    IDigest dig = Helper.GetDigestInstance(digestName);
+                    if (content != null)
+                    {
+                        content.Write(new DigOutputStream(dig));
+                    }
+                    hash = DigestUtilities.DoFinal(dig);
+                    outer._digests.Add(digestOID, hash.Clone());
+                }
 
 				sig.Init(true, new ParametersWithRandom(key, random));
 #if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT

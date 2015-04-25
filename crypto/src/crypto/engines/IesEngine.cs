@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @param pubParam the recipient's/sender's public key parameters
         * @param param encoding and derivation parameters.
         */
-        public void Init(
+        public virtual void Init(
             bool                     forEncryption,
             ICipherParameters            privParameters,
             ICipherParameters            pubParameters,
@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return buf;
         }
 
-        public byte[] ProcessBlock(
+        public virtual byte[] ProcessBlock(
             byte[]  input,
             int     inOff,
             int     inLen)
@@ -224,10 +224,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             byte[] zBytes = BigIntegers.AsUnsignedByteArray(agree.GetFieldSize(), z);
 
-            return forEncryption
-                ?	EncryptBlock(input, inOff, inLen, zBytes)
-                :	DecryptBlock(input, inOff, inLen, zBytes);
+            try
+            {
+                return forEncryption
+                    ?	EncryptBlock(input, inOff, inLen, zBytes)
+                    :	DecryptBlock(input, inOff, inLen, zBytes);
+            }
+            finally
+            {
+                Array.Clear(zBytes, 0, zBytes.Length);
+            }
         }
     }
-
 }

@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 			this.trailer = trailer;
 		}
 
-		public string AlgorithmName
+        public virtual string AlgorithmName
 		{
 			get { return mgfDigest.AlgorithmName + "withRSAandMGF1"; }
 		}

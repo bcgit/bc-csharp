@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
         }
 
-        public string AlgorithmName
+        public virtual string AlgorithmName
         {
             get { return digest.AlgorithmName + "with" + "ISO9796-2S1"; }
         }
@@ -252,7 +252,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
         /// <summary> update the internal digest with the byte b</summary>
-        public void Update(
+        public virtual void Update(
             byte input)
         {
             digest.Update(input);
@@ -266,7 +266,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
         /// <summary> update the internal digest with the byte array in</summary>
-        public void BlockUpdate(
+        public virtual void BlockUpdate(
             byte[]	input,
             int		inOff,
             int		length)

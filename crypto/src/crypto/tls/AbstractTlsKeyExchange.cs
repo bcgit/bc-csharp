@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected readonly int mKeyExchange;
         protected IList mSupportedSignatureAlgorithms;
 
-        protected TlsContext context;
+        protected TlsContext mContext;
 
         protected AbstractTlsKeyExchange(int keyExchange, IList supportedSignatureAlgorithms)
         {
@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual void Init(TlsContext context)
         {
-            this.context = context;
+            this.mContext = context;
 
             ProtocolVersion clientVersion = context.ClientVersion;
 

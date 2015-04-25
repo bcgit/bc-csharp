@@ -623,6 +623,18 @@ namespace Org.BouncyCastle.Math.EC
     public abstract class AbstractF2mCurve
         : ECCurve
     {
+        public static BigInteger Inverse(int m, int[] ks, BigInteger x)
+        {
+            return new LongArray(x).ModInverse(m, ks).ToBigInteger();
+        }
+
+        /**
+         * The auxiliary values <code>s<sub>0</sub></code> and
+         * <code>s<sub>1</sub></code> used for partial modular reduction for
+         * Koblitz curves.
+         */
+        private BigInteger[] si = null;
+
         private static IFiniteField BuildField(int m, int k1, int k2, int k3)
         {
             if (k1 == 0)
@@ -656,6 +668,69 @@ namespace Org.BouncyCastle.Math.EC
         protected AbstractF2mCurve(int m, int k1, int k2, int k3)
             : base(BuildField(m, k1, k2, k3))
         {
+        }
+
+        [Obsolete("Per-point compression property will be removed")]
+        public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
+        {
+            ECFieldElement X = FromBigInteger(x), Y = FromBigInteger(y);
+
+            switch (this.CoordinateSystem)
+            {
+            case COORD_LAMBDA_AFFINE:
+            case COORD_LAMBDA_PROJECTIVE:
+            {
+                if (X.IsZero)
+                {
+                    if (!Y.Square().Equals(B))
+                        throw new ArgumentException();
+                }
+                else
+                {
+                    // Y becomes Lambda (X + Y/X) here
+                    Y = Y.Divide(X).Add(X);
+                }
+                break;
+            }
+            default:
+            {
+                break;
+            }
+            }
+
+            return CreateRawPoint(X, Y, withCompression);
+        }
+
+        /**
+         * @return the auxiliary values <code>s<sub>0</sub></code> and
+         * <code>s<sub>1</sub></code> used for partial modular reduction for
+         * Koblitz curves.
+         */
+        internal virtual BigInteger[] GetSi()
+        {
+            if (si == null)
+            {
+                lock (this)
+                {
+                    if (si == null)
+                    {
+                        si = Tnaf.GetSi(this);
+                    }
+                }
+            }
+            return si;
+        }
+
+        /**
+         * Returns true if this is a Koblitz curve (ABC curve).
+         * @return true if this is a Koblitz curve (ABC curve), false otherwise
+         */
+        public virtual bool IsKoblitz
+        {
+            get
+            {
+                return m_order != null && m_cofactor != null && m_b.IsOne && (m_a.IsZero || m_a.IsOne);
+            }
         }
     }
 
@@ -703,19 +778,6 @@ namespace Org.BouncyCastle.Math.EC
          * The point at infinity on this curve.
          */
         protected readonly F2mPoint m_infinity;
-
-        /**
-         * The parameter <code>&#956;</code> of the elliptic curve if this is
-         * a Koblitz curve.
-         */
-        private sbyte mu = 0;
-
-        /**
-         * The auxiliary values <code>s<sub>0</sub></code> and
-         * <code>s<sub>1</sub></code> used for partial modular reduction for
-         * Koblitz curves.
-         */
-        private BigInteger[] si = null;
 
         /**
          * Constructor for Trinomial Polynomial Basis (TPB).
@@ -917,37 +979,6 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(this.m, this.k1, this.k2, this.k3, x);
         }
 
-        [Obsolete("Per-point compression property will be removed")]
-        public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
-        {
-            ECFieldElement X = FromBigInteger(x), Y = FromBigInteger(y);
-
-            switch (this.CoordinateSystem)
-            {
-                case COORD_LAMBDA_AFFINE:
-                case COORD_LAMBDA_PROJECTIVE:
-                    {
-                        if (X.IsZero)
-                        {
-                            if (!Y.Square().Equals(B))
-                                throw new ArgumentException();
-                        }
-                        else
-                        {
-                            // Y becomes Lambda (X + Y/X) here
-                            Y = Y.Divide(X).Add(X);
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-
-            return CreateRawPoint(X, Y, withCompression);
-        }
-
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
         {
             return new F2mPoint(this, x, y, withCompression);
@@ -961,60 +992,6 @@ namespace Org.BouncyCastle.Math.EC
         public override ECPoint Infinity
         {
             get { return m_infinity; }
-        }
-
-        /**
-         * Returns true if this is a Koblitz curve (ABC curve).
-         * @return true if this is a Koblitz curve (ABC curve), false otherwise
-         */
-        public virtual bool IsKoblitz
-        {
-            get
-            {
-                return m_order != null && m_cofactor != null && m_b.IsOne && (m_a.IsZero || m_a.IsOne);
-            }
-        }
-
-        /**
-         * Returns the parameter <code>&#956;</code> of the elliptic curve.
-         * @return <code>&#956;</code> of the elliptic curve.
-         * @throws ArgumentException if the given ECCurve is not a
-         * Koblitz curve.
-         */
-        internal virtual sbyte GetMu()
-        {
-            if (mu == 0)
-            {
-                lock (this)
-                {
-                    if (mu == 0)
-                    {
-                        mu = Tnaf.GetMu(this);
-                    }
-                }
-            }
-
-            return mu;
-        }
-
-        /**
-         * @return the auxiliary values <code>s<sub>0</sub></code> and
-         * <code>s<sub>1</sub></code> used for partial modular reduction for
-         * Koblitz curves.
-         */
-        internal virtual BigInteger[] GetSi()
-        {
-            if (si == null)
-            {
-                lock (this)
-                {
-                    if (si == null)
-                    {
-                        si = Tnaf.GetSi(this);
-                    }
-                }
-            }
-            return si;
         }
 
         protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
@@ -1086,7 +1063,7 @@ namespace Org.BouncyCastle.Math.EC
                 ECFieldElement t = FromBigInteger(new BigInteger(m, rand));
                 z = zeroElement;
                 ECFieldElement w = beta;
-                for (int i = 1; i <= m - 1; i++)
+                for (int i = 1; i < m; i++)
                 {
                     ECFieldElement w2 = w.Square();
                     z = z.Square().Add(w2.Multiply(t));

@@ -114,17 +114,17 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     for (; ; )
                     {
-                        int Received = mRecordLayer.Receive(buf, 0, receiveLimit, readTimeoutMillis);
-                        if (Received < 0)
+                        int received = mRecordLayer.Receive(buf, 0, receiveLimit, readTimeoutMillis);
+                        if (received < 0)
                         {
                             break;
                         }
-                        if (Received < 12)
+                        if (received < 12)
                         {
                             continue;
                         }
                         int fragment_length = TlsUtilities.ReadUint24(buf, 9);
-                        if (Received != (fragment_length + 12))
+                        if (received != (fragment_length + 12))
                         {
                             continue;
                         }

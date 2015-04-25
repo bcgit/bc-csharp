@@ -10,22 +10,21 @@ namespace Org.BouncyCastle.Ocsp.Tests
 {
 	public class AllTests
 	{
-		public static void Main(
-			string[] args)
-		{
-			//junit.textui.TestRunner.run(suite());
-			EventListener el = new NullListener();
-			suite().Run(el);
-		}
+        public static void Main(string[] args)
+        {
+            Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
+        }
 
-		public static TestSuite suite()
-		{
-			TestSuite suite = new TestSuite("OCSP Tests");
-
-			suite.Add(new OcspTest());
-
-			return suite;
-		}
+        [Suite]
+        public static TestSuite Suite
+        {
+            get
+            {
+                TestSuite suite = new TestSuite("OCSP Tests");
+                suite.Add(new OcspTest());
+                return suite;
+            }
+        }
 	}
 }
 #endif

@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             DtlsRecordLayer recordLayer = new DtlsRecordLayer(transport, state.clientContext, client, ContentType.handshake);
 
             TlsSession sessionToResume = state.client.GetSessionToResume();
-            if (sessionToResume != null)
+            if (sessionToResume != null && sessionToResume.IsResumable)
             {
                 SessionParameters sessionParameters = sessionToResume.ExportSessionParameters();
                 if (sessionParameters != null)
@@ -112,39 +112,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             }
 
-            if (state.maxFragmentLength >= 0)
-            {
-                int plainTextLimit = 1 << (8 + state.maxFragmentLength);
-                recordLayer.SetPlaintextLimit(plainTextLimit);
-            }
-
-            securityParameters.cipherSuite = state.selectedCipherSuite;
-            securityParameters.compressionAlgorithm = (byte)state.selectedCompressionMethod;
-            securityParameters.prfAlgorithm = TlsProtocol.GetPrfAlgorithm(state.clientContext, state.selectedCipherSuite);
-
-            /*
-             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify verify_data_length has
-             * a verify_data_length equal to 12. This includes all existing cipher suites.
-             */
-            securityParameters.verifyDataLength = 12;
-
             handshake.NotifyHelloComplete();
 
-            bool resumedSession = state.selectedSessionID.Length > 0 && state.tlsSession != null
-                && Arrays.AreEqual(state.selectedSessionID, state.tlsSession.SessionID);
+            ApplyMaxFragmentLengthExtension(recordLayer, securityParameters.maxFragmentLength);
 
-            if (resumedSession)
+            if (state.resumedSession)
             {
-                if (securityParameters.CipherSuite != state.sessionParameters.CipherSuite
-                    || securityParameters.CompressionAlgorithm != state.sessionParameters.CompressionAlgorithm)
-                {
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-                }
-
-                IDictionary sessionServerExtensions = state.sessionParameters.ReadServerExtensions();
-
-                securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
-
                 securityParameters.masterSecret = Arrays.Clone(state.sessionParameters.MasterSecret);
                 recordLayer.InitPendingEpoch(state.client.GetCipher());
 
@@ -317,23 +290,17 @@ namespace Org.BouncyCastle.Crypto.Tls
                 /*
                  * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
                  */
-                SignatureAndHashAlgorithm signatureAndHashAlgorithm;
+                SignatureAndHashAlgorithm signatureAndHashAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                    state.clientContext, signerCredentials);
+
                 byte[] hash;
-
-                if (TlsUtilities.IsTlsV12(state.clientContext))
+                if (signatureAndHashAlgorithm == null)
                 {
-                    signatureAndHashAlgorithm = signerCredentials.SignatureAndHashAlgorithm;
-                    if (signatureAndHashAlgorithm == null)
-                    {
-                        throw new TlsFatalAlert(AlertDescription.internal_error);
-                    }
-
-                    hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
+                    hash = securityParameters.SessionHash;
                 }
                 else
                 {
-                    signatureAndHashAlgorithm = null;
-                    hash = securityParameters.SessionHash;
+                    hash = prepareFinishHash.GetFinalHash(signatureAndHashAlgorithm.Hash);
                 }
 
                 byte[] signature = signerCredentials.GenerateCertificateSignature(hash);
@@ -370,11 +337,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (state.tlsSession != null)
             {
                 state.sessionParameters = new SessionParameters.Builder()
-                    .SetCipherSuite(securityParameters.cipherSuite)
-                    .SetCompressionAlgorithm(securityParameters.compressionAlgorithm)
-                    .SetMasterSecret(securityParameters.masterSecret)
+                    .SetCipherSuite(securityParameters.CipherSuite)
+                    .SetCompressionAlgorithm(securityParameters.CompressionAlgorithm)
+                    .SetMasterSecret(securityParameters.MasterSecret)
                     .SetPeerCertificate(serverCertificate)
-                    .SetPskIdentity(securityParameters.pskIdentity)
+                    .SetPskIdentity(securityParameters.PskIdentity)
+                    .SetSrpIdentity(securityParameters.SrpIdentity)
+                    // TODO Consider filtering extensions that aren't relevant to resumed sessions
+                    .SetServerExtensions(state.serverExtensions)
                     .Build();
 
                 state.tlsSession = TlsUtilities.ImportSession(state.tlsSession.SessionID, state.sessionParameters);
@@ -434,8 +404,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             // Integer -> byte[]
             state.clientExtensions = client.GetClientExtensions();
-
-            securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(state.clientExtensions);
 
             // Cipher Suites (and SCSV)
             {
@@ -604,8 +572,10 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             MemoryStream buf = new MemoryStream(body, false);
 
-            ProtocolVersion server_version = TlsUtilities.ReadVersion(buf);
-            ReportServerVersion(state, server_version);
+            {
+                ProtocolVersion server_version = TlsUtilities.ReadVersion(buf);
+                ReportServerVersion(state, server_version);
+            }
 
             securityParameters.serverRandom = TlsUtilities.ReadFully(32, buf);
 
@@ -613,24 +583,24 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (state.selectedSessionID.Length > 32)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             state.client.NotifySessionID(state.selectedSessionID);
+            state.resumedSession = state.selectedSessionID.Length > 0 && state.tlsSession != null
+                && Arrays.AreEqual(state.selectedSessionID, state.tlsSession.SessionID);
 
-            state.selectedCipherSuite = TlsUtilities.ReadUint16(buf);
-            if (!Arrays.Contains(state.offeredCipherSuites, state.selectedCipherSuite)
-                || state.selectedCipherSuite == CipherSuite.TLS_NULL_WITH_NULL_NULL
-                || CipherSuite.IsScsv(state.selectedCipherSuite)
-                || !TlsUtilities.IsValidCipherSuiteForVersion(state.selectedCipherSuite, server_version))
+            int selectedCipherSuite = TlsUtilities.ReadUint16(buf);
+            if (!Arrays.Contains(state.offeredCipherSuites, selectedCipherSuite)
+                || selectedCipherSuite == CipherSuite.TLS_NULL_WITH_NULL_NULL
+                || CipherSuite.IsScsv(selectedCipherSuite)
+                || !TlsUtilities.IsValidCipherSuiteForVersion(selectedCipherSuite, state.clientContext.ServerVersion))
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
+            ValidateSelectedCipherSuite(selectedCipherSuite, AlertDescription.illegal_parameter);
+            state.client.NotifySelectedCipherSuite(selectedCipherSuite);
 
-            ValidateSelectedCipherSuite(state.selectedCipherSuite, AlertDescription.illegal_parameter);
-
-            state.client.NotifySelectedCipherSuite(state.selectedCipherSuite);
-
-            state.selectedCompressionMethod = TlsUtilities.ReadUint8(buf);
-            if (!Arrays.Contains(state.offeredCompressionMethods, (byte)state.selectedCompressionMethod))
+            byte selectedCompressionMethod = TlsUtilities.ReadUint8(buf);
+            if (!Arrays.Contains(state.offeredCompressionMethods, selectedCompressionMethod))
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-            state.client.NotifySelectedCompressionMethod((byte)state.selectedCompressionMethod);
+            state.client.NotifySelectedCompressionMethod(selectedCompressionMethod);
 
             /*
              * RFC3546 2.2 The extended server hello message format MAY be sent in place of the server
@@ -648,25 +618,16 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
 
             // Integer -> byte[]
-            IDictionary serverExtensions = TlsProtocol.ReadExtensions(buf);
-
-            /*
-             * draft-ietf-tls-session-hash-01 5.2. If a server receives the "extended_master_secret"
-             * extension, it MUST include the "extended_master_secret" extension in its ServerHello
-             * message.
-             */
-            bool serverSentExtendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(serverExtensions);
-            if (serverSentExtendedMasterSecret != securityParameters.extendedMasterSecret)
-                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+            state.serverExtensions = TlsProtocol.ReadExtensions(buf);
 
             /*
              * RFC 3546 2.2 Note that the extended server hello message is only sent in response to an
              * extended client hello message. However, see RFC 5746 exception below. We always include
              * the SCSV, so an Extended Server Hello is always allowed.
              */
-            if (serverExtensions != null)
+            if (state.serverExtensions != null)
             {
-                foreach (int extType in serverExtensions.Keys)
+                foreach (int extType in state.serverExtensions.Keys)
                 {
                     /*
                      * RFC 5746 3.6. Note that sending a "renegotiation_info" extension in response to a
@@ -689,83 +650,118 @@ namespace Org.BouncyCastle.Crypto.Tls
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension);
 
                     /*
-                     * draft-ietf-tls-session-hash-01 5.2. Implementation note: if the server decides to
-                     * proceed with resumption, the extension does not have any effect. Requiring the
-                     * extension to be included anyway makes the extension negotiation logic easier,
-                     * because it does not depend on whether resumption is accepted or not.
-                     */
-                    if (extType == ExtensionType.extended_master_secret)
-                        continue;
-
-                    /*
                      * RFC 3546 2.3. If [...] the older session is resumed, then the server MUST ignore
                      * extensions appearing in the client hello, and send a server hello containing no
                      * extensions[.]
                      */
-                    // TODO[sessions]
-    //                if (this.mResumedSession)
-    //                {
-    //                    // TODO[compat-gnutls] GnuTLS test server sends server extensions e.g. ec_point_formats
-    //                    // TODO[compat-openssl] OpenSSL test server sends server extensions e.g. ec_point_formats
-    //                    // TODO[compat-polarssl] PolarSSL test server sends server extensions e.g. ec_point_formats
-    ////                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-    //                }
-                }
-
-                /*
-                 * RFC 5746 3.4. Client Behavior: Initial Handshake
-                 */
-                {
-                    /*
-                     * When a ServerHello is received, the client MUST check if it includes the
-                     * "renegotiation_info" extension:
-                     */
-                    byte[] renegExtData = (byte[])serverExtensions[ExtensionType.renegotiation_info];
-                    if (renegExtData != null)
+                    if (state.resumedSession)
                     {
-                        /*
-                         * If the extension is present, set the secure_renegotiation flag to TRUE. The
-                         * client MUST then verify that the length of the "renegotiated_connection"
-                         * field is zero, and if it is not, MUST abort the handshake (by sending a fatal
-                         * handshake_failure alert).
-                         */
-                        state.secure_renegotiation = true;
-
-                        if (!Arrays.ConstantTimeAreEqual(renegExtData, TlsProtocol.CreateRenegotiationInfo(TlsUtilities.EmptyBytes)))
-                            throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                        // TODO[compat-gnutls] GnuTLS test server sends server extensions e.g. ec_point_formats
+                        // TODO[compat-openssl] OpenSSL test server sends server extensions e.g. ec_point_formats
+                        // TODO[compat-polarssl] PolarSSL test server sends server extensions e.g. ec_point_formats
+                        //throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                     }
                 }
-
-                /*
-                 * RFC 7366 3. If a server receives an encrypt-then-MAC request extension from a client
-                 * and then selects a stream or Authenticated Encryption with Associated Data (AEAD)
-                 * ciphersuite, it MUST NOT send an encrypt-then-MAC response extension back to the
-                 * client.
-                 */
-                bool serverSentEncryptThenMAC = TlsExtensionsUtilities.HasEncryptThenMacExtension(serverExtensions);
-                if (serverSentEncryptThenMAC && !TlsUtilities.IsBlockCipherSuite(state.selectedCipherSuite))
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
-                securityParameters.encryptThenMac = serverSentEncryptThenMAC;
-
-                state.maxFragmentLength = EvaluateMaxFragmentLengthExtension(state.clientExtensions, serverExtensions,
-                    AlertDescription.illegal_parameter);
-
-                securityParameters.truncatedHMac = TlsExtensionsUtilities.HasTruncatedHMacExtension(serverExtensions);
-
-                state.allowCertificateStatus = TlsUtilities.HasExpectedEmptyExtensionData(serverExtensions,
-                    ExtensionType.status_request, AlertDescription.illegal_parameter);
-
-                state.expectSessionTicket = TlsUtilities.HasExpectedEmptyExtensionData(serverExtensions,
-                    ExtensionType.session_ticket, AlertDescription.illegal_parameter);
             }
 
+            /*
+             * RFC 5746 3.4. Client Behavior: Initial Handshake
+             */
+            {
+                /*
+                 * When a ServerHello is received, the client MUST check if it includes the
+                 * "renegotiation_info" extension:
+                 */
+                byte[] renegExtData = TlsUtilities.GetExtensionData(state.serverExtensions, ExtensionType.renegotiation_info);
+                if (renegExtData != null)
+                {
+                    /*
+                        * If the extension is present, set the secure_renegotiation flag to TRUE. The
+                        * client MUST then verify that the length of the "renegotiated_connection"
+                        * field is zero, and if it is not, MUST abort the handshake (by sending a fatal
+                        * handshake_failure alert).
+                        */
+                    state.secure_renegotiation = true;
+
+                    if (!Arrays.ConstantTimeAreEqual(renegExtData, TlsProtocol.CreateRenegotiationInfo(TlsUtilities.EmptyBytes)))
+                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                }
+            }
+
+            // TODO[compat-gnutls] GnuTLS test server fails to send renegotiation_info extension when resuming
             state.client.NotifySecureRenegotiation(state.secure_renegotiation);
 
-            if (state.clientExtensions != null)
+            IDictionary sessionClientExtensions = state.clientExtensions, sessionServerExtensions = state.serverExtensions;
+            if (state.resumedSession)
             {
-                state.client.ProcessServerExtensions(serverExtensions);
+                if (selectedCipherSuite != state.sessionParameters.CipherSuite
+                    || selectedCompressionMethod != state.sessionParameters.CompressionAlgorithm)
+                {
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                }
+
+                sessionClientExtensions = null;
+                sessionServerExtensions = state.sessionParameters.ReadServerExtensions();
             }
+
+            securityParameters.cipherSuite = selectedCipherSuite;
+            securityParameters.compressionAlgorithm = selectedCompressionMethod;
+
+            if (sessionServerExtensions != null)
+            {
+                {
+                    /*
+                     * RFC 7366 3. If a server receives an encrypt-then-MAC request extension from a client
+                     * and then selects a stream or Authenticated Encryption with Associated Data (AEAD)
+                     * ciphersuite, it MUST NOT send an encrypt-then-MAC response extension back to the
+                     * client.
+                     */
+                    bool serverSentEncryptThenMAC = TlsExtensionsUtilities.HasEncryptThenMacExtension(sessionServerExtensions);
+                    if (serverSentEncryptThenMAC && !TlsUtilities.IsBlockCipherSuite(securityParameters.CipherSuite))
+                        throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                    securityParameters.encryptThenMac = serverSentEncryptThenMAC;
+                }
+
+                securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
+
+                securityParameters.maxFragmentLength = EvaluateMaxFragmentLengthExtension(state.resumedSession,
+                    sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+
+                securityParameters.truncatedHMac = TlsExtensionsUtilities.HasTruncatedHMacExtension(sessionServerExtensions);
+
+                /*
+                 * TODO It's surprising that there's no provision to allow a 'fresh' CertificateStatus to be
+                 * sent in a session resumption handshake.
+                 */
+                state.allowCertificateStatus = !state.resumedSession
+                    && TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions, ExtensionType.status_request,
+                        AlertDescription.illegal_parameter);
+
+                state.expectSessionTicket = !state.resumedSession
+                    && TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions, ExtensionType.session_ticket,
+                        AlertDescription.illegal_parameter);
+            }
+
+            /*
+             * TODO[session-hash]
+             * 
+             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
+             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             */
+
+            if (sessionClientExtensions != null)
+            {
+                state.client.ProcessServerExtensions(sessionServerExtensions);
+            }
+
+            securityParameters.prfAlgorithm = TlsProtocol.GetPrfAlgorithm(state.clientContext,
+                securityParameters.CipherSuite);
+
+            /*
+             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify verify_data_length has
+             * a verify_data_length equal to 12. This includes all existing cipher suites.
+             */
+            securityParameters.verifyDataLength = 12;
         }
 
         protected virtual void ProcessServerKeyExchange(ClientHandshakeState state, byte[] body)
@@ -827,11 +823,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             internal int[] offeredCipherSuites = null;
             internal byte[] offeredCompressionMethods = null;
             internal IDictionary clientExtensions = null;
+            internal IDictionary serverExtensions = null;
             internal byte[] selectedSessionID = null;
-            internal int selectedCipherSuite = -1;
-            internal short selectedCompressionMethod = -1;
+            internal bool resumedSession = false;
             internal bool secure_renegotiation = false;
-            internal short maxFragmentLength = -1;
             internal bool allowCertificateStatus = false;
             internal bool expectSessionTicket = false;
             internal TlsKeyExchange keyExchange = null;

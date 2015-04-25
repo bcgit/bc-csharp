@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public void Init(
+        public virtual void Init(
             bool				forEncryption,
             ICipherParameters	parameters)
         {
@@ -47,12 +47,12 @@ namespace Org.BouncyCastle.Crypto.Engines
             throw new ArgumentException("invalid parameter passed to RC4 init - " + parameters.GetType().ToString());
         }
 
-		public string AlgorithmName
+        public virtual string AlgorithmName
         {
             get { return "RC4"; }
         }
 
-		public byte ReturnByte(
+        public virtual byte ReturnByte(
 			byte input)
         {
             x = (x + 1) & 0xff;
@@ -67,23 +67,15 @@ namespace Org.BouncyCastle.Crypto.Engines
             return (byte)(input ^ engineState[(engineState[x] + engineState[y]) & 0xff]);
         }
 
-        public void ProcessBytes(
+        public virtual void ProcessBytes(
             byte[]	input,
             int		inOff,
             int		length,
             byte[]	output,
-            int		outOff
-        )
+            int		outOff)
         {
-            if ((inOff + length) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-
-            if ((outOff + length) > output.Length)
-            {
-                throw new DataLengthException("output buffer too short");
-            }
+            Check.DataLength(input, inOff, length, "input buffer too short");
+            Check.OutputLength(output, outOff, length, "output buffer too short");
 
             for (int i = 0; i < length ; i++)
             {
@@ -101,7 +93,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        public void Reset()
+        public virtual void Reset()
         {
             SetKey(workingKey);
         }
@@ -143,5 +135,4 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
     }
-
 }

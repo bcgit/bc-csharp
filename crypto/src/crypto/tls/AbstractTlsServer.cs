@@ -140,7 +140,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (clientExtensions != null)
             {
                 this.mEncryptThenMacOffered = TlsExtensionsUtilities.HasEncryptThenMacExtension(clientExtensions);
+
                 this.mMaxFragmentLengthOffered = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions);
+                if (mMaxFragmentLengthOffered >= 0 && !MaxFragmentLength.IsValid((byte)mMaxFragmentLengthOffered))
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+
                 this.mTruncatedHMacOffered = TlsExtensionsUtilities.HasTruncatedHMacExtension(clientExtensions);
 
                 this.mSupportedSignatureAlgorithms = TlsUtilities.GetSignatureAlgorithmsExtension(clientExtensions);
@@ -318,6 +322,14 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
+        }
+
+        public override TlsCipher GetCipher()
+        {
+            int encryptionAlgorithm = TlsUtilities.GetEncryptionAlgorithm(mSelectedCipherSuite);
+            int macAlgorithm = TlsUtilities.GetMacAlgorithm(mSelectedCipherSuite);
+
+            return mCipherFactory.CreateCipher(mContext, encryptionAlgorithm, macAlgorithm);
         }
 
         public virtual NewSessionTicket GetNewSessionTicket()
