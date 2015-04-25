@@ -13,7 +13,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 	public class XSalsa20Engine 
 		: Salsa20Engine
 	{
-
 		public override string AlgorithmName
 		{
 			get { return "XSalsa20"; }
@@ -65,7 +64,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			// Counter reset
 			ResetCounter();
 		}
-
 	}
 }
 

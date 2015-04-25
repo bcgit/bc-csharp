@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-using Org.BouncyCastle.Math.EC.Custom.Sec;
+using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Djb
 {

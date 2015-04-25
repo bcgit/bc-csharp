@@ -16,13 +16,13 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class TlsRsaKeyExchange
         :   AbstractTlsKeyExchange
     {
-        protected AsymmetricKeyParameter serverPublicKey = null;
+        protected AsymmetricKeyParameter mServerPublicKey = null;
 
-        protected RsaKeyParameters rsaServerPublicKey = null;
+        protected RsaKeyParameters mRsaServerPublicKey = null;
 
-        protected TlsEncryptionCredentials serverCredentials = null;
+        protected TlsEncryptionCredentials mServerCredentials = null;
 
-        protected byte[] premasterSecret;
+        protected byte[] mPremasterSecret;
 
         public TlsRsaKeyExchange(IList supportedSignatureAlgorithms)
             :   base(KeyExchangeAlgorithm.RSA, supportedSignatureAlgorithms)
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             ProcessServerCertificate(serverCredentials.Certificate);
 
-            this.serverCredentials = (TlsEncryptionCredentials)serverCredentials;
+            this.mServerCredentials = (TlsEncryptionCredentials)serverCredentials;
         }
 
         public override void ProcessServerCertificate(Certificate serverCertificate)
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
             try
             {
-                this.serverPublicKey = PublicKeyFactory.CreateKey(keyInfo);
+                this.mServerPublicKey = PublicKeyFactory.CreateKey(keyInfo);
             }
             catch (Exception e)
             {
@@ -62,10 +62,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             // Sanity check the PublicKeyFactory
-            if (this.serverPublicKey.IsPrivate)
+            if (this.mServerPublicKey.IsPrivate)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            this.rsaServerPublicKey = ValidateRsaPublicKey((RsaKeyParameters)this.serverPublicKey);
+            this.mRsaServerPublicKey = ValidateRsaPublicKey((RsaKeyParameters)this.mServerPublicKey);
 
             TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.KeyEncipherment);
 
@@ -97,13 +97,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void GenerateClientKeyExchange(Stream output)
         {
-            this.premasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(context, rsaServerPublicKey, output);
+            this.mPremasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(mContext, mRsaServerPublicKey, output);
         }
 
         public override void ProcessClientKeyExchange(Stream input)
         {
             byte[] encryptedPreMasterSecret;
-            if (TlsUtilities.IsSsl(context))
+            if (TlsUtilities.IsSsl(mContext))
             {
                 // TODO Do any SSLv3 clients actually include the length?
                 encryptedPreMasterSecret = Streams.ReadAll(input);
@@ -113,16 +113,16 @@ namespace Org.BouncyCastle.Crypto.Tls
                 encryptedPreMasterSecret = TlsUtilities.ReadOpaque16(input);
             }
 
-            this.premasterSecret = serverCredentials.DecryptPreMasterSecret(encryptedPreMasterSecret);
+            this.mPremasterSecret = mServerCredentials.DecryptPreMasterSecret(encryptedPreMasterSecret);
         }
 
         public override byte[] GeneratePremasterSecret()
         {
-            if (this.premasterSecret == null)
+            if (this.mPremasterSecret == null)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            byte[] tmp = this.premasterSecret;
-            this.premasterSecret = null;
+            byte[] tmp = this.mPremasterSecret;
+            this.mPremasterSecret = null;
             return tmp;
         }
 

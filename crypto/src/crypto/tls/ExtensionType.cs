@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int encrypt_then_mac = 22;
 
         /*
-         * draft-ietf-tls-session-hash-01
+         * draft-ietf-tls-session-hash-04
          * 
          * NOTE: Early code-point assignment
          */

@@ -387,35 +387,33 @@ namespace Org.BouncyCastle.Asn1.TeleTrust
             DerObjectIdentifier		oid,
             X9ECParametersHolder	holder)
         {
-            objIds.Add(name, oid);
+            objIds.Add(Platform.ToLowerInvariant(name), oid);
             names.Add(oid, name);
             curves.Add(oid, holder);
         }
 
         static TeleTrusTNamedCurves()
         {
-            DefineCurve("brainpoolp160r1", TeleTrusTObjectIdentifiers.BrainpoolP160R1, BrainpoolP160r1Holder.Instance);
-            DefineCurve("brainpoolp160t1", TeleTrusTObjectIdentifiers.BrainpoolP160T1, BrainpoolP160t1Holder.Instance);
-            DefineCurve("brainpoolp192r1", TeleTrusTObjectIdentifiers.BrainpoolP192R1, BrainpoolP192r1Holder.Instance);
-            DefineCurve("brainpoolp192t1", TeleTrusTObjectIdentifiers.BrainpoolP192T1, BrainpoolP192t1Holder.Instance);
-            DefineCurve("brainpoolp224r1", TeleTrusTObjectIdentifiers.BrainpoolP224R1, BrainpoolP224r1Holder.Instance);
-            DefineCurve("brainpoolp224t1", TeleTrusTObjectIdentifiers.BrainpoolP224T1, BrainpoolP224t1Holder.Instance);
-            DefineCurve("brainpoolp256r1", TeleTrusTObjectIdentifiers.BrainpoolP256R1, BrainpoolP256r1Holder.Instance);
-            DefineCurve("brainpoolp256t1", TeleTrusTObjectIdentifiers.BrainpoolP256T1, BrainpoolP256t1Holder.Instance);
-            DefineCurve("brainpoolp320r1", TeleTrusTObjectIdentifiers.BrainpoolP320R1, BrainpoolP320r1Holder.Instance);
-            DefineCurve("brainpoolp320t1", TeleTrusTObjectIdentifiers.BrainpoolP320T1, BrainpoolP320t1Holder.Instance);
-            DefineCurve("brainpoolp384r1", TeleTrusTObjectIdentifiers.BrainpoolP384R1, BrainpoolP384r1Holder.Instance);
-            DefineCurve("brainpoolp384t1", TeleTrusTObjectIdentifiers.BrainpoolP384T1, BrainpoolP384t1Holder.Instance);
-            DefineCurve("brainpoolp512r1", TeleTrusTObjectIdentifiers.BrainpoolP512R1, BrainpoolP512r1Holder.Instance);
-            DefineCurve("brainpoolp512t1", TeleTrusTObjectIdentifiers.BrainpoolP512T1, BrainpoolP512t1Holder.Instance);
+            DefineCurve("brainpoolP160r1", TeleTrusTObjectIdentifiers.BrainpoolP160R1, BrainpoolP160r1Holder.Instance);
+            DefineCurve("brainpoolP160t1", TeleTrusTObjectIdentifiers.BrainpoolP160T1, BrainpoolP160t1Holder.Instance);
+            DefineCurve("brainpoolP192r1", TeleTrusTObjectIdentifiers.BrainpoolP192R1, BrainpoolP192r1Holder.Instance);
+            DefineCurve("brainpoolP192t1", TeleTrusTObjectIdentifiers.BrainpoolP192T1, BrainpoolP192t1Holder.Instance);
+            DefineCurve("brainpoolP224r1", TeleTrusTObjectIdentifiers.BrainpoolP224R1, BrainpoolP224r1Holder.Instance);
+            DefineCurve("brainpoolP224t1", TeleTrusTObjectIdentifiers.BrainpoolP224T1, BrainpoolP224t1Holder.Instance);
+            DefineCurve("brainpoolP256r1", TeleTrusTObjectIdentifiers.BrainpoolP256R1, BrainpoolP256r1Holder.Instance);
+            DefineCurve("brainpoolP256t1", TeleTrusTObjectIdentifiers.BrainpoolP256T1, BrainpoolP256t1Holder.Instance);
+            DefineCurve("brainpoolP320r1", TeleTrusTObjectIdentifiers.BrainpoolP320R1, BrainpoolP320r1Holder.Instance);
+            DefineCurve("brainpoolP320t1", TeleTrusTObjectIdentifiers.BrainpoolP320T1, BrainpoolP320t1Holder.Instance);
+            DefineCurve("brainpoolP384r1", TeleTrusTObjectIdentifiers.BrainpoolP384R1, BrainpoolP384r1Holder.Instance);
+            DefineCurve("brainpoolP384t1", TeleTrusTObjectIdentifiers.BrainpoolP384T1, BrainpoolP384t1Holder.Instance);
+            DefineCurve("brainpoolP512r1", TeleTrusTObjectIdentifiers.BrainpoolP512R1, BrainpoolP512r1Holder.Instance);
+            DefineCurve("brainpoolP512t1", TeleTrusTObjectIdentifiers.BrainpoolP512T1, BrainpoolP512t1Holder.Instance);
         }
 
         public static X9ECParameters GetByName(
             string name)
         {
-            DerObjectIdentifier oid = (DerObjectIdentifier)
-                objIds[Platform.ToLowerInvariant(name)];
-
+            DerObjectIdentifier oid = GetOid(name);
             return oid == null ? null : GetByOid(oid);
         }
 
@@ -428,8 +426,7 @@ namespace Org.BouncyCastle.Asn1.TeleTrust
         public static X9ECParameters GetByOid(
             DerObjectIdentifier oid)
         {
-            X9ECParametersHolder holder = (X9ECParametersHolder) curves[oid];
-
+            X9ECParametersHolder holder = (X9ECParametersHolder)curves[oid];
             return holder == null ? null : holder.Parameters;
         }
 
@@ -451,9 +448,8 @@ namespace Org.BouncyCastle.Asn1.TeleTrust
         public static string GetName(
             DerObjectIdentifier oid)
         {
-            return (string) names[oid];
+            return (string)names[oid];
         }
-
 
         /**
          * returns an enumeration containing the name strings for curves
@@ -461,7 +457,7 @@ namespace Org.BouncyCastle.Asn1.TeleTrust
          */
         public static IEnumerable Names
         {
-            get { return new EnumerableProxy(objIds.Keys); }
+            get { return new EnumerableProxy(names.Values); }
         }
 
         public static DerObjectIdentifier GetOid(

@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		/// <param name="forEncryption">Initialise for encryption if true, for decryption if false.</param>
 		/// <param name="parameters">an instance of <see cref="TweakableBlockCipherParameters"/> or <see cref="KeyParameter"/> (to
 		///               use a 0 tweak)</param>
-		public void Init(bool forEncryption, ICipherParameters parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
 			byte[] keyBytes;
 			byte[] tweakBytes;
@@ -266,26 +266,26 @@ namespace Org.BouncyCastle.Crypto.Engines
 			t[4] = t[1];
 		}
 
-		public string AlgorithmName
+        public virtual string AlgorithmName
 		{
 			get { return "Threefish-" + (blocksizeBytes * 8); }
 		}
 
-		public bool IsPartialBlockOkay
+        public virtual bool IsPartialBlockOkay
 		{
 			get { return false; }
 		}
 
-		public int GetBlockSize()
+        public virtual int GetBlockSize()
 		{
 			return blocksizeBytes;
 		}
 
-		public void Reset()
+        public virtual void Reset()
 		{
 		}
 
-		public int ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
+        public virtual int ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
 		{
 			if ((outOff + blocksizeBytes) > outBytes.Length)
 			{

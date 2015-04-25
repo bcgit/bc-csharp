@@ -745,7 +745,7 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		/**
-		* Returns the neccessary attributes which must be contained in an attribute
+		* Returns the necessary attributes which must be contained in an attribute
 		* certificate.
 		* <p>
 		* The returned <code>ISet</code> is immutable and contains
@@ -760,7 +760,7 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		/**
-		* Sets the neccessary which must be contained in an attribute certificate.
+		* Sets the necessary which must be contained in an attribute certificate.
 		* <p>
 		* The <code>ISet</code> must contain <code>String</code>s with the
 		* OIDs.

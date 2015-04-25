@@ -78,6 +78,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
                 X9ECParameters ecps = FindECCurveByOid(oid);
 
+                this.publicKeyParamSet = oid;
                 this.parameters = new ECDomainParameters(
                     ecps.Curve, ecps.G, ecps.N, ecps.H, ecps.GetSeed());
             }

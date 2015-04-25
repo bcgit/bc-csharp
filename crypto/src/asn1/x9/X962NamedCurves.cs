@@ -666,7 +666,7 @@ namespace Org.BouncyCastle.Asn1.X9
             DerObjectIdentifier		oid,
             X9ECParametersHolder	holder)
         {
-            objIds.Add(name, oid);
+            objIds.Add(Platform.ToLowerInvariant(name), oid);
             names.Add(oid, name);
             curves.Add(oid, holder);
         }
@@ -701,8 +701,7 @@ namespace Org.BouncyCastle.Asn1.X9
         public static X9ECParameters GetByName(
             string name)
         {
-            DerObjectIdentifier oid = (DerObjectIdentifier)objIds[Platform.ToLowerInvariant(name)];
-
+            DerObjectIdentifier oid = GetOid(name);
             return oid == null ? null : GetByOid(oid);
         }
 
@@ -715,8 +714,7 @@ namespace Org.BouncyCastle.Asn1.X9
         public static X9ECParameters GetByOid(
             DerObjectIdentifier oid)
         {
-            X9ECParametersHolder holder = (X9ECParametersHolder) curves[oid];
-
+            X9ECParametersHolder holder = (X9ECParametersHolder)curves[oid];
             return holder == null ? null : holder.Parameters;
         }
 
@@ -738,7 +736,7 @@ namespace Org.BouncyCastle.Asn1.X9
         public static string GetName(
             DerObjectIdentifier oid)
         {
-            return (string) names[oid];
+            return (string)names[oid];
         }
 
         /**
@@ -747,7 +745,7 @@ namespace Org.BouncyCastle.Asn1.X9
          */
         public static IEnumerable Names
         {
-            get { return new EnumerableProxy(objIds.Keys); }
+            get { return new EnumerableProxy(names.Values); }
         }
     }
 }

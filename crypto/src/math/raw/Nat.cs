@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Utilities;
 
-namespace Org.BouncyCastle.Math.EC
+namespace Org.BouncyCastle.Math.Raw
 {
     internal abstract class Nat
     {
@@ -210,6 +210,11 @@ namespace Org.BouncyCastle.Math.EC
         public static uint[] Create(int len)
         {
             return new uint[len];
+        }
+
+        public static ulong[] Create64(int len)
+        {
+            return new ulong[len];
         }
 
         public static int Dec(int len, uint[] z)
@@ -666,6 +671,17 @@ namespace Org.BouncyCastle.Math.EC
             return c >> 31;
         }
 
+        public static ulong ShiftUpBit64(int len, ulong[] x, int xOff, ulong c, ulong[] z, int zOff)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                ulong next = x[xOff + i];
+                z[zOff + i] = (next << 1) | (c >> 63);
+                c = next;
+            }
+            return c >> 63;
+        }
+
         public static uint ShiftUpBits(int len, uint[] z, int bits, uint c)
         {
             Debug.Assert(bits > 0 && bits < 32);
@@ -690,6 +706,18 @@ namespace Org.BouncyCastle.Math.EC
             return c >> -bits;
         }
 
+        public static ulong ShiftUpBits64(int len, ulong[] z, int zOff, int bits, ulong c)
+        {
+            Debug.Assert(bits > 0 && bits < 64);
+            for (int i = 0; i < len; ++i)
+            {
+                ulong next = z[zOff + i];
+                z[zOff + i] = (next << bits) | (c >> -bits);
+                c = next;
+            }
+            return c >> -bits;
+        }
+
         public static uint ShiftUpBits(int len, uint[] x, int bits, uint c, uint[] z)
         {
             Debug.Assert(bits > 0 && bits < 32);
@@ -708,6 +736,18 @@ namespace Org.BouncyCastle.Math.EC
             for (int i = 0; i < len; ++i)
             {
                 uint next = x[xOff + i];
+                z[zOff + i] = (next << bits) | (c >> -bits);
+                c = next;
+            }
+            return c >> -bits;
+        }
+
+        public static ulong ShiftUpBits64(int len, ulong[] x, int xOff, int bits, ulong c, ulong[] z, int zOff)
+        {
+            Debug.Assert(bits > 0 && bits < 64);
+            for (int i = 0; i < len; ++i)
+            {
+                ulong next = x[xOff + i];
                 z[zOff + i] = (next << bits) | (c >> -bits);
                 c = next;
             }

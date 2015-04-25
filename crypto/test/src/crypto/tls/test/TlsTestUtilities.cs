@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -87,6 +88,34 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             AsymmetricKeyParameter privateKey = LoadPrivateKeyResource(keyResource);
 
             return new DefaultTlsSignerCredentials(context, certificate, privateKey, signatureAndHashAlgorithm);
+        }
+
+        internal static TlsSignerCredentials LoadSignerCredentials(TlsContext context, IList supportedSignatureAlgorithms,
+            byte signatureAlgorithm, string certResource, string keyResource)
+        {
+            /*
+             * TODO Note that this code fails to provide default value for the client supported
+             * algorithms if it wasn't sent.
+             */
+
+            SignatureAndHashAlgorithm signatureAndHashAlgorithm = null;
+            if (supportedSignatureAlgorithms != null)
+            {
+                foreach (SignatureAndHashAlgorithm alg in supportedSignatureAlgorithms)
+                {
+                    if (alg.Signature == signatureAlgorithm)
+                    {
+                        signatureAndHashAlgorithm = alg;
+                        break;
+                    }
+                }
+
+                if (signatureAndHashAlgorithm == null)
+                    return null;
+            }
+
+            return LoadSignerCredentials(context, new String[]{ certResource, "x509-ca.pem" },
+                keyResource, signatureAndHashAlgorithm);
         }
 
         internal static Certificate LoadCertificateChain(string[] resources)

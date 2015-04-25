@@ -296,7 +296,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         //====================================
 
         private static readonly int    ROUNDS = 16;
-        private const int    BLOCK_SIZE = 8;  // bytes = 64 bits
+        private const int              BLOCK_SIZE = 8;  // bytes = 64 bits
         private static readonly int    SBOX_SK = 256;
         private static readonly int    P_SZ = ROUNDS+2;
 
@@ -353,19 +353,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             int		outOff)
         {
             if (workingKey == null)
-            {
                 throw new InvalidOperationException("Blowfish not initialised");
-            }
 
-            if ((inOff + BLOCK_SIZE) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-
-            if ((outOff + BLOCK_SIZE) > output.Length)
-            {
-                throw new DataLengthException("output buffer too short");
-            }
+            Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
 
             if (encrypting)
             {

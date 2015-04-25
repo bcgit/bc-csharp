@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @see org.bouncycastle.crypto.AsymmetricBlockCipher#init(bool,
 		*      org.bouncycastle.crypto.CipherParameters)
 		*/
-		public void Init(
+		public virtual void Init(
 			bool				forEncryption,
 			ICipherParameters	parameters)
 		{
@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 		}
 
-		public bool Debug
+        public virtual bool Debug
 		{
 			set { this.debug = value; }
 		}
@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		*
 		* @see org.bouncycastle.crypto.AsymmetricBlockCipher#GetInputBlockSize()
 		*/
-		public int GetInputBlockSize()
+        public virtual int GetInputBlockSize()
 		{
 			if (forEncryption)
 			{
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		*
 		* @see org.bouncycastle.crypto.AsymmetricBlockCipher#GetOutputBlockSize()
 		*/
-		public int GetOutputBlockSize()
+        public virtual int GetOutputBlockSize()
 		{
 			if (forEncryption)
 			{
@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @see org.bouncycastle.crypto.AsymmetricBlockCipher#ProcessBlock(byte[],
 		*      int, int)
 		*/
-		public byte[] ProcessBlock(
+        public virtual byte[] ProcessBlock(
 			byte[]	inBytes,
 			int		inOff,
 			int		length)
@@ -245,7 +245,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @return The byte[] representation of the encrypted BigInteger (i.e.
 		*         crypted.toByteArray())
 		*/
-		public byte[] Encrypt(
+        public virtual byte[] Encrypt(
 			BigInteger plain)
 		{
 			// Always return modulus size values 0-padded at the beginning
@@ -273,7 +273,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @return encrypt((block1 + block2) mod sigma)
 		* @throws InvalidCipherTextException
 		*/
-		public byte[] AddCryptedBlocks(
+        public virtual byte[] AddCryptedBlocks(
 			byte[] block1,
 			byte[] block2)
 		{
@@ -329,7 +329,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @return the data after it went through the NaccacheSternEngine.
 		* @throws InvalidCipherTextException
 		*/
-		public byte[] ProcessData(
+        public virtual byte[] ProcessData(
 			byte[] data)
 		{
 			if (debug)
