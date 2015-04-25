@@ -4,7 +4,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>7.10.3077</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}</ProjectGuid>
+    <ProjectGuid>{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A1}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon />
@@ -21,12 +21,12 @@
     <StartupObject />
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>12.0</OldToolsVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkProfile>Profile328</TargetFrameworkProfile>
+    <TargetFrameworkProfile>Profile111</TargetFrameworkProfile>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
     <PublishUrl>publish\</PublishUrl>
@@ -45,14 +45,14 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>bin\pcl\Debug\</OutputPath>
-    <IntermediateOutputPath>obj\pcl\Debug\</IntermediateOutputPath>
+    <OutputPath>bin\pcl2\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\pcl2\Debug\</IntermediateOutputPath>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;DEBUG;SILVERLIGHT;PCL</DefineConstants>
-    <DocumentationFile>doc\pcl\crypto.xml</DocumentationFile>
+    <DefineConstants>TRACE;DEBUG;PCL;NEW_REFLECTION;NO_THREADS;SILVERLIGHT</DefineConstants>
+    <DocumentationFile>doc\pcl2\crypto.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
@@ -66,14 +66,14 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>bin\pcl\Release\</OutputPath>
-    <IntermediateOutputPath>obj\pcl\Release\</IntermediateOutputPath>
+    <OutputPath>bin\pcl2\Release\</OutputPath>
+    <IntermediateOutputPath>obj\pcl2\Release\</IntermediateOutputPath>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;SILVERLIGHT;PCL</DefineConstants>
-    <DocumentationFile>doc\pcl\crypto.xml</DocumentationFile>
+    <DefineConstants>TRACE;PCL;NEW_REFLECTION;NO_THREADS;SILVERLIGHT</DefineConstants>
+    <DocumentationFile>doc\pcl2\crypto.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
@@ -86,7 +86,7 @@
     <DebugType>pdbonly</DebugType>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
-    <ItemGroup>
+  <ItemGroup>
     <Compile Include="src\**\*.cs" />
     <Compile Include="bzip2\**\*.cs" />
   </ItemGroup>

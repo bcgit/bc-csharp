@@ -85,7 +85,11 @@ internal class AssemblyInfo
         {
             if (version == null)
             {
+#if NEW_REFLECTION
+                var ver = (AssemblyVersionAttribute)typeof(AssemblyInfo).GetTypeInfo().Assembly.GetCustomAttributes(typeof(AssemblyVersionAttribute)).FirstOrDefault();
+#else
                 var ver = (AssemblyVersionAttribute)typeof(AssemblyInfo).Assembly.GetCustomAttributes(typeof(AssemblyVersionAttribute), false).FirstOrDefault();
+#endif
                 if (ver != null)
                 {
                     version = ver.Version;
