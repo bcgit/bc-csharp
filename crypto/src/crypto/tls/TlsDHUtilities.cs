@@ -435,26 +435,28 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             return (DHPrivateKeyParameters)kp.Private;
         }
-        
-        public static DHPublicKeyParameters ValidateDHPublicKey(DHPublicKeyParameters key)
+
+        public static DHParameters ValidateDHParameters(DHParameters parameters)
         {
-            BigInteger Y = key.Y;
-            DHParameters parameters = key.Parameters;
             BigInteger p = parameters.P;
             BigInteger g = parameters.G;
 
             if (!p.IsProbablePrime(2))
-            {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-            }
             if (g.CompareTo(Two) < 0 || g.CompareTo(p.Subtract(Two)) > 0)
-            {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-            }
-            if (Y.CompareTo(Two) < 0 || Y.CompareTo(p.Subtract(Two)) > 0)
-            {
+
+
+            return parameters;
+        }
+
+        public static DHPublicKeyParameters ValidateDHPublicKey(DHPublicKeyParameters key)
+        {
+            DHParameters parameters = ValidateDHParameters(key.Parameters);
+
+            BigInteger Y = key.Y;
+            if (Y.CompareTo(Two) < 0 || Y.CompareTo(parameters.P.Subtract(Two)) > 0)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-            }
 
             // TODO See RFC 2631 for more discussion of Diffie-Hellman validation
 
