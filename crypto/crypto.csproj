@@ -5119,6 +5119,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\Primes.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\ECAlgorithms.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
