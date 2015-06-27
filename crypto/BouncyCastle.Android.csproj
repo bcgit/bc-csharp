@@ -21,7 +21,7 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\lib\MonoAndroid</OutputPath>
     <IntermediateOutputPath>obj\Debug\lib\MonoAndroid</IntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE;INCLUDE_IDEA;STRONG_NAME;__MOBILE__;__ANDROID__;</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;INCLUDE_IDEA;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidLinkMode>None</AndroidLinkMode>
@@ -32,11 +32,17 @@
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\lib\MonoAndroid</OutputPath>
     <IntermediateOutputPath>obj\Release\lib\MonoAndroid</IntermediateOutputPath>
-    <DefineConstants>TRACE;INCLUDE_IDEA;STRONG_NAME;__MOBILE__;__ANDROID__;</DefineConstants>
+    <DefineConstants>TRACE;INCLUDE_IDEA;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

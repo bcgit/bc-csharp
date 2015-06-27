@@ -17,7 +17,7 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\lib\net20</OutputPath>
     <IntermediateOutputPath>obj\Debug\lib\net20</IntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE;INCLUDE_IDEA;STRONG_NAME</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;INCLUDE_IDEA;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -26,12 +26,18 @@
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\lib\net20</OutputPath>
     <IntermediateOutputPath>obj\Release\lib\net20</IntermediateOutputPath>
-    <DefineConstants>TRACE;INCLUDE_IDEA;STRONG_NAME</DefineConstants>
+    <DefineConstants>TRACE;INCLUDE_IDEA;</DefineConstants>
     <DocumentationFile>doc\BouncyCastle.xml</DocumentationFile>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
