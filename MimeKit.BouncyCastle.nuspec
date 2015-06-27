@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>MimeKit.BouncyCastle</id>
-        <version>1.8.0-RC1</version>
+        <version>1.7.90.1</version>
         <title>Bouncy Castle for MimeKit</title>
         <authors>Jeffrey Stedfast</authors>
         <owners>jstedfast</owners>
@@ -29,19 +29,17 @@
  -Time Stamp Protocol (TSP, RFC 3161).
  -TLS/SSL Client with support for client side authentication.
  
-        Support for .NET 2, .NET 3.5, .NET 4.0, .NET 4.5, Xamarin.Android and Xamarin.iOS.
-        </description>
+        Support for .NET 2, .NET 3.5, .NET 4.0, .NET 4.5, Xamarin.Android and Xamarin.iOS.</description>
+        <summary>BouncyCastle is a portable cryptography framework.</summary>
         <language>en-US</language>
         <tags>bouncycastle, cryptography, encryption, security, net20, net35, net40, net45, xamarin, xamarin.android, xamarin.ios</tags>
     </metadata>
     <files>
-        <file src="crypto\bin\Release\lib\MonoAndroid\BouncyCastle.dll" target="lib\MonoAndroid\BouncyCastle.dll" />
-	<file src="crypto\doc\BouncyCastle.xml" target="lib\MonoAndroid\BouncyCastle.xml" />
-
-	<file src="crypto\bin\Release\lib\Xamarin.iOS\BouncyCastle.dll" target="lib\xamarinios\BouncyCastle.dll" />
-	<file src="crypto\doc\BouncyCastle.xml" target="lib\xamarinios\BouncyCastle.xml" />
-
-	<file src="crypto\bin\Release\lib\net20\BouncyCastle.dll" target="lib\net20\BouncyCastle.dll" />
-	<file src="crypto\doc\BouncyCastle.xml" target="lib\net20\BouncyCastle.xml" />	
+        <file src="crypto\bin\Release\lib\MonoAndroid\BouncyCastle.dll" target="lib\MonoAndroid10\BouncyCastle.dll" />
+        <file src="crypto\doc\BouncyCastle.xml" target="lib\MonoAndroid10\BouncyCastle.xml" />
+        <file src="crypto\bin\Release\lib\net20\BouncyCastle.dll" target="lib\net20\BouncyCastle.dll" />
+        <file src="crypto\doc\BouncyCastle.xml" target="lib\net20\BouncyCastle.xml" />
+        <file src="crypto\bin\Release\lib\Xamarin.iOS\BouncyCastle.dll" target="lib\xamarinios10\BouncyCastle.dll" />
+        <file src="crypto\doc\BouncyCastle.xml" target="lib\xamarinios10\BouncyCastle.xml" />
     </files>
 </package>
