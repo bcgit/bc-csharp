@@ -1039,6 +1039,7 @@
     <Compile Include="src\crypto\tls\UserMappingType.cs" />
     <Compile Include="src\crypto\util\Pack.cs" />
     <Compile Include="src\math\BigInteger.cs" />
+    <Compile Include="src\math\Primes.cs" />
     <Compile Include="src\math\ec\ECAlgorithms.cs" />
     <Compile Include="src\math\ec\ECCurve.cs" />
     <Compile Include="src\math\ec\ECFieldElement.cs" />
@@ -1120,6 +1121,12 @@
     <Compile Include="src\math\ec\custom\sec\SecT163R1Point.cs" />
     <Compile Include="src\math\ec\custom\sec\SecT163R2Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecT163R2Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT193Field.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT193FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT193R1Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT193R1Point.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT193R2Curve.cs" />
+    <Compile Include="src\math\ec\custom\sec\SecT193R2Point.cs" />
     <Compile Include="src\math\ec\custom\sec\SecT233Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecT233FieldElement.cs" />
     <Compile Include="src\math\ec\custom\sec\SecT233K1Curve.cs" />
