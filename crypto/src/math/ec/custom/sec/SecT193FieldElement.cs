@@ -5,84 +5,84 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
-    internal class SecT163FieldElement
+    internal class SecT193FieldElement
         : ECFieldElement
     {
         protected readonly ulong[] x;
 
-        public SecT163FieldElement(BigInteger x)
+        public SecT193FieldElement(BigInteger x)
         {
-            if (x == null || x.SignValue < 0 || x.BitLength > 163)
-                throw new ArgumentException("value invalid for SecT163FieldElement", "x");
+            if (x == null || x.SignValue < 0 || x.BitLength > 193)
+                throw new ArgumentException("value invalid for SecT193FieldElement", "x");
 
-            this.x = SecT163Field.FromBigInteger(x);
+            this.x = SecT193Field.FromBigInteger(x);
         }
 
-        public SecT163FieldElement()
+        public SecT193FieldElement()
         {
-            this.x = Nat192.Create64();
+            this.x = Nat256.Create64();
         }
 
-        protected internal SecT163FieldElement(ulong[] x)
+        protected internal SecT193FieldElement(ulong[] x)
         {
             this.x = x;
         }
 
         public override bool IsOne
         {
-            get { return Nat192.IsOne64(x); }
+            get { return Nat256.IsOne64(x); }
         }
 
         public override bool IsZero
         {
-            get { return Nat192.IsZero64(x); }
+            get { return Nat256.IsZero64(x); }
         }
 
         public override bool TestBitZero()
         {
-            return (x[0] & 1L) != 0L;
+            return (x[0] & 1UL) != 0UL;
         }
 
         public override BigInteger ToBigInteger()
         {
-            return Nat192.ToBigInteger64(x);
+            return Nat256.ToBigInteger64(x);
         }
 
         public override string FieldName
         {
-            get { return "SecT163Field"; }
+            get { return "SecT193Field"; }
         }
 
         public override int FieldSize
         {
-            get { return 163; }
+            get { return 193; }
         }
 
         public override ECFieldElement Add(ECFieldElement b)
         {
-            ulong[] z = Nat192.Create64();
-            SecT163Field.Add(x, ((SecT163FieldElement)b).x, z);
-            return new SecT163FieldElement(z);
+            ulong[] z = Nat256.Create64();
+            SecT193Field.Add(x, ((SecT193FieldElement)b).x, z);
+            return new SecT193FieldElement(z);
         }
 
         public override ECFieldElement AddOne()
         {
-            ulong[] z = Nat192.Create64();
-            SecT163Field.AddOne(x, z);
-            return new SecT163FieldElement(z);
+            ulong[] z = Nat256.Create64();
+            SecT193Field.AddOne(x, z);
+            return new SecT193FieldElement(z);
         }
 
         public override ECFieldElement Subtract(ECFieldElement b)
         {
-            // Addition and subtraction are the same in F2m
+            // Addition and Subtraction are the same in F2m
             return Add(b);
         }
 
         public override ECFieldElement Multiply(ECFieldElement b)
         {
-            ulong[] z = Nat192.Create64();
-            SecT163Field.Multiply(x, ((SecT163FieldElement)b).x, z);
-            return new SecT163FieldElement(z);
+            ulong[] z = Nat256.Create64();
+            SecT193Field.Multiply(x, ((SecT193FieldElement)b).x, z);
+            return new SecT193FieldElement(z);
         }
 
         public override ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
@@ -92,16 +92,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement MultiplyPlusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
         {
-            ulong[] ax = this.x, bx = ((SecT163FieldElement)b).x;
-            ulong[] xx = ((SecT163FieldElement)x).x, yx = ((SecT163FieldElement)y).x;
+            ulong[] ax = this.x, bx = ((SecT193FieldElement)b).x;
+            ulong[] xx = ((SecT193FieldElement)x).x, yx = ((SecT193FieldElement)y).x;
 
-            ulong[] tt = Nat192.CreateExt64();
-            SecT163Field.MultiplyAddToExt(ax, bx, tt);
-            SecT163Field.MultiplyAddToExt(xx, yx, tt);
+            ulong[] tt = Nat256.CreateExt64();
+            SecT193Field.MultiplyAddToExt(ax, bx, tt);
+            SecT193Field.MultiplyAddToExt(xx, yx, tt);
 
-            ulong[] z = Nat192.Create64();
-            SecT163Field.Reduce(tt, z);
-            return new SecT163FieldElement(z);
+            ulong[] z = Nat256.Create64();
+            SecT193Field.Reduce(tt, z);
+            return new SecT193FieldElement(z);
         }
 
         public override ECFieldElement Divide(ECFieldElement b)
@@ -116,9 +116,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement Square()
         {
-            ulong[] z = Nat192.Create64();
-            SecT163Field.Square(x, z);
-            return new SecT163FieldElement(z);
+            ulong[] z = Nat256.Create64();
+            SecT193Field.Square(x, z);
+            return new SecT193FieldElement(z);
         }
 
         public override ECFieldElement SquareMinusProduct(ECFieldElement x, ECFieldElement y)
@@ -129,15 +129,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public override ECFieldElement SquarePlusProduct(ECFieldElement x, ECFieldElement y)
         {
             ulong[] ax = this.x;
-            ulong[] xx = ((SecT163FieldElement)x).x, yx = ((SecT163FieldElement)y).x;
+            ulong[] xx = ((SecT193FieldElement)x).x, yx = ((SecT193FieldElement)y).x;
 
-            ulong[] tt = Nat192.CreateExt64();
-            SecT163Field.SquareAddToExt(ax, tt);
-            SecT163Field.MultiplyAddToExt(xx, yx, tt);
+            ulong[] tt = Nat256.CreateExt64();
+            SecT193Field.SquareAddToExt(ax, tt);
+            SecT193Field.MultiplyAddToExt(xx, yx, tt);
 
-            ulong[] z = Nat192.Create64();
-            SecT163Field.Reduce(tt, z);
-            return new SecT163FieldElement(z);
+            ulong[] z = Nat256.Create64();
+            SecT193Field.Reduce(tt, z);
+            return new SecT193FieldElement(z);
         }
 
         public override ECFieldElement SquarePow(int pow)
@@ -145,15 +145,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if (pow < 1)
                 return this;
 
-            ulong[] z = Nat192.Create64();
-            SecT163Field.SquareN(x, pow, z);
-            return new SecT163FieldElement(z);
+            ulong[] z = Nat256.Create64();
+            SecT193Field.SquareN(x, pow, z);
+            return new SecT193FieldElement(z);
         }
 
         public override ECFieldElement Invert()
         {
-            return new SecT163FieldElement(
-                AbstractF2mCurve.Inverse(163, new int[] { 3, 6, 7 }, ToBigInteger()));
+            return new SecT193FieldElement(
+                AbstractF2mCurve.Inverse(193, new int[] { 15 }, ToBigInteger()));
         }
 
         public override ECFieldElement Sqrt()
@@ -163,51 +163,51 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public virtual int Representation
         {
-            get { return F2mFieldElement.Ppb; }
+            get { return F2mFieldElement.Tpb; }
         }
 
         public virtual int M
         {
-            get { return 163; }
+            get { return 193; }
         }
 
         public virtual int K1
         {
-            get { return 3; }
+            get { return 15; }
         }
 
         public virtual int K2
         {
-            get { return 6; }
+            get { return 0; }
         }
 
         public virtual int K3
         {
-            get { return 7; }
+            get { return 0; }
         }
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as SecT163FieldElement);
+            return Equals(obj as SecT193FieldElement);
         }
 
         public override bool Equals(ECFieldElement other)
         {
-            return Equals(other as SecT163FieldElement);
+            return Equals(other as SecT193FieldElement);
         }
 
-        public virtual bool Equals(SecT163FieldElement other)
+        public virtual bool Equals(SecT193FieldElement other)
         {
             if (this == other)
                 return true;
             if (null == other)
                 return false;
-            return Nat192.Eq64(x, other.x);
+            return Nat256.Eq64(x, other.x);
         }
 
         public override int GetHashCode()
         {
-            return 163763 ^ Arrays.GetHashCode(x, 0, 3);
+            return 1930015 ^ Arrays.GetHashCode(x, 0, 4);
         }
     }
 }

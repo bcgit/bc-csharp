@@ -199,7 +199,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected static void ImplMulwAcc(ulong[] xs, ulong y, ulong[] z, int zOff)
         {
             ulong[] u = new ulong[32];
-    //      u[0] = 0;
+            //u[0] = 0;
             u[1] = y;
             for (int i = 2; i < 32; i += 2)
             {

@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.decrypt_error);
 
             this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(dhParams.PublicKey);
-            this.mDHParameters = mDHAgreePublicKey.Parameters;
+            this.mDHParameters = ValidateDHParameters(mDHAgreePublicKey.Parameters);
         }
 
         protected virtual ISigner InitVerifyer(TlsSigner tlsSigner, SignatureAndHashAlgorithm algorithm,

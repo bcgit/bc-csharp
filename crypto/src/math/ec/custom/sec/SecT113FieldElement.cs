@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public SecT113FieldElement(BigInteger x)
         {
-            if (x == null || x.SignValue < 0)
+            if (x == null || x.SignValue < 0 || x.BitLength > 113)
                 throw new ArgumentException("value invalid for SecT113FieldElement", "x");
 
             this.x = SecT113Field.FromBigInteger(x);

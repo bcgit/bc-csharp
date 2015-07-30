@@ -44,6 +44,12 @@ namespace Org.BouncyCastle.Bcpg
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
                     key = new ElGamalPublicBcpgKey(bcpgIn);
                     break;
+                case PublicKeyAlgorithmTag.EC:
+                    key = new ECDHPublicBcpgKey(bcpgIn);
+                    break;
+                case PublicKeyAlgorithmTag.ECDsa:
+                    key = new ECDsaPublicBcpgKey(bcpgIn);
+                    break;
                 default:
                     throw new IOException("unknown PGP public key algorithm encountered");
             }

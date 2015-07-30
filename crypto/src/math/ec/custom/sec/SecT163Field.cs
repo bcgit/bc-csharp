@@ -230,7 +230,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Debug.Assert(y >> 56 == 0);
 
             ulong[] u = new ulong[8];
-    //      u[0] = 0;
+            //u[0] = 0;
             u[1] = y;
             u[2] = u[1] << 1;
             u[3] = u[2] ^  y;
@@ -244,7 +244,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int k = 47;
             do
             {
-                j = (uint)(x >> k);
+                j  = (uint)(x >> k);
                 g  = u[j & 7]
                    ^ u[(j >> 3) & 7] << 3
                    ^ u[(j >> 6) & 7] << 6;

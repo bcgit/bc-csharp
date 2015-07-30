@@ -268,9 +268,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 outputLen = inLen + macSize;
                 Check.OutputLength(output, outOff, outputLen, "Output buffer too short.");
 
-                calculateMac(input, inOff, inLen, macBlock);
+                CalculateMac(input, inOff, inLen, macBlock);
 
-                ctrCipher.ProcessBlock(macBlock, 0, macBlock, 0);   // S0
+                byte[] encMac = new byte[BlockSize];
+                ctrCipher.ProcessBlock(macBlock, 0, encMac, 0);   // S0
 
                 while (inIndex < (inOff + inLen - BlockSize))                 // S1...
                 {
@@ -287,7 +288,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Array.Copy(block, 0, output, outIndex, inLen + inOff - inIndex);
 
-                Array.Copy(macBlock, 0, output, outOff + inLen, macSize);
+                Array.Copy(encMac, 0, output, outOff + inLen, macSize);
             }
             else
             {
@@ -323,7 +324,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 byte[] calculatedMacBlock = new byte[BlockSize];
 
-                calculateMac(output, outOff, outputLen, calculatedMacBlock);
+                CalculateMac(output, outOff, outputLen, calculatedMacBlock);
 
                 if (!Arrays.ConstantTimeAreEqual(macBlock, calculatedMacBlock))
                     throw new InvalidCipherTextException("mac check in CCM failed");
@@ -332,7 +333,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return outputLen;
         }
 
-        private int calculateMac(byte[] data, int dataOff, int dataLen, byte[] macBlock)
+        private int CalculateMac(byte[] data, int dataOff, int dataLen, byte[] macBlock)
         {
             IMac cMac = new CbcBlockCipherMac(cipher, macSize * 8);
 
