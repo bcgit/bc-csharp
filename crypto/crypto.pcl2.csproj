@@ -10,7 +10,7 @@
     <ApplicationIcon />
     <AssemblyKeyContainerName />
     <AssemblyName>crypto</AssemblyName>
-    <AssemblyOriginatorKeyFile />
+    <AssemblyOriginatorKeyFile>BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
@@ -68,11 +68,15 @@
     <DebugType>pdbonly</DebugType>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <!-- NuSpec file must be specified as name does not match dll name -->
     <NuSpecFile Include="$(SolutionDir)Portable.BouncyCastle.nuspec" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="BouncyCastle.snk" />
     <None Include="packages.crypto.pcl2.config" />
   </ItemGroup>
   <ItemGroup>
