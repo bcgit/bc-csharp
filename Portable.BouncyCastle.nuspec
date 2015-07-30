@@ -58,7 +58,6 @@
     <file src="Crypto\bin\pcl2\Release\crypto.xml" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.xml" />
     <file src="Crypto\bin\pcl2\Release\crypto.pdb" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.pdb" />
     <file src="Crypto\bin\pcl2\Release\crypto.dll" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.dll" />
-
     <file src="Crypto\bin\pcl2\Release\crypto.xml" target="lib\dotnet" />
     <file src="Crypto\bin\pcl2\Release\crypto.pdb" target="lib\dotnet" />
     <file src="Crypto\bin\pcl2\Release\crypto.dll" target="lib\dotnet" />
