@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual DHParameters GetDHParameters()
         {
-            return DHStandardGroups.rfc5114_1024_160;
+            return DHStandardGroups.rfc5114_2048_256;
         }
 
         protected override int[] GetCipherSuites()

@@ -604,6 +604,9 @@ namespace Org.BouncyCastle.Math.EC
             int			k3,
             BigInteger	x)
         {
+            if (x == null || x.SignValue < 0 || x.BitLength > m)
+                throw new ArgumentException("value invalid in F2m field element", "x");
+
             if ((k2 == 0) && (k3 == 0))
             {
                 this.representation = Tpb;
