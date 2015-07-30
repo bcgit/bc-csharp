@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <metadata>
-        <id>Portable.BouncyCastle</id>
-        <version>1.8.0-RC1</version>
-        <title>Bouncy Castle PCL</title>
-        <authors>Oren Novotny</authors>
-        <owners>onovotny</owners>
-        <projectUrl>https://github.com/onovotny/BouncyCastle-PCL</projectUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>BouncyCastle.Crypto is a cryptography API providing:
+  <metadata>
+    <id>Portable.BouncyCastle</id>
+    <version>1.8.0-RC1</version>
+    <title>Bouncy Castle PCL</title>
+    <authors>Oren Novotny</authors>
+    <owners>onovotny</owners>
+    <projectUrl>https://github.com/onovotny/BouncyCastle-PCL</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>BouncyCastle.Crypto is a cryptography API providing:
  -Generation and parsing of PKCS#12 files.
  -X.509: Generators and parsers for V1 and V3 certificates, V2 CRLs and attribute certificates.
  -PBE algorithms supported by PBEUtil: PBEwithMD2andDES-CBC, PBEwithMD2andRC2-CBC, PBEwithMD5andDES-CBC, PBEwithMD5andRC2-CBC, PBEwithSHA1andDES-CBC, PBEwithSHA1andRC2-CBC, PBEwithSHA-1and128bitRC4, PBEwithSHA-1and40bitRC4, PBEwithSHA-1and3-keyDESEDE-CBC, PBEwithSHA-1and2-keyDESEDE-CBC, PBEwithSHA-1and128bitRC2-CBC, PBEwithSHA-1and40bitRC2-CBC, PBEwithHmacSHA-1, PBEwithHmacSHA-224, PBEwithHmacSHA-256, PBEwithHmacRIPEMD128, PBEwithHmacRIPEMD160, and PBEwithHmacRIPEMD256.
@@ -31,17 +31,36 @@
  
         Support for .NET 4, Windows Phone 8, Windows Phone App 8.1, Windows 8, Silverlight 5, MonoTouch, MonoAndroid, Xamarin.iOS
         </description>
-        <language>en-US</language>
-        <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, net4, sl5, monotouch, monoandroid, xamarin, xamarin.ios</tags>
-    </metadata>
-    <files>
-        <file src="Crypto\bin\pcl\Release\crypto.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.xml" />
-        <file src="Crypto\bin\pcl\Release\crypto.pdb" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.pdb" />
-        <file src="Crypto\bin\pcl\Release\crypto.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.dll" />
-        <file src="Crypto\Readme.html" target="Readme.html" />
-        
-        <file src="Crypto\bin\pcl2\Release\crypto.xml" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.xml" />
-        <file src="Crypto\bin\pcl2\Release\crypto.pdb" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.pdb" />
-        <file src="Crypto\bin\pcl2\Release\crypto.dll" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.dll" />
-    </files>
+    <language>en-US</language>
+    <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, net4, sl5, dotnet, monotouch, monoandroid, xamarin, xamarin.ios</tags>
+    <dependencies>
+      <group targetFramework="dotnet">
+        <dependency id="System.Collections" version="4.0.0" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.0" />
+        <dependency id="System.Globalization" version="4.0.0" />
+        <dependency id="System.IO" version="4.0.0" />
+        <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Reflection" version="4.0.0" />
+        <dependency id="System.Reflection.Extensions" version="4.0.0" />
+        <dependency id="System.Runtime" version="4.0.0" />
+        <dependency id="System.Runtime.Extensions" version="4.0.0" />
+        <dependency id="System.Text.Encoding" version="4.0.0" />
+        <dependency id="System.Threading" version="4.0.0" />
+        <dependency id="System.Threading.Tasks" version="4.0.0" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Crypto\bin\pcl\Release\crypto.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.xml" />
+    <file src="Crypto\bin\pcl\Release\crypto.pdb" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.pdb" />
+    <file src="Crypto\bin\pcl\Release\crypto.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.dll" />
+    <file src="Crypto\Readme.html" target="Readme.html" />
+    <file src="Crypto\bin\pcl2\Release\crypto.xml" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.xml" />
+    <file src="Crypto\bin\pcl2\Release\crypto.pdb" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.pdb" />
+    <file src="Crypto\bin\pcl2\Release\crypto.dll" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.dll" />
+
+    <file src="Crypto\bin\pcl2\Release\crypto.xml" target="lib\dotnet" />
+    <file src="Crypto\bin\pcl2\Release\crypto.pdb" target="lib\dotnet" />
+    <file src="Crypto\bin\pcl2\Release\crypto.dll" target="lib\dotnet" />
+  </files>
 </package>
