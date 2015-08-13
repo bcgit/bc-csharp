@@ -37,6 +37,35 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return z;
         }
 
+        public static void Invert(ulong[] x, ulong[] z)
+        {
+            if (Nat128.IsZero64(x))
+                throw new InvalidOperationException();
+
+            // Itoh-Tsujii inversion
+
+            ulong[] t0 = Nat128.Create64();
+            ulong[] t1 = Nat128.Create64();
+
+            Square(x, t0);
+            Multiply(t0, x, t0);
+            Square(t0, t0);
+            Multiply(t0, x, t0);
+            SquareN(t0, 3, t1);
+            Multiply(t1, t0, t1);
+            Square(t1, t1);
+            Multiply(t1, x, t1);
+            SquareN(t1, 7, t0);
+            Multiply(t0, t1, t0);
+            SquareN(t0, 14, t1);
+            Multiply(t1, t0, t1);
+            SquareN(t1, 28, t0);
+            Multiply(t0, t1, t0);
+            SquareN(t0, 56, t1);
+            Multiply(t1, t0, t1);
+            Square(t1, z);
+        }
+
         public static void Multiply(ulong[] x, ulong[] y, ulong[] z)
         {
             ulong[] tt = Nat128.CreateExt64();
