@@ -59,6 +59,57 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return z;
         }
 
+        public static void Invert(ulong[] x, ulong[] z)
+        {
+            if (Nat576.IsZero64(x))
+                throw new InvalidOperationException();
+
+            // Itoh-Tsujii inversion with bases { 2, 3, 5 }
+
+            ulong[] t0 = Nat576.Create64();
+            ulong[] t1 = Nat576.Create64();
+            ulong[] t2 = Nat576.Create64();
+
+            Square(x, t2);
+
+            // 5 | 570
+            Square(t2, t0);
+            Square(t0, t1);
+            Multiply(t0, t1, t0);
+            SquareN(t0, 2, t1);
+            Multiply(t0, t1, t0);
+            Multiply(t0, t2, t0);
+
+            // 3 | 114
+            SquareN(t0, 5, t1);
+            Multiply(t0, t1, t0);
+            SquareN(t1, 5, t1);
+            Multiply(t0, t1, t0);
+
+            // 2 | 38
+            SquareN(t0, 15, t1);
+            Multiply(t0, t1, t2);
+
+            // ! {2,3,5} | 19
+            SquareN(t2, 30, t0);
+            SquareN(t0, 30, t1);
+            Multiply(t0, t1, t0);
+
+            // 3 | 9
+            SquareN(t0, 60, t1);
+            Multiply(t0, t1, t0);
+            SquareN(t1, 60, t1);
+            Multiply(t0, t1, t0);
+
+            // 3 | 3
+            SquareN(t0, 180, t1);
+            Multiply(t0, t1, t0);
+            SquareN(t1, 180, t1);
+            Multiply(t0, t1, t0);
+
+            Multiply(t0, t2, z);
+        }
+
         public static void Multiply(ulong[] x, ulong[] y, ulong[] z)
         {
             ulong[] tt = Nat576.CreateExt64();
@@ -199,7 +250,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected static void ImplMulwAcc(ulong[] xs, ulong y, ulong[] z, int zOff)
         {
             ulong[] u = new ulong[32];
-    //      u[0] = 0;
+            //u[0] = 0;
             u[1] = y;
             for (int i = 2; i < 32; i += 2)
             {

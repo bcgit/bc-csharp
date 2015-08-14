@@ -105,19 +105,15 @@ namespace Org.BouncyCastle.Bcpg
                 next = true;
             }
 
-            if (nextB >= 0)
-            {
-                if ((nextB & 0x40) != 0)    // new
-                {
-                    return (PacketTag)(nextB & 0x3f);
-                }
-                else    // old
-                {
-                    return (PacketTag)((nextB & 0x3f) >> 2);
-                }
-            }
+            if (nextB < 0)
+                return (PacketTag)nextB;
 
-            return (PacketTag) nextB;
+            int maskB = nextB & 0x3f;
+            if ((nextB & 0x40) == 0)    // old
+            {
+                maskB >>= 2;
+            }
+            return (PacketTag)maskB;
         }
 
         public Packet ReadPacket()

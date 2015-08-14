@@ -290,7 +290,7 @@ namespace Org.BouncyCastle.Tests
                 return null;
             }
 
-            public override void Check(X509Certificate cert, ICollection unresolvedCritExts)
+            public override void Check(X509Certificate cert, ISet unresolvedCritExts)
             {
                 count++;
             }

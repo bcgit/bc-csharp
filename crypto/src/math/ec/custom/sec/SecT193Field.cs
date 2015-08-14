@@ -5,10 +5,10 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
-    internal class SecT239Field
+    internal class SecT193Field
     {
-        private const ulong M47 = ulong.MaxValue >> 17;
-        private const ulong M60 = ulong.MaxValue >> 4;
+        private const ulong M01 = 1UL;
+        private const ulong M49 = ulong.MaxValue >> 15;
 
         public static void Add(ulong[] x, ulong[] y, ulong[] z)
         {
@@ -27,7 +27,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             zz[4] = xx[4] ^ yy[4];
             zz[5] = xx[5] ^ yy[5];
             zz[6] = xx[6] ^ yy[6];
-            zz[7] = xx[7] ^ yy[7];
         }
 
         public static void AddOne(ulong[] x, ulong[] z)
@@ -41,7 +40,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public static ulong[] FromBigInteger(BigInteger x)
         {
             ulong[] z = Nat256.FromBigInteger64(x);
-            Reduce17(z, 0);
+            Reduce63(z, 0);
             return z;
         }
 
@@ -50,36 +49,42 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if (Nat256.IsZero64(x))
                 throw new InvalidOperationException();
 
-            // Itoh-Tsujii inversion
+            // Itoh-Tsujii inversion with bases { 2, 3 }
 
             ulong[] t0 = Nat256.Create64();
             ulong[] t1 = Nat256.Create64();
 
             Square(x, t0);
-            Multiply(t0, x, t0);
-            Square(t0, t0);
-            Multiply(t0, x, t0);
+
+            // 3 | 192
+            SquareN(t0, 1, t1);
+            Multiply(t0, t1, t0);
+            SquareN(t1, 1, t1);
+            Multiply(t0, t1, t0);
+
+            // 2 | 64
             SquareN(t0, 3, t1);
-            Multiply(t1, t0, t1);
-            Square(t1, t1);
-            Multiply(t1, x, t1);
-            SquareN(t1, 7, t0);
             Multiply(t0, t1, t0);
-            SquareN(t0, 14, t1);
-            Multiply(t1, t0, t1);
-            Square(t1, t1);
-            Multiply(t1, x, t1);
-            SquareN(t1, 29, t0);
+
+            // 2 | 32
+            SquareN(t0, 6, t1);
             Multiply(t0, t1, t0);
-            Square(t0, t0);
-            Multiply(t0, x, t0);
-            SquareN(t0, 59, t1);
-            Multiply(t1, t0, t1);
-            Square(t1, t1);
-            Multiply(t1, x, t1);
-            SquareN(t1, 119, t0);
+
+            // 2 | 16
+            SquareN(t0, 12, t1);
             Multiply(t0, t1, t0);
-            Square(t0, z);
+
+            // 2 | 8
+            SquareN(t0, 24, t1);
+            Multiply(t0, t1, t0);
+
+            // 2 | 4
+            SquareN(t0, 48, t1);
+            Multiply(t0, t1, t0);
+
+            // 2 | 2
+            SquareN(t0, 96, t1);
+            Multiply(t0, t1, z);
         }
 
         public static void Multiply(ulong[] x, ulong[] y, ulong[] z)
@@ -98,42 +103,33 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(ulong[] xx, ulong[] z)
         {
-            ulong x0 = xx[0], x1 = xx[1], x2 = xx[2], x3 = xx[3];
-            ulong x4 = xx[4], x5 = xx[5], x6 = xx[6], x7 = xx[7];
+            ulong x0 = xx[0], x1 = xx[1], x2 = xx[2], x3 = xx[3], x4 = xx[4], x5 = xx[5], x6 = xx[6];
 
-            x3 ^= (x7 << 17);
-            x4 ^= (x7 >> 47);
-            x5 ^= (x7 << 47);
-            x6 ^= (x7 >> 17);
+            x2 ^= (x6 << 63);
+            x3 ^= (x6 >>  1) ^ (x6 << 14);
+            x4 ^= (x6 >> 50);
 
-            x2 ^= (x6 << 17);
-            x3 ^= (x6 >> 47);
-            x4 ^= (x6 << 47);
-            x5 ^= (x6 >> 17);
+            x1 ^= (x5 << 63);
+            x2 ^= (x5 >>  1) ^ (x5 << 14);
+            x3 ^= (x5 >> 50);
 
-            x1 ^= (x5 << 17);
-            x2 ^= (x5 >> 47);
-            x3 ^= (x5 << 47);
-            x4 ^= (x5 >> 17);
+            x0 ^= (x4 << 63);
+            x1 ^= (x4 >>  1) ^ (x4 << 14);
+            x2 ^= (x4 >> 50);
 
-            x0 ^= (x4 << 17);
-            x1 ^= (x4 >> 47);
-            x2 ^= (x4 << 47);
-            x3 ^= (x4 >> 17);
-
-            ulong t = x3 >> 47;
-            z[0]    = x0 ^ t;
-            z[1]    = x1;
-            z[2]    = x2 ^ (t << 30);
-            z[3]    = x3 & M47;
+            ulong t = x3 >> 1;
+            z[0]    = x0 ^ t ^ (t << 15);
+            z[1]    = x1     ^ (t >> 49);
+            z[2]    = x2;
+            z[3]    = x3 & M01;
         }
 
-        public static void Reduce17(ulong[] z, int zOff)
+        public static void Reduce63(ulong[] z, int zOff)
         {
-            ulong z3     = z[zOff + 3], t = z3 >> 47;
-            z[zOff    ] ^= t;
-            z[zOff + 2] ^= (t << 30);
-            z[zOff + 3]  = z3 & M47;
+            ulong z3     = z[zOff + 3], t = z3 >> 1;
+            z[zOff    ] ^= t ^ (t << 15);
+            z[zOff + 1] ^=     (t >> 49);
+            z[zOff + 3]  = z3 & M01;
         }
 
         public static void Square(ulong[] x, ulong[] z)
@@ -168,23 +164,25 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         protected static void ImplCompactExt(ulong[] zz)
         {
             ulong z0 = zz[0], z1 = zz[1], z2 = zz[2], z3 = zz[3], z4 = zz[4], z5 = zz[5], z6 = zz[6], z7 = zz[7];
-            zz[0] =  z0        ^ (z1 << 60);
-            zz[1] = (z1 >>  4) ^ (z2 << 56);
-            zz[2] = (z2 >>  8) ^ (z3 << 52);
-            zz[3] = (z3 >> 12) ^ (z4 << 48);
-            zz[4] = (z4 >> 16) ^ (z5 << 44);
-            zz[5] = (z5 >> 20) ^ (z6 << 40);
-            zz[6] = (z6 >> 24) ^ (z7 << 36);
-            zz[7] = (z7 >> 28);
+            zz[0] =  z0        ^ (z1 << 49);
+            zz[1] = (z1 >> 15) ^ (z2 << 34);
+            zz[2] = (z2 >> 30) ^ (z3 << 19);
+            zz[3] = (z3 >> 45) ^ (z4 <<  4)
+                               ^ (z5 << 53);
+            zz[4] = (z4 >> 60) ^ (z6 << 38)
+                  ^ (z5 >> 11);
+            zz[5] = (z6 >> 26) ^ (z7 << 23);
+            zz[6] = (z7 >> 41);
+            zz[7] = 0;
         }
 
         protected static void ImplExpand(ulong[] x, ulong[] z)
         {
             ulong x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3];
-            z[0] = x0 & M60;
-            z[1] = ((x0 >> 60) ^ (x1 <<  4)) & M60;
-            z[2] = ((x1 >> 56) ^ (x2 <<  8)) & M60;
-            z[3] = ((x2 >> 52) ^ (x3 << 12));
+            z[0] = x0 & M49;
+            z[1] = ((x0 >> 49) ^ (x1 << 15)) & M49;
+            z[2] = ((x1 >> 34) ^ (x2 << 30)) & M49;
+            z[3] = ((x2 >> 19) ^ (x3 << 45));
         }
 
         protected static void ImplMultiply(ulong[] x, ulong[] y, ulong[] zz)
@@ -237,8 +235,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMulwAcc(ulong x, ulong y, ulong[] z, int zOff)
         {
-            Debug.Assert(x >> 60 == 0);
-            Debug.Assert(y >> 60 == 0);
+            Debug.Assert(x >> 49 == 0);
+            Debug.Assert(y >> 49 == 0);
 
             ulong[] u = new ulong[8];
             //u[0] = 0;
@@ -248,28 +246,29 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             u[4] = u[2] << 1;
             u[5] = u[4] ^  y;
             u[6] = u[3] << 1;
-            u[7] = u[6] ^  y;
+            u[7] = u[6] ^ y;
 
             uint j = (uint)x;
             ulong g, h = 0, l = u[j & 7]
                               ^ (u[(j >> 3) & 7] << 3);
-            int k = 54;
+            int k = 36;
             do
             {
                 j  = (uint)(x >> k);
                 g  = u[j & 7]
-                   ^ u[(j >> 3) & 7] << 3;
+                   ^ u[(j >> 3) & 7] << 3
+                   ^ u[(j >> 6) & 7] << 6
+                   ^ u[(j >> 9) & 7] << 9
+                   ^ u[(j >> 12) & 7] << 12;
                 l ^= (g <<  k);
                 h ^= (g >> -k);
             }
-            while ((k -= 6) > 0);
+            while ((k -= 15) > 0);
 
-            h ^= ((x & 0x0820820820820820L) & (ulong)(((long)y << 4) >> 63)) >> 5;
+            Debug.Assert(h >> 33 == 0);
 
-            Debug.Assert(h >> 55 == 0);
-
-            z[zOff    ] ^= l & M60;
-            z[zOff + 1] ^= (l >> 60) ^ (h << 4);
+            z[zOff    ] ^= l & M49;
+            z[zOff + 1] ^= (l >> 49) ^ (h << 15);
         }
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
@@ -277,10 +276,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Interleave.Expand64To128(x[0], zz, 0);
             Interleave.Expand64To128(x[1], zz, 2);
             Interleave.Expand64To128(x[2], zz, 4);
-
-            ulong x3 = x[3];
-            zz[6] = Interleave.Expand32to64((uint)x3);
-            zz[7] = Interleave.Expand16to32((uint)(x3 >> 32));
+            zz[6] = (x[3] & M01);
         }
     }
 }

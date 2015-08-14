@@ -10,15 +10,15 @@ namespace Org.BouncyCastle.Asn1.X9
 			{
                 lock (this)
                 {
-				    if (parameters == null)
-				    {
-					    parameters = CreateParameters();
-				    }
+                    if (parameters == null)
+                    {
+                        parameters = CreateParameters();
+                    }
 
                     return parameters;
                 }
             }
-		}
+        }
 
 		protected abstract X9ECParameters CreateParameters();
 	}

@@ -45,6 +45,39 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return z;
         }
 
+        public static void Invert(ulong[] x, ulong[] z)
+        {
+            if (Nat256.IsZero64(x))
+                throw new InvalidOperationException();
+
+            // Itoh-Tsujii inversion
+
+            ulong[] t0 = Nat256.Create64();
+            ulong[] t1 = Nat256.Create64();
+
+            Square(x, t0);
+            Multiply(t0, x, t0);
+            Square(t0, t0);
+            Multiply(t0, x, t0);
+            SquareN(t0, 3, t1);
+            Multiply(t1, t0, t1);
+            Square(t1, t1);
+            Multiply(t1, x, t1);
+            SquareN(t1, 7, t0);
+            Multiply(t0, t1, t0);
+            SquareN(t0, 14, t1);
+            Multiply(t1, t0, t1);
+            Square(t1, t1);
+            Multiply(t1, x, t1);
+            SquareN(t1, 29, t0);
+            Multiply(t0, t1, t0);
+            SquareN(t0, 58, t1);
+            Multiply(t1, t0, t1);
+            SquareN(t1, 116, t0);
+            Multiply(t0, t1, t0);
+            Square(t0, z);
+        }
+
         public static void Multiply(ulong[] x, ulong[] y, ulong[] z)
         {
             ulong[] tt = Nat256.CreateExt64();
@@ -200,7 +233,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Debug.Assert(y >> 59 == 0);
 
             ulong[] u = new ulong[8];
-    //      u[0] = 0;
+            //u[0] = 0;
             u[1] = y;
             u[2] = u[1] << 1;
             u[3] = u[2] ^  y;
@@ -215,7 +248,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             int k = 54;
             do
             {
-                j = (uint)(x >> k);
+                j  = (uint)(x >> k);
                 g  = u[j & 7]
                    ^ u[(j >> 3) & 7] << 3;
                 l ^= (g <<  k);
