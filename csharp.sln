@@ -1,29 +1,26 @@
-Microsoft Visual Studio Solution File, Format Version 8.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto", "crypto\crypto.csproj", "{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto", "crypto\crypto.csproj", "{6A0C69D8-FE4B-45DD-B607-4DAF6EFBE6B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto-test", "crypto-test\crypto-test.csproj", "{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto-test", "crypto-test\crypto-test.csproj", "{2A395FC1-AD42-478C-BE04-6649DB82F1B7}"
 EndProject
 Global
-	GlobalSection(SolutionConfiguration) = preSolution
-		Debug = Debug
-		Release = Release
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(ProjectConfiguration) = postSolution
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug.ActiveCfg = Debug|.NET
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug.Build.0 = Debug|.NET
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release.ActiveCfg = Release|.NET
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release.Build.0 = Release|.NET
-		{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}.Debug.ActiveCfg = Debug|.NET
-		{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}.Debug.Build.0 = Debug|.NET
-		{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}.Release.ActiveCfg = Release|.NET
-		{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}.Release.Build.0 = Release|.NET
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A395FC1-AD42-478C-BE04-6649DB82F1B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A395FC1-AD42-478C-BE04-6649DB82F1B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A395FC1-AD42-478C-BE04-6649DB82F1B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A395FC1-AD42-478C-BE04-6649DB82F1B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A0C69D8-FE4B-45DD-B607-4DAF6EFBE6B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A0C69D8-FE4B-45DD-B607-4DAF6EFBE6B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A0C69D8-FE4B-45DD-B607-4DAF6EFBE6B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A0C69D8-FE4B-45DD-B607-4DAF6EFBE6B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-	EndGlobalSection
-	GlobalSection(ExtensibilityAddIns) = postSolution
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = crypto\crypto.csproj
 	EndGlobalSection
 EndGlobal

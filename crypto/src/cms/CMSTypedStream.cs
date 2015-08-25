@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Cms
 			int		bufSize)
 		{
 			_oid = oid;
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || UNITY_WINRT
 			_in = new FullReaderStream(inStream);
 #else
 			_in = new FullReaderStream(new BufferedStream(inStream, bufSize));

@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Pkcs
             this.cert = cert;
         }
 
-#if !SILVERLIGHT
+#if !(SILVERLIGHT || UNITY_WINRT)
         [Obsolete]
         public X509CertificateEntry(
             X509Certificate	cert,

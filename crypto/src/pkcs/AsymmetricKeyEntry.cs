@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Pkcs
             this.key = key;
         }
 
-#if !SILVERLIGHT
+#if !(SILVERLIGHT || UNITY_WINRT)
         [Obsolete]
         public AsymmetricKeyEntry(
             AsymmetricKeyParameter key,

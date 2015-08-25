@@ -2,7 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Utilities.Test
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || UNITY_WINRT)
     [Serializable]
 #endif
     public class TestFailedException

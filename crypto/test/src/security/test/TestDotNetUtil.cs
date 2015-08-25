@@ -1,4 +1,4 @@
-#if !(NETCF_1_0 || SILVERLIGHT)
+#if !(NETCF_1_0 || SILVERLIGHT || UNITY_WINRT)
 
 using System;
 using System.Security.Cryptography;

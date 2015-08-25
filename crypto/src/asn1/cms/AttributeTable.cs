@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Asn1.Cms
     {
         private readonly IDictionary attributes;
 
-#if !SILVERLIGHT
+#if !(SILVERLIGHT || UNITY_WINRT)
         [Obsolete]
         public AttributeTable(
             Hashtable attrs)
@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return Platform.CreateHashtable(attributes);
         }
 
-#if !SILVERLIGHT
+#if !(SILVERLIGHT || UNITY_WINRT)
         [Obsolete("Use 'ToDictionary' instead")]
 		public Hashtable ToHashtable()
         {

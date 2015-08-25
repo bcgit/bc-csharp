@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.X509
 			}
 		}
 
-#if !SILVERLIGHT
+#if !(SILVERLIGHT || UNITY_WINRT)
         [Obsolete]
         public SubjectDirectoryAttributes(
             ArrayList attributes)

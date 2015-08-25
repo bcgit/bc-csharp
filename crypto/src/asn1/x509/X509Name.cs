@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 
-#if SILVERLIGHT
+#if SILVERLIGHT || UNITY_WINRT
 using System.Collections.Generic;
 #endif
 
@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private static readonly bool[] defaultReverse = { false };
 
-#if SILVERLIGHT
+#if SILVERLIGHT || UNITY_WINRT
         /**
         * default look up table translating OID values into their common symbols following
         * the convention in RFC 2253 with a few extras
@@ -1027,7 +1027,7 @@ namespace Org.BouncyCastle.Asn1.X509
             bool		reverse,
             IDictionary oidSymbols)
         {
-#if SILVERLIGHT
+#if SILVERLIGHT || UNITY_WINRT
             List<object> components = new List<object>();
 #else
             ArrayList components = new ArrayList();

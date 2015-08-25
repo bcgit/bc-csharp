@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Cms
                 }
 
 				sig.Init(true, new ParametersWithRandom(key, random));
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || UNITY_WINRT
 				Stream sigStr = new SigOutputStream(sig);
 #else
 				Stream sigStr = new BufferedStream(new SigOutputStream(sig));

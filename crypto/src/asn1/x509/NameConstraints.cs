@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Asn1.X509
 			}
 		}
 
-#if !SILVERLIGHT
+#if !(SILVERLIGHT || UNITY_WINRT)
         public NameConstraints(
             ArrayList permitted,
             ArrayList excluded)
