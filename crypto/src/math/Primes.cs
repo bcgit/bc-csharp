@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Math
     /**
      * Utility methods for generating primes and testing for primality.
      */
-    public static class Primes
+    public abstract class Primes
     {
         private static readonly BigInteger One = BigInteger.One;
         private static readonly BigInteger Two = BigInteger.Two;
