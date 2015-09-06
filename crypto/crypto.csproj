@@ -3094,6 +3094,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IXof.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\KeyGenerationParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3209,6 +3214,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\digests\KeccakDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\digests\LongDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3285,6 +3295,11 @@
                 />
                 <File
                     RelPath = "src\crypto\digests\Sha512tDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\ShakeDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -7162,6 +7177,14 @@
                 />
                 <File
                     RelPath = "test\data\cms\sigs\PSSSignDataSHA512Enc.sig"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\SHA3TestVectors.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\SHAKETestVectors.txt"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
@@ -11138,6 +11161,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\KeccakDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\MacTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11384,6 +11412,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\SHA512HMacTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\ShakeDigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
