@@ -42,7 +42,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             TestVectors();
         }
 
-        [Test]
         public void TestVectors()
         {
             using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.SHAKETestVectors.txt")))
