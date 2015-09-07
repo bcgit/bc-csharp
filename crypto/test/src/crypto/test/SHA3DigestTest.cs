@@ -170,15 +170,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             int bits = v.Bits;
             int partialBits = bits % 8;
 
-            if (bits == 1605 && v.Algorithm.IndexOf("512") >= 0)
-            {
-                /*
-                 * TODO The SHA3-512 1605-bit test vector appear to be invalid. The 1605-bit vectors for
-                 * the other SHA3 lengths were originally wrong, but fixed 14th Aug, 2015.
-                 */
-                return;
-            }
-
             //Console.WriteLine(v.Algorithm + " " + bits + "-bit");
             //Console.WriteLine(Hex.ToHexString(v.Message).ToUpper());
             //Console.WriteLine(Hex.ToHexString(v.Hash).ToUpper());
