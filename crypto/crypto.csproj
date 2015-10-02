@@ -4324,6 +4324,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\signers\IsoTrailers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\signers\PSSSigner.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
