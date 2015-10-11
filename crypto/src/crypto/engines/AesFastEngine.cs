@@ -573,10 +573,20 @@ namespace Org.BouncyCastle.Crypto.Engines
         private const uint m1 = 0x80808080;
         private const uint m2 = 0x7f7f7f7f;
         private const uint m3 = 0x0000001b;
+        private const uint m4 = 0xC0C0C0C0;
+        private const uint m5 = 0x3f3f3f3f;
 
         private static uint FFmulX(uint x)
         {
             return ((x & m2) << 1) ^ (((x & m1) >> 7) * m3);
+        }
+
+        private static uint FFmulX2(uint x)
+        {
+            uint t0  = (x & m5) << 2;
+            uint t1  = (x & m4);
+                 t1 ^= (t1 >> 1);
+            return t0 ^ (t1 >> 2) ^ (t1 >> 5);
         }
 
         /*
@@ -591,12 +601,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private static uint Inv_Mcol(uint x)
         {
-            uint f2 = FFmulX(x);
-            uint f4 = FFmulX(f2);
-            uint f8 = FFmulX(f4);
-            uint f9 = x ^ f8;
-
-            return f2 ^ f4 ^ f8 ^ Shift(f2 ^ f9, 8) ^ Shift(f4 ^ f9, 16) ^ Shift(f9, 24);
+            uint t0, t1;
+            t0  = x;
+            t1  = t0 ^ Shift(t0, 8);
+            t0 ^= FFmulX(t1);
+            t1 ^= FFmulX2(t0);
+            t0 ^= t1 ^ Shift(t1, 16);
+            return t0;
         }
 
         private static uint SubWord(uint x)

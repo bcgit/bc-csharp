@@ -1,18 +1,69 @@
 ﻿using System;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math
 {
-    public static class Primes
+    /**
+     * Utility methods for generating primes and testing for primality.
+     */
+    public abstract class Primes
     {
         private static readonly BigInteger One = BigInteger.One;
         private static readonly BigInteger Two = BigInteger.Two;
         private static readonly BigInteger Three = BigInteger.Three;
 
         /**
-         * Used to return the output from the {@linkplain #generateSTRandomPrime(Digest) Shawe-Taylor Random_Prime Routine} 
+         * Used to return the output from the
+         * {@linkplain Primes#enhancedMRProbablePrimeTest(BigInteger, SecureRandom, int) Enhanced
+         * Miller-Rabin Probabilistic Primality Test}
+         */
+        public class MROutput
+        {
+            internal static MROutput ProbablyPrime()
+            {
+                return new MROutput(false, null);
+            }
+
+            internal static MROutput ProvablyCompositeWithFactor(BigInteger factor)
+            {
+                return new MROutput(true, factor);
+            }
+
+            internal static MROutput ProvablyCompositeNotPrimePower()
+            {
+                return new MROutput(true, null);
+            }
+
+            private readonly bool mProvablyComposite;
+            private readonly BigInteger mFactor;
+
+            private MROutput(bool provablyComposite, BigInteger factor)
+            {
+                this.mProvablyComposite = provablyComposite;
+                this.mFactor = factor;
+            }
+
+            public BigInteger Factor
+            {
+                get { return mFactor; }
+            }
+
+            public bool IsProvablyComposite
+            {
+                get { return mProvablyComposite; }
+            }
+
+            public bool IsNotPrimePower
+            {
+                get { return mProvablyComposite && mFactor == null; }
+            }
+        }
+
+        /**
+         * Used to return the output from the {@linkplain Primes#generateSTRandomPrime(Digest, int, byte[]) Shawe-Taylor Random_Prime Routine} 
          */
         public class STOutput
         {
@@ -51,11 +102,11 @@ namespace Org.BouncyCastle.Math
          * @param hash
          *            the {@link Digest} instance to use (as "Hash()"). Cannot be null.
          * @param length
-         *            the length (in bits) of the prime to be generated. Must be >= 2.
+         *            the length (in bits) of the prime to be generated. Must be at least 2.
          * @param inputSeed
          *            the seed to be used for the generation of the requested prime. Cannot be null or
          *            empty.
-         * @returns an {@link STOutput} instance containing the requested prime.
+         * @return an {@link STOutput} instance containing the requested prime.
          */
         public static STOutput GenerateSTRandomPrime(IDigest hash, int length, byte[] inputSeed)
         {
@@ -69,6 +120,269 @@ namespace Org.BouncyCastle.Math
                 throw new ArgumentException("cannot be empty", "inputSeed");
 
             return ImplSTRandomPrime(hash, length, Arrays.Clone(inputSeed));
+        }
+
+        /**
+         * FIPS 186-4 C.3.2 Enhanced Miller-Rabin Probabilistic Primality Test
+         * 
+         * Run several iterations of the Miller-Rabin algorithm with randomly-chosen bases. This is an
+         * alternative to {@link #isMRProbablePrime(BigInteger, SecureRandom, int)} that provides more
+         * information about a composite candidate, which may be useful when generating or validating
+         * RSA moduli.
+         * 
+         * @param candidate
+         *            the {@link BigInteger} instance to test for primality.
+         * @param random
+         *            the source of randomness to use to choose bases.
+         * @param iterations
+         *            the number of randomly-chosen bases to perform the test for.
+         * @return an {@link MROutput} instance that can be further queried for details.
+         */
+        public static MROutput EnhancedMRProbablePrimeTest(BigInteger candidate, SecureRandom random, int iterations)
+        {
+            CheckCandidate(candidate, "candidate");
+
+            if (random == null)
+                throw new ArgumentNullException("random");
+            if (iterations < 1)
+                throw new ArgumentException("must be > 0", "iterations");
+
+            if (candidate.BitLength == 2)
+                return MROutput.ProbablyPrime();
+
+            if (!candidate.TestBit(0))
+                return MROutput.ProvablyCompositeWithFactor(Two);
+
+            BigInteger w = candidate;
+            BigInteger wSubOne = candidate.Subtract(One);
+            BigInteger wSubTwo = candidate.Subtract(Two);
+
+            int a = wSubOne.GetLowestSetBit();
+            BigInteger m = wSubOne.ShiftRight(a);
+
+            for (int i = 0; i < iterations; ++i)
+            {
+                BigInteger b = BigIntegers.CreateRandomInRange(Two, wSubTwo, random);
+                BigInteger g = b.Gcd(w);
+
+                if (g.CompareTo(One) > 0)
+                    return MROutput.ProvablyCompositeWithFactor(g);
+
+                BigInteger z = b.ModPow(m, w);
+
+                if (z.Equals(One) || z.Equals(wSubOne))
+                    continue;
+
+                bool primeToBase = false;
+
+                BigInteger x = z;
+                for (int j = 1; j < a; ++j)
+                {
+                    z = z.ModPow(Two, w);
+
+                    if (z.Equals(wSubOne))
+                    {
+                        primeToBase = true;
+                        break;
+                    }
+
+                    if (z.Equals(One))
+                        break;
+
+                    x = z;
+                }
+
+                if (!primeToBase)
+                {
+                    if (!z.Equals(One))
+                    {
+                        x = z;
+                        z = z.ModPow(Two, w);
+
+                        if (!z.Equals(One))
+                        {
+                            x = z;
+                        }
+                    }
+
+                    g = x.Subtract(One).Gcd(w);
+
+                    if (g.CompareTo(One) > 0)
+                        return MROutput.ProvablyCompositeWithFactor(g);
+
+                    return MROutput.ProvablyCompositeNotPrimePower();
+                }
+            }
+
+            return MROutput.ProbablyPrime();
+        }
+
+        /**
+         * A fast check for small divisors, up to some implementation-specific limit.
+         * 
+         * @param candidate
+         *            the {@link BigInteger} instance to test for division by small factors.
+         * 
+         * @return <code>true</code> if the candidate is found to have any small factors,
+         *         <code>false</code> otherwise.
+         */
+        public static bool HasAnySmallFactors(BigInteger candidate)
+        {
+            CheckCandidate(candidate, "candidate");
+
+            return ImplHasAnySmallFactors(candidate);
+        }
+
+        /**
+         * FIPS 186-4 C.3.1 Miller-Rabin Probabilistic Primality Test
+         * 
+         * Run several iterations of the Miller-Rabin algorithm with randomly-chosen bases.
+         * 
+         * @param candidate
+         *            the {@link BigInteger} instance to test for primality.
+         * @param random
+         *            the source of randomness to use to choose bases.
+         * @param iterations
+         *            the number of randomly-chosen bases to perform the test for.
+         * @return <code>false</code> if any witness to compositeness is found amongst the chosen bases
+         *         (so <code>candidate</code> is definitely NOT prime), or else <code>true</code>
+         *         (indicating primality with some probability dependent on the number of iterations
+         *         that were performed).
+         */
+        public static bool IsMRProbablePrime(BigInteger candidate, SecureRandom random, int iterations)
+        {
+            CheckCandidate(candidate, "candidate");
+
+            if (random == null)
+                throw new ArgumentException("cannot be null", "random");
+            if (iterations < 1)
+                throw new ArgumentException("must be > 0", "iterations");
+
+            if (candidate.BitLength == 2)
+                return true;
+            if (!candidate.TestBit(0))
+                return false;
+
+            BigInteger w = candidate;
+            BigInteger wSubOne = candidate.Subtract(One);
+            BigInteger wSubTwo = candidate.Subtract(Two);
+
+            int a = wSubOne.GetLowestSetBit();
+            BigInteger m = wSubOne.ShiftRight(a);
+
+            for (int i = 0; i < iterations; ++i)
+            {
+                BigInteger b = BigIntegers.CreateRandomInRange(Two, wSubTwo, random);
+
+                if (!ImplMRProbablePrimeToBase(w, wSubOne, m, a, b))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /**
+         * FIPS 186-4 C.3.1 Miller-Rabin Probabilistic Primality Test (to a fixed base).
+         * 
+         * Run a single iteration of the Miller-Rabin algorithm against the specified base.
+         * 
+         * @param candidate
+         *            the {@link BigInteger} instance to test for primality.
+         * @param baseValue
+         *            the base value to use for this iteration.
+         * @return <code>false</code> if the specified base is a witness to compositeness (so
+         *         <code>candidate</code> is definitely NOT prime), or else <code>true</code>.
+         */
+        public static bool IsMRProbablePrimeToBase(BigInteger candidate, BigInteger baseValue)
+        {
+            CheckCandidate(candidate, "candidate");
+            CheckCandidate(baseValue, "baseValue");
+
+            if (baseValue.CompareTo(candidate.Subtract(One)) >= 0)
+                throw new ArgumentException("must be < ('candidate' - 1)", "baseValue");
+
+            if (candidate.BitLength == 2)
+                return true;
+
+            BigInteger w = candidate;
+            BigInteger wSubOne = candidate.Subtract(One);
+
+            int a = wSubOne.GetLowestSetBit();
+            BigInteger m = wSubOne.ShiftRight(a);
+
+            return ImplMRProbablePrimeToBase(w, wSubOne, m, a, baseValue);
+        }
+
+        private static void CheckCandidate(BigInteger n, string name)
+        {
+            if (n == null || n.SignValue < 1 || n.BitLength < 2)
+                throw new ArgumentException("must be non-null and >= 2", name);
+        }
+
+        private static bool ImplHasAnySmallFactors(BigInteger x)
+        {
+            /*
+             * Bundle trial divisors into ~32-bit moduli then use fast tests on the ~32-bit remainders.
+             */
+            int m = 2 * 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23;
+            int r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r & 1) != 0 && (r % 3) != 0 && (r % 5) != 0 && (r % 7) != 0 && (r % 11) != 0
+                && (r % 13) != 0 && (r % 17) != 0 && (r % 19) != 0 && (r % 23) != 0)
+            {
+                m = 29 * 31 * 37 * 41 * 43;
+                r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+                if ((r % 29) != 0 && (r % 31) != 0 && (r % 37) != 0 && (r % 41) != 0 && (r % 43) != 0)
+                {
+                    m = 47 * 53 * 59 * 61 * 67;
+                    r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+                    if ((r % 47) != 0 && (r % 53) != 0 && (r % 59) != 0 && (r % 61) != 0 && (r % 67) != 0)
+                    {
+                        m = 71 * 73 * 79 * 83;
+                        r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+                        if ((r % 71) != 0 && (r % 73) != 0 && (r % 79) != 0 && (r % 83) != 0)
+                        {
+                            m = 89 * 97 * 101 * 103;
+                            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+                            if ((r % 89) != 0 && (r % 97) != 0 && (r % 101) != 0 && (r % 103) != 0)
+                            {
+                                m = 107 * 109 * 113 * 127;
+                                r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+                                if ((r % 107) != 0 && (r % 109) != 0 && (r % 113) != 0 && (r % 127) != 0)
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool ImplMRProbablePrimeToBase(BigInteger w, BigInteger wSubOne, BigInteger m, int a, BigInteger b)
+        {
+            BigInteger z = b.ModPow(m, w);
+
+            if (z.Equals(One) || z.Equals(wSubOne))
+                return true;
+
+            bool result = false;
+
+            for (int j = 1; j < a; ++j)
+            {
+                z = z.ModPow(Two, w);
+
+                if (z.Equals(wSubOne))
+                {
+                    result = true;
+                    break;
+                }
+
+                if (z.Equals(One))
+                    return false;
+            }
+
+            return result;
         }
 
         private static STOutput ImplSTRandomPrime(IDigest d, int length, byte[] primeSeed)
@@ -131,7 +445,7 @@ namespace Org.BouncyCastle.Math
 
                 /*
                  * TODO Since the candidate primes are generated by constant steps ('c0x2'),
-                 * sieving could be used here in place of the 'mightBePrime' approach.
+                 * sieving could be used here in place of the 'HasAnySmallFactors' approach.
                  */
                 for (;;)
                 {
@@ -149,7 +463,7 @@ namespace Org.BouncyCastle.Math
                      * 
                      * NOTE: 'primeSeed' is still incremented as if we performed the full check!
                      */
-                    if (MightBePrime(c))
+                    if (!ImplHasAnySmallFactors(c))
                     {
                         BigInteger a = HashGen(d, primeSeed, iterations + 1);
                         a = a.Mod(c.Subtract(Three)).Add(Two);
@@ -265,46 +579,6 @@ namespace Org.BouncyCastle.Math
                     return true;
                 }
             }
-        }
-
-        private static bool MightBePrime(BigInteger x)
-        {
-            /*
-             * Bundle trial divisors into ~32-bit moduli then use fast tests on the ~32-bit remainders.
-             */
-            int m = 2 * 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23;
-            int r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-            if ((r & 1) != 0 && (r % 3) != 0 && (r % 5) != 0 && (r % 7) != 0 && (r % 11) != 0
-                && (r % 13) != 0 && (r % 17) != 0 && (r % 19) != 0 && (r % 23) != 0)
-            {
-                m = 29 * 31 * 37 * 41 * 43;
-                r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                if ((r % 29) != 0 && (r % 31) != 0 && (r % 37) != 0 && (r % 41) != 0 && (r % 43) != 0)
-                {
-                    m = 47 * 53 * 59 * 61 * 67;
-                    r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                    if ((r % 47) != 0 && (r % 53) != 0 && (r % 59) != 0 && (r % 61) != 0 && (r % 67) != 0)
-                    {
-                        m = 71 * 73 * 79 * 83;
-                        r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                        if ((r % 71) != 0 && (r % 73) != 0 && (r % 79) != 0 && (r % 83) != 0)
-                        {
-                            m = 89 * 97 * 101 * 103;
-                            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                            if ((r % 89) != 0 && (r % 97) != 0 && (r % 101) != 0 && (r % 103) != 0)
-                            {
-                                m = 107 * 109 * 113 * 127;
-                                r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                                if ((r % 107) != 0 && (r % 109) != 0 && (r % 113) != 0 && (r % 127) != 0)
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
         }
     }
 }

@@ -13,28 +13,28 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Crypto.Tests
 {
     /**
-     * SHA3 Digest Test
+     * SHAKE Digest Test
      */
     [TestFixture]
-    public class Sha3DigestTest
+    public class ShakeDigestTest
         : SimpleTest
     {
-        internal class MySha3Digest : Sha3Digest
+        internal class MyShakeDigest : ShakeDigest
         {
-            internal MySha3Digest(int bitLength)
+            internal MyShakeDigest(int bitLength)
                 : base(bitLength)
             {
             }
 
-            internal int MyDoFinal(byte[] output, int outOff, byte partialByte, int partialBits)
+            internal int MyDoFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits)
             {
-                return DoFinal(output, outOff, partialByte, partialBits);
+                return DoFinal(output, outOff, outLen, partialByte, partialBits);
             }
         }
 
         public override string Name
         {
-            get { return "SHA-3"; }
+            get { return "SHAKE"; }
         }
 
         public override void PerformTest()
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public void TestVectors()
         {
-            using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.SHA3TestVectors.txt")))
+            using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.SHAKETestVectors.txt")))
             {
                 String line;
                 while (null != (line = ReadLine(r)))
@@ -58,12 +58,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private MySha3Digest CreateDigest(string algorithm)
+        private MyShakeDigest CreateDigest(string algorithm)
         {
-            if (algorithm.StartsWith("SHA3-"))
+            if (algorithm.StartsWith("SHAKE-"))
             {
-                int bits = ParseDecimal(algorithm.Substring("SHA3-".Length));
-                return new MySha3Digest(bits);
+                int bits = ParseDecimal(algorithm.Substring("SHAKE-".Length));
+                return new MyShakeDigest(bits);
             }
             throw new ArgumentException("Unknown algorithm: " + algorithm, "algorithm");
         }
@@ -136,10 +136,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             byte[] message = DecodeBinary(messageBlock);
 
-            SkipUntil(r, TestVector.HASH_HEADER);
-            byte[] hash = Hex.Decode(ReadBlock(r));
+            SkipUntil(r, TestVector.OUTPUT_HEADER);
+            byte[] output = Hex.Decode(ReadBlock(r));
 
-            return new TestVector(algorithm, bits, message, hash);
+            return new TestVector(algorithm, bits, message, output);
         }
 
         private string ReadLine(StreamReader r)
@@ -170,26 +170,30 @@ namespace Org.BouncyCastle.Crypto.Tests
             int bits = v.Bits;
             int partialBits = bits % 8;
 
+            byte[] expected = v.Output;
+
             //Console.WriteLine(v.Algorithm + " " + bits + "-bit");
             //Console.WriteLine(Hex.ToHexString(v.Message).ToUpper());
-            //Console.WriteLine(Hex.ToHexString(v.Hash).ToUpper());
+            //Console.WriteLine(Hex.ToHexString(expected).ToUpper());
 
-            MySha3Digest d = CreateDigest(v.Algorithm);
-            byte[] output = new byte[d.GetDigestSize()];
+            int outLen = expected.Length;
+
+            MyShakeDigest d = CreateDigest(v.Algorithm);
+            byte[] output = new byte[outLen];
 
             byte[] m = v.Message;
             if (partialBits == 0)
             {
                 d.BlockUpdate(m, 0, m.Length);
-                d.DoFinal(output, 0);
+                d.DoFinal(output, 0, outLen);
             }
             else
             {
                 d.BlockUpdate(m, 0, m.Length - 1);
-                d.MyDoFinal(output, 0, m[m.Length - 1], partialBits);
+                d.MyDoFinal(output, 0, outLen, m[m.Length - 1], partialBits);
             }
 
-            if (!Arrays.AreEqual(v.Hash, output))
+            if (!Arrays.AreEqual(expected, output))
             {
                 Fail(v.Algorithm + " " + v.Bits + "-bit test vector hash mismatch");
                 //Console.Error.WriteLine(v.Algorithm + " " + v.Bits + "-bit test vector hash mismatch");
@@ -230,9 +234,9 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         public static void Main(
-            string[]    args)
+            string[] args)
         {
-            RunTest(new Sha3DigestTest());
+            RunTest(new ShakeDigestTest());
         }
 
         [Test]
@@ -247,19 +251,19 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             internal static string SAMPLE_OF = " sample of ";
             internal static string MSG_HEADER = "Msg as bit string";
-            internal static string HASH_HEADER = "Hash val is";
+            internal static string OUTPUT_HEADER = "Output val is";
 
             private readonly string algorithm;
             private readonly int bits;
             private readonly byte[] message;
-            private readonly byte[] hash;
+            private readonly byte[] output;
 
-            internal TestVector(string algorithm, int bits, byte[] message, byte[] hash)
+            internal TestVector(string algorithm, int bits, byte[] message, byte[] output)
             {
                 this.algorithm = algorithm;
                 this.bits = bits;
                 this.message = message;
-                this.hash = hash;
+                this.output = output;
             }
 
             public string Algorithm
@@ -277,9 +281,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 get { return message; }
             }
 
-            public byte[] Hash
+            public byte[] Output
             {
-                get { return hash; }
+                get { return output; }
             }
         }
     }

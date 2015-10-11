@@ -119,7 +119,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Poly1305Test(),
             new OcbTest(),
             new SM3DigestTest(),
-            new X931SignerTest()
+            new X931SignerTest(),
+            new KeccakDigestTest(),
+            new ShakeDigestTest(),
         };
 
         public static void Main(
