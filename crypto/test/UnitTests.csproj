@@ -187,6 +187,7 @@
     <Compile Include="src\crypto\test\ISO9797Alg3MacTest.cs" />
     <Compile Include="src\crypto\test\KDF1GeneratorTest.cs" />
     <Compile Include="src\crypto\test\KDF2GeneratorTest.cs" />
+    <Compile Include="src\crypto\test\KeccakDigestTest.cs" />
     <Compile Include="src\crypto\test\MD2DigestTest.cs" />
     <Compile Include="src\crypto\test\MD4DigestTest.cs" />
     <Compile Include="src\crypto\test\MD5DigestTest.cs" />
@@ -245,6 +246,7 @@
     <Compile Include="src\crypto\test\SRP6Test.cs" />
     <Compile Include="src\crypto\test\Salsa20Test.cs" />
     <Compile Include="src\crypto\test\SerpentTest.cs" />
+    <Compile Include="src\crypto\test\ShakeDigestTest.cs" />
     <Compile Include="src\crypto\test\ShortenedDigestTest.cs" />
     <Compile Include="src\crypto\test\SipHashTest.cs" />
     <Compile Include="src\crypto\test\SkipjackTest.cs" />
@@ -407,6 +409,8 @@
     <Compile Include="src\x509\test\TestCertificateGen.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="data\crypto\SHA3TestVectors.txt" />
+    <EmbeddedResource Include="data\crypto\SHAKETestVectors.txt" />
     <EmbeddedResource Include="data\PKITS\README.txt" />
     <EmbeddedResource Include="data\PKITS\certs\AllCertificatesNoPoliciesTest2EE.crt" />
     <EmbeddedResource Include="data\PKITS\certs\AllCertificatesSamePoliciesTest10EE.crt" />

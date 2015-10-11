@@ -645,6 +645,7 @@
     <Compile Include="src\crypto\ISignerWithRecovery.cs" />
     <Compile Include="src\crypto\IStreamCipher.cs" />
     <Compile Include="src\crypto\IWrapper.cs" />
+    <Compile Include="src\crypto\IXof.cs" />
     <Compile Include="src\crypto\InvalidCipherTextException.cs" />
     <Compile Include="src\crypto\KeyGenerationParameters.cs" />
     <Compile Include="src\crypto\MaxBytesExceededException.cs" />
@@ -669,6 +670,7 @@
     <Compile Include="src\crypto\agreement\srp\SRP6VerifierGenerator.cs" />
     <Compile Include="src\crypto\digests\GOST3411Digest.cs" />
     <Compile Include="src\crypto\digests\GeneralDigest.cs" />
+    <Compile Include="src\crypto\digests\KeccakDigest.cs" />
     <Compile Include="src\crypto\digests\LongDigest.cs" />
     <Compile Include="src\crypto\digests\MD2Digest.cs" />
     <Compile Include="src\crypto\digests\MD4Digest.cs" />
@@ -686,6 +688,7 @@
     <Compile Include="src\crypto\digests\Sha384Digest.cs" />
     <Compile Include="src\crypto\digests\Sha512Digest.cs" />
     <Compile Include="src\crypto\digests\Sha512tDigest.cs" />
+    <Compile Include="src\crypto\digests\ShakeDigest.cs" />
     <Compile Include="src\crypto\digests\ShortenedDigest.cs" />
     <Compile Include="src\crypto\digests\SkeinDigest.cs" />
     <Compile Include="src\crypto\digests\SkeinEngine.cs" />
@@ -889,6 +892,7 @@
     <Compile Include="src\crypto\signers\IDsaKCalculator.cs" />
     <Compile Include="src\crypto\signers\Iso9796d2PssSigner.cs" />
     <Compile Include="src\crypto\signers\Iso9796d2Signer.cs" />
+    <Compile Include="src\crypto\signers\IsoTrailers.cs" />
     <Compile Include="src\crypto\signers\PssSigner.cs" />
     <Compile Include="src\crypto\signers\RandomDsaKCalculator.cs" />
     <Compile Include="src\crypto\signers\RsaDigestSigner.cs" />
