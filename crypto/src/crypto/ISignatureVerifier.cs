@@ -6,10 +6,10 @@ namespace Org.BouncyCastle.Crypto
     /// <summary>
     /// Base interface for operators that serve as stream-based signature verifiers.
     /// </summary>
-    public interface ISignatureVerifier<out A>
+    public interface ISignatureVerifier
 	{
         /// <summary>The algorithm details object for this verifier.</summary>
-        A AlgorithmDetails { get ; }
+        Object AlgorithmDetails { get ; }
 
         /// <summary>Return a "bucket" stream which only exists to update the verifier.</summary>
         /// <returns>A stream to write to in order to update the verifier.</returns>

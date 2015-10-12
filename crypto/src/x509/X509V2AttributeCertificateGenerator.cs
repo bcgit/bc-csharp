@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.X509
         /// </summary>
         /// <param name="signatureCalculator">A signature calculator with the necessary algorithm details.</param>
         /// <returns>An IX509AttributeCertificate.</returns>
-        public IX509AttributeCertificate Generate(ISignatureCalculator<AlgorithmIdentifier> signatureCalculator)
+        public IX509AttributeCertificate Generate(ISignatureCalculator signatureCalculator)
         {
             if (!extGenerator.IsEmpty)
 			{
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.X509
 
             Asn1EncodableVector v = new Asn1EncodableVector();
 
-			v.Add(acInfo, signatureCalculator.AlgorithmDetails);
+			v.Add(acInfo, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails);
 
 			try
 			{

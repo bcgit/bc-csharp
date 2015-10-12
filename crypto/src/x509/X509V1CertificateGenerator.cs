@@ -172,9 +172,9 @@ namespace Org.BouncyCastle.X509
 		/// </summary>
 		/// <param name="signatureCalculator">A signature calculator with the necessary algorithm details.</param>
 		/// <returns>An X509Certificate.</returns>
-		public X509Certificate Generate(ISignatureCalculator<AlgorithmIdentifier> signatureCalculator)
+		public X509Certificate Generate(ISignatureCalculator signatureCalculator)
 		{
-			tbsGen.SetSignature (signatureCalculator.AlgorithmDetails);
+			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculator.AlgorithmDetails);
 
 			TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.X509
 
 			sigStream.Close ();
 
-			return GenerateJcaObject(tbsCert, signatureCalculator.AlgorithmDetails, signatureCalculator.Signature());
+			return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, signatureCalculator.Signature());
 		}
 
 		private X509Certificate GenerateJcaObject(

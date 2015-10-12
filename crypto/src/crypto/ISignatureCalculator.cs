@@ -1,21 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
-
 
 namespace Org.BouncyCastle.Crypto
 {
     /// <summary>
     /// Base interface for operators that serve as stream-based signature calculators.
     /// </summary>
-    public interface ISignatureCalculator<out A>
+    public interface ISignatureCalculator
 	{
         /// <summary>The algorithm details object for this calculator.</summary>
-        A AlgorithmDetails { get ; }
+        Object AlgorithmDetails { get ; }
 
         /// <summary>Return a "bucket" stream which only exists to update the calculator.</summary>
         /// <returns>A stream to write to in order to update the calculator.</returns>

@@ -251,7 +251,7 @@ namespace Org.BouncyCastle.Crypto.Operators
     /// Calculator class for signature generation in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
     /// signature algorithm details.
     /// </summary>
-	public class Asn1SignatureCalculator: ISignatureCalculator<AlgorithmIdentifier>
+	public class Asn1SignatureCalculator: ISignatureCalculator
 	{
 		private readonly AlgorithmIdentifier algID;
 		private readonly ISigner sig;
@@ -289,7 +289,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			this.algID = X509Utilities.GetSigAlgID (sigOid, algorithm);
 		}
 
-		public AlgorithmIdentifier AlgorithmDetails
+		public Object AlgorithmDetails
 		{
 			get { return this.algID; }
 		}
@@ -339,7 +339,7 @@ namespace Org.BouncyCastle.Crypto.Operators
     /// Verifier class for signature verification in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
     /// signature algorithm details.
     /// </summary>
-    public class Asn1SignatureVerifier: ISignatureVerifier<AlgorithmIdentifier>
+    public class Asn1SignatureVerifier: ISignatureVerifier
 	{
 		private readonly AlgorithmIdentifier algID;
 		private readonly ISigner sig;
@@ -371,7 +371,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			this.algID = algorithm;
 		}
 
-		public AlgorithmIdentifier AlgorithmDetails
+		public Object AlgorithmDetails
 		{
 			get { return this.algID; }
 		}
@@ -412,7 +412,7 @@ namespace Org.BouncyCastle.Crypto.Operators
     /// <summary>
     /// Provider class which supports dynamic creation of signature verifiers.
     /// </summary>
-	public class Asn1SignatureVerifierProvider: ISignatureVerifierProvider<AlgorithmIdentifier>
+	public class Asn1SignatureVerifierProvider: ISignatureVerifierProvider
 	{
 		private readonly AsymmetricKeyParameter publicKey;
 
@@ -425,9 +425,9 @@ namespace Org.BouncyCastle.Crypto.Operators
 			this.publicKey = publicKey;
 		}
 
-		public ISignatureVerifier<AlgorithmIdentifier> CreateSignatureVerifier(AlgorithmIdentifier algorithmDetails)
+		public ISignatureVerifier CreateSignatureVerifier(Object algorithmDetails)
 		{
-			return new Asn1SignatureVerifier (algorithmDetails, publicKey);
+			return new Asn1SignatureVerifier ((AlgorithmIdentifier)algorithmDetails, publicKey);
 		}
 
 		/// <summary>
