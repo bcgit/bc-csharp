@@ -698,7 +698,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
         private void checkValue(byte[] flag, int val)
         {
-            KeyFlags f = new KeyFlags(true, flag);
+            KeyFlags f = new KeyFlags(true, false, flag);
 
             if (f.Flags != val)
             {

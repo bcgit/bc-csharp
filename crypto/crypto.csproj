@@ -2544,6 +2544,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\bcpg\sig\Features.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\bcpg\sig\IssuerKeyID.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6154,6 +6159,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\openpgp\PgpPad.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\openpgp\PGPPBEEncryptedData.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6240,6 +6250,16 @@
                 />
                 <File
                     RelPath = "src\openpgp\PGPV3SignatureGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\openpgp\Rfc6637Utilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\openpgp\SXprUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -7454,6 +7474,14 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\openpgp\bigpub.asc"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\longSigSubPack.asc"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\openpgp\dsa\README.txt"
                     BuildAction = "None"
                 />
@@ -7531,6 +7559,22 @@
                 />
                 <File
                     RelPath = "test\data\openpgp\dsa\sigs\dsa-7680-384-sign.gpg"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\unicode\passphrase_cyr.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\unicode\passphrase_for_test.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\unicode\secring.gpg"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\unicode\test.asc"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
@@ -11846,6 +11890,21 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\openpgp\test\PgpECDHTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\openpgp\test\PgpECDsaTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\openpgp\test\PgpECMessageTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\openpgp\test\PgpKeyRingTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11866,6 +11925,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\openpgp\test\PgpParsingTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\openpgp\test\PGPPBETest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11877,6 +11941,11 @@
                 />
                 <File
                     RelPath = "test\src\openpgp\test\PGPSignatureTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\openpgp\test\PgpUnicodeTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
