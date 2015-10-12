@@ -12,12 +12,21 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.X509.Tests
 {
     [TestFixture]
-    public class TestCertificateGen
+    public class TestCertificateGen: SimpleTest
     {
+        public override string Name
+        {
+            get
+            {
+                return "X.509 Cert Gen";
+            }
+        }
+
         public TestCertificateGen()
         {
         }
@@ -260,6 +269,7 @@ namespace Org.BouncyCastle.X509.Tests
             certGen.SetPublicKey(ecPub);
             certGen.SetSignatureAlgorithm("SHA1WITHECDSA");
 
+            certGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(false));
 
             X509Certificate cert = certGen.Generate(ecPriv);
 
@@ -267,8 +277,12 @@ namespace Org.BouncyCastle.X509.Tests
 			cert.CheckValidity();
 			cert.Verify(ecPub);
 
-            //ISet dummySet = cert.GetNonCriticalExtensionOids();
+            ISet extOidSet = cert.GetCriticalExtensionOids();
 
+            if (extOidSet.Count != 1)
+            {
+                Fail("wrong number of oids");
+            }
             //if (dummySet != null)
             //{
             //    foreach (string key in dummySet)
@@ -711,5 +725,17 @@ namespace Org.BouncyCastle.X509.Tests
 				Assert.Fail("Reading busted Certificate.");
 			}
 		}
-	}
+
+        public static void Main(string[] args)
+        {
+            RunTest(new TestCertificateGen());
+        }
+
+        public override void PerformTest()
+        {
+            TestCreationRSA();
+            TestCreationDSA();
+            TestCreationECDSA();
+        }
+    }
 }
