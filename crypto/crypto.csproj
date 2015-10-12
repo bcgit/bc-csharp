@@ -3074,6 +3074,21 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\ISignatureCalculator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\ISignatureVerifier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\ISignatureVerifierProvider.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\ISigner.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3905,6 +3920,11 @@
                 />
                 <File
                     RelPath = "src\crypto\modes\gcm\Tables8kGcmMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\operators\Asn1Signature.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6805,6 +6825,11 @@
                 />
                 <File
                     RelPath = "src\util\io\BaseOutputStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\util\io\FilterStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
