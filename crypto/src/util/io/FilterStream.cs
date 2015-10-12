@@ -1,12 +1,9 @@
-using System;
 using System.IO;
 
-namespace Org.BouncyCastle.Asn1.Utilities
+namespace Org.BouncyCastle.Utilities.IO
 {
-    [Obsolete("Use Org.BouncyCastle.Utilities.IO.FilterStream")]
     public class FilterStream : Stream
     {
-        [Obsolete("Use Org.BouncyCastle.Utilities.IO.FilterStream")]
         public FilterStream(Stream s)
         {
             this.s = s;
