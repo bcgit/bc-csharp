@@ -41,13 +41,39 @@ namespace Org.BouncyCastle.Asn1.Misc
         //       iso/itu(2) country(16) us(840) organization(1) novell(113719)
         //
         public static readonly string				Novell					= "2.16.840.1.113719";
-        public static readonly DerObjectIdentifier	NovellSecurityAttribs	= new DerObjectIdentifier(Novell + ".1.9.4.1");
+        public static readonly DerObjectIdentifier NovellSecurityAttribs	= new DerObjectIdentifier(Novell + ".1.9.4.1");
 
         //
         // Entrust
         //       iso(1) member-body(16) us(840) nortelnetworks(113533) entrust(7)
         //
         public static readonly string				Entrust					= "1.2.840.113533.7";
-        public static readonly DerObjectIdentifier	EntrustVersionExtension = new DerObjectIdentifier(Entrust + ".65.0");
+        public static readonly DerObjectIdentifier EntrustVersionExtension = new DerObjectIdentifier(Entrust + ".65.0");
+
+        //
+        // Ascom
+        //
+        public static readonly DerObjectIdentifier as_sys_sec_alg_ideaCBC = new DerObjectIdentifier("1.3.6.1.4.1.188.7.1.1.2");
+
+        //
+        // Peter Gutmann's Cryptlib
+        //
+        public static readonly DerObjectIdentifier cryptlib = new DerObjectIdentifier("1.3.6.1.4.1.3029");
+
+        public static readonly DerObjectIdentifier cryptlib_algorithm = cryptlib.Branch("1");
+        public static readonly DerObjectIdentifier cryptlib_algorithm_blowfish_ECB = cryptlib_algorithm.Branch("1.1");
+        public static readonly DerObjectIdentifier cryptlib_algorithm_blowfish_CBC = cryptlib_algorithm.Branch("1.2");
+        public static readonly DerObjectIdentifier cryptlib_algorithm_blowfish_CFB = cryptlib_algorithm.Branch("1.3");
+        public static readonly DerObjectIdentifier cryptlib_algorithm_blowfish_OFB = cryptlib_algorithm.Branch("1.4");
+
+        //
+        // Blake2b
+        //
+        public static readonly DerObjectIdentifier blake2 = new DerObjectIdentifier("1.3.6.1.4.1.1722.12.2");
+
+        public static readonly DerObjectIdentifier id_blake2b160 = blake2.Branch("1.5");
+        public static readonly DerObjectIdentifier id_blake2b256 = blake2.Branch("1.8");
+        public static readonly DerObjectIdentifier id_blake2b384 = blake2.Branch("1.12");
+        public static readonly DerObjectIdentifier id_blake2b512 = blake2.Branch("1.16");
     }
 }
