@@ -109,6 +109,7 @@ namespace Org.BouncyCastle.OpenSsl
                 case "X509 CERTIFICATE":
                     return ReadCertificate(obj);
                 case "PKCS7":
+                case "CMS":
                     return ReadPkcs7(obj);
                 case "X509 CRL":
                     return ReadCrl(obj);
