@@ -274,10 +274,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 
         private void CompareFile(string file1, string file2)
         {
-            byte[] data1 = Streams.ReadAll(File.OpenRead(file1));
-            byte[] data2 = Streams.ReadAll(File.OpenRead(file2));
+            byte[] data1 = GetFileContents(file1);
+            byte[] data2 = GetFileContents(file2);
 
             Assert.IsTrue(Arrays.AreEqual(data1, data2));
+        }
+
+        private byte[] GetFileContents(string name)
+        {
+            FileStream fs = File.OpenRead(name);
+            byte[] contents = Streams.ReadAll(fs);
+            fs.Close();
+            return contents;
         }
 
         private void CheckClearSigned(
