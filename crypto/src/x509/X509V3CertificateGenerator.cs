@@ -314,15 +314,15 @@ namespace Org.BouncyCastle.X509
 
             TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
-			Stream sigStream = signatureCalculator.GetSignatureUpdater ();
+			IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
 
 			byte[] encoded = tbsCert.GetDerEncoded();
 
-			sigStream.Write (encoded, 0, encoded.Length);
+			streamCalculator.Stream.Write (encoded, 0, encoded.Length);
 
-			sigStream.Close ();
+            streamCalculator.Stream.Close ();
 
-			return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, signatureCalculator.Signature());
+			return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).DoFinal());
 		}
 
 		private X509Certificate GenerateJcaObject(

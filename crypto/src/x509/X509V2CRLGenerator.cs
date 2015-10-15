@@ -235,15 +235,15 @@ namespace Org.BouncyCastle.X509
 
             TbsCertificateList tbsCertList = GenerateCertList();
 
-            Stream sigStream = signatureCalculator.GetSignatureUpdater();
+            IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
 
             byte[] encoded = tbsCertList.GetDerEncoded();
 
-            sigStream.Write(encoded, 0, encoded.Length);
+            streamCalculator.Stream.Write(encoded, 0, encoded.Length);
 
-            sigStream.Close();
+            streamCalculator.Stream.Close();
 
-            return GenerateJcaObject(tbsCertList, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, signatureCalculator.Signature());
+            return GenerateJcaObject(tbsCertList, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).DoFinal());
         }
 
         private TbsCertificateList GenerateCertList()

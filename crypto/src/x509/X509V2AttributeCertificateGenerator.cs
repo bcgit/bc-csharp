@@ -168,11 +168,11 @@ namespace Org.BouncyCastle.X509
 
             byte[] encoded = acInfo.GetDerEncoded();
 
-            Stream sigStream = signatureCalculator.GetSignatureUpdater();
+            IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
 
-            sigStream.Write(encoded, 0, encoded.Length);
+            streamCalculator.Stream.Write(encoded, 0, encoded.Length);
 
-            sigStream.Close();
+            streamCalculator.Stream.Close();
 
             Asn1EncodableVector v = new Asn1EncodableVector();
 
@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.X509
 
 			try
 			{
-				v.Add(new DerBitString(signatureCalculator.Signature()));
+				v.Add(new DerBitString(((IBlockResult)streamCalculator.GetResult()).DoFinal()));
 
 				return new X509V2AttributeCertificate(AttributeCertificate.GetInstance(new DerSequence(v)));
 			}

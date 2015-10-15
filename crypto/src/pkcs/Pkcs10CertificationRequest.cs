@@ -273,14 +273,16 @@ namespace Org.BouncyCastle.Pkcs
 
             this.reqInfo = new CertificationRequestInfo(subject, pubInfo, attributes);
 
-            Stream sigStream = signatureCalculator.GetSignatureUpdater();
+            IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
 
             byte[] reqInfoData = reqInfo.GetDerEncoded();
 
-            sigStream.Write(reqInfoData, 0, reqInfoData.Length);
+            streamCalculator.Stream.Write(reqInfoData, 0, reqInfoData.Length);
+
+            streamCalculator.Stream.Close();
 
             // Generate Signature.
-            sigBits = new DerBitString(signatureCalculator.Signature());
+            sigBits = new DerBitString(((IBlockResult)streamCalculator.GetResult()).DoFinal());
         }
 
         //        internal Pkcs10CertificationRequest(
@@ -320,55 +322,47 @@ namespace Org.BouncyCastle.Pkcs
 		public bool Verify(
 			AsymmetricKeyParameter publicKey)
 		{
-			ISigner sig;
-
-			try
-			{
-				sig = SignerUtilities.GetSigner(GetSignatureName(sigAlgId));
-			}
-			catch (Exception e)
-			{
-				// try an alternate
-				string alt = (string) oids[sigAlgId.ObjectID];
-
-				if (alt != null)
-				{
-					sig = SignerUtilities.GetSigner(alt);
-				}
-				else
-				{
-					throw e;
-				}
-			}
-
-			SetSignatureParameters(sig, sigAlgId.Parameters);
-
-			sig.Init(false, publicKey);
-
-			try
-			{
-				byte[] b = reqInfo.GetDerEncoded();
-				sig.BlockUpdate(b, 0, b.Length);
-			}
-			catch (Exception e)
-			{
-				throw new SignatureException("exception encoding TBS cert request", e);
-			}
-
-			return sig.VerifySignature(sigBits.GetBytes());
+            return Verify(new Asn1SignatureVerifierProvider(publicKey));
 		}
 
-//        /// <summary>
-//        /// Get the Der Encoded Pkcs10 Certification Request.
-//        /// </summary>
-//        /// <returns>A byte array.</returns>
-//        public byte[] GetEncoded()
-//        {
-//        	return new CertificationRequest(reqInfo, sigAlgId, sigBits).GetDerEncoded();
-//        }
+        public bool Verify(
+            ISignatureVerifierProvider verifierProvider)
+        {
+            return Verify(verifierProvider.CreateSignatureVerifier(sigAlgId));
+        }
 
-		// TODO Figure out how to set parameters on an ISigner
-		private void SetSignatureParameters(
+        public bool Verify(
+            ISignatureVerifier verifier)
+        {
+            try
+            {
+                byte[] b = reqInfo.GetDerEncoded();
+
+                IStreamCalculator streamCalculator = verifier.CreateCalculator();
+
+                streamCalculator.Stream.Write(b, 0, b.Length);
+
+                streamCalculator.Stream.Close();
+
+                return ((IVerifier)streamCalculator.GetResult()).IsVerified(sigBits.GetBytes());
+            }
+            catch (Exception e)
+            {
+                throw new SignatureException("exception encoding TBS cert request", e);
+            }
+        }
+
+        //        /// <summary>
+        //        /// Get the Der Encoded Pkcs10 Certification Request.
+        //        /// </summary>
+        //        /// <returns>A byte array.</returns>
+        //        public byte[] GetEncoded()
+        //        {
+        //        	return new CertificationRequest(reqInfo, sigAlgId, sigBits).GetDerEncoded();
+        //        }
+
+        // TODO Figure out how to set parameters on an ISigner
+        private void SetSignatureParameters(
 			ISigner			signature,
 			Asn1Encodable	asn1Params)
 		{

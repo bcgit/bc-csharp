@@ -14,6 +14,7 @@ using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509.Extension;
+using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.X509
 {
@@ -546,30 +547,38 @@ namespace Org.BouncyCastle.X509
 		public virtual void Verify(
 			AsymmetricKeyParameter key)
 		{
-			string sigName = X509SignatureUtilities.GetSignatureName(c.SignatureAlgorithm);
-			ISigner signature = SignerUtilities.GetSigner(sigName);
-
-			CheckSignature(key, signature);
+			CheckSignature(new Asn1SignatureVerifier(c.SignatureAlgorithm, key));
 		}
 
-		protected virtual void CheckSignature(
-			AsymmetricKeyParameter	publicKey,
-			ISigner					signature)
+        /// <summary>
+        /// Verify the certificate's signature using a verifier created using the passed in verifier provider.
+        /// </summary>
+        /// <param name="verifierProvider">An appropriate provider for verifying the certificate's signature.</param>
+        /// <returns>True if the signature is valid.</returns>
+        /// <exception cref="Exception">If verifier provider is not appropriate or the certificate algorithm is invalid.</exception>
+        public virtual void Verify(
+            ISignatureVerifierProvider verifierProvider)
+        {
+            CheckSignature(verifierProvider.CreateSignatureVerifier (c.SignatureAlgorithm));
+        }
+
+        protected virtual void CheckSignature(
+			ISignatureVerifier verifier)
 		{
 			if (!IsAlgIDEqual(c.SignatureAlgorithm, c.TbsCertificate.Signature))
 				throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
 			Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
 
-			X509SignatureUtilities.SetSignatureParameters(signature, parameters);
-
-			signature.Init(false, publicKey);
+            IStreamCalculator streamCalculator = verifier.CreateCalculator();
 
 			byte[] b = this.GetTbsCertificate();
-			signature.BlockUpdate(b, 0, b.Length);
 
-			byte[] sig = this.GetSignature();
-			if (!signature.VerifySignature(sig))
+			streamCalculator.Stream.Write(b, 0, b.Length);
+
+            streamCalculator.Stream.Close();
+
+            if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
 			{
 				throw new InvalidKeyException("Public key presented not for certificate signature");
 			}

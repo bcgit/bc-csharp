@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -11,28 +10,14 @@ namespace Org.BouncyCastle.Crypto
         /// <summary>The algorithm details object for this calculator.</summary>
         Object AlgorithmDetails { get ; }
 
-        /// <summary>Return a "bucket" stream which only exists to update the calculator.</summary>
-        /// <returns>A stream to write to in order to update the calculator.</returns>
-        Stream GetSignatureUpdater (); // returns writable stream
-
         /// <summary>
-        /// Return a stream that wraps the passed in stream, the data written/read to 
-        /// the returned stream will update the calculator as well as being passed through.
+        /// Create a stream calculator for this signature calculator. The stream
+        /// calculator is used for the actual operation of entering the data to be signed
+        /// and producing the signature block.
         /// </summary>
-        /// <param name="stream">The stream to be wrapped, must be either readable or writeable, but not both</param>
-        /// <returns>A wrapped version of stream which updates the calculator.</returns>
-        Stream GetSignatureUpdatingStream (Stream stream);
-
-        /// <summary>Calculate the signature and return it as a byte array.</summary>
-        /// <returns>The calculated signature.</returns>
-        byte[] Signature();
-
-        /// <summary>Calculate the signature and save it in the passed in byte array.</summary>
-        /// <param name="destination">The destination array to store the signature in.</param>
-        /// <param name="off">The offset into destination to start writing the signature.</param>
-        /// <returns>The number of bytes written to destination.</returns>
-        int Signature(byte[] destination, int off);
-	}
+        /// <returns>A calculator producing an IBlockResult with a signature in it.</returns>
+        IStreamCalculator CreateCalculator();
+    }
 }
 
 

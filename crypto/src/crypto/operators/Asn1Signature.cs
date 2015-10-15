@@ -20,7 +20,9 @@ namespace Org.BouncyCastle.Crypto.Operators
 {
 	internal class X509Utilities
 	{
-		private static readonly IDictionary algorithms = Platform.CreateHashtable();
+        private static readonly Asn1Null derNull = DerNull.Instance;
+
+        private static readonly IDictionary algorithms = Platform.CreateHashtable();
 		private static readonly IDictionary exParams = Platform.CreateHashtable();
 		private static readonly ISet        noParams = new HashSet();
 
@@ -109,7 +111,83 @@ namespace Org.BouncyCastle.Crypto.Operators
 			exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
 		}
 
-		private static RsassaPssParameters CreatePssParams(
+        /**
+		 * Return the digest algorithm using one of the standard JCA string
+		 * representations rather than the algorithm identifier (if possible).
+		 */
+        private static string GetDigestAlgName(
+            DerObjectIdentifier digestAlgOID)
+        {
+            if (PkcsObjectIdentifiers.MD5.Equals(digestAlgOID))
+            {
+                return "MD5";
+            }
+            else if (OiwObjectIdentifiers.IdSha1.Equals(digestAlgOID))
+            {
+                return "SHA1";
+            }
+            else if (NistObjectIdentifiers.IdSha224.Equals(digestAlgOID))
+            {
+                return "SHA224";
+            }
+            else if (NistObjectIdentifiers.IdSha256.Equals(digestAlgOID))
+            {
+                return "SHA256";
+            }
+            else if (NistObjectIdentifiers.IdSha384.Equals(digestAlgOID))
+            {
+                return "SHA384";
+            }
+            else if (NistObjectIdentifiers.IdSha512.Equals(digestAlgOID))
+            {
+                return "SHA512";
+            }
+            else if (TeleTrusTObjectIdentifiers.RipeMD128.Equals(digestAlgOID))
+            {
+                return "RIPEMD128";
+            }
+            else if (TeleTrusTObjectIdentifiers.RipeMD160.Equals(digestAlgOID))
+            {
+                return "RIPEMD160";
+            }
+            else if (TeleTrusTObjectIdentifiers.RipeMD256.Equals(digestAlgOID))
+            {
+                return "RIPEMD256";
+            }
+            else if (CryptoProObjectIdentifiers.GostR3411.Equals(digestAlgOID))
+            {
+                return "GOST3411";
+            }
+            else
+            {
+                return digestAlgOID.Id;
+            }
+        }
+
+        internal static string GetSignatureName(AlgorithmIdentifier sigAlgId)
+        {
+            Asn1Encodable parameters = sigAlgId.Parameters;
+
+            if (parameters != null && !derNull.Equals(parameters))
+            {
+                if (sigAlgId.ObjectID.Equals(PkcsObjectIdentifiers.IdRsassaPss))
+                {
+                    RsassaPssParameters rsaParams = RsassaPssParameters.GetInstance(parameters);
+
+                    return GetDigestAlgName(rsaParams.HashAlgorithm.ObjectID) + "withRSAandMGF1";
+                }
+                if (sigAlgId.ObjectID.Equals(X9ObjectIdentifiers.ECDsaWithSha2))
+                {
+                    Asn1Sequence ecDsaParams = Asn1Sequence.GetInstance(parameters);
+
+                    return GetDigestAlgName((DerObjectIdentifier)ecDsaParams[0]) + "withECDSA";
+                }
+            }
+
+            return sigAlgId.ObjectID.Id;
+        }
+
+        private static RsassaPssParameters CreatePssParams(
 			AlgorithmIdentifier	hashAlgId,
 			int					saltSize)
 		{
@@ -254,14 +332,16 @@ namespace Org.BouncyCastle.Crypto.Operators
 	public class Asn1SignatureCalculator: ISignatureCalculator
 	{
 		private readonly AlgorithmIdentifier algID;
-		private readonly ISigner sig;
+        private readonly string algorithm;
+        private readonly AsymmetricKeyParameter privateKey;
+        private readonly SecureRandom random;
 
         /// <summary>
         /// Base constructor.
         /// </summary>
         /// <param name="algorithm">The name of the signature algorithm to use.</param>
         /// <param name="privateKey">The private key to be used in the signing operation.</param>
-		public Asn1SignatureCalculator (String algorithm, AsymmetricKeyParameter privateKey): this(algorithm, privateKey, null)
+		public Asn1SignatureCalculator (string algorithm, AsymmetricKeyParameter privateKey): this(algorithm, privateKey, null)
 		{
 		}
 
@@ -271,21 +351,13 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// <param name="algorithm">The name of the signature algorithm to use.</param>
         /// <param name="privateKey">The private key to be used in the signing operation.</param>
         /// <param name="random">The source of randomness to be used in signature calculation.</param>
-		public Asn1SignatureCalculator (String algorithm, AsymmetricKeyParameter privateKey, SecureRandom random)
+		public Asn1SignatureCalculator (string algorithm, AsymmetricKeyParameter privateKey, SecureRandom random)
 		{
 			DerObjectIdentifier sigOid = X509Utilities.GetAlgorithmOid (algorithm);
 
-			this.sig = SignerUtilities.GetSigner(algorithm);
-
-			if (random != null)
-			{
-				sig.Init(true, new ParametersWithRandom(privateKey, random));
-			}
-			else
-			{
-				sig.Init(true, privateKey);
-			}
-
+            this.algorithm = algorithm;
+            this.privateKey = privateKey;
+            this.random = random;
 			this.algID = X509Utilities.GetSigAlgID (sigOid, algorithm);
 		}
 
@@ -294,37 +366,21 @@ namespace Org.BouncyCastle.Crypto.Operators
 			get { return this.algID; }
 		}
 
-		public Stream GetSignatureUpdater ()
-		{
-			return new SignerBucket (sig);
-		}
+        public IStreamCalculator CreateCalculator()
+        {
+            ISigner sig = SignerUtilities.GetSigner(algorithm);
 
-		public Stream GetSignatureUpdatingStream (Stream stream)
-		{
-			if (stream.CanRead && stream.CanWrite) {
-				throw new ArgumentException ("cannot use read/write stream");
-			}
+            if (random != null)
+            {
+                sig.Init(true, new ParametersWithRandom(privateKey, random));
+            }
+            else
+            {
+                sig.Init(true, privateKey);
+            }
 
-			if (stream.CanRead) {
-				return new SignerStream (stream, sig, null);
-			} else {
-				return new SignerStream (stream, null, sig);
-			}
-		}
-
-		public byte[] Signature()
-		{
-			return sig.GenerateSignature ();
-		}
-
-		public int Signature(byte[] destination, int off)
-		{
-			byte[] sigBytes = Signature ();
-
-			Array.Copy (sigBytes, 0, destination, off, sigBytes.Length);
-
-			return sigBytes.Length;
-		}
+            return new SigCalculator(sig);
+        }
 
         /// <summary>
         /// Allows enumeration of the signature names supported by the verifier provider.
@@ -335,6 +391,52 @@ namespace Org.BouncyCastle.Crypto.Operators
         }
     }
 
+    internal class SigCalculator : IStreamCalculator
+    {
+        private readonly ISigner sig;
+        private readonly Stream stream;
+
+        internal SigCalculator(ISigner sig)
+        {
+            this.sig = sig;
+            this.stream = new SignerBucket(sig);
+        }
+
+        public Stream Stream
+        {
+            get { return stream; }
+        }
+
+        public object GetResult()
+        {
+            return new SigResult(sig);
+        }
+    }
+
+    internal class SigResult : IBlockResult
+    {
+        private readonly ISigner sig;
+
+        internal SigResult(ISigner sig)
+        {
+            this.sig = sig;
+        }
+
+        public byte[] DoFinal()
+        {
+            return sig.GenerateSignature();
+        }
+
+        public int DoFinal(byte[] destination, int offset)
+        {
+            byte[] signature = DoFinal();
+
+            Array.Copy(signature, 0, destination, offset, signature.Length);
+
+            return signature.Length;
+        }
+    }
+
     /// <summary>
     /// Verifier class for signature verification in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
     /// signature algorithm details.
@@ -342,7 +444,7 @@ namespace Org.BouncyCastle.Crypto.Operators
     public class Asn1SignatureVerifier: ISignatureVerifier
 	{
 		private readonly AlgorithmIdentifier algID;
-		private readonly ISigner sig;
+        private readonly AsymmetricKeyParameter publicKey;
 
         /// <summary>
         /// Base constructor.
@@ -353,21 +455,13 @@ namespace Org.BouncyCastle.Crypto.Operators
 		{
 			DerObjectIdentifier sigOid = X509Utilities.GetAlgorithmOid (algorithm);
 
-			this.sig = SignerUtilities.GetSigner(algorithm);
-
-			sig.Init(false, publicKey);
-
+            this.publicKey = publicKey;
 			this.algID = X509Utilities.GetSigAlgID (sigOid, algorithm);
 		}
 
 		public Asn1SignatureVerifier (AlgorithmIdentifier algorithm, AsymmetricKeyParameter publicKey)
 		{
-			DerObjectIdentifier sigOid = algorithm.Algorithm;
-
-			this.sig = SignerUtilities.GetSigner(sigOid);
-
-			sig.Init(false, publicKey);
-
+            this.publicKey = publicKey;
 			this.algID = algorithm;
 		}
 
@@ -376,38 +470,61 @@ namespace Org.BouncyCastle.Crypto.Operators
 			get { return this.algID; }
 		}
 
-		public Stream GetVerifierUpdater ()
-		{
-			return new SignerBucket (sig);
-		}
+        public IStreamCalculator CreateCalculator()
+        {
+            ISigner sig = SignerUtilities.GetSigner(X509Utilities.GetSignatureName(algID));
 
-		public Stream GetVerifierUpdatingStream (Stream stream)
-		{
-			if (stream.CanRead && stream.CanWrite) {
-				throw new ArgumentException ("cannot use read/write stream");
-			}
+            sig.Init(false, publicKey);
+          
+            return new VerifierCalculator(sig);
+        }
+    }
 
-			if (stream.CanRead) {
-				return new SignerStream (stream, sig, null);
-			} else {
-				return new SignerStream (stream, null, sig);
-			}
-		}
+    internal class VerifierCalculator : IStreamCalculator
+    {
+        private readonly ISigner sig;
+        private readonly Stream stream;
 
-		public bool IsVerified(byte[] signature)
-		{
-			return sig.VerifySignature(signature);
-		}
+        internal VerifierCalculator(ISigner sig)
+        {
+            this.sig = sig;
+            this.stream = new SignerBucket(sig);
+        }
 
-		public bool IsVerified(byte[] signature, int off, int length)
-		{
-			byte[] sigBytes = new byte[length];
+        public Stream Stream
+        {
+            get { return stream; }
+        }
 
-			Array.Copy (signature, 0, sigBytes, off, sigBytes.Length);
+        public object GetResult()
+        {
+            return new VerifierResult(sig);
+        }
+    }
 
-			return sig.VerifySignature(signature);
-		}
-	}
+    internal class VerifierResult : IVerifier
+    {
+        private readonly ISigner sig;
+
+        internal VerifierResult(ISigner sig)
+        {
+            this.sig = sig;
+        }
+
+        public bool IsVerified(byte[] signature)
+        {
+            return sig.VerifySignature(signature);
+        }
+
+        public bool IsVerified(byte[] signature, int off, int length)
+        {
+            byte[] sigBytes = new byte[length];
+
+            Array.Copy(signature, 0, sigBytes, off, sigBytes.Length);
+
+            return sig.VerifySignature(signature);
+        }
+    }
 
     /// <summary>
     /// Provider class which supports dynamic creation of signature verifiers.
