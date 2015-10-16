@@ -12,10 +12,21 @@ namespace Org.BouncyCastle.Crypto.Tls
     {
         private static long counter = Times.NanoTime();
 
+#if NETCF_1_0
+        private static object counterLock = new object();
+        private static long NextCounterValue()
+        {
+            lock (counterLock)
+            {
+                return ++counter;
+            }
+        }
+#else
         private static long NextCounterValue()
         {
             return Interlocked.Increment(ref counter);
         }
+#endif
 
         private readonly IRandomGenerator mNonceRandom;
         private readonly SecureRandom mSecureRandom;
@@ -26,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private TlsSession mSession = null;
         private object mUserObject = null;
 
-       internal AbstractTlsContext(SecureRandom secureRandom, SecurityParameters securityParameters)
+        internal AbstractTlsContext(SecureRandom secureRandom, SecurityParameters securityParameters)
         {
             IDigest d = TlsUtilities.CreateHash(HashAlgorithm.sha256);
             byte[] seed = new byte[d.GetDigestSize()];
