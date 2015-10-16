@@ -4469,6 +4469,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\ByteQueueStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\CertChainType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11615,6 +11620,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\ByteQueueStreamTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\DtlsProtocolTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11701,6 +11711,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\TlsProtocolTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\TlsProtocolNonBlockingTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
