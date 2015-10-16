@@ -207,15 +207,12 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			sp.GetSignedContent().Drain();
 
-			//
-			// compute expected content digest
-			//
-			IDigest md = DigestUtilities.GetDigest("SHA1");
-			byte[] cDataOutBytes = cDataOut.ToArray();
-			md.BlockUpdate(cDataOutBytes, 0, cDataOutBytes.Length);
-			byte[] hash = DigestUtilities.DoFinal(md);
+            byte[] cDataOutBytes = cDataOut.ToArray();
 
-			VerifySignatures(sp, hash);
+            // compute expected content digest
+            byte[] hash = DigestUtilities.CalculateDigest("SHA1", cDataOutBytes);
+
+            VerifySignatures(sp, hash);
 		}
 	}
 }
