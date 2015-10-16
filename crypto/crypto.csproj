@@ -3039,6 +3039,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IBlockResult.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IBufferedCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3104,7 +3109,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IStreamCalculator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IStreamCipher.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\IVerifier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
