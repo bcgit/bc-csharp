@@ -166,6 +166,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+        public PgpSecretKey(
+            int                         certificationLevel,
+            PgpKeyPair                  keyPair,
+            string                      id,
+            SymmetricKeyAlgorithmTag    encAlgorithm,
+            HashAlgorithmTag            hashAlgorithm,
+            char[]                      passPhrase,
+            bool                        useSha1,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom                rand)
+            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, hashAlgorithm), encAlgorithm, passPhrase, useSha1, rand, true)
+        {
+        }
+
         private static PgpPublicKey CertifiedPublicKey(
             int							certificationLevel,
             PgpKeyPair					keyPair,
@@ -177,6 +192,44 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             try
             {
                 sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, HashAlgorithmTag.Sha1);
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Creating signature generator: " + e.Message, e);
+            }
+
+            //
+            // Generate the certification
+            //
+            sGen.InitSign(certificationLevel, keyPair.PrivateKey);
+
+            sGen.SetHashedSubpackets(hashedPackets);
+            sGen.SetUnhashedSubpackets(unhashedPackets);
+
+            try
+            {
+                PgpSignature certification = sGen.GenerateCertification(id, keyPair.PublicKey);
+                return PgpPublicKey.AddCertification(keyPair.PublicKey, id, certification);
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Exception doing certification: " + e.Message, e);
+            }
+        }
+
+
+        private static PgpPublicKey CertifiedPublicKey(
+            int certificationLevel,
+            PgpKeyPair keyPair,
+            string id,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            HashAlgorithmTag hashAlgorithm)
+        {
+            PgpSignatureGenerator sGen;
+            try
+            {
+                sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, hashAlgorithm);
             }
             catch (Exception e)
             {
@@ -611,6 +664,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SymmetricKeyAlgorithmTag	newEncAlgorithm,
             SecureRandom				rand)
         {
+
             if (key.IsPrivateKeyEmpty)
                 throw new PgpException("no private key in this SecretKey - public key present only.");
 

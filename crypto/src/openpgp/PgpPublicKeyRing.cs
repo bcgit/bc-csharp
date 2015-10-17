@@ -169,6 +169,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpPublicKeyRing	pubRing,
             PgpPublicKey		pubKey)
         {
+
             IList keys = Platform.CreateArrayList(pubRing.keys);
             bool found = false;
 
