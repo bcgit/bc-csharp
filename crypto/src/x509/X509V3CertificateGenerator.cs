@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -110,6 +112,7 @@ namespace Org.BouncyCastle.X509
         /// Set the signature algorithm that will be used to sign this certificate.
         /// </summary>
         /// <param name="signatureAlgorithm"/>
+		[Obsolete("Not needed if Generate used with an ISignatureCalculator")]
         public void SetSignatureAlgorithm(
 			string signatureAlgorithm)
         {
@@ -274,7 +277,8 @@ namespace Org.BouncyCastle.X509
         /// </summary>
         /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
         /// <returns>An X509Certificate.</returns>
-        public X509Certificate Generate(
+		[Obsolete("Use Generate with an ISignatureCalculator")]
+		public X509Certificate Generate(
 			AsymmetricKeyParameter privateKey)
         {
             return Generate(privateKey, null);
@@ -286,53 +290,48 @@ namespace Org.BouncyCastle.X509
 		/// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
 		/// <param name="random">You Secure Random instance.</param>
 		/// <returns>An X509Certificate.</returns>
+		[Obsolete("Use Generate with an ISignatureCalculator")]
 		public X509Certificate Generate(
 			AsymmetricKeyParameter	privateKey,
 			SecureRandom			random)
 		{
-			TbsCertificateStructure tbsCert = GenerateTbsCert();
-			byte[] signature;
-
-			try
-			{
-				signature = X509Utilities.GetSignatureForObject(
-					sigOid, signatureAlgorithm, privateKey, random, tbsCert);
-			}
-			catch (Exception e)
-			{
-				// TODO
-//				throw new ExtCertificateEncodingException("exception encoding TBS cert", e);
-				throw new CertificateEncodingException("exception encoding TBS cert", e);
-			}
-
-			try
-			{
-				return GenerateJcaObject(tbsCert, signature);
-			}
-			catch (CertificateParsingException e)
-			{
-				// TODO
-				// throw new ExtCertificateEncodingException("exception producing certificate object", e);
-				throw new CertificateEncodingException("exception producing certificate object", e);
-			}
+			return Generate(new Asn1SignatureCalculator(signatureAlgorithm, privateKey, random));
 		}
 
-		private TbsCertificateStructure GenerateTbsCert()
+		/// <summary>
+		/// Generate a new X509Certificate using the passed in SignatureCalculator.
+		/// </summary>
+		/// <param name="signatureCalculator">A signature calculator with the necessary algorithm details.</param>
+		/// <returns>An X509Certificate.</returns>
+		public X509Certificate Generate(ISignatureCalculator signatureCalculator)
 		{
-			if (!extGenerator.IsEmpty)
-			{
-				tbsGen.SetExtensions(extGenerator.Generate());
-			}
+			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculator.AlgorithmDetails);
 
-			return tbsGen.GenerateTbsCertificate();
+            if (!extGenerator.IsEmpty)
+            {
+                tbsGen.SetExtensions(extGenerator.Generate());
+            }
+
+            TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
+
+			IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+
+			byte[] encoded = tbsCert.GetDerEncoded();
+
+			streamCalculator.Stream.Write (encoded, 0, encoded.Length);
+
+            streamCalculator.Stream.Close ();
+
+			return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).DoFinal());
 		}
 
 		private X509Certificate GenerateJcaObject(
 			TbsCertificateStructure	tbsCert,
+			AlgorithmIdentifier     sigAlg,
 			byte[]					signature)
 		{
 			return new X509Certificate(
-				new X509CertificateStructure(tbsCert, sigAlgId, new DerBitString(signature)));
+				new X509CertificateStructure(tbsCert, sigAlg, new DerBitString(signature)));
 		}
 
 		/// <summary>

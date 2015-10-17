@@ -124,6 +124,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
 					outStr.Write(lineSep, 0, lineSep.Length);
 				}
 			}
+            else
+            {
+                // a single line file
+                if (lookAhead != -1)
+                {
+                    byte[] line = lineOut.ToArray();
+                    outStr.Write(line, 0, GetLengthWithoutSeparatorOrTrailingWhitespace(line));
+                    outStr.Write(lineSep, 0, lineSep.Length);
+                }
+            }
 
 			outStr.Close();
 
@@ -333,19 +343,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
         {
             if (args[0].Equals("-s"))
             {
-				Stream fis = File.OpenRead(args[2]);
-				Stream fos = File.Create(args[1] + ".asc");
+                Stream fis = File.OpenRead(args[2]);
+                Stream fos = File.Create(args[1] + ".asc");
 
-				Stream keyIn = PgpUtilities.GetDecoderStream(fis);
+                Stream keyIn = PgpUtilities.GetDecoderStream(fis);
 
-				string digestName = (args.Length == 4)
-					?	"SHA1"
-					:	args[4];
+                string digestName = (args.Length == 4)
+                    ?	"SHA1"
+                    :	args[4];
 
-				SignFile(args[1], keyIn, fos, args[3].ToCharArray(), digestName);
+                SignFile(args[1], keyIn, fos, args[3].ToCharArray(), digestName);
 
-				fis.Close();
-				fos.Close();
+                fis.Close();
+                fos.Close();
             }
             else if (args[0].Equals("-v"))
             {

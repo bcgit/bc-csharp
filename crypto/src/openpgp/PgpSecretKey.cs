@@ -2,8 +2,11 @@ using System;
 using System.Collections;
 using System.IO;
 
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -58,6 +61,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case PublicKeyAlgorithmTag.Dsa:
                     DsaPrivateKeyParameters dsK = (DsaPrivateKeyParameters) privKey.Key;
                     secKey = new DsaSecretBcpgKey(dsK.X);
+                    break;
+                case PublicKeyAlgorithmTag.ECDH:
+                case PublicKeyAlgorithmTag.ECDsa:
+                    ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
+                    secKey = new ECSecretBcpgKey(ecK.D);
                     break;
                 case PublicKeyAlgorithmTag.ElGamalEncrypt:
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
@@ -158,6 +166,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+        public PgpSecretKey(
+            int                         certificationLevel,
+            PgpKeyPair                  keyPair,
+            string                      id,
+            SymmetricKeyAlgorithmTag    encAlgorithm,
+            HashAlgorithmTag            hashAlgorithm,
+            char[]                      passPhrase,
+            bool                        useSha1,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom                rand)
+            : this(keyPair.PrivateKey, CertifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, hashAlgorithm), encAlgorithm, passPhrase, useSha1, rand, true)
+        {
+        }
+
         private static PgpPublicKey CertifiedPublicKey(
             int							certificationLevel,
             PgpKeyPair					keyPair,
@@ -169,6 +192,44 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             try
             {
                 sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, HashAlgorithmTag.Sha1);
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Creating signature generator: " + e.Message, e);
+            }
+
+            //
+            // Generate the certification
+            //
+            sGen.InitSign(certificationLevel, keyPair.PrivateKey);
+
+            sGen.SetHashedSubpackets(hashedPackets);
+            sGen.SetUnhashedSubpackets(unhashedPackets);
+
+            try
+            {
+                PgpSignature certification = sGen.GenerateCertification(id, keyPair.PublicKey);
+                return PgpPublicKey.AddCertification(keyPair.PublicKey, id, certification);
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Exception doing certification: " + e.Message, e);
+            }
+        }
+
+
+        private static PgpPublicKey CertifiedPublicKey(
+            int certificationLevel,
+            PgpKeyPair keyPair,
+            string id,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            HashAlgorithmTag hashAlgorithm)
+        {
+            PgpSignatureGenerator sGen;
+            try
+            {
+                sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, hashAlgorithm);
             }
             catch (Exception e)
             {
@@ -309,23 +370,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private byte[] ExtractKeyData(
             char[] passPhrase)
         {
-            SymmetricKeyAlgorithmTag alg = secret.EncAlgorithm;
+            SymmetricKeyAlgorithmTag encAlgorithm = secret.EncAlgorithm;
             byte[] encData = secret.GetSecretKeyData();
 
-            if (alg == SymmetricKeyAlgorithmTag.Null)
+            if (encAlgorithm == SymmetricKeyAlgorithmTag.Null)
                 // TODO Check checksum here?
                 return encData;
-
-            IBufferedCipher c = null;
-            try
-            {
-                string cName = PgpUtilities.GetSymmetricCipherName(alg);
-                c = CipherUtilities.GetCipher(cName + "/CFB/NoPadding");
-            }
-            catch (Exception e)
-            {
-                throw new PgpException("Exception creating cipher", e);
-            }
 
             // TODO Factor this block out as 'decryptData'
             try
@@ -336,9 +386,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 if (secret.PublicKeyPacket.Version >= 4)
                 {
-                    c.Init(false, new ParametersWithIV(key, iv));
-
-                    data = c.DoFinal(encData);
+                    data = RecoverKeyData(encAlgorithm, "/CFB/NoPadding", key, iv, encData, 0, encData.Length);
 
                     bool useSha1 = secret.S2kUsage == SecretKeyPacket.UsageSha1;
                     byte[] check = Checksum(useSha1, data, (useSha1) ? data.Length - 20 : data.Length - 2);
@@ -364,15 +412,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                     for (int i = 0; i != 4; i++)
                     {
-                        c.Init(false, new ParametersWithIV(key, iv));
-
                         int encLen = (((encData[pos] << 8) | (encData[pos + 1] & 0xff)) + 7) / 8;
 
                         data[pos] = encData[pos];
                         data[pos + 1] = encData[pos + 1];
                         pos += 2;
 
-                        c.DoFinal(encData, pos, encLen, data, pos);
+                        byte[] tmp = RecoverKeyData(encAlgorithm, "/CFB/NoPadding", key, iv, encData, pos, encLen);
+                        Array.Copy(tmp, 0, data, pos, encLen);
                         pos += encLen;
 
                         if (i != 3)
@@ -416,6 +463,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        private static byte[] RecoverKeyData(SymmetricKeyAlgorithmTag encAlgorithm, string modeAndPadding,
+            KeyParameter key, byte[] iv, byte[] keyData, int keyOff, int keyLen)
+        {
+            IBufferedCipher c;
+            try
+            {
+                string cName = PgpUtilities.GetSymmetricCipherName(encAlgorithm);
+                c = CipherUtilities.GetCipher(cName + modeAndPadding);
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Exception creating cipher", e);
+            }
+
+            c.Init(false, new ParametersWithIV(key, iv));
+
+            return c.DoFinal(keyData, keyOff, keyLen);
+        }
+
         /// <summary>Extract a <c>PgpPrivateKey</c> from this secret key's encrypted contents.</summary>
         public PgpPrivateKey ExtractPrivateKey(
             char[] passPhrase)
@@ -453,6 +519,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     DsaParameters dsaParams = new DsaParameters(dsaPub.P, dsaPub.Q, dsaPub.G);
                     privateKey = new DsaPrivateKeyParameters(dsaPriv.X, dsaParams);
                     break;
+                case PublicKeyAlgorithmTag.ECDH:
+                    privateKey = GetECKey("ECDH", bcpgIn);
+                    break;
+                case PublicKeyAlgorithmTag.ECDsa:
+                    privateKey = GetECKey("ECDSA", bcpgIn);
+                    break;
                 case PublicKeyAlgorithmTag.ElGamalEncrypt:
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
                     ElGamalPublicBcpgKey elPub = (ElGamalPublicBcpgKey)pubPk.Key;
@@ -464,7 +536,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     throw new PgpException("unknown public key algorithm encountered");
                 }
 
-                return new PgpPrivateKey(privateKey, KeyId);
+                return new PgpPrivateKey(KeyId, pubPk, privateKey);
             }
             catch (PgpException e)
             {
@@ -474,6 +546,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 throw new PgpException("Exception constructing key", e);
             }
+        }
+
+        private ECPrivateKeyParameters GetECKey(string algorithm, BcpgInputStream bcpgIn)
+        {
+            ECPublicBcpgKey ecdsaPub = (ECPublicBcpgKey)secret.PublicKeyPacket.Key;
+            ECSecretBcpgKey ecdsaPriv = new ECSecretBcpgKey(bcpgIn);
+            return new ECPrivateKeyParameters(algorithm, ecdsaPriv.X, ecdsaPub.CurveOid);
         }
 
         private static byte[] Checksum(
@@ -585,6 +664,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SymmetricKeyAlgorithmTag	newEncAlgorithm,
             SecureRandom				rand)
         {
+
             if (key.IsPrivateKeyEmpty)
                 throw new PgpException("no private key in this SecretKey - public key present only.");
 
@@ -697,6 +777,175 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             c.Init(true, new ParametersWithRandom(new ParametersWithIV(kp, iv), random));
 
             return c.DoFinal(rawKeyData);
+        }
+
+        /**
+         * Parse a secret key from one of the GPG S expression keys associating it with the passed in public key.
+         *
+         * @return a secret key object.
+         */
+        public static PgpSecretKey ParseSecretKeyFromSExpr(Stream inputStream, char[] passPhrase, PgpPublicKey pubKey)
+        {
+            SXprUtilities.SkipOpenParenthesis(inputStream);
+
+            string type = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+            if (type.Equals("protected-private-key"))
+            {
+                SXprUtilities.SkipOpenParenthesis(inputStream);
+
+                string curveName;
+
+                string keyType = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+                if (keyType.Equals("ecc"))
+                {
+                    SXprUtilities.SkipOpenParenthesis(inputStream);
+
+                    string curveID = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+                    curveName = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+
+                    SXprUtilities.SkipCloseParenthesis(inputStream);
+                }
+                else
+                {
+                    throw new PgpException("no curve details found");
+                }
+
+                byte[] qVal;
+
+                SXprUtilities.SkipOpenParenthesis(inputStream);
+
+                type = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+                if (type.Equals("q"))
+                {
+                    qVal = SXprUtilities.ReadBytes(inputStream, inputStream.ReadByte());
+                }
+                else
+                {
+                    throw new PgpException("no q value found");
+                }
+
+                SXprUtilities.SkipCloseParenthesis(inputStream);
+
+                byte[] dValue = GetDValue(inputStream, passPhrase, curveName);
+                // TODO: check SHA-1 hash.
+
+                return new PgpSecretKey(new SecretKeyPacket(pubKey.PublicKeyPacket, SymmetricKeyAlgorithmTag.Null, null, null,
+                    new ECSecretBcpgKey(new BigInteger(1, dValue)).GetEncoded()), pubKey);
+            }
+
+            throw new PgpException("unknown key type found");
+        }
+
+        /**
+        * Parse a secret key from one of the GPG S expression keys.
+        *
+        * @return a secret key object.
+        */
+        public static PgpSecretKey ParseSecretKeyFromSExpr(Stream inputStream, char[] passPhrase)
+        {
+            SXprUtilities.SkipOpenParenthesis(inputStream);
+
+            string type = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+            if (type.Equals("protected-private-key"))
+            {
+                SXprUtilities.SkipOpenParenthesis(inputStream);
+
+                string curveName;
+
+                string keyType = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+                if (keyType.Equals("ecc"))
+                {
+                    SXprUtilities.SkipOpenParenthesis(inputStream);
+
+                    string curveID = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+                    curveName = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+
+                    if (curveName.StartsWith("NIST "))
+                    {
+                        curveName = curveName.Substring("NIST ".Length);
+                    }
+
+                    SXprUtilities.SkipCloseParenthesis(inputStream);
+                }
+                else
+                {
+                    throw new PgpException("no curve details found");
+                }
+
+                byte[] qVal;
+
+                SXprUtilities.SkipOpenParenthesis(inputStream);
+
+                type = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+                if (type.Equals("q"))
+                {
+                    qVal = SXprUtilities.ReadBytes(inputStream, inputStream.ReadByte());
+                }
+                else
+                {
+                    throw new PgpException("no q value found");
+                }
+
+                PublicKeyPacket pubPacket = new PublicKeyPacket(PublicKeyAlgorithmTag.ECDsa, DateTime.UtcNow,
+                    new ECDsaPublicBcpgKey(ECNamedCurveTable.GetOid(curveName), new BigInteger(1, qVal)));
+
+                SXprUtilities.SkipCloseParenthesis(inputStream);
+
+                byte[] dValue = GetDValue(inputStream, passPhrase, curveName);
+                // TODO: check SHA-1 hash.
+
+                return new PgpSecretKey(new SecretKeyPacket(pubPacket, SymmetricKeyAlgorithmTag.Null, null, null,
+                    new ECSecretBcpgKey(new BigInteger(1, dValue)).GetEncoded()), new PgpPublicKey(pubPacket));
+            }
+
+            throw new PgpException("unknown key type found");
+        }
+
+        private static byte[] GetDValue(Stream inputStream, char[] passPhrase, string curveName)
+        {
+            string type;
+            SXprUtilities.SkipOpenParenthesis(inputStream);
+
+            string protection;
+            S2k s2k;
+            byte[] iv;
+            byte[] secKeyData;
+
+            type = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+            if (type.Equals("protected"))
+            {
+                protection = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
+
+                SXprUtilities.SkipOpenParenthesis(inputStream);
+
+                s2k = SXprUtilities.ParseS2k(inputStream);
+
+                iv = SXprUtilities.ReadBytes(inputStream, inputStream.ReadByte());
+
+                SXprUtilities.SkipCloseParenthesis(inputStream);
+
+                secKeyData = SXprUtilities.ReadBytes(inputStream, inputStream.ReadByte());
+            }
+            else
+            {
+                throw new PgpException("protected block not found");
+            }
+
+            // TODO: recognise other algorithms
+            KeyParameter key = PgpUtilities.MakeKeyFromPassPhrase(SymmetricKeyAlgorithmTag.Aes128, s2k, passPhrase);
+
+            byte[] data = RecoverKeyData(SymmetricKeyAlgorithmTag.Aes128, "/CBC/NoPadding", key, iv, secKeyData, 0, secKeyData.Length);
+
+            //
+            // parse the secret key S-expr
+            //
+            Stream keyIn = new MemoryStream(data, false);
+
+            SXprUtilities.SkipOpenParenthesis(keyIn);
+            SXprUtilities.SkipOpenParenthesis(keyIn);
+            SXprUtilities.SkipOpenParenthesis(keyIn);
+            String name = SXprUtilities.ReadString(keyIn, keyIn.ReadByte());
+            return SXprUtilities.ReadBytes(keyIn, keyIn.ReadByte());
         }
     }
 }

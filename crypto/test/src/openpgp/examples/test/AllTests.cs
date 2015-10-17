@@ -4,7 +4,9 @@ using System.IO;
 using NUnit.Core;
 using NUnit.Framework;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 {
@@ -159,7 +161,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 		[Test]
 		public void TestRsaKeyGeneration() 
 		{
-			RsaKeyRingGenerator.Main(new string[] { "test", "password" });
+			RsaKeyRingGenerator.Main(new string[]{ "test", "password" });
 
 			CreateSmallTestInput();
 			CreateLargeTestInput();
@@ -168,7 +170,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			CheckKeyBasedEncryption("bpg");
 			CheckLargeKeyBasedEncryption("bpg");
 
-			RsaKeyRingGenerator.Main(new string[] { "-a", "test", "password" });
+			RsaKeyRingGenerator.Main(new string[]{ "-a", "test", "password" });
 
 			CheckSigning("asc");
 			CheckKeyBasedEncryption("asc");
@@ -178,7 +180,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 		[Test]
 		public void TestDsaElGamalKeyGeneration() 
 		{
-			DsaElGamalKeyRingGenerator.Main(new string[] { "test", "password" });
+			DsaElGamalKeyRingGenerator.Main(new string[]{ "test", "password" });
 
 			CreateSmallTestInput();
 			CreateLargeTestInput();
@@ -187,7 +189,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			CheckKeyBasedEncryption("bpg");
 			CheckLargeKeyBasedEncryption("bpg");
 
-			DsaElGamalKeyRingGenerator.Main(new string[] { "-a", "test", "password" });
+			DsaElGamalKeyRingGenerator.Main(new string[]{ "-a", "test", "password" });
 
 			CheckSigning("asc");
 			CheckKeyBasedEncryption("asc");
@@ -200,23 +202,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			Console.Error.Flush();
 			_currentErr.SetLength(0);
 
-			PbeFileProcessor.Main(new string[] { "-e", "test.txt", "password" });
+			PbeFileProcessor.Main(new string[]{ "-e", "test.txt", "password" });
 
-			PbeFileProcessor.Main(new string[] { "-d", "test.txt.bpg", "password" });
+			PbeFileProcessor.Main(new string[]{ "-d", "test.txt.bpg", "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("no message integrity check", GetLine(_currentErr));
 
-			PbeFileProcessor.Main(new string[] { "-e", "-i", "test.txt", "password" });
+			PbeFileProcessor.Main(new string[]{ "-e", "-i", "test.txt", "password" });
 
-			PbeFileProcessor.Main(new string[] { "-d", "test.txt.bpg", "password" });
+			PbeFileProcessor.Main(new string[]{ "-d", "test.txt.bpg", "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("message integrity check passed", GetLine(_currentErr));
 
-			PbeFileProcessor.Main(new string[] { "-e", "-ai", "test.txt", "password" });
+			PbeFileProcessor.Main(new string[]{ "-e", "-ai", "test.txt", "password" });
 
-			PbeFileProcessor.Main(new string[] { "-d", "test.txt.asc", "password" });
+			PbeFileProcessor.Main(new string[]{ "-d", "test.txt.asc", "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("message integrity check passed", GetLine(_currentErr));
@@ -232,9 +234,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			CheckClearSignedVerify(crNlSignedMessage);
 			CheckClearSignedVerify(crNlSignedMessageTrailingWhiteSpace);
 
-			ClearSignedFileProcessor.Main(new string[] { "-v", "test.txt.asc", "pub.bpg" });
+			ClearSignedFileProcessor.Main(new string[]{ "-v", "test.txt.asc", "pub.bpg" });
 
-			RsaKeyRingGenerator.Main(new string[] { "test", "password" });
+			RsaKeyRingGenerator.Main(new string[]{ "test", "password" });
 
 			CheckClearSigned(crOnlyMessage);
 			CheckClearSigned(nlOnlyMessage);
@@ -247,24 +249,52 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 		{
 			CreateTestFile(clearSignedPublicKey, "test.txt");
 
-			ClearSignedFileProcessor.Main(new String[] { "-s", "test.txt", "secret.bpg", "password" });
+			ClearSignedFileProcessor.Main(new string[]{ "-s", "test.txt", "secret.bpg", "password" });
 		}
 
-		private void CheckClearSignedVerify(
+        [Test]
+        public void TestClearSignedSingleLine()
+        {
+            CreateTestData("This is a test payload!" + Environment.NewLine, "test.txt");
+            CreateTestData("This is a test payload!" + Environment.NewLine, "test.bak");
+
+            ClearSignedFileProcessor.Main(new string[]{"-s", "test.txt", "secret.bpg", "password"});
+            ClearSignedFileProcessor.Main(new string[]{"-v", "test.txt.asc", "pub.bpg"});
+
+            CompareFile("test.bak", "test.txt");
+        }
+
+        private void CheckClearSignedVerify(
 			string message)
 		{
 			CreateTestData(message, "test.txt.asc");
 
-			ClearSignedFileProcessor.Main(new string[] { "-v", "test.txt.asc", "pub.bpg" });
+			ClearSignedFileProcessor.Main(new string[]{ "-v", "test.txt.asc", "pub.bpg" });
 		}
 
-		private void CheckClearSigned(
+        private void CompareFile(string file1, string file2)
+        {
+            byte[] data1 = GetFileContents(file1);
+            byte[] data2 = GetFileContents(file2);
+
+            Assert.IsTrue(Arrays.AreEqual(data1, data2));
+        }
+
+        private byte[] GetFileContents(string name)
+        {
+            FileStream fs = File.OpenRead(name);
+            byte[] contents = Streams.ReadAll(fs);
+            fs.Close();
+            return contents;
+        }
+
+        private void CheckClearSigned(
 			string message)
 		{
 			CreateTestData(message, "test.txt");
 
-			ClearSignedFileProcessor.Main(new string[] { "-s", "test.txt", "secret.bpg", "password" });
-			ClearSignedFileProcessor.Main(new string[] { "-v", "test.txt.asc", "pub.bpg" });
+			ClearSignedFileProcessor.Main(new string[]{ "-s", "test.txt", "secret.bpg", "password" });
+			ClearSignedFileProcessor.Main(new string[]{ "-v", "test.txt.asc", "pub.bpg" });
 		}
 
 		private void CheckSigning(
@@ -273,14 +303,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			Console.Out.Flush();
 			_currentOut.SetLength(0);
 
-			SignedFileProcessor.Main(new string[] { "-s", "test.txt", "secret." + type, "password" });
-			SignedFileProcessor.Main(new string[] { "-v", "test.txt.bpg", "pub." + type });
+			SignedFileProcessor.Main(new string[]{ "-s", "test.txt", "secret." + type, "password" });
+			SignedFileProcessor.Main(new string[]{ "-v", "test.txt.bpg", "pub." + type });
 
 			Console.Out.Flush();
 			Assert.AreEqual("signature verified.", GetLine(_currentOut));
 
-			SignedFileProcessor.Main(new string[] { "-s", "-a", "test.txt", "secret." + type, "password" });
-			SignedFileProcessor.Main(new string[] { "-v", "test.txt.asc", "pub." + type });
+			SignedFileProcessor.Main(new string[]{ "-s", "-a", "test.txt", "secret." + type, "password" });
+			SignedFileProcessor.Main(new string[]{ "-v", "test.txt.asc", "pub." + type });
 
 			Console.Out.Flush();
 			Assert.AreEqual("signature verified.", GetLine(_currentOut));
@@ -292,20 +322,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			Console.Error.Flush();
 			_currentErr.SetLength(0);
 
-			KeyBasedFileProcessor.Main(new string[] { "-e", "test.txt", "pub." + type });
-			KeyBasedFileProcessor.Main(new string[] { "-d", "test.txt.bpg", "secret." + type, "password" });
+			KeyBasedFileProcessor.Main(new string[]{ "-e", "test.txt", "pub." + type });
+			KeyBasedFileProcessor.Main(new string[]{ "-d", "test.txt.bpg", "secret." + type, "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("no message integrity check", GetLine(_currentErr));
 
-			KeyBasedFileProcessor.Main(new string[] { "-e", "-i", "test.txt", "pub." + type });
-			KeyBasedFileProcessor.Main(new string[] { "-d", "test.txt.bpg", "secret." + type, "password" });
+			KeyBasedFileProcessor.Main(new string[]{ "-e", "-i", "test.txt", "pub." + type });
+			KeyBasedFileProcessor.Main(new string[]{ "-d", "test.txt.bpg", "secret." + type, "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("message integrity check passed", GetLine(_currentErr));
 
-			KeyBasedFileProcessor.Main(new string[] { "-e", "-ai", "test.txt", "pub." + type });
-			KeyBasedFileProcessor.Main(new string[] { "-d", "test.txt.asc", "secret." + type, "password" });
+			KeyBasedFileProcessor.Main(new string[]{ "-e", "-ai", "test.txt", "pub." + type });
+			KeyBasedFileProcessor.Main(new string[]{ "-d", "test.txt.asc", "secret." + type, "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("message integrity check passed", GetLine(_currentErr));
@@ -317,20 +347,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			Console.Error.Flush();
 			_currentErr.SetLength(0);
 
-			KeyBasedLargeFileProcessor.Main(new string[] { "-e", "large.txt", "pub." + type });
-			KeyBasedLargeFileProcessor.Main(new string[] { "-d", "large.txt.bpg", "secret." + type, "password" });
+			KeyBasedLargeFileProcessor.Main(new string[]{ "-e", "large.txt", "pub." + type });
+			KeyBasedLargeFileProcessor.Main(new string[]{ "-d", "large.txt.bpg", "secret." + type, "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("no message integrity check", GetLine(_currentErr));
 
-			KeyBasedLargeFileProcessor.Main(new string[] { "-e", "-i", "large.txt", "pub." + type });
-			KeyBasedLargeFileProcessor.Main(new string[] { "-d", "large.txt.bpg", "secret." + type, "password" });
+			KeyBasedLargeFileProcessor.Main(new string[]{ "-e", "-i", "large.txt", "pub." + type });
+			KeyBasedLargeFileProcessor.Main(new string[]{ "-d", "large.txt.bpg", "secret." + type, "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("message integrity check passed", GetLine(_currentErr));
 
-			KeyBasedLargeFileProcessor.Main(new string[] { "-e", "-ai", "large.txt", "pub." + type });
-			KeyBasedLargeFileProcessor.Main(new string[] { "-d", "large.txt.asc", "secret." + type, "password" });
+			KeyBasedLargeFileProcessor.Main(new string[]{ "-e", "-ai", "large.txt", "pub." + type });
+			KeyBasedLargeFileProcessor.Main(new string[]{ "-d", "large.txt.asc", "secret." + type, "password" });
 
 			Console.Error.Flush();
 			Assert.AreEqual("message integrity check passed", GetLine(_currentErr));
@@ -359,7 +389,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			string	testData,
 			string	name)
 		{
-			TextWriter bfOut = new StreamWriter(File.Create(name));
+            FileStream fOut = File.Create(name);
+			TextWriter bfOut = new StreamWriter(fOut);
 			bfOut.Write(testData);
 			bfOut.Close();
 		}

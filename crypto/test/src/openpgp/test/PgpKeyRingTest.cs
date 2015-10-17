@@ -2145,6 +2145,40 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PublicKeyRingWithX509Test();
             SecretKeyRingWithPersonalCertificateTest();
             InsertMasterTest();
+            LongSubPacketsTest();
+        }
+
+        private void LongSubPacketsTest()
+        {
+            Stream fIn = SimpleTest.GetTestDataAsStream("openpgp.longSigSubPack.asc");
+            Stream bIn = new BufferedStream(fIn);
+            PgpPublicKeyRing pkr = new PgpPublicKeyRing(PgpUtilities.GetDecoderStream(bIn));
+            bIn.Close();
+
+            PgpPublicKey masterpk = pkr.GetPublicKey();
+
+            // Check userids
+            foreach (string uid in masterpk.GetUserIds())
+            {
+                CheckUidSig(masterpk, uid);
+            }
+        }
+
+        private void CheckUidSig(PgpPublicKey pk, string uid)
+        {
+            foreach (PgpSignature sig in pk.GetSignaturesForId(uid))
+            {
+                if (!IsGoodUidSignature(sig, pk, uid))
+                {
+                    Fail("Bad self-signature found for '" + uid + "'");
+                }
+            }
+        }
+
+        private static bool IsGoodUidSignature(PgpSignature sig, PgpPublicKey masterpk, string uid)
+        {
+            sig.InitVerify(masterpk);
+            return sig.VerifyCertification(uid, masterpk);
         }
 
         public override string Name

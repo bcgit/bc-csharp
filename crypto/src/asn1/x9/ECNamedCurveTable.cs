@@ -49,6 +49,28 @@ namespace Org.BouncyCastle.Asn1.X9
             return ecP;
         }
 
+        public static string GetName(DerObjectIdentifier oid)
+        {
+            string name = X962NamedCurves.GetName(oid);
+            if (name == null)
+            {
+                name = SecNamedCurves.GetName(oid);
+            }
+            if (name == null)
+            {
+                name = NistNamedCurves.GetName(oid);
+            }
+            if (name == null)
+            {
+                name = TeleTrusTNamedCurves.GetName(oid);
+            }
+            if (name == null)
+            {
+                name = AnssiNamedCurves.GetName(oid);
+            }
+            return name;
+        }
+
         /**
          * return the object identifier signified by the passed in name. Null
          * if there is no object identifier associated with name.

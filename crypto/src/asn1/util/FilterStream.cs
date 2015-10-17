@@ -3,8 +3,10 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1.Utilities
 {
+    [Obsolete("Use Org.BouncyCastle.Utilities.IO.FilterStream")]
     public class FilterStream : Stream
     {
+        [Obsolete("Use Org.BouncyCastle.Utilities.IO.FilterStream")]
         public FilterStream(Stream s)
         {
             this.s = s;
