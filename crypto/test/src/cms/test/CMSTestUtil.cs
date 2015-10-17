@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -12,6 +13,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
+using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
@@ -450,7 +452,40 @@ namespace Org.BouncyCastle.Cms.Tests
 		*  INTERNAL METHODS
 		*
 		*/
-		private static AuthorityKeyIdentifier CreateAuthorityKeyId(
+        internal static IX509Store MakeAttrCertStore(params IX509AttributeCertificate[] attrCerts)
+        {
+            IList attrCertList = new ArrayList();
+            foreach (IX509AttributeCertificate attrCert in attrCerts)
+            {
+                attrCertList.Add(attrCert);
+            }
+
+            return X509StoreFactory.Create("AttributeCertificate/Collection", new X509CollectionStoreParameters(attrCertList));
+        }
+
+        internal static IX509Store MakeCertStore(params X509Certificate[] certs)
+        {
+            IList certList = new ArrayList();
+            foreach (X509Certificate cert in certs)
+            {
+                certList.Add(cert);
+            }
+
+            return X509StoreFactory.Create("Certificate/Collection", new X509CollectionStoreParameters(certList));
+        }
+
+        internal static IX509Store MakeCrlStore(params X509Crl[] crls)
+        {
+            IList crlList = new ArrayList();
+            foreach (X509Crl crl in crls)
+            {
+                crlList.Add(crl);
+            }
+
+            return X509StoreFactory.Create("CRL/Collection", new X509CollectionStoreParameters(crlList));
+        }
+
+        private static AuthorityKeyIdentifier CreateAuthorityKeyId(
 			AsymmetricKeyParameter _pubKey)
 		{
 			SubjectPublicKeyInfo _info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(_pubKey);

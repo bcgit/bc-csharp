@@ -3039,6 +3039,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IBlockResult.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IBufferedCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3104,7 +3109,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IStreamCalculator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IStreamCipher.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\IVerifier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4450,6 +4465,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\ByteQueue.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\ByteQueueStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11600,6 +11620,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\ByteQueueStreamTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\DtlsProtocolTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11686,6 +11711,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\TlsProtocolTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\TlsProtocolNonBlockingTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
