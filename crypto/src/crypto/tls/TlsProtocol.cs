@@ -72,6 +72,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected bool mAllowCertificateStatus = false;
         protected bool mExpectSessionTicket = false;
 
+        protected bool mBlocking = true;
+        protected ByteQueueStream mInputBuffers = null;
+        protected ByteQueueStream mOutputBuffer = null;
+
         public TlsProtocol(Stream stream, SecureRandom secureRandom)
             :   this(stream, stream, secureRandom)
         {
@@ -80,6 +84,15 @@ namespace Org.BouncyCastle.Crypto.Tls
         public TlsProtocol(Stream input, Stream output, SecureRandom secureRandom)
         {
             this.mRecordStream = new RecordStream(this, input, output);
+            this.mSecureRandom = secureRandom;
+        }
+
+        public TlsProtocol(SecureRandom secureRandom)
+        {
+            this.mBlocking = false;
+            this.mInputBuffers = new ByteQueueStream();
+            this.mOutputBuffer = new ByteQueueStream();
+            this.mRecordStream = new RecordStream(this, mInputBuffers, mOutputBuffer);
             this.mSecureRandom = secureRandom;
         }
 
@@ -140,13 +153,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mExpectSessionTicket = false;
         }
 
-        protected virtual void CompleteHandshake()
+        protected virtual void BlockForHandshake()
         {
-            try
+            if (mBlocking)
             {
-                /*
-                 * We will now read data, until we have completed the handshake.
-                 */
                 while (this.mConnectionState != CS_END)
                 {
                     if (this.mClosed)
@@ -156,7 +166,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                     SafeReadRecord();
                 }
+            }
+        }
 
+        protected virtual void CompleteHandshake()
+        {
+            try
+            {
                 this.mRecordStream.FinaliseHandshake();
 
                 this.mSplitApplicationDataRecords = !TlsUtilities.IsTlsV11(Context);
@@ -168,7 +184,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     this.mAppDataReady = true;
 
-                    this.mTlsStream = new TlsStream(this);
+                    if (mBlocking)
+                    {
+                        this.mTlsStream = new TlsStream(this);
+                    }
                 }
 
                 if (this.mTlsSession != null)
@@ -573,9 +592,156 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <summary>The secure bidirectional stream for this connection</summary>
+        /// <remarks>Only allowed in blocking mode.</remarks>
         public virtual Stream Stream
         {
-            get { return this.mTlsStream; }
+            get
+            {
+                if (!mBlocking)
+                    throw new InvalidOperationException("Cannot use Stream in non-blocking mode! Use OfferInput()/OfferOutput() instead.");
+                return this.mTlsStream;
+            }
+        }
+
+        /**
+         * Offer input from an arbitrary source. Only allowed in non-blocking mode.<br>
+         * <br>
+         * After this method returns, the input buffer is "owned" by this object. Other code
+         * must not attempt to do anything with it.<br>
+         * <br>
+         * This method will decrypt and process all records that are fully available.
+         * If only part of a record is available, the buffer will be retained until the
+         * remainder of the record is offered.<br>
+         * <br>
+         * If any records containing application data were processed, the decrypted data
+         * can be obtained using {@link #readInput(byte[], int, int)}. If any records
+         * containing protocol data were processed, a response may have been generated.
+         * You should always check to see if there is any available output after calling
+         * this method by calling {@link #getAvailableOutputBytes()}.
+         * @param input The input buffer to offer
+         * @throws IOException If an error occurs while decrypting or processing a record
+         */
+        public virtual void OfferInput(byte[] input)
+        {
+            if (mBlocking)
+                throw new InvalidOperationException("Cannot use OfferInput() in blocking mode! Use Stream instead.");
+            if (mClosed)
+                throw new IOException("Connection is closed, cannot accept any more input");
+
+            mInputBuffers.Write(input);
+
+            // loop while there are enough bytes to read the length of the next record
+            while (mInputBuffers.Available >= RecordStream.TLS_HEADER_SIZE)
+            {
+                byte[] header = new byte[RecordStream.TLS_HEADER_SIZE];
+                mInputBuffers.Peek(header);
+
+                int totalLength = TlsUtilities.ReadUint16(header, RecordStream.TLS_HEADER_LENGTH_OFFSET) + RecordStream.TLS_HEADER_SIZE;
+                if (mInputBuffers.Available < totalLength)
+                {
+                    // not enough bytes to read a whole record
+                    break;
+                }
+
+                SafeReadRecord();
+            }
+        }
+
+        /**
+         * Gets the amount of received application data. A call to {@link #readInput(byte[], int, int)}
+         * is guaranteed to be able to return at least this much data.<br>
+         * <br>
+         * Only allowed in non-blocking mode.
+         * @return The number of bytes of available application data
+         */
+        public virtual int GetAvailableInputBytes()
+        {
+            if (mBlocking)
+                throw new InvalidOperationException("Cannot use GetAvailableInputBytes() in blocking mode! Use ApplicationDataAvailable() instead.");
+
+            return ApplicationDataAvailable();
+        }
+
+        /**
+         * Retrieves received application data. Use {@link #getAvailableInputBytes()} to check
+         * how much application data is currently available. This method functions similarly to
+         * {@link InputStream#read(byte[], int, int)}, except that it never blocks. If no data
+         * is available, nothing will be copied and zero will be returned.<br>
+         * <br>
+         * Only allowed in non-blocking mode.
+         * @param buffer The buffer to hold the application data
+         * @param offset The start offset in the buffer at which the data is written
+         * @param length The maximum number of bytes to read
+         * @return The total number of bytes copied to the buffer. May be less than the
+         *          length specified if the length was greater than the amount of available data.
+         */
+        public virtual int ReadInput(byte[] buffer, int offset, int length)
+        {
+            if (mBlocking)
+                throw new InvalidOperationException("Cannot use ReadInput() in blocking mode! Use Stream instead.");
+
+            return ReadApplicationData(buffer, offset, System.Math.Min(length, ApplicationDataAvailable()));
+        }
+
+        /**
+         * Offer output from an arbitrary source. Only allowed in non-blocking mode.<br>
+         * <br>
+         * After this method returns, the specified section of the buffer will have been
+         * processed. Use {@link #readOutput(byte[], int, int)} to get the bytes to
+         * transmit to the other peer.<br>
+         * <br>
+         * This method must not be called until after the handshake is complete! Attempting
+         * to call it before the handshake is complete will result in an exception.
+         * @param buffer The buffer containing application data to encrypt
+         * @param offset The offset at which to begin reading data
+         * @param length The number of bytes of data to read
+         * @throws IOException If an error occurs encrypting the data, or the handshake is not complete
+         */
+        public virtual void OfferOutput(byte[] buffer, int offset, int length)
+        {
+            if (mBlocking)
+                throw new InvalidOperationException("Cannot use OfferOutput() in blocking mode! Use Stream instead.");
+            if (!mAppDataReady)
+                throw new IOException("Application data cannot be sent until the handshake is complete!");
+
+            WriteData(buffer, offset, length);
+        }
+
+        /**
+         * Gets the amount of encrypted data available to be sent. A call to
+         * {@link #readOutput(byte[], int, int)} is guaranteed to be able to return at
+         * least this much data.<br>
+         * <br>
+         * Only allowed in non-blocking mode.
+         * @return The number of bytes of available encrypted data
+         */
+        public virtual int GetAvailableOutputBytes()
+        {
+            if (mBlocking)
+                throw new InvalidOperationException("Cannot use GetAvailableOutputBytes() in blocking mode! Use Stream instead.");
+
+            return mOutputBuffer.Available;
+        }
+
+        /**
+         * Retrieves encrypted data to be sent. Use {@link #getAvailableOutputBytes()} to check
+         * how much encrypted data is currently available. This method functions similarly to
+         * {@link InputStream#read(byte[], int, int)}, except that it never blocks. If no data
+         * is available, nothing will be copied and zero will be returned.<br>
+         * <br>
+         * Only allowed in non-blocking mode.
+         * @param buffer The buffer to hold the encrypted data
+         * @param offset The start offset in the buffer at which the data is written
+         * @param length The maximum number of bytes to read
+         * @return The total number of bytes copied to the buffer. May be less than the
+         *          length specified if the length was greater than the amount of available data.
+         */
+        public virtual int ReadOutput(byte[] buffer, int offset, int length)
+        {
+            if (mBlocking)
+                throw new InvalidOperationException("Cannot use ReadOutput() in blocking mode! Use Stream instead.");
+
+            return mOutputBuffer.Read(buffer, offset, length);
         }
 
         /**
@@ -764,7 +930,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             mRecordStream.Flush();
         }
 
-        protected internal virtual bool IsClosed
+        public virtual bool IsClosed
         {
             get { return mClosed; }
         }

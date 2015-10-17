@@ -487,23 +487,62 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             foreach (string name in uniqNames)
             {
-                X9ECParameters x9ECParameters = ECNamedCurveTable.GetByName(name);
-                if (x9ECParameters != null)
+                X9ECParameters x9A = ECNamedCurveTable.GetByName(name);
+                X9ECParameters x9B = CustomNamedCurves.GetByName(name);
+
+                if (x9A != null && x9B != null)
                 {
-                    ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9ECParameters);
+                    Assert.AreEqual(x9A.Curve.Field, x9B.Curve.Field);
+                    Assert.AreEqual(x9A.Curve.A.ToBigInteger(), x9B.Curve.A.ToBigInteger());
+                    Assert.AreEqual(x9A.Curve.B.ToBigInteger(), x9B.Curve.B.ToBigInteger());
+                    AssertOptionalValuesAgree(x9A.Curve.Cofactor, x9B.Curve.Cofactor);
+                    AssertOptionalValuesAgree(x9A.Curve.Order, x9B.Curve.Order);
+
+                    AssertPointsEqual("Custom curve base-point inconsistency", x9A.G, x9B.G);
+
+                    Assert.AreEqual(x9A.H, x9B.H);
+                    Assert.AreEqual(x9A.N, x9B.N);
+                    AssertOptionalValuesAgree(x9A.GetSeed(), x9B.GetSeed());
+
+                    BigInteger k = new BigInteger(x9A.N.BitLength, secRand);
+                    ECPoint pA = x9A.G.Multiply(k);
+                    ECPoint pB = x9B.G.Multiply(k);
+                    AssertPointsEqual("Custom curve multiplication inconsistency", pA, pB);
                 }
 
-                x9ECParameters = CustomNamedCurves.GetByName(name);
-                if (x9ECParameters != null)
+                if (x9A != null)
                 {
-                    ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9ECParameters);
+                    ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9A);
+                }
+
+                if (x9B != null)
+                {
+                    ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9B);
                 }
             }
         }
 
         private void AssertPointsEqual(string message, ECPoint a, ECPoint b)
         {
+            // NOTE: We intentionally test points for equality in both directions
             Assert.AreEqual(a, b, message);
+            Assert.AreEqual(b, a, message);
+        }
+
+        private void AssertOptionalValuesAgree(object a, object b)
+        {
+            if (a != null && b != null)
+            {
+                Assert.AreEqual(a, b);
+            }
+        }
+
+        private void AssertOptionalValuesAgree(byte[] a, byte[] b)
+        {
+            if (a != null && b != null)
+            {
+                Assert.IsTrue(Arrays.AreEqual(a, b));
+            }
         }
     }
 }

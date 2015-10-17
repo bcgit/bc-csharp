@@ -69,11 +69,22 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>
+        /// Return the OID in the Algorithm entry of this identifier.
+        /// </summary>
+		public virtual DerObjectIdentifier Algorithm
+		{
+			get { return objectID; }
+		}
+
         public virtual DerObjectIdentifier ObjectID
         {
             get { return objectID; }
         }
 
+        /// <summary>
+        /// Return the parameters structure in the Parameters entry of this identifier.
+        /// </summary>
         public Asn1Encodable Parameters
         {
             get { return parameters; }

@@ -8,6 +8,11 @@ namespace Org.BouncyCastle.Crypto.Tls
     {
         private const int DEFAULT_PLAINTEXT_LIMIT = (1 << 14);
 
+        internal const int TLS_HEADER_SIZE = 5;
+        internal const int TLS_HEADER_TYPE_OFFSET = 0;
+        internal const int TLS_HEADER_VERSION_OFFSET = 1;
+        internal const int TLS_HEADER_LENGTH_OFFSET = 3;
+
         private TlsProtocol mHandler;
         private Stream mInput;
         private Stream mOutput;
@@ -116,11 +121,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal virtual bool ReadRecord()
         {
-            byte[] recordHeader = TlsUtilities.ReadAllOrNothing(5, mInput);
+            byte[] recordHeader = TlsUtilities.ReadAllOrNothing(TLS_HEADER_SIZE, mInput);
             if (recordHeader == null)
                 return false;
 
-            byte type = TlsUtilities.ReadUint8(recordHeader, 0);
+            byte type = TlsUtilities.ReadUint8(recordHeader, TLS_HEADER_TYPE_OFFSET);
 
             /*
              * RFC 5246 6. If a TLS implementation receives an unexpected record type, it MUST send an
@@ -130,13 +135,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (!mRestrictReadVersion)
             {
-                int version = TlsUtilities.ReadVersionRaw(recordHeader, 1);
+                int version = TlsUtilities.ReadVersionRaw(recordHeader, TLS_HEADER_VERSION_OFFSET);
                 if ((version & 0xffffff00) != 0x0300)
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
             else
             {
-                ProtocolVersion version = TlsUtilities.ReadVersion(recordHeader, 1);
+                ProtocolVersion version = TlsUtilities.ReadVersion(recordHeader, TLS_HEADER_VERSION_OFFSET);
                 if (mReadVersion == null)
                 {
                     mReadVersion = version;
@@ -147,7 +152,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
             }
 
-            int length = TlsUtilities.ReadUint16(recordHeader, 3);
+            int length = TlsUtilities.ReadUint16(recordHeader, TLS_HEADER_LENGTH_OFFSET);
             byte[] plaintext = DecodeAndVerify(type, mInput, length);
             mHandler.ProcessRecord(type, plaintext, 0, plaintext.Length);
             return true;
@@ -247,11 +252,11 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
             CheckLength(ciphertext.Length, mCiphertextLimit, AlertDescription.internal_error);
 
-            byte[] record = new byte[ciphertext.Length + 5];
-            TlsUtilities.WriteUint8(type, record, 0);
-            TlsUtilities.WriteVersion(mWriteVersion, record, 1);
-            TlsUtilities.WriteUint16(ciphertext.Length, record, 3);
-            Array.Copy(ciphertext, 0, record, 5, ciphertext.Length);
+            byte[] record = new byte[ciphertext.Length + TLS_HEADER_SIZE];
+            TlsUtilities.WriteUint8(type, record, TLS_HEADER_TYPE_OFFSET);
+            TlsUtilities.WriteVersion(mWriteVersion, record, TLS_HEADER_VERSION_OFFSET);
+            TlsUtilities.WriteUint16(ciphertext.Length, record, TLS_HEADER_LENGTH_OFFSET);
+            Array.Copy(ciphertext, 0, record, TLS_HEADER_SIZE, ciphertext.Length);
             mOutput.Write(record, 0, record.Length);
             mOutput.Flush();
         }

@@ -10,6 +10,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.X509
 {
@@ -129,13 +130,12 @@ namespace Org.BouncyCastle.X509
 			}
 		}
 
-		/**
-		* Set the signature algorithm. This can be either a name or an oid, names
-		* are treated as case insensitive.
-		*
-		* @param signatureAlgorithm string representation of the algorithm name.
-		*/
-		public void SetSignatureAlgorithm(
+        /// <summary>
+        /// Set the signature algorithm that will be used to sign this CRL.
+        /// </summary>
+        /// <param name="signatureAlgorithm"/>
+        [Obsolete("Not needed if Generate used with an ISignatureCalculator")]
+        public void SetSignatureAlgorithm(
 			string signatureAlgorithm)
 		{
 			this.signatureAlgorithm = signatureAlgorithm;
@@ -198,40 +198,55 @@ namespace Org.BouncyCastle.X509
 			extGenerator.AddExtension(oid, critical, new DerOctetString(extensionValue));
 		}
 
-		/// <summary>Generate an X509 CRL, based on the current issuer and subject.</summary>
-		/// <param name="privateKey">The key used for signing.</param>
-		public X509Crl Generate(
-			AsymmetricKeyParameter privateKey)
-		{
-			return Generate(privateKey, null);
-		}
+        /// <summary>
+        /// Generate an X.509 CRL, based on the current issuer and subject.
+        /// </summary>
+        /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
+        /// <returns>An X509Crl.</returns>
+        [Obsolete("Use Generate with an ISignatureCalculator")]
+        public X509Crl Generate(
+            AsymmetricKeyParameter privateKey)
+        {
+            return Generate(privateKey, null);
+        }
 
-		/// <summary>Generate an X509 CRL, based on the current issuer and subject.</summary>
-		/// <param name="privateKey">The key used for signing.</param>
-		/// <param name="random">A user-defined source of randomness.</param>
-		public X509Crl Generate(
-			AsymmetricKeyParameter	privateKey,
-			SecureRandom			random)
-		{
-			TbsCertificateList tbsCrl = GenerateCertList();
-			byte[] signature;
+        /// <summary>
+        /// Generate an X.509 CRL, based on the current issuer and subject using the specified secure random.
+        /// </summary>
+        /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
+        /// <param name="random">Your Secure Random instance.</param>
+        /// <returns>An X509Crl.</returns>
+        [Obsolete("Use Generate with an ISignatureCalculator")]
+        public X509Crl Generate(
+            AsymmetricKeyParameter privateKey,
+            SecureRandom random)
+        {
+            return Generate(new Asn1SignatureCalculator(signatureAlgorithm, privateKey, random));
+        }
 
-			try
-			{
-				signature = X509Utilities.GetSignatureForObject(
-					sigOID, signatureAlgorithm, privateKey, random, tbsCrl);
-			}
-			catch (IOException e)
-			{
-				// TODO
-//				throw new ExtCrlException("cannot generate CRL encoding", e);
-				throw new CrlException("cannot generate CRL encoding", e);
-			}
+        /// <summary>
+        /// Generate a new X509Crl using the passed in SignatureCalculator.
+        /// </summary>
+        /// <param name="signatureCalculator">A signature calculator with the necessary algorithm details.</param>
+        /// <returns>An X509Crl.</returns>
+        public X509Crl Generate(ISignatureCalculator signatureCalculator)
+        {
+            tbsGen.SetSignature((AlgorithmIdentifier)signatureCalculator.AlgorithmDetails);
 
-			return GenerateJcaObject(tbsCrl, signature);
-		}
+            TbsCertificateList tbsCertList = GenerateCertList();
 
-		private TbsCertificateList GenerateCertList()
+            IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+
+            byte[] encoded = tbsCertList.GetDerEncoded();
+
+            streamCalculator.Stream.Write(encoded, 0, encoded.Length);
+
+            streamCalculator.Stream.Close();
+
+            return GenerateJcaObject(tbsCertList, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).DoFinal());
+        }
+
+        private TbsCertificateList GenerateCertList()
 		{
 			if (!extGenerator.IsEmpty)
 			{
@@ -243,11 +258,12 @@ namespace Org.BouncyCastle.X509
 
 		private X509Crl GenerateJcaObject(
 			TbsCertificateList	tbsCrl,
+            AlgorithmIdentifier algId,
 			byte[]				signature)
 		{
 			return new X509Crl(
 				CertificateList.GetInstance(
-					new DerSequence(tbsCrl, sigAlgId, new DerBitString(signature))));
+					new DerSequence(tbsCrl, algId, new DerBitString(signature))));
 		}
 
 		/// <summary>

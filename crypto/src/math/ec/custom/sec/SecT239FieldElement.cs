@@ -152,8 +152,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement Invert()
         {
-            return new SecT239FieldElement(
-                AbstractF2mCurve.Inverse(239, new int[] { 158 }, ToBigInteger()));
+            ulong[] z = Nat256.Create64();
+            SecT239Field.Invert(x, z);
+            return new SecT239FieldElement(z);
         }
 
         public override ECFieldElement Sqrt()
