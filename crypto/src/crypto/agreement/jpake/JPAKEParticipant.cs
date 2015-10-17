@@ -5,62 +5,57 @@ using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 
-/**
- * A participant in a Password Authenticated Key Exchange by Juggling (J-PAKE) exchange.
- * <p>
- * The J-PAKE exchange is defined by Feng Hao and Peter Ryan in the paper
- * <a href="http://grouper.ieee.org/groups/1363/Research/contributions/hao-ryan-2008.pdf">
- * "Password Authenticated Key Exchange by Juggling, 2008."</a>
- * <p>
- * The J-PAKE protocol is symmetric.
- * There is no notion of a <i>client</i> or <i>server</i>, but rather just two <i>participants</i>.
- * An instance of {@link JPAKEParticipant} represents one participant, and
- * is the primary interface for executing the exchange.
- * <p>
- * To execute an exchange, construct a {@link JPAKEParticipant} on each end,
- * and call the following 7 methods
- * (once and only once, in the given order, for each participant, sending messages between them as described):
- * <ol>
- * <li>{@link #createRound1PayloadToSend()} - and send the payload to the other participant</li>
- * <li>{@link #validateRound1PayloadReceived(JPAKERound1Payload)} - use the payload received from the other participant</li>
- * <li>{@link #createRound2PayloadToSend()} - and send the payload to the other participant</li>
- * <li>{@link #validateRound2PayloadReceived(JPAKERound2Payload)} - use the payload received from the other participant</li>
- * <li>{@link #calculateKeyingMaterial()}</li>
- * <li>{@link #createRound3PayloadToSend(BigInteger)} - and send the payload to the other participant</li>
- * <li>{@link #validateRound3PayloadReceived(JPAKERound3Payload, BigInteger)} - use the payload received from the other participant</li>
- * </ol>
- * <p>
- * Each side should derive a session key from the keying material returned by {@link #calculateKeyingMaterial()}.
- * The caller is responsible for deriving the session key using a secure key derivation function (KDF).
- * <p>
- * Round 3 is an optional key confirmation process.
- * If you do not execute round 3, then there is no assurance that both participants are using the same key.
- * (i.e. if the participants used different passwords, then their session keys will differ.)
- * <p>
- * If the round 3 validation succeeds, then the keys are guaranteed to be the same on both sides.
- * <p>
- * The symmetric design can easily support the asymmetric cases when one party initiates the communication.
- * e.g. Sometimes the round1 payload and round2 payload may be sent in one pass.
- * Also, in some cases, the key confirmation payload can be sent together with the round2 payload.
- * These are the trivial techniques to optimize the communication.
- * <p>
- * The key confirmation process is implemented as specified in
- * <a href="http://csrc.nist.gov/publications/nistpubs/800-56A/SP800-56A_Revision1_Mar08-2007.pdf">NIST SP 800-56A Revision 1</a>,
- * Section 8.2 Unilateral Key Confirmation for Key Agreement Schemes.
- * <p>
- * This class is stateful and NOT threadsafe.
- * Each instance should only be used for ONE complete J-PAKE exchange
- * (i.e. a new {@link JPAKEParticipant} should be constructed for each new J-PAKE exchange).
- * <p>
- */
 namespace Org.BouncyCastle.Crypto.Agreement.Jpake
 {
+    /// <summary>
+    /// A participant in a Password Authenticated Key Exchange by Juggling (J-PAKE) exchange.
+    ///
+    /// The J-PAKE exchange is defined by Feng Hao and Peter Ryan in the paper
+    /// <a href="http://grouper.ieee.org/groups/1363/Research/contributions/hao-ryan-2008.pdf">
+    /// "Password Authenticated Key Exchange by Juggling, 2008."</a>
+    ///
+    /// The J-PAKE protocol is symmetric.
+    /// There is no notion of a <i>client</i> or <i>server</i>, but rather just two <i>participants</i>.
+    /// An instance of JPAKEParticipant represents one participant, and
+    /// is the primary interface for executing the exchange.
+    ///
+    /// To execute an exchange, construct a JPAKEParticipant on each end,
+    /// and call the following 7 methods
+    /// (once and only once, in the given order, for each participant, sending messages between them as described):
+    ///
+    /// CreateRound1PayloadToSend() - and send the payload to the other participant
+    /// ValidateRound1PayloadReceived(JPAKERound1Payload) - use the payload received from the other participant
+    /// CreateRound2PayloadToSend() - and send the payload to the other participant
+    /// ValidateRound2PayloadReceived(JPAKERound2Payload) - use the payload received from the other participant
+    /// CalculateKeyingMaterial()
+    /// CreateRound3PayloadToSend(BigInteger) - and send the payload to the other participant
+    /// ValidateRound3PayloadReceived(JPAKERound3Payload, BigInteger) - use the payload received from the other participant
+    ///
+    /// Each side should derive a session key from the keying material returned by CalculateKeyingMaterial().
+    /// The caller is responsible for deriving the session key using a secure key derivation function (KDF).
+    ///
+    /// Round 3 is an optional key confirmation process.
+    /// If you do not execute round 3, then there is no assurance that both participants are using the same key.
+    /// (i.e. if the participants used different passwords, then their session keys will differ.)
+    ///
+    /// If the round 3 validation succeeds, then the keys are guaranteed to be the same on both sides.
+    ///
+    /// The symmetric design can easily support the asymmetric cases when one party initiates the communication.
+    /// e.g. Sometimes the round1 payload and round2 payload may be sent in one pass.
+    /// Also, in some cases, the key confirmation payload can be sent together with the round2 payload.
+    /// These are the trivial techniques to optimize the communication.
+    ///
+    /// The key confirmation process is implemented as specified in
+    /// <a href="http://csrc.nist.gov/publications/nistpubs/800-56A/SP800-56A_Revision1_Mar08-2007.pdf">NIST SP 800-56A Revision 1</a>,
+    /// Section 8.2 Unilateral Key Confirmation for Key Agreement Schemes.
+    ///
+    /// This class is stateful and NOT threadsafe.
+    /// Each instance should only be used for ONE complete J-PAKE exchange
+    /// (i.e. a new JPAKEParticipant should be constructed for each new J-PAKE exchange).
+    /// </summary>
     public class JPAKEParticipant
     {
-        /*
-         * Possible internal states.  Used for state checking.
-         */
-
+        // Possible internal states.  Used for state checking.
         public static readonly int STATE_INITIALIZED = 0;
         public static readonly int STATE_ROUND_1_CREATED = 10;
         public static readonly int STATE_ROUND_1_VALIDATED = 20;
@@ -70,131 +65,103 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         public static readonly int STATE_ROUND_3_CREATED = 60;
         public static readonly int STATE_ROUND_3_VALIDATED = 70;
 
-        /**
-         * Unique identifier of this participant.
-         * The two participants in the exchange must NOT share the same id.
-         */
+        // Unique identifier of this participant.
+        // The two participants in the exchange must NOT share the same id.
         private string participantId;
 
-        /**
-         * Shared secret.  This only contains the secret between construction
-         * and the call to {@link #calculateKeyingMaterial()}.
-         * <p>
-         * i.e. When {@link #calculateKeyingMaterial()} is called, this buffer overwritten with 0's,
-         * and the field is set to null.
-         * </p>
-         */
+        // Shared secret.  This only contains the secret between construction
+        // and the call to CalculateKeyingMaterial().
+        //
+        // i.e. When CalculateKeyingMaterial() is called, this buffer overwritten with 0's,
+        // and the field is set to null.
         private char[] password;
 
-        /**
-         * Digest to use during calculations.
-         */
+        // Digest to use during calculations.
         private IDigest digest;
         
-        /**
-         * Source of secure random data.
-         */
+        // Source of secure random data.
         private readonly SecureRandom random;
 
         private readonly BigInteger p;
         private readonly BigInteger q;
         private readonly BigInteger g;
 
-        /**
-         * The participantId of the other participant in this exchange.
-         */
+        // The participantId of the other participant in this exchange.
         private string partnerParticipantId;
 
-        /**
-         * Alice's x1 or Bob's x3.
-         */
+        // Alice's x1 or Bob's x3.
         private BigInteger x1;
-        /**
-         * Alice's x2 or Bob's x4.
-         */
+        // Alice's x2 or Bob's x4.
         private BigInteger x2;
-        /**
-         * Alice's g^x1 or Bob's g^x3.
-         */
+        // Alice's g^x1 or Bob's g^x3.
         private BigInteger gx1;
-        /**
-         * Alice's g^x2 or Bob's g^x4.
-         */
+        // Alice's g^x2 or Bob's g^x4.
         private BigInteger gx2;
-        /**
-         * Alice's g^x3 or Bob's g^x1.
-         */
+        // Alice's g^x3 or Bob's g^x1.
         private BigInteger gx3;
-        /**
-         * Alice's g^x4 or Bob's g^x2.
-         */
+        // Alice's g^x4 or Bob's g^x2.
         private BigInteger gx4;
-        /**
-         * Alice's B or Bob's A.
-         */
+        // Alice's B or Bob's A.
         private BigInteger b;
 
-        /**
-         * The current state.
-         * See the <tt>STATE_*</tt> constants for possible values.
-         */
+        // The current state.
+        // See the <tt>STATE_*</tt> constants for possible values.
         private int state;
 
-        /**
-         * Convenience constructor for a new {@link JPAKEParticipant} that uses
-         * the {@link JPAKEPrimeOrderGroups#NIST_3072} prime order group,
-         * a SHA-256 digest, and a default {@link SecureRandom} implementation.
-         * <p>
-         * After construction, the {@link #getState() state} will be  {@link #STATE_INITIALIZED}.
-         *
-         * @param participantId unique identifier of this participant.
-         *                      The two participants in the exchange must NOT share the same id.
-         * @param password      shared secret.
-         *                      A defensive copy of this array is made (and cleared once {@link #calculateKeyingMaterial()} is called).
-         *                      Caller should clear the input password as soon as possible.
-         * @throws NullReferenceException if any argument is null
-         * @throws ArgumentException if password is empty
-         */
+        /// Convenience constructor for a new JPAKEParticipant that uses
+        /// the JPAKEPrimeOrderGroups#NIST_3072 prime order group,
+        /// a SHA-256 digest, and a default SecureRandom implementation.
+        ///
+        /// After construction, the State state will be STATE_INITIALIZED.
+        /// 
+        /// Throws NullReferenceException if any argument is null. Throws
+        /// ArgumentException if password is empty.
+        /// </summary>
+        /// <param name="participantId">Unique identifier of this participant.
+        ///      The two participants in the exchange must NOT share the same id.</param>
+        /// <param name="password">Shared secret.
+        ///      A defensive copy of this array is made (and cleared once CalculateKeyingMaterial() is called).
+        ///      Caller should clear the input password as soon as possible.</param>
         public JPAKEParticipant(string participantId, char[] password)
             : this(participantId, password, JPAKEPrimeOrderGroups.NIST_3072) { }
 
-        /**
-         * Convenience constructor for a new {@link JPAKEParticipant} that uses
-         * a SHA-256 digest and a default {@link SecureRandom} implementation.
-         * <p>
-         * After construction, the {@link #getState() state} will be  {@link #STATE_INITIALIZED}.
-         *
-         * @param participantId unique identifier of this participant.
-         *                      The two participants in the exchange must NOT share the same id.
-         * @param password      shared secret.
-         *                      A defensive copy of this array is made (and cleared once {@link #calculateKeyingMaterial()} is called).
-         *                      Caller should clear the input password as soon as possible.
-         * @param group         prime order group.
-         *                      See {@link JPAKEPrimeOrderGroups} for standard groups
-         * @throws NullReferenceException if any argument is null
-         * @throws ArgumentException if password is empty
-         */
+        /// Convenience constructor for a new JPAKEParticipant that uses
+        /// the JPAKEPrimeOrderGroups#NIST_3072 prime order group,
+        /// a SHA-256 digest, and a default SecureRandom implementation.
+        ///
+        /// After construction, the State state will be STATE_INITIALIZED.
+        /// 
+        /// Throws NullReferenceException if any argument is null. Throws
+        /// ArgumentException if password is empty.
+        /// </summary>
+        /// <param name="participantId">Unique identifier of this participant.
+        ///      The two participants in the exchange must NOT share the same id.</param>
+        /// <param name="password">Shared secret.
+        ///      A defensive copy of this array is made (and cleared once CalculateKeyingMaterial() is called).
+        ///      Caller should clear the input password as soon as possible.</param>
+        /// <param name="group">Prime order group. See JPAKEPrimeOrderGroups for standard groups.</param>
         public JPAKEParticipant(string participantId, char[] password, JPAKEPrimeOrderGroup group)
             : this(participantId, password, group, new Sha256Digest(), new SecureRandom()) { }
 
 
-        /**
-         * Construct a new {@link JPAKEParticipant}.
-         * <p>
-         * After construction, the {@link #getState() state} will be  {@link #STATE_INITIALIZED}.
-         *
-         * @param participantId unique identifier of this participant.
-         *                      The two participants in the exchange must NOT share the same id.
-         * @param password      shared secret.
-         *                      A defensive copy of this array is made (and cleared once {@link #calculateKeyingMaterial()} is called).
-         *                      Caller should clear the input password as soon as possible.
-         * @param group         prime order group.
-         *                      See {@link JPAKEPrimeOrderGroups} for standard groups
-         * @param digest        digest to use during zero knowledge proofs and key confirmation (SHA-256 or stronger preferred)
-         * @param random        source of secure random data for x1 and x2, and for the zero knowledge proofs
-         * @throws NullReferenceException if any argument is null
-         * @throws IllegalArgumentException if password is empty
-         */
+        /// Convenience constructor for a new JPAKEParticipant that uses
+        /// the JPAKEPrimeOrderGroups#NIST_3072 prime order group,
+        /// a SHA-256 digest, and a default SecureRandom implementation.
+        ///
+        /// After construction, the State state will be STATE_INITIALIZED.
+        /// 
+        /// Throws NullReferenceException if any argument is null. Throws
+        /// ArgumentException if password is empty.
+        /// </summary>
+        /// <param name="participantId">Unique identifier of this participant.
+        ///      The two participants in the exchange must NOT share the same id.</param>
+        /// <param name="password">Shared secret.
+        ///      A defensive copy of this array is made (and cleared once CalculateKeyingMaterial() is called).
+        ///      Caller should clear the input password as soon as possible.</param>
+        /// <param name="group">Prime order group. See JPAKEPrimeOrderGroups for standard groups.</param>
+        /// <param name="digest">Digest to use during zero knowledge proofs and key confirmation
+        ///     (SHA-256 or stronger preferred).</param>
+        /// <param name="random">Source of secure random data for x1 and x2, and for the zero knowledge proofs.</param>
         public JPAKEParticipant(string participantId, char[] password, JPAKEPrimeOrderGroup group, IDigest digest, SecureRandom random)
         {
             JPAKEUtil.ValidateNotNull(participantId, "participantId");
@@ -210,18 +177,16 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
 
             this.participantId = participantId;
 
-            /*
-             * Create a defensive copy so as to fully encapsulate the password.
-             * 
-             * This array will contain the password for the lifetime of this
-             * participant BEFORE {@link #calculateKeyingMaterial()} is called.
-             * 
-             * i.e. When {@link #calculateKeyingMaterial()} is called, the array will be cleared
-             * in order to remove the password from memory.
-             * 
-             * The caller is responsible for clearing the original password array
-             * given as input to this constructor.
-             */
+            // Create a defensive copy so as to fully encapsulate the password.
+            // 
+            // This array will contain the password for the lifetime of this
+            // participant BEFORE CalculateKeyingMaterial() is called.
+            // 
+            // i.e. When CalculateKeyingMaterial() is called, the array will be cleared
+            // in order to remove the password from memory.
+            // 
+            // The caller is responsible for clearing the original password array
+            // given as input to this constructor.
             this.password = new char[password.Length];
             Array.Copy(password, this.password, password.Length);
 
@@ -235,21 +200,21 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             this.state = STATE_INITIALIZED;
         }
 
-        /**
-         * Gets the current state of this participant.
-         * See the <tt>STATE_*</tt> constants for possible values.
-         */
+        /// <summary>
+        /// Gets the current state of this participant.
+        /// See the <tt>STATE_*</tt> constants for possible values.
+        /// </summary>
         public int State
         {
             get { return state; }
         }
 
 
-        /**
-         * Creates and returns the payload to send to the other participant during round 1.
-         * <p>
-         * After execution, the {@link #getState() state} will be  {@link #STATE_ROUND_1_CREATED}.
-         */
+        /// <summary>
+        /// Creates and returns the payload to send to the other participant during round 1.
+        ///
+        /// After execution, the State state} will be STATE_ROUND_1_CREATED}.
+        /// </summary>
         public JPAKERound1Payload CreateRound1PayloadToSend()
         {
             if (this.state >= STATE_ROUND_1_CREATED)
@@ -270,16 +235,15 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             return new JPAKERound1Payload(participantId, gx1, gx2, knowledgeProofForX1, knowledgeProofForX2);
         }
 
-        /**
-         * Validates the payload received from the other participant during round 1.
-         * <p>
-         * Must be called prior to {@link #createRound2PayloadToSend()}.
-         * <p>
-         * After execution, the {@link #getState() state} will be  {@link #STATE_ROUND_1_VALIDATED}.
-         *
-         * @throws CryptoException if validation fails.
-         * @throws InvalidOperationException if called multiple times.
-         */
+        /// <summary>
+        /// Validates the payload received from the other participant during round 1.
+        ///
+        /// Must be called prior to CreateRound2PayloadToSend().
+        ///
+        /// After execution, the State state will be  STATE_ROUND_1_VALIDATED.
+        /// Throws CryptoException if validation fails. Throws InvalidOperationException
+        /// if called multiple times.
+        /// </summary>
         public void ValidateRound1PayloadReceived(JPAKERound1Payload round1PayloadReceived)
         {
             if (this.state >= STATE_ROUND_1_VALIDATED)
@@ -297,20 +261,19 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             JPAKEUtil.ValidateParticipantIdsDiffer(participantId, round1PayloadReceived.ParticipantId);
             JPAKEUtil.ValidateGx4(gx4);
             JPAKEUtil.ValidateZeroKnowledgeProof(p, q, g, gx3, knowledgeProofForX3, round1PayloadReceived.ParticipantId, digest);
-            JPAKEUtil.ValidateZeroKnowledgeProof(p, q, g, gx4, knowledgeProofForX4, round1PayloadReceived.ParticipantId, digest);
-
+            JPAKEUtil.ValidateZeroKnowledgeProof(p, q, g, gx4, knowledgeProofForX4, round1PayloadReceived.ParticipantId, digest); 
             this.state = STATE_ROUND_1_VALIDATED;
         }
 
-        /**
-         * Creates and returns the payload to send to the other participant during round 2.
-         * <p>
-         * {@link #validateRound1PayloadReceived(JPAKERound1Payload)} must be called prior to this method.
-         * <p>
-         * After execution, the {@link #getState() state} will be  {@link #STATE_ROUND_2_CREATED}.
-         *
-         * @throws InvalidOperationException if called prior to {@link #validateRound1PayloadReceived(JPAKERound1Payload)}, or multiple times
-         */
+        /// <summary>
+        /// Creates and returns the payload to send to the other participant during round 2.
+        ///
+        /// ValidateRound1PayloadReceived(JPAKERound1Payload)} must be called prior to this method.
+        ///
+        //// After execution, the State state will be  STATE_ROUND_2_CREATED.
+        ///
+        /// Throws InvalidOperationException if called prior to ValidateRound1PayloadReceived(JPAKERound1Payload)}, or multiple times
+        /// </summary>
         public JPAKERound2Payload CreateRound2PayloadToSend()
         {
             if (this.state >= STATE_ROUND_2_CREATED)
@@ -333,20 +296,19 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             return new JPAKERound2Payload(participantId, A, knowledgeProofForX2s);
         }
 
-        /**
-         * Validates the payload received from the other participant during round 2.
-         * <p>
-         * Note that this DOES NOT detect a non-common password.
-         * The only indication of a non-common password is through derivation
-         * of different keys (which can be detected explicitly by executing round 3 and round 4)
-         * <p>
-         * Must be called prior to {@link #calculateKeyingMaterial()}.
-         * <p>
-         * After execution, the {@link #getState() state} will be  {@link #STATE_ROUND_2_VALIDATED}.
-         *
-         * @throws CryptoException if validation fails.
-         * @throws InvalidOperationException if called prior to {@link #validateRound1PayloadReceived(JPAKERound1Payload)}, or multiple times
-         */
+        /// <summary>
+        /// Validates the payload received from the other participant during round 2.
+        /// Note that this DOES NOT detect a non-common password.
+        /// The only indication of a non-common password is through derivation
+        /// of different keys (which can be detected explicitly by executing round 3 and round 4)
+        ///
+        /// Must be called prior to CalculateKeyingMaterial().
+        ///
+        /// After execution, the State state will be  STATE_ROUND_2_VALIDATED.
+        ///
+        /// Throws CryptoException if validation fails. Throws
+        /// InvalidOperationException if called prior to ValidateRound1PayloadReceived(JPAKERound1Payload), or multiple times
+        /// </summary>
         public void ValidateRound2PayloadReceived(JPAKERound2Payload round2PayloadReceived)
         {
             if (this.state >= STATE_ROUND_2_VALIDATED)
@@ -370,31 +332,31 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             this.state = STATE_ROUND_2_VALIDATED;
         }
 
-        /**
-         * Calculates and returns the key material.
-         * A session key must be derived from this key material using a secure key derivation function (KDF).
-         * The KDF used to derive the key is handled externally (i.e. not by {@link JPAKEParticipant}).
-         * <p>
-         * The keying material will be identical for each participant if and only if
-         * each participant's password is the same.  i.e. If the participants do not
-         * share the same password, then each participant will derive a different key.
-         * Therefore, if you immediately start using a key derived from
-         * the keying material, then you must handle detection of incorrect keys.
-         * If you want to handle this detection explicitly, you can optionally perform
-         * rounds 3 and 4.  See {@link JPAKEParticipant} for details on how to execute
-         * rounds 3 and 4.
-         * <p>
-         * The keying material will be in the range <tt>[0, p-1]</tt>.
-         * <p>
-         * {@link #validateRound2PayloadReceived(JPAKERound2Payload)} must be called prior to this method.
-         * <p>
-         * As a side effect, the internal {@link #password} array is cleared, since it is no longer needed.
-         * <p>
-         * After execution, the {@link #getState() state} will be  {@link #STATE_KEY_CALCULATED}.
-         *
-         * @throws InvalidOperationException if called prior to {@link #validateRound2PayloadReceived(JPAKERound2Payload)},
-         * or if called multiple times.
-         */
+        /// <summary>
+        /// Calculates and returns the key material.
+        /// A session key must be derived from this key material using a secure key derivation function (KDF).
+        /// The KDF used to derive the key is handled externally (i.e. not by JPAKEParticipant).
+        ///
+        /// The keying material will be identical for each participant if and only if
+        /// each participant's password is the same.  i.e. If the participants do not
+        /// share the same password, then each participant will derive a different key.
+        /// Therefore, if you immediately start using a key derived from
+        /// the keying material, then you must handle detection of incorrect keys.
+        /// If you want to handle this detection explicitly, you can optionally perform
+        /// rounds 3 and 4.  See JPAKEParticipant for details on how to execute
+        /// rounds 3 and 4.
+        ///
+        /// The keying material will be in the range <tt>[0, p-1]</tt>.
+        ///
+        /// ValidateRound2PayloadReceived(JPAKERound2Payload) must be called prior to this method.
+        /// 
+        /// As a side effect, the internal password array is cleared, since it is no longer needed.
+        ///
+        /// After execution, the State state will be STATE_KEY_CALCULATED.
+        ///
+        /// Throws InvalidOperationException if called prior to ValidateRound2PayloadReceived(JPAKERound2Payload),
+        /// or if called multiple times.
+        /// </summary>
         public BigInteger CalculateKeyingMaterial()
         {
             if (this.state >= STATE_KEY_CALCULATED)
@@ -408,47 +370,40 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
 
             BigInteger s = JPAKEUtil.CalculateS(password);
 
-            /*
-             * Clear the password array from memory, since we don't need it anymore.
-             * 
-             * Also set the field to null as a flag to indicate that the key has already been calculated.
-             */
+            // Clear the password array from memory, since we don't need it anymore.
+            // Also set the field to null as a flag to indicate that the key has already been calculated.
             Array.Clear(password, 0, password.Length);
             this.password = null;
 
             BigInteger keyingMaterial = JPAKEUtil.CalculateKeyingMaterial(p, q, gx4, x2, s, b);
 
-            /*
-             * Clear the ephemeral private key fields as well.
-             * Note that we're relying on the garbage collector to do its job to clean these up.
-             * The old objects will hang around in memory until the garbage collector destroys them.
-             * 
-             * If the ephemeral private keys x1 and x2 are leaked,
-             * the attacker might be able to brute-force the password.
-             */
+            // Clear the ephemeral private key fields as well.
+            // Note that we're relying on the garbage collector to do its job to clean these up.
+            // The old objects will hang around in memory until the garbage collector destroys them.
+            // 
+            // If the ephemeral private keys x1 and x2 are leaked,
+            // the attacker might be able to brute-force the password.
             this.x1 = null;
             this.x2 = null;
             this.b = null;
 
-            /* 
-             * Do not clear gx* yet, since those are needed by round 3.
-             */
+            // Do not clear gx* yet, since those are needed by round 3.
 
             this.state = STATE_KEY_CALCULATED;
 
             return keyingMaterial;
         }
 
-        /**
-         * Creates and returns the payload to send to the other participant during round 3.
-         * <p>
-         * See {@link JPAKEParticipant} for more details on round 3.
-         * <p>
-         * After execution, the {@link #getState() state} will be  {@link #STATE_ROUND_3_CREATED}.
-         *
-         * @param keyingMaterial The keying material as returned from {@link #calculateKeyingMaterial()}.
-         * @throws InvalidOperationException if called prior to {@link #calculateKeyingMaterial()}, or multiple times
-         */
+        /// <summary>
+        /// Creates and returns the payload to send to the other participant during round 3.
+        ///
+        /// See JPAKEParticipant for more details on round 3.
+        ///
+        /// After execution, the State state} will be  STATE_ROUND_3_CREATED.
+        /// Throws InvalidOperationException if called prior to CalculateKeyingMaterial, or multiple
+        /// times.
+        /// </summary>
+        /// <param name="keyingMaterial">The keying material as returned from CalculateKeyingMaterial().</param> 
         public JPAKERound3Payload CreateRound3PayloadToSend(BigInteger keyingMaterial)
         {
             if (this.state >= STATE_ROUND_3_CREATED)
@@ -475,17 +430,16 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             return new JPAKERound3Payload(participantId, macTag);
         }
 
-        /**
-         * Validates the payload received from the other participant during round 3.
-         * <p>
-         * See {@link JPAKEParticipant} for more details on round 3.
-         * <p>
-         * After execution, the {@link #getState() state} will be {@link #STATE_ROUND_3_VALIDATED}.
-         *
-         * @param keyingMaterial The keying material as returned from {@link #calculateKeyingMaterial()}.
-         * @throws CryptoException if validation fails.
-         * @throws InvalidOperationException if called prior to {@link #calculateKeyingMaterial()}, or multiple times
-         */
+        /// <summary>
+        /// Validates the payload received from the other participant during round 3.
+        ///
+        /// See JPAKEParticipant for more details on round 3.
+        ///
+        /// After execution, the State state will be STATE_ROUND_3_VALIDATED.
+        /// Throws CryptoException if validation fails. Throws InvalidOperationException if called prior to
+        /// CalculateKeyingMaterial or multiple times
+        /// </summary>
+        /// <param name="keyingMaterial">The keying material as returned from CalculateKeyingMaterial().</param> 
         public void ValidateRound3PayloadReceived(JPAKERound3Payload round3PayloadReceived, BigInteger keyingMaterial)
         {
             if (this.state >= STATE_ROUND_3_VALIDATED)
@@ -511,9 +465,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
                 this.digest,
                 round3PayloadReceived.MacTag);
 
-            /*
-             * Clear the rest of the fields.
-             */
+            // Clear the rest of the fields.
             this.gx1 = null;
             this.gx2 = null;
             this.gx3 = null;
