@@ -1,6 +1,6 @@
 using System.IO;
 
-using Org.BouncyCastle.Asn1.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {

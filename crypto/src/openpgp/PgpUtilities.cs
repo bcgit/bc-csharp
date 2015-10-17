@@ -86,7 +86,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				case PublicKeyAlgorithmTag.Dsa:
 					encAlg = "DSA";
 					break;
-				case PublicKeyAlgorithmTag.ElGamalEncrypt: // in some malformed cases.
+                case PublicKeyAlgorithmTag.ECDH:
+                    encAlg = "ECDH";
+                    break;
+                case PublicKeyAlgorithmTag.ECDsa:
+                    encAlg = "ECDSA";
+                    break;
+                case PublicKeyAlgorithmTag.ElGamalEncrypt: // in some malformed cases.
 				case PublicKeyAlgorithmTag.ElGamalGeneral:
 					encAlg = "ElGamal";
 					break;
@@ -135,7 +141,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-	public static int GetKeySize(SymmetricKeyAlgorithmTag algorithm)
+        public static int GetKeySize(SymmetricKeyAlgorithmTag algorithm)
         {
             int keySize;
             switch (algorithm)
@@ -193,7 +199,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             char[]						passPhrase)
         {
 			int keySize = GetKeySize(algorithm);
-			byte[] pBytes = Strings.ToByteArray(new string(passPhrase));
+			byte[] pBytes = Encoding.UTF8.GetBytes(passPhrase);
 			byte[] keyBytes = new byte[(keySize + 7) / 8];
 
 			int generatedBytes = 0;
@@ -431,6 +437,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				bool hasHeaders = (decoded[0] & 0x80) == 0;
 
 				return new ArmoredInputStream(inputStream, hasHeaders);
+            }
+        }
+
+        internal static IWrapper CreateWrapper(SymmetricKeyAlgorithmTag encAlgorithm)
+        {
+            switch (encAlgorithm)
+            {
+            case SymmetricKeyAlgorithmTag.Aes128:
+            case SymmetricKeyAlgorithmTag.Aes192:
+            case SymmetricKeyAlgorithmTag.Aes256:
+                return WrapperUtilities.GetWrapper("AESWRAP");
+            case SymmetricKeyAlgorithmTag.Camellia128:
+            case SymmetricKeyAlgorithmTag.Camellia192:
+            case SymmetricKeyAlgorithmTag.Camellia256:
+                return WrapperUtilities.GetWrapper("CAMELLIAWRAP");
+            default:
+                throw new PgpException("unknown wrap algorithm: " + encAlgorithm);
             }
         }
     }

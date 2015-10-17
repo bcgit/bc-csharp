@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Anssi
                 BigInteger h = BigInteger.One;
 
                 ECCurve curve = ConfigureCurve(new FpCurve(p, a, b, n, h));
-                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                X9ECPoint G = new X9ECPoint(curve, Hex.Decode("04"
                     + "B6B3D4C356C139EB31183D4749D423958C27D2DCAF98B70164C97A2DD98F5CFF"
                     + "6142E0F7C8B204911F9271F0F3ECEF8C2701C307E8E4C9E183115A1554062CFB"));
 

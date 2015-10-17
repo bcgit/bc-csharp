@@ -9,6 +9,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.X509
 {
@@ -151,29 +152,48 @@ namespace Org.BouncyCastle.X509
 			return cert.SignatureValue.GetBytes();
 		}
 
-		public virtual void Verify(
-			AsymmetricKeyParameter publicKey)
-		{
-			if (!cert.SignatureAlgorithm.Equals(cert.ACInfo.Signature))
+        public virtual void Verify(
+            AsymmetricKeyParameter key)
+        {
+            CheckSignature(new Asn1SignatureVerifier(cert.SignatureAlgorithm, key));
+        }
+
+        /// <summary>
+        /// Verify the certificate's signature using a verifier created using the passed in verifier provider.
+        /// </summary>
+        /// <param name="verifierProvider">An appropriate provider for verifying the certificate's signature.</param>
+        /// <returns>True if the signature is valid.</returns>
+        /// <exception cref="Exception">If verifier provider is not appropriate or the certificate algorithm is invalid.</exception>
+        public virtual void Verify(
+            ISignatureVerifierProvider verifierProvider)
+        {
+            CheckSignature(verifierProvider.CreateSignatureVerifier(cert.SignatureAlgorithm));
+        }
+
+        protected virtual void CheckSignature(
+            ISignatureVerifier verifier)
+        {
+            if (!cert.SignatureAlgorithm.Equals(cert.ACInfo.Signature))
 			{
 				throw new CertificateException("Signature algorithm in certificate info not same as outer certificate");
 			}
 
-			ISigner signature = SignerUtilities.GetSigner(cert.SignatureAlgorithm.ObjectID.Id);
-
-			signature.Init(false, publicKey);
+            IStreamCalculator streamCalculator = verifier.CreateCalculator();
 
 			try
 			{
-				byte[] b = cert.ACInfo.GetEncoded();
-				signature.BlockUpdate(b, 0, b.Length);
-			}
+                byte[] b = this.cert.ACInfo.GetEncoded();
+
+                streamCalculator.Stream.Write(b, 0, b.Length);
+
+                streamCalculator.Stream.Dispose();
+            }
 			catch (IOException e)
 			{
 				throw new SignatureException("Exception encoding certificate info object", e);
 			}
 
-			if (!signature.VerifySignature(this.GetSignature()))
+			if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
 			{
 				throw new InvalidKeyException("Public key presented not for certificate signature");
 			}

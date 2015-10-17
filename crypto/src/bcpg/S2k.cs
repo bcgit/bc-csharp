@@ -84,19 +84,19 @@ namespace Org.BouncyCastle.Bcpg
             this.itCount = itCount;
         }
 
-        public int Type
+        public virtual int Type
         {
 			get { return type; }
         }
 
 		/// <summary>The hash algorithm.</summary>
-        public HashAlgorithmTag HashAlgorithm
+        public virtual HashAlgorithmTag HashAlgorithm
         {
 			get { return algorithm; }
 		}
 
 		/// <summary>The IV for the key generation algorithm.</summary>
-        public byte[] GetIV()
+        public virtual byte[] GetIV()
         {
             return Arrays.Clone(iv);
         }
@@ -108,13 +108,13 @@ namespace Org.BouncyCastle.Bcpg
         }
 
 		/// <summary>The iteration count</summary>
-		public long IterationCount
+        public virtual long IterationCount
 		{
 			get { return (16 + (itCount & 15)) << ((itCount >> 4) + ExpBias); }
 		}
 
 		/// <summary>The protection mode - only if GnuDummyS2K</summary>
-        public int ProtectionMode
+        public virtual int ProtectionMode
         {
 			get { return protectionMode; }
         }

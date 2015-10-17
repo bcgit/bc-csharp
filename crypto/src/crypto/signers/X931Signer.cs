@@ -20,31 +20,24 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class X931Signer
         :   ISigner
     {
-        public const int TRAILER_IMPLICIT    = 0xBC;
-        public const int TRAILER_RIPEMD160   = 0x31CC;
-        public const int TRAILER_RIPEMD128   = 0x32CC;
-        public const int TRAILER_SHA1        = 0x33CC;
-        public const int TRAILER_SHA256      = 0x34CC;
-        public const int TRAILER_SHA512      = 0x35CC;
-        public const int TRAILER_SHA384      = 0x36CC;
-        public const int TRAILER_WHIRLPOOL   = 0x37CC;
-        public const int TRAILER_SHA224      = 0x38CC;
-
-        private static readonly IDictionary trailerMap = Platform.CreateHashtable();
-
-        static X931Signer()
-        {
-            trailerMap.Add("RIPEMD128", TRAILER_RIPEMD128);
-            trailerMap.Add("RIPEMD160", TRAILER_RIPEMD160);
-
-            trailerMap.Add("SHA-1", TRAILER_SHA1);
-            trailerMap.Add("SHA-224", TRAILER_SHA224);
-            trailerMap.Add("SHA-256", TRAILER_SHA256);
-            trailerMap.Add("SHA-384", TRAILER_SHA384);
-            trailerMap.Add("SHA-512", TRAILER_SHA512);
-
-            trailerMap.Add("Whirlpool", TRAILER_WHIRLPOOL);
-        }
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_IMPLICIT = 0xBC;
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_RIPEMD160 = 0x31CC;
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_RIPEMD128 = 0x32CC;
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_SHA1 = 0x33CC;
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_SHA256 = 0x34CC;
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_SHA512 = 0x35CC;
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_SHA384 = 0x36CC;
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_WHIRLPOOL = 0x37CC;
+        [Obsolete("Use 'IsoTrailers' instead")]
+        public const int TRAILER_SHA224 = 0x38CC;
 
         private IDigest                     digest;
         private IAsymmetricBlockCipher      cipher;
@@ -55,8 +48,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         private byte[]      block;
 
         /**
-         * Generate a signer for the with either implicit or explicit trailers
-         * for ISO9796-2.
+         * Generate a signer with either implicit or explicit trailers for X9.31.
          *
          * @param cipher base cipher to use for signature creation/verification
          * @param digest digest to use.
@@ -69,15 +61,15 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (isImplicit)
             {
-                trailer = TRAILER_IMPLICIT;
+                trailer = IsoTrailers.TRAILER_IMPLICIT;
+            }
+            else if (IsoTrailers.NoTrailerAvailable(digest))
+            {
+                throw new ArgumentException("no valid trailer", "digest");
             }
             else
             {
-                string name = digest.AlgorithmName;
-                if (!trailerMap.Contains(name))
-                    throw new ArgumentException("no valid trailer", "digest");
-
-                trailer = (int)trailerMap[name];
+                trailer = IsoTrailers.GetTrailer(digest);
             }
         }
 
@@ -161,12 +153,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             int digSize = digest.GetDigestSize();
 
             int delta;
-
-            if (trailer == TRAILER_IMPLICIT)
+            if (trailer == IsoTrailers.TRAILER_IMPLICIT)
             {
                 delta = block.Length - digSize - 1;
                 digest.DoFinal(block, delta);
-                block[block.Length - 1] = (byte)TRAILER_IMPLICIT;
+                block[block.Length - 1] = (byte)IsoTrailers.TRAILER_IMPLICIT;
             }
             else
             {

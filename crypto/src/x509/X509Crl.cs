@@ -14,6 +14,7 @@ using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509.Extension;
+using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.X509
 {
@@ -83,24 +84,46 @@ namespace Org.BouncyCastle.X509
 		public virtual void Verify(
 			AsymmetricKeyParameter publicKey)
 		{
-			if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
-			{
-				throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
-			}
-
-			ISigner sig = SignerUtilities.GetSigner(SigAlgName);
-			sig.Init(false, publicKey);
-
-			byte[] encoded = this.GetTbsCertList();
-			sig.BlockUpdate(encoded, 0, encoded.Length);
-
-			if (!sig.VerifySignature(this.GetSignature()))
-			{
-				throw new SignatureException("CRL does not verify with supplied public key.");
-			}
+            Verify(new Asn1SignatureVerifierProvider(publicKey));
 		}
 
-		public virtual int Version
+        /// <summary>
+        /// Verify the CRL's signature using a verifier created using the passed in verifier provider.
+        /// </summary>
+        /// <param name="verifierProvider">An appropriate provider for verifying the CRL's signature.</param>
+        /// <returns>True if the signature is valid.</returns>
+        /// <exception cref="Exception">If verifier provider is not appropriate or the CRL algorithm is invalid.</exception>
+        public virtual void Verify(
+            ISignatureVerifierProvider verifierProvider)
+        {
+            CheckSignature(verifierProvider.CreateSignatureVerifier(c.SignatureAlgorithm));
+        }
+
+        protected virtual void CheckSignature(
+            ISignatureVerifier verifier)
+        {
+            if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
+            {
+                throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
+            }
+
+            Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
+
+            IStreamCalculator streamCalculator = verifier.CreateCalculator();
+
+            byte[] b = this.GetTbsCertList();
+
+            streamCalculator.Stream.Write(b, 0, b.Length);
+
+            streamCalculator.Stream.Dispose();
+
+            if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
+            {
+                throw new InvalidKeyException("CRL does not verify with supplied public key.");
+            }
+        }
+
+        public virtual int Version
 		{
 			get { return c.Version; }
 		}

@@ -13,12 +13,16 @@ namespace Org.BouncyCastle.Security
     {
         private static long counter = Times.NanoTime();
 
+#if NETCF_1_0 || PCL
+        private static object counterLock = new object();
         private static long NextCounterValue()
         {
-            return Interlocked.Increment(ref counter);
+            lock (counterLock)
+            {
+                return ++counter;
+            }
         }
 
-#if NETCF_1_0 || PCL
         private static readonly SecureRandom[] master = { null };
         private static SecureRandom Master
         {
@@ -43,6 +47,11 @@ namespace Org.BouncyCastle.Security
             }
         }
 #else
+        private static long NextCounterValue()
+        {
+            return Interlocked.Increment(ref counter);
+        }
+
         private static readonly SecureRandom master = new SecureRandom(new CryptoApiRandomGenerator());
         private static SecureRandom Master
         {

@@ -1,13 +1,13 @@
 namespace Org.BouncyCastle.Asn1.X9
 {
-    public abstract class X9ECParametersHolder
-    {
-        private X9ECParameters parameters;
+	public abstract class X9ECParametersHolder
+	{
+		private X9ECParameters parameters;
 
-        public X9ECParameters Parameters
-        {
-            get
-            {
+		public X9ECParameters Parameters
+		{
+			get
+			{
                 lock (this)
                 {
                     if (parameters == null)
@@ -20,6 +20,6 @@ namespace Org.BouncyCastle.Asn1.X9
             }
         }
 
-        protected abstract X9ECParameters CreateParameters();
-    }
+		protected abstract X9ECParameters CreateParameters();
+	}
 }
