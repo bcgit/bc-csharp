@@ -17,6 +17,7 @@ using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
+using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
@@ -522,7 +523,101 @@ namespace Org.BouncyCastle.Cms.Tests
 			CheckSignerStoreReplacement(s, signers);
 		}
 
-		// NB: C# build doesn't support "no attributes" version of CmsSignedDataGenerator.Generate
+        [Test]
+        public void TestSha1AndMD5WithRsaEncapsulatedRepeatedWithSignerInfoGen()
+        {
+            CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
+
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+            gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().Build(
+                new Asn1SignatureCalculator("SHA1withRSA", OrigKP.Private), OrigCert));
+            gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().Build(
+                new Asn1SignatureCalculator("MD5withRSA", OrigKP.Private), OrigCert));
+
+            gen.AddCertificates(x509Certs);
+
+            CmsSignedData s = gen.Generate(msg, true);
+
+            s = new CmsSignedData(ContentInfo.GetInstance(Asn1Object.FromByteArray(s.GetEncoded())));
+
+            x509Certs = s.GetCertificates("Collection");
+
+            SignerInformationStore signers = s.GetSignerInfos();
+
+            Assert.AreEqual(2, signers.Count);
+
+            SignerID sid = null;
+            ICollection c = signers.GetSigners();
+
+            foreach (SignerInformation signer in c)
+            {
+                ICollection certCollection = x509Certs.GetMatches(signer.SignerID);
+
+                IEnumerator certEnum = certCollection.GetEnumerator();
+
+                certEnum.MoveNext();
+                X509Certificate cert = (X509Certificate)certEnum.Current;
+
+                sid = signer.SignerID;
+
+                Assert.IsTrue(signer.Verify(cert));
+
+                //
+                // check content digest
+                //
+
+                byte[] contentDigest = (byte[])gen.GetGeneratedDigests()[signer.DigestAlgOid];
+
+                AttributeTable table = signer.SignedAttributes;
+                Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
+
+                Assert.IsTrue(Arrays.AreEqual(contentDigest, ((Asn1OctetString)hash.AttrValues[0]).GetOctets()));
+            }
+
+            c = signers.GetSigners(sid);
+
+            Assert.AreEqual(2, c.Count);
+
+            //
+            // try using existing signer
+            //
+
+            gen = new CmsSignedDataGenerator();
+
+            gen.AddSigners(s.GetSignerInfos());
+
+            gen.AddCertificates(s.GetCertificates("Collection"));
+            gen.AddCrls(s.GetCrls("Collection"));
+
+            s = gen.Generate(msg, true);
+
+            s = new CmsSignedData(ContentInfo.GetInstance(Asn1Object.FromByteArray(s.GetEncoded())));
+
+            x509Certs = s.GetCertificates("Collection");
+
+            signers = s.GetSignerInfos();
+            c = signers.GetSigners();
+
+            Assert.AreEqual(2, c.Count);
+
+            foreach (SignerInformation signer in c)
+            {
+                ICollection certCollection = x509Certs.GetMatches(signer.SignerID);
+
+                IEnumerator certEnum = certCollection.GetEnumerator();
+
+                certEnum.MoveNext();
+                X509Certificate cert = (X509Certificate)certEnum.Current;
+
+                Assert.AreEqual(true, signer.Verify(cert));
+            }
+
+            CheckSignerStoreReplacement(s, signers);
+        }
+
+        // NB: C# build doesn't support "no attributes" version of CmsSignedDataGenerator.Generate
         //[Test]
         //public void TestSha1WithRsaNoAttributes()
         //{
@@ -544,7 +639,7 @@ namespace Org.BouncyCastle.Cms.Tests
         //    VerifySignatures(s, hash);
         //}
 
-		[Test]
+        [Test]
 		public void TestSha1WithRsaAndAttributeTable()
 		{
 			byte[] testBytes = Encoding.ASCII.GetBytes("Hello world!");
