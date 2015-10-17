@@ -531,6 +531,7 @@
     <Compile Include="src\bcpg\attr\ImageAttrib.cs" />
     <Compile Include="src\bcpg\sig\EmbeddedSignature.cs" />
     <Compile Include="src\bcpg\sig\Exportable.cs" />
+    <Compile Include="src\bcpg\sig\Features.cs" />
     <Compile Include="src\bcpg\sig\IssuerKeyId.cs" />
     <Compile Include="src\bcpg\sig\KeyExpirationTime.cs" />
     <Compile Include="src\bcpg\sig\KeyFlags.cs" />
@@ -629,6 +630,7 @@
     <Compile Include="src\crypto\IAsymmetricCipherKeyPairGenerator.cs" />
     <Compile Include="src\crypto\IBasicAgreement.cs" />
     <Compile Include="src\crypto\IBlockCipher.cs" />
+    <Compile Include="src\crypto\IBlockResult.cs" />
     <Compile Include="src\crypto\IBufferedCipher.cs" />
     <Compile Include="src\crypto\ICipherParameters.cs" />
     <Compile Include="src\crypto\IDSA.cs" />
@@ -636,9 +638,14 @@
     <Compile Include="src\crypto\IDerivationParameters.cs" />
     <Compile Include="src\crypto\IDigest.cs" />
     <Compile Include="src\crypto\IMac.cs" />
+    <Compile Include="src\crypto\ISignatureCalculator.cs" />
+    <Compile Include="src\crypto\ISignatureVerifier.cs" />
+    <Compile Include="src\crypto\ISignatureVerifierProvider.cs" />
+    <Compile Include="src\crypto\IStreamCalculator.cs" />
     <Compile Include="src\crypto\ISigner.cs" />
     <Compile Include="src\crypto\ISignerWithRecovery.cs" />
     <Compile Include="src\crypto\IStreamCipher.cs" />
+    <Compile Include="src\crypto\IVerifier.cs" />
     <Compile Include="src\crypto\IWrapper.cs" />
     <Compile Include="src\crypto\IXof.cs" />
     <Compile Include="src\crypto\InvalidCipherTextException.cs" />
@@ -804,6 +811,7 @@
     <Compile Include="src\crypto\modes\gcm\Tables1kGcmExponentiator.cs" />
     <Compile Include="src\crypto\modes\gcm\Tables64kGcmMultiplier.cs" />
     <Compile Include="src\crypto\modes\gcm\Tables8kGcmMultiplier.cs" />
+    <Compile Include="src\crypto\operators\Asn1Signature.cs" />
     <Compile Include="src\crypto\paddings\BlockCipherPadding.cs" />
     <Compile Include="src\crypto\paddings\ISO10126d2Padding.cs" />
     <Compile Include="src\crypto\paddings\ISO7816d4Padding.cs" />
@@ -908,6 +916,7 @@
     <Compile Include="src\crypto\tls\BasicTlsPskIdentity.cs" />
     <Compile Include="src\crypto\tls\BulkCipherAlgorithm.cs" />
     <Compile Include="src\crypto\tls\ByteQueue.cs" />
+    <Compile Include="src\crypto\tls\ByteQueueStream.cs" />
     <Compile Include="src\crypto\tls\CertChainType.cs" />
     <Compile Include="src\crypto\tls\Certificate.cs" />
     <Compile Include="src\crypto\tls\CertificateRequest.cs" />
@@ -1250,6 +1259,7 @@
     <Compile Include="src\openpgp\PgpObjectFactory.cs" />
     <Compile Include="src\openpgp\PgpOnePassSignature.cs" />
     <Compile Include="src\openpgp\PgpOnePassSignatureList.cs" />
+    <Compile Include="src\openpgp\PgpPad.cs" />
     <Compile Include="src\openpgp\PgpPbeEncryptedData.cs" />
     <Compile Include="src\openpgp\PgpPrivateKey.cs" />
     <Compile Include="src\openpgp\PgpPublicKey.cs" />
@@ -1267,6 +1277,8 @@
     <Compile Include="src\openpgp\PgpUserAttributeSubpacketVector.cs" />
     <Compile Include="src\openpgp\PgpUtilities.cs" />
     <Compile Include="src\openpgp\PgpV3SignatureGenerator.cs" />
+    <Compile Include="src\openpgp\Rfc6637Utilities.cs" />
+    <Compile Include="src\openpgp\SXprUtilities.cs" />
     <Compile Include="src\openpgp\WrappedGeneratorStream.cs" />
     <Compile Include="src\openssl\EncryptionException.cs" />
     <Compile Include="src\openssl\IPasswordFinder.cs" />
@@ -1384,6 +1396,7 @@
     <Compile Include="src\util\encoders\UrlBase64Encoder.cs" />
     <Compile Include="src\util\io\BaseInputStream.cs" />
     <Compile Include="src\util\io\BaseOutputStream.cs" />
+    <Compile Include="src\util\io\FilterStream.cs" />
     <Compile Include="src\util\io\NullOutputStream.cs" />
     <Compile Include="src\util\io\PushbackStream.cs" />
     <Compile Include="src\util\io\StreamOverflowException.cs" />

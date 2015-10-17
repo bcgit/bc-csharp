@@ -261,6 +261,7 @@
     <Compile Include="src\crypto\test\X931SignerTest.cs" />
     <Compile Include="src\crypto\test\XSalsa20Test.cs" />
     <Compile Include="src\crypto\test\XTEATest.cs" />
+    <Compile Include="src\crypto\tls\test\ByteQueueStreamTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsTestCase.cs" />
     <Compile Include="src\crypto\tls\test\DtlsTestSuite.cs" />
@@ -279,6 +280,7 @@
     <Compile Include="src\crypto\tls\test\PskTlsClientTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsClientTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsProtocolTest.cs" />
+    <Compile Include="src\crypto\tls\test\TlsProtocolNonBlockingTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsPskProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsServerTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsSrpProtocolTest.cs" />
@@ -324,8 +326,13 @@
     <Compile Include="src\openpgp\test\PGPPacketTest.cs" />
     <Compile Include="src\openpgp\test\PGPRSATest.cs" />
     <Compile Include="src\openpgp\test\PGPSignatureTest.cs" />
+    <Compile Include="src\openpgp\test\PgpECDHTest.cs" />
+    <Compile Include="src\openpgp\test\PgpECDsaTest.cs" />
+    <Compile Include="src\openpgp\test\PgpECMessageTest.cs" />
     <Compile Include="src\openpgp\test\PgpKeyRingTest.cs" />
     <Compile Include="src\openpgp\test\PgpMarkerTest.cs" />
+    <Compile Include="src\openpgp\test\PgpParsingTest.cs" />
+    <Compile Include="src\openpgp\test\PgpUnicodeTest.cs" />
     <Compile Include="src\openpgp\test\RegressionTest.cs" />
     <Compile Include="src\openssl\test\AllTests.cs" />
     <Compile Include="src\openssl\test\ReaderTest.cs" />
@@ -1058,6 +1065,8 @@
     <EmbeddedResource Include="data\keys\pbes2\pbes2.rc2-64-cbc.key" />
     <EmbeddedResource Include="data\keys\pbes2\pbes2.rc2-cbc.key" />
     <EmbeddedResource Include="data\keys\pbes2\pbes2.rc2.key" />
+    <EmbeddedResource Include="data\openpgp\bigpub.asc" />
+    <EmbeddedResource Include="data\openpgp\longSigSubPack.asc" />
     <EmbeddedResource Include="data\openpgp\dsa\README.txt" />
     <EmbeddedResource Include="data\openpgp\dsa\keys\DSA-1024-160.pub" />
     <EmbeddedResource Include="data\openpgp\dsa\keys\DSA-1024-160.sec" />
@@ -1078,6 +1087,10 @@
     <EmbeddedResource Include="data\openpgp\dsa\sigs\dsa-2048-224-sign.gpg" />
     <EmbeddedResource Include="data\openpgp\dsa\sigs\dsa-3072-256-sign.gpg" />
     <EmbeddedResource Include="data\openpgp\dsa\sigs\dsa-7680-384-sign.gpg" />
+    <EmbeddedResource Include="data\openpgp\unicode\passphrase_cyr.txt" />
+    <EmbeddedResource Include="data\openpgp\unicode\passphrase_for_test.txt" />
+    <EmbeddedResource Include="data\openpgp\unicode\secring.gpg" />
+    <EmbeddedResource Include="data\openpgp\unicode\test.asc" />
     <EmbeddedResource Include="data\openssl\README.txt" />
     <EmbeddedResource Include="data\openssl\eckey.pem" />
     <EmbeddedResource Include="data\openssl\enckey.pem" />
