@@ -43,12 +43,12 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /**
-         * Constructor for non-blocking mode.<br>
-         * <br>
+         * Constructor for non-blocking mode.<br/>
+         * <br/>
          * When data is received, use {@link #offerInput(java.nio.ByteBuffer)} to
          * provide the received ciphertext, then use
-         * {@link #readInput(byte[], int, int)} to read the corresponding cleartext.<br>
-         * <br>
+         * {@link #readInput(byte[], int, int)} to read the corresponding cleartext.<br/>
+         * <br/>
          * Similarly, when data needs to be sent, use
          * {@link #offerOutput(byte[], int, int)} to provide the cleartext, then use
          * {@link #readOutput(byte[], int, int)} to get the corresponding
@@ -63,8 +63,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /**
-         * Initiates a TLS handshake in the role of client.<br>
-         * <br>
+         * Initiates a TLS handshake in the role of client.<br/>
+         * <br/>
          * In blocking mode, this will not return until the handshake is complete.
          * In non-blocking mode, use {@link TlsPeer#NotifyHandshakeComplete()} to
          * receive a callback when the handshake is complete.

@@ -421,6 +421,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// Throws CryptoException if validation fails. Throws InvalidOperationException if called prior to
         /// CalculateKeyingMaterial or multiple times
         /// </summary>
+        /// <param name="round3PayloadReceived">The round 3 payload received from the other participant.</param> 
         /// <param name="keyingMaterial">The keying material as returned from CalculateKeyingMaterial().</param> 
         public virtual void ValidateRound3PayloadReceived(JPakeRound3Payload round3PayloadReceived, BigInteger keyingMaterial)
         {

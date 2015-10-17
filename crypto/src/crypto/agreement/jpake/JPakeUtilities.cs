@@ -310,7 +310,6 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// 
         /// throws CryptoException if the participantId strings are equal.
         /// </summary>
-        /// <param name="partnerMacTag">the MacTag received from the partner</param>
         public static void ValidateMacTag(string participantId, string partnerParticipantId,
             BigInteger gx1, BigInteger gx2, BigInteger gx3, BigInteger gx4,
             BigInteger keyingMaterial, IDigest digest, BigInteger partnerMacTag)

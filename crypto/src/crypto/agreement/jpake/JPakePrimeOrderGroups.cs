@@ -5,10 +5,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
     /// <summary>
     /// Standard pre-computed prime order groups for use by J-PAKE.
     /// (J-PAKE can use pre-computed prime order groups, same as DSA and Diffie-Hellman.)
-    /// <p>
+    /// <p/>
     /// This class contains some convenient constants for use as input for
     /// constructing {@link JPAKEParticipant}s.
-    /// <p>
+    /// <p/>
     /// The prime order groups below are taken from Sun's JDK JavaDoc (docs/guide/security/CryptoSpec.html#AppB),
     /// and from the prime order groups
     /// <a href="http://csrc.nist.gov/groups/ST/toolkit/documents/Examples/DSA2_All.pdf">published by NIST</a>.
