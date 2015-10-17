@@ -108,6 +108,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         // See the <tt>STATE_*</tt> constants for possible values.
         private int state;
 
+        /// <summary>
         /// Convenience constructor for a new JPAKEParticipant that uses
         /// the JPAKEPrimeOrderGroups#NIST_3072 prime order group,
         /// a SHA-256 digest, and a default SecureRandom implementation.
@@ -125,8 +126,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         public JPAKEParticipant(string participantId, char[] password)
             : this(participantId, password, JPAKEPrimeOrderGroups.NIST_3072) { }
 
+        /// <summary>
         /// Convenience constructor for a new JPAKEParticipant that uses
-        /// the JPAKEPrimeOrderGroups#NIST_3072 prime order group,
         /// a SHA-256 digest, and a default SecureRandom implementation.
         ///
         /// After construction, the State state will be STATE_INITIALIZED.
@@ -144,9 +145,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             : this(participantId, password, group, new Sha256Digest(), new SecureRandom()) { }
 
 
-        /// Convenience constructor for a new JPAKEParticipant that uses
-        /// the JPAKEPrimeOrderGroups#NIST_3072 prime order group,
-        /// a SHA-256 digest, and a default SecureRandom implementation.
+        /// <summary>
+        /// Constructor for a new JPAKEParticipant.
         ///
         /// After construction, the State state will be STATE_INITIALIZED.
         /// 
@@ -241,6 +241,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// Must be called prior to CreateRound2PayloadToSend().
         ///
         /// After execution, the State state will be  STATE_ROUND_1_VALIDATED.
+        /// 
         /// Throws CryptoException if validation fails. Throws InvalidOperationException
         /// if called multiple times.
         /// </summary>
@@ -268,11 +269,11 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// <summary>
         /// Creates and returns the payload to send to the other participant during round 2.
         ///
-        /// ValidateRound1PayloadReceived(JPAKERound1Payload)} must be called prior to this method.
+        /// ValidateRound1PayloadReceived(JPAKERound1Payload) must be called prior to this method.
         ///
-        //// After execution, the State state will be  STATE_ROUND_2_CREATED.
+        /// After execution, the State state will be  STATE_ROUND_2_CREATED.
         ///
-        /// Throws InvalidOperationException if called prior to ValidateRound1PayloadReceived(JPAKERound1Payload)}, or multiple times
+        /// Throws InvalidOperationException if called prior to ValidateRound1PayloadReceived(JPAKERound1Payload), or multiple times
         /// </summary>
         public JPAKERound2Payload CreateRound2PayloadToSend()
         {
@@ -304,7 +305,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         ///
         /// Must be called prior to CalculateKeyingMaterial().
         ///
-        /// After execution, the State state will be  STATE_ROUND_2_VALIDATED.
+        /// After execution, the State state will be STATE_ROUND_2_VALIDATED.
         ///
         /// Throws CryptoException if validation fails. Throws
         /// InvalidOperationException if called prior to ValidateRound1PayloadReceived(JPAKERound1Payload), or multiple times
@@ -436,6 +437,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// See JPAKEParticipant for more details on round 3.
         ///
         /// After execution, the State state will be STATE_ROUND_3_VALIDATED.
+        /// 
         /// Throws CryptoException if validation fails. Throws InvalidOperationException if called prior to
         /// CalculateKeyingMaterial or multiple times
         /// </summary>
