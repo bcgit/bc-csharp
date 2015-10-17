@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
 			}
 
 			PgpEncryptedDataGenerator encGen = new PgpEncryptedDataGenerator(algorithm, new SecureRandom());
-            encGen.AddMethod(passPhrase);
+            encGen.AddMethod(passPhrase, HashAlgorithmTag.Sha1);
 
 			Stream encOut = encGen.Open(output, compressedData.Length);
 
