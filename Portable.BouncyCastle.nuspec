@@ -29,10 +29,10 @@
  -Time Stamp Protocol (TSP, RFC 3161).
  -TLS/SSL Client with support for client side authentication.
  
-        Support for .NET 4.5, Windows Phone 8, Windows Phone App 8.1, Windows 8, MonoTouch, MonoAndroid, Xamarin.iOS, Core CLR
+        Support for .NET 4, Windows Phone 8, Windows Phone App 8.1, Windows 8, MonoTouch, MonoAndroid, Xamarin.iOS, Core CLR
         </description>
     <language>en-US</language>
-    <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, coreclr, dotnet, dnx, uwp, monotouch, monoandroid, xamarin, xamarin.ios</tags>
+    <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, coreclr, dotnet, dnx, uwp, sl5, monotouch, monoandroid, xamarin, xamarin.ios</tags>
     <dependencies>
       <group targetFramework="dotnet">
         <dependency id="System.Collections" version="4.0.0" />
