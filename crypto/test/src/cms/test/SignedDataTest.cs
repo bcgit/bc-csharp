@@ -738,7 +738,31 @@ namespace Org.BouncyCastle.Cms.Tests
 			EncapsulatedTest(SignKP, SignCert, CmsSignedDataGenerator.DigestRipeMD256);
 		}
 
-		[Test]
+        [Test]
+        public void TestSha224WithDsaEncapsulated()
+        {
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha224);
+        }
+
+        [Test]
+        public void TestSha256WithDsaEncapsulated()
+        {
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha256);
+        }
+
+        [Test]
+        public void TestSha384WithDsaEncapsulated()
+        {
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha384);
+        }
+
+        [Test]
+        public void TestSha512WithDsaEncapsulated()
+        {
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha512);
+        }
+
+        [Test]
 		public void TestECDsaEncapsulated()
 		{
 			EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedDataGenerator.DigestSha1);
@@ -997,6 +1021,8 @@ namespace Org.BouncyCastle.Cms.Tests
 
 				certEnum.MoveNext();
 				X509Certificate cert = (X509Certificate) certEnum.Current;
+
+                Assert.AreEqual(digestAlgorithm, signer.DigestAlgOid);
 
 				Assert.IsTrue(signer.Verify(cert));
 			}
