@@ -90,21 +90,21 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			AsymmetricCipherKeyPair testDsaKp = dsaKpg.GenerateKeyPair();
 			AsymmetricKeyParameter testDsaKey = testDsaKp.Private;
 
-			doWriteReadTest(testDsaKey);
-			doWriteReadTests(testDsaKey, algorithms);
+			DoWriteReadTest(testDsaKey);
+			DoWriteReadTests(testDsaKey, algorithms);
 
-			doWriteReadTest(testRsaKey);
-			doWriteReadTests(testRsaKey, algorithms);
+			DoWriteReadTest(testRsaKey);
+			DoWriteReadTests(testRsaKey, algorithms);
 
 			AsymmetricKeyParameter ecPriv = PrivateKeyFactory.CreateKey(testEcDsaKeyBytes);
-			doWriteReadTest(ecPriv);
-			doWriteReadTests(ecPriv, algorithms);
+			DoWriteReadTest(ecPriv);
+			DoWriteReadTests(ecPriv, algorithms);
 
 			IAsymmetricCipherKeyPairGenerator ecKpg = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
 			ecKpg.Init(new KeyGenerationParameters(random, 239));
 			ecPriv = ecKpg.GenerateKeyPair().Private;
-			doWriteReadTest(ecPriv);
-			doWriteReadTests(ecPriv, algorithms);
+			DoWriteReadTest(ecPriv);
+			DoWriteReadTests(ecPriv, algorithms);
 
 			// override test
 			PemWriter pWrt = new PemWriter(new StringWriter());
@@ -115,17 +115,17 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			pWrt.Writer.Close();
 		}
 
-		private void doWriteReadTests(
+		private void DoWriteReadTests(
 			AsymmetricKeyParameter	akp,
 			string[]				algorithms)
 		{
 			foreach (string algorithm in algorithms)
 			{
-				doWriteReadTest(akp, algorithm);
+				DoWriteReadTest(akp, algorithm);
 			}
 		}
 
-		private void doWriteReadTest(
+		private void DoWriteReadTest(
 			AsymmetricKeyParameter	akp)
 		{
 			StringWriter sw = new StringWriter();
@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			}
 		}
 
-		private void doWriteReadTest(
+		private void DoWriteReadTest(
 			AsymmetricKeyParameter	akp,
 			string					algorithm)
 		{
