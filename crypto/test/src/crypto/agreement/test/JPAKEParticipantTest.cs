@@ -2,16 +2,16 @@
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Agreement.Jpake;
+using Org.BouncyCastle.Crypto.Agreement.JPake;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Test;
 
-namespace Org.BouncyCastle.Crypto.Tests
+namespace Org.BouncyCastle.Crypto.Agreement.Tests
 {
     [TestFixture]
-    public class JPAKEParticipantTest
+    public class JPakeParticipantTest
         : SimpleTest
     {
         public override void PerformTest()
@@ -26,13 +26,13 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public override string Name
         {
-            get { return "JPAKEParticipant"; }
+            get { return "JPakeParticipant"; }
         }
 
         public static void Main(
             string[] args)
         {
-            RunTest(new JPAKEParticipantTest());
+            RunTest(new JPakeParticipantTest());
         }
 
         [Test]
@@ -45,23 +45,23 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public void TestConstruction()
         {
-            JPAKEPrimeOrderGroup group = JPAKEPrimeOrderGroups.SUN_JCE_1024;
+            JPakePrimeOrderGroup group = JPakePrimeOrderGroups.SUN_JCE_1024;
             SecureRandom random = new SecureRandom();
             IDigest digest = new Sha256Digest();
             string participantId = "participantId";
             char[] password = "password".ToCharArray();
 
             // should succeed
-            new JPAKEParticipant(participantId, password, group, digest, random);
+            new JPakeParticipant(participantId, password, group, digest, random);
 
             // null participantId
             try
             {
-                new JPAKEParticipant(null, password, group, digest, random);
+                new JPakeParticipant(null, password, group, digest, random);
 
                 Fail("failed to throw exception on null participantId");
             }
-            catch (NullReferenceException)
+            catch (ArgumentNullException)
             {
                 // expected
             }
@@ -69,11 +69,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             // null password
             try
             {
-                new JPAKEParticipant(participantId, null, group, digest, random);
+                new JPakeParticipant(participantId, null, group, digest, random);
 
                 Fail("failed to throw exception on null password");
             }
-            catch (NullReferenceException)
+            catch (ArgumentNullException)
             {
                 // expected
             }
@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             // empty password
             try
             {
-                new JPAKEParticipant(participantId, "".ToCharArray(), group, digest, random);
+                new JPakeParticipant(participantId, "".ToCharArray(), group, digest, random);
 
                 Fail("failed to throw exception on empty password");
             }
@@ -93,11 +93,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             // null group
             try
             {
-                new JPAKEParticipant(participantId, password, null, digest, random);
+                new JPakeParticipant(participantId, password, null, digest, random);
 
                 Fail("failed to throw exception on null group");
             }
-            catch (NullReferenceException)
+            catch (ArgumentNullException)
             {
                 // expected
             }
@@ -105,11 +105,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             // null digest
             try
             {
-                new JPAKEParticipant(participantId, password, group, null, random);
+                new JPakeParticipant(participantId, password, group, null, random);
 
                 Fail("failed to throw exception on null digest");
             }
-            catch (NullReferenceException)
+            catch (ArgumentNullException)
             {
                 // expected
             }
@@ -117,11 +117,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             // null random
             try
             {
-                new JPAKEParticipant(participantId, password, group, digest, null);
+                new JPakeParticipant(participantId, password, group, digest, null);
 
                 Fail("failed to throw exception on null random");
             }
-            catch (NullReferenceException)
+            catch (ArgumentNullException)
             {
                 // expected
             }
@@ -129,8 +129,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public void TestSuccessfulExchange()
         {
-            JPAKEParticipant alice = CreateAlice();
-            JPAKEParticipant bob = CreateBob();
+            JPakeParticipant alice = CreateAlice();
+            JPakeParticipant bob = CreateBob();
 
             ExchangeAfterRound2Creation exchange = RunExchangeUntilRound2Creation(alice, bob);
 
@@ -140,8 +140,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger aliceKeyingMaterial = alice.CalculateKeyingMaterial();
             BigInteger bobKeyingMaterial = bob.CalculateKeyingMaterial();
 
-            JPAKERound3Payload aliceRound3Payload = alice.CreateRound3PayloadToSend(aliceKeyingMaterial);
-            JPAKERound3Payload bobRound3Payload = bob.CreateRound3PayloadToSend(bobKeyingMaterial);
+            JPakeRound3Payload aliceRound3Payload = alice.CreateRound3PayloadToSend(aliceKeyingMaterial);
+            JPakeRound3Payload bobRound3Payload = bob.CreateRound3PayloadToSend(bobKeyingMaterial);
 
             alice.ValidateRound3PayloadReceived(bobRound3Payload, aliceKeyingMaterial);
             bob.ValidateRound3PayloadReceived(aliceRound3Payload, bobKeyingMaterial);
@@ -151,8 +151,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public void TestIncorrectPassword()
         {
-            JPAKEParticipant alice = CreateAlice();
-            JPAKEParticipant bob = CreateBobWithWrongPassword();
+            JPakeParticipant alice = CreateAlice();
+            JPakeParticipant bob = CreateBobWithWrongPassword();
 
             ExchangeAfterRound2Creation exchange = RunExchangeUntilRound2Creation(alice, bob);
 
@@ -162,8 +162,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger aliceKeyingMaterial = alice.CalculateKeyingMaterial();
             BigInteger bobKeyingMaterial = bob.CalculateKeyingMaterial();
 
-            JPAKERound3Payload aliceRound3Payload = alice.CreateRound3PayloadToSend(aliceKeyingMaterial);
-            JPAKERound3Payload bobRound3Payload = bob.CreateRound3PayloadToSend(bobKeyingMaterial);
+            JPakeRound3Payload aliceRound3Payload = alice.CreateRound3PayloadToSend(aliceKeyingMaterial);
+            JPakeRound3Payload bobRound3Payload = bob.CreateRound3PayloadToSend(bobKeyingMaterial);
 
             try
             {
@@ -190,14 +190,14 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public void TestStateValidation()
         {
-            JPAKEParticipant alice = CreateAlice();
-            JPAKEParticipant bob = CreateBob();
+            JPakeParticipant alice = CreateAlice();
+            JPakeParticipant bob = CreateBob();
 
             // We're testing alice here. Bob is just used for help.
 
             // START ROUND 1 CHECKS
 
-            Assert.AreEqual(JPAKEParticipant.STATE_INITIALIZED, alice.State);
+            Assert.AreEqual(JPakeParticipant.STATE_INITIALIZED, alice.State);
 
             // create round 2 before round 1
             try
@@ -211,8 +211,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 // expected
             }
 
-            JPAKERound1Payload aliceRound1Payload = alice.CreateRound1PayloadToSend();
-            Assert.AreEqual(JPAKEParticipant.STATE_ROUND_1_CREATED, alice.State);
+            JPakeRound1Payload aliceRound1Payload = alice.CreateRound1PayloadToSend();
+            Assert.AreEqual(JPakeParticipant.STATE_ROUND_1_CREATED, alice.State);
 
             // create round 1 twice
             try
@@ -250,9 +250,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 // expected
             }
 
-            JPAKERound1Payload bobRound1Payload = bob.CreateRound1PayloadToSend();
+            JPakeRound1Payload bobRound1Payload = bob.CreateRound1PayloadToSend();
             alice.ValidateRound1PayloadReceived(bobRound1Payload);
-            Assert.AreEqual(JPAKEParticipant.STATE_ROUND_1_VALIDATED, alice.State);
+            Assert.AreEqual(JPakeParticipant.STATE_ROUND_1_VALIDATED, alice.State);
 
             // validate round 1 payload twice
             try
@@ -270,8 +270,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             // START ROUND 2 CHECKS
 
-            JPAKERound2Payload aliceRound2Payload = alice.CreateRound2PayloadToSend();
-            Assert.AreEqual(JPAKEParticipant.STATE_ROUND_2_CREATED, alice.State);
+            JPakeRound2Payload aliceRound2Payload = alice.CreateRound2PayloadToSend();
+            Assert.AreEqual(JPakeParticipant.STATE_ROUND_2_CREATED, alice.State);
 
             // create round 2 payload twice
             try
@@ -309,9 +309,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 // expected
             }
 
-            JPAKERound2Payload bobRound2Payload = bob.CreateRound2PayloadToSend();
+            JPakeRound2Payload bobRound2Payload = bob.CreateRound2PayloadToSend();
             alice.ValidateRound2PayloadReceived(bobRound2Payload);
-            Assert.AreEqual(JPAKEParticipant.STATE_ROUND_2_VALIDATED, alice.State);
+            Assert.AreEqual(JPakeParticipant.STATE_ROUND_2_VALIDATED, alice.State);
 
             // validate round 2 payload twice
             try
@@ -342,7 +342,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             // START KEY CALCULATION CHECKS
 
             BigInteger aliceKeyingMaterial = alice.CalculateKeyingMaterial();
-            Assert.AreEqual(JPAKEParticipant.STATE_KEY_CALCULATED, alice.State);
+            Assert.AreEqual(JPakeParticipant.STATE_KEY_CALCULATED, alice.State);
 
             // calculate key twice
             try
@@ -360,8 +360,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             // START ROUND 3 CHECKS
 
-            JPAKERound3Payload aliceRound3Payload = alice.CreateRound3PayloadToSend(aliceKeyingMaterial);
-            Assert.AreEqual(JPAKEParticipant.STATE_ROUND_3_CREATED, alice.State);
+            JPakeRound3Payload aliceRound3Payload = alice.CreateRound3PayloadToSend(aliceKeyingMaterial);
+            Assert.AreEqual(JPakeParticipant.STATE_ROUND_3_CREATED, alice.State);
 
             // create round 3 payload twice
             try
@@ -375,9 +375,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 // expected
             }
 
-            JPAKERound3Payload bobRound3Payload = bob.CreateRound3PayloadToSend(bobKeyingMaterial);
+            JPakeRound3Payload bobRound3Payload = bob.CreateRound3PayloadToSend(bobKeyingMaterial);
             alice.ValidateRound3PayloadReceived(bobRound3Payload, aliceKeyingMaterial);
-            Assert.AreEqual(JPAKEParticipant.STATE_ROUND_3_VALIDATED, alice.State);
+            Assert.AreEqual(JPakeParticipant.STATE_ROUND_3_VALIDATED, alice.State);
 
             // validate round 3 payload twice
             try
@@ -398,7 +398,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             // We're testing alice here. Bob is just used for help.
 
-            JPAKERound1Payload bobRound1Payload = CreateBob().CreateRound1PayloadToSend();
+            JPakeRound1Payload bobRound1Payload = CreateBob().CreateRound1PayloadToSend();
 
             // should succeed
             CreateAlice().ValidateRound1PayloadReceived(bobRound1Payload);
@@ -406,7 +406,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             // alice verifies alice's payload
             try
             {
-                JPAKEParticipant alice = CreateAlice();
+                JPakeParticipant alice = CreateAlice();
                 alice.ValidateRound1PayloadReceived(alice.CreateRound1PayloadToSend());
 
                 Fail("failed to throw on participant validating own payload");
@@ -419,7 +419,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             // g^x4 == 1
             try
             {
-                CreateAlice().ValidateRound1PayloadReceived(new JPAKERound1Payload(
+                CreateAlice().ValidateRound1PayloadReceived(new JPakeRound1Payload(
                     bobRound1Payload.ParticipantId,
                     bobRound1Payload.Gx1,
                     BigInteger.One,
@@ -436,8 +436,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             // zero knowledge proof for x3 fails
             try
             {
-                JPAKERound1Payload bobRound1Payload2 = CreateBob().CreateRound1PayloadToSend();
-                CreateAlice().ValidateRound1PayloadReceived(new JPAKERound1Payload(
+                JPakeRound1Payload bobRound1Payload2 = CreateBob().CreateRound1PayloadToSend();
+                CreateAlice().ValidateRound1PayloadReceived(new JPakeRound1Payload(
                     bobRound1Payload.ParticipantId,
                     bobRound1Payload.Gx1,
                     bobRound1Payload.Gx2,
@@ -454,8 +454,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             // zero knowledge proof for x4 fails
             try
             {
-                JPAKERound1Payload bobRound1Payload2 = CreateBob().CreateRound1PayloadToSend();
-                CreateAlice().ValidateRound1PayloadReceived(new JPAKERound1Payload(
+                JPakeRound1Payload bobRound1Payload2 = CreateBob().CreateRound1PayloadToSend();
+                CreateAlice().ValidateRound1PayloadReceived(new JPakeRound1Payload(
                     bobRound1Payload.ParticipantId,
                     bobRound1Payload.Gx1,
                     bobRound1Payload.Gx2,
@@ -508,14 +508,14 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private class ExchangeAfterRound2Creation
         {
-            public JPAKEParticipant alice;
-            public JPAKERound2Payload aliceRound2Payload;
-            public JPAKERound2Payload bobRound2Payload;
+            public JPakeParticipant alice;
+            public JPakeRound2Payload aliceRound2Payload;
+            public JPakeRound2Payload bobRound2Payload;
 
             public ExchangeAfterRound2Creation(
-                JPAKEParticipant alice,
-                JPAKERound2Payload aliceRound2Payload,
-                JPAKERound2Payload bobRound2Payload)
+                JPakeParticipant alice,
+                JPakeRound2Payload aliceRound2Payload,
+                JPakeRound2Payload bobRound2Payload)
             {
                 this.alice = alice;
                 this.aliceRound2Payload = aliceRound2Payload;
@@ -523,16 +523,16 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private ExchangeAfterRound2Creation RunExchangeUntilRound2Creation(JPAKEParticipant alice, JPAKEParticipant bob)
+        private ExchangeAfterRound2Creation RunExchangeUntilRound2Creation(JPakeParticipant alice, JPakeParticipant bob)
         {
-            JPAKERound1Payload aliceRound1Payload = alice.CreateRound1PayloadToSend();
-            JPAKERound1Payload bobRound1Payload = bob.CreateRound1PayloadToSend();
+            JPakeRound1Payload aliceRound1Payload = alice.CreateRound1PayloadToSend();
+            JPakeRound1Payload bobRound1Payload = bob.CreateRound1PayloadToSend();
 
             alice.ValidateRound1PayloadReceived(bobRound1Payload);
             bob.ValidateRound1PayloadReceived(aliceRound1Payload);
 
-            JPAKERound2Payload aliceRound2Payload = alice.CreateRound2PayloadToSend();
-            JPAKERound2Payload bobRound2Payload = bob.CreateRound2PayloadToSend();
+            JPakeRound2Payload aliceRound2Payload = alice.CreateRound2PayloadToSend();
+            JPakeRound2Payload bobRound2Payload = bob.CreateRound2PayloadToSend();
 
             return new ExchangeAfterRound2Creation(
                 alice,
@@ -540,27 +540,27 @@ namespace Org.BouncyCastle.Crypto.Tests
                 bobRound2Payload);
         }
 
-        private JPAKEParticipant CreateAlice()
+        private JPakeParticipant CreateAlice()
         {
             return CreateParticipant("alice", "password");
         }
 
-        private JPAKEParticipant CreateBob()
+        private JPakeParticipant CreateBob()
         {
             return CreateParticipant("bob", "password");
         }
 
-        private JPAKEParticipant CreateBobWithWrongPassword()
+        private JPakeParticipant CreateBobWithWrongPassword()
         {
             return CreateParticipant("bob", "wrong");
         }
 
-        private JPAKEParticipant CreateParticipant(string participantId, string password)
+        private JPakeParticipant CreateParticipant(string participantId, string password)
         {
-            return new JPAKEParticipant(
+            return new JPakeParticipant(
                 participantId,
                 password.ToCharArray(),
-                JPAKEPrimeOrderGroups.SUN_JCE_1024);
+                JPakePrimeOrderGroups.SUN_JCE_1024);
         }
     }
 }

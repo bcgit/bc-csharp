@@ -4,25 +4,26 @@ using System.Text;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Crypto.Agreement.Jpake
+namespace Org.BouncyCastle.Crypto.Agreement.JPake
 {
     /// <summary>
     /// Primitives needed for a J-PAKE exchange.
     /// 
     /// The recommended way to perform a J-PAKE exchange is by using
     /// two JPAKEParticipants.  Internally, those participants
-    /// call these primitive operations in JPAKEUtil.
+    /// call these primitive operations in JPakeUtilities.
     /// 
     /// The primitives, however, can be used without a JPAKEParticipant if needed.
     /// </summary>
-    public class JPAKEUtil
+    public abstract class JPakeUtilities
     {
-        public static BigInteger ZERO = BigInteger.ValueOf(0);
-        public static BigInteger ONE = BigInteger.ValueOf(1);
+        public static readonly BigInteger Zero = BigInteger.Zero;
+        public static readonly BigInteger One = BigInteger.One;
 
         /// <summary>
         /// Return a value that can be used as x1 or x3 during round 1.
@@ -30,8 +31,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         public static BigInteger GenerateX1(BigInteger q, SecureRandom random)
         {
-            BigInteger min = ZERO;
-            BigInteger max = q.Subtract(ONE);
+            BigInteger min = Zero;
+            BigInteger max = q.Subtract(One);
             return BigIntegers.CreateRandomInRange(min, max, random);
         }
 
@@ -41,8 +42,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         public static BigInteger GenerateX2(BigInteger q, SecureRandom random)
         {
-            BigInteger min = ONE;
-            BigInteger max = q.Subtract(ONE);
+            BigInteger min = One;
+            BigInteger max = q.Subtract(One);
             return BigIntegers.CreateRandomInRange(min, max, random);
         }
 
@@ -52,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         public static BigInteger CalculateS(char[] password)
         {
-            return new BigInteger(Strings.ToUtf8ByteArray(password));
+            return new BigInteger(Encoding.UTF8.GetBytes(password));
         }
 
         /// <summary>
@@ -96,20 +97,19 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         public static BigInteger[] CalculateZeroKnowledgeProof(BigInteger p, BigInteger q, BigInteger g,
             BigInteger gx, BigInteger x, string participantId, IDigest digest, SecureRandom random)
         {
-            BigInteger[] zeroKnowledgeProof = new BigInteger[2];
-
             /* Generate a random v, and compute g^v */
-            BigInteger vMin = ZERO;
-            BigInteger vMax = q.Subtract(ONE);
+            BigInteger vMin = Zero;
+            BigInteger vMax = q.Subtract(One);
             BigInteger v = BigIntegers.CreateRandomInRange(vMin, vMax, random);
 
             BigInteger gv = g.ModPow(v, p);
             BigInteger h = CalculateHashForZeroKnowledgeProof(g, gv, gx, participantId, digest); // h
 
-            zeroKnowledgeProof[0] = gv;
-            zeroKnowledgeProof[1] = v.Subtract(x.Multiply(h)).Mod(q); // r = v-x*h
-
-            return zeroKnowledgeProof;
+            return new BigInteger[]
+            {
+                gv,
+                v.Subtract(x.Multiply(h)).Mod(q) // r = v-x*h
+            };
         }
 
         private static BigInteger CalculateHashForZeroKnowledgeProof(BigInteger g, BigInteger gr, BigInteger gx,
@@ -125,8 +125,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
 
             UpdateDigestIncludingSize(digest, participantId);
 
-            byte[] output = new byte[digest.GetDigestSize()];
-            digest.DoFinal(output, 0);
+            byte[] output = DigestUtilities.DoFinal(digest);
 
             return new BigInteger(output);
         }
@@ -137,10 +136,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         public static void ValidateGx4(BigInteger gx4)
         {
-            if (gx4.Equals(ONE))
-            {
+            if (gx4.Equals(One))
                 throw new CryptoException("g^x validation failed.  g^x should not be 1.");
-            }
         }
 
         /// <summary>
@@ -155,10 +152,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         public static void ValidateGa(BigInteger ga)
         {
-            if (ga.Equals(ONE))
-            {
+            if (ga.Equals(One))
                 throw new CryptoException("ga is equal to 1.  It should not be.  The chances of this happening are on the order of 2^160 for a 160-bit q.  Try again.");
-            }
         }
 
         /// <summary>
@@ -176,9 +171,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             BigInteger r = zeroKnowledgeProof[1];
 
             BigInteger h = CalculateHashForZeroKnowledgeProof(g, gv, gx, participantId, digest);
-            if (!(gx.CompareTo(ZERO) == 1 && // g^x > 0
+            if (!(gx.CompareTo(Zero) == 1 && // g^x > 0
                 gx.CompareTo(p) == -1 && // g^x < p
-                gx.ModPow(q, p).CompareTo(ONE) == 0 && // g^x^q mod q = 1
+                gx.ModPow(q, p).CompareTo(One) == 0 && // g^x^q mod q = 1
                 /*
                  * Below, I took a straightforward way to compute g^r * g^x^h,
                  * which needs 2 exp. Using a simultaneous computation technique
@@ -245,12 +240,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         /// <param name="obj">object in question</param>
         /// <param name="description">name of the object (to be used in exception message)</param>
-        public static void ValidateNotNull(Object obj, string description)
+        public static void ValidateNotNull(object obj, string description)
         {
             if (obj == null)
-            {
-                throw new NullReferenceException(description + " must not be null");
-            }
+                throw new ArgumentNullException(description);
         }
 
         /// <summary>
@@ -275,8 +268,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             byte[] macKey = CalculateMacKey(keyingMaterial, digest);
 
             HMac mac = new HMac(digest);
-            byte[] macOutput = new byte[mac.GetMacSize()];
             mac.Init(new KeyParameter(macKey));
+            Arrays.Fill(macKey, (byte)0);
 
             /*
              * MacData = "KC_1_U" || participantId_Alice || participantId_Bob || gx1 || gx2 || gx3 || gx4.
@@ -289,9 +282,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             UpdateMac(mac, gx3);
             UpdateMac(mac, gx4);
 
-            mac.DoFinal(macOutput, 0);
-
-            Arrays.Fill(macKey, (byte)0);
+            byte[] macOutput = MacUtilities.DoFinal(mac);
 
             return new BigInteger(macOutput);
         }
@@ -311,10 +302,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
              */
             UpdateDigest(digest, "JPAKE_KC");
 
-            byte[] output = new byte[digest.GetDigestSize()];
-            digest.DoFinal(output, 0);
-
-            return output;
+            return DigestUtilities.DoFinal(digest);
         }
 
         /// <summary>
@@ -348,57 +336,56 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
 
         private static void UpdateDigest(IDigest digest, BigInteger bigInteger)
         {
-            byte[] byteArray = BigIntegers.AsUnsignedByteArray(bigInteger);
-            digest.BlockUpdate(byteArray, 0, byteArray.Length);
-            Arrays.Fill(byteArray, (byte)0);
-        }
-
-        private static void UpdateDigestIncludingSize(IDigest digest, BigInteger bigInteger)
-        {
-            byte[] byteArray = BigIntegers.AsUnsignedByteArray(bigInteger);
-            digest.BlockUpdate(IntToByteArray(byteArray.Length), 0, 4);
-            digest.BlockUpdate(byteArray, 0, byteArray.Length);
-            Arrays.Fill(byteArray, (byte)0);
+            UpdateDigest(digest, BigIntegers.AsUnsignedByteArray(bigInteger));
         }
 
         private static void UpdateDigest(IDigest digest, string str)
         {
-            byte[] byteArray = Encoding.UTF8.GetBytes(str);
-            digest.BlockUpdate(byteArray, 0, byteArray.Length);
-            Arrays.Fill(byteArray, (byte)0);
+            UpdateDigest(digest, Encoding.UTF8.GetBytes(str));
+        }
+
+        private static void UpdateDigest(IDigest digest, byte[] bytes)
+        {
+            digest.BlockUpdate(bytes, 0, bytes.Length);
+            Arrays.Fill(bytes, (byte)0);
+        }
+
+        private static void UpdateDigestIncludingSize(IDigest digest, BigInteger bigInteger)
+        {
+            UpdateDigestIncludingSize(digest, BigIntegers.AsUnsignedByteArray(bigInteger));
         }
 
         private static void UpdateDigestIncludingSize(IDigest digest, string str)
         {
-            byte[] byteArray = Encoding.UTF8.GetBytes(str);
-            digest.BlockUpdate(IntToByteArray(byteArray.Length), 0, 4);
-            digest.BlockUpdate(byteArray, 0, byteArray.Length);
-            Arrays.Fill(byteArray, (byte)0);
+            UpdateDigestIncludingSize(digest, Encoding.UTF8.GetBytes(str));
+        }
+
+        private static void UpdateDigestIncludingSize(IDigest digest, byte[] bytes)
+        {
+            digest.BlockUpdate(IntToByteArray(bytes.Length), 0, 4);
+            digest.BlockUpdate(bytes, 0, bytes.Length);
+            Arrays.Fill(bytes, (byte)0);
         }
 
         private static void UpdateMac(IMac mac, BigInteger bigInteger)
         {
-            byte[] byteArray = BigIntegers.AsUnsignedByteArray(bigInteger);
-            mac.BlockUpdate(byteArray, 0, byteArray.Length);
-            Arrays.Fill(byteArray, (byte)0);
+            UpdateMac(mac, BigIntegers.AsUnsignedByteArray(bigInteger));
         }
 
         private static void UpdateMac(IMac mac, string str)
         {
-            byte[] byteArray = Encoding.UTF8.GetBytes(str);
-            mac.BlockUpdate(byteArray, 0, byteArray.Length);
-            Arrays.Fill(byteArray, (byte)0);
+            UpdateMac(mac, Encoding.UTF8.GetBytes(str));
+        }
+
+        private static void UpdateMac(IMac mac, byte[] bytes)
+        {
+            mac.BlockUpdate(bytes, 0, bytes.Length);
+            Arrays.Fill(bytes, (byte)0);
         }
 
         private static byte[] IntToByteArray(int value)
         {
-            return new byte[]{
-                (byte)((uint)value >> 24),
-                (byte)((uint)value >> 16),
-                (byte)((uint)value >> 8),
-                (byte)value
-            };
+            return Pack.UInt32_To_BE((uint)value);
         }
-
     }
 }

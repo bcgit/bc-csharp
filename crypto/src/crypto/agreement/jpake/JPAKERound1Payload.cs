@@ -2,7 +2,7 @@
 
 using Org.BouncyCastle.Math;
 
-namespace Org.BouncyCastle.Crypto.Agreement.Jpake
+namespace Org.BouncyCastle.Crypto.Agreement.JPake
 {
     /// <summary>
     /// The payload sent/received during the first round of a J-PAKE exchange.
@@ -13,9 +13,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
     /// 
     /// Each participant must also validate the payload received from the other.
     /// The received payload should be validated via 
-    /// JPAKEParticipant.ValidateRound1PayloadReceived(JPAKERound1Payload).
+    /// JPAKEParticipant.ValidateRound1PayloadReceived(JPakeRound1Payload).
     /// </summary>
-    public class JPAKERound1Payload
+    public class JPakeRound1Payload
     {
         /// <summary>
         /// The id of the JPAKEParticipant who created/sent this payload.
@@ -46,13 +46,13 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         private readonly BigInteger[] knowledgeProofForX2;
 
-        public JPAKERound1Payload(string participantId, BigInteger gx1, BigInteger gx2, BigInteger[] knowledgeProofForX1, BigInteger[] knowledgeProofForX2)
+        public JPakeRound1Payload(string participantId, BigInteger gx1, BigInteger gx2, BigInteger[] knowledgeProofForX1, BigInteger[] knowledgeProofForX2)
         {
-            JPAKEUtil.ValidateNotNull(participantId, "participantId");
-            JPAKEUtil.ValidateNotNull(gx1, "gx1");
-            JPAKEUtil.ValidateNotNull(gx2, "gx2");
-            JPAKEUtil.ValidateNotNull(knowledgeProofForX1, "knowledgeProofForX1");
-            JPAKEUtil.ValidateNotNull(knowledgeProofForX2, "knowledgeProofForX2");
+            JPakeUtilities.ValidateNotNull(participantId, "participantId");
+            JPakeUtilities.ValidateNotNull(gx1, "gx1");
+            JPakeUtilities.ValidateNotNull(gx2, "gx2");
+            JPakeUtilities.ValidateNotNull(knowledgeProofForX1, "knowledgeProofForX1");
+            JPakeUtilities.ValidateNotNull(knowledgeProofForX2, "knowledgeProofForX2");
 
             this.participantId = participantId;
             this.gx1 = gx1;
@@ -63,22 +63,22 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             Array.Copy(knowledgeProofForX2, this.knowledgeProofForX2, knowledgeProofForX2.Length);
         }
 
-        public string ParticipantId
+        public virtual string ParticipantId
         {
             get { return participantId; }
         }
 
-        public BigInteger Gx1
+        public virtual BigInteger Gx1
         {
             get { return gx1; }
         }
 
-        public BigInteger Gx2
+        public virtual BigInteger Gx2
         {
             get { return gx2; }
         }
 
-        public BigInteger[] KnowledgeProofForX1
+        public virtual BigInteger[] KnowledgeProofForX1
         {
             get
             {
@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             }
         }
 
-        public BigInteger[] KnowledgeProofForX2
+        public virtual BigInteger[] KnowledgeProofForX2
         {
             get
             {

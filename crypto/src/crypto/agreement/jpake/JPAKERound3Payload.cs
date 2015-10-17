@@ -2,7 +2,7 @@
 
 using Org.BouncyCastle.Math;
 
-namespace Org.BouncyCastle.Crypto.Agreement.Jpake
+namespace Org.BouncyCastle.Crypto.Agreement.JPake
 {
     /// <summary>
     /// The payload sent/received during the optional third round of a J-PAKE exchange,
@@ -16,9 +16,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
     /// Eeach JPAKEParticipant must also validate the payload
     /// received from the other JPAKEParticipant.
     /// The received payload should be validated via
-    /// JPAKEParticipant#validateRound3PayloadReceived(JPAKERound3Payload, BigInteger)
+    /// JPAKEParticipant#validateRound3PayloadReceived(JPakeRound3Payload, BigInteger)
     /// </summary>
-    public class JPAKERound3Payload
+    public class JPakeRound3Payload
     {
         /// <summary>
         /// The id of the {@link JPAKEParticipant} who created/sent this payload.
@@ -32,18 +32,18 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         private readonly BigInteger macTag;
 
-        public JPAKERound3Payload(string participantId, BigInteger magTag)
+        public JPakeRound3Payload(string participantId, BigInteger magTag)
         {
             this.participantId = participantId;
             this.macTag = magTag;
         }
 
-        public string ParticipantId
+        public virtual string ParticipantId
         {
             get { return participantId; }
         }
 
-        public BigInteger MacTag
+        public virtual BigInteger MacTag
         {
             get { return macTag; }
         }

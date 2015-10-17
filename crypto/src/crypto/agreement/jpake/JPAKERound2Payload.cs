@@ -3,7 +3,7 @@
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Crypto.Agreement.Jpake
+namespace Org.BouncyCastle.Crypto.Agreement.JPake
 {
     /// <summary>
     /// The payload sent/received during the second round of a J-PAKE exchange.
@@ -16,9 +16,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
     /// Each JPAKEParticipant must also validate the payload
     /// received from the other JPAKEParticipant.
     /// The received payload should be validated via
-    /// JPAKEParticipant#validateRound2PayloadReceived(JPAKERound2Payload)
+    /// JPAKEParticipant#validateRound2PayloadReceived(JPakeRound2Payload)
     /// </summary>
-    public class JPAKERound2Payload
+    public class JPakeRound2Payload
     {
         /// <summary>
         /// The id of the JPAKEParticipant who created/sent this payload.
@@ -37,11 +37,11 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// </summary>
         private readonly BigInteger[] knowledgeProofForX2s;
 
-        public JPAKERound2Payload(string participantId, BigInteger a, BigInteger[] knowledgeProofForX2s)
+        public JPakeRound2Payload(string participantId, BigInteger a, BigInteger[] knowledgeProofForX2s)
         {
-            JPAKEUtil.ValidateNotNull(participantId, "participantId");
-            JPAKEUtil.ValidateNotNull(a, "a");
-            JPAKEUtil.ValidateNotNull(knowledgeProofForX2s, "knowledgeProofForX2s");
+            JPakeUtilities.ValidateNotNull(participantId, "participantId");
+            JPakeUtilities.ValidateNotNull(a, "a");
+            JPakeUtilities.ValidateNotNull(knowledgeProofForX2s, "knowledgeProofForX2s");
 
             this.participantId = participantId;
             this.a = a;
@@ -49,17 +49,17 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
             knowledgeProofForX2s.CopyTo(this.knowledgeProofForX2s, 0);
         }
 
-        public string ParticipantId
+        public virtual string ParticipantId
         {
             get { return participantId; }
         }
 
-        public BigInteger A
+        public virtual BigInteger A
         {
             get { return a; }
         }
 
-        public BigInteger[] KnowledgeProofForX2s
+        public virtual BigInteger[] KnowledgeProofForX2s
         {
             get
             {

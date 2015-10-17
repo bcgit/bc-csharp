@@ -1,6 +1,6 @@
 ﻿using Org.BouncyCastle.Math;
 
-namespace Org.BouncyCastle.Crypto.Agreement.Jpake
+namespace Org.BouncyCastle.Crypto.Agreement.JPake
 {
     /// <summary>
     /// Standard pre-computed prime order groups for use by J-PAKE.
@@ -13,13 +13,13 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
     /// and from the prime order groups
     /// <a href="http://csrc.nist.gov/groups/ST/toolkit/documents/Examples/DSA2_All.pdf">published by NIST</a>.
     /// </summary>
-    public class JPAKEPrimeOrderGroups
+    public class JPakePrimeOrderGroups
     {
         /// <summary>
         /// From Sun's JDK JavaDoc (docs/guide/security/CryptoSpec.html#AppB)
         /// 1024-bit p, 160-bit q and 1024-bit g for 80-bit security.
         /// </summary>
-        public static readonly JPAKEPrimeOrderGroup SUN_JCE_1024 = new JPAKEPrimeOrderGroup(
+        public static readonly JPakePrimeOrderGroup SUN_JCE_1024 = new JPakePrimeOrderGroup(
             // p
             new BigInteger(
                 "fd7f53811d75122952df4a9c2eece4e7f611b7523cef4400c31e3f80b6512669" +
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// From NIST.
         /// 2048-bit p, 224-bit q and 2048-bit g for 112-bit security.
         /// </summary>
-        public static readonly JPAKEPrimeOrderGroup NIST_2048 = new JPAKEPrimeOrderGroup(
+        public static readonly JPakePrimeOrderGroup NIST_2048 = new JPakePrimeOrderGroup(
             // p
             new BigInteger(
                 "C196BA05AC29E1F9C3C72D56DFFC6154A033F1477AC88EC37F09BE6C5BB95F51" +
@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Jpake
         /// From NIST.
         /// 3072-bit p, 256-bit q and 3072-bit g for 128-bit security.
         /// </summary>
-        public static readonly JPAKEPrimeOrderGroup NIST_3072 = new JPAKEPrimeOrderGroup(
+        public static readonly JPakePrimeOrderGroup NIST_3072 = new JPakePrimeOrderGroup(
             // p
             new BigInteger(
                 "90066455B5CFC38F9CAA4A48B4281F292C260FEEF01FD61037E56258A7795A1C" +
