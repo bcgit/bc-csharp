@@ -52,10 +52,10 @@ namespace Org.BouncyCastle.Cms
 
 		private class DigestAndSignerInfoGeneratorHolder
 		{
-			internal readonly SignerInfoGenerator	signerInf;
+			internal readonly ISignerInfoGenerator	signerInf;
 			internal readonly string				digestOID;
 
-			internal DigestAndSignerInfoGeneratorHolder(SignerInfoGenerator signerInf, String digestOID)
+			internal DigestAndSignerInfoGeneratorHolder(ISignerInfoGenerator signerInf, String digestOID)
 			{
 				this.signerInf = signerInf;
 				this.digestOID = digestOID;
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
-		private class SignerInfoGeneratorImpl : SignerInfoGenerator
+		private class SignerInfoGeneratorImpl : ISignerInfoGenerator
         {
 			private readonly CmsSignedDataStreamGenerator outer;
 
@@ -215,7 +215,7 @@ namespace Org.BouncyCastle.Cms
 
 					// TODO[RSAPSS] Need the ability to specify non-default parameters
 					Asn1Encodable sigX509Parameters = SignerUtilities.GetDefaultX509Parameters(signatureName);
-					AlgorithmIdentifier digestEncryptionAlgorithm = CmsSignedGenerator.GetEncAlgorithmIdentifier(
+					AlgorithmIdentifier digestEncryptionAlgorithm = Helper.GetEncAlgorithmIdentifier(
 						new DerObjectIdentifier(_encOID), sigX509Parameters);
 
 					return new SignerInfo(_signerIdentifier, digestAlgorithm,
@@ -347,7 +347,7 @@ namespace Org.BouncyCastle.Cms
 			CmsAttributeTableGenerator  signedAttrGenerator,
 			CmsAttributeTableGenerator  unsignedAttrGenerator)
 		{
-			AddSigner(privateKey, cert, GetEncOid(privateKey, digestOid), digestOid,
+			AddSigner(privateKey, cert, Helper.GetEncOid(privateKey, digestOid), digestOid,
 				signedAttrGenerator, unsignedAttrGenerator);
         }
 
@@ -420,7 +420,7 @@ namespace Org.BouncyCastle.Cms
 			CmsAttributeTableGenerator	signedAttrGenerator,
 			CmsAttributeTableGenerator	unsignedAttrGenerator)
 		{
-			AddSigner(privateKey, subjectKeyID, GetEncOid(privateKey, digestOid),
+			AddSigner(privateKey, subjectKeyID, Helper.GetEncOid(privateKey, digestOid),
 				digestOid, signedAttrGenerator, unsignedAttrGenerator);
 		}
 

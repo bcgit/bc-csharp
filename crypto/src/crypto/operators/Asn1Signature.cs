@@ -545,7 +545,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 
 		public ISignatureVerifier CreateSignatureVerifier(Object algorithmDetails)
 		{
-			return new Asn1SignatureVerifier ((AlgorithmIdentifier)algorithmDetails, publicKey);
+            return new Asn1SignatureVerifier ((AlgorithmIdentifier)algorithmDetails, publicKey);
 		}
 
 		/// <summary>

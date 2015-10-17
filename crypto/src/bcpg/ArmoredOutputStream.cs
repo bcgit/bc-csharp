@@ -36,9 +36,9 @@ namespace Org.BouncyCastle.Bcpg
          * encode the input data producing a base 64 encoded byte array.
          */
         private static void Encode(
-            Stream	outStream,
-            int[]	data,
-            int		len)
+            Stream    outStream,
+            int[]    data,
+            int        len)
         {
 			Debug.Assert(len > 0);
 			Debug.Assert(len < 4);
@@ -91,11 +91,11 @@ namespace Org.BouncyCastle.Bcpg
 
         private string          type;
 
-        private static readonly string	nl = Platform.NewLine;
-        private static readonly string	headerStart = "-----BEGIN PGP ";
-        private static readonly string	headerTail = "-----";
-        private static readonly string	footerStart = "-----END PGP ";
-        private static readonly string	footerTail = "-----";
+        private static readonly string    nl = Platform.NewLine;
+        private static readonly string    headerStart = "-----BEGIN PGP ";
+        private static readonly string    headerTail = "-----";
+        private static readonly string    footerStart = "-----END PGP ";
+        private static readonly string    footerTail = "-----";
 
         private static readonly string version = "BCPG C# v" + AssemblyInfo.Version;
 
@@ -276,48 +276,48 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /**
-         * <b>Note</b>: close does nor close the underlying stream. So it is possible to write
+         * <b>Note</b>: Close() does not close the underlying stream. So it is possible to write
          * multiple objects using armoring to a single stream.
          */
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+        {
+            if (type != null)
             {
-                if (type != null)
-                {
-                    if (bufPtr > 0)
-                    {
-                        Encode(outStream, buf, bufPtr);
-                    }
+				if (bufPtr > 0)
+				{
+					Encode(outStream, buf, bufPtr);
+				}
 
-                    DoWrite(nl + '=');
+                DoWrite(nl + '=');
 
-                    int crcV = crc.Value;
+                int crcV = crc.Value;
 
-                    buf[0] = ((crcV >> 16) & 0xff);
-                    buf[1] = ((crcV >> 8) & 0xff);
-                    buf[2] = (crcV & 0xff);
+				buf[0] = ((crcV >> 16) & 0xff);
+                buf[1] = ((crcV >> 8) & 0xff);
+                buf[2] = (crcV & 0xff);
 
-                    Encode(outStream, buf, 3);
+                Encode(outStream, buf, 3);
 
-                    DoWrite(nl);
-                    DoWrite(footerStart);
-                    DoWrite(type);
-                    DoWrite(footerTail);
-                    DoWrite(nl);
+                DoWrite(nl);
+                DoWrite(footerStart);
+                DoWrite(type);
+                DoWrite(footerTail);
+                DoWrite(nl);
 
-                    outStream.Flush();
+                outStream.Flush();
 
-                    type = null;
-                    start = true;
+                type = null;
+                start = true;
                 }
-            }
+			}
             base.Dispose(disposing);
         }
 
 		private void WriteHeaderEntry(
-			string	name,
-			string	v)
+            string name,
+            string v)
         {
             DoWrite(name + ": " + v + nl);
         }
