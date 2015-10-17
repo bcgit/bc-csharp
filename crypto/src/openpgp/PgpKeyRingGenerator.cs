@@ -202,7 +202,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             try
             {
-                var sGen = new PgpSignatureGenerator(masterKey.PublicKey.Algorithm, hashAlgorithm);
+                PgpSignatureGenerator sGen = new PgpSignatureGenerator(masterKey.PublicKey.Algorithm, hashAlgorithm);
 
                 //
                 // Generate the certification
