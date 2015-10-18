@@ -2,22 +2,22 @@ configuration: Release
 platform: Any CPU
 install:
   - cmd: choco install gitversion.portable -pre -y
-  - cmd: curl -fsS -o .nuget\nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+  - cmd: appveyor DownloadFile https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
 assembly_info:
   patch: false
       
 before_build:
-  - cmd: .nuget\nuget install gitlink -Verbosity quiet -ExcludeVersion -pre
+  - cmd: nuget install gitlink -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion -pre
   - cmd: .nuget\nuget restore
   - cmd: gitversion /l console /output buildserver /updateAssemblyInfo
   
 build:
   verbosity: normal
+  parallel: true
   project: BouncyCastle-PCL.sln
   
 after_build:
-  - cmd: packages\gitlink\lib\net45\GitLink.exe . -f BouncyCastle-PCL.sln -u https://github.com/onovotny/BouncyCastle-PCL
-  - cmd: ECHO .nuget\nuget pack Portable.BouncyCastle.nuspec -version "%GitVersion_NuGetVersion%-build%GitVersion_BuildMetadataPadded%" -prop "target=%CONFIGURATION%"
-  - cmd: .nuget\nuget pack Portable.BouncyCastle.nuspec -version "%GitVersion_NuGetVersion%-build%GitVersion_BuildMetadataPadded%" -prop "target=%CONFIGURATION%"
+  - ps: '.\packages\gitlink\lib\net45\GitLink.exe . -f BouncyCastle-PCL.sln -u https://github.com/onovotny/BouncyCastle-PCL -s $env:APPVEYOR_REPO_COMMIT;if($lastexitcode -ne 0){$lastexitcode = 0}'
+  - cmd: nuget pack Portable.BouncyCastle.nuspec -version "%GitVersion_NuGetVersion%-build%GitVersion_BuildMetadataPadded%" -prop "target=%CONFIGURATION%"
   - cmd: appveyor PushArtifact "Portable.BouncyCastle.%GitVersion_NuGetVersion%-build%GitVersion_BuildMetadataPadded%.nupkg"
