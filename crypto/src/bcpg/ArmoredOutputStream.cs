@@ -5,6 +5,10 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
+#if PORTABLE
+using System.Linq;
+#endif
+
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -98,7 +102,15 @@ namespace Org.BouncyCastle.Bcpg
         private static readonly string    footerTail = "-----";
 
         private static readonly string version = "BCPG C# v"
+#if PORTABLE
+            + Assembly.GetExecutingAssembly()
+                .GetCustomAttributes(typeof(AssemblyVersionAttribute), true)
+                .Cast<AssemblyVersionAttribute>()
+                .First()
+                .Version;
+#else
             + Assembly.GetExecutingAssembly().GetName().Version;
+#endif
 
         private readonly IDictionary headers;
 

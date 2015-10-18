@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Cms
 
                 IStreamCalculator calculator = sigCalc.CreateCalculator();
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
 				Stream sigStr = new SigOutputStream(calculator.Stream);
 #else
 				Stream sigStr = new BufferedStream(calculator.Stream);
