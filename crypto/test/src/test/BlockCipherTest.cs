@@ -438,6 +438,7 @@ namespace Org.BouncyCastle.Tests
                 {
                     // TODO Examine short IV handling for these FIPS-compliant modes in Java build
                     if (mode.StartsWith("CFB")
+                        || mode.StartsWith("CTR")
                         || mode.StartsWith("GOFB")
                         || mode.StartsWith("OFB")
                         || mode.StartsWith("OPENPGPCFB"))

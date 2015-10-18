@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Crypto.Prng
 				int		numBytes,
 				bool	fast)
 			{
-#if SILVERLIGHT
+#if SILVERLIGHT || PORTABLE
                 return DoGenerateSeed(numBytes, fast);
 #else
                 ThreadPriority originalPriority = Thread.CurrentThread.Priority;
@@ -69,7 +69,11 @@ namespace Org.BouncyCastle.Crypto.Prng
 					{
 						try
 						{
-							Thread.Sleep(1);
+#if PORTABLE
+                            new AutoResetEvent(false).WaitOne(1);
+#else
+ 							Thread.Sleep(1);
+#endif
 						}
 						catch (Exception)
 						{

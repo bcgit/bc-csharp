@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-#if SILVERLIGHT
+#if SILVERLIGHT || PORTABLE
 using System.Collections.Generic;
 #else
 using System.Collections;
@@ -34,12 +34,14 @@ namespace Org.BouncyCastle.Utilities
         {
 #if SILVERLIGHT
             return String.Compare(a, b, StringComparison.InvariantCultureIgnoreCase);
+#elif PORTABLE
+            return String.Compare(a, b, CultureInfo.InvariantCulture, CompareOptions.IgnoreCase);
 #else
             return String.Compare(a, b, true);
 #endif
         }
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
         internal static string GetEnvironmentVariable(
             string variable)
         {
@@ -83,7 +85,7 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
-#if SILVERLIGHT
+#if SILVERLIGHT || PORTABLE
         internal static System.Collections.IList CreateArrayList()
         {
             return new List<object>();
@@ -165,12 +167,20 @@ namespace Org.BouncyCastle.Utilities
 
         internal static string ToLowerInvariant(string s)
         {
+#if PORTABLE
+            return s.ToLowerInvariant();
+#else
             return s.ToLower(CultureInfo.InvariantCulture);
+#endif
         }
 
         internal static string ToUpperInvariant(string s)
         {
+#if PORTABLE
+            return s.ToUpperInvariant();
+#else
             return s.ToUpper(CultureInfo.InvariantCulture);
+#endif
         }
 
         internal static readonly string NewLine = GetNewLine();

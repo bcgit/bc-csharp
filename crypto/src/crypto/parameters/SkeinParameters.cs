@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Globalization;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -234,7 +235,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 				{
 					MemoryStream bout = new MemoryStream();
 					StreamWriter outBytes = new StreamWriter(bout, System.Text.Encoding.UTF8);
-					outBytes.Write(date.ToString("YYYYMMDD"));
+					outBytes.Write(date.ToString("YYYYMMDD", CultureInfo.InvariantCulture));
 					outBytes.Write(" ");
 					outBytes.Write(emailAddress);
 					outBytes.Write(" ");

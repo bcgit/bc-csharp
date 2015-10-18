@@ -1,3 +1,4 @@
+#if !PORTABLE
 using System;
 using System.IO;
 
@@ -13,38 +14,33 @@ namespace Org.BouncyCastle.Cms
 	{
 		private const int DefaultBufSize = 32 * 1024;
 
-		private readonly FileInfo	_file;
+        private readonly FileInfo	_file;
 		private readonly int		_bufSize;
 
-		public CmsProcessableFile(
-			FileInfo file)
+        public CmsProcessableFile(FileInfo file)
 			: this(file, DefaultBufSize)
 		{
 		}
 
-		public CmsProcessableFile(
-			FileInfo	file,
-			int			bufSize)
+        public CmsProcessableFile(FileInfo file, int bufSize)
 		{
 			_file = file;
 			_bufSize = bufSize;
 		}
 
-		public virtual Stream GetInputStream()
+        public virtual Stream GetInputStream()
 		{
-			return new FileStream(
-				_file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, _bufSize);
+			return new FileStream(_file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, _bufSize);
 		}
 
-		public virtual void Write(
-			Stream zOut)
+        public virtual void Write(Stream zOut)
 		{
 			Stream inStr = GetInputStream();
 			Streams.PipeAll(inStr, zOut);
 			inStr.Close();
 		}
 
-		/// <returns>The file handle</returns>
+        /// <returns>The file handle</returns>
 		[Obsolete]
 		public virtual object GetContent()
 		{
@@ -52,3 +48,4 @@ namespace Org.BouncyCastle.Cms
 		}
 	}
 }
+#endif

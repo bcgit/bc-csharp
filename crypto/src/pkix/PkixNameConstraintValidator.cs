@@ -638,7 +638,7 @@ namespace Org.BouncyCastle.Pkix
             // a particular mailbox
             if (constraint.IndexOf('@') != -1)
             {
-                if (email.ToUpper().Equals(constraint.ToUpper()))
+                if (Platform.ToUpperInvariant(email).Equals(Platform.ToUpperInvariant(constraint)))
                 {
                     return true;
                 }
@@ -646,7 +646,7 @@ namespace Org.BouncyCastle.Pkix
             // on particular host
             else if (!(constraint[0].Equals('.')))
             {
-                if (sub.ToUpper().Equals(constraint.ToUpper()))
+                if (Platform.ToUpperInvariant(sub).Equals(Platform.ToUpperInvariant(constraint)))
                 {
                     return true;
                 }
@@ -708,7 +708,8 @@ namespace Org.BouncyCastle.Pkix
                 String str = ((String)it.Current);
 
                 // is sub domain
-                if (WithinDomain(dns, str) || dns.ToUpper().Equals(str.ToUpper()))
+                if (WithinDomain(dns, str)
+                    || Platform.ToUpperInvariant(dns).Equals(Platform.ToUpperInvariant(str)))
                 {
                     return;
                 }

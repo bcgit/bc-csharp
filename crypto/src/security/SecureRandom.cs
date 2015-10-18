@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Security
     {
         private static long counter = Times.NanoTime();
 
-#if NETCF_1_0
+#if NETCF_1_0 || PORTABLE
         private static object counterLock = new object();
         private static long NextCounterValue()
         {
