@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Utilities
         {
 #if SILVERLIGHT
             return String.Compare(a, b, StringComparison.InvariantCultureIgnoreCase);
-#elif DOTNET
+#elif SYS_RUNTIME
             return String.Compare(a, b, StringComparison.OrdinalIgnoreCase);
 #elif PORTABLE
             return String.Compare(a, b, CultureInfo.InvariantCulture, CompareOptions.IgnoreCase);

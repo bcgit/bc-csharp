@@ -33,7 +33,7 @@
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;DEBUG;PORTABLE;DOTNET;NO_THREADS;NEW_REFLECTION</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;PORTABLE;NO_THREADS;NEW_REFLECTION;SYS_RUNTIME</DefineConstants>
     <DocumentationFile>doc\pcl2\crypto.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
@@ -54,7 +54,7 @@
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;PORTABLE;DOTNET;NO_THREADS;NEW_REFLECTION</DefineConstants>
+    <DefineConstants>TRACE;PORTABLE;NO_THREADS;NEW_REFLECTION;SYS_RUNTIME</DefineConstants>
     <DocumentationFile>doc\pcl2\crypto.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
