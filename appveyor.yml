@@ -9,7 +9,7 @@ assembly_info:
       
 before_build:
   - cmd: nuget install gitlink -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion -pre
-  - cmd: .nuget\nuget restore
+  - cmd: nuget restore
   - cmd: gitversion /l console /output buildserver /updateAssemblyInfo
   
 build:
