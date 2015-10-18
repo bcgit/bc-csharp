@@ -138,6 +138,10 @@
     <Compile Include="src\crypto\examples\DESExample.cs" />
     <Compile Include="src\crypto\io\test\AllTests.cs" />
     <Compile Include="src\crypto\io\test\CipherStreamTest.cs" />
+    <Compile Include="src\crypto\agreement\test\AllTests.cs" />
+    <Compile Include="src\crypto\agreement\test\JPakeParticipantTest.cs" />
+    <Compile Include="src\crypto\agreement\test\JPakePrimeOrderGroupTest.cs" />
+    <Compile Include="src\crypto\agreement\test\JPakeUtilitiesTest.cs" />
     <Compile Include="src\crypto\test\AeadTestUtilities.cs" />
     <Compile Include="src\crypto\test\AESFastTest.cs" />
     <Compile Include="src\crypto\test\AESLightTest.cs" />

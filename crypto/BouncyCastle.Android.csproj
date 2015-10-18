@@ -667,6 +667,13 @@
     <Compile Include="src\crypto\agreement\ECDHWithKdfBasicAgreement.cs" />
     <Compile Include="src\crypto\agreement\ECMqvBasicAgreement.cs" />
     <Compile Include="src\crypto\agreement\ECMqvWithKdfBasicAgreement.cs" />
+    <Compile Include="src\crypto\agreement\jpake\JPakeParticipant.cs" />
+    <Compile Include="src\crypto\agreement\jpake\JPakePrimeOrderGroup.cs" />
+    <Compile Include="src\crypto\agreement\jpake\JPakePrimeOrderGroups.cs" />
+    <Compile Include="src\crypto\agreement\jpake\JPakeRound1Payload.cs" />
+    <Compile Include="src\crypto\agreement\jpake\JPakeRound2Payload.cs" />
+    <Compile Include="src\crypto\agreement\jpake\JPakeRound3Payload.cs" />
+    <Compile Include="src\crypto\agreement\jpake\JPakeUtilities.cs" />
     <Compile Include="src\crypto\agreement\kdf\DHKdfParameters.cs" />
     <Compile Include="src\crypto\agreement\kdf\DHKekGenerator.cs" />
     <Compile Include="src\crypto\agreement\kdf\ECDHKekGenerator.cs" />
