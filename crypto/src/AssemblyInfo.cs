@@ -68,9 +68,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyKeyName("")]
 
 [assembly: CLSCompliant(true)]
-#if !PCL
+#if !PORTABLE
 [assembly: ComVisible(false)]
 #endif
+
 // Start with no permissions
 //[assembly: PermissionSet(SecurityAction.RequestOptional, Unrestricted=false)]
 //...and explicitly add those we need

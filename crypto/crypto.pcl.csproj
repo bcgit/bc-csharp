@@ -51,7 +51,7 @@
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;DEBUG;SILVERLIGHT;PCL</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;PORTABLE;NO_THREADS</DefineConstants>
     <DocumentationFile>doc\pcl\crypto.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
@@ -72,7 +72,7 @@
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;SILVERLIGHT;PCL</DefineConstants>
+    <DefineConstants>TRACE;PORTABLE;NO_THREADS</DefineConstants>
     <DocumentationFile>doc\pcl\crypto.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>

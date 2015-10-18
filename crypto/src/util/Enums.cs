@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
 using System.Collections;
 using System.Reflection;
 #endif
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Utilities
 #endif
                 throw new ArgumentException("Not an enumeration type", "enumType");
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT && !PCL
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT && !PORTABLE
             IList result = Platform.CreateArrayList();
             FieldInfo[] fields = enumType.GetFields(BindingFlags.Static | BindingFlags.Public);
             foreach (FieldInfo field in fields)

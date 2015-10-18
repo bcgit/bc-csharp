@@ -250,6 +250,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 		{
 			CreateTestFile(clearSignedPublicKey, "test.txt");
 
+            RsaKeyRingGenerator.Main(new string[]{ "test", "password" });
+
 			ClearSignedFileProcessor.Main(new string[]{ "-s", "test.txt", "secret.bpg", "password" });
 		}
 
@@ -258,6 +260,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
         {
             CreateTestData("This is a test payload!" + Environment.NewLine, "test.txt");
             CreateTestData("This is a test payload!" + Environment.NewLine, "test.bak");
+
+            RsaKeyRingGenerator.Main(new string[]{ "test", "password" });
 
             ClearSignedFileProcessor.Main(new string[]{"-s", "test.txt", "secret.bpg", "password"});
             ClearSignedFileProcessor.Main(new string[]{"-v", "test.txt.asc", "pub.bpg"});

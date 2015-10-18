@@ -97,12 +97,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     byte[] encData;
                     if (pub.Version >= 4)
                     {
-                        encData = EncryptKeyData(keyData, encAlgorithm, rawPassPhrase, clearPassPhrase, rand, out s2k, out iv);
+                        encData = EncryptKeyDataV4(keyData, encAlgorithm, HashAlgorithmTag.Sha1, rawPassPhrase, clearPassPhrase, rand, out s2k, out iv);
                     }
                     else
                     {
-                        // TODO v3 RSA key encryption
-                        throw Platform.CreateNotImplementedException("v3 RSA");
+                        encData = EncryptKeyDataV3(keyData, encAlgorithm, rawPassPhrase, clearPassPhrase, rand, out s2k, out iv);
                     }
 
                     int s2kUsage = useSha1
@@ -459,6 +458,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public long KeyId
         {
             get { return pub.KeyId; }
+        }
+
+        /// <summary>Return the S2K usage associated with this key.</summary>
+        public int S2kUsage
+        {
+            get { return secret.S2kUsage; }
+        }
+
+        /// <summary>Return the S2K used to process this key.</summary>
+        public S2k S2k
+        {
+            get { return secret.S2k; }
         }
 
         /// <summary>The public key associated with this key.</summary>
@@ -904,12 +915,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     if (pubKeyPacket.Version >= 4)
                     {
-                        keyData = EncryptKeyData(rawKeyData, newEncAlgorithm, rawNewPassPhrase, clearPassPhrase, rand, out s2k, out iv);
+                        keyData = EncryptKeyDataV4(rawKeyData, newEncAlgorithm, HashAlgorithmTag.Sha1, rawNewPassPhrase, clearPassPhrase, rand, out s2k, out iv);
                     }
                     else
                     {
-                        // TODO v3 RSA key encryption
-                        throw Platform.CreateNotImplementedException("v3 RSA");
+                        keyData = EncryptKeyDataV3(rawKeyData, newEncAlgorithm, rawNewPassPhrase, clearPassPhrase, rand, out s2k, out iv);
                     }
                 }
                 catch (PgpException e)
@@ -950,7 +960,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return new PgpSecretKey(secretKey.secret, publicKey);
         }
 
-        private static byte[] EncryptKeyData(
+        private static byte[] EncryptKeyDataV3(
             byte[]						rawKeyData,
             SymmetricKeyAlgorithmTag	encAlgorithm,
             byte[]						rawPassPhrase,
@@ -958,6 +968,78 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SecureRandom				random,
             out S2k						s2k,
             out byte[]					iv)
+        {
+            // Version 2 or 3 - RSA Keys only
+
+            s2k = null;
+            iv = null;
+
+            KeyParameter encKey = PgpUtilities.DoMakeKeyFromPassPhrase(encAlgorithm, s2k, rawPassPhrase, clearPassPhrase);
+
+            byte[] keyData = new byte[rawKeyData.Length];
+
+            //
+            // process 4 numbers
+            //
+            int pos = 0;
+            for (int i = 0; i != 4; i++)
+            {
+                int encLen = (((rawKeyData[pos] << 8) | (rawKeyData[pos + 1] & 0xff)) + 7) / 8;
+
+                keyData[pos] = rawKeyData[pos];
+                keyData[pos + 1] = rawKeyData[pos + 1];
+
+                byte[] tmp;
+                if (i == 0)
+                {
+                    tmp = EncryptData(encAlgorithm, encKey, rawKeyData, pos + 2, encLen, random, ref iv);
+                }
+                else
+                {
+                    byte[] tmpIv = Arrays.CopyOfRange(keyData, pos - iv.Length, pos);
+
+                    tmp = EncryptData(encAlgorithm, encKey, rawKeyData, pos + 2, encLen, random, ref tmpIv);
+                }
+
+                Array.Copy(tmp, 0, keyData, pos + 2, tmp.Length);
+                pos += 2 + encLen;
+            }
+
+            //
+            // copy in checksum.
+            //
+            keyData[pos] = rawKeyData[pos];
+            keyData[pos + 1] = rawKeyData[pos + 1];
+
+            return keyData;
+        }
+
+        private static byte[] EncryptKeyDataV4(
+            byte[]						rawKeyData,
+            SymmetricKeyAlgorithmTag	encAlgorithm,
+            HashAlgorithmTag            hashAlgorithm,
+            byte[]						rawPassPhrase,
+            bool                        clearPassPhrase,
+            SecureRandom				random,
+            out S2k						s2k,
+            out byte[]					iv)
+        {
+            s2k = PgpUtilities.GenerateS2k(hashAlgorithm, 0x60, random);
+
+            KeyParameter key = PgpUtilities.DoMakeKeyFromPassPhrase(encAlgorithm, s2k, rawPassPhrase, clearPassPhrase);
+
+            iv = null;
+            return EncryptData(encAlgorithm, key, rawKeyData, 0, rawKeyData.Length, random, ref iv);
+        }
+
+        private static byte[] EncryptData(
+            SymmetricKeyAlgorithmTag	encAlgorithm,
+            KeyParameter                key,
+            byte[]						data,
+            int                         dataOff,
+            int                         dataLen,
+            SecureRandom				random,
+            ref byte[]                  iv)
         {
             IBufferedCipher c;
             try
@@ -970,18 +1052,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new PgpException("Exception creating cipher", e);
             }
 
-            byte[] s2kIV = new byte[8];
-            random.NextBytes(s2kIV);
-            s2k = new S2k(HashAlgorithmTag.Sha1, s2kIV, 0x60);
+            if (iv == null)
+            {
+                iv = PgpUtilities.GenerateIV(c.GetBlockSize(), random);
+            }
 
-            KeyParameter kp = PgpUtilities.DoMakeKeyFromPassPhrase(encAlgorithm, s2k, rawPassPhrase, clearPassPhrase);
+            c.Init(true, new ParametersWithRandom(new ParametersWithIV(key, iv), random));
 
-            iv = new byte[c.GetBlockSize()];
-            random.NextBytes(iv);
-
-            c.Init(true, new ParametersWithRandom(new ParametersWithIV(kp, iv), random));
-
-            return c.DoFinal(rawKeyData);
+            return c.DoFinal(data, dataOff, dataLen);
         }
 
         /// <summary>

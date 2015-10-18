@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Cms
                 this.baseSignedTable = baseSignedTable;
             }
 
-			internal AlgorithmIdentifier DigestAlgorithmID
+            internal AlgorithmIdentifier DigestAlgorithmID
 			{
 				get { return new AlgorithmIdentifier(new DerObjectIdentifier(digestOID), DerNull.Instance); }
 			}
@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Cms
 				string digestName = Helper.GetDigestAlgName(digestOID);
 
 				string signatureName = digestName + "with" + Helper.GetEncryptionAlgName(encOID);
-
+				
                 byte[] hash;
                 if (outer._digests.Contains(digestOID))
                 {
@@ -136,8 +136,7 @@ namespace Org.BouncyCastle.Cms
 
                 IStreamCalculator calculator = sigCalc.CreateCalculator();
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
-				//Stream sigStr = new SigOutputStream(calculator.Stream);
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
 				Stream sigStr = calculator.Stream;
 #else
 				Stream sigStr = new BufferedStream(calculator.Stream);
@@ -426,7 +425,7 @@ namespace Org.BouncyCastle.Cms
                             signerInfoGenerator.signedGen, signerInfoGenerator.unsignedGen, null));
         }
 
-		private void doAddSigner(
+        private void doAddSigner(
 			AsymmetricKeyParameter		privateKey,
 			SignerIdentifier            signerIdentifier,
 			string                      encryptionOID,

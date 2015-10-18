@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Crypto.Prng
 				int		numBytes,
 				bool	fast)
 			{
-#if SILVERLIGHT || NO_THREADS
+#if SILVERLIGHT || PORTABLE
                 return DoGenerateSeed(numBytes, fast);
 #else
                 ThreadPriority originalPriority = Thread.CurrentThread.Priority;
@@ -63,29 +63,34 @@ namespace Org.BouncyCastle.Crypto.Prng
 				int end = fast ? numBytes : numBytes * 8;
 
 #if NO_THREADS
-                Task.Run(() => Run(null));
+                Task.Factory.StartNew(() => Run(null), TaskCreationOptions.None);
+                
 #else
-                ThreadPool.QueueUserWorkItem(new WaitCallback(Run));
+				ThreadPool.QueueUserWorkItem(new WaitCallback(Run));
 #endif
 
 				for (int i = 0; i < end; i++)
 				{
 				    using (var mre = new ManualResetEvent(false))
 				    {
-				        while (this.counter == last)
-				        {
-				            try
-				            {
-				                mre.WaitOne(1);
-				            }
-				            catch (Exception)
-				            {
-				                // ignore
-				            }
-				        }
+					while (this.counter == last)
+					{
+						try
+						{
+#if PORTABLE
+                            new AutoResetEvent(false).WaitOne(1);
+#else
+ 							Thread.Sleep(1);
+#endif
+						}
+						catch (Exception)
+						{
+							// ignore
+						}
+					}
 				    }
 
-				    last = this.counter;
+					last = this.counter;
 
 					if (fast)
 					{

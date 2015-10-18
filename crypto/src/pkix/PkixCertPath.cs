@@ -208,12 +208,12 @@ namespace Org.BouncyCastle.Pkix
 			string	encoding)
 //			: base("X.509")
 		{
-            string upper = encoding.ToUpper();
+            string upper = Platform.ToUpperInvariant(encoding);
 
             IList certs;
 			try
 			{
-				if (upper.Equals("PkiPath".ToUpper()))
+				if (upper.Equals(Platform.ToUpperInvariant("PkiPath")))
 				{
 					Asn1InputStream derInStream = new Asn1InputStream(inStream);
 					Asn1Object derObject = derInStream.ReadObject();

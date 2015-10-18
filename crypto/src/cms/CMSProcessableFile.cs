@@ -1,4 +1,4 @@
-#if !PCL
+#if !PORTABLE
 using System;
 using System.IO;
 
@@ -17,15 +17,12 @@ namespace Org.BouncyCastle.Cms
 		private readonly FileInfo	_file;
 		private readonly int		_bufSize;
 
-		public CmsProcessableFile(
-			FileInfo file)
+        public CmsProcessableFile(FileInfo file)
 			: this(file, DefaultBufSize)
 		{
 		}
 
-		public CmsProcessableFile(
-			FileInfo	file,
-			int			bufSize)
+        public CmsProcessableFile(FileInfo file, int bufSize)
 		{
 			_file = file;
 			_bufSize = bufSize;
@@ -33,12 +30,10 @@ namespace Org.BouncyCastle.Cms
 
 		public virtual Stream GetInputStream()
 		{
-			return new FileStream(
-				_file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, _bufSize);
+			return new FileStream(_file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, _bufSize);
 		}
 
-		public virtual void Write(
-			Stream zOut)
+        public virtual void Write(Stream zOut)
 		{
 			Stream inStr = GetInputStream();
 			Streams.PipeAll(inStr, zOut);

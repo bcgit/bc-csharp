@@ -1,6 +1,4 @@
-#if !PCL
-using Org.BouncyCastle.Asn1;
-
+#if !PORTABLE
 using System;
 using System.IO;
 

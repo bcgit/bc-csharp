@@ -4,11 +4,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
+#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]
 #endif
     public class BigInteger
@@ -179,7 +180,7 @@ namespace Org.BouncyCastle.Math
         private const int chunk2 = 1, chunk8 = 1, chunk10 = 19, chunk16 = 16;
         private static readonly BigInteger radix2, radix2E, radix8, radix8E, radix10, radix10E, radix16, radix16E;
 
-        private static readonly Random RandomSource = new Random();
+        private static readonly SecureRandom RandomSource = new SecureRandom();
 
         /*
          * These are the threshold bit-lengths (of an exponent) where we increase the window size.
@@ -244,6 +245,11 @@ namespace Org.BouncyCastle.Math
             int nBits)
         {
             return (nBits + BitsPerByte - 1) / BitsPerByte;
+        }
+
+        internal static BigInteger Arbitrary(int sizeInBits)
+        {
+            return new BigInteger(sizeInBits, RandomSource);
         }
 
         private BigInteger(

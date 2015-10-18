@@ -4,7 +4,13 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Macs;
+using Org.BouncyCastle.Crypto.Parameters;
 
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
@@ -40,7 +46,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 //		};
 
 		// 1 million 'a'
-		static private string  million_a_digest = "8693287aa62f9478f7cb312ec0866b6c4e4a0f11160441e8f4ffcd2715dd554f";
+		static private string million_a_digest = "8693287aa62f9478f7cb312ec0866b6c4e4a0f11160441e8f4ffcd2715dd554f";
 
 		public Gost3411DigestTest()
 			: base(new Gost3411Digest(), messages, digests)
@@ -52,9 +58,19 @@ namespace Org.BouncyCastle.Crypto.Tests
 			base.PerformTest();
 
 			millionATest(million_a_digest);
-		}
 
-		protected override IDigest CloneDigest(IDigest digest)
+            byte[] data = Strings.ToUtf8ByteArray("fred");
+
+            KeyParameter key = new KeyParameter(Pkcs5S1ParametersGenerator.Pkcs5PasswordToUtf8Bytes("1".ToCharArray()));
+            byte[] mac = MacUtilities.CalculateMac("HMAC/GOST3411", key, data);
+
+            if (!Arrays.AreEqual(Hex.Decode("e9f98610cfc80084462b175a15d2b4ec10b2ab892eae5a6179d572d9b1db6b72"), mac))
+            {
+                Fail("mac calculation failed.");
+            }
+        }
+
+        protected override IDigest CloneDigest(IDigest digest)
 		{
 			return new Gost3411Digest((Gost3411Digest)digest);
 		}

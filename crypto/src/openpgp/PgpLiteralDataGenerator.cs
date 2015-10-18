@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return new WrappedGeneratorStream(this, pkOut);
 		}
 
-#if !PCL
+#if !PORTABLE
 		/// <summary>
 		/// <p>
 		/// Open a literal data packet for the passed in <c>FileInfo</c> object, returning
