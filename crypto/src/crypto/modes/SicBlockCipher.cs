@@ -18,8 +18,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         private readonly int blockSize;
         private readonly byte[] counter;
         private readonly byte[] counterOut;
-
-        private byte[] IV = null;
+        private byte[] IV;
 
         /**
         * Basic constructor.
@@ -32,6 +31,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.blockSize = cipher.GetBlockSize();
             this.counter = new byte[blockSize];
             this.counterOut = new byte[blockSize];
+            this.IV = new byte[blockSize];
         }
 
         /**
@@ -108,7 +108,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void Reset()
         {
-            Array.Copy(IV, 0, counter, 0, counter.Length);
+            Arrays.Fill(counter, (byte)0);
+            Array.Copy(IV, 0, counter, 0, System.Math.Min(IV.Length, counter.Length));
             cipher.Reset();
         }
     }
