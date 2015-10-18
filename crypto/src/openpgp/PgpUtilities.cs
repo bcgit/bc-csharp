@@ -488,5 +488,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new PgpException("unknown wrap algorithm: " + encAlgorithm);
             }
         }
+
+        internal static byte[] GenerateIV(int length, SecureRandom random)
+        {
+            byte[] iv = new byte[length];
+            random.NextBytes(iv);
+            return iv;
+        }
+
+        internal static S2k GenerateS2k(HashAlgorithmTag hashAlgorithm, int s2kCount, SecureRandom random)
+        {
+            byte[] iv = GenerateIV(8, random);
+            return new S2k(hashAlgorithm, iv, s2kCount);
+        }
     }
 }
