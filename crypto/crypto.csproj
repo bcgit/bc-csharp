@@ -3199,6 +3199,41 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeParticipant.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakePrimeOrderGroup.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakePrimeOrderGroups.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeRound1Payload.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeRound2Payload.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeRound3Payload.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\agreement\kdf\DHKdfParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -10986,6 +11021,26 @@
                 />
                 <File
                     RelPath = "test\src\cms\test\SignedDataTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\agreement\test\AllTests.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\agreement\test\JPakeParticipantTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\agreement\test\JPakePrimeOrderGroupTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\agreement\test\JPakeUtilitiesTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
