@@ -93,17 +93,17 @@
   </metadata>
   <files>
     <file src="Crypto\Readme.html" target="Readme.html" />
-    <file src="Crypto\bin\pcl\Release\crypto.*" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10" />
-    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10" />
-    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\net45" />
-    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\win8" />
-    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\wpa81" />
-    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\MonoTouch" />
-    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\MonoAndroid" />
-    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\XamarinMac" />
-    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\XamarinIos" />
-    <file src="Crypto\bin\dotnet\Release\crypto.*" target="lib\dotnet" />
-    <file src="Crypto\bin\dotnet\Release\crypto.*" target="lib\uap10.0" />
-    <file src="Crypto\bin\dotnet\Release\crypto.*" target="lib\net46" />
+    <file src="Crypto\bin\pcl\Release\crypto.*" exclude="**\*.srvsrv" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" exclude="**\*.srvsrv" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" exclude="**\*.srvsrv" target="lib\net45" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" exclude="**\*.srvsrv" target="lib\win8" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" exclude="**\*.srvsrv" target="lib\wpa81" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" exclude="**\*.srvsrv" target="lib\MonoTouch" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" exclude="**\*.srvsrv" target="lib\MonoAndroid" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" exclude="**\*.srvsrv" target="lib\XamarinMac" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" exclude="**\*.srvsrv" target="lib\XamarinIos" />
+    <file src="Crypto\bin\dotnet\Release\crypto.*" exclude="**\*.srvsrv" target="lib\dotnet" />
+    <file src="Crypto\bin\dotnet\Release\crypto.*" exclude="**\*.srvsrv" target="lib\uap10.0" />
+    <file src="Crypto\bin\dotnet\Release\crypto.*" exclude="**\*.srvsrv" target="lib\net46" />
   </files>
 </package>
