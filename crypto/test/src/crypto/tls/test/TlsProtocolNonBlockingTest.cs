@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 protocol.OfferInput(new byte[10]);
                 Assert.Fail("Input was accepted after close");
             }
-            catch (IOException e)
+            catch (IOException)
             {
             }
 
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 protocol.OfferOutput(new byte[10], 0, 10);
                 Assert.Fail("Output was accepted after close");
             }
-            catch (IOException e)
+            catch (IOException)
             {
             }
         }

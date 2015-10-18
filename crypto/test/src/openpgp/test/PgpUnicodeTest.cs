@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
     [TestFixture]
     public class PgpUnicodeTest
     {
-        private void DoTestKey(BigInteger keyId, string passphrase)
+        private void DoTestKey(BigInteger keyId, string passphrase, bool utf8)
         {
             PgpSecretKeyRingBundle secretKeyRing = LoadSecretKeyCollection("secring.gpg");
 
@@ -24,7 +24,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             try
             {
-                PgpPrivateKey privateKey = key.ExtractPrivateKey(passphrase.ToCharArray());
+                char[] pass = passphrase.ToCharArray();
+
+                PgpPrivateKey privateKey = utf8
+                    ?   key.ExtractPrivateKeyUtf8(pass)
+                    :   key.ExtractPrivateKey(pass);
 
                 Assert.IsTrue(privateKey.KeyId == keyId.LongValue);
             }
@@ -52,7 +56,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
  //             passwordFile.close();
  //             String passphrase = new String(password);            
 
-                DoTestKey(keyId, passphrase);
+                DoTestKey(keyId, passphrase, true);
 
                 // all fine!
 
@@ -74,7 +78,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
                 string passphrase = "Admin123";
 
-                DoTestKey(keyId, passphrase);
+                DoTestKey(keyId, passphrase, false);
+                DoTestKey(keyId, passphrase, true);
 
                 // all fine!
             }
@@ -101,7 +106,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 string passphrase = reader.ReadLine();
                 passwordFile.Close();
 
-                DoTestKey(keyId, passphrase);
+                DoTestKey(keyId, passphrase, true);
 
                 // all fine!
             }

@@ -193,13 +193,44 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return MakeKey(algorithm, keyBytes);
         }
 
-		public static KeyParameter MakeKeyFromPassPhrase(
-            SymmetricKeyAlgorithmTag	algorithm,
-            S2k							s2k,
-            char[]						passPhrase)
+        internal static byte[] EncodePassPhrase(char[] passPhrase, bool utf8)
+        {
+            return passPhrase == null
+                ? null
+                : utf8
+                ? Encoding.UTF8.GetBytes(passPhrase)
+                : Strings.ToByteArray(passPhrase);
+        }
+
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier).
+        /// </remarks>
+        public static KeyParameter MakeKeyFromPassPhrase(SymmetricKeyAlgorithmTag algorithm, S2k s2k, char[] passPhrase)
+        {
+            return DoMakeKeyFromPassPhrase(algorithm, s2k, EncodePassPhrase(passPhrase, false), true);
+        }
+
+        /// <remarks>
+        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// </remarks>
+        public static KeyParameter MakeKeyFromPassPhraseUtf8(SymmetricKeyAlgorithmTag algorithm, S2k s2k, char[] passPhrase)
+        {
+            return DoMakeKeyFromPassPhrase(algorithm, s2k, EncodePassPhrase(passPhrase, true), true);
+        }
+
+        /// <remarks>
+        /// Allows the caller to handle the encoding of the passphrase to bytes.
+        /// </remarks>
+        public static KeyParameter MakeKeyFromPassPhraseRaw(SymmetricKeyAlgorithmTag algorithm, S2k s2k, byte[] rawPassPhrase)
+        {
+            return DoMakeKeyFromPassPhrase(algorithm, s2k, rawPassPhrase, false);
+        }
+
+        internal static KeyParameter DoMakeKeyFromPassPhrase(SymmetricKeyAlgorithmTag algorithm, S2k s2k, byte[] rawPassPhrase, bool clearPassPhrase)
         {
 			int keySize = GetKeySize(algorithm);
-			byte[] pBytes = Encoding.UTF8.GetBytes(passPhrase);
+            byte[] pBytes = rawPassPhrase;
 			byte[] keyBytes = new byte[(keySize + 7) / 8];
 
 			int generatedBytes = 0;
@@ -308,7 +339,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				loopCount++;
             }
 
-			Array.Clear(pBytes, 0, pBytes.Length);
+            if (clearPassPhrase && rawPassPhrase != null)
+            {
+                Array.Clear(rawPassPhrase, 0, rawPassPhrase.Length);
+            }
 
 			return MakeKey(algorithm, keyBytes);
         }

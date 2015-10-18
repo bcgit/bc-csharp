@@ -14,27 +14,28 @@ namespace crypto_test
 
 			try
 			{
-				Org.BouncyCastle.Asn1.Tests.RegressionTest.Main(args);
-				//Org.BouncyCastle.Bcpg.OpenPgp.Tests.Dsa2Test.?
-				Org.BouncyCastle.Bcpg.OpenPgp.Tests.RegressionTest.Main(args);
-				Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests.AllTests.Main(args);
-				Org.BouncyCastle.Cms.Tests.AllTests.Main(args);
-				Org.BouncyCastle.Crypto.Tests.RegressionTest.Main(args);
-				Org.BouncyCastle.Crypto.IO.Tests.AllTests.Main(args);
-				Org.BouncyCastle.Math.Tests.AllTests.Main(args);
-				Org.BouncyCastle.Math.EC.Tests.AllTests.Main(args);
-				Org.BouncyCastle.Ocsp.Tests.AllTests.Main(args);
-				//Org.BouncyCastle.Pkcs.Tests.?
-				Org.BouncyCastle.Pkcs.Tests.EncryptedPrivateKeyInfoTest.Main(args);
-				Org.BouncyCastle.Pkcs.Tests.Pkcs10Test.Main(args);
-				Org.BouncyCastle.Pkcs.Tests.Pkcs12StoreTest.Main(args);
-				//Org.BouncyCastle.OpenSsl.Tests.?
-				Org.BouncyCastle.OpenSsl.Tests.ReaderTest.Main(args);
-				Org.BouncyCastle.OpenSsl.Tests.WriterTest.Main(args);
-				//Org.BouncyCastle.Security.Tests.?
-				Org.BouncyCastle.Tests.RegressionTest.Main(args);
-				Org.BouncyCastle.Tsp.Tests.AllTests.Main(args);
-				//Org.BouncyCastle.X509.Tests.?
+                Org.BouncyCastle.Asn1.Tests.RegressionTest.Main(args);
+                //Org.BouncyCastle.Bcpg.OpenPgp.Tests.Dsa2Test.?
+                Org.BouncyCastle.Bcpg.OpenPgp.Tests.RegressionTest.Main(args);
+                Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests.AllTests.Main(args);
+                Org.BouncyCastle.Cms.Tests.AllTests.Main(args);
+                Org.BouncyCastle.Crypto.Agreement.Tests.AllTests.Main(args);
+                Org.BouncyCastle.Crypto.Tests.RegressionTest.Main(args);
+                Org.BouncyCastle.Crypto.IO.Tests.AllTests.Main(args);
+                Org.BouncyCastle.Math.Tests.AllTests.Main(args);
+                Org.BouncyCastle.Math.EC.Tests.AllTests.Main(args);
+                Org.BouncyCastle.Ocsp.Tests.AllTests.Main(args);
+                //Org.BouncyCastle.Pkcs.Tests.?
+                Org.BouncyCastle.Pkcs.Tests.EncryptedPrivateKeyInfoTest.Main(args);
+                Org.BouncyCastle.Pkcs.Tests.Pkcs10Test.Main(args);
+                Org.BouncyCastle.Pkcs.Tests.Pkcs12StoreTest.Main(args);
+                //Org.BouncyCastle.OpenSsl.Tests.?
+                Org.BouncyCastle.OpenSsl.Tests.ReaderTest.Main(args);
+                Org.BouncyCastle.OpenSsl.Tests.WriterTest.Main(args);
+                //Org.BouncyCastle.Security.Tests.?
+                Org.BouncyCastle.Tests.RegressionTest.Main(args);
+                Org.BouncyCastle.Tsp.Tests.AllTests.Main(args);
+                //Org.BouncyCastle.X509.Tests.?
 			}
 			catch (Exception e)
 			{

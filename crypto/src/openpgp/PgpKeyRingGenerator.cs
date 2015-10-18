@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private SymmetricKeyAlgorithmTag	encAlgorithm;
         private HashAlgorithmTag            hashAlgorithm;
         private int                         certificationLevel;
-        private char[]                      passPhrase;
+        private byte[]                      rawPassPhrase;
 		private bool						useSha1;
 		private PgpKeyPair                  masterKey;
         private PgpSignatureSubpacketVector hashedPacketVector;
@@ -28,7 +28,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// Create a new key ring generator using old style checksumming. It is recommended to use
 		/// SHA1 checksumming where possible.
 		/// </summary>
-		/// <param name="certificationLevel">The certification level for keys on this ring.</param>
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier).
+        /// </remarks>
+        /// <param name="certificationLevel">The certification level for keys on this ring.</param>
 		/// <param name="masterKey">The master key pair.</param>
 		/// <param name="id">The id to be associated with the ring.</param>
 		/// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
@@ -36,6 +40,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <param name="hashedPackets">Packets to be included in the certification hash.</param>
 		/// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
 		/// <param name="rand">input secured random.</param>
+        [Obsolete("Use version taking an explicit 'useSha1' parameter instead")]
 		public PgpKeyRingGenerator(
 			int							certificationLevel,
 			PgpKeyPair					masterKey,
@@ -52,7 +57,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>
 		/// Create a new key ring generator.
 		/// </summary>
-		/// <param name="certificationLevel">The certification level for keys on this ring.</param>
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier).
+        /// </remarks>
+        /// <param name="certificationLevel">The certification level for keys on this ring.</param>
 		/// <param name="masterKey">The master key pair.</param>
 		/// <param name="id">The id to be associated with the ring.</param>
 		/// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
@@ -71,23 +80,86 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			PgpSignatureSubpacketVector	hashedPackets,
             PgpSignatureSubpacketVector	unhashedPackets,
             SecureRandom				rand)
+            : this(certificationLevel, masterKey, id, encAlgorithm, false, passPhrase, useSha1, hashedPackets, unhashedPackets, rand)
+        {
+        }
+
+		/// <summary>
+		/// Create a new key ring generator.
+		/// </summary>
+		/// <param name="certificationLevel">The certification level for keys on this ring.</param>
+		/// <param name="masterKey">The master key pair.</param>
+		/// <param name="id">The id to be associated with the ring.</param>
+		/// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
+        /// <param name="utf8PassPhrase">
+        /// If true, conversion of the passphrase to bytes uses Encoding.UTF8.GetBytes(), otherwise the conversion
+        /// is performed using Convert.ToByte(), which is the historical behaviour of the library (1.7 and earlier).
+        /// </param>
+        /// <param name="passPhrase">The passPhrase to be used to protect secret keys.</param>
+		/// <param name="useSha1">Checksum the secret keys with SHA1 rather than the older 16 bit checksum.</param>
+		/// <param name="hashedPackets">Packets to be included in the certification hash.</param>
+		/// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
+		/// <param name="rand">input secured random.</param>
+        public PgpKeyRingGenerator(
+            int							certificationLevel,
+            PgpKeyPair					masterKey,
+            string						id,
+            SymmetricKeyAlgorithmTag	encAlgorithm,
+            bool                        utf8PassPhrase,
+            char[]						passPhrase,
+			bool						useSha1,
+			PgpSignatureSubpacketVector	hashedPackets,
+            PgpSignatureSubpacketVector	unhashedPackets,
+            SecureRandom				rand)
+            : this(certificationLevel, masterKey, id, encAlgorithm,
+                PgpUtilities.EncodePassPhrase(passPhrase, utf8PassPhrase),
+                useSha1, hashedPackets, unhashedPackets, rand)
+        {
+        }
+
+        /// <summary>
+		/// Create a new key ring generator.
+		/// </summary>
+		/// <param name="certificationLevel">The certification level for keys on this ring.</param>
+		/// <param name="masterKey">The master key pair.</param>
+		/// <param name="id">The id to be associated with the ring.</param>
+		/// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
+		/// <param name="rawPassPhrase">The passPhrase to be used to protect secret keys.</param>
+		/// <param name="useSha1">Checksum the secret keys with SHA1 rather than the older 16 bit checksum.</param>
+		/// <param name="hashedPackets">Packets to be included in the certification hash.</param>
+		/// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
+		/// <param name="rand">input secured random.</param>
+        public PgpKeyRingGenerator(
+            int							certificationLevel,
+            PgpKeyPair					masterKey,
+            string						id,
+            SymmetricKeyAlgorithmTag	encAlgorithm,
+            byte[]						rawPassPhrase,
+			bool						useSha1,
+			PgpSignatureSubpacketVector	hashedPackets,
+            PgpSignatureSubpacketVector	unhashedPackets,
+            SecureRandom				rand)
         {
             this.certificationLevel = certificationLevel;
             this.masterKey = masterKey;
             this.id = id;
             this.encAlgorithm = encAlgorithm;
-            this.passPhrase = passPhrase;
+            this.rawPassPhrase = rawPassPhrase;
 			this.useSha1 = useSha1;
 			this.hashedPacketVector = hashedPackets;
             this.unhashedPacketVector = unhashedPackets;
             this.rand = rand;
 
-			keys.Add(new PgpSecretKey(certificationLevel, masterKey, id, encAlgorithm, passPhrase, useSha1, hashedPackets, unhashedPackets, rand));
+			keys.Add(new PgpSecretKey(certificationLevel, masterKey, id, encAlgorithm, rawPassPhrase, false, useSha1, hashedPackets, unhashedPackets, rand));
         }
 
         /// <summary>
         /// Create a new key ring generator.
         /// </summary>
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier).
+        /// </remarks>
         /// <param name="certificationLevel">The certification level for keys on this ring.</param>
         /// <param name="masterKey">The master key pair.</param>
         /// <param name="id">The id to be associated with the ring.</param>
@@ -109,19 +181,85 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignatureSubpacketVector hashedPackets,
             PgpSignatureSubpacketVector unhashedPackets,
             SecureRandom                rand)
+            : this(certificationLevel, masterKey, id, encAlgorithm, hashAlgorithm, false, passPhrase, useSha1, hashedPackets, unhashedPackets, rand)
+        {
+        }
+
+        /// <summary>
+        /// Create a new key ring generator.
+        /// </summary>
+        /// <param name="certificationLevel">The certification level for keys on this ring.</param>
+        /// <param name="masterKey">The master key pair.</param>
+        /// <param name="id">The id to be associated with the ring.</param>
+        /// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="utf8PassPhrase">
+        /// If true, conversion of the passphrase to bytes uses Encoding.UTF8.GetBytes(), otherwise the conversion
+        /// is performed using Convert.ToByte(), which is the historical behaviour of the library (1.7 and earlier).
+        /// </param>
+        /// <param name="passPhrase">The passPhrase to be used to protect secret keys.</param>
+        /// <param name="useSha1">Checksum the secret keys with SHA1 rather than the older 16 bit checksum.</param>
+        /// <param name="hashedPackets">Packets to be included in the certification hash.</param>
+        /// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
+        /// <param name="rand">input secured random.</param>
+        public PgpKeyRingGenerator(
+            int                         certificationLevel,
+            PgpKeyPair                  masterKey,
+            string                      id,
+            SymmetricKeyAlgorithmTag    encAlgorithm,
+            HashAlgorithmTag            hashAlgorithm,
+            bool                        utf8PassPhrase,
+            char[]                      passPhrase,
+            bool                        useSha1,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom                rand)
+            : this(certificationLevel, masterKey, id, encAlgorithm, hashAlgorithm,
+                PgpUtilities.EncodePassPhrase(passPhrase, utf8PassPhrase),
+                useSha1, hashedPackets, unhashedPackets, rand)
+        {
+        }
+
+        /// <summary>
+        /// Create a new key ring generator.
+        /// </summary>
+        /// <remarks>
+        /// Allows the caller to handle the encoding of the passphrase to bytes.
+        /// </remarks>
+        /// <param name="certificationLevel">The certification level for keys on this ring.</param>
+        /// <param name="masterKey">The master key pair.</param>
+        /// <param name="id">The id to be associated with the ring.</param>
+        /// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="rawPassPhrase">The passPhrase to be used to protect secret keys.</param>
+        /// <param name="useSha1">Checksum the secret keys with SHA1 rather than the older 16 bit checksum.</param>
+        /// <param name="hashedPackets">Packets to be included in the certification hash.</param>
+        /// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
+        /// <param name="rand">input secured random.</param>
+        public PgpKeyRingGenerator(
+            int                         certificationLevel,
+            PgpKeyPair                  masterKey,
+            string                      id,
+            SymmetricKeyAlgorithmTag    encAlgorithm,
+            HashAlgorithmTag            hashAlgorithm,
+            byte[]                      rawPassPhrase,
+            bool                        useSha1,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom                rand)
         {
             this.certificationLevel = certificationLevel;
             this.masterKey = masterKey;
             this.id = id;
             this.encAlgorithm = encAlgorithm;
-            this.passPhrase = passPhrase;
+            this.rawPassPhrase = rawPassPhrase;
             this.useSha1 = useSha1;
             this.hashedPacketVector = hashedPackets;
             this.unhashedPacketVector = unhashedPackets;
             this.rand = rand;
             this.hashAlgorithm = hashAlgorithm;
 
-            keys.Add(new PgpSecretKey(certificationLevel, masterKey, id, encAlgorithm, hashAlgorithm, passPhrase, useSha1, hashedPackets, unhashedPackets, rand));
+            keys.Add(new PgpSecretKey(certificationLevel, masterKey, id, encAlgorithm, hashAlgorithm, rawPassPhrase, false, useSha1, hashedPackets, unhashedPackets, rand));
         }
 
 		/// <summary>Add a subkey to the key ring to be generated with default certification.</summary>
@@ -172,7 +310,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
 
-				keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm, passPhrase, useSha1, rand));
+				keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm,
+                    rawPassPhrase, false, useSha1, rand, false));
 			}
             catch (PgpException e)
             {
@@ -202,7 +341,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             try
             {
-                var sGen = new PgpSignatureGenerator(masterKey.PublicKey.Algorithm, hashAlgorithm);
+                PgpSignatureGenerator sGen = new PgpSignatureGenerator(masterKey.PublicKey.Algorithm, hashAlgorithm);
 
                 //
                 // Generate the certification
@@ -215,7 +354,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 IList subSigs = Platform.CreateArrayList();
                 subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
 
-                keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm, passPhrase, useSha1, rand));
+                keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm,
+                    rawPassPhrase, false, useSha1, rand, false));
             }
             catch (PgpException)
             {
