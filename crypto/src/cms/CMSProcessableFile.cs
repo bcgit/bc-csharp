@@ -1,4 +1,4 @@
-#if !PORTABLE
+#if !PORTABLE || DOTNET
 using System;
 using System.IO;
 

@@ -4,7 +4,7 @@
     <ProjectType>Local</ProjectType>
     <ProductVersion>7.10.3077</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A1}</ProjectGuid>
+    <ProjectGuid>{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A2}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon />
@@ -19,22 +19,23 @@
     <RootNamespace>crypto</RootNamespace>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <StartupObject />
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkProfile>Profile259</TargetFrameworkProfile>
-    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>bin\pcl2\Debug\</OutputPath>
-    <IntermediateOutputPath>obj\pcl2\Debug\</IntermediateOutputPath>
+    <OutputPath>bin\dotnet\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\dotnet\Debug\</IntermediateOutputPath>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;DEBUG;PORTABLE;NO_THREADS;NEW_REFLECTION;SYS_RUNTIME</DefineConstants>
-    <DocumentationFile>doc\pcl2\crypto.xml</DocumentationFile>
+    <DefineConstants>TRACE;DEBUG;PORTABLE;NO_THREADS;NEW_REFLECTION;SYS_RUNTIME;DOTNET</DefineConstants>
+    <DocumentationFile>doc\dotnet\crypto.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
@@ -48,14 +49,14 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>bin\pcl2\Release\</OutputPath>
-    <IntermediateOutputPath>obj\pcl2\Release\</IntermediateOutputPath>
+    <OutputPath>bin\dotnet\Release\</OutputPath>
+    <IntermediateOutputPath>obj\dotnet\Release\</IntermediateOutputPath>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;PORTABLE;NO_THREADS;NEW_REFLECTION;SYS_RUNTIME</DefineConstants>
-    <DocumentationFile>doc\pcl2\crypto.xml</DocumentationFile>
+    <DefineConstants>TRACE;PORTABLE;NO_THREADS;NEW_REFLECTION;SYS_RUNTIME;DOTNET</DefineConstants>
+    <DocumentationFile>doc\dotnet\crypto.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
@@ -77,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="BouncyCastle.snk" />
+    <None Include="crypto.dotnet.project.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\**\*.cs" />

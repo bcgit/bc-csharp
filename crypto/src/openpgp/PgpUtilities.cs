@@ -347,7 +347,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return MakeKey(algorithm, keyBytes);
         }
 
-#if !PORTABLE
+#if !PORTABLE || DOTNET
         /// <summary>Write out the passed in file as a literal data packet.</summary>
         public static void WriteFileToLiteralData(
             Stream		output,
@@ -382,8 +382,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 pOut.Write(buf, 0, len);
             }
 
-			pOut.Close();
-			inputStream.Close();
+			pOut.Dispose();
+			inputStream.Dispose();
 		}
 #endif
 

@@ -35,31 +35,36 @@
     <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, coreclr, dotnet, dnx, uwp, sl5, monotouch, monoandroid, xamarin, xamarin.ios</tags>
     <dependencies>
       <group targetFramework="dotnet">
-        <dependency id="System.Collections" version="4.0.0" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.0" />
-        <dependency id="System.Globalization" version="4.0.0" />
-        <dependency id="System.IO" version="4.0.0" />
+        <dependency id="System.Collections" version="4.0.10" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
+        <dependency id="System.Globalization" version="4.0.10" />
+        <dependency id="System.IO" version="4.0.10" />
+        <dependency id="System.IO.FileSystem" version="4.0.0" />
+        <dependency id="System.IO.FileSystem.Primitives" version="4.0.0" />
         <dependency id="System.Linq" version="4.0.0" />
-        <dependency id="System.Reflection" version="4.0.0" />
+        <dependency id="System.Reflection" version="4.0.10" />
         <dependency id="System.Reflection.Extensions" version="4.0.0" />
-        <dependency id="System.Runtime" version="4.0.0" />
-        <dependency id="System.Runtime.Extensions" version="4.0.0" />
-        <dependency id="System.Text.Encoding" version="4.0.0" />
-        <dependency id="System.Threading" version="4.0.0" />
-        <dependency id="System.Threading.Tasks" version="4.0.0" />
+        <dependency id="System.Runtime" version="4.0.20" />
+        <dependency id="System.Runtime.Extensions" version="4.0.10" />
+        <dependency id="System.Text.Encoding" version="4.0.10" />
+        <dependency id="System.Threading" version="4.0.10" />
+        <dependency id="System.Threading.Tasks" version="4.0.10" />
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="Crypto\bin\pcl\Release\crypto.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.xml" />
-    <file src="Crypto\bin\pcl\Release\crypto.pdb" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.pdb" />
-    <file src="Crypto\bin\pcl\Release\crypto.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.dll" />
     <file src="Crypto\Readme.html" target="Readme.html" />
-    <file src="Crypto\bin\pcl2\Release\crypto.xml" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.xml" />
-    <file src="Crypto\bin\pcl2\Release\crypto.pdb" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.pdb" />
-    <file src="Crypto\bin\pcl2\Release\crypto.dll" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10\crypto.dll" />
-    <file src="Crypto\bin\pcl2\Release\crypto.xml" target="lib\dotnet" />
-    <file src="Crypto\bin\pcl2\Release\crypto.pdb" target="lib\dotnet" />
-    <file src="Crypto\bin\pcl2\Release\crypto.dll" target="lib\dotnet" />
+    <file src="Crypto\bin\pcl\Release\crypto.*" target="lib\portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\net45" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\win8" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\wpa81" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\MonoTouch" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\MonoAndroid" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\XamarinMac" />
+    <file src="Crypto\bin\pcl2\Release\crypto.*" target="lib\XamarinIos" />
+    <file src="Crypto\bin\dotnet\Release\crypto.*" target="lib\dotnet" />
+    <file src="Crypto\bin\dotnet\Release\crypto.*" target="lib\uap10.0" />
+    <file src="Crypto\bin\dotnet\Release\crypto.*" target="lib\net46" />
   </files>
 </package>
