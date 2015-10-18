@@ -50,12 +50,14 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             ParametersWithIV ivParam = parameters as ParametersWithIV;
             if (ivParam == null)
-                throw new ArgumentException("CTR mode requires ParametersWithIV", "parameters");
+                throw new ArgumentException("CTR/SIC mode requires ParametersWithIV", "parameters");
 
             this.IV = Arrays.Clone(ivParam.GetIV());
 
+            if (blockSize < IV.Length)
+                throw new ArgumentException("CTR/SIC mode requires IV no greater than: " + blockSize + " bytes.");
             if (blockSize - IV.Length > 8)
-                throw new ArgumentException("CTR mode requires IV of at least: " + (blockSize - 8) + " bytes.");
+                throw new ArgumentException("CTR/SIC mode requires IV of at least: " + (blockSize - 8) + " bytes.");
 
             Reset();
 
@@ -68,7 +70,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual string AlgorithmName
         {
-            get { return cipher.AlgorithmName + "/CTR"; }
+            get { return cipher.AlgorithmName + "/SIC"; }
         }
 
         public virtual bool IsPartialBlockOkay
@@ -109,7 +111,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         public virtual void Reset()
         {
             Arrays.Fill(counter, (byte)0);
-            Array.Copy(IV, 0, counter, 0, System.Math.Min(IV.Length, counter.Length));
+            Array.Copy(IV, 0, counter, 0, IV.Length);
             cipher.Reset();
         }
     }
