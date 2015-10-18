@@ -212,7 +212,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 					+ " got " + tbsCert.Subject.ToString());
 			}
 
-			if (tbsCert.Version == 3)
+			if (tbsCert.Version >= 3)
 			{
 				X509Extensions ext = tbsCert.Extensions;
 				if (ext != null)
