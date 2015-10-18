@@ -1844,7 +1844,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair elgKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.ElGamalEncrypt, elgKp, DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification, dsaKeyPair,
-                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, null, null, new SecureRandom());
+                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, new SecureRandom());
 
             keyRingGen.AddSubKey(elgKeyPair);
 
@@ -1904,12 +1904,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair rsaKeyPair2 = new PgpKeyPair(PublicKeyAlgorithmTag.RsaGeneral, rsaKp, DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification,
-                rsaKeyPair1, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, null, null, random);
+                rsaKeyPair1, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, random);
             PgpSecretKeyRing secRing1 = keyRingGen.GenerateSecretKeyRing();
             PgpPublicKeyRing pubRing1 = keyRingGen.GeneratePublicKeyRing();
 
             keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification,
-                rsaKeyPair2, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, null, null, random);
+                rsaKeyPair2, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, random);
             PgpSecretKeyRing secRing2 = keyRingGen.GenerateSecretKeyRing();
             PgpPublicKeyRing pubRing2 = keyRingGen.GeneratePublicKeyRing();
 

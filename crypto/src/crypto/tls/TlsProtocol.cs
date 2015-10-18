@@ -604,15 +604,15 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /**
-         * Offer input from an arbitrary source. Only allowed in non-blocking mode.<br>
-         * <br>
+         * Offer input from an arbitrary source. Only allowed in non-blocking mode.<br/>
+         * <br/>
          * After this method returns, the input buffer is "owned" by this object. Other code
-         * must not attempt to do anything with it.<br>
-         * <br>
+         * must not attempt to do anything with it.<br/>
+         * <br/>
          * This method will decrypt and process all records that are fully available.
          * If only part of a record is available, the buffer will be retained until the
-         * remainder of the record is offered.<br>
-         * <br>
+         * remainder of the record is offered.<br/>
+         * <br/>
          * If any records containing application data were processed, the decrypted data
          * can be obtained using {@link #readInput(byte[], int, int)}. If any records
          * containing protocol data were processed, a response may have been generated.
@@ -649,8 +649,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         /**
          * Gets the amount of received application data. A call to {@link #readInput(byte[], int, int)}
-         * is guaranteed to be able to return at least this much data.<br>
-         * <br>
+         * is guaranteed to be able to return at least this much data.<br/>
+         * <br/>
          * Only allowed in non-blocking mode.
          * @return The number of bytes of available application data
          */
@@ -666,8 +666,8 @@ namespace Org.BouncyCastle.Crypto.Tls
          * Retrieves received application data. Use {@link #getAvailableInputBytes()} to check
          * how much application data is currently available. This method functions similarly to
          * {@link InputStream#read(byte[], int, int)}, except that it never blocks. If no data
-         * is available, nothing will be copied and zero will be returned.<br>
-         * <br>
+         * is available, nothing will be copied and zero will be returned.<br/>
+         * <br/>
          * Only allowed in non-blocking mode.
          * @param buffer The buffer to hold the application data
          * @param offset The start offset in the buffer at which the data is written
@@ -684,12 +684,12 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /**
-         * Offer output from an arbitrary source. Only allowed in non-blocking mode.<br>
-         * <br>
+         * Offer output from an arbitrary source. Only allowed in non-blocking mode.<br/>
+         * <br/>
          * After this method returns, the specified section of the buffer will have been
          * processed. Use {@link #readOutput(byte[], int, int)} to get the bytes to
-         * transmit to the other peer.<br>
-         * <br>
+         * transmit to the other peer.<br/>
+         * <br/>
          * This method must not be called until after the handshake is complete! Attempting
          * to call it before the handshake is complete will result in an exception.
          * @param buffer The buffer containing application data to encrypt
@@ -710,8 +710,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         /**
          * Gets the amount of encrypted data available to be sent. A call to
          * {@link #readOutput(byte[], int, int)} is guaranteed to be able to return at
-         * least this much data.<br>
-         * <br>
+         * least this much data.<br/>
+         * <br/>
          * Only allowed in non-blocking mode.
          * @return The number of bytes of available encrypted data
          */
@@ -727,8 +727,8 @@ namespace Org.BouncyCastle.Crypto.Tls
          * Retrieves encrypted data to be sent. Use {@link #getAvailableOutputBytes()} to check
          * how much encrypted data is currently available. This method functions similarly to
          * {@link InputStream#read(byte[], int, int)}, except that it never blocks. If no data
-         * is available, nothing will be copied and zero will be returned.<br>
-         * <br>
+         * is available, nothing will be copied and zero will be returned.<br/>
+         * <br/>
          * Only allowed in non-blocking mode.
          * @param buffer The buffer to hold the encrypted data
          * @param offset The start offset in the buffer at which the data is written

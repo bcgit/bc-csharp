@@ -271,26 +271,55 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>
 		/// Add a PBE encryption method to the encrypted object using the default algorithm (S2K_SHA1).
 		/// </summary>
-		public void AddMethod(
-			char[] passPhrase) 
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier).
+        /// </remarks>
+        [Obsolete("Use version that takes an explicit s2kDigest parameter")]
+        public void AddMethod(char[] passPhrase)
 		{
 			AddMethod(passPhrase, HashAlgorithmTag.Sha1);
 		}
 
-		/// <summary>Add a PBE encryption method to the encrypted object.</summary>
-        public void AddMethod(
- 			char[]				passPhrase,
-			HashAlgorithmTag	s2kDigest)
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier).
+        /// </remarks>
+        public void AddMethod(char[] passPhrase, HashAlgorithmTag s2kDigest)
         {
-            byte[] iv = new byte[8];
-			rand.NextBytes(iv);
-
-			S2k s2k = new S2k(s2kDigest, iv, 0x60);
-
-			methods.Add(new PbeMethod(defAlgorithm, s2k, PgpUtilities.MakeKeyFromPassPhrase(defAlgorithm, s2k, passPhrase)));
+            DoAddMethod(PgpUtilities.EncodePassPhrase(passPhrase, false), true, s2kDigest);
         }
 
-		/// <summary>Add a public key encrypted session key to the encrypted object.</summary>
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// </remarks>
+        public void AddMethodUtf8(char[] passPhrase, HashAlgorithmTag s2kDigest)
+        {
+            DoAddMethod(PgpUtilities.EncodePassPhrase(passPhrase, true), true, s2kDigest);
+        }
+
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// Allows the caller to handle the encoding of the passphrase to bytes.
+        /// </remarks>
+        public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest)
+        {
+            DoAddMethod(rawPassPhrase, false, s2kDigest);
+        }
+
+        internal void DoAddMethod(byte[] rawPassPhrase, bool clearPassPhrase, HashAlgorithmTag s2kDigest)
+        {
+            byte[] iv = new byte[8];
+            rand.NextBytes(iv);
+
+            S2k s2k = new S2k(s2kDigest, iv, 0x60);
+
+            methods.Add(new PbeMethod(defAlgorithm, s2k, PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase)));
+        }
+
+        /// <summary>Add a public key encrypted session key to the encrypted object.</summary>
         public void AddMethod(
             PgpPublicKey key)
         {

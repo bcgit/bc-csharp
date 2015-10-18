@@ -381,7 +381,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             encGen.AddMethod(pgpPubKey);
 
-            encGen.AddMethod("password".ToCharArray());
+            encGen.AddMethod("password".ToCharArray(), HashAlgorithmTag.Sha1);
 
             Stream cOut = encGen.Open(bcOut, bytes.Length);
 
