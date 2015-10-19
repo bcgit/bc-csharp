@@ -311,10 +311,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         internal void DoAddMethod(byte[] rawPassPhrase, bool clearPassPhrase, HashAlgorithmTag s2kDigest)
         {
-            byte[] iv = new byte[8];
-            rand.NextBytes(iv);
-
-            S2k s2k = new S2k(s2kDigest, iv, 0x60);
+            S2k s2k = PgpUtilities.GenerateS2k(s2kDigest, 0x60, rand);
 
             methods.Add(new PbeMethod(defAlgorithm, s2k, PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase)));
         }

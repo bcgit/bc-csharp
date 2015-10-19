@@ -148,7 +148,15 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[]	outBytes,
             int		outOff)
         {
-            int len = ProcessPacket(data.GetBuffer(), 0, (int)data.Position, outBytes, outOff);
+#if PORTABLE
+            byte[] input = data.ToArray();
+            int inLen = input.Length;
+#else
+            byte[] input = data.GetBuffer();
+            int inLen = (int)data.Position;
+#endif
+
+            int len = ProcessPacket(input, 0, inLen, outBytes, outOff);
 
             Reset();
 
@@ -399,7 +407,15 @@ namespace Org.BouncyCastle.Crypto.Modes
                 }
                 if (associatedText.Position > 0)
                 {
-                    cMac.BlockUpdate(associatedText.GetBuffer(), 0, (int)associatedText.Position);
+#if PORTABLE
+                    byte[] input = associatedText.ToArray();
+                    int len = input.Length;
+#else
+                    byte[] input = associatedText.GetBuffer();
+                    int len = (int)associatedText.Position;
+#endif
+
+                    cMac.BlockUpdate(input, 0, len);
                 }
 
                 extra = (extra + textLength) % 16;

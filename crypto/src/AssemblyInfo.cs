@@ -32,7 +32,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.8.*")]
 
 [assembly: CLSCompliant(true)]
+#if !PORTABLE
 [assembly: ComVisible(false)]
+#endif
 
 // Start with no permissions
 //[assembly: PermissionSet(SecurityAction.RequestOptional, Unrestricted=false)]

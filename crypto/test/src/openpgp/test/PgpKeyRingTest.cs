@@ -18,6 +18,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
     public class PgpKeyRingTest
         : SimpleTest
     {
+        private static readonly SecureRandom Random = new SecureRandom();
+
         private static readonly byte[] pub1 = Base64.Decode(
             "mQGiBEA83v0RBADzKVLVCnpWQxX0LCsevw/3OLs0H7MOcLBQ4wMO9sYmzGYn"
             + "xpVj+4e4PiCP7QBayWyy4lugL6Lnw7tESvq3A4v3fefcxaCTkJrryiKn4+Cg"
@@ -1061,6 +1063,47 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             + "n3pjONa4PKrePkEsCUhRbIySqXIHuNwZumDOlKzZHDpCUw72LaC6S6zwuoEf"
             + "ucOcxTeGIUViANWXyTIKkHfo7HfigixJIL8nsAFn");
 
+        // Key from http://www.angelfire.com/pr/pgpf/pgpoddities.html
+        private static readonly char[] v3KeyPass = "test@key.test".ToCharArray();
+
+        private static readonly byte[] pubv3 = Base64.Decode(
+            "mQENAzroPPgAAAEIANnTx/gHfag7qRMG6cVUnYZJjLcsdF6JSaVs+PUDCZ8l2+Z2" +
+            "V9tgxByp26bymIlq5qFFeoA5vCiKc8qzYiEVLJVVIIDjw/id2gq/TgmxoLAwiDQM" +
+            "TUKdCFa6pmR/uaxyrnJxfUA7+Qh0R0OjoCxNlrmyO3eiKstsJGqSUFIQq7GhcHc4" +
+            "nbV59zHhEWnH7DX7sDa9CgF11WxM3sjWp15iOoP1nixhmchDtQ7foUxLsCF36G/4" +
+            "ijcbN2NjiCDYMFburN8fXgrQzYHAIIiVFE0J+fbXNfPRmnbhQdaC8rIdiQ3tExBb" +
+            "N0qWhGPT9M4JOZd1yPdFMb9gbntd8VZkiPd6/3sABRG0FHRlc3QgPHRlc3RAa2V5" +
+            "LnRlc3Q+iQEVAwUQOug8+PFWZIj3ev97AQH7NQgAo3sH+KcsPtAbyp5U02J9h3Ro" +
+            "aiKpAYxg3rfUVo/RH6hmCWT/AlPHLPZZC/tKiPkuIm2V3Xqyum530N0sBYxNzgNp" +
+            "us8mK9QurYj2omKzf1ltN+uNHR8vjB8s7jEd/CDCARu81PqNoVq2b9JRFGpGbAde" +
+            "7kQ/a0r2/IsJ8fz0iSpCH0geoHt3sBk9MyEem4uG0e2NzlH2wBz4H8l8BNHRHBq0" +
+            "6tGH4h11ZhH3FiNzJWibT2AvzLCqar2qK+6pohKSvIp8zEP7Y/iQzCvkuOfHsUOH" +
+            "4Utgg85k09hRDZ3pRRL/4R+Z+/1uXb+n6yKbOmpmi7U7wc9IwZxtTlGXsNIf+Q=="
+        );
+
+        private static readonly byte[] privv3 = Base64.Decode(
+            "lQOgAzroPPgAAAEIANnTx/gHfag7qRMG6cVUnYZJjLcsdF6JSaVs+PUDCZ8l2+Z2" +
+            "V9tgxByp26bymIlq5qFFeoA5vCiKc8qzYiEVLJVVIIDjw/id2gq/TgmxoLAwiDQM" +
+            "TUKdCFa6pmR/uaxyrnJxfUA7+Qh0R0OjoCxNlrmyO3eiKstsJGqSUFIQq7GhcHc4" +
+            "nbV59zHhEWnH7DX7sDa9CgF11WxM3sjWp15iOoP1nixhmchDtQ7foUxLsCF36G/4" +
+            "ijcbN2NjiCDYMFburN8fXgrQzYHAIIiVFE0J+fbXNfPRmnbhQdaC8rIdiQ3tExBb" +
+            "N0qWhGPT9M4JOZd1yPdFMb9gbntd8VZkiPd6/3sABREDXB5zk3GNdSkH/+/447Kq" +
+            "hR9uM+UnZz7wDkzmt+7xbNg9F2pr/tghVCM7D0PO1YjH4DBpU1ZRO+v1t/eBB/Jd" +
+            "3lJYdlWYHOefJkBi44gNAafZ8ysPOJk6OGOjas/sr+JRFiX9Mgzrs2IDiejmuA98" +
+            "DLuSuNtzFKbE2/DDdOBEizYUjqPLlCdn5sVEt+0WKWJiAv7YonCGguWS3RKfTaYk" +
+            "9IE9SbI+qph9JsuyTD22GLv+gTMvwCkC1DVaHIVgzURpdnlyYyz4DBh3pAgg0nh6" +
+            "gpUTsjnUmrvdh+r8qj3oXH7WBMhs6qKYvU1Go5iV3S1Cu4H/Z/+s6XUFgQShevVe" +
+            "VCy0QtmWSFeySekEACHLJIdBDa8K4dcM2wvccz587D4PtKvMG5j71raOcgVY+r1k" +
+            "e6au/fa0ACqLNvn6+vFHG+Rurn8RSKV31YmTpx7J5ixTOsB+wVcwTYbrw8uNlBWc" +
+            "+IkqPwHrtdK95GIYQykfPW95PRudsOBdxwQW4Ax/WCst3fbjo0SZww0Os+3WBADJ" +
+            "/Nv0mjikXRmqJIzfuI2yxxX4Wm6vqXJkPF7LGtSMB3VEJ3qPsysoai5TYboxA8C1" +
+            "4rQjIoQjA+87gxZ44PUVxrxBonITCLXJ3GsvDQ2PNhS6WQ9Cf89vtYW1vLW65Nex" +
+            "+7AuVRepKhx6Heqdf7S03m6UYliIglrEzgEWM1XrOwP/gLMsme4h0LjLgKfd0LBk" +
+            "qSMdu21VSl60TMTjxav149AdutzuCVa/yPBM/zLQdlvQoGYg2IbN4+7gDHKURcSx" +
+            "DgOAzCcEZxdMvRk2kaOI5RRf5gV9e+ErvEMzJ/xT8xWsi+aLOhaDMbwq2LLiK2L+" +
+            "tXV/Z3H/Ot4u3E7H+6fHPElFYbQUdGVzdCA8dGVzdEBrZXkudGVzdD4="
+        );
+
         [Test]
         public void PerformTest1()
         {
@@ -1815,9 +1858,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         {
             char[] passPhrase = "hello".ToCharArray();
             DsaParametersGenerator pGen = new DsaParametersGenerator();
-            pGen.Init(512, 80, new SecureRandom());
+            pGen.Init(512, 80, Random);
             DsaParameters dsaParams = pGen.GenerateParameters();
-            DsaKeyGenerationParameters dsaKgp = new DsaKeyGenerationParameters(new SecureRandom(), dsaParams);
+            DsaKeyGenerationParameters dsaKgp = new DsaKeyGenerationParameters(Random, dsaParams);
             IAsymmetricCipherKeyPairGenerator dsaKpg = GeneratorUtilities.GetKeyPairGenerator("DSA");
             dsaKpg.Init(dsaKgp);
 
@@ -1833,7 +1876,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             BigInteger p = new BigInteger("9494fec095f3b85ee286542b3836fc81a5dd0a0349b4c239dd38744d488cf8e31db8bcb7d33b41abb9e5a33cca9144b1cef332c94bf0573bf047a3aca98cdf3b", 16);
 
             ElGamalParameters elParams = new ElGamalParameters(p, g);
-            ElGamalKeyGenerationParameters elKgp = new ElGamalKeyGenerationParameters(new SecureRandom(), elParams);
+            ElGamalKeyGenerationParameters elKgp = new ElGamalKeyGenerationParameters(Random, elParams);
             elgKpg.Init(elKgp);
 
             //
@@ -1844,7 +1887,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair elgKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.ElGamalEncrypt, elgKp, DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification, dsaKeyPair,
-                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, new SecureRandom());
+                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, Random);
 
             keyRingGen.AddSubKey(elgKeyPair);
 
@@ -1887,12 +1930,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void InsertMasterTest()
         {
-            SecureRandom random = new SecureRandom();
-
             char[] passPhrase = "hello".ToCharArray();
             IAsymmetricCipherKeyPairGenerator rsaKpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
 
-            rsaKpg.Init(new KeyGenerationParameters(random, 512));
+            rsaKpg.Init(new KeyGenerationParameters(Random, 512));
 
             //
             // this is quicker because we are using pregenerated parameters.
@@ -1904,12 +1945,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair rsaKeyPair2 = new PgpKeyPair(PublicKeyAlgorithmTag.RsaGeneral, rsaKp, DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification,
-                rsaKeyPair1, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, random);
+                rsaKeyPair1, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, Random);
             PgpSecretKeyRing secRing1 = keyRingGen.GenerateSecretKeyRing();
             PgpPublicKeyRing pubRing1 = keyRingGen.GeneratePublicKeyRing();
 
             keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification,
-                rsaKeyPair2, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, random);
+                rsaKeyPair2, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, Random);
             PgpSecretKeyRing secRing2 = keyRingGen.GenerateSecretKeyRing();
             PgpPublicKeyRing pubRing2 = keyRingGen.GeneratePublicKeyRing();
 
@@ -1947,9 +1988,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             IAsymmetricCipherKeyPairGenerator dsaKpg = GeneratorUtilities.GetKeyPairGenerator("DSA");
             DsaParametersGenerator pGen = new DsaParametersGenerator();
-            pGen.Init(512, 80, new SecureRandom());
+            pGen.Init(512, 80, Random);
             DsaParameters dsaParams = pGen.GenerateParameters();
-            DsaKeyGenerationParameters kgp = new DsaKeyGenerationParameters(new SecureRandom(), dsaParams);
+            DsaKeyGenerationParameters kgp = new DsaKeyGenerationParameters(Random, dsaParams);
             dsaKpg.Init(kgp);
 
             //
@@ -1965,7 +2006,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             BigInteger p = new BigInteger("9494fec095f3b85ee286542b3836fc81a5dd0a0349b4c239dd38744d488cf8e31db8bcb7d33b41abb9e5a33cca9144b1cef332c94bf0573bf047a3aca98cdf3b", 16);
 
             ElGamalParameters elParams = new ElGamalParameters(p, g);
-            ElGamalKeyGenerationParameters elKgp = new ElGamalKeyGenerationParameters(new SecureRandom(), elParams);
+            ElGamalKeyGenerationParameters elKgp = new ElGamalKeyGenerationParameters(Random, elParams);
             elgKpg.Init(elKgp);
 
             //
@@ -1978,7 +2019,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair elgKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.ElGamalEncrypt, elgKp, DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification, dsaKeyPair,
-                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, true, null, null, new SecureRandom());
+                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, true, null, null, Random);
 
             keyRingGen.AddSubKey(elgKeyPair);
 
@@ -2021,28 +2062,121 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void RewrapTest()
         {
-            SecureRandom rand = new SecureRandom();
-
             // Read the secret key rings
             PgpSecretKeyRingBundle privRings = new PgpSecretKeyRingBundle(
                 new MemoryStream(rewrapKey, false));
 
+            char[] newPass = "fred".ToCharArray();
+
             foreach (PgpSecretKeyRing pgpPrivEnum in privRings.GetKeyRings())
             {
-                foreach (PgpSecretKey pgpKeyEnum in pgpPrivEnum.GetSecretKeys())
+                PgpSecretKeyRing pgpPriv = pgpPrivEnum;
+
+                foreach (PgpSecretKey pgpKeyEnum in pgpPriv.GetSecretKeys())
                 {
+                    long oldKeyID = pgpKeyEnum.KeyId;
+
                     // re-encrypt the key with an empty password
-                    PgpSecretKeyRing pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPrivEnum, pgpKeyEnum);
+                    pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPriv, pgpKeyEnum);
                     PgpSecretKey pgpKey = PgpSecretKey.CopyWithNewPassword(
                         pgpKeyEnum,
                         rewrapPass,
                         null,
                         SymmetricKeyAlgorithmTag.Null,
-                        rand);
+                        Random);
                     pgpPriv = PgpSecretKeyRing.InsertSecretKey(pgpPriv, pgpKey);
 
                     // this should succeed
                     PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(null);
+
+                    if (pgpKey.KeyId != oldKeyID || pgpKey.S2kUsage != SecretKeyPacket.UsageNone)
+                    {
+                        Fail("usage/key ID mismatch");
+                    }
+                }
+
+                foreach (PgpSecretKey pgpKeyEnum in pgpPriv.GetSecretKeys())
+                {
+                    long oldKeyID = pgpKeyEnum.KeyId;
+
+                    // re-encrypt the key with an empty password
+                    pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPriv, pgpKeyEnum);
+                    PgpSecretKey pgpKey = PgpSecretKey.CopyWithNewPassword(
+                        pgpKeyEnum,
+                        null,
+                        newPass,
+                        SymmetricKeyAlgorithmTag.Cast5,
+                        Random);
+                    pgpPriv = PgpSecretKeyRing.InsertSecretKey(pgpPriv, pgpKey);
+
+                    // this should succeed
+                    PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(newPass);
+
+                    if (pgpKey.KeyId != oldKeyID || pgpKey.S2kUsage != SecretKeyPacket.UsageChecksum)
+                    {
+                        Fail("usage/key ID mismatch");
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void RewrapTestV3()
+        {
+            // Read the secret key rings
+            PgpSecretKeyRingBundle privRings = new PgpSecretKeyRingBundle(
+                new MemoryStream(privv3, false));
+
+            char[] newPass = "fred".ToCharArray();
+
+            foreach (PgpSecretKeyRing pgpPrivEnum in privRings.GetKeyRings())
+            {
+                PgpSecretKeyRing pgpPriv = pgpPrivEnum;
+
+                foreach (PgpSecretKey pgpKeyEnum in pgpPriv.GetSecretKeys())
+                {
+                    long oldKeyID = pgpKeyEnum.KeyId;
+
+                    // re-encrypt the key with an empty password
+                    pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPriv, pgpKeyEnum);
+                    PgpSecretKey pgpKey = PgpSecretKey.CopyWithNewPassword(
+                        pgpKeyEnum,
+                        v3KeyPass,
+                        null,
+                        SymmetricKeyAlgorithmTag.Null,
+                        Random);
+                    pgpPriv = PgpSecretKeyRing.InsertSecretKey(pgpPriv, pgpKey);
+
+                    // this should succeed
+                    PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(null);
+
+                    if (pgpKey.KeyId != oldKeyID)
+                    {
+                        Fail("key ID mismatch");
+                    }
+                }
+
+                foreach (PgpSecretKey pgpKeyEnum in pgpPriv.GetSecretKeys())
+                {
+                    long oldKeyID = pgpKeyEnum.KeyId;
+
+                    // re-encrypt the key with an empty password
+                    pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPriv, pgpKeyEnum);
+                    PgpSecretKey pgpKey = PgpSecretKey.CopyWithNewPassword(
+                        pgpKeyEnum,
+                        null,
+                        newPass,
+                        SymmetricKeyAlgorithmTag.Cast5,
+                        Random);
+                    pgpPriv = PgpSecretKeyRing.InsertSecretKey(pgpPriv, pgpKey);
+
+                    // this should succeed
+                    PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(newPass);
+
+                    if (pgpKey.KeyId != oldKeyID)
+                    {
+                        Fail("key ID mismatch");
+                    }
                 }
             }
         }

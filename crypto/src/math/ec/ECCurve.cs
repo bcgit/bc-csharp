@@ -760,10 +760,9 @@ namespace Org.BouncyCastle.Math.EC
             ECFieldElement gamma, z, zeroElement = FromBigInteger(BigInteger.Zero);
 
             int m = FieldSize;
-            Random rand = new Random();
             do
             {
-                ECFieldElement t = FromBigInteger(new BigInteger(m, rand));
+                ECFieldElement t = FromBigInteger(BigInteger.Arbitrary(m));
                 z = zeroElement;
                 ECFieldElement w = beta;
                 for (int i = 1; i < m; i++)

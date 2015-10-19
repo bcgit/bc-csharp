@@ -376,7 +376,7 @@ namespace Org.BouncyCastle.X509
 
 		protected override X509Extensions GetX509Extensions()
 		{
-			return c.Version == 3
+			return c.Version >= 3
 				?	c.TbsCertificate.Extensions
 				:	null;
 		}

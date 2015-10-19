@@ -230,6 +230,14 @@ namespace Org.BouncyCastle.Security
             return (string) algorithms[oid.Id];
         }
 
+        public static byte[] CalculateMac(string algorithm, ICipherParameters cp, byte[] input)
+        {
+            IMac mac = GetMac(algorithm);
+            mac.Init(cp);
+            mac.BlockUpdate(input, 0, input.Length);
+            return DoFinal(mac);
+        }
+
         public static byte[] DoFinal(IMac mac)
         {
             byte[] b = new byte[mac.GetMacSize()];

@@ -306,13 +306,12 @@ namespace Org.BouncyCastle.Math.EC
             BigInteger k = legendreExponent.Add(BigInteger.One), qMinusOne = q.Subtract(BigInteger.One);
 
             BigInteger U, V;
-            Random rand = new Random();
             do
             {
                 BigInteger P;
                 do
                 {
-                    P = new BigInteger(q.BitLength, rand);
+                    P = BigInteger.Arbitrary(q.BitLength);
                 }
                 while (P.CompareTo(q) >= 0
                     || !ModReduce(P.Multiply(P).Subtract(fourX)).ModPow(legendreExponent, q).Equals(qMinusOne));
