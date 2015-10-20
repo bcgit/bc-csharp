@@ -422,14 +422,14 @@ namespace Org.BouncyCastle.Crypto.Operators
             this.sig = sig;
         }
 
-        public byte[] DoFinal()
+        public byte[] Value()
         {
             return sig.GenerateSignature();
         }
 
-        public int DoFinal(byte[] destination, int offset)
+        public int Value(byte[] destination, int offset)
         {
-            byte[] signature = DoFinal();
+            byte[] signature = Value();
 
             Array.Copy(signature, 0, destination, offset, signature.Length);
 

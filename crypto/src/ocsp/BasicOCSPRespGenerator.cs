@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Ocsp
 
                 streamCalculator.Stream.Close();
 
-                bitSig = new DerBitString(((IBlockResult)streamCalculator.GetResult()).DoFinal());
+                bitSig = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Value());
 			}
 			catch (Exception e)
 			{

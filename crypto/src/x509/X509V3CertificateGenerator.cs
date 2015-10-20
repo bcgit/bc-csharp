@@ -322,7 +322,7 @@ namespace Org.BouncyCastle.X509
 
             streamCalculator.Stream.Close ();
 
-			return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).DoFinal());
+			return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Value());
 		}
 
 		private X509Certificate GenerateJcaObject(
