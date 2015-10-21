@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto
         /// Return the final result of the operation.
         /// </summary>
         /// <returns>A block of bytes, representing the result of an operation.</returns>
-        byte[] DoFinal();
+        byte[] Value();
 
         /// <summary>
         /// Store the final result of the operation by copying it into the destination array.
@@ -19,6 +19,6 @@ namespace Org.BouncyCastle.Crypto
         /// <returns>The number of bytes copied into destination.</returns>
         /// <param name="destination">The byte array to copy the result into.</param>
         /// <param name="offset">The offset into destination to start copying the result at.</param>
-        int DoFinal(byte[] destination, int offset);
+        int Value(byte[] destination, int offset);
     }
 }

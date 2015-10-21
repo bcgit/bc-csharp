@@ -174,7 +174,7 @@ namespace Org.BouncyCastle.Cms
                 }
 
 				sigStr.Close();
-                byte[] sigBytes = ((IBlockResult)calculator.GetResult()).DoFinal();
+                byte[] sigBytes = ((IBlockResult)calculator.GetResult()).Value();
 
 				Asn1Set unsignedAttr = null;
 				if (unsAttr != null)
