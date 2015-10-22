@@ -282,7 +282,7 @@ namespace Org.BouncyCastle.Pkcs
             streamCalculator.Stream.Close();
 
             // Generate Signature.
-            sigBits = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Value());
+            sigBits = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
         }
 
         //        internal Pkcs10CertificationRequest(

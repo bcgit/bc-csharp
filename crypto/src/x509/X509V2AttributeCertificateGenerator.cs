@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.X509
 
 			try
 			{
-				v.Add(new DerBitString(((IBlockResult)streamCalculator.GetResult()).Value()));
+				v.Add(new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect()));
 
 				return new X509V2AttributeCertificate(AttributeCertificate.GetInstance(new DerSequence(v)));
 			}
