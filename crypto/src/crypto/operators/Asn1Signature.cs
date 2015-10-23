@@ -326,7 +326,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 	}
 
     /// <summary>
-    /// Calculator class for signature generation in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
+    /// Calculator factory class for signature generation in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
     /// signature algorithm details.
     /// </summary>
 	public class Asn1SignatureCalculatorFactory: ISignatureCalculatorFactory
