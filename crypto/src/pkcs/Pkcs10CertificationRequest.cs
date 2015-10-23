@@ -234,19 +234,19 @@ namespace Org.BouncyCastle.Pkcs
         /// <summary>
         /// Instantiate a Pkcs10CertificationRequest object with the necessary credentials.
         /// </summary>
-        ///<param name="signatureCalculator">The signature calculator to sign the PKCS#10 request with.</param>
+        ///<param name="signatureCalculatorFactory">The factory for signature calculators to sign the PKCS#10 request with.</param>
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
         /// <param name="publicKey">Public Key to be included in cert reqest.</param>
         /// <param name="attributes">ASN1Set of Attributes.</param>
         /// <param name="signingKey">Matching Private key for nominated (above) public key to be used to sign the request.</param>
         public Pkcs10CertificationRequest(
-            ISignatureCalculatorFactory signatureCalculator,
+            ISignatureCalculatorFactory signatureCalculatorFactory,
             X509Name subject,
             AsymmetricKeyParameter publicKey,
             Asn1Set attributes,
             AsymmetricKeyParameter signingKey)
         {
-            if (signatureCalculator == null)
+            if (signatureCalculatorFactory == null)
                 throw new ArgumentNullException("signatureCalculator");
             if (subject == null)
                 throw new ArgumentNullException("subject");
@@ -257,7 +257,7 @@ namespace Org.BouncyCastle.Pkcs
             if (!signingKey.IsPrivate)
                 throw new ArgumentException("key for signing must be private", "signingKey");
 
-            init(signatureCalculator, subject, publicKey, attributes, signingKey);
+            init(signatureCalculatorFactory, subject, publicKey, attributes, signingKey);
         }
 
         private void init(
