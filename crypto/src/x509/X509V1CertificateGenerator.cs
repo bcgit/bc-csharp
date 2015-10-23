@@ -170,15 +170,15 @@ namespace Org.BouncyCastle.X509
 		/// <summary>
 		/// Generate a new X509Certificate using the passed in SignatureCalculator.
 		/// </summary>
-		/// <param name="signatureCalculator">A signature calculator with the necessary algorithm details.</param>
+		/// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
 		/// <returns>An X509Certificate.</returns>
-		public X509Certificate Generate(ISignatureCalculatorFactory signatureCalculator)
+		public X509Certificate Generate(ISignatureCalculatorFactory signatureCalculatorFactory)
 		{
-			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculator.AlgorithmDetails);
+			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
 
 			TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
-            IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+            IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
 
             byte[] encoded = tbsCert.GetDerEncoded();
 
@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.X509
 
             streamCalculator.Stream.Close();
 
-            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
+            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
 		}
 
 		private X509Certificate GenerateJcaObject(
