@@ -209,7 +209,7 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="publicKey">Public Key to be included in cert reqest.</param>
         /// <param name="attributes">ASN1Set of Attributes.</param>
         /// <param name="signingKey">Matching Private key for nominated (above) public key to be used to sign the request.</param>
-        [Obsolete("Use constructor with an ISignatureCalculator")]
+        [Obsolete("Use constructor with an ISignatureCalculatorFactory")]
         public Pkcs10CertificationRequest(
 			string					signatureAlgorithm,
 			X509Name				subject,
@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Pkcs
 			if (!signingKey.IsPrivate)
 				throw new ArgumentException("key for signing must be private", "signingKey");
 
-            init(new Asn1SignatureCalculator(signatureAlgorithm, signingKey), subject, publicKey, attributes, signingKey);
+            init(new Asn1SignatureCalculatorFactory(signatureAlgorithm, signingKey), subject, publicKey, attributes, signingKey);
 		}
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="attributes">ASN1Set of Attributes.</param>
         /// <param name="signingKey">Matching Private key for nominated (above) public key to be used to sign the request.</param>
         public Pkcs10CertificationRequest(
-            ISignatureCalculator signatureCalculator,
+            ISignatureCalculatorFactory signatureCalculator,
             X509Name subject,
             AsymmetricKeyParameter publicKey,
             Asn1Set attributes,
@@ -261,7 +261,7 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         private void init(
-            ISignatureCalculator signatureCalculator, 
+            ISignatureCalculatorFactory signatureCalculator, 
             X509Name subject,
             AsymmetricKeyParameter publicKey,
             Asn1Set attributes,

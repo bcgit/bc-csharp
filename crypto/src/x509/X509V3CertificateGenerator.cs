@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.X509
         /// Set the signature algorithm that will be used to sign this certificate.
         /// </summary>
         /// <param name="signatureAlgorithm"/>
-		[Obsolete("Not needed if Generate used with an ISignatureCalculator")]
+		[Obsolete("Not needed if Generate used with an ISignatureCalculatorFactory")]
         public void SetSignatureAlgorithm(
 			string signatureAlgorithm)
         {
@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.X509
         /// </summary>
         /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
         /// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureCalculator")]
+		[Obsolete("Use Generate with an ISignatureCalculatorFactory")]
 		public X509Certificate Generate(
 			AsymmetricKeyParameter privateKey)
         {
@@ -290,12 +290,12 @@ namespace Org.BouncyCastle.X509
 		/// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
 		/// <param name="random">You Secure Random instance.</param>
 		/// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureCalculator")]
+		[Obsolete("Use Generate with an ISignatureCalculatorFactory")]
 		public X509Certificate Generate(
 			AsymmetricKeyParameter	privateKey,
 			SecureRandom			random)
 		{
-			return Generate(new Asn1SignatureCalculator(signatureAlgorithm, privateKey, random));
+			return Generate(new Asn1SignatureCalculatorFactory(signatureAlgorithm, privateKey, random));
 		}
 
 		/// <summary>
@@ -303,7 +303,7 @@ namespace Org.BouncyCastle.X509
 		/// </summary>
 		/// <param name="signatureCalculator">A signature calculator with the necessary algorithm details.</param>
 		/// <returns>An X509Certificate.</returns>
-		public X509Certificate Generate(ISignatureCalculator signatureCalculator)
+		public X509Certificate Generate(ISignatureCalculatorFactory signatureCalculator)
 		{
 			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculator.AlgorithmDetails);
 

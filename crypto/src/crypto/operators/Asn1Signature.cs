@@ -329,7 +329,7 @@ namespace Org.BouncyCastle.Crypto.Operators
     /// Calculator class for signature generation in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
     /// signature algorithm details.
     /// </summary>
-	public class Asn1SignatureCalculator: ISignatureCalculator
+	public class Asn1SignatureCalculatorFactory: ISignatureCalculatorFactory
 	{
 		private readonly AlgorithmIdentifier algID;
         private readonly string algorithm;
@@ -341,7 +341,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// </summary>
         /// <param name="algorithm">The name of the signature algorithm to use.</param>
         /// <param name="privateKey">The private key to be used in the signing operation.</param>
-		public Asn1SignatureCalculator (string algorithm, AsymmetricKeyParameter privateKey): this(algorithm, privateKey, null)
+		public Asn1SignatureCalculatorFactory (string algorithm, AsymmetricKeyParameter privateKey): this(algorithm, privateKey, null)
 		{
 		}
 
@@ -351,7 +351,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// <param name="algorithm">The name of the signature algorithm to use.</param>
         /// <param name="privateKey">The private key to be used in the signing operation.</param>
         /// <param name="random">The source of randomness to be used in signature calculation.</param>
-		public Asn1SignatureCalculator (string algorithm, AsymmetricKeyParameter privateKey, SecureRandom random)
+		public Asn1SignatureCalculatorFactory (string algorithm, AsymmetricKeyParameter privateKey, SecureRandom random)
 		{
 			DerObjectIdentifier sigOid = X509Utilities.GetAlgorithmOid (algorithm);
 
