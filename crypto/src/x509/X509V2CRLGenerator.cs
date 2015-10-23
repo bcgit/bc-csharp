@@ -243,7 +243,7 @@ namespace Org.BouncyCastle.X509
 
             streamCalculator.Stream.Close();
 
-            return GenerateJcaObject(tbsCertList, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).DoFinal());
+            return GenerateJcaObject(tbsCertList, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
         }
 
         private TbsCertificateList GenerateCertList()
