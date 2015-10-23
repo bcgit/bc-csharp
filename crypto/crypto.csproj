@@ -3084,7 +3084,7 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\ISignatureCalculator.cs"
+                    RelPath = "src\crypto\ISignatureCalculatorFactory.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
