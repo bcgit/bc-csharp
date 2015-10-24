@@ -3084,17 +3084,17 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\ISignatureCalculatorFactory.cs"
+                    RelPath = "src\crypto\ISignatureFactory.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\ISignatureVerifier.cs"
+                    RelPath = "src\crypto\IVerifierFactory.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\ISignatureVerifierProvider.cs"
+                    RelPath = "src\crypto\IVerifierFactoryProvider.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
