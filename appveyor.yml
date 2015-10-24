@@ -17,6 +17,6 @@ build:
   project: BouncyCastle-PCL.sln
   
 after_build:
-  - ps: '.\packages\gitlink\lib\net45\GitLink.exe . -f BouncyCastle-PCL.sln -u https://github.com/onovotny/BouncyCastle-PCL -s $env:APPVEYOR_REPO_COMMIT;if($lastexitcode -ne 0){$lastexitcode = 0}'
+  - cmd: '.\packages\gitlink\lib\net45\GitLink.exe . -f BouncyCastle-PCL.sln -u https://github.com/onovotny/BouncyCastle-PCL -s %APPVEYOR_REPO_COMMIT% -errorsaswarnings'  
   - cmd: nuget pack Portable.BouncyCastle.nuspec -version "%GitVersion_NuGetVersion%-build%GitVersion_BuildMetadataPadded%" -prop "target=%CONFIGURATION%"
   - ps: 'cmd /c "appveyor PushArtifact Portable.BouncyCastle.%GitVersion_NuGetVersion%-build%GitVersion_BuildMetadataPadded%.nupkg";if($lastexitcode -ne 0){$lastexitcode = 0}'
