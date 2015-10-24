@@ -322,7 +322,7 @@ namespace Org.BouncyCastle.Pkcs
 		public bool Verify(
 			AsymmetricKeyParameter publicKey)
 		{
-            return Verify(new Asn1SignatureVerifierProvider(publicKey));
+            return Verify(new Asn1VerifierFactoryProvider(publicKey));
 		}
 
         public bool Verify(

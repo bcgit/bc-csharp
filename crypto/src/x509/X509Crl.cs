@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.X509
 		public virtual void Verify(
 			AsymmetricKeyParameter publicKey)
 		{
-            Verify(new Asn1SignatureVerifierProvider(publicKey));
+            Verify(new Asn1VerifierFactoryProvider(publicKey));
 		}
 
         /// <summary>

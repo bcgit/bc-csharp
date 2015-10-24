@@ -529,7 +529,7 @@ namespace Org.BouncyCastle.Crypto.Operators
     /// <summary>
     /// Provider class which supports dynamic creation of signature verifiers.
     /// </summary>
-	public class Asn1SignatureVerifierProvider: IVerifierFactoryProvider
+	public class Asn1VerifierFactoryProvider: IVerifierFactoryProvider
 	{
 		private readonly AsymmetricKeyParameter publicKey;
 
@@ -537,7 +537,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// Base constructor - specify the public key to be used in verification.
         /// </summary>
         /// <param name="publicKey">The public key to be used in creating verifiers provided by this object.</param>
-		public Asn1SignatureVerifierProvider(AsymmetricKeyParameter publicKey)
+		public Asn1VerifierFactoryProvider(AsymmetricKeyParameter publicKey)
 		{
 			this.publicKey = publicKey;
 		}
