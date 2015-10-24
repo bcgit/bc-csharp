@@ -532,9 +532,9 @@ namespace Org.BouncyCastle.Cms.Tests
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
             gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().Build(
-                new Asn1SignatureCalculatorFactory("SHA1withRSA", OrigKP.Private), OrigCert));
+                new Asn1SignatureFactory("SHA1withRSA", OrigKP.Private), OrigCert));
             gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().Build(
-                new Asn1SignatureCalculatorFactory("MD5withRSA", OrigKP.Private), OrigCert));
+                new Asn1SignatureFactory("MD5withRSA", OrigKP.Private), OrigCert));
 
             gen.AddCertificates(x509Certs);
 
