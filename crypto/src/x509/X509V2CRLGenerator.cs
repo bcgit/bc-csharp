@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.X509
         /// Set the signature algorithm that will be used to sign this CRL.
         /// </summary>
         /// <param name="signatureAlgorithm"/>
-        [Obsolete("Not needed if Generate used with an ISignatureCalculatorFactory")]
+        [Obsolete("Not needed if Generate used with an ISignatureFactory")]
         public void SetSignatureAlgorithm(
 			string signatureAlgorithm)
 		{
@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.X509
         /// </summary>
         /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
         /// <returns>An X509Crl.</returns>
-        [Obsolete("Use Generate with an ISignatureCalculatorFactory")]
+        [Obsolete("Use Generate with an ISignatureFactory")]
         public X509Crl Generate(
             AsymmetricKeyParameter privateKey)
         {
@@ -216,12 +216,12 @@ namespace Org.BouncyCastle.X509
         /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
         /// <param name="random">Your Secure Random instance.</param>
         /// <returns>An X509Crl.</returns>
-        [Obsolete("Use Generate with an ISignatureCalculatorFactory")]
+        [Obsolete("Use Generate with an ISignatureFactory")]
         public X509Crl Generate(
             AsymmetricKeyParameter privateKey,
             SecureRandom random)
         {
-            return Generate(new Asn1SignatureCalculatorFactory(signatureAlgorithm, privateKey, random));
+            return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace Org.BouncyCastle.X509
         /// </summary>
 		/// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
         /// <returns>An X509Crl.</returns>
-        public X509Crl Generate(ISignatureCalculatorFactory signatureCalculatorFactory)
+        public X509Crl Generate(ISignatureFactory signatureCalculatorFactory)
         {
             tbsGen.SetSignature((AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
 

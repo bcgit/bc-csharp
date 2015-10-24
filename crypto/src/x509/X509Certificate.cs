@@ -547,7 +547,7 @@ namespace Org.BouncyCastle.X509
 		public virtual void Verify(
 			AsymmetricKeyParameter key)
 		{
-			CheckSignature(new Asn1SignatureVerifier(c.SignatureAlgorithm, key));
+			CheckSignature(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
 		}
 
         /// <summary>
@@ -557,13 +557,13 @@ namespace Org.BouncyCastle.X509
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If verifier provider is not appropriate or the certificate algorithm is invalid.</exception>
         public virtual void Verify(
-            ISignatureVerifierProvider verifierProvider)
+            IVerifierFactoryProvider verifierProvider)
         {
             CheckSignature(verifierProvider.CreateSignatureVerifier (c.SignatureAlgorithm));
         }
 
         protected virtual void CheckSignature(
-			ISignatureVerifier verifier)
+			IVerifierFactory verifier)
 		{
 			if (!IsAlgIDEqual(c.SignatureAlgorithm, c.TbsCertificate.Signature))
 				throw new CertificateException("signature algorithm in TBS cert not same as outer cert");

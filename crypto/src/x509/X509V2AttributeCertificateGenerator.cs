@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.X509
         /// are treated as case insensitive.
         /// </summary>
         /// <param name="signatureAlgorithm">The algorithm name.</param>
-        [Obsolete("Not needed if Generate used with an ISignatureCalculatorFactory")]
+        [Obsolete("Not needed if Generate used with an ISignatureFactory")]
         public void SetSignatureAlgorithm(
 			string signatureAlgorithm)
 		{
@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.X509
         /// <summary>
         /// Generate an X509 certificate, based on the current issuer and subject.
         /// </summary>
-        [Obsolete("Use Generate with an ISignatureCalculatorFactory")]
+        [Obsolete("Use Generate with an ISignatureFactory")]
         public IX509AttributeCertificate Generate(
 			AsymmetricKeyParameter privateKey)
 		{
@@ -144,12 +144,12 @@ namespace Org.BouncyCastle.X509
         /// Generate an X509 certificate, based on the current issuer and subject,
         /// using the supplied source of randomness, if required.
         /// </summary>
-        [Obsolete("Use Generate with an ISignatureCalculatorFactory")]
+        [Obsolete("Use Generate with an ISignatureFactory")]
         public IX509AttributeCertificate Generate(
 			AsymmetricKeyParameter	privateKey,
 			SecureRandom			random)
         {
-            return Generate(new Asn1SignatureCalculatorFactory(signatureAlgorithm, privateKey, random));
+            return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.X509
         /// </summary>
         /// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
         /// <returns>An IX509AttributeCertificate.</returns>
-        public IX509AttributeCertificate Generate(ISignatureCalculatorFactory signatureCalculatorFactory)
+        public IX509AttributeCertificate Generate(ISignatureFactory signatureCalculatorFactory)
         {
             if (!extGenerator.IsEmpty)
 			{

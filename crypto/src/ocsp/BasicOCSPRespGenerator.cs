@@ -185,7 +185,7 @@ namespace Org.BouncyCastle.Ocsp
 		}
 
 		private BasicOcspResp GenerateResponse(
-			ISignatureCalculatorFactory    signatureCalculator,
+			ISignatureFactory    signatureCalculator,
 			X509Certificate[]		chain,
 			DateTime				producedAt)
 		{
@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.Ocsp
 				throw new ArgumentException("no signing algorithm specified");
 			}
 
-			return GenerateResponse(new Asn1SignatureCalculatorFactory(signingAlgorithm, privateKey, random), chain, producedAt);
+			return GenerateResponse(new Asn1SignatureFactory(signingAlgorithm, privateKey, random), chain, producedAt);
 		}
 
         /// <summary>
@@ -288,7 +288,7 @@ namespace Org.BouncyCastle.Ocsp
         /// <param name="producedAt">"produced at" date.</param>
         /// <returns></returns>
         public BasicOcspResp Generate(
-            ISignatureCalculatorFactory signatureCalculatorFactory,
+            ISignatureFactory signatureCalculatorFactory,
             X509Certificate[] chain,
             DateTime producedAt)
         {

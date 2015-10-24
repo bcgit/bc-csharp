@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Crypto
     /// <summary>
     /// Base interface for operators that serve as stream-based signature verifiers.
     /// </summary>
-    public interface ISignatureVerifier
+    public interface IVerifierFactory
 	{
         /// <summary>The algorithm details object for this verifier.</summary>
         Object AlgorithmDetails { get ; }
