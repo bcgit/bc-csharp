@@ -11,17 +11,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		private readonly CertTemplate certDetails;
 		private readonly X509Extensions crlEntryDetails;
 
-		private RevDetails(Asn1Sequence seq)
+        private RevDetails(Asn1Sequence seq)
 		{
 			certDetails = CertTemplate.GetInstance(seq[0]);
-
-			if  (seq.Count > 1)
-			{
-				crlEntryDetails = X509Extensions.GetInstance(seq[1]);
-			}
+            crlEntryDetails = seq.Count <= 1
+                ?   null
+                :   X509Extensions.GetInstance(seq[1]);
 		}
 
-		public static RevDetails GetInstance(object obj)
+        public static RevDetails GetInstance(object obj)
 		{
 			if (obj is RevDetails)
 				return (RevDetails)obj;
@@ -33,21 +31,22 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		}
 
 		public RevDetails(CertTemplate certDetails)
+            :   this(certDetails, null)
 		{
-			this.certDetails = certDetails;
-		}
-		
-		public RevDetails(CertTemplate certDetails, X509Extensions crlEntryDetails)
-		{
-			this.crlEntryDetails = crlEntryDetails;
 		}
 
-		public virtual CertTemplate CertDetails
+        public RevDetails(CertTemplate certDetails, X509Extensions crlEntryDetails)
+		{
+            this.certDetails = certDetails;
+            this.crlEntryDetails = crlEntryDetails;
+		}
+
+        public virtual CertTemplate CertDetails
 		{
 			get { return certDetails; }
 		}
 
-		public virtual X509Extensions CrlEntryDetails
+        public virtual X509Extensions CrlEntryDetails
 		{
 			get { return crlEntryDetails; }
 		}

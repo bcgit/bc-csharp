@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.X509
 
             streamCalculator.Stream.Dispose();
 
-            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).DoFinal());
+            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
 		}
 
 		private X509Certificate GenerateJcaObject(
