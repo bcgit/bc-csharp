@@ -167,7 +167,7 @@ namespace Org.BouncyCastle.X509
         public virtual void Verify(
             IVerifierFactoryProvider verifierProvider)
         {
-            CheckSignature(verifierProvider.CreateSignatureVerifier(cert.SignatureAlgorithm));
+            CheckSignature(verifierProvider.CreateVerifierFactory(cert.SignatureAlgorithm));
         }
 
         protected virtual void CheckSignature(

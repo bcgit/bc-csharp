@@ -328,7 +328,7 @@ namespace Org.BouncyCastle.Pkcs
         public bool Verify(
             IVerifierFactoryProvider verifierProvider)
         {
-            return Verify(verifierProvider.CreateSignatureVerifier(sigAlgId));
+            return Verify(verifierProvider.CreateVerifierFactory(sigAlgId));
         }
 
         public bool Verify(

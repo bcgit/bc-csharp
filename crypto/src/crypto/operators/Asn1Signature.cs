@@ -542,7 +542,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			this.publicKey = publicKey;
 		}
 
-		public IVerifierFactory CreateSignatureVerifier(Object algorithmDetails)
+		public IVerifierFactory CreateVerifierFactory(Object algorithmDetails)
 		{
             return new Asn1VerifierFactory ((AlgorithmIdentifier)algorithmDetails, publicKey);
 		}
