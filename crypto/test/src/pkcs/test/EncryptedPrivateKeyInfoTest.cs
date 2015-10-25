@@ -59,11 +59,14 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			doOpensslTestKeys();
 		}
 
-		private void doOpensslTestKeys()
+        private void doOpensslTestKeys()
 		{
 			string[] names = GetTestDataEntries("keys");
 			foreach (string name in names)
 			{
+                if (!name.EndsWith(".key"))
+                    continue;
+
 //				Console.Write(name + " => ");
 				Stream data = GetTestDataAsStream(name);
 				AsymmetricKeyParameter key = PrivateKeyFactory.DecryptKey("12345678a".ToCharArray(), data);
