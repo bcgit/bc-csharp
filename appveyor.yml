@@ -1,15 +1,16 @@
 configuration: Release
-install:
-  - cmd: choco install gitversion.portable -pre -y
+install:  
   - cmd: appveyor DownloadFile https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+  - cmd: nuget install gitlink -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion -pre
+  - cmd: nuget install GitVersion.CommandLine -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion -pre
 
 assembly_info:
   patch: false
       
 before_build:
-  - cmd: nuget install gitlink -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion -pre
+  
   - cmd: nuget restore
-  - cmd: gitversion /l console /output buildserver /updateAssemblyInfo
+  - cmd: '.\packages\GitVersion.CommandLine\tools\GitVersion.exe /l console /output buildserver /updateAssemblyInfo'
   
 build:
   verbosity: normal
