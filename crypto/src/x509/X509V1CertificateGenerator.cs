@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.X509
 		/// This can be either a name or an OID, names are treated as case insensitive.
 		/// </summary>
 		/// <param name="signatureAlgorithm">string representation of the algorithm name</param>
-		[Obsolete("Not needed if Generate used with an ISignatureCalculator")]
+		[Obsolete("Not needed if Generate used with an ISignatureFactory")]
 		public void SetSignatureAlgorithm(
 			string signatureAlgorithm)
 		{
@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.X509
 		/// </summary>
 		/// <param name="privateKey">The private key of the issuer used to sign this certificate.</param>
 		/// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureCalculator")]
+		[Obsolete("Use Generate with an ISignatureFactory")]
 		public X509Certificate Generate(
 			AsymmetricKeyParameter privateKey)
 		{
@@ -159,26 +159,26 @@ namespace Org.BouncyCastle.X509
         /// <param name="privateKey">The private key of the issuer used to sign this certificate.</param>
         /// <param name="random">The Secure Random you want to use.</param>
         /// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureCalculator")]
+		[Obsolete("Use Generate with an ISignatureFactory")]
 		public X509Certificate Generate(
 			AsymmetricKeyParameter	privateKey,
 			SecureRandom			random)
 		{
-			return Generate(new Asn1SignatureCalculator(signatureAlgorithm, privateKey, random));
+			return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
 		}
 
 		/// <summary>
 		/// Generate a new X509Certificate using the passed in SignatureCalculator.
 		/// </summary>
-		/// <param name="signatureCalculator">A signature calculator with the necessary algorithm details.</param>
+		/// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
 		/// <returns>An X509Certificate.</returns>
-		public X509Certificate Generate(ISignatureCalculator signatureCalculator)
+		public X509Certificate Generate(ISignatureFactory signatureCalculatorFactory)
 		{
-			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculator.AlgorithmDetails);
+			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
 
 			TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
-            IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+            IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
 
             byte[] encoded = tbsCert.GetDerEncoded();
 
@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.X509
 
             streamCalculator.Stream.Dispose();
 
-            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
+            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
 		}
 
 		private X509Certificate GenerateJcaObject(

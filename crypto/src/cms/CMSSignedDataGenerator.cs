@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Cms
         {
             private readonly CmsSignedGenerator outer;
 
-			private readonly ISignatureCalculator		sigCalc;
+			private readonly ISignatureFactory		sigCalc;
 			private readonly SignerIdentifier			signerIdentifier;
 			private readonly string						digestOID;
 			private readonly string						encOID;
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Cms
                 string signatureName = digestName + "with" + Helper.GetEncryptionAlgName(encOID);
 
                 this.outer = outer;
-                this.sigCalc = new Asn1SignatureCalculator(signatureName, key);
+                this.sigCalc = new Asn1SignatureFactory(signatureName, key);
                 this.signerIdentifier = signerIdentifier;
                 this.digestOID = digestOID;
                 this.encOID = encOID;
@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Cms
 
             internal SignerInf(
                 CmsSignedGenerator outer,
-                ISignatureCalculator sigCalc,
+                ISignatureFactory sigCalc,
                 SignerIdentifier signerIdentifier,
                 CmsAttributeTableGenerator sAttr,
                 CmsAttributeTableGenerator unsAttr,

@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.X509
 		public virtual void Verify(
 			AsymmetricKeyParameter publicKey)
 		{
-            Verify(new Asn1SignatureVerifierProvider(publicKey));
+            Verify(new Asn1VerifierFactoryProvider(publicKey));
 		}
 
         /// <summary>
@@ -94,13 +94,13 @@ namespace Org.BouncyCastle.X509
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If verifier provider is not appropriate or the CRL algorithm is invalid.</exception>
         public virtual void Verify(
-            ISignatureVerifierProvider verifierProvider)
+            IVerifierFactoryProvider verifierProvider)
         {
-            CheckSignature(verifierProvider.CreateSignatureVerifier(c.SignatureAlgorithm));
+            CheckSignature(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
         }
 
         protected virtual void CheckSignature(
-            ISignatureVerifier verifier)
+            IVerifierFactory verifier)
         {
             if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
             {
