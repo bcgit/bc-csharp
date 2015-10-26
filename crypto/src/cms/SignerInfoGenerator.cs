@@ -17,21 +17,21 @@ namespace Org.BouncyCastle.Cms
     public class SignerInfoGenerator
     {
         internal X509Certificate certificate;
-        internal ISignatureCalculator contentSigner;
+        internal ISignatureFactory contentSigner;
         internal SignerIdentifier sigId;
         internal CmsAttributeTableGenerator signedGen;
         internal CmsAttributeTableGenerator unsignedGen;
         private bool isDirectSignature;
 
-        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureCalculator contentSigner): this(sigId, contentSigner, false)
+        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureFactory signerFactory): this(sigId, signerFactory, false)
         {
 
         }
 
-        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureCalculator contentSigner, bool isDirectSignature)
+        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureFactory signerFactory, bool isDirectSignature)
         {
             this.sigId = sigId;
-            this.contentSigner = contentSigner;
+            this.contentSigner = signerFactory;
             this.isDirectSignature = isDirectSignature;
             if (this.isDirectSignature)
             {
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureCalculator contentSigner, CmsAttributeTableGenerator signedGen, CmsAttributeTableGenerator unsignedGen)
+        internal SignerInfoGenerator(SignerIdentifier sigId, ISignatureFactory contentSigner, CmsAttributeTableGenerator signedGen, CmsAttributeTableGenerator unsignedGen)
         {
             this.sigId = sigId;
             this.contentSigner = contentSigner;
@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Cms
          * @return  a SignerInfoGenerator
          * @throws OperatorCreationException   if the generator cannot be built.
          */
-        public SignerInfoGenerator Build(ISignatureCalculator contentSigner, X509Certificate certificate)
+        public SignerInfoGenerator Build(ISignatureFactory contentSigner, X509Certificate certificate)
         {
             SignerIdentifier sigId = new SignerIdentifier(new IssuerAndSerialNumber(certificate.IssuerDN, new DerInteger(certificate.SerialNumber)));
 
@@ -132,19 +132,18 @@ namespace Org.BouncyCastle.Cms
          * Build a generator with the passed in subjectKeyIdentifier as the signerIdentifier. If used  you should
          * try to follow the calculation described in RFC 5280 section 4.2.1.2.
          *
-         * @param contentSigner  operator for generating the final signature in the SignerInfo with.
+         * @param signerFactory  operator factory for generating the final signature in the SignerInfo with.
          * @param subjectKeyIdentifier    key identifier to identify the public key for verifying the signature.
          * @return  a SignerInfoGenerator
-         * @throws OperatorCreationException if the generator cannot be built.
          */
-        public SignerInfoGenerator Build(ISignatureCalculator contentSigner, byte[] subjectKeyIdentifier)
+        public SignerInfoGenerator Build(ISignatureFactory signerFactory, byte[] subjectKeyIdentifier)
         {
             SignerIdentifier sigId = new SignerIdentifier(new DerOctetString(subjectKeyIdentifier));
 
-            return CreateGenerator(contentSigner, sigId);
+            return CreateGenerator(signerFactory, sigId);
         }
 
-        private SignerInfoGenerator CreateGenerator(ISignatureCalculator contentSigner, SignerIdentifier sigId)
+        private SignerInfoGenerator CreateGenerator(ISignatureFactory contentSigner, SignerIdentifier sigId)
         {
             if (directSignature)
             {

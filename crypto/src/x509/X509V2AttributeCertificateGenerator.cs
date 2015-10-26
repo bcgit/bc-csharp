@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.X509
         /// are treated as case insensitive.
         /// </summary>
         /// <param name="signatureAlgorithm">The algorithm name.</param>
-        [Obsolete("Not needed if Generate used with an ISignatureCalculator")]
+        [Obsolete("Not needed if Generate used with an ISignatureFactory")]
         public void SetSignatureAlgorithm(
 			string signatureAlgorithm)
 		{
@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.X509
         /// <summary>
         /// Generate an X509 certificate, based on the current issuer and subject.
         /// </summary>
-        [Obsolete("Use Generate with an ISignatureCalculator")]
+        [Obsolete("Use Generate with an ISignatureFactory")]
         public IX509AttributeCertificate Generate(
 			AsymmetricKeyParameter privateKey)
 		{
@@ -144,20 +144,20 @@ namespace Org.BouncyCastle.X509
         /// Generate an X509 certificate, based on the current issuer and subject,
         /// using the supplied source of randomness, if required.
         /// </summary>
-        [Obsolete("Use Generate with an ISignatureCalculator")]
+        [Obsolete("Use Generate with an ISignatureFactory")]
         public IX509AttributeCertificate Generate(
 			AsymmetricKeyParameter	privateKey,
 			SecureRandom			random)
         {
-            return Generate(new Asn1SignatureCalculator(signatureAlgorithm, privateKey, random));
+            return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
         }
 
         /// <summary>
         /// Generate a new X.509 Attribute Certificate using the passed in SignatureCalculator.
         /// </summary>
-        /// <param name="signatureCalculator">A signature calculator with the necessary algorithm details.</param>
+        /// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
         /// <returns>An IX509AttributeCertificate.</returns>
-        public IX509AttributeCertificate Generate(ISignatureCalculator signatureCalculator)
+        public IX509AttributeCertificate Generate(ISignatureFactory signatureCalculatorFactory)
         {
             if (!extGenerator.IsEmpty)
 			{
@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.X509
 
             byte[] encoded = acInfo.GetDerEncoded();
 
-            IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+            IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
 
             streamCalculator.Stream.Write(encoded, 0, encoded.Length);
 
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.X509
 
             Asn1EncodableVector v = new Asn1EncodableVector();
 
-			v.Add(acInfo, (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails);
+			v.Add(acInfo, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
 
 			try
 			{

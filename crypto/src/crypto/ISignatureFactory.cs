@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Crypto
     /// <summary>
     /// Base interface for operators that serve as stream-based signature calculators.
     /// </summary>
-    public interface ISignatureCalculator
+    public interface ISignatureFactory
 	{
         /// <summary>The algorithm details object for this calculator.</summary>
         Object AlgorithmDetails { get ; }
