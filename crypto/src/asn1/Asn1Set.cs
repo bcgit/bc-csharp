@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+#if PORTABLE
+using System.Collections.Generic;
+using System.Linq;
+#endif
+
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -285,32 +290,29 @@ namespace Org.BouncyCastle.Asn1
             if (_set.Count < 2)
                 return;
 
-            //Asn1Encodable[] items = new Asn1Encodable[_set.Count];
-            //byte[][] keys = new byte[_set.Count][];
-
-            //for (int i = 0; i < _set.Count; ++i)
-            //{
-            //    Asn1Encodable item = (Asn1Encodable)_set[i];
-            //    items[i] = item;
-            //    keys[i] = item.GetEncoded(Asn1Encodable.Der);
-            //}
-
-            //Array.Sort(keys, items, new DerComparer());
-
+#if PORTABLE
             var sorted = _set.Cast<Asn1Encodable>()
-                             .Select(a => new {Item = a, Key = a.GetEncoded(Asn1Encodable.Der)})
+                             .Select(a => new { Item = a, Key = a.GetEncoded(Asn1Encodable.Der) })
                              .OrderBy(t => t.Key, new DerComparer())
                              .Select(t => t.Item)
                              .ToList();
 
-
-            //List<Asn1Encodable[]> t;
-
-            
             for (int i = 0; i < _set.Count; ++i)
             {
                 _set[i] = sorted[i];
             }
+#else
+            Asn1Encodable[] items = new Asn1Encodable[_set.Count];
+            byte[][] keys = new byte[_set.Count][];
+
+            //List<Asn1Encodable[]> t;
+
+
+            for (int i = 0; i < _set.Count; ++i)
+            {
+                _set[i] = sorted[i];
+            }
+#endif
         }
 
         protected internal void AddObject(Asn1Encodable obj)
@@ -323,12 +325,21 @@ namespace Org.BouncyCastle.Asn1
             return CollectionUtilities.ToString(_set);
         }
 
+#if PORTABLE
         private class DerComparer
-            :   IComparer<byte[]>
+            : IComparer<byte[]>
         {
             public int Compare(byte[] x, byte[] y)
             {
                 byte[] a = x, b = y;
+#else
+        private class DerComparer
+            : IComparer
+        {
+            public int Compare(byte[] x, byte[] y)
+            {
+                byte[] a = (byte[])x, b = (byte[])y;
+#endif
                 int len = System.Math.Min(a.Length, b.Length);
                 for (int i = 0; i != len; ++i)
                 {

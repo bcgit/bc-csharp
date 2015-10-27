@@ -1,9 +1,13 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 //using System.Security.Permissions;
+
+#if PORTABLE
+using System.Linq;
+#else
+using System.Runtime.InteropServices;
+#endif
 
 //
 // General Information about an assembly is controlled through the following
@@ -88,6 +92,7 @@ internal class AssemblyInfo
         {
             if (version == null)
             {
+#if PORTABLE
 #if NEW_REFLECTION
                 var ver = (AssemblyVersionAttribute)typeof(AssemblyInfo).GetTypeInfo().Assembly.GetCustomAttributes(typeof(AssemblyVersionAttribute)).FirstOrDefault();
 #else
@@ -97,6 +102,9 @@ internal class AssemblyInfo
                 {
                     version = ver.Version;
                 }
+#else
+                version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+#endif
 
                 // if we're still here, then don't try again
                 if (version == null)
@@ -105,6 +113,5 @@ internal class AssemblyInfo
 
             return version;
         }
-        
     }
 }

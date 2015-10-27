@@ -2,6 +2,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if NO_THREADS
+using System.Threading.Tasks;
+#endif
+
 namespace Org.BouncyCastle.Crypto.Prng
 {
 	/**
@@ -19,8 +23,8 @@ namespace Org.BouncyCastle.Crypto.Prng
 			private int		counter = 0;
 			private bool	stop = false;
 #else
-			private volatile int	counter = 0;
-			private volatile bool	stop = false;
+            private volatile int counter = 0;
+            private volatile bool stop = false;
 #endif
 
 			private void Run(object ignored)
@@ -32,8 +36,8 @@ namespace Org.BouncyCastle.Crypto.Prng
 			}
 
 			public byte[] GenerateSeed(
-				int		numBytes,
-				bool	fast)
+                int numBytes,
+                bool fast)
 			{
 #if SILVERLIGHT || PORTABLE
                 return DoGenerateSeed(numBytes, fast);
@@ -52,8 +56,8 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
 
             private byte[] DoGenerateSeed(
-				int		numBytes,
-				bool	fast)
+                int numBytes,
+                bool fast)
             {
                 this.counter = 0;
 				this.stop = false;
@@ -64,7 +68,6 @@ namespace Org.BouncyCastle.Crypto.Prng
 
 #if NO_THREADS
                 Task.Factory.StartNew(() => Run(null), TaskCreationOptions.None);
-                
 #else
 				ThreadPool.QueueUserWorkItem(new WaitCallback(Run));
 #endif
@@ -94,12 +97,12 @@ namespace Org.BouncyCastle.Crypto.Prng
 
 					if (fast)
 					{
-						result[i] = (byte) last;
+                        result[i] = (byte)last;
 					}
 					else
 					{
 						int bytepos = i / 8;
-						result[bytepos] = (byte) ((result[bytepos] << 1) | (last & 1));
+                        result[bytepos] = (byte)((result[bytepos] << 1) | (last & 1));
 					}
 				}
 
@@ -121,8 +124,8 @@ namespace Org.BouncyCastle.Crypto.Prng
 		 * @param fast true if fast mode should be used
 		 */
 		public byte[] GenerateSeed(
-			int		numBytes,
-			bool	fast)
+            int numBytes,
+            bool fast)
 		{
 			return new SeedGenerator().GenerateSeed(numBytes, fast);
 		}
