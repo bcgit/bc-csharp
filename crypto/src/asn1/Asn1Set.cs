@@ -2,6 +2,11 @@ using System;
 using System.Collections;
 using System.IO;
 
+#if PORTABLE
+using System.Collections.Generic;
+using System.Linq;
+#endif
+
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -283,6 +288,18 @@ namespace Org.BouncyCastle.Asn1
             if (_set.Count < 2)
                 return;
 
+#if PORTABLE
+            var sorted = _set.Cast<Asn1Encodable>()
+                             .Select(a => new { Item = a, Key = a.GetEncoded(Asn1Encodable.Der) })
+                             .OrderBy(t => t.Key, new DerComparer())
+                             .Select(t => t.Item)
+                             .ToList();
+
+            for (int i = 0; i < _set.Count; ++i)
+            {
+                _set[i] = sorted[i];
+            }
+#else
             Asn1Encodable[] items = new Asn1Encodable[_set.Count];
             byte[][] keys = new byte[_set.Count][];
 
@@ -299,6 +316,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 _set[i] = items[i];
             }
+#endif
         }
 
         protected internal void AddObject(Asn1Encodable obj)
@@ -311,12 +329,21 @@ namespace Org.BouncyCastle.Asn1
             return CollectionUtilities.ToString(_set);
         }
 
+#if PORTABLE
         private class DerComparer
-            :   IComparer
+            : IComparer<byte[]>
+        {
+            public int Compare(byte[] x, byte[] y)
+            {
+                byte[] a = x, b = y;
+#else
+        private class DerComparer
+            : IComparer
         {
             public int Compare(object x, object y)
             {
                 byte[] a = (byte[])x, b = (byte[])y;
+#endif
                 int len = System.Math.Min(a.Length, b.Length);
                 for (int i = 0; i != len; ++i)
                 {
