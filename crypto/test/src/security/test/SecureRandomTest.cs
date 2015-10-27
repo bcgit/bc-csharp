@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Security.Tests
     [TestFixture]
     public class SecureRandomTest
     {
-#if !NETCF_1_0
+#if !(NETCF_1_0 || PORTABLE)
         [Test]
         public void TestCryptoApi()
         {
