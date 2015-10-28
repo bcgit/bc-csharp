@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 #if NO_THREADS
 using System.Threading.Tasks;
