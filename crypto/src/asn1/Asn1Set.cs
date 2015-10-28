@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 #if PORTABLE
 using System.Collections.Generic;
@@ -336,7 +334,7 @@ namespace Org.BouncyCastle.Asn1
         private class DerComparer
             : IComparer
         {
-            public int Compare(byte[] x, byte[] y)
+            public int Compare(object x, object y)
             {
                 byte[] a = (byte[])x, b = (byte[])y;
 #endif
