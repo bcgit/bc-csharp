@@ -134,9 +134,9 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private IList GetTestCurves()
         {
             ArrayList x9s = new ArrayList();
-            ArrayList names = new ArrayList();
-            CollectionUtilities.AddRange(names, ECNamedCurveTable.Names);
-            CollectionUtilities.AddRange(names, CustomNamedCurves.Names);
+            ISet names = new HashSet(ECNamedCurveTable.Names);
+            names.AddAll(CustomNamedCurves.Names);
+
             foreach (string name in names)
             {
                 X9ECParameters x9 = ECNamedCurveTable.GetByName(name);
