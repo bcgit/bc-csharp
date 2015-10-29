@@ -1408,9 +1408,26 @@ namespace Org.BouncyCastle.Math
 
         public bool RabinMillerTest(int certainty, Random random)
         {
+            int bits = BitLength;
+
             Debug.Assert(certainty > 0);
-            Debug.Assert(BitLength > 2);
+            Debug.Assert(bits > 2);
             Debug.Assert(TestBit(0));
+
+            int itersFor100Cert = bits >= 1024 ?  4
+                                : bits >= 512  ?  8
+                                : bits >= 256  ? 16
+                                : 50;
+
+            int iterations;
+            if (certainty < 100)
+            {
+                iterations = System.Math.Min(itersFor100Cert, ((certainty - 1) / 2) + 1);
+            }
+            else
+            {
+                iterations = itersFor100Cert + ((certainty - 100 + 1) / 2);
+            }
 
             // let n = 1 + d . 2^s
             BigInteger n = this;
@@ -1449,10 +1466,8 @@ namespace Org.BouncyCastle.Math
                             return false;
                     }
                 }
-
-                certainty -= 2; // composites pass for only 1/4 possible 'a'
             }
-            while (certainty > 0);
+            while (--iterations > 0);
 
             return true;
         }
