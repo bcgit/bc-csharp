@@ -702,7 +702,7 @@ namespace Org.BouncyCastle.Math
                 if (certainty < 1)
                     break;
 
-                if (CheckProbablePrime(certainty, random))
+                if (CheckProbablePrime(certainty, random, true))
                     break;
 
                 if (bitLength > 32)
@@ -714,7 +714,7 @@ namespace Org.BouncyCastle.Math
                         this.magnitude[this.magnitude.Length - 1] ^= ((random.Next() + 1) << 1);
                         this.mQuote = 0;
 
-                        if (CheckProbablePrime(certainty, random))
+                        if (CheckProbablePrime(certainty, random, true))
                             return;
                     }
                 }
@@ -1340,8 +1340,12 @@ namespace Org.BouncyCastle.Math
          * probability of 1 - (1/2)**certainty.
          * <p>From Knuth Vol 2, pg 395.</p>
          */
-        public bool IsProbablePrime(
-            int certainty)
+        public bool IsProbablePrime(int certainty)
+        {
+            return IsProbablePrime(certainty, false);
+        }
+
+        internal bool IsProbablePrime(int certainty, bool randomlySelected)
         {
             if (certainty <= 0)
                 return true;
@@ -1354,12 +1358,10 @@ namespace Org.BouncyCastle.Math
             if (n.Equals(One))
                 return false;
 
-            return n.CheckProbablePrime(certainty, RandomSource);
+            return n.CheckProbablePrime(certainty, RandomSource, randomlySelected);
         }
 
-        private bool CheckProbablePrime(
-            int		certainty,
-            Random	random)
+        private bool CheckProbablePrime(int certainty, Random random, bool randomlySelected)
         {
             Debug.Assert(certainty > 0);
             Debug.Assert(CompareTo(Two) > 0);
@@ -1395,7 +1397,7 @@ namespace Org.BouncyCastle.Math
 
 
             // TODO Is it worth trying to create a hybrid of these two?
-            return RabinMillerTest(certainty, random);
+            return RabinMillerTest(certainty, random, randomlySelected);
 //			return SolovayStrassenTest(certainty, random);
 
 //			bool rbTest = RabinMillerTest(certainty, random);
@@ -1408,25 +1410,34 @@ namespace Org.BouncyCastle.Math
 
         public bool RabinMillerTest(int certainty, Random random)
         {
+            return RabinMillerTest(certainty, random, false);
+        }
+
+        internal bool RabinMillerTest(int certainty, Random random, bool randomlySelected)
+        {
             int bits = BitLength;
 
             Debug.Assert(certainty > 0);
             Debug.Assert(bits > 2);
             Debug.Assert(TestBit(0));
 
-            int itersFor100Cert = bits >= 1024 ?  4
-                                : bits >= 512  ?  8
-                                : bits >= 256  ? 16
-                                : 50;
+            int iterations = ((certainty - 1) / 2) + 1;
+            if (randomlySelected)
+            {
+                int itersFor100Cert = bits >= 1024 ?  4
+                                    : bits >= 512  ?  8
+                                    : bits >= 256  ? 16
+                                    : 50;
 
-            int iterations;
-            if (certainty < 100)
-            {
-                iterations = System.Math.Min(itersFor100Cert, ((certainty - 1) / 2) + 1);
-            }
-            else
-            {
-                iterations = itersFor100Cert + ((certainty - 100 + 1) / 2);
+                if (certainty < 100)
+                {
+                    iterations = System.Math.Min(itersFor100Cert, iterations);
+                }
+                else
+                {
+                    iterations -= 50;
+                    iterations += itersFor100Cert;
+                }
             }
 
             // let n = 1 + d . 2^s
@@ -2509,7 +2520,7 @@ namespace Org.BouncyCastle.Math
 
             BigInteger n = Inc().SetBit(0);
 
-            while (!n.CheckProbablePrime(100, RandomSource))
+            while (!n.CheckProbablePrime(100, RandomSource, false))
             {
                 n = n.Add(Two);
             }
