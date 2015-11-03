@@ -513,10 +513,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private byte[] GetNextCounterBlock()
         {
-            for (int i = 15; i >= 12; --i)
-            {
-                if (++counter[i] != 0) break;
-            }
+            uint c = 1;
+            c += counter[15]; counter[15] = (byte)c; c >>= 8;
+            c += counter[14]; counter[14] = (byte)c; c >>= 8;
+            c += counter[13]; counter[13] = (byte)c; c >>= 8;
+            c += counter[12]; counter[12] = (byte)c;
 
             byte[] tmp = new byte[BlockSize];
             // TODO Sure would be nice if ciphers could operate on int[]
