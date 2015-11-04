@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
@@ -209,10 +210,10 @@ namespace Org.BouncyCastle.Crypto.IO
 				stream.Write(data, 0, data.Length);
 				stream.Flush();
 			}
-			stream.Close();
+            Platform.Dispose(stream);
         }
 
-		public override void Flush()
+        public override void Flush()
         {
 			// Note: outCipher.DoFinal is only called during Close()
 			stream.Flush();

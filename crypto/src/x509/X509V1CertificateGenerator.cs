@@ -10,6 +10,7 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509
 {
@@ -184,7 +185,7 @@ namespace Org.BouncyCastle.X509
 
             streamCalculator.Stream.Write(encoded, 0, encoded.Length);
 
-            streamCalculator.Stream.Close();
+            Platform.Dispose(streamCalculator.Stream);
 
             return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
 		}

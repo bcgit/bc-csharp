@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
@@ -29,7 +30,7 @@ namespace Org.BouncyCastle.Cms
 			CheckSingleUsage();
 
 			Streams.PipeAll(input, output);
-			input.Close();
+            Platform.Dispose(input);
 		}
 
         [Obsolete]

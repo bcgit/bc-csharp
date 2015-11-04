@@ -20,11 +20,11 @@ namespace Org.BouncyCastle.Utilities.IO
 
 		public override void Close()
 		{
-			input.Close();
-			tee.Close();
+            Platform.Dispose(input);
+            Platform.Dispose(tee);
 		}
 
-		public override int Read(byte[] buf, int off, int len)
+        public override int Read(byte[] buf, int off, int len)
 		{
 			int i = input.Read(buf, off, len);
 

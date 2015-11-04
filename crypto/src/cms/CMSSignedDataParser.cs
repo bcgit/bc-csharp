@@ -384,7 +384,7 @@ namespace Org.BouncyCastle.Cms
 
 //			gen.AddSigners(parser.GetSignerInfos());
 
-			contentOut.Close();
+            Platform.Dispose(contentOut);
 
 			return outStr;
 		}
@@ -434,12 +434,12 @@ namespace Org.BouncyCastle.Cms
 
 			gen.AddSigners(parser.GetSignerInfos());
 
-			contentOut.Close();
+            Platform.Dispose(contentOut);
 
-			return outStr;
+            return outStr;
 		}
 
-		private static Asn1Set GetAsn1Set(
+        private static Asn1Set GetAsn1Set(
 			Asn1SetParser asn1SetParser)
 		{
 			return asn1SetParser == null

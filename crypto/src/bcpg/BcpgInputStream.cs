@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -248,7 +249,7 @@ namespace Org.BouncyCastle.Bcpg
 
 		public override void Close()
 		{
-			m_in.Close();
+            Platform.Dispose(m_in);
 			base.Close();
 		}
 

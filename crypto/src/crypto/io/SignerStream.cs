@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.IO
 {
 	public class SignerStream
@@ -112,10 +114,10 @@ namespace Org.BouncyCastle.Crypto.IO
 
 		public override void Close()
 		{
-			stream.Close();
+            Platform.Dispose(stream);
 		}
 
-		public override  void Flush()
+        public override  void Flush()
 		{
 			stream.Flush();
 		}

@@ -636,7 +636,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				content.Write(signedOut);
 			}
-			signedOut.Close();
+            Platform.Dispose(signedOut);
 		}
 
 		// RFC3852, section 5.1:
@@ -811,9 +811,9 @@ namespace Org.BouncyCastle.Cms
 
 			public override void Close()
             {
-                _out.Close();
+                Platform.Dispose(_out);
 
-				// TODO Parent context(s) should really be be closed explicitly
+                // TODO Parent context(s) should really be be closed explicitly
 
                 _eiGen.Close();
 

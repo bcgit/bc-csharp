@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
 			{
 				this.closed = true;
 				End();
-				output.Close();
+                Platform.Dispose(output);
 				output = null;
 			}
 		}

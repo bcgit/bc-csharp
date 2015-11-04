@@ -5,11 +5,11 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.X509
 {
@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.X509
 
                 streamCalculator.Stream.Write(b, 0, b.Length);
 
-                streamCalculator.Stream.Close();
+                Platform.Dispose(streamCalculator.Stream);
             }
 			catch (IOException e)
 			{

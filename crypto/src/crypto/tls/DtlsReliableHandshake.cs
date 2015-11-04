@@ -420,7 +420,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             internal void SendToRecordLayer(DtlsRecordLayer recordLayer)
             {
                 recordLayer.Send(GetBuffer(), 0, (int)Length);
-                this.Close();
+                Platform.Dispose(this);
             }
         }
 

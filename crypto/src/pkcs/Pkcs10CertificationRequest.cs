@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.Pkcs
 
             streamCalculator.Stream.Write(reqInfoData, 0, reqInfoData.Length);
 
-            streamCalculator.Stream.Close();
+            Platform.Dispose(streamCalculator.Stream);
 
             // Generate Signature.
             sigBits = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
@@ -342,7 +342,7 @@ namespace Org.BouncyCastle.Pkcs
 
                 streamCalculator.Stream.Write(b, 0, b.Length);
 
-                streamCalculator.Stream.Close();
+                Platform.Dispose(streamCalculator.Stream);
 
                 return ((IVerifier)streamCalculator.GetResult()).IsVerified(sigBits.GetBytes());
             }

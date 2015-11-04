@@ -25,6 +25,8 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Apache.Bzip2
 {
 	/**
@@ -286,10 +288,10 @@ namespace Org.BouncyCastle.Apache.Bzip2
             Cadvise();
         }
 
-		private void BsFinishedWithStream() {
+        private void BsFinishedWithStream() {
             try {
                 if (this.bsStream != null) {
-                    this.bsStream.Close();
+                    Platform.Dispose(this.bsStream);
                     this.bsStream = null;
                 }
             } catch {

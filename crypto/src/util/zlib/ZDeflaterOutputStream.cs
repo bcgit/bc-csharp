@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             }
             finally{
                 End();
-                outp.Close();
+                Platform.Dispose(outp);
                 outp=null;
             }
         }

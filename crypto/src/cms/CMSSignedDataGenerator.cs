@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Cms
 					content.Write(sigStr);
                 }
 
-				sigStr.Close();
+                Platform.Dispose(sigStr);
                 byte[] sigBytes = ((IBlockResult)calculator.GetResult()).Collect();
 
 				Asn1Set unsignedAttr = null;

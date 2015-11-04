@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
 			if (!closed)
 			{
 				closed = true;
-				input.Close();
+                Platform.Dispose(input);
 			}
 		}
 

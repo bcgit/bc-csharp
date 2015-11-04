@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
@@ -253,9 +254,9 @@ namespace Org.BouncyCastle.Cms
 
 			public override void Close()
 			{
-				macStream.Close();
+                Platform.Dispose(macStream);
 
-				// TODO Parent context(s) should really be be closed explicitly
+                // TODO Parent context(s) should really be be closed explicitly
 
 				eiGen.Close();
 

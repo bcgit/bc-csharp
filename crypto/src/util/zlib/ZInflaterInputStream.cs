@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
         }
 
         public override void Close() {
-            inp.Close();
+            Platform.Dispose(inp);
         }
     
         public override int ReadByte() {

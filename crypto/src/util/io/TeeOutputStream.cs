@@ -20,11 +20,11 @@ namespace Org.BouncyCastle.Utilities.IO
 
 		public override void Close()
 		{
-			output.Close();
-			tee.Close();
+            Platform.Dispose(output);
+            Platform.Dispose(tee);
 		}
 
-		public override void Write(byte[] buffer, int offset, int count)
+        public override void Write(byte[] buffer, int offset, int count)
 		{
 			output.Write(buffer, offset, count);
 			tee.Write(buffer, offset, count);

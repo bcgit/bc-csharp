@@ -25,6 +25,8 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Apache.Bzip2
 {
 	/**
@@ -393,7 +395,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
             closed = true;
             base.Close();
-            bsStream.Close();
+            Platform.Dispose(this.bsStream);
         }
 
         public void Finish() {

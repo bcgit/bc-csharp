@@ -506,7 +506,7 @@ namespace Org.BouncyCastle.Bcpg
 
 		public override void Close()
 		{
-			input.Close();
+            Platform.Dispose(input);
 			base.Close();
 		}
     }

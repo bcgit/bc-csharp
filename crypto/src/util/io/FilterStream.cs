@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
         public override void Close()
         {
-            s.Close();
+            Platform.Dispose(s);
         }
         public override void Flush()
         {

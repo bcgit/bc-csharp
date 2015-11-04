@@ -1311,7 +1311,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 this.Position = 1;
                 TlsUtilities.WriteUint24((int)length, this);
                 protocol.WriteHandshakeMessage(GetBuffer(), 0, (int)Length);
-                this.Close();
+                Platform.Dispose(this);
             }
         }
     }

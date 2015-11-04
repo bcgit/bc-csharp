@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1.Utilities
 {
     [Obsolete("Use Org.BouncyCastle.Utilities.IO.FilterStream")]
@@ -34,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
         }
         public override void Close()
         {
-            s.Close();
+            Platform.Dispose(s);
         }
         public override void Flush()
         {

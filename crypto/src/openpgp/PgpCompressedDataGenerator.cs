@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Apache.Bzip2;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Zlib;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
@@ -155,7 +156,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			{
 				if (dOut != pkOut)
 				{
-					dOut.Close();
+                    Platform.Dispose(dOut);
 					dOut.Flush();
 				}
 
