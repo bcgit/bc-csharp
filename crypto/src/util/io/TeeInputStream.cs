@@ -18,11 +18,23 @@ namespace Org.BouncyCastle.Utilities.IO
 			this.tee = tee;
 		}
 
-		public override void Close()
+#if PORTABLE
+        protected override void Disposing(bool disposing)
+        {
+            if (disposing)
+            {
+                Platform.Dispose(input);
+                Platform.Dispose(tee);
+            }
+            base.Dispose(disposing);
+        }
+#else
+        public override void Close()
 		{
             Platform.Dispose(input);
             Platform.Dispose(tee);
 		}
+#endif
 
         public override int Read(byte[] buf, int off, int len)
 		{

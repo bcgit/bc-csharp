@@ -33,9 +33,19 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return true; }
         }
 
+#if PORTABLE
+        protected override void Disposing(bool disposing)
+        {
+            if (disposing)
+                return;
+
+            base.Dispose(disposing);
+        }
+#else
         public override void Close()
         {
         }
+#endif
 
         public override void Flush()
         {

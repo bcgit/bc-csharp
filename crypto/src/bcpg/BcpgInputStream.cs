@@ -247,11 +247,22 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+#if PORTABLE
+        protected override void Disposing(bool disposing)
+        {
+            if (disposing)
+            {
+                Platform.Dispose(m_in);
+            }
+            base.Dispose(disposing);
+        }
+#else
 		public override void Close()
 		{
             Platform.Dispose(m_in);
 			base.Close();
 		}
+#endif
 
 		/// <summary>
 		/// A stream that overlays our input stream, allowing the user to only read a segment of it.

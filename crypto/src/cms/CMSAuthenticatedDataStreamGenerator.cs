@@ -252,7 +252,29 @@ namespace Org.BouncyCastle.Cms
 				macStream.Write(bytes, off, len);
 			}
 
-			public override void Close()
+#if PORTABLE
+            protected override void Disposing(bool disposing)
+            {
+                if (disposing)
+                {
+                    Platform.Dispose(macStream);
+
+                    // TODO Parent context(s) should really be be closed explicitly
+
+				    eiGen.Close();
+
+				    // [TODO] auth attributes go here 
+				    byte[] macOctets = MacUtilities.DoFinal(mac);
+				    authGen.AddObject(new DerOctetString(macOctets));
+				    // [TODO] unauth attributes go here
+
+				    authGen.Close();
+				    cGen.Close();
+                }
+                base.Dispose(disposing);
+            }
+#else
+            public override void Close()
 			{
                 Platform.Dispose(macStream);
 
@@ -268,6 +290,7 @@ namespace Org.BouncyCastle.Cms
 				authGen.Close();
 				cGen.Close();
 			}
+#endif
 		}
 	}
 }

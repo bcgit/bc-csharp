@@ -136,6 +136,24 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             z=null;
         }
         
+#if PORTABLE
+        protected override void Disposing(bool disposing)
+        {
+            if (disposing)
+            {
+                try{
+                    try{Finish();}
+                    catch (IOException) {}
+                }
+                finally{
+                    End();
+                    Platform.Dispose(outp);
+                    outp=null;
+                }
+            }
+            base.Dispose(disposing);
+        }
+#else
         public override void Close() {
             try{
                 try{Finish();}
@@ -147,5 +165,6 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                 outp=null;
             }
         }
+#endif
     }
 }

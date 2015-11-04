@@ -28,10 +28,21 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return !handler.IsClosed; }
         }
 
+#if PORTABLE
+        protected override void Disposing(bool disposing)
+        {
+            if (disposing)
+            {
+                handler.Close();
+            }
+            base.Dispose(disposing);
+        }
+#else
         public override void Close()
         {
             handler.Close();
         }
+#endif
 
         public override void Flush()
         {

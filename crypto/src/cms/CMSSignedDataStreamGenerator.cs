@@ -809,7 +809,24 @@ namespace Org.BouncyCastle.Cms
                 _out.Write(bytes, off, len);
             }
 
+#if PORTABLE
+            protected override void Disposing(bool disposing)
+            {
+                if (disposing)
+                {
+                    DoClose();
+                }
+                base.Dispose(disposing);
+            }
+#else
 			public override void Close()
+            {
+                DoClose();
+				base.Close();
+			}
+#endif
+
+            private void DoClose()
             {
                 Platform.Dispose(_out);
 
@@ -898,8 +915,7 @@ namespace Org.BouncyCastle.Cms
 
 				_sigGen.Close();
                 _sGen.Close();
-				base.Close();
-			}
+            }
 
 			private static void WriteToGenerator(
 				Asn1Generator	ag,

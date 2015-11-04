@@ -112,12 +112,23 @@ namespace Org.BouncyCastle.Crypto.IO
 			set { stream.Position = value; }
 		}
 
+#if PORTABLE
+        protected override void Disposing(bool disposing)
+        {
+            if (disposing)
+            {
+                Platform.Dispose(stream);
+            }
+            base.Dispose(disposing);
+        }
+#else
 		public override void Close()
 		{
             Platform.Dispose(stream);
 		}
+#endif
 
-        public override  void Flush()
+        public override void Flush()
 		{
 			stream.Flush();
 		}
