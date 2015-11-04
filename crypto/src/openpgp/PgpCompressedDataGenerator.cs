@@ -157,9 +157,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				if (dOut != pkOut)
 				{
                     Platform.Dispose(dOut);
-					dOut.Flush();
 				}
-
 				dOut = null;
 
 				pkOut.Finish();
