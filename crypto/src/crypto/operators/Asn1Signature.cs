@@ -304,7 +304,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 		}
 
 #if PORTABLE
-        protected override void Disposing(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
                 return;

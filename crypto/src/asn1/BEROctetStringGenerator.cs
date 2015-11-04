@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Asn1
 			}
 
 #if PORTABLE
-            protected override void Disposing(bool disposing)
+            protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {

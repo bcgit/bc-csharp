@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Utilities.IO
 		}
 
 #if PORTABLE
-        protected override void Disposing(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {

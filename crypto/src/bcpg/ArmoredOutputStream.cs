@@ -284,7 +284,7 @@ namespace Org.BouncyCastle.Bcpg
          * multiple objects using armoring to a single stream.
          */
 #if PORTABLE
-        protected override void Disposing(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {

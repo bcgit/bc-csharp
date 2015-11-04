@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
             set { s.Position = value; }
         }
 #if PORTABLE
-        protected override void Disposing(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {

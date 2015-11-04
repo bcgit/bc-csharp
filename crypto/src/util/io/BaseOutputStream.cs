@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Utilities.IO
         public sealed override bool CanWrite { get { return !closed; } }
 
 #if PORTABLE
-        protected override void Disposing(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {

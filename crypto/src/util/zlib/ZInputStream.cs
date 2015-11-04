@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
 		public sealed override bool CanWrite { get { return false; } }
 
 #if PORTABLE
-        protected override void Disposing(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
