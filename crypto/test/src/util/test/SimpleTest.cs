@@ -125,7 +125,6 @@ namespace Org.BouncyCastle.Utilities.Test
 		private static string GetShortName(
 			string fullName)
 		{
-// TODO MonoDevelop/Visual Studio embedded resource ids still inconsistent
 #if PORTABLE
 			return fullName.Substring("crypto.tests.".Length);
 #else
