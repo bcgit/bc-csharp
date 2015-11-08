@@ -259,6 +259,9 @@ namespace Org.BouncyCastle.Asn1
 
         private DateTime ParseDateString(string	s, string format, bool makeUniversal)
         {
+            /*
+             * NOTE: DateTime.Kind and DateTimeStyles.AssumeUniversal not available in .NET 1.1
+             */
             DateTimeStyles style = DateTimeStyles.None;
             if (format.EndsWith("Z"))
             {

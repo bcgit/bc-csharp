@@ -406,6 +406,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 return;
 
             Finish();
+
             closed = true;
             Platform.Dispose(this.bsStream);
 
