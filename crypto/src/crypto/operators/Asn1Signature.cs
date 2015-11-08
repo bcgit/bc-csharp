@@ -317,7 +317,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 		}
 #endif
 
-		public override  void Flush()
+		public override void Flush()
 		{
 		}
 

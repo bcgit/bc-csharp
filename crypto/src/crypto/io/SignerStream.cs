@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Crypto.IO
         }
 #endif
 
-        public override  void Flush()
+        public override void Flush()
 		{
 			stream.Flush();
 		}
