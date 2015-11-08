@@ -504,13 +504,21 @@ namespace Org.BouncyCastle.Bcpg
             return pos - offset;
         }
 
+#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                input.Dispose();
+                Platform.Dispose(input);
             }
             base.Dispose(disposing);
         }
+#else
+		public override void Close()
+		{
+            Platform.Dispose(input);
+			base.Close();
+		}
+#endif
     }
 }

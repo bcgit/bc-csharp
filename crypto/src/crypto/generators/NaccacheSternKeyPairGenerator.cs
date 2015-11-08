@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 				p = _p.Multiply(_2au).Add(BigInteger.One);
 
-				if (!p.IsProbablePrime(certainty))
+				if (!p.IsProbablePrime(certainty, true))
 					continue;
 
 				for (;;)
@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 					q = _q.Multiply(_2bv).Add(BigInteger.One);
 
-					if (q.IsProbablePrime(certainty))
+					if (q.IsProbablePrime(certainty, true))
 						break;
 				}
 

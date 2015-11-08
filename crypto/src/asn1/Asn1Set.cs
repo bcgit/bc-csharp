@@ -75,8 +75,8 @@ namespace Org.BouncyCastle.Asn1
          *          be converted.
          */
         public static Asn1Set GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+            Asn1TaggedObject obj,
+            bool explicitly)
         {
             Asn1Object inner = obj.GetObject();
 
@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Asn1
                 if (!obj.IsExplicit())
                     throw new ArgumentException("object implicit - explicit expected.");
 
-                return (Asn1Set) inner;
+                return (Asn1Set)inner;
             }
 
             //
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Asn1
 
             if (inner is Asn1Set)
             {
-                return (Asn1Set) inner;
+                return (Asn1Set)inner;
             }
 
             //
@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Asn1
             if (inner is Asn1Sequence)
             {
                 Asn1EncodableVector v = new Asn1EncodableVector();
-                Asn1Sequence s = (Asn1Sequence) inner;
+                Asn1Sequence s = (Asn1Sequence)inner;
 
                 foreach (Asn1Encodable ae in s)
                 {
@@ -149,14 +149,14 @@ namespace Org.BouncyCastle.Asn1
          */
         public virtual Asn1Encodable this[int index]
         {
-            get { return (Asn1Encodable) _set[index]; }
+            get { return (Asn1Encodable)_set[index]; }
         }
 
         [Obsolete("Use 'object[index]' syntax instead")]
         public Asn1Encodable GetObjectAt(
             int index)
         {
-             return this[index];
+            return this[index];
         }
 
         [Obsolete("Use 'Count' property instead")]
@@ -207,8 +207,8 @@ namespace Org.BouncyCastle.Asn1
                     return ((Asn1Set)obj).Parser;
 
                 // NB: Asn1OctetString implements Asn1OctetStringParser directly
-//				if (obj is Asn1OctetString)
-//					return ((Asn1OctetString)obj).Parser;
+                //				if (obj is Asn1OctetString)
+                //					return ((Asn1OctetString)obj).Parser;
 
                 return obj;
             }
@@ -303,12 +303,18 @@ namespace Org.BouncyCastle.Asn1
             Asn1Encodable[] items = new Asn1Encodable[_set.Count];
             byte[][] keys = new byte[_set.Count][];
 
-            //List<Asn1Encodable[]> t;
+            for (int i = 0; i < _set.Count; ++i)
+            {
+                Asn1Encodable item = (Asn1Encodable)_set[i];
+                items[i] = item;
+                keys[i] = item.GetEncoded(Asn1Encodable.Der);
+            }
 
+            Array.Sort(keys, items, new DerComparer());
 
             for (int i = 0; i < _set.Count; ++i)
             {
-                _set[i] = sorted[i];
+                _set[i] = items[i];
             }
 #endif
         }

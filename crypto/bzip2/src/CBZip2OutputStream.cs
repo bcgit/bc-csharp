@@ -25,6 +25,8 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Apache.Bzip2
 {
 	/**
@@ -384,23 +386,32 @@ namespace Org.BouncyCastle.Apache.Bzip2
 //            Close();
 //        }
 
+#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 if (closed)
-                {
                     return;
-                }
 
                 Finish();
-
                 closed = true;
-                
-                bsStream.Dispose();
+                Platform.Dispose(this.bsStream);
             }
             base.Dispose(disposing);
         }
+#else
+        public override void Close() {
+            if (closed)
+                return;
+
+            Finish();
+            closed = true;
+            Platform.Dispose(this.bsStream);
+
+            base.Close();
+        }
+#endif
 
         public void Finish() {
             if (finished) {

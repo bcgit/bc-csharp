@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -379,15 +380,25 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-	    protected override void Dispose(bool disposing)
-	    {
-	        if (disposing)
-	        {
-                this.Finish();
-                outStr.Flush();                
-                outStr.Dispose();
-	        }
-	       base.Dispose(disposing);
-	    }
+#if PORTABLE
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+			    this.Finish();
+			    outStr.Flush();
+                Platform.Dispose(outStr);
+            }
+            base.Dispose(disposing);
+        }
+#else
+        public override void Close()
+        {
+			this.Finish();
+			outStr.Flush();
+            Platform.Dispose(outStr);
+			base.Close();
+        }
+#endif
     }
 }

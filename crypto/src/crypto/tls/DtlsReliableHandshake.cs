@@ -419,9 +419,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             internal void SendToRecordLayer(DtlsRecordLayer recordLayer)
             {
-                var buffer = ToArray();
+                byte[] buffer = ToArray();
                 recordLayer.Send(buffer, 0, buffer.Length);
-                this.Dispose();
+                Platform.Dispose(this);
             }
         }
 

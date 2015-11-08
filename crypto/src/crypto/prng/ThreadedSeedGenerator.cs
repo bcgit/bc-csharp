@@ -73,8 +73,6 @@ namespace Org.BouncyCastle.Crypto.Prng
 
 				for (int i = 0; i < end; i++)
 				{
-				    using (var mre = new ManualResetEvent(false))
-				    {
 					while (this.counter == last)
 					{
 						try
@@ -90,7 +88,6 @@ namespace Org.BouncyCastle.Crypto.Prng
 							// ignore
 						}
 					}
-				    }
 
 					last = this.counter;
 

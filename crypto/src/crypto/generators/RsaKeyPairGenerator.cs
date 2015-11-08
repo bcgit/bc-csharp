@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 if (p.Mod(e).Equals(One))
                     continue;
 
-                if (!p.IsProbablePrime(parameters.Certainty))
+                if (!p.IsProbablePrime(parameters.Certainty, true))
                     continue;
 
                 if (!eIsKnownOddPrime && !e.Gcd(p.Subtract(One)).Equals(One))

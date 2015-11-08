@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Utilities
             MemoryStream buf = new MemoryStream();
             StreamWriter w = new StreamWriter(buf, Encoding.UTF8);
             w.WriteLine();
-            w.Close();
+            Dispose(w);
             byte[] bs = buf.ToArray();
             return Encoding.UTF8.GetString(bs, 0, bs.Length);
         }
@@ -186,5 +186,21 @@ namespace Org.BouncyCastle.Utilities
         }
 
         internal static readonly string NewLine = GetNewLine();
+
+#if PORTABLE
+        internal static void Dispose(IDisposable d)
+        {
+            d.Dispose();
+        }
+#else
+        internal static void Dispose(Stream s)
+        {
+            s.Close();
+        }
+        internal static void Dispose(TextWriter t)
+        {
+            t.Close();
+        }
+#endif
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Tls
 {
     /// <summary>An implementation of the TLS 1.0/1.1/1.2 record layer, allowing downgrade to SSLv3.</summary>
@@ -287,7 +289,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             try
             {
-                mInput.Dispose();
+                Platform.Dispose(mInput);
             }
             catch (IOException)
             {
@@ -295,7 +297,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             try
             {
-                mOutput.Dispose();
+                Platform.Dispose(mOutput);
             }
             catch (IOException)
             {

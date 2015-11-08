@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -246,14 +247,22 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-	    protected override void Dispose(bool disposing)
-	    {
-	        if (disposing)
-	        {
-	            m_in.Dispose();
-	        }
-	        base.Dispose(disposing);
-	    }
+#if PORTABLE
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Platform.Dispose(m_in);
+            }
+            base.Dispose(disposing);
+        }
+#else
+		public override void Close()
+		{
+            Platform.Dispose(m_in);
+			base.Close();
+		}
+#endif
 
 		/// <summary>
 		/// A stream that overlays our input stream, allowing the user to only read a segment of it.

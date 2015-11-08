@@ -20,61 +20,85 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private static readonly SecureRandom RND = new SecureRandom();
 
         [Test]
-        [Ignore("SLOW! 44 sec")]
         public void TestSumOfMultiplies()
+        {
+            X9ECParameters x9 = CustomNamedCurves.GetByName("secp256r1");
+            Assert.NotNull(x9);
+            DoTestSumOfMultiplies(x9);
+        }
+
+        [Test, Explicit]
+        public void TestSumOfMultipliesComplete()
         {
             foreach (X9ECParameters x9 in GetTestCurves())
             {
-                ECPoint[] points = new ECPoint[SCALE];
-                BigInteger[] scalars = new BigInteger[SCALE];
-                for (int i = 0; i < SCALE; ++i)
-                {
-                    points[i] = GetRandomPoint(x9);
-                    scalars[i] = GetRandomScalar(x9);
-                }
-
-                ECPoint u = x9.Curve.Infinity;
-                for (int i = 0; i < SCALE; ++i)
-                {
-                    u = u.Add(points[i].Multiply(scalars[i]));
-
-                    ECPoint v = ECAlgorithms.SumOfMultiplies(CopyPoints(points, i + 1), CopyScalars(scalars, i + 1));
-
-                    ECPoint[] results = new ECPoint[] { u, v };
-                    x9.Curve.NormalizeAll(results);
-
-                    AssertPointsEqual("ECAlgorithms.SumOfMultiplies is incorrect", results[0], results[1]);
-                }
+                DoTestSumOfMultiplies(x9);
             }
         }
 
         [Test]
-        [Ignore("SLOW")]
         public void TestSumOfTwoMultiplies()
+        {
+            X9ECParameters x9 = CustomNamedCurves.GetByName("secp256r1");
+            Assert.NotNull(x9);
+            DoTestSumOfTwoMultiplies(x9);
+        }
+
+        [Test, Explicit]
+        public void TestSumOfTwoMultipliesComplete()
         {
             foreach (X9ECParameters x9 in GetTestCurves())
             {
-                ECPoint p = GetRandomPoint(x9);
-                BigInteger a = GetRandomScalar(x9);
+                DoTestSumOfTwoMultiplies(x9);
+            }
+        }
 
-                for (int i = 0; i < SCALE; ++i)
-                {
-                    ECPoint q = GetRandomPoint(x9);
-                    BigInteger b = GetRandomScalar(x9);
+        private void DoTestSumOfMultiplies(X9ECParameters x9)
+        {
+            ECPoint[] points = new ECPoint[SCALE];
+            BigInteger[] scalars = new BigInteger[SCALE];
+            for (int i = 0; i < SCALE; ++i)
+            {
+                points[i] = GetRandomPoint(x9);
+                scalars[i] = GetRandomScalar(x9);
+            }
 
-                    ECPoint u = p.Multiply(a).Add(q.Multiply(b));
-                    ECPoint v = ECAlgorithms.ShamirsTrick(p, a, q, b);
-                    ECPoint w = ECAlgorithms.SumOfTwoMultiplies(p, a, q, b);
+            ECPoint u = x9.Curve.Infinity;
+            for (int i = 0; i < SCALE; ++i)
+            {
+                u = u.Add(points[i].Multiply(scalars[i]));
 
-                    ECPoint[] results = new ECPoint[] { u, v, w };
-                    x9.Curve.NormalizeAll(results);
+                ECPoint v = ECAlgorithms.SumOfMultiplies(CopyPoints(points, i + 1), CopyScalars(scalars, i + 1));
 
-                    AssertPointsEqual("ECAlgorithms.ShamirsTrick is incorrect", results[0], results[1]);
-                    AssertPointsEqual("ECAlgorithms.SumOfTwoMultiplies is incorrect", results[0], results[2]);
+                ECPoint[] results = new ECPoint[] { u, v };
+                x9.Curve.NormalizeAll(results);
 
-                    p = q;
-                    a = b;
-                }
+                AssertPointsEqual("ECAlgorithms.SumOfMultiplies is incorrect", results[0], results[1]);
+            }
+        }
+
+        private void DoTestSumOfTwoMultiplies(X9ECParameters x9)
+        {
+            ECPoint p = GetRandomPoint(x9);
+            BigInteger a = GetRandomScalar(x9);
+
+            for (int i = 0; i < SCALE; ++i)
+            {
+                ECPoint q = GetRandomPoint(x9);
+                BigInteger b = GetRandomScalar(x9);
+
+                ECPoint u = p.Multiply(a).Add(q.Multiply(b));
+                ECPoint v = ECAlgorithms.ShamirsTrick(p, a, q, b);
+                ECPoint w = ECAlgorithms.SumOfTwoMultiplies(p, a, q, b);
+
+                ECPoint[] results = new ECPoint[] { u, v, w };
+                x9.Curve.NormalizeAll(results);
+
+                AssertPointsEqual("ECAlgorithms.ShamirsTrick is incorrect", results[0], results[1]);
+                AssertPointsEqual("ECAlgorithms.SumOfTwoMultiplies is incorrect", results[0], results[2]);
+
+                p = q;
+                a = b;
             }
         }
 
@@ -110,9 +134,9 @@ namespace Org.BouncyCastle.Math.EC.Tests
         private IList GetTestCurves()
         {
             ArrayList x9s = new ArrayList();
-            ArrayList names = new ArrayList();
-            CollectionUtilities.AddRange(names, ECNamedCurveTable.Names);
-            CollectionUtilities.AddRange(names, CustomNamedCurves.Names);
+            ISet names = new HashSet(ECNamedCurveTable.Names);
+            names.AddAll(CustomNamedCurves.Names);
+
             foreach (string name in names)
             {
                 X9ECParameters x9 = ECNamedCurveTable.GetByName(name);

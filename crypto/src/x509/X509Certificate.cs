@@ -576,7 +576,7 @@ namespace Org.BouncyCastle.X509
 
 			streamCalculator.Stream.Write(b, 0, b.Length);
 
-            streamCalculator.Stream.Dispose();
+            Platform.Dispose(streamCalculator.Stream);
 
             if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
 			{

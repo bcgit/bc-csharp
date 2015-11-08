@@ -262,8 +262,13 @@ namespace Org.BouncyCastle.Asn1
             DateTimeStyles style = DateTimeStyles.None;
             if (format.EndsWith("Z"))
             {
-                style = DateTimeStyles.AssumeUniversal;
-                
+                try
+                {
+                    style = (DateTimeStyles)Enums.GetEnumValue(typeof(DateTimeStyles), "AssumeUniversal");
+                }
+                catch (Exception)
+                {
+                }
 
                 style |= DateTimeStyles.AdjustToUniversal;
             }

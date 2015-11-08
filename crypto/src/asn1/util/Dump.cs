@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1.Utilities
 {
     public sealed class Dump
@@ -21,7 +23,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
                 Console.WriteLine(Asn1Dump.DumpAsString(obj));
             }
 
-			bIn.Close();
+            Platform.Dispose(bIn);
         }
     }
 }

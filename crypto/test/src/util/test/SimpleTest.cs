@@ -160,5 +160,23 @@ namespace Org.BouncyCastle.Utilities.Test
 		internal static readonly string NewLine = GetNewLine();
 
 		public abstract void PerformTest();
+
+        public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second)
+        {
+#if PORTABLE
+            return new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
+#else
+            return new DateTime(year, month, day, hour, minute, second);
+#endif
+        }
+
+        public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
+        {
+#if PORTABLE
+            return new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Utc);
+#else
+            return new DateTime(year, month, day, hour, minute, second, millisecond);
+#endif
+        }
     }
 }

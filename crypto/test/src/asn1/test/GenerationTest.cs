@@ -53,8 +53,8 @@ namespace Org.BouncyCastle.Asn1.Tests
         private void TbsV1CertGenerate()
         {
 			V1TbsCertificateGenerator gen = new V1TbsCertificateGenerator();
-            DateTime startDate = new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc);
-            DateTime endDate = new DateTime(1970, 1, 1, 0, 0, 12, DateTimeKind.Utc);
+            DateTime startDate = MakeUtcDateTime(1970, 1, 1, 0, 0, 1);
+            DateTime endDate = MakeUtcDateTime(1970, 1, 1, 0, 0, 12);
 
             gen.SetSerialNumber(new DerInteger(1));
 
@@ -106,8 +106,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 		private void TbsV3CertGenerate()
         {
 			V3TbsCertificateGenerator gen = new V3TbsCertificateGenerator();
-            DateTime startDate = new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc);
-            DateTime endDate = new DateTime(1970, 1, 1, 0, 0, 2, DateTimeKind.Utc);
+            DateTime startDate = MakeUtcDateTime(1970, 1, 1, 0, 0, 1);
+            DateTime endDate = MakeUtcDateTime(1970, 1, 1, 0, 0, 2);
 
 			gen.SetSerialNumber(new DerInteger(2));
 
@@ -166,8 +166,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 		private void TbsV3CertGenWithNullSubject()
 		{
 			V3TbsCertificateGenerator gen = new V3TbsCertificateGenerator();
-            DateTime startDate = new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc);
-            DateTime endDate = new DateTime(1970, 1, 1, 0, 0, 2, DateTimeKind.Utc);
+            DateTime startDate = MakeUtcDateTime(1970, 1, 1, 0, 0, 1);
+            DateTime endDate = MakeUtcDateTime(1970, 1, 1, 0, 0, 2);
 
 			gen.SetSerialNumber(new DerInteger(2));
 
@@ -243,11 +243,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             gen.SetIssuer(new X509Name("CN=AU,O=Bouncy Castle"));
 
-            gen.AddCrlEntry(new DerInteger(1), new Time(new DateTime(1970, 1, 1, 0, 0, 1, DateTimeKind.Utc)), ReasonFlags.AACompromise);
+            gen.AddCrlEntry(new DerInteger(1), new Time(MakeUtcDateTime(1970, 1, 1, 0, 0, 1)), ReasonFlags.AACompromise);
 
-            gen.SetNextUpdate(new Time(new DateTime(1970, 1, 1, 0, 0, 2, DateTimeKind.Utc)));
+            gen.SetNextUpdate(new Time(MakeUtcDateTime(1970, 1, 1, 0, 0, 2)));
 
-            gen.SetThisUpdate(new Time(new DateTime(1970, 1, 1, 0, 0, 0, 500, DateTimeKind.Utc)));
+            gen.SetThisUpdate(new Time(MakeUtcDateTime(1970, 1, 1, 0, 0, 0, 500)));
 
             gen.SetSignature(new AlgorithmIdentifier(PkcsObjectIdentifiers.Sha1WithRsaEncryption, DerNull.Instance));
 

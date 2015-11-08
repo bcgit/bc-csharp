@@ -107,8 +107,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(certReqId, status);
-			v.AddOptional(certifiedKeyPair);
-			v.AddOptional(rspInfo);
+			v.AddOptional(certifiedKeyPair, rspInfo);
 			return new DerSequence(v);
 		}
 	}

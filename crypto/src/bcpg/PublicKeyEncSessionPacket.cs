@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Bcpg
                 pOut.Write(data[i]);
             }
 
-            pOut.Dispose();
+            Platform.Dispose(pOut);
 
             bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession , bOut.ToArray(), true);
 		}

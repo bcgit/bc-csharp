@@ -240,7 +240,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 					outBytes.Write(emailAddress);
 					outBytes.Write(" ");
 					outBytes.Write(distinguisher);
-					outBytes.Dispose();
+                    Platform.Dispose(outBytes);
 					return Set(PARAM_TYPE_PERSONALISATION, bout.ToArray());
 				}
 				catch (IOException e)

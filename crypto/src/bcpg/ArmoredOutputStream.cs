@@ -283,40 +283,60 @@ namespace Org.BouncyCastle.Bcpg
          * <b>Note</b>: Close() does not close the underlying stream. So it is possible to write
          * multiple objects using armoring to a single stream.
          */
+#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-        {
-            if (type != null)
             {
-                if (bufPtr > 0)
-                {
-                    Encode(outStream, buf, bufPtr);
-                }
+                if (type == null)
+                    return;
 
-                DoWrite(nl + '=');
-
-                int crcV = crc.Value;
-
-                buf[0] = ((crcV >> 16) & 0xff);
-                buf[1] = ((crcV >> 8) & 0xff);
-                buf[2] = (crcV & 0xff);
-
-                Encode(outStream, buf, 3);
-
-                DoWrite(nl);
-                DoWrite(footerStart);
-                DoWrite(type);
-                DoWrite(footerTail);
-                DoWrite(nl);
-
-                outStream.Flush();
+                DoClose();
 
                 type = null;
                 start = true;
-                }
             }
             base.Dispose(disposing);
+        }
+#else
+        public override void Close()
+        {
+            if (type == null)
+                return;
+
+            DoClose();
+
+            type = null;
+            start = true;
+
+            base.Close();
+        }
+#endif
+
+        private void DoClose()
+        {
+            if (bufPtr > 0)
+            {
+                Encode(outStream, buf, bufPtr);
+            }
+
+            DoWrite(nl + '=');
+
+            int crcV = crc.Value;
+
+            buf[0] = ((crcV >> 16) & 0xff);
+            buf[1] = ((crcV >> 8) & 0xff);
+            buf[2] = (crcV & 0xff);
+
+            Encode(outStream, buf, 3);
+
+            DoWrite(nl);
+            DoWrite(footerStart);
+            DoWrite(type);
+            DoWrite(footerTail);
+            DoWrite(nl);
+
+            outStream.Flush();
         }
 
         private void WriteHeaderEntry(

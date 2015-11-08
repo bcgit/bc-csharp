@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
@@ -37,7 +38,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			Stream inStr = GetInputStream();
 			Streams.PipeAll(inStr, zOut);
-			inStr.Dispose();
+            Platform.Dispose(inStr);
 		}
 
 		/// <returns>The file handle</returns>

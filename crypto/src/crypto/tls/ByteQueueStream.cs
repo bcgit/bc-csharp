@@ -33,11 +33,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return true; }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-        }
-
         public override void Flush()
         {
         }

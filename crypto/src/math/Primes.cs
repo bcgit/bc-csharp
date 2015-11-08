@@ -11,6 +11,8 @@ namespace Org.BouncyCastle.Math
      */
     public abstract class Primes
     {
+        public static readonly int SmallFactorLimit = 211;
+
         private static readonly BigInteger One = BigInteger.One;
         private static readonly BigInteger Two = BigInteger.Two;
         private static readonly BigInteger Three = BigInteger.Three;
@@ -326,37 +328,80 @@ namespace Org.BouncyCastle.Math
              */
             int m = 2 * 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23;
             int r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-            if ((r & 1) != 0 && (r % 3) != 0 && (r % 5) != 0 && (r % 7) != 0 && (r % 11) != 0
-                && (r % 13) != 0 && (r % 17) != 0 && (r % 19) != 0 && (r % 23) != 0)
+            if ((r % 2) == 0 || (r % 3) == 0 || (r % 5) == 0 || (r % 7) == 0 || (r % 11) == 0 || (r % 13) == 0
+                || (r % 17) == 0 || (r % 19) == 0 || (r % 23) == 0)
             {
-                m = 29 * 31 * 37 * 41 * 43;
-                r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                if ((r % 29) != 0 && (r % 31) != 0 && (r % 37) != 0 && (r % 41) != 0 && (r % 43) != 0)
-                {
-                    m = 47 * 53 * 59 * 61 * 67;
-                    r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                    if ((r % 47) != 0 && (r % 53) != 0 && (r % 59) != 0 && (r % 61) != 0 && (r % 67) != 0)
-                    {
-                        m = 71 * 73 * 79 * 83;
-                        r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                        if ((r % 71) != 0 && (r % 73) != 0 && (r % 79) != 0 && (r % 83) != 0)
-                        {
-                            m = 89 * 97 * 101 * 103;
-                            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                            if ((r % 89) != 0 && (r % 97) != 0 && (r % 101) != 0 && (r % 103) != 0)
-                            {
-                                m = 107 * 109 * 113 * 127;
-                                r = x.Mod(BigInteger.ValueOf(m)).IntValue;
-                                if ((r % 107) != 0 && (r % 109) != 0 && (r % 113) != 0 && (r % 127) != 0)
-                                {
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                }
+                return true;
             }
-            return true;
+
+            m = 29 * 31 * 37 * 41 * 43;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 29) == 0 || (r % 31) == 0 || (r % 37) == 0 || (r % 41) == 0 || (r % 43) == 0)
+            {
+                return true;
+            }
+
+            m = 47 * 53 * 59 * 61 * 67;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 47) == 0 || (r % 53) == 0 || (r % 59) == 0 || (r % 61) == 0 || (r % 67) == 0)
+            {
+                return true;
+            }
+
+            m = 71 * 73 * 79 * 83;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 71) == 0 || (r % 73) == 0 || (r % 79) == 0 || (r % 83) == 0)
+            {
+                return true;
+            }
+
+            m = 89 * 97 * 101 * 103;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 89) == 0 || (r % 97) == 0 || (r % 101) == 0 || (r % 103) == 0)
+            {
+                return true;
+            }
+
+            m = 107 * 109 * 113 * 127;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 107) == 0 || (r % 109) == 0 || (r % 113) == 0 || (r % 127) == 0)
+            {
+                return true;
+            }
+
+            m = 131 * 137 * 139 * 149;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 131) == 0 || (r % 137) == 0 || (r % 139) == 0 || (r % 149) == 0)
+            {
+                return true;
+            }
+
+            m = 151 * 157 * 163 * 167;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 151) == 0 || (r % 157) == 0 || (r % 163) == 0 || (r % 167) == 0)
+            {
+                return true;
+            }
+
+            m = 173 * 179 * 181 * 191;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 173) == 0 || (r % 179) == 0 || (r % 181) == 0 || (r % 191) == 0)
+            {
+                return true;
+            }
+
+            m = 193 * 197 * 199 * 211;
+            r = x.Mod(BigInteger.ValueOf(m)).IntValue;
+            if ((r % 193) == 0 || (r % 197) == 0 || (r % 199) == 0 || (r % 211) == 0)
+            {
+                return true;
+            }
+
+            /*
+             * NOTE: Unit tests depend on SMALL_FACTOR_LIMIT matching the
+             * highest small factor tested here.
+             */
+            return false;
         }
 
         private static bool ImplMRProbablePrimeToBase(BigInteger w, BigInteger wSubOne, BigInteger m, int a, BigInteger b)

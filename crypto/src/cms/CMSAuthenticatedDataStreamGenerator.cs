@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
@@ -251,26 +252,46 @@ namespace Org.BouncyCastle.Cms
 				macStream.Write(bytes, off, len);
 			}
 
-		    protected override void Dispose(bool disposing)
-		    {
-		        if (disposing)
-		        {
-                    macStream.Dispose();
+#if PORTABLE
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    Platform.Dispose(macStream);
 
                     // TODO Parent context(s) should really be be closed explicitly
 
-                    eiGen.Close();
+				    eiGen.Close();
 
-                    // [TODO] auth attributes go here 
-                    byte[] macOctets = MacUtilities.DoFinal(mac);
-                    authGen.AddObject(new DerOctetString(macOctets));
-                    // [TODO] unauth attributes go here
+				    // [TODO] auth attributes go here 
+				    byte[] macOctets = MacUtilities.DoFinal(mac);
+				    authGen.AddObject(new DerOctetString(macOctets));
+				    // [TODO] unauth attributes go here
 
-                    authGen.Close();
-                    cGen.Close();
-		        }
-		        base.Dispose(disposing);
-		    }
+				    authGen.Close();
+				    cGen.Close();
+                }
+                base.Dispose(disposing);
+            }
+#else
+            public override void Close()
+			{
+                Platform.Dispose(macStream);
+
+                // TODO Parent context(s) should really be be closed explicitly
+
+				eiGen.Close();
+
+				// [TODO] auth attributes go here 
+				byte[] macOctets = MacUtilities.DoFinal(mac);
+				authGen.AddObject(new DerOctetString(macOctets));
+				// [TODO] unauth attributes go here
+
+				authGen.Close();
+				cGen.Close();
+                base.Close();
+			}
+#endif
 		}
 	}
 }
