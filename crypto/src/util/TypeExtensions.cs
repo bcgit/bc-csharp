@@ -1,7 +1,7 @@
+#if NEW_REFLECTION
+
 using System;
 using System.Reflection;
-
-#if NEW_REFLECTION
 
 namespace Org.BouncyCastle
 {
@@ -12,7 +12,6 @@ namespace Org.BouncyCastle
             return instance != null && type.GetTypeInfo().IsAssignableFrom(instance.GetType().GetTypeInfo());
         }
     }
-
 }
 
 #endif

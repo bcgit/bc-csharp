@@ -6769,6 +6769,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\util\TypeExtensions.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\util\collections\CollectionUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
