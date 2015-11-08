@@ -1,4 +1,4 @@
-﻿#if NEW_REFLECTION
+#if NEW_REFLECTION
 
 using System;
 using System.Reflection;
