@@ -1310,7 +1310,16 @@ namespace Org.BouncyCastle.Crypto.Tls
                 TlsUtilities.CheckUint24(length);
                 this.Position = 1;
                 TlsUtilities.WriteUint24((int)length, this);
-                protocol.WriteHandshakeMessage(ToArray(), 0, (int)Length);
+
+#if PORTABLE
+                byte[] buf = ToArray();
+                int bufLen = buf.Length;
+#else
+                byte[] buf = GetBuffer();
+                int bufLen = (int)Length;
+#endif
+
+                protocol.WriteHandshakeMessage(buf, 0, bufLen);
                 Platform.Dispose(this);
             }
         }
