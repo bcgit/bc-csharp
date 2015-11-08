@@ -3,7 +3,7 @@
 using System;
 using System.Reflection;
 
-namespace Org.BouncyCastle.Utilities
+namespace Org.BouncyCastle
 {
     internal static class TypeExtensions
     {
