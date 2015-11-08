@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509
@@ -318,11 +317,11 @@ namespace Org.BouncyCastle.X509
 
 			byte[] encoded = tbsCert.GetDerEncoded();
 
-			streamCalculator.Stream.Write (encoded, 0, encoded.Length);
+			streamCalculator.Stream.Write(encoded, 0, encoded.Length);
 
-            streamCalculator.Stream.Close ();
+            Platform.Dispose(streamCalculator.Stream);
 
-			return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
+            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
 		}
 
 		private X509Certificate GenerateJcaObject(
