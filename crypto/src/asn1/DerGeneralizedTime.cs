@@ -83,7 +83,11 @@ namespace Org.BouncyCastle.Asn1
         public DerGeneralizedTime(
             DateTime time)
         {
+#if PORTABLE
+            this.time = time.ToUniversalTime().ToString(@"yyyyMMddHHmmss\Z");
+#else
             this.time = time.ToString(@"yyyyMMddHHmmss\Z");
+#endif
         }
 
         internal DerGeneralizedTime(

@@ -34,7 +34,11 @@ namespace Org.BouncyCastle.Asn1.X509
         public Time(
             DateTime date)
         {
+#if PORTABLE
+            string d = date.ToUniversalTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
+#else
             string d = date.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
+#endif
 
             int year = int.Parse(d.Substring(0, 4));
 
