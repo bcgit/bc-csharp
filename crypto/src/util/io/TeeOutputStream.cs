@@ -33,6 +33,7 @@ namespace Org.BouncyCastle.Utilities.IO
 		{
             Platform.Dispose(output);
             Platform.Dispose(tee);
+            base.Close();
 		}
 #endif
 

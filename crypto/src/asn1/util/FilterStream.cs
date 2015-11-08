@@ -47,6 +47,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
         public override void Close()
         {
             Platform.Dispose(s);
+            base.Close();
         }
 #endif
         public override void Flush()

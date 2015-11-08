@@ -227,6 +227,7 @@ namespace Org.BouncyCastle.Crypto.IO
 				stream.Flush();
 			}
             Platform.Dispose(stream);
+            base.Close();
         }
 #endif
 

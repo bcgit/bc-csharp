@@ -41,6 +41,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public override void Close()
         {
             handler.Close();
+            base.Close();
         }
 #endif
 

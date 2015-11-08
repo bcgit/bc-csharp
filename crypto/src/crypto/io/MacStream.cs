@@ -124,6 +124,7 @@ namespace Org.BouncyCastle.Crypto.IO
         public override void Close()
         {
             Platform.Dispose(stream);
+            base.Close();
         }
 #endif
 

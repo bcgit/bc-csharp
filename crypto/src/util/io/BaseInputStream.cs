@@ -25,6 +25,7 @@ namespace Org.BouncyCastle.Utilities.IO
 		public override void Close()
         {
             closed = true;
+            base.Close();
         }
 #endif
 

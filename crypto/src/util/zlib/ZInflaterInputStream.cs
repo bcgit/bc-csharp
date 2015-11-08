@@ -127,6 +127,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
         public override void Close()
         {
             Platform.Dispose(inp);
+            base.Close();
         }
 #endif
 

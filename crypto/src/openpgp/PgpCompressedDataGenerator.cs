@@ -179,6 +179,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 if (disposing)
                 {
 				    Finish();
+                    return;
                 }
                 base.Dispose(disposing);
             }
@@ -204,6 +205,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
 				    Finish();
 				    End();
+                    return;
                 }
                 base.Dispose(disposing);
             }

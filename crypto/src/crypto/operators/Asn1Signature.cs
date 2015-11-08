@@ -303,21 +303,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			set { throw new NotImplementedException (); }
 		}
 
-#if PORTABLE
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                return;
-
-            base.Dispose(disposing);
-        }
-#else
-        public override void Close()
-		{
-		}
-#endif
-
-		public override void Flush()
+        public override void Flush()
 		{
 		}
 

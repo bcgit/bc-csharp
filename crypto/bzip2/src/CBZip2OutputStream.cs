@@ -402,15 +402,15 @@ namespace Org.BouncyCastle.Apache.Bzip2
         }
 #else
         public override void Close() {
-            if (closed) {
+            if (closed)
                 return;
-            }
 
             Finish();
 
             closed = true;
-            base.Close();
             Platform.Dispose(this.bsStream);
+
+            base.Close();
         }
 #endif
 

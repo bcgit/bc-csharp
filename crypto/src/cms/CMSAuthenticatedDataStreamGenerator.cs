@@ -289,6 +289,7 @@ namespace Org.BouncyCastle.Cms
 
 				authGen.Close();
 				cGen.Close();
+                base.Close();
 			}
 #endif
 		}

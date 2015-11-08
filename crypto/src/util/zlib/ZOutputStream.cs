@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
         {
             if (disposing)
             {
-			    if (this.closed)
+			    if (closed)
 				    return;
 
                 DoClose();
@@ -110,10 +110,11 @@ namespace Org.BouncyCastle.Utilities.Zlib
 #else
 		public override void Close()
 		{
-			if (this.closed)
+			if (closed)
 				return;
 
             DoClose();
+            base.Close();
 		}
 #endif
 

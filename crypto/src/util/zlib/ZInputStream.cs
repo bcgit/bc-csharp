@@ -98,22 +98,23 @@ namespace Org.BouncyCastle.Utilities.Zlib
         {
             if (disposing)
             {
-			    if (!closed)
-			    {
-				    closed = true;
-                    Platform.Dispose(input);
-			    }
+			    if (closed)
+                    return;
+
+                closed = true;
+                Platform.Dispose(input);
             }
             base.Dispose(disposing);
         }
 #else
         public override void Close()
 		{
-			if (!closed)
-			{
-				closed = true;
-                Platform.Dispose(input);
-			}
+            if (closed)
+                return;
+
+            closed = true;
+            Platform.Dispose(input);
+            base.Close();
 		}
 #endif
 

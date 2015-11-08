@@ -164,6 +164,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                 Platform.Dispose(outp);
                 outp=null;
             }
+            base.Close();
         }
 #endif
     }
