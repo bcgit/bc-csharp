@@ -267,7 +267,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    style = (DateTimeStyles)Enum.Parse(typeof(DateTimeStyles), "AssumeUniversal");
+                    style = (DateTimeStyles)Enums.GetEnumValue(typeof(DateTimeStyles), "AssumeUniversal");
                 }
                 catch (Exception)
                 {
