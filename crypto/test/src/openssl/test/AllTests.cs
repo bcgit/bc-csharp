@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using System.Text;
 
+#if !LIB
 using NUnit.Core;
+#endif
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
@@ -33,6 +35,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			}
 		}
 
+#if !LIB
         public static void Main(string[] args)
         {
             Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
@@ -48,6 +51,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
                 return suite;
             }
         }
+#endif
 
         [Test]
 		public void TestOpenSsl()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !LIB
+using System;
 
 using NUnit.Core;
 using NUnit.Framework;
@@ -29,3 +30,4 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
         }
     }
 }
+#endif

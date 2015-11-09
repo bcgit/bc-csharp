@@ -1,3 +1,4 @@
+#if !LIB
 using System;
 using System.IO;
 
@@ -434,3 +435,4 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
         }
 	}
 }
+#endif

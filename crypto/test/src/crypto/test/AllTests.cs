@@ -1,6 +1,8 @@
 using System;
 
+#if !LIB
 using NUnit.Core;
+#endif
 using NUnit.Framework;
 
 using Org.BouncyCastle.Utilities.Test;
@@ -10,6 +12,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	[TestFixture]
 	public class AllTests
 	{
+#if !LIB
         public static void Main(string[] args)
         {
             Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
@@ -26,6 +29,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 return suite;
             }
         }
+#endif
 
         [Test]
 		public void TestCrypto()
