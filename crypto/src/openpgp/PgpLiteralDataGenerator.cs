@@ -142,7 +142,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		}
 
 #if !PORTABLE || DOTNET
-		/// <summary>
+        /// <summary>
 		/// <p>
 		/// Open a literal data packet for the passed in <c>FileInfo</c> object, returning
 		/// an output stream for saving the file contents.
