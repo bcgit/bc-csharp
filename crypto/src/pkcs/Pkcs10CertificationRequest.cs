@@ -344,7 +344,7 @@ namespace Org.BouncyCastle.Pkcs
 
                 Platform.Dispose(streamCalculator.Stream);
 
-                return ((IVerifier)streamCalculator.GetResult()).IsVerified(sigBits.GetBytes());
+                return ((IVerifier)streamCalculator.GetResult()).IsVerified(sigBits.GetOctets());
             }
             catch (Exception e)
             {
@@ -402,14 +402,14 @@ namespace Org.BouncyCastle.Pkcs
 
 			if (asn1Params != null && !(asn1Params is Asn1Null))
 			{
-				if (sigAlgId.ObjectID.Equals(PkcsObjectIdentifiers.IdRsassaPss))
+                if (sigAlgId.Algorithm.Equals(PkcsObjectIdentifiers.IdRsassaPss))
 				{
 					RsassaPssParameters rsaParams = RsassaPssParameters.GetInstance(asn1Params);
-					return GetDigestAlgName(rsaParams.HashAlgorithm.ObjectID) + "withRSAandMGF1";
+                    return GetDigestAlgName(rsaParams.HashAlgorithm.Algorithm) + "withRSAandMGF1";
 				}
 			}
 
-			return sigAlgId.ObjectID.Id;
+            return sigAlgId.Algorithm.Id;
 		}
 
 		private static string GetDigestAlgName(

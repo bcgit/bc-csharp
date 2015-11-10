@@ -128,14 +128,14 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             Asn1EncodableVector v = new Asn1EncodableVector();
             v.Add(cert.TbsCertificate);
             v.Add(cert.SignatureAlgorithm);
-            v.Add(CorruptBitString(cert.Signature));
+            v.Add(CorruptSignature(cert.Signature));
 
             return X509CertificateStructure.GetInstance(new DerSequence(v));
         }
 
-        protected virtual DerBitString CorruptBitString(DerBitString bs)
+        protected virtual DerBitString CorruptSignature(DerBitString bs)
         {
-            return new DerBitString(CorruptBit(bs.GetBytes()));
+            return new DerBitString(CorruptBit(bs.GetOctets()));
         }
 
         protected virtual byte[] CorruptBit(byte[] bs)

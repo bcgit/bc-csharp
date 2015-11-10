@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
 		public override Asn1Object ToAsn1Object()
         {
-			return new DerSequence(ObjectID, Parameters);
+            return new DerSequence(Algorithm, Parameters);
         }
     }
 }

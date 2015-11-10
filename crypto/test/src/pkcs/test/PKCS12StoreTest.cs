@@ -837,7 +837,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfo.GetInstance(sb.BagValue);
 
 			// check the key encryption
-			if (!encInfo.EncryptionAlgorithm.ObjectID.Equals(keyAlgorithm))
+            if (!encInfo.EncryptionAlgorithm.Algorithm.Equals(keyAlgorithm))
 			{
 				Fail("key encryption algorithm wrong");
 			}
@@ -845,7 +845,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			// check the certificate encryption
 			EncryptedData cb = EncryptedData.GetInstance(c2.Content);
 
-			if (!cb.EncryptionAlgorithm.ObjectID.Equals(certAlgorithm))
+            if (!cb.EncryptionAlgorithm.Algorithm.Equals(certAlgorithm))
 			{
 				Fail("cert encryption algorithm wrong");
 			}

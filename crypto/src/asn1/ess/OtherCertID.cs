@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Ess
@@ -78,7 +79,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 				if (otherCertHash.ToAsn1Object() is Asn1OctetString)
 				{
 					// SHA-1
-					return new AlgorithmIdentifier("1.3.14.3.2.26");
+					return new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
 				}
 
 				return DigestInfo.GetInstance(otherCertHash).AlgorithmID;

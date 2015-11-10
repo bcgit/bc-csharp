@@ -681,6 +681,7 @@ namespace Org.BouncyCastle.Math
 
             int xBits = BitsPerByte * nBytes - bitLength;
             byte mask = (byte)(255U >> xBits);
+            byte lead = (byte)(1 << (7 - xBits));
 
             for (;;)
             {
@@ -690,7 +691,7 @@ namespace Org.BouncyCastle.Math
                 b[0] &= mask;
 
                 // ensure the leading bit is 1 (to meet the strength requirement)
-                b[0] |= (byte)(1 << (7 - xBits));
+                b[0] |= lead;
 
                 // ensure the trailing bit is 1 (i.e. must be odd)
                 b[nBytes - 1] |= 1;
@@ -705,18 +706,13 @@ namespace Org.BouncyCastle.Math
                 if (CheckProbablePrime(certainty, random, true))
                     break;
 
-                if (bitLength > 32)
+                for (int j = 1; j < magnitude.Length; ++j)
                 {
-                    for (int rep = 0; rep < 10000; ++rep)
-                    {
-                        int n = 33 + random.Next(bitLength - 2);
-                        this.magnitude[this.magnitude.Length - (n >> 5)] ^= (1 << (n & 31));
-                        this.magnitude[this.magnitude.Length - 1] ^= ((random.Next() + 1) << 1);
-                        this.mQuote = 0;
+                    this.magnitude[j] ^= (random.Next() << 1);
+                    this.mQuote = 0;
 
-                        if (CheckProbablePrime(certainty, random, true))
-                            return;
-                    }
+                    if (CheckProbablePrime(certainty, random, true))
+                        return;
                 }
             }
         }
@@ -968,7 +964,7 @@ namespace Org.BouncyCastle.Math
         //
         // BitLen(value) is the number of bits in value.
         //
-        private static int BitLen(int w)
+        internal static int BitLen(int w)
         {
             uint v = (uint)w;
             uint t = v >> 24;

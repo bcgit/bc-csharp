@@ -345,7 +345,7 @@ namespace Org.BouncyCastle.Security
             AlgorithmIdentifier algID,
             char[]              password)
         {
-            return GenerateCipherParameters(algID.ObjectID.Id, password, false, algID.Parameters);
+            return GenerateCipherParameters(algID.Algorithm.Id, password, false, algID.Parameters);
         }
 
         public static ICipherParameters GenerateCipherParameters(
@@ -353,7 +353,7 @@ namespace Org.BouncyCastle.Security
             char[]              password,
             bool				wrongPkcs12Zero)
         {
-            return GenerateCipherParameters(algID.ObjectID.Id, password, wrongPkcs12Zero, algID.Parameters);
+            return GenerateCipherParameters(algID.Algorithm.Id, password, wrongPkcs12Zero, algID.Parameters);
         }
 
         public static ICipherParameters GenerateCipherParameters(
@@ -401,10 +401,10 @@ namespace Org.BouncyCastle.Security
             {
                 PbeS2Parameters s2p = PbeS2Parameters.GetInstance(pbeParameters.ToAsn1Object());
                 AlgorithmIdentifier encScheme = s2p.EncryptionScheme;
-                DerObjectIdentifier encOid = encScheme.ObjectID;
+                DerObjectIdentifier encOid = encScheme.Algorithm;
                 Asn1Object encParams = encScheme.Parameters.ToAsn1Object();
 
-                // TODO What about s2p.KeyDerivationFunc.ObjectID?
+                // TODO What about s2p.KeyDerivationFunc.Algorithm?
                 Pbkdf2Params pbeParams = Pbkdf2Params.GetInstance(s2p.KeyDerivationFunc.Parameters.ToAsn1Object());
 
                 byte[] iv;
@@ -577,13 +577,13 @@ namespace Org.BouncyCastle.Security
         public static object CreateEngine(
             AlgorithmIdentifier algID)
         {
-            string algorithm = algID.ObjectID.Id;
+            string algorithm = algID.Algorithm.Id;
 
             if (IsPkcs5Scheme2(algorithm))
             {
                 PbeS2Parameters s2p = PbeS2Parameters.GetInstance(algID.Parameters.ToAsn1Object());
                 AlgorithmIdentifier encScheme = s2p.EncryptionScheme;
-                return CipherUtilities.GetCipher(encScheme.ObjectID);
+                return CipherUtilities.GetCipher(encScheme.Algorithm);
             }
 
             return CreateEngine(algorithm);

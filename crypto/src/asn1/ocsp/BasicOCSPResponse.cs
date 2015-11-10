@@ -94,7 +94,12 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			get { return signature; }
 		}
 
-		[Obsolete("Use Certs property instead")]
+        public byte[] GetSignatureOctets()
+        {
+            return signature.GetOctets();
+        }
+
+        [Obsolete("Use Certs property instead")]
 		public Asn1Sequence GetCerts()
         {
             return certs;

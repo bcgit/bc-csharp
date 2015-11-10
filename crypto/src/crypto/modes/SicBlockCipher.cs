@@ -56,16 +56,18 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (blockSize < IV.Length)
                 throw new ArgumentException("CTR/SIC mode requires IV no greater than: " + blockSize + " bytes.");
-            if (blockSize - IV.Length > 8)
-                throw new ArgumentException("CTR/SIC mode requires IV of at least: " + (blockSize - 8) + " bytes.");
 
-            Reset();
+            int maxCounterSize = System.Math.Min(8, blockSize / 2);
+            if (blockSize - IV.Length > maxCounterSize)
+                throw new ArgumentException("CTR/SIC mode requires IV of at least: " + (blockSize - maxCounterSize) + " bytes.");
 
             // if null it's an IV changed only.
             if (ivParam.Parameters != null)
             {
                 cipher.Init(true, ivParam.Parameters);
             }
+
+            Reset();
         }
 
         public virtual string AlgorithmName

@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Pkcs
 
                 byte[] data = ((Asn1OctetString) info.Content).GetOctets();
 
-                byte[] mac = CalculatePbeMac(algId.ObjectID, salt, itCount, password, false, data);
+                byte[] mac = CalculatePbeMac(algId.Algorithm, salt, itCount, password, false, data);
                 byte[] dig = dInfo.GetDigest();
 
                 if (!Arrays.ConstantTimeAreEqual(mac, dig))
@@ -222,7 +222,7 @@ namespace Org.BouncyCastle.Pkcs
                         throw new IOException("PKCS12 key store MAC invalid - wrong password or corrupted file.");
 
                     // Try with incorrect zero length password
-                    mac = CalculatePbeMac(algId.ObjectID, salt, itCount, password, true, data);
+                    mac = CalculatePbeMac(algId.Algorithm, salt, itCount, password, true, data);
 
                     if (!Arrays.ConstantTimeAreEqual(mac, dig))
                         throw new IOException("PKCS12 key store MAC invalid - wrong password or corrupted file.");
@@ -1015,14 +1015,14 @@ namespace Org.BouncyCastle.Pkcs
             bool				wrongPkcs12Zero,
             byte[]				data)
         {
-            IBufferedCipher cipher = PbeUtilities.CreateEngine(algId.ObjectID) as IBufferedCipher;
+            IBufferedCipher cipher = PbeUtilities.CreateEngine(algId.Algorithm) as IBufferedCipher;
 
             if (cipher == null)
-                throw new Exception("Unknown encryption algorithm: " + algId.ObjectID);
+                throw new Exception("Unknown encryption algorithm: " + algId.Algorithm);
 
             Pkcs12PbeParams pbeParameters = Pkcs12PbeParams.GetInstance(algId.Parameters);
             ICipherParameters cipherParams = PbeUtilities.GenerateCipherParameters(
-                algId.ObjectID, password, wrongPkcs12Zero, pbeParameters);
+                algId.Algorithm, password, wrongPkcs12Zero, pbeParameters);
             cipher.Init(forEncryption, cipherParams);
             return cipher.DoFinal(data);
         }

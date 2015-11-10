@@ -11,7 +11,7 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Asn1.Tests
 {
 	/**
-	* PKIFailureInfoTest
+	* PkiFailureInfoTest
 	*/
 	[TestFixture]
 	public class PkiFailureInfoTest
@@ -25,12 +25,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "PkiFailureInfo"; }
 		}
 
-		private void doTestEncoding()
+        private void DoTestEncoding()
 		{
-			DerBitString bitString = (DerBitString) Asn1Object.FromByteArray(CORRECT_FAILURE_INFO);
+			DerBitString bitString = (DerBitString)Asn1Object.FromByteArray(CORRECT_FAILURE_INFO);
 			PkiFailureInfo correct = new PkiFailureInfo(bitString);
 
-			PkiFailureInfo bug = new PkiFailureInfo(PkiFailureInfo.BadRequest | PkiFailureInfo.BadTime | PkiFailureInfo.BadDataFormat | PkiFailureInfo.IncorrectData);
+			PkiFailureInfo bug = new PkiFailureInfo(
+                PkiFailureInfo.BadRequest | PkiFailureInfo.BadTime | PkiFailureInfo.BadDataFormat | PkiFailureInfo.IncorrectData);
 
 			if (!Arrays.AreEqual(correct.GetDerEncoded(), bug.GetDerEncoded()))
 			{
@@ -40,23 +41,35 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		public override void PerformTest()
 		{
-			BitStringConstantTester.testFlagValueCorrect(0, PkiFailureInfo.BadAlg);
-			BitStringConstantTester.testFlagValueCorrect(1, PkiFailureInfo.BadMessageCheck);
-			BitStringConstantTester.testFlagValueCorrect(2, PkiFailureInfo.BadRequest);
-			BitStringConstantTester.testFlagValueCorrect(3, PkiFailureInfo.BadTime);
-			BitStringConstantTester.testFlagValueCorrect(4, PkiFailureInfo.BadCertId);
-			BitStringConstantTester.testFlagValueCorrect(5, PkiFailureInfo.BadDataFormat);
-			BitStringConstantTester.testFlagValueCorrect(6, PkiFailureInfo.WrongAuthority);
-			BitStringConstantTester.testFlagValueCorrect(7, PkiFailureInfo.IncorrectData);
-			BitStringConstantTester.testFlagValueCorrect(8, PkiFailureInfo.MissingTimeStamp);
-			BitStringConstantTester.testFlagValueCorrect(9, PkiFailureInfo.BadPop);
-			BitStringConstantTester.testFlagValueCorrect(14, PkiFailureInfo.TimeNotAvailable);
-			BitStringConstantTester.testFlagValueCorrect(15, PkiFailureInfo.UnacceptedPolicy);
-			BitStringConstantTester.testFlagValueCorrect(16, PkiFailureInfo.UnacceptedExtension);
-			BitStringConstantTester.testFlagValueCorrect(17, PkiFailureInfo.AddInfoNotAvailable);
-			BitStringConstantTester.testFlagValueCorrect(25, PkiFailureInfo.SystemFailure);
+            BitStringConstantTester.testFlagValueCorrect(0, PkiFailureInfo.BadAlg);
+            BitStringConstantTester.testFlagValueCorrect(1, PkiFailureInfo.BadMessageCheck);
+            BitStringConstantTester.testFlagValueCorrect(2, PkiFailureInfo.BadRequest);
+            BitStringConstantTester.testFlagValueCorrect(3, PkiFailureInfo.BadTime);
+            BitStringConstantTester.testFlagValueCorrect(4, PkiFailureInfo.BadCertId);
+            BitStringConstantTester.testFlagValueCorrect(5, PkiFailureInfo.BadDataFormat);
+            BitStringConstantTester.testFlagValueCorrect(6, PkiFailureInfo.WrongAuthority);
+            BitStringConstantTester.testFlagValueCorrect(7, PkiFailureInfo.IncorrectData);
+            BitStringConstantTester.testFlagValueCorrect(8, PkiFailureInfo.MissingTimeStamp);
+            BitStringConstantTester.testFlagValueCorrect(9, PkiFailureInfo.BadPop);
+            BitStringConstantTester.testFlagValueCorrect(10, PkiFailureInfo.CertRevoked);
+            BitStringConstantTester.testFlagValueCorrect(11, PkiFailureInfo.CertConfirmed);
+            BitStringConstantTester.testFlagValueCorrect(12, PkiFailureInfo.WrongIntegrity);
+            BitStringConstantTester.testFlagValueCorrect(13, PkiFailureInfo.BadRecipientNonce);
+            BitStringConstantTester.testFlagValueCorrect(14, PkiFailureInfo.TimeNotAvailable);
+            BitStringConstantTester.testFlagValueCorrect(15, PkiFailureInfo.UnacceptedPolicy);
+            BitStringConstantTester.testFlagValueCorrect(16, PkiFailureInfo.UnacceptedExtension);
+            BitStringConstantTester.testFlagValueCorrect(17, PkiFailureInfo.AddInfoNotAvailable);
+            BitStringConstantTester.testFlagValueCorrect(18, PkiFailureInfo.BadSenderNonce);
+            BitStringConstantTester.testFlagValueCorrect(19, PkiFailureInfo.BadCertTemplate);
+            BitStringConstantTester.testFlagValueCorrect(20, PkiFailureInfo.SignerNotTrusted);
+            BitStringConstantTester.testFlagValueCorrect(21, PkiFailureInfo.TransactionIdInUse);
+            BitStringConstantTester.testFlagValueCorrect(22, PkiFailureInfo.UnsupportedVersion);
+            BitStringConstantTester.testFlagValueCorrect(23, PkiFailureInfo.NotAuthorized);
+            BitStringConstantTester.testFlagValueCorrect(24, PkiFailureInfo.SystemUnavail);
+            BitStringConstantTester.testFlagValueCorrect(25, PkiFailureInfo.SystemFailure);
+            BitStringConstantTester.testFlagValueCorrect(26, PkiFailureInfo.DuplicateCertReq);
 
-			doTestEncoding();
+            DoTestEncoding();
 		}
 
 		public static void Main(

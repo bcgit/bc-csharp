@@ -237,16 +237,16 @@ namespace Org.BouncyCastle.X509
 		/// <returns>A byte array containg the signature of the certificate.</returns>
 		public virtual byte[] GetSignature()
 		{
-			return c.Signature.GetBytes();
+			return c.GetSignatureOctets();
 		}
 
-		/// <summary>
+        /// <summary>
 		/// A meaningful version of the Signature Algorithm. (EG SHA1WITHRSA)
 		/// </summary>
 		/// <returns>A sting representing the signature algorithm.</returns>
 		public virtual string SigAlgName
 		{
-			get { return SignerUtilities.GetEncodingName(c.SignatureAlgorithm.ObjectID); }
+            get { return SignerUtilities.GetEncodingName(c.SignatureAlgorithm.Algorithm); }
 		}
 
 		/// <summary>
@@ -255,7 +255,7 @@ namespace Org.BouncyCastle.X509
 		/// <returns>A string containg a '.' separated object id.</returns>
 		public virtual string SigAlgOid
 		{
-			get { return c.SignatureAlgorithm.ObjectID.Id; }
+            get { return c.SignatureAlgorithm.Algorithm.Id; }
 		}
 
 		/// <summary>
@@ -586,7 +586,7 @@ namespace Org.BouncyCastle.X509
 
 		private static bool IsAlgIDEqual(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
 		{
-			if (!id1.ObjectID.Equals(id2.ObjectID))
+            if (!id1.Algorithm.Equals(id2.Algorithm))
 				return false;
 
 			Asn1Encodable p1 = id1.Parameters;
