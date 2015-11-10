@@ -344,7 +344,7 @@ namespace Org.BouncyCastle.Pkcs
 
                 Platform.Dispose(streamCalculator.Stream);
 
-                return ((IVerifier)streamCalculator.GetResult()).IsVerified(sigBits.GetBytes());
+                return ((IVerifier)streamCalculator.GetResult()).IsVerified(sigBits.GetOctets());
             }
             catch (Exception e)
             {

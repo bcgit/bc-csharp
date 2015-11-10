@@ -237,10 +237,10 @@ namespace Org.BouncyCastle.X509
 		/// <returns>A byte array containg the signature of the certificate.</returns>
 		public virtual byte[] GetSignature()
 		{
-			return c.Signature.GetBytes();
+			return c.GetSignatureOctets();
 		}
 
-		/// <summary>
+        /// <summary>
 		/// A meaningful version of the Signature Algorithm. (EG SHA1WITHRSA)
 		/// </summary>
 		/// <returns>A sting representing the signature algorithm.</returns>

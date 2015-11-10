@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Ocsp
 
 		public byte[] GetSignature()
 		{
-			return resp.Signature.GetBytes();
+			return resp.GetSignatureOctets();
 		}
 
 		private IList GetCertList()

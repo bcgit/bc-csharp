@@ -77,15 +77,14 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /**
 		 * Basic constructor.
 		 */
-		public PkiFailureInfo(
-			int info)
-			:	base(GetBytes(info), GetPadBits(info))
+		public PkiFailureInfo(int info)
+			: base(info)
 		{
 		}
 
 		public PkiFailureInfo(
 			DerBitString info)
-			:	base(info.GetBytes(), info.PadBits)
+			: base(info.GetBytes(), info.PadBits)
 		{
 		}
 

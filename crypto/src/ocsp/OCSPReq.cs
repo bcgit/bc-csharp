@@ -153,10 +153,10 @@ namespace Org.BouncyCastle.Ocsp
 			if (!this.IsSigned)
 				return null;
 
-			return req.OptionalSignature.SignatureValue.GetBytes();
+			return req.OptionalSignature.GetSignatureOctets();
 		}
 
-		private IList GetCertList()
+        private IList GetCertList()
 		{
 			// load the certificates if we have any
 

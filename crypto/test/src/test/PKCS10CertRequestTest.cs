@@ -210,7 +210,7 @@ namespace Org.BouncyCastle.Tests
             byte[] b = req.GetCertificationRequestInfo().GetEncoded();
             sig.BlockUpdate(b, 0, b.Length);
 
-            if (!sig.VerifySignature(req.Signature.GetBytes()))
+            if (!sig.VerifySignature(req.GetSignatureOctets()))
             {
                 Fail("signature not mapped correctly.");
             }
@@ -264,7 +264,7 @@ namespace Org.BouncyCastle.Tests
             byte[] b = req.GetCertificationRequestInfo().GetEncoded();
             sig.BlockUpdate(b, 0, b.Length);
 
-            if (!sig.VerifySignature(req.Signature.GetBytes()))
+            if (!sig.VerifySignature(req.GetSignatureOctets()))
             {
                 Fail("signature not mapped correctly.");
             }
@@ -325,7 +325,7 @@ namespace Org.BouncyCastle.Tests
             byte[] encoded = req.GetCertificationRequestInfo().GetEncoded();
             sig.BlockUpdate(encoded, 0, encoded.Length);
 
-            if (!sig.VerifySignature(req.Signature.GetBytes()))
+            if (!sig.VerifySignature(req.GetSignatureOctets()))
             {
                 Fail("signature not mapped correctly.");
             }

@@ -80,7 +80,12 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 			get { return signatureValue; }
 		}
 
-		public Asn1Sequence Certs
+        public byte[] GetSignatureOctets()
+        {
+            return signatureValue.GetOctets();
+        }
+
+        public Asn1Sequence Certs
 		{
 			get { return certs; }
 		}

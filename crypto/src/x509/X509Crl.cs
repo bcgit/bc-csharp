@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.X509
 
 		public virtual byte[] GetSignature()
 		{
-			return c.Signature.GetBytes();
+			return c.GetSignatureOctets();
 		}
 
 		public virtual string SigAlgName

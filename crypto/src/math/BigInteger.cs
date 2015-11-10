@@ -964,7 +964,7 @@ namespace Org.BouncyCastle.Math
         //
         // BitLen(value) is the number of bits in value.
         //
-        private static int BitLen(int w)
+        internal static int BitLen(int w)
         {
             uint v = (uint)w;
             uint t = v >> 24;

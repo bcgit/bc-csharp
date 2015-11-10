@@ -249,6 +249,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\BERBitString.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\BERGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
