@@ -165,7 +165,7 @@ namespace Org.BouncyCastle.Cms
 				Stream octetOutputStream = CmsUtilities.CreateBerOctetOutputStream(
 					eiGen.GetRawOutputStream(), 0, false, _bufferSize);
 
-				IMac mac = MacUtilities.GetMac(macAlgId.ObjectID);
+                IMac mac = MacUtilities.GetMac(macAlgId.Algorithm);
 				// TODO Confirm no ParametersWithRandom needed
 	            mac.Init(cipherParameters);
 				Stream mOut = new TeeOutputStream(octetOutputStream, new MacOutputStream(mac));

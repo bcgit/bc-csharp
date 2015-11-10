@@ -31,12 +31,8 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerBitString(null, 1);
                 Fail("exception not thrown");
             }
-            catch (ArgumentNullException e)
+            catch (ArgumentNullException)
             {
-                //if (!"data cannot be null".Equals(e.Message))
-                //{
-                //    Fail("Unexpected exception");
-                //}
             }
 
             try
@@ -44,12 +40,8 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerBitString(new byte[0], 1);
                 Fail("exception not thrown");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
-                //if (!"zero length data with non-zero pad bits".Equals(e.Message))
-                //{
-                //    Fail("Unexpected exception");
-                //}
             }
 
             try
@@ -57,12 +49,8 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerBitString(new byte[1], 8);
                 Fail("exception not thrown");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
-                //if (!"pad bits cannot be greater than 7 or less than 0".Equals(e.Message))
-                //{
-                //    Fail("Unexpected exception");
-                //}
             }
 
             DerBitString s2 = new DerBitString(0);

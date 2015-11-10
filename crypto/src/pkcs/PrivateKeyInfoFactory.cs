@@ -195,7 +195,7 @@ namespace Org.BouncyCastle.Pkcs
 
             IBufferedCipher cipher = PbeUtilities.CreateEngine(algID) as IBufferedCipher;
             if (cipher == null)
-                throw new Exception("Unknown encryption algorithm: " + algID.ObjectID);
+                throw new Exception("Unknown encryption algorithm: " + algID.Algorithm);
 
             ICipherParameters cipherParameters = PbeUtilities.GenerateCipherParameters(
                 algID, passPhrase, wrongPkcs12Zero);

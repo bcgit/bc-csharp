@@ -95,12 +95,12 @@ namespace Org.BouncyCastle.Ocsp
 
 		public string SignatureAlgName
 		{
-			get { return OcspUtilities.GetAlgorithmName(resp.SignatureAlgorithm.ObjectID); }
+            get { return OcspUtilities.GetAlgorithmName(resp.SignatureAlgorithm.Algorithm); }
 		}
 
 		public string SignatureAlgOid
 		{
-			get { return resp.SignatureAlgorithm.ObjectID.Id; }
+            get { return resp.SignatureAlgorithm.Algorithm.Id; }
 		}
 
 		[Obsolete("RespData class is no longer required as all functionality is available on this class")]

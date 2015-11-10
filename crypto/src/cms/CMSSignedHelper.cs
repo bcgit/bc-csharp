@@ -348,7 +348,7 @@ namespace Org.BouncyCastle.Cms
 			AlgorithmIdentifier algId)
 		{
 			if (algId.Parameters == null)
-				return new AlgorithmIdentifier(algId.ObjectID, DerNull.Instance);
+                return new AlgorithmIdentifier(algId.Algorithm, DerNull.Instance);
 
 			return algId;
 		}

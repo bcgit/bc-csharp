@@ -166,7 +166,7 @@ namespace Org.BouncyCastle.Cms
 				Stream octetOutputStream = CmsUtilities.CreateBerOctetOutputStream(
 					eiGen.GetRawOutputStream(), 0, false, _bufferSize);
 
-				IBufferedCipher cipher = CipherUtilities.GetCipher(encAlgID.ObjectID);
+                IBufferedCipher cipher = CipherUtilities.GetCipher(encAlgID.Algorithm);
 				cipher.Init(true, new ParametersWithRandom(cipherParameters, rand));
 				CipherStream cOut = new CipherStream(octetOutputStream, null, cipher);
 

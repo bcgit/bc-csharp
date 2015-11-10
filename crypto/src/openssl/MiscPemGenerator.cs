@@ -218,7 +218,7 @@ namespace Org.BouncyCastle.OpenSsl
         {
             PrivateKeyInfo info = PrivateKeyInfoFactory.CreatePrivateKeyInfo(akp);
             AlgorithmIdentifier algID = info.PrivateKeyAlgorithm;
-            DerObjectIdentifier oid = algID.ObjectID;
+            DerObjectIdentifier oid = algID.Algorithm;
 
             if (oid.Equals(X9ObjectIdentifiers.IdDsa))
             {

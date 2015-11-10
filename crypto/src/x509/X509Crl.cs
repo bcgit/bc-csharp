@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.X509
 
 		public virtual string SigAlgOid
 		{
-			get { return c.SignatureAlgorithm.ObjectID.Id; }
+            get { return c.SignatureAlgorithm.Algorithm.Id; }
 		}
 
 		public virtual byte[] GetSigAlgParams()

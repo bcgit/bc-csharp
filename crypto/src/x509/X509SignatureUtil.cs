@@ -55,13 +55,13 @@ namespace Org.BouncyCastle.X509
 
 			if (parameters != null && !derNull.Equals(parameters))
 			{
-				if (sigAlgId.ObjectID.Equals(PkcsObjectIdentifiers.IdRsassaPss))
+                if (sigAlgId.Algorithm.Equals(PkcsObjectIdentifiers.IdRsassaPss))
 				{
 					RsassaPssParameters rsaParams = RsassaPssParameters.GetInstance(parameters);
 
-					return GetDigestAlgName(rsaParams.HashAlgorithm.ObjectID) + "withRSAandMGF1";
+                    return GetDigestAlgName(rsaParams.HashAlgorithm.Algorithm) + "withRSAandMGF1";
 				}
-				if (sigAlgId.ObjectID.Equals(X9ObjectIdentifiers.ECDsaWithSha2))
+                if (sigAlgId.Algorithm.Equals(X9ObjectIdentifiers.ECDsaWithSha2))
 				{
 					Asn1Sequence ecDsaParams = Asn1Sequence.GetInstance(parameters);
 
@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.X509
 				}
 			}
 
-			return sigAlgId.ObjectID.Id;
+            return sigAlgId.Algorithm.Id;
 		}
 
 		/**

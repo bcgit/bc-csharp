@@ -144,7 +144,7 @@ namespace Org.BouncyCastle.Ocsp
 				if (!this.IsSigned)
 					return null;
 
-				return req.OptionalSignature.SignatureAlgorithm.ObjectID.Id;
+                return req.OptionalSignature.SignatureAlgorithm.Algorithm.Id;
 			}
 		}
 

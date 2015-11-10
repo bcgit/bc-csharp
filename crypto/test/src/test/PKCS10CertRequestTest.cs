@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Tests
                 Fail("Failed Verify check EC uncompressed encoded.");
             }
 
-            if (!req.SignatureAlgorithm.ObjectID.Equals(algOid))
+            if (!req.SignatureAlgorithm.Algorithm.Equals(algOid))
             {
                 Fail("ECDSA oid incorrect.");
             }
@@ -247,7 +247,7 @@ namespace Org.BouncyCastle.Tests
                 Fail("Failed Verify check EC encoded.");
             }
 
-            if (!req.SignatureAlgorithm.ObjectID.Equals(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001))
+            if (!req.SignatureAlgorithm.Algorithm.Equals(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001))
             {
                 Fail("ECGOST oid incorrect.");
             }
@@ -308,7 +308,7 @@ namespace Org.BouncyCastle.Tests
                 Fail("Failed verify check PSS encoded.");
             }
 
-            if (!req.SignatureAlgorithm.ObjectID.Equals(PkcsObjectIdentifiers.IdRsassaPss))
+            if (!req.SignatureAlgorithm.Algorithm.Equals(PkcsObjectIdentifiers.IdRsassaPss))
             {
                 Fail("PSS oid incorrect.");
             }

@@ -459,7 +459,7 @@ namespace Org.BouncyCastle.Cms
 			// NB: Would need to call FixAlgID on the DigestAlgorithmID
 
 			// For precalculated signers, just need to register the algorithm, not configure a digest
-			RegisterDigestOid(si.DigestAlgorithmID.ObjectID.Id);
+            RegisterDigestOid(si.DigestAlgorithmID.Algorithm.Id);
 		}
 
 		/**

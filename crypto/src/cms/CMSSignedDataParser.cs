@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Cms
 
 					try
 					{
-						string digestOid = id.ObjectID.Id;
+                        string digestOid = id.Algorithm.Id;
 						string digestName = Helper.GetDigestAlgName(digestOid);
 
 						if (!this._digests.Contains(digestName))
@@ -216,7 +216,7 @@ namespace Org.BouncyCastle.Cms
 					{
 						SignerInfo info = SignerInfo.GetInstance(o.ToAsn1Object());
 						string digestName = Helper.GetDigestAlgName(
-							info.DigestAlgorithm.ObjectID.Id);
+                            info.DigestAlgorithm.Algorithm.Id);
 
 						byte[] hash = (byte[]) hashes[digestName];
 
