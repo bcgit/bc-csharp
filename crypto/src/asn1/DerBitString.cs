@@ -95,29 +95,29 @@ namespace Org.BouncyCastle.Asn1
 
             Debug.Assert(0 < bytes && bytes <= 4);
 
-            byte[] result = new byte[bytes];
+            byte[] data = new byte[bytes];
             --bytes;
 
             for (int i = 0; i < bytes; i++)
             {
-                result[i] = (byte)namedBits;
+                data[i] = (byte)namedBits;
                 namedBits >>= 8;
             }
 
             Debug.Assert((namedBits & 0xFF) != 0);
 
-            result[bytes] = (byte)namedBits;
+            data[bytes] = (byte)namedBits;
 
-            int pad = 0;
-            while ((namedBits & (1 << pad)) == 0)
+            int padBits = 0;
+            while ((namedBits & (1 << padBits)) == 0)
             {
-                ++pad;
+                ++padBits;
             }
 
-            Debug.Assert(pad < 8);
+            Debug.Assert(padBits < 8);
 
-            this.mData = result;
-            this.mPadBits = pad;
+            this.mData = data;
+            this.mPadBits = padBits;
         }
 
         public DerBitString(
@@ -187,20 +187,18 @@ namespace Org.BouncyCastle.Asn1
             {
                 int last = mData[mData.Length - 1];
                 int mask = (1 << mPadBits) - 1;
+                int unusedBits = last & mask;
 
-                if ((last & mask) != 0)
+                if (unusedBits != 0)
                 {
-                    byte[] result = Arrays.Prepend(mData, (byte)mPadBits);
+                    byte[] contents = Arrays.Prepend(mData, (byte)mPadBits);
 
                     /*
-                    * X.690-0207 11.2.1: Each unused bit in the final octet of the encoding of a bit string value shall be set to zero.
-                    * 
-                    * NOTE: 'pad' is constrained to be 0 if 'bytes' are empty, in which case this is a no-op. 
-                    */
-                    last ^= (last & mask);
-                    result[result.Length - 1] &= (byte)last;
+                     * X.690-0207 11.2.1: Each unused bit in the final octet of the encoding of a bit string value shall be set to zero.
+                     */
+                    contents[contents.Length - 1] = (byte)(last ^ unusedBits);
 
-                    derOut.WriteEncoded(Asn1Tags.BitString, result);
+                    derOut.WriteEncoded(Asn1Tags.BitString, contents);
                     return;
                 }
             }

@@ -230,7 +230,7 @@ namespace Org.BouncyCastle.Pkix
 			{
 				try
 				{
-					if (location.StartsWith("ldap://"))
+					if (Platform.StartsWith(location, "ldap://"))
 					{
 						// ldap://directory.d-trust.net/CN=D-TRUST
 						// Qualified CA 2003 1:PN,O=D-Trust GmbH,C=DE

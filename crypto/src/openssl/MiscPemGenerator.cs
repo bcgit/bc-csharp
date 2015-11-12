@@ -197,7 +197,7 @@ namespace Org.BouncyCastle.OpenSsl
                 dekAlgName = "DES-EDE3-CBC";
             }
 
-            int ivLength = dekAlgName.StartsWith("AES-") ? 16 : 8;
+            int ivLength = Platform.StartsWith(dekAlgName, "AES-") ? 16 : 8;
 
             byte[] iv = new byte[ivLength];
             random.NextBytes(iv);

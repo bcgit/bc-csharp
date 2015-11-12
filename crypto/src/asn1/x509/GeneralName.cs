@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
+using Org.BouncyCastle.Utilities;
 using NetUtils = Org.BouncyCastle.Utilities.Net;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -356,11 +357,11 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		private int[] parseIPv6(string ip)
 		{
-			if (ip.StartsWith("::"))
+			if (Platform.StartsWith(ip, "::"))
 			{
 				ip = ip.Substring(1);
 			}
-			else if (ip.EndsWith("::"))
+			else if (Platform.EndsWith(ip, "::"))
 			{
 				ip = ip.Substring(0, ip.Length - 1);
 			}

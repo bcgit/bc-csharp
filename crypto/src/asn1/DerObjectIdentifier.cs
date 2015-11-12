@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Asn1
         public virtual bool On(DerObjectIdentifier stem)
         {
             string id = Id, stemId = stem.Id;
-            return id.Length > stemId.Length && id[stemId.Length] == '.' && id.StartsWith(stemId);
+            return id.Length > stemId.Length && id[stemId.Length] == '.' && Platform.StartsWith(id, stemId);
         }
 
         internal DerObjectIdentifier(byte[] bytes)

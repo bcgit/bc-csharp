@@ -312,7 +312,7 @@ namespace Org.BouncyCastle.Security
                 return GetPssX509Parameters("SHA-1");
             }
 
-            if (mechanism.EndsWith("withRSAandMGF1"))
+            if (Platform.EndsWith(mechanism, "withRSAandMGF1"))
             {
                 string digestName = mechanism.Substring(0, mechanism.Length - "withRSAandMGF1".Length);
                 return GetPssX509Parameters(digestName);
@@ -534,10 +534,10 @@ namespace Org.BouncyCastle.Security
                 return new Iso9796d2Signer(new RsaBlindedEngine(), new RipeMD160Digest(), true);
             }
 
-            if (mechanism.EndsWith("/X9.31"))
+            if (Platform.EndsWith(mechanism, "/X9.31"))
             {
                 string x931 = mechanism.Substring(0, mechanism.Length - "/X9.31".Length);
-                int withPos = x931.IndexOf("WITH");
+                int withPos = Platform.IndexOf(x931, "WITH");
                 if (withPos > 0)
                 {
                     int endPos = withPos + "WITH".Length;

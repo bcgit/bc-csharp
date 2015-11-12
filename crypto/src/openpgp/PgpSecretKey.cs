@@ -1204,7 +1204,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     string curveID = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
                     curveName = SXprUtilities.ReadString(inputStream, inputStream.ReadByte());
 
-                    if (curveName.StartsWith("NIST "))
+                    if (Platform.StartsWith(curveName, "NIST "))
                     {
                         curveName = curveName.Substring("NIST ".Length);
                     }

@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Security
         public static SecureRandom GetInstance(string algorithm, bool autoSeed)
         {
             string upper = Platform.ToUpperInvariant(algorithm);
-            if (upper.EndsWith("PRNG"))
+            if (Platform.EndsWith(upper, "PRNG"))
             {
                 string digestName = upper.Substring(0, upper.Length - "PRNG".Length);
                 DigestRandomGenerator prng = CreatePrng(digestName, autoSeed);

@@ -299,7 +299,7 @@ namespace Org.BouncyCastle.Security
                 return new DsaKeyPairGenerator();
 
             // "EC", "ECDH", "ECDHC", "ECDSA", "ECGOST3410", "ECMQV"
-            if (canonicalName.StartsWith("EC"))
+            if (Platform.StartsWith(canonicalName, "EC"))
                 return new ECKeyPairGenerator(canonicalName);
 
             if (canonicalName == "ELGAMAL")
