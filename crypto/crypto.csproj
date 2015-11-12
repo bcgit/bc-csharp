@@ -12115,6 +12115,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\security\test\TestMacUtil.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\security\test\TestSignerUtil.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
