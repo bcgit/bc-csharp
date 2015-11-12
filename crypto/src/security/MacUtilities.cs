@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Globalization;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Iana;
@@ -117,7 +119,7 @@ namespace Org.BouncyCastle.Security
                 mechanism = mechanism.Substring("PBEWITH".Length);
             }
 
-            if (mechanism.StartsWith("HMAC"))
+            if (CultureInfo.InvariantCulture.CompareInfo.IsPrefix(mechanism, "HMAC", CompareOptions.Ordinal))
             {
                 string digestName;
                 if (mechanism.StartsWith("HMAC-") || mechanism.StartsWith("HMAC/"))
