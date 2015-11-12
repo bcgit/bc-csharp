@@ -444,7 +444,7 @@ namespace Org.BouncyCastle.Security
                     }
                 }
             }
-            else if (mechanism.StartsWith("PBEwithSHA-1"))
+            else if (Platform.StartsWith(mechanism, "PBEwithSHA-1"))
             {
                 PbeParametersGenerator generator = MakePbeGenerator(
                     (string) algorithmType[mechanism], new Sha1Digest(), keyBytes, salt, iterationCount);
@@ -494,7 +494,7 @@ namespace Org.BouncyCastle.Security
                     parameters = generator.GenerateDerivedParameters("RC2", 64, 64);
                 }
             }
-            else if (mechanism.StartsWith("PBEwithSHA-256"))
+            else if (Platform.StartsWith(mechanism, "PBEwithSHA-256"))
             {
                 PbeParametersGenerator generator = MakePbeGenerator(
                     (string) algorithmType[mechanism], new Sha256Digest(), keyBytes, salt, iterationCount);
@@ -512,7 +512,7 @@ namespace Org.BouncyCastle.Security
                     parameters = generator.GenerateDerivedParameters("AES", 256, 128);
                 }
             }
-            else if (mechanism.StartsWith("PBEwithMD5"))
+            else if (Platform.StartsWith(mechanism, "PBEwithMD5"))
             {
                 PbeParametersGenerator generator = MakePbeGenerator(
                     (string)algorithmType[mechanism], new MD5Digest(), keyBytes, salt, iterationCount);
@@ -538,7 +538,7 @@ namespace Org.BouncyCastle.Security
                     parameters = generator.GenerateDerivedParameters("AES", 256, 128);
                 }
             }
-            else if (mechanism.StartsWith("PBEwithMD2"))
+            else if (Platform.StartsWith(mechanism, "PBEwithMD2"))
             {
                 PbeParametersGenerator generator = MakePbeGenerator(
                     (string)algorithmType[mechanism], new MD2Digest(), keyBytes, salt, iterationCount);
@@ -551,7 +551,7 @@ namespace Org.BouncyCastle.Security
                     parameters = generator.GenerateDerivedParameters("RC2", 64, 64);
                 }
             }
-            else if (mechanism.StartsWith("PBEwithHmac"))
+            else if (Platform.StartsWith(mechanism, "PBEwithHmac"))
             {
                 string digestName = mechanism.Substring("PBEwithHmac".Length);
                 IDigest digest = DigestUtilities.GetDigest(digestName);
@@ -594,39 +594,39 @@ namespace Org.BouncyCastle.Security
         {
             string mechanism = (string)algorithms[Platform.ToUpperInvariant(algorithm)];
 
-            if (mechanism.StartsWith("PBEwithHmac"))
+            if (Platform.StartsWith(mechanism, "PBEwithHmac"))
             {
                 string digestName = mechanism.Substring("PBEwithHmac".Length);
 
                 return MacUtilities.GetMac("HMAC/" + digestName);
             }
 
-            if (mechanism.StartsWith("PBEwithMD2")
-                ||	mechanism.StartsWith("PBEwithMD5")
-                ||	mechanism.StartsWith("PBEwithSHA-1")
-                ||	mechanism.StartsWith("PBEwithSHA-256"))
+            if (Platform.StartsWith(mechanism, "PBEwithMD2")
+                ||	Platform.StartsWith(mechanism, "PBEwithMD5")
+                ||	Platform.StartsWith(mechanism, "PBEwithSHA-1")
+                ||	Platform.StartsWith(mechanism, "PBEwithSHA-256"))
             {
-                if (mechanism.EndsWith("AES-CBC-BC") || mechanism.EndsWith("AES-CBC-OPENSSL"))
+                if (Platform.EndsWith(mechanism, "AES-CBC-BC") || Platform.EndsWith(mechanism, "AES-CBC-OPENSSL"))
                 {
                     return CipherUtilities.GetCipher("AES/CBC");
                 }
 
-                if (mechanism.EndsWith("DES-CBC"))
+                if (Platform.EndsWith(mechanism, "DES-CBC"))
                 {
                     return CipherUtilities.GetCipher("DES/CBC");
                 }
 
-                if (mechanism.EndsWith("DESEDE-CBC"))
+                if (Platform.EndsWith(mechanism, "DESEDE-CBC"))
                 {
                     return CipherUtilities.GetCipher("DESEDE/CBC");
                 }
 
-                if (mechanism.EndsWith("RC2-CBC"))
+                if (Platform.EndsWith(mechanism, "RC2-CBC"))
                 {
                     return CipherUtilities.GetCipher("RC2/CBC");
                 }
 
-                if (mechanism.EndsWith("RC4"))
+                if (Platform.EndsWith(mechanism, "RC4"))
                 {
                     return CipherUtilities.GetCipher("RC4");
                 }
@@ -643,7 +643,7 @@ namespace Org.BouncyCastle.Security
 
         private static ICipherParameters FixDesParity(string mechanism, ICipherParameters parameters)
         {
-            if (!mechanism.EndsWith("DES-CBC") & !mechanism.EndsWith("DESEDE-CBC"))
+            if (!Platform.EndsWith(mechanism, "DES-CBC") && !Platform.EndsWith(mechanism, "DESEDE-CBC"))
             {
                 return parameters;
             }

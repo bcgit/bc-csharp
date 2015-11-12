@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Anssi
             DerObjectIdentifier		oid,
             X9ECParametersHolder	holder)
         {
-            objIds.Add(Platform.ToLowerInvariant(name), oid);
+            objIds.Add(Platform.ToUpperInvariant(name), oid);
             names.Add(oid, name);
             curves.Add(oid, holder);
         }
@@ -99,7 +99,7 @@ namespace Org.BouncyCastle.Asn1.Anssi
         public static DerObjectIdentifier GetOid(
             string name)
         {
-            return (DerObjectIdentifier)objIds[Platform.ToLowerInvariant(name)];
+            return (DerObjectIdentifier)objIds[Platform.ToUpperInvariant(name)];
         }
 
         /**

@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.X509
 //					throw new SignatureException("IOException decoding parameters: " + e.Message);
 //				}
 //
-//				if (signature.getAlgorithm().EndsWith("MGF1"))
+//				if (Platform.EndsWith(signature.getAlgorithm(), "MGF1"))
 //				{
 //					try
 //					{

@@ -114,15 +114,15 @@ namespace Org.BouncyCastle.Security
                 mechanism = upper;
             }
 
-            if (mechanism.StartsWith("PBEWITH"))
+            if (Platform.StartsWith(mechanism, "PBEWITH"))
             {
                 mechanism = mechanism.Substring("PBEWITH".Length);
             }
 
-            if (CultureInfo.InvariantCulture.CompareInfo.IsPrefix(mechanism, "HMAC", CompareOptions.Ordinal))
+            if (Platform.StartsWith(mechanism, "HMAC"))
             {
                 string digestName;
-                if (mechanism.StartsWith("HMAC-") || mechanism.StartsWith("HMAC/"))
+                if (Platform.StartsWith(mechanism, "HMAC-") || Platform.StartsWith(mechanism, "HMAC/"))
                 {
                     digestName = mechanism.Substring(5);
                 }

@@ -379,7 +379,7 @@ namespace Org.BouncyCastle.Pkcs
 //					throw new SignatureException("IOException decoding parameters: " + e.Message);
 //				}
 
-				if (signature.AlgorithmName.EndsWith("MGF1"))
+				if (Platform.EndsWith(signature.AlgorithmName, "MGF1"))
 				{
 					throw Platform.CreateNotImplementedException("signature algorithm with MGF1");
 

@@ -1052,13 +1052,13 @@ namespace Org.BouncyCastle.Pkcs
             public object Remove(
                 string alias)
             {
-                string lower = Platform.ToLowerInvariant(alias);
-                string k = (string) keys[lower];
+                string upper = Platform.ToUpperInvariant(alias);
+                string k = (string)keys[upper];
 
                 if (k == null)
                     return null;
 
-                keys.Remove(lower);
+                keys.Remove(upper);
 
                 object o = orig[k];
                 orig.Remove(k);
@@ -1070,8 +1070,8 @@ namespace Org.BouncyCastle.Pkcs
             {
                 get
                 {
-                    string lower = Platform.ToLowerInvariant(alias);
-                    string k = (string)keys[lower];
+                    string upper = Platform.ToUpperInvariant(alias);
+                    string k = (string)keys[upper];
 
                     if (k == null)
                         return null;
@@ -1080,13 +1080,13 @@ namespace Org.BouncyCastle.Pkcs
                 }
                 set
                 {
-                    string lower = Platform.ToLowerInvariant(alias);
-                    string k = (string)keys[lower];
+                    string upper = Platform.ToUpperInvariant(alias);
+                    string k = (string)keys[upper];
                     if (k != null)
                     {
                         orig.Remove(k);
                     }
-                    keys[lower] = alias;
+                    keys[upper] = alias;
                     orig[alias] = value;
                 }
             }

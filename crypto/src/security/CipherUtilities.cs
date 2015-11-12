@@ -278,9 +278,9 @@ namespace Org.BouncyCastle.Security
 
 
 
-            if (algorithm.StartsWith("PBE"))
+            if (Platform.StartsWith(algorithm, "PBE"))
             {
-                if (algorithm.EndsWith("-CBC"))
+                if (Platform.EndsWith(algorithm, "-CBC"))
                 {
                     if (algorithm == "PBEWITHSHA1ANDDES-CBC")
                     {
@@ -305,7 +305,7 @@ namespace Org.BouncyCastle.Security
                             new CbcBlockCipher(new RC2Engine()));
                     }
                 }
-                else if (algorithm.EndsWith("-BC") || algorithm.EndsWith("-OPENSSL"))
+                else if (Platform.EndsWith(algorithm, "-BC") || Platform.EndsWith(algorithm, "-OPENSSL"))
                 {
                     if (Strings.IsOneOf(algorithm,
                         "PBEWITHSHAAND128BITAES-CBC-BC",

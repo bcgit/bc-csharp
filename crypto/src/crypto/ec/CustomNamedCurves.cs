@@ -756,7 +756,7 @@ namespace Org.BouncyCastle.Crypto.EC
         private static void DefineCurve(string name, X9ECParametersHolder holder)
         {
             names.Add(name);
-            name = Platform.ToLowerInvariant(name);
+            name = Platform.ToUpperInvariant(name);
             nameToCurve.Add(name, holder);
         }
 
@@ -765,7 +765,7 @@ namespace Org.BouncyCastle.Crypto.EC
             names.Add(name);
             oidToName.Add(oid, name);
             oidToCurve.Add(oid, holder);
-            name = Platform.ToLowerInvariant(name);
+            name = Platform.ToUpperInvariant(name);
             nameToOid.Add(name, oid);
             nameToCurve.Add(name, holder);
         }
@@ -776,7 +776,7 @@ namespace Org.BouncyCastle.Crypto.EC
             if (curve == null)
                 throw new InvalidOperationException();
 
-            name = Platform.ToLowerInvariant(name);
+            name = Platform.ToUpperInvariant(name);
             nameToOid.Add(name, oid);
             nameToCurve.Add(name, curve);
         }
@@ -841,7 +841,7 @@ namespace Org.BouncyCastle.Crypto.EC
 
         public static X9ECParameters GetByName(string name)
         {
-            X9ECParametersHolder holder = (X9ECParametersHolder)nameToCurve[Platform.ToLowerInvariant(name)];
+            X9ECParametersHolder holder = (X9ECParametersHolder)nameToCurve[Platform.ToUpperInvariant(name)];
             return holder == null ? null : holder.Parameters;
         }
 
@@ -865,7 +865,7 @@ namespace Org.BouncyCastle.Crypto.EC
          */
         public static DerObjectIdentifier GetOid(string name)
         {
-            return (DerObjectIdentifier)nameToOid[Platform.ToLowerInvariant(name)];
+            return (DerObjectIdentifier)nameToOid[Platform.ToUpperInvariant(name)];
         }
 
         /**
