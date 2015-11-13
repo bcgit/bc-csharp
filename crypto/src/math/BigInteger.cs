@@ -706,10 +706,9 @@ namespace Org.BouncyCastle.Math
                 if (CheckProbablePrime(certainty, random, true))
                     break;
 
-                for (int j = 1; j < magnitude.Length; ++j)
+                for (int j = 1; j < (magnitude.Length - 1); ++j)
                 {
-                    this.magnitude[j] ^= (random.Next() << 1);
-                    this.mQuote = 0;
+                    this.magnitude[j] ^= random.Next();
 
                     if (CheckProbablePrime(certainty, random, true))
                         return;
