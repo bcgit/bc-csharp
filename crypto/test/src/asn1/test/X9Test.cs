@@ -27,13 +27,13 @@ namespace Org.BouncyCastle.Asn1.Tests
             + "yUmqLG2UhT0OZgu/hUsclQX+laAh5///////////////9///+XXetBs6YFfDxDIUZSZVECAQED"
             + "IAADG5xRI+Iki/JrvL20hoDUa7Cggzorv5B9yyqSMjYu");
 
-        private static readonly byte[] namedPriv = Base64.Decode("MCICAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQEECDAGAgEBBAEK");
+        private static readonly byte[] namedPriv = Base64.Decode("MDkCAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQEEHzAdAgEBBBgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo=");
         private static readonly byte[] expPriv = Base64.Decode(
-              "MIHnAgEAMIHXBgcqhkjOPQIBMIHLAgEBMCkGByqGSM49AQECHn///////////////3///////4"
-            + "AAAAAAAH///////zBXBB5///////////////9///////+AAAAAAAB///////wEHiVXBfoqMGZU"
-            + "sfTLA9anUKMMJQEC1JiHF9m6FattPgMVAH1zdBaP/jRxtgqFdoahlHXTv6L/BB8DZ2iujhi7ks"
-            + "/PAFyUmqLG2UhT0OZgu/hUsclQX+laAh5///////////////9///+XXetBs6YFfDxDIUZSZVEC"
-            + "AQEECDAGAgEBBAEU");
+              "MIIBBAIBADCB1wYHKoZIzj0CATCBywIBATApBgcqhkjOPQEBAh5///////////////9///////"
+            + "+AAAAAAAB///////8wVwQef///////////////f///////gAAAAAAAf//////8BB4lVwX6KjBmVL"
+            + "H0ywPWp1CjDCUBAtSYhxfZuhWrbT4DFQB9c3QWj/40cbYKhXaGoZR107+i/wQfA2doro4Yu5LPzw"
+            + "BclJqixtlIU9DmYLv4VLHJUF/pWgIef///////////////f///l13rQbOmBXw8QyFGUmVRAgEBBC"
+            + "UwIwIBAQQeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU");
 
         private void EncodePublicKey()
         {
@@ -99,14 +99,15 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void EncodePrivateKey()
         {
-            X9ECParameters ecP = X962NamedCurves.GetByOid(X9ObjectIdentifiers.Prime239v3);
+            X9ECParameters ecP = X962NamedCurves.GetByOid(X9ObjectIdentifiers.Prime192v1);
 
             //
             // named curve
             //
             X962Parameters _params = new X962Parameters(X9ObjectIdentifiers.Prime192v1);
 
-            PrivateKeyInfo info = new PrivateKeyInfo(new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, _params), new ECPrivateKeyStructure(BigInteger.Ten).ToAsn1Object());
+            PrivateKeyInfo info = new PrivateKeyInfo(new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, _params),
+                new ECPrivateKeyStructure(ecP.N.BitLength, BigInteger.Ten).ToAsn1Object());
 
             if (!Arrays.AreEqual(info.GetEncoded(), namedPriv))
             {
@@ -123,9 +124,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             //
             // explicit curve parameters
             //
+            ecP = X962NamedCurves.GetByOid(X9ObjectIdentifiers.Prime239v3);
+
             _params = new X962Parameters(ecP);
 
-            info = new PrivateKeyInfo(new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, _params), new ECPrivateKeyStructure(BigInteger.ValueOf(20)).ToAsn1Object());
+            info = new PrivateKeyInfo(new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, _params),
+                new ECPrivateKeyStructure(ecP.N.BitLength, BigInteger.ValueOf(20)).ToAsn1Object());
 
             if (!Arrays.AreEqual(info.GetEncoded(), expPriv))
             {

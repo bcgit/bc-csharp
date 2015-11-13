@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Utilities;
 
@@ -52,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             switch (mNameType)
             {
             case Tls.NameType.host_name:
-                byte[] asciiEncoding = Encoding.ASCII.GetBytes((string)mName);
+                byte[] asciiEncoding = Strings.ToAsciiByteArray((string)mName);
                 if (asciiEncoding.Length < 1)
                     throw new TlsFatalAlert(AlertDescription.internal_error);
                 TlsUtilities.WriteOpaque16(asciiEncoding, output);
@@ -82,7 +81,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 byte[] asciiEncoding = TlsUtilities.ReadOpaque16(input);
                 if (asciiEncoding.Length < 1)
                     throw new TlsFatalAlert(AlertDescription.decode_error);
-                name = Encoding.ASCII.GetString(asciiEncoding);
+                name = Strings.FromAsciiByteArray(asciiEncoding);
                 break;
             }
             default:

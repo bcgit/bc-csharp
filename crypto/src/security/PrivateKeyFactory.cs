@@ -117,8 +117,7 @@ namespace Org.BouncyCastle.Security
                     x9 = new X9ECParameters((Asn1Sequence)para.Parameters);
                 }
 
-                ECPrivateKeyStructure ec = new ECPrivateKeyStructure(
-                    Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey()));
+                ECPrivateKeyStructure ec = ECPrivateKeyStructure.GetInstance(keyInfo.ParsePrivateKey());
                 BigInteger d = ec.GetKey();
 
                 if (para.IsNamedCurve)
@@ -134,23 +133,23 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
 
+                ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
+
+                if (ecP == null)
+                    throw new ArgumentException("Unrecognized curve OID for GostR3410x2001 private key");
+
                 Asn1Object privKey = keyInfo.ParsePrivateKey();
                 ECPrivateKeyStructure ec;
 
                 if (privKey is DerInteger)
                 {
                     // TODO Do we need to pass any parameters here?
-                    ec = new ECPrivateKeyStructure(((DerInteger)privKey).Value);
+                    ec = new ECPrivateKeyStructure(ecP.N.BitLength, ((DerInteger)privKey).Value);
                 }
                 else
                 {
                     ec = ECPrivateKeyStructure.GetInstance(privKey);
                 }
-
-                ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
-
-                if (ecP == null)
-                    throw new ArgumentException("Unrecognized curve OID for GostR3410x2001 private key");
 
                 return new ECPrivateKeyParameters("ECGOST3410", ec.GetKey(), gostParams.PublicKeyParamSet);
             }
