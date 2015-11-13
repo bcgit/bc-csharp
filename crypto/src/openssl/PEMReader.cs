@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.OpenSsl
 
                     case "EC":
                     {
-                        ECPrivateKeyStructure pKey = new ECPrivateKeyStructure(seq);
+                        ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(seq);
                         AlgorithmIdentifier algId = new AlgorithmIdentifier(
                             X9ObjectIdentifiers.IdECPublicKey, pKey.GetParameters());
 
