@@ -19,7 +19,11 @@ namespace Org.BouncyCastle.Asn1.Tests
             // basic construction
             DerBitString s1 = new DerBitString(new byte[0], 0);
 
+            // check GetBytes()
             s1.GetBytes();
+
+            // check encoding/decoding
+            DerBitString derBit = (DerBitString)Asn1Object.FromByteArray(s1.GetEncoded());
 
             if (!Arrays.AreEqual(s1.GetEncoded(), Hex.Decode("030100")))
             {
