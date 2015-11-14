@@ -198,7 +198,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             doDudPasswordTest("3ee7a8", 10, "DER length more than 4 bytes: 57");
             doDudPasswordTest("41af75", 11, "unknown tag 16 encountered");
             doDudPasswordTest("1704a5", 12, "corrupted stream detected");
-            doDudPasswordTest("1c5822", 13, "Unknown object in GetInstance: Org.BouncyCastle.Asn1.DerUtf8String");
+            doDudPasswordTest("1c5822", 13, "extra data found after object");
             doDudPasswordTest("5a3d16", 14, "corrupted stream detected");
             doDudPasswordTest("8d0c97", 15, "corrupted stream detected");
             doDudPasswordTest("bc0daf", 16, "corrupted stream detected");
@@ -342,7 +342,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 
                 Fail("issue not detected: " + index);
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 if (e.Message.IndexOf(message) < 0)
                 {
