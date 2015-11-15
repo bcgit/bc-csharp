@@ -591,6 +591,28 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        public static byte[] Concatenate(byte[] a, byte[] b, byte[] c)
+        {
+                if (a != null && b != null && c != null)
+                {
+                        byte[] rv = new byte[a.Length + b.Length + c.Length];
+
+                        Array.Copy(a, 0, rv, 0, a.Length);
+                        Array.Copy(b, 0, rv, a.Length, b.Length);
+                      	Array.Copy(c, 0, rv, a.Length + b.Length, c.Length);
+
+                        return rv;
+                }
+                else if (b == null)
+                {
+                        return Concatenate(a, c);
+	        }
+                else
+                {
+                        return Concatenate(a, b);
+                }
+        }
+
         public static int[] Concatenate(int[] a, int[] b)
         {
             if (a == null)
