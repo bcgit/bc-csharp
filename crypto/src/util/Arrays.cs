@@ -613,6 +613,37 @@ namespace Org.BouncyCastle.Utilities
                 }
         }
 
+        public static byte[] Concatenate(byte[] a, byte[] b, byte[] c, byte[] d)
+        {
+                if (a != null && b != null && c != null && d != null)
+                {
+                        byte[] rv = new byte[a.Length + b.Length + c.Length + d.Length];
+
+                        Array.Copy(a, 0, rv, 0, a.Length);
+                        Array.Copy(b, 0, rv, a.Length, b.Length);
+                        Array.Copy(c, 0, rv, a.Length + b.Length, c.Length);
+                        Array.Copy(d, 0, rv, a.Length + b.Length + c.Length, d.Length);
+
+                        return rv;
+                }
+                else if (d == null)
+                {
+                        return Concatenate(a, b, c);
+                }
+                else if (c == null)
+                {
+                        return Concatenate(a, b, d);
+                }
+                else if (b == null)
+                {
+                        return Concatenate(a, c, d);
+                }
+                else
+                {
+                        return Concatenate(b, c, d);
+                }
+        }
+
         public static int[] Concatenate(int[] a, int[] b)
         {
             if (a == null)
