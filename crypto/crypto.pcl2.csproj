@@ -10,7 +10,7 @@
     <ApplicationIcon />
     <AssemblyKeyContainerName />
     <AssemblyName>crypto</AssemblyName>
-    <AssemblyOriginatorKeyFile>BouncyCastle.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
@@ -76,11 +76,13 @@
     <NuSpecFile Include="$(SolutionDir)Portable.BouncyCastle.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="BouncyCastle.snk" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="src\**\*.cs" />
     <Compile Include="bzip2\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\BouncyCastle.snk">
+      <Link>BouncyCastle.snk</Link>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>
