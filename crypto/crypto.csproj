@@ -11160,7 +11160,7 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "test\src\crypto\prng\test\TestEntropySourcProvider.cs"
+                    RelPath = "test\src\crypto\prng\test\TestEntropySourceProvider.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
