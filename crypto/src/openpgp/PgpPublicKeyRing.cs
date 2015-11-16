@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     + "tag 0x" + ((int)initialTag).ToString("X"));
             }
 
-            PublicKeyPacket pubPk = (PublicKeyPacket) bcpgInput.ReadPacket();;
+            PublicKeyPacket pubPk = (PublicKeyPacket) bcpgInput.ReadPacket();
             TrustPacket trustPk = ReadOptionalTrustPacket(bcpgInput);
 
             // direct signatures and revocations
