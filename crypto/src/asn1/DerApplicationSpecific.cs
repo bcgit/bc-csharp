@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Asn1
 				tmp[0] |= Asn1Tags.Constructed;
 			}
 
-			return FromByteArray(tmp);;
+			return FromByteArray(tmp);
 		}
 
 		internal override void Encode(
