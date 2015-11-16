@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Security
 
         public static byte[] GetSeed(int length)
         {
-#if NETCF_1_0
+#if NETCF_1_0 || PORTABLE
             lock (master)
 #endif
             return Master.GenerateSeed(length);
