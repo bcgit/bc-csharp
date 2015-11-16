@@ -1,9 +1,11 @@
+using System;
+
 namespace Org.BouncyCastle.Crypto.Prng.Drbg
 {
 	/**
 	 * Interface to SP800-90A deterministic random bit generators.
 	 */
-	public interface SP80090Drbg
+	public interface ISP80090Drbg
 	{
 	    /**
 	     * Return the block size of the DRBG.

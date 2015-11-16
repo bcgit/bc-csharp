@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Org.BouncyCastle.Crypto
+namespace Org.BouncyCastle.Crypto.Prng
 {
 	/// <summary>
-	/// Base interface describing an entropy source for a DRGB.
+	/// Base interface describing an entropy source for a DRBG.
 	/// </summary>
 	public interface IEntropySource
 	{

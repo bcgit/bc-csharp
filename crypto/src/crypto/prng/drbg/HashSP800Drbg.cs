@@ -8,36 +8,37 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	/**
 	 * A SP800-90A Hash DRBG.
 	 */
-	public class HashSP800Drbg: SP80090Drbg
+	public class HashSP800Drbg
+        :   ISP80090Drbg
 	{
-	    private readonly static byte[]     ONE = { 0x01 };
+	    private readonly static byte[] ONE = { 0x01 };
 
-		private readonly static long       RESEED_MAX = 1L << (48 - 1);
-		private readonly static int        MAX_BITS_REQUEST = 1 << (19 - 1);
+		private readonly static long RESEED_MAX = 1L << (48 - 1);
+		private readonly static int MAX_BITS_REQUEST = 1 << (19 - 1);
 
 		private static readonly IDictionary seedlens = Platform.CreateHashtable();
 
 		static HashSP800Drbg()
 	    {
-				seedlens.Add("SHA-1", 440);
-				seedlens.Add("SHA-224", 440);
-				seedlens.Add("SHA-256", 440);
-				seedlens.Add("SHA-512/256", 440);
-				seedlens.Add("SHA-512/224", 440);
-				seedlens.Add("SHA-384", 888);
-				seedlens.Add("SHA-512", 888);
-
+            seedlens.Add("SHA-1", 440);
+            seedlens.Add("SHA-224", 440);
+            seedlens.Add("SHA-256", 440);
+            seedlens.Add("SHA-512/256", 440);
+            seedlens.Add("SHA-512/224", 440);
+            seedlens.Add("SHA-384", 888);
+            seedlens.Add("SHA-512", 888);
 	    }
 
-	    private IDigest        _digest;
-	    private byte[]         _V;
-	    private byte[]         _C;
-	    private long           _reseedCounter;
-	    private IEntropySource _entropySource;
-	    private int            _securityStrength;
-	    private int            _seedLength;
+        private readonly IDigest        mDigest;
+        private readonly IEntropySource mEntropySource;
+        private readonly int            mSecurityStrength;
+        private readonly int            mSeedLength;
 
-	    /**
+        private byte[] mV;
+        private byte[] mC;
+        private long mReseedCounter;
+
+        /**
 	     * Construct a SP800-90A Hash DRBG.
 	     * <p>
 	     * Minimum entropy requirement is the security strength requested.
@@ -50,22 +51,17 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
 	    public HashSP800Drbg(IDigest digest, int securityStrength, IEntropySource entropySource, byte[] personalizationString, byte[] nonce)
 	    {
-	        if (securityStrength > Utils.getMaxSecurityStrength(digest))
-	        {
+	        if (securityStrength > DrbgUtilities.GetMaxSecurityStrength(digest))
 	            throw new ArgumentException("Requested security strength is not supported by the derivation function");
-	        }
-
 	        if (entropySource.EntropySize < securityStrength)
-	        {
 	            throw new ArgumentException("Not enough entropy for security strength required");
-	        }
 
-	        _digest = digest;
-	        _entropySource = entropySource;
-	        _securityStrength = securityStrength;
-	        _seedLength = ((Integer)seedlens.get(digest.getAlgorithmName())).intValue();
+            mDigest = digest;
+	        mEntropySource = entropySource;
+	        mSecurityStrength = securityStrength;
+            mSeedLength = (int)seedlens[digest.AlgorithmName];
 
-	        // 1. seed_material = entropy_input || nonce || personalization_string.
+            // 1. seed_material = entropy_input || nonce || personalization_string.
 	        // 2. seed = Hash_df (seed_material, seedlen).
 	        // 3. V = seed.
 	        // 4. C = Hash_df ((0x00 || V), seedlen). Comment: Preceed V with a byte
@@ -73,16 +69,16 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        // 5. reseed_counter = 1.
 	        // 6. Return V, C, and reseed_counter as the initial_working_state
 
-	        byte[] entropy = getEntropy();
-	        byte[] seedMaterial = Arrays.Concatenate(entropy, nonce, personalizationString);
-	        byte[] seed = Utils.hash_df(_digest, seedMaterial, _seedLength);
+	        byte[] entropy = GetEntropy();
+	        byte[] seedMaterial = Arrays.ConcatenateAll(entropy, nonce, personalizationString);
+	        byte[] seed = DrbgUtilities.HashDF(mDigest, seedMaterial, mSeedLength);
 
-	        _V = seed;
-	        byte[] subV = new byte[_V.Length + 1];
-	        Array.Copy(_V, 0, subV, 1, _V.Length);
-	        _C = Utils.hash_df(_digest, subV, _seedLength);
+            mV = seed;
+	        byte[] subV = new byte[mV.Length + 1];
+	        Array.Copy(mV, 0, subV, 1, mV.Length);
+	        mC = DrbgUtilities.HashDF(mDigest, subV, mSeedLength);
 
-	        _reseedCounter = 1;
+            mReseedCounter = 1;
 	    }
 
 	    /**
@@ -92,9 +88,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
 	    public int BlockSize
 	    {
-			get {
-				return _digest.GetDigestSize () * 8;
-			}
+			get { return mDigest.GetDigestSize () * 8; }
 	    }
 
 	    /**
@@ -121,97 +115,95 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        // 6. reseed_counter = reseed_counter + 1.
 	        // 7. Return SUCCESS, returned_bits, and the new values of V, C, and
 	        // reseed_counter for the new_working_state.
-	        int numberOfBits = output.Length*8;
+	        int numberOfBits = output.Length * 8;
 
 	        if (numberOfBits > MAX_BITS_REQUEST)
-	        {
-	            throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST);
-	        }
+	            throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
 
-	        if (_reseedCounter > RESEED_MAX)
-	        {
+            if (mReseedCounter > RESEED_MAX)
 	            return -1;
-	        }
 
-	        if (predictionResistant)
+            if (predictionResistant)
 	        {   
-	            reseed(additionalInput);
+	            Reseed(additionalInput);
 	            additionalInput = null;
 	        }
 
 	        // 2.
 	        if (additionalInput != null)
 	        {
-	            byte[] newInput = new byte[1 + _V.Length + additionalInput.Length];
+	            byte[] newInput = new byte[1 + mV.Length + additionalInput.Length];
 	            newInput[0] = 0x02;
-	            Array.Copy(_V, 0, newInput, 1, _V.Length);
+	            Array.Copy(mV, 0, newInput, 1, mV.Length);
 	            // TODO: inOff / inLength
-	            Array.Copy(additionalInput, 0, newInput, 1 + _V.Length, additionalInput.Length);
-	            byte[] w = hash(newInput);
+	            Array.Copy(additionalInput, 0, newInput, 1 + mV.Length, additionalInput.Length);
+	            byte[] w = Hash(newInput);
 
-	            addTo(_V, w);
+                AddTo(mV, w);
 	        }
-	        
-	        // 3.
-	        byte[] rv = hashgen(_V, numberOfBits);
-	        
-	        // 4.
-	        byte[] subH = new byte[_V.Length + 1];
-	        Array.Copy(_V, 0, subH, 1, _V.Length);
-	        subH[0] = 0x03;
-	        
-	        byte[] H = hash(subH);
-	        
-	        // 5.
-	        addTo(_V, H);
-	        addTo(_V, _C);
-	        byte[] c = new byte[4];
-	        c[0] = (byte)(_reseedCounter >> 24);
-	        c[1] = (byte)(_reseedCounter >> 16);
-	        c[2] = (byte)(_reseedCounter >> 8);
-	        c[3] = (byte)_reseedCounter;
-	        
-	        addTo(_V, c);
 
-	        _reseedCounter++;
+            // 3.
+	        byte[] rv = hashgen(mV, numberOfBits);
+
+            // 4.
+	        byte[] subH = new byte[mV.Length + 1];
+	        Array.Copy(mV, 0, subH, 1, mV.Length);
+	        subH[0] = 0x03;
+
+            byte[] H = Hash(subH);
+
+            // 5.
+	        AddTo(mV, H);
+	        AddTo(mV, mC);
+	        byte[] c = new byte[4];
+	        c[0] = (byte)(mReseedCounter >> 24);
+	        c[1] = (byte)(mReseedCounter >> 16);
+	        c[2] = (byte)(mReseedCounter >> 8);
+	        c[3] = (byte)mReseedCounter;
+
+	        AddTo(mV, c);
+
+	        mReseedCounter++;
 
 	        Array.Copy(rv, 0, output, 0, output.Length);
 
 	        return numberOfBits;
 	    }
 
-	    private byte[] getEntropy()
+	    private byte[] GetEntropy()
 	    {
-	        byte[] entropy = _entropySource.getEntropy();
-	        if (entropy.Length < (_securityStrength + 7) / 8)
-	        {
-	            throw new IllegalStateException("Insufficient entropy provided by entropy source");
-	        }
+	        byte[] entropy = mEntropySource.GetEntropy();
+	        if (entropy.Length < (mSecurityStrength + 7) / 8)
+	            throw new InvalidOperationException("Insufficient entropy provided by entropy source");
 	        return entropy;
 	    }
 
 	    // this will always add the shorter length byte array mathematically to the
 	    // longer length byte array.
 	    // be careful....
-	    private void addTo(byte[] longer, byte[] shorter)
+	    private void AddTo(byte[] longer, byte[] shorter)
 	    {
-	        int carry = 0;
-	        for (int i=1;i <= shorter.Length; i++) // warning
-	        {
-	            int res = (longer[longer.Length-i] & 0xff) + (shorter[shorter.Length-i] & 0xff) + carry;
-	            carry = (res > 0xff) ? 1 : 0;
-	            longer[longer.Length-i] = (byte)res;
-	        }
-	        
-	        for (int i=shorter.Length+1;i <= longer.Length; i++) // warning
-	        {
-	            int res = (longer[longer.Length-i] & 0xff) + carry;
-	            carry = (res > 0xff) ? 1 : 0;
-	            longer[longer.Length-i] = (byte)res;
-	        }
+            int off = longer.Length - shorter.Length;
+
+            uint carry = 0;
+            int i = shorter.Length;
+            while (--i >= 0)
+            {
+                carry += (uint)longer[off + i] + (uint)shorter[i];
+                longer[off + i] = (byte)carry;
+                carry >>= 8;
+            }
+
+            i = off;
+            while (--i >= 0)
+            {
+                carry += longer[i];
+                longer[i] = (byte)carry;
+                carry >>= 8;
+            }
 	    }
 
-	    /**
+        /**
 	      * Reseed the DRBG.
 	      *
 	      * @param additionalInput additional input to be added to the DRBG in this step.
@@ -231,33 +223,33 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        // 6. Return V, C, and reseed_counter for the new_working_state.
 	        //
 	        // Comment: Precede with a byte of all zeros.
-	        byte[] entropy = getEntropy();
-	        byte[] seedMaterial = Arrays.Concatenate(ONE, _V, entropy, additionalInput);
-	        byte[] seed = Utils.hash_df(_digest, seedMaterial, _seedLength);
+	        byte[] entropy = GetEntropy();
+	        byte[] seedMaterial = Arrays.ConcatenateAll(ONE, mV, entropy, additionalInput);
+	        byte[] seed = DrbgUtilities.HashDF(mDigest, seedMaterial, mSeedLength);
 
-	        _V = seed;
-	        byte[] subV = new byte[_V.Length + 1];
+            mV = seed;
+	        byte[] subV = new byte[mV.Length + 1];
 	        subV[0] = 0x00;
-	        Array.Copy(_V, 0, subV, 1, _V.Length);
-	        _C = Utils.hash_df(_digest, subV, _seedLength);
+	        Array.Copy(mV, 0, subV, 1, mV.Length);
+	        mC = DrbgUtilities.HashDF(mDigest, subV, mSeedLength);
 
-	        _reseedCounter = 1;
-	    }
-	    
-	    private byte[] hash(byte[] input)
-	    {
-	        byte[] hash = new byte[_digest.GetDigestSize()];
-	        doHash(input, hash);
-	        return hash;
+            mReseedCounter = 1;
 	    }
 
-	    private void doHash(byte[] input, byte[] output)
-	    {
-	        _digest.BlockUpdate(input, 0, input.Length);
-	        _digest.DoFinal(output, 0);
-	    }
+        private byte[] Hash(byte[] input)
+        {
+            byte[] hash = new byte[mDigest.GetDigestSize()];
+            DoHash(input, hash);
+            return hash;
+        }
 
-	    // 1. m = [requested_number_of_bits / outlen]
+        private void DoHash(byte[] input, byte[] output)
+        {
+            mDigest.BlockUpdate(input, 0, input.Length);
+            mDigest.DoFinal(output, 0);
+        }
+
+        // 1. m = [requested_number_of_bits / outlen]
 	    // 2. data = V.
 	    // 3. W = the Null string.
 	    // 4. For i = 1 to m
@@ -268,25 +260,25 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	    // 5. returned_bits = Leftmost (requested_no_of_bits) bits of W.
 	    private byte[] hashgen(byte[] input, int lengthInBits)
 	    {
-	        int digestSize = _digest.GetDigestSize();
+	        int digestSize = mDigest.GetDigestSize();
 	        int m = (lengthInBits / 8) / digestSize;
 
-	        byte[] data = new byte[input.Length];
+            byte[] data = new byte[input.Length];
 	        Array.Copy(input, 0, data, 0, input.Length);
 
 	        byte[] W = new byte[lengthInBits / 8];
 
-	        byte[] dig = new byte[_digest.GetDigestSize()];
+            byte[] dig = new byte[mDigest.GetDigestSize()];
 	        for (int i = 0; i <= m; i++)
 	        {
-	            doHash(data, dig);
+	            DoHash(data, dig);
 
 	            int bytesToCopy = ((W.Length - i * dig.Length) > dig.Length)
 	                    ? dig.Length
 	                    : (W.Length - i * dig.Length);
 	            Array.Copy(dig, 0, W, i * dig.Length, bytesToCopy);
 
-	            addTo(data, ONE);
+                AddTo(data, ONE);
 	        }
 
 	        return W;

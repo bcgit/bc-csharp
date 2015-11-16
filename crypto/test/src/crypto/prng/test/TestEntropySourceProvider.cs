@@ -2,7 +2,8 @@
 
 namespace Org.BouncyCastle.Crypto.Prng.Test
 {
-    public class TestEntropySourceProvider: IEntropySourceProvider
+    public class TestEntropySourceProvider
+        :   IEntropySourceProvider
     {
         private readonly byte[] data;
         private readonly bool isPredictionResistant;
@@ -18,7 +19,8 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             return new EntropySource(bitsRequired, data, isPredictionResistant);
         }
 
-        internal class EntropySource: IEntropySource
+        internal class EntropySource
+            :   IEntropySource
         {
             private readonly int bitsRequired;
             private readonly byte[] data;
@@ -35,30 +37,21 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 
             public bool IsPredictionResistant
             {
-                get
-                {
-                    return isPredictionResistant;
-                }
+                get { return isPredictionResistant; }
             }
 
             public byte[] GetEntropy()
             {
                 byte[] rv = new byte[bitsRequired / 8];
-
                 Array.Copy(data, index, rv, 0, rv.Length);
-
                 index += bitsRequired / 8;
-
                 return rv;
             }
 
             public int EntropySize
             {
-                get
-                {
-                    return bitsRequired;
-                }
+                get { return bitsRequired; }
             }
+        }
     }
-}
 }

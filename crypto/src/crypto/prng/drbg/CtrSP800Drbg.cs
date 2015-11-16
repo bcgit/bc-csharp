@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -8,24 +9,25 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	/**
 	 * A SP800-90A CTR DRBG.
 	 */
-	public class CTRSP800Drbg: SP80090Drbg
+	public class CtrSP800Drbg
+        :   ISP80090Drbg
 	{
-	    private static readonly long       TDEA_RESEED_MAX = 1L << (32 - 1);
-		private static readonly long       AES_RESEED_MAX = 1L << (48 - 1);
-		private static readonly int        TDEA_MAX_BITS_REQUEST = 1 << (13 - 1);
-		private static readonly int        AES_MAX_BITS_REQUEST = 1 << (19 - 1);
+	    private static readonly long TDEA_RESEED_MAX = 1L << (32 - 1);
+		private static readonly long AES_RESEED_MAX = 1L << (48 - 1);
+		private static readonly int TDEA_MAX_BITS_REQUEST = 1 << (13 - 1);
+		private static readonly int AES_MAX_BITS_REQUEST = 1 << (19 - 1);
 
-	    private IEntropySource        _entropySource;
-	    private IBlockCipher          _engine;
-	    private int                   _keySizeInBits;
-	    private int                   _seedLength;
-	    private int                   _securityStrength;
+        private readonly IEntropySource  mEntropySource;
+	    private readonly IBlockCipher    mEngine;
+	    private readonly int             mKeySizeInBits;
+	    private readonly int             mSeedLength;
+	    private readonly int             mSecurityStrength;
 
-	    // internal state
-	    private byte[]                _Key;
-	    private byte[]                _V;
-	    private long                  _reseedCounter = 0;
-	    private bool                  _isTDEA = false;
+        // internal state
+	    private byte[]                mKey;
+	    private byte[]                mV;
+	    private long                  mReseedCounter = 0;
+	    private bool                  mIsTdea = false;
 
 	    /**
 	     * Construct a SP800-90A CTR DRBG.
@@ -39,66 +41,58 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     * @param personalizationString personalization string to distinguish this DRBG (may be null).
 	     * @param nonce nonce to further distinguish this DRBG (may be null).
 	     */
-	    public CTRSP800Drbg(IBlockCipher engine, int keySizeInBits, int securityStrength, IEntropySource entropySource, byte[] personalizationString, byte[] nonce)
+	    public CtrSP800Drbg(IBlockCipher engine, int keySizeInBits, int securityStrength, IEntropySource entropySource,
+            byte[] personalizationString, byte[] nonce)
 	    {
-	        _entropySource = entropySource;
-	        _engine = engine;     
-	        
-	        _keySizeInBits = keySizeInBits;
-	        _securityStrength = securityStrength;
-	        _seedLength = keySizeInBits + engine.getBlockSize() * 8;
-	        _isTDEA = isTDEA(engine);
-
 	        if (securityStrength > 256)
-	        {
 	            throw new ArgumentException("Requested security strength is not supported by the derivation function");
-	        }
-
-	        if (getMaxSecurityStrength(engine, keySizeInBits) < securityStrength)
-	        {
+	        if (GetMaxSecurityStrength(engine, keySizeInBits) < securityStrength)
 	            throw new ArgumentException("Requested security strength is not supported by block cipher and key size");
-	        }
-
 	        if (entropySource.EntropySize < securityStrength)
-	        {
 	            throw new ArgumentException("Not enough entropy for security strength required");
-	        }
 
-	        byte[] entropy = getEntropy();  // Get_entropy_input
+            mEntropySource = entropySource;
+	        mEngine = engine;     
 
-	        CTR_DRBG_Instantiate_algorithm(entropy, nonce, personalizationString);
+            mKeySizeInBits = keySizeInBits;
+	        mSecurityStrength = securityStrength;
+	        mSeedLength = keySizeInBits + engine.GetBlockSize() * 8;
+	        mIsTdea = IsTdea(engine);
+
+	        byte[] entropy = GetEntropy();  // Get_entropy_input
+
+            CTR_DRBG_Instantiate_algorithm(entropy, nonce, personalizationString);
 	    }
 
-	    private void CTR_DRBG_Instantiate_algorithm(byte[] entropy, byte[] nonce,
-	            byte[] personalisationString)
+        private void CTR_DRBG_Instantiate_algorithm(byte[] entropy, byte[] nonce, byte[] personalisationString)
 	    {
-	        byte[] seedMaterial = Arrays.Concatenate(entropy, nonce, personalisationString);
-	        byte[] seed = Block_Cipher_df(seedMaterial, _seedLength);
+	        byte[] seedMaterial = Arrays.ConcatenateAll(entropy, nonce, personalisationString);
+	        byte[] seed = Block_Cipher_df(seedMaterial, mSeedLength);
 
-	        int outlen = _engine.getBlockSize();
+            int outlen = mEngine.GetBlockSize();
 
-	        _Key = new byte[(_keySizeInBits + 7) / 8];
-	        _V = new byte[outlen];
+            mKey = new byte[(mKeySizeInBits + 7) / 8];
+	        mV = new byte[outlen];
 
-	         // _Key & _V are modified by this call
-	        CTR_DRBG_Update(seed, _Key, _V); 
+	        // mKey & mV are modified by this call
+	        CTR_DRBG_Update(seed, mKey, mV); 
 
-	        _reseedCounter = 1;
+            mReseedCounter = 1;
 	    }
 
-	    private void CTR_DRBG_Update(byte[] seed, byte[] key, byte[] v)
+        private void CTR_DRBG_Update(byte[] seed, byte[] key, byte[] v)
 	    {
 	        byte[] temp = new byte[seed.Length];
-	        byte[] outputBlock = new byte[_engine.getBlockSize()];
-	        
-	        int i=0;
-	        int outLen = _engine.getBlockSize();
+	        byte[] outputBlock = new byte[mEngine.GetBlockSize()];
 
-	        _engine.init(true, new KeyParameter(expandKey(key)));
+            int i = 0;
+	        int outLen = mEngine.GetBlockSize();
+
+            mEngine.Init(true, new KeyParameter(ExpandKey(key)));
 	        while (i*outLen < seed.Length)
 	        {
-	            addOneTo(v);
-	            _engine.processBlock(v, 0, outputBlock, 0);
+	            AddOneTo(v);
+	            mEngine.ProcessBlock(v, 0, outputBlock, 0);
 
 	            int bytesToCopy = ((temp.Length - i * outLen) > outLen)
 	                    ? outLen : (temp.Length - i * outLen);
@@ -115,49 +109,48 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	    
 	    private void CTR_DRBG_Reseed_algorithm(byte[] additionalInput)
 	    {
-	        byte[] seedMaterial = Arrays.Concatenate(getEntropy(), additionalInput);
+	        byte[] seedMaterial = Arrays.Concatenate(GetEntropy(), additionalInput);
 
-	        seedMaterial = Block_Cipher_df(seedMaterial, _seedLength);
+	        seedMaterial = Block_Cipher_df(seedMaterial, mSeedLength);
 
-	        CTR_DRBG_Update(seedMaterial, _Key, _V);
+            CTR_DRBG_Update(seedMaterial, mKey, mV);
 
-	        _reseedCounter = 1;
+            mReseedCounter = 1;
 	    }
 
-	    private void XOR(byte[] output, byte[] a, byte[] b, int bOff)
+        private void XOR(byte[] output, byte[] a, byte[] b, int bOff)
 	    {
-				for (int i=0; i< output.Length; i++) 
+            for (int i = 0; i < output.Length; i++) 
 	        {
-					output[i] = (byte)(a[i] ^ b[i+bOff]);
+                output[i] = (byte)(a[i] ^ b[bOff + i]);
 	        }
 	    }
-	    
-	    private void addOneTo(byte[] longer)
+
+        private void AddOneTo(byte[] longer)
 	    {
-	        int carry = 1;
-	        for (int i = 1; i <= longer.Length; i++) // warning
-	        {
-	            int res = (longer[longer.Length - i] & 0xff) + carry;
-	            carry = (res > 0xff) ? 1 : 0;
-	            longer[longer.Length - i] = (byte)res;
-	        }
+	        uint carry = 1;
+            int i = longer.Length;
+            while (--i >= 0)
+            {
+                carry += longer[i];
+                longer[i] = (byte)carry;
+                carry >>= 8;
+            }
 	    } 
 
-	    private byte[] getEntropy()
+        private byte[] GetEntropy()
 	    {
-	        byte[] entropy = _entropySource.getEntropy();
-	        if (entropy.Length < (_securityStrength + 7) / 8)
-	        {
-	            throw new IllegalStateException("Insufficient entropy provided by entropy source");
-	        }
+	        byte[] entropy = mEntropySource.GetEntropy();
+	        if (entropy.Length < (mSecurityStrength + 7) / 8)
+	            throw new InvalidOperationException("Insufficient entropy provided by entropy source");
 	        return entropy;
 	    }
 
 	    // -- Internal state migration ---
-	    
-	    private static final byte[] K_BITS = Hex.decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F");
 
-	    // 1. If (number_of_bits_to_return > max_number_of_bits), then return an
+        private static readonly byte[] K_BITS = Hex.Decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F");
+
+        // 1. If (number_of_bits_to_return > max_number_of_bits), then return an
 	    // ERROR_FLAG.
 	    // 2. L = len (input_string)/8.
 	    // 3. N = number_of_bits_to_return/8.
@@ -219,7 +212,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	    // 15. Return SUCCESS and requested_bits.
 	    private byte[] Block_Cipher_df(byte[] inputString, int bitLength)
 	    {
-	        int outLen = _engine.getBlockSize();
+	        int outLen = mEngine.GetBlockSize();
 	        int L = inputString.Length; // already in bytes
 	        int N = bitLength / 8;
 	        // 4 S = L || N || inputstring || 0x80
@@ -232,16 +225,16 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        S[8 + L] = (byte)0x80;
 	        // S already padded with zeros
 
-	        byte[] temp = new byte[_keySizeInBits / 8 + outLen];
+	        byte[] temp = new byte[mKeySizeInBits / 8 + outLen];
 	        byte[] bccOut = new byte[outLen];
 
 	        byte[] IV = new byte[outLen]; 
 	        
 	        int i = 0;
-	        byte[] K = new byte[_keySizeInBits / 8];
+	        byte[] K = new byte[mKeySizeInBits / 8];
 	        Array.Copy(K_BITS, 0, K, 0, K.Length);
 
-	        while (i*outLen*8 < _keySizeInBits + outLen *8)
+	        while (i*outLen*8 < mKeySizeInBits + outLen *8)
 	        {
 	            copyIntToByteArray(IV, i, 0);
 	            BCC(bccOut, K, IV, S);
@@ -261,11 +254,11 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        temp = new byte[bitLength / 2];
 
 	        i = 0;
-	        _engine.init(true, new KeyParameter(expandKey(K)));
+	        mEngine.Init(true, new KeyParameter(ExpandKey(K)));
 
 	        while (i * outLen < temp.Length)
 	        {
-	            _engine.processBlock(X, 0, X, 0);
+	            mEngine.ProcessBlock(X, 0, X, 0);
 
 	            int bytesToCopy = ((temp.Length - i * outLen) > outLen)
 	                    ? outLen
@@ -292,23 +285,23 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
 	    private void BCC(byte[] bccOut, byte[] k, byte[] iV, byte[] data)
 	    {
-	        int outlen = _engine.getBlockSize();
+	        int outlen = mEngine.GetBlockSize();
 	        byte[] chainingValue = new byte[outlen]; // initial values = 0
 	        int n = data.Length / outlen;
 
 	        byte[] inputBlock = new byte[outlen];
 
-	        _engine.init(true, new KeyParameter(expandKey(k)));
+	        mEngine.Init(true, new KeyParameter(ExpandKey(k)));
 
-	        _engine.processBlock(iV, 0, chainingValue, 0);
+            mEngine.ProcessBlock(iV, 0, chainingValue, 0);
 
-	        for (int i = 0; i < n; i++)
+            for (int i = 0; i < n; i++)
 	        {
 	            XOR(inputBlock, chainingValue, data, i*outlen);
-	            _engine.processBlock(inputBlock, 0, chainingValue, 0);
+	            mEngine.ProcessBlock(inputBlock, 0, chainingValue, 0);
 	        }
 
-	        Array.Copy(chainingValue, 0, bccOut, 0, bccOut.Length);
+            Array.Copy(chainingValue, 0, bccOut, 0, bccOut.Length);
 	    }
 
 	    private void copyIntToByteArray(byte[] buf, int value, int offSet)
@@ -326,9 +319,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
 	    public int BlockSize
 	    {
-			get {
-				return _V.Length * 8;
-			}
+			get { return mV.Length * 8; }
 	    }
 
 	    /**
@@ -342,32 +333,24 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
 	    public int Generate(byte[] output, byte[] additionalInput, bool predictionResistant)
 	    {
-	        if (_isTDEA)
+	        if (mIsTdea)
 	        {
-	            if (_reseedCounter > TDEA_RESEED_MAX)
-	            {
+	            if (mReseedCounter > TDEA_RESEED_MAX)
 	                return -1;
-	            }
 
-	            if (Utils.isTooLarge(output, TDEA_MAX_BITS_REQUEST / 8))
-	            {
-	                throw new ArgumentException("Number of bits per request limited to " + TDEA_MAX_BITS_REQUEST);
-	            }
+                if (DrbgUtilities.IsTooLarge(output, TDEA_MAX_BITS_REQUEST / 8))
+	                throw new ArgumentException("Number of bits per request limited to " + TDEA_MAX_BITS_REQUEST, "output");
 	        }
 	        else
 	        {
-	            if (_reseedCounter > AES_RESEED_MAX)
-	            {
+	            if (mReseedCounter > AES_RESEED_MAX)
 	                return -1;
-	            }
 
-	            if (Utils.isTooLarge(output, AES_MAX_BITS_REQUEST / 8))
-	            {
-	                throw new ArgumentException("Number of bits per request limited to " + AES_MAX_BITS_REQUEST);
-	            }
+                if (DrbgUtilities.IsTooLarge(output, AES_MAX_BITS_REQUEST / 8))
+	                throw new ArgumentException("Number of bits per request limited to " + AES_MAX_BITS_REQUEST, "output");
 	        }
 
-	        if (predictionResistant)
+            if (predictionResistant)
 	        {
 	            CTR_DRBG_Reseed_algorithm(additionalInput);
 	            additionalInput = null;
@@ -375,39 +358,39 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
 	        if (additionalInput != null)
 	        {
-	            additionalInput = Block_Cipher_df(additionalInput, _seedLength);
-	            CTR_DRBG_Update(additionalInput, _Key, _V);
+	            additionalInput = Block_Cipher_df(additionalInput, mSeedLength);
+	            CTR_DRBG_Update(additionalInput, mKey, mV);
 	        }
 	        else
 	        {
-	            additionalInput = new byte[_seedLength];
+	            additionalInput = new byte[mSeedLength];
 	        }
 
-	        byte[] tmp = new byte[_V.Length];
+            byte[] tmp = new byte[mV.Length];
 
-	        _engine.init(true, new KeyParameter(expandKey(_Key)));
+            mEngine.Init(true, new KeyParameter(ExpandKey(mKey)));
 
-				for (int i = 0; i <= output.Length / tmp.Length; i++)
+            for (int i = 0; i <= output.Length / tmp.Length; i++)
 	        {
-					int bytesToCopy = ((output.Length - i * tmp.Length) > tmp.Length)
-						? tmp.Length
-	                    : (output.Length - i * _V.Length);
+				int bytesToCopy = ((output.Length - i * tmp.Length) > tmp.Length)
+					? tmp.Length
+	                : (output.Length - i * mV.Length);
 
-	            if (bytesToCopy != 0)
+                if (bytesToCopy != 0)
 	            {
-	                addOneTo(_V);
+	                AddOneTo(mV);
 
-						_engine.processBlock(_V, 0, tmp, 0);
+                    mEngine.ProcessBlock(mV, 0, tmp, 0);
 
-						Array.Copy(tmp, 0, output, i * tmp.Length, bytesToCopy);
+                    Array.Copy(tmp, 0, output, i * tmp.Length, bytesToCopy);
 	            }
 	        }
 
-	        CTR_DRBG_Update(additionalInput, _Key, _V);
+            CTR_DRBG_Update(additionalInput, mKey, mV);
 
-	        _reseedCounter++;
+            mReseedCounter++;
 
-	        return output.Length * 8;
+            return output.Length * 8;
 	    }
 
 	    /**
@@ -420,14 +403,14 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        CTR_DRBG_Reseed_algorithm(additionalInput);
 	    }
 
-	    private boolean isTDEA(BlockCipher cipher)
+        private bool IsTdea(IBlockCipher cipher)
 	    {
 	        return cipher.AlgorithmName.Equals("DESede") || cipher.AlgorithmName.Equals("TDEA");
 	    }
 
-	    private int getMaxSecurityStrength(BlockCipher cipher, int keySizeInBits)
+	    private int GetMaxSecurityStrength(IBlockCipher cipher, int keySizeInBits)
 	    {
-	        if (isTDEA(cipher) && keySizeInBits == 168)
+	        if (IsTdea(cipher) && keySizeInBits == 168)
 	        {
 	            return 112;
 	        }
@@ -436,19 +419,19 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	            return keySizeInBits;
 	        }
 
-	        return -1;
+            return -1;
 	    }
 
-	    byte[] expandKey(byte[] key)
+        private byte[] ExpandKey(byte[] key)
 	    {
-	        if (_isTDEA)
+	        if (mIsTdea)
 	        {
 	            // expand key to 192 bits.
 	            byte[] tmp = new byte[24];
 
-	            padKey(key, 0, tmp, 0);
-	            padKey(key, 7, tmp, 8);
-	            padKey(key, 14, tmp, 16);
+                PadKey(key, 0, tmp, 0);
+                PadKey(key, 7, tmp, 8);
+                PadKey(key, 14, tmp, 16);
 
 	            return tmp;
 	        }
@@ -466,7 +449,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     * @param tmp
 	     * @param tmpOff
 	     */
-	    private void padKey(byte[] keyMaster, int keyOff, byte[] tmp, int tmpOff)
+        private void PadKey(byte[] keyMaster, int keyOff, byte[] tmp, int tmpOff)
 	    {
 	        tmp[tmpOff + 0] = (byte)(keyMaster[keyOff + 0] & 0xfe);
 	        tmp[tmpOff + 1] = (byte)((keyMaster[keyOff + 0] << 7) | ((keyMaster[keyOff + 1] & 0xfc) >> 1));
@@ -479,15 +462,15 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
 	        for (int i = tmpOff; i <= tmpOff + 7; i++)
 	        {
-	            int b = tmp[i];
-	            tmp[i] = (byte)((b & 0xfe) |
-	                            ((((b >> 1) ^
-	                            (b >> 2) ^
-	                            (b >> 3) ^
-	                            (b >> 4) ^
-	                            (b >> 5) ^
-	                            (b >> 6) ^
-	                            (b >> 7)) ^ 0x01) & 0x01));
+                uint b = tmp[i];
+
+                uint parity = b ^ 1U;
+                parity ^= (parity >> 4);
+                parity ^= (parity >> 2);
+                parity ^= (parity >> 1);
+                parity &= 1U;
+
+                tmp[i] = (byte)(b ^ parity);
 	        }
 	    }
 	}

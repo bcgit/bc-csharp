@@ -8,19 +8,21 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	/**
 	 * A SP800-90A HMAC DRBG.
 	 */
-	public class HMacSP800Drbg: SP80090Drbg
+	public class HMacSP800Drbg
+        :   ISP80090Drbg
 	{
-	    private readonly static long       RESEED_MAX = 1L << (48 - 1);
-		private readonly static int        MAX_BITS_REQUEST = 1 << (19 - 1);
+	    private readonly static long RESEED_MAX = 1L << (48 - 1);
+		private readonly static int MAX_BITS_REQUEST = 1 << (19 - 1);
 
-	    private byte[] _K;
-	    private byte[] _V;
-	    private long   _reseedCounter;
-	    private EntropySource _entropySource;
-	    private Mac _hMac;
-	    private int _securityStrength;
+        private readonly byte[]         mK;
+        private readonly byte[]         mV;
+        private readonly IEntropySource mEntropySource;
+        private readonly IMac           mHMac;
+        private readonly int            mSecurityStrength;
 
-	    /**
+        private long mReseedCounter;
+
+        /**
 	     * Construct a SP800-90A Hash DRBG.
 	     * <p>
 	     * Minimum entropy requirement is the security strength requested.
@@ -33,33 +35,28 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
 	    public HMacSP800Drbg(IMac hMac, int securityStrength, IEntropySource entropySource, byte[] personalizationString, byte[] nonce)
 	    {
-	        if (securityStrength > Utils.getMaxSecurityStrength(hMac))
-	        {
+	        if (securityStrength > DrbgUtilities.GetMaxSecurityStrength(hMac))
 	            throw new ArgumentException("Requested security strength is not supported by the derivation function");
-	        }
-
 	        if (entropySource.EntropySize < securityStrength)
-	        {
 	            throw new ArgumentException("Not enough entropy for security strength required");
-	        }
 
-	        _securityStrength = securityStrength;
-	        _entropySource = entropySource;
-	        _hMac = hMac;
+            mHMac = hMac;
+            mSecurityStrength = securityStrength;
+	        mEntropySource = entropySource;
 
-	        byte[] entropy = getEntropy();
-	        byte[] seedMaterial = Arrays.Concatenate(entropy, nonce, personalizationString);
+            byte[] entropy = GetEntropy();
+	        byte[] seedMaterial = Arrays.ConcatenateAll(entropy, nonce, personalizationString);
 
-	        _K = new byte[hMac.GetMacSize()];
-	        _V = new byte[_K.Length];
-	        Arrays.fill(_V, (byte)1);
+            mK = new byte[hMac.GetMacSize()];
+	        mV = new byte[mK.Length];
+	        Arrays.Fill(mV, (byte)1);
 
-	        hmac_DRBG_Update(seedMaterial);
+            hmac_DRBG_Update(seedMaterial);
 
-	        _reseedCounter = 1;
+            mReseedCounter = 1;
 	    }
 
-	    private void hmac_DRBG_Update(byte[] seedMaterial)
+        private void hmac_DRBG_Update(byte[] seedMaterial)
 	    {
 	        hmac_DRBG_Update_Func(seedMaterial, (byte)0x00);
 	        if (seedMaterial != null)
@@ -70,22 +67,22 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
 	    private void hmac_DRBG_Update_Func(byte[] seedMaterial, byte vValue)
 	    {
-	        _hMac.Init(new KeyParameter(_K));
+	        mHMac.Init(new KeyParameter(mK));
 
-	        _hMac.BlockUpdate(_V, 0, _V.Length);
-	        _hMac.Update(vValue);
+            mHMac.BlockUpdate(mV, 0, mV.Length);
+            mHMac.Update(vValue);
 
 	        if (seedMaterial != null)
 	        {
-	            _hMac.update(seedMaterial, 0, seedMaterial.Length);
+                mHMac.BlockUpdate(seedMaterial, 0, seedMaterial.Length);
 	        }
 
-	        _hMac.DoFinal(_K, 0);
+            mHMac.DoFinal(mK, 0);
 
-	        _hMac.Init(new KeyParameter(_K));
-	        _hMac.BlockUpdate(_V, 0, _V.Length);
+            mHMac.Init(new KeyParameter(mK));
+            mHMac.BlockUpdate(mV, 0, mV.Length);
 
-	        _hMac.DoFinal(_V, 0);
+            mHMac.DoFinal(mV, 0);
 	    }
 
 	    /**
@@ -95,9 +92,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     */
 	    public int BlockSize
 	    {
-			get {
-				return _V.Length * 8;
-			}
+			get { return mV.Length * 8; }
 	    }
 
 	    /**
@@ -109,23 +104,21 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     *
 	     * @return number of bits generated, -1 if a reseed required.
 	     */
-	    public int Generate(byte[] output, byte[] additionalInput, boolean predictionResistant)
+	    public int Generate(byte[] output, byte[] additionalInput, bool predictionResistant)
 	    {
 	        int numberOfBits = output.Length * 8;
 
-	        if (numberOfBits > MAX_BITS_REQUEST)
-	        {
-	            throw new IllegalArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST);
-	        }
+            if (numberOfBits > MAX_BITS_REQUEST)
+	            throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
 
-	        if (_reseedCounter > RESEED_MAX)
+            if (mReseedCounter > RESEED_MAX)
 	        {
 	            return -1;
 	        }
 
-	        if (predictionResistant)
+            if (predictionResistant)
 	        {
-	            reseed(additionalInput);
+	            Reseed(additionalInput);
 	            additionalInput = null;
 	        }
 
@@ -135,36 +128,36 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	            hmac_DRBG_Update(additionalInput);
 	        }
 
-	        // 3.
+            // 3.
 	        byte[] rv = new byte[output.Length];
 
-	        int m = output.Length / _V.Length;
+            int m = output.Length / mV.Length;
 
-	        _hMac.Init(new KeyParameter(_K));
+            mHMac.Init(new KeyParameter(mK));
 
 	        for (int i = 0; i < m; i++)
 	        {
-	            _hMac.BlockUpdate(_V, 0, _V.Length);
-	            _hMac.DoFinal(_V, 0);
+	            mHMac.BlockUpdate(mV, 0, mV.Length);
+                mHMac.DoFinal(mV, 0);
 
-	            Array.Copy(_V, 0, rv, i * _V.Length, _V.Length);
+                Array.Copy(mV, 0, rv, i * mV.Length, mV.Length);
 	        }
 
-	        if (m * _V.Length < rv.Length)
+            if (m * mV.Length < rv.Length)
 	        {
-					_hMac.BlockUpdate(_V, 0, _V.Length);
-	            _hMac.DoFinal(_V, 0);
+                mHMac.BlockUpdate(mV, 0, mV.Length);
+                mHMac.DoFinal(mV, 0);
 
-	            Array.Copy(_V, 0, rv, m * _V.Length, rv.Length - (m * _V.Length));
+	            Array.Copy(mV, 0, rv, m * mV.Length, rv.Length - (m * mV.Length));
 	        }
 
-	        hmac_DRBG_Update(additionalInput);
+            hmac_DRBG_Update(additionalInput);
 
-	        _reseedCounter++;
+	        mReseedCounter++;
 
 	        Array.Copy(rv, 0, output, 0, output.Length);
 
-	        return numberOfBits;
+            return numberOfBits;
 	    }
 
 	    /**
@@ -174,22 +167,19 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	      */
 	    public void Reseed(byte[] additionalInput)
 	    {
-	        byte[] entropy = getEntropy();
+	        byte[] entropy = GetEntropy();
 	        byte[] seedMaterial = Arrays.Concatenate(entropy, additionalInput);
 
 	        hmac_DRBG_Update(seedMaterial);
 
-	        _reseedCounter = 1;
+	        mReseedCounter = 1;
 	    }
 
-	    private byte[] getEntropy()
+        private byte[] GetEntropy()
 	    {
-	        byte[] entropy = _entropySource.GetEntropy();
-
-	        if (entropy.Length < (_securityStrength + 7) / 8)
-	        {
-	            throw new IllegalStateException("Insufficient entropy provided by entropy source");
-	        }
+	        byte[] entropy = mEntropySource.GetEntropy();
+	        if (entropy.Length < (mSecurityStrength + 7) / 8)
+	            throw new InvalidOperationException("Insufficient entropy provided by entropy source");
 	        return entropy;
 	    }
 	}

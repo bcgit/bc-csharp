@@ -591,57 +591,33 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
-        public static byte[] Concatenate(byte[] a, byte[] b, byte[] c)
+        public static byte[] ConcatenateAll(params byte[][] vs)
         {
-                if (a != null && b != null && c != null)
-                {
-                        byte[] rv = new byte[a.Length + b.Length + c.Length];
+            byte[][] nonNull = new byte[vs.Length][];
+            int count = 0;
+            int totalLength = 0;
 
-                        Array.Copy(a, 0, rv, 0, a.Length);
-                        Array.Copy(b, 0, rv, a.Length, b.Length);
-                      	Array.Copy(c, 0, rv, a.Length + b.Length, c.Length);
+            for (int i = 0; i < vs.Length; ++i)
+            {
+                byte[] v = vs[i];
+                if (v != null)
+                {
+                    nonNull[count++] = v;
+                    totalLength += v.Length;
+                }
+            }
 
-                        return rv;
-                }
-                else if (b == null)
-                {
-                        return Concatenate(a, c);
-	        }
-                else
-                {
-                        return Concatenate(a, b);
-                }
-        }
+            byte[] result = new byte[totalLength];
+            int pos = 0;
 
-        public static byte[] Concatenate(byte[] a, byte[] b, byte[] c, byte[] d)
-        {
-                if (a != null && b != null && c != null && d != null)
-                {
-                        byte[] rv = new byte[a.Length + b.Length + c.Length + d.Length];
+            for (int j = 0; j < count; ++j)
+            {
+                byte[] v = nonNull[j];
+                Array.Copy(v, 0, result, pos, v.Length);
+                pos += v.Length;
+            }
 
-                        Array.Copy(a, 0, rv, 0, a.Length);
-                        Array.Copy(b, 0, rv, a.Length, b.Length);
-                        Array.Copy(c, 0, rv, a.Length + b.Length, c.Length);
-                        Array.Copy(d, 0, rv, a.Length + b.Length + c.Length, d.Length);
-
-                        return rv;
-                }
-                else if (d == null)
-                {
-                        return Concatenate(a, b, c);
-                }
-                else if (c == null)
-                {
-                        return Concatenate(a, b, d);
-                }
-                else if (b == null)
-                {
-                        return Concatenate(a, c, d);
-                }
-                else
-                {
-                        return Concatenate(b, c, d);
-                }
+            return result;
         }
 
         public static int[] Concatenate(int[] a, int[] b)

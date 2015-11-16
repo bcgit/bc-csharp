@@ -1,24 +1,25 @@
-﻿using Org.BouncyCastle.Utilities.Encoders;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using System.Collections;
+
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Prng.Test
 {
-    public class DRBGTestVector
+    public class DrbgTestVector
     {
         private IDigest _digest;
         private IBlockCipher _cipher;
         private int _keySizeInBits;
         private IEntropySource _eSource;
         private bool _pr;
-        private String _nonce;
-        private String _personalisation;
+        private string _nonce;
+        private string _personalisation;
         private int _ss;
         private String[] _ev;
-        private List<string> _ai = new List<string>();
+        private IList _ai = new ArrayList();
 
-        public DRBGTestVector(IDigest digest, IEntropySource eSource, bool predictionResistance, String nonce, int securityStrength, String[] expected)
+        public DrbgTestVector(IDigest digest, IEntropySource eSource, bool predictionResistance, string nonce,
+            int securityStrength, string[] expected)
         {
             _digest = digest;
             _eSource = eSource;
@@ -29,7 +30,8 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             _personalisation = null;
         }
 
-        public DRBGTestVector(IBlockCipher cipher, int keySizeInBits, IEntropySource eSource, bool predictionResistance, String nonce, int securityStrength, String[] expected)
+        public DrbgTestVector(IBlockCipher cipher, int keySizeInBits, IEntropySource eSource, bool predictionResistance,
+            string nonce, int securityStrength, string[] expected)
         {
             _cipher = cipher;
             _keySizeInBits = keySizeInBits;
@@ -41,89 +43,69 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             _personalisation = null;
         }
 
-        public IDigest getDigest()
+        public IDigest Digest
         {
-            return _digest;
+            get { return _digest; }
         }
 
-        public IBlockCipher getCipher()
+        public IBlockCipher Cipher
         {
-            return _cipher;
+            get { return _cipher; }
         }
 
-        public int keySizeInBits()
+        public int KeySizeInBits
         {
-            return _keySizeInBits;
+            get { return _keySizeInBits; }
         }
 
-        public DRBGTestVector addAdditionalInput(String input)
+        public DrbgTestVector AddAdditionalInput(string input)
         {
             _ai.Add(input);
-
             return this;
         }
 
-        public DRBGTestVector setPersonalizationString(String p)
+        public DrbgTestVector SetPersonalizationString(string p)
         {
             _personalisation = p;
-
             return this;
         }
 
-        public IEntropySource entropySource()
+        public IEntropySource EntropySource
         {
-            return _eSource;
+            get { return _eSource; }
         }
 
-        public bool predictionResistance()
+        public bool PredictionResistance
         {
-            return _pr;
+            get { return _pr; }
         }
 
-        public byte[] nonce()
+        public byte[] GetNonce()
         {
-            if (_nonce == null)
-            {
-                return null;
-            }
-
-            return Hex.Decode(_nonce);
+            return _nonce == null ? null : Hex.Decode(_nonce);
         }
 
-        public byte[] personalizationString()
+        public byte[] GetPersonalizationString()
         {
-            if (_personalisation == null)
-            {
-                return null;
-            }
-
-            return Hex.Decode(_personalisation);
+             return _personalisation == null ? null : Hex.Decode(_personalisation);
         }
 
-        public int securityStrength()
+        public int SecurityStrength
         {
-            return _ss;
+            get { return _ss; }
         }
 
-        public byte[] expectedValue(int index)
+        public byte[] GetExpectedValue(int index)
         {
             return Hex.Decode(_ev[index]);
         }
 
-        public byte[] additionalInput(int position)
+        public byte[] GetAdditionalInput(int position)
         {
-            int len = _ai.Count;
-            byte[] rv;
-            if (position >= len)
-            {
-                rv = null;
-            }
-            else
-            {
-                rv = Hex.Decode((string)(_ai[position]));
-            }
-            return rv;
-        }
+            if (position >= _ai.Count)
+                return null;
 
+            return Hex.Decode((string)_ai[position]);
+        }
     }
 }

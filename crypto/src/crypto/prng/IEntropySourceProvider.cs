@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Org.BouncyCastle.Crypto
+namespace Org.BouncyCastle.Crypto.Prng
 {
     /// <summary>
     /// Base interface describing a provider of entropy sources.

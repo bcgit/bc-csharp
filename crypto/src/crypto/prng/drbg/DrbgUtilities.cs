@@ -5,39 +5,39 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Prng.Drbg
 {
-	internal class Utils
+	internal class DrbgUtilities
 	{
 		private static readonly IDictionary maxSecurityStrengths = Platform.CreateHashtable();
 
-		static Utils()
+        static DrbgUtilities()
 	    {
-	        maxSecurityStrengths.put("SHA-1", 128);
+	        maxSecurityStrengths.Add("SHA-1", 128);
 
-	        maxSecurityStrengths.put("SHA-224", 192);
-	        maxSecurityStrengths.put("SHA-256", 256);
-	        maxSecurityStrengths.put("SHA-384", 256);
-	        maxSecurityStrengths.put("SHA-512", 256);
+	        maxSecurityStrengths.Add("SHA-224", 192);
+	        maxSecurityStrengths.Add("SHA-256", 256);
+	        maxSecurityStrengths.Add("SHA-384", 256);
+	        maxSecurityStrengths.Add("SHA-512", 256);
 
-	        maxSecurityStrengths.put("SHA-512/224", 192);
-	        maxSecurityStrengths.put("SHA-512/256", 256);
+	        maxSecurityStrengths.Add("SHA-512/224", 192);
+	        maxSecurityStrengths.Add("SHA-512/256", 256);
 	    }
 
-	    internal static int getMaxSecurityStrength(IDigest d)
+        internal static int GetMaxSecurityStrength(IDigest d)
 	    {
 	        return (int)maxSecurityStrengths[d.AlgorithmName];
 	    }
 
-		internal static int getMaxSecurityStrength(IMac m)
+        internal static int GetMaxSecurityStrength(IMac m)
 	    {
-	        String name = m.getAlgorithmName();
+	        string name = m.AlgorithmName;
 
-	        return (int)maxSecurityStrengths[name.substring(0, name.indexOf("/"))];
+            return (int)maxSecurityStrengths[name.Substring(0, name.IndexOf("/"))];
 	    }
 
 	    /**
 	     * Used by both Dual EC and Hash.
 	     */
-	    internal static byte[] hash_df(Digest digest, byte[] seedMaterial, int seedLength)
+	    internal static byte[] HashDF(IDigest digest, byte[] seedMaterial, int seedLength)
 	    {
 	         // 1. temp = the Null string.
 	        // 2. .
@@ -52,10 +52,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        // 6. Return SUCCESS and requested_bits.
 	        byte[] temp = new byte[(seedLength + 7) / 8];
 
-	        int len = temp.Length / digest.getDigestSize();
+	        int len = temp.Length / digest.GetDigestSize();
 	        int counter = 1;
 
-	        byte[] dig = new byte[digest.getDigestSize()];
+	        byte[] dig = new byte[digest.GetDigestSize()];
 
 	        for (int i = 0; i <= len; i++)
 	        {
@@ -82,20 +82,20 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        if (seedLength % 8 != 0)
 	        {
 	            int shift = 8 - (seedLength % 8);
-	            int carry = 0;
+	            uint carry = 0;
 
-	            for (int i = 0; i != temp.Length; i++)
+                for (int i = 0; i != temp.Length; i++)
 	            {
-	                uint b = temp[i] & 0xff;
+	                uint b = temp[i];
 	                temp[i] = (byte)((b >> shift) | (carry << (8 - shift)));
 	                carry = b;
 	            }
 	        }
 
-	        return temp;
+            return temp;
 	    }
 
-	    internal static boolean isTooLarge(byte[] bytes, int maxBytes)
+        internal static bool IsTooLarge(byte[] bytes, int maxBytes)
 	    {
 	        return bytes != null && bytes.Length > maxBytes;
 	    }
