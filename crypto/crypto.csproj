@@ -4319,12 +4319,22 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\prng\CryptoApiEntropySourceProvider.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\prng\CryptoApiRandomGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "src\crypto\prng\DigestRandomGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\EntropyUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

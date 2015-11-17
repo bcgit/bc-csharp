@@ -161,7 +161,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             //
             // generate the seed.
             //
-            byte[] seed = random.GenerateSeed(defHash.Length);
+            byte[] seed = SecureRandom.GetNextBytes(random, defHash.Length);
 
             //
             // mask the message block.

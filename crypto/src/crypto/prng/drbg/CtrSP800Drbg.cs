@@ -460,18 +460,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        tmp[tmpOff + 6] = (byte)((keyMaster[keyOff + 5] << 2) | ((keyMaster[keyOff + 6] & 0x80) >> 6));
 	        tmp[tmpOff + 7] = (byte)(keyMaster[keyOff + 6] << 1);
 
-	        for (int i = tmpOff; i <= tmpOff + 7; i++)
-	        {
-                uint b = tmp[i];
-
-                uint parity = b ^ 1U;
-                parity ^= (parity >> 4);
-                parity ^= (parity >> 2);
-                parity ^= (parity >> 1);
-                parity &= 1U;
-
-                tmp[i] = (byte)(b ^ parity);
-	        }
+            DesParameters.SetOddParity(tmp, tmpOff, 8);
 	    }
 	}
 }

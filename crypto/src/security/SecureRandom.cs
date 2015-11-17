@@ -68,9 +68,16 @@ namespace Org.BouncyCastle.Security
             if (autoSeed)
             {
                 prng.AddSeedMaterial(NextCounterValue());
-                prng.AddSeedMaterial(GetSeed(digest.GetDigestSize()));
+                prng.AddSeedMaterial(GetNextBytes(Master, digest.GetDigestSize()));
             }
             return prng;
+        }
+
+        public static byte[] GetNextBytes(SecureRandom secureRandom, int length)
+        {
+            byte[] result = new byte[length];
+            secureRandom.NextBytes(result);
+            return result;
         }
 
         /// <summary>
@@ -104,12 +111,10 @@ namespace Org.BouncyCastle.Security
             throw new ArgumentException("Unrecognised PRNG algorithm: " + algorithm, "algorithm");
         }
 
+        [Obsolete("Call GenerateSeed() on a SecureRandom instance instead")]
         public static byte[] GetSeed(int length)
         {
-#if NETCF_1_0 || PORTABLE
-            lock (master)
-#endif
-            return Master.GenerateSeed(length);
+            return GetNextBytes(Master, length);
         }
 
         protected readonly IRandomGenerator generator;
@@ -145,11 +150,7 @@ namespace Org.BouncyCastle.Security
 
         public virtual byte[] GenerateSeed(int length)
         {
-            SetSeed(DateTime.Now.Ticks);
-
-            byte[] rv = new byte[length];
-            NextBytes(rv);
-            return rv;
+            return GetNextBytes(Master, length);
         }
 
         public virtual void SetSeed(byte[] seed)

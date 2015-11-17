@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         private const int   BLOCK128_MAX_BITS_REQUEST = 1 << (19 - 1);
 
         private readonly IBlockCipher mEngine;
-        private readonly IEntropySource mEntropySource;
+        internal readonly IEntropySource mEntropySource;
 
         private readonly byte[] mDT;
         private readonly byte[] mI;
