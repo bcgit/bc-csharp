@@ -410,7 +410,7 @@ namespace Org.BouncyCastle.Tests
                     else
                     {
                         // NB: rand always generates same values each test run
-                        iv = rand.GenerateSeed(ivLength);
+                        iv = SecureRandom.GetNextBytes(rand, ivLength);
                     }
 
                     parameters = new ParametersWithIV(key, iv);
