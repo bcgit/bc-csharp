@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         public override byte[] GenerateSeed(int numBytes)
         {
-            return EntropyUtilities.GenerateSeed(mDrbg.mEntropySource, numBytes);
+            return EntropyUtilities.GenerateSeed(mDrbg.EntropySource, numBytes);
         }
     }
 }
