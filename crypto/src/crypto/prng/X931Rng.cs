@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         private const int   BLOCK128_MAX_BITS_REQUEST = 1 << (19 - 1);
 
         private readonly IBlockCipher mEngine;
-        internal readonly IEntropySource mEntropySource;
+        private readonly IEntropySource mEntropySource;
 
         private readonly byte[] mDT;
         private readonly byte[] mI;
@@ -112,6 +112,11 @@ namespace Org.BouncyCastle.Crypto.Prng
             if (mV.Length != mEngine.GetBlockSize())
                 throw new InvalidOperationException("Insufficient entropy returned");
             mReseedCounter = 1;
+        }
+
+        internal IEntropySource EntropySource
+        {
+            get { return mEntropySource; }
         }
 
         private void Process(byte[] res, byte[] a, byte[] b)
