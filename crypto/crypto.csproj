@@ -3079,6 +3079,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IEntropySource.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\IEntropySourceProvider.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IMac.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4340,16 +4350,6 @@
                 />
                 <File
                     RelPath = "src\crypto\prng\IDrbgProvider.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\crypto\prng\IEntropySource.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\crypto\prng\IEntropySourceProvider.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
