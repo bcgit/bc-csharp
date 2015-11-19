@@ -221,6 +221,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 case ECCurve.COORD_HOMOGENEOUS:
                 case ECCurve.COORD_LAMBDA_PROJECTIVE:
+                case ECCurve.COORD_SKEWED:
                     return p.GetZCoord(0);
                 case ECCurve.COORD_JACOBIAN:
                 case ECCurve.COORD_JACOBIAN_CHUDNOVSKY:
