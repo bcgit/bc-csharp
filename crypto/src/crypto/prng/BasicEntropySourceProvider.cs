@@ -58,7 +58,8 @@ namespace Org.BouncyCastle.Crypto.Prng
 
             byte[] IEntropySource.GetEntropy()
             {
-                return mSecureRandom.GenerateSeed((mEntropySize + 7) / 8);
+                // TODO[FIPS] Not all SecureRandom implementations are considered valid entropy sources
+                return SecureRandom.GetNextBytes(mSecureRandom, (mEntropySize + 7) / 8);
             }
 
             int IEntropySource.EntropySize
