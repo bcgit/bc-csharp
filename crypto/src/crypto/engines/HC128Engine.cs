@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -180,7 +181,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			else
 			{
 				throw new ArgumentException(
-					"Invalid parameter passed to HC128 init - " + parameters.GetType().Name,
+					"Invalid parameter passed to HC128 init - " + Platform.GetTypeName(parameters),
 					"parameters");
 			}
 

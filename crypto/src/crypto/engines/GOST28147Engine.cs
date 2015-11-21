@@ -183,7 +183,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 			else if (parameters != null)
 			{
-				throw new ArgumentException("invalid parameter passed to Gost28147 init - " + parameters.GetType().Name);
+				throw new ArgumentException("invalid parameter passed to Gost28147 init - "
+                    + Platform.GetTypeName(parameters));
 			}
 		}
 

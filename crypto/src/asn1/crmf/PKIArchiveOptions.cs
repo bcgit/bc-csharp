@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class PkiArchiveOptions
@@ -19,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
             if (obj is Asn1TaggedObject)
                 return new PkiArchiveOptions((Asn1TaggedObject)obj);
 
-            throw new ArgumentException("Invalid object: " + obj.GetType().Name, "obj");
+            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
         }
 
         private PkiArchiveOptions(Asn1TaggedObject tagged)

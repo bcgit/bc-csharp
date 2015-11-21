@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				if (pgpPub == null)
 				{
-					throw new PgpException(obj.GetType().FullName + " found where PgpPublicKeyRing expected");
+					throw new PgpException(Platform.GetTypeName(obj) + " found where PgpPublicKeyRing expected");
 				}
 
 				long key = pgpPub.GetPublicKey().KeyId;

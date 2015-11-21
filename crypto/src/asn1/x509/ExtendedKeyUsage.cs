@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 return GetInstance(X509Extension.ConvertValueToObject((X509Extension) obj));
             }
 
-            throw new ArgumentException("Invalid ExtendedKeyUsage: " + obj.GetType().Name);
+            throw new ArgumentException("Invalid ExtendedKeyUsage: " + Platform.GetTypeName(obj));
         }
 
         private ExtendedKeyUsage(

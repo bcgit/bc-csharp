@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Asn1.X509
 	            }
 	        }
 
-			throw new ArgumentException("unknown object in GetInstance: " + obj.GetType().FullName, "obj");
+			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
 		}
 
 		public static GeneralName GetInstance(

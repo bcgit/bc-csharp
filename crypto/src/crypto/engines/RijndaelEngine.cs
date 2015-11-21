@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -582,7 +583,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 				return;
 			}
 
-			throw new ArgumentException("invalid parameter passed to Rijndael init - " + parameters.GetType().ToString());
+			throw new ArgumentException("invalid parameter passed to Rijndael init - " + Platform.GetTypeName(parameters));
 		}
 
         public virtual string AlgorithmName
