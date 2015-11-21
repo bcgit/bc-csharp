@@ -1,6 +1,8 @@
 using System;
+
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
@@ -22,7 +24,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             if (obj is Asn1Sequence)
                 return new Pbkdf2Params((Asn1Sequence)obj);
 
-            throw new ArgumentException("Unknown object in factory: " + obj.GetType().FullName, "obj");
+            throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
         public Pbkdf2Params(

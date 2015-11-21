@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1.X509
 {
 	public class NameConstraints
@@ -21,7 +23,7 @@ namespace Org.BouncyCastle.Asn1.X509
 				return new NameConstraints((Asn1Sequence) obj);
 			}
 
-			throw new ArgumentException("unknown object in factory: " + obj.GetType().Name, "obj");
+            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
 
 		public NameConstraints(

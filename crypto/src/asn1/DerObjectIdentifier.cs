@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Asn1
                 return (DerObjectIdentifier) obj;
             if (obj is byte[])
                 return FromOctetString((byte[])obj);
-            throw new ArgumentException("illegal object in GetInstance: " + obj.GetType().Name, "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         /**

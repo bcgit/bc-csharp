@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Globalization;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -53,7 +52,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				if (pgpSecret == null)
 				{
-					throw new PgpException(obj.GetType().FullName + " found where PgpSecretKeyRing expected");
+					throw new PgpException(Platform.GetTypeName(obj) + " found where PgpSecretKeyRing expected");
 				}
 
 				long key = pgpSecret.GetPublicKey().KeyId;

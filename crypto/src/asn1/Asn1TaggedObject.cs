@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1
 				return (Asn1TaggedObject) obj;
 			}
 
-			throw new ArgumentException("Unknown object in GetInstance: " + obj.GetType().FullName, "obj");
+			throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
 		}
 
 		/**

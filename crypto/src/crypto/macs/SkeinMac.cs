@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Macs
 {
@@ -79,7 +80,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 			else
 			{
 				throw new ArgumentException("Invalid parameter passed to Skein MAC init - "
-				                            + parameters.GetType().Name);
+                    + Platform.GetTypeName(parameters));
 			}
 			if (skeinParameters.GetKey() == null)
 			{

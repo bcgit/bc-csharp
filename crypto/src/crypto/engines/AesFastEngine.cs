@@ -3,6 +3,7 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -788,7 +789,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             KeyParameter keyParameter = parameters as KeyParameter;
 
             if (keyParameter == null)
-                throw new ArgumentException("invalid parameter passed to AES init - " + parameters.GetType().Name);
+                throw new ArgumentException("invalid parameter passed to AES init - "
+                    + Platform.GetTypeName(parameters));
 
             WorkingKey = GenerateWorkingKey(keyParameter.GetKey(), forEncryption);
 

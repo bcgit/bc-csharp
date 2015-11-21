@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1
                 }
             }
 
-            throw new ArgumentException("Unknown object in GetInstance: " + obj.GetType().FullName, "obj");
+            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         /**
@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.Asn1
                 return new DerSet(v, false);
             }
 
-            throw new ArgumentException("Unknown object in GetInstance: " + obj.GetType().FullName, "obj");
+            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         protected internal Asn1Set(

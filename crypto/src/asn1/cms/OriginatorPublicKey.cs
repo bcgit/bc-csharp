@@ -1,7 +1,7 @@
 using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			if (obj is Asn1Sequence)
                 return new OriginatorPublicKey(Asn1Sequence.GetInstance(obj));
 
-			throw new ArgumentException("Invalid OriginatorPublicKey: " + obj.GetType().Name);
+            throw new ArgumentException("Invalid OriginatorPublicKey: " + Platform.GetTypeName(obj));
         }
 
 		public AlgorithmIdentifier Algorithm

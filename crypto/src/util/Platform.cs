@@ -220,5 +220,10 @@ namespace Org.BouncyCastle.Utilities
         {
             return InvariantCompareInfo.IsSuffix(source, suffix, CompareOptions.Ordinal);
         }
+
+        internal static string GetTypeName(object obj)
+        {
+            return obj.GetType().FullName;
+        }
     }
 }

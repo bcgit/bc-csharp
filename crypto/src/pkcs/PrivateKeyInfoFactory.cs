@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Pkcs
                 return new PrivateKeyInfo(algID, new DerOctetString(keyBytes));
             }
 
-            throw new ArgumentException("Class provided is not convertible: " + key.GetType().FullName);
+            throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(key));
         }
 
         public static PrivateKeyInfo CreatePrivateKeyInfo(
