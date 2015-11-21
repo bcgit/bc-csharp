@@ -54,6 +54,7 @@ namespace Org.BouncyCastle.Security
             SERPENT,
             SKIPJACK,
             TEA,
+            TNEPRES,
             TWOFISH,
             VMPC,
             VMPC_KSA3,
@@ -432,6 +433,9 @@ namespace Org.BouncyCastle.Security
                 case CipherAlgorithm.TEA:
                     blockCipher = new TeaEngine();
                     break;
+                case CipherAlgorithm.TNEPRES:
+                    blockCipher = new TnepresEngine();
+                    break;
                 case CipherAlgorithm.TWOFISH:
                     blockCipher = new TwofishEngine();
                     break;
@@ -725,6 +729,7 @@ namespace Org.BouncyCastle.Security
                 case CipherAlgorithm.SERPENT: return new SerpentEngine();
                 case CipherAlgorithm.SKIPJACK: return new SkipjackEngine();
                 case CipherAlgorithm.TEA: return new TeaEngine();
+                case CipherAlgorithm.TNEPRES: return new TnepresEngine();
                 case CipherAlgorithm.TWOFISH: return new TwofishEngine();
                 case CipherAlgorithm.XTEA: return new XteaEngine();
                 default:
