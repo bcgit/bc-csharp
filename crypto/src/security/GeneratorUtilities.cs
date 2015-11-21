@@ -109,6 +109,7 @@ namespace Org.BouncyCastle.Security
             AddKgAlgorithm("SERPENT");
             AddKgAlgorithm("SKIPJACK");
             AddKgAlgorithm("TEA");
+            AddKgAlgorithm("TNEPRES");
             AddKgAlgorithm("TWOFISH");
             AddKgAlgorithm("VMPC");
             AddKgAlgorithm("VMPC-KSA3");
@@ -178,7 +179,7 @@ namespace Org.BouncyCastle.Security
                 "RC2", "RC4", "RC5", "SALSA20", "SEED", "TEA", "XTEA", "VMPC", "VMPC-KSA3");
             AddDefaultKeySizeEntries(160, "HMACRIPEMD160", "HMACSHA1");
             AddDefaultKeySizeEntries(192, "AES", "AES192", "CAMELLIA192", "DESEDE3", "HMACTIGER",
-                "RIJNDAEL", "SERPENT");
+                "RIJNDAEL", "SERPENT", "TNEPRES");
             AddDefaultKeySizeEntries(224, "HMACSHA224");
             AddDefaultKeySizeEntries(256, "AES256", "CAMELLIA", "CAMELLIA256", "CAST6", "GOST28147",
                 "HC256", "HMACSHA256", "RC5-64", "RC6", "TWOFISH");

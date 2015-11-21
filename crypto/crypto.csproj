@@ -3644,6 +3644,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\engines\SerpentEngineBase.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\engines\SkipjackEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3655,6 +3660,11 @@
                 />
                 <File
                     RelPath = "src\crypto\engines\ThreefishEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\engines\TnepresEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11756,6 +11766,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\Threefish512Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\TnepresTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

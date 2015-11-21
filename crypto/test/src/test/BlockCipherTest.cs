@@ -114,6 +114,8 @@ namespace Org.BouncyCastle.Tests
             "Rijndael/CBC/PKCS7Padding",
             "cf87f4d8bb9d1abb36cdd9f44ead7d046db2f802d99e1ef0a5940f306079e08389a44c4a8cc1a47cbaee1128da55bbb7",
             "Serpent/CBC/PKCS7Padding",
+            "d8b971931de211cb2d31721773a5b1f9dc4e263efe0465f97c024daa26dd7d03473e9beb82ba809cf36071d4807e4706",
+            "Tnepres/CBC/PKCS7Padding",
             "f8940ca31aba8ce1e0693b1ae0b1e08daef6de03c80f019774280052f824ac44540bb8dd74dfad47f83f9c7ec268ca68",
             "CAST5/CBC/PKCS7Padding",
             "87b6dc0c5a1d23d42fa740b0548be0b298112000544610d889d6361994cf8e670a19d6af72d7289f",
@@ -138,6 +140,8 @@ namespace Org.BouncyCastle.Tests
             "Rijndael/CTS/NoPadding",
             "6db2f802d99e1ef0a5940f306079e083cf87f4d8bb9d1abb36cdd9f44ead7d04",
             "Serpent/CTS/NoPadding",
+            "dc4e263efe0465f97c024daa26dd7d03d8b971931de211cb2d31721773a5b1f9",
+            "Tnepres/CTS/NoPadding",
             "aef6de03c80f019774280052f824ac44f8940ca31aba8ce1e0693b1ae0b1e08d",
             "CAST5/CTS/NoPadding",
             "87b6dc0c5a1d23d42fa740b0548be0b289d6361994cf8e6798112000544610d8",
@@ -166,6 +170,8 @@ namespace Org.BouncyCastle.Tests
             "Rijndael/CBC/WithCTS",
             "6db2f802d99e1ef0a5940f306079e083cf87f4d8bb9d1abb36cdd9f44ead7d04",
             "Serpent/CBC/WithCTS",
+            "dc4e263efe0465f97c024daa26dd7d03d8b971931de211cb2d31721773a5b1f9",
+            "Tnepres/CBC/WithCTS",
             "aef6de03c80f019774280052f824ac44f8940ca31aba8ce1e0693b1ae0b1e08d",
             "CAST5/CBC/WithCTS",
             "87b6dc0c5a1d23d42fa740b0548be0b289d6361994cf8e6798112000544610d8",
@@ -251,7 +257,111 @@ namespace Org.BouncyCastle.Tests
             "Twofish/ECB/TBCPadding",
             "70336d9c9718a8a2ced1b19deed973a3c58af7ea71a69e7efc4df082dca581c019d7daa58d02b89aab6e8c0d17202439",
             "RC2/ECB/TBCPadding",
-            "eb5b889bbcced12eb6b1a3da6a3d965bba66a5edfdd4c8a6b6b1a3da6a3d965b6b5359ba5e69b179"
+            "eb5b889bbcced12eb6b1a3da6a3d965bba66a5edfdd4c8a6b6b1a3da6a3d965b6b5359ba5e69b179",
+            "DES/CTR/NoPadding",
+            "537572e480c1714fb47081d35eb18eaca9e0a5aee982f105438a0db6cece1f6d",
+            "DESede/CTR/NoPadding",
+            "481e9872acea7fcfa93b7d4e34ec7bab340c10faba2e43b879d40d38e07c422d",
+            "SKIPJACK/CTR/NoPadding",
+            "71143a124e3a0cdeee98a7b843baa05bd1d59faee8ec9b89880e070314a04cc2",
+            "Blowfish/CTR/NoPadding",
+            "6cd6f7c5d2c65555d2b31f8614f54ec654f5e7888d515008d59302c3edfcc6cb",
+            "Twofish/CTR/NoPadding",
+            "821c54b1b54ae113cf74595eefe10c83d09e95d4599190b9bbd5bc71dd703730",
+            //"Threefish-256/CTR/NoPadding",
+            //"546ea995dd302f1efcb1f27d14bad468280a3a7994c2af75dfdf1e9fc5ef2373",
+            //"Threefish-512/CTR/NoPadding",
+            //"152df966484ecc2e9ddfc386559732f7f632e4008920804a1bde4efcf2e6e2f2",
+            //"Threefish-1024/CTR/NoPadding",
+            //"03953ac751a7377812c6e3e4d14b36c6953f9b390acaa892811c10001c9be454",
+            "RC2/CTR/NoPadding",
+            "0a07cb78537cb04c8c5a0a39a15977a7eb19f3c48a42759c234868c391a99c63",
+            "RC5/CTR/NoPadding",
+            "c62b233df296283b97f17364d5f69a1ff91f46659cf9856caefd322a936203a7",
+            "IDEA/CTR/NoPadding",
+            "dd447da3cbdcf81f4694ab7715d79e3f90af5682e8c318b8f7dadbed6b5c9714",
+            "Blowfish/EAX/NoPadding",
+            "bee85ae6512b8a2346d46f7bac31526238091ccc5de75760c9a39628fb45d44a653bfac0",
+            "CAST5/EAX/NoPadding",
+            "85e0dbd3402f2179f96d231315ec73f04f64f1b7ab1347423b9aec51a07a7222e2bc65a3",
+            "DES/EAX/NoPadding",
+            "07d12249945e77607086f7463f316966466e6a0c0789b3307b8b51a7cc807e3c1fb91f98",
+            "DESede/EAX/NoPadding",
+            "278b28f13537dc13bb688c95391754bd6d39c79a7361b407f8dee0b111b264f20391cb0e",
+            "GOST28147/EAX/NoPadding",
+            "1416713d52affb595b880be996e838edd377e67dfe822fbb0ff235f1b706e6ce34d68dc5",
+            "IDEA/EAX/NoPadding",
+            "b2e9f3e40954c140ac60423466dee0138f84e879fbde003780202bd83c91571b64df7bb7",
+            "RC2/EAX/NoPadding",
+            "5d1c095de75bd5eef6a5146f7d6c44545807a8b452f7a38e2719a14f1a269709d2eda2d3",
+            "SEED/EAX/NoPadding",
+            "6780f18b2dd1f75a934b5a3e45e8fd44877fd3498a9b919b417b3d8a7c67c6021d74bbaef71841ef",
+            "Serpent/EAX/NoPadding",
+            "13c2b1fec2bda74f5ccc8ca31b36a2e91ee024a215387219808640b2fc7a6a41e017aacee3ed893a",
+            "Tnepres/EAX/NoPadding",
+            "8d5ac312ca0d436a0154d56568d39811ccf6bb970012398014fc8a49ed669b117443c0249b07ead8",
+            //"SM4/EAX/NoPadding",
+            //"e072a95da8e529b41199859482142b3fdfa6b7af27348e5ebf35445a099583dae882affde90ea4a4",
+            "Twofish/EAX/NoPadding",
+            "9a90dffe1233a04733fc8869e8ec4cba2fa53d9543f0206825293b1ff102e63f81a60b12204e1fd8",
+            "IDEA/OFB/NoPadding",
+            "dd447da3cbdcf81f4053fb446596261cb00a3c49a66085485af5f7c10ba20dad",
+            "RC2/OFB/NoPadding",
+            "0a07cb78537cb04c0c74e28a7b86b80f80acadf87d6ef32792f1a8cf74b39f74",
+            "SEED/OFB/NoPadding",
+            "9fd249435dc66d3d5d41abad270df5e3c6b972692fadfcb6c311b047f96fb114",
+            "SEED/OCB/NoPadding",
+            "eb04b3612769e1ad681f975af1a6f401d94dc88276dd50fc3ebce791c28825c652b7351acbad8c63d4d66191de94c970",
+            "SEED/CCM/NoPadding",
+            "8bb16b37e7f1d4eb97bb1fa3b9bfd411aca64a3581bb3c5b2a91346983aa334984d73ad629a847f7",
+            "SEED/GCM/NoPadding",
+            "ed5f6293c9a4f280af6695750bfb3bb3b60c214565a049494df955152757812ebfb93705895606c4378498a93f2541b5",
+            //"SM4/GCM/NoPadding",
+            //"323b601a951da693f87e53c6832380719b4d4bd306c94248202b7e337c81e2d9de0044b77a4c556f15f6fd19f828236b",
+            "DES/ECB/TBCPadding",
+            "466da00648ef0e1f9617b1f002e225251a3248d09172f46b9617b1f002e22525698575eb3998481b",
+            "GOST28147/ECB/TBCPadding",
+            "0a77f4114451b37d44c5192619b723dd49093d1047c2373544c5192619b723dde7b0810d205c07ab",
+            "IDEA/ECB/TBCPadding",
+            "8c9fd56823ffdc523f6ccf7f614aa6173553e594fc7a21b53f6ccf7f614aa61747a7c95a57b9eaf4",
+            "RC2/ECB/TBCPadding",
+            "eb5b889bbcced12eb6b1a3da6a3d965bba66a5edfdd4c8a6b6b1a3da6a3d965b6b5359ba5e69b179",
+            "SEED/ECB/TBCPadding",
+            "d53d4ce1f48b9879420949467bfcbfbe2c6a7d4a8770bee0c71211def898d7c509f6e111845db39b4cce1dd155aa592b",
+            "DES/CBC/TBCPadding",
+            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122ad3b3f002c927f1fd",
+            "GOST28147/CBC/TBCPadding",
+            "ba87be9c465cbb30e1bf0148daa9639c2e4cbc1b6777cfcda860760686596159aa564fd65e66c125",
+            "IDEA/CBC/TBCPadding",
+            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d922f14e12faecaa0b",
+            "RC2/CBC/TBCPadding",
+            "a51facdb3933c9676795cd38cc3146fd4694722b468b1a979a399c77606abf9997b47d2f64a37e2f",
+            "SEED/CBC/TBCPadding",
+            "fc34f03ddf4d2a4d9934addc82011af1d5f76ee015b691a6524d7ad5464422d7989825d19e23a60ba759407e13d1ea02",
+            "DES/CFB8/NoPadding",
+            "53cb0cdff712a825eb283b23c31e7323aa12495e7e751428b5c4eb89b28a25d4",
+            "GOST28147/CFB8/NoPadding",
+            "29f6ca1ca7ae9670413183932a28cdd4a09f2ba630c3c3fbf6f071d3774d7577",
+            "IDEA/CFB8/NoPadding",
+            "dd7839d2525420d10f95eec23dbaf3463302c445972a28c563c2635191bc19af",
+            "RC2/CFB8/NoPadding",
+            "0aa227f94be3a32ff927c5d25647ea41d7c2a1e94012fc7f2ad6767b9664bce5",
+            "SEED/CFB8/NoPadding",
+            "9f1622c3785a034ee4c595df05fb11e69e4d52036e238d2d451e190e87ee876e",
+            "DES/CTS/NoPadding",
+            "60fa2f8fae5aa2a38e9ac77d0246726bcf99f75cc6e0122aeb7511e4515feb12",
+            "GOST28147/CTS/NoPadding",
+            "ba87be9c465cbb30e1bf0148daa9639ca8607606865961592e4cbc1b6777cfcd",
+            "IDEA/CTS/NoPadding",
+            "30cd990ebdae80fe12b6c6e4fcd1c06497351c8684e4c4d9a27d985c276b3d70",
+            "RC2/CTS/NoPadding",
+            "a51facdb3933c9676795cd38cc3146fd9a399c77606abf994694722b468b1a97",
+            "SEED/CTS/NoPadding",
+            "d5f76ee015b691a6524d7ad5464422d7fc34f03ddf4d2a4d9934addc82011af1",
+            //"SHACAL-2/CBC/PKCS7Padding",
+            //"3af7c54ea55d2497162ac9c79d9b2f7837898f83aa4b50b7b762979aa8087669b6a81cdec475ed4d2394d7ad771404a52eb52d245a39f0d7d3e8062d3b0f0e54",
+            //"SHACAL-2/CBC/TBCPadding",
+            //"3af7c54ea55d2497162ac9c79d9b2f7837898f83aa4b50b7b762979aa80876693f17fbe9a5baa88ed21b2e1a863dc449061f40cafadfc3cf73486208f87b9352",
         };
 
         private static readonly string[] cipherTests2 =
@@ -329,8 +439,12 @@ namespace Org.BouncyCastle.Tests
             if (!validModes.Contains(baseMode))
                 throw new Exception("Unhandled mode: " + mode);
 
+            if (baseMode == "CCM")
+                return 13;
             if (baseMode == "ECB")
                 return 0;
+            if (baseMode == "OCB")
+                return 15;
 
             string baseAlgorithm = parts[0];
             IBufferedCipher baseCipher = CipherUtilities.GetCipher(baseAlgorithm);
@@ -437,11 +551,16 @@ namespace Org.BouncyCastle.Tests
                 if (iv != null)
                 {
                     // TODO Examine short IV handling for these FIPS-compliant modes in Java build
-                    if (mode.StartsWith("CFB")
+                    if (mode.StartsWith("CCM")
+                        || mode.StartsWith("CFB")
                         || mode.StartsWith("CTR")
+                        || mode.StartsWith("EAX")
+                        || mode.StartsWith("GCM")
                         || mode.StartsWith("GOFB")
+                        || mode.StartsWith("OCB")
                         || mode.StartsWith("OFB")
-                        || mode.StartsWith("OPENPGPCFB"))
+                        || mode.StartsWith("OPENPGPCFB")
+                        || mode.StartsWith("SIC"))
                     {
                         // These modes automatically pad out the IV if it is short
                     }

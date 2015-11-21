@@ -104,6 +104,7 @@ namespace Org.BouncyCastle.Security
             AddAlgorithm("SERPENT");
             AddAlgorithm("SKIPJACK");
             AddAlgorithm("TEA");
+            AddAlgorithm("TNEPRES");
             AddAlgorithm("TWOFISH");
             AddAlgorithm("VMPC");
             AddAlgorithm("VMPC-KSA3");
