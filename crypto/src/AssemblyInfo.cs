@@ -82,7 +82,8 @@ using System.Runtime.InteropServices;
 
 internal class AssemblyInfo
 {
-    private static string version;
+    private static string version = null;
+
     public static string Version
     {
         get
@@ -91,13 +92,16 @@ internal class AssemblyInfo
             {
 #if PORTABLE
 #if NEW_REFLECTION
-                var ver = (AssemblyVersionAttribute)typeof(AssemblyInfo).GetTypeInfo().Assembly.GetCustomAttributes(typeof(AssemblyVersionAttribute)).FirstOrDefault();
+                var a = typeof(AssemblyInfo).GetTypeInfo().Assembly;
+                var c = a.GetCustomAttributes(typeof(AssemblyVersionAttribute));
 #else
-                var ver = (AssemblyVersionAttribute)typeof(AssemblyInfo).Assembly.GetCustomAttributes(typeof(AssemblyVersionAttribute), false).FirstOrDefault();
+                var a = typeof(AssemblyInfo).Assembly;
+                var c = a.GetCustomAttributes(typeof(AssemblyVersionAttribute), false);
 #endif
-                if (ver != null)
+                var v = (AssemblyVersionAttribute)c.FirstOrDefault();
+                if (v != null)
                 {
-                    version = ver.Version;
+                    version = v.Version;
                 }
 #else
                 version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -105,7 +109,9 @@ internal class AssemblyInfo
 
                 // if we're still here, then don't try again
                 if (version == null)
+                {
                     version = string.Empty;
+                }
             }
 
             return version;
