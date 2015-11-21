@@ -4,8 +4,21 @@
 *.user
 *.vsp
 
+*.nupkg
+
 Backup/
 bin/
 dist/
 doc/
 obj/
+
+_Resharper.*/
+_Resharper*/
+*.ide/
+packages/
+.vs/
+
+*.nuget.props
+*.nuget.targets
+*.project.lock.json
+project.lock.json
