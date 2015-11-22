@@ -3324,6 +3324,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\digests\NonMemoableDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\digests\NullDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11486,6 +11491,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\NaccacheSternTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\NonMemoableDigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
