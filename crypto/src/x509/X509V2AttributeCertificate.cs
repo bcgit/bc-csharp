@@ -147,9 +147,14 @@ namespace Org.BouncyCastle.X509
 				throw new CertificateNotYetValidException("certificate not valid until " + NotBefore);
 		}
 
+        public virtual AlgorithmIdentifier SignatureAlgorithm
+        {
+            get { return cert.SignatureAlgorithm; }
+        }
+
 		public virtual byte[] GetSignature()
 		{
-			return cert.SignatureValue.GetBytes();
+            return cert.GetSignatureOctets();
 		}
 
         public virtual void Verify(

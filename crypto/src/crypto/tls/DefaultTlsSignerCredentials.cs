@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -48,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             else
             {
-                throw new ArgumentException("type not supported: " + privateKey.GetType().FullName, "privateKey");
+                throw new ArgumentException("type not supported: " + Platform.GetTypeName(privateKey), "privateKey");
             }
 
             this.mSigner.Init(context);

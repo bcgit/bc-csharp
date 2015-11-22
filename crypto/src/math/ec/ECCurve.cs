@@ -96,6 +96,7 @@ namespace Org.BouncyCastle.Math.EC
 
         public abstract int FieldSize { get; }
         public abstract ECFieldElement FromBigInteger(BigInteger x);
+        public abstract bool IsValidFieldElement(BigInteger x);
 
         public virtual Config Configure()
         {
@@ -477,6 +478,11 @@ namespace Org.BouncyCastle.Math.EC
         {
         }
 
+        public override bool IsValidFieldElement(BigInteger x)
+        {
+            return x != null && x.SignValue >= 0 && x.CompareTo(Field.Characteristic) < 0;
+        }
+
         protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
         {
             ECFieldElement x = FromBigInteger(X1);
@@ -668,6 +674,11 @@ namespace Org.BouncyCastle.Math.EC
         protected AbstractF2mCurve(int m, int k1, int k2, int k3)
             : base(BuildField(m, k1, k2, k3))
         {
+        }
+
+        public override bool IsValidFieldElement(BigInteger x)
+        {
+            return x != null && x.SignValue >= 0 && x.BitLength <= FieldSize;
         }
 
         [Obsolete("Per-point compression property will be removed")]

@@ -38,7 +38,12 @@ namespace Org.BouncyCastle.Utilities.Test
 			return new FixedSecureRandom(bOut.ToArray());
 		}
 
-		public override void NextBytes(
+        public override byte[] GenerateSeed(int numBytes)
+        {
+            return SecureRandom.GetNextBytes(this, numBytes);
+        }
+
+        public override void NextBytes(
 			byte[] buf)
 		{
 			Array.Copy(_data, _index, buf, 0, buf.Length);

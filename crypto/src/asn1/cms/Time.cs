@@ -1,6 +1,8 @@
 using System;
 using System.Globalization;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class Time
@@ -58,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			if (obj is DerGeneralizedTime)
                 return new Time((DerGeneralizedTime)obj);
 
-            throw new ArgumentException("unknown object in factory: " + obj.GetType().Name, "obj");
+            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
 		public string TimeString

@@ -529,11 +529,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static Asn1Object ReadAsn1Object(byte[] encoding)
         {
-            Asn1InputStream asn1 = new Asn1InputStream(encoding);
+            MemoryStream input = new MemoryStream(encoding, false);
+            Asn1InputStream asn1 = new Asn1InputStream(input, encoding.Length);
             Asn1Object result = asn1.ReadObject();
             if (null == result)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
-            if (null != asn1.ReadObject())
+            if (input.Position != input.Length)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
             return result;
         }

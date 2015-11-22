@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Asn1.Smime
                     (Asn1Sequence)(((AttributeX509) obj).AttrValues[0]));
             }
 
-			throw new ArgumentException("unknown object in factory: " + obj.GetType().Name, "obj");
+            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
         }
 
 		public SmimeCapabilities(

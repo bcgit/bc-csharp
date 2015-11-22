@@ -737,7 +737,7 @@ namespace Org.BouncyCastle.Pkix
 					if (!(obj is TrustAnchor))
 					{
 						throw new InvalidCastException("All elements of set must be "
-							+ "of type " + typeof(TrustAnchor).Name + ".");
+							+ "of type " + typeof(TrustAnchor).FullName + ".");
 					}
 				}
 				this.trustedACIssuers = new HashSet(trustedACIssuers);

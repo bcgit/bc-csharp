@@ -399,7 +399,7 @@ namespace Org.BouncyCastle.Asn1.X509
                     if (derValue is IAsn1String && !(derValue is DerUniversalString))
                     {
                         string v = ((IAsn1String)derValue).GetString();
-                        if (v.StartsWith("#"))
+                        if (Platform.StartsWith(v, "#"))
                         {
                             v = "\\" + v;
                         }
@@ -499,12 +499,6 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
-//		private static bool IsEncoded(
-//			string s)
-//		{
-//			return s.StartsWith("#");
-//		}
-
         /**
         * Takes an X509 dir name as a string of the format "C=AU, ST=Victoria", or
         * some such, converting it into an ordered set of name attributes.
@@ -581,7 +575,7 @@ namespace Org.BouncyCastle.Asn1.X509
             string		name,
             IDictionary lookUp)
         {
-            if (Platform.ToUpperInvariant(name).StartsWith("OID."))
+            if (Platform.StartsWith(Platform.ToUpperInvariant(name), "OID."))
             {
                 return new DerObjectIdentifier(name.Substring(4));
             }
@@ -724,7 +718,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 {
                     string val = (string)values[i];
 
-                    if (val.StartsWith("\\#"))
+                    if (Platform.StartsWith(val, "\\#"))
                     {
                         val = val.Substring(1);
                     }
@@ -911,7 +905,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             string v = Platform.ToLowerInvariant(s).Trim();
 
-            if (v.StartsWith("#"))
+            if (Platform.StartsWith(v, "#"))
             {
                 Asn1Object obj = decodeObject(v);
 
@@ -987,7 +981,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
             int end = buf.Length;
 
-            if (val.StartsWith("\\#"))
+            if (Platform.StartsWith(val, "\\#"))
             {
                 index += 2;
             }

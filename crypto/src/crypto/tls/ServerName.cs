@@ -51,10 +51,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             switch (mNameType)
             {
             case Tls.NameType.host_name:
-                byte[] utf8Encoding = Strings.ToUtf8ByteArray((string)mName);
-                if (utf8Encoding.Length < 1)
+                byte[] asciiEncoding = Strings.ToAsciiByteArray((string)mName);
+                if (asciiEncoding.Length < 1)
                     throw new TlsFatalAlert(AlertDescription.internal_error);
-                TlsUtilities.WriteOpaque16(utf8Encoding, output);
+                TlsUtilities.WriteOpaque16(asciiEncoding, output);
                 break;
             default:
                 throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -78,10 +78,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
             case Tls.NameType.host_name:
             {
-                byte[] utf8Encoding = TlsUtilities.ReadOpaque16(input);
-                if (utf8Encoding.Length < 1)
+                byte[] asciiEncoding = TlsUtilities.ReadOpaque16(input);
+                if (asciiEncoding.Length < 1)
                     throw new TlsFatalAlert(AlertDescription.decode_error);
-                name = Strings.FromUtf8ByteArray(utf8Encoding);
+                name = Strings.FromAsciiByteArray(asciiEncoding);
                 break;
             }
             default:

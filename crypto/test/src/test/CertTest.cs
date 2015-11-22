@@ -2452,7 +2452,7 @@ namespace Org.BouncyCastle.Tests
 
             DerSequence seq = new DerSequence(
                 tbsCertificate,
-                new AlgorithmIdentifier(sig.ObjectID),
+                new AlgorithmIdentifier(sig.Algorithm),
                 certStruct.Signature);
 
             try

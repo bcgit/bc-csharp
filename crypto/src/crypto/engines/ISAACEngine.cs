@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -41,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (!(parameters is KeyParameter))
                 throw new ArgumentException(
-                    "invalid parameter passed to ISAAC Init - " + parameters.GetType().Name,
+                    "invalid parameter passed to ISAAC Init - " + Platform.GetTypeName(parameters),
                     "parameters");
 
             /* 

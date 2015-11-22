@@ -18,17 +18,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         }
 
-		[Suite]
-		public static TestSuite Suite
-		{
-			get
-			{
-				TestSuite suite = new TestSuite("Lightweight Crypto Tests");
-				suite.Add(new AllTests());
-		        suite.Add(new GcmReorderTest());
-				return suite;
-			}
-		}
+        [Suite]
+        public static TestSuite Suite
+        {
+            get
+            {
+                TestSuite suite = new TestSuite("Lightweight Crypto Tests");
+                suite.Add(new AllTests());
+                suite.Add(new GcmReorderTest());
+                return suite;
+            }
+        }
 #endif
 
 		[Test]

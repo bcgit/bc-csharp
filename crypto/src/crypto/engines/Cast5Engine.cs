@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -334,7 +335,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             ICipherParameters	parameters)
         {
             if (!(parameters is KeyParameter))
-				throw new ArgumentException("Invalid parameter passed to "+ AlgorithmName +" init - " + parameters.GetType().ToString());
+				throw new ArgumentException("Invalid parameter passed to "+ AlgorithmName +" init - " + Platform.GetTypeName(parameters));
 
 			_encrypting = forEncryption;
 			_workingKey = ((KeyParameter)parameters).GetKey();

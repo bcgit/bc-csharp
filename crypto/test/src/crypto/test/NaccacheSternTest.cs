@@ -37,12 +37,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 		static readonly NaccacheSternEngine cryptEng = new NaccacheSternEngine();
 		static readonly NaccacheSternEngine decryptEng = new NaccacheSternEngine();
 
-		static NaccacheSternTest()
-		{
-			cryptEng.Debug = debug;
-			decryptEng.Debug = debug;
-		}
-
 		// Values from NaccacheStern paper
 		static readonly BigInteger a = BigInteger.ValueOf(101);
 		static readonly BigInteger u1 = BigInteger.ValueOf(3);
@@ -82,6 +76,22 @@ namespace Org.BouncyCastle.Crypto.Tests
 		//
 		static readonly string edgeInput = "ff6f77206973207468652074696d6520666f7220616c6c20676f6f64206d656e";
 
+        static NaccacheSternTest()
+        {
+            cryptEng.Debug = debug;
+            decryptEng.Debug = debug;
+
+            // First the Parameters from the NaccacheStern Paper
+            // (see http://www.gemplus.com/smart/rd/publications/pdf/NS98pkcs.pdf )
+
+            smallPrimes.Add(u1);
+            smallPrimes.Add(u2);
+            smallPrimes.Add(u3);
+            smallPrimes.Add(v1);
+            smallPrimes.Add(v2);
+            smallPrimes.Add(v3);
+        }
+
 		public override string Name
 		{
 			get { return "NaccacheStern"; }
@@ -90,16 +100,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 		public override void PerformTest()
 		{
 			// Test with given key from NaccacheSternPaper (totally insecure)
-
-			// First the Parameters from the NaccacheStern Paper
-			// (see http://www.gemplus.com/smart/rd/publications/pdf/NS98pkcs.pdf )
-
-			smallPrimes.Add(u1);
-			smallPrimes.Add(u2);
-			smallPrimes.Add(u3);
-			smallPrimes.Add(v1);
-			smallPrimes.Add(v2);
-			smallPrimes.Add(v3);
 
 			NaccacheSternKeyParameters pubParameters = new NaccacheSternKeyParameters(false, g, n, sigma.BitLength);
 

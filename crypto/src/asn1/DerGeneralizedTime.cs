@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1
                 return (DerGeneralizedTime)obj;
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + obj.GetType().Name, "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         /**
@@ -204,7 +204,7 @@ namespace Org.BouncyCastle.Asn1
             string d = time;
             bool makeUniversal = false;
 
-            if (d.EndsWith("Z"))
+            if (Platform.EndsWith(d, "Z"))
             {
                 if (HasFractionalSeconds)
                 {
@@ -223,7 +223,7 @@ namespace Org.BouncyCastle.Asn1
 
                 if (HasFractionalSeconds)
                 {
-                    int fCount = d.IndexOf("GMT") - 1 - d.IndexOf('.');
+                    int fCount = Platform.IndexOf(d, "GMT") - 1 - d.IndexOf('.');
                     formatStr = @"yyyyMMddHHmmss." + FString(fCount) + @"'GMT'zzz";
                 }
                 else
@@ -267,7 +267,7 @@ namespace Org.BouncyCastle.Asn1
              * NOTE: DateTime.Kind and DateTimeStyles.AssumeUniversal not available in .NET 1.1
              */
             DateTimeStyles style = DateTimeStyles.None;
-            if (format.EndsWith("Z"))
+            if (Platform.EndsWith(format, "Z"))
             {
                 try
                 {

@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Engines
@@ -174,7 +175,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			else
 			{
 				throw new ArgumentException("Invalid parameter passed to Threefish init - "
-				                            + parameters.GetType().Name);
+                    + Platform.GetTypeName(parameters));
 			}
 
 			ulong[] keyWords = null;

@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.OpenSsl
 //			if (parsers.Contains(obj.Type))
 //				return ((PemObjectParser)parsers[obj.Type]).ParseObject(obj);
 
-            if (obj.Type.EndsWith("PRIVATE KEY"))
+            if (Platform.EndsWith(obj.Type, "PRIVATE KEY"))
                 return ReadPrivateKey(obj);
 
             switch (obj.Type)
@@ -233,7 +233,7 @@ namespace Org.BouncyCastle.OpenSsl
             //
             // extract the key
             //
-            Debug.Assert(pemObject.Type.EndsWith("PRIVATE KEY"));
+            Debug.Assert(Platform.EndsWith(pemObject.Type, "PRIVATE KEY"));
 
             string type = pemObject.Type.Substring(0, pemObject.Type.Length - "PRIVATE KEY".Length).Trim();
             byte[] keyBytes = pemObject.Content;
@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.OpenSsl
 
                     case "EC":
                     {
-                        ECPrivateKeyStructure pKey = new ECPrivateKeyStructure(seq);
+                        ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(seq);
                         AlgorithmIdentifier algId = new AlgorithmIdentifier(
                             X9ObjectIdentifiers.IdECPublicKey, pKey.GetParameters());
 

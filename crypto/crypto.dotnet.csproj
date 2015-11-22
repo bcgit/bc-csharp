@@ -10,7 +10,7 @@
     <ApplicationIcon />
     <AssemblyKeyContainerName />
     <AssemblyName>crypto</AssemblyName>
-    <AssemblyOriginatorKeyFile>BouncyCastle.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
@@ -81,7 +81,9 @@
     <NuSpecTfm>dotnet;uap10.0;net46</NuSpecTfm>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="BouncyCastle.snk" />
+    <None Include="..\BouncyCastle.snk">
+      <Link>BouncyCastle.snk</Link>
+    </None>
     <None Include="crypto.dotnet.project.json" />
   </ItemGroup>
   <ItemGroup>

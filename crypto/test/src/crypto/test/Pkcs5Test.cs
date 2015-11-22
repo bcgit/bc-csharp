@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 generator.Init(PbeParametersGenerator.Pkcs5PasswordToBytes(password), salt, iterationCount);
 
-                DerObjectIdentifier algOid = scheme.ObjectID;
+                DerObjectIdentifier algOid = scheme.Algorithm;
 
                 byte[] iv;
                 if (algOid.Equals(PkcsObjectIdentifiers.RC2Cbc))
