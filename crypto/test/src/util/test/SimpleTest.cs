@@ -115,7 +115,9 @@ namespace Org.BouncyCastle.Utilities.Test
 		private static string GetFullName(
 			string name)
 		{
-#if PORTABLE
+#if SEPARATE_UNIT_TESTS
+			return "UnitTests.data." + name;
+#elif PORTABLE
 			return "crypto.tests." + name;
 #else
             return "crypto.test.data." + name;
@@ -125,7 +127,9 @@ namespace Org.BouncyCastle.Utilities.Test
 		private static string GetShortName(
 			string fullName)
 		{
-#if PORTABLE
+#if SEPARATE_UNIT_TESTS
+			return fullName.Substring("UnitTests.data.".Length);
+#elif PORTABLE
 			return fullName.Substring("crypto.tests.".Length);
 #else
             return fullName.Substring("crypto.test.data.".Length);
