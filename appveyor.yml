@@ -9,7 +9,7 @@ assembly_info:
       
 before_build:
   
-  - cmd: nuget restore
+  - cmd: nuget restore BouncyCastle-PCL.sln
   - cmd: '.\packages\GitVersion.CommandLine\tools\GitVersion.exe /l console /output buildserver /updateAssemblyInfo'
   
 build:
