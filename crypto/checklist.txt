@@ -4,7 +4,6 @@ Release Checklist
 
 - Update to latest from git
 - Run 'nant -t:net-1.1 clean test'
-- Run 'nant -t:netcf-1.0 clean compile-release'
 - Edit AssemblyInfo.cs: Change version and check copyright
 - Edit NBuild.build: Change version
 - Edit License.html: Check copyright
@@ -12,5 +11,4 @@ Release Checklist
 - Commit changes to git
 - Tag git repository with "release-${version}" 
 - Push changes/tag to git
-- Place BouncyCastle.snk in parent directory
 - Run 'nant -t:net-1.1 clean dist'
