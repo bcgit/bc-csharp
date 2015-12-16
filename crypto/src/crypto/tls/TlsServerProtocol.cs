@@ -460,6 +460,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void ReceiveCertificateVerifyMessage(MemoryStream buf)
         {
+            if (mCertificateRequest == null)
+                throw new InvalidOperationException();
+
             DigitallySigned clientCertificateVerify = DigitallySigned.Parse(Context, buf);
 
             AssertEmpty(buf);
@@ -467,10 +470,13 @@ namespace Org.BouncyCastle.Crypto.Tls
             // Verify the CertificateVerify message contains a correct signature.
             try
             {
+                SignatureAndHashAlgorithm signatureAlgorithm = clientCertificateVerify.Algorithm;
+
                 byte[] hash;
                 if (TlsUtilities.IsTlsV12(Context))
                 {
-                    hash = mPrepareFinishHash.GetFinalHash(clientCertificateVerify.Algorithm.Hash);
+                    TlsUtilities.VerifySupportedSignatureAlgorithm(mCertificateRequest.SupportedSignatureAlgorithms, signatureAlgorithm);
+                    hash = mPrepareFinishHash.GetFinalHash(signatureAlgorithm.Hash);
                 }
                 else
                 {
@@ -483,11 +489,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 TlsSigner tlsSigner = TlsUtilities.CreateTlsSigner((byte)mClientCertificateType);
                 tlsSigner.Init(Context);
-                if (!tlsSigner.VerifyRawSignature(clientCertificateVerify.Algorithm,
-                    clientCertificateVerify.Signature, publicKey, hash))
-                {
+                if (!tlsSigner.VerifyRawSignature(signatureAlgorithm, clientCertificateVerify.Signature, publicKey, hash))
                     throw new TlsFatalAlert(AlertDescription.decrypt_error);
-                }
+            }
+            catch (TlsFatalAlert e)
+            {
+                throw e;
             }
             catch (Exception e)
             {

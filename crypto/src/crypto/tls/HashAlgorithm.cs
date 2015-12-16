@@ -12,5 +12,33 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const byte sha256 = 4;
         public const byte sha384 = 5;
         public const byte sha512 = 6;
+
+        public static string GetName(byte hashAlgorithm)
+        {
+            switch (hashAlgorithm)
+            {
+            case none:
+                return "none";
+            case md5:
+                return "md5";
+            case sha1:
+                return "sha1";
+            case sha224:
+                return "sha224";
+            case sha256:
+                return "sha256";
+            case sha384:
+                return "sha384";
+            case sha512:
+                return "sha512";
+            default:
+                return "UNKNOWN";
+            }
+        }
+
+        public static string GetText(byte hashAlgorithm)
+        {
+            return GetName(hashAlgorithm) + "(" + hashAlgorithm + ")";
+        }
     }
 }

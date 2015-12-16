@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.Threading;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -72,11 +73,11 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                     + ", " + AlertDescription.GetText(alertDescription));
                 if (message != null)
                 {
-                    output.WriteLine("> " + message);
+                    SafeWriteLine(output, "> " + message);
                 }
                 if (cause != null)
                 {
-                    output.WriteLine(cause);
+                    SafeWriteLine(output, cause);
                 }
             }
         }
@@ -92,7 +93,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             if (TlsTestConfig.DEBUG)
             {
                 TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-                output.WriteLine("TLS server received alert: " + AlertLevel.GetText(alertLevel)
+                SafeWriteLine(output, "TLS server received alert: " + AlertLevel.GetText(alertLevel)
                     + ", " + AlertDescription.GetText(alertDescription));
             }
         }
@@ -122,7 +123,11 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             IList serverSigAlgs = null;
             if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(mServerVersion))
             {
-                serverSigAlgs = TlsUtilities.GetDefaultSupportedSignatureAlgorithms();
+                serverSigAlgs = mConfig.serverCertReqSigAlgs;
+                if (serverSigAlgs == null)
+                {
+                    serverSigAlgs = TlsUtilities.GetDefaultSupportedSignatureAlgorithms();
+                }
             }
 
             IList certificateAuthorities = new ArrayList();
@@ -189,6 +194,20 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         {
             return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.rsa,
                 "x509-server.pem", "x509-server-key.pem");
+        }
+
+        private static void SafeWriteLine(TextWriter output, object line)
+        {
+            try
+            {
+                output.WriteLine(line);
+            }
+            catch (ThreadInterruptedException)
+            {
+                /*
+                 * For some reason the NUnit plugin in Visual Studio started throwing these during alert logging
+                 */
+            }
         }
     }
 }

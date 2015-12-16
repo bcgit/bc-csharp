@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -201,9 +202,15 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                     return null;
                 }
 
+                IList supportedSigAlgs = certificateRequest.SupportedSignatureAlgorithms;
+                if (supportedSigAlgs != null && mOuter.mConfig.clientAuthSigAlg != null)
+                {
+                    supportedSigAlgs = new ArrayList(1);
+                    supportedSigAlgs.Add(mOuter.mConfig.clientAuthSigAlg);
+                }
+
                 TlsSignerCredentials signerCredentials = TlsTestUtilities.LoadSignerCredentials(mContext,
-                    certificateRequest.SupportedSignatureAlgorithms, SignatureAlgorithm.rsa,
-                    "x509-client.pem", "x509-client-key.pem");
+                    supportedSigAlgs, SignatureAlgorithm.rsa, "x509-client.pem", "x509-client-key.pem");
 
                 if (mOuter.mConfig.clientAuth == TlsTestConfig.CLIENT_AUTH_VALID)
                 {

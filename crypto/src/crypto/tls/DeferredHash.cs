@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             IDigest d = (IDigest)mHashes[hashAlgorithm];
             if (d == null)
-                throw new InvalidOperationException("HashAlgorithm " + hashAlgorithm + " is not being tracked");
+                throw new InvalidOperationException("HashAlgorithm." + HashAlgorithm.GetText(hashAlgorithm) + " is not being tracked");
 
             d = TlsUtilities.CloneHash(hashAlgorithm, d);
             if (mBuf != null)

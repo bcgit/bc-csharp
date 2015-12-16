@@ -458,6 +458,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void ProcessCertificateVerify(ServerHandshakeState state, byte[] body, TlsHandshakeHash prepareFinishHash)
         {
+            if (state.certificateRequest == null)
+                throw new InvalidOperationException();
+
             MemoryStream buf = new MemoryStream(body, false);
 
             TlsServerContextImpl context = state.serverContext;
@@ -466,13 +469,15 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsProtocol.AssertEmpty(buf);
 
             // Verify the CertificateVerify message contains a correct signature.
-            bool verified = false;
             try
             {
+                SignatureAndHashAlgorithm signatureAlgorithm = clientCertificateVerify.Algorithm;
+
                 byte[] hash;
                 if (TlsUtilities.IsTlsV12(context))
                 {
-                    hash = prepareFinishHash.GetFinalHash(clientCertificateVerify.Algorithm.Hash);
+                    TlsUtilities.VerifySupportedSignatureAlgorithm(state.certificateRequest.SupportedSignatureAlgorithms, signatureAlgorithm);
+                    hash = prepareFinishHash.GetFinalHash(signatureAlgorithm.Hash);
                 }
                 else
                 {
@@ -485,15 +490,17 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 TlsSigner tlsSigner = TlsUtilities.CreateTlsSigner((byte)state.clientCertificateType);
                 tlsSigner.Init(context);
-                verified = tlsSigner.VerifyRawSignature(clientCertificateVerify.Algorithm,
-                    clientCertificateVerify.Signature, publicKey, hash);
+                if (!tlsSigner.VerifyRawSignature(signatureAlgorithm, clientCertificateVerify.Signature, publicKey, hash))
+                    throw new TlsFatalAlert(AlertDescription.decrypt_error);
             }
-            catch (Exception)
+            catch (TlsFatalAlert e)
             {
+                throw e;
             }
-
-            if (!verified)
-                throw new TlsFatalAlert(AlertDescription.decrypt_error);
+            catch (Exception e)
+            {
+                throw new TlsFatalAlert(AlertDescription.decrypt_error, e);
+            }
         }
 
         protected virtual void ProcessClientHello(ServerHandshakeState state, byte[] body)
