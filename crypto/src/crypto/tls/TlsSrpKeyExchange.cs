@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (buf != null)
             {
-                DigitallySigned signed_params = DigitallySigned.Parse(mContext, input);
+                DigitallySigned signed_params = ParseSignature(input);
 
                 ISigner signer = InitVerifyer(mTlsSigner, signed_params.Algorithm, securityParameters);
                 buf.UpdateSigner(signer);

@@ -172,15 +172,27 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             }
         }
 
+        protected virtual IList GetSupportedSignatureAlgorithms()
+        {
+            if (TlsUtilities.IsTlsV12(mContext) && mConfig.serverAuthSigAlg != null)
+            {
+                IList signatureAlgorithms = new ArrayList(1);
+                signatureAlgorithms.Add(mConfig.serverAuthSigAlg);
+                return signatureAlgorithms;
+            }
+
+            return mSupportedSignatureAlgorithms;
+        }
+
         protected override TlsSignerCredentials GetDsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.dsa,
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.dsa,
                 "x509-server-dsa.pem", "x509-server-key-dsa.pem");
         }
 
         protected override TlsSignerCredentials GetECDsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.ecdsa,
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.ecdsa,
                 "x509-server-ecdsa.pem", "x509-server-key-ecdsa.pem");
         }
 
@@ -192,7 +204,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
         protected override TlsSignerCredentials GetRsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.rsa,
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.rsa,
                 "x509-server.pem", "x509-server-key.pem");
         }
 

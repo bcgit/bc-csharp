@@ -57,6 +57,17 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 	        }
         }
 
+        public override IDictionary GetClientExtensions()
+        {
+            IDictionary clientExtensions = base.GetClientExtensions();
+            if (clientExtensions != null && !mConfig.clientSendSignatureAlgorithms)
+            {
+                clientExtensions.Remove(ExtensionType.signature_algorithms);
+                this.mSupportedSignatureAlgorithms = null;
+            }
+            return clientExtensions;
+        }
+
         public override bool IsFallback
         {
             get { return mConfig.clientFallback; }

@@ -149,6 +149,35 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
                 AddTestCase(testSuite, c, prefix + "BadMandatoryCertReqDeclined");
             }
+
+            /*
+             * Server selects MD5/RSA for ServerKeyExchange signature, which is not in the default
+             * supported signature algorithms that the client sent. We expect fatal alert from the
+             * client when it verifies the selected algorithm against the supported algorithms.
+             */
+            if (TlsUtilities.IsTlsV12(version))
+            {
+                TlsTestConfig c = CreateDtlsTestConfig(version);
+                c.serverAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.md5, SignatureAlgorithm.rsa);
+                c.ExpectClientFatalAlert(AlertDescription.illegal_parameter);
+
+                AddTestCase(testSuite, c, prefix + "BadServerKeyExchangeSigAlg");
+            }
+
+            /*
+             * Server selects MD5/RSA for ServerKeyExchange signature, which is not the default {sha1,rsa}
+             * implied by the absent signature_algorithms extension. We expect fatal alert from the
+             * client when it verifies the selected algorithm against the implicit default.
+             */
+            if (TlsUtilities.IsTlsV12(version))
+            {
+                TlsTestConfig c = CreateDtlsTestConfig(version);
+                c.clientSendSignatureAlgorithms = false;
+                c.serverAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.md5, SignatureAlgorithm.rsa);
+                c.ExpectClientFatalAlert(AlertDescription.illegal_parameter);
+
+                AddTestCaseDebug(testSuite, c, prefix + "BadServerKeyExchangeSigAlg2");
+            }
 #endif
 
             {
@@ -173,6 +202,11 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         }
 
         private static void AddTestCase(IList testSuite, TlsTestConfig config, String name)
+        {
+            //testSuite.Add(new TestCaseData(config).SetName(name));
+        }
+
+        private static void AddTestCaseDebug(IList testSuite, TlsTestConfig config, String name)
         {
             testSuite.Add(new TestCaseData(config).SetName(name));
         }

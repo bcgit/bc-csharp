@@ -75,6 +75,17 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         public bool clientFallback = false;
 
         /**
+         * Configures whether a (TLS 1.2+) client will send the signature_algorithms extension in ClientHello.
+         */
+        public bool clientSendSignatureAlgorithms = true;
+
+        /**
+         * If not null, and TLS 1.2 or higher is negotiated, selects a fixed signature/hash algorithm to
+         * be used for the ServerKeyExchange signature (if one is sent).
+         */
+        public SignatureAndHashAlgorithm serverAuthSigAlg = null;
+
+        /**
          * Configures whether the test server will send a certificate request.
          */
         public int serverCertReq = SERVER_CERT_REQ_OPTIONAL;
