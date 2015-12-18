@@ -89,7 +89,16 @@ namespace Org.BouncyCastle.Crypto.Signers
 		{
 		}
 
-		public PssSigner(
+        public PssSigner(
+            IAsymmetricBlockCipher cipher,
+            IDigest contentDigest,
+            IDigest mgfDigest,
+            byte[] salt)
+            : this(cipher, contentDigest, contentDigest, mgfDigest, salt.Length, salt, TrailerImplicit)
+        {
+        }
+
+        public PssSigner(
 			IAsymmetricBlockCipher	cipher,
 			IDigest					digest,
 			int						saltLen,
