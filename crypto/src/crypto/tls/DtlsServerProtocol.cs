@@ -156,6 +156,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 state.certificateRequest = state.server.GetCertificateRequest();
                 if (state.certificateRequest != null)
                 {
+                    if (TlsUtilities.IsTlsV12(state.serverContext) != (state.certificateRequest.SupportedSignatureAlgorithms != null))
+                        throw new TlsFatalAlert(AlertDescription.internal_error);
+
                     state.keyExchange.ValidateCertificateRequest(state.certificateRequest);
 
                     byte[] certificateRequestBody = GenerateCertificateRequest(state, state.certificateRequest);

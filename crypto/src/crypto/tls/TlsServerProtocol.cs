@@ -200,6 +200,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                         this.mCertificateRequest = mTlsServer.GetCertificateRequest();
                         if (this.mCertificateRequest != null)
                         {
+                            if (TlsUtilities.IsTlsV12(Context) != (mCertificateRequest.SupportedSignatureAlgorithms != null))
+                                throw new TlsFatalAlert(AlertDescription.internal_error);
+
                             this.mKeyExchange.ValidateCertificateRequest(mCertificateRequest);
 
                             SendCertificateRequestMessage(mCertificateRequest);
