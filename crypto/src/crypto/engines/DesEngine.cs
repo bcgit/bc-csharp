@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -31,7 +32,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             ICipherParameters	parameters)
         {
             if (!(parameters is KeyParameter))
-				throw new ArgumentException("invalid parameter passed to DES init - " + parameters.GetType().ToString());
+				throw new ArgumentException("invalid parameter passed to DES init - " + Platform.GetTypeName(parameters));
 
 			workingKey = GenerateWorkingKey(forEncryption, ((KeyParameter)parameters).GetKey());
         }

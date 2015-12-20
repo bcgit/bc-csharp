@@ -115,22 +115,24 @@ namespace Org.BouncyCastle.Utilities.Test
 		private static string GetFullName(
 			string name)
 		{
-// TODO MonoDevelop/Visual Studio embedded resource ids still inconsistent
-#if BC_BUILD_MONODEVELOP
-			return "test.data." + name;
+#if SEPARATE_UNIT_TESTS
+			return "UnitTests.data." + name;
+#elif PORTABLE
+			return "crypto.tests." + name;
 #else
-			return "crypto.test.data." + name;
+            return "crypto.test.data." + name;
 #endif
 		}
 
 		private static string GetShortName(
 			string fullName)
 		{
-// TODO MonoDevelop/Visual Studio embedded resource ids still inconsistent
-#if BC_BUILD_MONODEVELOP
-			return fullName.Substring("test.data.".Length);
+#if SEPARATE_UNIT_TESTS
+			return fullName.Substring("UnitTests.data.".Length);
+#elif PORTABLE
+			return fullName.Substring("crypto.tests.".Length);
 #else
-			return fullName.Substring("crypto.test.data.".Length);
+            return fullName.Substring("crypto.test.data.".Length);
 #endif
 		}
 
@@ -160,5 +162,23 @@ namespace Org.BouncyCastle.Utilities.Test
 		internal static readonly string NewLine = GetNewLine();
 
 		public abstract void PerformTest();
+
+        public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second)
+        {
+#if PORTABLE
+            return new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
+#else
+            return new DateTime(year, month, day, hour, minute, second);
+#endif
+        }
+
+        public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
+        {
+#if PORTABLE
+            return new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Utc);
+#else
+            return new DateTime(year, month, day, hour, minute, second, millisecond);
+#endif
+        }
     }
 }

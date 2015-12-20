@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 using NUnit.Framework;
 
@@ -33,14 +34,17 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		public override void PerformTest()
 		{
-			DerApplicationSpecific app = (DerApplicationSpecific)
-				Asn1Object.FromByteArray(longTagged);
+            Asn1InputStream aIn = new Asn1InputStream(longTagged);
 
-			app = (DerApplicationSpecific) Asn1Object.FromByteArray(app.GetContents());
+            DerApplicationSpecific app = (DerApplicationSpecific)aIn.ReadObject();
 
-			Asn1InputStream aIn = new Asn1InputStream(app.GetContents());
+            aIn = new Asn1InputStream(app.GetContents());
 
-			Asn1TaggedObject tagged = (Asn1TaggedObject) aIn.ReadObject();
+            app = (DerApplicationSpecific)aIn.ReadObject();
+
+            aIn = new Asn1InputStream(app.GetContents());
+
+            Asn1TaggedObject tagged = (Asn1TaggedObject)aIn.ReadObject();
 
 			if (tagged.TagNo != 32)
 			{

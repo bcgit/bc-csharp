@@ -18,6 +18,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
     public class PgpKeyRingTest
         : SimpleTest
     {
+        private static readonly SecureRandom Random = new SecureRandom();
+
         private static readonly byte[] pub1 = Base64.Decode(
             "mQGiBEA83v0RBADzKVLVCnpWQxX0LCsevw/3OLs0H7MOcLBQ4wMO9sYmzGYn"
             + "xpVj+4e4PiCP7QBayWyy4lugL6Lnw7tESvq3A4v3fefcxaCTkJrryiKn4+Cg"
@@ -645,39 +647,60 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             + "EQIABgUCOCpiHgAKCRDj8lhUEo8OeQ+QAKCbOTscyUnWHSrDo4fIy0MThEjhOgCe"
             + "L4Kb7TWkd/OHQScVBO8sTUz0+2g=");
 
-//		private static readonly byte[] pub6check = Base64.Decode("62O9");
+        private static readonly byte[] pub6check = Base64.Decode("62O9");
 
         //
-        // revoked sub key
+        // revoked master key
         //
         private static readonly byte[] pub7 = Base64.Decode(
-            "mQGiBEFOsIwRBADcjRx7nAs4RaWsQU6p8/ECLZD9sSeYc6CN6UDI96RKj0/hCzMs"
-            + "qlA0+9fzGZ7ZEJ34nuvDKlhKGC7co5eOiE0a9EijxgcrZU/LClZWa4YfyNg/ri6I"
-            + "yTyfOfrPQ33GNQt2iImDf3FKp7XKuY9nIxicGQEaW0kkuAmbV3oh0+9q8QCg/+fS"
-            + "epDEqEE/+nKONULGizKUjMED/RtL6RThRftZ9DOSdBytGYd48z35pca/qZ6HA36K"
-            + "PVQwi7V77VKQyKFLTOXPLnVyO85hyYB/Nv4DFHN+vcC7/49lfoyYMZlN+LarckHi"
-            + "NL154wmmzygB/KKysvWBLgkErEBCD0xBDd89iTQNlDtVQAWGORVffl6WWjOAkliG"
-            + "3dL6A/9A288HfFRnywqi3xddriV6wCPmStC3dkCS4vHk2ofS8uw4ZNoRlp1iEPna"
-            + "ai2Xa9DX1tkhaGk2k96MqqbBdGpbW8sMA9otJ9xdMjWEm/CgJUFUFQf3zaVy3mkM"
-            + "S2Lvb6P4Wc2l/diEEIyK8+PqJItSh0OVU3K9oM7ngHwVcalKILQVUkV2b2tlZCA8"
-            + "UmV2b2tlZEB0ZWQ+iQBOBBARAgAOBQJBTrCMBAsDAgECGQEACgkQvglkcFA/c63+"
-            + "QgCguh8rsJbPTtbhZcrqBi5Mo1bntLEAoPZQ0Kjmu2knRUpHBeUemHDB6zQeuQIN"
-            + "BEFOsIwQCAD2Qle3CH8IF3KiutapQvMF6PlTETlPtvFuuUs4INoBp1ajFOmPQFXz"
-            + "0AfGy0OplK33TGSGSfgMg71l6RfUodNQ+PVZX9x2Uk89PY3bzpnhV5JZzf24rnRP"
-            + "xfx2vIPFRzBhznzJZv8V+bv9kV7HAarTW56NoKVyOtQa8L9GAFgr5fSI/VhOSdvN"
-            + "ILSd5JEHNmszbDgNRR0PfIizHHxbLY7288kjwEPwpVsYjY67VYy4XTjTNP18F1dD"
-            + "ox0YbN4zISy1Kv884bEpQBgRjXyEpwpy1obEAxnIByl6ypUM2Zafq9AKUJsCRtMI"
-            + "PWakXUGfnHy9iUsiGSa6q6Jew1XpMgs7AAICB/93zriSvSHqsi1FeEmUBo431Jkh"
-            + "VerIzb6Plb1j6FIq+s3vyvx9K+dMvjotZqylWZj4GXpH+2xLJTjWkrGSfUZVI2Nk"
-            + "nyOFxUCKLLqaqVBFAQIjULfvQfGEWiGQKk9aRLkdG+D+8Y2N9zYoBXoQ9arvvS/t"
-            + "4mlOsiuaTe+BZ4x+BXTpF4b9sKZl7V8QP/TkoJWUdydkvxciHdWp7ssqyiKOFRhG"
-            + "818knDfFQ3cn2w/RnOb+7AF9wDncXDPYLfpPv9b2qZoLrXcyvlLffGDUdWs553ut"
-            + "1F5AprMURs8BGmY9BnjggfVubHdhTUoA4gVvrdaf+D9NwZAl0xK/5Y/oPuMZiQBG"
-            + "BBgRAgAGBQJBTrCMAAoJEL4JZHBQP3Ot09gAoMmLKloVDP+WhDXnsM5VikxysZ4+"
-            + "AKCrJAUO+lYAyPYwEwgK+bKmUGeKrIkARgQoEQIABgUCQU6wpQAKCRC+CWRwUD9z"
-            + "rQK4AJ98kKFxGU6yhHPr6jYBJPWemTNOXgCfeGB3ox4PXeS4DJDuLy9yllytOjo=");
+              "mQGiBFKQDEMRBACtcEzu15gGDrZKLuO2zgDJ9qFkweOxKyeO45LKIfUGBful"
+            + "lheoFHbsJIeNGjWbSOfWWtphTaSu9//BJt4xxg2pqVLYqzR+hEPpDy9kXxnZ"
+            + "LwwxjAP2TcOvuZKWe+JzoYQxDunOH4Zu9CPJhZhF3RNPw+tbv0jHfTV/chtb"
+            + "23Dj5wCg7eoM8bL9NYXacsAfkS//m+AB1MkD/jEZJqJSQHW8WVP7wKRrAZse"
+            + "N4l9b8+yY4RwLIodhD8wGsMYjkCF4yb/SQ5QlmLlvrHDLBofRzG+8oxldX4o"
+            + "GLZWvqPmW+BlS4QNSr+ZBu+OwnpClXG2pR+ExumXNoeArREyylrmOgD+0cUa"
+            + "8K2UbOxbJ8EioyOKxa7wjUVxmHmhBACAGQGLT/lpHA5zcU0g8AlSk8fsd+bB"
+            + "nwa/+9xdLqVsCTZdOWULtPOw9hbAdjjAy0L4M/MDAJYYtCEl9rB7aOc9PVdT"
+            + "h7CT9Ma6ltiSMKDlqWbDmogNEGx9Gz3GjiSGxAy/SN6JR1On4c60TAiTv6eE"
+            + "uEHszE6CH4qceK5W8HLLB4hJBCARAgAJBQJSkA0OAh0CAAoJEBCIvJhXZzdI"
+            + "X8wAn0qUP/jqAuPEX9g2XCr5jN3RKvKjAKDpx4NP7P1/yLN2ycFIgxKZ1plK"
+            + "CLACAAO0J3Jldm9rZSAoUmV2b2tlIFRlc3QpIDxyZXZva2VAdGVzdC50ZXN0"
+            + "PohiBBMRAgAiBQJSkAxDAhsDBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAK"
+            + "CRAQiLyYV2c3SKw0AJ9kufxvnorVOv6a+WM+I/bNP+mjLQCgtPKuwTyeZU2k"
+            + "Sec1fJZUssDL1hGwAgADuQENBFKQDEMQBACruJ54GuhUaXgqGzu/HsCrgGQA"
+            + "n86PZW1qPCX28E9sayEmVOgzSDA/OT5c05P0PVLhMNEguSnUGC249MpZfPK/"
+            + "9LVKMXATZLzEB6lFX1YJdfrrb9KrQ5kdDhOcFXm1GIGBwLzjUmXYRVPH+TsT"
+            + "4QFvDpfIANQZfKK4UV5BJzJV5wADBQP/ew75dy1x58KWpPqfeH1OVln/Ui6e"
+            + "EDyyISic147+FIfVDuLtWoxMFE0ZPg47+rEQrhWC96izaSKPW97y5bkWz5PG"
+            + "CMChnLcg+3M91x/QCGzNhzVMiVpY5VhBDFP+7iiOaKYRiN/x7oasf2482Ny8"
+            + "1oiykOZUm8FCUQnRmJzIlbiISQQYEQIACQUCUpAMQwIbDAAKCRAQiLyYV2c3"
+            + "SL04AJ9VceD1DtcEDaWPDzFPgpe3ZfiXiQCfe5azYl26JpHSJvNKZRLi0I8H"
+            + "shCwAgAD");
 
-//		private static readonly byte[] pub7check = Base64.Decode("f/YQ");
+        private static readonly byte[] pub7sub = Base64.Decode(
+              "mQGiBFKQFFURBAD7CTE4RYPD7O+ki7pl/vXSZsSR0kQhCD9BR4lwE/Iffzmr"
+            + "vK8tmr2yLKWoXyoc3VF0Gdg/VATDcawBnKSjuCIsFZ58Edacb7uVRl4+ACiu"
+            + "OsvCKl9JuZ54SQ/tbD+NFS+HWNyVlWn7vDv8l+37DWNxuQRIYtQR+drAnIwQ"
+            + "g0O4owCg5a9cGAaN0zNVssUo6GFEoAI8nE0EAJMxQMcHTlLQQN1c549Ub0+E"
+            + "LV4dRIxjO7O6yi6Bg5udwS9Un1XeHF4GM7fj95WHi7o9sgErr2evhuGWl337"
+            + "ySytE1npk2F/jqevhAJazQTuilEuyjMbCShV39qJlEKtU9uHQYxN8oqGT9Ot"
+            + "lOoXXtrgfHbsrouCVwm4Jk14kzCaA/4okwrQwGkPlXRpVFyLn4GwrGivG7eh"
+            + "enRbAd2SQBiNVKmMsKLxHT1avZ11qcx6OU3ixdw5wYmq7TNR+5FXiz/e2MIq"
+            + "m7VhKONN21F7WC7siHxXfqqI/uz2tTPrFoLbnr/j/RZZRUMh6qUQrWpv58ci"
+            + "Bh+xkWCRantLCL9khuvRSrQncmV2b2tlIChSZXZva2UgVGVzdCkgPHJldm9r"
+            + "ZUB0ZXN0LnRlc3Q+iGIEExECACIFAlKQFFUCGwMGCwkIBwMCBhUIAgkKCwQW"
+            + "AgMBAh4BAheAAAoJEDKzvtpHqpp2DN4AoNS9M634KdvZT25DclGpb2bCFjv0"
+            + "AKDYXl5fIRGi583vFJ9C/q8hNGyNc7ACAAO5AQ0EUpAUVRAEALusV5UIL4gB"
+            + "6qQk++h+czV9KS0yxwgZyR+dJza+duEG88aNv28Wmjpfr3ZkvIiUaOcxFoct"
+            + "LgVGtPJM1HhWJtoA94CRBFTGzLfUIfXHcyXSdAw8Qh96svRl2w2KM+/pJl1r"
+            + "A3CWIy48jQei0mLwElRELLG7HJKYJxjCbg4+ihYTAAMGA/42PgHTV5VpF7YC"
+            + "XodlLOyGDVOoRjsvu0Gu/P88QnVP2jN57MJcla224aN3pGprtcbTwyjt+dtf"
+            + "5IJlB+3RZLczyqvT5hw7j9h81mr3RDbg3cn57xdYwQNP+6b6Wf9QRmaE813s"
+            + "g3kF0IJ0oFvwZdHnjndQ0JCrKaPflGSO6msjIYhTBCgRAgATBQJSkBXdDB0B"
+            + "U3VwZXJzZWRlZAAKCRAys77aR6qadmZPAJ0eJzmgBLTWK9RIbVtRUFzm736I"
+            + "hACgsPGHdZmLUFhV80fvYnUtB7TYGeKwAgADiEkEGBECAAkFAlKQFFUCGwwA"
+            + "CgkQMrO+2keqmnZGIACfRTkdqi6b7fjqkWxx7DysKBedgS8An1TJrhhkeJVd"
+            + "smkOCYLILgjrBHq4sAIAAw==");
 
         private static readonly byte[] pub8 = Base64.Decode(
             "mQGiBEEcraYRBADFYj+uFOhHz5SdECvJ3Z03P47gzmWLQ5HH8fPYC9rrv7AgqFFX"
@@ -1060,6 +1083,47 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             + "8fHUuFrE2pcp32y3ciO2i+uNVEkNDoaVVNw5eHQaXXWpllI/Pe6LnBl4vkyc"
             + "n3pjONa4PKrePkEsCUhRbIySqXIHuNwZumDOlKzZHDpCUw72LaC6S6zwuoEf"
             + "ucOcxTeGIUViANWXyTIKkHfo7HfigixJIL8nsAFn");
+
+        // Key from http://www.angelfire.com/pr/pgpf/pgpoddities.html
+        private static readonly char[] v3KeyPass = "test@key.test".ToCharArray();
+
+        private static readonly byte[] pubv3 = Base64.Decode(
+            "mQENAzroPPgAAAEIANnTx/gHfag7qRMG6cVUnYZJjLcsdF6JSaVs+PUDCZ8l2+Z2" +
+            "V9tgxByp26bymIlq5qFFeoA5vCiKc8qzYiEVLJVVIIDjw/id2gq/TgmxoLAwiDQM" +
+            "TUKdCFa6pmR/uaxyrnJxfUA7+Qh0R0OjoCxNlrmyO3eiKstsJGqSUFIQq7GhcHc4" +
+            "nbV59zHhEWnH7DX7sDa9CgF11WxM3sjWp15iOoP1nixhmchDtQ7foUxLsCF36G/4" +
+            "ijcbN2NjiCDYMFburN8fXgrQzYHAIIiVFE0J+fbXNfPRmnbhQdaC8rIdiQ3tExBb" +
+            "N0qWhGPT9M4JOZd1yPdFMb9gbntd8VZkiPd6/3sABRG0FHRlc3QgPHRlc3RAa2V5" +
+            "LnRlc3Q+iQEVAwUQOug8+PFWZIj3ev97AQH7NQgAo3sH+KcsPtAbyp5U02J9h3Ro" +
+            "aiKpAYxg3rfUVo/RH6hmCWT/AlPHLPZZC/tKiPkuIm2V3Xqyum530N0sBYxNzgNp" +
+            "us8mK9QurYj2omKzf1ltN+uNHR8vjB8s7jEd/CDCARu81PqNoVq2b9JRFGpGbAde" +
+            "7kQ/a0r2/IsJ8fz0iSpCH0geoHt3sBk9MyEem4uG0e2NzlH2wBz4H8l8BNHRHBq0" +
+            "6tGH4h11ZhH3FiNzJWibT2AvzLCqar2qK+6pohKSvIp8zEP7Y/iQzCvkuOfHsUOH" +
+            "4Utgg85k09hRDZ3pRRL/4R+Z+/1uXb+n6yKbOmpmi7U7wc9IwZxtTlGXsNIf+Q=="
+        );
+
+        private static readonly byte[] privv3 = Base64.Decode(
+            "lQOgAzroPPgAAAEIANnTx/gHfag7qRMG6cVUnYZJjLcsdF6JSaVs+PUDCZ8l2+Z2" +
+            "V9tgxByp26bymIlq5qFFeoA5vCiKc8qzYiEVLJVVIIDjw/id2gq/TgmxoLAwiDQM" +
+            "TUKdCFa6pmR/uaxyrnJxfUA7+Qh0R0OjoCxNlrmyO3eiKstsJGqSUFIQq7GhcHc4" +
+            "nbV59zHhEWnH7DX7sDa9CgF11WxM3sjWp15iOoP1nixhmchDtQ7foUxLsCF36G/4" +
+            "ijcbN2NjiCDYMFburN8fXgrQzYHAIIiVFE0J+fbXNfPRmnbhQdaC8rIdiQ3tExBb" +
+            "N0qWhGPT9M4JOZd1yPdFMb9gbntd8VZkiPd6/3sABREDXB5zk3GNdSkH/+/447Kq" +
+            "hR9uM+UnZz7wDkzmt+7xbNg9F2pr/tghVCM7D0PO1YjH4DBpU1ZRO+v1t/eBB/Jd" +
+            "3lJYdlWYHOefJkBi44gNAafZ8ysPOJk6OGOjas/sr+JRFiX9Mgzrs2IDiejmuA98" +
+            "DLuSuNtzFKbE2/DDdOBEizYUjqPLlCdn5sVEt+0WKWJiAv7YonCGguWS3RKfTaYk" +
+            "9IE9SbI+qph9JsuyTD22GLv+gTMvwCkC1DVaHIVgzURpdnlyYyz4DBh3pAgg0nh6" +
+            "gpUTsjnUmrvdh+r8qj3oXH7WBMhs6qKYvU1Go5iV3S1Cu4H/Z/+s6XUFgQShevVe" +
+            "VCy0QtmWSFeySekEACHLJIdBDa8K4dcM2wvccz587D4PtKvMG5j71raOcgVY+r1k" +
+            "e6au/fa0ACqLNvn6+vFHG+Rurn8RSKV31YmTpx7J5ixTOsB+wVcwTYbrw8uNlBWc" +
+            "+IkqPwHrtdK95GIYQykfPW95PRudsOBdxwQW4Ax/WCst3fbjo0SZww0Os+3WBADJ" +
+            "/Nv0mjikXRmqJIzfuI2yxxX4Wm6vqXJkPF7LGtSMB3VEJ3qPsysoai5TYboxA8C1" +
+            "4rQjIoQjA+87gxZ44PUVxrxBonITCLXJ3GsvDQ2PNhS6WQ9Cf89vtYW1vLW65Nex" +
+            "+7AuVRepKhx6Heqdf7S03m6UYliIglrEzgEWM1XrOwP/gLMsme4h0LjLgKfd0LBk" +
+            "qSMdu21VSl60TMTjxav149AdutzuCVa/yPBM/zLQdlvQoGYg2IbN4+7gDHKURcSx" +
+            "DgOAzCcEZxdMvRk2kaOI5RRf5gV9e+ErvEMzJ/xT8xWsi+aLOhaDMbwq2LLiK2L+" +
+            "tXV/Z3H/Ot4u3E7H+6fHPElFYbQUdGVzdCA8dGVzdEBrZXkudGVzdD4="
+        );
 
         [Test]
         public void PerformTest1()
@@ -1603,8 +1667,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             byte[] encRing = pubRings.GetEncoded();
         }
 
-        [Test, Explicit]
-        public void PerformTest7()
+        [Test]
+        public void TestRevocation()
         {
             PgpPublicKeyRing pgpPub = new PgpPublicKeyRing(pub7);
             PgpPublicKey masterKey = null;
@@ -1614,28 +1678,64 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 if (k.IsMasterKey)
                 {
                     masterKey = k;
+                }
+            }
+
+            int count = 0;
+            PgpSignature sig = null;
+            foreach (PgpSignature pgpSig in masterKey.GetSignaturesOfType(PgpSignature.KeyRevocation))
+            {
+                sig = pgpSig;
+                ++count;
+            }
+
+            if (count != 1)
+            {
+                Fail("wrong number of revocations in test7.");
+            }
+
+            sig.InitVerify(masterKey);
+
+            if (!sig.VerifyCertification(masterKey))
+            {
+                Fail("failed to verify revocation certification");
+            }
+
+            pgpPub = new PgpPublicKeyRing(pub7sub);
+            masterKey = null;
+
+            foreach (PgpPublicKey k in pgpPub.GetPublicKeys())
+            {
+                if (k.IsMasterKey)
+                {
+                    masterKey = k;
                     continue;
                 }
 
-                int count = 0;
-                PgpSignature sig = null;
+                count = 0;
+                sig = null;
 
-                foreach (PgpSignature sigTemp in k.GetSignaturesOfType(PgpSignature.SubkeyRevocation))
+                foreach (PgpSignature pgpSig in k.GetSignaturesOfType(PgpSignature.SubkeyRevocation))
                 {
-                    sig = sigTemp;
-                    count++;
+                    sig = pgpSig;
+                    ++count;
                 }
 
                 if (count != 1)
                 {
-                    Fail("wrong number of revocations in test7.");
+                    Fail("wrong number of revocations in test7 subkey.");
+                }
+
+                if (sig.SignatureType != PgpSignature.SubkeyRevocation)
+                {
+                    Fail("wrong signature found");
                 }
 
                 sig.InitVerify(masterKey);
 
-                if (!sig.VerifyCertification(k))
+                if (!sig.VerifyCertification(masterKey, k))
                 {
-                    Fail("failed to verify revocation certification");
+                    Fail("failed to verify revocation certification of subkey");
                 }
             }
         }
@@ -1815,9 +1915,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         {
             char[] passPhrase = "hello".ToCharArray();
             DsaParametersGenerator pGen = new DsaParametersGenerator();
-            pGen.Init(512, 80, new SecureRandom());
+            pGen.Init(512, 80, Random);
             DsaParameters dsaParams = pGen.GenerateParameters();
-            DsaKeyGenerationParameters dsaKgp = new DsaKeyGenerationParameters(new SecureRandom(), dsaParams);
+            DsaKeyGenerationParameters dsaKgp = new DsaKeyGenerationParameters(Random, dsaParams);
             IAsymmetricCipherKeyPairGenerator dsaKpg = GeneratorUtilities.GetKeyPairGenerator("DSA");
             dsaKpg.Init(dsaKgp);
 
@@ -1833,7 +1933,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             BigInteger p = new BigInteger("9494fec095f3b85ee286542b3836fc81a5dd0a0349b4c239dd38744d488cf8e31db8bcb7d33b41abb9e5a33cca9144b1cef332c94bf0573bf047a3aca98cdf3b", 16);
 
             ElGamalParameters elParams = new ElGamalParameters(p, g);
-            ElGamalKeyGenerationParameters elKgp = new ElGamalKeyGenerationParameters(new SecureRandom(), elParams);
+            ElGamalKeyGenerationParameters elKgp = new ElGamalKeyGenerationParameters(Random, elParams);
             elgKpg.Init(elKgp);
 
             //
@@ -1844,7 +1944,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair elgKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.ElGamalEncrypt, elgKp, DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification, dsaKeyPair,
-                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, null, null, new SecureRandom());
+                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, Random);
 
             keyRingGen.AddSubKey(elgKeyPair);
 
@@ -1887,12 +1987,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void InsertMasterTest()
         {
-            SecureRandom random = new SecureRandom();
-
             char[] passPhrase = "hello".ToCharArray();
             IAsymmetricCipherKeyPairGenerator rsaKpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
 
-            rsaKpg.Init(new KeyGenerationParameters(random, 512));
+            rsaKpg.Init(new KeyGenerationParameters(Random, 512));
 
             //
             // this is quicker because we are using pregenerated parameters.
@@ -1904,12 +2002,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair rsaKeyPair2 = new PgpKeyPair(PublicKeyAlgorithmTag.RsaGeneral, rsaKp, DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification,
-                rsaKeyPair1, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, null, null, random);
+                rsaKeyPair1, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, Random);
             PgpSecretKeyRing secRing1 = keyRingGen.GenerateSecretKeyRing();
             PgpPublicKeyRing pubRing1 = keyRingGen.GeneratePublicKeyRing();
 
             keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification,
-                rsaKeyPair2, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, null, null, random);
+                rsaKeyPair2, "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, false, null, null, Random);
             PgpSecretKeyRing secRing2 = keyRingGen.GenerateSecretKeyRing();
             PgpPublicKeyRing pubRing2 = keyRingGen.GeneratePublicKeyRing();
 
@@ -1947,9 +2045,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             IAsymmetricCipherKeyPairGenerator dsaKpg = GeneratorUtilities.GetKeyPairGenerator("DSA");
             DsaParametersGenerator pGen = new DsaParametersGenerator();
-            pGen.Init(512, 80, new SecureRandom());
+            pGen.Init(512, 80, Random);
             DsaParameters dsaParams = pGen.GenerateParameters();
-            DsaKeyGenerationParameters kgp = new DsaKeyGenerationParameters(new SecureRandom(), dsaParams);
+            DsaKeyGenerationParameters kgp = new DsaKeyGenerationParameters(Random, dsaParams);
             dsaKpg.Init(kgp);
 
             //
@@ -1965,7 +2063,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             BigInteger p = new BigInteger("9494fec095f3b85ee286542b3836fc81a5dd0a0349b4c239dd38744d488cf8e31db8bcb7d33b41abb9e5a33cca9144b1cef332c94bf0573bf047a3aca98cdf3b", 16);
 
             ElGamalParameters elParams = new ElGamalParameters(p, g);
-            ElGamalKeyGenerationParameters elKgp = new ElGamalKeyGenerationParameters(new SecureRandom(), elParams);
+            ElGamalKeyGenerationParameters elKgp = new ElGamalKeyGenerationParameters(Random, elParams);
             elgKpg.Init(elKgp);
 
             //
@@ -1978,7 +2076,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpKeyPair elgKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.ElGamalEncrypt, elgKp, DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification, dsaKeyPair,
-                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, true, null, null, new SecureRandom());
+                "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, true, null, null, Random);
 
             keyRingGen.AddSubKey(elgKeyPair);
 
@@ -2021,28 +2119,121 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void RewrapTest()
         {
-            SecureRandom rand = new SecureRandom();
-
             // Read the secret key rings
             PgpSecretKeyRingBundle privRings = new PgpSecretKeyRingBundle(
                 new MemoryStream(rewrapKey, false));
 
+            char[] newPass = "fred".ToCharArray();
+
             foreach (PgpSecretKeyRing pgpPrivEnum in privRings.GetKeyRings())
             {
-                foreach (PgpSecretKey pgpKeyEnum in pgpPrivEnum.GetSecretKeys())
+                PgpSecretKeyRing pgpPriv = pgpPrivEnum;
+
+                foreach (PgpSecretKey pgpKeyEnum in pgpPriv.GetSecretKeys())
                 {
+                    long oldKeyID = pgpKeyEnum.KeyId;
+
                     // re-encrypt the key with an empty password
-                    PgpSecretKeyRing pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPrivEnum, pgpKeyEnum);
+                    pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPriv, pgpKeyEnum);
                     PgpSecretKey pgpKey = PgpSecretKey.CopyWithNewPassword(
                         pgpKeyEnum,
                         rewrapPass,
                         null,
                         SymmetricKeyAlgorithmTag.Null,
-                        rand);
+                        Random);
                     pgpPriv = PgpSecretKeyRing.InsertSecretKey(pgpPriv, pgpKey);
 
                     // this should succeed
                     PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(null);
+
+                    if (pgpKey.KeyId != oldKeyID || pgpKey.S2kUsage != SecretKeyPacket.UsageNone)
+                    {
+                        Fail("usage/key ID mismatch");
+                    }
+                }
+
+                foreach (PgpSecretKey pgpKeyEnum in pgpPriv.GetSecretKeys())
+                {
+                    long oldKeyID = pgpKeyEnum.KeyId;
+
+                    // re-encrypt the key with an empty password
+                    pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPriv, pgpKeyEnum);
+                    PgpSecretKey pgpKey = PgpSecretKey.CopyWithNewPassword(
+                        pgpKeyEnum,
+                        null,
+                        newPass,
+                        SymmetricKeyAlgorithmTag.Cast5,
+                        Random);
+                    pgpPriv = PgpSecretKeyRing.InsertSecretKey(pgpPriv, pgpKey);
+
+                    // this should succeed
+                    PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(newPass);
+
+                    if (pgpKey.KeyId != oldKeyID || pgpKey.S2kUsage != SecretKeyPacket.UsageChecksum)
+                    {
+                        Fail("usage/key ID mismatch");
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void RewrapTestV3()
+        {
+            // Read the secret key rings
+            PgpSecretKeyRingBundle privRings = new PgpSecretKeyRingBundle(
+                new MemoryStream(privv3, false));
+
+            char[] newPass = "fred".ToCharArray();
+
+            foreach (PgpSecretKeyRing pgpPrivEnum in privRings.GetKeyRings())
+            {
+                PgpSecretKeyRing pgpPriv = pgpPrivEnum;
+
+                foreach (PgpSecretKey pgpKeyEnum in pgpPriv.GetSecretKeys())
+                {
+                    long oldKeyID = pgpKeyEnum.KeyId;
+
+                    // re-encrypt the key with an empty password
+                    pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPriv, pgpKeyEnum);
+                    PgpSecretKey pgpKey = PgpSecretKey.CopyWithNewPassword(
+                        pgpKeyEnum,
+                        v3KeyPass,
+                        null,
+                        SymmetricKeyAlgorithmTag.Null,
+                        Random);
+                    pgpPriv = PgpSecretKeyRing.InsertSecretKey(pgpPriv, pgpKey);
+
+                    // this should succeed
+                    PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(null);
+
+                    if (pgpKey.KeyId != oldKeyID)
+                    {
+                        Fail("key ID mismatch");
+                    }
+                }
+
+                foreach (PgpSecretKey pgpKeyEnum in pgpPriv.GetSecretKeys())
+                {
+                    long oldKeyID = pgpKeyEnum.KeyId;
+
+                    // re-encrypt the key with an empty password
+                    pgpPriv = PgpSecretKeyRing.RemoveSecretKey(pgpPriv, pgpKeyEnum);
+                    PgpSecretKey pgpKey = PgpSecretKey.CopyWithNewPassword(
+                        pgpKeyEnum,
+                        null,
+                        newPass,
+                        SymmetricKeyAlgorithmTag.Cast5,
+                        Random);
+                    pgpPriv = PgpSecretKeyRing.InsertSecretKey(pgpPriv, pgpKey);
+
+                    // this should succeed
+                    PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(newPass);
+
+                    if (pgpKey.KeyId != oldKeyID)
+                    {
+                        Fail("key ID mismatch");
+                    }
                 }
             }
         }
@@ -2130,10 +2321,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PerformTest4();
             PerformTest5();
             PerformTest6();
-
-            // NB: This was commented out in the original Java source
-            //PerformTest7();
-
+            TestRevocation();
             PerformTest8();
             PerformTest9();
             PerformTest10();
@@ -2145,6 +2333,40 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PublicKeyRingWithX509Test();
             SecretKeyRingWithPersonalCertificateTest();
             InsertMasterTest();
+            LongSubPacketsTest();
+        }
+
+        private void LongSubPacketsTest()
+        {
+            Stream fIn = SimpleTest.GetTestDataAsStream("openpgp.longSigSubPack.asc");
+            Stream bIn = new BufferedStream(fIn);
+            PgpPublicKeyRing pkr = new PgpPublicKeyRing(PgpUtilities.GetDecoderStream(bIn));
+            bIn.Close();
+
+            PgpPublicKey masterpk = pkr.GetPublicKey();
+
+            // Check userids
+            foreach (string uid in masterpk.GetUserIds())
+            {
+                CheckUidSig(masterpk, uid);
+            }
+        }
+
+        private void CheckUidSig(PgpPublicKey pk, string uid)
+        {
+            foreach (PgpSignature sig in pk.GetSignaturesForId(uid))
+            {
+                if (!IsGoodUidSignature(sig, pk, uid))
+                {
+                    Fail("Bad self-signature found for '" + uid + "'");
+                }
+            }
+        }
+
+        private static bool IsGoodUidSignature(PgpSignature sig, PgpPublicKey masterpk, string uid)
+        {
+            sig.InitVerify(masterpk);
+            return sig.VerifyCertification(uid, masterpk);
         }
 
         public override string Name

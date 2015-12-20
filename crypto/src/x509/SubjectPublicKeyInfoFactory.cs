@@ -1,7 +1,4 @@
 using System;
-using System.IO;
-using System.Collections;
-using System.Text;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Asn1;
@@ -167,7 +164,7 @@ namespace Org.BouncyCastle.X509
                 return new SubjectPublicKeyInfo(algID, new DerOctetString(keyBytes));
             }
 
-            throw new ArgumentException("Class provided no convertible: " + key.GetType().FullName);
+            throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(key));
         }
 
         private static void ExtractBytes(

@@ -3,7 +3,6 @@ using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
@@ -127,7 +126,7 @@ namespace Org.BouncyCastle.OpenSsl
             }
             else
             {
-                throw new PemGenerationException("Object type not supported: " + obj.GetType().FullName);
+                throw new PemGenerationException("Object type not supported: " + Platform.GetTypeName(obj));
             }
 
             return new PemObject(type, encoding);
@@ -185,7 +184,7 @@ namespace Org.BouncyCastle.OpenSsl
             if (type == null || keyData == null)
             {
                 // TODO Support other types?
-                throw new PemGenerationException("Object type not supported: " + obj.GetType().FullName);
+                throw new PemGenerationException("Object type not supported: " + Platform.GetTypeName(obj));
             }
 
 
@@ -197,7 +196,7 @@ namespace Org.BouncyCastle.OpenSsl
                 dekAlgName = "DES-EDE3-CBC";
             }
 
-            int ivLength = dekAlgName.StartsWith("AES-") ? 16 : 8;
+            int ivLength = Platform.StartsWith(dekAlgName, "AES-") ? 16 : 8;
 
             byte[] iv = new byte[ivLength];
             random.NextBytes(iv);
@@ -218,7 +217,7 @@ namespace Org.BouncyCastle.OpenSsl
         {
             PrivateKeyInfo info = PrivateKeyInfoFactory.CreatePrivateKeyInfo(akp);
             AlgorithmIdentifier algID = info.PrivateKeyAlgorithm;
-            DerObjectIdentifier oid = algID.ObjectID;
+            DerObjectIdentifier oid = algID.Algorithm;
 
             if (oid.Equals(X9ObjectIdentifiers.IdDsa))
             {
@@ -250,7 +249,7 @@ namespace Org.BouncyCastle.OpenSsl
             }
             else
             {
-                throw new ArgumentException("Cannot handle private key of type: " + akp.GetType().FullName, "akp");
+                throw new ArgumentException("Cannot handle private key of type: " + Platform.GetTypeName(akp), "akp");
             }
 
             return info.ParsePrivateKey().GetEncoded();

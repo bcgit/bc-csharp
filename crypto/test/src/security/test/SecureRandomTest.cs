@@ -3,7 +3,12 @@ using System.Text;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Prng;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security.Tests
@@ -11,7 +16,7 @@ namespace Org.BouncyCastle.Security.Tests
     [TestFixture]
     public class SecureRandomTest
     {
-#if !NETCF_1_0
+#if !(NETCF_1_0 || PORTABLE)
         [Test]
         public void TestCryptoApi()
         {
@@ -61,6 +66,30 @@ namespace Org.BouncyCastle.Security.Tests
         }
 
         [Test]
+        public void TestSP800Ctr()
+        {
+            SecureRandom random = new SP800SecureRandomBuilder().BuildCtr(new AesFastEngine(), 256, new byte[32], false);
+
+            CheckSecureRandom(random);
+        }
+
+        [Test]
+        public void TestSP800Hash()
+        {
+            SecureRandom random = new SP800SecureRandomBuilder().BuildHash(new Sha256Digest(), new byte[32], false);
+
+            CheckSecureRandom(random);
+        }
+
+        [Test]
+        public void TestSP800HMac()
+        {
+            SecureRandom random = new SP800SecureRandomBuilder().BuildHMac(new HMac(new Sha256Digest()), new byte[32], false);
+
+            CheckSecureRandom(random);
+        }
+
+        [Test]
         public void TestThreadedSeed()
         {
             SecureRandom random = SecureRandom.GetInstance("SHA1PRNG", false);
@@ -73,7 +102,15 @@ namespace Org.BouncyCastle.Security.Tests
         public void TestVmpcPrng()
         {
             SecureRandom random = new SecureRandom(new VmpcRandomGenerator());
-            random.SetSeed(SecureRandom.GetSeed(32));
+            random.SetSeed(random.GenerateSeed(32));
+
+            CheckSecureRandom(random);
+        }
+
+        [Test]
+        public void TestX931()
+        {
+            SecureRandom random = new X931SecureRandomBuilder().Build(new AesFastEngine(), new KeyParameter(new byte[16]), false);
 
             CheckSecureRandom(random);
         }
@@ -106,7 +143,7 @@ namespace Org.BouncyCastle.Security.Tests
 
         private static double MeasureChiSquared(SecureRandom random, int rounds)
         {
-            byte[] opts = SecureRandom.GetSeed(2);
+            byte[] opts = random.GenerateSeed(2);
             int[] counts = new int[256];
 
             byte[] bs = new byte[256];

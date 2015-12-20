@@ -1,3 +1,4 @@
+#if !LIB
 using System;
 
 using NUnit.Core;
@@ -28,3 +29,4 @@ namespace Org.BouncyCastle.Asn1.Tests
         }
     }
 }
+#endif

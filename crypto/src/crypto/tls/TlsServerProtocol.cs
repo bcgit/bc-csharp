@@ -22,21 +22,57 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected short mClientCertificateType = -1;
         protected TlsHandshakeHash mPrepareFinishHash = null;
 
+        /**
+         * Constructor for blocking mode.
+         * @param stream The bi-directional stream of data to/from the client
+         * @param output The stream of data to the client
+         * @param secureRandom Random number generator for various cryptographic functions
+         */
         public TlsServerProtocol(Stream stream, SecureRandom secureRandom)
-            :   base(stream, secureRandom)
-        {
-        }
-
-        public TlsServerProtocol(Stream input, Stream output, SecureRandom secureRandom)
-            :   base(input, output, secureRandom)
+            : base(stream, secureRandom)
         {
         }
 
         /**
-         * Receives a TLS handshake in the role of server
+         * Constructor for blocking mode.
+         * @param input The stream of data from the client
+         * @param output The stream of data to the client
+         * @param secureRandom Random number generator for various cryptographic functions
+         */
+        public TlsServerProtocol(Stream input, Stream output, SecureRandom secureRandom)
+            : base(input, output, secureRandom)
+        {
+        }
+
+        /**
+         * Constructor for non-blocking mode.<br/>
+         * <br/>
+         * When data is received, use {@link #offerInput(java.nio.ByteBuffer)} to
+         * provide the received ciphertext, then use
+         * {@link #readInput(byte[], int, int)} to read the corresponding cleartext.<br/>
+         * <br/>
+         * Similarly, when data needs to be sent, use
+         * {@link #offerOutput(byte[], int, int)} to provide the cleartext, then use
+         * {@link #readOutput(byte[], int, int)} to get the corresponding
+         * ciphertext.
+         * 
+         * @param secureRandom
+         *            Random number generator for various cryptographic functions
+         */
+        public TlsServerProtocol(SecureRandom secureRandom)
+            : base(secureRandom)
+        {
+        }
+
+        /**
+         * Receives a TLS handshake in the role of server.<br/>
+         * <br/>
+         * In blocking mode, this will not return until the handshake is complete.
+         * In non-blocking mode, use {@link TlsPeer#notifyHandshakeComplete()} to
+         * receive a callback when the handshake is complete.
          *
-         * @param mTlsServer
-         * @throws IOException If handshake was not successful.
+         * @param tlsServer
+         * @throws IOException If in blocking mode and handshake was not successful.
          */
         public virtual void Accept(TlsServer tlsServer)
         {
@@ -60,7 +96,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             this.mRecordStream.SetRestrictReadVersion(false);
 
-            CompleteHandshake();
+            BlockForHandshake();
         }
 
         protected override void CleanupHandshake()
@@ -329,6 +365,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                     SendFinishedMessage();
                     this.mConnectionState = CS_SERVER_FINISHED;
                     this.mConnectionState = CS_END;
+
+                    CompleteHandshake();
                     break;
                 }
                 default:

@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public SecT409FieldElement(BigInteger x)
         {
-            if (x == null || x.SignValue < 0)
+            if (x == null || x.SignValue < 0 || x.BitLength > 409)
                 throw new ArgumentException("value invalid for SecT409FieldElement", "x");
 
             this.x = SecT409Field.FromBigInteger(x);
@@ -152,8 +152,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement Invert()
         {
-            return new SecT409FieldElement(
-                AbstractF2mCurve.Inverse(409, new int[] { 87 }, ToBigInteger()));
+            ulong[] z = Nat448.Create64();
+            SecT409Field.Invert(x, z);
+            return new SecT409FieldElement(z);
         }
 
         public override ECFieldElement Sqrt()

@@ -233,112 +233,74 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifySignatures(sp);
 		}
 
-//		[Test]
-//		public void TestSha1WithRsaNoAttributes()
-//		{
-//			IList certList = new ArrayList();
-//			CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes(TestMessage));
-//
-//			certList.Add(OrigCert);
-//			certList.Add(SignCert);
-//
-//			IX509Store x509Certs = X509StoreFactory.Create(
-//				"Certificate/Collection",
-//				new X509CollectionStoreParameters(certList));
-//
-//			CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-//
-//			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
-//
-//			gen.AddCertificates(x509Certs);
-//
-//			CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false, false);
-//
-//			CmsSignedDataParser sp = new CmsSignedDataParser(
-//				new CmsTypedStream(new MemoryStream(Encoding.ASCII.GetBytes(TestMessage), false)), s.GetEncoded());
-//
-//			sp.GetSignedContent().Drain();
-//
-//			//
-//			// compute expected content digest
-//			//
-//			IDigest md = DigestUtilities.GetDigest("SHA1");
-//
-//			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
-//			md.BlockUpdate(testBytes, 0, testBytes.Length);
-//			byte[] hash = DigestUtilities.DoFinal(md);
-//
-//			VerifySignatures(sp, hash);
-//		}
+        //[Test]
+        //public void TestSha1WithRsaNoAttributes()
+        //{
+        //    CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes(TestMessage));
 
-//		[Test]
-//		public void TestDsaNoAttributes()
-//		{
-//			IList certList = new ArrayList();
-//			CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes(TestMessage));
-//
-//			certList.Add(OrigDsaCert);
-//			certList.Add(SignCert);
-//
-//			IX509Store x509Certs = X509StoreFactory.Create(
-//				"Certificate/Collection",
-//				new X509CollectionStoreParameters(certList));
-//
-//			CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-//
-//			gen.AddSigner(OrigDsaKP.Private, OrigDsaCert, CmsSignedDataGenerator.DigestSha1);
-//
-//			gen.AddCertificates(x509Certs);
-//
-//			CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false, false);
-//
-//			CmsSignedDataParser sp = new CmsSignedDataParser(
-//				new CmsTypedStream(
-//				new MemoryStream(Encoding.ASCII.GetBytes(TestMessage), false)),
-//				s.GetEncoded());
-//
-//			sp.GetSignedContent().Drain();
-//
-//			//
-//			// compute expected content digest
-//			//
-//			IDigest md = DigestUtilities.GetDigest("SHA1");
-//
-//			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
-//			md.BlockUpdate(testBytes, 0, testBytes.Length);
-//			byte[] hash = DigestUtilities.DoFinal(md);
-//
-//			VerifySignatures(sp, hash);
-//		}
+        //    IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+        //    CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+        //    gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+        //    gen.AddCertificates(x509Certs);
+
+        //    CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false, false);
+
+        //    CmsSignedDataParser sp = new CmsSignedDataParser(
+        //        new CmsTypedStream(new MemoryStream(Encoding.ASCII.GetBytes(TestMessage), false)), s.GetEncoded());
+
+        //    sp.GetSignedContent().Drain();
+
+        //    byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+
+        //    // compute expected content digest
+        //    byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
+
+        //    VerifySignatures(sp, hash);
+        //}
+
+        //[Test]
+        //public void TestDsaNoAttributes()
+        //{
+        //    CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes(TestMessage));
+
+        //    IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigDsaCert, SignCert);
+
+        //    CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+        //    gen.AddSigner(OrigDsaKP.Private, OrigDsaCert, CmsSignedDataGenerator.DigestSha1);
+        //    gen.AddCertificates(x509Certs);
+
+        //    CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false, false);
+
+        //    CmsSignedDataParser sp = new CmsSignedDataParser(
+        //        new CmsTypedStream(
+        //        new MemoryStream(Encoding.ASCII.GetBytes(TestMessage), false)),
+        //        s.GetEncoded());
+
+        //    sp.GetSignedContent().Drain();
+
+        //    byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+
+        //    // compute expected content digest
+        //    byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
+
+        //    VerifySignatures(sp, hash);
+        //}
 
 		[Test]
 		public void TestSha1WithRsa()
 		{
-			IList certList = new ArrayList();
-			IList crlList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+            IX509Store x509Crls = CmsTestUtil.MakeCrlStore(SignCrl, OrigCrl);
 
-			crlList.Add(SignCrl);
-			crlList.Add(OrigCrl);
-
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-			IX509Store x509Crls = X509StoreFactory.Create(
-				"CRL/Collection",
-				new X509CollectionStoreParameters(crlList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 			gen.AddCrls(x509Crls);
 
-			Stream sigOut = gen.Open(bOut);
+            Stream sigOut = gen.Open(bOut);
 
 			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 			sigOut.Write(testBytes, 0, testBytes.Length);
@@ -352,41 +314,33 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			sp.GetSignedContent().Drain();
 
-			//
-			// compute expected content digest
-			//
-			IDigest md = DigestUtilities.GetDigest("SHA1");
-			md.BlockUpdate(testBytes, 0, testBytes.Length);
-			byte[] hash = DigestUtilities.DoFinal(md);
+            // compute expected content digest
+            byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
 
-			VerifySignatures(sp, hash);
+            VerifySignatures(sp, hash);
 
 			//
 			// try using existing signer
 			//
 			gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigners(sp.GetSignerInfos());
-
 			gen.AddCertificates(sp.GetCertificates("Collection"));
 			gen.AddCrls(sp.GetCrls("Collection"));
 
-			bOut.SetLength(0);
+            bOut.SetLength(0);
 
-			sigOut = gen.Open(bOut, true);
-
+            sigOut = gen.Open(bOut, true);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			VerifyEncodedData(bOut);
+            VerifyEncodedData(bOut);
 
-			//
+            //
 			// look for the CRLs
 			//
 			ArrayList col = new ArrayList(x509Crls.GetMatches(null));
 
-			Assert.AreEqual(2, col.Count);
+            Assert.AreEqual(2, col.Count);
 			Assert.IsTrue(col.Contains(SignCrl));
 			Assert.IsTrue(col.Contains(OrigCrl));
 		}
@@ -394,80 +348,53 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestSha1WithRsaNonData()
 		{
-			IList certList = new ArrayList();
-			IList crlList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+            IX509Store x509Crls = CmsTestUtil.MakeCrlStore(SignCrl, OrigCrl);
 
-			crlList.Add(SignCrl);
-			crlList.Add(OrigCrl);
-
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-			IX509Store x509Crls = X509StoreFactory.Create(
-				"CRL/Collection",
-				new X509CollectionStoreParameters(crlList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 			gen.AddCrls(x509Crls);
 
-			Stream sigOut = gen.Open(bOut, "1.2.3.4", true);
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+            Stream sigOut = gen.Open(bOut, "1.2.3.4", true);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+            CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
 
-			CmsTypedStream stream = sp.GetSignedContent();
+            CmsTypedStream stream = sp.GetSignedContent();
 
 			Assert.AreEqual("1.2.3.4", stream.ContentType);
 
 			stream.Drain();
 
-			//
-			// compute expected content digest
-			//
-			IDigest md = DigestUtilities.GetDigest("SHA1");
-			md.BlockUpdate(testBytes, 0, testBytes.Length);
-			byte[] hash = DigestUtilities.DoFinal(md);
+            // compute expected content digest
+            byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
 
-			VerifySignatures(sp, hash);
+            VerifySignatures(sp, hash);
 		}
 
-		[Test]
+        [Test]
 		public void TestSha1AndMD5WithRsa()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddDigests(CmsSignedDataStreamGenerator.DigestSha1,
 				CmsSignedDataStreamGenerator.DigestMD5);
 
-			Stream sigOut = gen.Open(bOut);
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+            Stream sigOut = gen.Open(bOut);
 			sigOut.Write(testBytes, 0, testBytes.Length);
 
 			gen.AddCertificates(x509Certs);
-
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestMD5);
 
@@ -486,39 +413,29 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestSha1WithRsaEncapsulatedBufferedStream()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			//
+            //
 			// find unbuffered length
 			//
 			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
 			Stream sigOut = gen.Open(bOut, true);
-
 			for (int i = 0; i != 2000; i++)
 			{
 				sigOut.WriteByte((byte)(i & 0xff));
 			}
-
 			sigOut.Close();
 
 			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
 
-			sp.GetSignedContent().Drain();
+            sp.GetSignedContent().Drain();
 
-			VerifySignatures(sp);
+            VerifySignatures(sp);
 
 			int unbufferedLength = bOut.ToArray().Length;
 
@@ -528,9 +445,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			bOut.SetLength(0);
 
 			gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
 			sigOut = gen.Open(bOut, true);
@@ -541,10 +456,10 @@ namespace Org.BouncyCastle.Cms.Tests
 				data[i] = (byte)(i & 0xff);
 			}
 
-			Streams.PipeAll(new MemoryStream(data, false), sigOut);
+            Streams.PipeAll(new MemoryStream(data, false), sigOut);
 			sigOut.Close();
 
-			VerifyEncodedData(bOut);
+            VerifyEncodedData(bOut);
 
 			Assert.AreEqual(unbufferedLength, bOut.ToArray().Length);
 		}
@@ -552,23 +467,15 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestSha1WithRsaEncapsulatedBuffered()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
-
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
 			//
 			// find unbuffered length
 			//
 			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
 			Stream sigOut = gen.Open(bOut, true);
@@ -594,14 +501,11 @@ namespace Org.BouncyCastle.Cms.Tests
 			bOut.SetLength(0);
 
 			gen = new CmsSignedDataStreamGenerator();
-
 			gen.SetBufferSize(300);
-
-			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
 			gen.AddCertificates(x509Certs);
 
-			sigOut = gen.Open(bOut, true);
+            sigOut = gen.Open(bOut, true);
 
 			for (int i = 0; i != 2000; i++)
 			{
@@ -618,38 +522,29 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestSha1WithRsaEncapsulated()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
-			Stream sigOut = gen.Open(bOut, true);
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+            Stream sigOut = gen.Open(bOut, true);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+            CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
 
 			sp.GetSignedContent().Drain();
 
 			VerifySignatures(sp);
 
-			byte[] contentDigest = (byte[])gen.GetGeneratedDigests()[CmsSignedGenerator.DigestSha1];
+            byte[] contentDigest = (byte[])gen.GetGeneratedDigests()[CmsSignedGenerator.DigestSha1];
 
-			ArrayList signers = new ArrayList(sp.GetSignerInfos().GetSigners());
+            ArrayList signers = new ArrayList(sp.GetSignerInfos().GetSigners());
 
 			AttributeTable table = ((SignerInformation) signers[0]).SignedAttributes;
 			Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
@@ -660,26 +555,22 @@ namespace Org.BouncyCastle.Cms.Tests
 			// try using existing signer
 			//
 			gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigners(sp.GetSignerInfos());
-
 			gen.AddCertificates(sp.GetCertificates("Collection"));
 			gen.AddCrls(sp.GetCrls("Collection"));
 
-			bOut.SetLength(0);
+            bOut.SetLength(0);
 
-			sigOut = gen.Open(bOut, true);
-
+            sigOut = gen.Open(bOut, true);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			CmsSignedData sd = new CmsSignedData(
+            CmsSignedData sd = new CmsSignedData(
 				new CmsProcessableByteArray(testBytes), bOut.ToArray());
 
-			Assert.AreEqual(1, sd.GetSignerInfos().GetSigners().Count);
+            Assert.AreEqual(1, sd.GetSignerInfos().GetSigners().Count);
 
-			VerifyEncodedData(bOut);
+            VerifyEncodedData(bOut);
 		}
 
 		private static readonly DerObjectIdentifier dummyOid1 = new DerObjectIdentifier("1.2.3");
@@ -718,32 +609,23 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 	    public void TestSha1WithRsaEncapsulatedSubjectKeyID()
 	    {
-	        IList certList = new ArrayList();
 	        MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 	        gen.AddSigner(OrigKP.Private,
 				CmsTestUtil.CreateSubjectKeyId(OrigCert.GetPublicKey()).GetKeyIdentifier(),
 				CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
-			Stream sigOut = gen.Open(bOut, true);
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
-			sigOut.Write(testBytes, 0, testBytes.Length);
-
+            Stream sigOut = gen.Open(bOut, true);
+            sigOut.Write(testBytes, 0, testBytes.Length);
 			sigOut.Close();
 
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+            CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
 
 			sp.GetSignedContent().Drain();
 
@@ -762,55 +644,42 @@ namespace Org.BouncyCastle.Cms.Tests
 			// try using existing signer
 			//
 			gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigners(sp.GetSignerInfos());
-
-//			gen.AddCertificatesAndCRLs(sp.getCertificatesAndCRLs("Collection", "BC"));
+//			gen.AddCertificatesAndCRLs(sp.GetCertificatesAndCrls("Collection", "BC"));
 			gen.AddCertificates(sp.GetCertificates("Collection"));
 
-			bOut.SetLength(0);
+            bOut.SetLength(0);
 
-			sigOut = gen.Open(bOut, true);
-
+            sigOut = gen.Open(bOut, true);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			CmsSignedData sd = new CmsSignedData(new CmsProcessableByteArray(testBytes), bOut.ToArray());
+            CmsSignedData sd = new CmsSignedData(new CmsProcessableByteArray(testBytes), bOut.ToArray());
 
 			Assert.AreEqual(1, sd.GetSignerInfos().GetSigners().Count);
 
 	        VerifyEncodedData(bOut);
 	    }
 
-		[Test]
+        [Test]
 		public void TestAttributeGenerators()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
-
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
 			CmsAttributeTableGenerator signedGen = new SignedGenAttributeTableGenerator();
 			CmsAttributeTableGenerator unsignedGen = new UnsignedGenAttributeTableGenerator();
 
-			gen.AddSigner(OrigKP.Private, OrigCert,
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
+            gen.AddSigner(OrigKP.Private, OrigCert,
 				CmsSignedDataStreamGenerator.DigestSha1, signedGen, unsignedGen);
-
 			gen.AddCertificates(x509Certs);
 
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+
 			Stream sigOut = gen.Open(bOut, true);
-
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
 			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
@@ -826,59 +695,44 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			foreach (SignerInformation signer in signers.GetSigners())
 			{
-				checkAttribute(signer.GetContentDigest(), signer.SignedAttributes[dummyOid1]);
-				checkAttribute(signer.GetSignature(), signer.UnsignedAttributes[dummyOid2]);
+				CheckAttribute(signer.GetContentDigest(), signer.SignedAttributes[dummyOid1]);
+				CheckAttribute(signer.GetSignature(), signer.UnsignedAttributes[dummyOid2]);
 			}
 		}
 
-		private void checkAttribute(
-			byte[]				expected,
-			Asn1.Cms.Attribute	attr)
+		private void CheckAttribute(byte[] expected, Asn1.Cms.Attribute	attr)
 		{
 			DerOctetString value = (DerOctetString)attr.AttrValues[0];
 
-			Assert.AreEqual(new DerOctetString(expected), value);
+            Assert.AreEqual(new DerOctetString(expected), value);
 		}
 
-		[Test]
+        [Test]
 		public void TestWithAttributeCertificate()
 		{
-			IList certList = new ArrayList();
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(SignCert);
 
-			certList.Add(SignCert);
-
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
-			IX509AttributeCertificate attrCert = CmsTestUtil.GetAttributeCertificate();
+            IX509AttributeCertificate attrCert = CmsTestUtil.GetAttributeCertificate();
 
-			ArrayList attrCerts = new ArrayList();
-			attrCerts.Add(attrCert);
-			IX509Store store = X509StoreFactory.Create(
-				"AttributeCertificate/Collection",
-				new X509CollectionStoreParameters(attrCerts));
+            IX509Store store = CmsTestUtil.MakeAttrCertStore(attrCert);
 
-			gen.AddAttributeCertificates(store);
+            gen.AddAttributeCertificates(store);
 
-			MemoryStream bOut = new MemoryStream();
+            MemoryStream bOut = new MemoryStream();
+
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 
 			Stream sigOut = gen.Open(bOut, true);
-
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+            CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
 
-			sp.GetSignedContent().Drain();
+            sp.GetSignedContent().Drain();
 
 			Assert.AreEqual(4, sp.Version);
 
@@ -894,27 +748,17 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestSignerStoreReplacement()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 			byte[] data = Encoding.ASCII.GetBytes(TestMessage);
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
-
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
 			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
 			Stream sigOut = gen.Open(bOut, false);
-
 			sigOut.Write(data, 0, data.Length);
-
 			sigOut.Close();
 
 			CheckSigParseable(bOut.ToArray());
@@ -927,18 +771,15 @@ namespace Org.BouncyCastle.Cms.Tests
 			bOut.SetLength(0);
 
 			gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha224);
 
-			gen.AddCertificates(x509Certs);
+            gen.AddCertificates(x509Certs);
 
 			sigOut = gen.Open(bOut);
-
 			sigOut.Write(data, 0, data.Length);
-
 			sigOut.Close();
 
-			CheckSigParseable(bOut.ToArray());
+            CheckSigParseable(bOut.ToArray());
 
 			CmsSignedData sd = new CmsSignedData(bOut.ToArray());
 
@@ -953,7 +794,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			IEnumerator signerEnum = sd.GetSignerInfos().GetSigners().GetEnumerator();
 			signerEnum.MoveNext();
-			SignerInformation signer = (SignerInformation) signerEnum.Current;
+			SignerInformation signer = (SignerInformation)signerEnum.Current;
 
 			Assert.AreEqual(signer.DigestAlgOid, CmsSignedDataStreamGenerator.DigestSha224);
 
@@ -968,27 +809,18 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestEncapsulatedSignerStoreReplacement()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+
 			Stream sigOut = gen.Open(bOut, true);
-
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
 			//
@@ -999,20 +831,16 @@ namespace Org.BouncyCastle.Cms.Tests
 			bOut.SetLength(0);
 
 			gen = new CmsSignedDataStreamGenerator();
-
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha224);
-
 			gen.AddCertificates(x509Certs);
 
-			sigOut = gen.Open(bOut, true);
-
+            sigOut = gen.Open(bOut, true);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			CmsSignedData sd = new CmsSignedData(bOut.ToArray());
+            CmsSignedData sd = new CmsSignedData(bOut.ToArray());
 
-			//
+            //
 			// replace signer
 			//
 			MemoryStream newOut = new MemoryStream();
@@ -1037,40 +865,25 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestCertStoreReplacement()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 			byte[] data = Encoding.ASCII.GetBytes(TestMessage);
 
-			certList.Add(OrigDsaCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigDsaCert);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
-			Stream sigOut = gen.Open(bOut);
-
+            Stream sigOut = gen.Open(bOut);
 			sigOut.Write(data, 0, data.Length);
-
 			sigOut.Close();
 
-			CheckSigParseable(bOut.ToArray());
+            CheckSigParseable(bOut.ToArray());
 
-			//
+            //
 			// create new certstore with the right certificates
 			//
-			certList = new ArrayList();
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
-
-			x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
+            x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
 			//
 			// replace certs
@@ -1090,14 +903,9 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestEncapsulatedCertStoreReplacement()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigDsaCert);
-
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigDsaCert);
 
 			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 
@@ -1115,15 +923,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			//
 			// create new certstore with the right certificates
 			//
-			certList = new ArrayList();
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
-			x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			//
+            //
 			// replace certs
 			//
 			MemoryStream original = new MemoryStream(bOut.ToArray(), false);
@@ -1141,30 +943,21 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestCertOrdering1()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(OrigCert);
-			certList.Add(SignCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+
 			Stream sigOut = gen.Open(bOut, true);
-
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+            CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
 
 			sp.GetSignedContent().Drain();
 			x509Certs = sp.GetCertificates("Collection");
@@ -1178,32 +971,23 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestCertOrdering2()
 		{
-			IList certList = new ArrayList();
 			MemoryStream bOut = new MemoryStream();
 
-			certList.Add(SignCert);
-			certList.Add(OrigCert);
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(SignCert, OrigCert);
 
-			IX509Store x509Certs = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certList));
-
-			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
 			gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
-
 			gen.AddCertificates(x509Certs);
 
-			Stream sigOut = gen.Open(bOut, true);
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
 
-			byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+            Stream sigOut = gen.Open(bOut, true);
 			sigOut.Write(testBytes, 0, testBytes.Length);
-
 			sigOut.Close();
 
-			CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
+            CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
 
-			sp.GetSignedContent().Drain();
+            sp.GetSignedContent().Drain();
 			x509Certs = sp.GetCertificates("Collection");
 			ArrayList a = new ArrayList(x509Certs.GetMatches(null));
 
@@ -1215,13 +999,7 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestCertsOnly()
         {
-            IList certList = new ArrayList();
-            certList.Add(OrigCert);
-            certList.Add(SignCert);
-
-            IX509Store x509Certs = X509StoreFactory.Create(
-                "Certificate/Collection",
-                new X509CollectionStoreParameters(certList));
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
             MemoryStream bOut = new MemoryStream();
 

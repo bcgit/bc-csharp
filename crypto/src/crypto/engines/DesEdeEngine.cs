@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -24,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             ICipherParameters	parameters)
         {
             if (!(parameters is KeyParameter))
-                throw new ArgumentException("invalid parameter passed to DESede init - " + parameters.GetType().ToString());
+                throw new ArgumentException("invalid parameter passed to DESede init - " + Platform.GetTypeName(parameters));
 
             byte[] keyMaster = ((KeyParameter)parameters).GetKey();
             if (keyMaster.Length != 24 && keyMaster.Length != 16)

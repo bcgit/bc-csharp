@@ -2,9 +2,14 @@ using System;
 using System.Collections;
 using System.IO;
 
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -14,6 +19,54 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     /// <remarks>General class to handle a PGP public key object.</remarks>
     public class PgpPublicKey
     {
+        public static byte[] CalculateFingerprint(PublicKeyPacket publicPk)
+        {
+            IBcpgKey key = publicPk.Key;
+            IDigest digest;
+
+            if (publicPk.Version <= 3)
+            {
+                RsaPublicBcpgKey rK = (RsaPublicBcpgKey)key;
+
+                try
+                {
+                    digest = DigestUtilities.GetDigest("MD5");
+                    UpdateDigest(digest, rK.Modulus);
+                    UpdateDigest(digest, rK.PublicExponent);
+                }
+                catch (Exception e)
+                {
+                    throw new PgpException("can't encode key components: " + e.Message, e);
+                }
+            }
+            else
+            {
+                try
+                {
+                    byte[] kBytes = publicPk.GetEncodedContents();
+
+                    digest = DigestUtilities.GetDigest("SHA1");
+
+                    digest.Update(0x99);
+                    digest.Update((byte)(kBytes.Length >> 8));
+                    digest.Update((byte)kBytes.Length);
+                    digest.BlockUpdate(kBytes, 0, kBytes.Length);
+                }
+                catch (Exception e)
+                {
+                    throw new PgpException("can't encode key components: " + e.Message, e);
+                }
+            }
+
+            return DigestUtilities.DoFinal(digest);
+        }
+
+        private static void UpdateDigest(IDigest d, BigInteger b)
+        {
+            byte[] bytes = b.ToByteArrayUnsigned();
+            d.BlockUpdate(bytes, 0, bytes.Length);
+        }
+
         private static readonly int[] MasterKeyCertificationTypes = new int[]
         {
             PgpSignature.PositiveCertification,
@@ -38,51 +91,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             IBcpgKey key = publicPk.Key;
 
+            this.fingerprint = CalculateFingerprint(publicPk);
+
             if (publicPk.Version <= 3)
             {
                 RsaPublicBcpgKey rK = (RsaPublicBcpgKey) key;
 
                 this.keyId = rK.Modulus.LongValue;
-
-                try
-                {
-                    IDigest digest = DigestUtilities.GetDigest("MD5");
-
-                    byte[] bytes = rK.Modulus.ToByteArrayUnsigned();
-                    digest.BlockUpdate(bytes, 0, bytes.Length);
-
-                    bytes = rK.PublicExponent.ToByteArrayUnsigned();
-                    digest.BlockUpdate(bytes, 0, bytes.Length);
-
-                    this.fingerprint = DigestUtilities.DoFinal(digest);
-                }
-                //catch (NoSuchAlgorithmException)
-                catch (Exception e)
-                {
-                    throw new IOException("can't find MD5", e);
-                }
-
                 this.keyStrength = rK.Modulus.BitLength;
             }
             else
             {
-                byte[] kBytes = publicPk.GetEncodedContents();
-
-                try
-                {
-                    IDigest digest = DigestUtilities.GetDigest("SHA1");
-
-                    digest.Update(0x99);
-                    digest.Update((byte)(kBytes.Length >> 8));
-                    digest.Update((byte)kBytes.Length);
-                    digest.BlockUpdate(kBytes, 0, kBytes.Length);
-                    this.fingerprint = DigestUtilities.DoFinal(digest);
-                }
-                catch (Exception e)
-                {
-                    throw new IOException("can't find SHA1", e);
-                }
-
                 this.keyId = (long)(((ulong)fingerprint[fingerprint.Length - 8] << 56)
                     | ((ulong)fingerprint[fingerprint.Length - 7] << 48)
                     | ((ulong)fingerprint[fingerprint.Length - 6] << 40)
@@ -103,6 +122,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 else if (key is ElGamalPublicBcpgKey)
                 {
                     this.keyStrength = ((ElGamalPublicBcpgKey)key).P.BitLength;
+                }
+                else if (key is ECPublicBcpgKey)
+                {
+                    this.keyStrength = ECKeyPairGenerator.FindECCurveByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
                 }
             }
         }
@@ -141,6 +164,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 bcpgKey = new DsaPublicBcpgKey(dP.P, dP.Q, dP.G, dK.Y);
             }
+            else if (pubKey is ECPublicKeyParameters)
+            {
+                ECPublicKeyParameters ecK = (ECPublicKeyParameters)pubKey;
+
+                if (algorithm == PublicKeyAlgorithmTag.ECDH)
+                {
+                    bcpgKey = new ECDHPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q, HashAlgorithmTag.Sha256, SymmetricKeyAlgorithmTag.Aes128);
+                }
+                else if (algorithm == PublicKeyAlgorithmTag.ECDsa)
+                {
+                    bcpgKey = new ECDsaPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q);
+                }
+                else
+                {
+                    throw new PgpException("unknown EC algorithm");
+                }
+            }
             else if (pubKey is ElGamalPublicKeyParameters)
             {
                 ElGamalPublicKeyParameters eK = (ElGamalPublicKeyParameters) pubKey;
@@ -165,6 +205,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 throw new PgpException("exception calculating keyId", e);
             }
+        }
+
+        public PgpPublicKey(PublicKeyPacket publicPk)
+            : this(publicPk, Platform.CreateArrayList(), Platform.CreateArrayList())
+        {
         }
 
         /// <summary>Constructor for a sub-key.</summary>
@@ -421,14 +466,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.RsaEncrypt:
                     case PublicKeyAlgorithmTag.RsaGeneral:
                     case PublicKeyAlgorithmTag.RsaSign:
-                        RsaPublicBcpgKey rsaK = (RsaPublicBcpgKey) publicPk.Key;
+                        RsaPublicBcpgKey rsaK = (RsaPublicBcpgKey)publicPk.Key;
                         return new RsaKeyParameters(false, rsaK.Modulus, rsaK.PublicExponent);
                     case PublicKeyAlgorithmTag.Dsa:
-                        DsaPublicBcpgKey dsaK = (DsaPublicBcpgKey) publicPk.Key;
+                        DsaPublicBcpgKey dsaK = (DsaPublicBcpgKey)publicPk.Key;
                         return new DsaPublicKeyParameters(dsaK.Y, new DsaParameters(dsaK.P, dsaK.Q, dsaK.G));
+                    case PublicKeyAlgorithmTag.ECDsa:
+                        return GetECKey("ECDSA");
+                    case PublicKeyAlgorithmTag.ECDH:
+                        return GetECKey("ECDH");
                     case PublicKeyAlgorithmTag.ElGamalEncrypt:
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
-                        ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey) publicPk.Key;
+                        ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey)publicPk.Key;
                         return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
                     default:
                         throw new PgpException("unknown public key algorithm encountered");
@@ -442,6 +491,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 throw new PgpException("exception constructing public key", e);
             }
+        }
+
+        private ECPublicKeyParameters GetECKey(string algorithm)
+        {
+            ECPublicBcpgKey ecK = (ECPublicBcpgKey)publicPk.Key;
+            X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(ecK.CurveOid);
+            ECPoint q = x9.Curve.DecodePoint(BigIntegers.AsUnsignedByteArray(ecK.EncodedPoint));
+            return new ECPublicKeyParameters(algorithm, q, ecK.CurveOid);
         }
 
         /// <summary>Allows enumeration of any user IDs associated with the key.</summary>

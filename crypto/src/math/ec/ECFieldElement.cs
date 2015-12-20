@@ -306,13 +306,12 @@ namespace Org.BouncyCastle.Math.EC
             BigInteger k = legendreExponent.Add(BigInteger.One), qMinusOne = q.Subtract(BigInteger.One);
 
             BigInteger U, V;
-            Random rand = new Random();
             do
             {
                 BigInteger P;
                 do
                 {
-                    P = new BigInteger(q.BitLength, rand);
+                    P = BigInteger.Arbitrary(q.BitLength);
                 }
                 while (P.CompareTo(q) >= 0
                     || !ModReduce(P.Multiply(P).Subtract(fourX)).ModPow(legendreExponent, q).Equals(qMinusOne));
@@ -604,6 +603,9 @@ namespace Org.BouncyCastle.Math.EC
             int			k3,
             BigInteger	x)
         {
+            if (x == null || x.SignValue < 0 || x.BitLength > m)
+                throw new ArgumentException("value invalid in F2m field element", "x");
+
             if ((k2 == 0) && (k3 == 0))
             {
                 this.representation = Tpb;

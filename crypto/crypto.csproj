@@ -249,6 +249,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\BERBitString.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\BERGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -2324,6 +2329,26 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\bcpg\ECDHPublicBCPGKey.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\bcpg\ECDsaPublicBCPGKey.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\bcpg\ECPublicBCPGKey.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\bcpg\ECSecretBCPGKey.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\bcpg\ElGamalPublicBCPGKey.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -2520,6 +2545,11 @@
                 />
                 <File
                     RelPath = "src\bcpg\sig\Exportable.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\bcpg\sig\Features.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3014,6 +3044,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IBlockResult.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IBufferedCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3044,12 +3079,37 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IEntropySource.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\IEntropySourceProvider.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IMac.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "src\crypto\InvalidCipherTextException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\ISignatureFactory.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\IVerifierFactory.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\IVerifierFactoryProvider.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3064,12 +3124,27 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IStreamCalculator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IStreamCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IVerifier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IWrapper.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\IXof.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3139,6 +3214,41 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeParticipant.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakePrimeOrderGroup.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakePrimeOrderGroups.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeRound1Payload.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeRound2Payload.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeRound3Payload.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\jpake\JPakeUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\agreement\kdf\DHKdfParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3189,6 +3299,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\digests\KeccakDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\digests\LongDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3205,6 +3320,11 @@
                 />
                 <File
                     RelPath = "src\crypto\digests\MD5Digest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\NonMemoableDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3265,6 +3385,11 @@
                 />
                 <File
                     RelPath = "src\crypto\digests\Sha512tDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\ShakeDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3524,6 +3649,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\engines\SerpentEngineBase.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\engines\SkipjackEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3535,6 +3665,11 @@
                 />
                 <File
                     RelPath = "src\crypto\engines\ThreefishEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\engines\TnepresEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3874,6 +4009,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\operators\Asn1Signature.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\paddings\BlockCipherPadding.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4199,12 +4339,32 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\prng\BasicEntropySourceProvider.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\CryptoApiEntropySourceProvider.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\prng\CryptoApiRandomGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "src\crypto\prng\DigestRandomGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\EntropyUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\IDrbgProvider.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4219,12 +4379,62 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\prng\SP800SecureRandom.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\SP800SecureRandomBuilder.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\prng\ThreadedSeedGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "src\crypto\prng\VMPCRandomGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\X931Rng.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\X931SecureRandom.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\X931SecureRandomBuilder.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\drbg\CtrSP800Drbg.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\drbg\DrbgUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\drbg\HashSP800Drbg.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\drbg\HMacSP800Drbg.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\prng\drbg\ISP80090Drbg.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4285,6 +4495,11 @@
                 />
                 <File
                     RelPath = "src\crypto\signers\ISO9796d2Signer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\IsoTrailers.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4385,6 +4600,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\ByteQueue.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\ByteQueueStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -5099,6 +5319,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\Primes.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\ECAlgorithms.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5500,6 +5725,36 @@
                 />
                 <File
                     RelPath = "src\math\ec\custom\sec\SecT163R2Point.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecT193Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecT193FieldElement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecT193R1Curve.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecT193R1Point.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecT193R2Curve.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\sec\SecT193R2Point.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6059,6 +6314,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\openpgp\PgpPad.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\openpgp\PGPPBEEncryptedData.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6145,6 +6405,16 @@
                 />
                 <File
                     RelPath = "src\openpgp\PGPV3SignatureGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\openpgp\Rfc6637Utilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\openpgp\SXprUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6599,6 +6869,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\util\TypeExtensions.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\util\collections\CollectionUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6730,6 +7005,11 @@
                 />
                 <File
                     RelPath = "src\util\io\BaseOutputStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\util\io\FilterStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -7110,6 +7390,14 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\crypto\SHA3TestVectors.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\SHAKETestVectors.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\hc256\hc128\ecrypt_HC-128.txt"
                     BuildAction = "EmbeddedResource"
                 />
@@ -7346,6 +7634,14 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\openpgp\bigpub.asc"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\longSigSubPack.asc"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\openpgp\dsa\README.txt"
                     BuildAction = "None"
                 />
@@ -7423,6 +7719,22 @@
                 />
                 <File
                     RelPath = "test\data\openpgp\dsa\sigs\dsa-7680-384-sign.gpg"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\unicode\passphrase_cyr.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\unicode\passphrase_for_test.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\unicode\secring.gpg"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\openpgp\unicode\test.asc"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
@@ -10818,6 +11130,26 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\agreement\test\AllTests.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\agreement\test\JPakeParticipantTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\agreement\test\JPakePrimeOrderGroupTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\agreement\test\JPakeUtilitiesTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\examples\DESExample.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -10829,6 +11161,41 @@
                 />
                 <File
                     RelPath = "test\src\crypto\io\test\CipherStreamTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\prng\test\CtrDrbgTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\prng\test\DrbgTestVector.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\prng\test\HashDrbgTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\prng\test\HMacDrbgTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\prng\test\TestEntropySourceProvider.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\prng\test\X931Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\prng\test\X931TestVector.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11083,6 +11450,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\KeccakDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\MacTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11119,6 +11491,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\NaccacheSternTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\NonMemoableDigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11333,6 +11710,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\ShakeDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\ShortenedDigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11398,6 +11780,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\TnepresTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\TwofishTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11434,6 +11821,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\XTEATest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\ByteQueueStreamTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11528,6 +11920,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\TlsProtocolNonBlockingTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\TlsPskProtocolTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11614,6 +12011,11 @@
                 />
                 <File
                     RelPath = "test\src\math\test\BigIntegerTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\test\PrimesTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11728,6 +12130,21 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\openpgp\test\PgpECDHTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\openpgp\test\PgpECDsaTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\openpgp\test\PgpECMessageTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\openpgp\test\PgpKeyRingTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11748,6 +12165,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\openpgp\test\PgpParsingTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\openpgp\test\PGPPBETest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11759,6 +12181,11 @@
                 />
                 <File
                     RelPath = "test\src\openpgp\test\PGPSignatureTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\openpgp\test\PgpUnicodeTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11824,6 +12251,11 @@
                 />
                 <File
                     RelPath = "test\src\security\test\TestParameterUtil.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\security\test\TestMacUtil.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

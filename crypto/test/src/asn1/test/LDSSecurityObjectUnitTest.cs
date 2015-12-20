@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Icao;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Test;
@@ -29,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         public override void PerformTest()
         {
-            AlgorithmIdentifier  algoId = new AlgorithmIdentifier("1.3.14.3.2.26");
+            AlgorithmIdentifier  algoId = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
             DataGroupHash[] datas = new DataGroupHash[2];
 
             datas[0] = new DataGroupHash(1, new DerOctetString(GenerateHash()));

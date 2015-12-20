@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Cms
             AsymmetricKeyParameter	senderPublicKey,
             AsymmetricKeyParameter	receiverPrivateKey)
         {
-            DerObjectIdentifier agreeAlgID = keyEncAlg.ObjectID;
+            DerObjectIdentifier agreeAlgID = keyEncAlg.Algorithm;
 
             ICipherParameters senderPublicParams = senderPublicKey;
             ICipherParameters receiverPrivateParams = receiverPrivateKey;

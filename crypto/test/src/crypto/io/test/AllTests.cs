@@ -1,3 +1,4 @@
+#if !LIB
 using System;
 
 using NUnit.Core;
@@ -24,3 +25,4 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
         }
 	}
 }
+#endif

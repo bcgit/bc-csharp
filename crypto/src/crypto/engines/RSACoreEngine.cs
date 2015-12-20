@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 				//
 				RsaPrivateCrtKeyParameters crtKey = (RsaPrivateCrtKeyParameters)key;
 
-				BigInteger p = crtKey.P;;
+				BigInteger p = crtKey.P;
 				BigInteger q = crtKey.Q;
 				BigInteger dP = crtKey.DP;
 				BigInteger dQ = crtKey.DQ;

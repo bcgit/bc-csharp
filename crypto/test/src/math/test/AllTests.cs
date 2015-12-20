@@ -1,3 +1,4 @@
+#if !LIB
 using System;
 
 using NUnit.Core;
@@ -19,8 +20,10 @@ namespace Org.BouncyCastle.Math.Tests
             {
                 TestSuite suite = new TestSuite("Math tests");
                 suite.Add(new BigIntegerTest());
+                suite.Add(new PrimesTest());
                 return suite;
             }
         }
     }
 }
+#endif
