@@ -203,11 +203,6 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
         private static void AddTestCase(IList testSuite, TlsTestConfig config, String name)
         {
-            //testSuite.Add(new TestCaseData(config).SetName(name));
-        }
-
-        private static void AddTestCaseDebug(IList testSuite, TlsTestConfig config, String name)
-        {
             testSuite.Add(new TestCaseData(config).SetName(name));
         }
 
@@ -215,11 +210,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         {
             TlsTestConfig c = new TlsTestConfig();
             c.clientMinimumVersion = ProtocolVersion.DTLSv10;
-            /*
-             * TODO We'd like to just set the offer version to DTLSv12, but there is a known issue with
-             * overly-restrictive version checks b/w BC DTLS 1.2 client, BC DTLS 1.0 server
-             */
-            c.clientOfferVersion = version;
+            c.clientOfferVersion = ProtocolVersion.DTLSv12;
             c.serverMaximumVersion = version;
             c.serverMinimumVersion = ProtocolVersion.DTLSv10;
             return c;

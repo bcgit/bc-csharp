@@ -74,13 +74,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             DtlsReliableHandshake handshake = new DtlsReliableHandshake(state.clientContext, recordLayer);
 
             byte[] clientHelloBody = GenerateClientHello(state, state.client);
+
+            recordLayer.SetWriteVersion(ProtocolVersion.DTLSv10);
+
             handshake.SendMessage(HandshakeType.client_hello, clientHelloBody);
 
             DtlsReliableHandshake.Message serverMessage = handshake.ReceiveMessage();
 
             while (serverMessage.Type == HandshakeType.hello_verify_request)
             {
-                ProtocolVersion recordLayerVersion = recordLayer.ResetDiscoveredPeerVersion();
+                ProtocolVersion recordLayerVersion = recordLayer.ReadVersion;
                 ProtocolVersion client_version = state.clientContext.ClientVersion;
 
                 /*
@@ -91,6 +94,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 if (!recordLayerVersion.IsEqualOrEarlierVersionOf(client_version))
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+
+                recordLayer.ReadVersion = null;
 
                 byte[] cookie = ProcessHelloVerifyRequest(state, serverMessage.Body);
                 byte[] patched = PatchClientHelloWithCookie(clientHelloBody, cookie);
@@ -103,7 +108,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (serverMessage.Type == HandshakeType.server_hello)
             {
-                ReportServerVersion(state, recordLayer.DiscoveredPeerVersion);
+                ProtocolVersion recordLayerVersion = recordLayer.ReadVersion;
+                ReportServerVersion(state, recordLayerVersion);
+                recordLayer.SetWriteVersion(recordLayerVersion);
 
                 ProcessServerHello(state, serverMessage.Body);
             }

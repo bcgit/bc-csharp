@@ -76,12 +76,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             DtlsReliableHandshake.Message clientMessage = handshake.ReceiveMessage();
 
-            {
-                // NOTE: After receiving a record from the client, we discover the record layer version
-                ProtocolVersion client_version = recordLayer.DiscoveredPeerVersion;
-                // TODO Read RFCs for guidance on the expected record layer version number
-                state.serverContext.SetClientVersion(client_version);
-            }
+            // NOTE: DTLSRecordLayer requires any DTLS version, we don't otherwise constrain this
+            //ProtocolVersion recordLayerVersion = recordLayer.ReadVersion;
 
             if (clientMessage.Type == HandshakeType.client_hello)
             {
@@ -96,6 +92,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                 byte[] serverHelloBody = GenerateServerHello(state);
 
                 ApplyMaxFragmentLengthExtension(recordLayer, securityParameters.maxFragmentLength);
+
+                ProtocolVersion recordLayerVersion = state.serverContext.ServerVersion;
+                recordLayer.ReadVersion = recordLayerVersion;
+                recordLayer.SetWriteVersion(recordLayerVersion);
 
                 handshake.SendMessage(HandshakeType.server_hello, serverHelloBody);
             }
