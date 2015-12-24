@@ -35,16 +35,17 @@ namespace Org.BouncyCastle.Crypto.Tests
 			ICipherParameters kpwiv = new ParametersWithIV(kp,
 				Hex.Decode("4B5C2F003E67F39557A8D26F3DA2B155"));
 
-			byte[] m = new byte[256];
+            int offset = 117;
+            byte[] m = new byte[512];
 			for (int i = 0; i < 256; i++)
 			{
-				m[i] = (byte) i;
+				m[offset + i] = (byte)i;
 			}
 
-			VmpcMac mac = new VmpcMac();
+            VmpcMac mac = new VmpcMac();
 			mac.Init(kpwiv);
 
-			mac.BlockUpdate(m, 0, m.Length);
+			mac.BlockUpdate(m, offset, 256);
 
 			byte[] output = new byte[20];
 			mac.DoFinal(output, 0);
@@ -57,7 +58,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 		}
 
-		[Test]
+        [Test]
 		public void TestFunction()
 		{
 			string resultText = Perform().ToString();
