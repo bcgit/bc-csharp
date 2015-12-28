@@ -31,6 +31,8 @@
 				<a href="#mozTocId3413">Notes:</a>
 		<ol>
             <li>
+                <a href="#mozTocId85315">Release 1.8.1</a>
+            <li>
                 <a href="#mozTocId85314">Release 1.8.0</a>
             <li>
 				<a href="#mozTocId85313">Release 1.7</a>
@@ -288,6 +290,38 @@ We state, where EC MQV has not otherwise been disabled or removed:
 		<hr style="WIDTH: 100%; HEIGHT: 2px">
 		<h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
 
+        <h4><a class="mozTocH4" name="mozTocId85315"></a>Release 1.8.1, Monday December 28, 2015</h4>
+
+        <h5>Security Advisory</h5>
+        <ul>
+            <li>
+                (D)TLS 1.2: Motivated by <a href="https://www.google.com/search?q=CVE-2015-7575">CVE-2015-7575</a>, we have added validation that
+                the signature algorithm received in DigitallySigned structures is actually one of those offered (in signature_algorithms extension
+                or CertificateRequest). With our default TLS configuration, we do not believe there is an exploitable vulnerability in any earlier
+                releases. Users that are customizing the signature_algorithms extension, or running a server supporting client authentication, are
+                advised to double-check that they are not offering any signature algorithms involving MD5.
+            </li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>Added support for ASN.1 GraphicString and VideotexString types.</li>
+            <li>
+                Problems with DTLS record-layer version handling were resolved via <a href="http://www.bouncycastle.org/jira/browse/BJA-584">BJA-584</a>,
+                making version negotiation work properly.
+            </li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See list of resolved issues at
+                <a href="http://www.bouncycastle.org/jira/secure/ReleaseNote.jspa?projectId=10001&version=10510">Bouncy Castle JIRA C# 1.8.1</a>.
+            </li>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
+
         <h4><a class="mozTocH4" name="mozTocId85314"></a>Release 1.8.0, Sunday November 22, 2015</h4>
 
         <h5>IMPORTANT</h5>
@@ -348,15 +382,11 @@ We state, where EC MQV has not otherwise been disabled or removed:
         <ul>
             <li>
                 See list of resolved issues at
-                <a href="http://www.bouncycastle.org/jira/secure/IssueNavigator.jspa?reset=true&mode=hide&jqlQuery=project+%3D+BMA+AND+fixVersion+%3D+1.8.0">
-                    Bouncy Castle JIRA C# 1.8.0
-                </a>
+                <a href="http://www.bouncycastle.org/jira/secure/ReleaseNote.jspa?projectId=10001&version=10170">Bouncy Castle JIRA C# 1.8.0</a>.
             </li>
             <li>
                 See the (cumulative) list of GitHub pull requests that we have accepted at
-                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">
-                    bcgit/bc-csharp    
-                </a>
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
             </li>
         </ul>
 
