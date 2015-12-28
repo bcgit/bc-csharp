@@ -133,8 +133,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public const string CrlTypes = Pkcs9 + ".23";
 		public static readonly DerObjectIdentifier X509Crl = new DerObjectIdentifier(CrlTypes + ".1");
 
-        public static readonly DerObjectIdentifier IdAlg        = IdSmime.Branch("3");
-        public static readonly DerObjectIdentifier IdAlgPwriKek = IdAlg.Branch("9");
+        public static readonly DerObjectIdentifier IdAlg = IdSmime.Branch("3");
+
+        public static readonly DerObjectIdentifier IdAlgEsdh        = IdAlg.Branch("5");
+        public static readonly DerObjectIdentifier IdAlgCms3DesWrap = IdAlg.Branch("6");
+        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap  = IdAlg.Branch("7");
+        public static readonly DerObjectIdentifier IdAlgPwriKek     = IdAlg.Branch("9");
+        public static readonly DerObjectIdentifier IdAlgSsdh        = IdAlg.Branch("10");
 
         /*
          * <pre>
@@ -264,8 +269,5 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier PbeWithShaAnd2KeyTripleDesCbc	= new DerObjectIdentifier(Pkcs12PbeIds + ".4");
         public static readonly DerObjectIdentifier PbeWithShaAnd128BitRC2Cbc		= new DerObjectIdentifier(Pkcs12PbeIds + ".5");
         public static readonly DerObjectIdentifier PbewithShaAnd40BitRC2Cbc			= new DerObjectIdentifier(Pkcs12PbeIds + ".6");
-
-		public static readonly DerObjectIdentifier IdAlgCms3DesWrap = new DerObjectIdentifier("1.2.840.113549.1.9.16.3.6");
-		public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap = new DerObjectIdentifier("1.2.840.113549.1.9.16.3.7");
     }
 }
