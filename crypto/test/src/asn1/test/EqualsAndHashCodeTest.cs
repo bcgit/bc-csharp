@@ -3,6 +3,8 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
@@ -43,7 +45,9 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerUniversalString(data),
                 new DerUtcTime(new DateTime()),
                 new DerUtf8String("hello world"),
-                new DerVisibleString("hello world")
+                new DerVisibleString("hello world"),
+                new DerGraphicString(Hex.Decode("deadbeef")),
+                new DerVideotexString(Strings.ToByteArray("Hello World"))
             };
 
 			MemoryStream bOut = new MemoryStream();

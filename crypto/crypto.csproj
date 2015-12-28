@@ -384,6 +384,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\DerGraphicString.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\DERIA5String.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -485,6 +490,11 @@
                 />
                 <File
                     RelPath = "src\asn1\DERUTF8String.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\DerVideotexString.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
