@@ -78,9 +78,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         static NaccacheSternTest()
         {
-            cryptEng.Debug = debug;
-            decryptEng.Debug = debug;
-
             // First the Parameters from the NaccacheStern Paper
             // (see http://www.gemplus.com/smart/rd/publications/pdf/NS98pkcs.pdf )
 
@@ -145,7 +142,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			// specify key generation parameters
 			NaccacheSternKeyGenerationParameters genParam
-				= new NaccacheSternKeyGenerationParameters(new SecureRandom(), 768, 8, 30, debug);
+				= new NaccacheSternKeyGenerationParameters(new SecureRandom(), 768, 8, 30);
 
 			// Initialize Key generator and generate key pair
 			NaccacheSternKeyPairGenerator pGen = new NaccacheSternKeyPairGenerator();

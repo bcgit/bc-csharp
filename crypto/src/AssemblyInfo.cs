@@ -65,10 +65,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDelaySign(false)]
 #if STRONG_NAME
 [assembly: AssemblyKeyFile(@"../BouncyCastle.snk")]
-#else
-[assembly: AssemblyKeyFile("")]
 #endif
-[assembly: AssemblyKeyName("")]
 
 [assembly: CLSCompliant(true)]
 #if !PORTABLE

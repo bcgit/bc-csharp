@@ -101,12 +101,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             return ( (int)((uint)x >> bits) | (x << (32 - bits)));
         }
 
-        /**
+        /*
          * The sboxes below are based on the work of Brian Gladman and
          * Sam Simpson, whose original notice appears below.
          * <p>
          * For further details see:
          *      http://fp.gladman.plus.com/cryptography_technology/serpent/
+         * </p>
          */
 
         /* Partially optimised Serpent S Box boolean functions derived  */
@@ -124,9 +125,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         /* We hereby give permission for information in this file to be */
         /* used freely subject only to acknowledgement of its origin.    */
 
-        /**
-        * S0 - { 3, 8,15, 1,10, 6, 5,11,14,13, 4, 2, 7, 0, 9,12 } - 15 terms.
-        */
+        /*
+         * S0 - { 3, 8,15, 1,10, 6, 5,11,14,13, 4, 2, 7, 0, 9,12 } - 15 terms.
+         */
         protected void Sb0(int a, int b, int c, int d)
         {
             int t1 = a ^ d;

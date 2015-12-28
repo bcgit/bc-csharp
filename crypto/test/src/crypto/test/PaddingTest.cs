@@ -105,11 +105,9 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		public override void PerformTest()
 		{
-			SecureRandom    rand = new SecureRandom(new byte[20]);
+            SecureRandom rand = SecureRandom.GetInstance("SHA1PRNG");
 
-			rand.SetSeed(DateTime.Now.Ticks);
-
-			doTestPadding(new Pkcs7Padding(), rand,
+            doTestPadding(new Pkcs7Padding(), rand,
 				Hex.Decode("ffffff0505050505"),
 				Hex.Decode("0000000004040404"));
 
