@@ -437,6 +437,19 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     }
                 }
             }
+            else if (ECAlgorithms.IsF2mCurve(c))
+            {
+                int m = c.FieldSize;
+                BigInteger x = new BigInteger(m, secRand);
+                ECFieldElement fe = c.FromBigInteger(x);
+                for (int i = 0; i < 100; ++i)
+                {
+                    ECFieldElement sq = fe.Square();
+                    ECFieldElement check = sq.Sqrt();
+                    Assert.AreEqual(fe, check);
+                    fe = sq;
+                }
+            }
         }
 
         private void ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(X9ECParameters x9ECParameters)
