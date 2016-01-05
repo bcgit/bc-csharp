@@ -28,8 +28,8 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
             SecureRandom secureRandom = new SecureRandom();
 
-            DtlsClientProtocol clientProtocol = new DtlsClientProtocol(secureRandom);
-            DtlsServerProtocol serverProtocol = new DtlsServerProtocol(secureRandom);
+            DtlsTestClientProtocol clientProtocol = new DtlsTestClientProtocol(secureRandom, config);
+            DtlsTestServerProtocol serverProtocol = new DtlsTestServerProtocol(secureRandom, config);
 
             MockDatagramAssociation network = new MockDatagramAssociation(1500);
 
@@ -101,14 +101,15 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         internal class Server
         {
             private readonly DtlsTestCase mOuter;
-            private readonly DtlsServerProtocol mServerProtocol;
+            private readonly DtlsTestServerProtocol mServerProtocol;
             private readonly DatagramTransport mServerTransport;
             private readonly TlsTestServerImpl mServerImpl;
 
             private volatile bool isShutdown = false;
             internal Exception mCaught = null;
 
-            internal Server(DtlsTestCase outer, DtlsServerProtocol serverProtocol, DatagramTransport serverTransport, TlsTestServerImpl serverImpl)
+            internal Server(DtlsTestCase outer, DtlsTestServerProtocol serverProtocol,
+                DatagramTransport serverTransport, TlsTestServerImpl serverImpl)
             {
                 this.mOuter = outer;
                 this.mServerProtocol = serverProtocol;

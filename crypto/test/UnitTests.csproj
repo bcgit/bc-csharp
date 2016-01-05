@@ -277,6 +277,8 @@
     <Compile Include="src\crypto\tls\test\ByteQueueStreamTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsTestCase.cs" />
+    <Compile Include="src\crypto\tls\test\DtlsTestClientProtocol.cs" />
+    <Compile Include="src\crypto\tls\test\DtlsTestServerProtocol.cs" />
     <Compile Include="src\crypto\tls\test\DtlsTestSuite.cs" />
     <Compile Include="src\crypto\tls\test\LoggingDatagramTransport.cs" />
     <Compile Include="src\crypto\tls\test\MockDatagramAssociation.cs" />
@@ -299,8 +301,10 @@
     <Compile Include="src\crypto\tls\test\TlsSrpProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestCase.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestClientImpl.cs" />
+    <Compile Include="src\crypto\tls\test\TlsTestClientProtocol.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestConfig.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestServerImpl.cs" />
+    <Compile Include="src\crypto\tls\test\TlsTestServerProtocol.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestSuite.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestUtilities.cs" />
     <Compile Include="src\crypto\tls\test\UnreliableDatagramTransport.cs" />

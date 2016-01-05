@@ -18,6 +18,17 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mSupportedSignatureAlgorithms = supportedSignatureAlgorithms;
         }
 
+        protected virtual DigitallySigned ParseSignature(Stream input)
+        {
+            DigitallySigned signature = DigitallySigned.Parse(mContext, input);
+            SignatureAndHashAlgorithm signatureAlgorithm = signature.Algorithm;
+            if (signatureAlgorithm != null)
+            {
+                TlsUtilities.VerifySupportedSignatureAlgorithm(mSupportedSignatureAlgorithms, signatureAlgorithm);
+            }
+            return signature;
+        }
+
         public virtual void Init(TlsContext context)
         {
             this.mContext = context;

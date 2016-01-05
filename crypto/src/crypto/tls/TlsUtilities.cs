@@ -129,14 +129,24 @@ namespace Org.BouncyCastle.Crypto.Tls
             return context.ServerVersion.IsSsl;
         }
 
+        public static bool IsTlsV11(ProtocolVersion version)
+        {
+            return ProtocolVersion.TLSv11.IsEqualOrEarlierVersionOf(version.GetEquivalentTLSVersion());
+        }
+
         public static bool IsTlsV11(TlsContext context)
         {
-            return ProtocolVersion.TLSv11.IsEqualOrEarlierVersionOf(context.ServerVersion.GetEquivalentTLSVersion());
+            return IsTlsV11(context.ServerVersion);
+        }
+
+        public static bool IsTlsV12(ProtocolVersion version)
+        {
+            return ProtocolVersion.TLSv12.IsEqualOrEarlierVersionOf(version.GetEquivalentTLSVersion());
         }
 
         public static bool IsTlsV12(TlsContext context)
         {
-            return ProtocolVersion.TLSv12.IsEqualOrEarlierVersionOf(context.ServerVersion.GetEquivalentTLSVersion());
+            return IsTlsV12(context.ServerVersion);
         }
 
         public static void WriteUint8(byte i, Stream output)
@@ -712,11 +722,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         public static void EncodeSupportedSignatureAlgorithms(IList supportedSignatureAlgorithms, bool allowAnonymous,
             Stream output)
         {
-            if (supportedSignatureAlgorithms == null || supportedSignatureAlgorithms.Count < 1
-                || supportedSignatureAlgorithms.Count >= (1 << 15))
-            {
+            if (supportedSignatureAlgorithms == null)
+                throw new ArgumentNullException("supportedSignatureAlgorithms");
+            if (supportedSignatureAlgorithms.Count < 1 || supportedSignatureAlgorithms.Count >= (1 << 15))
                 throw new ArgumentException("must have length from 1 to (2^15 - 1)", "supportedSignatureAlgorithms");
-            }
 
             // supported_signature_algorithms
             int length = 2 * supportedSignatureAlgorithms.Count;
@@ -760,6 +769,27 @@ namespace Org.BouncyCastle.Crypto.Tls
                 supportedSignatureAlgorithms.Add(entry);
             }
             return supportedSignatureAlgorithms;
+        }
+
+        public static void VerifySupportedSignatureAlgorithm(IList supportedSignatureAlgorithms, SignatureAndHashAlgorithm signatureAlgorithm)
+        {
+            if (supportedSignatureAlgorithms == null)
+                throw new ArgumentNullException("supportedSignatureAlgorithms");
+            if (supportedSignatureAlgorithms.Count < 1 || supportedSignatureAlgorithms.Count >= (1 << 15))
+                throw new ArgumentException("must have length from 1 to (2^15 - 1)", "supportedSignatureAlgorithms");
+            if (signatureAlgorithm == null)
+                throw new ArgumentNullException("signatureAlgorithm");
+
+            if (signatureAlgorithm.Signature != SignatureAlgorithm.anonymous)
+            {
+                foreach (SignatureAndHashAlgorithm entry in supportedSignatureAlgorithms)
+                {
+                    if (entry.Hash == signatureAlgorithm.Hash && entry.Signature == signatureAlgorithm.Signature)
+                        return;
+                }
+            }
+
+            throw new TlsFatalAlert(AlertDescription.illegal_parameter);
         }
 
         public static byte[] PRF(TlsContext context, byte[] secret, string asciiLabel, byte[] seed, int size)

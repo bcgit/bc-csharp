@@ -35,8 +35,8 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             NetworkStream clientNet = new NetworkStream(clientPipe);
             NetworkStream serverNet = new NetworkStream(serverPipe);
 
-            TlsClientProtocol clientProtocol = new TlsClientProtocol(clientNet, secureRandom);
-            TlsServerProtocol serverProtocol = new TlsServerProtocol(serverNet, secureRandom);
+            TlsTestClientProtocol clientProtocol = new TlsTestClientProtocol(clientNet, secureRandom, config);
+            TlsTestServerProtocol serverProtocol = new TlsTestServerProtocol(serverNet, secureRandom, config);
 
             TlsTestClientImpl clientImpl = new TlsTestClientImpl(config);
             TlsTestServerImpl serverImpl = new TlsTestServerImpl(config);
@@ -104,13 +104,13 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         internal class Server
         {
             protected readonly TlsTestCase mOuter;
-            protected readonly TlsServerProtocol mServerProtocol;
+            protected readonly TlsTestServerProtocol mServerProtocol;
             protected readonly TlsTestServerImpl mServerImpl;
 
             internal bool mCanExit = false;
             internal Exception mCaught = null;
 
-            internal Server(TlsTestCase outer, TlsServerProtocol serverProtocol, TlsTestServerImpl serverImpl)
+            internal Server(TlsTestCase outer, TlsTestServerProtocol serverProtocol, TlsTestServerImpl serverImpl)
             {
                 this.mOuter = outer;
                 this.mServerProtocol = serverProtocol;

@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         private volatile bool mClosed = false;
         private volatile bool mFailed = false;
-        private volatile ProtocolVersion mDiscoveredPeerVersion = null;
+        private volatile ProtocolVersion mReadVersion = null, mWriteVersion = null;
         private volatile bool mInHandshake;
         private volatile int mPlaintextLimit;
         private DtlsEpoch mCurrentEpoch, mPendingEpoch;
@@ -52,16 +52,15 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mPlaintextLimit = plaintextLimit;
         }
 
-        internal virtual ProtocolVersion DiscoveredPeerVersion
+        internal virtual ProtocolVersion ReadVersion
         {
-            get { return mDiscoveredPeerVersion; }
+            get { return mReadVersion; }
+            set { this.mReadVersion = value; }
         }
 
-        internal virtual ProtocolVersion ResetDiscoveredPeerVersion()
+        internal virtual void SetWriteVersion(ProtocolVersion writeVersion)
         {
-            ProtocolVersion result = mDiscoveredPeerVersion;
-            mDiscoveredPeerVersion = null;
-            return result;
+            this.mWriteVersion = writeVersion;
         }
 
         internal virtual void InitPendingEpoch(TlsCipher pendingCipher)
@@ -199,7 +198,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                     }
 
                     ProtocolVersion version = TlsUtilities.ReadVersion(record, 1);
-                    if (mDiscoveredPeerVersion != null && !mDiscoveredPeerVersion.Equals(version))
+                    if (!version.IsDtls)
+                    {
+                        continue;
+                    }
+
+                    if (mReadVersion != null && !mReadVersion.Equals(version))
                     {
                         continue;
                     }
@@ -215,9 +219,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                         continue;
                     }
 
-                    if (mDiscoveredPeerVersion == null)
+                    if (mReadVersion == null)
                     {
-                        mDiscoveredPeerVersion = version;
+                        mReadVersion = version;
                     }
 
                     switch (type)
@@ -469,6 +473,10 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         private void SendRecord(byte contentType, byte[] buf, int off, int len)
         {
+            // Never send anything until a valid ClientHello has been received
+            if (mWriteVersion == null)
+                return;
+
             if (len > this.mPlaintextLimit)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
@@ -489,7 +497,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             byte[] record = new byte[ciphertext.Length + RECORD_HEADER_LENGTH];
             TlsUtilities.WriteUint8(contentType, record, 0);
-            ProtocolVersion version = mDiscoveredPeerVersion != null ? mDiscoveredPeerVersion : mContext.ClientVersion;
+            ProtocolVersion version = mWriteVersion;
             TlsUtilities.WriteVersion(version, record, 1);
             TlsUtilities.WriteUint16(recordEpoch, record, 3);
             TlsUtilities.WriteUint48(recordSequenceNumber, record, 5);

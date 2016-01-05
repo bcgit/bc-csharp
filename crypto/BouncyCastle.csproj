@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -103,6 +103,7 @@
     <Compile Include="src\asn1\DerEnumerated.cs" />
     <Compile Include="src\asn1\DerGeneralString.cs" />
     <Compile Include="src\asn1\DerGeneralizedTime.cs" />
+    <Compile Include="src\asn1\DerGraphicString.cs" />
     <Compile Include="src\asn1\DerIA5String.cs" />
     <Compile Include="src\asn1\DerInteger.cs" />
     <Compile Include="src\asn1\DerNull.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="src\asn1\DerUTCTime.cs" />
     <Compile Include="src\asn1\DerUTF8String.cs" />
     <Compile Include="src\asn1\DerUniversalString.cs" />
+    <Compile Include="src\asn1\DerVideotexString.cs" />
     <Compile Include="src\asn1\DerVisibleString.cs" />
     <Compile Include="src\asn1\IAsn1ApplicationSpecificParser.cs" />
     <Compile Include="src\asn1\IAsn1Choice.cs" />
