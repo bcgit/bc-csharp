@@ -1,2 +1,5 @@
-next-version: 1.8.0
+tag-prefix: 'pcl-[vV]'
 legacy-semver-padding: 0
+branches:
+  pcl:    
+    tag:
