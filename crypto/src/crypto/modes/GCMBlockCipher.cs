@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[]		macBlock;
         private byte[]      S, S_at, S_atPre;
         private byte[]      counter;
+        private uint        blocksRemaining;
         private int         bufOff;
         private ulong		totalLength;
         private byte[]      atBlock;
@@ -173,6 +174,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.atLength = 0;
             this.atLengthPre = 0;
             this.counter = Arrays.Clone(J0);
+            this.blocksRemaining = uint.MaxValue;
             this.bufOff = 0;
             this.totalLength = 0;
 
@@ -447,6 +449,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             atLength = 0;
             atLengthPre = 0;
             counter = Arrays.Clone(J0);
+            blocksRemaining = uint.MaxValue;
             bufOff = 0;
             totalLength = 0;
 
@@ -513,6 +516,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private byte[] GetNextCounterBlock()
         {
+            if (blocksRemaining == 0)
+                throw new InvalidOperationException("Attempt to process too many blocks");
+
+            blocksRemaining--;
+
             uint c = 1;
             c += counter[15]; counter[15] = (byte)c; c >>= 8;
             c += counter[14]; counter[14] = (byte)c; c >>= 8;
