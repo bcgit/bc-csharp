@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				byte[] P = randomBlocks(100);
 				byte[] A = randomBytes(1000);
-				byte[] PA = concatArrays(P, A);
+				byte[] PA = Arrays.Concatenate(P, A);
 
 				byte[] ghashP_ = GHASH(P, Empty);
 				byte[] ghashA_ = GHASH(A, Empty);
@@ -63,14 +63,14 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 		}
 
-		[Test]
+        [Test]
 		public void TestConcatCrypt()
 		{
 			for (int count = 0; count < 10; ++count)
 			{
 				byte[] P = randomBlocks(100);
 				byte[] A = randomBytes(1000);
-				byte[] PA = concatArrays(P, A);
+                byte[] PA = Arrays.Concatenate(P, A);
 
 				byte[] ghash_P = GHASH(Empty, P);
 				byte[] ghash_A = GHASH(Empty, A);
@@ -177,15 +177,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return bs;
 		}
 
-		private byte[] concatArrays(byte[] a, byte[] b)
-		{
-			byte[] ab = new byte[a.Length + b.Length];
-			Array.Copy(a, 0, ab, 0, a.Length);
-			Array.Copy(b, 0, ab, a.Length, b.Length);
-			return ab;
-		}
-
-		private byte[] combine_GHASH(byte[] ghashA_, long bitlenA, byte[] ghash_C, long bitlenC)
+        private byte[] combine_GHASH(byte[] ghashA_, long bitlenA, byte[] ghash_C, long bitlenC)
 		{
 			// Note: bitlenA must be aligned to the block size
 
