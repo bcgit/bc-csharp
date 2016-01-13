@@ -174,7 +174,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.atLength = 0;
             this.atLengthPre = 0;
             this.counter = Arrays.Clone(J0);
-            this.blocksRemaining = uint.MaxValue - 1; // page 8, len(P) <= 2^39 - 256
+            this.blocksRemaining = uint.MaxValue; // page 8, len(P) <= 2^39 - 256, 1 block used by tag
             this.bufOff = 0;
             this.totalLength = 0;
 
@@ -449,7 +449,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             atLength = 0;
             atLengthPre = 0;
             counter = Arrays.Clone(J0);
-            blocksRemaining = uint.MaxValue - 1;
+            blocksRemaining = uint.MaxValue;
             bufOff = 0;
             totalLength = 0;
 
