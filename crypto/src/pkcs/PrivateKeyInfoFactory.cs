@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -139,8 +140,8 @@ namespace Org.BouncyCastle.Pkcs
                         x962 = new X962Parameters(priv.PublicKeyParamSet);
                     }
 
-                    // TODO Possible to pass the publicKey bitstring here?
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, x962);
+                    DerBitString publicKey = new DerBitString(ECKeyPairGenerator.GetCorrespondingPublicKey(priv).Q.GetEncoded());
+                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, x962);
 
                     algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
                 }
