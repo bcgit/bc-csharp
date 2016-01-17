@@ -252,6 +252,7 @@
     <Compile Include="src\crypto\test\SM3DigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinDigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinMacTest.cs" />
+    <Compile Include="src\crypto\test\StreamCipherResetTest.cs" />
     <Compile Include="src\crypto\test\Threefish1024Test.cs" />
     <Compile Include="src\crypto\test\Threefish256Test.cs" />
     <Compile Include="src\crypto\test\Threefish512Test.cs" />

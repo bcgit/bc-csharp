@@ -11760,6 +11760,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\StreamCipherResetTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\StreamCipherVectorTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

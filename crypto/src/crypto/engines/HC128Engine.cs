@@ -107,7 +107,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 			if (key.Length != 16)
 				throw new ArgumentException("The key must be 128 bits long");
 
-			cnt = 0;
+            idx = 0;
+            cnt = 0;
 
 			uint[] w = new uint[1280];
 
@@ -223,7 +224,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public virtual void Reset()
 		{
-			idx = 0;
 			Init();
 		}
 

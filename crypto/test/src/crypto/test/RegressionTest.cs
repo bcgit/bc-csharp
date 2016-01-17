@@ -120,6 +120,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Poly1305Test(),
             new OcbTest(),
             new NonMemoableDigestTest(),
+            new StreamCipherResetTest(),
             new SM3DigestTest(),
             new X931SignerTest(),
             new KeccakDigestTest(),
