@@ -56,12 +56,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int CAMELLIA_256_GCM = 20;
 
         /*
-         * draft-josefsson-salsa20-tls-04 
-         */
-        public const int ESTREAM_SALSA20 = 100;
-        public const int SALSA20 = 101;
-
-        /*
          * draft-agl-tls-chacha20poly1305-04
          */
         public const int AEAD_CHACHA20_POLY1305 = 102;

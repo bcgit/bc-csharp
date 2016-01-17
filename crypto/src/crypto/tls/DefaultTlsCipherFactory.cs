@@ -51,14 +51,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             case EncryptionAlgorithm.CAMELLIA_256_GCM:
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_Camellia_Gcm(context, 32, 16);
-            case EncryptionAlgorithm.ESTREAM_SALSA20:
-                return CreateSalsa20Cipher(context, 12, 32, macAlgorithm);
             case EncryptionAlgorithm.NULL:
                 return CreateNullCipher(context, macAlgorithm);
             case EncryptionAlgorithm.RC4_128:
                 return CreateRC4Cipher(context, 16, macAlgorithm);
-            case EncryptionAlgorithm.SALSA20:
-                return CreateSalsa20Cipher(context, 20, 32, macAlgorithm);
             case EncryptionAlgorithm.SEED_CBC:
                 return CreateSeedCipher(context, macAlgorithm);
             default:
@@ -130,13 +126,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"></exception>
-        protected virtual TlsStreamCipher CreateSalsa20Cipher(TlsContext context, int rounds, int cipherKeySize, int macAlgorithm)
-        {
-            return new TlsStreamCipher(context, CreateSalsa20StreamCipher(rounds), CreateSalsa20StreamCipher(rounds),
-                CreateHMacDigest(macAlgorithm), CreateHMacDigest(macAlgorithm), cipherKeySize, true);
-        }
-
-        /// <exception cref="IOException"></exception>
         protected virtual TlsBlockCipher CreateSeedCipher(TlsContext context, int macAlgorithm)
         {
             return new TlsBlockCipher(context, CreateSeedBlockCipher(), CreateSeedBlockCipher(),
@@ -188,11 +177,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected virtual IStreamCipher CreateRC4StreamCipher()
         {
             return new RC4Engine();
-        }
-
-        protected virtual IStreamCipher CreateSalsa20StreamCipher(int rounds)
-        {
-            return new Salsa20Engine(rounds);
         }
 
         protected virtual IBlockCipher CreateSeedBlockCipher()

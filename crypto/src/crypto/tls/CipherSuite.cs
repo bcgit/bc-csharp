@@ -338,26 +338,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC15;
 
         /*
-         * draft-josefsson-salsa20-tls-04
-         */
-        public const int TLS_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE410;
-        public const int TLS_RSA_WITH_SALSA20_SHA1 = 0xE411;
-        public const int TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE412;
-        public const int TLS_ECDHE_RSA_WITH_SALSA20_SHA1 = 0xE413;
-        public const int TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE414;
-        public const int TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1 = 0xE415;
-        public const int TLS_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE416;
-        public const int TLS_PSK_WITH_SALSA20_SHA1 = 0xE417;
-        public const int TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE418;
-        public const int TLS_ECDHE_PSK_WITH_SALSA20_SHA1 = 0xE419;
-        public const int TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE41A;
-        public const int TLS_RSA_PSK_WITH_SALSA20_SHA1 = 0xE41B;
-        public const int TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE41C;
-        public const int TLS_DHE_PSK_WITH_SALSA20_SHA1 = 0xE41D;
-        public const int TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE41E;
-        public const int TLS_DHE_RSA_WITH_SALSA20_SHA1 = 0xE41F;
-
-        /*
          * draft-ietf-tls-downgrade-scsv-00
          */
         public const int TLS_FALLBACK_SCSV = 0x5600;
