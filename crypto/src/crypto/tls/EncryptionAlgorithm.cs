@@ -60,5 +60,11 @@ namespace Org.BouncyCastle.Crypto.Tls
          */
         public const int CHACHA20_POLY1305 = 102;
         [Obsolete] public const int AEAD_CHACHA20_POLY1305 = CHACHA20_POLY1305;
+
+        /*
+         * draft-zauner-tls-aes-ocb-03
+         */
+        public const int AES_128_OCB_TAGLEN96 = 103;
+        public const int AES_256_OCB_TAGLEN96 = 104;
     }
 }

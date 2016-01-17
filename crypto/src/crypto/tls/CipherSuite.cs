@@ -346,6 +346,22 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int DRAFT_TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAD;
         public const int DRAFT_TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAE;
 
+        /*
+         * draft-zauner-tls-aes-ocb-03 (code points TBD)
+         */
+        public const int DRAFT_TLS_DHE_RSA_WITH_AES_128_OCB = 0xFF00;
+        public const int DRAFT_TLS_DHE_RSA_WITH_AES_256_OCB = 0xFF01;
+        public const int DRAFT_TLS_ECDHE_RSA_WITH_AES_128_OCB = 0xFF02;
+        public const int DRAFT_TLS_ECDHE_RSA_WITH_AES_256_OCB = 0xFF03;
+        public const int DRAFT_TLS_ECDHE_ECDSA_WITH_AES_128_OCB = 0xFF04;
+        public const int DRAFT_TLS_ECDHE_ECDSA_WITH_AES_256_OCB = 0xFF05;
+        public const int DRAFT_TLS_PSK_WITH_AES_128_OCB = 0xFF10;
+        public const int DRAFT_TLS_PSK_WITH_AES_256_OCB = 0xFF11;
+        public const int DRAFT_TLS_DHE_PSK_WITH_AES_128_OCB = 0xFF12;
+        public const int DRAFT_TLS_DHE_PSK_WITH_AES_256_OCB = 0xFF13;
+        public const int DRAFT_TLS_ECDHE_PSK_WITH_AES_128_OCB = 0xFF14;
+        public const int DRAFT_TLS_ECDHE_PSK_WITH_AES_256_OCB = 0xFF15;
+
         public static bool IsScsv(int cipherSuite)
         {
             switch (cipherSuite)
