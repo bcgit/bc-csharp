@@ -89,9 +89,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         public virtual bool IsFallback
         {
             /*
-             * draft-ietf-tls-downgrade-scsv-00 4. [..] is meant for use by clients that repeat a
-             * connection attempt with a downgraded protocol in order to avoid interoperability problems
-             * with legacy servers.
+             * RFC 7507 4. The TLS_FALLBACK_SCSV cipher suite value is meant for use by clients that
+             * repeat a connection attempt with a downgraded protocol (perform a "fallback retry") in
+             * order to work around interoperability problems with legacy servers.
              */
             get { return false; }
         }
