@@ -255,6 +255,17 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        internal static uint[] LE_To_UInt32(byte[] bs, int off, int count)
+        {
+            uint[] ns = new uint[count];
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                ns[i] = LE_To_UInt32(bs, off);
+                off += 4;
+            }
+            return ns;
+        }
+
         internal static byte[] UInt64_To_LE(ulong n)
         {
             byte[] bs = new byte[8];
