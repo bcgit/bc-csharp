@@ -40,5 +40,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             return GetName(hashAlgorithm) + "(" + hashAlgorithm + ")";
         }
+
+        public static bool IsPrivate(byte hashAlgorithm)
+        {
+            return 224 <= hashAlgorithm && hashAlgorithm <= 255;
+        }
     }
 }

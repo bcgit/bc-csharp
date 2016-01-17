@@ -16,9 +16,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
             case EncryptionAlgorithm.cls_3DES_EDE_CBC:
                 return CreateDesEdeCipher(context, macAlgorithm);
-            case EncryptionAlgorithm.AEAD_CHACHA20_POLY1305:
-                // NOTE: Ignores macAlgorithm
-                return CreateChaCha20Poly1305(context);
             case EncryptionAlgorithm.AES_128_CBC:
                 return CreateAESCipher(context, 16, macAlgorithm);
             case EncryptionAlgorithm.AES_128_CCM:
@@ -51,6 +48,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             case EncryptionAlgorithm.CAMELLIA_256_GCM:
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_Camellia_Gcm(context, 32, 16);
+            case EncryptionAlgorithm.CHACHA20_POLY1305:
+                // NOTE: Ignores macAlgorithm
+                return CreateChaCha20Poly1305(context);
             case EncryptionAlgorithm.NULL:
                 return CreateNullCipher(context, macAlgorithm);
             case EncryptionAlgorithm.RC4_128:

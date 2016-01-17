@@ -3509,6 +3509,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\engines\ChaCha7539Engine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\engines\DESedeEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

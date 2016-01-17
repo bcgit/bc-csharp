@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             return Arrays.Concatenate(base.GetCipherSuites(),
                 new int[]
                 {
-                    CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+                    CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
                 });
         }
 

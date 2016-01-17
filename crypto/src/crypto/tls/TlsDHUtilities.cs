@@ -369,9 +369,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_PSK_DHE_WITH_AES_256_CCM_8:
 
             /*
-             * draft-agl-tls-chacha20poly1305-04
+             * draft-ietf-tls-chacha20-poly1305-04
              */
-            case CipherSuite.TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
 
                 return true;
 

@@ -11,13 +11,18 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
+    /**
+     * draft-ietf-tls-chacha20-poly1305-04
+     */
     public class Chacha20Poly1305
         :   TlsCipher
     {
+        private static readonly byte[] Zeroes = new byte[15];
+
         protected readonly TlsContext context;
 
-        protected readonly ChaChaEngine encryptCipher;
-        protected readonly ChaChaEngine decryptCipher;
+        protected readonly ChaCha7539Engine encryptCipher, decryptCipher;
+        protected readonly byte[] encryptIV, decryptIV;
 
         /// <exception cref="IOException"></exception>
         public Chacha20Poly1305(TlsContext context)
@@ -27,30 +32,50 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             this.context = context;
 
-            byte[] key_block = TlsUtilities.CalculateKeyBlock(context, 64);
+            int cipherKeySize = 32;
+            // TODO SecurityParameters.fixed_iv_length
+            int fixed_iv_length = 12;
+            // TODO SecurityParameters.record_iv_length = 0
 
-            KeyParameter client_write_key = new KeyParameter(key_block, 0, 32);
-            KeyParameter server_write_key = new KeyParameter(key_block, 32, 32);
+            int key_block_size = (2 * cipherKeySize) + (2 * fixed_iv_length);
 
-            this.encryptCipher = new ChaChaEngine(20);
-            this.decryptCipher = new ChaChaEngine(20);
+            byte[] key_block = TlsUtilities.CalculateKeyBlock(context, key_block_size);
+
+            int offset = 0;
+
+            KeyParameter client_write_key = new KeyParameter(key_block, offset, cipherKeySize);
+            offset += cipherKeySize;
+            KeyParameter server_write_key = new KeyParameter(key_block, offset, cipherKeySize);
+            offset += cipherKeySize;
+            byte[] client_write_IV = Arrays.CopyOfRange(key_block, offset, offset + fixed_iv_length);
+            offset += fixed_iv_length;
+            byte[] server_write_IV = Arrays.CopyOfRange(key_block, offset, offset + fixed_iv_length);
+            offset += fixed_iv_length;
+
+            if (offset != key_block_size)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            this.encryptCipher = new ChaCha7539Engine();
+            this.decryptCipher = new ChaCha7539Engine();
 
             KeyParameter encryptKey, decryptKey;
             if (context.IsServer)
             {
                 encryptKey = server_write_key;
                 decryptKey = client_write_key;
+                this.encryptIV = server_write_IV;
+                this.decryptIV = client_write_IV;
             }
             else
             {
                 encryptKey = client_write_key;
                 decryptKey = server_write_key;
+                this.encryptIV = client_write_IV;
+                this.decryptIV = server_write_IV;
             }
 
-            byte[] dummyNonce = new byte[8];
-
-            this.encryptCipher.Init(true, new ParametersWithIV(encryptKey, dummyNonce));
-            this.decryptCipher.Init(false, new ParametersWithIV(decryptKey, dummyNonce));
+            this.encryptCipher.Init(true, new ParametersWithIV(encryptKey, encryptIV));
+            this.decryptCipher.Init(false, new ParametersWithIV(decryptKey, decryptIV));
         }
 
         public virtual int GetPlaintextLimit(int ciphertextLimit)
@@ -61,11 +86,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <exception cref="IOException"></exception>
         public virtual byte[] EncodePlaintext(long seqNo, byte type, byte[] plaintext, int offset, int len)
         {
-            int ciphertextLength = len + 16;
+            KeyParameter macKey = InitRecord(encryptCipher, true, seqNo, encryptIV);
 
-            KeyParameter macKey = InitRecordMac(encryptCipher, true, seqNo);
-
-            byte[] output = new byte[ciphertextLength];
+            byte[] output = new byte[len + 16];
             encryptCipher.ProcessBytes(plaintext, offset, len, output, 0);
 
             byte[] additionalData = GetAdditionalData(seqNo, type, len);
@@ -81,38 +104,52 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (GetPlaintextLimit(len) < 0)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
 
+            KeyParameter macKey = InitRecord(decryptCipher, false, seqNo, decryptIV);
+
             int plaintextLength = len - 16;
 
-            byte[] receivedMAC = Arrays.CopyOfRange(ciphertext, offset + plaintextLength, offset + len);
-
-            KeyParameter macKey = InitRecordMac(decryptCipher, false, seqNo);
-
             byte[] additionalData = GetAdditionalData(seqNo, type, plaintextLength);
-            byte[] calculatedMAC = CalculateRecordMac(macKey, additionalData, ciphertext, offset, plaintextLength);
+            byte[] calculatedMac = CalculateRecordMac(macKey, additionalData, ciphertext, offset, plaintextLength);
+            byte[] receivedMac = Arrays.CopyOfRange(ciphertext, offset + plaintextLength, offset + len);
 
-            if (!Arrays.ConstantTimeAreEqual(calculatedMAC, receivedMAC))
+            if (!Arrays.ConstantTimeAreEqual(calculatedMac, receivedMac))
                 throw new TlsFatalAlert(AlertDescription.bad_record_mac);
 
             byte[] output = new byte[plaintextLength];
             decryptCipher.ProcessBytes(ciphertext, offset, plaintextLength, output, 0);
-
             return output;
         }
 
-        protected virtual KeyParameter InitRecordMac(ChaChaEngine cipher, bool forEncryption, long seqNo)
+        protected virtual KeyParameter InitRecord(IStreamCipher cipher, bool forEncryption, long seqNo, byte[] iv)
         {
-            byte[] nonce = new byte[8];
-            TlsUtilities.WriteUint64(seqNo, nonce, 0);
-
+            byte[] nonce = CalculateNonce(seqNo, iv);
             cipher.Init(forEncryption, new ParametersWithIV(null, nonce));
+            return GenerateRecordMacKey(cipher);
+        }
 
+        protected virtual byte[] CalculateNonce(long seqNo, byte[] iv)
+        {
+            byte[] nonce = new byte[12];
+            TlsUtilities.WriteUint64(seqNo, nonce, 4);
+
+            for (int i = 0; i < 12; ++i)
+            {
+                nonce[i] ^= iv[i];
+            }
+
+            return nonce;
+        }
+
+        protected virtual KeyParameter GenerateRecordMacKey(IStreamCipher cipher)
+        {
             byte[] firstBlock = new byte[64];
             cipher.ProcessBytes(firstBlock, 0, firstBlock.Length, firstBlock, 0);
 
             // NOTE: The BC implementation puts 'r' after 'k'
             Array.Copy(firstBlock, 0, firstBlock, 32, 16);
+            Poly1305KeyGenerator.Clamp(firstBlock, 16);
             KeyParameter macKey = new KeyParameter(firstBlock, 16, 32);
-            Poly1305KeyGenerator.Clamp(macKey.GetKey());
+            Arrays.Fill(firstBlock, (byte)0);
             return macKey;
         }
 
@@ -121,17 +158,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             IMac mac = new Poly1305();
             mac.Init(macKey);
 
-            UpdateRecordMac(mac, additionalData, 0, additionalData.Length);
-            UpdateRecordMac(mac, buf, off, len);
+            UpdateRecordMacText(mac, additionalData, 0, additionalData.Length);
+            UpdateRecordMacText(mac, buf, off, len);
+            UpdateRecordMacLength(mac, additionalData.Length);
+            UpdateRecordMacLength(mac, len);
+
             return MacUtilities.DoFinal(mac);
         }
 
-        protected virtual void UpdateRecordMac(IMac mac, byte[] buf, int off, int len)
+        protected virtual void UpdateRecordMacLength(IMac mac, int len)
+        {
+            byte[] longLen = Pack.UInt64_To_LE((ulong)len);
+            mac.BlockUpdate(longLen, 0, longLen.Length);
+        }
+
+        protected virtual void UpdateRecordMacText(IMac mac, byte[] buf, int off, int len)
         {
             mac.BlockUpdate(buf, off, len);
 
-            byte[] longLen = Pack.UInt64_To_LE((ulong)len);
-            mac.BlockUpdate(longLen, 0, longLen.Length);
+            int partial = len % 16;
+            if (partial != 0)
+            {
+                mac.BlockUpdate(Zeroes, 0, 16 - partial);
+            }
         }
 
         /// <exception cref="IOException"></exception>

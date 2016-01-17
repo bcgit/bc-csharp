@@ -56,8 +56,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int CAMELLIA_256_GCM = 20;
 
         /*
-         * draft-agl-tls-chacha20poly1305-04
+         * draft-ietf-tls-chacha20-poly1305-04
          */
-        public const int AEAD_CHACHA20_POLY1305 = 102;
+        public const int CHACHA20_POLY1305 = 102;
+        [Obsolete] public const int AEAD_CHACHA20_POLY1305 = CHACHA20_POLY1305;
     }
 }

@@ -739,6 +739,7 @@
     <Compile Include="src\crypto\engines\Cast5Engine.cs" />
     <Compile Include="src\crypto\engines\Cast6Engine.cs" />
     <Compile Include="src\crypto\engines\ChaChaEngine.cs" />
+    <Compile Include="src\crypto\engines\ChaCha7539Engine.cs" />
     <Compile Include="src\crypto\engines\DesEdeEngine.cs" />
     <Compile Include="src\crypto\engines\DesEdeWrapEngine.cs" />
     <Compile Include="src\crypto\engines\DesEngine.cs" />
