@@ -2,6 +2,7 @@
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == 'Any CPU' ">AnyCPU</Platform>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -745,6 +746,7 @@
     <Compile Include="src\crypto\engines\Cast5Engine.cs" />
     <Compile Include="src\crypto\engines\Cast6Engine.cs" />
     <Compile Include="src\crypto\engines\ChaChaEngine.cs" />
+    <Compile Include="src\crypto\engines\ChaCha7539Engine.cs" />
     <Compile Include="src\crypto\engines\DesEdeEngine.cs" />
     <Compile Include="src\crypto\engines\DesEdeWrapEngine.cs" />
     <Compile Include="src\crypto\engines\DesEngine.cs" />
@@ -1445,6 +1447,7 @@
     <Compile Include="src\util\io\pem\PemReader.cs" />
     <Compile Include="src\util\io\pem\PemWriter.cs" />
     <Compile Include="src\util\net\IPAddress.cs" />
+    <Compile Include="src\util\TypeExtensions.cs" />
     <Compile Include="src\util\zlib\Adler32.cs" />
     <Compile Include="src\util\zlib\Deflate.cs" />
     <Compile Include="src\util\zlib\InfBlocks.cs" />
@@ -1506,5 +1509,5 @@
     <None Include="Readme.html" />
     <None Include="checklist.txt" />
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>
