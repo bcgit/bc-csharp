@@ -5,10 +5,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Math.EC.Tests
@@ -16,8 +13,8 @@ namespace Org.BouncyCastle.Math.EC.Tests
     [TestFixture]
     public class ECAlgorithmsTest
     {
-        private const int SCALE = 4;
-        private static readonly SecureRandom RND = new SecureRandom();
+        private const int Scale = 4;
+        private static readonly SecureRandom Random = new SecureRandom();
 
         [Test]
         public void TestSumOfMultiplies()
@@ -55,16 +52,16 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
         private void DoTestSumOfMultiplies(X9ECParameters x9)
         {
-            ECPoint[] points = new ECPoint[SCALE];
-            BigInteger[] scalars = new BigInteger[SCALE];
-            for (int i = 0; i < SCALE; ++i)
+            ECPoint[] points = new ECPoint[Scale];
+            BigInteger[] scalars = new BigInteger[Scale];
+            for (int i = 0; i < Scale; ++i)
             {
                 points[i] = GetRandomPoint(x9);
                 scalars[i] = GetRandomScalar(x9);
             }
 
             ECPoint u = x9.Curve.Infinity;
-            for (int i = 0; i < SCALE; ++i)
+            for (int i = 0; i < Scale; ++i)
             {
                 u = u.Add(points[i].Multiply(scalars[i]));
 
@@ -82,7 +79,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             ECPoint p = GetRandomPoint(x9);
             BigInteger a = GetRandomScalar(x9);
 
-            for (int i = 0; i < SCALE; ++i)
+            for (int i = 0; i < Scale; ++i)
             {
                 ECPoint q = GetRandomPoint(x9);
                 BigInteger b = GetRandomScalar(x9);
@@ -128,7 +125,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
         private BigInteger GetRandomScalar(X9ECParameters x9)
         {
-            return new BigInteger(x9.N.BitLength, RND);
+            return new BigInteger(x9.N.BitLength, Random);
         }
 
         private IList GetTestCurves()

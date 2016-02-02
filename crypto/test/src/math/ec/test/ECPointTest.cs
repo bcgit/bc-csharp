@@ -3,11 +3,8 @@ using System.Collections;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -26,11 +23,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
         /**
          * Random source used to generate random points
          */
-        private SecureRandom secRand = new SecureRandom();
-
-//		private ECPointTest.Fp fp = null;
-
-//		private ECPointTest.F2m f2m = null;
+        private SecureRandom Random = new SecureRandom();
 
         /**
          * Nested class containing sample literature values for <code>Fp</code>.
@@ -113,12 +106,9 @@ namespace Org.BouncyCastle.Math.EC.Tests
         }
 
         [SetUp]
-        public void setUp()
+        public void SetUp()
         {
-//			fp = new ECPointTest.Fp();
             Fp.CreatePoints();
-
-//			f2m = new ECPointTest.F2m();
             F2m.CreatePoints();
         }
 
@@ -301,7 +291,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
          */
         private void ImplTestMultiply(ECPoint p, int numBits)
         {
-            BigInteger k = new BigInteger(numBits, secRand);
+            BigInteger k = new BigInteger(numBits, Random);
             ECPoint reff = ECAlgorithms.ReferenceMultiply(p, k);
             ECPoint q = p.Multiply(k);
             AssertPointsEqual("ECPoint.Multiply is incorrect", reff, q);
@@ -428,7 +418,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 int count = 0;
                 while (count < 10)
                 {
-                    BigInteger nonSquare = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusOne, secRand);
+                    BigInteger nonSquare = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusOne, Random);
                     if (!nonSquare.ModPow(legendreExponent, p).Equals(BigInteger.One))
                     {
                         ECFieldElement root = c.FromBigInteger(nonSquare).Sqrt();
@@ -440,7 +430,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             else if (ECAlgorithms.IsF2mCurve(c))
             {
                 int m = c.FieldSize;
-                BigInteger x = new BigInteger(m, secRand);
+                BigInteger x = new BigInteger(m, Random);
                 ECFieldElement fe = c.FromBigInteger(x);
                 for (int i = 0; i < 100; ++i)
                 {
@@ -474,7 +464,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     }
 
                     // The generator is multiplied by random b to get random q
-                    BigInteger b = new BigInteger(n.BitLength, secRand);
+                    BigInteger b = new BigInteger(n.BitLength, Random);
                     ECPoint q = g.Multiply(b).Normalize();
 
                     ImplAddSubtractMultiplyTwiceEncodingTest(c, q, n);
@@ -517,7 +507,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     Assert.AreEqual(x9A.N, x9B.N);
                     AssertOptionalValuesAgree(x9A.GetSeed(), x9B.GetSeed());
 
-                    BigInteger k = new BigInteger(x9A.N.BitLength, secRand);
+                    BigInteger k = new BigInteger(x9A.N.BitLength, Random);
                     ECPoint pA = x9A.G.Multiply(k);
                     ECPoint pB = x9B.G.Multiply(k);
                     AssertPointsEqual("Custom curve multiplication inconsistency", pA, pB);
