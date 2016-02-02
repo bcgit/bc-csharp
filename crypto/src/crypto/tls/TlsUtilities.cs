@@ -349,9 +349,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             int i = input.ReadByte();
             if (i < 0)
-            {
                 throw new EndOfStreamException();
-            }
             return (byte)i;
         }
 
@@ -364,11 +362,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             int i1 = input.ReadByte();
             int i2 = input.ReadByte();
-            if ((i1 | i2) < 0)
-            {
+            if (i2 < 0)
                 throw new EndOfStreamException();
-            }
-            return i1 << 8 | i2;
+            return (i1 << 8) | i2;
         }
 
         public static int ReadUint16(byte[] buf, int offset)
@@ -383,10 +379,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             int i1 = input.ReadByte();
             int i2 = input.ReadByte();
             int i3 = input.ReadByte();
-            if ((i1 | i2 | i3) < 0)
-            {
+            if (i3 < 0)
                 throw new EndOfStreamException();
-            }
             return (i1 << 16) | (i2 << 8) | i3;
         }
 
@@ -405,9 +399,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             int i3 = input.ReadByte();
             int i4 = input.ReadByte();
             if (i4 < 0)
-            {
                 throw new EndOfStreamException();
-            }
             return (long)(uint)((i1 << 24) | (i2 << 16) | (i3 << 8) | i4);
         }
 
@@ -515,9 +507,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             int i1 = input.ReadByte();
             int i2 = input.ReadByte();
             if (i2 < 0)
-            {
                 throw new EndOfStreamException();
-            }
             return ProtocolVersion.Get(i1, i2);
         }
 
@@ -531,9 +521,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             int i1 = input.ReadByte();
             int i2 = input.ReadByte();
             if (i2 < 0)
-            {
                 throw new EndOfStreamException();
-            }
             return (i1 << 8) | i2;
         }
 
