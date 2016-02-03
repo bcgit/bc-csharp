@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -638,6 +638,8 @@
     <Compile Include="src\crypto\digests\NonMemoableDigest.cs" />
     <Compile Include="src\crypto\engines\SerpentEngineBase.cs" />
     <Compile Include="src\crypto\engines\TnepresEngine.cs" />
+    <Compile Include="src\crypto\generators\BCrypt.cs" />
+    <Compile Include="src\crypto\generators\OpenBsdBCrypt.cs" />
     <Compile Include="src\crypto\IAsymmetricBlockCipher.cs" />
     <Compile Include="src\crypto\IAsymmetricCipherKeyPairGenerator.cs" />
     <Compile Include="src\crypto\IBasicAgreement.cs" />
