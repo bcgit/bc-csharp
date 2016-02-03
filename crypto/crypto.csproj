@@ -3719,6 +3719,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\generators\BCrypt.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\generators\DESedeKeyGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3805,6 +3810,11 @@
                 />
                 <File
                     RelPath = "src\crypto\generators\NaccacheSternKeyPairGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\generators\OpenBsdBCrypt.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11250,6 +11260,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\BCryptTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\BlockCipherVectorTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11526,6 +11541,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\OAEPTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\OpenBsdBCryptTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

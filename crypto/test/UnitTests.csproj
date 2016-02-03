@@ -155,6 +155,7 @@
     <Compile Include="src\crypto\test\AESTest.cs" />
     <Compile Include="src\crypto\test\AESWrapTest.cs" />
     <Compile Include="src\crypto\test\AllTests.cs" />
+    <Compile Include="src\crypto\test\BCryptTest.cs" />
     <Compile Include="src\crypto\test\BlockCipherMonteCarloTest.cs" />
     <Compile Include="src\crypto\test\BlockCipherVectorTest.cs" />
     <Compile Include="src\crypto\test\BlowfishTest.cs" />
@@ -212,6 +213,7 @@
     <Compile Include="src\crypto\test\NullTest.cs" />
     <Compile Include="src\crypto\test\OAEPTest.cs" />
     <Compile Include="src\crypto\test\OCBTest.cs" />
+    <Compile Include="src\crypto\test\OpenBsdBCryptTest.cs" />
     <Compile Include="src\crypto\test\PSSBlindTest.cs" />
     <Compile Include="src\crypto\test\PSSTest.cs" />
     <Compile Include="src\crypto\test\PaddingTest.cs" />

@@ -122,19 +122,18 @@ namespace Org.BouncyCastle.Crypto.Tests
             new NonMemoableDigestTest(),
             new StreamCipherResetTest(),
             new SM3DigestTest(),
+            new BCryptTest(),
+            new OpenBsdBCryptTest(),
             new X931SignerTest(),
             new KeccakDigestTest(),
             new ShakeDigestTest(),
         };
 
-        public static void Main(
-            string[] args)
+        public static void Main(string[] args)
         {
-            for (int i = 0; i != tests.Length; i++)
+            foreach (ITest test in tests)
             {
-                ITestResult result = tests[i].Perform();
-
-                Console.WriteLine(result);
+                SimpleTest.RunTest(test);
             }
         }
     }
