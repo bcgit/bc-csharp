@@ -198,6 +198,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     CheckForUnexpectedServerExtension(serverExtensions, ExtensionType.ec_point_formats);
                 }
+
+                /*
+                 * RFC 7685 3. The server MUST NOT echo the extension.
+                 */
+                CheckForUnexpectedServerExtension(serverExtensions, ExtensionType.padding);
             }
         }
 

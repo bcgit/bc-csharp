@@ -618,6 +618,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (state.clientExtensions != null)
             {
+                // NOTE: Validates the padding extension data, if present
+                TlsExtensionsUtilities.GetPaddingExtension(state.clientExtensions);
+
                 state.server.ProcessClientExtensions(state.clientExtensions);
             }
         }

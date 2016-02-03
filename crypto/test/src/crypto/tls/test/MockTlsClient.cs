@@ -64,6 +64,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                  * NOTE: If you are copying test code, do not blindly set these extensions in your own client.
                  */
                 TlsExtensionsUtilities.AddMaxFragmentLengthExtension(clientExtensions, MaxFragmentLength.pow2_9);
+                TlsExtensionsUtilities.AddPaddingExtension(clientExtensions, mContext.SecureRandom.Next(16));
                 TlsExtensionsUtilities.AddTruncatedHMacExtension(clientExtensions);
             }
             return clientExtensions;
