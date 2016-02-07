@@ -53,11 +53,21 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual int DoFinal(byte[] output, int outOff, int outLen)
         {
-            Absorb(new byte[]{ 0x0F }, 0, 4);
-
-            Squeeze(output, outOff, ((long)outLen) * 8);
+            DoOutput(output, outOff, outLen);
 
             Reset();
+
+            return outLen;
+        }
+
+        public virtual int DoOutput(byte[] output, int outOff, int outLen)
+        {
+            if (!squeezing)
+            {
+                Absorb(new byte[] { 0x0F }, 0, 4);
+            }
+
+            Squeeze(output, outOff, ((long)outLen) * 8);
 
             return outLen;
         }

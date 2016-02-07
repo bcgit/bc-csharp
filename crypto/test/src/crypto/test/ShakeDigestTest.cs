@@ -199,6 +199,50 @@ namespace Org.BouncyCastle.Crypto.Tests
                 //Console.Error.WriteLine(v.Algorithm + " " + v.Bits + "-bit test vector hash mismatch");
                 //Console.Error.WriteLine(Hex.ToHexString(output).ToUpper());
             }
+
+            if (partialBits == 0)
+            {
+                d = CreateDigest(v.Algorithm);
+
+                m = v.Message;
+
+                d.BlockUpdate(m, 0, m.Length);
+                d.DoOutput(output, 0, outLen / 2);
+                d.DoOutput(output, outLen / 2, output.Length - outLen / 2);
+
+                if (!Arrays.AreEqual(expected, output))
+                {
+                    Fail(v.Algorithm + " " + v.Bits + "-bit test vector extended hash mismatch");
+                }
+
+                try
+                {
+                    d.Update((byte)0x01);
+                    Fail("no exception");
+                }
+                catch (InvalidOperationException e)
+                {
+                    if (!"attempt to absorb while squeezing".Equals(e.Message))
+                    {
+                        Fail("wrong exception");
+                    }
+                }
+
+                d = CreateDigest(v.Algorithm);
+
+                m = v.Message;
+
+                d.BlockUpdate(m, 0, m.Length);
+                d.DoOutput(output, 0, outLen / 2);
+                d.DoFinal(output, outLen / 2, output.Length - outLen / 2);
+
+                if (!Arrays.AreEqual(expected, output))
+                {
+                    Fail(v.Algorithm + " " + v.Bits + "-bit test vector extended doFinal hash mismatch");
+                }
+
+                d.Update((byte)0x01); // this should be okay as we've reset on DoFinal()
+            }
         }
 
         private void SkipUntil(StreamReader r, string header)
