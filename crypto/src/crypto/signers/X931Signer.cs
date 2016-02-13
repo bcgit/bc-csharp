@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 return false;
             }
 
-            BigInteger t = new BigInteger(block);
+            BigInteger t = new BigInteger(1, block);
             BigInteger f;
 
             if ((t.IntValue & 15) == 12)
