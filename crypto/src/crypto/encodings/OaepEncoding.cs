@@ -273,7 +273,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
                 }
             }
 
-            if (start >= (block.Length - 1) || block[start] != 1)
+            if (start > (block.Length - 1) || block[start] != 1)
             {
                 throw new InvalidCipherTextException("data start wrong " + start);
             }
