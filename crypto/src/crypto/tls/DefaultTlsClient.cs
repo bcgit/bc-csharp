@@ -60,6 +60,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case KeyExchangeAlgorithm.DHE_RSA:
                 return CreateDheKeyExchange(keyExchangeAlgorithm);
 
+            case KeyExchangeAlgorithm.ECDH_anon:
             case KeyExchangeAlgorithm.ECDH_ECDSA:
             case KeyExchangeAlgorithm.ECDH_RSA:
                 return CreateECDHKeyExchange(keyExchangeAlgorithm);
