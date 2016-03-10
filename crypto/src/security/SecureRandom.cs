@@ -170,6 +170,7 @@ namespace Org.BouncyCastle.Security
 
         public override int Next(int maxValue)
         {
+
             if (maxValue < 2)
             {
                 if (maxValue < 0)
@@ -178,13 +179,16 @@ namespace Org.BouncyCastle.Security
                 return 0;
             }
 
+            int bits;
+
             // Test whether maxValue is a power of 2
             if ((maxValue & (maxValue - 1)) == 0)
             {
-                return NextInt() & (maxValue - 1);
+                bits = NextInt() & int.MaxValue;
+                return (int)(((long)bits * maxValue) >> 31);
             }
 
-            int bits, result;
+            int result;
             do
             {
                 bits = NextInt() & int.MaxValue;
