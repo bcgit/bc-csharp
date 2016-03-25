@@ -1086,18 +1086,30 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             MemoryStream buf = new MemoryStream();
 
-            foreach (int extension_type in extensions.Keys)
-            {
-                byte[] extension_data = (byte[])extensions[extension_type];
-
-                TlsUtilities.CheckUint16(extension_type);
-                TlsUtilities.WriteUint16(extension_type, buf);
-                TlsUtilities.WriteOpaque16(extension_data, buf);
-            }
+            /*
+             * NOTE: There are reports of servers that don't accept a zero-length extension as the last
+             * one, so we write out any zero-length ones first as a best-effort workaround.
+             */
+            WriteSelectedExtensions(buf, extensions, true);
+            WriteSelectedExtensions(buf, extensions, false);
 
             byte[] extBytes = buf.ToArray();
 
             TlsUtilities.WriteOpaque16(extBytes, output);
+        }
+
+        protected internal static void WriteSelectedExtensions(Stream output, IDictionary extensions, bool selectEmpty)
+        {
+            foreach (int extension_type in extensions.Keys)
+            {
+                byte[] extension_data = (byte[])extensions[extension_type];
+                if (selectEmpty == (extension_data.Length == 0))
+                {
+                    TlsUtilities.CheckUint16(extension_type);
+                    TlsUtilities.WriteUint16(extension_type, output);
+                    TlsUtilities.WriteOpaque16(extension_data, output);
+                }
+            }
         }
 
         protected internal static void WriteSupplementalData(Stream output, IList supplementalData)
