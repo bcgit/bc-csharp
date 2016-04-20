@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Crypto.Macs
     public class Poly1305
         : IMac
     {
-        private const int BLOCK_SIZE = 16;
+        private const int BlockSize = 16;
 
         private readonly IBlockCipher cipher;
 
@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         // Accumulating state
 
         /** Current block of buffered input */
-        private byte[] currentBlock = new byte[BLOCK_SIZE];
+        private byte[] currentBlock = new byte[BlockSize];
 
         /** Current offset in input buffer */
         private int currentBlockOffset = 0;
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Macs
          */
         public Poly1305(IBlockCipher cipher)
         {
-            if (cipher.GetBlockSize() != BLOCK_SIZE)
+            if (cipher.GetBlockSize() != BlockSize)
             {
                 throw new ArgumentException("Poly1305 requires a 128 bit block cipher.");
             }
@@ -102,22 +102,24 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         private void SetKey(byte[] key, byte[] nonce)
         {
-            if (cipher != null && (nonce == null || nonce.Length != BLOCK_SIZE))
+            if (key.Length != 32)
+                throw new ArgumentException("Poly1305 key must be 256 bits.");
+
+            if (cipher != null && (nonce == null || nonce.Length != BlockSize))
                 throw new ArgumentException("Poly1305 requires a 128 bit IV.");
 
-            Poly1305KeyGenerator.CheckKey(key);
+            // Extract r portion of key (and "clamp" the values)
+            uint t0 = Pack.LE_To_UInt32(key, 0);
+            uint t1 = Pack.LE_To_UInt32(key, 4);
+            uint t2 = Pack.LE_To_UInt32(key, 8);
+            uint t3 = Pack.LE_To_UInt32(key, 12);
 
-            // Extract r portion of key
-            uint t0 = Pack.LE_To_UInt32(key, BLOCK_SIZE + 0);
-            uint t1 = Pack.LE_To_UInt32(key, BLOCK_SIZE + 4);
-            uint t2 = Pack.LE_To_UInt32(key, BLOCK_SIZE + 8);
-            uint t3 = Pack.LE_To_UInt32(key, BLOCK_SIZE + 12);
-
-            r0 = t0 & 0x3ffffff; t0 >>= 26; t0 |= t1 << 6;
-            r1 = t0 & 0x3ffff03; t1 >>= 20; t1 |= t2 << 12;
-            r2 = t1 & 0x3ffc0ff; t2 >>= 14; t2 |= t3 << 18;
-            r3 = t2 & 0x3f03fff; t3 >>= 8;
-            r4 = t3 & 0x00fffff;
+            // NOTE: The masks perform the key "clamping" implicitly
+            r0 =   t0                      & 0x03FFFFFFU;
+            r1 = ((t0 >> 26) | (t1 <<  6)) & 0x03FFFF03U;
+            r2 = ((t1 >> 20) | (t2 << 12)) & 0x03FFC0FFU;
+            r3 = ((t2 >> 14) | (t3 << 18)) & 0x03F03FFFU;
+            r4 =  (t3 >>  8)               & 0x000FFFFFU;
 
             // Precompute multipliers
             s1 = r1 * 5;
@@ -126,22 +128,27 @@ namespace Org.BouncyCastle.Crypto.Macs
             s4 = r4 * 5;
 
             byte[] kBytes;
+            int kOff;
+
             if (cipher == null)
             {
                 kBytes = key;
+                kOff = BlockSize;
             }
             else
             {
                 // Compute encrypted nonce
-                kBytes = new byte[BLOCK_SIZE];
-                cipher.Init(true, new KeyParameter(key, 0, BLOCK_SIZE));
+                kBytes = new byte[BlockSize];
+                kOff = 0;
+
+                cipher.Init(true, new KeyParameter(key, BlockSize, BlockSize));
                 cipher.ProcessBlock(nonce, 0, kBytes, 0);
             }
 
-            k0 = Pack.LE_To_UInt32(kBytes, 0);
-            k1 = Pack.LE_To_UInt32(kBytes, 4);
-            k2 = Pack.LE_To_UInt32(kBytes, 8);
-            k3 = Pack.LE_To_UInt32(kBytes, 12);
+            k0 = Pack.LE_To_UInt32(kBytes, kOff + 0);
+            k1 = Pack.LE_To_UInt32(kBytes, kOff + 4);
+            k2 = Pack.LE_To_UInt32(kBytes, kOff + 8);
+            k3 = Pack.LE_To_UInt32(kBytes, kOff + 12);
         }
 
         public string AlgorithmName
@@ -151,7 +158,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public int GetMacSize()
         {
-            return BLOCK_SIZE;
+            return BlockSize;
         }
 
         public void Update(byte input)
@@ -165,13 +172,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             int copied = 0;
             while (len > copied)
             {
-                if (currentBlockOffset == BLOCK_SIZE)
+                if (currentBlockOffset == BlockSize)
                 {
-                    processBlock();
+                    ProcessBlock();
                     currentBlockOffset = 0;
                 }
 
-                int toCopy = System.Math.Min((len - copied), BLOCK_SIZE - currentBlockOffset);
+                int toCopy = System.Math.Min((len - copied), BlockSize - currentBlockOffset);
                 Array.Copy(input, copied + inOff, currentBlock, currentBlockOffset, toCopy);
                 copied += toCopy;
                 currentBlockOffset += toCopy;
@@ -179,12 +186,12 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         }
 
-        private void processBlock()
+        private void ProcessBlock()
         {
-            if (currentBlockOffset < BLOCK_SIZE)
+            if (currentBlockOffset < BlockSize)
             {
                 currentBlock[currentBlockOffset] = 1;
-                for (int i = currentBlockOffset + 1; i < BLOCK_SIZE; i++)
+                for (int i = currentBlockOffset + 1; i < BlockSize; i++)
                 {
                     currentBlock[i] = 0;
                 }
@@ -201,7 +208,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             h3 += (uint)((((t3 << 32) | t2) >> 14) & 0x3ffffff);
             h4 += (uint)(t3 >> 8);
 
-            if (currentBlockOffset == BLOCK_SIZE)
+            if (currentBlockOffset == BlockSize)
             {
                 h4 += (1 << 24);
             }
@@ -223,15 +230,12 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public int DoFinal(byte[] output, int outOff)
         {
-            if (outOff + BLOCK_SIZE > output.Length)
-            {
-                throw new DataLengthException("Output buffer is too short.");
-            }
+            Check.DataLength(output, outOff, BlockSize, "Output buffer is too short.");
 
             if (currentBlockOffset > 0)
             {
                 // Process padded block
-                processBlock();
+                ProcessBlock();
             }
 
             ulong f0, f1, f2, f3;
@@ -273,7 +277,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             Pack.UInt32_To_LE((uint)f3, output, outOff + 12);
 
             Reset();
-            return BLOCK_SIZE;
+            return BlockSize;
         }
 
         public void Reset()

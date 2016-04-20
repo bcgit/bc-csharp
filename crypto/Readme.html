@@ -294,6 +294,15 @@ We state, where EC MQV has not otherwise been disabled or removed:
 
         <h4><a class="mozTocH4" name="mozTocId85316"></a>Release 1.8.2, Release Date TBD</h4>
 
+        <h5>IMPORTANT</h5>
+        <ul>
+            <li>
+                This release brings our Poly1305 implementation into line wih RFC 7539, which breaks backward compatibility. The essential
+                difference from 1.8.1 is that the two halves of the 32-byte Poly1305 key have swapped places. If you have persisted Poly1305
+                keys, or are interoperating with other Poly1305 implementations, you may need to account for this change when migrating to 1.8.2.
+            </li>
+        </ul>
+
         <h5>Additional Features and Functionality</h5>
         <ul>
             <li>TLS: support for ClientHello Padding Extension (RFC 7685).</li>
