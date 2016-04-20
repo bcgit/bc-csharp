@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected virtual TlsAeadCipher CreateCipher_Aes_Ocb(TlsContext context, int cipherKeySize, int macSize)
         {
             return new TlsAeadCipher(context, CreateAeadBlockCipher_Aes_Ocb(),
-                CreateAeadBlockCipher_Aes_Ocb(), cipherKeySize, macSize, TlsAeadCipher.NONCE_DRAFT_ZAUNER_TLS_AES_OCB);
+                CreateAeadBlockCipher_Aes_Ocb(), cipherKeySize, macSize, TlsAeadCipher.NONCE_DRAFT_CHACHA20_POLY1305);
         }
 
         /// <exception cref="IOException"></exception>
