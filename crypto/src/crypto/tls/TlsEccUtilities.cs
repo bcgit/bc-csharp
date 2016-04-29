@@ -279,8 +279,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static bool AreOnSameCurve(ECDomainParameters a, ECDomainParameters b)
         {
-            // TODO Move to ECDomainParameters.Equals() or other utility method?
-            return a.Curve.Equals(b.Curve) && a.G.Equals(b.G) && a.N.Equals(b.N) && a.H.Equals(b.H);
+            return a != null && a.Equals(b);
         }
 
         public static bool IsSupportedNamedCurve(int namedCurve)

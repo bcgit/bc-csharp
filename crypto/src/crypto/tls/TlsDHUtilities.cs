@@ -391,7 +391,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static bool AreCompatibleParameters(DHParameters a, DHParameters b)
         {
-            return a.P.Equals(b.P) && a.G.Equals(b.G);
+            return a.P.Equals(b.P) && a.G.Equals(b.G)
+                && (a.Q == null || b.Q == null || a.Q.Equals(b.Q));
         }
 
         public static byte[] CalculateDHBasicAgreement(DHPublicKeyParameters publicKey,

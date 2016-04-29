@@ -93,14 +93,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return Equals(other);
         }
 
-        protected bool Equals(
+        protected virtual bool Equals(
             ECDomainParameters other)
         {
             return curve.Equals(other.curve)
                 &&	g.Equals(other.g)
                 &&	n.Equals(other.n)
-                &&	h.Equals(other.h)
-                &&	Arrays.AreEqual(seed, other.seed);
+                &&	h.Equals(other.h);
         }
 
         public override int GetHashCode()
@@ -108,9 +107,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return curve.GetHashCode()
                 ^	g.GetHashCode()
                 ^	n.GetHashCode()
-                ^	h.GetHashCode()
-                ^	Arrays.GetHashCode(seed);
+                ^	h.GetHashCode();
         }
     }
-
 }
