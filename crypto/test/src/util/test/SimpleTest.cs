@@ -27,6 +27,12 @@ namespace Org.BouncyCastle.Utilities.Test
             throw new TestFailedException(SimpleTestResult.Failed(this, message));
         }
 
+        internal void IsTrue(string message, bool value)
+        {
+            if (!value)
+                throw new TestFailedException(SimpleTestResult.Failed(this, message));
+        }
+
         internal void Fail(
             string		message,
             Exception	throwable)
