@@ -3794,6 +3794,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\generators\HKDFBytesGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\generators\KDF1BytesGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4240,6 +4245,11 @@
                 />
                 <File
                     RelPath = "src\crypto\parameters\GOST3410ValidationParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\HKDFParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11446,6 +11456,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\HCFamilyVecTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\HKDFGeneratorTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

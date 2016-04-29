@@ -193,6 +193,7 @@
     <Compile Include="src\crypto\test\GcmReorderTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyVecTest.cs" />
+    <Compile Include="src\crypto\test\HKDFGeneratorTest.cs" />
     <Compile Include="src\crypto\test\IDEATest.cs" />
     <Compile Include="src\crypto\test\ISAACTest.cs" />
     <Compile Include="src\crypto\test\ISO9796Test.cs" />
