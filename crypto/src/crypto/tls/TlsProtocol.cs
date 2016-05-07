@@ -34,6 +34,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected const short CS_END = 16;
 
         /*
+         * Different modes to handle the known IV weakness
+         */
+        protected const short ADS_MODE_1_Nsub1 = 0; // 1/n-1 record splitting
+        protected const short ADS_MODE_0_N = 1; // 0/n record splitting
+        protected const short ADS_MODE_0_N_FIRSTONLY = 2; // 0/n record splitting on first data fragment only
+
+        /*
          * Queues for data from some protocols.
          */
         private ByteQueue mApplicationDataQueue = new ByteQueue();
@@ -52,7 +59,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         private volatile bool mClosed = false;
         private volatile bool mFailedWithError = false;
         private volatile bool mAppDataReady = false;
-        private volatile bool mSplitApplicationDataRecords = true;
+        private volatile bool mAppDataSplitEnabled = true;
+        private volatile int mAppDataSplitMode = ADS_MODE_1_Nsub1;
         private byte[] mExpectedVerifyData = null;
 
         protected TlsSession mTlsSession = null;
@@ -175,7 +183,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 this.mRecordStream.FinaliseHandshake();
 
-                this.mSplitApplicationDataRecords = !TlsUtilities.IsTlsV11(Context);
+                this.mAppDataSplitEnabled = !TlsUtilities.IsTlsV11(Context);
 
                 /*
                  * If this was an initial handshake, we are now ready to send and receive application data.
@@ -556,16 +564,29 @@ namespace Org.BouncyCastle.Crypto.Tls
                  * NOTE: Actually, implementations appear to have settled on 1/n-1 record splitting.
                  */
 
-                if (this.mSplitApplicationDataRecords)
+                if (this.mAppDataSplitEnabled)
                 {
                     /*
                      * Protect against known IV attack!
                      * 
                      * DO NOT REMOVE THIS CODE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
                      */
-                    SafeWriteRecord(ContentType.application_data, buf, offset, 1);
-                    ++offset;
-                    --len;
+                    switch (mAppDataSplitMode)
+                    {
+                    case ADS_MODE_0_N:
+                        SafeWriteRecord(ContentType.application_data, TlsUtilities.EmptyBytes, 0, 0);
+                        break;
+                    case ADS_MODE_0_N_FIRSTONLY:
+                        this.mAppDataSplitEnabled = false;
+                        SafeWriteRecord(ContentType.application_data, TlsUtilities.EmptyBytes, 0, 0);
+                        break;
+                    case ADS_MODE_1_Nsub1:
+                    default:
+                        SafeWriteRecord(ContentType.application_data, buf, offset, 1);
+                        ++offset;
+                        --len;
+                        break;
+                    }
                 }
 
                 if (len > 0)
@@ -577,6 +598,14 @@ namespace Org.BouncyCastle.Crypto.Tls
                     len -= toWrite;
                 }
             }
+        }
+
+        protected virtual void SetAppDataSplitMode(int appDataSplitMode)
+        {
+            if (appDataSplitMode < ADS_MODE_1_Nsub1 || appDataSplitMode > ADS_MODE_0_N_FIRSTONLY)
+                throw new ArgumentException("Illegal appDataSplitMode mode: " + appDataSplitMode, "appDataSplitMode");
+
+            this.mAppDataSplitMode = appDataSplitMode;
         }
 
         protected virtual void WriteHandshakeMessage(byte[] buf, int off, int len)
