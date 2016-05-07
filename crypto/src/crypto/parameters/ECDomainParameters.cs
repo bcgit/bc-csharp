@@ -104,10 +104,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public override int GetHashCode()
         {
-            return curve.GetHashCode()
-                ^	g.GetHashCode()
-                ^	n.GetHashCode()
-                ^	h.GetHashCode();
+            int hc = curve.GetHashCode();
+            hc *= 37;
+            hc ^= g.GetHashCode();
+            hc *= 37;
+            hc ^= n.GetHashCode();
+            hc *= 37;
+            hc ^= h.GetHashCode();
+            return hc;
         }
     }
 }
