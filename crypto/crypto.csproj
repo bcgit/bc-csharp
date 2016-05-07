@@ -4674,6 +4674,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\CertificateType.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\CertificateUrl.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

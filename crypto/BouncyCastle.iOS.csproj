@@ -958,6 +958,7 @@
     <Compile Include="src\crypto\tls\CertificateStatus.cs" />
     <Compile Include="src\crypto\tls\CertificateStatusRequest.cs" />
     <Compile Include="src\crypto\tls\CertificateStatusType.cs" />
+    <Compile Include="src\crypto\tls\CertificateType.cs" />
     <Compile Include="src\crypto\tls\CertificateUrl.cs" />
     <Compile Include="src\crypto\tls\Chacha20Poly1305.cs" />
     <Compile Include="src\crypto\tls\ChangeCipherSpec.cs" />
