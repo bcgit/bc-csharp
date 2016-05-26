@@ -42,7 +42,14 @@ namespace Org.BouncyCastle.Utilities.Zlib
 	public class ZOutputStream
 		: Stream
 	{
-		private const int BufferSize = 512;
+        private static ZStream GetDefaultZStream(bool nowrap)
+        {
+            ZStream z = new ZStream();
+            z.inflateInit(nowrap);
+            return z;
+        }
+
+        private const int BufferSize = 512;
 
 		protected ZStream z;
 		protected int flushLevel = JZlib.Z_NO_FLUSH;
@@ -55,9 +62,14 @@ namespace Org.BouncyCastle.Utilities.Zlib
 		protected bool closed;
 
         public ZOutputStream(Stream output)
-			: this(output, null)
-        {
-        }
+            : this(output, false)
+		{
+		}
+
+        public ZOutputStream(Stream output, bool nowrap)
+            : this(output, GetDefaultZStream(nowrap))
+		{
+		}
 
         public ZOutputStream(Stream output, ZStream z)
 			: base()
@@ -67,12 +79,16 @@ namespace Org.BouncyCastle.Utilities.Zlib
             if (z == null)
             {
                 z = new ZStream();
+            }
+
+            if (z.istate == null && z.dstate == null)
+            {
                 z.inflateInit();
             }
 
             this.output = output;
+            this.compress = (z.istate == null);
             this.z = z;
-			this.compress = false;
 		}
 
         public ZOutputStream(Stream output, int level)
@@ -86,9 +102,9 @@ namespace Org.BouncyCastle.Utilities.Zlib
 			Debug.Assert(output.CanWrite);
 
 			this.output = output;
+            this.compress = true;
             this.z = new ZStream();
 			this.z.deflateInit(level, nowrap);
-			this.compress = true;
 		}
 
 		public sealed override bool CanRead { get { return false; } }
