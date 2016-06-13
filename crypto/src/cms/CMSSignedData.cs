@@ -135,13 +135,10 @@ namespace Org.BouncyCastle.Cms
 			//
 			if (signedData.EncapContentInfo.Content != null)
 			{
+				var content = signedData.EncapContentInfo.Content;
 				this.signedContent = new CmsProcessableByteArray(
-					((Asn1OctetString)(signedData.EncapContentInfo.Content)).GetOctets());
+					content.GetEncoded());
 			}
-//			else
-//			{
-//				this.signedContent = null;
-//			}
 		}
 
 		/// <summary>Return the version number for this object.</summary>
