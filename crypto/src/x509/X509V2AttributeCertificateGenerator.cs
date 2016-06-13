@@ -164,6 +164,7 @@ namespace Org.BouncyCastle.X509
 				acInfoGen.SetExtensions(extGenerator.Generate());
 			}
 
+          acInfoGen.SetSignature((AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
 			AttributeCertificateInfo acInfo = acInfoGen.GenerateAttributeCertificateInfo();
 
             byte[] encoded = acInfo.GetDerEncoded();
