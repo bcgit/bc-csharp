@@ -167,14 +167,14 @@ namespace Org.BouncyCastle.Asn1.Cms
             Asn1EncodableVector v = new Asn1EncodableVector(
                 version, sid, digAlgorithm);
 
-            if (authenticatedAttributes != null)
+            if (authenticatedAttributes != null && authenticatedAttributes.Count > 0)
             {
                 v.Add(new DerTaggedObject(false, 0, authenticatedAttributes));
             }
 
             v.Add(digEncryptionAlgorithm, encryptedDigest);
 
-            if (unauthenticatedAttributes != null)
+            if (unauthenticatedAttributes != null && unauthenticatedAttributes.Count > 0)
             {
                 v.Add(new DerTaggedObject(false, 1, unauthenticatedAttributes));
             }
