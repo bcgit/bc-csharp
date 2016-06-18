@@ -182,7 +182,7 @@ namespace Org.BouncyCastle.Cms
         internal protected virtual Asn1Set GetAttributeSet(
             Asn1.Cms.AttributeTable attr)
         {
-            return attr == null
+            return attr == null || attr.Count == 0
                 ? null
                 : new DerSet(attr.ToAsn1EncodableVector());
         }

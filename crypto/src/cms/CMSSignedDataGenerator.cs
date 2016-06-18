@@ -143,13 +143,11 @@ namespace Org.BouncyCastle.Cms
 #endif
 
 				Asn1Set signedAttr = null;
-				if (sAttr != null)
+                IDictionary parameters = outer.GetBaseParameters(contentType, digAlgId, hash);
+                Asn1.Cms.AttributeTable signed = sAttr == null ? null : sAttr.GetAttributes(parameters);
+
+				if (signed != null && signed.Count > 0)
 				{
-					IDictionary parameters = outer.GetBaseParameters(contentType, digAlgId, hash);
-
-//					Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(Collections.unmodifiableMap(parameters));
-					Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(parameters);
-
                     if (contentType == null) //counter signature
                     {
                         if (signed != null && signed[CmsAttributes.ContentType] != null)
@@ -187,7 +185,10 @@ namespace Org.BouncyCastle.Cms
 
 					// TODO Validate proposed unsigned attributes
 
-					unsignedAttr = outer.GetAttributeSet(unsigned);
+                    if (unsigned.Count > 0)
+                    {
+						unsignedAttr = outer.GetAttributeSet(unsigned);
+                    }
 				}
 
 				// TODO[RSAPSS] Need the ability to specify non-default parameters
