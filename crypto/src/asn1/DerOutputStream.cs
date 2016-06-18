@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1
 			}
 		}
 
-		internal void WriteEncoded(
+		public virtual void WriteEncoded(
 			int		tag,
 			byte[]	bytes)
 		{
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1
 			Write(bytes, 0, bytes.Length);
 		}
 
-        internal void WriteEncoded(
+        public virtual void WriteEncoded(
             int     tag,
             byte    first,
             byte[]  bytes)
@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1
             Write(bytes, 0, bytes.Length);
         }
 
-        internal void WriteEncoded(
+        public virtual void WriteEncoded(
 			int		tag,
 			byte[]	bytes,
 			int		offset,
@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Asn1
 			Write(bytes, offset, length);
 		}
 
-		internal void WriteTag(
+		public virtual void WriteTag(
 			int	flags,
 			int	tagNo)
 		{
@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Asn1
 			}
 		}
 
-		internal void WriteEncoded(
+		public virtual void WriteEncoded(
 			int		flags,
 			int		tagNo,
 			byte[]	bytes)
@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Asn1
 			Write(bytes, 0, bytes.Length);
 		}
 
-		protected void WriteNull()
+		protected virtual void WriteNull()
 		{
 			WriteByte(Asn1Tags.Null);
 			WriteByte(0x00);
