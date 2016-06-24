@@ -77,8 +77,7 @@
     <NuSpecFile Include="$(SolutionDir)Portable.BouncyCastle.nuspec" />
   </ItemGroup>
   <PropertyGroup>
-    <!-- dotnet, uap10.0 & net46 tfms -->
-    <NuSpecTfm>dotnet;uap10.0;net46</NuSpecTfm>
+    <NuSpecTfm>netstandard1.3</NuSpecTfm>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\BouncyCastle.snk">
