@@ -1,0 +1,12 @@
+﻿{
+  "supports": {
+  },
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "NuSpec.ReferenceGenerator": "2.0.0-beta-bld14"
+  },
+  "frameworks": {
+    "netstandard1.0": {
+    }
+  }
+}
