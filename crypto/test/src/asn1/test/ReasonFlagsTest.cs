@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			BitStringConstantTester.testFlagValueCorrect(8, ReasonFlags.AACompromise);
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new ReasonFlagsTest());

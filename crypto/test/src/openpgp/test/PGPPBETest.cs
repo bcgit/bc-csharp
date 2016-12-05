@@ -157,11 +157,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 TestDateTime);
 
 			ldOut.Write(text, 0, text.Length);
-			ldOut.Close();
+#if PORTABLE
+            ldOut.Dispose();
+
+            comOut.Dispose();
+#else
+            ldOut.Close();
 
 			comOut.Close();
-
-			//
+#endif
+            //
             // encrypt - with stream close
             //
             MemoryStream cbOut = new UncloseableMemoryStream();
@@ -173,7 +178,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			byte[] bOutData = bOut.ToArray();
 			Stream cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length);
             cOut.Write(bOutData, 0, bOutData.Length);
+#if PORTABLE
+            cOut.Dispose();
+#else
             cOut.Close();
+#endif
 
 			data = DecryptMessage(cbOut.ToArray());
             if (!Arrays.AreEqual(data, text))
@@ -321,11 +330,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			ldOut.Write(msg, 0, msg.Length);
 
-			ldOut.Close();
+#if PORTABLE
+            ldOut.Dispose();
+
+            comOut.Dispose();
+#else
+            ldOut.Close();
 
 			comOut.Close();
-        
-			cbOut = new MemoryStream();
+#endif
+
+            cbOut = new MemoryStream();
 			cPk = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Cast5, true, rand);
 
             cPk.AddMethod(pass, HashAlgorithmTag.Sha1);
@@ -335,7 +350,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			data = bOut.ToArray();
 			cOut.Write(data, 0, data.Length);
 
-			cOut.Close();
+#if PORTABLE
+            cOut.Dispose();
+#else
+            cOut.Close();
+#endif
 
 			data = DecryptMessage(cbOut.ToArray());
 			if (!AreEqual(data, msg))
@@ -356,18 +375,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		private class UncloseableMemoryStream
 			: MemoryStream
 		{
-			public override void Close()
+#if PORTABLE
+            protected override void Dispose(bool disposing)
+            {
+                throw new Exception("Dispose() called on underlying stream");
+            }
+#else
+            public override void Close()
 			{
 				throw new Exception("Close() called on underlying stream");
 			}
-		}
+#endif
+        }
 
 		public override string Name
         {
 			get { return "PGPPBETest"; }
         }
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
         {
 			RunTest(new PgpPbeTest());

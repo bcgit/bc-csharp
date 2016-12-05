@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using System.Reflection;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.Cms;
@@ -320,7 +320,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
                 Fail("Didn't find OpenSSL key");
             }
 
-            if (!expectedPrivKeyType.IsInstanceOfType(kp.Private))
+            if (!expectedPrivKeyType.GetTypeInfo().IsInstanceOfType(kp.Private))
             {
                 Fail("Returned key not of correct type");
             }
@@ -362,7 +362,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             return new PemReader(tr, pGet);
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new ReaderTest());

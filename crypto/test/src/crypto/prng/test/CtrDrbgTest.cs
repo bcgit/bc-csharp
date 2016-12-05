@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             get { return "CTRDRBGTest"; }
         }
 
-        public static void Main(string[] args)
+        public static void MainOld(string[] args)
         {
             RunTest(new CtrDrbgTest());
         }

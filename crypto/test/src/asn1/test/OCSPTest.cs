@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "Ocsp"; }
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			ITest test = new OcspTest();

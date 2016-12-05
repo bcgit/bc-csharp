@@ -453,7 +453,7 @@ namespace Org.BouncyCastle.Tests
             nullPointerTest();
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new Pkcs10CertRequestTest());

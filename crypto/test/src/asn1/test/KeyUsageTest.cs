@@ -31,13 +31,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 			BitStringConstantTester.testFlagValueCorrect(7, KeyUsage.EncipherOnly);
 			BitStringConstantTester.testFlagValueCorrect(8, KeyUsage.DecipherOnly);
 		}
-
-		public static void Main(
+#if !LIB
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new KeyUsageTest());
 		}
-
+#endif
 		[Test]
 		public void TestFunction()
 		{

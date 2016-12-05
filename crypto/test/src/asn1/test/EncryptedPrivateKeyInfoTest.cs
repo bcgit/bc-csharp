@@ -132,7 +132,8 @@ namespace Org.BouncyCastle.Asn1.Tests
             return new SimpleTestResult(true, Name + ": Okay");
         }
 
-		public static void Main(
+#if !LIB
+		public static void MainOld(
 			string[] args)
 		{
 			ITest test = new EncryptedPrivateKeyInfoTest();
@@ -140,6 +141,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			Console.WriteLine(result);
         }
+#endif
 
         [Test]
         public void TestFunction()

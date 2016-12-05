@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public static void Main(string[] args)
+        public static void MainOld(string[] args)
         {
             RunTest(new StreamCipherResetTest());
         }

@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Threefish-1024"; }
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new Threefish1024Test());

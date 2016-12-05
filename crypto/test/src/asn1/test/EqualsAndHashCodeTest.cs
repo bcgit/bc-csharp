@@ -79,13 +79,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			get { return "EqualsAndHashCode"; }
 		}
-
-        public static void Main(
+#if !LIB
+        public static void MainOld(
             string[] args)
         {
 			RunTest(new EqualsAndHashCodeTest());
         }
-
+#endif
 		[Test]
         public void TestFunction()
         {

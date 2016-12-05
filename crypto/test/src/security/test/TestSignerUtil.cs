@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Security.Tests
             {
                 ISigner signer = SignerUtilities.GetSigner(algorithm);
 
-                string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
+                string upper = algorithm.ToUpperInvariant();
                 int withPos = upper.LastIndexOf("WITH");
 
                 string cipherName = withPos < 0

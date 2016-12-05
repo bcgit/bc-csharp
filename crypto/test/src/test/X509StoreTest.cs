@@ -318,7 +318,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "IX509Store"; }
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new X509StoreTest());

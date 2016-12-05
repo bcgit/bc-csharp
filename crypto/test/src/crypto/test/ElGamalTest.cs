@@ -269,7 +269,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			TestInitCheck();
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new ElGamalTest());

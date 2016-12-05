@@ -642,7 +642,7 @@ namespace Org.BouncyCastle.Tests
             TestExceptions();
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new DHTest());

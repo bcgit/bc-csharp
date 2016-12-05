@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Rijndael"; }
         }
 
-        public static void Main(
+        public static void MainOld(
 			string[] args)
         {
             ITest test = new RijndaelTest();

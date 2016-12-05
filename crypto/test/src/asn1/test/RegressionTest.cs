@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             new X9Test(),
         };
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             for (int i = 0; i != tests.Length; i++)

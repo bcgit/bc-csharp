@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Tests
 			}
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new MqvTest());

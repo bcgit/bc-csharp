@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Tests
 			new Crl5Test(),
 		};
 
-		public static void Main(
+		public static void MainOld(
             string[] args)
         {
             for (int i = 0; i != tests.Length; i++)

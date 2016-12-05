@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ecNR239bitPrime();
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             EcNrTest test = new EcNrTest();

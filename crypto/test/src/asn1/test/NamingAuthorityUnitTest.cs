@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkOptionalField("namingAuthorityText", namingAuthorityText, auth.NamingAuthorityText);
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new NamingAuthorityUnitTest());

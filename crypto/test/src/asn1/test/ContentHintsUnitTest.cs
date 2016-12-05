@@ -76,11 +76,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkOptionalField("description", description, hints.ContentDescription);
 		}
 
-		public static void Main(
+#if !LIB
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new ContentHintsUnitTest());
 		}
+#endif
 
 		[Test]
 		public void TestFunction()

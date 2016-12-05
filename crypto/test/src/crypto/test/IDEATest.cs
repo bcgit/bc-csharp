@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             ITest test = new IdeaTest();

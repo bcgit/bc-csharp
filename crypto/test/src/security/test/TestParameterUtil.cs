@@ -1,5 +1,5 @@
 using System;
-
+using System.Reflection;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Security.Tests
 			Type			expectedType,
 			byte[]			expectedBytes)
 		{
-			Assert.IsTrue(expectedType.IsInstanceOfType(key));
+			Assert.IsTrue(expectedType.GetTypeInfo().IsInstanceOfType(key));
 			Assert.IsTrue(Arrays.AreEqual(expectedBytes, key.GetKey()));
 		}
 	}

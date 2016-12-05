@@ -923,7 +923,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             TestECMqvRandom();
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new ECTest());

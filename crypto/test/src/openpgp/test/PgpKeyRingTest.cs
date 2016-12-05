@@ -2374,7 +2374,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             get { return "PgpKeyRingTest"; }
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new PgpKeyRingTest());

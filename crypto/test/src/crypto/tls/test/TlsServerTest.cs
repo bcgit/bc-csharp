@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !LIB
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -19,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
     {
         private static readonly SecureRandom secureRandom = new SecureRandom();
 
-        public static void Main(string[] args)
+        public static void MainOld(string[] args)
         {
             int port = 5556;
 
@@ -76,3 +77,4 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         }
     }
 }
+#endif

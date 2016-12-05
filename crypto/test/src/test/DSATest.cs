@@ -855,7 +855,7 @@ namespace Org.BouncyCastle.Tests
             get { return "DSA/ECDSA"; }
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new DsaTest());

@@ -40,11 +40,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 			return Streams.ReadAll(SimpleTest.GetTestDataAsStream("asn1." + name));
 		}
 
-		public static void Main(
+#if !LIB
+		public static void MainOld(
             string[] args)
         {
             RunTest(new CscaMasterListTest());
         }
+#endif
 
 		[Test]
         public void TestFunction()

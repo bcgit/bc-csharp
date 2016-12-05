@@ -325,7 +325,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ecGOST3410_CParam();
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             ECGost3410Test test = new ECGost3410Test();

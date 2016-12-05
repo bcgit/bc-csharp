@@ -34,10 +34,17 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             get { return mInner.CanWrite; }
         }
 
-        public override void Close()
+#if PORTABLE
+        protected override void Dispose(bool disposing)
         {
             lock (this) mClosed = true;
         }
+#else
+        public override void Close()
+		{
+			lock (this) mClosed = true;
+		}
+#endif
 
         public override void Flush()
         {

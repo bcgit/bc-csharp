@@ -59,12 +59,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			checkMandatoryField("information", information, syntax.Information);
 		}
-
-		public static void Main(
+#if !LIB
+        public static void MainOld(
 			string[] args)
 		{
 			RunTest(new AdditionalInformationSyntaxUnitTest());
 		}
+#endif
 
 		[Test]
 		public void TestFunction()

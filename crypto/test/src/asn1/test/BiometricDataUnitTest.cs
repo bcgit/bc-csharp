@@ -116,11 +116,13 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-		public static void Main(
+        #if !LIB
+		public static void MainOld(
             string[] args)
         {
             RunTest(new BiometricDataUnitTest());
         }
+#endif
 
 		[Test]
         public void TestFunction()

@@ -93,7 +93,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		public static void Main(
+#if !LIB
+		public static void MainOld(
 			string[] args)
 		{
 			DerUtf8StringTest test = new DerUtf8StringTest();
@@ -101,6 +102,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			Console.WriteLine(result);
 		}
+#endif
 
 		[Test]
 		public void TestFunction()

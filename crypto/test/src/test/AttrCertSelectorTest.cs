@@ -205,7 +205,7 @@ namespace Org.BouncyCastle.Tests
 			TestSelector();
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new AttrCertSelectorTest());

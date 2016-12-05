@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "Pkcs12"; }
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new Pkcs12Test());

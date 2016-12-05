@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             get { return "X9"; }
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new X9Test());

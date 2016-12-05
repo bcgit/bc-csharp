@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         private bool mClosed = false;
 
         private PipedStream mOther = null;
-        private long mReadPos = 0;
+        private int mReadPos = 0;
 
         internal PipedStream()
         {
@@ -41,7 +41,10 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             get { return true; }
         }
 
-        public override void Close()
+
+
+#if PORTABLE
+        protected override void Dispose(bool disposing)
         {
             lock (this)
             {
@@ -49,6 +52,16 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 Monitor.PulseAll(this);
             }
         }
+#else
+        public override void Close()
+		{
+			lock (this)
+            {
+                mClosed = true;
+                Monitor.PulseAll(this);
+            }
+		}
+#endif
 
         public override void Flush()
         {
@@ -81,7 +94,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             {
                 WaitForData();
                 int len = (int)System.Math.Min(count, mOther.mBuf.Position - mReadPos);
-                Array.Copy(mOther.mBuf.GetBuffer(), mReadPos, buffer, offset, len);
+                Array.Copy(mOther.mBuf.ToArray(), mReadPos, buffer, offset, len);
                 mReadPos += len;
                 return len;
             }
@@ -93,7 +106,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             {
                 WaitForData();
                 bool eof = (mReadPos >= mOther.mBuf.Position);
-                return eof ? -1 : mOther.mBuf.GetBuffer()[mReadPos++];
+                return eof ? -1 : mOther.mBuf.ToArray()[mReadPos++];
             }
         }
 

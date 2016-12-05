@@ -357,7 +357,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new KeccakDigest((KeccakDigest)digest);
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new KeccakDigestTest());

@@ -285,7 +285,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "CMac"; }
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new CMacTest());

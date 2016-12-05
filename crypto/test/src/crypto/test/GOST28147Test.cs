@@ -314,7 +314,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Gost28147"; }
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			ITest test = new Gost28147Test();

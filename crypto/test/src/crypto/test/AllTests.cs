@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	public class AllTests
 	{
 #if !LIB
-        public static void Main(string[] args)
+        public static void MainOld(string[] args)
         {
             Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         }
@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 #endif
 
-        [Test]
+		[Test]
 		public void TestCrypto()
 		{
 			foreach (Org.BouncyCastle.Utilities.Test.ITest test in RegressionTest.tests)

@@ -5175,7 +5175,7 @@ namespace Org.BouncyCastle.Tests
 			End_Certificate_RL_09_01_crt
 		};
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new NistCertPathTest());

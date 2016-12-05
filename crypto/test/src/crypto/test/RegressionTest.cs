@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new ShakeDigestTest(),
         };
 
-        public static void Main(string[] args)
+        public static void MainOld(string[] args)
         {
             foreach (ITest test in tests)
             {

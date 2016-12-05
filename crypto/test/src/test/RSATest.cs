@@ -665,7 +665,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "RSATest"; }
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			ITest test = new RsaTest();

@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             get { return "PGPNoPrivateKeyTest"; }
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new PgpNoPrivateKeyTest());

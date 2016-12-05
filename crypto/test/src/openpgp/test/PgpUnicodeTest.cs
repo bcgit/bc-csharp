@@ -2,7 +2,6 @@
 using System.IO;
 using System.Text;
 
-using NUnit.Core;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
@@ -123,7 +122,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             return new PgpSecretKeyRingBundle(SimpleTest.GetTestDataAsStream("openpgp.unicode." + keyName));
         }
 
-        public static void Main(string[] args)
+#if !LIB
+        public static void MainOld(string[] args)
         {
             Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         }
@@ -138,5 +138,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 return suite;
             }
         }
+#endif
     }
 }

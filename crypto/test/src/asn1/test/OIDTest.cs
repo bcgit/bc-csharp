@@ -128,8 +128,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 			onCheck("1.1", "1.1.1", true);
 			onCheck("1.1", "1.1.2", true);
 		}
-
-		public static void Main(
+#if !LIB
+		public static void MainOld(
 			string[] args)
 		{
 			ITest test = new OidTest();
@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			Console.WriteLine(result);
 		}
-
+#endif
 		[Test]
 		public void TestFunction()
 		{

@@ -229,7 +229,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return s;
         }
 
-        public static void Main(
+        public static void MainOld(
             string[]    args)
         {
             RunTest(new Sha3DigestTest());

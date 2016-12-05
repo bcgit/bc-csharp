@@ -781,7 +781,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             OaepVecTest(1027, 6, pubParam, privParam, seed_1027_6, input_1027_6, output_1027_6);
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new OaepTest());

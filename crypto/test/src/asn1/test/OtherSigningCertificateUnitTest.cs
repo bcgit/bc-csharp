@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("GetCerts()[0]", otherCertID, otherCert.GetCerts()[0]);
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new OtherSigningCertificateUnitTest());

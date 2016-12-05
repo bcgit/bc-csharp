@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Noekeon"; }
 		}
 
-		public static void Main(
+		public static void MainOld(
 			string[] args)
 		{
 			RunTest(new NoekeonTest());

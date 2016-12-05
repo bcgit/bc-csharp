@@ -192,7 +192,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             char sign = '+';
 
             // Note: GetUtcOffset incorporates Daylight Savings offset
-            TimeSpan offset =  TimeZone.CurrentTimeZone.GetUtcOffset(date);
+            TimeSpan offset =  TimeZoneInfo.Local.GetUtcOffset(date);
             if (offset.CompareTo(TimeSpan.Zero) < 0)
             {
                 sign = '-';
@@ -213,12 +213,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             return time.ToString();
         }
-
-        public static void Main(
+#if !LIB
+        public static void MainOld(
             string[] args)
         {
             RunTest(new GeneralizedTimeTest());
         }
+#endif
 
         [Test]
         public void TestFunction()

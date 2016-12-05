@@ -73,8 +73,8 @@ namespace Org.BouncyCastle.Asn1.Tests
         {
             get { return "Misc"; }
         }
-
-        public static void Main(
+#if !LIB
+        public static void MainOld(
             string[] args)
         {
             ITest test = new MiscTest();
@@ -82,6 +82,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             Console.WriteLine(result);
         }
+#endif
 
         [Test]
         public void TestFunction()
