@@ -1,0 +1,11 @@
+tag-prefix: 'pcl-[vV]'
+legacy-semver-padding: 0
+branches:
+  pcl:
+    mode: ContinuousDeployment    
+    tag: beta
+    increment: Inherit
+  netstandard:
+    mode: ContinuousDeployment    
+    tag: beta
+    increment: Inherit

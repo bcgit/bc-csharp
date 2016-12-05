@@ -1,4 +1,4 @@
-#if !PORTABLE || DOTNET
+#if !PORTABLE || NETSTANDARD1_3
 using System;
 using System.IO;
 
@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Cms
 	{
 		private const int DefaultBufSize = 32 * 1024;
 
-        private readonly FileInfo	_file;
+		private readonly FileInfo	_file;
 		private readonly int		_bufSize;
 
         public CmsProcessableFile(FileInfo file)
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Cms
 			_bufSize = bufSize;
 		}
 
-        public virtual Stream GetInputStream()
+		public virtual Stream GetInputStream()
 		{
 			return new FileStream(_file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, _bufSize);
 		}
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Cms
             Platform.Dispose(inStr);
 		}
 
-        /// <returns>The file handle</returns>
+		/// <returns>The file handle</returns>
 		[Obsolete]
 		public virtual object GetContent()
 		{

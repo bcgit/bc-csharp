@@ -1,3 +1,12 @@
+BouncyCastle-PCL
+================
+
+PCL Version of BouncyCastle targeting .NET Framework 4, Silverlight 5, Windows 8, Windows Phone App 8.1, MonoTouch, MonoAndroid
+
+This version also supports .NET Core and CoreCLR
+
+================
+
 # The Bouncy Castle Crypto Package For C Sharp
 
 The Bouncy Castle Crypto package is a C\# implementation of cryptographic algorithms and protocols, it was developed by the Legion of the Bouncy Castle, a registered Australian Charity, with a little help! The Legion, and the latest goings on with this package, can be found at [http://www.bouncycastle.org](http://www.bouncycastle.org). In addition to providing basic cryptography algorithms, the package also provides support for CMS, TSP, X.509 certificate generation and a variety of other standards such as OpenPGP.

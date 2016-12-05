@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             z.free();
             z=null;
         }
-        
+
 #if PORTABLE
         protected override void Dispose(bool disposing)
         {
