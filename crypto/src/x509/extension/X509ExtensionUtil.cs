@@ -44,9 +44,11 @@ namespace Org.BouncyCastle.X509.Extension
 				{
 					Asn1Sequence seq = DerSequence.GetInstance(FromExtensionValue(extVal));
 
-					foreach (GeneralName genName in seq)
+					foreach (Asn1Encodable primName in seq)
 					{
                         IList list = Platform.CreateArrayList();
+                        GeneralName genName = GeneralName.GetInstance(primName);
+
 						list.Add(genName.TagNo);
 
 						switch (genName.TagNo)
