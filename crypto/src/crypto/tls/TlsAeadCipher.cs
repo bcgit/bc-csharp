@@ -10,8 +10,14 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class TlsAeadCipher
         :   TlsCipher
     {
+        // TODO[draft-zauner-tls-aes-ocb-04] Apply data volume limit described in section 8.4
+
         public const int NONCE_RFC5288 = 1;
-        internal const int NONCE_DRAFT_ZAUNER_TLS_AES_OCB = 2;
+    
+        /*
+         * draft-zauner-tls-aes-ocb-04 specifies the nonce construction from draft-ietf-tls-chacha20-poly1305-04
+         */
+        internal const int NONCE_DRAFT_CHACHA20_POLY1305 = 2;
 
         protected readonly TlsContext context;
         protected readonly int macSize;
@@ -22,6 +28,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected readonly IAeadBlockCipher decryptCipher;
 
         protected readonly byte[] encryptImplicitNonce, decryptImplicitNonce;
+
+        protected readonly int nonceMode;
 
         /// <exception cref="IOException"></exception>
         public TlsAeadCipher(TlsContext context, IAeadBlockCipher clientWriteCipher, IAeadBlockCipher serverWriteCipher,
@@ -37,12 +45,19 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (!TlsUtilities.IsTlsV12(context))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
+            this.nonceMode = nonceMode;
+
+            // TODO SecurityParameters.fixed_iv_length
+            int fixed_iv_length;
+
             switch (nonceMode)
             {
                 case NONCE_RFC5288:
+                    fixed_iv_length = 4;
                     this.record_iv_length = 8;
                     break;
-                case NONCE_DRAFT_ZAUNER_TLS_AES_OCB:
+                case NONCE_DRAFT_CHACHA20_POLY1305:
+                    fixed_iv_length = 12;
                     this.record_iv_length = 0;
                     break;
                 default:
@@ -51,9 +66,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             this.context = context;
             this.macSize = macSize;
-
-            // TODO SecurityParameters.fixed_iv_length
-            int fixed_iv_length = 4;
 
             int key_block_size = (2 * cipherKeySize) + (2 * fixed_iv_length);
 
@@ -93,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 decryptKey = server_write_key;
             }
 
-            byte[] dummyNonce = new byte[fixed_iv_length + 8];
+            byte[] dummyNonce = new byte[fixed_iv_length + record_iv_length];
 
             this.encryptCipher.Init(true, new AeadParameters(encryptKey, 8 * macSize, dummyNonce));
             this.decryptCipher.Init(false, new AeadParameters(decryptKey, 8 * macSize, dummyNonce));
@@ -108,16 +120,25 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <exception cref="IOException"></exception>
         public virtual byte[] EncodePlaintext(long seqNo, byte type, byte[] plaintext, int offset, int len)
         {
-            byte[] nonce = new byte[this.encryptImplicitNonce.Length + 8];
-            Array.Copy(encryptImplicitNonce, 0, nonce, 0, encryptImplicitNonce.Length);
+            byte[] nonce = new byte[encryptImplicitNonce.Length + record_iv_length];
 
-            /*
-             * RFC 5288/6655: The nonce_explicit MAY be the 64-bit sequence number.
-             * draft-zauner-tls-aes-ocb-03: uses the sequence number (not included in message).
-             * 
-             * (May need review for other AEAD ciphers).
-             */
-            TlsUtilities.WriteUint64(seqNo, nonce, encryptImplicitNonce.Length);
+            switch (nonceMode)
+            {
+                case NONCE_RFC5288:
+                    Array.Copy(encryptImplicitNonce, 0, nonce, 0, encryptImplicitNonce.Length);
+                    // RFC 5288/6655: The nonce_explicit MAY be the 64-bit sequence number.
+                    TlsUtilities.WriteUint64(seqNo, nonce, encryptImplicitNonce.Length);
+                    break;
+                case NONCE_DRAFT_CHACHA20_POLY1305:
+                    TlsUtilities.WriteUint64(seqNo, nonce, nonce.Length - 8);
+                    for (int i = 0; i < encryptImplicitNonce.Length; ++i)
+                    {
+                        nonce[i] ^= encryptImplicitNonce[i];
+                    }
+                    break;
+                default:
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
 
             int plaintextOffset = offset;
             int plaintextLength = len;
@@ -159,16 +180,23 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (GetPlaintextLimit(len) < 0)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
 
-            byte[] nonce = new byte[this.decryptImplicitNonce.Length + 8];
-            Array.Copy(decryptImplicitNonce, 0, nonce, 0, decryptImplicitNonce.Length);
-            //Array.Copy(ciphertext, offset, nonce, decryptImplicitNonce.Length, nonce_explicit_length);
-            if (record_iv_length == 0)
+            byte[] nonce = new byte[decryptImplicitNonce.Length + record_iv_length];
+
+            switch (nonceMode)
             {
-                TlsUtilities.WriteUint64(seqNo, nonce, decryptImplicitNonce.Length);
-            }
-            else
-            {
-                Array.Copy(ciphertext, offset, nonce, nonce.Length - record_iv_length, record_iv_length);
+                case NONCE_RFC5288:
+                    Array.Copy(decryptImplicitNonce, 0, nonce, 0, decryptImplicitNonce.Length);
+                    Array.Copy(ciphertext, offset, nonce, nonce.Length - record_iv_length, record_iv_length);
+                    break;
+                case NONCE_DRAFT_CHACHA20_POLY1305:
+                    TlsUtilities.WriteUint64(seqNo, nonce, nonce.Length - 8);
+                    for (int i = 0; i < decryptImplicitNonce.Length; ++i)
+                    {
+                        nonce[i] ^= decryptImplicitNonce[i];
+                    }
+                    break;
+                default:
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
             }
 
             int ciphertextOffset = offset + record_iv_length;

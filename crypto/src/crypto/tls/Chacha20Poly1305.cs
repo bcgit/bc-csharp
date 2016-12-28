@@ -145,10 +145,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             byte[] firstBlock = new byte[64];
             cipher.ProcessBytes(firstBlock, 0, firstBlock.Length, firstBlock, 0);
 
-            // NOTE: The BC implementation puts 'r' after 'k'
-            Array.Copy(firstBlock, 0, firstBlock, 32, 16);
-            Poly1305KeyGenerator.Clamp(firstBlock, 16);
-            KeyParameter macKey = new KeyParameter(firstBlock, 16, 32);
+            KeyParameter macKey = new KeyParameter(firstBlock, 0, 32);
             Arrays.Fill(firstBlock, (byte)0);
             return macKey;
         }

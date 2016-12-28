@@ -46,6 +46,9 @@ namespace Org.BouncyCastle.Crypto.Agreement
             ICipherParameters pubKey)
         {
             ECPublicKeyParameters pub = (ECPublicKeyParameters) pubKey;
+            if (!pub.Parameters.Equals(privKey.Parameters))
+                throw new InvalidOperationException("ECDH public key has wrong domain parameters");
+
             ECPoint P = pub.Q.Multiply(privKey.D).Normalize();
 
             if (P.IsInfinity)

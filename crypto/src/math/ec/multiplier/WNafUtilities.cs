@@ -423,7 +423,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                              *      1) additions do not use the curve's A, B coefficients.
                              *      2) no special cases (i.e. Q +/- Q) when calculating 1P, 3P, 5P, ...
                              */
-                            if (ECAlgorithms.IsFpCurve(c) && c.FieldSize >= 64)
+                            if (!twiceP.IsInfinity && ECAlgorithms.IsFpCurve(c) && c.FieldSize >= 64)
                             {
                                 switch (c.CoordinateSystem)
                                 {

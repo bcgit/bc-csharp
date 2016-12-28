@@ -3794,6 +3794,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\generators\HKDFBytesGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\generators\KDF1BytesGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4244,6 +4249,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\parameters\HKDFParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\parameters\IESParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4660,6 +4670,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\CertificateRequest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\CertificateType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11450,6 +11465,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\HKDFGeneratorTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\IDEATest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12031,6 +12051,16 @@
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\UnreliableDatagramTransport.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\custom\sec\test\SecP256R1FieldTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\custom\sec\test\SecP384R1FieldTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

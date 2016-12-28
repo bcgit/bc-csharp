@@ -90,6 +90,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Kdf1GeneratorTest(),
             new Kdf2GeneratorTest(),
             new Mgf1GeneratorTest(),
+            new HkdfGeneratorTest(),
             new DHKekGeneratorTest(),
             new ECDHKekGeneratorTest(),
             new ShortenedDigestTest(),

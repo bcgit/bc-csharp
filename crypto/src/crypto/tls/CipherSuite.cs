@@ -347,7 +347,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int DRAFT_TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAE;
 
         /*
-         * draft-zauner-tls-aes-ocb-03 (code points TBD)
+         * draft-zauner-tls-aes-ocb-04 (code points TBD)
          */
         public const int DRAFT_TLS_DHE_RSA_WITH_AES_128_OCB = 0xFF00;
         public const int DRAFT_TLS_DHE_RSA_WITH_AES_256_OCB = 0xFF01;

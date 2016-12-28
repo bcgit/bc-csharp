@@ -53,19 +53,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             catch (TlsFatalAlert fatalAlert)
             {
-                recordLayer.Fail(fatalAlert.AlertDescription);
+                AbortClientHandshake(state, recordLayer, fatalAlert.AlertDescription);
                 throw fatalAlert;
             }
             catch (IOException e)
             {
-                recordLayer.Fail(AlertDescription.internal_error);
+                AbortClientHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw e;
             }
             catch (Exception e)
             {
-                recordLayer.Fail(AlertDescription.internal_error);
+                AbortClientHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
+            finally
+            {
+                securityParameters.Clear();
+            }
+        }
+
+        internal virtual void AbortClientHandshake(ClientHandshakeState state, DtlsRecordLayer recordLayer, byte alertDescription)
+        {
+            recordLayer.Fail(alertDescription);
+            InvalidateSession(state);
         }
 
         internal virtual DtlsTransport ClientHandshake(ClientHandshakeState state, DtlsRecordLayer recordLayer)

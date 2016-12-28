@@ -185,8 +185,10 @@ namespace Org.BouncyCastle.Tests.Nist
 				new string[] { "NegativeSerialNumberCACert", "InvalidNegativeSerialNumberTest15EE" },
 				new string[] { TRUST_ANCHOR_ROOT_CRL, "NegativeSerialNumberCACRL" },
 				0,
-				"Certificate revocation after Thu Apr 19 14:57:20",
-				"reason: keyCompromise");
+                // NOTE: Date/time part is locale-dependent
+                //"Certificate revocation after Thu Apr 19 14:57:20",
+                "Certificate revocation after",
+                "reason: keyCompromise");
 		}
 
 		//

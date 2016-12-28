@@ -626,8 +626,8 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             ulong x_3 = x[3];
-            ulong zz_5 = zz[5];
-            ulong zz_6 = zz[6];
+            ulong zz_5 = zz[5] + (zz_4 >> 32); zz_4 &= M;
+            ulong zz_6 = zz[6] + (zz_5 >> 32); zz_5 &= M;
             {
                 zz_3 += x_3 * x_0;
                 w = (uint)zz_3;
@@ -702,8 +702,8 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             ulong x_3 = x[xOff + 3];
-            ulong zz_5 = zz[zzOff + 5];
-            ulong zz_6 = zz[zzOff + 6];
+            ulong zz_5 = zz[zzOff + 5] + (zz_4 >> 32); zz_4 &= M;
+            ulong zz_6 = zz[zzOff + 6] + (zz_5 >> 32); zz_5 &= M;
             {
                 zz_3 += x_3 * x_0;
                 w = (uint)zz_3;

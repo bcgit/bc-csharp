@@ -28,6 +28,17 @@ namespace Org.BouncyCastle.Asn1
 			{
 				return (DerBitString) obj;
 			}
+            if (obj is byte[])
+            {
+                try
+                {
+                    return (DerBitString)FromByteArray((byte[])obj);
+                }
+                catch (Exception e)
+                {
+                    throw new ArgumentException("encoding error in GetInstance: " + e.ToString());
+                }
+            }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
 		}

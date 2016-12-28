@@ -261,7 +261,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
 
             /*
-             * draft-zauner-tls-aes-ocb-03
+             * draft-zauner-tls-aes-ocb-04
              */
             case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_AES_128_OCB:
             case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_AES_256_OCB:
@@ -279,8 +279,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static bool AreOnSameCurve(ECDomainParameters a, ECDomainParameters b)
         {
-            // TODO Move to ECDomainParameters.Equals() or other utility method?
-            return a.Curve.Equals(b.Curve) && a.G.Equals(b.G) && a.N.Equals(b.N) && a.H.Equals(b.H);
+            return a != null && a.Equals(b);
         }
 
         public static bool IsSupportedNamedCurve(int namedCurve)

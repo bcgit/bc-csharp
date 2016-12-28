@@ -193,6 +193,7 @@
     <Compile Include="src\crypto\test\GcmReorderTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyVecTest.cs" />
+    <Compile Include="src\crypto\test\HKDFGeneratorTest.cs" />
     <Compile Include="src\crypto\test\IDEATest.cs" />
     <Compile Include="src\crypto\test\ISAACTest.cs" />
     <Compile Include="src\crypto\test\ISO9796Test.cs" />
@@ -311,6 +312,8 @@
     <Compile Include="src\crypto\tls\test\TlsTestSuite.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestUtilities.cs" />
     <Compile Include="src\crypto\tls\test\UnreliableDatagramTransport.cs" />
+    <Compile Include="src\math\ec\custom\sec\test\SecP256R1FieldTest.cs" />
+    <Compile Include="src\math\ec\custom\sec\test\SecP384R1FieldTest.cs" />
     <Compile Include="src\math\ec\test\AllTests.cs" />
     <Compile Include="src\math\ec\test\ECAlgorithmsTest.cs" />
     <Compile Include="src\math\ec\test\ECPointPerformanceTest.cs" />
