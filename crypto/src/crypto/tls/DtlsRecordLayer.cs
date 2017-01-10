@@ -237,7 +237,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                             if (alertLevel == AlertLevel.fatal)
                             {
-                                Fail(alertDescription);
+                                Failed();
                                 throw new TlsFatalAlert(alertDescription);
                             }
 
@@ -371,6 +371,16 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     Warn(AlertDescription.user_canceled, "User canceled handshake");
                 }
+                CloseTransport();
+            }
+        }
+
+        internal virtual void Failed()
+        {
+            if (!mClosed)
+            {
+                mFailed = true;
+
                 CloseTransport();
             }
         }

@@ -12055,6 +12055,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\math\ec\custom\sec\test\SecP256R1FieldTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\custom\sec\test\SecP384R1FieldTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\math\ec\test\AllTests.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

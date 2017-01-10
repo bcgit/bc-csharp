@@ -294,6 +294,18 @@ We state, where EC MQV has not otherwise been disabled or removed:
 
         <h4><a class="mozTocH4" name="mozTocId85316"></a>Release 1.8.2, Release Date TBD</h4>
 
+        <h5>Security Advisory</h5>
+        <ul>
+            <li>
+                Carry propagation bugs in the implementation of squaring for several raw math classes have been fixed (Org.BouncyCastle.Math.Raw.Nat???).
+                These classes are used by our custom elliptic curve implementations (Org.BouncyCastle.Math.Ec.Custom.**), so there was the possibility
+                of rare (in general usage) spurious calculations for elliptic curve scalar multiplications. Such errors would have been detected with
+                high probability by the output validation for our scalar multipliers. We consider these bugs to be exploitable for static ECDH with
+                long-term keys, per <a href="https://eprint.iacr.org/2011/633">"Practical realisation and elimination of an ECC-related software bug attack",
+                Brumley et.al.</a>
+            </li>
+        </ul>
+
         <h5>IMPORTANT</h5>
         <ul>
             <li>
@@ -381,7 +393,7 @@ We state, where EC MQV has not otherwise been disabled or removed:
             <li>RFC 6637 ECDSA and ECDH support has been added to the OpenPGP API.</li>
             <li>Implementations of Threefish and Skein have been added.</li>
             <li>Implementation of the SM3 digest has been added.</li>
-            <li>Implementations of XSalsa20 and ChaCha have been added. Support for reduced round Salas20 has been added.</li>
+            <li>Implementations of XSalsa20 and ChaCha have been added. Support for reduced round Salsa20 has been added.</li>
             <li>Support has been added for RFC 6979 Deterministic DSA/ECDSA.</li>
             <li>Support for the Poly1305 MAC has been added.</li>
             <li>GCM and GMAC now support tag lengths down to 32 bits.</li>

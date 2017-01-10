@@ -54,19 +54,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             catch (TlsFatalAlert fatalAlert)
             {
-                recordLayer.Fail(fatalAlert.AlertDescription);
+                AbortServerHandshake(state, recordLayer, fatalAlert.AlertDescription);
                 throw fatalAlert;
             }
             catch (IOException e)
             {
-                recordLayer.Fail(AlertDescription.internal_error);
+                AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw e;
             }
             catch (Exception e)
             {
-                recordLayer.Fail(AlertDescription.internal_error);
+                AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
+            finally
+            {
+                securityParameters.Clear();
+            }
+        }
+
+        internal virtual void AbortServerHandshake(ServerHandshakeState state, DtlsRecordLayer recordLayer, byte alertDescription)
+        {
+            recordLayer.Fail(alertDescription);
+            InvalidateSession(state);
         }
 
         internal virtual DtlsTransport ServerHandshake(ServerHandshakeState state, DtlsRecordLayer recordLayer)
@@ -261,6 +271,21 @@ namespace Org.BouncyCastle.Crypto.Tls
             state.server.NotifyHandshakeComplete();
 
             return new DtlsTransport(recordLayer);
+        }
+
+        protected virtual void InvalidateSession(ServerHandshakeState state)
+        {
+            if (state.sessionParameters != null)
+            {
+                state.sessionParameters.Clear();
+                state.sessionParameters = null;
+            }
+
+            if (state.tlsSession != null)
+            {
+                state.tlsSession.Invalidate();
+                state.tlsSession = null;
+            }
         }
 
         protected virtual byte[] GenerateCertificateRequest(ServerHandshakeState state, CertificateRequest certificateRequest)
@@ -650,6 +675,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             internal TlsServer server = null;
             internal TlsServerContextImpl serverContext = null;
+            internal TlsSession tlsSession = null;
+            internal SessionParameters sessionParameters = null;
+            internal SessionParameters.Builder sessionParametersBuilder = null;
             internal int[] offeredCipherSuites = null;
             internal byte[] offeredCompressionMethods = null;
             internal IDictionary clientExtensions = null;

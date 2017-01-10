@@ -706,8 +706,8 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             ulong x_3 = x[3];
-            ulong zz_5 = zz[5];
-            ulong zz_6 = zz[6];
+            ulong zz_5 = zz[5] + (zz_4 >> 32); zz_4 &= M;
+            ulong zz_6 = zz[6] + (zz_5 >> 32); zz_5 &= M;
             {
                 zz_3 += x_3 * x_0;
                 w = (uint)zz_3;
@@ -721,8 +721,8 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             ulong x_4 = x[4];
-            ulong zz_7 = zz[7];
-            ulong zz_8 = zz[8];
+            ulong zz_7 = zz[7] + (zz_6 >> 32); zz_6 &= M;
+            ulong zz_8 = zz[8] + (zz_7 >> 32); zz_7 &= M;
             {
                 zz_4 += x_4 * x_0;
                 w = (uint)zz_4;
@@ -738,8 +738,8 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             ulong x_5 = x[5];
-            ulong zz_9 = zz[9];
-            ulong zz_10 = zz[10];
+            ulong zz_9 = zz[9] + (zz_8 >> 32); zz_8 &= M;
+            ulong zz_10 = zz[10] + (zz_9 >> 32); zz_9 &= M;
             {
                 zz_5 += x_5 * x_0;
                 w = (uint)zz_5;
@@ -822,8 +822,8 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             ulong x_3 = x[xOff + 3];
-            ulong zz_5 = zz[zzOff + 5];
-            ulong zz_6 = zz[zzOff + 6];
+            ulong zz_5 = zz[zzOff + 5] + (zz_4 >> 32); zz_4 &= M;
+            ulong zz_6 = zz[zzOff + 6] + (zz_5 >> 32); zz_5 &= M;
             {
                 zz_3 += x_3 * x_0;
                 w = (uint)zz_3;
@@ -837,8 +837,8 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             ulong x_4 = x[xOff + 4];
-            ulong zz_7 = zz[zzOff + 7];
-            ulong zz_8 = zz[zzOff + 8];
+            ulong zz_7 = zz[zzOff + 7] + (zz_6 >> 32); zz_6 &= M;
+            ulong zz_8 = zz[zzOff + 8] + (zz_7 >> 32); zz_7 &= M;
             {
                 zz_4 += x_4 * x_0;
                 w = (uint)zz_4;
@@ -854,8 +854,8 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             ulong x_5 = x[xOff + 5];
-            ulong zz_9 = zz[zzOff + 9];
-            ulong zz_10 = zz[zzOff + 10];
+            ulong zz_9 = zz[zzOff + 9] + (zz_8 >> 32); zz_8 &= M;
+            ulong zz_10 = zz[zzOff + 10] + (zz_9 >> 32); zz_9 &= M;
             {
                 zz_5 += x_5 * x_0;
                 w = (uint)zz_5;
