@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;netstandard1.0;portable-net4+sl5+wp8+win8+wpa81;net4</TargetFrameworks>
     <AssemblyName>BouncyCastle.Crypto</AssemblyName>
@@ -39,16 +39,8 @@
     <DefineConstants>$(DefineConstants);PORTABLE;NO_THREADS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" />
     <Compile Include="..\bzip2\src\**\*.cs" />
-    <None Include="..\..\BouncyCastle.snk">
-      <Link>BouncyCastle.snk</Link>
-    </None>
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' or '$(TargetFramework)' == 'netstandard1.0' ">
-    <PackageReference Include="NETStandard.Library">
-      <Version>1.6.0</Version>
-    </PackageReference>
+    <None Include="..\..\BouncyCastle.snk" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net4' ">
     <Reference Include="System" />
