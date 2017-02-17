@@ -131,11 +131,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 ECFieldElement Y2 = L2;
                 ECFieldElement L = Y1.Add(Y2).Divide(X1);
 
-                //X3 = L.Square().Add(L).Add(X1).Add(curve.A);
                 X3 = L.Square().Add(L).Add(X1).AddOne();
                 if (X3.IsZero)
                 {
-                    //return new SecT571K1Point(curve, X3, curve.B.sqrt(), IsCompressed);
                     return new SecT571K1Point(curve, X3, curve.B, IsCompressed);
                 }
 
@@ -153,7 +151,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 X3 = AU1.Multiply(AU2);
                 if (X3.IsZero)
                 {
-                    //return new SecT571K1Point(curve, X3, curve.B.sqrt(), IsCompressed);
                     return new SecT571K1Point(curve, X3, curve.B, IsCompressed);
                 }
 
@@ -205,7 +202,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             if (T.IsZero)
             {
-                //return new SecT571K1Point(curve, T, curve.B.sqrt(), withCompression);
                 return new SecT571K1Point(curve, T, curve.B, IsCompressed);
             }
 
@@ -250,10 +246,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ECFieldElement Z1Sq = Z1.Square();
             ECFieldElement L1Z1 = L1.Multiply(Z1);
 
-            //ECFieldElement T = curve.A.Multiply(Z1Sq).Add(L1Sq).Add(L1Z1);
             ECFieldElement T = L1Sq.Add(L1Z1);
             ECFieldElement L2plus1 = L2.AddOne();
-            //ECFieldElement A = curve.A.Add(L2plus1).Multiply(Z1Sq).Add(L1Sq).MultiplyPlusProduct(T, X1Sq, Z1Sq);
             ECFieldElement A = L2plus1.Multiply(Z1Sq).Add(L1Sq).MultiplyPlusProduct(T, X1Sq, Z1Sq);
             ECFieldElement X2Z1Sq = X2.Multiply(Z1Sq);
             ECFieldElement B = X2Z1Sq.Add(T).Square();
@@ -268,7 +262,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             if (A.IsZero)
             {
-                //return new SecT571K1Point(curve, A, curve.B.sqrt(), withCompression);
                 return new SecT571K1Point(curve, A, curve.B, IsCompressed);
             }
 
