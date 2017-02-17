@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 ECFieldElement Y2 = L2;
                 ECFieldElement L = Y1.Add(Y2).Divide(X1);
 
-                X3 = L.Square().Add(L).Add(X1).AddOne();
+                X3 = L.Square().Add(L).Add(X1);
                 if (X3.IsZero)
                 {
                     return new SecT571K1Point(curve, X3, curve.B, IsCompressed);
