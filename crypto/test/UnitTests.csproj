@@ -432,6 +432,7 @@
     <Compile Include="src\util\test\TestFailedException.cs" />
     <Compile Include="src\util\test\UncloseableStream.cs" />
     <Compile Include="src\x509\test\TestCertificateGen.cs" />
+    <Compile Include="src\crypto\test\HKDFBytesGeneratorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="data\crypto\SHA3TestVectors.txt" />
