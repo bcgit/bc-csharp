@@ -1494,6 +1494,7 @@
     <Compile Include="src\x509\store\X509CrlStoreSelector.cs" />
     <Compile Include="src\x509\store\X509StoreException.cs" />
     <Compile Include="src\x509\store\X509StoreFactory.cs" />
+    <Compile Include="src\crypto\parameters\HKDFParameters.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Contributors.html" />
