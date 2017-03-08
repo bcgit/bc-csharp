@@ -14,8 +14,8 @@ assembly_info:
   patch: false
         
 build_script:
-  - cmd: dotnet restore BouncyCastle.sln
-  - cmd: dotnet pack BouncyCastle.sln -c Release /p:PackageId="Portable.BouncyCastle" /p:PackageOutputPath="%APPVEYOR_BUILD_FOLDER%"
+  - cmd: msbuild /t:restore BouncyCastle.sln
+  - cmd: msbuild /t:pack BouncyCastle.sln /p:PackageId="Portable.BouncyCastle" /p:PackageOutputPath="%APPVEYOR_BUILD_FOLDER%"
   
 after_build:
   - cmd: '.\packages\gitlink\lib\net45\GitLink.exe . -f BouncyCastle.sln -u https://github.com/onovotny/bc-csharp -c Release -s %APPVEYOR_REPO_COMMIT% -errorsaswarnings'    
