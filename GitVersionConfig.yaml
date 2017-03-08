@@ -5,7 +5,9 @@ branches:
     mode: ContinuousDeployment    
     tag: beta
     increment: Inherit
+    regex: pcl
   netstandard:
     mode: ContinuousDeployment    
     tag: beta
     increment: Inherit
+    regex: netstandard
