@@ -21,4 +21,4 @@ build_script:
 after_build:
   - cmd: '.\packages\gitlink\lib\net45\GitLink.exe . -f BouncyCastle.sln -u https://github.com/onovotny/bc-csharp -c Release -s %APPVEYOR_REPO_COMMIT% -errorsaswarnings'    
   - ps: '.\scripts\Sign-Package.ps1'  
-  - ps: 'cmd /c "appveyor PushArtifact Portable.BouncyCastle.*.nupkg";if($lastexitcode -ne 0){$lastexitcode = 0}'
+  - ps: 'cmd /c "appveyor PushArtifact *.nupkg";if($lastexitcode -ne 0){$lastexitcode = 0}'
