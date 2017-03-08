@@ -43,7 +43,7 @@
     <tags>bouncycastle, cryptography, encryption, security, PCL, wp8, wpa81, coreclr, netstandard, dnx, uwp, sl5, monotouch, monoandroid, xamarin, xamarin.ios</tags>
     <dependencies>
       <group targetFramework="netstandard1.0">
-        <dependency id="NETStandard.Library" version="1.6.0" />
+        <dependency id="NETStandard.Library" version="1.6.1" />
       </group>
       <group targetFramework="net4" />
     </dependencies>
