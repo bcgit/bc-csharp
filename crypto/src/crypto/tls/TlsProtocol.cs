@@ -1214,6 +1214,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             switch (ciphersuite)
             {
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA256:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_GCM_SHA256:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256:
@@ -1317,6 +1320,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
 
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_GCM_SHA384:
             case CipherSuite.TLS_DH_DSS_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_256_GCM_SHA384:

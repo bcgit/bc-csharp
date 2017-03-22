@@ -27,6 +27,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             switch (keyExchange)
             {
+            case KeyExchangeAlgorithm.DH_anon:
             case KeyExchangeAlgorithm.DH_RSA:
             case KeyExchangeAlgorithm.DH_DSS:
                 this.mTlsSigner = null;
@@ -56,11 +57,14 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void SkipServerCredentials()
         {
-            throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            if (mKeyExchange != KeyExchangeAlgorithm.DH_anon)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
+            if (mKeyExchange == KeyExchangeAlgorithm.DH_anon)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
             if (serverCertificate.IsEmpty)
                 throw new TlsFatalAlert(AlertDescription.bad_certificate);
 
@@ -109,14 +113,40 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 switch (mKeyExchange)
                 {
+                case KeyExchangeAlgorithm.DH_anon:
                 case KeyExchangeAlgorithm.DHE_DSS:
                 case KeyExchangeAlgorithm.DHE_RSA:
-                case KeyExchangeAlgorithm.DH_anon:
                     return true;
                 default:
                     return false;
                 }
             }
+        }
+
+        public override byte[] GenerateServerKeyExchange()
+        {
+            if (!RequiresServerKeyExchange)
+                return null;
+
+            // DH_anon is handled here, DHE_* in a subclass
+
+            MemoryStream buf = new MemoryStream();
+            this.mDHAgreePrivateKey = TlsDHUtilities.GenerateEphemeralServerKeyExchange(mContext.SecureRandom,
+                this.mDHParameters, buf);
+            return buf.ToArray();
+        }
+
+        public override void ProcessServerKeyExchange(Stream input)
+        {
+            if (!RequiresServerKeyExchange)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
+
+            // DH_anon is handled here, DHE_* in a subclass
+
+            ServerDHParams dhParams = ServerDHParams.Parse(input);
+
+            this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(dhParams.PublicKey);
+            this.mDHParameters = ValidateDHParameters(mDHAgreePublicKey.Parameters);
         }
 
         public override void ValidateCertificateRequest(CertificateRequest certificateRequest)
@@ -140,6 +170,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void ProcessClientCredentials(TlsCredentials clientCredentials)
         {
+            if (mKeyExchange == KeyExchangeAlgorithm.DH_anon)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
             if (clientCredentials is TlsAgreementCredentials)
             {
                 // TODO Validate client cert has matching parameters (see 'areCompatibleParameters')?
@@ -172,12 +205,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void ProcessClientCertificate(Certificate clientCertificate)
         {
-            // TODO Extract the public key and validate
+            if (mKeyExchange == KeyExchangeAlgorithm.DH_anon)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-            /*
-             * TODO If the certificate is 'fixed', take the public key as dhAgreePublicKey and check
-             * that the parameters match the server's (see 'areCompatibleParameters').
-             */
+            // TODO Extract the public key
+            // TODO If the certificate is 'fixed', take the public key as dhAgreePublicKey
         }
 
         public override void ProcessClientKeyExchange(Stream input)
