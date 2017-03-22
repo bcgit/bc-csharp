@@ -26,14 +26,21 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             TcpListener ss = new TcpListener(IPAddress.Any, port);
             ss.Start();
             Stream stdout = Console.OpenStandardOutput();
-            while (true)
+            try
             {
-                TcpClient s = ss.AcceptTcpClient();
-                Console.WriteLine("--------------------------------------------------------------------------------");
-                Console.WriteLine("Accepted " + s);
-                ServerThread st = new ServerThread(s, stdout);
-                Thread t = new Thread(new ThreadStart(st.Run));
-                t.Start();
+                while (true)
+                {
+                    TcpClient s = ss.AcceptTcpClient();
+                    Console.WriteLine("--------------------------------------------------------------------------------");
+                    Console.WriteLine("Accepted " + s);
+                    ServerThread st = new ServerThread(s, stdout);
+                    Thread t = new Thread(new ThreadStart(st.Run));
+                    t.Start();
+                }
+            }
+            finally
+            {
+                ss.Stop();
             }
         }
 
