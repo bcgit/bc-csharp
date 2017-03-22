@@ -488,9 +488,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 if (!mRecordStream.ReadRecord())
                 {
-                    // TODO It would be nicer to allow graceful connection close if between records
-    //                this.FailWithError(AlertLevel.warning, AlertDescription.close_notify);
-                    throw new EndOfStreamException();
+                    throw new TlsNoCloseNotifyException();
                 }
             }
             catch (TlsFatalAlert e)

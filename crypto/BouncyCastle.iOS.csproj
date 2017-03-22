@@ -1062,6 +1062,7 @@
     <Compile Include="src\crypto\tls\TlsHandshakeHash.cs" />
     <Compile Include="src\crypto\tls\TlsKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsMac.cs" />
+    <Compile Include="src\crypto\tls\TlsNoCloseNotifyException.cs" />
     <Compile Include="src\crypto\tls\TlsNullCipher.cs" />
     <Compile Include="src\crypto\tls\TlsNullCompression.cs" />
     <Compile Include="src\crypto\tls\TlsPeer.cs" />
