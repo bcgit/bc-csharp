@@ -625,10 +625,19 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             AssertEmpty(buf);
 
+            if (TlsUtilities.IsSsl(Context))
+            {
+                EstablishMasterSecret(Context, mKeyExchange);
+            }
+
             this.mPrepareFinishHash = mRecordStream.PrepareToFinish();
             this.mSecurityParameters.sessionHash = GetCurrentPrfHash(Context, mPrepareFinishHash, null);
 
-            EstablishMasterSecret(Context, mKeyExchange);
+            if (!TlsUtilities.IsSsl(Context))
+            {
+                EstablishMasterSecret(Context, mKeyExchange);
+            }
+
             mRecordStream.SetPendingConnectionState(Peer.GetCompression(), Peer.GetCipher());
 
             if (!mExpectSessionTicket)

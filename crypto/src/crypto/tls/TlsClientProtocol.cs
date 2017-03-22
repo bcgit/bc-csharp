@@ -384,10 +384,19 @@ namespace Org.BouncyCastle.Crypto.Tls
                     SendClientKeyExchangeMessage();
                     this.mConnectionState = CS_CLIENT_KEY_EXCHANGE;
 
+                    if (TlsUtilities.IsSsl(Context))
+                    {
+                        EstablishMasterSecret(Context, mKeyExchange);
+                    }
+
                     TlsHandshakeHash prepareFinishHash = mRecordStream.PrepareToFinish();
                     this.mSecurityParameters.sessionHash = GetCurrentPrfHash(Context, prepareFinishHash, null);
 
-                    EstablishMasterSecret(Context, mKeyExchange);
+                    if (!TlsUtilities.IsSsl(Context))
+                    {
+                        EstablishMasterSecret(Context, mKeyExchange);
+                    }
+
                     mRecordStream.SetPendingConnectionState(Peer.GetCompression(), Peer.GetCipher());
 
                     if (clientCreds != null && clientCreds is TlsSignerCredentials)
