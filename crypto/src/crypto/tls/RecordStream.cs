@@ -359,7 +359,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case ContentType.alert:
             case ContentType.change_cipher_spec:
             case ContentType.handshake:
-            case ContentType.heartbeat:
+            //case ContentType.heartbeat:
                 break;
             default:
                 throw new TlsFatalAlert(alertDescription);

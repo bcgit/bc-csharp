@@ -261,23 +261,19 @@ namespace Org.BouncyCastle.Crypto.Tls
                 ProcessHandshake();
                 break;
             }
-            case ContentType.heartbeat:
-            {
-                if (!mAppDataReady)
-                    throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            //case ContentType.heartbeat:
+            //{
+            //    if (!mAppDataReady)
+            //        throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-                // TODO[RFC 6520]
-    //            mHeartbeatQueue.AddData(buf, offset, len);
-    //            ProcessHeartbeat();
-                break;
-            }
+            //    // TODO[RFC 6520]
+            //    //mHeartbeatQueue.AddData(buf, offset, len);
+            //    //ProcessHeartbeat();
+            //    break;
+            //}
             default:
-                /*
-                 * Uh, we don't know this protocol.
-                 * 
-                 * RFC2246 defines on page 13, that we should ignore this.
-                 */
-                break;
+                // Record type should already have been checked
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
 
