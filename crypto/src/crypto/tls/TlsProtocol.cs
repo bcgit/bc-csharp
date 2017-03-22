@@ -169,7 +169,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     if (this.mClosed)
                     {
-                        // TODO What kind of exception/alert?
+                        // NOTE: Any close during the handshake should have raised an exception.
+                        throw new TlsFatalAlert(AlertDescription.internal_error);
                     }
 
                     SafeReadRecord();
@@ -384,14 +385,16 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
                 else
                 {
-
                     /*
                      * RFC 5246 7.2.1. The other party MUST respond with a close_notify alert of its own
                      * and close down the connection immediately, discarding any pending writes.
                      */
-                    // TODO Can close_notify be a fatal alert?
                     if (description == AlertDescription.close_notify)
                     {
+                        if (!mAppDataReady)
+                        {
+                            throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                        }
                         HandleClose(false);
                     }
 
@@ -506,6 +509,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 if (!mRecordStream.ReadRecord())
                 {
+                    if (!mAppDataReady)
+                    {
+                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                    }
                     throw new TlsNoCloseNotifyException();
                 }
             }
@@ -649,6 +656,26 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /**
+         * Should be called in non-blocking mode when the input data reaches EOF.
+         */
+        public virtual void CloseInput()
+        {
+            if (mBlocking)
+                throw new InvalidOperationException("Cannot use CloseInput() in blocking mode!");
+
+            if (mClosed)
+                return;
+
+            if (mInputBuffers.Available > 0)
+                throw new EndOfStreamException();
+
+            if (!mAppDataReady)
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+            throw new TlsNoCloseNotifyException();
+        }
+
+        /**
          * Offer input from an arbitrary source. Only allowed in non-blocking mode.<br/>
          * <br/>
          * After this method returns, the input buffer is "owned" by this object. Other code
@@ -690,6 +717,16 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
 
                 SafeReadRecord();
+
+                if (mClosed)
+                {
+                    if (mConnectionState != CS_END)
+                    {
+                        // NOTE: Any close during the handshake should have raised an exception.
+                        throw new TlsFatalAlert(AlertDescription.internal_error);
+                    }
+                    break;
+                }
             }
         }
 
