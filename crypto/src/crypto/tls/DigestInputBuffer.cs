@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
@@ -12,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     {
         internal void UpdateDigest(IDigest d)
         {
-            WriteTo(new DigStream(d));
+            Streams.WriteBufTo(this, new DigStream(d));
         }
 
         private class DigStream

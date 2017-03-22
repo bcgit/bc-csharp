@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
@@ -12,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Tls
     {
         internal void UpdateSigner(ISigner s)
         {
-            WriteTo(new SigStream(s));
+            Streams.WriteBufTo(this, new SigStream(s));
         }
 
         private class SigStream

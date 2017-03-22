@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -52,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             TlsUtilities.CheckUint16(buf.Length);
             TlsUtilities.WriteUint16((int)buf.Length, output);
-            buf.WriteTo(output);
+            Streams.WriteBufTo(buf, output);
         }
 
         /**
