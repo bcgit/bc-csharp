@@ -482,6 +482,24 @@ namespace Org.BouncyCastle.Crypto.Tls
             return len;
         }
 
+        protected virtual void SafeCheckRecordHeader(byte[] recordHeader)
+        {
+            try
+            {
+                mRecordStream.CheckRecordHeader(recordHeader);
+            }
+            catch (TlsFatalAlert e)
+            {
+                this.FailWithError(AlertLevel.fatal, e.AlertDescription, "Failed to read record", e);
+                throw e;
+            }
+            catch (Exception e)
+            {
+                this.FailWithError(AlertLevel.fatal, AlertDescription.internal_error, "Failed to read record", e);
+                throw e;
+            }
+        }
+
         protected virtual void SafeReadRecord()
         {
             try
@@ -660,13 +678,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             // loop while there are enough bytes to read the length of the next record
             while (mInputBuffers.Available >= RecordStream.TLS_HEADER_SIZE)
             {
-                byte[] header = new byte[RecordStream.TLS_HEADER_SIZE];
-                mInputBuffers.Peek(header);
+                byte[] recordHeader = new byte[RecordStream.TLS_HEADER_SIZE];
+                mInputBuffers.Peek(recordHeader);
 
-                int totalLength = TlsUtilities.ReadUint16(header, RecordStream.TLS_HEADER_LENGTH_OFFSET) + RecordStream.TLS_HEADER_SIZE;
+                int totalLength = TlsUtilities.ReadUint16(recordHeader, RecordStream.TLS_HEADER_LENGTH_OFFSET) + RecordStream.TLS_HEADER_SIZE;
                 if (mInputBuffers.Available < totalLength)
                 {
                     // not enough bytes to read a whole record
+                    SafeCheckRecordHeader(recordHeader);
                     break;
                 }
 
