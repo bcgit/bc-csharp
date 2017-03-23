@@ -628,16 +628,24 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void WriteHandshakeMessage(byte[] buf, int off, int len)
         {
-            mRecordStream.HandshakeHashUpdater.Write(buf, off, len);
+            if (len < 4)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            while (len > 0)
+            byte type = TlsUtilities.ReadUint8(buf, off);
+            if (type != HandshakeType.hello_request)
+            {
+                mRecordStream.HandshakeHashUpdater.Write(buf, off, len);
+            }
+
+            int total = 0;
+            do
             {
                 // Fragment data according to the current fragment limit.
-                int toWrite = System.Math.Min(len, mRecordStream.GetPlaintextLimit());
-                SafeWriteRecord(ContentType.handshake, buf, off, toWrite);
-                off += toWrite;
-                len -= toWrite;
+                int toWrite = System.Math.Min(len - total, mRecordStream.GetPlaintextLimit());
+                SafeWriteRecord(ContentType.handshake, buf, off + total, toWrite);
+                total += toWrite;
             }
+            while (total < len);
         }
 
         /// <summary>The secure bidirectional stream for this connection</summary>
