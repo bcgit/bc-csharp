@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -24,6 +25,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private MemoryStream mBuffer = new MemoryStream();
 
         private TlsHandshakeHash mHandshakeHash = null;
+        private readonly BaseOutputStream mHandshakeHashUpdater;
 
         private ProtocolVersion mReadVersion = null, mWriteVersion = null;
         private bool mRestrictReadVersion = true;
@@ -37,6 +39,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mOutput = output;
             this.mReadCompression = new TlsNullCompression();
             this.mWriteCompression = this.mReadCompression;
+            this.mHandshakeHashUpdater = new HandshakeHashUpdateStream(this);
         }
 
         internal virtual void Init(TlsContext context)
@@ -257,11 +260,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (plaintextLength < 1 && type != ContentType.application_data)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            if (type == ContentType.handshake)
-            {
-                UpdateHandshakeData(plaintext, plaintextOffset, plaintextLength);
-            }
-
             Stream cOut = mWriteCompression.Compress(mBuffer);
 
             byte[] ciphertext;
@@ -308,16 +306,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return mHandshakeHash; }
         }
 
+        internal virtual Stream HandshakeHashUpdater
+        {
+            get { return mHandshakeHashUpdater; }
+        }
+
         internal virtual TlsHandshakeHash PrepareToFinish()
         {
             TlsHandshakeHash result = mHandshakeHash;
             this.mHandshakeHash = mHandshakeHash.StopTracking();
             return result;
-        }
-
-        internal virtual void UpdateHandshakeData(byte[] message, int offset, int len)
-        {
-            mHandshakeHash.BlockUpdate(message, offset, len);
         }
 
         internal virtual void SafeClose()
@@ -370,6 +368,21 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             if (length > limit)
                 throw new TlsFatalAlert(alertDescription);
+        }
+
+        private class HandshakeHashUpdateStream
+            : BaseOutputStream
+        {
+            private readonly RecordStream mOuter;
+            public HandshakeHashUpdateStream(RecordStream mOuter)
+            {
+                this.mOuter = mOuter;
+            }
+
+            public override void Write(byte[] buf, int off, int len)
+            {
+                mOuter.mHandshakeHash.BlockUpdate(buf, off, len);
+            }
         }
     }
 }

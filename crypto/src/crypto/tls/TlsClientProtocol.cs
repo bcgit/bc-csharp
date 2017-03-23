@@ -135,10 +135,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return mTlsClient; }
         }
 
-        protected override void HandleHandshakeMessage(byte type, byte[] data)
+        protected override void HandleHandshakeMessage(byte type, MemoryStream buf)
         {
-            MemoryStream buf = new MemoryStream(data, false);
-
             if (this.mResumedSession)
             {
                 if (type != HandshakeType.finished || this.mConnectionState != CS_SERVER_HELLO)

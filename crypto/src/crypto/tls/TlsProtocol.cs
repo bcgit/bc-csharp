@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
         }
 
-        protected abstract void HandleHandshakeMessage(byte type, byte[] buf);
+        protected abstract void HandleHandshakeMessage(byte type, MemoryStream buf);
 
         protected virtual void HandleWarningMessage(byte description)
         {
@@ -291,18 +291,14 @@ namespace Org.BouncyCastle.Crypto.Tls
                     byte[] beginning = new byte[4];
                     mHandshakeQueue.Read(beginning, 0, 4, 0);
                     byte type = TlsUtilities.ReadUint8(beginning, 0);
-                    int len = TlsUtilities.ReadUint24(beginning, 1);
+                    int length = TlsUtilities.ReadUint24(beginning, 1);
+                    int totalLength = 4 + length;
 
                     /*
                      * Check if we have enough bytes in the buffer to read the full message.
                      */
-                    if (mHandshakeQueue.Available >= (len + 4))
+                    if (mHandshakeQueue.Available >= totalLength)
                     {
-                        /*
-                         * Read the message.
-                         */
-                        byte[] buf = mHandshakeQueue.RemoveData(len, 4);
-
                         CheckReceivedChangeCipherSpec(mConnectionState == CS_END || type == HandshakeType.finished);
 
                         /*
@@ -325,11 +321,14 @@ namespace Org.BouncyCastle.Crypto.Tls
                                 this.mExpectedVerifyData = CreateVerifyData(!ctx.IsServer);
                             }
 
-                            mRecordStream.UpdateHandshakeData(beginning, 0, 4);
-                            mRecordStream.UpdateHandshakeData(buf, 0, len);
+                            mHandshakeQueue.CopyTo(mRecordStream.HandshakeHashUpdater, totalLength);
                             break;
                         }
                         }
+
+                        mHandshakeQueue.RemoveData(4);
+
+                        MemoryStream buf = mHandshakeQueue.ReadFrom(length);
 
                         /*
                          * Now, parse the message.
@@ -629,6 +628,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void WriteHandshakeMessage(byte[] buf, int off, int len)
         {
+            mRecordStream.HandshakeHashUpdater.Write(buf, off, len);
+
             while (len > 0)
             {
                 // Fragment data according to the current fragment limit.

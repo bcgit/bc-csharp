@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -57,6 +58,54 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.databuf = new byte[capacity];
         }
 
+        /// <summary>Add some data to our buffer.</summary>
+        /// <param name="data">A byte-array to read data from.</param>
+        /// <param name="offset">How many bytes to skip at the beginning of the array.</param>
+        /// <param name="len">How many bytes to read from the array.</param>
+        public void AddData(
+            byte[] data,
+            int offset,
+            int len)
+        {
+            if ((skipped + available + len) > databuf.Length)
+            {
+                int desiredSize = ByteQueue.NextTwoPow(available + len);
+                if (desiredSize > databuf.Length)
+                {
+                    byte[] tmp = new byte[desiredSize];
+                    Array.Copy(databuf, skipped, tmp, 0, available);
+                    databuf = tmp;
+                }
+                else
+                {
+                    Array.Copy(databuf, skipped, databuf, 0, available);
+                }
+                skipped = 0;
+            }
+
+            Array.Copy(data, offset, databuf, skipped + available, len);
+            available += len;
+        }
+
+        /// <summary>The number of bytes which are available in this buffer.</summary>
+        public int Available
+        {
+            get { return available; }
+        }
+
+        /// <summary>Copy some bytes from the beginning of the data to the provided <c cref="Stream">Stream</c>.</summary>
+        /// <param name="output">The <c cref="Stream">Stream</c> to copy the bytes to.</param>
+        /// <param name="length">How many bytes to copy.</param>
+		/// <exception cref="InvalidOperationException">If insufficient data is available.</exception>
+		/// <exception cref="IOException">If there is a problem copying the data.</exception>
+        public void CopyTo(Stream output, int length)
+        {
+            if (length > available)
+                throw new InvalidOperationException("Cannot copy " + length + " bytes, only got " + available);
+
+            output.Write(databuf, skipped, length);
+        }
+
         /// <summary>Read data from the buffer.</summary>
         /// <param name="buf">The buffer where the read data will be copied to.</param>
         /// <param name="offset">How many bytes to skip at the beginning of buf.</param>
@@ -79,33 +128,21 @@ namespace Org.BouncyCastle.Crypto.Tls
             Array.Copy(databuf, skipped + skip, buf, offset, len);
         }
 
-        /// <summary>Add some data to our buffer.</summary>
-        /// <param name="data">A byte-array to read data from.</param>
-        /// <param name="offset">How many bytes to skip at the beginning of the array.</param>
-        /// <param name="len">How many bytes to read from the array.</param>
-        public void AddData(
-            byte[]	data,
-            int		offset,
-            int		len)
+        /// <summary>Return a <c cref="MemoryStream">MemoryStream</c> over some bytes at the beginning of the data.</summary>
+        /// <param name="length">How many bytes will be readable.</param>
+        /// <returns>A <c cref="MemoryStream">MemoryStream</c> over the data.</returns>
+		/// <exception cref="InvalidOperationException">If insufficient data is available.</exception>
+        public MemoryStream ReadFrom(int length)
         {
-            if ((skipped + available + len) > databuf.Length)
-            {
-                int desiredSize = ByteQueue.NextTwoPow(available + len);
-                if (desiredSize > databuf.Length)
-                {
-                    byte[] tmp = new byte[desiredSize];
-                    Array.Copy(databuf, skipped, tmp, 0, available);
-                    databuf = tmp;
-                }
-                else
-                {
-                    Array.Copy(databuf, skipped, databuf, 0, available);
-                }
-                skipped = 0;
-            }
+            if (length > available)
+                throw new InvalidOperationException("Cannot read " + length + " bytes, only got " + available);
 
-            Array.Copy(data, offset, databuf, skipped + available, len);
-            available += len;
+            int position = skipped;
+
+            available -= length;
+            skipped += length;
+
+            return new MemoryStream(databuf, position, length, false);
         }
 
         /// <summary>Remove some bytes from our data from the beginning.</summary>
@@ -136,12 +173,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             byte[] buf = new byte[len];
             RemoveData(buf, 0, len, skip);
             return buf;
-        }
-
-        /// <summary>The number of bytes which are available in this buffer.</summary>
-        public int Available
-        {
-            get { return available; }
         }
     }
 }

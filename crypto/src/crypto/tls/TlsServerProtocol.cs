@@ -124,10 +124,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return mTlsServer; }
         }
 
-        protected override void HandleHandshakeMessage(byte type, byte[] data)
+        protected override void HandleHandshakeMessage(byte type, MemoryStream buf)
         {
-            MemoryStream buf = new MemoryStream(data);
-
             switch (type)
             {
             case HandshakeType.client_hello:
