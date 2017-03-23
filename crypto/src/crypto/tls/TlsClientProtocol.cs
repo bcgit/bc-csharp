@@ -147,7 +147,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 SendFinishedMessage();
                 this.mConnectionState = CS_CLIENT_FINISHED;
-                this.mConnectionState = CS_END;
 
                 CompleteHandshake();
                 return;
@@ -241,7 +240,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                     ProcessFinishedMessage(buf);
                     this.mConnectionState = CS_SERVER_FINISHED;
-                    this.mConnectionState = CS_END;
 
                     CompleteHandshake();
                     break;

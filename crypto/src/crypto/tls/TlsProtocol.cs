@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         /*
          * Queues for data from some protocols.
          */
-        private ByteQueue mApplicationDataQueue = new ByteQueue();
+        private ByteQueue mApplicationDataQueue = new ByteQueue(0);
         private ByteQueue mAlertQueue = new ByteQueue(2);
         private ByteQueue mHandshakeQueue = new ByteQueue();
     //    private ByteQueue mHeartbeatQueue = new ByteQueue();
@@ -182,6 +182,11 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             try
             {
+                this.mConnectionState = CS_END;
+
+                this.mAlertQueue.Shrink();
+                this.mHandshakeQueue.Shrink();
+
                 this.mRecordStream.FinaliseHandshake();
 
                 this.mAppDataSplitEnabled = !TlsUtilities.IsTlsV11(Context);

@@ -174,5 +174,25 @@ namespace Org.BouncyCastle.Crypto.Tls
             RemoveData(buf, 0, len, skip);
             return buf;
         }
+
+        public void Shrink()
+        {
+            if (available == 0)
+            {
+                databuf = TlsUtilities.EmptyBytes;
+                skipped = 0;
+            }
+            else
+            {
+                int desiredSize = ByteQueue.NextTwoPow(available);
+                if (desiredSize < databuf.Length)
+                {
+                    byte[] tmp = new byte[desiredSize];
+                    Array.Copy(databuf, skipped, tmp, 0, available);
+                    databuf = tmp;
+                    skipped = 0;
+                }
+            }
+        }
     }
 }
