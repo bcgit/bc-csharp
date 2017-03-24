@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Crypto.Tls
          */
         private ByteQueue mApplicationDataQueue = new ByteQueue(0);
         private ByteQueue mAlertQueue = new ByteQueue(2);
-        private ByteQueue mHandshakeQueue = new ByteQueue();
+        private ByteQueue mHandshakeQueue = new ByteQueue(0);
     //    private ByteQueue mHeartbeatQueue = new ByteQueue();
 
         /*
@@ -233,7 +233,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected internal void ProcessRecord(byte protocol, byte[] buf, int offset, int len)
+        protected internal void ProcessRecord(byte protocol, byte[] buf, int off, int len)
         {
             /*
              * Have a look at the protocol type, and add it to the correct queue.
@@ -242,8 +242,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
             case ContentType.alert:
             {
-                mAlertQueue.AddData(buf, offset, len);
-                ProcessAlert();
+                mAlertQueue.AddData(buf, off, len);
+                ProcessAlertQueue();
                 break;
             }
             case ContentType.application_data:
@@ -251,19 +251,32 @@ namespace Org.BouncyCastle.Crypto.Tls
                 if (!mAppDataReady)
                     throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-                mApplicationDataQueue.AddData(buf, offset, len);
-                ProcessApplicationData();
+                mApplicationDataQueue.AddData(buf, off, len);
+                ProcessApplicationDataQueue();
                 break;
             }
             case ContentType.change_cipher_spec:
             {
-                ProcessChangeCipherSpec(buf, offset, len);
+                ProcessChangeCipherSpec(buf, off, len);
                 break;
             }
             case ContentType.handshake:
             {
-                mHandshakeQueue.AddData(buf, offset, len);
-                ProcessHandshake();
+                if (mHandshakeQueue.Available > 0)
+                {
+                    mHandshakeQueue.AddData(buf, off, len);
+                    ProcessHandshakeQueue(mHandshakeQueue);
+                }
+                else
+                {
+                    ByteQueue tmpQueue = new ByteQueue(buf, off, len);
+                    ProcessHandshakeQueue(tmpQueue);
+                    int remaining = tmpQueue.Available;
+                    if (remaining > 0)
+                    {
+                        mHandshakeQueue.AddData(buf, off + len - remaining, remaining);
+                    }
+                }
                 break;
             }
             //case ContentType.heartbeat:
@@ -282,71 +295,64 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        private void ProcessHandshake()
+        private void ProcessHandshakeQueue(ByteQueue queue)
         {
-            bool read;
-            do
+            while (queue.Available >= 4)
             {
-                read = false;
                 /*
                  * We need the first 4 bytes, they contain type and length of the message.
                  */
-                if (mHandshakeQueue.Available >= 4)
+                byte[] beginning = new byte[4];
+                queue.Read(beginning, 0, 4, 0);
+                byte type = TlsUtilities.ReadUint8(beginning, 0);
+                int length = TlsUtilities.ReadUint24(beginning, 1);
+                int totalLength = 4 + length;
+
+                /*
+                 * Check if we have enough bytes in the buffer to read the full message.
+                 */
+                if (queue.Available < totalLength)
+                    break;
+
+                CheckReceivedChangeCipherSpec(mConnectionState == CS_END || type == HandshakeType.finished);
+
+                /*
+                 * RFC 2246 7.4.9. The value handshake_messages includes all handshake messages
+                 * starting at client hello up to, but not including, this finished message.
+                 * [..] Note: [Also,] Hello Request messages are omitted from handshake hashes.
+                 */
+                switch (type)
                 {
-                    byte[] beginning = new byte[4];
-                    mHandshakeQueue.Read(beginning, 0, 4, 0);
-                    byte type = TlsUtilities.ReadUint8(beginning, 0);
-                    int length = TlsUtilities.ReadUint24(beginning, 1);
-                    int totalLength = 4 + length;
-
-                    /*
-                     * Check if we have enough bytes in the buffer to read the full message.
-                     */
-                    if (mHandshakeQueue.Available >= totalLength)
+                case HandshakeType.hello_request:
+                    break;
+                case HandshakeType.finished:
+                default:
+                {
+                    TlsContext ctx = Context;
+                    if (type == HandshakeType.finished
+                        && this.mExpectedVerifyData == null
+                        && ctx.SecurityParameters.MasterSecret != null)
                     {
-                        CheckReceivedChangeCipherSpec(mConnectionState == CS_END || type == HandshakeType.finished);
-
-                        /*
-                         * RFC 2246 7.4.9. The value handshake_messages includes all handshake messages
-                         * starting at client hello up to, but not including, this finished message.
-                         * [..] Note: [Also,] Hello Request messages are omitted from handshake hashes.
-                         */
-                        switch (type)
-                        {
-                        case HandshakeType.hello_request:
-                            break;
-                        case HandshakeType.finished:
-                        default:
-                        {
-                            TlsContext ctx = Context;
-                            if (type == HandshakeType.finished
-                                && this.mExpectedVerifyData == null
-                                && ctx.SecurityParameters.MasterSecret != null)
-                            {
-                                this.mExpectedVerifyData = CreateVerifyData(!ctx.IsServer);
-                            }
-
-                            mHandshakeQueue.CopyTo(mRecordStream.HandshakeHashUpdater, totalLength);
-                            break;
-                        }
-                        }
-
-                        mHandshakeQueue.RemoveData(4);
-
-                        MemoryStream buf = mHandshakeQueue.ReadFrom(length);
-
-                        /*
-                         * Now, parse the message.
-                         */
-                        HandleHandshakeMessage(type, buf);
-                        read = true;
+                        this.mExpectedVerifyData = CreateVerifyData(!ctx.IsServer);
                     }
+
+                    queue.CopyTo(mRecordStream.HandshakeHashUpdater, totalLength);
+                    break;
                 }
+                }
+
+                queue.RemoveData(4);
+
+                MemoryStream buf = queue.ReadFrom(length);
+
+                /*
+                 * Now, parse the message.
+                 */
+                HandleHandshakeMessage(type, buf);
             }
-            while (read);
         }
 
-        private void ProcessApplicationData()
+        private void ProcessApplicationDataQueue()
         {
             /*
              * There is nothing we need to do here.
@@ -355,7 +361,7 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
         }
 
-        private void ProcessAlert()
+        private void ProcessAlertQueue()
         {
             while (mAlertQueue.Available >= 2)
             {

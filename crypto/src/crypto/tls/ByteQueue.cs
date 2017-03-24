@@ -48,6 +48,8 @@ namespace Org.BouncyCastle.Crypto.Tls
          */
         private int available = 0;
 
+        private bool readOnlyBuf = false;
+
         public ByteQueue()
             : this(DefaultCapacity)
         {
@@ -55,7 +57,15 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public ByteQueue(int capacity)
         {
-            this.databuf = new byte[capacity];
+            this.databuf = capacity == 0 ? TlsUtilities.EmptyBytes : new byte[capacity];
+        }
+
+        public ByteQueue(byte[] buf, int off, int len)
+        {
+            this.databuf = buf;
+            this.skipped = off;
+            this.available = len;
+            this.readOnlyBuf = true;
         }
 
         /// <summary>Add some data to our buffer.</summary>
@@ -67,6 +77,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             int offset,
             int len)
         {
+            if (readOnlyBuf)
+                throw new InvalidOperationException("Cannot add data to read-only buffer");
+
             if ((skipped + available + len) > databuf.Length)
             {
                 int desiredSize = ByteQueue.NextTwoPow(available + len);
