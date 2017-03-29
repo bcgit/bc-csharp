@@ -427,7 +427,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     break;
                 }
                 default:
-                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                    throw new TlsFatalAlert(AlertDescription.unexpected_message);
                 }
 
                 this.mConnectionState = CS_CLIENT_FINISHED;
