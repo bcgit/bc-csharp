@@ -571,6 +571,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             buf[offset + 1] = (byte)version.MinorVersion;
         }
 
+        public static IList GetAllSignatureAlgorithms()
+        {
+            IList v = Platform.CreateArrayList(4);
+            v.Add(SignatureAlgorithm.anonymous);
+            v.Add(SignatureAlgorithm.rsa);
+            v.Add(SignatureAlgorithm.dsa);
+            v.Add(SignatureAlgorithm.ecdsa);
+            return v;
+        }
+
         public static IList GetDefaultDssSignatureAlgorithms()
         {
             return VectorOfOne(new SignatureAndHashAlgorithm(HashAlgorithm.sha1, SignatureAlgorithm.dsa));
@@ -2286,9 +2296,68 @@ namespace Org.BouncyCastle.Crypto.Tls
             return CipherType.stream == GetCipherType(ciphersuite);
         }
 
+        public static bool IsValidCipherSuiteForSignatureAlgorithms(int cipherSuite, IList sigAlgs)
+        {
+            int keyExchangeAlgorithm;
+            try
+            {
+                keyExchangeAlgorithm = GetKeyExchangeAlgorithm(cipherSuite);
+            }
+            catch (IOException e)
+            {
+                return true;
+            }
+
+            switch (keyExchangeAlgorithm)
+            {
+            case KeyExchangeAlgorithm.DH_anon:
+            case KeyExchangeAlgorithm.DH_anon_EXPORT:
+            case KeyExchangeAlgorithm.ECDH_anon:
+                return sigAlgs.Contains(SignatureAlgorithm.anonymous);
+
+            case KeyExchangeAlgorithm.DHE_RSA:
+            case KeyExchangeAlgorithm.DHE_RSA_EXPORT:
+            case KeyExchangeAlgorithm.ECDHE_RSA:
+            case KeyExchangeAlgorithm.SRP_RSA:
+                return sigAlgs.Contains(SignatureAlgorithm.rsa);
+
+            case KeyExchangeAlgorithm.DHE_DSS:
+            case KeyExchangeAlgorithm.DHE_DSS_EXPORT:
+            case KeyExchangeAlgorithm.SRP_DSS:
+                return sigAlgs.Contains(SignatureAlgorithm.dsa);
+
+            case KeyExchangeAlgorithm.ECDHE_ECDSA:
+                return sigAlgs.Contains(SignatureAlgorithm.ecdsa);
+
+            default:
+                return true;
+            }
+        }
+
         public static bool IsValidCipherSuiteForVersion(int cipherSuite, ProtocolVersion serverVersion)
         {
             return GetMinimumVersion(cipherSuite).IsEqualOrEarlierVersionOf(serverVersion.GetEquivalentTLSVersion());
+        }
+
+        public static IList GetUsableSignatureAlgorithms(IList sigHashAlgs)
+        {
+            if (sigHashAlgs == null)
+                return GetAllSignatureAlgorithms();
+
+            IList v = Platform.CreateArrayList(4);
+            v.Add(SignatureAlgorithm.anonymous);
+            foreach (SignatureAndHashAlgorithm sigHashAlg in sigHashAlgs)
+            {
+                //if (sigHashAlg.Hash >= MINIMUM_HASH_STRICT)
+                {
+                    byte sigAlg = sigHashAlg.Signature;
+                    if (!v.Contains(sigAlg))
+                    {
+                        v.Add(sigAlg);
+                    }
+                }
+            }
+            return v;
         }
     }
 }

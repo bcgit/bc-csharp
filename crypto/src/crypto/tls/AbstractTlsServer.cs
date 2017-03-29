@@ -194,11 +194,12 @@ namespace Org.BouncyCastle.Crypto.Tls
         public virtual int GetSelectedCipherSuite()
         {
             /*
-             * TODO RFC 5246 7.4.3. In order to negotiate correctly, the server MUST check any candidate
+             * RFC 5246 7.4.3. In order to negotiate correctly, the server MUST check any candidate
              * cipher suites against the "signature_algorithms" extension before selecting them. This is
              * somewhat inelegant but is a compromise designed to minimize changes to the original
              * cipher suite design.
              */
+            IList sigAlgs = TlsUtilities.GetUsableSignatureAlgorithms(this.mSupportedSignatureAlgorithms);
 
             /*
              * RFC 4429 5.1. A server that receives a ClientHello containing one or both of these
@@ -216,7 +217,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 if (Arrays.Contains(this.mOfferedCipherSuites, cipherSuite)
                     && (eccCipherSuitesEnabled || !TlsEccUtilities.IsEccCipherSuite(cipherSuite))
-                    && TlsUtilities.IsValidCipherSuiteForVersion(cipherSuite, mServerVersion))
+                    && TlsUtilities.IsValidCipherSuiteForVersion(cipherSuite, mServerVersion)
+                    && TlsUtilities.IsValidCipherSuiteForSignatureAlgorithms(cipherSuite, sigAlgs))
                 {
                     return this.mSelectedCipherSuite = cipherSuite;
                 }
