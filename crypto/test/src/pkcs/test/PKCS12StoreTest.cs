@@ -398,6 +398,81 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			+ "AHoAeQB0AGsAbwB3AG4AaQBrAGEwMTAhMAkGBSsOAwIaBQAEFKJpUOIj0OtI"
 			+ "j2CPp38YIFBEqvjsBAi8G+yhJe3A/wICCAA=");
 
+	    private static readonly byte[] pkcs12SignedByLegacySha1WithRsaAlgorithm = Base64.Decode(
+	        "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" +
+	        "AgfQ");
+
+        private static readonly char[] pkcs12SignedByLegacySha1WithRsaPassword = "Password01!".ToCharArray();
+
 		/**
 		* we generate a self signed certificate for the sake of testing - RSA
 		*/
@@ -739,6 +814,18 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			//
 			stream = new MemoryStream(pkcs12nopass, false);
 			store.Load(stream, "".ToCharArray());
+
+            //
+            // test reading PFX using signing algorithm OID 1.3.14.3.2.29
+            //
+            stream = new MemoryStream(pkcs12SignedByLegacySha1WithRsaAlgorithm, false);
+            store.Load(stream, pkcs12SignedByLegacySha1WithRsaPassword);
+            chain = store.GetCertificateChain("SignedByDodgyCA");
+
+		    if (chain.Length != 2)
+		    {
+		       Fail("Could not read certificate chain using signing algorithm 1.3.14.3.2.29"); 
+		    }
 		}
 
 		private void testSupportedTypes(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain)
