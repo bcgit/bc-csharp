@@ -786,7 +786,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             mSecurityParameters.prfAlgorithm = GetPrfAlgorithm(Context, mSecurityParameters.CipherSuite);
 
             /*
-             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify verify_data_length has
+             * RFC 5246 7.4.9. Any cipher suite which does not explicitly specify verify_data_length has
              * a verify_data_length equal to 12. This includes all existing cipher suites.
              */
             mSecurityParameters.verifyDataLength = 12;

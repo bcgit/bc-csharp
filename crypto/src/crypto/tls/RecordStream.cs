@@ -208,7 +208,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             CheckLength(decoded.Length, mCompressedLimit, AlertDescription.record_overflow);
 
             /*
-             * TODO RFC5264 6.2.2. Implementation note: Decompression functions are responsible for
+             * TODO 5246 6.2.2. Implementation note: Decompression functions are responsible for
              * ensuring that messages cannot cause internal buffer overflows.
              */
             Stream cOut = mReadCompression.Decompress(mBuffer);
@@ -220,14 +220,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             /*
-             * RFC 5264 6.2.2. If the decompression function encounters a TLSCompressed.fragment that
+             * RFC 5246 6.2.2. If the decompression function encounters a TLSCompressed.fragment that
              * would decompress to a length in excess of 2^14 bytes, it should report a fatal
              * decompression failure error.
              */
             CheckLength(decoded.Length, mPlaintextLimit, AlertDescription.decompression_failure);
 
             /*
-             * RFC 5264 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
+             * RFC 5246 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
              * or ChangeCipherSpec content types.
              */
             if (decoded.Length < 1 && type != ContentType.application_data)
@@ -243,18 +243,18 @@ namespace Org.BouncyCastle.Crypto.Tls
                 return;
 
             /*
-             * RFC 5264 6. Implementations MUST NOT send record types not defined in this document
+             * RFC 5246 6. Implementations MUST NOT send record types not defined in this document
              * unless negotiated by some extension.
              */
             CheckType(type, AlertDescription.internal_error);
 
             /*
-             * RFC 5264 6.2.1 The length should not exceed 2^14.
+             * RFC 5246 6.2.1 The length should not exceed 2^14.
              */
             CheckLength(plaintextLength, mPlaintextLimit, AlertDescription.internal_error);
 
             /*
-             * RFC 5264 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
+             * RFC 5246 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
              * or ChangeCipherSpec content types.
              */
             if (plaintextLength < 1 && type != ContentType.application_data)
@@ -274,7 +274,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 byte[] compressed = GetBufferContents();
 
                 /*
-                 * RFC5264 6.2.2. Compression must be lossless and may not increase the content length
+                 * RFC 5246 6.2.2. Compression must be lossless and may not increase the content length
                  * by more than 1024 bytes.
                  */
                 CheckLength(compressed.Length, plaintextLength + 1024, AlertDescription.internal_error);
@@ -283,7 +283,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             /*
-             * RFC 5264 6.2.3. The length may not exceed 2^14 + 2048.
+             * RFC 5246 6.2.3. The length may not exceed 2^14 + 2048.
              */
             CheckLength(ciphertext.Length, mCiphertextLimit, AlertDescription.internal_error);
 

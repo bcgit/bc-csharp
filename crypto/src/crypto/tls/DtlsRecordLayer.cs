@@ -491,7 +491,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             /*
-             * RFC 5264 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
+             * RFC 5246 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
              * or ChangeCipherSpec content types.
              */
             if (len < 1 && contentType != ContentType.application_data)
