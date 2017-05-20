@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             IList testSuite = new ArrayList();
 
             AddFallbackTests(testSuite);
+            AddVersionTests(testSuite, ProtocolVersion.SSLv3);
             AddVersionTests(testSuite, ProtocolVersion.TLSv10);
             AddVersionTests(testSuite, ProtocolVersion.TLSv11);
             AddVersionTests(testSuite, ProtocolVersion.TLSv12);
@@ -194,10 +195,10 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         private static TlsTestConfig CreateTlsTestConfig(ProtocolVersion version)
         {
             TlsTestConfig c = new TlsTestConfig();
-            c.clientMinimumVersion = ProtocolVersion.TLSv10;
+            c.clientMinimumVersion = ProtocolVersion.SSLv3;
             c.clientOfferVersion = ProtocolVersion.TLSv12;
             c.serverMaximumVersion = version;
-            c.serverMinimumVersion = ProtocolVersion.TLSv10;
+            c.serverMinimumVersion = ProtocolVersion.SSLv3;
             return c;
         }
     }

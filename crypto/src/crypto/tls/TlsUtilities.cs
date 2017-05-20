@@ -571,6 +571,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             buf[offset + 1] = (byte)version.MinorVersion;
         }
 
+        public static IList GetAllSignatureAlgorithms()
+        {
+            IList v = Platform.CreateArrayList(4);
+            v.Add(SignatureAlgorithm.anonymous);
+            v.Add(SignatureAlgorithm.rsa);
+            v.Add(SignatureAlgorithm.dsa);
+            v.Add(SignatureAlgorithm.ecdsa);
+            return v;
+        }
+
         public static IList GetDefaultDssSignatureAlgorithms()
         {
             return VectorOfOne(new SignatureAndHashAlgorithm(HashAlgorithm.sha1, SignatureAlgorithm.dsa));
@@ -1260,6 +1270,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             switch (ciphersuite)
             {
+            case CipherSuite.TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
@@ -1279,6 +1290,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
                 return EncryptionAlgorithm.cls_3DES_EDE_CBC;
 
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA256:
             case CipherSuite.TLS_DH_RSA_WITH_AES_128_CBC_SHA:
@@ -1325,6 +1338,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_RSA_WITH_AES_128_CCM_8:
                 return EncryptionAlgorithm.AES_128_CCM_8;
 
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_GCM_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_AES_128_GCM_SHA256:
             case CipherSuite.TLS_DH_RSA_WITH_AES_128_GCM_SHA256:
             case CipherSuite.TLS_DHE_DSS_WITH_AES_128_GCM_SHA256:
@@ -1347,6 +1361,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.DRAFT_TLS_PSK_WITH_AES_128_OCB:
                 return EncryptionAlgorithm.AES_128_OCB_TAGLEN96;
 
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA256:
             case CipherSuite.TLS_DH_RSA_WITH_AES_256_CBC_SHA:
@@ -1393,6 +1409,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_RSA_WITH_AES_256_CCM_8:
                 return EncryptionAlgorithm.AES_256_CCM_8;
 
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DH_DSS_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DH_RSA_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DHE_DSS_WITH_AES_256_GCM_SHA384:
@@ -1415,17 +1432,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.DRAFT_TLS_PSK_WITH_AES_256_OCB:
                 return EncryptionAlgorithm.AES_256_OCB_TAGLEN96;
 
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA:
-            case CipherSuite.TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA:
-            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA:
-            case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA:
-            case CipherSuite.TLS_RSA_WITH_CAMELLIA_128_CBC_SHA:
-                return EncryptionAlgorithm.CAMELLIA_128_CBC;
-
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA:
             case CipherSuite.TLS_DH_RSA_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA:
             case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA:
             case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_ECDH_RSA_WITH_CAMELLIA_128_CBC_SHA256:
@@ -1433,10 +1449,12 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256:
-            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_RSA_WITH_CAMELLIA_128_CBC_SHA:
             case CipherSuite.TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256:
                 return EncryptionAlgorithm.CAMELLIA_128_CBC;
 
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_GCM_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_128_GCM_SHA256:
             case CipherSuite.TLS_DH_RSA_WITH_CAMELLIA_128_GCM_SHA256:
             case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_128_GCM_SHA256:
@@ -1451,30 +1469,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256:
                 return EncryptionAlgorithm.CAMELLIA_128_GCM;
 
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA:
-            case CipherSuite.TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA:
-            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA:
-            case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA:
-            case CipherSuite.TLS_RSA_WITH_CAMELLIA_256_CBC_SHA:
-                return EncryptionAlgorithm.CAMELLIA_256_CBC;
-
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_256_CBC_SHA256:
+            case CipherSuite.TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA:
             case CipherSuite.TLS_DH_RSA_WITH_CAMELLIA_256_CBC_SHA256:
+            case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA:
             case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256:
-            case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256:
-            case CipherSuite.TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256:
-                return EncryptionAlgorithm.CAMELLIA_256_CBC;
-
             case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA:
+            case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256:
             case CipherSuite.TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384:
             case CipherSuite.TLS_ECDH_RSA_WITH_CAMELLIA_256_CBC_SHA384:
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384:
             case CipherSuite.TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384:
             case CipherSuite.TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384:
             case CipherSuite.TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384:
+            case CipherSuite.TLS_RSA_WITH_CAMELLIA_256_CBC_SHA:
+            case CipherSuite.TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256:
             case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384:
                 return EncryptionAlgorithm.CAMELLIA_256_CBC;
 
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_GCM_SHA384:
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_256_GCM_SHA384:
             case CipherSuite.TLS_DH_RSA_WITH_CAMELLIA_256_GCM_SHA384:
             case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_256_GCM_SHA384:
@@ -1542,6 +1559,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_RSA_PSK_WITH_RC4_128_SHA:
                 return EncryptionAlgorithm.RC4_128;
 
+            case CipherSuite.TLS_DH_anon_WITH_SEED_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_SEED_CBC_SHA:
             case CipherSuite.TLS_DH_RSA_WITH_SEED_CBC_SHA:
             case CipherSuite.TLS_DHE_DSS_WITH_SEED_CBC_SHA:
@@ -1558,6 +1576,23 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             switch (ciphersuite)
             {
+            case CipherSuite.TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_DH_anon_WITH_RC4_128_MD5:
+            case CipherSuite.TLS_DH_anon_WITH_SEED_CBC_SHA:
+                return KeyExchangeAlgorithm.DH_anon;
+
             case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA256:
@@ -1837,6 +1872,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             switch (ciphersuite)
             {
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_GCM_SHA384:
             case CipherSuite.TLS_DH_DSS_WITH_AES_128_GCM_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_128_GCM_SHA256:
@@ -1926,10 +1965,17 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384:
                 return MacAlgorithm.cls_null;
 
+            case CipherSuite.TLS_DH_anon_WITH_RC4_128_MD5:
             case CipherSuite.TLS_RSA_WITH_NULL_MD5:
             case CipherSuite.TLS_RSA_WITH_RC4_128_MD5:
                 return MacAlgorithm.hmac_md5;
 
+            case CipherSuite.TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA:
+            case CipherSuite.TLS_DH_anon_WITH_SEED_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA:
             case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA:
@@ -2018,6 +2064,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_SRP_SHA_WITH_AES_256_CBC_SHA:
                 return MacAlgorithm.hmac_sha1;
 
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_AES_128_CBC_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_AES_256_CBC_SHA256:
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_128_CBC_SHA256:
@@ -2092,6 +2142,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             switch (ciphersuite)
             {
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_GCM_SHA256:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256:
@@ -2242,9 +2296,68 @@ namespace Org.BouncyCastle.Crypto.Tls
             return CipherType.stream == GetCipherType(ciphersuite);
         }
 
+        public static bool IsValidCipherSuiteForSignatureAlgorithms(int cipherSuite, IList sigAlgs)
+        {
+            int keyExchangeAlgorithm;
+            try
+            {
+                keyExchangeAlgorithm = GetKeyExchangeAlgorithm(cipherSuite);
+            }
+            catch (IOException e)
+            {
+                return true;
+            }
+
+            switch (keyExchangeAlgorithm)
+            {
+            case KeyExchangeAlgorithm.DH_anon:
+            case KeyExchangeAlgorithm.DH_anon_EXPORT:
+            case KeyExchangeAlgorithm.ECDH_anon:
+                return sigAlgs.Contains(SignatureAlgorithm.anonymous);
+
+            case KeyExchangeAlgorithm.DHE_RSA:
+            case KeyExchangeAlgorithm.DHE_RSA_EXPORT:
+            case KeyExchangeAlgorithm.ECDHE_RSA:
+            case KeyExchangeAlgorithm.SRP_RSA:
+                return sigAlgs.Contains(SignatureAlgorithm.rsa);
+
+            case KeyExchangeAlgorithm.DHE_DSS:
+            case KeyExchangeAlgorithm.DHE_DSS_EXPORT:
+            case KeyExchangeAlgorithm.SRP_DSS:
+                return sigAlgs.Contains(SignatureAlgorithm.dsa);
+
+            case KeyExchangeAlgorithm.ECDHE_ECDSA:
+                return sigAlgs.Contains(SignatureAlgorithm.ecdsa);
+
+            default:
+                return true;
+            }
+        }
+
         public static bool IsValidCipherSuiteForVersion(int cipherSuite, ProtocolVersion serverVersion)
         {
             return GetMinimumVersion(cipherSuite).IsEqualOrEarlierVersionOf(serverVersion.GetEquivalentTLSVersion());
+        }
+
+        public static IList GetUsableSignatureAlgorithms(IList sigHashAlgs)
+        {
+            if (sigHashAlgs == null)
+                return GetAllSignatureAlgorithms();
+
+            IList v = Platform.CreateArrayList(4);
+            v.Add(SignatureAlgorithm.anonymous);
+            foreach (SignatureAndHashAlgorithm sigHashAlg in sigHashAlgs)
+            {
+                //if (sigHashAlg.Hash >= MINIMUM_HASH_STRICT)
+                {
+                    byte sigAlg = sigHashAlg.Signature;
+                    if (!v.Contains(sigAlg))
+                    {
+                        v.Add(sigAlg);
+                    }
+                }
+            }
+            return v;
         }
     }
 }

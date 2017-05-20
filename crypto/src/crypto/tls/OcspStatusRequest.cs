@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -71,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
                 TlsUtilities.CheckUint16(buf.Length);
                 TlsUtilities.WriteUint16((int)buf.Length, output);
-                buf.WriteTo(output);
+                Streams.WriteBufTo(buf, output);
             }
 
             if (mRequestExtensions == null)

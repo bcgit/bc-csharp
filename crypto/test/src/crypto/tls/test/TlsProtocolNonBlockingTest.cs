@@ -52,6 +52,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             // close the connection
             clientProtocol.Close();
             PumpData(clientProtocol, serverProtocol, fragment);
+            serverProtocol.CloseInput();
             CheckClosed(serverProtocol);
             CheckClosed(clientProtocol);
         }

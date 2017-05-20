@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual DHParameters GetDHParameters()
         {
-            return DHStandardGroups.rfc5114_2048_256;
+            return DHStandardGroups.rfc3526_2048;
         }
 
         protected override int[] GetCipherSuites()
@@ -79,6 +79,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 case KeyExchangeAlgorithm.DHE_DSS:
                     return GetDsaSignerCredentials();
 
+                case KeyExchangeAlgorithm.DH_anon:
                 case KeyExchangeAlgorithm.ECDH_anon:
                     return null;
 
@@ -104,6 +105,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             switch (keyExchangeAlgorithm)
             {
+            case KeyExchangeAlgorithm.DH_anon:
             case KeyExchangeAlgorithm.DH_DSS:
             case KeyExchangeAlgorithm.DH_RSA:
                 return CreateDHKeyExchange(keyExchangeAlgorithm);

@@ -5194,6 +5194,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\TlsNoCloseNotifyException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsNullCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

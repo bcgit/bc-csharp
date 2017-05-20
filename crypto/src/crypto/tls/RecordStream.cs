@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -24,6 +25,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private MemoryStream mBuffer = new MemoryStream();
 
         private TlsHandshakeHash mHandshakeHash = null;
+        private readonly BaseOutputStream mHandshakeHashUpdater;
 
         private ProtocolVersion mReadVersion = null, mWriteVersion = null;
         private bool mRestrictReadVersion = true;
@@ -37,6 +39,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mOutput = output;
             this.mReadCompression = new TlsNullCompression();
             this.mWriteCompression = this.mReadCompression;
+            this.mHandshakeHashUpdater = new HandshakeHashUpdateStream(this);
         }
 
         internal virtual void Init(TlsContext context)
@@ -121,6 +124,40 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mPendingCipher = null;
         }
 
+        internal virtual void CheckRecordHeader(byte[] recordHeader)
+        {
+            byte type = TlsUtilities.ReadUint8(recordHeader, TLS_HEADER_TYPE_OFFSET);
+
+            /*
+             * RFC 5246 6. If a TLS implementation receives an unexpected record type, it MUST send an
+             * unexpected_message alert.
+             */
+            CheckType(type, AlertDescription.unexpected_message);
+
+            if (!mRestrictReadVersion)
+            {
+                int version = TlsUtilities.ReadVersionRaw(recordHeader, TLS_HEADER_VERSION_OFFSET);
+                if ((version & 0xffffff00) != 0x0300)
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            }
+            else
+            {
+                ProtocolVersion version = TlsUtilities.ReadVersion(recordHeader, TLS_HEADER_VERSION_OFFSET);
+                if (mReadVersion == null)
+                {
+                    // Will be set later in 'readRecord'
+                }
+                else if (!version.Equals(mReadVersion))
+                {
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                }
+            }
+
+            int length = TlsUtilities.ReadUint16(recordHeader, TLS_HEADER_LENGTH_OFFSET);
+
+            CheckLength(length, mCiphertextLimit, AlertDescription.record_overflow);
+        }
+
         internal virtual bool ReadRecord()
         {
             byte[] recordHeader = TlsUtilities.ReadAllOrNothing(TLS_HEADER_SIZE, mInput);
@@ -155,6 +192,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             int length = TlsUtilities.ReadUint16(recordHeader, TLS_HEADER_LENGTH_OFFSET);
+
+            CheckLength(length, mCiphertextLimit, AlertDescription.record_overflow);
+
             byte[] plaintext = DecodeAndVerify(type, mInput, length);
             mHandler.ProcessRecord(type, plaintext, 0, plaintext.Length);
             return true;
@@ -162,15 +202,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal virtual byte[] DecodeAndVerify(byte type, Stream input, int len)
         {
-            CheckLength(len, mCiphertextLimit, AlertDescription.record_overflow);
-
             byte[] buf = TlsUtilities.ReadFully(len, input);
             byte[] decoded = mReadCipher.DecodeCiphertext(mReadSeqNo++, type, buf, 0, buf.Length);
 
             CheckLength(decoded.Length, mCompressedLimit, AlertDescription.record_overflow);
 
             /*
-             * TODO RFC5264 6.2.2. Implementation note: Decompression functions are responsible for
+             * TODO 5246 6.2.2. Implementation note: Decompression functions are responsible for
              * ensuring that messages cannot cause internal buffer overflows.
              */
             Stream cOut = mReadCompression.Decompress(mBuffer);
@@ -182,14 +220,14 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             /*
-             * RFC 5264 6.2.2. If the decompression function encounters a TLSCompressed.fragment that
+             * RFC 5246 6.2.2. If the decompression function encounters a TLSCompressed.fragment that
              * would decompress to a length in excess of 2^14 bytes, it should report a fatal
              * decompression failure error.
              */
             CheckLength(decoded.Length, mPlaintextLimit, AlertDescription.decompression_failure);
 
             /*
-             * RFC 5264 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
+             * RFC 5246 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
              * or ChangeCipherSpec content types.
              */
             if (decoded.Length < 1 && type != ContentType.application_data)
@@ -205,27 +243,22 @@ namespace Org.BouncyCastle.Crypto.Tls
                 return;
 
             /*
-             * RFC 5264 6. Implementations MUST NOT send record types not defined in this document
+             * RFC 5246 6. Implementations MUST NOT send record types not defined in this document
              * unless negotiated by some extension.
              */
             CheckType(type, AlertDescription.internal_error);
 
             /*
-             * RFC 5264 6.2.1 The length should not exceed 2^14.
+             * RFC 5246 6.2.1 The length should not exceed 2^14.
              */
             CheckLength(plaintextLength, mPlaintextLimit, AlertDescription.internal_error);
 
             /*
-             * RFC 5264 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
+             * RFC 5246 6.2.1 Implementations MUST NOT send zero-length fragments of Handshake, Alert,
              * or ChangeCipherSpec content types.
              */
             if (plaintextLength < 1 && type != ContentType.application_data)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
-
-            if (type == ContentType.handshake)
-            {
-                UpdateHandshakeData(plaintext, plaintextOffset, plaintextLength);
-            }
 
             Stream cOut = mWriteCompression.Compress(mBuffer);
 
@@ -241,7 +274,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 byte[] compressed = GetBufferContents();
 
                 /*
-                 * RFC5264 6.2.2. Compression must be lossless and may not increase the content length
+                 * RFC 5246 6.2.2. Compression must be lossless and may not increase the content length
                  * by more than 1024 bytes.
                  */
                 CheckLength(compressed.Length, plaintextLength + 1024, AlertDescription.internal_error);
@@ -250,7 +283,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             /*
-             * RFC 5264 6.2.3. The length may not exceed 2^14 + 2048.
+             * RFC 5246 6.2.3. The length may not exceed 2^14 + 2048.
              */
             CheckLength(ciphertext.Length, mCiphertextLimit, AlertDescription.internal_error);
 
@@ -273,16 +306,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return mHandshakeHash; }
         }
 
+        internal virtual Stream HandshakeHashUpdater
+        {
+            get { return mHandshakeHashUpdater; }
+        }
+
         internal virtual TlsHandshakeHash PrepareToFinish()
         {
             TlsHandshakeHash result = mHandshakeHash;
             this.mHandshakeHash = mHandshakeHash.StopTracking();
             return result;
-        }
-
-        internal virtual void UpdateHandshakeData(byte[] message, int offset, int len)
-        {
-            mHandshakeHash.BlockUpdate(message, offset, len);
         }
 
         internal virtual void SafeClose()
@@ -324,7 +357,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case ContentType.alert:
             case ContentType.change_cipher_spec:
             case ContentType.handshake:
-            case ContentType.heartbeat:
+            //case ContentType.heartbeat:
                 break;
             default:
                 throw new TlsFatalAlert(alertDescription);
@@ -335,6 +368,21 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             if (length > limit)
                 throw new TlsFatalAlert(alertDescription);
+        }
+
+        private class HandshakeHashUpdateStream
+            : BaseOutputStream
+        {
+            private readonly RecordStream mOuter;
+            public HandshakeHashUpdateStream(RecordStream mOuter)
+            {
+                this.mOuter = mOuter;
+            }
+
+            public override void Write(byte[] buf, int off, int len)
+            {
+                mOuter.mHandshakeHash.BlockUpdate(buf, off, len);
+            }
         }
     }
 }
