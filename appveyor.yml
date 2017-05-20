@@ -9,11 +9,8 @@ environment:
     secure: S26+NphAhj/vo5ZdHd/N/4toty3ztdNGmuNdvAB57W1oIVQEHVKqAVuhTD8B9ATy
 
 install:  
-  - cmd: nuget install SignClient -Version 0.5.0-beta4 -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion -pre
+  - cmd: nuget install SignClient -Version 0.7.0 -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion -pre
 
-assembly_info:
-  patch: false
-        
 build_script:
   - cmd: msbuild /t:restore BouncyCastle.sln
   - cmd: msbuild /t:build BouncyCastle.sln 
@@ -21,4 +18,6 @@ build_script:
   
 after_build:  
   - ps: '.\scripts\Sign-Package.ps1'  
-  - ps: 'cmd /c "appveyor PushArtifact *.nupkg";if($lastexitcode -ne 0){$lastexitcode = 0}'
+
+artifacts:
+  - path: '*.nupkg'
