@@ -160,13 +160,22 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             int padding_length = blockSize - 1 - (enc_input_length % blockSize);
 
-            // TODO[DTLS] Consider supporting in DTLS (without exceeding send limit though)
-            if (!version.IsDtls && !version.IsSsl)
+            /*
+             * Don't use variable-length padding with truncated MACs.
+             * 
+             * See "Tag Size Does Matter: Attacks and Proofs for the TLS Record Protocol", Paterson,
+             * Ristenpart, Shrimpton.
+             */
+            if (encryptThenMac || !context.SecurityParameters.truncatedHMac)
             {
-                // Add a random number of extra blocks worth of padding
-                int maxExtraPadBlocks = (255 - padding_length) / blockSize;
-                int actualExtraPadBlocks = ChooseExtraPadBlocks(context.SecureRandom, maxExtraPadBlocks);
-                padding_length += actualExtraPadBlocks * blockSize;
+                // TODO[DTLS] Consider supporting in DTLS (without exceeding send limit though)
+                if (!version.IsDtls && !version.IsSsl)
+                {
+                    // Add a random number of extra blocks worth of padding
+                    int maxExtraPadBlocks = (255 - padding_length) / blockSize;
+                    int actualExtraPadBlocks = ChooseExtraPadBlocks(context.SecureRandom, maxExtraPadBlocks);
+                    padding_length += actualExtraPadBlocks * blockSize;
+                }
             }
 
             int totalSize = len + macSize + padding_length + 1;
