@@ -10,8 +10,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 {
     public abstract class TlsProtocol
     {
-        private static readonly string TLS_ERROR_MESSAGE = "Internal TLS error, this could be an attack";
-
         /*
          * Our Connection states
          */
@@ -386,8 +384,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                     this.mClosed = true;
 
                     mRecordStream.SafeClose();
+                    if (!mAppDataReady)
+                    {
+                        CleanupHandshake();
+                    }
 
-                    throw new IOException(TLS_ERROR_MESSAGE);
+                    throw new IOException("Fatal alert received from TLS peer: " + AlertDescription.GetText(description));
                 }
                 else
                 {
@@ -464,22 +466,14 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             while (mApplicationDataQueue.Available == 0)
             {
-                /*
-                 * We need to read some data.
-                 */
                 if (this.mClosed)
                 {
                     if (this.mFailedWithError)
-                    {
-                        /*
-                         * Something went terribly wrong, we should throw an IOException
-                         */
-                        throw new IOException(TLS_ERROR_MESSAGE);
-                    }
+                        throw new IOException("Cannot read application data on failed TLS connection");
 
-                    /*
-                     * Connection has been closed, there is no more data to read.
-                     */
+                    if (!mAppDataReady)
+                        throw new InvalidOperationException("Cannot read application data until initial handshake completed.");
+
                     return 0;
                 }
 
@@ -577,12 +571,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected internal virtual void WriteData(byte[] buf, int offset, int len)
         {
             if (this.mClosed)
-            {
-                if (this.mFailedWithError)
-                    throw new IOException(TLS_ERROR_MESSAGE);
-
-                throw new IOException("Sorry, connection has been closed, you cannot write more data");
-            }
+                throw new IOException("Cannot write application data on closed/failed TLS connection");
 
             while (len > 0)
             {
@@ -884,7 +873,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
             }
 
-            throw new IOException(TLS_ERROR_MESSAGE);
+            throw new IOException("TLS connection failed");
         }
 
         protected virtual void InvalidateSession()
