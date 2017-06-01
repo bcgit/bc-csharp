@@ -90,19 +90,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static byte[] ReadSupportedPointFormatsExtension(byte[] extensionData)
         {
-            if (extensionData == null)
-                throw new ArgumentNullException("extensionData");
-
-            MemoryStream buf = new MemoryStream(extensionData, false);
-
-            byte length = TlsUtilities.ReadUint8(buf);
-            if (length < 1)
-                throw new TlsFatalAlert(AlertDescription.decode_error);
-
-            byte[] ecPointFormats = TlsUtilities.ReadUint8Array(length, buf);
-
-            TlsProtocol.AssertEmpty(buf);
-
+            byte[] ecPointFormats = TlsUtilities.DecodeUint8ArrayWithUint8Length(extensionData);
             if (!Arrays.Contains(ecPointFormats, ECPointFormat.uncompressed))
             {
                 /*
@@ -111,7 +99,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
-
             return ecPointFormats;
         }
 

@@ -324,10 +324,45 @@ namespace Org.BouncyCastle.Crypto.Tls
             WriteUint16Array(uints, buf, offset + 2);
         }
 
+        public static byte DecodeUint8(byte[] buf)
+        {
+            if (buf == null)
+                throw new ArgumentNullException("buf");
+            if (buf.Length != 1)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+            return ReadUint8(buf, 0);
+        }
+
+        public static byte[] DecodeUint8ArrayWithUint8Length(byte[] buf)
+        {
+            if (buf == null)
+                throw new ArgumentNullException("buf");
+
+            int count = ReadUint8(buf, 0);
+            if (buf.Length != (count + 1))
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+
+            byte[] uints = new byte[count];
+            for (int i = 0; i < count; ++i)
+            {
+                uints[i] = ReadUint8(buf, i + 1);
+            }
+            return uints;
+        }
+
         public static byte[] EncodeOpaque8(byte[] buf)
         {
             CheckUint8(buf.Length);
             return Arrays.Prepend(buf, (byte)buf.Length);
+        }
+
+        public static byte[] EncodeUint8(byte val)
+        {
+            CheckUint8(val);
+
+            byte[] extensionData = new byte[1];
+            WriteUint8(val, extensionData, 0);
+            return extensionData;
         }
 
         public static byte[] EncodeUint8ArrayWithUint8Length(byte[] uints)

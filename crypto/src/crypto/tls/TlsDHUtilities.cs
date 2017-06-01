@@ -204,36 +204,20 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static byte[] CreateNegotiatedDheGroupsServerExtension(byte dheGroup)
         {
-            return new byte[]{ dheGroup };
+            return TlsUtilities.EncodeUint8(dheGroup);
         }
 
         public static byte[] ReadNegotiatedDheGroupsClientExtension(byte[] extensionData)
         {
-            if (extensionData == null)
-                throw new ArgumentNullException("extensionData");
-
-            MemoryStream buf = new MemoryStream(extensionData, false);
-
-            byte length = TlsUtilities.ReadUint8(buf);
-            if (length < 1)
+            byte[] dheGroups = TlsUtilities.DecodeUint8ArrayWithUint8Length(extensionData);
+            if (dheGroups.Length < 1)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
-
-            byte[] dheGroups = TlsUtilities.ReadUint8Array(length, buf);
-
-            TlsProtocol.AssertEmpty(buf);
-
             return dheGroups;
         }
 
         public static byte ReadNegotiatedDheGroupsServerExtension(byte[] extensionData)
         {
-            if (extensionData == null)
-                throw new ArgumentNullException("extensionData");
-
-            if (extensionData.Length != 1)
-                throw new TlsFatalAlert(AlertDescription.decode_error);
-
-            return extensionData[0];
+            return TlsUtilities.DecodeUint8(extensionData);
         }
 
         public static DHParameters GetParametersForDHEGroup(short dheGroup)

@@ -115,8 +115,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             IList certificate_list = Platform.CreateArrayList();
             while (buf.Position < buf.Length)
             {
-                byte[] derEncoding = TlsUtilities.ReadOpaque24(buf);
-                Asn1Object asn1Cert = TlsUtilities.ReadDerObject(derEncoding);
+                byte[] berEncoding = TlsUtilities.ReadOpaque24(buf);
+                Asn1Object asn1Cert = TlsUtilities.ReadAsn1Object(berEncoding);
                 certificate_list.Add(X509CertificateStructure.GetInstance(asn1Cert));
             }
 
