@@ -287,6 +287,8 @@
     <Compile Include="src\asn1\ess\OtherSigningCertificate.cs" />
     <Compile Include="src\asn1\ess\SigningCertificate.cs" />
     <Compile Include="src\asn1\ess\SigningCertificateV2.cs" />
+    <Compile Include="src\asn1\gm\GMNamedCurves.cs" />
+    <Compile Include="src\asn1\gm\GMObjectIdentifiers.cs" />
     <Compile Include="src\asn1\gnu\GNUObjectIdentifiers.cs" />
     <Compile Include="src\asn1\iana\IANAObjectIdentifiers.cs" />
     <Compile Include="src\asn1\icao\CscaMasterList.cs" />
@@ -1112,6 +1114,10 @@
     <Compile Include="src\math\ec\custom\djb\Curve25519Field.cs" />
     <Compile Include="src\math\ec\custom\djb\Curve25519FieldElement.cs" />
     <Compile Include="src\math\ec\custom\djb\Curve25519Point.cs" />
+    <Compile Include="src\math\ec\custom\gm\SM2P256V1Curve.cs" />
+    <Compile Include="src\math\ec\custom\gm\SM2P256V1Field.cs" />
+    <Compile Include="src\math\ec\custom\gm\SM2P256V1FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\gm\SM2P256V1Point.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP128R1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP128R1Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP128R1FieldElement.cs" />

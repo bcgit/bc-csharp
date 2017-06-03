@@ -2,6 +2,7 @@
 using System.Collections;
 
 using Org.BouncyCastle.Asn1.Anssi;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.TeleTrust;
@@ -25,27 +26,26 @@ namespace Org.BouncyCastle.Asn1.X9
         public static X9ECParameters GetByName(string name)
         {
             X9ECParameters ecP = X962NamedCurves.GetByName(name);
-
             if (ecP == null)
             {
                 ecP = SecNamedCurves.GetByName(name);
             }
-
             if (ecP == null)
             {
                 ecP = NistNamedCurves.GetByName(name);
             }
-
             if (ecP == null)
             {
                 ecP = TeleTrusTNamedCurves.GetByName(name);
             }
-
             if (ecP == null)
             {
                 ecP = AnssiNamedCurves.GetByName(name);
             }
-
+            if (ecP == null)
+            {
+                ecP = GMNamedCurves.GetByName(name);
+            }
             return ecP;
         }
 
@@ -68,6 +68,10 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 name = AnssiNamedCurves.GetName(oid);
             }
+            if (name == null)
+            {
+                name = GMNamedCurves.GetName(oid);
+            }
             return name;
         }
 
@@ -80,27 +84,26 @@ namespace Org.BouncyCastle.Asn1.X9
         public static DerObjectIdentifier GetOid(string name)
         {
             DerObjectIdentifier oid = X962NamedCurves.GetOid(name);
-
             if (oid == null)
             {
                 oid = SecNamedCurves.GetOid(name);
             }
-
             if (oid == null)
             {
                 oid = NistNamedCurves.GetOid(name);
             }
-
             if (oid == null)
             {
                 oid = TeleTrusTNamedCurves.GetOid(name);
             }
-
             if (oid == null)
             {
                 oid = AnssiNamedCurves.GetOid(name);
             }
-
+            if (oid == null)
+            {
+                oid = GMNamedCurves.GetOid(name);
+            }
             return oid;
         }
 
@@ -114,7 +117,6 @@ namespace Org.BouncyCastle.Asn1.X9
         public static X9ECParameters GetByOid(DerObjectIdentifier oid)
         {
             X9ECParameters ecP = X962NamedCurves.GetByOid(oid);
-
             if (ecP == null)
             {
                 ecP = SecNamedCurves.GetByOid(oid);
@@ -126,12 +128,14 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 ecP = TeleTrusTNamedCurves.GetByOid(oid);
             }
-
             if (ecP == null)
             {
                 ecP = AnssiNamedCurves.GetByOid(oid);
             }
-
+            if (ecP == null)
+            {
+                ecP = GMNamedCurves.GetByOid(oid);
+            }
             return ecP;
         }
 
@@ -150,6 +154,7 @@ namespace Org.BouncyCastle.Asn1.X9
                 CollectionUtilities.AddRange(v, NistNamedCurves.Names);
                 CollectionUtilities.AddRange(v, TeleTrusTNamedCurves.Names);
                 CollectionUtilities.AddRange(v, AnssiNamedCurves.Names);
+                CollectionUtilities.AddRange(v, GMNamedCurves.Names);
                 return v;
             }
         }
