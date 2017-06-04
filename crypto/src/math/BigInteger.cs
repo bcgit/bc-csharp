@@ -1241,7 +1241,8 @@ namespace Org.BouncyCastle.Math
         public override bool Equals(
             object obj)
         {
-            if (obj == this)
+            // To avoid a "possible unintended reference comparison" warning
+            if (obj == (object)this)
                 return true;
 
             BigInteger biggie = obj as BigInteger;
@@ -3588,5 +3589,132 @@ namespace Org.BouncyCastle.Math
             //mag[mag.Length - 1 - (n / 32)] ^= (1 << (n % 32));
             return new BigInteger(this.sign, mag, false);
         }
+
+        #region Operators        
+        public static BigInteger operator +(BigInteger val1, BigInteger val2)
+        {
+            return val1.Add(val2);
+        }
+
+        public static BigInteger operator ++(BigInteger value)
+        {
+            return value.Add(BigInteger.One);
+        }
+
+        /// <summary>
+        /// Subtraction (binary minus)
+        /// </summary>
+        /// <param name="val1">BigInteger to subtract from</param>
+        /// <param name="val2">BigInteger to subtract</param>
+        /// <returns>The subtraction of val2 from val1.</returns>
+        public static BigInteger operator -(BigInteger val1, BigInteger val2)
+        {
+            return val1.Subtract(val2);
+        }
+
+        /// <summary>
+        /// Negation (unary minus)
+        /// </summary>
+        /// <param name="value">The value to negate the sign of</param>
+        /// <returns>The negated value.</returns>
+        public static BigInteger operator -(BigInteger value)
+        {
+            return value.Negate();
+        }
+
+        /// <summary>
+        /// Identity (Unary Plus)
+        /// </summary>
+        /// <param name="value">The value to return</param>
+        /// <returns>The value passed to it (basically a no operation). </returns>
+        public static BigInteger operator +(BigInteger value)
+        {
+            return value;
+        }
+
+        public static BigInteger operator --(BigInteger value)
+        {
+            return value.Subtract(BigInteger.One);
+        }
+
+        public static BigInteger operator *(BigInteger val1, BigInteger val2)
+        {
+            return val1.Multiply(val2);
+        }
+
+        public static BigInteger operator /(BigInteger numerator, BigInteger denominator)
+        {
+            return numerator.Divide(denominator);
+        }
+
+        public static BigInteger operator %(BigInteger numerator, BigInteger denominator)
+        {
+            return numerator.Mod(denominator);
+        }
+
+        public static BigInteger operator &(BigInteger val1, BigInteger val2)
+        {
+            return val1.And(val2);
+        }
+
+        public static BigInteger operator |(BigInteger val1, BigInteger val2)
+        {
+            return val1.Or(val2);
+        }
+
+        public static BigInteger operator ^(BigInteger val1, BigInteger val2)
+        {
+            return val1.Xor(val2);
+        }
+
+        public static bool operator ==(BigInteger val1, BigInteger val2)
+        {
+            return val1.sign == val2.sign && val1.IsEqualMagnitude(val2);
+        }
+
+        public static bool operator >(BigInteger val1, BigInteger val2)
+        {
+            return val1.CompareTo(val2) > 0 ? true : false;
+        }
+
+        public static bool operator <(BigInteger val1, BigInteger val2)
+        {
+            return val1.CompareTo(val2) < 0 ? true : false;
+        }
+
+        public static bool operator >=(BigInteger val1, BigInteger val2)
+        {
+            return val1.CompareTo(val2) > -1 ? true : false;
+        }
+
+        public static bool operator <=(BigInteger val1, BigInteger val2)
+        {
+            return val1.CompareTo(val2) < 1 ? true : false;
+        }
+
+        public static bool operator !=(BigInteger val1, BigInteger val2)
+        {
+            return !(val1 == val2);
+        }
+
+        public static BigInteger operator << (BigInteger val1, int val2)
+        {
+            return val1.ShiftLeft(val2);
+        }
+
+        public static BigInteger operator >>(BigInteger val1, int val2)
+        {
+            return val1.ShiftRight(val2);
+        }
+
+        public static BigInteger operator ~(BigInteger value)
+        {
+            // This is the algorithm that Microsoft's System.Numerics.BigInteger
+            // structure uses, rewritten for BouncyCastle to eliminate the
+            // operator - and + method overhead.
+            // This does NOT invert any extra bits in the magnitude.
+            return value.Add(BigInteger.One).Negate();
+        }
+        #endregion
     }
 }

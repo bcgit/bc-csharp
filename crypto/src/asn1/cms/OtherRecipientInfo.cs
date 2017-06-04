@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             OtherRecipientInfo existing = obj as OtherRecipientInfo;
             if (existing != null)
                 return existing;
-            return new OtherRecipientInfo(Asn1Sequence.GetInstance(obj));
+            return OtherRecipientInfo.GetInstance(Asn1Sequence.GetInstance(obj));
         }
 
         public virtual DerObjectIdentifier OriType

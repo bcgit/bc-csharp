@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Asn1.Cms
                 return (EnvelopedData)obj;
             if (obj == null)
                 return null;
-            return new EnvelopedData(Asn1Sequence.GetInstance(obj));
+            return EnvelopedData.GetInstance(Asn1Sequence.GetInstance(obj));
         }
 
         public DerInteger Version

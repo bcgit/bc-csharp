@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             PbeS2Parameters existing = obj as PbeS2Parameters;
             if (existing != null)
                 return existing;
-            return new PbeS2Parameters(Asn1Sequence.GetInstance(obj));
+            return PbeS2Parameters.GetInstance(Asn1Sequence.GetInstance(obj));
         }
 
         public PbeS2Parameters(KeyDerivationFunc keyDevFunc, EncryptionScheme encScheme)
