@@ -389,28 +389,26 @@ namespace Org.BouncyCastle.Crypto.Tls
                         CleanupHandshake();
                     }
 
-                    throw new IOException("Fatal alert received from TLS peer: " + AlertDescription.GetText(description));
+                    throw new TlsFatalAlertReceived(description);
                 }
-                else
-                {
-                    /*
-                     * RFC 5246 7.2.1. The other party MUST respond with a close_notify alert of its own
-                     * and close down the connection immediately, discarding any pending writes.
-                     */
-                    if (description == AlertDescription.close_notify)
-                    {
-                        if (!mAppDataReady)
-                        {
-                            throw new TlsFatalAlert(AlertDescription.handshake_failure);
-                        }
-                        HandleClose(false);
-                    }
 
-                    /*
-                     * If it is just a warning, we continue.
-                     */
-                    HandleWarningMessage(description);
+                /*
+                 * RFC 5246 7.2.1. The other party MUST respond with a close_notify alert of its own
+                 * and close down the connection immediately, discarding any pending writes.
+                 */
+                if (description == AlertDescription.close_notify)
+                {
+                    if (!mAppDataReady)
+                    {
+                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                    }
+                    HandleClose(false);
                 }
+
+                /*
+                 * If it is just a warning, we continue.
+                 */
+                HandleWarningMessage(description);
             }
         }
 

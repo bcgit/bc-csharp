@@ -1059,8 +1059,10 @@
     <Compile Include="src\crypto\tls\TlsECDsaSigner.cs" />
     <Compile Include="src\crypto\tls\TlsEccUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsEncryptionCredentials.cs" />
+    <Compile Include="src\crypto\tls\TlsException.cs" />
     <Compile Include="src\crypto\tls\TlsExtensionsUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsFatalAlert.cs" />
+    <Compile Include="src\crypto\tls\TlsFatalAlertReceived.cs" />
     <Compile Include="src\crypto\tls\TlsHandshakeHash.cs" />
     <Compile Include="src\crypto\tls\TlsKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsMac.cs" />
