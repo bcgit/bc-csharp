@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private Stream mOutput;
         private TlsCompression mPendingCompression = null, mReadCompression = null, mWriteCompression = null;
         private TlsCipher mPendingCipher = null, mReadCipher = null, mWriteCipher = null;
-        private long mReadSeqNo = 0, mWriteSeqNo = 0;
+        private SequenceNumber mReadSeqNo = new SequenceNumber(), mWriteSeqNo = new SequenceNumber();
         private MemoryStream mBuffer = new MemoryStream();
 
         private TlsHandshakeHash mHandshakeHash = null;
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             this.mWriteCompression = this.mPendingCompression;
             this.mWriteCipher = this.mPendingCipher;
-            this.mWriteSeqNo = 0;
+            this.mWriteSeqNo = new SequenceNumber();
         }
 
         internal virtual void ReceivedReadCipherSpec()
@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             this.mReadCompression = this.mPendingCompression;
             this.mReadCipher = this.mPendingCipher;
-            this.mReadSeqNo = 0;
+            this.mReadSeqNo = new SequenceNumber();
         }
 
         internal virtual void FinaliseHandshake()
@@ -203,7 +203,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         internal virtual byte[] DecodeAndVerify(byte type, Stream input, int len)
         {
             byte[] buf = TlsUtilities.ReadFully(len, input);
-            byte[] decoded = mReadCipher.DecodeCiphertext(mReadSeqNo++, type, buf, 0, buf.Length);
+
+            long seqNo = mReadSeqNo.NextValue(AlertDescription.unexpected_message);
+            byte[] decoded = mReadCipher.DecodeCiphertext(seqNo, type, buf, 0, buf.Length);
 
             CheckLength(decoded.Length, mCompressedLimit, AlertDescription.record_overflow);
 
@@ -262,10 +264,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             Stream cOut = mWriteCompression.Compress(mBuffer);
 
+            long seqNo = mWriteSeqNo.NextValue(AlertDescription.internal_error);
+
             byte[] ciphertext;
             if (cOut == mBuffer)
             {
-                ciphertext = mWriteCipher.EncodePlaintext(mWriteSeqNo++, type, plaintext, plaintextOffset, plaintextLength);
+                ciphertext = mWriteCipher.EncodePlaintext(seqNo, type, plaintext, plaintextOffset, plaintextLength);
             }
             else
             {
@@ -279,7 +283,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 CheckLength(compressed.Length, plaintextLength + 1024, AlertDescription.internal_error);
 
-                ciphertext = mWriteCipher.EncodePlaintext(mWriteSeqNo++, type, compressed, 0, compressed.Length);
+                ciphertext = mWriteCipher.EncodePlaintext(seqNo, type, compressed, 0, compressed.Length);
             }
 
             /*
@@ -382,6 +386,26 @@ namespace Org.BouncyCastle.Crypto.Tls
             public override void Write(byte[] buf, int off, int len)
             {
                 mOuter.mHandshakeHash.BlockUpdate(buf, off, len);
+            }
+        }
+
+        private class SequenceNumber
+        {
+            private long value = 0L;
+            private bool exhausted = false;
+
+            internal long NextValue(byte alertDescription)
+            {
+                if (exhausted)
+                {
+                    throw new TlsFatalAlert(alertDescription);
+                }
+                long result = value;
+                if (++value == 0)
+                {
+                    exhausted = true;
+                }
+                return result;
             }
         }
     }
