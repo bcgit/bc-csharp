@@ -9,6 +9,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public class ECPublicKeyParameters
         : ECKeyParameters
     {
+        private static ECPoint Validate(ECPoint q)
+        {
+            if (q == null)
+                throw new ArgumentNullException("q");
+            if (q.IsInfinity)
+                throw new ArgumentException("point at infinity", "q");
+
+            q = q.Normalize();
+
+            if (!q.IsValid())
+                throw new ArgumentException("point not on curve", "q");
+
+            return q;
+        }
+
         private readonly ECPoint q;
 
         public ECPublicKeyParameters(
@@ -27,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (q == null)
                 throw new ArgumentNullException("q");
 
-            this.q = q.Normalize();
+            this.q = Validate(q);
         }
 
         public ECPublicKeyParameters(
@@ -39,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (q == null)
                 throw new ArgumentNullException("q");
 
-            this.q = q.Normalize();
+            this.q = Validate(q);
         }
 
         public ECPublicKeyParameters(
@@ -51,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (q == null)
                 throw new ArgumentNullException("q");
 
-            this.q = q.Normalize();
+            this.q = Validate(q);
         }
 
         public ECPoint Q
