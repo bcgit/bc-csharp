@@ -192,13 +192,34 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				Fail("failed OAEP Test");
 			}
-		}
 
-		// TODO Move this when other JCE tests are ported from Java
-		/**
+            // check for oversized input
+            byte[] message = new byte[87];
+            RsaEngine rsaEngine = new RsaEngine();
+            IAsymmetricBlockCipher cipher = new OaepEncoding(rsaEngine, new Sha1Digest(), new Sha1Digest(), message);
+            cipher.Init(true, new ParametersWithRandom(pubParameters, new SecureRandom()));
+
+            try
+            {
+                cipher.ProcessBlock(message, 0, message.Length);
+
+                Fail("no exception thrown");
+            }
+            catch (DataLengthException e)
+            {
+                IsTrue("message mismatch", "input data too long".Equals(e.Message));
+            }
+            catch (InvalidCipherTextException e)
+            {
+                Fail("failed - exception " + e.ToString(), e);
+            }
+        }
+
+        // TODO Move this when other JCE tests are ported from Java
+        /**
 		 * signature with a "forged signature" (sig block not at end of plain text)
 		 */
-		private void doTestBadSig()//PrivateKey priv, PublicKey pub)
+        private void doTestBadSig()//PrivateKey priv, PublicKey pub)
 		{
 //			Signature           sig = Signature.getInstance("SHA1WithRSAEncryption", "BC");
 			ISigner sig = SignerUtilities.GetSigner("SHA1WithRSAEncryption");

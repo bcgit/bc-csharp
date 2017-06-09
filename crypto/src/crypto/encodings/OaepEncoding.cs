@@ -137,6 +137,8 @@ namespace Org.BouncyCastle.Crypto.Encodings
             int		inOff,
             int		inLen)
         {
+            Check.DataLength(inLen > GetInputBlockSize(), "input data too long");
+
             byte[] block = new byte[GetInputBlockSize() + 1 + 2 * defHash.Length];
 
             //
