@@ -20,6 +20,8 @@ namespace Org.BouncyCastle.Bcpg
     public class ArmoredOutputStream
         : BaseOutputStream
     {
+        public static readonly string HeaderVersion = "Version";
+
         private static readonly byte[] encodingTable =
         {
             (byte)'A', (byte)'B', (byte)'C', (byte)'D', (byte)'E', (byte)'F', (byte)'G',
@@ -101,35 +103,43 @@ namespace Org.BouncyCastle.Bcpg
         private static readonly string    footerStart = "-----END PGP ";
         private static readonly string    footerTail = "-----";
 
-        private static readonly string version = "BCPG C# v" + AssemblyInfo.Version;
+        private static readonly string Version = "BCPG C# v" + AssemblyInfo.Version;
 
         private readonly IDictionary headers;
 
         public ArmoredOutputStream(Stream outStream)
         {
             this.outStream = outStream;
-            this.headers = Platform.CreateHashtable();
-            this.headers["Version"] = version;
+            this.headers = Platform.CreateHashtable(1);
+            this.headers.Add(HeaderVersion, Version);
         }
 
         public ArmoredOutputStream(Stream outStream, IDictionary headers)
         {
             this.outStream = outStream;
             this.headers = Platform.CreateHashtable(headers);
-            this.headers["Version"] = version;
+            if (!this.headers.Contains(HeaderVersion))
+            {
+                this.headers.Add(HeaderVersion, Version);
+            }
         }
 
         /**
-         * Set an additional header entry.
+         * Set an additional header entry. A null value will clear the entry for name.
          *
          * @param name the name of the header entry.
          * @param v the value of the header entry.
          */
-        public void SetHeader(
-            string name,
-            string v)
+        public void SetHeader(string name, string v)
         {
-            headers[name] = v;
+            if (v == null)
+            {
+                headers.Remove(name);
+            }
+            else
+            {
+                headers[name] = v;
+            }
         }
 
         /**
@@ -137,8 +147,14 @@ namespace Org.BouncyCastle.Bcpg
          */
         public void ResetHeaders()
         {
+            string version = (string)headers[HeaderVersion];
+
             headers.Clear();
-            headers["Version"] = version;
+
+            if (version != null)
+            {
+                headers[HeaderVersion] = Version;
+            }
         }
 
         /**
@@ -248,14 +264,17 @@ namespace Org.BouncyCastle.Bcpg
                 }
 
                 DoWrite(headerStart + type + headerTail + nl);
-                WriteHeaderEntry("Version", (string) headers["Version"]);
+                if (headers.Contains(HeaderVersion))
+                {
+                    WriteHeaderEntry(HeaderVersion, (string)headers[HeaderVersion]);
+                }
 
                 foreach (DictionaryEntry de in headers)
                 {
-                    string k = (string) de.Key;
-                    if (k != "Version")
+                    string k = (string)de.Key;
+                    if (k != HeaderVersion)
                     {
-                        string v = (string) de.Value;
+                        string v = (string)de.Value;
                         WriteHeaderEntry(k, v);
                     }
                 }
