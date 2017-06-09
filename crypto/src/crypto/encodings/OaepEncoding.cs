@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Encodings
 {
@@ -13,7 +14,6 @@ namespace Org.BouncyCastle.Crypto.Encodings
         : IAsymmetricBlockCipher
     {
         private byte[] defHash;
-        private IDigest hash;
         private IDigest mgf1Hash;
 
         private IAsymmetricBlockCipher engine;
@@ -48,9 +48,10 @@ namespace Org.BouncyCastle.Crypto.Encodings
             byte[]					encodingParams)
         {
             this.engine = cipher;
-            this.hash = hash;
             this.mgf1Hash = mgf1Hash;
             this.defHash = new byte[hash.GetDigestSize()];
+
+            hash.Reset();
 
             if (encodingParams != null)
             {
@@ -204,28 +205,17 @@ namespace Org.BouncyCastle.Crypto.Encodings
             int		inLen)
         {
             byte[] data = engine.ProcessBlock(inBytes, inOff, inLen);
-            byte[] block;
+            byte[] block = new byte[engine.GetOutputBlockSize()];
 
             //
             // as we may have zeros in our leading bytes for the block we produced
             // on encryption, we need to make sure our decrypted block comes back
             // the same size.
             //
-            if (data.Length < engine.GetOutputBlockSize())
-            {
-                block = new byte[engine.GetOutputBlockSize()];
 
-                Array.Copy(data, 0, block, block.Length - data.Length, data.Length);
-            }
-            else
-            {
-                block = data;
-            }
+            Array.Copy(data, 0, block, block.Length - data.Length, data.Length);
 
-            if (block.Length < (2 * defHash.Length) + 1)
-            {
-                throw new InvalidCipherTextException("data too short");
-            }
+            bool shortData = (block.Length < (2 * defHash.Length) + 1);
 
             //
             // unmask the seed.
@@ -252,35 +242,38 @@ namespace Org.BouncyCastle.Crypto.Encodings
             // check the hash of the encoding params.
             // long check to try to avoid this been a source of a timing attack.
             //
+            bool defHashWrong = false;
+
+            for (int i = 0; i != defHash.Length; i++)
             {
-                int diff = 0;
-                for (int i = 0; i < defHash.Length; ++i)
+                if (defHash[i] != block[defHash.Length + i])
                 {
-                    diff |= (byte)(defHash[i] ^ block[defHash.Length + i]);
+                    defHashWrong = true;
                 }
- 
-                if (diff != 0)
-                    throw new InvalidCipherTextException("data hash wrong");
             }
 
             //
             // find the data block
             //
-            int start;
-            for (start = 2 * defHash.Length; start != block.Length; start++)
+            int start = block.Length;
+
+            for (int index = 2 * defHash.Length; index != block.Length; index++)
             {
-                if (block[start] != 0)
+                if (block[index] != 0 & start == block.Length)
                 {
-                    break;
+                    start = index;
                 }
             }
 
-            if (start > (block.Length - 1) || block[start] != 1)
-            {
-                throw new InvalidCipherTextException("data start wrong " + start);
-            }
+            bool dataStartWrong = (start > (block.Length - 1) | block[start] != 1);
 
             start++;
+
+            if (defHashWrong | shortData | dataStartWrong)
+            {
+                Arrays.Fill(block, 0);
+                throw new InvalidCipherTextException("data wrong");
+            }
 
             //
             // extract the data block
@@ -319,9 +312,9 @@ namespace Org.BouncyCastle.Crypto.Encodings
             byte[] C = new byte[4];
             int counter = 0;
 
-            hash.Reset();
+            mgf1Hash.Reset();
 
-            do
+            while (counter < (length / hashBuf.Length))
             {
                 ItoOSP(counter, C);
 
@@ -330,8 +323,9 @@ namespace Org.BouncyCastle.Crypto.Encodings
                 mgf1Hash.DoFinal(hashBuf, 0);
 
                 Array.Copy(hashBuf, 0, mask, counter * hashBuf.Length, hashBuf.Length);
+
+                counter++;
             }
-            while (++counter < (length / hashBuf.Length));
 
             if ((counter * hashBuf.Length) < length)
             {

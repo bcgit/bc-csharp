@@ -103,22 +103,22 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		private void doTestTruncatedPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
-			checkForPkcs1Exception(pubParameters, privParameters, truncatedDataBlock, "block truncated");
+			checkForPkcs1Exception(pubParameters, privParameters, truncatedDataBlock, "block incorrect");
 		}
 
 		private void doTestDudPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
-			checkForPkcs1Exception(pubParameters, privParameters, dudBlock, "unknown block type");
+			checkForPkcs1Exception(pubParameters, privParameters, dudBlock, "block incorrect");
 		}
 
 		private void doTestWrongPaddingPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
-			checkForPkcs1Exception(pubParameters, privParameters, incorrectPadding, "block padding incorrect");
+			checkForPkcs1Exception(pubParameters, privParameters, incorrectPadding, "block incorrect");
 		}
 
 		private void doTestMissingDataPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
-			checkForPkcs1Exception(pubParameters, privParameters, missingDataBlock, "no data in block");
+			checkForPkcs1Exception(pubParameters, privParameters, missingDataBlock, "block incorrect");
 		}
 
 		private void checkForPkcs1Exception(RsaKeyParameters pubParameters, RsaKeyParameters privParameters, byte[] inputData, string expectedMessage)

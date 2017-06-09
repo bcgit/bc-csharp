@@ -54,10 +54,11 @@ namespace Org.BouncyCastle.Crypto.Tests
 			eng.Init(true, privParameters);
 
 			byte[] data = null;
+            byte[] overSized = null;
 
-			try
-			{
-				data = eng.ProcessBlock(oversizedSig, 0, oversizedSig.Length);
+            try
+            {
+				overSized = data = eng.ProcessBlock(oversizedSig, 0, oversizedSig.Length);
 			}
 			catch (Exception e)
 			{
@@ -70,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			try
 			{
-				data = eng.ProcessBlock(data, 0, data.Length);
+				data = eng.ProcessBlock(overSized, 0, overSized.Length);
 
 				Fail("oversized signature block not recognised");
 			}
@@ -82,9 +83,22 @@ namespace Org.BouncyCastle.Crypto.Tests
 				}
 			}
 
+            eng = new Pkcs1Encoding(new RsaEngine(), Hex.Decode("feedbeeffeedbeeffeedbeef"));
+            eng.Init(false, new ParametersWithRandom(privParameters, new SecureRandom()));
 
-			// Create the encoding with StrictLengthEnabled=false (done thru environment in Java version)
-			Pkcs1Encoding.StrictLengthEnabled = false;
+            try
+            {
+                data = eng.ProcessBlock(overSized, 0, overSized.Length);
+                IsTrue("not fallback", Arrays.AreEqual(Hex.Decode("feedbeeffeedbeeffeedbeef"), data));
+            }
+            catch (InvalidCipherTextException e)
+            {
+                Fail("RSA: failed - exception " + e.ToString(), e);
+            }
+
+
+            // Create the encoding with StrictLengthEnabled=false (done thru environment in Java version)
+            Pkcs1Encoding.StrictLengthEnabled = false;
 
 			eng = new Pkcs1Encoding(new RsaEngine());
 
@@ -92,7 +106,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			try
 			{
-				data = eng.ProcessBlock(data, 0, data.Length);
+				data = eng.ProcessBlock(overSized, 0, overSized.Length);
 			}
 			catch (InvalidCipherTextException e)
 			{
@@ -104,22 +118,22 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		private void doTestTruncatedPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
-			checkForPkcs1Exception(pubParameters, privParameters, truncatedDataBlock, "block truncated");
+			checkForPkcs1Exception(pubParameters, privParameters, truncatedDataBlock, "block incorrect");
 		}
 
 		private void doTestDudPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
-			checkForPkcs1Exception(pubParameters, privParameters, dudBlock, "unknown block type");
+			checkForPkcs1Exception(pubParameters, privParameters, dudBlock, "block incorrect");
 		}
 
 		private void doTestWrongPaddingPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
-			checkForPkcs1Exception(pubParameters, privParameters, incorrectPadding, "block padding incorrect");
+			checkForPkcs1Exception(pubParameters, privParameters, incorrectPadding, "block incorrect");
 		}
 
 		private void doTestMissingDataPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
-			checkForPkcs1Exception(pubParameters, privParameters, missingDataBlock, "no data in block");
+			checkForPkcs1Exception(pubParameters, privParameters, missingDataBlock, "block incorrect");
 		}
 
 		private void checkForPkcs1Exception(RsaKeyParameters pubParameters, RsaKeyParameters privParameters, byte[] inputData, string expectedMessage)
@@ -431,30 +445,65 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			eng.Init(false, privParameters);
 
-			try
-			{
-				data = eng.ProcessBlock(data, 0, data.Length);
+            byte[] plainData = null;
+            try
+            {
+				plainData = eng.ProcessBlock(data, 0, data.Length);
 			}
 			catch (Exception e)
 			{
 				Fail("failed - exception " + e.ToString());
 			}
 
-			if (!input.Equals(Hex.ToHexString(data)))
-			{
-				Fail("failed PKCS1 public/private Test");
+            if (!input.Equals(Hex.ToHexString(plainData)))
+            {
+                Fail("failed PKCS1 public/private Test");
 			}
 
-			//
-			// PKCS1 - private encrypt, public decrypt
-			//
-			eng = new Pkcs1Encoding(((Pkcs1Encoding)eng).GetUnderlyingCipher());
+            Pkcs1Encoding fEng = new Pkcs1Encoding(new RsaEngine(), input.Length / 2);
+            fEng.Init(false, new ParametersWithRandom(privParameters, new SecureRandom()));
+            try
+            {
+                plainData = fEng.ProcessBlock(data, 0, data.Length);
+            }
+            catch (Exception e)
+            {
+                Fail("failed - exception " + e.ToString(), e);
+            }
+
+            if (!input.Equals(Hex.ToHexString(plainData)))
+            {
+                Fail("failed PKCS1 public/private fixed Test");
+            }
+
+            fEng = new Pkcs1Encoding(new RsaEngine(), input.Length);
+            fEng.Init(false, new ParametersWithRandom(privParameters, new SecureRandom()));
+            try
+            {
+                data = fEng.ProcessBlock(data, 0, data.Length);
+            }
+            catch (Exception e)
+            {
+                Fail("failed - exception " + e.ToString(), e);
+            }
+
+            if (input.Equals(Hex.ToHexString(data)))
+            {
+                Fail("failed to recognise incorrect plaint text length");
+            }
+
+            data = plainData;
+
+            //
+            // PKCS1 - private encrypt, public decrypt
+            //
+            eng = new Pkcs1Encoding(((Pkcs1Encoding)eng).GetUnderlyingCipher());
 
 			eng.Init(true, privParameters);
 
 			try
 			{
-				data = eng.ProcessBlock(data, 0, data.Length);
+				data = eng.ProcessBlock(plainData, 0, plainData.Length);
 			}
 			catch (Exception e)
 			{
