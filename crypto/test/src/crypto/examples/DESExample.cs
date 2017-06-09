@@ -247,10 +247,11 @@ namespace Org.BouncyCastle.Crypto.Examples
 				outStr.Flush();
 				outStr.Close();
 			}
-			catch (IOException)
+			catch (IOException closing)
 			{
-			}
-		}
+                Console.Error.WriteLine("exception closing resources: " + closing.Message);
+            }
+        }
 
 		/*
 		* This method performs all the encryption and writes
