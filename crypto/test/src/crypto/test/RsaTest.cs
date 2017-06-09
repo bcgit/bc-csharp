@@ -563,7 +563,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 
 			genParam = new RsaKeyGenerationParameters(
-				BigInteger.ValueOf(0x11), new SecureRandom(), 16, 25);
+				BigInteger.ValueOf(0x11), new SecureRandom(), 128, 25);
 			pGen.Init(genParam);
 
 			for (int i = 0; i < 100; ++i)
@@ -572,7 +572,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				RsaPrivateCrtKeyParameters privKey = (RsaPrivateCrtKeyParameters) pair.Private;
 				BigInteger pqDiff = privKey.P.Subtract(privKey.Q).Abs();
 
-				if (pqDiff.BitLength < 5)
+				if (pqDiff.BitLength < 42)
 				{
 					Fail("P and Q too close in RSA key pair");
 				}
