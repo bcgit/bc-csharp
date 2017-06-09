@@ -9,23 +9,28 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         //       iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 1 }
         //
         public const string Pkcs1 = "1.2.840.113549.1.1";
+        internal static readonly DerObjectIdentifier Pkcs1Oid                 = new DerObjectIdentifier(Pkcs1);
 
-		public static readonly DerObjectIdentifier RsaEncryption			= new DerObjectIdentifier(Pkcs1 + ".1");
-        public static readonly DerObjectIdentifier MD2WithRsaEncryption		= new DerObjectIdentifier(Pkcs1 + ".2");
-        public static readonly DerObjectIdentifier MD4WithRsaEncryption		= new DerObjectIdentifier(Pkcs1 + ".3");
-        public static readonly DerObjectIdentifier MD5WithRsaEncryption		= new DerObjectIdentifier(Pkcs1 + ".4");
-        public static readonly DerObjectIdentifier Sha1WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".5");
-        public static readonly DerObjectIdentifier SrsaOaepEncryptionSet	= new DerObjectIdentifier(Pkcs1 + ".6");
-        public static readonly DerObjectIdentifier IdRsaesOaep				= new DerObjectIdentifier(Pkcs1 + ".7");
-        public static readonly DerObjectIdentifier IdMgf1					= new DerObjectIdentifier(Pkcs1 + ".8");
-        public static readonly DerObjectIdentifier IdPSpecified				= new DerObjectIdentifier(Pkcs1 + ".9");
-        public static readonly DerObjectIdentifier IdRsassaPss				= new DerObjectIdentifier(Pkcs1 + ".10");
-        public static readonly DerObjectIdentifier Sha256WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".11");
-        public static readonly DerObjectIdentifier Sha384WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".12");
-        public static readonly DerObjectIdentifier Sha512WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".13");
-        public static readonly DerObjectIdentifier Sha224WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".14");
+        public static readonly DerObjectIdentifier RsaEncryption            = Pkcs1Oid.Branch("1");
+        public static readonly DerObjectIdentifier MD2WithRsaEncryption		= Pkcs1Oid.Branch("2");
+        public static readonly DerObjectIdentifier MD4WithRsaEncryption		= Pkcs1Oid.Branch("3");
+        public static readonly DerObjectIdentifier MD5WithRsaEncryption		= Pkcs1Oid.Branch("4");
+        public static readonly DerObjectIdentifier Sha1WithRsaEncryption	= Pkcs1Oid.Branch("5");
+        public static readonly DerObjectIdentifier SrsaOaepEncryptionSet	= Pkcs1Oid.Branch("6");
+        public static readonly DerObjectIdentifier IdRsaesOaep				= Pkcs1Oid.Branch("7");
+        public static readonly DerObjectIdentifier IdMgf1					= Pkcs1Oid.Branch("8");
+        public static readonly DerObjectIdentifier IdPSpecified				= Pkcs1Oid.Branch("9");
+        public static readonly DerObjectIdentifier IdRsassaPss				= Pkcs1Oid.Branch("10");
+        public static readonly DerObjectIdentifier Sha256WithRsaEncryption	= Pkcs1Oid.Branch("11");
+        public static readonly DerObjectIdentifier Sha384WithRsaEncryption	= Pkcs1Oid.Branch("12");
+        public static readonly DerObjectIdentifier Sha512WithRsaEncryption	= Pkcs1Oid.Branch("13");
+        public static readonly DerObjectIdentifier Sha224WithRsaEncryption	= Pkcs1Oid.Branch("14");
+        /** PKCS#1: 1.2.840.113549.1.1.15 */
+        public static readonly DerObjectIdentifier Sha512_224WithRSAEncryption = Pkcs1Oid.Branch("15");
+        /** PKCS#1: 1.2.840.113549.1.1.16 */
+        public static readonly DerObjectIdentifier Sha512_256WithRSAEncryption = Pkcs1Oid.Branch("16");
 
-		//
+        //
         // pkcs-3 OBJECT IDENTIFIER ::= {
         //       iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 3 }
         //
