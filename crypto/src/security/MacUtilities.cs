@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Security
 
             if (mechanism == "AESCMAC")
             {
-                return new CMac(new AesFastEngine());
+                return new CMac(new AesEngine());
             }
             if (mechanism == "DESMAC")
             {

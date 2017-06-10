@@ -327,7 +327,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         protected IBlockCipher CreateAesEngine()
         {
-            return new AesFastEngine();
+            return new AesEngine();
         }
 
         private void DoTestExceptions()
