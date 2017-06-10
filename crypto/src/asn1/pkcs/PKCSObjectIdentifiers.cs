@@ -200,6 +200,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         // rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) attributes(2)}
         //
         public const string IdAA = "1.2.840.113549.1.9.16.2";
+        public static readonly DerObjectIdentifier IdAAOid = new DerObjectIdentifier(IdAA);
 
 		public static readonly DerObjectIdentifier IdAAContentHint = new DerObjectIdentifier(IdAA + ".4"); // See RFC 2634
     	public static readonly DerObjectIdentifier IdAAMsgSigDigest = new DerObjectIdentifier(IdAA + ".5");
@@ -233,6 +234,20 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public static readonly DerObjectIdentifier IdAAEtsEscTimeStamp = new DerObjectIdentifier(IdAA + ".25");
 		public static readonly DerObjectIdentifier IdAAEtsCertCrlTimestamp = new DerObjectIdentifier(IdAA + ".26");
 		public static readonly DerObjectIdentifier IdAAEtsArchiveTimestamp = new DerObjectIdentifier(IdAA + ".27");
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.6.2.37 - <a href="https://tools.ietf.org/html/rfc4108#section-2.2.5">RFC 4108</a> */
+        public static readonly DerObjectIdentifier IdAADecryptKeyID = IdAAOid.Branch("37");
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.6.2.38 - <a href="https://tools.ietf.org/html/rfc4108#section-2.2.6">RFC 4108</a> */
+        public static readonly DerObjectIdentifier IdAAImplCryptoAlgs = IdAAOid.Branch("38");
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.2.54 <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
+        public static readonly DerObjectIdentifier IdAAAsymmDecryptKeyID = IdAAOid.Branch("54");
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.2.43   <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
+        public static readonly DerObjectIdentifier IdAAImplCompressAlgs = IdAAOid.Branch("43");
+        /** PKCS#9: 1.2.840.113549.1.9.16.2.40   <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
+        public static readonly DerObjectIdentifier IdAACommunityIdentifiers = IdAAOid.Branch("40");
 
 		[Obsolete("Use 'IdAAEtsSigPolicyID' instead")]
 		public static readonly DerObjectIdentifier IdAASigPolicyID = IdAAEtsSigPolicyID;
