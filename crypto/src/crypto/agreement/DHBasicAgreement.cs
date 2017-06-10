@@ -54,11 +54,13 @@ namespace Org.BouncyCastle.Crypto.Agreement
             DHPublicKeyParameters pub = (DHPublicKeyParameters)pubKey;
 
             if (!pub.Parameters.Equals(dhParams))
-            {
                 throw new ArgumentException("Diffie-Hellman public key has wrong parameters.");
-            }
 
-            return pub.Y.ModPow(key.X, dhParams.P);
+            BigInteger result = pub.Y.ModPow(key.X, dhParams.P);
+            if (result.Equals(BigInteger.One))
+                throw new InvalidOperationException("Shared key can't be 1");
+
+            return result;
         }
     }
 }
