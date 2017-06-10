@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.y = Validate(y, parameters);
         }
 
-        public BigInteger Y
+        public virtual BigInteger Y
         {
             get { return y; }
         }

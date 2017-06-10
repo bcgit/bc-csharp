@@ -56,7 +56,13 @@ namespace Org.BouncyCastle.Crypto.Agreement
             if (!pub.Parameters.Equals(dhParams))
                 throw new ArgumentException("Diffie-Hellman public key has wrong parameters.");
 
-            BigInteger result = pub.Y.ModPow(key.X, dhParams.P);
+            BigInteger p = dhParams.P;
+
+            BigInteger peerY = pub.Y;
+            if (peerY == null || peerY.CompareTo(BigInteger.One) <= 0 || peerY.CompareTo(p.Subtract(BigInteger.One)) >= 0)
+                throw new ArgumentException("Diffie-Hellman public key is weak");
+
+            BigInteger result = peerY.ModPow(key.X, p);
             if (result.Equals(BigInteger.One))
                 throw new InvalidOperationException("Shared key can't be 1");
 

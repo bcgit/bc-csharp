@@ -85,7 +85,11 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
             BigInteger p = dhParams.P;
 
-            BigInteger result = pub.Y.ModPow(privateValue, p);
+            BigInteger peerY = pub.Y;
+            if (peerY == null || peerY.CompareTo(BigInteger.One) <= 0 || peerY.CompareTo(p.Subtract(BigInteger.One)) >= 0)
+                throw new ArgumentException("Diffie-Hellman public key is weak");
+
+            BigInteger result = peerY.ModPow(privateValue, p);
             if (result.Equals(BigInteger.One))
                 throw new InvalidOperationException("Shared key can't be 1");
 
