@@ -76,5 +76,12 @@ namespace Org.BouncyCastle.Crypto.Prng
         {
             return EntropyUtilities.GenerateSeed(mEntropySource, numBytes);
         }
+
+        /// <summary>Force a reseed of the DRBG.</summary>
+        /// <param name="additionalInput">optional additional input</param>
+        public virtual void Reseed(byte[] additionalInput)
+        {
+            mDrbg.Reseed(additionalInput);
+        }
     }
 }
