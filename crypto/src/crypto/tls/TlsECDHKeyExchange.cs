@@ -153,6 +153,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void ValidateCertificateRequest(CertificateRequest certificateRequest)
         {
+            if (mKeyExchange == KeyExchangeAlgorithm.ECDH_anon)
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
             /*
              * RFC 4492 3. [...] The ECDSA_fixed_ECDH and RSA_fixed_ECDH mechanisms are usable with
              * ECDH_ECDSA and ECDH_RSA. Their use with ECDHE_ECDSA and ECDHE_RSA is prohibited because
