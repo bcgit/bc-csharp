@@ -161,6 +161,11 @@ namespace Org.BouncyCastle.Crypto.Agreement
             + "909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28A" + "D662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24"
             + "855E6EEB22B3B2E5";
         private static readonly string rfc5114_1024_160_q = "F518AA8781A8DF278ABA4E7D64B7CB9D49462353";
+
+        /// <remarks>
+        /// Existence of a "hidden SNFS" backdoor cannot be ruled out. see https://eprint.iacr.org/2016/961.pdf .
+        /// </remarks>
+        [Obsolete("Existence of a 'hidden SNFS' backdoor cannot be ruled out.")]
         public static readonly DHParameters rfc5114_1024_160 = FromPGQ(rfc5114_1024_160_p, rfc5114_1024_160_g,
             rfc5114_1024_160_q);
 
@@ -177,6 +182,11 @@ namespace Org.BouncyCastle.Crypto.Agreement
             + "10E183EDD19963DDD9E263E4770589EF6AA21E7F5F2FF381" + "B539CCE3409D13CD566AFBB48D6C019181E1BCFE94B30269"
             + "EDFE72FE9B6AA4BD7B5A0F1C71CFFF4C19C418E1F6EC0179" + "81BC087F2A7065B384B890D3191F2BFA";
         private static readonly string rfc5114_2048_224_q = "801C0D34C58D93FE997177101F80535A4738CEBCBF389A99B36371EB";
+
+        /// <remarks>
+        /// Existence of a "hidden SNFS" backdoor cannot be ruled out. see https://eprint.iacr.org/2016/961.pdf .
+        /// </remarks>
+        [Obsolete("Existence of a 'hidden SNFS' backdoor cannot be ruled out.")]
         public static readonly DHParameters rfc5114_2048_224 = FromPGQ(rfc5114_2048_224_p, rfc5114_2048_224_g,
             rfc5114_2048_224_q);
 
@@ -194,6 +204,11 @@ namespace Org.BouncyCastle.Crypto.Agreement
             + "184B523D1DB246C32F63078490F00EF8D647D148D4795451" + "5E2327CFEF98C582664B4C0F6CC41659";
         private static readonly string rfc5114_2048_256_q = "8CF83642A709A097B447997640129DA299B1A47D1EB3750B"
             + "A308B0FE64F5FBD3";
+
+        /// <remarks>
+        /// Existence of a "hidden SNFS" backdoor cannot be ruled out. see https://eprint.iacr.org/2016/961.pdf .
+        /// </remarks>
+        [Obsolete("Existence of a 'hidden SNFS' backdoor cannot be ruled out.")]
         public static readonly DHParameters rfc5114_2048_256 = FromPGQ(rfc5114_2048_256_p, rfc5114_2048_256_g,
             rfc5114_2048_256_q);
 
