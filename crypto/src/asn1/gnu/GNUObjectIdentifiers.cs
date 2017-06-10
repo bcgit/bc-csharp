@@ -27,5 +27,10 @@ namespace Org.BouncyCastle.Asn1.Gnu
 		public static readonly DerObjectIdentifier Serpent256Cfb		= new DerObjectIdentifier("1.3.6.1.4.1.11591.13.2.44"); // Serpent-256-CFB
 		public static readonly DerObjectIdentifier Crc					= new DerObjectIdentifier("1.3.6.1.4.1.11591.14"); // CRC algorithms
 		public static readonly DerObjectIdentifier Crc32				= new DerObjectIdentifier("1.3.6.1.4.1.11591.14.1"); // CRC 32
+
+        /** 1.3.6.1.4.1.11591.15 - ellipticCurve */
+        public static readonly DerObjectIdentifier EllipticCurve = new DerObjectIdentifier("1.3.6.1.4.1.11591.15");
+
+        public static readonly DerObjectIdentifier Ed25519   = EllipticCurve.Branch("1");
 	}
 }
