@@ -237,7 +237,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual byte[] GetMac()
         {
-            return Arrays.Clone(macBlock);
+            return macBlock == null
+                ? new byte[macSize]
+                : Arrays.Clone(macBlock);
         }
 
         public virtual int GetOutputSize(int len)
