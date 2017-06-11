@@ -81,7 +81,15 @@ namespace Org.BouncyCastle.Crypto.Prng
         /// <param name="additionalInput">optional additional input</param>
         public virtual void Reseed(byte[] additionalInput)
         {
-            mDrbg.Reseed(additionalInput);
+            lock (this)
+            {
+                if (mDrbg == null)
+                {
+                    mDrbg = mDrbgProvider.Get(mEntropySource);
+                }
+
+                mDrbg.Reseed(additionalInput);
+            }
         }
     }
 }
