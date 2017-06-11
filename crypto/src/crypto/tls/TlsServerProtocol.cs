@@ -386,11 +386,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected override void HandleWarningMessage(byte description)
+        protected override void HandleAlertWarningMessage(byte alertDescription)
         {
-            base.HandleWarningMessage(description);
+            base.HandleAlertWarningMessage(alertDescription);
 
-            switch (description)
+            switch (alertDescription)
             {
             case AlertDescription.no_certificate:
             {

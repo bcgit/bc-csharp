@@ -108,15 +108,94 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected abstract TlsPeer Peer { get; }
 
+        protected virtual void HandleAlertMessage(byte alertLevel, byte alertDescription)
+        {
+            Peer.NotifyAlertReceived(alertLevel, alertDescription);
+
+            if (alertLevel == AlertLevel.warning)
+            {
+                HandleAlertWarningMessage(alertDescription);
+            }
+            else
+            {
+                HandleFailure();
+
+                throw new TlsFatalAlertReceived(alertDescription);
+            }
+        }
+
+        protected virtual void HandleAlertWarningMessage(byte alertDescription)
+        {
+            /*
+             * RFC 5246 7.2.1. The other party MUST respond with a close_notify alert of its own
+             * and close down the connection immediately, discarding any pending writes.
+             */
+            if (alertDescription == AlertDescription.close_notify)
+            {
+                if (!mAppDataReady)
+                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+                HandleClose(false);
+            }
+        }
+
         protected virtual void HandleChangeCipherSpecMessage()
         {
         }
 
-        protected abstract void HandleHandshakeMessage(byte type, MemoryStream buf);
-
-        protected virtual void HandleWarningMessage(byte description)
+        protected virtual void HandleClose(bool user_canceled)
         {
+            if (!mClosed)
+            {
+                this.mClosed = true;
+
+                if (user_canceled && !mAppDataReady)
+                {
+                    RaiseAlertWarning(AlertDescription.user_canceled, "User canceled handshake");
+                }
+
+                RaiseAlertWarning(AlertDescription.close_notify, "Connection closed");
+
+                mRecordStream.SafeClose();
+
+                if (!mAppDataReady)
+                {
+                    CleanupHandshake();
+                }
+            }
         }
+
+        protected virtual void HandleException(byte alertDescription, string message, Exception cause)
+        {
+            if (!mClosed)
+            {
+                RaiseAlertFatal(alertDescription, message, cause);
+
+                HandleFailure();
+            }
+        }
+
+        protected virtual void HandleFailure()
+        {
+            this.mClosed = true;
+            this.mFailedWithError = true;
+
+            /*
+             * RFC 2246 7.2.1. The session becomes unresumable if any connection is terminated
+             * without proper close_notify messages with level equal to warning.
+             */
+            // TODO This isn't quite in the right place. Also, as of TLS 1.1 the above is obsolete.
+            InvalidateSession();
+
+            mRecordStream.SafeClose();
+
+            if (!mAppDataReady)
+            {
+                CleanupHandshake();
+            }
+        }
+
+        protected abstract void HandleHandshakeMessage(byte type, MemoryStream buf);
 
         protected virtual void ApplyMaxFragmentLengthExtension()
         {
@@ -366,49 +445,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 /*
                  * An alert is always 2 bytes. Read the alert.
                  */
-                byte[] tmp = mAlertQueue.RemoveData(2, 0);
-                byte level = tmp[0];
-                byte description = tmp[1];
+                byte[] alert = mAlertQueue.RemoveData(2, 0);
+                byte alertLevel = alert[0];
+                byte alertDescription = alert[1];
 
-                Peer.NotifyAlertReceived(level, description);
-
-                if (level == AlertLevel.fatal)
-                {
-                    /*
-                     * RFC 2246 7.2.1. The session becomes unresumable if any connection is terminated
-                     * without proper close_notify messages with level equal to warning.
-                     */
-                    InvalidateSession();
-
-                    this.mFailedWithError = true;
-                    this.mClosed = true;
-
-                    mRecordStream.SafeClose();
-                    if (!mAppDataReady)
-                    {
-                        CleanupHandshake();
-                    }
-
-                    throw new TlsFatalAlertReceived(description);
-                }
-
-                /*
-                 * RFC 5246 7.2.1. The other party MUST respond with a close_notify alert of its own
-                 * and close down the connection immediately, discarding any pending writes.
-                 */
-                if (description == AlertDescription.close_notify)
-                {
-                    if (!mAppDataReady)
-                    {
-                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
-                    }
-                    HandleClose(false);
-                }
-
-                /*
-                 * If it is just a warning, we continue.
-                 */
-                HandleWarningMessage(description);
+                HandleAlertMessage(alertLevel, alertDescription);
             }
         }
 
@@ -491,13 +532,18 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             catch (TlsFatalAlert e)
             {
-                this.FailWithError(AlertLevel.fatal, e.AlertDescription, "Failed to read record", e);
+                HandleException(e.AlertDescription, "Failed to read record", e);
+                throw e;
+            }
+            catch (IOException e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to read record", e);
                 throw e;
             }
             catch (Exception e)
             {
-                this.FailWithError(AlertLevel.fatal, AlertDescription.internal_error, "Failed to read record", e);
-                throw e;
+                HandleException(AlertDescription.internal_error, "Failed to read record", e);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
         }
 
@@ -505,31 +551,36 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             try
             {
-                if (!mRecordStream.ReadRecord())
-                {
-                    if (!mAppDataReady)
-                    {
-                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
-                    }
-                    throw new TlsNoCloseNotifyException();
-                }
+                if (mRecordStream.ReadRecord())
+                    return;
+
+                if (!mAppDataReady)
+                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+            }
+            catch (TlsFatalAlertReceived e)
+            {
+                // Connection failure already handled at source
+                throw e;
             }
             catch (TlsFatalAlert e)
             {
-                if (!mClosed)
-                {
-                    this.FailWithError(AlertLevel.fatal, e.AlertDescription, "Failed to read record", e);
-                }
+                HandleException(e.AlertDescription, "Failed to read record", e);
+                throw e;
+            }
+            catch (IOException e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to read record", e);
                 throw e;
             }
             catch (Exception e)
             {
-                if (!mClosed)
-                {
-                    this.FailWithError(AlertLevel.fatal, AlertDescription.internal_error, "Failed to read record", e);
-                }
-                throw e;
+                HandleException(AlertDescription.internal_error, "Failed to read record", e);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
+
+            HandleFailure();
+
+            throw new TlsNoCloseNotifyException();
         }
 
         protected virtual void SafeWriteRecord(byte type, byte[] buf, int offset, int len)
@@ -540,19 +591,18 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             catch (TlsFatalAlert e)
             {
-                if (!mClosed)
-                {
-                    this.FailWithError(AlertLevel.fatal, e.AlertDescription, "Failed to write record", e);
-                }
+                HandleException(e.AlertDescription, "Failed to write record", e);
+                throw e;
+            }
+            catch (IOException e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to write record", e);
                 throw e;
             }
             catch (Exception e)
             {
-                if (!mClosed)
-                {
-                    this.FailWithError(AlertLevel.fatal, AlertDescription.internal_error, "Failed to write record", e);
-                }
-                throw e;
+                HandleException(AlertDescription.internal_error, "Failed to write record", e);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
         }
 
@@ -830,50 +880,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             return mOutputBuffer.Read(buffer, offset, length);
         }
 
-        /**
-         * Terminate this connection with an alert. Can be used for normal closure too.
-         * 
-         * @param alertLevel
-         *            See {@link AlertLevel} for values.
-         * @param alertDescription
-         *            See {@link AlertDescription} for values.
-         * @throws IOException
-         *             If alert was fatal.
-         */
-        protected virtual void FailWithError(byte alertLevel, byte alertDescription, string message, Exception cause)
-        {
-            /*
-             * Check if the connection is still open.
-             */
-            if (!mClosed)
-            {
-                /*
-                 * Prepare the message
-                 */
-                this.mClosed = true;
-
-                if (alertLevel == AlertLevel.fatal)
-                {
-                    /*
-                     * RFC 2246 7.2.1. The session becomes unresumable if any connection is terminated
-                     * without proper close_notify messages with level equal to warning.
-                     */
-                    // TODO This isn't quite in the right place. Also, as of TLS 1.1 the above is obsolete.
-                    InvalidateSession();
-
-                    this.mFailedWithError = true;
-                }
-                RaiseAlert(alertLevel, alertDescription, message, cause);
-                mRecordStream.SafeClose();
-                if (alertLevel != AlertLevel.fatal)
-                {
-                    return;
-                }
-            }
-
-            throw new IOException("TLS connection failed");
-        }
-
         protected virtual void InvalidateSession()
         {
             if (this.mSessionParameters != null)
@@ -910,18 +916,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected virtual void RaiseAlert(byte alertLevel, byte alertDescription, string message, Exception cause)
+        protected virtual void RaiseAlertFatal(byte alertDescription, string message, Exception cause)
         {
-            Peer.NotifyAlertRaised(alertLevel, alertDescription, message, cause);
+            Peer.NotifyAlertRaised(AlertLevel.fatal, alertDescription, message, cause);
 
-            byte[] error = new byte[]{ alertLevel, alertDescription };
+            byte[] alert = new byte[]{ AlertLevel.fatal, alertDescription };
 
-            SafeWriteRecord(ContentType.alert, error, 0, 2);
+            try
+            {
+                mRecordStream.WriteRecord(ContentType.alert, alert, 0, 2);
+            }
+            catch (Exception)
+            {
+                // We are already processing an exception, so just ignore this
+            }
         }
 
-        protected virtual void RaiseWarning(byte alertDescription, string message)
+        protected virtual void RaiseAlertWarning(byte alertDescription, string message)
         {
-            RaiseAlert(AlertLevel.warning, alertDescription, message, null);
+            Peer.NotifyAlertRaised(AlertLevel.warning, alertDescription, message, null);
+
+            byte[] alert = new byte[]{ AlertLevel.warning, alertDescription };
+
+            SafeWriteRecord(ContentType.alert, alert, 0, 2);
         }
 
         protected virtual void SendCertificateMessage(Certificate certificate)
@@ -940,7 +957,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     if (serverVersion.IsSsl)
                     {
                         string errorMessage = serverVersion.ToString() + " client didn't provide credentials";
-                        RaiseWarning(AlertDescription.no_certificate, errorMessage);
+                        RaiseAlertWarning(AlertDescription.no_certificate, errorMessage);
                         return;
                     }
                 }
@@ -999,18 +1016,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             HandleClose(true);
         }
 
-        protected virtual void HandleClose(bool user_canceled)
-        {
-            if (!mClosed)
-            {
-                if (user_canceled && !mAppDataReady)
-                {
-                    RaiseWarning(AlertDescription.user_canceled, "User canceled handshake");
-                }
-                this.FailWithError(AlertLevel.warning, AlertDescription.close_notify, "Connection closed", null);
-            }
-        }
-
         protected internal virtual void Flush()
         {
             mRecordStream.Flush();
@@ -1046,7 +1051,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (TlsUtilities.IsSsl(Context))
                 throw new TlsFatalAlert(AlertDescription.handshake_failure);
 
-            RaiseWarning(AlertDescription.no_renegotiation, "Renegotiation not supported");
+            RaiseAlertWarning(AlertDescription.no_renegotiation, "Renegotiation not supported");
         }
 
         /**
