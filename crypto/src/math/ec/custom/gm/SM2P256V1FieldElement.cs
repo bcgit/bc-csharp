@@ -143,13 +143,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
             uint[] x2 = Nat256.Create();
             SM2P256V1Field.Square(x1, x2);
             SM2P256V1Field.Multiply(x2, x1, x2);
-            uint[] x3 = x2;
-            SM2P256V1Field.Square(x2, x3);
-            SM2P256V1Field.Multiply(x3, x1, x3);
+            uint[] x4 = Nat256.Create();
+            SM2P256V1Field.SquareN(x2, 2, x4);
+            SM2P256V1Field.Multiply(x4, x2, x4);
             uint[] x6 = Nat256.Create();
-            SM2P256V1Field.SquareN(x3, 3, x6);
-            SM2P256V1Field.Multiply(x6, x3, x6);
-            uint[] x12 = x3;
+            SM2P256V1Field.SquareN(x4, 2, x6);
+            SM2P256V1Field.Multiply(x6, x2, x6);
+            uint[] x12 = x2;
             SM2P256V1Field.SquareN(x6, 6, x12);
             SM2P256V1Field.Multiply(x12, x6, x12);
             uint[] x24 = Nat256.Create();
@@ -162,25 +162,23 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
             SM2P256V1Field.Square(x30, x31);
             SM2P256V1Field.Multiply(x31, x1, x31);
 
-            uint[] t1 = x31;
-            SM2P256V1Field.Square(x31, t1);
+            uint[] t1 = x24;
+            SM2P256V1Field.SquareN(x31, 31, t1);
 
-            uint[] x32 = x12;
-            SM2P256V1Field.Multiply(t1, x1, x32);
+            uint[] x62 = x30;
+            SM2P256V1Field.Multiply(t1, x31, x62);
 
             SM2P256V1Field.SquareN(t1, 32, t1);
-            SM2P256V1Field.Multiply(t1, x32, t1);
+            SM2P256V1Field.Multiply(t1, x62, t1);
+            SM2P256V1Field.SquareN(t1, 62, t1);
+            SM2P256V1Field.Multiply(t1, x62, t1);
+            SM2P256V1Field.SquareN(t1, 4, t1);
+            SM2P256V1Field.Multiply(t1, x4, t1);
+            SM2P256V1Field.SquareN(t1, 32, t1);
+            SM2P256V1Field.Multiply(t1, x1, t1);
+            SM2P256V1Field.SquareN(t1, 62, t1);
 
-            uint[] t2 = x24;
-            SM2P256V1Field.SquareN(t1, 32, t2);
-            SM2P256V1Field.Multiply(t2, x1, t2);
-            SM2P256V1Field.SquareN(t2, 32, t2);
-            SM2P256V1Field.Multiply(t2, t1, t2);
-            SM2P256V1Field.SquareN(t2, 32, t2);
-            SM2P256V1Field.Multiply(t2, x32, t2);
-            SM2P256V1Field.SquareN(t2, 32, t2);
-            SM2P256V1Field.Multiply(t2, x1, t2);
-            SM2P256V1Field.SquareN(t2, 62, t1);
+            uint[] t2 = x4;
             SM2P256V1Field.Square(t1, t2);
 
             return Nat256.Eq(x1, t2) ? new SM2P256V1FieldElement(t1) : null;
