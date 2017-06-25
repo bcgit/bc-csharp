@@ -39,6 +39,13 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return null;
         }
 
+        public static CertReqMsg GetInstance(
+            Asn1TaggedObject obj,
+            bool isExplicit)
+        {
+            return GetInstance(Asn1Sequence.GetInstance(obj, isExplicit));
+        }
+
         /**
          * Creates a new CertReqMsg.
          * @param certReq CertRequest

@@ -47,7 +47,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             this.sigBits = signature;
         }
 
-		public CertificationRequest(
+        [Obsolete("Use 'GetInstance' instead")]
+        public CertificationRequest(
             Asn1Sequence seq)
         {
 			if (seq.Count != 3)

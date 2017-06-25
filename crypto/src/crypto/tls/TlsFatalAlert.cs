@@ -1,10 +1,9 @@
 using System;
-using System.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
     public class TlsFatalAlert
-        : IOException
+        : TlsException
     {
         private readonly byte alertDescription;
 

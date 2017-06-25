@@ -5179,12 +5179,22 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\TlsException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsExtensionsUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsFatalAlert.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsFatalAlertReceived.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -5454,22 +5464,22 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\custom\sec\SM2P256V1Curve.cs"
+                    RelPath = "src\math\ec\custom\gm\SM2P256V1Curve.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\custom\sec\SM2P256V1Field.cs"
+                    RelPath = "src\math\ec\custom\gm\SM2P256V1Field.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\custom\sec\SM2P256V1FieldElement.cs"
+                    RelPath = "src\math\ec\custom\gm\SM2P256V1FieldElement.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\custom\sec\SM2P256V1Point.cs"
+                    RelPath = "src\math\ec\custom\gm\SM2P256V1Point.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

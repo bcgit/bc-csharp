@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -779,6 +779,47 @@ namespace Org.BouncyCastle.Crypto.Tests
             OaepVecTest(1027, 4, pubParam, privParam, seed_1027_4, input_1027_4, output_1027_4);
             OaepVecTest(1027, 5, pubParam, privParam, seed_1027_5, input_1027_5, output_1027_5);
             OaepVecTest(1027, 6, pubParam, privParam, seed_1027_6, input_1027_6, output_1027_6);
+
+            //
+            // OAEP - public encrypt, private decrypt  differring hashes
+            //
+            IAsymmetricBlockCipher cipher = new OaepEncoding(new RsaEngine(), new Sha256Digest(), new Sha1Digest(), new byte[10]);
+
+            cipher.Init(true, new ParametersWithRandom(pubParam, new SecureRandom()));
+
+            byte[] input = new byte[10];
+
+            byte[] output = cipher.ProcessBlock(input, 0, input.Length);
+
+            cipher.Init(false, privParam);
+
+            output = cipher.ProcessBlock(output, 0, output.Length);
+
+            for (int i = 0; i != input.Length; i++)
+            {
+                if (output[i] != input[i])
+                {
+                    Fail("mixed digest failed decoding");
+                }
+            }
+
+            cipher = new OaepEncoding(new RsaEngine(), new Sha1Digest(), new Sha256Digest(), new byte[10]);
+
+            cipher.Init(true, new ParametersWithRandom(pubParam, new SecureRandom()));
+
+            output = cipher.ProcessBlock(input, 0, input.Length);
+
+            cipher.Init(false, privParam);
+
+            output = cipher.ProcessBlock(output, 0, output.Length);
+
+            for (int i = 0; i != input.Length; i++)
+            {
+                if (output[i] != input[i])
+                {
+                    Fail("mixed digest failed decoding");
+                }
+            }
         }
 
         public static void Main(

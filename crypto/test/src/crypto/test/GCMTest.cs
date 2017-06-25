@@ -327,7 +327,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         protected IBlockCipher CreateAesEngine()
         {
-            return new AesFastEngine();
+            return new AesEngine();
         }
 
         private void DoTestExceptions()
@@ -357,12 +357,38 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             // TODO
-            //AEADTestUtil.testReset(this, new GCMBlockCipher(createAESEngine()), new GCMBlockCipher(createAESEngine()), new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]));
             //AEADTestUtil.testTampering(this, gcm, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]));
-            //AEADTestUtil.testOutputSizes(this, new GCMBlockCipher(createAESEngine()), new AEADParameters(new KeyParameter(
-            //        new byte[16]), 128, new byte[16]));
-            //AEADTestUtil.testBufferSizeChecks(this, new GCMBlockCipher(createAESEngine()), new AEADParameters(
-            //        new KeyParameter(new byte[16]), 128, new byte[16]));
+
+            //byte[] P = Strings.toByteArray("Hello world!");
+            //byte[] buf = new byte[100];
+
+            //GCMBlockCipher c = new GCMBlockCipher(createAESEngine());
+            //AEADParameters aeadParameters = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]);
+            //c.init(true, aeadParameters);
+
+            //c.processBytes(P, 0, P.length, buf, 0);
+
+            //c.doFinal(buf, 0);
+
+            //try
+            //{
+            //    c.doFinal(buf, 0);
+            //    fail("no exception on reuse");
+            //}
+            //catch (IllegalStateException e)
+            //{
+            //    isTrue("wrong message", e.getMessage().equals("GCM cipher cannot be reused for encryption"));
+            //}
+
+            //try
+            //{
+            //    c.init(true, aeadParameters);
+            //    fail("no exception on reuse");
+            //}
+            //catch (IllegalArgumentException e)
+            //{
+            //    isTrue("wrong message", e.getMessage().equals("cannot reuse nonce for GCM encryption"));
+            //}
         }
 
         private void RunTestCase(string[] testVector)
@@ -433,13 +459,21 @@ namespace Org.BouncyCastle.Crypto.Tests
             GcmBlockCipher encCipher = InitCipher(encM, true, parameters);
             GcmBlockCipher decCipher = InitCipher(decM, false, parameters);
             CheckTestCase(encCipher, decCipher, testName, SA, P, C, T);
+            encCipher = InitCipher(encM, true, parameters);
             CheckTestCase(encCipher, decCipher, testName + " (reused)", SA, P, C, T);
 
             // Key reuse
             AeadParameters keyReuseParams = AeadTestUtilities.ReuseKey(parameters);
-            encCipher.Init(true, keyReuseParams);
-            decCipher.Init(false, keyReuseParams);
-            CheckTestCase(encCipher, decCipher, testName + " (key reuse)", SA, P, C, T);
+
+            try
+            {
+                encCipher.Init(true, keyReuseParams);
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue("wrong message", "cannot reuse nonce for GCM encryption".Equals(e.Message));
+            }
         }
 
         private GcmBlockCipher InitCipher(

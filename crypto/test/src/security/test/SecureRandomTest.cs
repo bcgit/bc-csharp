@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestSP800Ctr()
         {
-            SecureRandom random = new SP800SecureRandomBuilder().BuildCtr(new AesFastEngine(), 256, new byte[32], false);
+            SecureRandom random = new SP800SecureRandomBuilder().BuildCtr(new AesEngine(), 256, new byte[32], false);
 
             CheckSecureRandom(random);
         }
@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestX931()
         {
-            SecureRandom random = new X931SecureRandomBuilder().Build(new AesFastEngine(), new KeyParameter(new byte[16]), false);
+            SecureRandom random = new X931SecureRandomBuilder().Build(new AesEngine(), new KeyParameter(new byte[16]), false);
 
             CheckSecureRandom(random);
         }

@@ -360,6 +360,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             byte[] b = cipher.ProcessBlock(block, 0, block.Length);
 
+            messageLength = 0;
+
             ClearBlock(mBuf);
             ClearBlock(block);
 
@@ -526,11 +528,15 @@ namespace Org.BouncyCastle.Crypto.Signers
             ClearBlock(mBuf);
             ClearBlock(block);
 
+            messageLength = 0;
+
             return true;
         }
 
         private bool ReturnFalse(byte[] block)
         {
+            messageLength = 0;
+
             ClearBlock(mBuf);
             ClearBlock(block);
 

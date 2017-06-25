@@ -32,5 +32,7 @@ namespace Org.BouncyCastle.Asn1.X509
         // microsoft key purpose ids
         //
         public static readonly KeyPurposeID IdKPSmartCardLogon = new KeyPurposeID("1.3.6.1.4.1.311.20.2.2");
+
+        public static readonly KeyPurposeID IdKPMacAddress = new KeyPurposeID("1.3.6.1.1.1.1.22");
     }
 }

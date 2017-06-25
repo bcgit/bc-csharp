@@ -516,6 +516,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (!isOkay)
             {
                 fullMessage = false;
+                messageLength = 0;
                 ClearBlock(recoveredMessage);
                 return false;
             }
@@ -528,11 +529,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 if (!IsSameAs(mBuf, recoveredMessage))
                 {
+                    messageLength = 0;
                     ClearBlock(mBuf);
                     return false;
                 }
-                messageLength = 0;
             }
+
+            messageLength = 0;
 
             ClearBlock(mBuf);
             return true;
