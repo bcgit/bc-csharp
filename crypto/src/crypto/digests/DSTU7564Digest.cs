@@ -212,12 +212,20 @@ namespace Org.BouncyCastle.Crypto.Digests
           {
             padded_ = Pad(buf, 0, bufOff);
 
-            ProcessBlock(padded_, 0);
+            int paddedLen = padded_.Length;
+            int paddedOff = 0;
 
- 
-               //Console.WriteLine(stateLine.Length);
+            while (paddedLen != 0)
+            {
+                ProcessBlock(padded_, paddedOff);
+                paddedOff += blockSize;
+                paddedLen -= blockSize;
+            }
 
-               byte[][] temp = new byte[STATE_BYTE_SIZE_1024][];
+
+            //Console.WriteLine(stateLine.Length);
+
+            byte[][] temp = new byte[STATE_BYTE_SIZE_1024][];
                for (int i = 0; i < state_.Length; i++)
                {
                     temp[i] = new byte[ROWS];

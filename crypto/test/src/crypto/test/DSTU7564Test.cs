@@ -55,104 +55,249 @@ namespace Org.BouncyCastle.Crypto.Tests
 
     private void overflowTest()
     {
-        int macBitSize = 256;
-        byte[] input = new byte[1024];
-        for (int i = 0; i != input.Length; i++)
-        {
-            input[i] = (byte)(i & 0xff);
+            int macBitSize = 256;
+            byte[] input = new byte[1024];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+            byte[] key = Hex.Decode("1F1E1D1C1B1A191817161514131211100F0E0D0C0B0A09080706050403020100");
+
+            byte[] expectedMac = Hex.Decode("165382df70adcb040b17c1aced117d26d598b239ab631271a05f6d0f875ae9ea");
+            byte[] mac = new byte[macBitSize / 8];
+
+            Dstu7564Mac dstu7564mac = new Dstu7564Mac(macBitSize);
+
+            dstu7564mac.Init(new KeyParameter(key));
+            dstu7564mac.BlockUpdate(input, 0, input.Length);
+            dstu7564mac.DoFinal(mac, 0);
+
+            if (!Arrays.AreEqual(expectedMac, mac))
+            {
+                Fail("Failed overflow test 1 - expected "
+                    + Hex.ToHexString(expectedMac)
+                    + " got " + Hex.ToHexString(mac));
+            }
+
+            macBitSize = 256;
+            input = new byte[1023];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+            key = Hex.Decode("1F1E1D1C1B1A191817161514131211100F0E0D0C0B0A09080706050403020100");
+
+            expectedMac = Hex.Decode("ed45f163e694d990d2d835dca2f3f869a55a31396c8138161b190d5914d50686");
+            mac = new byte[macBitSize / 8];
+
+            dstu7564mac = new Dstu7564Mac(macBitSize);
+
+            dstu7564mac.Init(new KeyParameter(key));
+            dstu7564mac.BlockUpdate(input, 0, input.Length);
+            dstu7564mac.DoFinal(mac, 0);
+
+            if (!Arrays.AreEqual(expectedMac, mac))
+            {
+                Fail("Failed overflow test 2 - expected "
+                    + Hex.ToHexString(expectedMac)
+                    + " got " + Hex.ToHexString(mac));
+            }
+
+            Dstu7564Digest digest = new Dstu7564Digest(macBitSize);
+            byte[] expectedDigest = Hex.Decode("6bfc5ec8c1f5963fbed89da115d86e9330634eca341dd42fd94a7007e4af7942");
+            byte[] digestBuf = new byte[macBitSize / 8];
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 3 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            expectedDigest = Hex.Decode("6f8f0a3f8261af77581ab01cb89d4cb5ed87ca1d9954f11d5586e94b45c82fb8");
+
+            input = new byte[51];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 4 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            input = new byte[52];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("8b6fe2ba77e684b2a1ac82232f4efc49f681cd18c82a0cfff530186a2fc642d2");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 5 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+
+            input = new byte[53];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("837f2b0cbe39a4defdfcb44272288d4091cab850161c70695d7831fc5f00e171");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 6 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            input = new byte[54];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("21d423d5b8c7f18a0da42cdd95b36b66344125e2adc6edeab5899926442113bc");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 7 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            input = new byte[55];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("0e7bf74464b81b3ae7d904170776d29f4b02a7227da578dd562d01027af7fd0e");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 8 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            input = new byte[56];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("badea1f49cbcec94acec52b4c695acdddd786cca5a6763929f341a58c5134b3b");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 9 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            input = new byte[57];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("a13b5f6f53ee043292ed65b66c1d49759be4d2fe0c2f6148f2416487965f7bde");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 10 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            input = new byte[63];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("03a44a02c9ffafb43addb290bbcf3b8168f624e8cbd332dc6a9dc7df9d39cbc2");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 11 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            input = new byte[64];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("08f4ee6f1be6903b324c4e27990cb24ef69dd58dbe84813ee0a52f6631239875");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 12 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
+
+            input = new byte[65];
+            for (int i = 0; i != input.Length; i++)
+            {
+                input[i] = (byte)(i & 0xff);
+            }
+
+            expectedDigest = Hex.Decode("a81c2fb92351f370050b7c36cd51736d5603a50ec1106cbd5fe1c9be2e5c77a6");
+
+            digest.BlockUpdate(input, 0, input.Length);
+            digest.DoFinal(digestBuf, 0);
+
+            if (!Arrays.AreEqual(expectedDigest, digestBuf))
+            {
+                Fail("Failed overflow test 13 - expected "
+                    + Hex.ToHexString(expectedDigest)
+                    + " got " + Hex.ToHexString(digestBuf));
+            }
         }
-        byte[] key = Hex.Decode("1F1E1D1C1B1A191817161514131211100F0E0D0C0B0A09080706050403020100");
-
-        byte[] expectedMac = Hex.Decode("165382df70adcb040b17c1aced117d26d598b239ab631271a05f6d0f875ae9ea");
-        byte[] mac = new byte[macBitSize / 8];
-
-        DSTU7564Mac dstu7564mac = new DSTU7564Mac(macBitSize);
-
-        dstu7564mac.Init(new KeyParameter(key));
-        dstu7564mac.BlockUpdate(input, 0, input.Length);
-        dstu7564mac.DoFinal(mac, 0);
-
-        if (!Arrays.AreEqual(expectedMac, mac))
-        {
-            Fail("Failed overflow test 2 - expected "
-                + Hex.ToHexString(expectedMac)
-                + " got " + Hex.ToHexString(mac));
-        }
-
-        macBitSize = 256;
-        input = new byte[1023];
-        for (int i = 0; i != input.Length; i++)
-        {
-            input[i] = (byte)(i & 0xff);
-        }
-        key = Hex.Decode("1F1E1D1C1B1A191817161514131211100F0E0D0C0B0A09080706050403020100");
-
-        expectedMac = Hex.Decode("ed45f163e694d990d2d835dca2f3f869a55a31396c8138161b190d5914d50686");
-        mac = new byte[macBitSize / 8];
-
-        dstu7564mac = new DSTU7564Mac(macBitSize);
-
-        dstu7564mac.Init(new KeyParameter(key));
-        dstu7564mac.BlockUpdate(input, 0, input.Length);
-        dstu7564mac.DoFinal(mac, 0);
-
-        if (!Arrays.AreEqual(expectedMac, mac))
-        {
-            Fail("Failed overflow test 3 - expected "
-                + Hex.ToHexString(expectedMac)
-                + " got " + Hex.ToHexString(mac));
-        }
-
-        Dstu7564Digest digest = new Dstu7564Digest(macBitSize);
-        byte[] expectedDigest = Hex.Decode("97e84ee3b7ca2e9b0148878e88da09152952de7dd66e45d1b50ec4640932f527");
-        byte[] digestBuf = new byte[macBitSize / 8];
-
-        digest.BlockUpdate(input, 0, input.Length);
-        digest.DoFinal(digestBuf, 0);
-
-        if (!Arrays.AreEqual(expectedDigest, digestBuf))
-        {
-            Fail("Failed overflow test 4 - expected "
-                + Hex.ToHexString(expectedDigest)
-                + " got " + Hex.ToHexString(digestBuf));
-        }
-
-        expectedDigest = Hex.Decode("6f8f0a3f8261af77581ab01cb89d4cb5ed87ca1d9954f11d5586e94b45c82fb8");
-
-        input = new byte[51];
-        for (int i = 0; i != input.Length; i++)
-        {
-            input[i] = (byte)(i & 0xff);
-        }
-
-        digest.BlockUpdate(input, 0, input.Length);
-        digest.DoFinal(digestBuf, 0);
-
-        if (!Arrays.AreEqual(expectedDigest, digestBuf))
-        {
-            Fail("Failed overflow test 5 - expected "
-                + Hex.ToHexString(expectedDigest)
-                + " got " + Hex.ToHexString(digestBuf));
-        }
-
-        input = new byte[52];
-        for (int i = 0; i != input.Length; i++)
-        {
-            input[i] = (byte)(i & 0xff);
-        }
-
-        expectedDigest = Hex.Decode("2d60e14ead298848031a3321ebf9e8e5263228c498e2d8ba8a857d4979aca4b3");
-
-        digest.BlockUpdate(input, 0, input.Length);
-        digest.DoFinal(digestBuf, 0);
-
-        if (!Arrays.AreEqual(expectedDigest, digestBuf))
-        {
-            Fail("Failed overflow test 6 - expected "
-                + Hex.ToHexString(expectedDigest)
-                + " got " + Hex.ToHexString(digestBuf));
-        }
-    }
 
     private void macTests()
     {
@@ -165,7 +310,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         byte[] expectedMac = Hex.Decode("B60594D56FA79BA210314C72C2495087CCD0A99FC04ACFE2A39EF669925D98EE");
         byte[] mac = new byte[macBitSize / 8];
 
-        DSTU7564Mac dstu7564mac = new DSTU7564Mac(macBitSize);
+        Dstu7564Mac dstu7564mac = new Dstu7564Mac(macBitSize);
 
         dstu7564mac.Init(new KeyParameter(key));
         dstu7564mac.BlockUpdate(input, 0, input.Length);
@@ -186,7 +331,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         expectedMac = Hex.Decode("BEBFD8D730336F043ABACB41829E79A4D320AEDDD8D14024D5B805DA70C396FA295C281A38B30AE728A304B3F5AE490E");
         mac = new byte[macBitSize / 8];
 
-        dstu7564mac = new DSTU7564Mac(macBitSize);
+        dstu7564mac = new Dstu7564Mac(macBitSize);
 
         dstu7564mac.Init(new KeyParameter(key));
         dstu7564mac.BlockUpdate(input, 0, input.Length);
@@ -207,7 +352,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         expectedMac = Hex.Decode("F270043C06A5C37E65D9D791C5FBFB966E5EE709F8F54019C9A55B76CA40B70100579F269CEC24E347A9D864614CF3ABBF6610742E4DB3BD2ABC000387C49D24");
         mac = new byte[macBitSize / 8];
 
-        dstu7564mac = new DSTU7564Mac(macBitSize);
+        dstu7564mac = new Dstu7564Mac(macBitSize);
 
         dstu7564mac.Init(new KeyParameter(key));
         dstu7564mac.BlockUpdate(input, 0, input.Length);
