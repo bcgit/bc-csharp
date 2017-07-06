@@ -282,7 +282,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             bufOff = 0;
 
             Arrays.Fill(buf, (byte)0);
-            Arrays.Fill(padded_, (byte)0);
+
+            if (padded_ != null)
+            {
+                Arrays.Fill(padded_, (byte)0);
+            }
         }
 
           public int GetDigestSize()
