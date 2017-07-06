@@ -97,7 +97,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private ITestResult MacTests()
         {
-            /*
             //MAC mode (PADDING NOT SUPPORTED)
             //test 1
             byte[] key = Hex.Decode("000102030405060708090A0B0C0D0E0F");
@@ -151,7 +150,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                      + Hex.ToHexString(expectedMac)
                      + " got " + Hex.ToHexString(mac));
             }
-            */
+        
             return new SimpleTestResult(true, Name + ": Okay");
         }
         private ITestResult KeyWrapTests()
