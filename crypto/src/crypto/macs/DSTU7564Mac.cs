@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Crypto.Macs
      /// <summary>
      /// Implementation of DSTU7564 mac mode
      /// </summary>
-     public class DSTU7564Mac : IMac
+     public class Dstu7564Mac : IMac
      {
           private Dstu7564Digest engine;
           private int macSize;
@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
-        public DSTU7564Mac(int macSizeBits)
+        public Dstu7564Mac(int macSizeBits)
           {
             engine = new Dstu7564Digest(macSizeBits);
             macSize = macSizeBits / 8;
