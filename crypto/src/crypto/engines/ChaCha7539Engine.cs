@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public override string AlgorithmName
         {
-            get { return "ChaCha" + rounds; }
+            get { return "ChaCha7539" + rounds; }
         }
 
         protected override int NonceSize

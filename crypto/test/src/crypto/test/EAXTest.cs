@@ -186,8 +186,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] t,
             byte[] c)
         {
-			EaxBlockCipher encEax = new EaxBlockCipher(new AesFastEngine());
-			EaxBlockCipher decEax = new EaxBlockCipher(new AesFastEngine());
+			EaxBlockCipher encEax = new EaxBlockCipher(new AesEngine());
+			EaxBlockCipher decEax = new EaxBlockCipher(new AesEngine());
 
 			AeadParameters parameters = new AeadParameters(new KeyParameter(k), macSize, n, a);
 			encEax.Init(true, parameters);
@@ -313,7 +313,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			srng.NextBytes(datIn);
 			srng.NextBytes(key);
 
-			AesFastEngine engine = new AesFastEngine();
+            IBlockCipher engine = new AesEngine();
 			KeyParameter sessKey = new KeyParameter(key);
 			EaxBlockCipher eaxCipher = new EaxBlockCipher(engine);
 

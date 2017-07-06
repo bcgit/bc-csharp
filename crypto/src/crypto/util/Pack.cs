@@ -298,5 +298,14 @@ namespace Org.BouncyCastle.Crypto.Utilities
             uint hi = LE_To_UInt32(bs, off + 4);
             return ((ulong)hi << 32) | (ulong)lo;
         }
+
+        internal static void LE_To_UInt64(byte[] bs, int off, ulong[] ns)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                ns[i] = LE_To_UInt64(bs, off);
+                off += 8;
+            }
+        }
     }
 }

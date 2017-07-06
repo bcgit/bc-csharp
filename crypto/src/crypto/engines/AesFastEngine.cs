@@ -31,6 +31,11 @@ namespace Org.BouncyCastle.Crypto.Engines
     * This file contains the fast version with 8Kbytes of static tables for round precomputation
     * </p>
     */
+    /// <remarks>
+    /// Unfortunately this class has a few side channel issues.
+    /// In an environment where encryption/decryption may be closely observed it should not be used.
+    /// </remarks>
+    [Obsolete("Use AesEngine instead")]
     public class AesFastEngine
         : IBlockCipher
     {

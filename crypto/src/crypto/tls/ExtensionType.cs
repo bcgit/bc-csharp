@@ -99,6 +99,16 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int extended_master_secret = 23;
 
         /*
+         * draft-ietf-tokbind-negotiation-08
+         */
+        public static readonly int DRAFT_token_binding = 24;
+
+        /*
+         * RFC 7924
+         */
+        public const int cached_info = 25;
+
+        /*
          * RFC 5077 7.
          */
         public const int session_ticket = 35;

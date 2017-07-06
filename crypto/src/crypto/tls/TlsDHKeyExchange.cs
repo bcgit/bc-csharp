@@ -151,6 +151,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public override void ValidateCertificateRequest(CertificateRequest certificateRequest)
         {
+            if (mKeyExchange == KeyExchangeAlgorithm.DH_anon)
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
             byte[] types = certificateRequest.CertificateTypes;
             for (int i = 0; i < types.Length; ++i)
             {

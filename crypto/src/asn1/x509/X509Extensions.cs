@@ -164,6 +164,11 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public static readonly DerObjectIdentifier TargetInformation = new DerObjectIdentifier("2.5.29.55");
 
+        /**
+         * Expired Certificates on CRL extension
+         */
+        public static readonly DerObjectIdentifier ExpiredCertsOnCrl = new DerObjectIdentifier("2.5.29.60");
+
         private readonly IDictionary extensions = Platform.CreateHashtable();
         private readonly IList ordering;
 

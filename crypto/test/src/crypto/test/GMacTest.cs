@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 TestCase testCase = TEST_VECTORS[i];
 
-                IMac mac = new GMac(new GcmBlockCipher(new AesFastEngine()), testCase.getTag().Length * 8);
+                IMac mac = new GMac(new GcmBlockCipher(new AesEngine()), testCase.getTag().Length * 8);
                 ICipherParameters key = new KeyParameter(testCase.getKey());
                 mac.Init(new ParametersWithIV(key, testCase.getIv()));
 
@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             try
             {
-                GMac mac = new GMac(new GcmBlockCipher(new AesFastEngine()), size);
+                GMac mac = new GMac(new GcmBlockCipher(new AesEngine()), size);
                 mac.Init(new ParametersWithIV(null, new byte[16]));
                 Fail("Expected failure for illegal mac size " + size);
             }

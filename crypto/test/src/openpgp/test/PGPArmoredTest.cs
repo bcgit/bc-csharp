@@ -87,6 +87,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			return matches;
 		}
 
+        private void pgpUtilTest()
+        {
+            // check decoder exception isn't escaping.
+            MemoryStream bIn = new MemoryStream(Strings.ToByteArray("abcde"), false);
+
+            try
+            {
+                PgpUtilities.GetDecoderStream(bIn);
+                Fail("no exception");
+            }
+            catch (IOException)
+            {
+                // expected: ignore.
+            }
+        }
+
 		private void blankLineTest()
 		{
 			byte[] blankLineBytes = Encoding.ASCII.GetBytes(blankLineData);
@@ -241,6 +257,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			}
 
 			blankLineTest();
+            pgpUtilTest();
 		}
 
 		public override string Name

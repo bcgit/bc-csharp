@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 			else
 			{
-				mac = new Poly1305(new AesFastEngine());
+				mac = new Poly1305(new AesEngine());
 				mac.Init(new ParametersWithIV(new KeyParameter(tc.key), tc.nonce));
 			}
 			mac.BlockUpdate(tc.message, 0, tc.message.Length);
@@ -151,7 +151,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			byte[] output = new byte[16];
 
 			int c = 0;
-			IMac mac = new Poly1305(new AesFastEngine());
+			IMac mac = new Poly1305(new AesEngine());
 			for (int loop = 0; loop < 13; loop++)
 			{
 				len = 0;
@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			byte[] output = new byte[16];
 
 			// Generate baseline
-			IMac poly = new Poly1305(new AesFastEngine());
+			IMac poly = new Poly1305(new AesEngine());
 			poly.Init(new ParametersWithIV(new KeyParameter(k), new byte[16]));
 
 			poly.BlockUpdate(m, 0, m.Length);
@@ -274,7 +274,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			gen.Init(new KeyGenerationParameters(new SecureRandom(), 256));
 			byte[] k = gen.GenerateKey();
 
-			IMac poly = new Poly1305(new AesFastEngine());
+			IMac poly = new Poly1305(new AesEngine());
 			poly.Init(new ParametersWithIV(new KeyParameter(k), new byte[16]));
 
 			try

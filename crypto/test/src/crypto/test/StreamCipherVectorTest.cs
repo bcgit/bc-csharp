@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Tests
      * a basic test that takes a stream cipher, key parameter, and an input
      * and output string.
      */
-    public class StreamCipherVectorTest: ITest
+    public class StreamCipherVectorTest: SimpleTest
     {
         int                 id;
         IStreamCipher       cipher;
@@ -33,12 +33,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             this.output = Hex.Decode(output);
         }
 
-		public string Name
+		public override string Name
 		{
 			get { return cipher.AlgorithmName + " Vector Test " + id; }
 		}
 
-		public ITestResult Perform()
+		public override void PerformTest()
         {
             cipher.Init(true, param);
 
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             if (!Arrays.AreEqual(outBytes, output))
             {
-                return new SimpleTestResult(false, Name + ": failed - "
+                Fail("failed - "
 					+ "expected " + Hex.ToHexString(output)
 					+ " got " + Hex.ToHexString(outBytes));
             }
@@ -59,10 +59,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             if (!Arrays.AreEqual(input, outBytes))
             {
-                return new SimpleTestResult(false, Name + ": failed reversal");
+                Fail("failed reversal");
             }
-
-            return new SimpleTestResult(true, Name + ": OKAY");
         }
     }
 }

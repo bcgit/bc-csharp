@@ -81,13 +81,19 @@ namespace Org.BouncyCastle.Crypto.Agreement
 				throw new ArgumentNullException("message");
 
 			if (!pub.Parameters.Equals(dhParams))
-			{
 				throw new ArgumentException("Diffie-Hellman public key has wrong parameters.");
-			}
 
-			BigInteger p = dhParams.P;
+            BigInteger p = dhParams.P;
 
-			return message.ModPow(key.X, p).Multiply(pub.Y.ModPow(privateValue, p)).Mod(p);
-		}
-	}
+            BigInteger peerY = pub.Y;
+            if (peerY == null || peerY.CompareTo(BigInteger.One) <= 0 || peerY.CompareTo(p.Subtract(BigInteger.One)) >= 0)
+                throw new ArgumentException("Diffie-Hellman public key is weak");
+
+            BigInteger result = peerY.ModPow(privateValue, p);
+            if (result.Equals(BigInteger.One))
+                throw new InvalidOperationException("Shared key can't be 1");
+
+            return message.ModPow(key.X, p).Multiply(result).Mod(p);
+        }
+    }
 }

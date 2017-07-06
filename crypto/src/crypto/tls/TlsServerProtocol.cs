@@ -386,28 +386,39 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected override void HandleWarningMessage(byte description)
+        protected override void HandleAlertWarningMessage(byte alertDescription)
         {
-            switch (description)
+            base.HandleAlertWarningMessage(alertDescription);
+
+            switch (alertDescription)
             {
             case AlertDescription.no_certificate:
             {
                 /*
-                 * SSL 3.0 If the server has sent a certificate request Message, the client must Send
+                 * SSL 3.0 If the server has sent a certificate request Message, the client must send
                  * either the certificate message or a no_certificate alert.
                  */
-                if (TlsUtilities.IsSsl(Context) && mCertificateRequest != null)
+                if (TlsUtilities.IsSsl(Context) && this.mCertificateRequest != null)
                 {
-                    NotifyClientCertificate(Certificate.EmptyChain);
+                    switch (this.mConnectionState)
+                    {
+                    case CS_SERVER_HELLO_DONE:
+                    case CS_CLIENT_SUPPLEMENTAL_DATA:
+                    {
+                        if (mConnectionState < CS_CLIENT_SUPPLEMENTAL_DATA)
+                        {
+                            mTlsServer.ProcessClientSupplementalData(null);
+                        }
+
+                        NotifyClientCertificate(Certificate.EmptyChain);
+                        this.mConnectionState = CS_CLIENT_CERTIFICATE;
+                        return;
+                    }
+                    }
                 }
-                break;
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
             }
-            default:
-            {
-                base.HandleWarningMessage(description);
-                break;
-            }
-            }
+            } 
         }
 
         protected virtual void NotifyClientCertificate(Certificate clientCertificate)

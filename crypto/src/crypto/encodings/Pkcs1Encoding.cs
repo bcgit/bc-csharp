@@ -45,16 +45,18 @@ namespace Org.BouncyCastle.Crypto.Encodings
         }
 
 
-        private SecureRandom			random;
-        private IAsymmetricBlockCipher	engine;
-        private bool					forEncryption;
-        private bool					forPrivateKey;
-        private bool					useStrictLength;
-        private int                     pLen = -1;
-        private byte[]                  fallback = null;
+        private SecureRandom random;
+        private IAsymmetricBlockCipher engine;
+        private bool forEncryption;
+        private bool forPrivateKey;
+        private bool useStrictLength;
+        private int pLen = -1;
+        private byte[] fallback = null;
+        private byte[] blockBuffer = null;
 
         /**
          * Basic constructor.
+         *
          * @param cipher
          */
         public Pkcs1Encoding(
@@ -104,9 +106,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             get { return engine.AlgorithmName + "/PKCS1Padding"; }
         }
 
-        public void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
             AsymmetricKeyParameter kParam;
             if (parameters is ParametersWithRandom)
@@ -126,6 +126,10 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
             this.forPrivateKey = kParam.IsPrivate;
             this.forEncryption = forEncryption;
+            this.blockBuffer = new byte[engine.GetOutputBlockSize()];
+
+            if (pLen > 0 && fallback == null && random == null)
+                throw new ArgumentException("encoder requires random");
         }
 
         public int GetInputBlockSize()
@@ -255,7 +259,6 @@ namespace Org.BouncyCastle.Crypto.Encodings
          * @param inLen Length of the encrypted block.
          * @param pLen Length of the desired output.
          * @return The plaintext without padding, or a random value if the padding was incorrect.
-         * 
          * @throws InvalidCipherTextException
          */
         private byte[] DecodeBlockOrRandom(byte[] input, int inOff, int inLen)
@@ -264,7 +267,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
                 throw new InvalidCipherTextException("sorry, this method is only for decryption, not for signing");
 
             byte[] block = engine.ProcessBlock(input, inOff, inLen);
-            byte[] random = null;
+            byte[] random;
             if (this.fallback == null)
             {
                 random = new byte[this.pLen];
@@ -275,36 +278,24 @@ namespace Org.BouncyCastle.Crypto.Encodings
                 random = fallback;
             }
 
-            /*
-             * TODO: This is a potential dangerous side channel. However, you can
-             * fix this by changing the RSA engine in a way, that it will always
-             * return blocks of the same length and prepend them with 0 bytes if
-             * needed.
-             */
-            if (block.Length < GetOutputBlockSize())
-                throw new InvalidCipherTextException("block truncated");
+            byte[] data = (useStrictLength & (block.Length != engine.GetOutputBlockSize())) ? blockBuffer : block;
 
-            /*
-             * TODO: Potential side channel. Fix it by making the engine always
-             * return blocks of the correct length.
-             */
-            if (useStrictLength && block.Length != engine.GetOutputBlockSize())
-                throw new InvalidCipherTextException("block incorrect size");
+		    /*
+		     * Check the padding.
+		     */
+            int correct = CheckPkcs1Encoding(data, this.pLen);
 
-            /*
-             * Check the padding.
-             */
-            int correct = Pkcs1Encoding.CheckPkcs1Encoding(block, this.pLen);
-
-            /*
-             * Now, to a constant time constant memory copy of the decrypted value
-             * or the random value, depending on the validity of the padding.
-             */
+		    /*
+		     * Now, to a constant time constant memory copy of the decrypted value
+		     * or the random value, depending on the validity of the padding.
+		     */
             byte[] result = new byte[this.pLen];
             for (int i = 0; i < this.pLen; i++)
             {
-                result[i] = (byte)((block[i+(block.Length-pLen)]&(~correct)) | (random[i]&correct));
+                result[i] = (byte)((data[i + (data.Length - pLen)] & (~correct)) | (random[i] & correct));
             }
+
+            Arrays.Fill(data, 0);
 
             return result;
         }
@@ -327,56 +318,67 @@ namespace Org.BouncyCastle.Crypto.Encodings
             }
 
             byte[] block = engine.ProcessBlock(input, inOff, inLen);
+            bool incorrectLength = (useStrictLength & (block.Length != engine.GetOutputBlockSize()));
 
+            byte[] data;
             if (block.Length < GetOutputBlockSize())
             {
-                throw new InvalidCipherTextException("block truncated");
+                data = blockBuffer;
             }
-
-            byte type = block[0];
-
-            if (type != 1 && type != 2)
+            else
             {
-                throw new InvalidCipherTextException("unknown block type");
+                data = block;
             }
 
-            if (useStrictLength && block.Length != engine.GetOutputBlockSize())
-            {
-                throw new InvalidCipherTextException("block incorrect size");
-            }
+            byte expectedType = (byte)(forPrivateKey ? 2 : 1);
+            byte type = data[0];
+
+            bool badType = (type != expectedType);
 
             //
             // find and extract the message block.
             //
-            int start;
-            for (start = 1; start != block.Length; start++)
-            {
-                byte pad = block[start];
-
-                if (pad == 0)
-                {
-                    break;
-                }
-
-                if (type == 1 && pad != (byte)0xff)
-                {
-                    throw new InvalidCipherTextException("block padding incorrect");
-                }
-            }
+            int start = FindStart(type, data);
 
             start++;           // data should start at the next byte
 
-            if (start > block.Length || start < HeaderLength)
+            if (badType | (start < HeaderLength))
             {
-                throw new InvalidCipherTextException("no data in block");
+                Arrays.Fill(data, 0);
+                throw new InvalidCipherTextException("block incorrect");
             }
 
-            byte[] result = new byte[block.Length - start];
+            // if we get this far, it's likely to be a genuine encoding error
+            if (incorrectLength)
+            {
+                Arrays.Fill(data, 0);
+                throw new InvalidCipherTextException("block incorrect size");
+            }
 
-            Array.Copy(block, start, result, 0, result.Length);
+            byte[] result = new byte[data.Length - start];
+
+            Array.Copy(data, start, result, 0, result.Length);
 
             return result;
         }
-    }
 
+        private int FindStart(byte type, byte[] block)
+        {
+            int start = -1;
+            bool padErr = false;
+
+            for (int i = 1; i != block.Length; i++)
+            {
+                byte pad = block[i];
+
+                if (pad == 0 & start < 0)
+                {
+                    start = i;
+                }
+                padErr |= ((type == 1) & (start < 0) & (pad != (byte)0xff));
+            }
+
+            return padErr ? -1 : start;
+        }
+    }
 }

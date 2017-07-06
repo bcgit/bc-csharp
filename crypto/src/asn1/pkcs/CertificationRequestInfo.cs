@@ -1,7 +1,6 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
@@ -31,20 +30,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         internal SubjectPublicKeyInfo	subjectPKInfo;
         internal Asn1Set				attributes;
 
-		public static CertificationRequestInfo GetInstance(
-            object  obj)
+		public static CertificationRequestInfo GetInstance(object obj)
         {
             if (obj is CertificationRequestInfo)
-            {
-                return (CertificationRequestInfo) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new CertificationRequestInfo((Asn1Sequence) obj);
-            }
-
-			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+                return (CertificationRequestInfo)obj;
+            if (obj != null)
+                return new CertificationRequestInfo(Asn1Sequence.GetInstance(obj));
+            return null;
 		}
 
 		public CertificationRequestInfo(
@@ -56,7 +48,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             this.subjectPKInfo = pkInfo;
             this.attributes = attributes;
 
-			if (subject == null || version == null || subjectPKInfo == null)
+            ValidateAttributes(attributes);
+
+            if (subject == null || version == null || subjectPKInfo == null)
             {
                 throw new ArgumentException(
 					"Not all mandatory fields set in CertificationRequestInfo generator.");
@@ -81,7 +75,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 attributes = Asn1Set.GetInstance(tagobj, false);
             }
 
-			if (subject == null || version == null || subjectPKInfo == null)
+            ValidateAttributes(attributes);
+
+            if (subject == null || version == null || subjectPKInfo == null)
             {
                 throw new ArgumentException(
 					"Not all mandatory fields set in CertificationRequestInfo generator.");
@@ -119,6 +115,23 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             }
 
 			return new DerSequence(v);
+        }
+
+        private static void ValidateAttributes(Asn1Set attributes)
+        {
+            if (attributes == null)
+                return;
+
+            foreach (Asn1Encodable ae in attributes)
+            {
+                Asn1Object obj = ae.ToAsn1Object();
+                AttributePkcs attr = AttributePkcs.GetInstance(obj);
+                if (attr.AttrType.Equals(PkcsObjectIdentifiers.Pkcs9AtChallengePassword))
+                {
+                    if (attr.AttrValues.Count != 1)
+                        throw new ArgumentException("challengePassword attribute must have one value");
+                }
+            }
         }
     }
 }
