@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
         }
 
+
         public override void PerformTest()
         {
             base.PerformTest();
@@ -323,8 +324,28 @@ namespace Org.BouncyCastle.Crypto.Tests
                 + " got " + Hex.ToHexString(mac));
         }
 
-        //test 2
-        macBitSize = 384;
+            //test1a
+            input = Hex.Decode("0001020304050607");
+            key = Hex.Decode("08F4EE6F1BE6903B324C4E27990CB24EF69DD58DBE84813EE0A52F6631239875");
+
+            expectedMac = Hex.Decode("383A0B11989ABF61B2CF3EB489351EB7C9AEF70CF5A9D6DBD90F340FF151BA2D");
+            mac = new byte[macBitSize / 8];
+
+            dstu7564mac = new Dstu7564Mac(macBitSize);
+
+            dstu7564mac.Init(new KeyParameter(key));
+            dstu7564mac.BlockUpdate(input, 0, input.Length);
+            dstu7564mac.DoFinal(mac, 0);
+
+            if (!Arrays.AreEqual(expectedMac, mac))
+            {
+                Fail("Failed mac test 1a - expected "
+                    + Hex.ToHexString(expectedMac)
+                    + " got " + Hex.ToHexString(mac));
+            }
+
+            //test 2
+            macBitSize = 384;
         input = Hex.Decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E");
         key = Hex.Decode("2F2E2D2C2B2A292827262524232221201F1E1D1C1B1A191817161514131211100F0E0D0C0B0A09080706050403020100");
 
@@ -614,7 +635,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
-        public void TestFunction()
+        public void Dstu7564TestFunction()
         {
             string resultText = Perform().ToString();
             Console.WriteLine(resultText);
