@@ -21,9 +21,9 @@ namespace Org.BouncyCastle.Crypto.Engines
           private readonly byte[] checkSumArray, zeroArray;
 
 
-          public Dstu7624WrapEngine(int blockSizeBits, int keySizeBits)
+          public Dstu7624WrapEngine(int blockSizeBits)
           {
-               engine = new Dstu7624Engine(blockSizeBits, keySizeBits);
+               engine = new Dstu7624Engine(blockSizeBits);
                param = null;
            
                blockSize = blockSizeBits / 8;

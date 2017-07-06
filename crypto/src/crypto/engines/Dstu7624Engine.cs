@@ -3,6 +3,7 @@ using System.Collections;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -12,133 +13,124 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class Dstu7624Engine
          : IBlockCipher
     {
-        private const int BITS_IN_WORD = 64;
-        private const int BITS_IN_BYTE = 8;
+        private static readonly int BITS_IN_WORD = 64;
+        private static readonly int BITS_IN_BYTE = 8;
 
-        /* Block words size. */
-        private const int kNB_128 = 2;
-        private const int kNB_256 = 4;
-        private const int kNB_512 = 8;
+        private static readonly int REDUCTION_POLYNOMIAL = 0x011d; /* x^8 + x^4 + x^3 + x^2 + 1 */
 
-        /* Key words size. */
-        private const int kNK_128 = 2;
-        private const int kNK_256 = 4;
-        private const int kNK_512 = 8;
+        private ulong[] internalState;
+        private ulong[] workingKey;
+        private ulong[][] roundKeys;
 
-        /* Block bits size. */
-        private const int kBLOCK_128 = kNB_128 * BITS_IN_WORD;
-        private const int kBLOCK_256 = kNB_256 * BITS_IN_WORD;
-        private const int kBLOCK_512 = kNB_512 * BITS_IN_WORD;
+        /* Number of 64-bit words in block */
+        private int wordsInBlock;
 
-        /* Block bits size. */
-        private const int kKEY_128 = kNK_128 * BITS_IN_WORD;
-        private const int kKEY_256 = kNK_256 * BITS_IN_WORD;
-        private const int kKEY_512 = kNK_512 * BITS_IN_WORD;
+        /* Number of 64-bit words in key */
+        private int wordsInKey;
 
-        /* Number of enciphering rounds size depending on key length. */
-        private const int kNR_128 = 10;
-        private const int kNR_256 = 14;
-        private const int kNR_512 = 18;
-
-        private const int REDUCTION_POLYNOMIAL = 0x011d;  /* x^8 + x^4 + x^3 + x^2 + 1 */
-
-
-        private int nb;  /* Number of 64-bit words in enciphering block. */
-        private int nk;  /*< Number of 64-bit words in key. */
-        private int roundKeysAmount;  /*< Number of enciphering rounds. */
-
-        private ulong[] internalState = null;  /*< Current cipher state. */
-
-
-        private ulong[] workingKey = null;
-        private ulong[][] roundKeys = null;  /*< Round key computed from enciphering key. */
-
+        /* Number of encryption rounds depending on key length */
+        private static int ROUNDS_128 = 10;
+        private static int ROUNDS_256 = 14;
+        private static int ROUNDS_512 = 18;
 
         private int blockSizeBits;
-        private int keySizeBits;
+        private int roundsAmount;
 
         private bool forEncryption;
 
+        private byte[] internalStateBytes;
+        private byte[] tempInternalStateBytes;
 
-        public Dstu7624Engine(int blockSizeBits, int keySizeBits)
+        public Dstu7624Engine(int blockSizeBits)
         {
+            /* DSTU7624 supports 128 | 256 | 512 key/block sizes */
+            if (blockSizeBits != 128 && blockSizeBits != 256 && blockSizeBits != 512)
+            {
+                throw new ArgumentException("Unsupported block length: only 128/256/512 are allowed");
+            }
             this.blockSizeBits = blockSizeBits;
-            this.keySizeBits = keySizeBits;
 
-            if (blockSizeBits == kBLOCK_128)
-            {
-                nb = kBLOCK_128 / BITS_IN_WORD;
-                if (keySizeBits == kKEY_128)
-                {
-                    nk = kKEY_128 / BITS_IN_WORD;
-                    roundKeysAmount = kNR_128;
-                }
-                else if (keySizeBits == kKEY_256)
-                {
-                    nk = kKEY_256 / BITS_IN_WORD;
-                    roundKeysAmount = kNR_256;
-                }
-                else
-                {
-                    throw new ArgumentException("Unsupported key size");
-                }
-            }
-            else if (blockSizeBits == 256)
-            {
-                nb = kBLOCK_256 / BITS_IN_WORD;
-                if (keySizeBits == kKEY_256)
-                {
-                    nk = kKEY_256 / BITS_IN_WORD;
-                    roundKeysAmount = kNR_256;
-                }
-                else if (keySizeBits == kKEY_512)
-                {
-                    nk = kKEY_512 / BITS_IN_WORD;
-                    roundKeysAmount = kNR_512;
-                }
-                else
-                {
-                    throw new ArgumentException("Unsupported key size");
-                }
-            }
-            else if (blockSizeBits == kBLOCK_512)
-            {
-                nb = kBLOCK_512 / BITS_IN_WORD;
-                if (keySizeBits == kKEY_512)
-                {
-                    nk = kKEY_512 / BITS_IN_WORD;
-                    roundKeysAmount = kNR_512;
-                }
-                else
-                {
-                    throw new ArgumentException("Unsupported key size");
-                }
-            }
-            else
-            {
-                throw new ArgumentException("Unsupported block size");
-            }
+            wordsInBlock = blockSizeBits / BITS_IN_WORD;
+            internalState = new ulong[wordsInBlock];
 
-            internalState = new ulong[nb];
-
-            roundKeys = new ulong[roundKeysAmount + 1][];
-
-            for (int i = 0; i < roundKeysAmount + 1; i++)
-            {
-                roundKeys[i] = new ulong[nb];
-            }
+            internalStateBytes = new byte[internalState.Length * 64 / BITS_IN_BYTE];
+            tempInternalStateBytes = new byte[internalState.Length * 64 / BITS_IN_BYTE];
         }
-
-
 
         #region INITIALIZATION
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             if (parameters is KeyParameter)
             {
-                workingKey = BytesToWords(((KeyParameter)parameters).GetKey());
+                this.forEncryption = forEncryption;
 
-                ulong[] kt = new ulong[nb];
+                byte[] keyBytes = ((KeyParameter)parameters).GetKey();
+                int keyBitLength = keyBytes.Length * BITS_IN_BYTE;
+                int blockBitLength = wordsInBlock * BITS_IN_WORD;
+
+                if (keyBitLength != 128 && keyBitLength != 256 && keyBitLength != 512)
+                {
+                    throw new ArgumentException("unsupported key length: only 128/256/512 are allowed");
+                }
+
+                /* Limitations on key lengths depending on block lengths. See table 6.1 in standard */
+                if (blockBitLength == 128)
+                {
+                    if (keyBitLength == 512)
+                    {
+                        throw new ArgumentException("Unsupported key length");
+                    }
+                }
+
+                if (blockBitLength == 256)
+                {
+                    if (keyBitLength == 128)
+                    {
+                        throw new ArgumentException("Unsupported key length");
+                    }
+                }
+
+                if (blockBitLength == 512)
+                {
+                    if (keyBitLength != 512)
+                    {
+                        throw new ArgumentException("Unsupported key length");
+                    }
+                }
+
+                switch (keyBitLength)
+                {
+                    case 128:
+                        roundsAmount = ROUNDS_128;
+                        break;
+                    case 256:
+                        roundsAmount = ROUNDS_256;
+                        break;
+                    case 512:
+                        roundsAmount = ROUNDS_512;
+                        break;
+                }
+
+                wordsInKey = keyBitLength / BITS_IN_WORD;
+
+                /* +1 round key as defined in standard */
+                roundKeys = new ulong[roundsAmount + 1][];
+                for (int roundKeyIndex = 0; roundKeyIndex < roundKeys.Length; roundKeyIndex++)
+                {
+                    roundKeys[roundKeyIndex] = new ulong[wordsInBlock];
+                }
+
+                workingKey = new ulong[wordsInKey];
+
+                if (keyBytes.Length != wordsInKey * BITS_IN_WORD / BITS_IN_BYTE)
+                {
+                    throw new ArgumentException("Invalid key parameter passed to DSTU7624Engine init");
+                }
+
+                /* Unpack encryption key bytes to words */
+                Pack.LE_To_UInt64(keyBytes, 0, workingKey);
+
+                ulong[] kt = new ulong[wordsInBlock];
 
                 KeyExpandKT(workingKey, kt);
 
@@ -158,21 +150,21 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void KeyExpandKT(ulong[] key, ulong[] kt)
         {
-            ulong[] k0 = new ulong[nb];
-            ulong[] k1 = new ulong[nb];
+            ulong[] k0 = new ulong[wordsInBlock];
+            ulong[] k1 = new ulong[wordsInBlock];
 
-            internalState = new ulong[nb];
-            internalState[0] += (ulong)(nb + nk + 1);
+            internalState = new ulong[wordsInBlock];
+            internalState[0] += (ulong)(wordsInBlock + wordsInKey + 1);
 
-            if (nb == nk)
+            if (wordsInBlock == wordsInKey)
             {
                 Array.Copy(key, k0, k0.Length);
                 Array.Copy(key, k1, k1.Length);
             }
             else
             {
-                Array.Copy(key, 0, k0, 0, nb);
-                Array.Copy(key, nb, k1, 0, nb);
+                Array.Copy(key, 0, k0, 0, wordsInBlock);
+                Array.Copy(key, wordsInBlock, k1, 0, wordsInBlock);
             }
 
             AddRoundKeyExpand(k0);
@@ -187,33 +179,34 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             EncryptionRound();
 
-            Array.Copy(internalState, kt, nb);
+            Array.Copy(internalState, kt, wordsInBlock);
         }
+
         private void KeyExpandEven(ulong[] key, ulong[] kt)
         {
-            ulong[] initial_data = new ulong[nk];
+            ulong[] initial_data = new ulong[wordsInKey];
 
-            ulong[] kt_round = new ulong[nb];
+            ulong[] kt_round = new ulong[wordsInBlock];
 
-            ulong[] tmv = new ulong[nb];
+            ulong[] tmv = new ulong[wordsInBlock];
 
             int round = 0;
 
-            Array.Copy(key, initial_data, nk);
+            Array.Copy(key, initial_data, wordsInKey);
 
-            for (int i = 0; i < nb; i++)
+            for (int i = 0; i < wordsInBlock; i++)
             {
                 tmv[i] = 0x0001000100010001;
             }
 
             while (true)
             {
-                Array.Copy(kt, internalState, nb);
+                Array.Copy(kt, internalState, wordsInBlock);
 
                 AddRoundKeyExpand(tmv);
 
-                Array.Copy(internalState, kt_round, nb);
-                Array.Copy(initial_data, internalState, nb);
+                Array.Copy(internalState, kt_round, wordsInBlock);
+                Array.Copy(initial_data, internalState, wordsInBlock);
 
                 AddRoundKeyExpand(kt_round);
 
@@ -225,24 +218,24 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 AddRoundKeyExpand(kt_round);
 
-                Array.Copy(internalState, roundKeys[round], nb);
+                Array.Copy(internalState, roundKeys[round], wordsInBlock);
 
-                if (roundKeysAmount == round)
+                if (roundsAmount == round)
                 {
                     break;
                 }
-                if (nk != nb)
+                if (wordsInKey != wordsInBlock)
                 {
                     round += 2;
 
                     ShiftLeft(tmv);
 
-                    Array.Copy(kt, internalState, nb);
+                    Array.Copy(kt, internalState, wordsInBlock);
 
                     AddRoundKeyExpand(tmv);
 
-                    Array.Copy(internalState, kt_round, nb);
-                    Array.Copy(initial_data, nb, internalState, 0, nb);
+                    Array.Copy(internalState, kt_round, wordsInBlock);
+                    Array.Copy(initial_data, wordsInBlock, internalState, 0, wordsInBlock);
 
                     AddRoundKeyExpand(kt_round);
 
@@ -254,9 +247,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                     AddRoundKeyExpand(kt_round);
 
-                    Array.Copy(internalState, roundKeys[round], nb);
+                    Array.Copy(internalState, roundKeys[round], wordsInBlock);
 
-                    if (roundKeysAmount == round)
+                    if (roundsAmount == round)
                     {
                         break;
                     }
@@ -273,9 +266,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
         private void KeyExpandOdd()
         {
-            for (int i = 1; i < roundKeysAmount; i += 2)
+            for (int i = 1; i < roundsAmount; i += 2)
             {
-                Array.Copy(roundKeys[i - 1], roundKeys[i], nb);
+                Array.Copy(roundKeys[i - 1], roundKeys[i], wordsInBlock);
                 RotateLeft(roundKeys[i]);
             }
         }
@@ -311,11 +304,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             
             ulong[] plain_ = BytesToWords(plain);
 
-            Array.Copy(plain_, internalState, nb);
+            Array.Copy(plain_, internalState, wordsInBlock);
 
             AddRoundKey(round);
 
-            for (round = 1; round < roundKeysAmount; round++)
+            for (round = 1; round < roundsAmount; round++)
             {
                 EncryptionRound();
 
@@ -324,11 +317,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             EncryptionRound();
 
-            AddRoundKey(roundKeysAmount);
+            AddRoundKey(roundsAmount);
 
             ulong[] cipherText_ = new ulong[internalState.Length];
 
-            Array.Copy(internalState, cipherText_, nb);
+            Array.Copy(internalState, cipherText_, wordsInBlock);
 
             byte[] temp = WordsToBytes(cipherText_);
 
@@ -340,15 +333,15 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(cipherText, inOff, cipherText, 0, blockSizeBits / BITS_IN_BYTE);
             Array.Resize(ref cipherText, blockSizeBits / BITS_IN_BYTE);
 
-            int round = roundKeysAmount;
+            int round = roundsAmount;
 
             ulong[] cipherText_ = BytesToWords(cipherText);
 
-            Array.Copy(cipherText_, internalState, nb);
+            Array.Copy(cipherText_, internalState, wordsInBlock);
 
             SubRoundKey(round);
 
-            for (round = roundKeysAmount - 1; round > 0; round--)
+            for (round = roundsAmount - 1; round > 0; round--)
             {
                 DecryptionRound();
                 XorRoundKey(round);
@@ -359,7 +352,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             ulong[] decryptedText_ = new ulong[internalState.Length];
 
-            Array.Copy(internalState, decryptedText_, nb);
+            Array.Copy(internalState, decryptedText_, wordsInBlock);
 
 
             byte[] temp = WordsToBytes(decryptedText_);
@@ -378,7 +371,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void AddRoundKeyExpand(ulong[] value)
         {
-            for (int i = 0; i < nb; i++)
+            for (int i = 0; i < wordsInBlock; i++)
             {
                 internalState[i] += value[i];
             }
@@ -428,7 +421,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void XorRoundKeyExpand(ulong[] value)
         {
-            for (int i = 0; i < nb; i++)
+            for (int i = 0; i < wordsInBlock; i++)
             {
                 internalState[i] ^= value[i];
             }
@@ -436,7 +429,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void XorRoundKey(int round)
         {
-            for (int i = 0; i < nb; i++)
+            for (int i = 0; i < wordsInBlock; i++)
             {
                 internalState[i] ^= roundKeys[round][i];
             }
@@ -449,18 +442,18 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             byte[] stateBytes = WordsToBytes(internalState);
 
-            byte[] nstate = new byte[nb * sizeof(ulong)];
+            byte[] nstate = new byte[wordsInBlock * sizeof(ulong)];
 
             for (row = 0; row < sizeof(ulong); row++)
             {
-                if (row % (sizeof(ulong) / nb) == 0)
+                if (row % (sizeof(ulong) / wordsInBlock) == 0)
                 {
                     shift += 1;
                 }
 
-                for (col = 0; col < nb; col++)
+                for (col = 0; col < wordsInBlock; col++)
                 {
-                    nstate[row + ((col + shift) % nb) * sizeof(ulong)] = stateBytes[row + col * sizeof(ulong)];
+                    nstate[row + ((col + shift) % wordsInBlock) * sizeof(ulong)] = stateBytes[row + col * sizeof(ulong)];
                 }
             }
 
@@ -474,18 +467,18 @@ namespace Org.BouncyCastle.Crypto.Engines
             int shift = -1;
 
             byte[] stateBytes = WordsToBytes(internalState);
-            byte[] nstate = new byte[nb * sizeof(ulong)];
+            byte[] nstate = new byte[wordsInBlock * sizeof(ulong)];
 
             for (row = 0; row < sizeof(ulong); row++)
             {
-                if (row % (sizeof(ulong) / nb) == 0)
+                if (row % (sizeof(ulong) / wordsInBlock) == 0)
                 {
                     shift += 1;
                 }
 
-                for (col = 0; col < nb; col++)
+                for (col = 0; col < wordsInBlock; col++)
                 {
-                    nstate[row + col * sizeof(ulong)] = stateBytes[row + ((col + shift) % nb) * sizeof(ulong)];
+                    nstate[row + col * sizeof(ulong)] = stateBytes[row + ((col + shift) % wordsInBlock) * sizeof(ulong)];
                 }
             }
 
@@ -537,7 +530,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void AddRoundKey(int round)
         {
-            for (int i = 0; i < nb; ++i)
+            for (int i = 0; i < wordsInBlock; ++i)
             {
                 internalState[i] += roundKeys[round][i];
             }
@@ -545,7 +538,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void SubRoundKey(int round)
         {
-            for (int i = 0; i < nb; ++i)
+            for (int i = 0; i < wordsInBlock; ++i)
             {
                 internalState[i] -= roundKeys[round][i];
             }
@@ -568,7 +561,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             ulong result;
             byte[] stateBytes = WordsToBytes(internalState);
 
-            for (col = 0; col < nb; ++col)
+            for (col = 0; col < wordsInBlock; ++col)
             {
                 result = 0;
                 for (row = sizeof(ulong) - 1; row >= 0; --row)
@@ -611,7 +604,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void SubBytes()
         {
-            for (int i = 0; i < nb; i++)
+            for (int i = 0; i < wordsInBlock; i++)
             {
                 internalState[i] = sboxesForEncryption[0][internalState[i] & 0x00000000000000FF] |
                            ((ulong)sboxesForEncryption[1][(internalState[i] & 0x000000000000FF00) >> 8] << 8) |
@@ -626,7 +619,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void InvSubBytes()
         {
-            for (int i = 0; i < nb; i++)
+            for (int i = 0; i < wordsInBlock; i++)
             {
                 internalState[i] = sboxesForDecryption[0][internalState[i] & 0x00000000000000FF] |
                            ((ulong)sboxesForDecryption[1][(internalState[i] & 0x000000000000FF00) >> 8] << 8) |

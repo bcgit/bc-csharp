@@ -22,9 +22,9 @@ namespace Org.BouncyCastle.Crypto.Macs
           private byte[] buf;
           private int bufOff;
 
-          public Dstu7624Mac(int blockSizeBits, int keySizeBits, int q)
+          public Dstu7624Mac(int blockSizeBits, int q)
           {
-               engine = new Dstu7624Engine(blockSizeBits, keySizeBits);
+               engine = new Dstu7624Engine(blockSizeBits);
 
                blockSize = blockSizeBits / 8;
 
