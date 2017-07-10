@@ -277,6 +277,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                     output[outOff + byteIndex] = (byte)(buffer[byteIndex] ^ macBlock[byteIndex]);
                 }
 
+                Array.Copy(macBlock, 0, mac, 0, macSize);
+
                 Reset();
 
                 return len + macSize;
@@ -340,7 +342,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Reset();
 
-                return len;
+                return len - macSize;
             }
         }
 
@@ -388,7 +390,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual byte[] GetMac()
         {
-            Array.Copy(macBlock, 0, mac, 0, macSize);
             return Arrays.Clone(mac);
         }
 
@@ -407,6 +408,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             Arrays.Fill(G1, (byte)0);
             Arrays.Fill(buffer, (byte)0);
             Arrays.Fill(counter, (byte)0);
+            Arrays.Fill(macBlock, (byte)0);
+
             counter[0] = 0x01;
             data.SetLength(0);
             associatedText.SetLength(0);
