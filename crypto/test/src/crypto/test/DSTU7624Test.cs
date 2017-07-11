@@ -482,7 +482,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             KCcmBlockCipher dstu7624ccm = new KCcmBlockCipher(new Dstu7624Engine(128));
 
-            dstu7624ccm.setNb(4);
             dstu7624ccm.Init(true, param);
 
             dstu7624ccm.ProcessAadBytes(authText, 0, authText.Length);
@@ -508,7 +507,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                     + " got " + Hex.ToHexString(encrypted));
             }
 
-            dstu7624ccm.setNb(4);
             dstu7624ccm.Init(false, param);
 
             dstu7624ccm.ProcessAadBytes(authText, 0, authText.Length);
@@ -546,7 +544,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             dstu7624ccm = new KCcmBlockCipher(new Dstu7624Engine(256));
 
-            dstu7624ccm.setNb(4);
             dstu7624ccm.Init(true, param);
 
             dstu7624ccm.ProcessAadBytes(authText, 0, authText.Length);
@@ -570,8 +567,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                     + Hex.ToHexString(expectedEncrypted)
                     + " got " + Hex.ToHexString(encrypted));
             }
-
-            dstu7624ccm.setNb(4);
+            
             dstu7624ccm.Init(false, param);
 
             dstu7624ccm.ProcessAadBytes(authText, 0, authText.Length);
@@ -607,9 +603,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             param = new AeadParameters(new KeyParameter(key), 256, iv);
 
-            dstu7624ccm = new KCcmBlockCipher(new Dstu7624Engine(256));
+            dstu7624ccm = new KCcmBlockCipher(new Dstu7624Engine(256), 6);
 
-            dstu7624ccm.setNb(6);
             dstu7624ccm.Init(true, param);
 
             dstu7624ccm.ProcessAadBytes(authText, 0, authText.Length);
@@ -634,7 +629,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                     + " got " + Hex.ToHexString(encrypted));
             }
 
-            dstu7624ccm.setNb(6);
             dstu7624ccm.Init(false, param);
 
             dstu7624ccm.ProcessAadBytes(authText, 0, authText.Length);
@@ -670,9 +664,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             param = new AeadParameters(new KeyParameter(key), 512, iv);
 
-            dstu7624ccm = new KCcmBlockCipher(new Dstu7624Engine(512));
+            dstu7624ccm = new KCcmBlockCipher(new Dstu7624Engine(512), 8);
 
-            dstu7624ccm.setNb(8);
             dstu7624ccm.Init(true, param);
 
             dstu7624ccm.ProcessAadBytes(authText, 0, authText.Length);
@@ -697,7 +690,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                     + " got " + Hex.ToHexString(encrypted));
             }
 
-            dstu7624ccm.setNb(8);
             dstu7624ccm.Init(false, param);
 
             dstu7624ccm.ProcessAadBytes(authText, 0, authText.Length);

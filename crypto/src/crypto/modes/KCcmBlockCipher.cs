@@ -36,16 +36,12 @@ namespace Org.BouncyCastle.Crypto.Modes
         private readonly MemoryStream data = new MemoryStream();
 
         /*
-        *  Nb is a parameter specified in CCM mode of DSTU7624 standard.
-        *  This parameter specifies maximum possible length of input. It should
-        *  be calculated as follows: Nb = 1/8 * (-3 + log[2]Nmax) + 1,
-        *  where Nmax - length of input message in bits. For practical reasons
-        *  Nmax usually less than 4Gb, e.g. for Nmax = 2^32 - 1, Nb = 4.
+        *  
         *
         */
         private int Nb_ = 4;
 
-        public void setNb(int Nb)
+        private void setNb(int Nb)
         {
             if (Nb == 4 || Nb == 6 || Nb == 8)
             {
@@ -57,7 +53,26 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public KCcmBlockCipher(IBlockCipher engine)
+        /// <summary>
+        /// Base constructor. Nb value is set to 4.
+        /// </summary>
+        /// <param name="engine">base cipher to use under CCM.</param>
+        public KCcmBlockCipher(IBlockCipher engine): this(engine, 4)
+        {
+        }
+
+        /// <summary>
+        /// Constructor allowing Nb configuration.
+        /// 
+        /// Nb is a parameter specified in CCM mode of DSTU7624 standard.
+        /// This parameter specifies maximum possible length of input.It should
+        /// be calculated as follows: Nb = 1 / 8 * (-3 + log[2]Nmax) + 1,
+        /// where Nmax - length of input message in bits.For practical reasons
+        /// Nmax usually less than 4Gb, e.g. for Nmax = 2^32 - 1, Nb = 4.
+        /// </summary>
+        /// <param name="engine">base cipher to use under CCM.</param>
+        /// <param name="Nb">Nb value to use.</param>
+        public KCcmBlockCipher(IBlockCipher engine, int Nb)
         {
             this.engine = engine;
             this.macSize = engine.GetBlockSize();
@@ -69,6 +84,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.buffer = new byte[engine.GetBlockSize()];
             this.s = new byte[engine.GetBlockSize()];
             this.counter = new byte[engine.GetBlockSize()];
+            setNb(Nb);
         }
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
