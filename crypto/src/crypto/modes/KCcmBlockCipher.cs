@@ -252,13 +252,21 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (associatedText.Length > 0)
             {
+
+#if PORTABLE
+                byte[] buf = associatedText.ToArray();
+                int bufLen = buf.Length;
+#else
+                byte[] buf = associatedText.GetBuffer();
+                int bufLen = (int)buf.Length;
+#endif
                 if (forEncryption)
                 {
-                    ProcessAAD(associatedText.GetBuffer(), 0, (int)associatedText.Length, (int)data.Length);
+                    ProcessAAD(buf, 0, bufLen, (int)data.Length);
                 }
                 else
                 {
-                    ProcessAAD(associatedText.GetBuffer(), 0, (int)associatedText.Length, (int)data.Length - macSize);
+                    ProcessAAD(buf, 0, bufLen, (int)data.Length - macSize);
                 }
             }
 
@@ -397,7 +405,14 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
-            int len = ProcessPacket(data.GetBuffer(), 0, (int)data.Length, output, outOff);
+#if PORTABLE
+            byte[] buf = data.ToArray();
+            int bufLen = buf.Length;
+#else
+            byte[] buf = data.GetBuffer();
+            int bufLen = (int)buf.Length;
+#endif
+            int len = ProcessPacket(buf, 0, bufLen, output, outOff);
 
             Reset();
 

@@ -628,7 +628,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new Dstu7564Digest((Dstu7564Digest)digest);
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new Dstu7564Test());
