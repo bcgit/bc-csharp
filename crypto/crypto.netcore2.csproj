@@ -1,0 +1,947 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Company>The Legion of the Bouncy Castle Inc.</Company>
+    <Copyright>Copyright (C) 2000-2017</Copyright>
+    <Description>Bouncy Castle Cryptography API</Description>
+    <FileVersion>1.8.15362.1</FileVersion>
+    <Version>1.8.1.0</Version>
+    <Product>Bouncy Castle for .NET</Product>
+    <AssemblyTitle>BouncyCastle.Crypto</AssemblyTitle>
+    <AssemblyVersion>1.8.1</AssemblyVersion>
+    <NeutralLanguage></NeutralLanguage>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>7.10.3077</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon />
+    <AssemblyKeyContainerName />
+    <AssemblyName>crypto</AssemblyName>
+    <AssemblyOriginatorKeyFile />
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Library</OutputType>
+    <RootNamespace>crypto</RootNamespace>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <StartupObject />
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>0.0</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile />
+    <DefineConstants>DEBUG;TRACE;NET_1_1;NETCORE</DefineConstants>
+    <DocumentationFile>doc\crypto.xml</DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>1591</NoWarn>
+    <Optimize>false</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>full</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile />
+    <DefineConstants>TRACE;NET_1_1;NETCORE</DefineConstants>
+    <DocumentationFile>doc\crypto.xml</DocumentationFile>
+    <DebugSymbols>false</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>1591</NoWarn>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>none</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+<ItemGroup>
+    <Reference Include="nunit.core">
+      <Name>nunit.core</Name>
+      <HintPath>test\lib\nunit.core.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.core.interfaces">
+      <Name>nunit.core.interfaces</Name>
+      <HintPath>test\lib\nunit.core.interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <Name>nunit.framework</Name>
+      <HintPath>test\lib\nunit.framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Contributors.html" />
+    <Content Include="License.html" />
+    <Content Include="Readme.html" />
+    <Content Include="test\lib\nunit.core.dll" />
+    <Content Include="test\lib\nunit.core.interfaces.dll" />
+    <Content Include="test\lib\nunit.framework.dll" />
+    <EmbeddedResource Include="test\data\asn1\masterlist-content.data" />
+    <EmbeddedResource Include="test\data\cms\sigs\counterSig.p7m" />
+    <EmbeddedResource Include="test\data\cms\sigs\PSSSignData.data" />
+    <EmbeddedResource Include="test\data\cms\sigs\PSSSignDataSHA1.sig" />
+    <EmbeddedResource Include="test\data\cms\sigs\PSSSignDataSHA1Enc.sig" />
+    <EmbeddedResource Include="test\data\cms\sigs\PSSSignDataSHA256.sig" />
+    <EmbeddedResource Include="test\data\cms\sigs\PSSSignDataSHA256Enc.sig" />
+    <EmbeddedResource Include="test\data\cms\sigs\PSSSignDataSHA512.sig" />
+    <EmbeddedResource Include="test\data\cms\sigs\PSSSignDataSHA512Enc.sig" />
+    <EmbeddedResource Include="test\data\crypto\SHA3TestVectors.txt" />
+    <EmbeddedResource Include="test\data\crypto\SHAKETestVectors.txt" />
+    <EmbeddedResource Include="test\data\hc256\hc128\ecrypt_HC-128.txt" />
+    <EmbeddedResource Include="test\data\hc256\hc256\ecrypt_HC-256_128K_128IV.txt" />
+    <EmbeddedResource Include="test\data\hc256\hc256\ecrypt_HC-256_128K_256IV.txt" />
+    <EmbeddedResource Include="test\data\hc256\hc256\ecrypt_HC-256_256K_128IV.txt" />
+    <EmbeddedResource Include="test\data\hc256\hc256\ecrypt_HC-256_256K_256IV.txt" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbeWithMD2AndDES_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbeWithMD2AndRC2_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbeWithMD5AndDES_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbeWithMD5AndRC2_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbeWithSHA1AndDES_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbeWithSHA1AndRC2_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbe_WithSHA1And128BitRC2_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbe_WithSHA1And128BitRC4.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbe_WithSHA1And2_Key_TripleDES_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbe_WithSHA1And3_Key_TripleDES_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbe_WithSHA1And40BitRC2_CBC.key" />
+    <EmbeddedResource Include="test\data\keys\pbes1\pbe_WithSHA1And40BitRC4.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-128-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-128-cfb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-128-cfb1.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-128-cfb8.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-128-ecb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-128-ofb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-192-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-192-cfb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-192-cfb1.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-192-cfb8.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-192-ecb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-192-ofb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-256-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-256-cfb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-256-cfb1.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-256-cfb8.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-256-ecb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes-256-ofb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes128.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes192.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.aes256.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.bf-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.bf.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.blowfish.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.cast-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.cast.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.cast5-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des-cfb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des-cfb1.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des-cfb8.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des-ecb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des-ede.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des-ede3-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des-ofb.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.des3.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.rc2-40-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.rc2-64-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.rc2-cbc.key" />
+    <EmbeddedResource Include="test\data\keys\pbes2\pbes2.rc2.key" />
+    <EmbeddedResource Include="test\data\openpgp\bigpub.asc" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-1024-160.pub" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-1024-160.sec" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-15360-512.pub" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-15360-512.sec" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-2048-224.pub" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-2048-224.sec" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-3072-256.pub" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-3072-256.sec" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-7680-384.pub" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\keys\DSA-7680-384.sec" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-1024-160-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-1024-224-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-1024-256-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-1024-384-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-1024-512-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-15360-512-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-2048-224-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-3072-256-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\dsa\sigs\dsa-7680-384-sign.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\longSigSubPack.asc" />
+    <EmbeddedResource Include="test\data\openpgp\unicode\passphrase_cyr.txt" />
+    <EmbeddedResource Include="test\data\openpgp\unicode\passphrase_for_test.txt" />
+    <EmbeddedResource Include="test\data\openpgp\unicode\secring.gpg" />
+    <EmbeddedResource Include="test\data\openpgp\unicode\test.asc" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes128_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes128_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes128_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes128_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes192_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes192_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes192_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes192_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes256_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes256_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes256_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_aes256_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_blowfish_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_blowfish_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_blowfish_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_blowfish_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des1_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des1_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des1_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des1_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des2_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des2_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des2_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des2_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des3_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des3_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des3_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_des3_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_rc2_128_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_rc2_128_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_rc2_128_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_rc2_128_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_rc2_40_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_rc2_64_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\dsa\openssl_dsa_unencrypted.pem" />
+    <EmbeddedResource Include="test\data\openssl\eckey.pem" />
+    <EmbeddedResource Include="test\data\openssl\enckey.pem" />
+    <EmbeddedResource Include="test\data\openssl\pkcs7.pem" />
+    <EmbeddedResource Include="test\data\openssl\pkcs8test.pem" />
+    <EmbeddedResource Include="test\data\openssl\pkcs8\openssl_pkcs8_rsa.pem" />
+    <EmbeddedResource Include="test\data\openssl\pkcs8\openssl_pkcs8_rsa_enc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes128_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes128_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes128_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes128_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes192_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes192_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes192_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes192_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes256_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes256_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes256_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_aes256_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_blowfish_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_blowfish_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_blowfish_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_blowfish_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des1_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des1_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des1_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des1_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des2_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des2_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des2_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des2_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des3_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des3_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des3_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_des3_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_rc2_128_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_rc2_128_cfb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_rc2_128_ecb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_rc2_128_ofb.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_rc2_40_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_rc2_64_cbc.pem" />
+    <EmbeddedResource Include="test\data\openssl\rsa\openssl_rsa_unencrypted.pem" />
+    <EmbeddedResource Include="test\data\openssl\test.pem" />
+    <EmbeddedResource Include="test\data\PKITS\certs\AllCertificatesanyPolicyTest11EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\AllCertificatesNoPoliciesTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\AllCertificatesSamePoliciesTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\AllCertificatesSamePoliciesTest13EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\anyPolicyCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\AnyPolicyTest14EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BadCRLIssuerNameCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BadCRLSignatureCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BadnotAfterDateCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BadnotBeforeDateCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BadSignedCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\basicConstraintsCriticalcAFalseCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\basicConstraintsNotCriticalCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\basicConstraintsNotCriticalcAFalseCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BasicSelfIssuedCRLSigningKeyCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BasicSelfIssuedCRLSigningKeyCRLCert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BasicSelfIssuedNewKeyCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BasicSelfIssuedNewKeyOldWithNewCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BasicSelfIssuedOldKeyCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\BasicSelfIssuedOldKeyNewWithOldCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\CPSPointerQualifierTest20EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\deltaCRLCA1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\deltaCRLCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\deltaCRLCA3Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\deltaCRLIndicatorNoBaseCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DifferentPoliciesTest12EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DifferentPoliciesTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DifferentPoliciesTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DifferentPoliciesTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DifferentPoliciesTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DifferentPoliciesTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DifferentPoliciesTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\distributionPoint1CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\distributionPoint2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DSACACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\DSAParametersInheritedCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\GeneralizedTimeCRLnextUpdateCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\GoodCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\GoodsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\GoodsubCAPanyPolicyMapping1to2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\indirectCRLCA1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\indirectCRLCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\indirectCRLCA3Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\indirectCRLCA3cRLIssuerCert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\indirectCRLCA4Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\indirectCRLCA4cRLIssuerCert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\indirectCRLCA5Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\indirectCRLCA6Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy0CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy1CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy1SelfIssuedCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy1SelfIssuedsubCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy1subCA1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy1subCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy1subCAIAP5Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy1subsubCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy5CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy5subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicy5subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitAnyPolicyTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping0CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping0subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P12CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P12subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P12subCAIPM5Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P12subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P12subsubCAIPM5Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P1CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P1SelfIssuedCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P1SelfIssuedsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P1subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping1P1subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping5CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping5subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping5subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\inhibitPolicyMapping5subsubsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidBadCRLIssuerNameTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidBadCRLSignatureTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidBasicSelfIssuedCRLSigningKeyTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidBasicSelfIssuedCRLSigningKeyTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidBasicSelfIssuedNewWithOldTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidBasicSelfIssuedOldWithNewTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidcAFalseTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidcAFalseTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidCAnotAfterDateTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidCAnotBeforeDateTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidCASignatureTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidcRLIssuerTest27EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidcRLIssuerTest31EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidcRLIssuerTest32EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidcRLIssuerTest34EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidcRLIssuerTest35EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddeltaCRLIndicatorNoBaseTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddeltaCRLTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddeltaCRLTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddeltaCRLTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddeltaCRLTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddeltaCRLTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddistributionPointTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddistributionPointTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddistributionPointTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddistributionPointTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvaliddistributionPointTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNandRFC822nameConstraintsTest28EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNandRFC822nameConstraintsTest29EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest12EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest13EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest15EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest16EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest17EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest20EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNnameConstraintsTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNSnameConstraintsTest31EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNSnameConstraintsTest33EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDNSnameConstraintsTest38EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidDSASignatureTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidEEnotAfterDateTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidEEnotBeforeDateTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidEESignatureTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidIDPwithindirectCRLTest23EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidIDPwithindirectCRLTest26EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidinhibitAnyPolicyTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidinhibitAnyPolicyTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidinhibitAnyPolicyTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidinhibitAnyPolicyTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidinhibitPolicyMappingTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidinhibitPolicyMappingTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidinhibitPolicyMappingTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidinhibitPolicyMappingTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidkeyUsageCriticalcRLSignFalseTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidkeyUsageCriticalkeyCertSignFalseTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidkeyUsageNotCriticalcRLSignFalseTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidkeyUsageNotCriticalkeyCertSignFalseTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidLongSerialNumberTest18EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidMappingFromanyPolicyTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidMappingToanyPolicyTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidMissingbasicConstraintsTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidMissingCRLTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidNameChainingOrderTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidNameChainingTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidNegativeSerialNumberTest15EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidOldCRLnextUpdateTest11EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidonlyContainsAttributeCertsTest14EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidonlyContainsCACertsTest12EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidonlyContainsUserCertsTest11EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidonlySomeReasonsTest15EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidonlySomeReasonsTest16EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidonlySomeReasonsTest17EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidonlySomeReasonsTest20EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidonlySomeReasonsTest21EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidpathLenConstraintTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidpathLenConstraintTest11EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidpathLenConstraintTest12EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidpathLenConstraintTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidpathLenConstraintTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidpathLenConstraintTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidPolicyMappingTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidPolicyMappingTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidPolicyMappingTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\Invalidpre2000CRLnextUpdateTest12EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\Invalidpre2000UTCEEnotAfterDateTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidrequireExplicitPolicyTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidrequireExplicitPolicyTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidRevokedCATest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidRevokedEETest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidRFC822nameConstraintsTest22EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidRFC822nameConstraintsTest24EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidRFC822nameConstraintsTest26EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedinhibitAnyPolicyTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedinhibitAnyPolicyTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedinhibitPolicyMappingTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedinhibitPolicyMappingTest11EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedinhibitPolicyMappingTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedinhibitPolicyMappingTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedpathLenConstraintTest16EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedrequireExplicitPolicyTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSelfIssuedrequireExplicitPolicyTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSeparateCertificateandCRLKeysTest20EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidSeparateCertificateandCRLKeysTest21EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidUnknownCriticalCertificateExtensionTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidUnknownCRLEntryExtensionTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidUnknownCRLExtensionTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidUnknownCRLExtensionTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidURInameConstraintsTest35EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidURInameConstraintsTest37EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\InvalidWrongCRLTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\keyUsageCriticalcRLSignFalseCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\keyUsageCriticalkeyCertSignFalseCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\keyUsageNotCriticalCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\keyUsageNotCriticalcRLSignFalseCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\keyUsageNotCriticalkeyCertSignFalseCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\LongSerialNumberCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\Mapping1to2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\MappingFromanyPolicyCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\MappingToanyPolicyCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\MissingbasicConstraintsCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN1CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN1SelfIssuedCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN1subCA1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN1subCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN1subCA3Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN3CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN3subCA1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN3subCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN4CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDN5CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDNS1CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsDNS2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsRFC822CA1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsRFC822CA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsRFC822CA3Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsURI1CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\nameConstraintsURI2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\NameOrderingCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\NegativeSerialNumberCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\NoCRLCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\NoissuingDistributionPointCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\NoPoliciesCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\OldCRLnextUpdateCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\onlyContainsAttributeCertsCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\onlyContainsCACertsCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\onlyContainsUserCertsCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\onlySomeReasonsCA1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\onlySomeReasonsCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\onlySomeReasonsCA3Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\onlySomeReasonsCA4Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\OverlappingPoliciesTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\P12Mapping1to3CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\P12Mapping1to3subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\P12Mapping1to3subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\P1anyPolicyMapping1to2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\P1Mapping1to234CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\P1Mapping1to234subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PanyPolicyMapping1to2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint0CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint0SelfIssuedCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint0subCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint0subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint1CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint1SelfIssuedCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint1SelfIssuedsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint1subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6subCA0Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6subCA1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6subCA4Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6subsubCA00Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6subsubCA11Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6subsubCA41Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6subsubsubCA11XCert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pathLenConstraint6subsubsubCA41XCert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP1234CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP1234subCAP123Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP1234subsubCAP123P12Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP123CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP123subCAP12Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP123subsubCAP12P1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP123subsubCAP12P2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP123subsubsubCAP12P2P1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP12CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP12subCAP1Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP12subsubCAP1P2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP2subCA2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP2subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\PoliciesP3CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\pre2000CRLnextUpdateCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy0CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy0subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy0subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy0subsubsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy10CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy10subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy10subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy10subsubsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy2CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy2SelfIssuedCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy2SelfIssuedsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy2subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy4CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy4subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy4subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy4subsubsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy5CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy5subCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy5subsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy5subsubsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy7CACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy7subCARE2Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy7subsubCARE2RE4Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\requireExplicitPolicy7subsubsubCARE2RE4Cert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\RevokedsubCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\RFC3280MandatoryAttributeTypesCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\RFC3280OptionalAttributeTypesCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\RolloverfromPrintableStringtoUTF8StringCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\SeparateCertificateandCRLKeysCA2CertificateSigningCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\SeparateCertificateandCRLKeysCA2CRLSigningCert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\SeparateCertificateandCRLKeysCertificateSigningCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\SeparateCertificateandCRLKeysCRLSigningCert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\TrustAnchorRootCertificate.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\TwoCRLsCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UIDCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UnknownCRLEntryExtensionCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UnknownCRLExtensionCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UserNoticeQualifierTest15EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UserNoticeQualifierTest16EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UserNoticeQualifierTest17EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UserNoticeQualifierTest18EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UserNoticeQualifierTest19EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UTF8StringCaseInsensitiveMatchCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\UTF8StringEncodedNamesCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidbasicConstraintsNotCriticalTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidBasicSelfIssuedCRLSigningKeyTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidBasicSelfIssuedNewWithOldTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidBasicSelfIssuedNewWithOldTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidBasicSelfIssuedOldWithNewTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidCertificatePathTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidcRLIssuerTest28EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidcRLIssuerTest29EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidcRLIssuerTest30EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidcRLIssuerTest33EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValiddeltaCRLTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValiddeltaCRLTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValiddeltaCRLTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValiddeltaCRLTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValiddistributionPointTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValiddistributionPointTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValiddistributionPointTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValiddistributionPointTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNandRFC822nameConstraintsTest27EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNnameConstraintsTest11EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNnameConstraintsTest14EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNnameConstraintsTest18EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNnameConstraintsTest19EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNnameConstraintsTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNnameConstraintsTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNnameConstraintsTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNnameConstraintsTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNSnameConstraintsTest30EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDNSnameConstraintsTest32EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDSAParameterInheritanceTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidDSASignaturesTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidGeneralizedTimeCRLnextUpdateTest13EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidGeneralizedTimenotAfterDateTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidGeneralizedTimenotBeforeDateTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidIDPwithindirectCRLTest22EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidIDPwithindirectCRLTest24EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidIDPwithindirectCRLTest25EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidinhibitAnyPolicyTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidinhibitPolicyMappingTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidinhibitPolicyMappingTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidkeyUsageNotCriticalTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidLongSerialNumberTest16EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidLongSerialNumberTest17EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidNameChainingCapitalizationTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidNameChainingWhitespaceTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidNameChainingWhitespaceTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidNameUIDsTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidNegativeSerialNumberTest14EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidNoissuingDistributionPointTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidonlyContainsCACertsTest13EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidonlySomeReasonsTest18EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidonlySomeReasonsTest19EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidpathLenConstraintTest13EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidpathLenConstraintTest14EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidpathLenConstraintTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidpathLenConstraintTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest11EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest12EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest13EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest14EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest5EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidPolicyMappingTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\Validpre2000UTCnotBeforeDateTest3EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidrequireExplicitPolicyTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidrequireExplicitPolicyTest2EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidrequireExplicitPolicyTest4EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidRFC3280MandatoryAttributeTypesTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidRFC3280OptionalAttributeTypesTest8EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidRFC822nameConstraintsTest21EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidRFC822nameConstraintsTest23EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidRFC822nameConstraintsTest25EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidRolloverfromPrintableStringtoUTF8StringTest10EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidSelfIssuedinhibitAnyPolicyTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidSelfIssuedinhibitAnyPolicyTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidSelfIssuedinhibitPolicyMappingTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidSelfIssuedpathLenConstraintTest15EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidSelfIssuedpathLenConstraintTest17EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidSelfIssuedrequireExplicitPolicyTest6EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidSeparateCertificateandCRLKeysTest19EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidTwoCRLsTest7EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidUnknownNotCriticalCertificateExtensionTest1EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidURInameConstraintsTest34EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidURInameConstraintsTest36EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidUTF8StringCaseInsensitiveMatchTest11EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\ValidUTF8StringEncodedNamesTest9EE.crt" />
+    <EmbeddedResource Include="test\data\PKITS\certs\WrongCRLCACert.crt" />
+    <EmbeddedResource Include="test\data\PKITS\crls\anyPolicyCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BadCRLIssuerNameCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BadCRLSignatureCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BadnotAfterDateCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BadnotBeforeDateCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BadSignedCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\basicConstraintsCriticalcAFalseCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\basicConstraintsNotCriticalCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\basicConstraintsNotCriticalcAFalseCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BasicSelfIssuedCRLSigningKeyCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BasicSelfIssuedCRLSigningKeyCRLCertCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BasicSelfIssuedNewKeyCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BasicSelfIssuedOldKeyCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\BasicSelfIssuedOldKeySelfIssuedCertCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\deltaCRLCA1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\deltaCRLCA1deltaCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\deltaCRLCA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\deltaCRLCA2deltaCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\deltaCRLCA3CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\deltaCRLCA3deltaCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\deltaCRLIndicatorNoBaseCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\distributionPoint1CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\distributionPoint2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\DSACACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\DSAParametersInheritedCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\GeneralizedTimeCRLnextUpdateCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\GoodCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\GoodsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\GoodsubCAPanyPolicyMapping1to2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\indirectCRLCA1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\indirectCRLCA3CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\indirectCRLCA3cRLIssuerCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\indirectCRLCA4cRLIssuerCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\indirectCRLCA5CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy0CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy1CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy1subCA1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy1subCA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy1subCAIAP5CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy1subsubCA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy5CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy5subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitAnyPolicy5subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping0CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping0subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping1P12CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping1P12subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping1P12subCAIPM5CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping1P12subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping1P12subsubCAIPM5CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping1P1CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping1P1subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping1P1subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping5CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping5subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping5subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\inhibitPolicyMapping5subsubsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\keyUsageCriticalcRLSignFalseCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\keyUsageCriticalkeyCertSignFalseCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\keyUsageNotCriticalCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\keyUsageNotCriticalcRLSignFalseCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\keyUsageNotCriticalkeyCertSignFalseCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\LongSerialNumberCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\Mapping1to2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\MappingFromanyPolicyCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\MappingToanyPolicyCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\MissingbasicConstraintsCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN1CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN1subCA1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN1subCA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN1subCA3CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN3CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN3subCA1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN3subCA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN4CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDN5CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDNS1CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsDNS2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsRFC822CA1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsRFC822CA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsRFC822CA3CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsURI1CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\nameConstraintsURI2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\NameOrderCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\NegativeSerialNumberCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\NoissuingDistributionPointCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\NoPoliciesCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\OldCRLnextUpdateCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlyContainsAttributeCertsCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlyContainsCACertsCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlyContainsUserCertsCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlySomeReasonsCA1compromiseCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlySomeReasonsCA1otherreasonsCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlySomeReasonsCA2CRL1.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlySomeReasonsCA2CRL2.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlySomeReasonsCA3compromiseCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlySomeReasonsCA3otherreasonsCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlySomeReasonsCA4compromiseCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\onlySomeReasonsCA4otherreasonsCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\P12Mapping1to3CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\P12Mapping1to3subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\P12Mapping1to3subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\P1anyPolicyMapping1to2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\P1Mapping1to234CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\P1Mapping1to234subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PanyPolicyMapping1to2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint0CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint0subCA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint0subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint1CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint1subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6subCA0CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6subCA1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6subCA4CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6subsubCA00CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6subsubCA11CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6subsubCA41CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6subsubsubCA11XCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pathLenConstraint6subsubsubCA41XCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP1234CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP1234subCAP123CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP1234subsubCAP123P12CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP123CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP123subCAP12CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP123subsubCAP12P1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP123subsubCAP2P2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP123subsubsubCAP12P2P1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP12CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP12subCAP1CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP12subsubCAP1P2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP2subCA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP2subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\PoliciesP3CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\pre2000CRLnextUpdateCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy0CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy0subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy0subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy0subsubsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy10CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy10subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy10subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy10subsubsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy2CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy2subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy4CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy4subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy4subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy4subsubsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy5CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy5subCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy5subsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy5subsubsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy7CACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy7subCARE2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy7subsubCARE2RE4CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\requireExplicitPolicy7subsubsubCARE2RE4CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\RevokedsubCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\RFC3280MandatoryAttributeTypesCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\RFC3280OptionalAttributeTypesCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\RolloverfromPrintableStringtoUTF8StringCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\SeparateCertificateandCRLKeysCA2CRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\SeparateCertificateandCRLKeysCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\TrustAnchorRootCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\TwoCRLsCABadCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\TwoCRLsCAGoodCRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\UIDCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\UnknownCRLEntryExtensionCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\UnknownCRLExtensionCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\UTF8StringCaseInsensitiveMatchCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\UTF8StringEncodedNamesCACRL.crl" />
+    <EmbeddedResource Include="test\data\PKITS\crls\WrongCRLCACRL.crl" />
+    <EmbeddedResource Include="test\data\rfc4134\3.1.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\3.2.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.1.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.10.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.11.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.2.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.3.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.4.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.5.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.6.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.7.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\4.8.eml" />
+    <EmbeddedResource Include="test\data\rfc4134\4.9.eml" />
+    <EmbeddedResource Include="test\data\rfc4134\5.1.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\5.2.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\5.3.eml" />
+    <EmbeddedResource Include="test\data\rfc4134\6.0.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\7.1.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\7.2.bin" />
+    <EmbeddedResource Include="test\data\rfc4134\AliceDSSSignByCarlNoInherit.cer" />
+    <EmbeddedResource Include="test\data\rfc4134\AlicePrivDSSSign.pri" />
+    <EmbeddedResource Include="test\data\rfc4134\AlicePrivRSASign.pri" />
+    <EmbeddedResource Include="test\data\rfc4134\AliceRSASignByCarl.cer" />
+    <EmbeddedResource Include="test\data\rfc4134\BobPrivRSAEncrypt.pri" />
+    <EmbeddedResource Include="test\data\rfc4134\BobRSASignByCarl.cer" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlDSSCRLEmpty.crl" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlDSSCRLForAll.crl" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlDSSCRLForCarl.crl" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlDSSSelf.cer" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlPrivDSSSign.pri" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlPrivRSASign.pri" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlRSACRLEmpty.crl" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlRSACRLForAll.crl" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlRSACRLForCarl.crl" />
+    <EmbeddedResource Include="test\data\rfc4134\CarlRSASelf.cer" />
+    <EmbeddedResource Include="test\data\rfc4134\DianeDSSSignByCarlInherit.cer" />
+    <EmbeddedResource Include="test\data\rfc4134\DianePrivDSSSign.pri" />
+    <EmbeddedResource Include="test\data\rfc4134\DianePrivRSASignEncrypt.pri" />
+    <EmbeddedResource Include="test\data\rfc4134\DianeRSASignByCarl.cer" />
+    <EmbeddedResource Include="test\data\rfc4134\ExContent.bin" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-A.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-A.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-B.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-B.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-C.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-C.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-D.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-D.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-E.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-E.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-F.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-F.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-G.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-G.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-H.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-H.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-I.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-I.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-J.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-J.pem" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-L.p12" />
+    <EmbeddedResource Include="test\data\rsa3\self-testcase-L.pem" />
+    <EmbeddedResource Include="test\data\scrypt\TestVectors.txt" />
+    <EmbeddedResource Include="test\data\tls\keystores\client_store.dsa" />
+    <EmbeddedResource Include="test\data\tls\keystores\client_store.rsa" />
+    <EmbeddedResource Include="test\data\tls\keystores\server_store.dsa" />
+    <EmbeddedResource Include="test\data\tls\keystores\server_store.rsa" />
+    <EmbeddedResource Include="test\data\tls\x509-ca-key.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-ca.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-client-dsa.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-client-ecdsa.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-client-key-dsa.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-client-key-ecdsa.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-client-key.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-client.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-server-dsa.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-server-ecdsa.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-server-key-dsa.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-server-key-ecdsa.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-server-key.pem" />
+    <EmbeddedResource Include="test\data\tls\x509-server.pem" />
+    <None Include="NBuild.build" />
+    <None Include="testcfg.nunit" />
+    <None Include="test\data\keys\README.txt" />
+    <None Include="test\data\openpgp\dsa\README.txt" />
+    <None Include="test\data\openssl\README.txt" />
+    <None Include="test\data\PKITS\README.txt" />
+    <None Include="test\data\rfc4134\rfc4134.txt" />
+    <None Include="test\data\rsa3\testcases.README" />
+  </ItemGroup>
+  <PropertyGroup>
+    <PreBuildEvent />
+    <PostBuildEvent />
+  </PropertyGroup>
+</Project>
