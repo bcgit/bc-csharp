@@ -73,7 +73,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             return keccakRhoOffsets;
         }
 
-        protected byte[] state = new byte[(1600 / 8)];
+        private static readonly int STATE_LENGTH = (1600 / 8);
+
+        protected byte[] state = new byte[STATE_LENGTH];
         protected byte[] dataQueue = new byte[(1536 / 8)];
         protected int rate;
         protected int bitsInQueue;
@@ -377,34 +379,50 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             for (int i = 0; i < (1600 / 64); i++)
             {
-                stateAsWords[i] = 0;
-                int index = i * (64 / 8);
-                for (int j = 0; j < (64 / 8); j++)
-                {
-                    stateAsWords[i] |= ((ulong)state[index + j] & 0xff) << ((8 * j));
-                }
+                stateAsWords[i] = BytesToWord(state, i * 8);
             }
+        }
+
+        private static ulong BytesToWord(byte[] state, int off)
+        {
+            return ((ulong)state[off + 0])
+                | (((ulong)state[off + 1]) << 8)
+                | (((ulong)state[off + 2]) << 16)
+                | (((ulong)state[off + 3]) << 24)
+                | (((ulong)state[off + 4]) << 32)
+                | (((ulong)state[off + 5]) << 40)
+                | (((ulong)state[off + 6]) << 48)
+                | (((ulong)state[off + 7]) << 56);
         }
 
         private static void FromWordsToBytes(byte[] state, ulong[] stateAsWords)
         {
             for (int i = 0; i < (1600 / 64); i++)
             {
-                int index = i * (64 / 8);
-                for (int j = 0; j < (64 / 8); j++)
-                {
-                    state[index + j] = (byte)(stateAsWords[i] >> (8 * j));
-                }
+                WordToBytes(stateAsWords[i], state, i * 8);
             }
         }
 
+        private static void WordToBytes(ulong word, byte[] state, int off)
+        {
+            state[off + 0] = (byte)(word);
+            state[off + 1] = (byte)(word >> (8 * 1));
+            state[off + 2] = (byte)(word >> (8 * 2));
+            state[off + 3] = (byte)(word >> (8 * 3));
+            state[off + 4] = (byte)(word >> (8 * 4));
+            state[off + 5] = (byte)(word >> (8 * 5));
+            state[off + 6] = (byte)(word >> (8 * 6));
+            state[off + 7] = (byte)(word >> (8 * 7));
+        }
+
+        private ulong[] longState = new ulong[STATE_LENGTH / 8];
+        private ulong[] tempLongState = new ulong[STATE_LENGTH / 8];
+
         private void KeccakPermutation(byte[] state)
         {
-            ulong[] longState = new ulong[state.Length / 8];
-
             FromBytesToWords(longState, state);
 
-            KeccakPermutationOnWords(longState);
+            KeccakPermutationOnWords(longState, tempLongState);
 
             FromWordsToBytes(state, longState);
         }
@@ -419,7 +437,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             KeccakPermutation(state);
         }
 
-        private void KeccakPermutationOnWords(ulong[] state)
+        private void KeccakAbsorb(byte[] byteState, byte[] data, int dataInBytes)
+        {
+            KeccakPermutationAfterXor(byteState, data, dataInBytes);
+        }
+
+        private static void KeccakPermutationOnWords(ulong[] state, ulong[] tempState)
         {
             int i;
 
@@ -427,75 +450,127 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 Theta(state);
                 Rho(state);
-                Pi(state);
+                Pi(state, tempState);
                 Chi(state);
                 Iota(state, i);
             }
         }
 
-        ulong[] C = new ulong[5];
-
-        private void Theta(ulong[] A)
+        private static ulong leftRotate(ulong v, int r)
         {
-            for (int x = 0; x < 5; x++)
+            return (v << r) | (v >> (64 - r));
+        }
+
+        private static void Theta(ulong[] A)
+        {
+            ulong C0 = A[0 + 0] ^ A[0 + 5] ^ A[0 + 10] ^ A[0 + 15] ^ A[0 + 20];
+            ulong C1 = A[1 + 0] ^ A[1 + 5] ^ A[1 + 10] ^ A[1 + 15] ^ A[1 + 20];
+            ulong C2 = A[2 + 0] ^ A[2 + 5] ^ A[2 + 10] ^ A[2 + 15] ^ A[2 + 20];
+            ulong C3 = A[3 + 0] ^ A[3 + 5] ^ A[3 + 10] ^ A[3 + 15] ^ A[3 + 20];
+            ulong C4 = A[4 + 0] ^ A[4 + 5] ^ A[4 + 10] ^ A[4 + 15] ^ A[4 + 20];
+
+            ulong dX = leftRotate(C1, 1) ^ C4;
+
+            A[0] ^= dX;
+            A[5] ^= dX;
+            A[10] ^= dX;
+            A[15] ^= dX;
+            A[20] ^= dX;
+
+            dX = leftRotate(C2, 1) ^ C0;
+
+            A[1] ^= dX;
+            A[6] ^= dX;
+            A[11] ^= dX;
+            A[16] ^= dX;
+            A[21] ^= dX;
+
+            dX = leftRotate(C3, 1) ^ C1;
+
+            A[2] ^= dX;
+            A[7] ^= dX;
+            A[12] ^= dX;
+            A[17] ^= dX;
+            A[22] ^= dX;
+
+            dX = leftRotate(C4, 1) ^ C2;
+
+            A[3] ^= dX;
+            A[8] ^= dX;
+            A[13] ^= dX;
+            A[18] ^= dX;
+            A[23] ^= dX;
+
+            dX = leftRotate(C0, 1) ^ C3;
+
+            A[4] ^= dX;
+            A[9] ^= dX;
+            A[14] ^= dX;
+            A[19] ^= dX;
+            A[24] ^= dX;
+        }
+
+        private static void Rho(ulong[] A)
+        {
+            // KeccakRhoOffsets[0] == 0
+            for (int x = 1; x < 25; x++)
             {
-                C[x] = 0;
-                for (int y = 0; y < 5; y++)
-                {
-                    C[x] ^= A[x + 5 * y];
-                }
-            }
-            for (int x = 0; x < 5; x++)
-            {
-                ulong dX = ((((C[(x + 1) % 5]) << 1) ^ ((C[(x + 1) % 5]) >> (64 - 1)))) ^ C[(x + 4) % 5];
-                for (int y = 0; y < 5; y++)
-                {
-                    A[x + 5 * y] ^= dX;
-                }
+                A[x] = leftRotate(A[x], KeccakRhoOffsets[x]);
             }
         }
 
-        private void Rho(ulong[] A)
-        {
-            for (int x = 0; x < 5; x++)
-            {
-                for (int y = 0; y < 5; y++)
-                {
-                    int index = x + 5 * y;
-                    A[index] = ((KeccakRhoOffsets[index] != 0) ? (((A[index]) << KeccakRhoOffsets[index]) ^ ((A[index]) >> (64 - KeccakRhoOffsets[index]))) : A[index]);
-                }
-            }
-        }
-
-        ulong[] tempA = new ulong[25];
-
-        private void Pi(ulong[] A)
+        private static void Pi(ulong[] A, ulong[] tempA)
         {
             Array.Copy(A, 0, tempA, 0, tempA.Length);
 
-            for (int x = 0; x < 5; x++)
-            {
-                for (int y = 0; y < 5; y++)
-                {
-                    A[y + 5 * ((2 * x + 3 * y) % 5)] = tempA[x + 5 * y];
-                }
-            }
+            A[0 + 5 * ((0 * 1 + 3 * 0) % 5)] = tempA[0 + 5 * 0];
+            A[1 + 5 * ((0 * 1 + 3 * 1) % 5)] = tempA[0 + 5 * 1];
+            A[2 + 5 * ((0 * 1 + 3 * 2) % 5)] = tempA[0 + 5 * 2];
+            A[3 + 5 * ((0 * 1 + 3 * 3) % 5)] = tempA[0 + 5 * 3];
+            A[4 + 5 * ((0 * 1 + 3 * 4) % 5)] = tempA[0 + 5 * 4];
+
+            A[0 + 5 * ((2 * 1 + 3 * 0) % 5)] = tempA[1 + 5 * 0];
+            A[1 + 5 * ((2 * 1 + 3 * 1) % 5)] = tempA[1 + 5 * 1];
+            A[2 + 5 * ((2 * 1 + 3 * 2) % 5)] = tempA[1 + 5 * 2];
+            A[3 + 5 * ((2 * 1 + 3 * 3) % 5)] = tempA[1 + 5 * 3];
+            A[4 + 5 * ((2 * 1 + 3 * 4) % 5)] = tempA[1 + 5 * 4];
+
+            A[0 + 5 * ((2 * 2 + 3 * 0) % 5)] = tempA[2 + 5 * 0];
+            A[1 + 5 * ((2 * 2 + 3 * 1) % 5)] = tempA[2 + 5 * 1];
+            A[2 + 5 * ((2 * 2 + 3 * 2) % 5)] = tempA[2 + 5 * 2];
+            A[3 + 5 * ((2 * 2 + 3 * 3) % 5)] = tempA[2 + 5 * 3];
+            A[4 + 5 * ((2 * 2 + 3 * 4) % 5)] = tempA[2 + 5 * 4];
+
+            A[0 + 5 * ((2 * 3 + 3 * 0) % 5)] = tempA[3 + 5 * 0];
+            A[1 + 5 * ((2 * 3 + 3 * 1) % 5)] = tempA[3 + 5 * 1];
+            A[2 + 5 * ((2 * 3 + 3 * 2) % 5)] = tempA[3 + 5 * 2];
+            A[3 + 5 * ((2 * 3 + 3 * 3) % 5)] = tempA[3 + 5 * 3];
+            A[4 + 5 * ((2 * 3 + 3 * 4) % 5)] = tempA[3 + 5 * 4];
+
+            A[0 + 5 * ((2 * 4 + 3 * 0) % 5)] = tempA[4 + 5 * 0];
+            A[1 + 5 * ((2 * 4 + 3 * 1) % 5)] = tempA[4 + 5 * 1];
+            A[2 + 5 * ((2 * 4 + 3 * 2) % 5)] = tempA[4 + 5 * 2];
+            A[3 + 5 * ((2 * 4 + 3 * 3) % 5)] = tempA[4 + 5 * 3];
+            A[4 + 5 * ((2 * 4 + 3 * 4) % 5)] = tempA[4 + 5 * 4];
         }
 
-        ulong[] chiC = new ulong[5];
-
-        private void Chi(ulong[] A)
+        private static void Chi(ulong[] A)
         {
-            for (int y = 0; y < 5; y++)
+            ulong chiC0, chiC1, chiC2, chiC3, chiC4;
+
+            for (int yBy5 = 0; yBy5 < 25; yBy5 += 5)
             {
-                for (int x = 0; x < 5; x++)
-                {
-                    chiC[x] = A[x + 5 * y] ^ ((~A[(((x + 1) % 5) + 5 * y)]) & A[(((x + 2) % 5) + 5 * y)]);
-                }
-                for (int x = 0; x < 5; x++)
-                {
-                    A[x + 5 * y] = chiC[x];
-                }
+                chiC0 = A[0 + yBy5] ^ ((~A[(((0 + 1) % 5) + yBy5)]) & A[(((0 + 2) % 5) + yBy5)]);
+                chiC1 = A[1 + yBy5] ^ ((~A[(((1 + 1) % 5) + yBy5)]) & A[(((1 + 2) % 5) + yBy5)]);
+                chiC2 = A[2 + yBy5] ^ ((~A[(((2 + 1) % 5) + yBy5)]) & A[(((2 + 2) % 5) + yBy5)]);
+                chiC3 = A[3 + yBy5] ^ ((~A[(((3 + 1) % 5) + yBy5)]) & A[(((3 + 2) % 5) + yBy5)]);
+                chiC4 = A[4 + yBy5] ^ ((~A[(((4 + 1) % 5) + yBy5)]) & A[(((4 + 2) % 5) + yBy5)]);
+
+                A[0 + yBy5] = chiC0;
+                A[1 + yBy5] = chiC1;
+                A[2 + yBy5] = chiC2;
+                A[3 + yBy5] = chiC3;
+                A[4 + yBy5] = chiC4;
             }
         }
 
@@ -504,17 +579,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             A[(((0) % 5) + 5 * ((0) % 5))] ^= KeccakRoundConstants[indexRound];
         }
 
-        private void KeccakAbsorb(byte[] byteState, byte[] data, int dataInBytes)
-        {
-            KeccakPermutationAfterXor(byteState, data, dataInBytes);
-        }
-
-        private void KeccakExtract1024bits(byte[] byteState, byte[] data)
+        private static void KeccakExtract1024bits(byte[] byteState, byte[] data)
         {
             Array.Copy(byteState, 0, data, 0, 128);
         }
 
-        private void KeccakExtract(byte[] byteState, byte[] data, int laneCount)
+        private static void KeccakExtract(byte[] byteState, byte[] data, int laneCount)
         {
             Array.Copy(byteState, 0, data, 0, laneCount * 8);
         }
