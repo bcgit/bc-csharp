@@ -174,6 +174,8 @@
     <Compile Include="src\crypto\test\DHKEKGeneratorTest.cs" />
     <Compile Include="src\crypto\test\DHTest.cs" />
     <Compile Include="src\crypto\test\DSATest.cs" />
+    <Compile Include="src\crypto\test\DSTU7564Test.cs" />
+    <Compile Include="src\crypto\test\DSTU7624Test.cs" />
     <Compile Include="src\crypto\test\DigestRandomNumberTest.cs" />
     <Compile Include="src\crypto\test\DigestTest.cs" />
     <Compile Include="src\crypto\test\EAXTest.cs" />
@@ -190,6 +192,8 @@
     <Compile Include="src\crypto\test\GOST28147Test.cs" />
     <Compile Include="src\crypto\test\GOST3410Test.cs" />
     <Compile Include="src\crypto\test\GOST3411DigestTest.cs" />
+    <Compile Include="src\crypto\test\GOST3411_2012_256DigestTest.cs" />
+    <Compile Include="src\crypto\test\GOST3411_2012_512DigestTest.cs" />
     <Compile Include="src\crypto\test\GcmReorderTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyVecTest.cs" />

@@ -705,8 +705,12 @@
     <Compile Include="src\crypto\agreement\srp\SRP6StandardGroups.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6Utilities.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6VerifierGenerator.cs" />
-    <Compile Include="src\crypto\digests\GOST3411Digest.cs" />
+    <Compile Include="src\crypto\digests\DSTU7564Digest.cs" />
     <Compile Include="src\crypto\digests\GeneralDigest.cs" />
+    <Compile Include="src\crypto\digests\GOST3411Digest.cs" />
+    <Compile Include="src\crypto\digests\GOST3411_2012Digest.cs" />
+    <Compile Include="src\crypto\digests\GOST3411_2012_256Digest.cs" />
+    <Compile Include="src\crypto\digests\GOST3411_2012_512Digest.cs" />
     <Compile Include="src\crypto\digests\KeccakDigest.cs" />
     <Compile Include="src\crypto\digests\LongDigest.cs" />
     <Compile Include="src\crypto\digests\MD2Digest.cs" />
@@ -750,6 +754,8 @@
     <Compile Include="src\crypto\engines\DesEdeEngine.cs" />
     <Compile Include="src\crypto\engines\DesEdeWrapEngine.cs" />
     <Compile Include="src\crypto\engines\DesEngine.cs" />
+    <Compile Include="src\crypto\engines\Dstu7624Engine.cs" />
+    <Compile Include="src\crypto\engines\Dstu7624WrapEngine.cs" />
     <Compile Include="src\crypto\engines\ElGamalEngine.cs" />
     <Compile Include="src\crypto\engines\GOST28147Engine.cs" />
     <Compile Include="src\crypto\engines\HC128Engine.cs" />
@@ -819,6 +825,8 @@
     <Compile Include="src\crypto\macs\CMac.cs" />
     <Compile Include="src\crypto\macs\CbcBlockCipherMac.cs" />
     <Compile Include="src\crypto\macs\CfbBlockCipherMac.cs" />
+    <Compile Include="src\crypto\macs\DSTU7564Mac.cs" />
+    <Compile Include="src\crypto\macs\DSTU7624Mac.cs" />
     <Compile Include="src\crypto\macs\GMac.cs" />
     <Compile Include="src\crypto\macs\GOST28147Mac.cs" />
     <Compile Include="src\crypto\macs\HMac.cs" />
@@ -835,6 +843,8 @@
     <Compile Include="src\crypto\modes\GCMBlockCipher.cs" />
     <Compile Include="src\crypto\modes\GOFBBlockCipher.cs" />
     <Compile Include="src\crypto\modes\IAeadBlockCipher.cs" />
+    <Compile Include="src\crypto\modes\KCcmBlockCipher.cs" />
+    <Compile Include="src\crypto\modes\KCtrBlockCipher.cs" />
     <Compile Include="src\crypto\modes\OCBBlockCipher.cs" />
     <Compile Include="src\crypto\modes\OfbBlockCipher.cs" />
     <Compile Include="src\crypto\modes\OpenPgpCfbBlockCipher.cs" />
