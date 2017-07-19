@@ -374,26 +374,37 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return 0;
         }
 
-        private long GetExpirationTimeFromSig(
-            bool	selfSigned,
-            int		signatureType)
+        private long GetExpirationTimeFromSig(bool selfSigned, int signatureType)
         {
+            long expiryTime = -1;
+            long lastDate = -1;
+
             foreach (PgpSignature sig in GetSignaturesOfType(signatureType))
             {
-                if (!selfSigned || sig.KeyId == KeyId)
+                if (selfSigned && sig.KeyId != this.KeyId)
+                    continue;
+
+                PgpSignatureSubpacketVector hashed = sig.GetHashedSubPackets();
+                if (hashed == null)
+                    continue;
+
+                long current = hashed.GetKeyExpirationTime();
+
+                if (sig.KeyId == this.KeyId)
                 {
-                    PgpSignatureSubpacketVector hashed = sig.GetHashedSubPackets();
-
-                    if (hashed != null)
+                    if (sig.CreationTime.Ticks > lastDate)
                     {
-                        return hashed.GetKeyExpirationTime();
+                        lastDate = sig.CreationTime.Ticks;
+                        expiryTime = current;
                     }
-
-                    return 0;
+                }
+                else if (current == 0 || current > expiryTime)
+                {
+                    expiryTime = current;
                 }
             }
 
-            return -1;
+            return expiryTime;
         }
 
         /// <summary>The keyId associated with the public key.</summary>
