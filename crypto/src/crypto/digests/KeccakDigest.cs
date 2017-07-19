@@ -76,6 +76,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private static readonly int STATE_LENGTH = (1600 / 8);
 
+        private ulong[] longState = new ulong[STATE_LENGTH / 8];
         protected byte[] state = new byte[STATE_LENGTH];
         protected byte[] dataQueue = new byte[(1536 / 8)];
         protected int rate;
@@ -376,14 +377,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        private ulong[] longState = new ulong[STATE_LENGTH / 8];
-        private ulong[] tempLongState = new ulong[STATE_LENGTH / 8];
-
         private void KeccakPermutation(byte[] state)
         {
             Pack.LE_To_UInt64(state, 0, longState);
 
-            KeccakPermutationOnWords(longState, tempLongState);
+            KeccakPermutationOnWords(longState);
 
             Pack.UInt64_To_LE(longState, state, 0);
         }
@@ -403,7 +401,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             KeccakPermutationAfterXor(byteState, data, dataInBytes);
         }
 
-        private static void KeccakPermutationOnWords(ulong[] state, ulong[] tempState)
+        private static void KeccakPermutationOnWords(ulong[] state)
         {
             int i;
 
@@ -411,7 +409,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 Theta(state);
                 Rho(state);
-                Pi(state, tempState);
+                Pi(state);
                 Chi(state);
                 Iota(state, i);
             }
@@ -480,39 +478,33 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        private static void Pi(ulong[] A, ulong[] tempA)
+        private static void Pi(ulong[] A)
         {
-            Array.Copy(A, 0, tempA, 0, tempA.Length);
-
-            A[0 + 5 * ((0 * 1 + 3 * 0) % 5)] = tempA[0 + 5 * 0];
-            A[1 + 5 * ((0 * 1 + 3 * 1) % 5)] = tempA[0 + 5 * 1];
-            A[2 + 5 * ((0 * 1 + 3 * 2) % 5)] = tempA[0 + 5 * 2];
-            A[3 + 5 * ((0 * 1 + 3 * 3) % 5)] = tempA[0 + 5 * 3];
-            A[4 + 5 * ((0 * 1 + 3 * 4) % 5)] = tempA[0 + 5 * 4];
-
-            A[0 + 5 * ((2 * 1 + 3 * 0) % 5)] = tempA[1 + 5 * 0];
-            A[1 + 5 * ((2 * 1 + 3 * 1) % 5)] = tempA[1 + 5 * 1];
-            A[2 + 5 * ((2 * 1 + 3 * 2) % 5)] = tempA[1 + 5 * 2];
-            A[3 + 5 * ((2 * 1 + 3 * 3) % 5)] = tempA[1 + 5 * 3];
-            A[4 + 5 * ((2 * 1 + 3 * 4) % 5)] = tempA[1 + 5 * 4];
-
-            A[0 + 5 * ((2 * 2 + 3 * 0) % 5)] = tempA[2 + 5 * 0];
-            A[1 + 5 * ((2 * 2 + 3 * 1) % 5)] = tempA[2 + 5 * 1];
-            A[2 + 5 * ((2 * 2 + 3 * 2) % 5)] = tempA[2 + 5 * 2];
-            A[3 + 5 * ((2 * 2 + 3 * 3) % 5)] = tempA[2 + 5 * 3];
-            A[4 + 5 * ((2 * 2 + 3 * 4) % 5)] = tempA[2 + 5 * 4];
-
-            A[0 + 5 * ((2 * 3 + 3 * 0) % 5)] = tempA[3 + 5 * 0];
-            A[1 + 5 * ((2 * 3 + 3 * 1) % 5)] = tempA[3 + 5 * 1];
-            A[2 + 5 * ((2 * 3 + 3 * 2) % 5)] = tempA[3 + 5 * 2];
-            A[3 + 5 * ((2 * 3 + 3 * 3) % 5)] = tempA[3 + 5 * 3];
-            A[4 + 5 * ((2 * 3 + 3 * 4) % 5)] = tempA[3 + 5 * 4];
-
-            A[0 + 5 * ((2 * 4 + 3 * 0) % 5)] = tempA[4 + 5 * 0];
-            A[1 + 5 * ((2 * 4 + 3 * 1) % 5)] = tempA[4 + 5 * 1];
-            A[2 + 5 * ((2 * 4 + 3 * 2) % 5)] = tempA[4 + 5 * 2];
-            A[3 + 5 * ((2 * 4 + 3 * 3) % 5)] = tempA[4 + 5 * 3];
-            A[4 + 5 * ((2 * 4 + 3 * 4) % 5)] = tempA[4 + 5 * 4];
+            ulong a1 = A[1];
+            A[1] = A[6];
+            A[6] = A[9];
+            A[9] = A[22];
+            A[22] = A[14];
+            A[14] = A[20];
+            A[20] = A[2];
+            A[2] = A[12];
+            A[12] = A[13];
+            A[13] = A[19];
+            A[19] = A[23];
+            A[23] = A[15];
+            A[15] = A[4];
+            A[4] = A[24];
+            A[24] = A[21];
+            A[21] = A[8];
+            A[8] = A[16];
+            A[16] = A[5];
+            A[5] = A[3];
+            A[3] = A[18];
+            A[18] = A[17];
+            A[17] = A[11];
+            A[11] = A[7];
+            A[7] = A[10];
+            A[10] = a1;
         }
 
         private static void Chi(ulong[] A)
@@ -537,7 +529,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private static void Iota(ulong[] A, int indexRound)
         {
-            A[(((0) % 5) + 5 * ((0) % 5))] ^= KeccakRoundConstants[indexRound];
+            A[0] ^= KeccakRoundConstants[indexRound];
         }
 
         private static void KeccakExtract1024bits(byte[] byteState, byte[] data)
