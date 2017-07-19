@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
@@ -375,56 +376,16 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        private static void FromBytesToWords(ulong[] stateAsWords, byte[] state)
-        {
-            for (int i = 0; i < (1600 / 64); i++)
-            {
-                stateAsWords[i] = BytesToWord(state, i * 8);
-            }
-        }
-
-        private static ulong BytesToWord(byte[] state, int off)
-        {
-            return ((ulong)state[off + 0])
-                | (((ulong)state[off + 1]) << 8)
-                | (((ulong)state[off + 2]) << 16)
-                | (((ulong)state[off + 3]) << 24)
-                | (((ulong)state[off + 4]) << 32)
-                | (((ulong)state[off + 5]) << 40)
-                | (((ulong)state[off + 6]) << 48)
-                | (((ulong)state[off + 7]) << 56);
-        }
-
-        private static void FromWordsToBytes(byte[] state, ulong[] stateAsWords)
-        {
-            for (int i = 0; i < (1600 / 64); i++)
-            {
-                WordToBytes(stateAsWords[i], state, i * 8);
-            }
-        }
-
-        private static void WordToBytes(ulong word, byte[] state, int off)
-        {
-            state[off + 0] = (byte)(word);
-            state[off + 1] = (byte)(word >> (8 * 1));
-            state[off + 2] = (byte)(word >> (8 * 2));
-            state[off + 3] = (byte)(word >> (8 * 3));
-            state[off + 4] = (byte)(word >> (8 * 4));
-            state[off + 5] = (byte)(word >> (8 * 5));
-            state[off + 6] = (byte)(word >> (8 * 6));
-            state[off + 7] = (byte)(word >> (8 * 7));
-        }
-
         private ulong[] longState = new ulong[STATE_LENGTH / 8];
         private ulong[] tempLongState = new ulong[STATE_LENGTH / 8];
 
         private void KeccakPermutation(byte[] state)
         {
-            FromBytesToWords(longState, state);
+            Pack.LE_To_UInt64(state, 0, longState);
 
             KeccakPermutationOnWords(longState, tempLongState);
 
-            FromWordsToBytes(state, longState);
+            Pack.UInt64_To_LE(longState, state, 0);
         }
 
         private void KeccakPermutationAfterXor(byte[] state, byte[] data, int dataLengthInBytes)
