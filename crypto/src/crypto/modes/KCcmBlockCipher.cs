@@ -1,9 +1,9 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Text;
+
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
@@ -229,10 +229,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int ProcessBytes(byte[] input, int inOff, int inLen, byte[] output, int outOff)
         {
-            if (input.Length< (inOff + inLen))
-            {
-                throw new DataLengthException("input buffer too short");
-            }
+            Check.DataLength(input, inOff, inLen, "input buffer too short");
+
             data.Write(input, inOff, inLen);
 
             return 0;
@@ -240,34 +238,27 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public int ProcessPacket(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
-            if (input.Length - inOff<len)
-            {
-                throw new ArgumentException("input buffer too short");
-            }
-
-            if (output.Length - outOff<len)
-            {
-                throw new ArgumentException("output buffer too short");
-            }
+            Check.DataLength(input, inOff, len, "input buffer too short");
+            Check.OutputLength(output, outOff, len, "output buffer too short");
 
             if (associatedText.Length > 0)
             {
-                if (forEncryption)
-                {
-                    ProcessAAD(associatedText.GetBuffer(), 0, (int)associatedText.Length, (int)data.Length);
-                }
-                else
-                {
-                    ProcessAAD(associatedText.GetBuffer(), 0, (int)associatedText.Length, (int)data.Length - macSize);
-                }
+#if PORTABLE
+                byte[] aad = associatedText.ToArray();
+                int aadLen = aad.Length;
+#else
+                byte[] aad = associatedText.GetBuffer();
+                int aadLen = (int)associatedText.Length;
+#endif
+
+                int dataLen = forEncryption ? (int)data.Length : ((int)data.Length - macSize);
+
+                ProcessAAD(aad, 0, aadLen, dataLen);
             }
 
             if (forEncryption)
             {
-                if ((len % engine.GetBlockSize()) != 0)
-                {
-                    throw new DataLengthException("partial blocks not supported");
-                }
+                Check.DataLength(len % engine.GetBlockSize() != 0, "partial blocks not supported");
 
                 CalculateMac(input, inOff, len);
                 engine.ProcessBlock(nonce, 0, s, 0);
@@ -301,10 +292,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             else
             {
-                if ((len - macSize) % engine.GetBlockSize() != 0)
-                {
-                    throw new DataLengthException("partial blocks not supported");
-                }
+                Check.DataLength((len - macSize) % engine.GetBlockSize() != 0, "partial blocks not supported");
 
                 engine.ProcessBlock(nonce, 0, s, 0);
 
@@ -397,7 +385,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
-            int len = ProcessPacket(data.GetBuffer(), 0, (int)data.Length, output, outOff);
+#if PORTABLE
+            byte[] buf = data.ToArray();
+            int bufLen = buf.Length;
+#else
+            byte[] buf = data.GetBuffer();
+            int bufLen = (int)data.Length;
+#endif
+
+            int len = ProcessPacket(buf, 0, bufLen, output, outOff);
 
             Reset();
 
