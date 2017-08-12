@@ -3309,12 +3309,32 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\digests\DSTU7564Digest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\digests\GeneralDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "src\crypto\digests\GOST3411Digest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\GOST3411_2012Digest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\GOST3411_2012_256Digest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\GOST3411_2012_512Digest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3535,6 +3555,16 @@
                 />
                 <File
                     RelPath = "src\crypto\engines\DesEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\engines\Dstu7624Engine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\engines\Dstu7624WrapEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3909,6 +3939,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\macs\DSTU7564Mac.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\macs\DSTU7624Mac.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\macs\GMac.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3979,17 +4019,27 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\modes\OCBBlockCipher.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\crypto\modes\GOFBBlockCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "src\crypto\modes\IAeadBlockCipher.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\modes\KCcmBlockCipher.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\modes\KCtrBlockCipher.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\modes\OCBBlockCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11420,6 +11470,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\DSTU7564Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\DSTU7624Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\EAXTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11496,6 +11556,16 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\GOST3411DigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\GOST3411_2012_256DigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\GOST3411_2012_512DigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
