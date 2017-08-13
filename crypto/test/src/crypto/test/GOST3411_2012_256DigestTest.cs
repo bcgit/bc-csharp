@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
+
 using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Macs;
@@ -12,9 +14,9 @@ using Org.BouncyCastle.Utilities.Encoders;
 namespace UnitTests.src.crypto.test
 {
     [TestFixture]
-    public class GOST3411_2012_256DigestTest : DigestTest
+    public class GOST3411_2012_256DigestTest
+        : DigestTest
     {
-
         private static readonly String[] messages;
 
         private static char[] M1 =
@@ -50,38 +52,28 @@ namespace UnitTests.src.crypto.test
 
         static GOST3411_2012_256DigestTest()
         {
-
-            List<String> strList = new List<String>();
-
-            strList.Add(new String(M1));
-            strList.Add(new String(M2));
-
-            messages = new String[strList.Count];
-            for (int i = 0; i < strList.Count; i++)
-            {
-                messages[i] = (String)strList[i];
-            }
+            messages = new string[] { new string(M1), new string(M2) };
         }
 
         private static readonly String[] digests = {
-        "9d151eefd8590b89daa6ba6cb74af9275dd051026bb149a452fd84e5e57b5500",
-        "9dd2fe4e90409e5da87f53976d7405b0c0cac628fc669a741d50063c557e8f50"
-    };
+            "9d151eefd8590b89daa6ba6cb74af9275dd051026bb149a452fd84e5e57b5500",
+            "9dd2fe4e90409e5da87f53976d7405b0c0cac628fc669a741d50063c557e8f50"
+        };
 
-
-
-        public GOST3411_2012_256DigestTest() : base(new GOST3411_2012_256Digest(), messages, digests)
+        public GOST3411_2012_256DigestTest()
+            : base(new GOST3411_2012_256Digest(), messages, digests)
         {
         }
 
-        public override void PerformTest() {
+        public override void PerformTest()
+        {
 			base.PerformTest();
 
-			HMac gMac = new HMac(new GOST3411_2012_256Digest());
+            HMac gMac = new HMac(new GOST3411_2012_256Digest());
 
-			gMac.Init(new KeyParameter(Hex.Decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")));
+            gMac.Init(new KeyParameter(Hex.Decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")));
 
-			byte[] data = Hex.Decode("0126bdb87800af214341456563780100");
+            byte[] data = Hex.Decode("0126bdb87800af214341456563780100");
 
             gMac.BlockUpdate(data, 0, data.Length);
             byte[] mac = new byte[gMac.GetMacSize()];
