@@ -158,8 +158,8 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
 
-                DerOctetString derX = (DerOctetString)keyInfo.ParsePrivateKey();
-                BigInteger x = new BigInteger(1, Arrays.Reverse(derX.GetOctets()));
+                DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
+                BigInteger x = derX.PositiveValue;
 
                 return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
             }
