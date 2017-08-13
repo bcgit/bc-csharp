@@ -112,6 +112,10 @@ namespace Org.BouncyCastle.Crypto.Tests
                 mac.Init(new ParametersWithIV(key, testCase.getIv()));
 
                 testSingleByte(mac, testCase);
+
+                mac = new GMac(new GcmBlockCipher(new AesEngine()), testCase.getTag().Length * 8);
+                mac.Init(new ParametersWithIV(key, testCase.getIv()));
+
                 testMultibyte(mac, testCase);
             }
 
