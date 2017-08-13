@@ -6,38 +6,35 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Macs
 {
-     /// <summary>
-     /// Implementation of DSTU7564 mac mode
-     /// </summary>
-     public class Dstu7564Mac : IMac
-     {
-          private Dstu7564Digest engine;
-          private int macSize;
+    /// <summary>
+    /// Implementation of DSTU7564 mac mode
+    /// </summary>
+    public class Dstu7564Mac
+        : IMac
+    {
+        private Dstu7564Digest engine;
+        private int macSize;
 
         private ulong inputLength;
 
         byte[] paddedKey;
-          byte[] invertedKey;
-          byte[] paddedInput;
+        byte[] invertedKey;
 
         public string AlgorithmName
         {
-            get
-            {
-                return "DSTU7564Mac";
-            }
+            get { return "DSTU7564Mac"; }
         }
 
         public Dstu7564Mac(int macSizeBits)
-          {
+        {
             engine = new Dstu7564Digest(macSizeBits);
             macSize = macSizeBits / 8;
-          }
+        }
 
-          public void Init(ICipherParameters parameters)
-          {
-            if (parameters is KeyParameter)
+        public void Init(ICipherParameters parameters)
         {
+            if (parameters is KeyParameter)
+            {
                 byte[] key = ((KeyParameter)parameters).GetKey();
 
                 invertedKey = new byte[key.Length];
@@ -49,35 +46,29 @@ namespace Org.BouncyCastle.Crypto.Macs
                     invertedKey[byteIndex] = (byte)(key[byteIndex] ^ (byte)0xFF);
                 }
             }
-        else
-        {
+            else
+            {
                 throw new ArgumentException("Bad parameter passed");
             }
 
             engine.BlockUpdate(paddedKey, 0, paddedKey.Length);
         }
 
-          public int GetMacSize()
-          {
-               return macSize;
-          }
+        public int GetMacSize()
+        {
+            return macSize;
+        }
 
-          public void BlockUpdate(byte[] input, int inOff, int len)
-          {
-            if (input.Length - inOff < len)
-            {
-                throw new DataLengthException("Input buffer too short");
-            }
+        public void BlockUpdate(byte[] input, int inOff, int len)
+        {
+            Check.DataLength(input, inOff, len, "Input buffer too short");
 
             if (paddedKey == null)
-            {
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
-            }
 
             engine.BlockUpdate(input, inOff, len);
             inputLength += (ulong)len;
-
-          }
+        }
 
         public void Update(byte input)
         {
@@ -87,14 +78,10 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public int DoFinal(byte[] output, int outOff)
         {
-            if (output.Length - outOff < macSize)
-            {
-                throw new DataLengthException("Output buffer too short");
-            }
+            Check.OutputLength(output, outOff, macSize, "Output buffer too short");
+
             if (paddedKey == null)
-            {
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
-            }
 
             Pad();
 
@@ -135,7 +122,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         private byte[] PadKey(byte[] input)
         {
-            int paddedLen = ((input.Length + engine.GetByteLength() - 1) / engine.GetByteLength()) *engine.GetByteLength();
+            int paddedLen = ((input.Length + engine.GetByteLength() - 1) / engine.GetByteLength()) * engine.GetByteLength();
 
             int extra = engine.GetByteLength() - (int)(input.Length % engine.GetByteLength());
             if (extra < 13)  // terminator byte + 96 bits of length
