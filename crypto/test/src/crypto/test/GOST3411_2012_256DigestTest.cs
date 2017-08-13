@@ -11,7 +11,7 @@ using Org.BouncyCastle.Crypto.Tests;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace UnitTests.src.crypto.test
+namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
     public class GOST3411_2012_256DigestTest
