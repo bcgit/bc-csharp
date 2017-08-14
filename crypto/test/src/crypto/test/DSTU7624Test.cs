@@ -185,10 +185,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             wrapper.Init(false, new KeyParameter(key));
             output = wrapper.Unwrap(output, textB.Length, output.Length - textB.Length - textA.Length);
 
-            if (!Arrays.AreEqual(output, Arrays.CopyOfRange(textToWrap, textA.Length, textToWrap.Length - textB.Length)))
+            byte[] expected = Arrays.CopyOfRange(textToWrap, textA.Length, textToWrap.Length - textB.Length);
+            if (!Arrays.AreEqual(output, expected))
             {
                 return new SimpleTestResult(false, Name + ": Failed KW (unwrapping) test 1 - expected "
-                     + Hex.ToHexString(textToWrap)
+                     + Hex.ToHexString(expected)
                      + " got " + Hex.ToHexString(output));
             }
 
