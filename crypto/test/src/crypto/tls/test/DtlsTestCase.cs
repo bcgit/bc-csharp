@@ -1,5 +1,4 @@
-﻿#if !PORTABLE
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 
@@ -146,11 +145,10 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 if (!isShutdown)
                 {
                     isShutdown = true;
-                    serverThread.Interrupt();                    
-                    serverThread.Join();
+                    //serverThread.Interrupt();                    
+                    serverThread.Join(100);
                 }
             }
         }
     }
 }
-#endif
