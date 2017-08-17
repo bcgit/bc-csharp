@@ -5,7 +5,6 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec.Tests
@@ -134,13 +133,40 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec.Tests
 
         private ECFieldElement GenerateSquareInput_CarryBug()
         {
-            uint[] x = Nat.Create(12);
+            uint[] x = Nat_Create(12);
             x[0] = (uint)Random.NextInt() >> 1;
             x[6] = 2;
             x[10] = 0xFFFF0000;
             x[11] = 0xFFFFFFFF;
 
-            return FE(Nat.ToBigInteger(12, x));
+            return FE(Nat_ToBigInteger(12, x));
+        }
+
+        private static uint[] Nat_Create(int len)
+        {
+            return new uint[len];
+        }
+
+        private static BigInteger Nat_ToBigInteger(int len, uint[] x)
+        {
+            byte[] bs = new byte[len << 2];
+            for (int i = 0; i < len; ++i)
+            {
+                uint x_i = x[i];
+                if (x_i != 0)
+                {
+                    Pack_UInt32_To_BE(x_i, bs, (len - 1 - i) << 2);
+                }
+            }
+            return new BigInteger(1, bs);
+        }
+
+        private static void Pack_UInt32_To_BE(uint n, byte[] bs, int off)
+        {
+            bs[off] = (byte)(n >> 24);
+            bs[off + 1] = (byte)(n >> 16);
+            bs[off + 2] = (byte)(n >> 8);
+            bs[off + 3] = (byte)(n);
         }
     }
 }

@@ -52,6 +52,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mPlaintextLimit = plaintextLimit;
         }
 
+        internal virtual int ReadEpoch
+        {
+            get { return mReadEpoch.Epoch; }
+        }
+
         internal virtual ProtocolVersion ReadVersion
         {
             get { return mReadVersion; }
