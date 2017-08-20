@@ -10,7 +10,7 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 {
     [TestFixture]
-    public class PGPNoPrivateKeyTest
+    public class PgpNoPrivateKeyTest
         : SimpleTest
     {
         private static string pgpOldPass = "test";
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         public static void Main(
             string[] args)
         {
-            RunTest(new PGPNoPrivateKeyTest());
+            RunTest(new PgpNoPrivateKeyTest());
         }
 
         [Test]

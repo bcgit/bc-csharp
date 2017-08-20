@@ -417,7 +417,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				return inputStream;
             }
-            else
+
+            if (!IsPossiblyBase64(ch))
+            {
+                inputStream.Position = markedPos;
+
+				return new ArmoredInputStream(inputStream);
+            }
+
+			byte[]	buf = new byte[ReadAhead];
+            int		count = 1;
+            int		index = 1;
+
+			buf[0] = (byte)ch;
+            while (count != ReadAhead && (ch = inputStream.ReadByte()) >= 0)
             {
                 if (!IsPossiblyBase64(ch))
                 {
@@ -426,51 +439,49 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 					return new ArmoredInputStream(inputStream);
                 }
 
-				byte[]	buf = new byte[ReadAhead];
-                int		count = 1;
-                int		index = 1;
-
-				buf[0] = (byte)ch;
-                while (count != ReadAhead && (ch = inputStream.ReadByte()) >= 0)
+				if (ch != '\n' && ch != '\r')
                 {
-                    if (!IsPossiblyBase64(ch))
-                    {
-                        inputStream.Position = markedPos;
-
-						return new ArmoredInputStream(inputStream);
-                    }
-
-					if (ch != '\n' && ch != '\r')
-                    {
-                        buf[index++] = (byte)ch;
-                    }
-
-					count++;
+                    buf[index++] = (byte)ch;
                 }
 
-				inputStream.Position = markedPos;
+				count++;
+            }
 
-				//
-                // nothing but new lines, little else, assume regular armoring
+			inputStream.Position = markedPos;
+
+			//
+            // nothing but new lines, little else, assume regular armoring
+            //
+            if (count < 4)
+            {
+                return new ArmoredInputStream(inputStream);
+            }
+
+			//
+            // test our non-blank data
+            //
+            byte[] firstBlock = new byte[8];
+
+			Array.Copy(buf, 0, firstBlock, 0, firstBlock.Length);
+
+            try
+            {
+                byte[] decoded = Base64.Decode(firstBlock);
+
                 //
-                if (count < 4)
-                {
-                    return new ArmoredInputStream(inputStream);
-                }
-
-				//
-                // test our non-blank data
-                //
-                byte[] firstBlock = new byte[8];
-				Array.Copy(buf, 0, firstBlock, 0, firstBlock.Length);
-				byte[] decoded = Base64.Decode(firstBlock);
-
-				//
                 // it's a base64 PGP block.
                 //
-				bool hasHeaders = (decoded[0] & 0x80) == 0;
+                bool hasHeaders = (decoded[0] & 0x80) == 0;
 
-				return new ArmoredInputStream(inputStream, hasHeaders);
+                return new ArmoredInputStream(inputStream, hasHeaders);
+            }
+            catch (IOException e)
+            {
+                throw e;
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message);
             }
         }
 

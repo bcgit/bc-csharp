@@ -86,10 +86,26 @@ namespace Org.BouncyCastle.Asn1.Tests
                 //Fail("failed DL check");
                 Fail("failed BER check");
             }
+            IAsn1String dl = BerBitString.GetInstance(dlData);
+
+            //IsTrue("DL test failed", dl is DLBitString);
+            IsTrue("BER test failed", dl is BerBitString);
             if (!Arrays.AreEqual(derData, Asn1Object.FromByteArray(dlData).GetDerEncoded()))
             {
                 Fail("failed DER check");
             }
+            // TODO This test isn't applicable until we get the DL variants
+            //try
+            //{
+            //    DerBitString.GetInstance(dlData);
+            //    Fail("no exception");
+            //}
+            //catch (ArgumentException e)
+            //{
+            //    // ignore
+            //}
+            IAsn1String der = DerBitString.GetInstance(derData);
+            IsTrue("DER test failed", der is DerBitString);
         }
 
         public override void PerformTest()

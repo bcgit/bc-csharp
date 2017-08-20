@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Custom.Djb;
+using Org.BouncyCastle.Math.EC.Custom.GM;
 using Org.BouncyCastle.Math.EC.Custom.Sec;
 using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Utilities;
@@ -746,6 +748,27 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
+        /*
+         * sm2p256v1
+         */
+        internal class SM2P256V1Holder
+            : X9ECParametersHolder
+        {
+            private SM2P256V1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new SM2P256V1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = null;
+                ECCurve curve = ConfigureCurve(new SM2P256V1Curve());
+                X9ECPoint G = new X9ECPoint(curve, Hex.Decode("04"
+                    + "32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7"
+                    + "BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
 
         private static readonly IDictionary nameToCurve = Platform.CreateHashtable();
         private static readonly IDictionary nameToOid = Platform.CreateHashtable();
@@ -819,6 +842,8 @@ namespace Org.BouncyCastle.Crypto.EC
             DefineCurveWithOid("sect409r1", SecObjectIdentifiers.SecT409r1, SecT409R1Holder.Instance);
             DefineCurveWithOid("sect571k1", SecObjectIdentifiers.SecT571k1, SecT571K1Holder.Instance);
             DefineCurveWithOid("sect571r1", SecObjectIdentifiers.SecT571r1, SecT571R1Holder.Instance);
+
+            DefineCurveWithOid("sm2p256v1", GMObjectIdentifiers.sm2p256v1, SM2P256V1Holder.Instance);
 
             DefineCurveAlias("B-163", SecObjectIdentifiers.SecT163r2);
             DefineCurveAlias("B-233", SecObjectIdentifiers.SecT233r1);

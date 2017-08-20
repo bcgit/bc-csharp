@@ -16,9 +16,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
             case EncryptionAlgorithm.cls_3DES_EDE_CBC:
                 return CreateDesEdeCipher(context, macAlgorithm);
-            case EncryptionAlgorithm.AEAD_CHACHA20_POLY1305:
-                // NOTE: Ignores macAlgorithm
-                return CreateChaCha20Poly1305(context);
             case EncryptionAlgorithm.AES_128_CBC:
                 return CreateAESCipher(context, 16, macAlgorithm);
             case EncryptionAlgorithm.AES_128_CCM:
@@ -27,20 +24,26 @@ namespace Org.BouncyCastle.Crypto.Tls
             case EncryptionAlgorithm.AES_128_CCM_8:
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_Aes_Ccm(context, 16, 8);
+            case EncryptionAlgorithm.AES_128_GCM:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Gcm(context, 16, 16);
+            case EncryptionAlgorithm.AES_128_OCB_TAGLEN96:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Ocb(context, 16, 12);
+            case EncryptionAlgorithm.AES_256_CBC:
+                return CreateAESCipher(context, 32, macAlgorithm);
             case EncryptionAlgorithm.AES_256_CCM:
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_Aes_Ccm(context, 32, 16);
             case EncryptionAlgorithm.AES_256_CCM_8:
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_Aes_Ccm(context, 32, 8);
-            case EncryptionAlgorithm.AES_128_GCM:
-                // NOTE: Ignores macAlgorithm
-                return CreateCipher_Aes_Gcm(context, 16, 16);
-            case EncryptionAlgorithm.AES_256_CBC:
-                return CreateAESCipher(context, 32, macAlgorithm);
             case EncryptionAlgorithm.AES_256_GCM:
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_Aes_Gcm(context, 32, 16);
+            case EncryptionAlgorithm.AES_256_OCB_TAGLEN96:
+                // NOTE: Ignores macAlgorithm
+                return CreateCipher_Aes_Ocb(context, 32, 12);
             case EncryptionAlgorithm.CAMELLIA_128_CBC:
                 return CreateCamelliaCipher(context, 16, macAlgorithm);
             case EncryptionAlgorithm.CAMELLIA_128_GCM:
@@ -51,14 +54,13 @@ namespace Org.BouncyCastle.Crypto.Tls
             case EncryptionAlgorithm.CAMELLIA_256_GCM:
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_Camellia_Gcm(context, 32, 16);
-            case EncryptionAlgorithm.ESTREAM_SALSA20:
-                return CreateSalsa20Cipher(context, 12, 32, macAlgorithm);
+            case EncryptionAlgorithm.CHACHA20_POLY1305:
+                // NOTE: Ignores macAlgorithm
+                return CreateChaCha20Poly1305(context);
             case EncryptionAlgorithm.NULL:
                 return CreateNullCipher(context, macAlgorithm);
             case EncryptionAlgorithm.RC4_128:
                 return CreateRC4Cipher(context, 16, macAlgorithm);
-            case EncryptionAlgorithm.SALSA20:
-                return CreateSalsa20Cipher(context, 20, 32, macAlgorithm);
             case EncryptionAlgorithm.SEED_CBC:
                 return CreateSeedCipher(context, macAlgorithm);
             default:
@@ -102,6 +104,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"></exception>
+        protected virtual TlsAeadCipher CreateCipher_Aes_Ocb(TlsContext context, int cipherKeySize, int macSize)
+        {
+            return new TlsAeadCipher(context, CreateAeadBlockCipher_Aes_Ocb(),
+                CreateAeadBlockCipher_Aes_Ocb(), cipherKeySize, macSize, TlsAeadCipher.NONCE_DRAFT_CHACHA20_POLY1305);
+        }
+
+        /// <exception cref="IOException"></exception>
         protected virtual TlsAeadCipher CreateCipher_Camellia_Gcm(TlsContext context, int cipherKeySize, int macSize)
         {
             return new TlsAeadCipher(context, CreateAeadBlockCipher_Camellia_Gcm(),
@@ -127,13 +136,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             return new TlsStreamCipher(context, CreateRC4StreamCipher(), CreateRC4StreamCipher(),
                 CreateHMacDigest(macAlgorithm), CreateHMacDigest(macAlgorithm), cipherKeySize, false);
-        }
-
-        /// <exception cref="IOException"></exception>
-        protected virtual TlsStreamCipher CreateSalsa20Cipher(TlsContext context, int rounds, int cipherKeySize, int macAlgorithm)
-        {
-            return new TlsStreamCipher(context, CreateSalsa20StreamCipher(rounds), CreateSalsa20StreamCipher(rounds),
-                CreateHMacDigest(macAlgorithm), CreateHMacDigest(macAlgorithm), cipherKeySize, true);
         }
 
         /// <exception cref="IOException"></exception>
@@ -169,6 +171,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             return new GcmBlockCipher(CreateAesEngine());
         }
 
+        protected virtual IAeadBlockCipher CreateAeadBlockCipher_Aes_Ocb()
+        {
+            return new OcbBlockCipher(CreateAesEngine(), CreateAesEngine());
+        }
+
         protected virtual IAeadBlockCipher CreateAeadBlockCipher_Camellia_Gcm()
         {
             // TODO Consider allowing custom configuration of multiplier
@@ -188,11 +195,6 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected virtual IStreamCipher CreateRC4StreamCipher()
         {
             return new RC4Engine();
-        }
-
-        protected virtual IStreamCipher CreateSalsa20StreamCipher(int rounds)
-        {
-            return new Salsa20Engine(rounds);
         }
 
         protected virtual IBlockCipher CreateSeedBlockCipher()

@@ -135,10 +135,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return mTlsClient; }
         }
 
-        protected override void HandleHandshakeMessage(byte type, byte[] data)
+        protected override void HandleHandshakeMessage(byte type, MemoryStream buf)
         {
-            MemoryStream buf = new MemoryStream(data, false);
-
             if (this.mResumedSession)
             {
                 if (type != HandshakeType.finished || this.mConnectionState != CS_SERVER_HELLO)
@@ -149,7 +147,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 SendFinishedMessage();
                 this.mConnectionState = CS_CLIENT_FINISHED;
-                this.mConnectionState = CS_END;
 
                 CompleteHandshake();
                 return;
@@ -243,7 +240,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                     ProcessFinishedMessage(buf);
                     this.mConnectionState = CS_SERVER_FINISHED;
-                    this.mConnectionState = CS_END;
 
                     CompleteHandshake();
                     break;
@@ -384,10 +380,19 @@ namespace Org.BouncyCastle.Crypto.Tls
                     SendClientKeyExchangeMessage();
                     this.mConnectionState = CS_CLIENT_KEY_EXCHANGE;
 
+                    if (TlsUtilities.IsSsl(Context))
+                    {
+                        EstablishMasterSecret(Context, mKeyExchange);
+                    }
+
                     TlsHandshakeHash prepareFinishHash = mRecordStream.PrepareToFinish();
                     this.mSecurityParameters.sessionHash = GetCurrentPrfHash(Context, prepareFinishHash, null);
 
-                    EstablishMasterSecret(Context, mKeyExchange);
+                    if (!TlsUtilities.IsSsl(Context))
+                    {
+                        EstablishMasterSecret(Context, mKeyExchange);
+                    }
+
                     mRecordStream.SetPendingConnectionState(Peer.GetCompression(), Peer.GetCipher());
 
                     if (clientCreds != null && clientCreds is TlsSignerCredentials)
@@ -422,7 +427,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     break;
                 }
                 default:
-                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                    throw new TlsFatalAlert(AlertDescription.unexpected_message);
                 }
 
                 this.mConnectionState = CS_CLIENT_FINISHED;
@@ -785,7 +790,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mSecurityParameters.prfAlgorithm = GetPrfAlgorithm(Context, this.mSecurityParameters.CipherSuite);
 
             /*
-             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify
+             * RFC 5246 7.4.9. Any cipher suite which does not explicitly specify
              * verify_data_length has a verify_data_length equal to 12. This includes all
              * existing cipher suites.
              */
@@ -871,10 +876,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
 
                 /*
-                 * draft-ietf-tls-downgrade-scsv-00 4. If a client sends a ClientHello.client_version
-                 * containing a lower value than the latest (highest-valued) version supported by the
-                 * client, it SHOULD include the TLS_FALLBACK_SCSV cipher suite value in
-                 * ClientHello.cipher_suites.
+                 * RFC 7507 4. If a client sends a ClientHello.client_version containing a lower value
+                 * than the latest (highest-valued) version supported by the client, it SHOULD include
+                 * the TLS_FALLBACK_SCSV cipher suite value in ClientHello.cipher_suites [..]. (The
+                 * client SHOULD put TLS_FALLBACK_SCSV after all cipher suites that it actually intends
+                 * to negotiate.)
                  */
                 if (fallback && !Arrays.Contains(mOfferedCipherSuites, CipherSuite.TLS_FALLBACK_SCSV))
                 {

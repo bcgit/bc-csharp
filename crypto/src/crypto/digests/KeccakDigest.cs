@@ -248,11 +248,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             if ((bitsInQueue % 8) != 0)
             {
-                throw new InvalidOperationException("attempt to absorb with odd length queue.");
+                throw new InvalidOperationException("attempt to absorb with odd length queue");
             }
             if (squeezing)
             {
-                throw new InvalidOperationException("attempt to absorb while squeezing.");
+                throw new InvalidOperationException("attempt to absorb while squeezing");
             }
 
             i = 0;

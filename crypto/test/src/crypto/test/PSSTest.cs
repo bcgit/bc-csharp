@@ -319,9 +319,45 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				Fail("loop test failed - failures: " + failed);
 			}
+
+            fixedSaltTest();
 		}
 
-		public static void Main(
+        private void fixedSaltTest()
+        {
+            byte[] data = Hex.Decode("010203040506070809101112131415");
+
+            PssSigner eng = new PssSigner(new RsaEngine(), new Sha256Digest(), new Sha1Digest(), Hex.Decode("deadbeef"));
+
+            eng.Init(true, prv8);
+
+            eng.BlockUpdate(data, 0, data.Length);
+
+            byte[] s = eng.GenerateSignature();
+
+            eng.Init(false, pub8);
+
+            eng.BlockUpdate(data, 0, data.Length);
+
+            if (!eng.VerifySignature(s))
+            {
+                Fail("fixed salt failed");
+            }
+
+            // test failure
+            eng = new PssSigner(new RsaEngine(), new Sha256Digest(), new Sha1Digest(), Hex.Decode("beefbeef"));
+
+            eng.Init(false, pub8);
+
+            eng.BlockUpdate(data, 0, data.Length);
+
+            if (eng.VerifySignature(s))
+            {
+                Fail("fixed salt failure verfied");
+            }
+        }
+
+        public static void Main(
 			string[] args)
 		{
 			RunTest(new PssTest());

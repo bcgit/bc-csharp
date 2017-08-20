@@ -30,14 +30,73 @@ namespace Org.BouncyCastle.Asn1.Tests
 			+ "75F6C5F2E2D21F0395683B532A26E4C189B71EFE659C3F26E0EB9AEAE9986310"
 			+ "7F9B0DADA16414FFA204516AEE2B");
 
-		public override string Name
+        private static readonly byte[] sampleData = Hex.Decode(
+            "613280020780a106060456000104a203020101a305a103020101be80288006025101020109a080b2800a01000000000000000000");
+
+        public override string Name
 		{
 			get { return "DerApplicationSpecific"; }
 		}
 
-		public override void PerformTest()
+        private void TestTaggedObject()
+        {
+            // boolean explicit, int tagNo, ASN1Encodable obj
+            bool isExplicit = false;
+
+            // Type1 ::= VisibleString
+            DerVisibleString type1 = new DerVisibleString("Jones");
+            if (!Arrays.AreEqual(Hex.Decode("1A054A6F6E6573"), type1.GetEncoded()))
+            {
+                Fail("ERROR: expected value doesn't match!");
+            }
+
+            // Type2 ::= [APPLICATION 3] IMPLICIT Type1
+            isExplicit = false;
+            DerApplicationSpecific type2 = new DerApplicationSpecific(isExplicit, 3, type1);
+            // type2.isConstructed()
+            if (!Arrays.AreEqual(Hex.Decode("43054A6F6E6573"), type2.GetEncoded()))
+            {
+                Fail("ERROR: expected value doesn't match!");
+            }
+
+            // Type3 ::= [2] Type2
+            isExplicit = true;
+            DerTaggedObject type3 = new DerTaggedObject(isExplicit, 2, type2);
+            if (!Arrays.AreEqual(Hex.Decode("A20743054A6F6E6573"), type3.GetEncoded()))
+            {
+                Fail("ERROR: expected value doesn't match!");
+            }
+
+            // Type4 ::= [APPLICATION 7] IMPLICIT Type3
+            isExplicit = false;
+            DerApplicationSpecific type4 = new DerApplicationSpecific(isExplicit, 7, type3);
+            if (!Arrays.AreEqual(Hex.Decode("670743054A6F6E6573"), type4.GetEncoded()))
+            {
+                Fail("ERROR: expected value doesn't match!");
+            }
+
+            // Type5 ::= [2] IMPLICIT Type2
+            isExplicit = false;
+            DerTaggedObject type5 = new DerTaggedObject(isExplicit, 2, type2);
+            // type5.isConstructed()
+            if (!Arrays.AreEqual(Hex.Decode("82054A6F6E6573"), type5.GetEncoded()))
+            {
+                Fail("ERROR: expected value doesn't match!");
+            }
+        }
+
+        public override void PerformTest()
 		{
-			DerInteger val = new DerInteger(9);
+            TestTaggedObject();
+
+            DerApplicationSpecific appSpec = (DerApplicationSpecific)Asn1Object.FromByteArray(sampleData);
+
+            if (1 != appSpec.ApplicationTag)
+            {
+                Fail("wrong tag detected");
+            }
+
+            DerInteger val = new DerInteger(9);
 
 			DerApplicationSpecific tagged = new DerApplicationSpecific(false, 3, val);
 
@@ -65,8 +124,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			if (!Arrays.AreEqual(certData, encoded))
 			{
-				Console.WriteLine(Encoding.ASCII.GetString(certData, 0, certData.Length).Substring(0, 20));
-				Console.WriteLine(Encoding.ASCII.GetString(encoded, 0, encoded.Length).Substring(0, 20));
 				Fail("re-encoding of certificate data failed");
 			}
 		}

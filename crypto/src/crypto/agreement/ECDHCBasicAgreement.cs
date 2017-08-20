@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
     public class ECDHCBasicAgreement
         : IBasicAgreement
     {
-        private ECPrivateKeyParameters key;
+        private ECPrivateKeyParameters privKey;
 
         public virtual void Init(
             ICipherParameters parameters)
@@ -39,12 +39,12 @@ namespace Org.BouncyCastle.Crypto.Agreement
                 parameters = ((ParametersWithRandom) parameters).Parameters;
             }
 
-            this.key = (ECPrivateKeyParameters)parameters;
+            this.privKey = (ECPrivateKeyParameters)parameters;
         }
 
         public virtual int GetFieldSize()
         {
-            return (key.Parameters.Curve.FieldSize + 7) / 8;
+            return (privKey.Parameters.Curve.FieldSize + 7) / 8;
         }
 
         public virtual BigInteger CalculateAgreement(
@@ -52,8 +52,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
         {
             ECPublicKeyParameters pub = (ECPublicKeyParameters) pubKey;
             ECDomainParameters parameters = pub.Parameters;
+            if (!parameters.Equals(privKey.Parameters))
+                throw new InvalidOperationException("ECDHC public key has wrong domain parameters");
 
-            BigInteger hd = parameters.H.Multiply(key.D).Mod(parameters.N);
+            BigInteger hd = parameters.H.Multiply(privKey.D).Mod(parameters.N);
 
             ECPoint P = pub.Q.Multiply(hd).Normalize();
 

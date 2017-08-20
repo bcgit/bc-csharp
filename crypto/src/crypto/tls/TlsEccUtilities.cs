@@ -90,19 +90,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static byte[] ReadSupportedPointFormatsExtension(byte[] extensionData)
         {
-            if (extensionData == null)
-                throw new ArgumentNullException("extensionData");
-
-            MemoryStream buf = new MemoryStream(extensionData, false);
-
-            byte length = TlsUtilities.ReadUint8(buf);
-            if (length < 1)
-                throw new TlsFatalAlert(AlertDescription.decode_error);
-
-            byte[] ecPointFormats = TlsUtilities.ReadUint8Array(length, buf);
-
-            TlsProtocol.AssertEmpty(buf);
-
+            byte[] ecPointFormats = TlsUtilities.DecodeUint8ArrayWithUint8Length(extensionData);
             if (!Arrays.Contains(ecPointFormats, ECPointFormat.uncompressed))
             {
                 /*
@@ -111,7 +99,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
-
             return ecPointFormats;
         }
 
@@ -254,20 +241,21 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8:
 
             /*
-             * draft-agl-tls-chacha20poly1305-04
+             * draft-ietf-tls-chacha20-poly1305-04
              */
-            case CipherSuite.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:
-            case CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
 
             /*
-             * draft-josefsson-salsa20-tls-04 
+             * draft-zauner-tls-aes-ocb-04
              */
-            case CipherSuite.TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1:
-            case CipherSuite.TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1:
-            case CipherSuite.TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1:
-            case CipherSuite.TLS_ECDHE_PSK_WITH_SALSA20_SHA1:
-            case CipherSuite.TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1:
-            case CipherSuite.TLS_ECDHE_RSA_WITH_SALSA20_SHA1:
+            case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_AES_128_OCB:
+            case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_AES_256_OCB:
+            case CipherSuite.DRAFT_TLS_ECDHE_ECDSA_WITH_AES_128_OCB:
+            case CipherSuite.DRAFT_TLS_ECDHE_ECDSA_WITH_AES_256_OCB:
+            case CipherSuite.DRAFT_TLS_ECDHE_PSK_WITH_AES_128_OCB:
+            case CipherSuite.DRAFT_TLS_ECDHE_PSK_WITH_AES_256_OCB:
 
                 return true;
 
@@ -278,8 +266,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static bool AreOnSameCurve(ECDomainParameters a, ECDomainParameters b)
         {
-            // TODO Move to ECDomainParameters.Equals() or other utility method?
-            return a.Curve.Equals(b.Curve) && a.G.Equals(b.G) && a.N.Equals(b.N) && a.H.Equals(b.H);
+            return a != null && a.Equals(b);
         }
 
         public static bool IsSupportedNamedCurve(int namedCurve)

@@ -124,10 +124,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return mTlsServer; }
         }
 
-        protected override void HandleHandshakeMessage(byte type, byte[] data)
+        protected override void HandleHandshakeMessage(byte type, MemoryStream buf)
         {
-            MemoryStream buf = new MemoryStream(data);
-
             switch (type)
             {
             case HandshakeType.client_hello:
@@ -200,6 +198,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                         this.mCertificateRequest = mTlsServer.GetCertificateRequest();
                         if (this.mCertificateRequest != null)
                         {
+                            if (TlsUtilities.IsTlsV12(Context) != (mCertificateRequest.SupportedSignatureAlgorithms != null))
+                                throw new TlsFatalAlert(AlertDescription.internal_error);
+
                             this.mKeyExchange.ValidateCertificateRequest(mCertificateRequest);
 
                             SendCertificateRequestMessage(mCertificateRequest);
@@ -364,7 +365,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                     SendFinishedMessage();
                     this.mConnectionState = CS_SERVER_FINISHED;
-                    this.mConnectionState = CS_END;
 
                     CompleteHandshake();
                     break;
@@ -386,28 +386,39 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected override void HandleWarningMessage(byte description)
+        protected override void HandleAlertWarningMessage(byte alertDescription)
         {
-            switch (description)
+            base.HandleAlertWarningMessage(alertDescription);
+
+            switch (alertDescription)
             {
             case AlertDescription.no_certificate:
             {
                 /*
-                 * SSL 3.0 If the server has sent a certificate request Message, the client must Send
+                 * SSL 3.0 If the server has sent a certificate request Message, the client must send
                  * either the certificate message or a no_certificate alert.
                  */
-                if (TlsUtilities.IsSsl(Context) && mCertificateRequest != null)
+                if (TlsUtilities.IsSsl(Context) && this.mCertificateRequest != null)
                 {
-                    NotifyClientCertificate(Certificate.EmptyChain);
+                    switch (this.mConnectionState)
+                    {
+                    case CS_SERVER_HELLO_DONE:
+                    case CS_CLIENT_SUPPLEMENTAL_DATA:
+                    {
+                        if (mConnectionState < CS_CLIENT_SUPPLEMENTAL_DATA)
+                        {
+                            mTlsServer.ProcessClientSupplementalData(null);
+                        }
+
+                        NotifyClientCertificate(Certificate.EmptyChain);
+                        this.mConnectionState = CS_CLIENT_CERTIFICATE;
+                        return;
+                    }
+                    }
                 }
-                break;
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
             }
-            default:
-            {
-                base.HandleWarningMessage(description);
-                break;
-            }
-            }
+            } 
         }
 
         protected virtual void NotifyClientCertificate(Certificate clientCertificate)
@@ -460,6 +471,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void ReceiveCertificateVerifyMessage(MemoryStream buf)
         {
+            if (mCertificateRequest == null)
+                throw new InvalidOperationException();
+
             DigitallySigned clientCertificateVerify = DigitallySigned.Parse(Context, buf);
 
             AssertEmpty(buf);
@@ -467,10 +481,13 @@ namespace Org.BouncyCastle.Crypto.Tls
             // Verify the CertificateVerify message contains a correct signature.
             try
             {
+                SignatureAndHashAlgorithm signatureAlgorithm = clientCertificateVerify.Algorithm;
+
                 byte[] hash;
                 if (TlsUtilities.IsTlsV12(Context))
                 {
-                    hash = mPrepareFinishHash.GetFinalHash(clientCertificateVerify.Algorithm.Hash);
+                    TlsUtilities.VerifySupportedSignatureAlgorithm(mCertificateRequest.SupportedSignatureAlgorithms, signatureAlgorithm);
+                    hash = mPrepareFinishHash.GetFinalHash(signatureAlgorithm.Hash);
                 }
                 else
                 {
@@ -483,11 +500,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 TlsSigner tlsSigner = TlsUtilities.CreateTlsSigner((byte)mClientCertificateType);
                 tlsSigner.Init(Context);
-                if (!tlsSigner.VerifyRawSignature(clientCertificateVerify.Algorithm,
-                    clientCertificateVerify.Signature, publicKey, hash))
-                {
+                if (!tlsSigner.VerifyRawSignature(signatureAlgorithm, clientCertificateVerify.Signature, publicKey, hash))
                     throw new TlsFatalAlert(AlertDescription.decrypt_error);
-                }
+            }
+            catch (TlsFatalAlert e)
+            {
+                throw e;
             }
             catch (Exception e)
             {
@@ -602,6 +620,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (mClientExtensions != null)
             {
+                // NOTE: Validates the padding extension data, if present
+                TlsExtensionsUtilities.GetPaddingExtension(mClientExtensions);
+
                 mTlsServer.ProcessClientExtensions(mClientExtensions);
             }
         }
@@ -612,10 +633,19 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             AssertEmpty(buf);
 
+            if (TlsUtilities.IsSsl(Context))
+            {
+                EstablishMasterSecret(Context, mKeyExchange);
+            }
+
             this.mPrepareFinishHash = mRecordStream.PrepareToFinish();
             this.mSecurityParameters.sessionHash = GetCurrentPrfHash(Context, mPrepareFinishHash, null);
 
-            EstablishMasterSecret(Context, mKeyExchange);
+            if (!TlsUtilities.IsSsl(Context))
+            {
+                EstablishMasterSecret(Context, mKeyExchange);
+            }
+
             mRecordStream.SetPendingConnectionState(Peer.GetCompression(), Peer.GetCipher());
 
             if (!mExpectSessionTicket)
@@ -767,7 +797,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             mSecurityParameters.prfAlgorithm = GetPrfAlgorithm(Context, mSecurityParameters.CipherSuite);
 
             /*
-             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify verify_data_length has
+             * RFC 5246 7.4.9. Any cipher suite which does not explicitly specify verify_data_length has
              * a verify_data_length equal to 12. This includes all existing cipher suites.
              */
             mSecurityParameters.verifyDataLength = 12;

@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public override void PerformTest()
         {
-            IBlockCipher cipher = new AesFastEngine();
+            IBlockCipher cipher = new AesEngine();
             IMac mac = new CMac(cipher, 128);
 
             //128 bytes key

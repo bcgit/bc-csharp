@@ -48,6 +48,8 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 				case 2:
 					value = DerNull.Instance;
 					break;
+				default:
+					throw new ArgumentException("Unknown tag encountered: " + choice.TagNo);
             }
         }
 

@@ -91,5 +91,17 @@ namespace Org.BouncyCastle.Math.Raw
             z[zOff    ] = (x     ) & M64;
             z[zOff + 1] = (x >> 1) & M64;
         }
+
+        internal static ulong Unshuffle(ulong x)
+        {
+            // "unshuffle" even bits to low half and odd bits to high half
+            ulong t;
+            t = (x ^ (x >>  1)) & 0x2222222222222222UL; x ^= (t ^ (t <<  1));
+            t = (x ^ (x >>  2)) & 0x0C0C0C0C0C0C0C0CUL; x ^= (t ^ (t <<  2));
+            t = (x ^ (x >>  4)) & 0x00F000F000F000F0UL; x ^= (t ^ (t <<  4));
+            t = (x ^ (x >>  8)) & 0x0000FF000000FF00UL; x ^= (t ^ (t <<  8));
+            t = (x ^ (x >> 16)) & 0x00000000FFFF0000UL; x ^= (t ^ (t << 16));
+            return x;
+        }
     }
 }

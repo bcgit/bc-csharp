@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 			return Equals(other);
 		}
 
-		protected bool Equals(
+		protected virtual bool Equals(
 			DHParameters other)
 		{
 			return p.Equals(other.p)

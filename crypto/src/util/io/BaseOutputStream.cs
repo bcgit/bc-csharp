@@ -60,5 +60,10 @@ namespace Org.BouncyCastle.Utilities.IO
 		{
 			Write(buffer, 0, buffer.Length);
 		}
-	}
+
+        public override void WriteByte(byte b)
+        {
+            Write(new byte[]{ b }, 0, 1);
+        }
+    }
 }

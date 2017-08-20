@@ -1,11 +1,10 @@
 using System;
-using System.Collections;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Anssi;
 using Org.BouncyCastle.Asn1.CryptoPro;
-using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X9;
@@ -354,6 +353,16 @@ namespace Org.BouncyCastle.Tests
             }
 
             foreach (string name in TeleTrusTNamedCurves.Names)
+            {
+                doTestECDsa(name);
+            }
+
+            foreach (string name in AnssiNamedCurves.Names)
+            {
+                doTestECDsa(name);
+            }
+
+            foreach (string name in GMNamedCurves.Names)
             {
                 doTestECDsa(name);
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.Threading;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -72,11 +73,11 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                     + ", " + AlertDescription.GetText(alertDescription));
                 if (message != null)
                 {
-                    output.WriteLine("> " + message);
+                    SafeWriteLine(output, "> " + message);
                 }
                 if (cause != null)
                 {
-                    output.WriteLine(cause);
+                    SafeWriteLine(output, cause);
                 }
             }
         }
@@ -92,7 +93,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             if (TlsTestConfig.DEBUG)
             {
                 TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-                output.WriteLine("TLS server received alert: " + AlertLevel.GetText(alertLevel)
+                SafeWriteLine(output, "TLS server received alert: " + AlertLevel.GetText(alertLevel)
                     + ", " + AlertDescription.GetText(alertDescription));
             }
         }
@@ -122,7 +123,11 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             IList serverSigAlgs = null;
             if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(mServerVersion))
             {
-                serverSigAlgs = TlsUtilities.GetDefaultSupportedSignatureAlgorithms();
+                serverSigAlgs = mConfig.serverCertReqSigAlgs;
+                if (serverSigAlgs == null)
+                {
+                    serverSigAlgs = TlsUtilities.GetDefaultSupportedSignatureAlgorithms();
+                }
             }
 
             IList certificateAuthorities = new ArrayList();
@@ -167,15 +172,27 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             }
         }
 
+        protected virtual IList GetSupportedSignatureAlgorithms()
+        {
+            if (TlsUtilities.IsTlsV12(mContext) && mConfig.serverAuthSigAlg != null)
+            {
+                IList signatureAlgorithms = new ArrayList(1);
+                signatureAlgorithms.Add(mConfig.serverAuthSigAlg);
+                return signatureAlgorithms;
+            }
+
+            return mSupportedSignatureAlgorithms;
+        }
+
         protected override TlsSignerCredentials GetDsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.dsa,
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.dsa,
                 "x509-server-dsa.pem", "x509-server-key-dsa.pem");
         }
 
         protected override TlsSignerCredentials GetECDsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.ecdsa,
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.ecdsa,
                 "x509-server-ecdsa.pem", "x509-server-key-ecdsa.pem");
         }
 
@@ -187,8 +204,22 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
         protected override TlsSignerCredentials GetRsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.rsa,
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.rsa,
                 "x509-server.pem", "x509-server-key.pem");
+        }
+
+        private static void SafeWriteLine(TextWriter output, object line)
+        {
+            try
+            {
+                output.WriteLine(line);
+            }
+            catch (ThreadInterruptedException)
+            {
+                /*
+                 * For some reason the NUnit plugin in Visual Studio started throwing these during alert logging
+                 */
+            }
         }
     }
 }

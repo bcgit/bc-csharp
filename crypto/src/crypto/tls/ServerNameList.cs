@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -15,8 +16,8 @@ namespace Org.BouncyCastle.Crypto.Tls
          */
         public ServerNameList(IList serverNameList)
         {
-            if (serverNameList == null || serverNameList.Count < 1)
-                throw new ArgumentException("must not be null or empty", "serverNameList");
+            if (serverNameList == null)
+                throw new ArgumentNullException("serverNameList");
 
             this.mServerNameList = serverNameList;
         }
@@ -40,14 +41,19 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             MemoryStream buf = new MemoryStream();
 
+            byte[] nameTypesSeen = TlsUtilities.EmptyBytes;
             foreach (ServerName entry in ServerNames)
             {
+                nameTypesSeen = CheckNameType(nameTypesSeen, entry.NameType);
+                if (nameTypesSeen == null)
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+
                 entry.Encode(buf);
             }
 
             TlsUtilities.CheckUint16(buf.Length);
             TlsUtilities.WriteUint16((int)buf.Length, output);
-            buf.WriteTo(output);
+            Streams.WriteBufTo(buf, output);
         }
 
         /**
@@ -68,14 +74,32 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             MemoryStream buf = new MemoryStream(data, false);
 
+            byte[] nameTypesSeen = TlsUtilities.EmptyBytes;
             IList server_name_list = Platform.CreateArrayList();
             while (buf.Position < buf.Length)
             {
                 ServerName entry = ServerName.Parse(buf);
+
+                nameTypesSeen = CheckNameType(nameTypesSeen, entry.NameType);
+                if (nameTypesSeen == null)
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+
                 server_name_list.Add(entry);
             }
 
             return new ServerNameList(server_name_list);
+        }
+
+        private static byte[] CheckNameType(byte[] nameTypesSeen, byte nameType)
+        {
+            /*
+             * RFC 6066 3. The ServerNameList MUST NOT contain more than one name of the same
+             * name_type.
+             */
+            if (!NameType.IsValid(nameType) || Arrays.Contains(nameTypesSeen, nameType))
+                return null;
+
+            return Arrays.Append(nameTypesSeen, nameType);
         }
     }
 }

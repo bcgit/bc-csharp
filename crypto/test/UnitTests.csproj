@@ -155,6 +155,7 @@
     <Compile Include="src\crypto\test\AESTest.cs" />
     <Compile Include="src\crypto\test\AESWrapTest.cs" />
     <Compile Include="src\crypto\test\AllTests.cs" />
+    <Compile Include="src\crypto\test\BCryptTest.cs" />
     <Compile Include="src\crypto\test\BlockCipherMonteCarloTest.cs" />
     <Compile Include="src\crypto\test\BlockCipherVectorTest.cs" />
     <Compile Include="src\crypto\test\BlowfishTest.cs" />
@@ -192,6 +193,7 @@
     <Compile Include="src\crypto\test\GcmReorderTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyVecTest.cs" />
+    <Compile Include="src\crypto\test\HKDFGeneratorTest.cs" />
     <Compile Include="src\crypto\test\IDEATest.cs" />
     <Compile Include="src\crypto\test\ISAACTest.cs" />
     <Compile Include="src\crypto\test\ISO9796Test.cs" />
@@ -212,6 +214,7 @@
     <Compile Include="src\crypto\test\NullTest.cs" />
     <Compile Include="src\crypto\test\OAEPTest.cs" />
     <Compile Include="src\crypto\test\OCBTest.cs" />
+    <Compile Include="src\crypto\test\OpenBsdBCryptTest.cs" />
     <Compile Include="src\crypto\test\PSSBlindTest.cs" />
     <Compile Include="src\crypto\test\PSSTest.cs" />
     <Compile Include="src\crypto\test\PaddingTest.cs" />
@@ -252,6 +255,7 @@
     <Compile Include="src\crypto\test\SM3DigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinDigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinMacTest.cs" />
+    <Compile Include="src\crypto\test\StreamCipherResetTest.cs" />
     <Compile Include="src\crypto\test\Threefish1024Test.cs" />
     <Compile Include="src\crypto\test\Threefish256Test.cs" />
     <Compile Include="src\crypto\test\Threefish512Test.cs" />
@@ -277,6 +281,8 @@
     <Compile Include="src\crypto\tls\test\ByteQueueStreamTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsTestCase.cs" />
+    <Compile Include="src\crypto\tls\test\DtlsTestClientProtocol.cs" />
+    <Compile Include="src\crypto\tls\test\DtlsTestServerProtocol.cs" />
     <Compile Include="src\crypto\tls\test\DtlsTestSuite.cs" />
     <Compile Include="src\crypto\tls\test\LoggingDatagramTransport.cs" />
     <Compile Include="src\crypto\tls\test\MockDatagramAssociation.cs" />
@@ -299,11 +305,15 @@
     <Compile Include="src\crypto\tls\test\TlsSrpProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestCase.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestClientImpl.cs" />
+    <Compile Include="src\crypto\tls\test\TlsTestClientProtocol.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestConfig.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestServerImpl.cs" />
+    <Compile Include="src\crypto\tls\test\TlsTestServerProtocol.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestSuite.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestUtilities.cs" />
     <Compile Include="src\crypto\tls\test\UnreliableDatagramTransport.cs" />
+    <Compile Include="src\math\ec\custom\sec\test\SecP256R1FieldTest.cs" />
+    <Compile Include="src\math\ec\custom\sec\test\SecP384R1FieldTest.cs" />
     <Compile Include="src\math\ec\test\AllTests.cs" />
     <Compile Include="src\math\ec\test\ECAlgorithmsTest.cs" />
     <Compile Include="src\math\ec\test\ECPointPerformanceTest.cs" />

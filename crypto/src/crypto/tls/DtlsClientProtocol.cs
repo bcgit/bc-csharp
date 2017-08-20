@@ -53,19 +53,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             catch (TlsFatalAlert fatalAlert)
             {
-                recordLayer.Fail(fatalAlert.AlertDescription);
+                AbortClientHandshake(state, recordLayer, fatalAlert.AlertDescription);
                 throw fatalAlert;
             }
             catch (IOException e)
             {
-                recordLayer.Fail(AlertDescription.internal_error);
+                AbortClientHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw e;
             }
             catch (Exception e)
             {
-                recordLayer.Fail(AlertDescription.internal_error);
+                AbortClientHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
+            finally
+            {
+                securityParameters.Clear();
+            }
+        }
+
+        internal virtual void AbortClientHandshake(ClientHandshakeState state, DtlsRecordLayer recordLayer, byte alertDescription)
+        {
+            recordLayer.Fail(alertDescription);
+            InvalidateSession(state);
         }
 
         internal virtual DtlsTransport ClientHandshake(ClientHandshakeState state, DtlsRecordLayer recordLayer)
@@ -74,13 +84,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             DtlsReliableHandshake handshake = new DtlsReliableHandshake(state.clientContext, recordLayer);
 
             byte[] clientHelloBody = GenerateClientHello(state, state.client);
+
+            recordLayer.SetWriteVersion(ProtocolVersion.DTLSv10);
+
             handshake.SendMessage(HandshakeType.client_hello, clientHelloBody);
 
             DtlsReliableHandshake.Message serverMessage = handshake.ReceiveMessage();
 
             while (serverMessage.Type == HandshakeType.hello_verify_request)
             {
-                ProtocolVersion recordLayerVersion = recordLayer.ResetDiscoveredPeerVersion();
+                ProtocolVersion recordLayerVersion = recordLayer.ReadVersion;
                 ProtocolVersion client_version = state.clientContext.ClientVersion;
 
                 /*
@@ -91,6 +104,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 if (!recordLayerVersion.IsEqualOrEarlierVersionOf(client_version))
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+
+                recordLayer.ReadVersion = null;
 
                 byte[] cookie = ProcessHelloVerifyRequest(state, serverMessage.Body);
                 byte[] patched = PatchClientHelloWithCookie(clientHelloBody, cookie);
@@ -103,7 +118,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (serverMessage.Type == HandshakeType.server_hello)
             {
-                ReportServerVersion(state, recordLayer.DiscoveredPeerVersion);
+                ProtocolVersion recordLayerVersion = recordLayer.ReadVersion;
+                ReportServerVersion(state, recordLayerVersion);
+                recordLayer.SetWriteVersion(recordLayerVersion);
 
                 ProcessServerHello(state, serverMessage.Body);
             }
@@ -424,10 +441,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
 
                 /*
-                 * draft-ietf-tls-downgrade-scsv-00 4. If a client sends a ClientHello.client_version
-                 * containing a lower value than the latest (highest-valued) version supported by the
-                 * client, it SHOULD include the TLS_FALLBACK_SCSV cipher suite value in
-                 * ClientHello.cipher_suites.
+                 * RFC 7507 4. If a client sends a ClientHello.client_version containing a lower value
+                 * than the latest (highest-valued) version supported by the client, it SHOULD include
+                 * the TLS_FALLBACK_SCSV cipher suite value in ClientHello.cipher_suites [..]. (The
+                 * client SHOULD put TLS_FALLBACK_SCSV after all cipher suites that it actually intends
+                 * to negotiate.)
                  */
                 if (fallback && !Arrays.Contains(state.offeredCipherSuites, CipherSuite.TLS_FALLBACK_SCSV))
                 {
@@ -758,7 +776,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 securityParameters.CipherSuite);
 
             /*
-             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify verify_data_length has
+             * RFC 5246 7.4.9. Any cipher suite which does not explicitly specify verify_data_length has
              * a verify_data_length equal to 12. This includes all existing cipher suites.
              */
             securityParameters.verifyDataLength = 12;

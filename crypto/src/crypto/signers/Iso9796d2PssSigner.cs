@@ -486,7 +486,14 @@ namespace Org.BouncyCastle.Crypto.Signers
             digest.BlockUpdate(m2Hash, 0, m2Hash.Length);
 
             // Update for the salt
-            digest.BlockUpdate(block, mStart + recoveredMessage.Length, saltLength);
+            if (standardSalt != null)
+            {
+                digest.BlockUpdate(standardSalt, 0, standardSalt.Length);
+            }
+            else
+            {
+                digest.BlockUpdate(block, mStart + recoveredMessage.Length, saltLength);
+            }
 
             byte[] hash = new byte[digest.GetDigestSize()];
             digest.DoFinal(hash, 0);
@@ -509,6 +516,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (!isOkay)
             {
                 fullMessage = false;
+                messageLength = 0;
                 ClearBlock(recoveredMessage);
                 return false;
             }
@@ -521,11 +529,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 if (!IsSameAs(mBuf, recoveredMessage))
                 {
+                    messageLength = 0;
                     ClearBlock(mBuf);
                     return false;
                 }
-                messageLength = 0;
             }
+
+            messageLength = 0;
 
             ClearBlock(mBuf);
             return true;

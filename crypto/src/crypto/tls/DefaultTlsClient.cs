@@ -52,6 +52,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             switch (keyExchangeAlgorithm)
             {
+            case KeyExchangeAlgorithm.DH_anon:
             case KeyExchangeAlgorithm.DH_DSS:
             case KeyExchangeAlgorithm.DH_RSA:
                 return CreateDHKeyExchange(keyExchangeAlgorithm);
@@ -60,6 +61,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case KeyExchangeAlgorithm.DHE_RSA:
                 return CreateDheKeyExchange(keyExchangeAlgorithm);
 
+            case KeyExchangeAlgorithm.ECDH_anon:
             case KeyExchangeAlgorithm.ECDH_ECDSA:
             case KeyExchangeAlgorithm.ECDH_RSA:
                 return CreateECDHKeyExchange(keyExchangeAlgorithm);

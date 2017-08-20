@@ -42,9 +42,16 @@ namespace Org.BouncyCastle.Utilities.Zlib
 	public class ZInputStream
 		: Stream
 	{
-		private const int BufferSize = 512;
+        private static ZStream GetDefaultZStream(bool nowrap)
+        {
+            ZStream z = new ZStream();
+            z.inflateInit(nowrap);
+            return z;
+        }
 
-		protected ZStream z = new ZStream();
+        private const int BufferSize = 512;
+
+		protected ZStream z;
 		protected int flushLevel = JZlib.Z_NO_FLUSH;
 		// TODO Allow custom buf
 		protected byte[] buf = new byte[BufferSize];
@@ -62,24 +69,46 @@ namespace Org.BouncyCastle.Utilities.Zlib
 		}
 
 		public ZInputStream(Stream input, bool nowrap)
+            : this(input, GetDefaultZStream(nowrap))
+		{
+		}
+
+        public ZInputStream(Stream input, ZStream z)
+			: base()
 		{
 			Debug.Assert(input.CanRead);
 
-			this.input = input;
-			this.z.inflateInit(nowrap);
-			this.compress = false;
-			this.z.next_in = buf;
+            if (z == null)
+            {
+                z = new ZStream();
+            }
+
+            if (z.istate == null && z.dstate == null)
+            {
+                z.inflateInit();
+            }
+
+            this.input = input;
+            this.compress = (z.istate == null);
+            this.z = z;
+            this.z.next_in = buf;
 			this.z.next_in_index = 0;
 			this.z.avail_in = 0;
 		}
 
-		public ZInputStream(Stream input, int level)
+        public ZInputStream(Stream input, int level)
+            : this(input, level, false)
+		{
+        }
+
+        public ZInputStream(Stream input, int level, bool nowrap)
 		{
 			Debug.Assert(input.CanRead);
 			
 			this.input = input;
-			this.z.deflateInit(level);
-			this.compress = true;
+            this.compress = true;
+            this.z = new ZStream();
+			this.z.deflateInit(level, nowrap);
 			this.z.next_in = buf;
 			this.z.next_in_index = 0;
 			this.z.avail_in = 0;

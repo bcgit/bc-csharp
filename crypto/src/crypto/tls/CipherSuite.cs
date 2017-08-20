@@ -331,36 +331,36 @@ namespace Org.BouncyCastle.Crypto.Tls
         public const int TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 = 0xC0AF;
 
         /*
-         * draft-agl-tls-chacha20poly1305-04
-         */
-        public const int TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC13;
-        public const int TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC14;
-        public const int TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC15;
-
-        /*
-         * draft-josefsson-salsa20-tls-04
-         */
-        public const int TLS_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE410;
-        public const int TLS_RSA_WITH_SALSA20_SHA1 = 0xE411;
-        public const int TLS_ECDHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE412;
-        public const int TLS_ECDHE_RSA_WITH_SALSA20_SHA1 = 0xE413;
-        public const int TLS_ECDHE_ECDSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE414;
-        public const int TLS_ECDHE_ECDSA_WITH_SALSA20_SHA1 = 0xE415;
-        public const int TLS_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE416;
-        public const int TLS_PSK_WITH_SALSA20_SHA1 = 0xE417;
-        public const int TLS_ECDHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE418;
-        public const int TLS_ECDHE_PSK_WITH_SALSA20_SHA1 = 0xE419;
-        public const int TLS_RSA_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE41A;
-        public const int TLS_RSA_PSK_WITH_SALSA20_SHA1 = 0xE41B;
-        public const int TLS_DHE_PSK_WITH_ESTREAM_SALSA20_SHA1 = 0xE41C;
-        public const int TLS_DHE_PSK_WITH_SALSA20_SHA1 = 0xE41D;
-        public const int TLS_DHE_RSA_WITH_ESTREAM_SALSA20_SHA1 = 0xE41E;
-        public const int TLS_DHE_RSA_WITH_SALSA20_SHA1 = 0xE41F;
-
-        /*
-         * draft-ietf-tls-downgrade-scsv-00
+         * RFC 7507
          */
         public const int TLS_FALLBACK_SCSV = 0x5600;
+
+        /*
+         * draft-ietf-tls-chacha20-poly1305-04
+         */
+        public const int DRAFT_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCA8;
+        public const int DRAFT_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCA9;
+        public const int DRAFT_TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAA;
+        public const int DRAFT_TLS_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAB;
+        public const int DRAFT_TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAC;
+        public const int DRAFT_TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAD;
+        public const int DRAFT_TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAE;
+
+        /*
+         * draft-zauner-tls-aes-ocb-04 (code points TBD)
+         */
+        public const int DRAFT_TLS_DHE_RSA_WITH_AES_128_OCB = 0xFF00;
+        public const int DRAFT_TLS_DHE_RSA_WITH_AES_256_OCB = 0xFF01;
+        public const int DRAFT_TLS_ECDHE_RSA_WITH_AES_128_OCB = 0xFF02;
+        public const int DRAFT_TLS_ECDHE_RSA_WITH_AES_256_OCB = 0xFF03;
+        public const int DRAFT_TLS_ECDHE_ECDSA_WITH_AES_128_OCB = 0xFF04;
+        public const int DRAFT_TLS_ECDHE_ECDSA_WITH_AES_256_OCB = 0xFF05;
+        public const int DRAFT_TLS_PSK_WITH_AES_128_OCB = 0xFF10;
+        public const int DRAFT_TLS_PSK_WITH_AES_256_OCB = 0xFF11;
+        public const int DRAFT_TLS_DHE_PSK_WITH_AES_128_OCB = 0xFF12;
+        public const int DRAFT_TLS_DHE_PSK_WITH_AES_256_OCB = 0xFF13;
+        public const int DRAFT_TLS_ECDHE_PSK_WITH_AES_128_OCB = 0xFF14;
+        public const int DRAFT_TLS_ECDHE_PSK_WITH_AES_256_OCB = 0xFF15;
 
         public static bool IsScsv(int cipherSuite)
         {

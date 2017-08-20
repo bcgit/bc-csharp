@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             byte[] point = TlsUtilities.ReadOpaque8(teeIn);
 
-            DigitallySigned signed_params = DigitallySigned.Parse(mContext, input);
+            DigitallySigned signed_params = ParseSignature(input);
 
             ISigner signer = InitVerifyer(mTlsSigner, signed_params.Algorithm, securityParameters);
             buf.UpdateSigner(signer);

@@ -18,7 +18,19 @@ namespace Org.BouncyCastle.Crypto.Engines
 		/** Constants */
 		private const int StateSize = 16; // 16, 32 bit ints = 64 bytes
 
-		protected readonly static byte[]
+        private readonly static uint[] TAU_SIGMA = Pack.LE_To_UInt32(Strings.ToAsciiByteArray("expand 16-byte k" + "expand 32-byte k"), 0, 8);
+
+        internal void PackTauOrSigma(int keyLength, uint[] state, int stateOffset)
+        {
+            int tsOff = (keyLength - 16) / 4;
+            state[stateOffset] = TAU_SIGMA[tsOff];
+            state[stateOffset + 1] = TAU_SIGMA[tsOff + 1];
+            state[stateOffset + 2] = TAU_SIGMA[tsOff + 2];
+            state[stateOffset + 3] = TAU_SIGMA[tsOff + 3];
+        }
+
+        [Obsolete]
+        protected readonly static byte[]
 			sigma = Strings.ToAsciiByteArray("expand 32-byte k"),
 			tau = Strings.ToAsciiByteArray("expand 16-byte k");
 
@@ -72,22 +84,31 @@ namespace Org.BouncyCastle.Crypto.Engines
 			 */
 
 			ParametersWithIV ivParams = parameters as ParametersWithIV;
-
 			if (ivParams == null)
 				throw new ArgumentException(AlgorithmName + " Init requires an IV", "parameters");
 
 			byte[] iv = ivParams.GetIV();
-
 			if (iv == null || iv.Length != NonceSize)
 				throw new ArgumentException(AlgorithmName + " requires exactly " + NonceSize + " bytes of IV");
 
-			KeyParameter key = ivParams.Parameters as KeyParameter;
+            ICipherParameters keyParam = ivParams.Parameters;
+            if (keyParam == null)
+            {
+                if (!initialised)
+                    throw new InvalidOperationException(AlgorithmName + " KeyParameter can not be null for first initialisation");
 
-			if (key == null)
-				throw new ArgumentException(AlgorithmName + " Init requires a key", "parameters");
+                SetKey(null, iv);
+            }
+            else if (keyParam is KeyParameter)
+            {
+                SetKey(((KeyParameter)keyParam).GetKey(), iv);
+            }
+            else
+            {
+                throw new ArgumentException(AlgorithmName + " Init parameters must contain a KeyParameter (or null for re-init)");
+            }
 
-			SetKey(key.GetKey(), iv);
-			Reset();
+            Reset();
 			initialised = true;
 		}
 
@@ -98,7 +119,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		public virtual string AlgorithmName
 		{
-			get { 
+			get
+            { 
 				string name = "Salsa20";
 				if (rounds != DEFAULT_ROUNDS)
 				{
@@ -178,45 +200,27 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		protected virtual void SetKey(byte[] keyBytes, byte[] ivBytes)
 		{
-			if ((keyBytes.Length != 16) && (keyBytes.Length != 32)) {
-				throw new ArgumentException(AlgorithmName + " requires 128 bit or 256 bit key");
-			}
+            if (keyBytes != null)
+            {
+                if ((keyBytes.Length != 16) && (keyBytes.Length != 32))
+                    throw new ArgumentException(AlgorithmName + " requires 128 bit or 256 bit key");
 
-			int offset = 0;
-			byte[] constants;
+                int tsOff = (keyBytes.Length - 16) / 4;
+                engineState[0] = TAU_SIGMA[tsOff];
+                engineState[5] = TAU_SIGMA[tsOff + 1];
+                engineState[10] = TAU_SIGMA[tsOff + 2];
+                engineState[15] = TAU_SIGMA[tsOff + 3];
 
-			// Key
-			engineState[1] = Pack.LE_To_UInt32(keyBytes, 0);
-			engineState[2] = Pack.LE_To_UInt32(keyBytes, 4);
-			engineState[3] = Pack.LE_To_UInt32(keyBytes, 8);
-			engineState[4] = Pack.LE_To_UInt32(keyBytes, 12);
+                // Key
+                Pack.LE_To_UInt32(keyBytes, 0, engineState, 1, 4);
+                Pack.LE_To_UInt32(keyBytes, keyBytes.Length - 16, engineState, 11, 4);
+            }
 
-			if (keyBytes.Length == 32)
-			{
-				constants = sigma;
-				offset = 16;
-			}
-			else
-			{
-				constants = tau;
-			}
+            // IV
+            Pack.LE_To_UInt32(ivBytes, 0, engineState, 6, 2);
+        }
 
-			engineState[11] = Pack.LE_To_UInt32(keyBytes, offset);
-			engineState[12] = Pack.LE_To_UInt32(keyBytes, offset + 4);
-			engineState[13] = Pack.LE_To_UInt32(keyBytes, offset + 8);
-			engineState[14] = Pack.LE_To_UInt32(keyBytes, offset + 12);
-			engineState[0] = Pack.LE_To_UInt32(constants, 0);
-			engineState[5] = Pack.LE_To_UInt32(constants, 4);
-			engineState[10] = Pack.LE_To_UInt32(constants, 8);
-			engineState[15] = Pack.LE_To_UInt32(constants, 12);
-
-			// IV
-			engineState[6] = Pack.LE_To_UInt32(ivBytes, 0);
-			engineState[7] = Pack.LE_To_UInt32(ivBytes, 4);
-			ResetCounter();
-		}
-
-		protected virtual void GenerateKeyStream(byte[] output)
+        protected virtual void GenerateKeyStream(byte[] output)
 		{
 			SalsaCore(rounds, engineState, x);
 			Pack.UInt32_To_LE(x, output, 0);
@@ -224,17 +228,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		internal static void SalsaCore(int rounds, uint[] input, uint[] x)
 		{
-			if (input.Length != 16) {
+			if (input.Length != 16)
 				throw new ArgumentException();
-			}
-			if (x.Length != 16) {
+			if (x.Length != 16)
 				throw new ArgumentException();
-			}
-			if (rounds % 2 != 0) {
+			if (rounds % 2 != 0)
 				throw new ArgumentException("Number of rounds must be even");
-			}
 
-			uint x00 = input[ 0];
+            uint x00 = input[ 0];
 			uint x01 = input[ 1];
 			uint x02 = input[ 2];
 			uint x03 = input[ 3];

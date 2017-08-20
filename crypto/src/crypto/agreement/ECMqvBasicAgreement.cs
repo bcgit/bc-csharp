@@ -34,8 +34,12 @@ namespace Org.BouncyCastle.Crypto.Agreement
             MqvPublicParameters pubParams = (MqvPublicParameters)pubKey;
 
             ECPrivateKeyParameters staticPrivateKey = privParams.StaticPrivateKey;
+            ECDomainParameters parameters = staticPrivateKey.Parameters;
 
-            ECPoint agreement = CalculateMqvAgreement(staticPrivateKey.Parameters, staticPrivateKey,
+            if (!parameters.Equals(pubParams.StaticPublicKey.Parameters))
+                throw new InvalidOperationException("ECMQV public key components have wrong domain parameters");
+
+            ECPoint agreement = CalculateMqvAgreement(parameters, staticPrivateKey,
                 privParams.EphemeralPrivateKey, privParams.EphemeralPublicKey,
                 pubParams.StaticPublicKey, pubParams.EphemeralPublicKey).Normalize();
 
@@ -61,8 +65,8 @@ namespace Org.BouncyCastle.Crypto.Agreement
             ECCurve curve = parameters.Curve;
 
             ECPoint[] points = new ECPoint[]{
-                // The Q2U public key is optional
-                ECAlgorithms.ImportPoint(curve, Q2U == null ? parameters.G.Multiply(d2U.D) : Q2U.Q),
+                // The Q2U public key is optional - but will be calculated for us if it wasn't present
+                ECAlgorithms.ImportPoint(curve, Q2U.Q),
                 ECAlgorithms.ImportPoint(curve, Q1V.Q),
                 ECAlgorithms.ImportPoint(curve, Q2V.Q)
             };

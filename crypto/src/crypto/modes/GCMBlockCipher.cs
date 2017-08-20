@@ -23,7 +23,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         // These fields are set by Init and not modified by processing
         private bool        forEncryption;
+        private bool        initialised;
         private int         macSize;
+        private byte[]      lastKey;
         private byte[]      nonce;
         private byte[]      initialAssociatedText;
         private byte[]      H;
@@ -34,6 +36,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[]		macBlock;
         private byte[]      S, S_at, S_atPre;
         private byte[]      counter;
+        private uint        blocksRemaining;
         private int         bufOff;
         private ulong		totalLength;
         private byte[]      atBlock;
@@ -89,14 +92,16 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             this.forEncryption = forEncryption;
             this.macBlock = null;
+            this.initialised = true;
 
             KeyParameter keyParam;
+            byte[] newNonce = null;
 
             if (parameters is AeadParameters)
             {
                 AeadParameters param = (AeadParameters)parameters;
 
-                nonce = param.GetNonce();
+                newNonce = param.GetNonce();
                 initialAssociatedText = param.GetAssociatedText();
 
                 int macSizeBits = param.MacSize;
@@ -112,7 +117,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 ParametersWithIV param = (ParametersWithIV)parameters;
 
-                nonce = param.GetIV();
+                newNonce = param.GetIV();
                 initialAssociatedText = null;
                 macSize = 16; 
                 keyParam = (KeyParameter)param.Parameters;
@@ -125,9 +130,30 @@ namespace Org.BouncyCastle.Crypto.Modes
             int bufLength = forEncryption ? BlockSize : (BlockSize + macSize);
             this.bufBlock = new byte[bufLength];
 
-            if (nonce == null || nonce.Length < 1)
+            if (newNonce == null || newNonce.Length < 1)
             {
                 throw new ArgumentException("IV must be at least 1 byte");
+            }
+
+            if (forEncryption)
+            {
+                if (nonce != null && Arrays.AreEqual(nonce, newNonce))
+                {
+                    if (keyParam == null)
+                    {
+                        throw new ArgumentException("cannot reuse nonce for GCM encryption");
+                    }
+                    if (lastKey != null && Arrays.AreEqual(lastKey, keyParam.GetKey()))
+                    {
+                        throw new ArgumentException("cannot reuse nonce for GCM encryption");
+                    }
+                }
+            }
+
+            nonce = newNonce;
+            if (keyParam != null)
+            {
+                lastKey = keyParam.GetKey();
             }
 
             // TODO Restrict macSize to 16 if nonce length not 12?
@@ -173,6 +199,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.atLength = 0;
             this.atLengthPre = 0;
             this.counter = Arrays.Clone(J0);
+            this.blocksRemaining = uint.MaxValue - 1; // page 8, len(P) <= 2^39 - 256, 1 block used by tag
             this.bufOff = 0;
             this.totalLength = 0;
 
@@ -184,7 +211,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual byte[] GetMac()
         {
-            return Arrays.Clone(macBlock);
+            return macBlock == null
+                ?   new byte[macSize]
+                :   Arrays.Clone(macBlock);
         }
 
         public virtual int GetOutputSize(
@@ -217,6 +246,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void ProcessAadByte(byte input)
         {
+            CheckStatus();
+
             atBlock[atBlockPos] = input;
             if (++atBlockPos == BlockSize)
             {
@@ -229,6 +260,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
+            CheckStatus();
+
             for (int i = 0; i < len; ++i)
             {
                 atBlock[atBlockPos] = inBytes[inOff + i];
@@ -268,6 +301,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[]	output,
             int		outOff)
         {
+            CheckStatus();
+
             bufBlock[bufOff] = input;
             if (++bufOff == bufBlock.Length)
             {
@@ -284,6 +319,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[]	output,
             int		outOff)
         {
+            CheckStatus();
+
             if (input.Length < (inOff + len))
                 throw new DataLengthException("Input buffer too short");
 
@@ -323,6 +360,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public int DoFinal(byte[] output, int outOff)
         {
+            CheckStatus();
+
             if (totalLength == 0)
             {
                 InitCipher();
@@ -439,6 +478,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             cipher.Reset();
 
+            // note: we do not reset the nonce.
+
             S = new byte[BlockSize];
             S_at = new byte[BlockSize];
             S_atPre = new byte[BlockSize];
@@ -447,6 +488,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             atLength = 0;
             atLengthPre = 0;
             counter = Arrays.Clone(J0);
+            blocksRemaining = uint.MaxValue - 1;
             bufOff = 0;
             totalLength = 0;
 
@@ -460,9 +502,16 @@ namespace Org.BouncyCastle.Crypto.Modes
                 macBlock = null;
             }
 
-            if (initialAssociatedText != null)
+            if (forEncryption)
             {
-                ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
+                initialised = false;
+            }
+            else
+            {
+                if (initialAssociatedText != null)
+                {
+                    ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
+                }
             }
         }
 
@@ -513,6 +562,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private byte[] GetNextCounterBlock()
         {
+            if (blocksRemaining == 0)
+                throw new InvalidOperationException("Attempt to process too many blocks");
+
+            blocksRemaining--;
+
             uint c = 1;
             c += counter[15]; counter[15] = (byte)c; c >>= 8;
             c += counter[14]; counter[14] = (byte)c; c >>= 8;
@@ -523,6 +577,18 @@ namespace Org.BouncyCastle.Crypto.Modes
             // TODO Sure would be nice if ciphers could operate on int[]
             cipher.ProcessBlock(counter, 0, tmp, 0);
             return tmp;
+        }
+
+        private void CheckStatus()
+        {
+            if (!initialised)
+            {
+                if (forEncryption)
+                {
+                    throw new InvalidOperationException("GCM cipher cannot be reused for encryption");
+                }
+                throw new InvalidOperationException("GCM cipher needs to be initialised");
+            }
         }
     }
 }

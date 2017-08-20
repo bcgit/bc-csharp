@@ -9,23 +9,28 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         //       iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 1 }
         //
         public const string Pkcs1 = "1.2.840.113549.1.1";
+        internal static readonly DerObjectIdentifier Pkcs1Oid                 = new DerObjectIdentifier(Pkcs1);
 
-		public static readonly DerObjectIdentifier RsaEncryption			= new DerObjectIdentifier(Pkcs1 + ".1");
-        public static readonly DerObjectIdentifier MD2WithRsaEncryption		= new DerObjectIdentifier(Pkcs1 + ".2");
-        public static readonly DerObjectIdentifier MD4WithRsaEncryption		= new DerObjectIdentifier(Pkcs1 + ".3");
-        public static readonly DerObjectIdentifier MD5WithRsaEncryption		= new DerObjectIdentifier(Pkcs1 + ".4");
-        public static readonly DerObjectIdentifier Sha1WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".5");
-        public static readonly DerObjectIdentifier SrsaOaepEncryptionSet	= new DerObjectIdentifier(Pkcs1 + ".6");
-        public static readonly DerObjectIdentifier IdRsaesOaep				= new DerObjectIdentifier(Pkcs1 + ".7");
-        public static readonly DerObjectIdentifier IdMgf1					= new DerObjectIdentifier(Pkcs1 + ".8");
-        public static readonly DerObjectIdentifier IdPSpecified				= new DerObjectIdentifier(Pkcs1 + ".9");
-        public static readonly DerObjectIdentifier IdRsassaPss				= new DerObjectIdentifier(Pkcs1 + ".10");
-        public static readonly DerObjectIdentifier Sha256WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".11");
-        public static readonly DerObjectIdentifier Sha384WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".12");
-        public static readonly DerObjectIdentifier Sha512WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".13");
-        public static readonly DerObjectIdentifier Sha224WithRsaEncryption	= new DerObjectIdentifier(Pkcs1 + ".14");
+        public static readonly DerObjectIdentifier RsaEncryption            = Pkcs1Oid.Branch("1");
+        public static readonly DerObjectIdentifier MD2WithRsaEncryption		= Pkcs1Oid.Branch("2");
+        public static readonly DerObjectIdentifier MD4WithRsaEncryption		= Pkcs1Oid.Branch("3");
+        public static readonly DerObjectIdentifier MD5WithRsaEncryption		= Pkcs1Oid.Branch("4");
+        public static readonly DerObjectIdentifier Sha1WithRsaEncryption	= Pkcs1Oid.Branch("5");
+        public static readonly DerObjectIdentifier SrsaOaepEncryptionSet	= Pkcs1Oid.Branch("6");
+        public static readonly DerObjectIdentifier IdRsaesOaep				= Pkcs1Oid.Branch("7");
+        public static readonly DerObjectIdentifier IdMgf1					= Pkcs1Oid.Branch("8");
+        public static readonly DerObjectIdentifier IdPSpecified				= Pkcs1Oid.Branch("9");
+        public static readonly DerObjectIdentifier IdRsassaPss				= Pkcs1Oid.Branch("10");
+        public static readonly DerObjectIdentifier Sha256WithRsaEncryption	= Pkcs1Oid.Branch("11");
+        public static readonly DerObjectIdentifier Sha384WithRsaEncryption	= Pkcs1Oid.Branch("12");
+        public static readonly DerObjectIdentifier Sha512WithRsaEncryption	= Pkcs1Oid.Branch("13");
+        public static readonly DerObjectIdentifier Sha224WithRsaEncryption	= Pkcs1Oid.Branch("14");
+        /** PKCS#1: 1.2.840.113549.1.1.15 */
+        public static readonly DerObjectIdentifier Sha512_224WithRSAEncryption = Pkcs1Oid.Branch("15");
+        /** PKCS#1: 1.2.840.113549.1.1.16 */
+        public static readonly DerObjectIdentifier Sha512_256WithRSAEncryption = Pkcs1Oid.Branch("16");
 
-		//
+        //
         // pkcs-3 OBJECT IDENTIFIER ::= {
         //       iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 3 }
         //
@@ -118,6 +123,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier Pkcs9AtSigningDescription			= new DerObjectIdentifier(Pkcs9 + ".13");
         public static readonly DerObjectIdentifier Pkcs9AtExtensionRequest				= new DerObjectIdentifier(Pkcs9 + ".14");
         public static readonly DerObjectIdentifier Pkcs9AtSmimeCapabilities				= new DerObjectIdentifier(Pkcs9 + ".15");
+        public static readonly DerObjectIdentifier IdSmime                              = new DerObjectIdentifier(Pkcs9 + ".16");
+
         public static readonly DerObjectIdentifier Pkcs9AtFriendlyName					= new DerObjectIdentifier(Pkcs9 + ".20");
         public static readonly DerObjectIdentifier Pkcs9AtLocalKeyID					= new DerObjectIdentifier(Pkcs9 + ".21");
 
@@ -131,19 +138,37 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public const string CrlTypes = Pkcs9 + ".23";
 		public static readonly DerObjectIdentifier X509Crl = new DerObjectIdentifier(CrlTypes + ".1");
 
-		public static readonly DerObjectIdentifier IdAlgPwriKek = new DerObjectIdentifier(Pkcs9 + ".16.3.9");
+        public static readonly DerObjectIdentifier IdAlg = IdSmime.Branch("3");
+
+        public static readonly DerObjectIdentifier IdAlgEsdh        = IdAlg.Branch("5");
+        public static readonly DerObjectIdentifier IdAlgCms3DesWrap = IdAlg.Branch("6");
+        public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap  = IdAlg.Branch("7");
+        public static readonly DerObjectIdentifier IdAlgPwriKek     = IdAlg.Branch("9");
+        public static readonly DerObjectIdentifier IdAlgSsdh        = IdAlg.Branch("10");
+
+        /*
+         * <pre>
+         * -- RSA-KEM Key Transport Algorithm
+         *
+         * id-rsa-kem OID ::= {
+         *      iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1)
+         *      pkcs-9(9) smime(16) alg(3) 14
+         *   }
+         * </pre>
+         */
+        public static readonly DerObjectIdentifier IdRsaKem = IdAlg.Branch("14");
 
         //
         // SMIME capability sub oids.
         //
-        public static readonly DerObjectIdentifier PreferSignedData				= new DerObjectIdentifier(Pkcs9 + ".15.1");
-        public static readonly DerObjectIdentifier CannotDecryptAny				= new DerObjectIdentifier(Pkcs9 + ".15.2");
-        public static readonly DerObjectIdentifier SmimeCapabilitiesVersions	= new DerObjectIdentifier(Pkcs9 + ".15.3");
+        public static readonly DerObjectIdentifier PreferSignedData				= Pkcs9AtSmimeCapabilities.Branch("1");
+        public static readonly DerObjectIdentifier CannotDecryptAny             = Pkcs9AtSmimeCapabilities.Branch("2");
+        public static readonly DerObjectIdentifier SmimeCapabilitiesVersions    = Pkcs9AtSmimeCapabilities.Branch("3");
 
         //
         // other SMIME attributes
         //
-		public static readonly DerObjectIdentifier IdAAReceiptRequest = new DerObjectIdentifier(Pkcs9 + ".16.2.1");
+        public static readonly DerObjectIdentifier IdAAReceiptRequest = IdSmime.Branch("2.1");
 
         //
         // id-ct OBJECT IDENTIFIER ::= {iso(1) member-body(2) usa(840)
@@ -175,6 +200,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         // rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) attributes(2)}
         //
         public const string IdAA = "1.2.840.113549.1.9.16.2";
+        public static readonly DerObjectIdentifier IdAAOid = new DerObjectIdentifier(IdAA);
 
 		public static readonly DerObjectIdentifier IdAAContentHint = new DerObjectIdentifier(IdAA + ".4"); // See RFC 2634
     	public static readonly DerObjectIdentifier IdAAMsgSigDigest = new DerObjectIdentifier(IdAA + ".5");
@@ -208,6 +234,20 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public static readonly DerObjectIdentifier IdAAEtsEscTimeStamp = new DerObjectIdentifier(IdAA + ".25");
 		public static readonly DerObjectIdentifier IdAAEtsCertCrlTimestamp = new DerObjectIdentifier(IdAA + ".26");
 		public static readonly DerObjectIdentifier IdAAEtsArchiveTimestamp = new DerObjectIdentifier(IdAA + ".27");
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.6.2.37 - <a href="https://tools.ietf.org/html/rfc4108#section-2.2.5">RFC 4108</a> */
+        public static readonly DerObjectIdentifier IdAADecryptKeyID = IdAAOid.Branch("37");
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.6.2.38 - <a href="https://tools.ietf.org/html/rfc4108#section-2.2.6">RFC 4108</a> */
+        public static readonly DerObjectIdentifier IdAAImplCryptoAlgs = IdAAOid.Branch("38");
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.2.54 <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
+        public static readonly DerObjectIdentifier IdAAAsymmDecryptKeyID = IdAAOid.Branch("54");
+
+        /** PKCS#9: 1.2.840.113549.1.9.16.2.43   <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
+        public static readonly DerObjectIdentifier IdAAImplCompressAlgs = IdAAOid.Branch("43");
+        /** PKCS#9: 1.2.840.113549.1.9.16.2.40   <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
+        public static readonly DerObjectIdentifier IdAACommunityIdentifiers = IdAAOid.Branch("40");
 
 		[Obsolete("Use 'IdAAEtsSigPolicyID' instead")]
 		public static readonly DerObjectIdentifier IdAASigPolicyID = IdAAEtsSigPolicyID;
@@ -249,8 +289,5 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier PbeWithShaAnd2KeyTripleDesCbc	= new DerObjectIdentifier(Pkcs12PbeIds + ".4");
         public static readonly DerObjectIdentifier PbeWithShaAnd128BitRC2Cbc		= new DerObjectIdentifier(Pkcs12PbeIds + ".5");
         public static readonly DerObjectIdentifier PbewithShaAnd40BitRC2Cbc			= new DerObjectIdentifier(Pkcs12PbeIds + ".6");
-
-		public static readonly DerObjectIdentifier IdAlgCms3DesWrap = new DerObjectIdentifier("1.2.840.113549.1.9.16.3.6");
-		public static readonly DerObjectIdentifier IdAlgCmsRC2Wrap = new DerObjectIdentifier("1.2.840.113549.1.9.16.3.7");
-	}
+    }
 }

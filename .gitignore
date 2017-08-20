@@ -2,6 +2,7 @@
 *.suo
 *.swp
 *.user
+*.userprefs
 *.vsp
 
 *.nupkg

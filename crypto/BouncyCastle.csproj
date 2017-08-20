@@ -2,6 +2,7 @@
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == 'Any CPU' ">AnyCPU</Platform>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -103,6 +104,7 @@
     <Compile Include="src\asn1\DerEnumerated.cs" />
     <Compile Include="src\asn1\DerGeneralString.cs" />
     <Compile Include="src\asn1\DerGeneralizedTime.cs" />
+    <Compile Include="src\asn1\DerGraphicString.cs" />
     <Compile Include="src\asn1\DerIA5String.cs" />
     <Compile Include="src\asn1\DerInteger.cs" />
     <Compile Include="src\asn1\DerNull.cs" />
@@ -119,6 +121,7 @@
     <Compile Include="src\asn1\DerUTCTime.cs" />
     <Compile Include="src\asn1\DerUTF8String.cs" />
     <Compile Include="src\asn1\DerUniversalString.cs" />
+    <Compile Include="src\asn1\DerVideotexString.cs" />
     <Compile Include="src\asn1\DerVisibleString.cs" />
     <Compile Include="src\asn1\IAsn1ApplicationSpecificParser.cs" />
     <Compile Include="src\asn1\IAsn1Choice.cs" />
@@ -283,6 +286,8 @@
     <Compile Include="src\asn1\ess\OtherSigningCertificate.cs" />
     <Compile Include="src\asn1\ess\SigningCertificate.cs" />
     <Compile Include="src\asn1\ess\SigningCertificateV2.cs" />
+    <Compile Include="src\asn1\gm\GMNamedCurves.cs" />
+    <Compile Include="src\asn1\gm\GMObjectIdentifiers.cs" />
     <Compile Include="src\asn1\gnu\GNUObjectIdentifiers.cs" />
     <Compile Include="src\asn1\iana\IANAObjectIdentifiers.cs" />
     <Compile Include="src\asn1\icao\CscaMasterList.cs" />
@@ -629,6 +634,9 @@
     <Compile Include="src\crypto\digests\NonMemoableDigest.cs" />
     <Compile Include="src\crypto\engines\SerpentEngineBase.cs" />
     <Compile Include="src\crypto\engines\TnepresEngine.cs" />
+    <Compile Include="src\crypto\generators\BCrypt.cs" />
+    <Compile Include="src\crypto\generators\HKDFBytesGenerator.cs" />
+    <Compile Include="src\crypto\generators\OpenBsdBCrypt.cs" />
     <Compile Include="src\crypto\IAsymmetricBlockCipher.cs" />
     <Compile Include="src\crypto\IAsymmetricCipherKeyPairGenerator.cs" />
     <Compile Include="src\crypto\IBasicAgreement.cs" />
@@ -657,6 +665,7 @@
     <Compile Include="src\crypto\KeyGenerationParameters.cs" />
     <Compile Include="src\crypto\MaxBytesExceededException.cs" />
     <Compile Include="src\crypto\OutputLengthException.cs" />
+    <Compile Include="src\crypto\parameters\HKDFParameters.cs" />
     <Compile Include="src\crypto\PbeParametersGenerator.cs" />
     <Compile Include="src\crypto\prng\BasicEntropySourceProvider.cs" />
     <Compile Include="src\crypto\prng\CryptoApiEntropySourceProvider.cs" />
@@ -737,6 +746,7 @@
     <Compile Include="src\crypto\engines\Cast5Engine.cs" />
     <Compile Include="src\crypto\engines\Cast6Engine.cs" />
     <Compile Include="src\crypto\engines\ChaChaEngine.cs" />
+    <Compile Include="src\crypto\engines\ChaCha7539Engine.cs" />
     <Compile Include="src\crypto\engines\DesEdeEngine.cs" />
     <Compile Include="src\crypto\engines\DesEdeWrapEngine.cs" />
     <Compile Include="src\crypto\engines\DesEngine.cs" />
@@ -949,6 +959,7 @@
     <Compile Include="src\crypto\tls\CertificateStatus.cs" />
     <Compile Include="src\crypto\tls\CertificateStatusRequest.cs" />
     <Compile Include="src\crypto\tls\CertificateStatusType.cs" />
+    <Compile Include="src\crypto\tls\CertificateType.cs" />
     <Compile Include="src\crypto\tls\CertificateUrl.cs" />
     <Compile Include="src\crypto\tls\Chacha20Poly1305.cs" />
     <Compile Include="src\crypto\tls\ChangeCipherSpec.cs" />
@@ -1047,11 +1058,14 @@
     <Compile Include="src\crypto\tls\TlsECDsaSigner.cs" />
     <Compile Include="src\crypto\tls\TlsEccUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsEncryptionCredentials.cs" />
+    <Compile Include="src\crypto\tls\TlsException.cs" />
     <Compile Include="src\crypto\tls\TlsExtensionsUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsFatalAlert.cs" />
+    <Compile Include="src\crypto\tls\TlsFatalAlertReceived.cs" />
     <Compile Include="src\crypto\tls\TlsHandshakeHash.cs" />
     <Compile Include="src\crypto\tls\TlsKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsMac.cs" />
+    <Compile Include="src\crypto\tls\TlsNoCloseNotifyException.cs" />
     <Compile Include="src\crypto\tls\TlsNullCipher.cs" />
     <Compile Include="src\crypto\tls\TlsNullCompression.cs" />
     <Compile Include="src\crypto\tls\TlsPeer.cs" />
@@ -1101,6 +1115,10 @@
     <Compile Include="src\math\ec\custom\djb\Curve25519Field.cs" />
     <Compile Include="src\math\ec\custom\djb\Curve25519FieldElement.cs" />
     <Compile Include="src\math\ec\custom\djb\Curve25519Point.cs" />
+    <Compile Include="src\math\ec\custom\gm\SM2P256V1Curve.cs" />
+    <Compile Include="src\math\ec\custom\gm\SM2P256V1Field.cs" />
+    <Compile Include="src\math\ec\custom\gm\SM2P256V1FieldElement.cs" />
+    <Compile Include="src\math\ec\custom\gm\SM2P256V1Point.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP128R1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP128R1Field.cs" />
     <Compile Include="src\math\ec\custom\sec\SecP128R1FieldElement.cs" />

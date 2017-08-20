@@ -58,6 +58,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * calling @{link toASN1Object()} for a <code>UserNotice</code>
          * instance or from parsing it from a DER-encoded stream.</p>
          */
+        [Obsolete("Use GetInstance() instead")]
         public UserNotice(
             Asn1Sequence seq)
         {
@@ -71,11 +72,18 @@ namespace Org.BouncyCastle.Asn1.X509
                 if (seq[0].ToAsn1Object() is Asn1Sequence)
                 {
                     noticeRef = NoticeReference.GetInstance(seq[0]);
+                    explicitText = null;
                 }
                 else
                 {
+                    noticeRef = null;
                     explicitText = DisplayText.GetInstance(seq[0]);
                 }
+            }
+            else if (seq.Count == 0)
+            {
+                noticeRef = null;       // neither field set!
+                explicitText = null;
             }
             else
             {

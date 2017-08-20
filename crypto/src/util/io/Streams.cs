@@ -90,5 +90,11 @@ namespace Org.BouncyCastle.Utilities.IO
 			}
 			return total;
 		}
-	}
+
+        /// <exception cref="IOException"></exception>
+        public static void WriteBufTo(MemoryStream buf, Stream output)
+        {
+            buf.WriteTo(output);
+        }
+    }
 }

@@ -10,8 +10,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 {
     public abstract class TlsProtocol
     {
-        private static readonly string TLS_ERROR_MESSAGE = "Internal TLS error, this could be an attack";
-
         /*
          * Our Connection states
          */
@@ -34,11 +32,18 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected const short CS_END = 16;
 
         /*
+         * Different modes to handle the known IV weakness
+         */
+        protected const short ADS_MODE_1_Nsub1 = 0; // 1/n-1 record splitting
+        protected const short ADS_MODE_0_N = 1; // 0/n record splitting
+        protected const short ADS_MODE_0_N_FIRSTONLY = 2; // 0/n record splitting on first data fragment only
+
+        /*
          * Queues for data from some protocols.
          */
-        private ByteQueue mApplicationDataQueue = new ByteQueue();
+        private ByteQueue mApplicationDataQueue = new ByteQueue(0);
         private ByteQueue mAlertQueue = new ByteQueue(2);
-        private ByteQueue mHandshakeQueue = new ByteQueue();
+        private ByteQueue mHandshakeQueue = new ByteQueue(0);
     //    private ByteQueue mHeartbeatQueue = new ByteQueue();
 
         /*
@@ -52,7 +57,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         private volatile bool mClosed = false;
         private volatile bool mFailedWithError = false;
         private volatile bool mAppDataReady = false;
-        private volatile bool mSplitApplicationDataRecords = true;
+        private volatile bool mAppDataSplitEnabled = true;
+        private volatile int mAppDataSplitMode = ADS_MODE_1_Nsub1;
         private byte[] mExpectedVerifyData = null;
 
         protected TlsSession mTlsSession = null;
@@ -102,15 +108,94 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected abstract TlsPeer Peer { get; }
 
+        protected virtual void HandleAlertMessage(byte alertLevel, byte alertDescription)
+        {
+            Peer.NotifyAlertReceived(alertLevel, alertDescription);
+
+            if (alertLevel == AlertLevel.warning)
+            {
+                HandleAlertWarningMessage(alertDescription);
+            }
+            else
+            {
+                HandleFailure();
+
+                throw new TlsFatalAlertReceived(alertDescription);
+            }
+        }
+
+        protected virtual void HandleAlertWarningMessage(byte alertDescription)
+        {
+            /*
+             * RFC 5246 7.2.1. The other party MUST respond with a close_notify alert of its own
+             * and close down the connection immediately, discarding any pending writes.
+             */
+            if (alertDescription == AlertDescription.close_notify)
+            {
+                if (!mAppDataReady)
+                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+                HandleClose(false);
+            }
+        }
+
         protected virtual void HandleChangeCipherSpecMessage()
         {
         }
 
-        protected abstract void HandleHandshakeMessage(byte type, byte[] buf);
-
-        protected virtual void HandleWarningMessage(byte description)
+        protected virtual void HandleClose(bool user_canceled)
         {
+            if (!mClosed)
+            {
+                this.mClosed = true;
+
+                if (user_canceled && !mAppDataReady)
+                {
+                    RaiseAlertWarning(AlertDescription.user_canceled, "User canceled handshake");
+                }
+
+                RaiseAlertWarning(AlertDescription.close_notify, "Connection closed");
+
+                mRecordStream.SafeClose();
+
+                if (!mAppDataReady)
+                {
+                    CleanupHandshake();
+                }
+            }
         }
+
+        protected virtual void HandleException(byte alertDescription, string message, Exception cause)
+        {
+            if (!mClosed)
+            {
+                RaiseAlertFatal(alertDescription, message, cause);
+
+                HandleFailure();
+            }
+        }
+
+        protected virtual void HandleFailure()
+        {
+            this.mClosed = true;
+            this.mFailedWithError = true;
+
+            /*
+             * RFC 2246 7.2.1. The session becomes unresumable if any connection is terminated
+             * without proper close_notify messages with level equal to warning.
+             */
+            // TODO This isn't quite in the right place. Also, as of TLS 1.1 the above is obsolete.
+            InvalidateSession();
+
+            mRecordStream.SafeClose();
+
+            if (!mAppDataReady)
+            {
+                CleanupHandshake();
+            }
+        }
+
+        protected abstract void HandleHandshakeMessage(byte type, MemoryStream buf);
 
         protected virtual void ApplyMaxFragmentLengthExtension()
         {
@@ -161,7 +246,8 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     if (this.mClosed)
                     {
-                        // TODO What kind of exception/alert?
+                        // NOTE: Any close during the handshake should have raised an exception.
+                        throw new TlsFatalAlert(AlertDescription.internal_error);
                     }
 
                     SafeReadRecord();
@@ -173,9 +259,14 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             try
             {
+                this.mConnectionState = CS_END;
+
+                this.mAlertQueue.Shrink();
+                this.mHandshakeQueue.Shrink();
+
                 this.mRecordStream.FinaliseHandshake();
 
-                this.mSplitApplicationDataRecords = !TlsUtilities.IsTlsV11(Context);
+                this.mAppDataSplitEnabled = !TlsUtilities.IsTlsV11(Context);
 
                 /*
                  * If this was an initial handshake, we are now ready to send and receive application data.
@@ -219,7 +310,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected internal void ProcessRecord(byte protocol, byte[] buf, int offset, int len)
+        protected internal void ProcessRecord(byte protocol, byte[] buf, int off, int len)
         {
             /*
              * Have a look at the protocol type, and add it to the correct queue.
@@ -228,8 +319,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
             case ContentType.alert:
             {
-                mAlertQueue.AddData(buf, offset, len);
-                ProcessAlert();
+                mAlertQueue.AddData(buf, off, len);
+                ProcessAlertQueue();
                 break;
             }
             case ContentType.application_data:
@@ -237,107 +328,108 @@ namespace Org.BouncyCastle.Crypto.Tls
                 if (!mAppDataReady)
                     throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-                mApplicationDataQueue.AddData(buf, offset, len);
-                ProcessApplicationData();
+                mApplicationDataQueue.AddData(buf, off, len);
+                ProcessApplicationDataQueue();
                 break;
             }
             case ContentType.change_cipher_spec:
             {
-                ProcessChangeCipherSpec(buf, offset, len);
+                ProcessChangeCipherSpec(buf, off, len);
                 break;
             }
             case ContentType.handshake:
             {
-                mHandshakeQueue.AddData(buf, offset, len);
-                ProcessHandshake();
+                if (mHandshakeQueue.Available > 0)
+                {
+                    mHandshakeQueue.AddData(buf, off, len);
+                    ProcessHandshakeQueue(mHandshakeQueue);
+                }
+                else
+                {
+                    ByteQueue tmpQueue = new ByteQueue(buf, off, len);
+                    ProcessHandshakeQueue(tmpQueue);
+                    int remaining = tmpQueue.Available;
+                    if (remaining > 0)
+                    {
+                        mHandshakeQueue.AddData(buf, off + len - remaining, remaining);
+                    }
+                }
                 break;
             }
-            case ContentType.heartbeat:
-            {
-                if (!mAppDataReady)
-                    throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            //case ContentType.heartbeat:
+            //{
+            //    if (!mAppDataReady)
+            //        throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-                // TODO[RFC 6520]
-    //            mHeartbeatQueue.AddData(buf, offset, len);
-    //            ProcessHeartbeat();
-                break;
-            }
+            //    // TODO[RFC 6520]
+            //    //mHeartbeatQueue.AddData(buf, offset, len);
+            //    //ProcessHeartbeat();
+            //    break;
+            //}
             default:
-                /*
-                 * Uh, we don't know this protocol.
-                 * 
-                 * RFC2246 defines on page 13, that we should ignore this.
-                 */
-                break;
+                // Record type should already have been checked
+                throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
 
-        private void ProcessHandshake()
+        private void ProcessHandshakeQueue(ByteQueue queue)
         {
-            bool read;
-            do
+            while (queue.Available >= 4)
             {
-                read = false;
                 /*
                  * We need the first 4 bytes, they contain type and length of the message.
                  */
-                if (mHandshakeQueue.Available >= 4)
+                byte[] beginning = new byte[4];
+                queue.Read(beginning, 0, 4, 0);
+                byte type = TlsUtilities.ReadUint8(beginning, 0);
+                int length = TlsUtilities.ReadUint24(beginning, 1);
+                int totalLength = 4 + length;
+
+                /*
+                 * Check if we have enough bytes in the buffer to read the full message.
+                 */
+                if (queue.Available < totalLength)
+                    break;
+
+                CheckReceivedChangeCipherSpec(mConnectionState == CS_END || type == HandshakeType.finished);
+
+                /*
+                 * RFC 2246 7.4.9. The value handshake_messages includes all handshake messages
+                 * starting at client hello up to, but not including, this finished message.
+                 * [..] Note: [Also,] Hello Request messages are omitted from handshake hashes.
+                 */
+                switch (type)
                 {
-                    byte[] beginning = new byte[4];
-                    mHandshakeQueue.Read(beginning, 0, 4, 0);
-                    byte type = TlsUtilities.ReadUint8(beginning, 0);
-                    int len = TlsUtilities.ReadUint24(beginning, 1);
-
-                    /*
-                     * Check if we have enough bytes in the buffer to read the full message.
-                     */
-                    if (mHandshakeQueue.Available >= (len + 4))
+                case HandshakeType.hello_request:
+                    break;
+                case HandshakeType.finished:
+                default:
+                {
+                    TlsContext ctx = Context;
+                    if (type == HandshakeType.finished
+                        && this.mExpectedVerifyData == null
+                        && ctx.SecurityParameters.MasterSecret != null)
                     {
-                        /*
-                         * Read the message.
-                         */
-                        byte[] buf = mHandshakeQueue.RemoveData(len, 4);
-
-                        CheckReceivedChangeCipherSpec(mConnectionState == CS_END || type == HandshakeType.finished);
-
-                        /*
-                         * RFC 2246 7.4.9. The value handshake_messages includes all handshake messages
-                         * starting at client hello up to, but not including, this finished message.
-                         * [..] Note: [Also,] Hello Request messages are omitted from handshake hashes.
-                         */
-                        switch (type)
-                        {
-                        case HandshakeType.hello_request:
-                            break;
-                        case HandshakeType.finished:
-                        default:
-                        {
-                            TlsContext ctx = Context;
-                            if (type == HandshakeType.finished
-                                && this.mExpectedVerifyData == null
-                                && ctx.SecurityParameters.MasterSecret != null)
-                            {
-                                this.mExpectedVerifyData = CreateVerifyData(!ctx.IsServer);
-                            }
-
-                            mRecordStream.UpdateHandshakeData(beginning, 0, 4);
-                            mRecordStream.UpdateHandshakeData(buf, 0, len);
-                            break;
-                        }
-                        }
-
-                        /*
-                         * Now, parse the message.
-                         */
-                        HandleHandshakeMessage(type, buf);
-                        read = true;
+                        this.mExpectedVerifyData = CreateVerifyData(!ctx.IsServer);
                     }
+
+                    queue.CopyTo(mRecordStream.HandshakeHashUpdater, totalLength);
+                    break;
                 }
+                }
+
+                queue.RemoveData(4);
+
+                MemoryStream buf = queue.ReadFrom(length);
+
+                /*
+                 * Now, parse the message.
+                 */
+                HandleHandshakeMessage(type, buf);
             }
-            while (read);
         }
 
-        private void ProcessApplicationData()
+        private void ProcessApplicationDataQueue()
         {
             /*
              * There is nothing we need to do here.
@@ -346,52 +438,18 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
         }
 
-        private void ProcessAlert()
+        private void ProcessAlertQueue()
         {
             while (mAlertQueue.Available >= 2)
             {
                 /*
                  * An alert is always 2 bytes. Read the alert.
                  */
-                byte[] tmp = mAlertQueue.RemoveData(2, 0);
-                byte level = tmp[0];
-                byte description = tmp[1];
+                byte[] alert = mAlertQueue.RemoveData(2, 0);
+                byte alertLevel = alert[0];
+                byte alertDescription = alert[1];
 
-                Peer.NotifyAlertReceived(level, description);
-
-                if (level == AlertLevel.fatal)
-                {
-                    /*
-                     * RFC 2246 7.2.1. The session becomes unresumable if any connection is terminated
-                     * without proper close_notify messages with level equal to warning.
-                     */
-                    InvalidateSession();
-
-                    this.mFailedWithError = true;
-                    this.mClosed = true;
-
-                    mRecordStream.SafeClose();
-
-                    throw new IOException(TLS_ERROR_MESSAGE);
-                }
-                else
-                {
-
-                    /*
-                     * RFC 5246 7.2.1. The other party MUST respond with a close_notify alert of its own
-                     * and close down the connection immediately, discarding any pending writes.
-                     */
-                    // TODO Can close_notify be a fatal alert?
-                    if (description == AlertDescription.close_notify)
-                    {
-                        HandleClose(false);
-                    }
-
-                    /*
-                     * If it is just a warning, we continue.
-                     */
-                    HandleWarningMessage(description);
-                }
+                HandleAlertMessage(alertLevel, alertDescription);
             }
         }
 
@@ -447,22 +505,14 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             while (mApplicationDataQueue.Available == 0)
             {
-                /*
-                 * We need to read some data.
-                 */
                 if (this.mClosed)
                 {
                     if (this.mFailedWithError)
-                    {
-                        /*
-                         * Something went terribly wrong, we should throw an IOException
-                         */
-                        throw new IOException(TLS_ERROR_MESSAGE);
-                    }
+                        throw new IOException("Cannot read application data on failed TLS connection");
 
-                    /*
-                     * Connection has been closed, there is no more data to read.
-                     */
+                    if (!mAppDataReady)
+                        throw new InvalidOperationException("Cannot read application data until initial handshake completed.");
+
                     return 0;
                 }
 
@@ -474,33 +524,63 @@ namespace Org.BouncyCastle.Crypto.Tls
             return len;
         }
 
-        protected virtual void SafeReadRecord()
+        protected virtual void SafeCheckRecordHeader(byte[] recordHeader)
         {
             try
             {
-                if (!mRecordStream.ReadRecord())
-                {
-                    // TODO It would be nicer to allow graceful connection close if between records
-    //                this.FailWithError(AlertLevel.warning, AlertDescription.close_notify);
-                    throw new EndOfStreamException();
-                }
+                mRecordStream.CheckRecordHeader(recordHeader);
             }
             catch (TlsFatalAlert e)
             {
-                if (!mClosed)
-                {
-                    this.FailWithError(AlertLevel.fatal, e.AlertDescription, "Failed to read record", e);
-                }
+                HandleException(e.AlertDescription, "Failed to read record", e);
+                throw e;
+            }
+            catch (IOException e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to read record", e);
                 throw e;
             }
             catch (Exception e)
             {
-                if (!mClosed)
-                {
-                    this.FailWithError(AlertLevel.fatal, AlertDescription.internal_error, "Failed to read record", e);
-                }
+                HandleException(AlertDescription.internal_error, "Failed to read record", e);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+        }
+
+        protected virtual void SafeReadRecord()
+        {
+            try
+            {
+                if (mRecordStream.ReadRecord())
+                    return;
+
+                if (!mAppDataReady)
+                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+            }
+            catch (TlsFatalAlertReceived e)
+            {
+                // Connection failure already handled at source
                 throw e;
             }
+            catch (TlsFatalAlert e)
+            {
+                HandleException(e.AlertDescription, "Failed to read record", e);
+                throw e;
+            }
+            catch (IOException e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to read record", e);
+                throw e;
+            }
+            catch (Exception e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to read record", e);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+
+            HandleFailure();
+
+            throw new TlsNoCloseNotifyException();
         }
 
         protected virtual void SafeWriteRecord(byte type, byte[] buf, int offset, int len)
@@ -511,19 +591,18 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             catch (TlsFatalAlert e)
             {
-                if (!mClosed)
-                {
-                    this.FailWithError(AlertLevel.fatal, e.AlertDescription, "Failed to write record", e);
-                }
+                HandleException(e.AlertDescription, "Failed to write record", e);
+                throw e;
+            }
+            catch (IOException e)
+            {
+                HandleException(AlertDescription.internal_error, "Failed to write record", e);
                 throw e;
             }
             catch (Exception e)
             {
-                if (!mClosed)
-                {
-                    this.FailWithError(AlertLevel.fatal, AlertDescription.internal_error, "Failed to write record", e);
-                }
-                throw e;
+                HandleException(AlertDescription.internal_error, "Failed to write record", e);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
         }
 
@@ -540,12 +619,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected internal virtual void WriteData(byte[] buf, int offset, int len)
         {
             if (this.mClosed)
-            {
-                if (this.mFailedWithError)
-                    throw new IOException(TLS_ERROR_MESSAGE);
-
-                throw new IOException("Sorry, connection has been closed, you cannot write more data");
-            }
+                throw new IOException("Cannot write application data on closed/failed TLS connection");
 
             while (len > 0)
             {
@@ -556,16 +630,29 @@ namespace Org.BouncyCastle.Crypto.Tls
                  * NOTE: Actually, implementations appear to have settled on 1/n-1 record splitting.
                  */
 
-                if (this.mSplitApplicationDataRecords)
+                if (this.mAppDataSplitEnabled)
                 {
                     /*
                      * Protect against known IV attack!
                      * 
                      * DO NOT REMOVE THIS CODE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
                      */
-                    SafeWriteRecord(ContentType.application_data, buf, offset, 1);
-                    ++offset;
-                    --len;
+                    switch (mAppDataSplitMode)
+                    {
+                    case ADS_MODE_0_N:
+                        SafeWriteRecord(ContentType.application_data, TlsUtilities.EmptyBytes, 0, 0);
+                        break;
+                    case ADS_MODE_0_N_FIRSTONLY:
+                        this.mAppDataSplitEnabled = false;
+                        SafeWriteRecord(ContentType.application_data, TlsUtilities.EmptyBytes, 0, 0);
+                        break;
+                    case ADS_MODE_1_Nsub1:
+                    default:
+                        SafeWriteRecord(ContentType.application_data, buf, offset, 1);
+                        ++offset;
+                        --len;
+                        break;
+                    }
                 }
 
                 if (len > 0)
@@ -579,16 +666,34 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
+        protected virtual void SetAppDataSplitMode(int appDataSplitMode)
+        {
+            if (appDataSplitMode < ADS_MODE_1_Nsub1 || appDataSplitMode > ADS_MODE_0_N_FIRSTONLY)
+                throw new ArgumentException("Illegal appDataSplitMode mode: " + appDataSplitMode, "appDataSplitMode");
+
+            this.mAppDataSplitMode = appDataSplitMode;
+        }
+
         protected virtual void WriteHandshakeMessage(byte[] buf, int off, int len)
         {
-            while (len > 0)
+            if (len < 4)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            byte type = TlsUtilities.ReadUint8(buf, off);
+            if (type != HandshakeType.hello_request)
+            {
+                mRecordStream.HandshakeHashUpdater.Write(buf, off, len);
+            }
+
+            int total = 0;
+            do
             {
                 // Fragment data according to the current fragment limit.
-                int toWrite = System.Math.Min(len, mRecordStream.GetPlaintextLimit());
-                SafeWriteRecord(ContentType.handshake, buf, off, toWrite);
-                off += toWrite;
-                len -= toWrite;
+                int toWrite = System.Math.Min(len - total, mRecordStream.GetPlaintextLimit());
+                SafeWriteRecord(ContentType.handshake, buf, off + total, toWrite);
+                total += toWrite;
             }
+            while (total < len);
         }
 
         /// <summary>The secure bidirectional stream for this connection</summary>
@@ -601,6 +706,26 @@ namespace Org.BouncyCastle.Crypto.Tls
                     throw new InvalidOperationException("Cannot use Stream in non-blocking mode! Use OfferInput()/OfferOutput() instead.");
                 return this.mTlsStream;
             }
+        }
+
+        /**
+         * Should be called in non-blocking mode when the input data reaches EOF.
+         */
+        public virtual void CloseInput()
+        {
+            if (mBlocking)
+                throw new InvalidOperationException("Cannot use CloseInput() in blocking mode!");
+
+            if (mClosed)
+                return;
+
+            if (mInputBuffers.Available > 0)
+                throw new EndOfStreamException();
+
+            if (!mAppDataReady)
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+            throw new TlsNoCloseNotifyException();
         }
 
         /**
@@ -633,17 +758,28 @@ namespace Org.BouncyCastle.Crypto.Tls
             // loop while there are enough bytes to read the length of the next record
             while (mInputBuffers.Available >= RecordStream.TLS_HEADER_SIZE)
             {
-                byte[] header = new byte[RecordStream.TLS_HEADER_SIZE];
-                mInputBuffers.Peek(header);
+                byte[] recordHeader = new byte[RecordStream.TLS_HEADER_SIZE];
+                mInputBuffers.Peek(recordHeader);
 
-                int totalLength = TlsUtilities.ReadUint16(header, RecordStream.TLS_HEADER_LENGTH_OFFSET) + RecordStream.TLS_HEADER_SIZE;
+                int totalLength = TlsUtilities.ReadUint16(recordHeader, RecordStream.TLS_HEADER_LENGTH_OFFSET) + RecordStream.TLS_HEADER_SIZE;
                 if (mInputBuffers.Available < totalLength)
                 {
                     // not enough bytes to read a whole record
+                    SafeCheckRecordHeader(recordHeader);
                     break;
                 }
 
                 SafeReadRecord();
+
+                if (mClosed)
+                {
+                    if (mConnectionState != CS_END)
+                    {
+                        // NOTE: Any close during the handshake should have raised an exception.
+                        throw new TlsFatalAlert(AlertDescription.internal_error);
+                    }
+                    break;
+                }
             }
         }
 
@@ -744,50 +880,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             return mOutputBuffer.Read(buffer, offset, length);
         }
 
-        /**
-         * Terminate this connection with an alert. Can be used for normal closure too.
-         * 
-         * @param alertLevel
-         *            See {@link AlertLevel} for values.
-         * @param alertDescription
-         *            See {@link AlertDescription} for values.
-         * @throws IOException
-         *             If alert was fatal.
-         */
-        protected virtual void FailWithError(byte alertLevel, byte alertDescription, string message, Exception cause)
-        {
-            /*
-             * Check if the connection is still open.
-             */
-            if (!mClosed)
-            {
-                /*
-                 * Prepare the message
-                 */
-                this.mClosed = true;
-
-                if (alertLevel == AlertLevel.fatal)
-                {
-                    /*
-                     * RFC 2246 7.2.1. The session becomes unresumable if any connection is terminated
-                     * without proper close_notify messages with level equal to warning.
-                     */
-                    // TODO This isn't quite in the right place. Also, as of TLS 1.1 the above is obsolete.
-                    InvalidateSession();
-
-                    this.mFailedWithError = true;
-                }
-                RaiseAlert(alertLevel, alertDescription, message, cause);
-                mRecordStream.SafeClose();
-                if (alertLevel != AlertLevel.fatal)
-                {
-                    return;
-                }
-            }
-
-            throw new IOException(TLS_ERROR_MESSAGE);
-        }
-
         protected virtual void InvalidateSession()
         {
             if (this.mSessionParameters != null)
@@ -824,18 +916,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        protected virtual void RaiseAlert(byte alertLevel, byte alertDescription, string message, Exception cause)
+        protected virtual void RaiseAlertFatal(byte alertDescription, string message, Exception cause)
         {
-            Peer.NotifyAlertRaised(alertLevel, alertDescription, message, cause);
+            Peer.NotifyAlertRaised(AlertLevel.fatal, alertDescription, message, cause);
 
-            byte[] error = new byte[]{ alertLevel, alertDescription };
+            byte[] alert = new byte[]{ AlertLevel.fatal, alertDescription };
 
-            SafeWriteRecord(ContentType.alert, error, 0, 2);
+            try
+            {
+                mRecordStream.WriteRecord(ContentType.alert, alert, 0, 2);
+            }
+            catch (Exception)
+            {
+                // We are already processing an exception, so just ignore this
+            }
         }
 
-        protected virtual void RaiseWarning(byte alertDescription, string message)
+        protected virtual void RaiseAlertWarning(byte alertDescription, string message)
         {
-            RaiseAlert(AlertLevel.warning, alertDescription, message, null);
+            Peer.NotifyAlertRaised(AlertLevel.warning, alertDescription, message, null);
+
+            byte[] alert = new byte[]{ AlertLevel.warning, alertDescription };
+
+            SafeWriteRecord(ContentType.alert, alert, 0, 2);
         }
 
         protected virtual void SendCertificateMessage(Certificate certificate)
@@ -854,7 +957,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     if (serverVersion.IsSsl)
                     {
                         string errorMessage = serverVersion.ToString() + " client didn't provide credentials";
-                        RaiseWarning(AlertDescription.no_certificate, errorMessage);
+                        RaiseAlertWarning(AlertDescription.no_certificate, errorMessage);
                         return;
                     }
                 }
@@ -913,18 +1016,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             HandleClose(true);
         }
 
-        protected virtual void HandleClose(bool user_canceled)
-        {
-            if (!mClosed)
-            {
-                if (user_canceled && !mAppDataReady)
-                {
-                    RaiseWarning(AlertDescription.user_canceled, "User canceled handshake");
-                }
-                this.FailWithError(AlertLevel.warning, AlertDescription.close_notify, "Connection closed", null);
-            }
-        }
-
         protected internal virtual void Flush()
         {
             mRecordStream.Flush();
@@ -960,7 +1051,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (TlsUtilities.IsSsl(Context))
                 throw new TlsFatalAlert(AlertDescription.handshake_failure);
 
-            RaiseWarning(AlertDescription.no_renegotiation, "Renegotiation not supported");
+            RaiseAlertWarning(AlertDescription.no_renegotiation, "Renegotiation not supported");
         }
 
         /**
@@ -1086,18 +1177,30 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             MemoryStream buf = new MemoryStream();
 
-            foreach (int extension_type in extensions.Keys)
-            {
-                byte[] extension_data = (byte[])extensions[extension_type];
-
-                TlsUtilities.CheckUint16(extension_type);
-                TlsUtilities.WriteUint16(extension_type, buf);
-                TlsUtilities.WriteOpaque16(extension_data, buf);
-            }
+            /*
+             * NOTE: There are reports of servers that don't accept a zero-length extension as the last
+             * one, so we write out any zero-length ones first as a best-effort workaround.
+             */
+            WriteSelectedExtensions(buf, extensions, true);
+            WriteSelectedExtensions(buf, extensions, false);
 
             byte[] extBytes = buf.ToArray();
 
             TlsUtilities.WriteOpaque16(extBytes, output);
+        }
+
+        protected internal static void WriteSelectedExtensions(Stream output, IDictionary extensions, bool selectEmpty)
+        {
+            foreach (int extension_type in extensions.Keys)
+            {
+                byte[] extension_data = (byte[])extensions[extension_type];
+                if (selectEmpty == (extension_data.Length == 0))
+                {
+                    TlsUtilities.CheckUint16(extension_type);
+                    TlsUtilities.WriteUint16(extension_type, output);
+                    TlsUtilities.WriteOpaque16(extension_data, output);
+                }
+            }
         }
 
         protected internal static void WriteSupplementalData(Stream output, IList supplementalData)
@@ -1123,6 +1226,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             switch (ciphersuite)
             {
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_CBC_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_CBC_SHA256:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_128_GCM_SHA256:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_CBC_SHA256:
@@ -1146,19 +1252,24 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256:
             case CipherSuite.TLS_DHE_PSK_WITH_AES_128_CCM:
             case CipherSuite.TLS_DHE_PSK_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.DRAFT_TLS_DHE_PSK_WITH_AES_128_OCB:
             case CipherSuite.TLS_DHE_PSK_WITH_AES_256_CCM:
+            case CipherSuite.DRAFT_TLS_DHE_PSK_WITH_AES_256_OCB:
             case CipherSuite.TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.DRAFT_TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256:
             case CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA256:
             case CipherSuite.TLS_DHE_RSA_WITH_AES_128_CCM:
             case CipherSuite.TLS_DHE_RSA_WITH_AES_128_CCM_8:
             case CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.DRAFT_TLS_DHE_RSA_WITH_AES_128_OCB:
             case CipherSuite.TLS_DHE_RSA_WITH_AES_256_CBC_SHA256:
             case CipherSuite.TLS_DHE_RSA_WITH_AES_256_CCM:
             case CipherSuite.TLS_DHE_RSA_WITH_AES_256_CCM_8:
+            case CipherSuite.DRAFT_TLS_DHE_RSA_WITH_AES_256_OCB:
             case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256:
             case CipherSuite.TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256:
-            case CipherSuite.TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
             case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256:
             case CipherSuite.TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256:
             case CipherSuite.TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256:
@@ -1171,26 +1282,37 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM:
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8:
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.DRAFT_TLS_ECDHE_ECDSA_WITH_AES_128_OCB:
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CCM:
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8:
+            case CipherSuite.DRAFT_TLS_ECDHE_ECDSA_WITH_AES_256_OCB:
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256:
-            case CipherSuite.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_ECDHE_PSK_WITH_AES_128_OCB:
+            case CipherSuite.DRAFT_TLS_ECDHE_PSK_WITH_AES_256_OCB:
+            case CipherSuite.DRAFT_TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256:
             case CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256:
             case CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_AES_128_OCB:
+            case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_AES_256_OCB:
             case CipherSuite.TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256:
             case CipherSuite.TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256:
-            case CipherSuite.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.DRAFT_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
             case CipherSuite.TLS_PSK_DHE_WITH_AES_128_CCM_8:
             case CipherSuite.TLS_PSK_DHE_WITH_AES_256_CCM_8:
             case CipherSuite.TLS_PSK_WITH_AES_128_CCM:
             case CipherSuite.TLS_PSK_WITH_AES_128_CCM_8:
             case CipherSuite.TLS_PSK_WITH_AES_128_GCM_SHA256:
+            case CipherSuite.DRAFT_TLS_PSK_WITH_AES_128_OCB:
             case CipherSuite.TLS_PSK_WITH_AES_256_CCM:
             case CipherSuite.TLS_PSK_WITH_AES_256_CCM_8:
+            case CipherSuite.DRAFT_TLS_PSK_WITH_AES_256_OCB:
             case CipherSuite.TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.DRAFT_TLS_PSK_WITH_CHACHA20_POLY1305_SHA256:
             case CipherSuite.TLS_RSA_PSK_WITH_AES_128_GCM_SHA256:
             case CipherSuite.TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256:
+            case CipherSuite.DRAFT_TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256:
             case CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256:
             case CipherSuite.TLS_RSA_WITH_AES_128_CCM:
             case CipherSuite.TLS_RSA_WITH_AES_128_CCM_8:
@@ -1210,6 +1332,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
 
+            case CipherSuite.TLS_DH_anon_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DH_anon_WITH_CAMELLIA_256_GCM_SHA384:
             case CipherSuite.TLS_DH_DSS_WITH_AES_256_GCM_SHA384:
             case CipherSuite.TLS_DH_DSS_WITH_CAMELLIA_256_GCM_SHA384:

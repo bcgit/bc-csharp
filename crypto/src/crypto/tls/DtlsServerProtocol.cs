@@ -54,19 +54,29 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             catch (TlsFatalAlert fatalAlert)
             {
-                recordLayer.Fail(fatalAlert.AlertDescription);
+                AbortServerHandshake(state, recordLayer, fatalAlert.AlertDescription);
                 throw fatalAlert;
             }
             catch (IOException e)
             {
-                recordLayer.Fail(AlertDescription.internal_error);
+                AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw e;
             }
             catch (Exception e)
             {
-                recordLayer.Fail(AlertDescription.internal_error);
+                AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
+            finally
+            {
+                securityParameters.Clear();
+            }
+        }
+
+        internal virtual void AbortServerHandshake(ServerHandshakeState state, DtlsRecordLayer recordLayer, byte alertDescription)
+        {
+            recordLayer.Fail(alertDescription);
+            InvalidateSession(state);
         }
 
         internal virtual DtlsTransport ServerHandshake(ServerHandshakeState state, DtlsRecordLayer recordLayer)
@@ -76,12 +86,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             DtlsReliableHandshake.Message clientMessage = handshake.ReceiveMessage();
 
-            {
-                // NOTE: After receiving a record from the client, we discover the record layer version
-                ProtocolVersion client_version = recordLayer.DiscoveredPeerVersion;
-                // TODO Read RFCs for guidance on the expected record layer version number
-                state.serverContext.SetClientVersion(client_version);
-            }
+            // NOTE: DTLSRecordLayer requires any DTLS version, we don't otherwise constrain this
+            //ProtocolVersion recordLayerVersion = recordLayer.ReadVersion;
 
             if (clientMessage.Type == HandshakeType.client_hello)
             {
@@ -96,6 +102,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                 byte[] serverHelloBody = GenerateServerHello(state);
 
                 ApplyMaxFragmentLengthExtension(recordLayer, securityParameters.maxFragmentLength);
+
+                ProtocolVersion recordLayerVersion = state.serverContext.ServerVersion;
+                recordLayer.ReadVersion = recordLayerVersion;
+                recordLayer.SetWriteVersion(recordLayerVersion);
 
                 handshake.SendMessage(HandshakeType.server_hello, serverHelloBody);
             }
@@ -156,6 +166,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 state.certificateRequest = state.server.GetCertificateRequest();
                 if (state.certificateRequest != null)
                 {
+                    if (TlsUtilities.IsTlsV12(state.serverContext) != (state.certificateRequest.SupportedSignatureAlgorithms != null))
+                        throw new TlsFatalAlert(AlertDescription.internal_error);
+
                     state.keyExchange.ValidateCertificateRequest(state.certificateRequest);
 
                     byte[] certificateRequestBody = GenerateCertificateRequest(state, state.certificateRequest);
@@ -258,6 +271,21 @@ namespace Org.BouncyCastle.Crypto.Tls
             state.server.NotifyHandshakeComplete();
 
             return new DtlsTransport(recordLayer);
+        }
+
+        protected virtual void InvalidateSession(ServerHandshakeState state)
+        {
+            if (state.sessionParameters != null)
+            {
+                state.sessionParameters.Clear();
+                state.sessionParameters = null;
+            }
+
+            if (state.tlsSession != null)
+            {
+                state.tlsSession.Invalidate();
+                state.tlsSession = null;
+            }
         }
 
         protected virtual byte[] GenerateCertificateRequest(ServerHandshakeState state, CertificateRequest certificateRequest)
@@ -397,7 +425,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 securityParameters.CipherSuite);
 
             /*
-             * RFC 5264 7.4.9. Any cipher suite which does not explicitly specify verify_data_length
+             * RFC 5246 7.4.9. Any cipher suite which does not explicitly specify verify_data_length
              * has a verify_data_length equal to 12. This includes all existing cipher suites.
              */
             securityParameters.verifyDataLength = 12;
@@ -458,6 +486,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void ProcessCertificateVerify(ServerHandshakeState state, byte[] body, TlsHandshakeHash prepareFinishHash)
         {
+            if (state.certificateRequest == null)
+                throw new InvalidOperationException();
+
             MemoryStream buf = new MemoryStream(body, false);
 
             TlsServerContextImpl context = state.serverContext;
@@ -466,13 +497,15 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsProtocol.AssertEmpty(buf);
 
             // Verify the CertificateVerify message contains a correct signature.
-            bool verified = false;
             try
             {
+                SignatureAndHashAlgorithm signatureAlgorithm = clientCertificateVerify.Algorithm;
+
                 byte[] hash;
                 if (TlsUtilities.IsTlsV12(context))
                 {
-                    hash = prepareFinishHash.GetFinalHash(clientCertificateVerify.Algorithm.Hash);
+                    TlsUtilities.VerifySupportedSignatureAlgorithm(state.certificateRequest.SupportedSignatureAlgorithms, signatureAlgorithm);
+                    hash = prepareFinishHash.GetFinalHash(signatureAlgorithm.Hash);
                 }
                 else
                 {
@@ -485,15 +518,17 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 TlsSigner tlsSigner = TlsUtilities.CreateTlsSigner((byte)state.clientCertificateType);
                 tlsSigner.Init(context);
-                verified = tlsSigner.VerifyRawSignature(clientCertificateVerify.Algorithm,
-                    clientCertificateVerify.Signature, publicKey, hash);
+                if (!tlsSigner.VerifyRawSignature(signatureAlgorithm, clientCertificateVerify.Signature, publicKey, hash))
+                    throw new TlsFatalAlert(AlertDescription.decrypt_error);
             }
-            catch (Exception)
+            catch (TlsFatalAlert e)
             {
+                throw e;
             }
-
-            if (!verified)
-                throw new TlsFatalAlert(AlertDescription.decrypt_error);
+            catch (Exception e)
+            {
+                throw new TlsFatalAlert(AlertDescription.decrypt_error, e);
+            }
         }
 
         protected virtual void ProcessClientHello(ServerHandshakeState state, byte[] body)
@@ -608,6 +643,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (state.clientExtensions != null)
             {
+                // NOTE: Validates the padding extension data, if present
+                TlsExtensionsUtilities.GetPaddingExtension(state.clientExtensions);
+
                 state.server.ProcessClientExtensions(state.clientExtensions);
             }
         }
@@ -637,6 +675,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             internal TlsServer server = null;
             internal TlsServerContextImpl serverContext = null;
+            internal TlsSession tlsSession = null;
+            internal SessionParameters sessionParameters = null;
+            internal SessionParameters.Builder sessionParametersBuilder = null;
             internal int[] offeredCipherSuites = null;
             internal byte[] offeredCompressionMethods = null;
             internal IDictionary clientExtensions = null;

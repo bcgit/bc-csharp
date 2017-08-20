@@ -159,7 +159,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement Sqrt()
         {
-            return SquarePow(M - 1);
+            ulong[] z = Nat256.Create64();
+            SecT233Field.Sqrt(x, z);
+            return new SecT233FieldElement(z);
         }
 
         public virtual int Representation
