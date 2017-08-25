@@ -22,6 +22,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected short mClientCertificateType = -1;
         protected TlsHandshakeHash mPrepareFinishHash = null;
 
+        protected short mCertificateTypeClient = CertificateType.X509;
+        protected short mCertificateTypeServer = CertificateType.X509;
+
         /**
          * Constructor for blocking mode.
          * @param stream The bi-directional stream of data to/from the client
@@ -154,7 +157,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                     this.mServerCredentials = mTlsServer.GetCredentials();
 
-                    Certificate serverCertificate = null;
+                    AbstractCertificate serverCertificate = null;
 
                     if (this.mServerCredentials == null)
                     {
@@ -421,7 +424,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             } 
         }
 
-        protected virtual void NotifyClientCertificate(Certificate clientCertificate)
+        protected virtual void NotifyClientCertificate(AbstractCertificate clientCertificate)
         {
             if (mCertificateRequest == null)
                 throw new InvalidOperationException();
@@ -462,7 +465,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual void ReceiveCertificateMessage(MemoryStream buf)
         {
-            Certificate clientCertificate = Certificate.Parse(buf);
+            AbstractCertificate clientCertificate = ParseClientCertificate(buf);
 
             AssertEmpty(buf);
 
@@ -494,8 +497,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     hash = mSecurityParameters.SessionHash;
                 }
 
-                X509CertificateStructure x509Cert = mPeerCertificate.GetCertificateAt(0);
-                SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+                SubjectPublicKeyInfo keyInfo = mPeerCertificate.SubjectPublicKeyInfo(); 
                 AsymmetricKeyParameter publicKey = PublicKeyFactory.CreateKey(keyInfo);
 
                 TlsSigner tlsSigner = TlsUtilities.CreateTlsSigner((byte)mClientCertificateType);
@@ -791,6 +793,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                     && TlsUtilities.HasExpectedEmptyExtensionData(mServerExtensions, ExtensionType.session_ticket,
                         AlertDescription.internal_error);
 
+                ProcessCertificateFormats();
+
+                /*
+                 * 
+                 */
+
                 WriteExtensions(message, this.mServerExtensions);
             }
 
@@ -829,5 +837,21 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             return mClientCertificateType >= 0 && TlsUtilities.HasSigningCapability((byte)mClientCertificateType);
         }
+
+        protected virtual AbstractCertificate ParseClientCertificate(Stream stm)
+        {
+            switch (mCertificateTypeClient) {
+                case CertificateType.X509:
+                    return Certificate.Parse(stm);
+
+                case CertificateType.RawPublicKey:
+                    return RawPublicKey.Parse(stm);
+
+                default:
+                    throw new TlsFatalAlert(AlertDescription.bad_certificate);
+            }
+        }
+
+
     }
 }

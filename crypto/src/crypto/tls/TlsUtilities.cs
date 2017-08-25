@@ -1125,13 +1125,20 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        internal static short GetClientCertificateType(Certificate clientCertificate, Certificate serverCertificate)
+        internal static short GetClientCertificateType(AbstractCertificate clientCertificate, AbstractCertificate serverCertificate)
         {
             if (clientCertificate.IsEmpty)
                 return -1;
 
-            X509CertificateStructure x509Cert = clientCertificate.GetCertificateAt(0);
-            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            SubjectPublicKeyInfo keyInfo;
+            X509CertificateStructure x509Cert = null;
+
+            if (clientCertificate is Certificate) {
+                x509Cert = ((Certificate) clientCertificate).GetCertificateAt(0);
+                keyInfo = x509Cert.SubjectPublicKeyInfo;
+            }
+            else keyInfo = clientCertificate.SubjectPublicKeyInfo();
+
             try
             {
                 AsymmetricKeyParameter publicKey = PublicKeyFactory.CreateKey(keyInfo);
@@ -1155,7 +1162,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 if (publicKey is RsaKeyParameters)
                 {
-                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    if (x509Cert != null) ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
                     return ClientCertificateType.rsa_sign;
                 }
 
@@ -1165,7 +1172,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 if (publicKey is DsaPublicKeyParameters)
                 {
-                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    if (x509Cert != null) ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
                     return ClientCertificateType.dss_sign;
                 }
 
@@ -1176,7 +1183,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 if (publicKey is ECPublicKeyParameters)
                 {
-                    ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                    if (x509Cert != null) ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
                     // TODO Check the curve and point format
                     return ClientCertificateType.ecdsa_sign;
                 }
