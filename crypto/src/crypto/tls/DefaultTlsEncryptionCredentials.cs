@@ -10,10 +10,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         :   AbstractTlsEncryptionCredentials
     {
         protected readonly TlsContext mContext;
-        protected readonly Certificate mCertificate;
+        protected readonly AbstractCertificate mCertificate;
         protected readonly AsymmetricKeyParameter mPrivateKey;
 
-        public DefaultTlsEncryptionCredentials(TlsContext context, Certificate certificate,
+        public DefaultTlsEncryptionCredentials(TlsContext context, AbstractCertificate certificate,
             AsymmetricKeyParameter privateKey)
         {
             if (certificate == null)
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mPrivateKey = privateKey;
         }
 
-        public override Certificate Certificate
+        public override AbstractCertificate Certificate
         {
             get { return mCertificate; }
         }

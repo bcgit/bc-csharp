@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
-
+using System.Resources;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -61,16 +61,20 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public override void ProcessServerCertificate(Certificate serverCertificate)
+        public override void ProcessServerCertificate(AbstractCertificate serverCertificate)
         {
             if (mKeyExchange == KeyExchangeAlgorithm.DH_anon)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             if (serverCertificate.IsEmpty)
                 throw new TlsFatalAlert(AlertDescription.bad_certificate);
 
-            X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
+            Certificate real = serverCertificate  as Certificate;
+            X509CertificateStructure x509Cert = null;
+            if (real != null) {
+                x509Cert = real.GetCertificateAt(0);
+            }
 
-            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            SubjectPublicKeyInfo keyInfo = serverCertificate.SubjectPublicKeyInfo();
             try
             {
                 this.mServerPublicKey = PublicKeyFactory.CreateKey(keyInfo);
@@ -92,7 +96,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                     throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
                 }
 
-                TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.KeyAgreement);
+                if (x509Cert != null) 
+                {
+                    TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.KeyAgreement);
+                }
             }
             else
             {
@@ -101,10 +108,13 @@ namespace Org.BouncyCastle.Crypto.Tls
                     throw new TlsFatalAlert(AlertDescription.certificate_unknown);
                 }
 
-                TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                if (x509Cert != null) 
+                {
+                    TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
+                }
             }
 
-            base.ProcessServerCertificate(serverCertificate);
+                base.ProcessServerCertificate(serverCertificate);
         }
 
         public override bool RequiresServerKeyExchange
@@ -206,7 +216,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        public override void ProcessClientCertificate(Certificate clientCertificate)
+        public override void ProcessClientCertificate(AbstractCertificate clientCertificate)
         {
             if (mKeyExchange == KeyExchangeAlgorithm.DH_anon)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);

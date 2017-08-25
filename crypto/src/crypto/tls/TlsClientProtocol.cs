@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected CertificateStatus mCertificateStatus = null;
         protected CertificateRequest mCertificateRequest = null;
 
+        protected short mServerCertificateType = CertificateType.X509;
+        protected short mClientCertificateType = CertificateType.X509;
+
         /**
          * Constructor for blocking mode.
          * @param stream The bi-directional stream of data to/from the server
@@ -168,7 +171,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                     // Parse the Certificate message and Send to cipher suite
 
-                    this.mPeerCertificate = Certificate.Parse(buf);
+                    this.mPeerCertificate = ParseServerCertificate(buf);
 
                     AssertEmpty(buf);
 
@@ -908,5 +911,20 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             message.WriteToRecordStream(this);
         }
+
+        protected virtual AbstractCertificate ParseServerCertificate(Stream stm)
+        {
+            switch (mServerCertificateType) {
+                case CertificateType.X509:
+                    return Certificate.Parse(stm);
+
+                case CertificateType.RawPublicKey:
+                    return RawPublicKey.Parse(stm);
+
+                default:
+                    throw new TlsFatalAlert(AlertDescription.bad_certificate);
+            }
+        }
+
     }
 }

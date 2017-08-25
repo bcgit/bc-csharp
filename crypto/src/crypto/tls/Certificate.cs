@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Tls
      *
      * @see Org.BouncyCastle.Asn1.X509.X509CertificateStructure
      */
-    public class Certificate
+    public class Certificate : AbstractCertificate
     {
         public static readonly Certificate EmptyChain = new Certificate(new X509CertificateStructure[0]);
 
@@ -61,9 +61,9 @@ namespace Org.BouncyCastle.Crypto.Tls
          * @return <code>true</code> if this certificate chain contains no certificates, or
          *         <code>false</code> otherwise.
          */
-        public virtual bool IsEmpty
+        public override bool IsEmpty
         {
-            get { return mCertificateList.Length == 0; }
+             get => mCertificateList.Length == 0;
         }
 
         /**
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Tls
          * @param output the {@link Stream} to encode to.
          * @throws IOException
          */
-        public virtual void Encode(Stream output)
+        public override void Encode(Stream output)
         {
             IList derEncodings = Platform.CreateArrayList(mCertificateList.Length);
 
@@ -131,6 +131,14 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected virtual X509CertificateStructure[] CloneCertificateList()
         {
             return (X509CertificateStructure[])mCertificateList.Clone();
+        }
+
+        public override SubjectPublicKeyInfo SubjectPublicKeyInfo()
+        {
+            if (mCertificateList.Length > 0) {
+                return mCertificateList[0].SubjectPublicKeyInfo;
+            }
+            return null;
         }
     }
 }

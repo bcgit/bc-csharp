@@ -179,11 +179,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             state.keyExchange = state.client.GetKeyExchange();
             state.keyExchange.Init(state.clientContext);
 
-            Certificate serverCertificate = null;
+            AbstractCertificate serverCertificate = null;
 
             if (serverMessage.Type == HandshakeType.certificate)
             {
-                serverCertificate = ProcessServerCertificate(state, serverMessage.Body);
+                serverCertificate = ProcessServerCertificate2(state, serverMessage.Body);
                 serverMessage = handshake.ReceiveMessage();
             }
             else
@@ -268,7 +268,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                  * 
                  * NOTE: In previous RFCs, this was SHOULD instead of MUST.
                  */
-                Certificate clientCertificate = null;
+                AbstractCertificate clientCertificate = null;
                 if (state.clientCredentials != null)
                 {
                     clientCertificate = state.clientCredentials.Certificate;
@@ -569,16 +569,34 @@ namespace Org.BouncyCastle.Crypto.Tls
             state.client.NotifyNewSessionTicket(newSessionTicket);
         }
 
-        protected virtual Certificate ProcessServerCertificate(ClientHandshakeState state, byte[] body)
+        protected virtual AbstractCertificate ParseServerCertificate(ClientHandshakeState state, Stream stm)
+        {
+            switch (state.serverCertificateType) {
+                case CertificateType.X509:
+                    return Certificate.Parse(stm);
+
+                case CertificateType.RawPublicKey:
+                    return RawPublicKey.Parse(stm);
+
+                default:
+                    throw new TlsFatalAlert(AlertDescription.bad_certificate);
+            }
+        }
+
+        protected virtual AbstractCertificate ProcessServerCertificate2(ClientHandshakeState state, byte[] body)
         {
             MemoryStream buf = new MemoryStream(body, false);
 
-            Certificate serverCertificate = Certificate.Parse(buf);
+            AbstractCertificate serverCertificate = ParseServerCertificate(state, buf);
 
             TlsProtocol.AssertEmpty(buf);
 
             state.keyExchange.ProcessServerCertificate(serverCertificate);
             state.authentication = state.client.GetAuthentication();
+            if (serverCertificate is Certificate) 
+            {
+                state.authentication.NotifyServerCertificate((Certificate) serverCertificate);
+            }
             state.authentication.NotifyServerCertificate(serverCertificate);
 
             return serverCertificate;
@@ -758,6 +776,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                 state.expectSessionTicket = !state.resumedSession
                     && TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions, ExtensionType.session_ticket,
                         AlertDescription.illegal_parameter);
+
+                short s = TlsExtensionsUtilities.GetServerCertificateTypeExtensionServer(sessionServerExtensions);
+                if (s != -1) state.serverCertificateType = s;
+
+                s = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(sessionServerExtensions);
+                if (s != -1) state.clientCertificateType = s;
             }
 
             /*
@@ -852,6 +876,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             internal CertificateStatus certificateStatus = null;
             internal CertificateRequest certificateRequest = null;
             internal TlsCredentials clientCredentials = null;
+            internal short serverCertificateType = CertificateType.X509;
+            internal short clientCertificateType = CertificateType.X509;
         }
     }
 }

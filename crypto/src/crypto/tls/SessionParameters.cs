@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             private int mCipherSuite = -1;
             private short mCompressionAlgorithm = -1;
             private byte[] mMasterSecret = null;
-            private Certificate mPeerCertificate = null;
+            private AbstractCertificate mPeerCertificate = null;
             private byte[] mPskIdentity = null;
             private byte[] mSrpIdentity = null;
             private byte[] mEncodedServerExtensions = null;
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 return this;
             }
 
-            public Builder SetPeerCertificate(Certificate peerCertificate)
+            public Builder SetPeerCertificate(AbstractCertificate peerCertificate)
             {
                 this.mPeerCertificate = peerCertificate;
                 return this;
@@ -92,13 +92,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         private int mCipherSuite;
         private byte mCompressionAlgorithm;
         private byte[] mMasterSecret;
-        private Certificate mPeerCertificate;
+        private AbstractCertificate mPeerCertificate;
         private byte[] mPskIdentity;
         private byte[] mSrpIdentity;
         private byte[] mEncodedServerExtensions;
 
         private SessionParameters(int cipherSuite, byte compressionAlgorithm, byte[] masterSecret,
-            Certificate peerCertificate, byte[] pskIdentity, byte[] srpIdentity, byte[] encodedServerExtensions)
+            AbstractCertificate peerCertificate, byte[] pskIdentity, byte[] srpIdentity, byte[] encodedServerExtensions)
         {
             this.mCipherSuite = cipherSuite;
             this.mCompressionAlgorithm = compressionAlgorithm;
@@ -138,7 +138,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             get { return mMasterSecret; }
         }
 
-        public Certificate PeerCertificate
+        public AbstractCertificate PeerCertificate
         {
             get { return mPeerCertificate; }
         }

@@ -64,16 +64,20 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public override void ProcessServerCertificate(Certificate serverCertificate)
+        public override void ProcessServerCertificate(AbstractCertificate serverCertificate)
         {
             if (mKeyExchange == KeyExchangeAlgorithm.ECDH_anon)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             if (serverCertificate.IsEmpty)
                 throw new TlsFatalAlert(AlertDescription.bad_certificate);
 
-            X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
+            X509CertificateStructure x509Cert = null;
+            Certificate xCert = serverCertificate as Certificate;
+            if (xCert != null)
+                x509Cert = xCert.GetCertificateAt(0);
 
-            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            SubjectPublicKeyInfo keyInfo = serverCertificate.SubjectPublicKeyInfo();
+
             try
             {
                 this.mServerPublicKey = PublicKeyFactory.CreateKey(keyInfo);
@@ -94,6 +98,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     throw new TlsFatalAlert(AlertDescription.certificate_unknown, e);
                 }
 
+                if (xCert != null)
                 TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.KeyAgreement);
             }
             else
@@ -101,6 +106,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 if (!mTlsSigner.IsValidPublicKey(this.mServerPublicKey))
                     throw new TlsFatalAlert(AlertDescription.certificate_unknown);
 
+                if (xCert != null)
                 TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.DigitalSignature);
             }
 
@@ -209,7 +215,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
         }
 
-        public override void ProcessClientCertificate(Certificate clientCertificate)
+        public override void ProcessClientCertificate(AbstractCertificate clientCertificate)
         {
             if (mKeyExchange == KeyExchangeAlgorithm.ECDH_anon)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);

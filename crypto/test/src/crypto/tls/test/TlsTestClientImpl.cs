@@ -173,8 +173,10 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 this.mContext = context;
             }
 
-            public virtual void NotifyServerCertificate(Certificate serverCertificate)
+            public virtual void NotifyServerCertificate(AbstractCertificate serverCertificateIn)
             {
+                Certificate serverCertificate = serverCertificateIn as Certificate;
+
                 bool isEmpty = serverCertificate == null || serverCertificate.IsEmpty;
 
                 X509CertificateStructure[] chain = serverCertificate.GetCertificateList();
@@ -256,15 +258,15 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 return sig;
             }
 
-            public virtual Certificate Certificate
+            public virtual AbstractCertificate Certificate
             {
                 get
                 {
-                    Certificate cert = mInner.Certificate;
+                    AbstractCertificate cert = mInner.Certificate;
 
                     if (mOuter.mConfig.clientAuth == TlsTestConfig.CLIENT_AUTH_INVALID_CERT)
                     {
-                        cert = mOuter.CorruptCertificate(cert);
+                        cert = mOuter.CorruptCertificate((Certificate) cert);
                     }
 
                     return cert;

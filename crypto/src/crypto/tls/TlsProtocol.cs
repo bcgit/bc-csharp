@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected TlsSession mTlsSession = null;
         protected SessionParameters mSessionParameters = null;
         protected SecurityParameters mSecurityParameters = null;
-        protected Certificate mPeerCertificate = null;
+        protected AbstractCertificate mPeerCertificate = null;
 
         protected int[] mOfferedCipherSuites = null;
         protected byte[] mOfferedCompressionMethods = null;
@@ -941,7 +941,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             SafeWriteRecord(ContentType.alert, alert, 0, 2);
         }
 
-        protected virtual void SendCertificateMessage(Certificate certificate)
+        protected virtual void SendCertificateMessage(AbstractCertificate certificate)
         {
             if (certificate == null)
             {
@@ -1444,6 +1444,20 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 protocol.WriteHandshakeMessage(buf, 0, bufLen);
                 Platform.Dispose(this);
+            }
+        }
+        protected void ProcessCertificateFormats()
+        {
+            byte[] certificateTypes = TlsExtensionsUtilities.GetServerCertificateTypeExtensionClient(this.mClientExtensions);
+            if (certificateTypes != null) {
+                TlsExtensionsUtilities.AddServerCertificateTypeExtensionServer(this.mServerExtensions, certificateTypes[0]);
+            }
+
+            // TODO Look to see if there is going to be a client certificate request and don't bother sending if there isn't
+
+            certificateTypes = TlsExtensionsUtilities.GetClientCertificateTypeExtensionClient(this.mClientExtensions);
+            if (certificateTypes != null) {
+                TlsExtensionsUtilities.AddClientCertificateTypeExtensionServer(this.mServerExtensions, certificateTypes[0]);
             }
         }
     }

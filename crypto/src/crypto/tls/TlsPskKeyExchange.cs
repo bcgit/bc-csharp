@@ -111,16 +111,21 @@ namespace Org.BouncyCastle.Crypto.Tls
             return buf.ToArray();
         }
 
-        public override void ProcessServerCertificate(Certificate serverCertificate)
+        public override void ProcessServerCertificate(AbstractCertificate serverCertificate)
         {
             if (mKeyExchange != KeyExchangeAlgorithm.RSA_PSK)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             if (serverCertificate.IsEmpty)
                 throw new TlsFatalAlert(AlertDescription.bad_certificate);
 
-            X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
+            Certificate realCertificate = serverCertificate as Certificate;
+            X509CertificateStructure x509Cert = null;
+            if (realCertificate != null) 
+            {
+                x509Cert = realCertificate.GetCertificateAt(0);
+            }
 
-            SubjectPublicKeyInfo keyInfo = x509Cert.SubjectPublicKeyInfo;
+            SubjectPublicKeyInfo keyInfo = serverCertificate.SubjectPublicKeyInfo();
             try
             {
                 this.mServerPublicKey = PublicKeyFactory.CreateKey(keyInfo);
@@ -136,7 +141,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             this.mRsaServerPublicKey = ValidateRsaPublicKey((RsaKeyParameters)this.mServerPublicKey);
 
-            TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.KeyEncipherment);
+            if (x509Cert != null) {
+                TlsUtilities.ValidateKeyUsage(x509Cert, KeyUsage.KeyEncipherment);
+            }
 
             base.ProcessServerCertificate(serverCertificate);
         }

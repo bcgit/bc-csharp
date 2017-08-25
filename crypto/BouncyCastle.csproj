@@ -10,7 +10,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Org.BouncyCastle</RootNamespace>
     <AssemblyName>BouncyCastle</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -936,6 +937,7 @@
     <Compile Include="src\crypto\signers\RandomDsaKCalculator.cs" />
     <Compile Include="src\crypto\signers\RsaDigestSigner.cs" />
     <Compile Include="src\crypto\signers\X931Signer.cs" />
+    <Compile Include="src\crypto\tls\AbstractCertificate.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsCipherFactory.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsClient.cs" />
@@ -1016,6 +1018,7 @@
     <Compile Include="src\crypto\tls\ProtocolVersion.cs" />
     <Compile Include="src\crypto\tls\PskTlsClient.cs" />
     <Compile Include="src\crypto\tls\PskTlsServer.cs" />
+    <Compile Include="src\crypto\tls\RawPublicKey.cs" />
     <Compile Include="src\crypto\tls\RecordStream.cs" />
     <Compile Include="src\crypto\tls\SecurityParameters.cs" />
     <Compile Include="src\crypto\tls\ServerDHParams.cs" />

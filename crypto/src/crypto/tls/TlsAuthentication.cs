@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 		/// </remarks>
 		/// <param name="serverCertificate">The server <see cref="Certificate"/> received</param>
 		/// <exception cref="IOException"></exception>
-		void NotifyServerCertificate(Certificate serverCertificate);
+	    void NotifyServerCertificate(AbstractCertificate serverCertificate);
 
 		/// <summary>
 		/// Return client credentials in response to server's certificate request

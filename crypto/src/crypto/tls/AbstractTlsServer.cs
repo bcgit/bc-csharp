@@ -63,6 +63,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             return new byte[] { CompressionMethod.cls_null };
         }
 
+        protected virtual byte[] GetCertificateTypes()
+        {
+            return new byte[] { CertificateType.X509};
+        }
+
         protected virtual ProtocolVersion MaximumVersion
         {
             get { return ProtocolVersion.TLSv11; }
@@ -160,6 +165,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 this.mNamedCurves = TlsEccUtilities.GetSupportedEllipticCurvesExtension(clientExtensions);
                 this.mClientECPointFormats = TlsEccUtilities.GetSupportedPointFormatsExtension(clientExtensions);
+
+
             }
 
             /*
@@ -309,7 +316,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public virtual void NotifyClientCertificate(Certificate clientCertificate)
+        public virtual void NotifyClientCertificate(AbstractCertificate clientCertificate)
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }

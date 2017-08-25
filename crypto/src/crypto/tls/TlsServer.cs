@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <remarks>Note: this method is responsible for certificate verification and validation.</remarks>
         /// <param name="clientCertificate">the effective client certificate (may be an empty chain).</param>
         /// <exception cref="IOException"></exception>
-        void NotifyClientCertificate(Certificate clientCertificate);
+        void NotifyClientCertificate(AbstractCertificate clientCertificate);
 
         /// <summary>RFC 5077 3.3. NewSessionTicket Handshake Message.</summary>
         /// <remarks>

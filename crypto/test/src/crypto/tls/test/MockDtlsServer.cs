@@ -58,8 +58,11 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
         }
 
-        public override void NotifyClientCertificate(Certificate clientCertificate)
+        public override void NotifyClientCertificate(AbstractCertificate clientCertificateIn)
         {
+            Certificate clientCertificate = clientCertificateIn as Certificate;
+            if (clientCertificate == null) throw new TlsFatalAlert(AlertDescription.bad_certificate);
+
             X509CertificateStructure[] chain = clientCertificate.GetCertificateList();
             Console.WriteLine("DTLS server received client certificate chain of length " + chain.Length);
             for (int i = 0; i != chain.Length; i++)

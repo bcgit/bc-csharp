@@ -11,13 +11,13 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class DefaultTlsAgreementCredentials
         : AbstractTlsAgreementCredentials
     {
-        protected readonly Certificate mCertificate;
+        protected readonly AbstractCertificate mCertificate;
         protected readonly AsymmetricKeyParameter mPrivateKey;
 
         protected readonly IBasicAgreement mBasicAgreement;
         protected readonly bool mTruncateAgreement;
 
-        public DefaultTlsAgreementCredentials(Certificate certificate, AsymmetricKeyParameter privateKey)
+        public DefaultTlsAgreementCredentials(AbstractCertificate certificate, AsymmetricKeyParameter privateKey)
         {
             if (certificate == null)
                 throw new ArgumentNullException("certificate");
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mPrivateKey = privateKey;
         }
 
-        public override Certificate Certificate
+        public override AbstractCertificate Certificate
         {
             get { return mCertificate; }
         }
