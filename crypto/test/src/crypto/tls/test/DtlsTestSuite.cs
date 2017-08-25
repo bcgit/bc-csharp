@@ -215,5 +215,14 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             c.serverMinimumVersion = ProtocolVersion.DTLSv10;
             return c;
         }
+
+        public static void RunTests()
+        {
+            foreach (TestCaseData data in Suite())
+            {
+                Console.WriteLine(data.TestName);
+                new DtlsTestCase().RunTest((TlsTestConfig)data.Arguments[0]);
+            }
+        }
     }
 }

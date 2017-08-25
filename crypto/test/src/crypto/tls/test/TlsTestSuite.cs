@@ -201,5 +201,14 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             c.serverMinimumVersion = ProtocolVersion.SSLv3;
             return c;
         }
+
+        public static void RunTests()
+        {
+            foreach (TestCaseData data in Suite())
+            {
+                Console.WriteLine(data.TestName);
+                new TlsTestCase().RunTest((TlsTestConfig)data.Arguments[0]);
+            }
+        }
     }
 }

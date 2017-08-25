@@ -708,7 +708,7 @@ namespace Org.BouncyCastle.Tests
                 }
                 catch (ArgumentException ex)
                 {
-                    IsTrue("wrong message (constructor)", Platform.StartsWith(ex.Message, "invalid DH public key"));
+                    IsTrue("wrong message (constructor)", ex.Message.StartsWith("invalid DH public key"));
                 }
 
                 ka.Init(priv);

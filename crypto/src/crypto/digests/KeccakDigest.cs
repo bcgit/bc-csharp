@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
@@ -56,12 +58,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             int x, y, t, newX, newY;
 
             int rhoOffset = 0;
-            keccakRhoOffsets[(((0) % 5) + 5 * ((0) % 5))] = rhoOffset;
+            keccakRhoOffsets[0] = rhoOffset;
             x = 1;
             y = 0;
             for (t = 1; t < 25; t++)
             {
-                //rhoOffset = ((t + 1) * (t + 2) / 2) % 64;
                 rhoOffset = (rhoOffset + t) & 63;
                 keccakRhoOffsets[(((x) % 5) + 5 * ((y) % 5))] = rhoOffset;
                 newX = (0 * x + 1 * y) % 5;
@@ -73,23 +74,15 @@ namespace Org.BouncyCastle.Crypto.Digests
             return keccakRhoOffsets;
         }
 
-        protected byte[] state = new byte[(1600 / 8)];
-        protected byte[] dataQueue = new byte[(1536 / 8)];
+        private static readonly int STATE_LENGTH = (1600 / 8);
+
+        private ulong[] state = new ulong[STATE_LENGTH / 8];
+        protected byte[] dataQueue = new byte[1536 / 8];
         protected int rate;
         protected int bitsInQueue;
         protected int fixedOutputLength;
         protected bool squeezing;
         protected int bitsAvailableForSqueezing;
-        protected byte[] chunk;
-        protected byte[] oneByte;
-
-        private void ClearDataQueueSection(int off, int len)
-        {
-            for (int i = off; i != off + len; i++)
-            {
-                dataQueue[i] = 0;
-            }
-        }
 
         public KeccakDigest()
             : this(288)
@@ -115,8 +108,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.fixedOutputLength = source.fixedOutputLength;
             this.squeezing = source.squeezing;
             this.bitsAvailableForSqueezing = source.bitsAvailableForSqueezing;
-            this.chunk = Arrays.Clone(source.chunk);
-            this.oneByte = Arrays.Clone(source.oneByte);
         }
 
         public virtual string AlgorithmName
@@ -126,24 +117,22 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual int GetDigestSize()
         {
-            return fixedOutputLength / 8;
+            return fixedOutputLength >> 3;
         }
 
         public virtual void Update(byte input)
         {
-            oneByte[0] = input;
-
-            Absorb(oneByte, 0, 8L);
+            Absorb(new byte[]{ input }, 0, 1);
         }
 
         public virtual void BlockUpdate(byte[] input, int inOff, int len)
         {
-            Absorb(input, inOff, len * 8L);
+            Absorb(input, inOff, len);
         }
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
-            Squeeze(output, outOff, fixedOutputLength);
+            Squeeze(output, outOff, fixedOutputLength >> 3);
 
             Reset();
 
@@ -157,11 +146,10 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             if (partialBits > 0)
             {
-                oneByte[0] = partialByte;
-                Absorb(oneByte, 0, partialBits);
+                AbsorbBits(partialByte, partialBits);
             }
 
-            Squeeze(output, outOff, fixedOutputLength);
+            Squeeze(output, outOff, fixedOutputLength >> 3);
 
             Reset();
 
@@ -180,7 +168,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          */
         public virtual int GetByteLength()
         {
-            return rate / 8;
+            return rate >> 3;
         }
 
         private void Init(int bitLength)
@@ -188,242 +176,170 @@ namespace Org.BouncyCastle.Crypto.Digests
             switch (bitLength)
             {
                 case 128:
-                    InitSponge(1344, 256);
-                    break;
                 case 224:
-                    InitSponge(1152, 448);
-                    break;
                 case 256:
-                    InitSponge(1088, 512);
-                    break;
                 case 288:
-                    InitSponge(1024, 576);
-                    break;
                 case 384:
-                    InitSponge(832, 768);
-                    break;
                 case 512:
-                    InitSponge(576, 1024);
+                    InitSponge(1600 - (bitLength << 1));
                     break;
                 default:
                     throw new ArgumentException("must be one of 128, 224, 256, 288, 384, or 512.", "bitLength");
             }
         }
 
-        private void InitSponge(int rate, int capacity)
+        private void InitSponge(int rate)
         {
-            if (rate + capacity != 1600)
-            {
-                throw new InvalidOperationException("rate + capacity != 1600");
-            }
-            if ((rate <= 0) || (rate >= 1600) || ((rate % 64) != 0))
-            {
+            if (rate <= 0 || rate >= 1600 || (rate & 63) != 0)
                 throw new InvalidOperationException("invalid rate value");
-            }
 
             this.rate = rate;
-            // this is never read, need to check to see why we want to save it
-            //  this.capacity = capacity;
-            this.fixedOutputLength = 0;
-            Arrays.Fill(this.state, (byte)0);
+            Array.Clear(state, 0, state.Length);
             Arrays.Fill(this.dataQueue, (byte)0);
             this.bitsInQueue = 0;
             this.squeezing = false;
             this.bitsAvailableForSqueezing = 0;
-            this.fixedOutputLength = capacity / 2;
-            this.chunk = new byte[rate / 8];
-            this.oneByte = new byte[1];
+            this.fixedOutputLength = (1600 - rate) >> 1;
         }
 
-        private void AbsorbQueue()
+        protected void Absorb(byte[] data, int off, int len)
         {
-            KeccakAbsorb(state, dataQueue, rate / 8);
-
-            bitsInQueue = 0;
-        }
-
-        protected virtual void Absorb(byte[] data, int off, long databitlen)
-        {
-            long i, j, wholeBlocks;
-
-            if ((bitsInQueue % 8) != 0)
-            {
+            if ((bitsInQueue & 7) != 0)
                 throw new InvalidOperationException("attempt to absorb with odd length queue");
-            }
             if (squeezing)
-            {
                 throw new InvalidOperationException("attempt to absorb while squeezing");
-            }
 
-            i = 0;
-            while (i < databitlen)
+            int bytesInQueue = bitsInQueue >> 3;
+            int rateBytes = rate >> 3;
+
+            int count = 0;
+            while (count < len)
             {
-                if ((bitsInQueue == 0) && (databitlen >= rate) && (i <= (databitlen - rate)))
+                if (bytesInQueue == 0 && count <= (len - rateBytes))
                 {
-                    wholeBlocks = (databitlen - i) / rate;
-
-                    for (j = 0; j < wholeBlocks; j++)
+                    do
                     {
-                        Array.Copy(data, (int)(off + (i / 8) + (j * chunk.Length)), chunk, 0, chunk.Length);
-
-                        KeccakAbsorb(state, chunk, chunk.Length);
+                        KeccakAbsorb(data, off + count);
+                        count += rateBytes;
                     }
-
-                    i += wholeBlocks * rate;
+                    while (count <= (len - rateBytes));
                 }
                 else
                 {
-                    int partialBlock = (int)(databitlen - i);
-                    if (partialBlock + bitsInQueue > rate)
-                    {
-                        partialBlock = rate - bitsInQueue;
-                    }
-                    int partialByte = partialBlock % 8;
-                    partialBlock -= partialByte;
-                    Array.Copy(data, off + (int)(i / 8), dataQueue, bitsInQueue / 8, partialBlock / 8);
+                    int partialBlock = System.Math.Min(rateBytes - bytesInQueue, len - count);
+                    Array.Copy(data, off + count, dataQueue, bytesInQueue, partialBlock);
 
-                    bitsInQueue += partialBlock;
-                    i += partialBlock;
-                    if (bitsInQueue == rate)
+                    bytesInQueue += partialBlock;
+                    count += partialBlock;
+
+                    if (bytesInQueue == rateBytes)
                     {
-                        AbsorbQueue();
-                    }
-                    if (partialByte > 0)
-                    {
-                        int mask = (1 << partialByte) - 1;
-                        dataQueue[bitsInQueue / 8] = (byte)(data[off + ((int)(i / 8))] & mask);
-                        bitsInQueue += partialByte;
-                        i += partialByte;
+                        KeccakAbsorb(dataQueue, 0);
+                        bytesInQueue = 0;
                     }
                 }
             }
+
+            bitsInQueue = bytesInQueue << 3;
+        }
+
+        protected void AbsorbBits(int data, int bits)
+        {
+            if (bits < 1 || bits > 7)
+                throw new ArgumentException("must be in the range 1 to 7", "bits");
+            if ((bitsInQueue & 7) != 0)
+                throw new InvalidOperationException("attempt to absorb with odd length queue");
+            if (squeezing)
+                throw new InvalidOperationException("attempt to absorb while squeezing");
+
+            int mask = (1 << bits) - 1;
+            dataQueue[bitsInQueue >> 3] = (byte)(data & mask);
+
+            // NOTE: After this, bitsInQueue is no longer a multiple of 8, so no more absorbs will work
+            bitsInQueue += bits;
         }
 
         private void PadAndSwitchToSqueezingPhase()
         {
-            if (bitsInQueue + 1 == rate)
-            {
-                dataQueue[bitsInQueue / 8] |= (byte)(1U << (bitsInQueue % 8));
-                AbsorbQueue();
-                ClearDataQueueSection(0, rate / 8);
-            }
-            else
-            {
-                ClearDataQueueSection((bitsInQueue + 7) / 8, rate / 8 - (bitsInQueue + 7) / 8);
-                dataQueue[bitsInQueue / 8] |= (byte)(1U << (bitsInQueue % 8));
-            }
-            dataQueue[(rate - 1) / 8] |= (byte)(1U << ((rate - 1) % 8));
-            AbsorbQueue();
+            Debug.Assert(bitsInQueue < rate);
 
-            if (rate == 1024)
+            dataQueue[bitsInQueue >> 3] |= (byte)(1U << (bitsInQueue & 7));
+
+            if (++bitsInQueue == rate)
             {
-                KeccakExtract1024bits(state, dataQueue);
-                bitsAvailableForSqueezing = 1024;
-            }
-            else
-            {
-                KeccakExtract(state, dataQueue, rate / 64);
-                bitsAvailableForSqueezing = rate;
+                KeccakAbsorb(dataQueue, 0);
+                bitsInQueue = 0;
             }
 
+            {
+                int full = bitsInQueue >> 6, partial = bitsInQueue & 63;
+                int off = 0;
+                for (int i = 0; i < full; ++i)
+                {
+                    state[i] ^= Pack.LE_To_UInt64(dataQueue, off);
+                    off += 8;
+                }
+                if (partial > 0)
+                {
+                    ulong mask = (1UL << partial) - 1UL;
+                    state[full] ^= Pack.LE_To_UInt64(dataQueue, off) & mask;
+                }
+                state[(rate - 1) >> 6] ^= (1UL << 63);
+            }
+
+            KeccakPermutation();
+            KeccakExtract();
+            bitsAvailableForSqueezing = rate;
+
+            bitsInQueue = 0;
             squeezing = true;
         }
 
-        protected virtual void Squeeze(byte[] output, int offset, long outputLength)
+        protected void Squeeze(byte[] output, int off, int len)
         {
-            long i;
-            int partialBlock;
-
             if (!squeezing)
             {
                 PadAndSwitchToSqueezingPhase();
             }
-            if ((outputLength % 8) != 0)
-            {
-                throw new InvalidOperationException("outputLength not a multiple of 8");
-            }
 
-            i = 0;
+            long outputLength = (long)len << 3;
+            long i = 0;
             while (i < outputLength)
             {
                 if (bitsAvailableForSqueezing == 0)
                 {
-                    KeccakPermutation(state);
-
-                    if (rate == 1024)
-                    {
-                        KeccakExtract1024bits(state, dataQueue);
-                        bitsAvailableForSqueezing = 1024;
-                    }
-                    else
-                    {
-                        KeccakExtract(state, dataQueue, rate / 64);
-                        bitsAvailableForSqueezing = rate;
-                    }
-                }
-                partialBlock = bitsAvailableForSqueezing;
-                if ((long)partialBlock > outputLength - i)
-                {
-                    partialBlock = (int)(outputLength - i);
+                    KeccakPermutation();
+                    KeccakExtract();
+                    bitsAvailableForSqueezing = rate;
                 }
 
-                Array.Copy(dataQueue, (rate - bitsAvailableForSqueezing) / 8, output, offset + (int)(i / 8), partialBlock / 8);
+                int partialBlock = (int)System.Math.Min((long)bitsAvailableForSqueezing, outputLength - i);
+                Array.Copy(dataQueue, (rate - bitsAvailableForSqueezing) >> 3, output, off + (int)(i >> 3), partialBlock >> 3);
                 bitsAvailableForSqueezing -= partialBlock;
                 i += partialBlock;
             }
         }
 
-        private static void FromBytesToWords(ulong[] stateAsWords, byte[] state)
+        private void KeccakAbsorb(byte[] data, int off)
         {
-            for (int i = 0; i < (1600 / 64); i++)
+            int count = rate >> 6;
+            for (int i = 0; i < count; ++i)
             {
-                stateAsWords[i] = 0;
-                int index = i * (64 / 8);
-                for (int j = 0; j < (64 / 8); j++)
-                {
-                    stateAsWords[i] |= ((ulong)state[index + j] & 0xff) << ((8 * j));
-                }
-            }
-        }
-
-        private static void FromWordsToBytes(byte[] state, ulong[] stateAsWords)
-        {
-            for (int i = 0; i < (1600 / 64); i++)
-            {
-                int index = i * (64 / 8);
-                for (int j = 0; j < (64 / 8); j++)
-                {
-                    state[index + j] = (byte)(stateAsWords[i] >> (8 * j));
-                }
-            }
-        }
-
-        private void KeccakPermutation(byte[] state)
-        {
-            ulong[] longState = new ulong[state.Length / 8];
-
-            FromBytesToWords(longState, state);
-
-            KeccakPermutationOnWords(longState);
-
-            FromWordsToBytes(state, longState);
-        }
-
-        private void KeccakPermutationAfterXor(byte[] state, byte[] data, int dataLengthInBytes)
-        {
-            for (int i = 0; i < dataLengthInBytes; i++)
-            {
-                state[i] ^= data[i];
+                state[i] ^= Pack.LE_To_UInt64(data, off);
+                off += 8;
             }
 
-            KeccakPermutation(state);
+            KeccakPermutation();
         }
 
-        private void KeccakPermutationOnWords(ulong[] state)
+        private void KeccakExtract()
         {
-            int i;
+            Pack.UInt64_To_LE(state, 0, rate >> 6, dataQueue, 0);
+        }
 
-            for (i = 0; i < 24; i++)
+        private void KeccakPermutation()
+        {
+            for (int i = 0; i < 24; i++)
             {
                 Theta(state);
                 Rho(state);
@@ -433,90 +349,121 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        ulong[] C = new ulong[5];
-
-        private void Theta(ulong[] A)
+        private static ulong leftRotate(ulong v, int r)
         {
-            for (int x = 0; x < 5; x++)
+            return (v << r) | (v >> -r);
+        }
+
+        private static void Theta(ulong[] A)
+        {
+            ulong C0 = A[0 + 0] ^ A[0 + 5] ^ A[0 + 10] ^ A[0 + 15] ^ A[0 + 20];
+            ulong C1 = A[1 + 0] ^ A[1 + 5] ^ A[1 + 10] ^ A[1 + 15] ^ A[1 + 20];
+            ulong C2 = A[2 + 0] ^ A[2 + 5] ^ A[2 + 10] ^ A[2 + 15] ^ A[2 + 20];
+            ulong C3 = A[3 + 0] ^ A[3 + 5] ^ A[3 + 10] ^ A[3 + 15] ^ A[3 + 20];
+            ulong C4 = A[4 + 0] ^ A[4 + 5] ^ A[4 + 10] ^ A[4 + 15] ^ A[4 + 20];
+
+            ulong dX = leftRotate(C1, 1) ^ C4;
+
+            A[0] ^= dX;
+            A[5] ^= dX;
+            A[10] ^= dX;
+            A[15] ^= dX;
+            A[20] ^= dX;
+
+            dX = leftRotate(C2, 1) ^ C0;
+
+            A[1] ^= dX;
+            A[6] ^= dX;
+            A[11] ^= dX;
+            A[16] ^= dX;
+            A[21] ^= dX;
+
+            dX = leftRotate(C3, 1) ^ C1;
+
+            A[2] ^= dX;
+            A[7] ^= dX;
+            A[12] ^= dX;
+            A[17] ^= dX;
+            A[22] ^= dX;
+
+            dX = leftRotate(C4, 1) ^ C2;
+
+            A[3] ^= dX;
+            A[8] ^= dX;
+            A[13] ^= dX;
+            A[18] ^= dX;
+            A[23] ^= dX;
+
+            dX = leftRotate(C0, 1) ^ C3;
+
+            A[4] ^= dX;
+            A[9] ^= dX;
+            A[14] ^= dX;
+            A[19] ^= dX;
+            A[24] ^= dX;
+        }
+
+        private static void Rho(ulong[] A)
+        {
+            // KeccakRhoOffsets[0] == 0
+            for (int x = 1; x < 25; x++)
             {
-                C[x] = 0;
-                for (int y = 0; y < 5; y++)
-                {
-                    C[x] ^= A[x + 5 * y];
-                }
-            }
-            for (int x = 0; x < 5; x++)
-            {
-                ulong dX = ((((C[(x + 1) % 5]) << 1) ^ ((C[(x + 1) % 5]) >> (64 - 1)))) ^ C[(x + 4) % 5];
-                for (int y = 0; y < 5; y++)
-                {
-                    A[x + 5 * y] ^= dX;
-                }
+                A[x] = leftRotate(A[x], KeccakRhoOffsets[x]);
             }
         }
 
-        private void Rho(ulong[] A)
+        private static void Pi(ulong[] A)
         {
-            for (int x = 0; x < 5; x++)
-            {
-                for (int y = 0; y < 5; y++)
-                {
-                    int index = x + 5 * y;
-                    A[index] = ((KeccakRhoOffsets[index] != 0) ? (((A[index]) << KeccakRhoOffsets[index]) ^ ((A[index]) >> (64 - KeccakRhoOffsets[index]))) : A[index]);
-                }
-            }
+            ulong a1 = A[1];
+            A[1] = A[6];
+            A[6] = A[9];
+            A[9] = A[22];
+            A[22] = A[14];
+            A[14] = A[20];
+            A[20] = A[2];
+            A[2] = A[12];
+            A[12] = A[13];
+            A[13] = A[19];
+            A[19] = A[23];
+            A[23] = A[15];
+            A[15] = A[4];
+            A[4] = A[24];
+            A[24] = A[21];
+            A[21] = A[8];
+            A[8] = A[16];
+            A[16] = A[5];
+            A[5] = A[3];
+            A[3] = A[18];
+            A[18] = A[17];
+            A[17] = A[11];
+            A[11] = A[7];
+            A[7] = A[10];
+            A[10] = a1;
         }
 
-        ulong[] tempA = new ulong[25];
-
-        private void Pi(ulong[] A)
+        private static void Chi(ulong[] A)
         {
-            Array.Copy(A, 0, tempA, 0, tempA.Length);
+            ulong chiC0, chiC1, chiC2, chiC3, chiC4;
 
-            for (int x = 0; x < 5; x++)
+            for (int yBy5 = 0; yBy5 < 25; yBy5 += 5)
             {
-                for (int y = 0; y < 5; y++)
-                {
-                    A[y + 5 * ((2 * x + 3 * y) % 5)] = tempA[x + 5 * y];
-                }
-            }
-        }
+                chiC0 = A[0 + yBy5] ^ ((~A[(((0 + 1) % 5) + yBy5)]) & A[(((0 + 2) % 5) + yBy5)]);
+                chiC1 = A[1 + yBy5] ^ ((~A[(((1 + 1) % 5) + yBy5)]) & A[(((1 + 2) % 5) + yBy5)]);
+                chiC2 = A[2 + yBy5] ^ ((~A[(((2 + 1) % 5) + yBy5)]) & A[(((2 + 2) % 5) + yBy5)]);
+                chiC3 = A[3 + yBy5] ^ ((~A[(((3 + 1) % 5) + yBy5)]) & A[(((3 + 2) % 5) + yBy5)]);
+                chiC4 = A[4 + yBy5] ^ ((~A[(((4 + 1) % 5) + yBy5)]) & A[(((4 + 2) % 5) + yBy5)]);
 
-        ulong[] chiC = new ulong[5];
-
-        private void Chi(ulong[] A)
-        {
-            for (int y = 0; y < 5; y++)
-            {
-                for (int x = 0; x < 5; x++)
-                {
-                    chiC[x] = A[x + 5 * y] ^ ((~A[(((x + 1) % 5) + 5 * y)]) & A[(((x + 2) % 5) + 5 * y)]);
-                }
-                for (int x = 0; x < 5; x++)
-                {
-                    A[x + 5 * y] = chiC[x];
-                }
+                A[0 + yBy5] = chiC0;
+                A[1 + yBy5] = chiC1;
+                A[2 + yBy5] = chiC2;
+                A[3 + yBy5] = chiC3;
+                A[4 + yBy5] = chiC4;
             }
         }
 
         private static void Iota(ulong[] A, int indexRound)
         {
-            A[(((0) % 5) + 5 * ((0) % 5))] ^= KeccakRoundConstants[indexRound];
-        }
-
-        private void KeccakAbsorb(byte[] byteState, byte[] data, int dataInBytes)
-        {
-            KeccakPermutationAfterXor(byteState, data, dataInBytes);
-        }
-
-        private void KeccakExtract1024bits(byte[] byteState, byte[] data)
-        {
-            Array.Copy(byteState, 0, data, 0, 128);
-        }
-
-        private void KeccakExtract(byte[] byteState, byte[] data, int laneCount)
-        {
-            Array.Copy(byteState, 0, data, 0, laneCount * 8);
+            A[0] ^= KeccakRoundConstants[indexRound];
         }
 
         public virtual IMemoable Copy()
@@ -526,9 +473,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual void Reset(IMemoable other)
         {
-            KeccakDigest d = (KeccakDigest)other;
-
-            CopyIn(d);
+            CopyIn((KeccakDigest)other);
         }
     }
 }

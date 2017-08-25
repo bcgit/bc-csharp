@@ -5,7 +5,6 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec.Tests
@@ -150,32 +149,59 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec.Tests
 
         private ECFieldElement GenerateMultiplyInputA_OpenSSLBug()
         {
-            uint[] x = Nat256.Create();
+            uint[] x = Nat256_Create();
             x[0] = (uint)Random.NextInt() >> 1;
             x[4] = 3;
             x[7] = 0xFFFFFFFF;
 
-            return FE(Nat256.ToBigInteger(x));
+            return FE(Nat256_ToBigInteger(x));
         }
 
         private ECFieldElement GenerateMultiplyInputB_OpenSSLBug()
         {
-            uint[] x = Nat256.Create();
+            uint[] x = Nat256_Create();
             x[0] = (uint)Random.NextInt() >> 1;
             x[3] = 1;
             x[7] = 0xFFFFFFFF;
 
-            return FE(Nat256.ToBigInteger(x));
+            return FE(Nat256_ToBigInteger(x));
         }
 
         private ECFieldElement GenerateSquareInput_OpenSSLBug()
         {
-            uint[] x = Nat256.Create();
+            uint[] x = Nat256_Create();
             x[0] = (uint)Random.NextInt() >> 1;
             x[4] = 2;
             x[7] = 0xFFFFFFFF;
 
-            return FE(Nat256.ToBigInteger(x));
+            return FE(Nat256_ToBigInteger(x));
+        }
+
+        private static uint[] Nat256_Create()
+        {
+            return new uint[8];
+        }
+
+        private static BigInteger Nat256_ToBigInteger(uint[] x)
+        {
+            byte[] bs = new byte[32];
+            for (int i = 0; i < 8; ++i)
+            {
+                uint x_i = x[i];
+                if (x_i != 0)
+                {
+                    Pack_UInt32_To_BE(x_i, bs, (7 - i) << 2);
+                }
+            }
+            return new BigInteger(1, bs);
+        }
+
+        private static void Pack_UInt32_To_BE(uint n, byte[] bs, int off)
+        {
+            bs[off] = (byte)(n >> 24);
+            bs[off + 1] = (byte)(n >> 16);
+            bs[off + 2] = (byte)(n >> 8);
+            bs[off + 3] = (byte)(n);
         }
     }
 }
