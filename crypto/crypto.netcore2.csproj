@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Company>The Legion of the Bouncy Castle Inc.</Company>
+    <Copyright>Copyright (C) 2000-2017</Copyright>
+    <Description>Bouncy Castle Cryptography API</Description>
+    <FileVersion>1.8.15362.1</FileVersion>
+    <Version>1.8.1.0</Version>
+    <Product>Bouncy Castle for .NET</Product>
+    <AssemblyTitle>BouncyCastle.Crypto</AssemblyTitle>
+    <AssemblyVersion>1.8.1</AssemblyVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ProjectGuid>{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}</ProjectGuid>
+    <DebugType>embedded</DebugType>
+    <AssemblyName>crypto</AssemblyName>
+    <RootNamespace>crypto</RootNamespace>
+    <DefineConstants>NETCORE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1591;618;672</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.core">
+      <Name>nunit.core</Name>
+      <HintPath>test\lib\nunit.core.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.core.interfaces">
+      <Name>nunit.core.interfaces</Name>
+      <HintPath>test\lib\nunit.core.interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <Name>nunit.framework</Name>
+      <HintPath>test\lib\nunit.framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Contributors.html" />
+    <Content Include="License.html" />
+    <Content Include="Readme.html" />
+    <Content Include="test\lib\nunit.core.dll" />
+    <Content Include="test\lib\nunit.core.interfaces.dll" />
+    <Content Include="test\lib\nunit.framework.dll" />
+    <EmbeddedResource Include="test\data\**\*.*" />
+    <None Include="NBuild.build" />
+    <None Include="testcfg.nunit" />
+    <None Include="test\data\keys\README.txt" />
+    <None Include="test\data\openpgp\dsa\README.txt" />
+    <None Include="test\data\openssl\README.txt" />
+    <None Include="test\data\PKITS\README.txt" />
+    <None Include="test\data\rfc4134\rfc4134.txt" />
+    <None Include="test\data\rsa3\testcases.README" />
+  </ItemGroup>
+</Project>
