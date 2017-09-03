@@ -5,6 +5,7 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
@@ -47,6 +48,7 @@ namespace Org.BouncyCastle.Security
             algorithms["SHA1WITHRSA"] = "SHA-1withRSA";
             algorithms["SHA1WITHRSAENCRYPTION"] = "SHA-1withRSA";
             algorithms[PkcsObjectIdentifiers.Sha1WithRsaEncryption.Id] = "SHA-1withRSA";
+            algorithms[OiwObjectIdentifiers.Sha1WithRsa.Id] = "SHA-1withRSA";
             algorithms["SHA-1WITHRSA"] = "SHA-1withRSA";
 
             algorithms["SHA224WITHRSA"] = "SHA-224withRSA";
