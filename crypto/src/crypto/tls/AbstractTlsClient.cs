@@ -42,6 +42,16 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 TlsEccUtilities.ReadSupportedEllipticCurvesExtension(extensionData);
                 return true;
+
+            case ExtensionType.ec_point_formats:
+                /*
+                 * Exception added based on field reports that some servers send this even when they
+                 * didn't negotiate an ECC cipher suite. If present, we still require that it is a valid
+                 * ECPointFormatList.
+                 */
+                TlsEccUtilities.ReadSupportedPointFormatsExtension(extensionData);
+                return true;
+
             default:
                 return false;
             }
