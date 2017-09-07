@@ -42,7 +42,14 @@ namespace Org.BouncyCastle.Asn1
             Asn1TaggedObject	obj,
             bool				explicitly)
         {
-            return GetInstance(obj.GetObject());
+            Asn1Object o = obj.GetObject();
+
+            if (explicitly || o is DerObjectIdentifier)
+            {
+                return GetInstance(o);
+            }
+
+            return FromOctetString(Asn1OctetString.GetInstance(o).GetOctets());
         }
 
         public DerObjectIdentifier(

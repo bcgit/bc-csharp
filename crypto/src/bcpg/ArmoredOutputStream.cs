@@ -147,13 +147,13 @@ namespace Org.BouncyCastle.Bcpg
          */
         public void ResetHeaders()
         {
-            string version = (string)headers[HeaderVersion];
+            string existingVersion = (string)headers[HeaderVersion];
 
             headers.Clear();
 
-            if (version != null)
+            if (existingVersion != null)
             {
-                headers[HeaderVersion] = Version;
+                headers.Add(HeaderVersion, existingVersion);
             }
         }
 

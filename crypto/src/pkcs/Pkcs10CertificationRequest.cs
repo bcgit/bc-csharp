@@ -55,13 +55,13 @@ namespace Org.BouncyCastle.Pkcs
 
 		static Pkcs10CertificationRequest()
 		{
-			algorithms.Add("MD2WITHRSAENCRYPTION", new DerObjectIdentifier("1.2.840.113549.1.1.2"));
-			algorithms.Add("MD2WITHRSA", new DerObjectIdentifier("1.2.840.113549.1.1.2"));
-			algorithms.Add("MD5WITHRSAENCRYPTION", new DerObjectIdentifier("1.2.840.113549.1.1.4"));
-			algorithms.Add("MD5WITHRSA", new DerObjectIdentifier("1.2.840.113549.1.1.4"));
-			algorithms.Add("RSAWITHMD5", new DerObjectIdentifier("1.2.840.113549.1.1.4"));
-			algorithms.Add("SHA1WITHRSAENCRYPTION", new DerObjectIdentifier("1.2.840.113549.1.1.5"));
-			algorithms.Add("SHA1WITHRSA", new DerObjectIdentifier("1.2.840.113549.1.1.5"));
+			algorithms.Add("MD2WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD2WithRsaEncryption);
+			algorithms.Add("MD2WITHRSA", PkcsObjectIdentifiers.MD2WithRsaEncryption);
+			algorithms.Add("MD5WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD5WithRsaEncryption);
+			algorithms.Add("MD5WITHRSA", PkcsObjectIdentifiers.MD5WithRsaEncryption);
+			algorithms.Add("RSAWITHMD5", PkcsObjectIdentifiers.MD5WithRsaEncryption);
+			algorithms.Add("SHA1WITHRSAENCRYPTION", PkcsObjectIdentifiers.Sha1WithRsaEncryption);
+			algorithms.Add("SHA1WITHRSA", PkcsObjectIdentifiers.Sha1WithRsaEncryption);
 			algorithms.Add("SHA224WITHRSAENCRYPTION", PkcsObjectIdentifiers.Sha224WithRsaEncryption);
 			algorithms.Add("SHA224WITHRSA", PkcsObjectIdentifiers.Sha224WithRsaEncryption);
 			algorithms.Add("SHA256WITHRSAENCRYPTION", PkcsObjectIdentifiers.Sha256WithRsaEncryption);
@@ -75,15 +75,15 @@ namespace Org.BouncyCastle.Pkcs
 			algorithms.Add("SHA256WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
 			algorithms.Add("SHA384WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
 			algorithms.Add("SHA512WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
-			algorithms.Add("RSAWITHSHA1", new DerObjectIdentifier("1.2.840.113549.1.1.5"));
+			algorithms.Add("RSAWITHSHA1", PkcsObjectIdentifiers.Sha1WithRsaEncryption);
 			algorithms.Add("RIPEMD128WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
 			algorithms.Add("RIPEMD128WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
 			algorithms.Add("RIPEMD160WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160);
 			algorithms.Add("RIPEMD160WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160);
 			algorithms.Add("RIPEMD256WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256);
 			algorithms.Add("RIPEMD256WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256);
-			algorithms.Add("SHA1WITHDSA", new DerObjectIdentifier("1.2.840.10040.4.3"));
-			algorithms.Add("DSAWITHSHA1", new DerObjectIdentifier("1.2.840.10040.4.3"));
+			algorithms.Add("SHA1WITHDSA", X9ObjectIdentifiers.IdDsaWithSha1);
+			algorithms.Add("DSAWITHSHA1", X9ObjectIdentifiers.IdDsaWithSha1);
 			algorithms.Add("SHA224WITHDSA", NistObjectIdentifiers.DsaWithSha224);
 			algorithms.Add("SHA256WITHDSA", NistObjectIdentifiers.DsaWithSha256);
 			algorithms.Add("SHA384WITHDSA", NistObjectIdentifiers.DsaWithSha384);
@@ -103,26 +103,27 @@ namespace Org.BouncyCastle.Pkcs
 			//
 			// reverse mappings
 			//
-			oids.Add(new DerObjectIdentifier("1.2.840.113549.1.1.5"), "SHA1WITHRSA");
-			oids.Add(PkcsObjectIdentifiers.Sha224WithRsaEncryption, "SHA224WITHRSA");
-			oids.Add(PkcsObjectIdentifiers.Sha256WithRsaEncryption, "SHA256WITHRSA");
-			oids.Add(PkcsObjectIdentifiers.Sha384WithRsaEncryption, "SHA384WITHRSA");
-			oids.Add(PkcsObjectIdentifiers.Sha512WithRsaEncryption, "SHA512WITHRSA");
-			oids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94, "GOST3411WITHGOST3410");
-			oids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001, "GOST3411WITHECGOST3410");
+            oids.Add(PkcsObjectIdentifiers.Sha1WithRsaEncryption, "SHA1WITHRSA");
+            oids.Add(PkcsObjectIdentifiers.Sha224WithRsaEncryption, "SHA224WITHRSA");
+            oids.Add(PkcsObjectIdentifiers.Sha256WithRsaEncryption, "SHA256WITHRSA");
+            oids.Add(PkcsObjectIdentifiers.Sha384WithRsaEncryption, "SHA384WITHRSA");
+            oids.Add(PkcsObjectIdentifiers.Sha512WithRsaEncryption, "SHA512WITHRSA");
+            oids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94, "GOST3411WITHGOST3410");
+            oids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001, "GOST3411WITHECGOST3410");
 
-			oids.Add(new DerObjectIdentifier("1.2.840.113549.1.1.4"), "MD5WITHRSA");
-			oids.Add(new DerObjectIdentifier("1.2.840.113549.1.1.2"), "MD2WITHRSA");
-			oids.Add(new DerObjectIdentifier("1.2.840.10040.4.3"), "SHA1WITHDSA");
-			oids.Add(X9ObjectIdentifiers.ECDsaWithSha1, "SHA1WITHECDSA");
-			oids.Add(X9ObjectIdentifiers.ECDsaWithSha224, "SHA224WITHECDSA");
-			oids.Add(X9ObjectIdentifiers.ECDsaWithSha256, "SHA256WITHECDSA");
-			oids.Add(X9ObjectIdentifiers.ECDsaWithSha384, "SHA384WITHECDSA");
-			oids.Add(X9ObjectIdentifiers.ECDsaWithSha512, "SHA512WITHECDSA");
-			oids.Add(OiwObjectIdentifiers.Sha1WithRsa, "SHA1WITHRSA");
-			oids.Add(OiwObjectIdentifiers.DsaWithSha1, "SHA1WITHDSA");
-			oids.Add(NistObjectIdentifiers.DsaWithSha224, "SHA224WITHDSA");
-			oids.Add(NistObjectIdentifiers.DsaWithSha256, "SHA256WITHDSA");
+            oids.Add(PkcsObjectIdentifiers.MD5WithRsaEncryption, "MD5WITHRSA");
+            oids.Add(PkcsObjectIdentifiers.MD2WithRsaEncryption, "MD2WITHRSA");
+            oids.Add(X9ObjectIdentifiers.IdDsaWithSha1, "SHA1WITHDSA");
+            oids.Add(X9ObjectIdentifiers.ECDsaWithSha1, "SHA1WITHECDSA");
+            oids.Add(X9ObjectIdentifiers.ECDsaWithSha224, "SHA224WITHECDSA");
+            oids.Add(X9ObjectIdentifiers.ECDsaWithSha256, "SHA256WITHECDSA");
+            oids.Add(X9ObjectIdentifiers.ECDsaWithSha384, "SHA384WITHECDSA");
+            oids.Add(X9ObjectIdentifiers.ECDsaWithSha512, "SHA512WITHECDSA");
+            oids.Add(OiwObjectIdentifiers.MD5WithRsa, "MD5WITHRSA");
+            oids.Add(OiwObjectIdentifiers.Sha1WithRsa, "SHA1WITHRSA");
+            oids.Add(OiwObjectIdentifiers.DsaWithSha1, "SHA1WITHDSA");
+            oids.Add(NistObjectIdentifiers.DsaWithSha224, "SHA224WITHDSA");
+            oids.Add(NistObjectIdentifiers.DsaWithSha256, "SHA256WITHDSA");
 
 			//
 			// key types
