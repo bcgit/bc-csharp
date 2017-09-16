@@ -3719,6 +3719,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\engines\SM2Engine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\engines\TEAEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11931,6 +11936,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\SkipjackTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\SM2EngineTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
