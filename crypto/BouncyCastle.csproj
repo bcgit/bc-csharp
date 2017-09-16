@@ -698,6 +698,7 @@
     <Compile Include="src\crypto\agreement\jpake\JPakeRound2Payload.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakeRound3Payload.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakeUtilities.cs" />
+    <Compile Include="src\crypto\agreement\kdf\ConcatenationKdfGenerator.cs" />
     <Compile Include="src\crypto\agreement\kdf\DHKdfParameters.cs" />
     <Compile Include="src\crypto\agreement\kdf\DHKekGenerator.cs" />
     <Compile Include="src\crypto\agreement\kdf\ECDHKekGenerator.cs" />

@@ -3274,6 +3274,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\agreement\kdf\ConcatenationKdfGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\agreement\kdf\DHKdfParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
