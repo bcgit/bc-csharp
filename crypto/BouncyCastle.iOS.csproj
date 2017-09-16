@@ -366,6 +366,7 @@
     <Compile Include="src\asn1\pkcs\SafeBag.cs" />
     <Compile Include="src\asn1\pkcs\SignedData.cs" />
     <Compile Include="src\asn1\pkcs\SignerInfo.cs" />
+    <Compile Include="src\asn1\rosstandart\RosstandartObjectIdentifiers.cs" />
     <Compile Include="src\asn1\sec\ECPrivateKeyStructure.cs" />
     <Compile Include="src\asn1\sec\SECNamedCurves.cs" />
     <Compile Include="src\asn1\sec\SECObjectIdentifiers.cs" />

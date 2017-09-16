@@ -1714,6 +1714,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\rosstandart\RosstandartObjectIdentifiers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\sec\ECPrivateKeyStructure.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
