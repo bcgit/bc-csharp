@@ -696,6 +696,7 @@
     <Compile Include="src\crypto\agreement\ECDHWithKdfBasicAgreement.cs" />
     <Compile Include="src\crypto\agreement\ECMqvBasicAgreement.cs" />
     <Compile Include="src\crypto\agreement\ECMqvWithKdfBasicAgreement.cs" />
+    <Compile Include="src\crypto\agreement\SM2KeyExchange.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakeParticipant.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakePrimeOrderGroup.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakePrimeOrderGroups.cs" />
@@ -928,6 +929,8 @@
     <Compile Include="src\crypto\parameters\RsaKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\RsaPrivateCrtKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\SkeinParameters.cs" />
+    <Compile Include="src\crypto\parameters\SM2KeyExchangePrivateParameters.cs" />
+    <Compile Include="src\crypto\parameters\SM2KeyExchangePublicParameters.cs" />
     <Compile Include="src\crypto\parameters\Srp6GroupParameters.cs" />
     <Compile Include="src\crypto\parameters\TweakableBlockCipherParameters.cs" />
     <Compile Include="src\crypto\prng\CryptoApiRandomGenerator.cs" />

@@ -3234,6 +3234,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\agreement\SM2KeyExchange.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\agreement\jpake\JPakeParticipant.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4425,6 +4430,16 @@
                 />
                 <File
                     RelPath = "src\crypto\parameters\SkeinParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\SM2KeyExchangePrivateParameters.cs" 
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\SM2KeyExchangePublicParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11916,6 +11931,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\SkipjackTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\SM2KeyExchangeTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

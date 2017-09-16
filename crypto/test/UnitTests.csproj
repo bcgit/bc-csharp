@@ -256,6 +256,7 @@
     <Compile Include="src\crypto\test\SHA512HMacTest.cs" />
     <Compile Include="src\crypto\test\SHA512t224DigestTest.cs" />
     <Compile Include="src\crypto\test\SHA512t256DigestTest.cs" />
+    <Compile Include="src\crypto\test\SM2KeyExchangeTest.cs" />
     <Compile Include="src\crypto\test\SM2SignerTest.cs" />
     <Compile Include="src\crypto\test\SM3DigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinDigestTest.cs" />
