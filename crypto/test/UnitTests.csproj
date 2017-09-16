@@ -256,6 +256,7 @@
     <Compile Include="src\crypto\test\SHA512HMacTest.cs" />
     <Compile Include="src\crypto\test\SHA512t224DigestTest.cs" />
     <Compile Include="src\crypto\test\SHA512t256DigestTest.cs" />
+    <Compile Include="src\crypto\test\SM2SignerTest.cs" />
     <Compile Include="src\crypto\test\SM3DigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinDigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinMacTest.cs" />
@@ -440,6 +441,7 @@
     <Compile Include="src\util\test\SimpleTest.cs" />
     <Compile Include="src\util\test\SimpleTestResult.cs" />
     <Compile Include="src\util\test\TestFailedException.cs" />
+    <Compile Include="src\util\test\TestRandomBigInteger.cs" />
     <Compile Include="src\util\test\UncloseableStream.cs" />
     <Compile Include="src\x509\test\TestCertificateGen.cs" />
   </ItemGroup>

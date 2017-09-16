@@ -128,6 +128,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new X931SignerTest(),
             new KeccakDigestTest(),
             new ShakeDigestTest(),
+            new SM2SignerTest(),
         };
 
         public static void Main(string[] args)

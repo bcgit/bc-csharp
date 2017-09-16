@@ -4369,6 +4369,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\parameters\ParametersWithID.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\parameters\ParametersWithIV.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4610,6 +4615,11 @@
                 />
                 <File
                     RelPath = "src\crypto\signers\RSADigestSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\SM2Signer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11910,6 +11920,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\SM2SignerTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\SM3DigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12791,6 +12806,11 @@
                 />
                 <File
                     RelPath = "test\src\util\test\TestFailedException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\util\test\TestRandomBigInteger.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

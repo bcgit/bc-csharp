@@ -910,6 +910,7 @@
     <Compile Include="src\crypto\parameters\NaccacheSternKeyGenerationParameters.cs" />
     <Compile Include="src\crypto\parameters\NaccacheSternKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\NaccacheSternPrivateKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\ParametersWithID.cs" />
     <Compile Include="src\crypto\parameters\ParametersWithIV.cs" />
     <Compile Include="src\crypto\parameters\ParametersWithRandom.cs" />
     <Compile Include="src\crypto\parameters\ParametersWithSBox.cs" />
@@ -945,6 +946,7 @@
     <Compile Include="src\crypto\signers\PssSigner.cs" />
     <Compile Include="src\crypto\signers\RandomDsaKCalculator.cs" />
     <Compile Include="src\crypto\signers\RsaDigestSigner.cs" />
+    <Compile Include="src\crypto\signers\SM2Signer.cs" />
     <Compile Include="src\crypto\signers\X931Signer.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsCipherFactory.cs" />
