@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual string AlgorithmName
         {
-            get { return "SM2"; }
+            get { return "SM2Sign"; }
         }
 
         public virtual void Init(bool forSigning, ICipherParameters parameters)
