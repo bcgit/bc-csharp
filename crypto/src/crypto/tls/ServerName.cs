@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case Tls.NameType.host_name:
                 return name is string;
             default:
-                throw new ArgumentException("unsupported value", "name");
+                throw new ArgumentException("unsupported NameType", "nameType");
             }
         }
     }

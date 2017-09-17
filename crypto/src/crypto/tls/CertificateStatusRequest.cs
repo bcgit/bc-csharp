@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CertificateStatusType.ocsp:
                 return request is OcspStatusRequest;
             default:
-                throw new ArgumentException("unsupported value", "statusType");
+                throw new ArgumentException("unsupported CertificateStatusType", "statusType");
             }
         }
     }
