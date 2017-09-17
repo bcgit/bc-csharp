@@ -448,6 +448,14 @@
     <Compile Include="src\x509\test\TestCertificateGen.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="data\cert_chain.data" />
+    <EmbeddedResource Include="data\cert_chain_nl.data" />
+    <EmbeddedResource Include="data\qvRooCa3.crt" />
+    <EmbeddedResource Include="data\suvaEE.crt" />
+    <EmbeddedResource Include="data\suvaEmail1.crt" />
+    <EmbeddedResource Include="data\suvaRoot1.crt" />
+    <EmbeddedResource Include="data\ThawteSGCCA.cer" />
+    <EmbeddedResource Include="data\ThawteSGCCA.crl" />
     <EmbeddedResource Include="data\crypto\SHA3TestVectors.txt" />
     <EmbeddedResource Include="data\crypto\SHAKETestVectors.txt" />
     <EmbeddedResource Include="data\PKITS\README.txt" />

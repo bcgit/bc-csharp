@@ -7529,6 +7529,38 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\data\cert_chain.data"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\cert_chain_nl.data"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\qvRooCa3.crt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\suvaEE.crt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\suvaEmail1.crt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\suvaRoot1.crt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\ThawteSGCCA.cer"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\ThawteSGCCA.crl"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\asn1\masterlist-content.data"
                     BuildAction = "EmbeddedResource"
                 />

@@ -19,6 +19,7 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
@@ -2426,6 +2427,19 @@ namespace Org.BouncyCastle.Tests
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
 
+        private void rfc4491Test()
+        {
+            X509CertificateParser certFact = new X509CertificateParser();
+
+            X509Certificate x509 = certFact.ReadCertificate(new MemoryStream(gostRFC4491_94, false));
+
+            x509.Verify(x509.GetPublicKey());
+
+            x509 = (X509Certificate)certFact.ReadCertificate(new MemoryStream(gostRFC4491_2001, false));
+
+            x509.Verify(x509.GetPublicKey());
+        }
+
         private void doTestNullDerNullCert()
         {
             AsymmetricCipherKeyPair keyPair = GenerateLongFixedKeys();
@@ -2467,6 +2481,71 @@ namespace Org.BouncyCastle.Tests
             {
                 Fail("doTestNullDerNull failed - exception " + e.ToString(), e);
             }
+        }
+
+        private void pemFileTest()
+        {
+            X509CertificateParser fact = new X509CertificateParser();
+
+            ICollection certs1 = fact.ReadCertificates(GetTestDataAsStream("cert_chain.data"));
+            IsTrue("certs wrong <cr><nl>", 2 == certs1.Count);
+
+            MemoryStream input = new MemoryStream(Streams.ReadAll(GetTestDataAsStream("cert_chain.data")), false);
+
+            ISet certs2 = new HashSet();
+            while (input.Position < input.Length)
+            {
+                X509Certificate c = fact.ReadCertificate(input);
+
+                // this isn't strictly correct with the way it's defined in the Java JavaDoc - need it for backward
+                // compatibility.
+                if (c != null)
+                {
+                    certs2.Add(c);
+                }
+            }
+            IsTrue("certs size <cr><nl>", certs1.Count == certs2.Count);
+
+            certs2.RemoveAll(certs1);
+            IsTrue("collection not empty", certs2.Count == 0);
+        }
+
+        private void invalidCrls()
+        {
+            X509CrlParser crlParser = new X509CrlParser();
+
+            ICollection crls = crlParser.ReadCrls(GetTestDataAsStream("cert_chain.data"));
+            IsTrue("multi crl", crls.Count == 0);
+
+            X509Crl crl = crlParser.ReadCrl(GetTestDataAsStream("cert_chain.data"));
+            IsTrue("single crl", crl == null);
+        }
+
+        private void pemFileTestWithNl()
+        {
+            X509CertificateParser fact = new X509CertificateParser();
+
+            ICollection certs1 = fact.ReadCertificates(GetTestDataAsStream("cert_chain_nl.data"));
+            IsTrue("certs wrong <nl>", 2 == certs1.Count);
+
+            MemoryStream input = new MemoryStream(Streams.ReadAll(GetTestDataAsStream("cert_chain_nl.data")), false);
+
+            ISet certs2 = new HashSet();
+            while (input.Position < input.Length)
+            {
+                X509Certificate c = fact.ReadCertificate(input);
+
+                // this isn't strictly correct with the way it's defined in the Java JavaDoc - need it for backward
+                // compatibility.
+                if (c != null)
+                {
+                    certs2.Add(c);
+                }
+            }
+            IsTrue("certs size <nl>", certs1.Count == certs2.Count);
+
+            certs2.RemoveAll(certs1);
+            IsTrue("collection not empty", certs2.Count == 0);
         }
 
         public override void PerformTest()
@@ -2518,7 +2597,12 @@ namespace Org.BouncyCastle.Tests
             checkCrlCreation3();
 
             pemTest();
+            pemFileTest();
+            pemFileTestWithNl();
             pkcs7Test();
+            rfc4491Test();
+
+            invalidCrls();
 
             doTestForgedSignature();
 
