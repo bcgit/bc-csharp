@@ -1046,6 +1046,8 @@
     <EmbeddedResource Include="data\cms\sigs\PSSSignDataSHA512.sig" />
     <EmbeddedResource Include="data\cms\sigs\PSSSignDataSHA512Enc.sig" />
     <EmbeddedResource Include="data\cms\sigs\counterSig.p7m" />
+    <EmbeddedResource Include="data\cms\sigs\rawsha256nonull.p7m" />
+    <EmbeddedResource Include="data\cms\sigs\SignedMSPkcs7.sig" />
     <EmbeddedResource Include="data\hc256\hc128\ecrypt_HC-128.txt" />
     <EmbeddedResource Include="data\hc256\hc256\ecrypt_HC-256_128K_128IV.txt" />
     <EmbeddedResource Include="data\hc256\hc256\ecrypt_HC-256_128K_256IV.txt" />

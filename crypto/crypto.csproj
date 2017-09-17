@@ -7597,6 +7597,14 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\cms\sigs\rawsha256nonull.p7m"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\cms\sigs\SignedMSPkcs7.sig"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\crypto\SHA3TestVectors.txt"
                     BuildAction = "EmbeddedResource"
                 />
