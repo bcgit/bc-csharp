@@ -155,32 +155,33 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         protected virtual void ProcessBlock(byte[] input, int inOff)
         {
-            byte[][] temp1 = new byte[STATE_BYTE_SIZE_1024][];
-            byte[][] temp2 = new byte[STATE_BYTE_SIZE_1024][];
+            byte[][] temp1 = new byte[columns][];
+            byte[][] temp2 = new byte[columns][];
 
-            for (int i = 0; i < state_.Length; i++)
+            int pos = inOff;
+            for (int i = 0; i < columns; i++)
             {
-                temp1[i] = new byte[ROWS];
-                temp2[i] = new byte[ROWS];
-            }
+                byte[] S = state_[i];
+                byte[] T1 = temp1[i] = new byte[ROWS];
+                byte[] T2 = temp2[i] = new byte[ROWS];
 
-            for (int i = 0; i < ROWS; ++i)
-            {
-                for (int j = 0; j < columns; ++j)
+                for (int j = 0; j < ROWS; ++j)
                 {
-                    temp1[j][i] = (byte)(state_[j][i] ^ input[j * ROWS + i + inOff]);
-                    temp2[j][i] = input[j * ROWS + i + inOff];
+                    byte inVal = input[pos++];
+                    T1[j] = (byte)(S[j] ^ inVal);
+                    T2[j] = inVal;
                 }
             }
 
             P(temp1);
             Q(temp2);
 
-            for (int i = 0; i < ROWS; ++i)
+            for (int i = 0; i < columns; ++i)
             {
-                for (int j = 0; j < columns; ++j)
+                byte[] S = state_[i], T1 = temp1[i], T2 = temp2[i];
+                for (int j = 0; j < ROWS; ++j)
                 {
-                    state_[j][i] ^= (byte)(temp1[j][i] ^ temp2[j][i]);
+                    S[j] ^= (byte)(T1[j] ^ T2[j]);
                 }
             }
         }
@@ -313,50 +314,55 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        private static byte MultiplyGF(byte x, byte y)
+        /* Pair-wise GF multiplication of 4 byte-pairs (at bits 0, 16, 32, 48 within x, y) */
+        private static ulong MultiplyGFx4(ulong u, ulong v)
         {
-            // REDUCTION_POLYNOMIAL = 0x011d; /* x^8 + x^4 + x^3 + x^2 + 1 */
+            ulong r = u & ((v & 0x0001000100010001UL) * 0xFFFFUL);
 
-            uint u = x, v = y;
-            uint r = u & (0U - (v & 1));
-
-            for (int i = 1; i < BITS_IN_BYTE; i++)
+            for (int i = 1; i < 8; ++i)
             {
                 u <<= 1;
                 v >>= 1;
-                r ^= u & (0U - (v & 1));
+                r ^= u & ((v & 0x0001000100010001L) * 0xFFFFL);
             }
 
-            uint hi = r & 0xFF00U;
-            r ^= hi ^ (hi >> 4) ^ (hi >> 5) ^ (hi >> 6) ^ (hi >> 8);
-            hi = r & 0x0F00U;
-            r ^= hi ^ (hi >> 4) ^ (hi >> 5) ^ (hi >> 6) ^ (hi >> 8);
+            // REDUCTION_POLYNOMIAL = 0x011d; /* x^8 + x^4 + x^3 + x^2 + 1 */
 
-            return (byte)r;
+            ulong hi = r & 0xFF00FF00FF00FF00UL;
+            r ^= hi ^ (hi >> 4) ^ (hi >> 5) ^ (hi >> 6) ^ (hi >> 8);
+            hi = r & 0x0F000F000F000F00UL;
+            r ^= hi ^ (hi >> 4) ^ (hi >> 5) ^ (hi >> 6) ^ (hi >> 8);
+            return r;
         }
 
         private void MixColumns(byte[][] state)
         {
-            int i, row, col, b;
-            byte product;
-            byte[] result = new byte[ROWS];
-
-            for (col = 0; col < columns; ++col)
+            for (int col = 0; col < columns; ++col)
             {
-                Array.Clear(result, 0, ROWS);
-                for (row = ROWS - 1; row >= 0; --row)
+                ulong colVal = Pack.LE_To_UInt64(state[col]);
+                ulong colEven = colVal & 0x00FF00FF00FF00FFUL;
+                ulong colOdd = (colVal >> 8) & 0x00FF00FF00FF00FFUL;
+
+                //ulong rowMatrix = (mdsMatrix >> 8) | (mdsMatrix << 56);
+                ulong rowMatrix = mdsMatrix;
+
+                ulong result = 0;
+                for (int row = 7; row >= 0; --row)
                 {
-                    product = 0;
-                    for (b = ROWS - 1; b >= 0; --b)
-                    {
-                        product ^= MultiplyGF(state[col][b], mds_matrix[row][b]);
-                    }
-                    result[row] = product;
+                    ulong product = MultiplyGFx4(colEven, rowMatrix & 0x00FF00FF00FF00FFUL);
+
+                    rowMatrix = (rowMatrix >> 8) | (rowMatrix << 56);
+
+                    product ^= MultiplyGFx4(colOdd, rowMatrix & 0x00FF00FF00FF00FFUL);
+
+                    product ^= (product >> 32);
+                    product ^= (product >> 16);
+
+                    result <<= 8;
+                    result |= (product & 0xFFUL);
                 }
-                for (i = 0; i < ROWS; ++i)
-                {
-                    state[col][i] = result[i];
-                }
+
+                Pack.UInt64_To_LE(result, state[col]);
             }
         }
 
@@ -420,17 +426,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             CopyIn(d);
         }
 
-        private static readonly byte[][] mds_matrix = new byte[][]
-        {
-            new byte[] { 0x01, 0x01, 0x05, 0x01, 0x08, 0x06, 0x07, 0x04 },
-            new byte[] { 0x04, 0x01, 0x01, 0x05, 0x01, 0x08, 0x06, 0x07 },
-            new byte[] { 0x07, 0x04, 0x01, 0x01, 0x05, 0x01, 0x08, 0x06 },
-            new byte[] { 0x06, 0x07, 0x04, 0x01, 0x01, 0x05, 0x01, 0x08 },
-            new byte[] { 0x08, 0x06, 0x07, 0x04, 0x01, 0x01, 0x05, 0x01 },
-            new byte[] { 0x01, 0x08, 0x06, 0x07, 0x04, 0x01, 0x01, 0x05 },
-            new byte[] { 0x05, 0x01, 0x08, 0x06, 0x07, 0x04, 0x01, 0x01 },
-            new byte[] { 0x01, 0x05, 0x01, 0x08, 0x06, 0x07, 0x04, 0x01 }
-        };
+        //private const ulong mdsMatrix = 0x0407060801050101UL;
+        private const ulong mdsMatrix = 0x0104070608010501UL;
 
         private static readonly byte[][] sBoxes = new byte[][]
         {
