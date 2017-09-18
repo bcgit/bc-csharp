@@ -17,7 +17,6 @@ namespace Org.BouncyCastle.Crypto.Digests
     public class Dstu7564Digest : IDigest, IMemoable
     {
         private const int ROWS = 8;
-        private const int REDUCTION_POLYNOMIAL = 0x011d;
         private const int BITS_IN_BYTE = 8;
 
         private const int NB_512 = 8;  //Number of 8-byte words in state for <=256-bit hash code.
@@ -316,28 +315,24 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private static byte MultiplyGF(byte x, byte y)
         {
-            int i;
-            byte r = 0;
-            byte hbit = 0;
-            for (i = 0; i < BITS_IN_BYTE; ++i)
+            // REDUCTION_POLYNOMIAL = 0x011d; /* x^8 + x^4 + x^3 + x^2 + 1 */
+
+            uint u = x, v = y;
+            uint r = u & (0U - (v & 1));
+
+            for (int i = 1; i < BITS_IN_BYTE; i++)
             {
-                if ((y & 0x1) == 1)
-                {
-                    r ^= x;
-                }
-
-                hbit = (byte)(x & 0x80);
-
-                x <<= 1;
-
-                if (hbit == 0x80)
-                {
-                    x = (byte)((int)x ^ REDUCTION_POLYNOMIAL);
-                }
-
-                y >>= 1;
+                u <<= 1;
+                v >>= 1;
+                r ^= u & (0U - (v & 1));
             }
-            return r;
+
+            uint hi = r & 0xFF00U;
+            r ^= hi ^ (hi >> 4) ^ (hi >> 5) ^ (hi >> 6) ^ (hi >> 8);
+            hi = r & 0x0F00U;
+            r ^= hi ^ (hi >> 4) ^ (hi >> 5) ^ (hi >> 6) ^ (hi >> 8);
+
+            return (byte)r;
         }
 
         private void MixColumns(byte[][] state)
