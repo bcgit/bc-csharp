@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 R = R.TwicePlus(lookupTable[index]);
             }
 
-            return R;
+            return R.Add(info.Offset);
         }
 
         protected virtual int GetWidthForCombSize(int combSize)

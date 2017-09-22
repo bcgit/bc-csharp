@@ -2,8 +2,8 @@ using System;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Esf;
+using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
@@ -23,17 +23,17 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             SignerLocation sl = new SignerLocation(countryName, null, null);
 
-            CheckConstruction(sl, countryName, null, null);
+            CheckConstruction(sl, DirectoryString.GetInstance(countryName), null, null);
 
             DerUtf8String localityName = new DerUtf8String("Melbourne");
 
             sl = new SignerLocation(null, localityName, null);
 
-			CheckConstruction(sl, null, localityName, null);
+			CheckConstruction(sl, null, DirectoryString.GetInstance(localityName), null);
 
 			sl = new SignerLocation(countryName, localityName, null);
 
-			CheckConstruction(sl, countryName, localityName, null);
+			CheckConstruction(sl, DirectoryString.GetInstance(countryName), DirectoryString.GetInstance(localityName), null);
 
 			Asn1Sequence postalAddress = new DerSequence(
 				new DerUtf8String("line 1"),
@@ -45,11 +45,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             sl = new SignerLocation(countryName, null, postalAddress);
 
-            CheckConstruction(sl, countryName, null, postalAddress);
+            CheckConstruction(sl, DirectoryString.GetInstance(countryName), null, postalAddress);
 
             sl = new SignerLocation(countryName, localityName, postalAddress);
 
-            CheckConstruction(sl, countryName, localityName, postalAddress);
+            CheckConstruction(sl, DirectoryString.GetInstance(countryName), DirectoryString.GetInstance(localityName), postalAddress);
 
             sl = SignerLocation.GetInstance(null);
 
@@ -117,9 +117,9 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		private void CheckConstruction(
             SignerLocation sl,
-            DerUtf8String  countryName,
-            DerUtf8String  localityName,
-            Asn1Sequence   postalAddress)
+            DirectoryString countryName,
+            DirectoryString localityName,
+            Asn1Sequence postalAddress)
         {
             CheckValues(sl, countryName, localityName, postalAddress);
 
@@ -137,9 +137,9 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		private void CheckValues(
             SignerLocation sl,
-            DerUtf8String  countryName,
-            DerUtf8String  localityName,
-            Asn1Sequence   postalAddress)
+            DirectoryString countryName,
+            DirectoryString localityName,
+            Asn1Sequence postalAddress)
         {
             if (countryName != null)
             {

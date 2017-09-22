@@ -269,6 +269,9 @@ namespace Org.BouncyCastle.Utilities.Encoders
         {
             if (c3 == padding)
             {
+                if (c4 != padding)
+                    throw new IOException("invalid characters encountered at end of base64 data");
+
                 byte b1 = decodingTable[c1];
                 byte b2 = decodingTable[c2];
 

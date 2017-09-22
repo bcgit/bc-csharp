@@ -672,6 +672,24 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifySignatures(s, hash);
 		}
 
+        [Test]
+        public void TestRawSha256MissingNull()
+        {
+            byte[] document = GetInput("rawsha256nonull.p7m");
+
+            CmsSignedData s = new CmsSignedData(document);
+
+            IX509Store certStore = s.GetCertificates("Collection");
+            foreach (SignerInformation signerInformation in s.GetSignerInfos().GetSigners())
+            {
+                ICollection certCollection = certStore.GetMatches(signerInformation.SignerID);
+                foreach (X509Certificate cert in certCollection)
+                {
+                    Assert.IsTrue(signerInformation.Verify(cert), "raw sig failed");
+                }
+            }
+        }
+
 		[Test]
 		public void TestSha1WithRsaEncapsulated()
 		{

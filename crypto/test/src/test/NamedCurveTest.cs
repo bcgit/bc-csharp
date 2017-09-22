@@ -240,18 +240,39 @@ namespace Org.BouncyCastle.Tests
 //			}
         }
 
-        public void doTestECGost(
-            string name)
+        public void doTestECGost(string name)
         {
-//			ECGenParameterSpec ecSpec = new ECGenParameterSpec(name);
+            ISigner sgr;
+            string keyAlgorithm;
+
+            if (name.IndexOf("Tc26-Gost-3410") == 0)
+            {
+                // TODO Implement ECGOST3410-2012 in SignerUtilies/GeneratorUtilities etc.
+                // Current test cases don't work for GOST34.10 2012
+                return;
+
+                keyAlgorithm = "ECGOST3410-2012";
+                if (name.IndexOf("256") > 0)
+                {
+                    sgr = SignerUtilities.GetSigner("ECGOST3410-2012-256");
+                }
+                else
+                {
+                    sgr = SignerUtilities.GetSigner("ECGOST3410-2012-512");
+                }
+            }
+            else
+            {
+                keyAlgorithm = "ECGOST3410";
+
+                sgr = SignerUtilities.GetSigner("ECGOST3410");
+            }
+
             ECDomainParameters ecSpec = GetCurveParameters(name);
 
-            IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
-
-//			g.initialize(ecSpec, new SecureRandom());
+            IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator(keyAlgorithm);
             g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom())); 
 
-            ISigner sgr = SignerUtilities.GetSigner("ECGOST3410");
             AsymmetricCipherKeyPair pair = g.GenerateKeyPair();
             AsymmetricKeyParameter sKey = pair.Private;
             AsymmetricKeyParameter vKey = pair.Public;
@@ -280,7 +301,7 @@ namespace Org.BouncyCastle.Tests
 ////			byte[]              pubEnc = vKey.getEncoded();
 //			byte[] pubEnc = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(vKey).GetDerEncoded();
 //
-////			KeyFactory          keyFac = KeyFactory.getInstance("ECGOST3410");
+////			KeyFactory          keyFac = KeyFactory.getInstance(keyAlgorithm);
 ////			X509EncodedKeySpec  pubX509 = new X509EncodedKeySpec(pubEnc);
 ////			ECPublicKey         pubKey = (ECPublicKey)keyFac.generatePublic(pubX509);
 //			ECPublicKeyParameters pubKey = (ECPublicKeyParameters) PublicKeyFactory.CreateKey(pubEnc);
