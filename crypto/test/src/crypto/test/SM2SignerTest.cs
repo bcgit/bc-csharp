@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new DerSequence(new DerInteger(r), new DerInteger(s)).GetEncoded();
         }
 
-        public static void Main(
+        public static void MainOld(
             string[] args)
         {
             RunTest(new SM2SignerTest());
