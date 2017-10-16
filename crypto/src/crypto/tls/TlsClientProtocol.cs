@@ -145,6 +145,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 ProcessFinishedMessage(buf);
                 this.mConnectionState = CS_SERVER_FINISHED;
 
+                SendChangeCipherSpecMessage();
                 SendFinishedMessage();
                 this.mConnectionState = CS_CLIENT_FINISHED;
 
@@ -266,8 +267,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                     {
                         this.mSecurityParameters.masterSecret = Arrays.Clone(this.mSessionParameters.MasterSecret);
                         this.mRecordStream.SetPendingConnectionState(Peer.GetCompression(), Peer.GetCipher());
-
-                        SendChangeCipherSpecMessage();
                     }
                     else
                     {
