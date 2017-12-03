@@ -8,7 +8,8 @@
     <Product>Bouncy Castle for .NET ($(TargetFramework))</Product>
     <Copyright>Copyright (C) 2000-2017</Copyright>
     <Company>The Legion of the Bouncy Castle Inc.</Company>
-    <Description>Bouncy Castle Cryptography API</Description>
+    <Title>Bouncy Castle PCL </Title>
+    <Description>BouncyCastle portable version with support for .NET 4, .NET Standard 1.0-2.0, WP, Silverlight, MonoAndroid, Xamarin.iOS, .NET Core</Description>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">

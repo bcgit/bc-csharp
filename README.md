@@ -1,9 +1,7 @@
-BouncyCastle-PCL
+Portable.BouncyCastle
 ================
 
-PCL Version of BouncyCastle targeting .NET Framework 4, Silverlight 5, Windows 8, Windows Phone App 8.1, MonoTouch, MonoAndroid
-
-This version also supports .NET Core and CoreCLR
+BouncyCastle portable version with support for .NET 4, .NET Standard 1.0-2.0, WP, Silverlight, MonoAndroid, Xamarin.iOS, .NET Core
 
 ================
 
