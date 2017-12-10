@@ -22,16 +22,9 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             object obj)
         {
             if (obj == null || obj is Gost3410PublicKeyAlgParameters)
-            {
-                return (Gost3410PublicKeyAlgParameters) obj;
-            }
+                return (Gost3410PublicKeyAlgParameters)obj;
 
-			if (obj is Asn1Sequence)
-            {
-                return new Gost3410PublicKeyAlgParameters((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("Invalid GOST3410Parameter: " + Platform.GetTypeName(obj));
+            return new Gost3410PublicKeyAlgParameters(Asn1Sequence.GetInstance((obj)));
         }
 
 		public Gost3410PublicKeyAlgParameters(

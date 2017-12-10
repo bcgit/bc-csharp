@@ -16,8 +16,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         private static readonly int BITS_IN_WORD = 64;
         private static readonly int BITS_IN_BYTE = 8;
 
-        private static readonly int REDUCTION_POLYNOMIAL = 0x011d; /* x^8 + x^4 + x^3 + x^2 + 1 */
-
         private ulong[] internalState;
         private ulong[] workingKey;
         private ulong[][] roundKeys;
@@ -472,51 +470,55 @@ namespace Org.BouncyCastle.Crypto.Engines
             MatrixMultiply(mdsInvMatrix);
         }
 
-        private void MatrixMultiply(byte[][] matrix)
+        private void MatrixMultiply(ulong matrix)
         {
-            int col, row, b;
-            byte product;
-            ulong result;
-            byte[] stateBytes = Pack.UInt64_To_LE(internalState);
-
-            for (col = 0; col < wordsInBlock; ++col)
+            for (int col = 0; col < wordsInBlock; ++col)
             {
-                result = 0;
-                for (row = 8 - 1; row >= 0; --row)
+                ulong colVal = internalState[col];
+                ulong colEven = colVal & 0x00FF00FF00FF00FFUL; 
+                ulong colOdd = (colVal >> 8) & 0x00FF00FF00FF00FFUL; 
+
+                //ulong rowMatrix = (matrix >> 8) | (matrix << 56);
+                ulong rowMatrix = matrix;
+
+                ulong result = 0;
+                for (int row = 7; row >= 0; --row)
                 {
-                    product = 0;
-                    for (b = 8 - 1; b >= 0; --b)
-                    {
-                        product ^= MultiplyGF(stateBytes[b + col * 8], matrix[row][b]);
-                    }
-                    result |= (ulong)product << (row * 8);
+                    ulong product = MultiplyGFx4(colEven, rowMatrix & 0x00FF00FF00FF00FFUL);
+
+                    rowMatrix = (rowMatrix >> 8) | (rowMatrix << 56);
+
+                    product ^= MultiplyGFx4(colOdd, rowMatrix & 0x00FF00FF00FF00FFUL);
+
+                    product ^= (product >> 32);
+                    product ^= (product >> 16);
+
+                    result <<= 8;
+                    result |= (product & 0xFFUL);
                 }
+
                 internalState[col] = result;
             }
         }
 
-        private byte MultiplyGF(byte x, byte y)
+        /* Pair-wise GF multiplication of 4 byte-pairs (at bits 0, 16, 32, 48 within x, y) */
+        private static ulong MultiplyGFx4(ulong u, ulong v)
         {
-            byte r = 0;
-            byte hbit = 0;
+            ulong r = u & ((v & 0x0001000100010001UL) * 0xFFFFUL);
 
-            for (int i = 0; i < BITS_IN_BYTE; i++)
+            for (int i = 1; i < 8; ++i)
             {
-                if ((y & 0x01) == 1)
-                {
-                    r ^= x;
-                }
-
-                hbit = (byte)(x & 0x80);
-
-                x <<= 1;
-
-                if (hbit == 0x80)
-                {
-                    x = (byte)((int)x ^ REDUCTION_POLYNOMIAL);
-                }
-                y >>= 1;
+                u <<= 1;
+                v >>= 1;
+                r ^= u & ((v & 0x0001000100010001L) * 0xFFFFL);
             }
+
+            // REDUCTION_POLYNOMIAL = 0x011d; /* x^8 + x^4 + x^3 + x^2 + 1 */
+
+            ulong hi = r & 0xFF00FF00FF00FF00UL;
+            r ^= hi ^ (hi >> 4) ^ (hi >> 5) ^ (hi >> 6) ^ (hi >> 8);
+            hi = r & 0x0F000F000F000F00UL;
+            r ^= hi ^ (hi >> 4) ^ (hi >> 5) ^ (hi >> 6) ^ (hi >> 8);
             return r;
         }
 
@@ -552,29 +554,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         #region TABLES AND S-BOXES
 
-        private byte[][] mdsMatrix = 
-        {
-            new byte[] { 0x01, 0x01, 0x05, 0x01, 0x08, 0x06, 0x07, 0x04 },
-            new byte[] { 0x04, 0x01, 0x01, 0x05, 0x01, 0x08, 0x06, 0x07 },
-            new byte[] { 0x07, 0x04, 0x01, 0x01, 0x05, 0x01, 0x08, 0x06 },
-            new byte[] { 0x06, 0x07, 0x04, 0x01, 0x01, 0x05, 0x01, 0x08 },
-            new byte[] { 0x08, 0x06, 0x07, 0x04, 0x01, 0x01, 0x05, 0x01 },
-            new byte[] { 0x01, 0x08, 0x06, 0x07, 0x04, 0x01, 0x01, 0x05 },
-            new byte[] { 0x05, 0x01, 0x08, 0x06, 0x07, 0x04, 0x01, 0x01 },
-            new byte[] { 0x01, 0x05, 0x01, 0x08, 0x06, 0x07, 0x04, 0x01 },
-        };
-
-        private byte[][] mdsInvMatrix = 
-        {
-            new byte[] { 0xAD, 0x95, 0x76, 0xA8, 0x2F, 0x49, 0xD7, 0xCA },
-            new byte[] { 0xCA, 0xAD, 0x95, 0x76, 0xA8, 0x2F, 0x49, 0xD7 },
-            new byte[] { 0xD7, 0xCA, 0xAD, 0x95, 0x76, 0xA8, 0x2F, 0x49 },
-            new byte[] { 0x49, 0xD7, 0xCA, 0xAD, 0x95, 0x76, 0xA8, 0x2F },
-            new byte[] { 0x2F, 0x49, 0xD7, 0xCA, 0xAD, 0x95, 0x76, 0xA8 },
-            new byte[] { 0xA8, 0x2F, 0x49, 0xD7, 0xCA, 0xAD, 0x95, 0x76 },
-            new byte[] { 0x76, 0xA8, 0x2F, 0x49, 0xD7, 0xCA, 0xAD, 0x95 },
-            new byte[] { 0x95, 0x76, 0xA8, 0x2F, 0x49, 0xD7, 0xCA, 0xAD },
-        };
+        //private const ulong mdsMatrix = 0x0407060801050101UL;
+        //private const ulong mdsInvMatrix = 0xCAD7492FA87695ADUL;
+        private const ulong mdsMatrix = 0x0104070608010501UL;
+        private const ulong mdsInvMatrix = 0xADCAD7492FA87695UL;
 
         private byte[][] sboxesForEncryption = 
         {

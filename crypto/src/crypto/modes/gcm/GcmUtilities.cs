@@ -267,11 +267,45 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             while (i < 16);
         }
 
+        internal static void Xor(byte[] x, byte[] y, int yOff)
+        {
+            int i = 0;
+            do
+            {
+                x[i] ^= y[yOff + i]; ++i;
+                x[i] ^= y[yOff + i]; ++i;
+                x[i] ^= y[yOff + i]; ++i;
+                x[i] ^= y[yOff + i]; ++i;
+            }
+            while (i < 16);
+        }
+
+        internal static void Xor(byte[] x, int xOff, byte[] y, int yOff, byte[] z, int zOff)
+        {
+            int i = 0;
+            do
+            {
+                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]); ++i;
+                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]); ++i;
+                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]); ++i;
+                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]); ++i;
+            }
+            while (i < 16);
+        }
+
         internal static void Xor(byte[] x, byte[] y, int yOff, int yLen)
         {
             while (--yLen >= 0)
             {
                 x[yLen] ^= y[yOff + yLen];
+            }
+        }
+
+        internal static void Xor(byte[] x, int xOff, byte[] y, int yOff, int len)
+        {
+            while (--len >= 0)
+            {
+                x[xOff + len] ^= y[yOff + len];
             }
         }
 

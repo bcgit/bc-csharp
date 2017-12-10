@@ -66,7 +66,6 @@ namespace Org.BouncyCastle.Crypto.Generators
          */
         private KeyParameter Extract(byte[] salt, byte[] ikm)
         {
-            hMacHash.Init(new KeyParameter(ikm));
             if (salt == null)
             {
                 // TODO check if hashLen is indeed same as HMAC size

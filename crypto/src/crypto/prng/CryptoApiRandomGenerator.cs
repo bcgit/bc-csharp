@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 namespace Org.BouncyCastle.Crypto.Prng
 {
     /// <summary>
-    /// Uses Microsoft's RNGCryptoServiceProvider
+    /// Uses RandomNumberGenerator.Create() to get randomness generator
     /// </summary>
     public class CryptoApiRandomGenerator
         : IRandomGenerator
@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         private readonly RandomNumberGenerator rndProv;
 
         public CryptoApiRandomGenerator()
-            : this(new RNGCryptoServiceProvider())
+            : this(RandomNumberGenerator.Create())
         {
         }
 

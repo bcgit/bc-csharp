@@ -362,10 +362,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                     if (this.mExpectSessionTicket)
                     {
                         SendNewSessionTicketMessage(mTlsServer.GetNewSessionTicket());
-                        SendChangeCipherSpecMessage();
                     }
                     this.mConnectionState = CS_SERVER_SESSION_TICKET;
 
+                    SendChangeCipherSpecMessage();
                     SendFinishedMessage();
                     this.mConnectionState = CS_SERVER_FINISHED;
 
@@ -649,11 +649,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             mRecordStream.SetPendingConnectionState(Peer.GetCompression(), Peer.GetCipher());
-
-            if (!mExpectSessionTicket)
-            {
-                SendChangeCipherSpecMessage();
-            }
         }
 
         protected virtual void SendCertificateRequestMessage(CertificateRequest certificateRequest)

@@ -20,7 +20,84 @@ namespace Org.BouncyCastle.Crypto.Tests
 	public class RsaTest
 		: SimpleTest
 	{
-		static BigInteger  mod = new BigInteger("b259d2d6e627a768c94be36164c2d9fc79d97aab9253140e5bf17751197731d6f7540d2509e7b9ffee0a70a6e26d56e92d2edd7f85aba85600b69089f35f6bdbf3c298e05842535d9f064e6b0391cb7d306e0a2d20c4dfb4e7b49a9640bdea26c10ad69c3f05007ce2513cee44cfe01998e62b6c3637d3fc0391079b26ee36d5", 16);
+        /*
+         * Based on https://github.com/crocs-muni/roca/blob/master/java/BrokenKey.java
+         * Credits: ported to Java by Martin Paljak
+         */
+        internal class BrokenKey_CVE_2017_15361
+        {
+            private static readonly int[] prims = new int[]{ 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
+                67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167 };
+            private static readonly BigInteger[] primes = new BigInteger[prims.Length];
+
+            static BrokenKey_CVE_2017_15361()
+            {
+                for (int i = 0; i < prims.Length; i++)
+                {
+                    primes[i] = BigInteger.ValueOf(prims[i]);
+                }
+            }
+
+            private static readonly BigInteger[] markers = new BigInteger[]
+            {
+                new BigInteger("6"),
+                new BigInteger("30"),
+                new BigInteger("126"),
+                new BigInteger("1026"),
+                new BigInteger("5658"),
+                new BigInteger("107286"),
+                new BigInteger("199410"),
+                new BigInteger("8388606"),
+                new BigInteger("536870910"),
+                new BigInteger("2147483646"),
+                new BigInteger("67109890"),
+                new BigInteger("2199023255550"),
+                new BigInteger("8796093022206"),
+                new BigInteger("140737488355326"),
+                new BigInteger("5310023542746834"),
+                new BigInteger("576460752303423486"),
+                new BigInteger("1455791217086302986"),
+                new BigInteger("147573952589676412926"),
+                new BigInteger("20052041432995567486"),
+                new BigInteger("6041388139249378920330"),
+                new BigInteger("207530445072488465666"),
+                new BigInteger("9671406556917033397649406"),
+                new BigInteger("618970019642690137449562110"),
+                new BigInteger("79228162521181866724264247298"),
+                new BigInteger("2535301200456458802993406410750"),
+                new BigInteger("1760368345969468176824550810518"),
+                new BigInteger("50079290986288516948354744811034"),
+                new BigInteger("473022961816146413042658758988474"),
+                new BigInteger("10384593717069655257060992658440190"),
+                new BigInteger("144390480366845522447407333004847678774"),
+                new BigInteger("2722258935367507707706996859454145691646"),
+                new BigInteger("174224571863520493293247799005065324265470"),
+                new BigInteger("696898287454081973172991196020261297061886"),
+                new BigInteger("713623846352979940529142984724747568191373310"),
+                new BigInteger("1800793591454480341970779146165214289059119882"),
+                new BigInteger("126304807362733370595828809000324029340048915994"),
+                new BigInteger("11692013098647223345629478661730264157247460343806"),
+                new BigInteger("187072209578355573530071658587684226515959365500926")
+            };
+
+            public static bool IsAffected(RsaKeyParameters publicKey)
+            {
+                BigInteger modulus = publicKey.Modulus;
+
+                for (int i = 0; i < primes.Length; i++)
+                {
+                    int remainder = modulus.Remainder(primes[i]).IntValue;
+                    if (!markers[i].TestBit(remainder))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        static BigInteger  mod = new BigInteger("b259d2d6e627a768c94be36164c2d9fc79d97aab9253140e5bf17751197731d6f7540d2509e7b9ffee0a70a6e26d56e92d2edd7f85aba85600b69089f35f6bdbf3c298e05842535d9f064e6b0391cb7d306e0a2d20c4dfb4e7b49a9640bdea26c10ad69c3f05007ce2513cee44cfe01998e62b6c3637d3fc0391079b26ee36d5", 16);
 		static BigInteger  pubExp = new BigInteger("11", 16);
 		static BigInteger  privExp = new BigInteger("92e08f83cc9920746989ca5034dcb384a094fb9c5a6288fcc4304424ab8f56388f72652d8fafc65a4b9020896f2cde297080f2a540e7b7ce5af0b3446e1258d1dd7f245cf54124b4c6e17da21b90a0ebd22605e6f45c9f136d7a13eaac1c0f7487de8bd6d924972408ebb58af71e76fd7b012a8d0e165f3ae2e5077a8648e619", 16);
 		static BigInteger  p = new BigInteger("f75e80839b9b9379f1cf1128f321639757dba514642c206bbbd99f9a4846208b3e93fbbe5e0527cc59b1d4b929d9555853004c7c8b30ee6a213c3d1bb7415d03", 16);
@@ -355,6 +432,26 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 		}
 
+        private void doTest_CVE_2017_15361()
+        {
+            SecureRandom random = new SecureRandom();
+            RsaKeyPairGenerator pGen = new RsaKeyPairGenerator();
+            BigInteger e = BigInteger.ValueOf(0x11);
+
+            for (int strength = 512; strength <= 2048; strength += 32)
+            {
+                pGen.Init(new RsaKeyGenerationParameters(
+                    e, random, strength, 100));
+
+                RsaKeyParameters pubKey = (RsaKeyParameters)pGen.GenerateKeyPair().Public;
+
+                if (BrokenKey_CVE_2017_15361.IsAffected(pubKey))
+                {
+                    Fail("failed CVE-2017-15361 vulnerability test for generated RSA key");
+                }
+            }
+        }
+
 		public override void PerformTest()
 		{
 			RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod, pubExp);
@@ -634,6 +731,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			doTestMissingDataPkcs1Block(pubParameters, privParameters);
 			doTestTruncatedPkcs1Block(pubParameters, privParameters);
 			doTestWrongPaddingPkcs1Block(pubParameters, privParameters);
+            doTest_CVE_2017_15361();
 
 			try
 			{

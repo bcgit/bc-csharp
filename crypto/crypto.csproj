@@ -1714,6 +1714,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\rosstandart\RosstandartObjectIdentifiers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\sec\ECPrivateKeyStructure.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3234,6 +3239,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\agreement\SM2KeyExchange.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\agreement\jpake\JPakeParticipant.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3265,6 +3275,11 @@
                 />
                 <File
                     RelPath = "src\crypto\agreement\jpake\JPakeUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\kdf\ConcatenationKdfGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3710,6 +3725,11 @@
                 />
                 <File
                     RelPath = "src\crypto\engines\SkipjackEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\engines\SM2Engine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4369,6 +4389,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\parameters\ParametersWithID.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\parameters\ParametersWithIV.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4420,6 +4445,16 @@
                 />
                 <File
                     RelPath = "src\crypto\parameters\SkeinParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\SM2KeyExchangePrivateParameters.cs" 
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\SM2KeyExchangePublicParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4610,6 +4645,11 @@
                 />
                 <File
                     RelPath = "src\crypto\signers\RSADigestSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\SM2Signer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -7489,6 +7529,38 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\data\cert_chain.data"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\cert_chain_nl.data"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\qvRooCa3.crt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\suvaEE.crt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\suvaEmail1.crt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\suvaRoot1.crt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\ThawteSGCCA.cer"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\ThawteSGCCA.crl"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\asn1\masterlist-content.data"
                     BuildAction = "EmbeddedResource"
                 />
@@ -7522,6 +7594,14 @@
                 />
                 <File
                     RelPath = "test\data\cms\sigs\PSSSignDataSHA512Enc.sig"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\cms\sigs\rawsha256nonull.p7m"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\cms\sigs\SignedMSPkcs7.sig"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
@@ -11910,6 +11990,21 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\SM2EngineTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\SM2KeyExchangeTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\SM2SignerTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\SM3DigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12791,6 +12886,11 @@
                 />
                 <File
                     RelPath = "test\src\util\test\TestFailedException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\util\test\TestRandomBigInteger.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

@@ -9,15 +9,12 @@ namespace Org.BouncyCastle.Asn1.X500
 	{
 		private readonly DerStringBase str;
 
-		public static DirectoryString GetInstance(
-			object obj)
+		public static DirectoryString GetInstance(object obj)
 		{
-			if (obj is DirectoryString)
-			{
+			if (obj == null || obj is DirectoryString)
 				return (DirectoryString) obj;
-			}
 
-			if (obj is DerStringBase)
+            if (obj is DerStringBase)
 			{
 				if (obj is DerT61String
 					|| obj is DerPrintableString

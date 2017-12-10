@@ -35,17 +35,20 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 int bits = GetCombSize(c);
                 int d = (bits + minWidth - 1) / minWidth;
 
-                ECPoint[] pow2Table = new ECPoint[minWidth];
+                ECPoint[] pow2Table = new ECPoint[minWidth + 1];
                 pow2Table[0] = p;
                 for (int i = 1; i < minWidth; ++i)
                 {
                     pow2Table[i] = pow2Table[i - 1].TimesPow2(d);
                 }
-    
+
+                // This will be the 'offset' value 
+                pow2Table[minWidth] = pow2Table[0].Subtract(pow2Table[1]);
+
                 c.NormalizeAll(pow2Table);
     
                 lookupTable = new ECPoint[n];
-                lookupTable[0] = c.Infinity;
+                lookupTable[0] = pow2Table[0];
 
                 for (int bit = minWidth - 1; bit >= 0; --bit)
                 {
@@ -60,6 +63,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                 c.NormalizeAll(lookupTable);
 
+                info.Offset = pow2Table[minWidth];
                 info.PreComp = lookupTable;
                 info.Width = minWidth;
 

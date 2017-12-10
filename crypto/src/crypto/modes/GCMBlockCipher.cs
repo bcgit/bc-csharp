@@ -306,7 +306,16 @@ namespace Org.BouncyCastle.Crypto.Modes
             bufBlock[bufOff] = input;
             if (++bufOff == bufBlock.Length)
             {
-                OutputBlock(output, outOff);
+                ProcessBlock(bufBlock, 0, output, outOff);
+                if (forEncryption)
+                {
+                    bufOff = 0;
+                }
+                else
+                {
+                    Array.Copy(bufBlock, BlockSize, bufBlock, 0, macSize);
+                    bufOff = macSize;
+                }
                 return BlockSize;
             }
             return 0;
@@ -321,41 +330,58 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             CheckStatus();
 
-            if (input.Length < (inOff + len))
-                throw new DataLengthException("Input buffer too short");
+            Check.DataLength(input, inOff, len, "input buffer too short");
 
             int resultLen = 0;
 
-            for (int i = 0; i < len; ++i)
+            if (forEncryption)
             {
-                bufBlock[bufOff] = input[inOff + i];
-                if (++bufOff == bufBlock.Length)
+                if (bufOff != 0)
                 {
-                    OutputBlock(output, outOff + resultLen);
+                    while (len > 0)
+                    {
+                        --len;
+                        bufBlock[bufOff] = input[inOff++];
+                        if (++bufOff == BlockSize)
+                        {
+                            ProcessBlock(bufBlock, 0, output, outOff);
+                            bufOff = 0;
+                            resultLen += BlockSize;
+                            break;
+                        }
+                    }
+                }
+
+                while (len >= BlockSize)
+                {
+                    ProcessBlock(input, inOff, output, outOff + resultLen);
+                    inOff += BlockSize;
+                    len -= BlockSize;
                     resultLen += BlockSize;
+                }
+
+                if (len > 0)
+                {
+                    Array.Copy(input, inOff, bufBlock, 0, len);
+                    bufOff = len;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < len; ++i)
+                {
+                    bufBlock[bufOff] = input[inOff + i];
+                    if (++bufOff == bufBlock.Length)
+                    {
+                        ProcessBlock(bufBlock, 0, output, outOff + resultLen);
+                        Array.Copy(bufBlock, BlockSize, bufBlock, 0, macSize);
+                        bufOff = macSize;
+                        resultLen += BlockSize;
+                    }
                 }
             }
 
             return resultLen;
-        }
-
-        private void OutputBlock(byte[] output, int offset)
-        {
-            Check.OutputLength(output, offset, BlockSize, "Output buffer too short");
-            if (totalLength == 0)
-            {
-                InitCipher();
-            }
-            gCTRBlock(bufBlock, output, offset);
-            if (forEncryption)
-            {
-                bufOff = 0;
-            }
-            else
-            {
-                Array.Copy(bufBlock, BlockSize, bufBlock, 0, macSize);
-                bufOff = macSize;
-            }
         }
 
         public int DoFinal(byte[] output, int outOff)
@@ -385,7 +411,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (extra > 0)
             {
-                gCTRPartial(bufBlock, 0, extra, output, outOff);
+                ProcessPartial(bufBlock, 0, extra, output, outOff);
             }
 
             atLength += (uint)atBlockPos;
@@ -515,27 +541,50 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        private void gCTRBlock(byte[] block, byte[] output, int outOff)
+        private void ProcessBlock(byte[] buf, int bufOff, byte[] output, int outOff)
         {
-            byte[] tmp = GetNextCounterBlock();
+            Check.OutputLength(output, outOff, BlockSize, "Output buffer too short");
 
-            GcmUtilities.Xor(tmp, block);
-            Array.Copy(tmp, 0, output, outOff, BlockSize);
+            if (totalLength == 0)
+            {
+                InitCipher();
+            }
 
-            gHASHBlock(S, forEncryption ? tmp : block);
+            byte[] ctrBlock = new byte[BlockSize];
+            GetNextCtrBlock(ctrBlock);
+
+            if (forEncryption)
+            {
+                GcmUtilities.Xor(ctrBlock, buf, bufOff);
+                gHASHBlock(S, ctrBlock);
+                Array.Copy(ctrBlock, 0, output, outOff, BlockSize);
+            }
+            else
+            {
+                gHASHBlock(S, buf, bufOff);
+                GcmUtilities.Xor(ctrBlock, 0, buf, bufOff, output, outOff);
+            }
 
             totalLength += BlockSize;
         }
 
-        private void gCTRPartial(byte[] buf, int off, int len, byte[] output, int outOff)
+        private void ProcessPartial(byte[] buf, int off, int len, byte[] output, int outOff)
         {
-            byte[] tmp = GetNextCounterBlock();
+            byte[] ctrBlock = new byte[BlockSize];
+            GetNextCtrBlock(ctrBlock);
 
-            GcmUtilities.Xor(tmp, buf, off, len);
-            Array.Copy(tmp, 0, output, outOff, len);
+            if (forEncryption)
+            {
+                GcmUtilities.Xor(buf, off, ctrBlock, 0, len);
+                gHASHPartial(S, buf, off, len);
+            }
+            else
+            {
+                gHASHPartial(S, buf, off, len);
+                GcmUtilities.Xor(buf, off, ctrBlock, 0, len);
+            }
 
-            gHASHPartial(S, forEncryption ? tmp : buf, 0, len);
-
+            Array.Copy(buf, off, output, outOff, len);
             totalLength += (uint)len;
         }
 
@@ -554,13 +603,19 @@ namespace Org.BouncyCastle.Crypto.Modes
             multiplier.MultiplyH(Y);
         }
 
+        private void gHASHBlock(byte[] Y, byte[] b, int off)
+        {
+            GcmUtilities.Xor(Y, b, off);
+            multiplier.MultiplyH(Y);
+        }
+
         private void gHASHPartial(byte[] Y, byte[] b, int off, int len)
         {
             GcmUtilities.Xor(Y, b, off, len);
             multiplier.MultiplyH(Y);
         }
 
-        private byte[] GetNextCounterBlock()
+        private void GetNextCtrBlock(byte[] block)
         {
             if (blocksRemaining == 0)
                 throw new InvalidOperationException("Attempt to process too many blocks");
@@ -573,10 +628,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             c += counter[13]; counter[13] = (byte)c; c >>= 8;
             c += counter[12]; counter[12] = (byte)c;
 
-            byte[] tmp = new byte[BlockSize];
-            // TODO Sure would be nice if ciphers could operate on int[]
-            cipher.ProcessBlock(counter, 0, tmp, 0);
-            return tmp;
+            cipher.ProcessBlock(counter, 0, block, 0);
         }
 
         private void CheckStatus()

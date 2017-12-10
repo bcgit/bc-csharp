@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         private readonly bool mPredictionResistant;
 
         public CryptoApiEntropySourceProvider()
-            : this(new RNGCryptoServiceProvider(), true)
+            : this(RandomNumberGenerator.Create(), true)
         {
         }
 

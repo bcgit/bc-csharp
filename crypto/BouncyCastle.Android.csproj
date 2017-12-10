@@ -371,6 +371,7 @@
     <Compile Include="src\asn1\pkcs\SafeBag.cs" />
     <Compile Include="src\asn1\pkcs\SignedData.cs" />
     <Compile Include="src\asn1\pkcs\SignerInfo.cs" />
+    <Compile Include="src\asn1\rosstandart\RosstandartObjectIdentifiers.cs" />
     <Compile Include="src\asn1\sec\ECPrivateKeyStructure.cs" />
     <Compile Include="src\asn1\sec\SECNamedCurves.cs" />
     <Compile Include="src\asn1\sec\SECObjectIdentifiers.cs" />
@@ -696,6 +697,7 @@
     <Compile Include="src\crypto\agreement\ECDHWithKdfBasicAgreement.cs" />
     <Compile Include="src\crypto\agreement\ECMqvBasicAgreement.cs" />
     <Compile Include="src\crypto\agreement\ECMqvWithKdfBasicAgreement.cs" />
+    <Compile Include="src\crypto\agreement\SM2KeyExchange.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakeParticipant.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakePrimeOrderGroup.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakePrimeOrderGroups.cs" />
@@ -703,6 +705,7 @@
     <Compile Include="src\crypto\agreement\jpake\JPakeRound2Payload.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakeRound3Payload.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakeUtilities.cs" />
+    <Compile Include="src\crypto\agreement\kdf\ConcatenationKdfGenerator.cs" />
     <Compile Include="src\crypto\agreement\kdf\DHKdfParameters.cs" />
     <Compile Include="src\crypto\agreement\kdf\DHKekGenerator.cs" />
     <Compile Include="src\crypto\agreement\kdf\ECDHKekGenerator.cs" />
@@ -790,6 +793,7 @@
     <Compile Include="src\crypto\engines\Salsa20Engine.cs" />
     <Compile Include="src\crypto\engines\SerpentEngine.cs" />
     <Compile Include="src\crypto\engines\SkipjackEngine.cs" />
+    <Compile Include="src\crypto\engines\SM2Engine.cs" />
     <Compile Include="src\crypto\engines\TEAEngine.cs" />
     <Compile Include="src\crypto\engines\ThreefishEngine.cs" />
     <Compile Include="src\crypto\engines\TwofishEngine.cs" />
@@ -916,6 +920,7 @@
     <Compile Include="src\crypto\parameters\NaccacheSternKeyGenerationParameters.cs" />
     <Compile Include="src\crypto\parameters\NaccacheSternKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\NaccacheSternPrivateKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\ParametersWithID.cs" />
     <Compile Include="src\crypto\parameters\ParametersWithIV.cs" />
     <Compile Include="src\crypto\parameters\ParametersWithRandom.cs" />
     <Compile Include="src\crypto\parameters\ParametersWithSBox.cs" />
@@ -927,6 +932,8 @@
     <Compile Include="src\crypto\parameters\RsaKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\RsaPrivateCrtKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\SkeinParameters.cs" />
+    <Compile Include="src\crypto\parameters\SM2KeyExchangePrivateParameters.cs" />
+    <Compile Include="src\crypto\parameters\SM2KeyExchangePublicParameters.cs" />
     <Compile Include="src\crypto\parameters\Srp6GroupParameters.cs" />
     <Compile Include="src\crypto\parameters\TweakableBlockCipherParameters.cs" />
     <Compile Include="src\crypto\prng\CryptoApiRandomGenerator.cs" />
@@ -951,6 +958,7 @@
     <Compile Include="src\crypto\signers\PssSigner.cs" />
     <Compile Include="src\crypto\signers\RandomDsaKCalculator.cs" />
     <Compile Include="src\crypto\signers\RsaDigestSigner.cs" />
+    <Compile Include="src\crypto\signers\SM2Signer.cs" />
     <Compile Include="src\crypto\signers\X931Signer.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsCipherFactory.cs" />

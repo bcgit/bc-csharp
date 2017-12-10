@@ -6,11 +6,13 @@
     public class FixedPointPreCompInfo
         : PreCompInfo
     {
+        protected ECPoint m_offset = null;
+
         /**
          * Array holding the precomputed <code>ECPoint</code>s used for a fixed
          * point multiplication.
          */
-        protected ECPoint[] m_preComp = null;
+		protected ECPoint[] m_preComp = null;
 
         /**
          * The width used for the precomputation. If a larger width precomputation
@@ -18,6 +20,12 @@
          * code should refer to the actual width.
          */
         protected int m_width = -1;
+
+        public virtual ECPoint Offset
+        {
+			get { return m_offset; }
+			set { this.m_offset = value; }
+		}
 
         public virtual ECPoint[] PreComp
         {

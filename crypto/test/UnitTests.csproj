@@ -257,6 +257,9 @@
     <Compile Include="src\crypto\test\SHA512HMacTest.cs" />
     <Compile Include="src\crypto\test\SHA512t224DigestTest.cs" />
     <Compile Include="src\crypto\test\SHA512t256DigestTest.cs" />
+    <Compile Include="src\crypto\test\SM2EngineTest.cs" />
+    <Compile Include="src\crypto\test\SM2KeyExchangeTest.cs" />
+    <Compile Include="src\crypto\test\SM2SignerTest.cs" />
     <Compile Include="src\crypto\test\SM3DigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinDigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinMacTest.cs" />
@@ -441,10 +444,19 @@
     <Compile Include="src\util\test\SimpleTest.cs" />
     <Compile Include="src\util\test\SimpleTestResult.cs" />
     <Compile Include="src\util\test\TestFailedException.cs" />
+    <Compile Include="src\util\test\TestRandomBigInteger.cs" />
     <Compile Include="src\util\test\UncloseableStream.cs" />
     <Compile Include="src\x509\test\TestCertificateGen.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="data\cert_chain.data" />
+    <EmbeddedResource Include="data\cert_chain_nl.data" />
+    <EmbeddedResource Include="data\qvRooCa3.crt" />
+    <EmbeddedResource Include="data\suvaEE.crt" />
+    <EmbeddedResource Include="data\suvaEmail1.crt" />
+    <EmbeddedResource Include="data\suvaRoot1.crt" />
+    <EmbeddedResource Include="data\ThawteSGCCA.cer" />
+    <EmbeddedResource Include="data\ThawteSGCCA.crl" />
     <EmbeddedResource Include="data\crypto\SHA3TestVectors.txt" />
     <EmbeddedResource Include="data\crypto\SHAKETestVectors.txt" />
     <EmbeddedResource Include="data\PKITS\README.txt" />
@@ -1035,6 +1047,8 @@
     <EmbeddedResource Include="data\cms\sigs\PSSSignDataSHA512.sig" />
     <EmbeddedResource Include="data\cms\sigs\PSSSignDataSHA512Enc.sig" />
     <EmbeddedResource Include="data\cms\sigs\counterSig.p7m" />
+    <EmbeddedResource Include="data\cms\sigs\rawsha256nonull.p7m" />
+    <EmbeddedResource Include="data\cms\sigs\SignedMSPkcs7.sig" />
     <EmbeddedResource Include="data\hc256\hc128\ecrypt_HC-128.txt" />
     <EmbeddedResource Include="data\hc256\hc256\ecrypt_HC-256_128K_128IV.txt" />
     <EmbeddedResource Include="data\hc256\hc256\ecrypt_HC-256_128K_256IV.txt" />

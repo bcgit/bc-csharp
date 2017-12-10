@@ -143,8 +143,7 @@ namespace Org.BouncyCastle.Security
 
                 if (privKey is DerInteger)
                 {
-                    // TODO Do we need to pass any parameters here?
-                    ec = new ECPrivateKeyStructure(ecP.N.BitLength, ((DerInteger)privKey).Value);
+                    ec = new ECPrivateKeyStructure(ecP.N.BitLength, ((DerInteger)privKey).PositiveValue);
                 }
                 else
                 {
@@ -155,14 +154,22 @@ namespace Org.BouncyCastle.Security
             }
             else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x94))
             {
-                Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
-                    Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
+                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
 
-                DerOctetString derX = (DerOctetString)keyInfo.ParsePrivateKey();
-                BigInteger x = new BigInteger(1, Arrays.Reverse(derX.GetOctets()));
+                Asn1Object privKey = keyInfo.ParsePrivateKey();
+                BigInteger x;
 
-                return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
-            }
+                if (privKey is DerInteger)
+                {
+                    x = DerInteger.GetInstance(privKey).PositiveValue;
+				}
+                else
+                {
+                    x = new BigInteger(1, Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets()));
+				}
+
+				return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
+			}
             else
             {
                 throw new SecurityUtilityException("algorithm identifier in key not recognised");

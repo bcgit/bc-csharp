@@ -31,9 +31,8 @@ namespace Org.BouncyCastle.Crypto.Digests
 
 		// Work-bufs used within processBlock()
 		private uint[] W = new uint[68];
-		private uint[] W1 = new uint[64];
 
-		// Round constant T for processBlock() which is 32 bit integer rolled left up to (63 MOD 32) bit positions.
+        // Round constant T for processBlock() which is 32 bit integer rolled left up to (63 MOD 32) bit positions.
 		private static readonly uint[] T = new uint[64];
 
 		static SM3Digest()
@@ -124,14 +123,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 		{
 			Finish();
 
-			Pack.UInt32_To_BE(this.V[0], output, outOff + 0);
-			Pack.UInt32_To_BE(this.V[1], output, outOff + 4);
-			Pack.UInt32_To_BE(this.V[2], output, outOff + 8);
-			Pack.UInt32_To_BE(this.V[3], output, outOff + 12);
-			Pack.UInt32_To_BE(this.V[4], output, outOff + 16);
-			Pack.UInt32_To_BE(this.V[5], output, outOff + 20);
-			Pack.UInt32_To_BE(this.V[6], output, outOff + 24);
-			Pack.UInt32_To_BE(this.V[7], output, outOff + 28);
+            Pack.UInt32_To_BE(V, output, outOff);
 
 			Reset();
 
@@ -261,10 +253,6 @@ namespace Org.BouncyCastle.Crypto.Digests
 				uint r7 = ((wj13 << 7) | (wj13 >> (32 - 7)));
 				this.W[j] = P1(this.W[j - 16] ^ this.W[j - 9] ^ r15) ^ r7 ^ this.W[j - 6];
 			}
-			for (int j = 0; j < 64; ++j)
-			{
-				this.W1[j] = this.W[j] ^ this.W[j + 4];
-			}
 
 			uint A = this.V[0];
 			uint B = this.V[1];
@@ -282,8 +270,10 @@ namespace Org.BouncyCastle.Crypto.Digests
 				uint s1_ = a12 + E + T[j];
 				uint SS1 = ((s1_ << 7) | (s1_ >> (32 - 7)));
 				uint SS2 = SS1 ^ a12;
-				uint TT1 = FF0(A, B, C) + D + SS2 + this.W1[j];
-				uint TT2 = GG0(E, F, G) + H + SS1 + this.W[j];
+                uint Wj = W[j];
+                uint W1j = Wj ^ W[j + 4];
+				uint TT1 = FF0(A, B, C) + D + SS2 + W1j;
+				uint TT2 = GG0(E, F, G) + H + SS1 + Wj;
 				D = C;
 				C = ((B << 9) | (B >> (32 - 9)));
 				B = A;
@@ -301,8 +291,10 @@ namespace Org.BouncyCastle.Crypto.Digests
 				uint s1_ = a12 + E + T[j];
 				uint SS1 = ((s1_ << 7) | (s1_ >> (32 - 7)));
 				uint SS2 = SS1 ^ a12;
-				uint TT1 = FF1(A, B, C) + D + SS2 + this.W1[j];
-				uint TT2 = GG1(E, F, G) + H + SS1 + this.W[j];
+				uint Wj = W[j];
+				uint W1j = Wj ^ W[j + 4];
+				uint TT1 = FF1(A, B, C) + D + SS2 + W1j;
+				uint TT2 = GG1(E, F, G) + H + SS1 + Wj;
 				D = C;
 				C = ((B << 9) | (B >> (32 - 9)));
 				B = A;

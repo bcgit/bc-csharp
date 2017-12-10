@@ -5,6 +5,7 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
@@ -39,15 +40,19 @@ namespace Org.BouncyCastle.Security
             algorithms["MD4WITHRSA"] = "MD4withRSA";
             algorithms["MD4WITHRSAENCRYPTION"] = "MD4withRSA";
             algorithms[PkcsObjectIdentifiers.MD4WithRsaEncryption.Id] = "MD4withRSA";
+            algorithms[OiwObjectIdentifiers.MD4WithRsa.Id] = "MD4withRSA";
+			algorithms[OiwObjectIdentifiers.MD4WithRsaEncryption.Id] = "MD4withRSA";
 
-            algorithms["MD5WITHRSA"] = "MD5withRSA";
+			algorithms["MD5WITHRSA"] = "MD5withRSA";
             algorithms["MD5WITHRSAENCRYPTION"] = "MD5withRSA";
             algorithms[PkcsObjectIdentifiers.MD5WithRsaEncryption.Id] = "MD5withRSA";
+            algorithms[OiwObjectIdentifiers.MD5WithRsa.Id] = "MD5withRSA";
 
             algorithms["SHA1WITHRSA"] = "SHA-1withRSA";
             algorithms["SHA1WITHRSAENCRYPTION"] = "SHA-1withRSA";
-            algorithms[PkcsObjectIdentifiers.Sha1WithRsaEncryption.Id] = "SHA-1withRSA";
             algorithms["SHA-1WITHRSA"] = "SHA-1withRSA";
+            algorithms[PkcsObjectIdentifiers.Sha1WithRsaEncryption.Id] = "SHA-1withRSA";
+            algorithms[OiwObjectIdentifiers.Sha1WithRsa.Id] = "SHA-1withRSA";
 
             algorithms["SHA224WITHRSA"] = "SHA-224withRSA";
             algorithms["SHA224WITHRSAENCRYPTION"] = "SHA-224withRSA";
@@ -132,6 +137,7 @@ namespace Org.BouncyCastle.Security
             algorithms["SHA1WITHDSA"] = "SHA-1withDSA";
             algorithms["SHA-1WITHDSA"] = "SHA-1withDSA";
             algorithms[X9ObjectIdentifiers.IdDsaWithSha1.Id] = "SHA-1withDSA";
+            algorithms[OiwObjectIdentifiers.DsaWithSha1.Id] = "SHA-1withDSA";
 
             algorithms["DSAWITHSHA224"] = "SHA-224withDSA";
             algorithms["DSAWITHSHA-224"] = "SHA-224withDSA";
