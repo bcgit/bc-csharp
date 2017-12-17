@@ -5,6 +5,7 @@ using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
@@ -170,6 +171,23 @@ namespace Org.BouncyCastle.Security
 
 				return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
 			}
+            else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
+                     || algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+            {
+                Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
+                    Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
+
+                ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
+
+                if (ecP == null)
+                    throw new ArgumentException("Unrecognized curve OID for id_tc26_gost_3410_12_256 private key");
+
+                byte[] privKeyBytes = keyInfo.PrivateKeyGetOctets();
+                BigInteger x = new BigInteger(1, Arrays.Reverse(privKeyBytes));
+                ECPrivateKeyStructure ec = new ECPrivateKeyStructure(ecP.N.BitLength, x);
+
+                return new ECPrivateKeyParameters("ECGOST3410", ec.GetKey(), gostParams.PublicKeyParamSet);
+            }
             else
             {
                 throw new SecurityUtilityException("algorithm identifier in key not recognised");

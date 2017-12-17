@@ -5,6 +5,7 @@ using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
@@ -217,6 +218,47 @@ namespace Org.BouncyCastle.Security
                 BigInteger y = new BigInteger(1, keyBytes);
 
                 return new Gost3410PublicKeyParameters(y, algParams.PublicKeyParamSet);
+            }
+            else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
+                     || algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+            {
+                Gost3410PublicKeyAlgParameters algParams = new Gost3410PublicKeyAlgParameters(
+                    (Asn1Sequence)algID.Parameters);
+
+                Asn1OctetString key;
+                try
+                {
+                    key = (Asn1OctetString)keyInfo.GetPublicKey();
+                }
+                catch (IOException)
+                {
+                    throw new ArgumentException("invalid info structure in GOST3410-2012 public key");
+                }
+
+                byte[] keyEnc = key.GetOctets();
+
+                int fieldSize = 32;
+                if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+                {
+                    fieldSize = 64;
+                }
+
+                int keySize = 2 * fieldSize;
+
+                byte[] x9Encoding = new byte[1 + keySize];
+                x9Encoding[0] = 0x04;
+                for (int i = 1; i <= fieldSize; ++i)
+                {
+                    x9Encoding[i] = keyEnc[fieldSize - i];
+                    x9Encoding[i + fieldSize] = keyEnc[keySize - i];
+                }
+
+                ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(algParams.PublicKeyParamSet);
+
+                if (ecP == null)
+                    return null;
+
+                return new ECPublicKeyParameters(ecP.Curve.DecodePoint(x9Encoding), ecP);
             }
             else
             {
