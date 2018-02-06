@@ -47,7 +47,10 @@ namespace Org.BouncyCastle.Security
             algorithms[PkcsObjectIdentifiers.MD2.Id] = "MD2";
             algorithms[PkcsObjectIdentifiers.MD4.Id] = "MD4";
             algorithms[PkcsObjectIdentifiers.MD5.Id] = "MD5";
-
+            
+            algorithms[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "SHA-1";
+            algorithms[PkcsObjectIdentifiers.IdHmacWithSha256.Id] = "SHA-256";
+            
             algorithms["SHA1"] = "SHA-1";
             algorithms[OiwObjectIdentifiers.IdSha1.Id] = "SHA-1";
             algorithms["SHA224"] = "SHA-224";
