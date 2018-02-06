@@ -217,7 +217,7 @@ namespace Org.BouncyCastle.Security
             }
             else if (type.Equals(Pkcs5S2))
             {
-                generator = new Pkcs5S2ParametersGenerator();
+                generator = new Pkcs5S2ParametersGenerator(digest);
             }
             else if (type.Equals(Pkcs12))
             {
@@ -426,8 +426,10 @@ namespace Org.BouncyCastle.Security
                     ?	pbeParams.KeyLength.IntValue * 8
                     :	GeneratorUtilities.GetDefaultKeySize(encOid);
 
+                IDigest digest = DigestUtilities.GetDigest(pbeParams.Prf.Algorithm);
+                
                 PbeParametersGenerator gen = MakePbeGenerator(
-                    (string)algorithmType[mechanism], null, keyBytes, salt, iterationCount);
+                    (string)algorithmType[mechanism], digest, keyBytes, salt, iterationCount);
 
                 parameters = gen.GenerateDerivedParameters(encOid.Id, keyLength);
 
