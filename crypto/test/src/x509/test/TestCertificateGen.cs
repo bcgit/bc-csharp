@@ -263,8 +263,8 @@ namespace Org.BouncyCastle.X509.Tests
             certGen.SetSerialNumber(BigInteger.One);
 
             certGen.SetIssuerDN(new X509Name(ord, attrs));
-            certGen.SetNotBefore(DateTime.Today.Subtract(new TimeSpan(1, 0, 0, 0)));
-            certGen.SetNotAfter(DateTime.Today.AddDays(1));
+            certGen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
+            certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(ecPub);
             certGen.SetSignatureAlgorithm("SHA1WITHECDSA");
