@@ -11,7 +11,7 @@ environment:
     secure: q9qZlA/a+Z3wQbRlcjWok/PkfODgpKNECOBCzu2yIGE=
 
 install:  
-  - cmd: nuget install SignClient -Version 0.9.0 -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion -pre
+  - cmd: nuget install SignClient -Version 0.9.1 -SolutionDir %APPVEYOR_BUILD_FOLDER% -Verbosity quiet -ExcludeVersion 
 
 build_script:
   - cmd: msbuild /t:restore BouncyCastle.sln
