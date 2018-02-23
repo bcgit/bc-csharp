@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Cms
 			AddEntries(PkcsObjectIdentifiers.Sha256WithRsaEncryption, "SHA256", "RSA");
 			AddEntries(PkcsObjectIdentifiers.Sha384WithRsaEncryption, "SHA384", "RSA");
 			AddEntries(PkcsObjectIdentifiers.Sha512WithRsaEncryption, "SHA512", "RSA");
-            AddEntries(PkcsObjectIdentifiers.IdRsassaPss, "SHA256", "RSAandMGF1");
+			AddEntries(PkcsObjectIdentifiers.IdRsassaPss, "SHA256", "RSAandMGF1");
 			AddEntries(X9ObjectIdentifiers.ECDsaWithSha1, "SHA1", "ECDSA");
 			AddEntries(X9ObjectIdentifiers.ECDsaWithSha224, "SHA224", "ECDSA");
 			AddEntries(X9ObjectIdentifiers.ECDsaWithSha256, "SHA256", "ECDSA");
