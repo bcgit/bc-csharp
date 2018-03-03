@@ -6,9 +6,11 @@
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <Product>Bouncy Castle for .NET ($(TargetFramework))</Product>
-    <Copyright>Copyright (C) 2000-2017</Copyright>
+    <Copyright>Copyright (C) 2000-2018</Copyright>
     <Company>The Legion of the Bouncy Castle Inc.</Company>
+    <Authors>Oren Novotny</Authors>
     <Title>Bouncy Castle PCL </Title>
+    <PackageId>Portable.BouncyCastle</PackageId>
     <Description>BouncyCastle portable version with support for .NET 4, .NET Standard 1.0-2.0, WP, Silverlight, MonoAndroid, Xamarin.iOS, .NET Core</Description>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
@@ -32,7 +34,7 @@
     <Compile Include="..\bzip2\src\**\*.cs" LinkBase="bzip2" />
     <None Include="..\..\BouncyCastle.snk" />
     <PackageReference Include="GitVersionTask" Version="4.0.0-beta0011" PrivateAssets="All" />
-    <PackageReference Include="MSBuild.Sdk.Extras" Version="1.2.1" PrivateAssets="All" />
+    <PackageReference Include="MSBuild.Sdk.Extras" Version="1.2.2" PrivateAssets="All" />
     <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.0" PrivateAssets="All" />
   </ItemGroup>
   <Import Project="$(MSBuildSDKExtrasTargets)" Condition="Exists('$(MSBuildSDKExtrasTargets)')" />
