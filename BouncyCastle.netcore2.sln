@@ -1,0 +1,27 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.15
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto", "crypto\crypto.netcore2.csproj", "{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto-test", "crypto-test\crypto-test.netcore2.csproj", "{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Default = Debug|Default
+		Release|Default = Release|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Default.ActiveCfg = Debug|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Default.Build.0 = Debug|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Default.ActiveCfg = Release|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Default.Build.0 = Release|Any CPU
+		{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}.Debug|Default.ActiveCfg = Debug|Any CPU
+		{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}.Debug|Default.Build.0 = Debug|Any CPU
+		{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}.Release|Default.ActiveCfg = Release|Any CPU
+		{C857AD68-8F1B-4C7A-A76B-3DC03CBE4FB0}.Release|Default.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
