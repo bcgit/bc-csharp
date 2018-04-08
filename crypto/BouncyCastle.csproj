@@ -382,6 +382,7 @@
     <Compile Include="src\asn1\tsp\TSTInfo.cs" />
     <Compile Include="src\asn1\tsp\TimeStampReq.cs" />
     <Compile Include="src\asn1\tsp\TimeStampResp.cs" />
+    <Compile Include="src\asn1\ua\UAObjectIdentifiers.cs" />
     <Compile Include="src\asn1\util\Asn1Dump.cs" />
     <Compile Include="src\asn1\util\Dump.cs" />
     <Compile Include="src\asn1\util\FilterStream.cs" />
@@ -708,6 +709,8 @@
     <Compile Include="src\crypto\agreement\srp\SRP6StandardGroups.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6Utilities.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6VerifierGenerator.cs" />
+    <Compile Include="src\crypto\digests\Blake2bDigest.cs" />
+    <Compile Include="src\crypto\digests\Blake2sDigest.cs" />
     <Compile Include="src\crypto\digests\DSTU7564Digest.cs" />
     <Compile Include="src\crypto\digests\GeneralDigest.cs" />
     <Compile Include="src\crypto\digests\GOST3411Digest.cs" />

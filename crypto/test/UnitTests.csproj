@@ -156,6 +156,8 @@
     <Compile Include="src\crypto\test\AESWrapTest.cs" />
     <Compile Include="src\crypto\test\AllTests.cs" />
     <Compile Include="src\crypto\test\BCryptTest.cs" />
+    <Compile Include="src\crypto\test\Blake2bDigestTest.cs" />
+    <Compile Include="src\crypto\test\Blake2sDigestTest.cs" />
     <Compile Include="src\crypto\test\BlockCipherMonteCarloTest.cs" />
     <Compile Include="src\crypto\test\BlockCipherVectorTest.cs" />
     <Compile Include="src\crypto\test\BlowfishTest.cs" />
