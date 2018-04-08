@@ -83,6 +83,12 @@ namespace Org.BouncyCastle.Security
 
             algorithms[CryptoProObjectIdentifiers.GostR3411.Id] = "GOST3411";
 
+            algorithms["KECCAK224"] = "KECCAK-224";
+            algorithms["KECCAK256"] = "KECCAK-256";
+            algorithms["KECCAK288"] = "KECCAK-288";
+            algorithms["KECCAK384"] = "KECCAK-384";
+            algorithms["KECCAK512"] = "KECCAK-512";
+
             algorithms[NistObjectIdentifiers.IdSha3_224.Id] = "SHA3-224";
             algorithms[NistObjectIdentifiers.IdSha3_256.Id] = "SHA3-256";
             algorithms[NistObjectIdentifiers.IdSha3_384.Id] = "SHA3-384";
