@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             int check = 0;
             for (int i = 0; i != c3.Length; i++)
             {
-                check |= c3[i] ^ input[c1.Length + c2.Length + i];
+                check |= c3[i] ^ input[inOff + c1.Length + c2.Length + i];
             }
 
             Arrays.Fill(c1, 0);
