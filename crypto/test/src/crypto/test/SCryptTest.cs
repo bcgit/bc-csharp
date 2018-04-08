@@ -26,6 +26,54 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		public override void PerformTest()
 		{
+            TestParameters();
+            TestVectors();
+        }
+
+        [Test]
+        public void TestParameters()
+        {
+            CheckOK("Minimal values", new byte[0], new byte[0], 2, 1, 1, 1);
+            CheckIllegal("Cost parameter must be > 1", new byte[0], new byte[0], 1, 1, 1, 1);
+            CheckOK("Cost parameter 32768 OK for r == 1", new byte[0], new byte[0], 32768, 1, 1, 1);
+            CheckIllegal("Cost parameter must < 65536 for r == 1", new byte[0], new byte[0], 65536, 1, 1, 1);
+            CheckIllegal("Block size must be >= 1", new byte[0], new byte[0], 2, 0, 2, 1);
+            CheckIllegal("Parallelisation parameter must be >= 1", new byte[0], new byte[0], 2, 1, 0, 1);
+            // CheckOK("Parallelisation parameter 65535 OK for r = 4", new byte[0], new byte[0], 2, 32, 65535, 1);
+            CheckIllegal("Parallelisation parameter must be < 65535 for r = 4", new byte[0], new byte[0], 2, 32, 65536, 1);
+
+            CheckIllegal("Len parameter must be > 1", new byte[0], new byte[0], 2, 1, 1, 0);
+        }
+
+        private void CheckOK(String msg, byte[] pass, byte[] salt, int N, int r, int p, int len)
+        {
+            try
+            {
+                SCrypt.Generate(pass, salt, N, r, p, len);
+            }
+            catch (ArgumentException e)
+            {
+                Console.Error.WriteLine(e.StackTrace);
+                Fail(msg);
+            }
+        }
+
+        private void CheckIllegal(String msg, byte[] pass, byte[] salt, int N, int r, int p, int len)
+        {
+            try
+            {
+                SCrypt.Generate(pass, salt, N, r, p, len);
+                Fail(msg);
+            }
+            catch (ArgumentException e)
+            {
+                //Console.Error.WriteLine(e.StackTrace);
+            }
+        }
+
+        [Test]
+        public void TestVectors()
+        {
 			using (StreamReader sr = new StreamReader(SimpleTest.GetTestDataAsStream("scrypt.TestVectors.txt")))
 			{
 				int count = 0;
@@ -90,14 +138,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			string[] args)
 		{
 			RunTest(new SCryptTest());
-		}
-
-		[Test]
-		public void TestFunction()
-		{
-			string resultText = Perform().ToString();
-
-			Assert.AreEqual(Name + ": Okay", resultText);
 		}
 	}
 }
