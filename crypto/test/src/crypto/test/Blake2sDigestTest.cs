@@ -227,7 +227,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             RunSelfTest();
         }
 
-        public static void Main(string[] args)
+        public static void MainOld(string[] args)
         {
             RunTest(new Blake2sDigestTest());
         }
