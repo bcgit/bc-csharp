@@ -19,7 +19,7 @@ build_script:
   
 after_build:  
   - ps: '.\scripts\Sign-Package.ps1'  
-  - cmd: dotnet test crypto\test\crypto.test.csproj --no-build --no-restore
+  - cmd: dotnet test crypto\test\crypto.test.csproj -c Release --no-build --no-restore
 
 artifacts:
   - path: '*.nupkg'
