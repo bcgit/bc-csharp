@@ -8,12 +8,46 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-	public class SCrypt
+    /// <summary>Implementation of the scrypt a password-based key derivation function.</summary>
+    /// <remarks>
+    /// Scrypt was created by Colin Percival and is specified in
+    /// <a href="http://tools.ietf.org/html/draft-josefsson-scrypt-kdf-01">draft-josefsson-scrypt-kd</a>.
+    /// </remarks>
+    public class SCrypt
 	{
-		// TODO Validate arguments
-		public static byte[] Generate(byte[] P, byte[] S, int N, int r, int p, int dkLen)
+        /// <summary>Generate a key using the scrypt key derivation function.</summary>
+        /// <param name="P">the bytes of the pass phrase.</param>
+        /// <param name="S">the salt to use for this invocation.</param>
+        /// <param name="N">CPU/Memory cost parameter. Must be larger than 1, a power of 2 and less than
+        ///     <code>2^(128 * r / 8)</code>.</param>
+        /// <param name="r">the block size, must be >= 1.</param>
+        /// <param name="p">Parallelization parameter. Must be a positive integer less than or equal to
+        ///     <code>Int32.MaxValue / (128 * r * 8)</code>.</param>
+        /// <param name="dkLen">the length of the key to generate.</param>
+        /// <returns>the generated key.</returns>
+        public static byte[] Generate(byte[] P, byte[] S, int N, int r, int p, int dkLen)
 		{
-			return MFcrypt(P, S, N, r, p, dkLen);
+            if (P == null)
+                throw new ArgumentNullException("Passphrase P must be provided.");
+            if (S == null)
+                throw new ArgumentNullException("Salt S must be provided.");
+            if (N <= 1)
+                throw new ArgumentException("Cost parameter N must be > 1.");
+            // Only value of r that cost (as an int) could be exceeded for is 1
+            if (r == 1 && N >= 65536)
+                throw new ArgumentException("Cost parameter N must be > 1 and < 65536.");
+            if (r < 1)
+                throw new ArgumentException("Block size r must be >= 1.");
+            int maxParallel = Int32.MaxValue / (128 * r * 8);
+            if (p < 1 || p > maxParallel)
+            {
+                throw new ArgumentException("Parallelisation parameter p must be >= 1 and <= " + maxParallel
+                    + " (based on block size r of " + r + ")");
+            }
+            if (dkLen < 1)
+                throw new ArgumentException("Generated key length dkLen must be >= 1.");
+
+            return MFcrypt(P, S, N, r, p, dkLen);
 		}
 
 		private static byte[] MFcrypt(byte[] P, byte[] S, int N, int r, int p, int dkLen)

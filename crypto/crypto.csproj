@@ -1799,6 +1799,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\ua\UAObjectIdentifiers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\util\ASN1Dump.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3320,6 +3325,16 @@
                 />
                 <File
                     RelPath = "src\crypto\agreement\srp\SRP6VerifierGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\Blake2bDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\Blake2sDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11441,6 +11456,16 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\AllTests.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\Blake2bDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\Blake2sDigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

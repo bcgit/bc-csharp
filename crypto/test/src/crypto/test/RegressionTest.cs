@@ -126,6 +126,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             new BCryptTest(),
             new OpenBsdBCryptTest(),
             new X931SignerTest(),
+            new Blake2bDigestTest(),
+            new Blake2sDigestTest(),
             new KeccakDigestTest(),
             new ShakeDigestTest(),
             new SM2EngineTest(),

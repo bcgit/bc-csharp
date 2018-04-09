@@ -159,6 +159,11 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly DerObjectIdentifier TelephoneNumber = X509ObjectIdentifiers.id_at_telephoneNumber;
 
         /**
+         * id-at-organizationIdentifier
+         */
+        public static readonly DerObjectIdentifier OrganizationIdentifier = X509ObjectIdentifiers.id_at_organizationIdentifier;
+
+        /**
          * id-at-name
          */
         public static readonly DerObjectIdentifier Name = X509ObjectIdentifiers.id_at_name;

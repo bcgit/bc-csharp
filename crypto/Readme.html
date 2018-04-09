@@ -292,7 +292,7 @@ We state, where EC MQV has not otherwise been disabled or removed:
 		<hr style="WIDTH: 100%; HEIGHT: 2px">
 		<h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
 
-        <h4><a class="mozTocH4" name="mozTocId85316"></a>Release 1.8.2, Release Date TBD</h4>
+        <h4><a class="mozTocH4" name="mozTocId85316"></a>Release 1.8.2, Monday April 9, 2018</h4>
 
         <h5>Security Advisory</h5>
         <ul>
@@ -315,11 +315,26 @@ We state, where EC MQV has not otherwise been disabled or removed:
             </li>
         </ul>
 
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>DTLS now supports records containing multiple handshake messages.</li>
+        </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>
             <li>TLS: support for ClientHello Padding Extension (RFC 7685).</li>
             <li>TLS: support for ECDH_anon key exchange.</li>
             <li>BCrypt implementation added.</li>
+            <li>BLAKE2b and BLAKE2s implementations added.</li>
+            <li>GOST R 34.11-2012 implementation added.</li>
+            <li>DSTU-7564 message digest implementation added.</li>
+            <li>SM2 signatures, key exchange, and public key encryption implementations added.</li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
         </ul>
 
         <h4><a class="mozTocH4" name="mozTocId85315"></a>Release 1.8.1, Monday December 28, 2015</h4>

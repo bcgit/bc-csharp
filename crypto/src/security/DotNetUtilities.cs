@@ -158,14 +158,30 @@ namespace Org.BouncyCastle.Security
             return CreateRSAProvider(ToRSAParameters(rsaKey));
         }
 
+        public static RSA ToRSA(RsaKeyParameters rsaKey, CspParameters csp)
+        {
+            // TODO This appears to not work for private keys (when no CRT info)
+            return CreateRSAProvider(ToRSAParameters(rsaKey), csp);
+        }
+
         public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey)
         {
             return CreateRSAProvider(ToRSAParameters(privKey));
         }
 
+        public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey, CspParameters csp)
+        {
+            return CreateRSAProvider(ToRSAParameters(privKey), csp);
+        }
+
         public static RSA ToRSA(RsaPrivateKeyStructure privKey)
         {
             return CreateRSAProvider(ToRSAParameters(privKey));
+        }
+
+        public static RSA ToRSA(RsaPrivateKeyStructure privKey, CspParameters csp)
+        {
+            return CreateRSAProvider(ToRSAParameters(privKey), csp);
         }
 
         public static RSAParameters ToRSAParameters(RsaKeyParameters rsaKey)
@@ -227,6 +243,13 @@ namespace Org.BouncyCastle.Security
         {
             CspParameters csp = new CspParameters();
             csp.KeyContainerName = string.Format("BouncyCastle-{0}", Guid.NewGuid());
+            RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider(csp);
+            rsaCsp.ImportParameters(rp);
+            return rsaCsp;
+        }
+
+        private static RSA CreateRSAProvider(RSAParameters rp, CspParameters csp)
+        {
             RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider(csp);
             rsaCsp.ImportParameters(rp);
             return rsaCsp;

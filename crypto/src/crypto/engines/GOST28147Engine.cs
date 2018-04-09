@@ -364,5 +364,19 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			return Arrays.Clone(sBox);
 		}
-	}
+
+        public static string GetSBoxName(byte[] sBox)
+        {
+            foreach (string name in sBoxes.Keys)
+            {
+                byte[] sb = (byte[])sBoxes[name];
+                if (Arrays.AreEqual(sb, sBox))
+                {
+                    return name;
+                }
+            }
+
+            throw new ArgumentException("SBOX provided did not map to a known one");
+        }
+    }
 }
