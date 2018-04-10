@@ -6,13 +6,20 @@
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <Product>Bouncy Castle for .NET ($(TargetFramework))</Product>
-    <Copyright>Copyright (C) 2000-2018</Copyright>
+    <Copyright>© 2000-2018 Legion of the Bouncy Castle Inc. </Copyright>
     <Company>The Legion of the Bouncy Castle Inc.</Company>
     <Authors>Oren Novotny</Authors>
-    <Title>Bouncy Castle PCL </Title>
+    <Title>Bouncy Castle Portable</Title>
     <PackageId>Portable.BouncyCastle</PackageId>
     <Description>BouncyCastle portable version with support for .NET 4, .NET Standard 1.0-2.0, WP, Silverlight, MonoAndroid, Xamarin.iOS, .NET Core</Description>
     <DebugType>embedded</DebugType>
+    <PackageLicenseUrl>https://www.bouncycastle.org/csharp/licence.html</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES182</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/onovotny/bc-csharp</RepositoryUrl>
+    <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
+    <PackageTags>bouncycastle cryptography encryption security</PackageTags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
