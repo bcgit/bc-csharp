@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Bsi;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
@@ -10,7 +10,6 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
@@ -221,6 +220,54 @@ namespace Org.BouncyCastle.Security
             algorithms["RIPEMD160WITHECDSA"] = "RIPEMD160withECDSA";
             algorithms[TeleTrusTObjectIdentifiers.ECSignWithRipeMD160.Id] = "RIPEMD160withECDSA";
 
+            algorithms["SHA1/ECDSAPlain"] = "ecdsa-plain-SHA1";
+            algorithms["SHA-1/ECDSAPlain"] = "ecdsa-plain-SHA1";
+            algorithms["ecdsaPlainWithSHA1"] = "ecdsa-plain-SHA1";
+            algorithms["ecdsaPlainWithSHA-1"] = "ecdsa-plain-SHA1";
+            algorithms["SHA1withECDSAPlain"] = "ecdsa-plain-SHA1";
+            algorithms["SHA-1withECDSAPlain"] = "ecdsa-plain-SHA1";
+            algorithms[BsiObjectIdentifiers.ecdsa_plain_SHA1.Id] = "ecdsa-plain-SHA1";
+
+            algorithms["SHA224/ECDSAPlain"] = "ecdsa-plain-SHA224";
+            algorithms["SHA-224/ECDSAPlain"] = "ecdsa-plain-SHA224";
+            algorithms["ecdsaPlainWithSHA224"] = "ecdsa-plain-SHA224";
+            algorithms["ecdsaPlainWithSHA-224"] = "ecdsa-plain-SHA224";
+            algorithms["SHA224withECDSAPlain"] = "ecdsa-plain-SHA224";
+            algorithms["SHA-224withECDSAPlain"] = "ecdsa-plain-SHA224";
+            algorithms[BsiObjectIdentifiers.ecdsa_plain_SHA224.Id] = "ecdsa-plain-SHA224";
+
+            algorithms["SHA256/ECDSAPlain"] = "ecdsa-plain-SHA256";
+            algorithms["SHA-256/ECDSAPlain"] = "ecdsa-plain-SHA256";
+            algorithms["ecdsaPlainWithSHA256"] = "ecdsa-plain-SHA256";
+            algorithms["ecdsaPlainWithSHA-256"] = "ecdsa-plain-SHA256";
+            algorithms["SHA256withECDSAPlain"] = "ecdsa-plain-SHA256";
+            algorithms["SHA-256withECDSAPlain"] = "ecdsa-plain-SHA256";
+            algorithms[BsiObjectIdentifiers.ecdsa_plain_SHA256.Id] = "ecdsa-plain-SHA256";
+
+            algorithms["SHA384/ECDSAPlain"] = "ecdsa-plain-SHA384";
+            algorithms["SHA-384/ECDSAPlain"] = "ecdsa-plain-SHA384";
+            algorithms["ecdsaPlainWithSHA384"] = "ecdsa-plain-SHA384";
+            algorithms["ecdsaPlainWithSHA-384"] = "ecdsa-plain-SHA384";
+            algorithms["SHA384withECDSAPlain"] = "ecdsa-plain-SHA384";
+            algorithms["SHA-384withECDSAPlain"] = "ecdsa-plain-SHA384";
+            algorithms[BsiObjectIdentifiers.ecdsa_plain_SHA384.Id] = "ecdsa-plain-SHA384";
+
+            algorithms["SHA512/ECDSAPlain"] = "ecdsa-plain-SHA512";
+            algorithms["SHA-512/ECDSAPlain"] = "ecdsa-plain-SHA512";
+            algorithms["ecdsaPlainWithSHA512"] = "ecdsa-plain-SHA512";
+            algorithms["ecdsaPlainWithSHA-512"] = "ecdsa-plain-SHA512";
+            algorithms["SHA512withECDSAPlain"] = "ecdsa-plain-SHA512";
+            algorithms["SHA-512withECDSAPlain"] = "ecdsa-plain-SHA512";
+            algorithms[BsiObjectIdentifiers.ecdsa_plain_SHA512.Id] = "ecdsa-plain-SHA512";
+
+            algorithms["RIPEMD160/ECDSAPlain"] = "ecdsa-plain-RIPEMD160";
+            algorithms["RIPEMD-160/ECDSAPlain"] = "ecdsa-plain-RIPEMD160";
+            algorithms["ecdsaPlainWithRIPEMD160"] = "ecdsa-plain-RIPEMD160";
+            algorithms["ecdsaPlainWithRIPEMD-160"] = "ecdsa-plain-RIPEMD160";
+            algorithms["RIPEMD160withECDSAPlain"] = "ecdsa-plain-RIPEMD160";
+            algorithms["RIPEMD-160withECDSAPlain"] = "ecdsa-plain-RIPEMD160";
+            algorithms[BsiObjectIdentifiers.ecdsa_plain_RIPEMD160.Id] = "ecdsa-plain-RIPEMD160";
+
             algorithms["GOST-3410"] = "GOST3410";
             algorithms["GOST-3410-94"] = "GOST3410";
             algorithms["GOST3411WITHGOST3410"] = "GOST3410";
@@ -261,6 +308,13 @@ namespace Org.BouncyCastle.Security
             oids["SHA-256withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha256;
             oids["SHA-384withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha384;
             oids["SHA-512withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha512;
+
+            oids["ecdsa-plain-SHA1"] = BsiObjectIdentifiers.ecdsa_plain_SHA1;
+            oids["ecdsa-plain-SHA224"] = BsiObjectIdentifiers.ecdsa_plain_SHA224;
+            oids["ecdsa-plain-SHA256"] = BsiObjectIdentifiers.ecdsa_plain_SHA256;
+            oids["ecdsa-plain-SHA384"] = BsiObjectIdentifiers.ecdsa_plain_SHA384;
+            oids["ecdsa-plain-SHA512"] = BsiObjectIdentifiers.ecdsa_plain_SHA512;
+            oids["ecdsa-plain-RIPEMD160"] = BsiObjectIdentifiers.ecdsa_plain_RIPEMD160;
 
             oids["GOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
             oids["ECGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
@@ -495,6 +549,32 @@ namespace Org.BouncyCastle.Security
             if (mechanism.Equals("RIPEMD160withECDSA"))
             {
                 return (new DsaDigestSigner(new ECDsaSigner(), new RipeMD160Digest()));
+            }
+
+            if (mechanism.Equals("ecdsa-plain-SHA1"))
+            {
+                return (new DsaDigestSigner(new ECDsaSigner(), new Sha1Digest(), false));
+            }
+            if (mechanism.Equals("ecdsa-plain-SHA224"))
+            {
+                return (new DsaDigestSigner(new ECDsaSigner(), new Sha224Digest(), false));
+            }
+            if (mechanism.Equals("ecdsa-plain-SHA256"))
+            {
+                return (new DsaDigestSigner(new ECDsaSigner(), new Sha256Digest(), false));
+            }
+            if (mechanism.Equals("ecdsa-plain-SHA384"))
+            {
+                return (new DsaDigestSigner(new ECDsaSigner(), new Sha384Digest(), false));
+            }
+            if (mechanism.Equals("ecdsa-plain-512"))
+            {
+                return (new DsaDigestSigner(new ECDsaSigner(), new Sha512Digest(), false));
+            }
+
+            if (mechanism.Equals("ecdsa-plain-RIPEMD160"))
+            {
+                return (new DsaDigestSigner(new ECDsaSigner(), new RipeMD160Digest(), false));
             }
 
             if (mechanism.Equals("SHA1WITHECNR"))
