@@ -51,6 +51,7 @@
     <Compile Include="bzip2\src\CBZip2OutputStream.cs" />
     <Compile Include="bzip2\src\CRC.cs" />
     <Compile Include="src\asn1\BERBitString.cs" />
+    <Compile Include="src\asn1\bsi\BSIObjectIdentifiers.cs" />
     <Compile Include="src\AssemblyInfo.cs" />
     <Compile Include="src\asn1\ASN1Generator.cs" />
     <Compile Include="src\asn1\ASN1OctetStringParser.cs" />
