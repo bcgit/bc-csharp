@@ -3,7 +3,7 @@
 
   <!-- Source control properties -->
   <property name="GITURL" value="bcgit@git.bouncycastle.org:bc-csharp" />
-  <property name="GITCMD" value="C:/Program Files (x86)/Git/bin/git.exe" />
+  <property name="GITCMD" value="C:/Program Files/Git/bin/git.exe" />
 
   <property name="api-debugpath" value="./api/bin/debug" />
   <property name="api-releasepath" value="./api/bin/release" />
