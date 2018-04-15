@@ -22,9 +22,16 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return new FixedPointPreCompInfo();
         }
 
+        [Obsolete("Use 'Precompute(ECPoint)' instead, as minWidth parameter is now ignored")]
         public static FixedPointPreCompInfo Precompute(ECPoint p, int minWidth)
         {
+            return Precompute(p);
+        }
+
+        public static FixedPointPreCompInfo Precompute(ECPoint p)
+        {
             ECCurve c = p.Curve;
+            int minWidth = GetCombSize(c) > 257 ? 6 : 5;
 
             int n = 1 << minWidth;
             FixedPointPreCompInfo info = GetFixedPointPreCompInfo(c.GetPreCompInfo(p, PRECOMP_NAME));
@@ -63,6 +70,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                 c.NormalizeAll(lookupTable);
 
+                info.LookupTable = c.CreateCacheSafeLookupTable(lookupTable, 0, lookupTable.Length);
                 info.Offset = pow2Table[minWidth];
                 info.PreComp = lookupTable;
                 info.Width = minWidth;

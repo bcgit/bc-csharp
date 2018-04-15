@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     internal class SecT239FieldElement
         : ECFieldElement
     {
-        protected ulong[] x;
+        protected internal readonly ulong[] x;
 
         public SecT239FieldElement(BigInteger x)
         {

@@ -1130,11 +1130,13 @@
     <Compile Include="src\math\ec\ECAlgorithms.cs" />
     <Compile Include="src\math\ec\ECCurve.cs" />
     <Compile Include="src\math\ec\ECFieldElement.cs" />
+    <Compile Include="src\math\ec\ECLookupTable.cs" />
     <Compile Include="src\math\ec\ECPoint.cs" />
     <Compile Include="src\math\ec\ECPointMap.cs" />
     <Compile Include="src\math\ec\LongArray.cs" />
     <Compile Include="src\math\ec\ScaleXPointMap.cs" />
     <Compile Include="src\math\ec\ScaleYPointMap.cs" />
+    <Compile Include="src\math\ec\SimpleLookupTable.cs" />
     <Compile Include="src\math\ec\abc\SimpleBigDecimal.cs" />
     <Compile Include="src\math\ec\abc\Tnaf.cs" />
     <Compile Include="src\math\ec\abc\ZTauElement.cs" />

@@ -5509,6 +5509,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\ECLookupTable.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\ECPoint.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5530,6 +5535,11 @@
                 />
                 <File
                     RelPath = "src\math\ec\ScaleYPointMap.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\SimpleLookupTable.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -12321,6 +12331,11 @@
                 />
                 <File
                     RelPath = "test\src\math\ec\test\F2mProofer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\test\FixedPointTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

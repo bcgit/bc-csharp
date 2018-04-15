@@ -5,6 +5,7 @@ using Org.BouncyCastle.Math.EC.Abc;
 using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Field;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC
@@ -321,6 +322,33 @@ namespace Org.BouncyCastle.Math.EC
             get { return m_coord; }
         }
 
+        /**
+         * Create a cache-safe lookup table for the specified sequence of points. All the points MUST
+         * belong to this <code>ECCurve</code> instance, and MUST already be normalized.
+         */
+        public virtual ECLookupTable CreateCacheSafeLookupTable(ECPoint[] points, int off, int len)
+        {
+            int FE_BYTES = (FieldSize + 7) / 8;
+            byte[] table = new byte[len * FE_BYTES * 2];
+            {
+                int pos = 0;
+                for (int i = 0; i < len; ++i)
+                {
+                    ECPoint p = points[off + i];
+                    byte[] px = p.RawXCoord.ToBigInteger().ToByteArray();
+                    byte[] py = p.RawYCoord.ToBigInteger().ToByteArray();
+
+                    int pxStart = px.Length > FE_BYTES ? 1 : 0, pxLen = px.Length - pxStart;
+                    int pyStart = py.Length > FE_BYTES ? 1 : 0, pyLen = py.Length - pyStart;
+
+                    Array.Copy(px, pxStart, table, pos + FE_BYTES - pxLen, pxLen); pos += FE_BYTES;
+                    Array.Copy(py, pyStart, table, pos + FE_BYTES - pyLen, pyLen); pos += FE_BYTES;
+                }
+            }
+
+            return new DefaultLookupTable(this, table, len);
+        }
+
         protected virtual void CheckPoint(ECPoint point)
         {
             if (null == point || (this != point.Curve))
@@ -467,6 +495,50 @@ namespace Org.BouncyCastle.Math.EC
                 throw new ArgumentException("Invalid infinity encoding", "encoded");
 
             return p;
+        }
+
+        private class DefaultLookupTable
+            : ECLookupTable
+        {
+            private readonly ECCurve m_outer;
+            private readonly byte[] m_table;
+            private readonly int m_size;
+
+            internal DefaultLookupTable(ECCurve outer, byte[] table, int size)
+            {
+                this.m_outer = outer;
+                this.m_table = table;
+                this.m_size = size;
+            }
+
+            public virtual int Size
+            {
+                get { return m_size; }
+            }
+
+            public virtual ECPoint Lookup(int index)
+            {
+                int FE_BYTES = (m_outer.FieldSize + 7) / 8;
+                byte[] x = new byte[FE_BYTES], y = new byte[FE_BYTES];
+                int pos = 0;
+
+                for (int i = 0; i < m_size; ++i)
+                {
+                    byte MASK = (byte)(((i ^ index) - 1) >> 31);
+
+                    for (int j = 0; j < FE_BYTES; ++j)
+                    {
+                        x[j] ^= (byte)(m_table[pos + j] & MASK);
+                        y[j] ^= (byte)(m_table[pos + FE_BYTES + j] & MASK);
+                    }
+
+                    pos += (FE_BYTES * 2);
+                }
+
+                ECFieldElement X = m_outer.FromBigInteger(new BigInteger(1, x));
+                ECFieldElement Y = m_outer.FromBigInteger(new BigInteger(1, y));
+                return m_outer.CreateRawPoint(X, Y, false);
+            }
         }
     }
 
@@ -1126,6 +1198,71 @@ namespace Org.BouncyCastle.Math.EC
         public BigInteger H
         {
             get { return m_cofactor; }
+        }
+
+        public override ECLookupTable CreateCacheSafeLookupTable(ECPoint[] points, int off, int len)
+        {
+            int FE_LONGS = (m + 63) / 64;
+
+            long[] table = new long[len * FE_LONGS * 2];
+            {
+                int pos = 0;
+                for (int i = 0; i < len; ++i)
+                {
+                    ECPoint p = points[off + i];
+                    ((F2mFieldElement)p.RawXCoord).x.CopyTo(table, pos); pos += FE_LONGS;
+                    ((F2mFieldElement)p.RawYCoord).x.CopyTo(table, pos); pos += FE_LONGS;
+                }
+            }
+
+            return new DefaultF2mLookupTable(this, table, len);
+        }
+
+        private class DefaultF2mLookupTable
+            : ECLookupTable
+        {
+            private readonly F2mCurve m_outer;
+            private readonly long[] m_table;
+            private readonly int m_size;
+
+            internal DefaultF2mLookupTable(F2mCurve outer, long[] table, int size)
+            {
+                this.m_outer = outer;
+                this.m_table = table;
+                this.m_size = size;
+            }
+
+            public virtual int Size
+            {
+                get { return m_size; }
+            }
+
+            public virtual ECPoint Lookup(int index)
+            {
+                int m = m_outer.m;
+                int[] ks = m_outer.IsTrinomial() ? new int[]{ m_outer.k1 } : new int[]{ m_outer.k1, m_outer.k2, m_outer.k3 }; 
+
+                int FE_LONGS = (m_outer.m + 63) / 64;
+                long[] x = new long[FE_LONGS], y = new long[FE_LONGS];
+                int pos = 0;
+
+                for (int i = 0; i < m_size; ++i)
+                {
+                    long MASK =((i ^ index) - 1) >> 31;
+
+                    for (int j = 0; j < FE_LONGS; ++j)
+                    {
+                        x[j] ^= m_table[pos + j] & MASK;
+                        y[j] ^= m_table[pos + FE_LONGS + j] & MASK;
+                    }
+
+                    pos += (FE_LONGS * 2);
+                }
+
+                ECFieldElement X = new F2mFieldElement(m, ks, new LongArray(x));
+                ECFieldElement Y = new F2mFieldElement(m, ks, new LongArray(y));
+                return m_outer.CreateRawPoint(X, Y, false);
+            }
         }
     }
 }

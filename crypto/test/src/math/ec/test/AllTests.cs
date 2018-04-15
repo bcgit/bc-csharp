@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 TestSuite suite = new TestSuite("EC Math tests");
                 suite.Add(new ECAlgorithmsTest());
                 suite.Add(new ECPointTest());
+                suite.Add(new FixedPointTest());
                 return suite;
             }
         }
