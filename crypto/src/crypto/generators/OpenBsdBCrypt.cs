@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
@@ -33,10 +34,16 @@ namespace Org.BouncyCastle.Crypto.Generators
          * set up the decoding table.
          */
         private static readonly byte[] DecodingTable = new byte[128];
-        private static readonly string Version = "2a"; // previous version was not UTF-8
+        private static readonly string DefaultVersion = "2y";
+        private static readonly ISet AllowedVersions = new HashSet();
 
         static OpenBsdBCrypt()
         {
+            // Presently just the Bcrypt versions.
+            AllowedVersions.Add("2a");
+            AllowedVersions.Add("2y");
+            AllowedVersions.Add("2b");
+
             for (int i = 0; i < DecodingTable.Length; i++)
             {
                 DecodingTable[i] = (byte)0xff;
@@ -56,16 +63,20 @@ namespace Org.BouncyCastle.Crypto.Generators
          * Creates a 60 character Bcrypt String, including
          * version, cost factor, salt and hash, separated by '$'
          *
+         * @param version  the version, 2y,2b or 2a. (2a is not backwards compatible.)
          * @param cost     the cost factor, treated as an exponent of 2
          * @param salt     a 16 byte salt
          * @param password the password
          * @return a 60 character Bcrypt String
          */
-        private static string CreateBcryptString(byte[] password, byte[] salt, int cost)
+        private static string CreateBcryptString(string version, byte[] password, byte[] salt, int cost)
         {
+            if (!AllowedVersions.Contains(version))
+                throw new ArgumentException("Version " + version + " is not accepted by this implementation.", "version");
+
             StringBuilder sb = new StringBuilder(60);
             sb.Append('$');
-            sb.Append(Version);
+            sb.Append(version);
             sb.Append('$');
             sb.Append(cost < 10 ? ("0" + cost) : cost.ToString());
             sb.Append('$');
@@ -80,7 +91,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         /**
          * Creates a 60 character Bcrypt String, including
-         * version, cost factor, salt and hash, separated by '$'
+         * version, cost factor, salt and hash, separated by '$' using version
+         * '2y'.
          *
          * @param cost     the cost factor, treated as an exponent of 2
          * @param salt     a 16 byte salt
@@ -89,6 +101,23 @@ namespace Org.BouncyCastle.Crypto.Generators
          */
         public static string Generate(char[] password, byte[] salt, int cost)
         {
+            return Generate(DefaultVersion, password, salt, cost);
+        }
+
+        /**
+         * Creates a 60 character Bcrypt String, including
+         * version, cost factor, salt and hash, separated by '$'
+         *
+         * @param version  the version, may be 2b, 2y or 2a. (2a is not backwards compatible.)
+         * @param cost     the cost factor, treated as an exponent of 2
+         * @param salt     a 16 byte salt
+         * @param password the password
+         * @return a 60 character Bcrypt String
+         */
+        public static string Generate(string version, char[] password, byte[] salt, int cost)
+        {
+            if (!AllowedVersions.Contains(version))
+                throw new ArgumentException("Version " + version + " is not accepted by this implementation.", "version");
             if (password == null)
                 throw new ArgumentNullException("password");
             if (salt == null)
@@ -109,7 +138,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             Array.Clear(psw, 0, psw.Length);
 
-            string rv = CreateBcryptString(tmp, salt, cost);
+            string rv = CreateBcryptString(version, tmp, salt, cost);
 
             Array.Clear(tmp, 0, tmp.Length);
 
@@ -133,8 +162,10 @@ namespace Org.BouncyCastle.Crypto.Generators
                 throw new DataLengthException("Bcrypt String length: " + bcryptString.Length + ", 60 required.");
             if (bcryptString[0] != '$' || bcryptString[3] != '$' || bcryptString[6] != '$')
                 throw new ArgumentException("Invalid Bcrypt String format.", "bcryptString");
-            if (!bcryptString.Substring(1, 2).Equals(Version))
-                throw new ArgumentException("Wrong Bcrypt version, 2a expected.", "bcryptString");
+
+            string version = bcryptString.Substring(1, 2);
+            if (!AllowedVersions.Contains(version))
+                throw new ArgumentException("Bcrypt version '" + version + "' is not supported by this implementation", "bcryptString");
 
             int cost = 0;
             try
@@ -143,7 +174,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
             catch (Exception nfe)
             {
-                throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2), "bcryptString");
+                throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2), "bcryptString", nfe);
             }
             if (cost < 4 || cost > 31)
                 throw new ArgumentException("Invalid cost factor: " + cost + ", 4 < cost < 31 expected.");
@@ -155,7 +186,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             int start = bcryptString.LastIndexOf('$') + 1, end = bcryptString.Length - 31;
             byte[] salt = DecodeSaltString(bcryptString.Substring(start, end - start));
 
-            string newBcryptString = Generate(password, salt, cost);
+            string newBcryptString = Generate(version, password, salt, cost);
 
             return bcryptString.Equals(newBcryptString);
         }
