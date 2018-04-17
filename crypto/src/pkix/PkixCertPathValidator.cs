@@ -289,6 +289,10 @@ namespace Org.BouncyCastle.Pkix
                 {
                     if (cert != null && cert.Version == 1)
                     {
+                        // we've found the trust anchor at the top of the path, ignore and keep going
+                        if ((i == 1) && cert.Equals(trust.TrustedCert))
+                            continue;
+
                         throw new PkixCertPathValidatorException(
 							"Version 1 certificates can't be used as CA ones.", null, certPath, index);
                     }
