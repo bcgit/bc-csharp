@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -78,6 +79,22 @@ namespace Org.BouncyCastle.Asn1.X509
 				version = new DerInteger(0);
 			}
 
+            bool isV1 = false;
+            bool isV2 = false;
+
+            if (version.Value.Equals(BigInteger.Zero))
+            {
+                isV1 = true;
+            }
+            else if (version.Value.Equals(BigInteger.One))
+            {
+                isV2 = true;
+            }
+            else if (!version.Value.Equals(BigInteger.Two))
+            {
+                throw new ArgumentException("version number not recognised");
+            }
+
 			serialNumber = DerInteger.GetInstance(seq[seqStart + 1]);
 
 			signature = AlgorithmIdentifier.GetInstance(seq[seqStart + 2]);
@@ -98,22 +115,36 @@ namespace Org.BouncyCastle.Asn1.X509
 			//
 			subjectPublicKeyInfo = SubjectPublicKeyInfo.GetInstance(seq[seqStart + 6]);
 
-			for (int extras = seq.Count - (seqStart + 6) - 1; extras > 0; extras--)
+            int extras = seq.Count - (seqStart + 6) - 1;
+            if (extras != 0 && isV1)
+                throw new ArgumentException("version 1 certificate contains extra data");
+
+            while (extras > 0)
 			{
 				DerTaggedObject extra = (DerTaggedObject) seq[seqStart + 6 + extras];
 
 				switch (extra.TagNo)
 				{
-					case 1:
-						issuerUniqueID = DerBitString.GetInstance(extra, false);
-						break;
-					case 2:
-						subjectUniqueID = DerBitString.GetInstance(extra, false);
-						break;
-					case 3:
-						extensions = X509Extensions.GetInstance(extra);
-						break;
-				}
+				case 1:
+                {
+					issuerUniqueID = DerBitString.GetInstance(extra, false);
+					break;
+                }
+                case 2:
+                {
+                    subjectUniqueID = DerBitString.GetInstance(extra, false);
+                    break;
+                }
+				case 3:
+                {
+                    if (isV2)
+                        throw new ArgumentException("version 2 certificate cannot contain extensions");
+
+                    extensions = X509Extensions.GetInstance(extra);
+					break;
+                }
+                }
+                extras--;
 			}
 		}
 
