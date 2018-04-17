@@ -6219,6 +6219,26 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\rfc7748\X25519.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc7748\X25519Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc7748\X448.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc7748\X448Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\field\FiniteFields.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12306,6 +12326,16 @@
                 />
                 <File
                     RelPath = "test\src\math\ec\custom\sec\test\SecP384R1FieldTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\rfc7748\test\X25519Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\rfc7748\test\X448Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

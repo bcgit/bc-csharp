@@ -1267,6 +1267,10 @@
     <Compile Include="src\math\ec\multiplier\WTauNafPreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\ZSignedDigitL2RMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\ZSignedDigitR2LMultiplier.cs" />
+    <Compile Include="src\math\ec\rfc7748\X25519.cs" />
+    <Compile Include="src\math\ec\rfc7748\X25519Field.cs"/>
+    <Compile Include="src\math\ec\rfc7748\X448.cs"/>
+    <Compile Include="src\math\ec\rfc7748\X448Field.cs"/>
     <Compile Include="src\math\field\FiniteFields.cs" />
     <Compile Include="src\math\field\GF2Polynomial.cs" />
     <Compile Include="src\math\field\GenericPolynomialExtensionField.cs" />
