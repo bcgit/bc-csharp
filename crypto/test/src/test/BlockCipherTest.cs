@@ -313,7 +313,7 @@ namespace Org.BouncyCastle.Tests
             "SEED/OCB/NoPadding",
             "eb04b3612769e1ad681f975af1a6f401d94dc88276dd50fc3ebce791c28825c652b7351acbad8c63d4d66191de94c970",
             "SEED/CCM/NoPadding",
-            "8bb16b37e7f1d4eb97bb1fa3b9bfd411aca64a3581bb3c5b2a91346983aa334984d73ad629a847f7",
+            "da684e8cab782d4ebae835726f43c3aeea97ee270897255714d464e981ac39af06c9483153f8a05a",
             "SEED/GCM/NoPadding",
             "ed5f6293c9a4f280af6695750bfb3bb3b60c214565a049494df955152757812ebfb93705895606c4378498a93f2541b5",
             //"SM4/GCM/NoPadding",
@@ -440,7 +440,7 @@ namespace Org.BouncyCastle.Tests
                 throw new Exception("Unhandled mode: " + mode);
 
             if (baseMode == "CCM")
-                return 13;
+                return 12;
             if (baseMode == "ECB")
                 return 0;
             if (baseMode == "OCB")
