@@ -175,18 +175,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             X25519Field.Encode(x2, r, rOff);
         }
 
-        private static void Dump(string label, int[] x)
-        {
-            int[] y = X25519Field.Create();
-            X25519Field.Copy(x, 0, y, 0);
-            X25519Field.Normalize(y);
-
-            byte[] r = new byte[32];
-            X25519Field.Encode(y, r, 0);
-            string val = Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(r);
-            Console.WriteLine("  " + label + ": " + val);
-        }
-
         public static void ScalarMultBase(byte[] k, int kOff, byte[] r, int rOff)
         {
             Precompute();
