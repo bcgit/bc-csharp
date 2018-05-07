@@ -229,7 +229,7 @@ namespace Org.BouncyCastle.Pkcs
 			if (!signingKey.IsPrivate)
 				throw new ArgumentException("key for signing must be private", "signingKey");
 
-            init(new Asn1SignatureFactory(signatureAlgorithm, signingKey), subject, publicKey, attributes, signingKey);
+            init(new Asn1SignatureFactory(signatureAlgorithm, signingKey), subject, publicKey, attributes);
 		}
 
         /// <summary>
@@ -239,13 +239,11 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
         /// <param name="publicKey">Public Key to be included in cert reqest.</param>
         /// <param name="attributes">ASN1Set of Attributes.</param>
-        /// <param name="signingKey">Matching Private key for nominated (above) public key to be used to sign the request.</param>
         public Pkcs10CertificationRequest(
             ISignatureFactory signatureCalculatorFactory,
             X509Name subject,
             AsymmetricKeyParameter publicKey,
-            Asn1Set attributes,
-            AsymmetricKeyParameter signingKey)
+            Asn1Set attributes)
         {
             if (signatureCalculatorFactory == null)
                 throw new ArgumentNullException("signatureCalculator");
@@ -255,18 +253,15 @@ namespace Org.BouncyCastle.Pkcs
                 throw new ArgumentNullException("publicKey");
             if (publicKey.IsPrivate)
                 throw new ArgumentException("expected public key", "publicKey");
-            if (!signingKey.IsPrivate)
-                throw new ArgumentException("key for signing must be private", "signingKey");
 
-            init(signatureCalculatorFactory, subject, publicKey, attributes, signingKey);
+            init(signatureCalculatorFactory, subject, publicKey, attributes);
         }
 
         private void init(
             ISignatureFactory signatureCalculator, 
             X509Name subject,
             AsymmetricKeyParameter publicKey,
-            Asn1Set attributes,
-            AsymmetricKeyParameter signingKey)
+            Asn1Set attributes)
         {
             this.sigAlgId = (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails;
 
