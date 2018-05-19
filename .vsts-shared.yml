@@ -24,7 +24,8 @@ steps:
 
 - powershell: |        
     mkdir $(Build.ArtifactStagingDirectory)\Packages
-    msbuild .\crypto\src\crypto.csproj /restore /m /t:pack /p:Configuration=$(BuildConfiguration) /p:PackageId="Portable.BouncyCastle" /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\Packages
+    msbuild .\BouncyCastle.sln /restore /p:Configuration=$(BuildConfiguration) 
+    msbuild .\crypto\src\crypto.csproj /m /t:pack /p:Configuration=$(BuildConfiguration) /p:PackageId="Portable.BouncyCastle" /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\Packages
   
   displayName: Build
   
