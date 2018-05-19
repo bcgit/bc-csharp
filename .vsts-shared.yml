@@ -2,13 +2,6 @@ parameters:
   signSteps: []
   
 steps:
-- task: BatchScript@1
-  inputs:
-    filename: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\Common7\\Tools\\VsDevCmd.bat"
-    arguments: -no_logo
-    modifyEnvironment: true
-  displayName: Setup Environment Variables
-
 - task: NuGetToolInstaller@0
   displayName: Use NuGet 4.7.0
   inputs:
@@ -22,18 +15,18 @@ steps:
   displayName: Set Version
   condition: eq(variables['system.pullrequest.isfork'], false)
 
-- powershell: |        
-    mkdir $(Build.ArtifactStagingDirectory)\Packages
-    msbuild .\BouncyCastle.sln /restore /p:Configuration=$(BuildConfiguration) 
-    msbuild .\crypto\src\crypto.csproj /m /t:pack /p:Configuration=$(BuildConfiguration) /p:PackageId="Portable.BouncyCastle" /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\Packages
-  
-  displayName: Build
+- task: DotNetCoreCLI@2
+  inputs:
+    command: pack
+    projects: .\crypto\src\crypto.csproj 
+    arguments: -c $(BuildConfiguration) /p:PackageId="Portable.BouncyCastle" /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\Packages
+  displayName: Build  
   
 - task: DotNetCoreCLI@2
   inputs:
     command: test
     projects: .\crypto\test\crypto.test.csproj
-    arguments: -c $(BuildConfiguration) --no-build --no-restore
+    arguments: -c $(BuildConfiguration)
   displayName: Run Tests
   
 - ${{ parameters.signSteps }}
