@@ -13,7 +13,7 @@ $appSettings = "$currentDirectory\SignClient.json"
 
 $appPath = "$currentDirectory\..\packages\SignClient\tools\netcoreapp2.0\SignClient.dll"
 
-$nupgks = ls $currentDirectory\..\*.nupkg | Select -ExpandProperty FullName
+$nupgks = ls $Env:ArtifactDirectory\*.nupkg | Select -ExpandProperty FullName
 
 foreach ($nupkg in $nupgks){
 	Write-Host "Submitting $nupkg for signing"
