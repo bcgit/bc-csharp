@@ -174,11 +174,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
             catch (Exception nfe)
             {
-#if LEGACY_PCL
-                throw new ArgumentException("Invalid cost factor (bcryptString): " + bcryptString.Substring(4, 2), nfe);
-#else
                 throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2), "bcryptString", nfe);
-#endif
             }
             if (cost < 4 || cost > 31)
                 throw new ArgumentException("Invalid cost factor: " + cost + ", 4 < cost < 31 expected.");
