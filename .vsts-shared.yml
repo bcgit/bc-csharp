@@ -18,8 +18,10 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: pack
-    projects: .\crypto\src\crypto.csproj 
-    arguments: -c $(BuildConfiguration) /p:PackageId="Portable.BouncyCastle" /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\Packages
+    packagesToPack: .\crypto\src\crypto.csproj
+    packDirectory: $(Build.ArtifactStagingDirectory)\Packages
+    configuration: $(BuildConfiguration)
+    arguments: /p:PackageId="Portable.BouncyCastle" 
   displayName: Build  
   
 - task: DotNetCoreCLI@2
