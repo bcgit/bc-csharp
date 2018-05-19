@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 AbsorbBits(0x0F, 4);
             }
 
-            Squeeze(output, outOff, outLen);
+            Squeeze(output, outOff, (long)outLen << 3);
 
             return outLen;
         }
@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 AbsorbBits(finalInput, finalBits);
             }
 
-            Squeeze(output, outOff, outLen);
+            Squeeze(output, outOff, (long)outLen << 3);
 
             Reset();
 

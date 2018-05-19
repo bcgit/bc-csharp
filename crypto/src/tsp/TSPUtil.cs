@@ -4,9 +4,11 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
@@ -38,6 +40,9 @@ namespace Org.BouncyCastle.Tsp
             digestLengths.Add(TeleTrusTObjectIdentifiers.RipeMD160.Id, 20);
             digestLengths.Add(TeleTrusTObjectIdentifiers.RipeMD256.Id, 32);
             digestLengths.Add(CryptoProObjectIdentifiers.GostR3411.Id, 32);
+            digestLengths.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id, 32);
+            digestLengths.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id, 64);
+            digestLengths.Add(GMObjectIdentifiers.sm3.Id, 32);
 
             digestNames.Add(PkcsObjectIdentifiers.MD5.Id, "MD5");
             digestNames.Add(OiwObjectIdentifiers.IdSha1.Id, "SHA1");
@@ -45,7 +50,7 @@ namespace Org.BouncyCastle.Tsp
             digestNames.Add(NistObjectIdentifiers.IdSha256.Id, "SHA256");
             digestNames.Add(NistObjectIdentifiers.IdSha384.Id, "SHA384");
             digestNames.Add(NistObjectIdentifiers.IdSha512.Id, "SHA512");
-            digestNames.Add(PkcsObjectIdentifiers.MD5WithRsaEncryption, "MD5");
+            digestNames.Add(PkcsObjectIdentifiers.MD5WithRsaEncryption.Id, "MD5");
 			digestNames.Add(PkcsObjectIdentifiers.Sha1WithRsaEncryption.Id, "SHA1");
             digestNames.Add(PkcsObjectIdentifiers.Sha224WithRsaEncryption.Id, "SHA224");
             digestNames.Add(PkcsObjectIdentifiers.Sha256WithRsaEncryption.Id, "SHA256");
@@ -57,8 +62,11 @@ namespace Org.BouncyCastle.Tsp
             digestNames.Add(CryptoProObjectIdentifiers.GostR3411.Id, "GOST3411");
             digestNames.Add(OiwObjectIdentifiers.DsaWithSha1.Id, "SHA1");
             digestNames.Add(OiwObjectIdentifiers.Sha1WithRsa.Id, "SHA1");
-            digestNames.Add(OiwObjectIdentifiers.MD5WithRsa, "MD5");
-		}
+            digestNames.Add(OiwObjectIdentifiers.MD5WithRsa.Id, "MD5");
+            digestNames.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id, "GOST3411-2012-256");
+            digestNames.Add(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id, "GOST3411-2012-512");
+            digestNames.Add(GMObjectIdentifiers.sm3.Id, "SM3");
+        }
 
 
 	    /**

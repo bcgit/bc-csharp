@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
@@ -31,8 +31,8 @@ namespace Org.BouncyCastle.Crypto.Generators
                 throw new ArgumentNullException("Passphrase P must be provided.");
             if (S == null)
                 throw new ArgumentNullException("Salt S must be provided.");
-            if (N <= 1)
-                throw new ArgumentException("Cost parameter N must be > 1.");
+            if (N <= 1 || !IsPowerOf2(N))
+                throw new ArgumentException("Cost parameter N must be > 1 and a power of 2.");
             // Only value of r that cost (as an int) could be exceeded for is 1
             if (r == 1 && N >= 65536)
                 throw new ArgumentException("Cost parameter N must be > 1 and < 65536.");
@@ -170,5 +170,13 @@ namespace Org.BouncyCastle.Crypto.Generators
 				Clear(array);
 			}
 		}
-	}
+
+        // note: we know X is non-zero
+        private static bool IsPowerOf2(int x)
+        {
+            Debug.Assert(x != 0);
+
+            return (x & (x - 1)) == 0;
+        }
+    }
 }

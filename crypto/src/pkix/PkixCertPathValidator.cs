@@ -3,6 +3,7 @@ using System.Collections;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -81,16 +82,18 @@ namespace Org.BouncyCastle.Pkix
                 trust = PkixCertPathValidatorUtilities.FindTrustAnchor(
 					(X509Certificate)certs[certs.Count - 1],
 					paramsPkix.GetTrustAnchors());
+
+                if (trust == null)
+                    throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, certPath, -1);
+
+                CheckCertificate(trust.TrustedCert);
             }
             catch (Exception e)
             {
-                throw new PkixCertPathValidatorException(e.Message, e, certPath, certs.Count - 1);
+                throw new PkixCertPathValidatorException(e.Message, e.InnerException, certPath, certs.Count - 1);
             }
 
-            if (trust == null)
-                throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, certPath, -1);
-
-			//
+            //
             // (e), (f), (g) are part of the paramsPkix object.
             //
             IEnumerator certIter;
@@ -253,6 +256,15 @@ namespace Org.BouncyCastle.Pkix
                 //
                 cert = (X509Certificate)certs[index];
 
+                try
+                {
+                    CheckCertificate(cert);
+                }
+                catch (Exception e)
+                {
+                    throw new PkixCertPathValidatorException(e.Message, e.InnerException, certPath, index);
+                }
+
                 //
                 // 6.1.3
                 //
@@ -277,6 +289,10 @@ namespace Org.BouncyCastle.Pkix
                 {
                     if (cert != null && cert.Version == 1)
                     {
+                        // we've found the trust anchor at the top of the path, ignore and keep going
+                        if ((i == 1) && cert.Equals(trust.TrustedCert))
+                            continue;
+
                         throw new PkixCertPathValidatorException(
 							"Version 1 certificates can't be used as CA ones.", null, certPath, index);
                     }
@@ -415,6 +431,18 @@ namespace Org.BouncyCastle.Pkix
 			}
 
 			throw new PkixCertPathValidatorException("Path processing failed on policy.", null, certPath, index);
+        }
+
+        internal static void CheckCertificate(X509Certificate cert)
+        {
+            try
+            {
+                TbsCertificateStructure.GetInstance(cert.CertificateStructure.TbsCertificate);
+            }
+            catch (CertificateEncodingException e)
+            {
+                throw new Exception("unable to process TBSCertificate", e);
+            }
         }
     }
 }

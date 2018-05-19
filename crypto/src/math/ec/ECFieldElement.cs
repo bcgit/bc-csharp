@@ -579,7 +579,7 @@ namespace Org.BouncyCastle.Math.EC
         /**
          * The <code>LongArray</code> holding the bits.
          */
-        private LongArray x;
+        internal LongArray x;
 
         /**
             * Constructor for Ppb.
@@ -644,7 +644,7 @@ namespace Org.BouncyCastle.Math.EC
             // Set k1 to k, and set k2 and k3 to 0
         }
 
-        private F2mFieldElement(int m, int[] ks, LongArray x)
+        internal F2mFieldElement(int m, int[] ks, LongArray x)
         {
             this.m = m;
             this.representation = (ks.Length == 1) ? Tpb : Ppb;

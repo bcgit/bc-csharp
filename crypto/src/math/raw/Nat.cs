@@ -207,6 +207,11 @@ namespace Org.BouncyCastle.Math.Raw
             return z;
         }
 
+        public static void Copy(int len, uint[] x, int xOff, uint[] z, int zOff)
+        {
+            Array.Copy(x, xOff, z, zOff, len);
+        }
+
         public static uint[] Create(int len)
         {
             return new uint[len];

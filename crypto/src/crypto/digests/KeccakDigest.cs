@@ -15,74 +15,21 @@ namespace Org.BouncyCastle.Crypto.Digests
     public class KeccakDigest
         : IDigest, IMemoable
     {
-        private static readonly ulong[] KeccakRoundConstants = KeccakInitializeRoundConstants();
+        private static readonly ulong[] KeccakRoundConstants = new ulong[]{
+            0x0000000000000001UL, 0x0000000000008082UL, 0x800000000000808aUL, 0x8000000080008000UL,
+            0x000000000000808bUL, 0x0000000080000001UL, 0x8000000080008081UL, 0x8000000000008009UL,
+            0x000000000000008aUL, 0x0000000000000088UL, 0x0000000080008009UL, 0x000000008000000aUL,
+            0x000000008000808bUL, 0x800000000000008bUL, 0x8000000000008089UL, 0x8000000000008003UL,
+            0x8000000000008002UL, 0x8000000000000080UL, 0x000000000000800aUL, 0x800000008000000aUL,
+            0x8000000080008081UL, 0x8000000000008080UL, 0x0000000080000001UL, 0x8000000080008008UL
+        };
 
-        private static readonly int[] KeccakRhoOffsets = KeccakInitializeRhoOffsets();
-
-        private static ulong[] KeccakInitializeRoundConstants()
-        {
-            ulong[] keccakRoundConstants = new ulong[24];
-            byte LFSRState = 0x01;
-
-            for (int i = 0; i < 24; i++)
-            {
-                keccakRoundConstants[i] = 0;
-                for (int j = 0; j < 7; j++)
-                {
-                    int bitPosition = (1 << j) - 1;
-
-                    // LFSR86540
-
-                    bool loBit = (LFSRState & 0x01) != 0;
-                    if (loBit)
-                    {
-                        keccakRoundConstants[i] ^= 1UL << bitPosition;
-                    }
-
-                    bool hiBit = (LFSRState & 0x80) != 0;
-                    LFSRState <<= 1;
-                    if (hiBit)
-                    {
-                        LFSRState ^= 0x71;
-                    }
-
-                }
-            }
-
-            return keccakRoundConstants;
-        }
-
-        private static int[] KeccakInitializeRhoOffsets()
-        {
-            int[] keccakRhoOffsets = new int[25];
-            int x, y, t, newX, newY;
-
-            int rhoOffset = 0;
-            keccakRhoOffsets[0] = rhoOffset;
-            x = 1;
-            y = 0;
-            for (t = 1; t < 25; t++)
-            {
-                rhoOffset = (rhoOffset + t) & 63;
-                keccakRhoOffsets[(((x) % 5) + 5 * ((y) % 5))] = rhoOffset;
-                newX = (0 * x + 1 * y) % 5;
-                newY = (2 * x + 3 * y) % 5;
-                x = newX;
-                y = newY;
-            }
-
-            return keccakRhoOffsets;
-        }
-
-        private static readonly int STATE_LENGTH = (1600 / 8);
-
-        private ulong[] state = new ulong[STATE_LENGTH / 8];
-        protected byte[] dataQueue = new byte[1536 / 8];
+        private ulong[] state = new ulong[25];
+        protected byte[] dataQueue = new byte[192];
         protected int rate;
         protected int bitsInQueue;
         protected int fixedOutputLength;
         protected bool squeezing;
-        protected int bitsAvailableForSqueezing;
 
         public KeccakDigest()
             : this(288)
@@ -107,7 +54,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.bitsInQueue = source.bitsInQueue;
             this.fixedOutputLength = source.fixedOutputLength;
             this.squeezing = source.squeezing;
-            this.bitsAvailableForSqueezing = source.bitsAvailableForSqueezing;
         }
 
         public virtual string AlgorithmName
@@ -132,7 +78,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
-            Squeeze(output, outOff, fixedOutputLength >> 3);
+            Squeeze(output, outOff, fixedOutputLength);
 
             Reset();
 
@@ -149,7 +95,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 AbsorbBits(partialByte, partialBits);
             }
 
-            Squeeze(output, outOff, fixedOutputLength >> 3);
+            Squeeze(output, outOff, fixedOutputLength);
 
             Reset();
 
@@ -198,7 +144,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             Arrays.Fill(this.dataQueue, (byte)0);
             this.bitsInQueue = 0;
             this.squeezing = false;
-            this.bitsAvailableForSqueezing = 0;
             this.fixedOutputLength = (1600 - rate) >> 1;
         }
 
@@ -288,34 +233,34 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
 
             KeccakPermutation();
-            KeccakExtract();
-            bitsAvailableForSqueezing = rate;
 
-            bitsInQueue = 0;
+            KeccakExtract();
+            bitsInQueue = rate;
+
             squeezing = true;
         }
 
-        protected void Squeeze(byte[] output, int off, int len)
+        protected void Squeeze(byte[] output, int offset, long outputLength)
         {
             if (!squeezing)
             {
                 PadAndSwitchToSqueezingPhase();
             }
+            if ((outputLength & 7L) != 0L)
+                throw new InvalidOperationException("outputLength not a multiple of 8");
 
-            long outputLength = (long)len << 3;
             long i = 0;
             while (i < outputLength)
             {
-                if (bitsAvailableForSqueezing == 0)
+                if (bitsInQueue == 0)
                 {
                     KeccakPermutation();
                     KeccakExtract();
-                    bitsAvailableForSqueezing = rate;
+                    bitsInQueue = rate;
                 }
-
-                int partialBlock = (int)System.Math.Min((long)bitsAvailableForSqueezing, outputLength - i);
-                Array.Copy(dataQueue, (rate - bitsAvailableForSqueezing) >> 3, output, off + (int)(i >> 3), partialBlock >> 3);
-                bitsAvailableForSqueezing -= partialBlock;
+                int partialBlock = (int)System.Math.Min((long)bitsInQueue, outputLength - i);
+                Array.Copy(dataQueue, (rate - bitsInQueue) >> 3, output, offset + (int)(i >> 3), partialBlock >> 3);
+                bitsInQueue -= partialBlock;
                 i += partialBlock;
             }
         }
@@ -339,131 +284,112 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private void KeccakPermutation()
         {
+            ulong[] A = state;
+
+            ulong a00 = A[ 0], a01 = A[ 1], a02 = A[ 2], a03 = A[ 3], a04 = A[ 4];
+            ulong a05 = A[ 5], a06 = A[ 6], a07 = A[ 7], a08 = A[ 8], a09 = A[ 9];
+            ulong a10 = A[10], a11 = A[11], a12 = A[12], a13 = A[13], a14 = A[14];
+            ulong a15 = A[15], a16 = A[16], a17 = A[17], a18 = A[18], a19 = A[19];
+            ulong a20 = A[20], a21 = A[21], a22 = A[22], a23 = A[23], a24 = A[24];
+
             for (int i = 0; i < 24; i++)
             {
-                Theta(state);
-                Rho(state);
-                Pi(state);
-                Chi(state);
-                Iota(state, i);
+                // theta
+                ulong c0 = a00 ^ a05 ^ a10 ^ a15 ^ a20;
+                ulong c1 = a01 ^ a06 ^ a11 ^ a16 ^ a21;
+                ulong c2 = a02 ^ a07 ^ a12 ^ a17 ^ a22;
+                ulong c3 = a03 ^ a08 ^ a13 ^ a18 ^ a23;
+                ulong c4 = a04 ^ a09 ^ a14 ^ a19 ^ a24;
+
+                ulong d1 = (c1 << 1 | c1 >> -1) ^ c4;
+                ulong d2 = (c2 << 1 | c2 >> -1) ^ c0;
+                ulong d3 = (c3 << 1 | c3 >> -1) ^ c1;
+                ulong d4 = (c4 << 1 | c4 >> -1) ^ c2;
+                ulong d0 = (c0 << 1 | c0 >> -1) ^ c3;
+
+                a00 ^= d1; a05 ^= d1; a10 ^= d1; a15 ^= d1; a20 ^= d1;
+                a01 ^= d2; a06 ^= d2; a11 ^= d2; a16 ^= d2; a21 ^= d2;
+                a02 ^= d3; a07 ^= d3; a12 ^= d3; a17 ^= d3; a22 ^= d3;
+                a03 ^= d4; a08 ^= d4; a13 ^= d4; a18 ^= d4; a23 ^= d4;
+                a04 ^= d0; a09 ^= d0; a14 ^= d0; a19 ^= d0; a24 ^= d0;
+
+                // rho/pi
+                c1  = a01 <<  1 | a01 >> 63;
+                a01 = a06 << 44 | a06 >> 20;
+                a06 = a09 << 20 | a09 >> 44;
+                a09 = a22 << 61 | a22 >>  3;
+                a22 = a14 << 39 | a14 >> 25;
+                a14 = a20 << 18 | a20 >> 46;
+                a20 = a02 << 62 | a02 >>  2;
+                a02 = a12 << 43 | a12 >> 21;
+                a12 = a13 << 25 | a13 >> 39;
+                a13 = a19 <<  8 | a19 >> 56;
+                a19 = a23 << 56 | a23 >>  8;
+                a23 = a15 << 41 | a15 >> 23;
+                a15 = a04 << 27 | a04 >> 37;
+                a04 = a24 << 14 | a24 >> 50;
+                a24 = a21 <<  2 | a21 >> 62;
+                a21 = a08 << 55 | a08 >>  9;
+                a08 = a16 << 45 | a16 >> 19;
+                a16 = a05 << 36 | a05 >> 28;
+                a05 = a03 << 28 | a03 >> 36;
+                a03 = a18 << 21 | a18 >> 43;
+                a18 = a17 << 15 | a17 >> 49;
+                a17 = a11 << 10 | a11 >> 54;
+                a11 = a07 <<  6 | a07 >> 58;
+                a07 = a10 <<  3 | a10 >> 61;
+                a10 = c1;
+
+                // chi
+                c0 = a00 ^ (~a01 & a02);
+                c1 = a01 ^ (~a02 & a03);
+                a02 ^= ~a03 & a04;
+                a03 ^= ~a04 & a00;
+                a04 ^= ~a00 & a01;
+                a00 = c0;
+                a01 = c1;
+
+                c0 = a05 ^ (~a06 & a07);
+                c1 = a06 ^ (~a07 & a08);
+                a07 ^= ~a08 & a09;
+                a08 ^= ~a09 & a05;
+                a09 ^= ~a05 & a06;
+                a05 = c0;
+                a06 = c1;
+
+                c0 = a10 ^ (~a11 & a12);
+                c1 = a11 ^ (~a12 & a13);
+                a12 ^= ~a13 & a14;
+                a13 ^= ~a14 & a10;
+                a14 ^= ~a10 & a11;
+                a10 = c0;
+                a11 = c1;
+
+                c0 = a15 ^ (~a16 & a17);
+                c1 = a16 ^ (~a17 & a18);
+                a17 ^= ~a18 & a19;
+                a18 ^= ~a19 & a15;
+                a19 ^= ~a15 & a16;
+                a15 = c0;
+                a16 = c1;
+
+                c0 = a20 ^ (~a21 & a22);
+                c1 = a21 ^ (~a22 & a23);
+                a22 ^= ~a23 & a24;
+                a23 ^= ~a24 & a20;
+                a24 ^= ~a20 & a21;
+                a20 = c0;
+                a21 = c1;
+
+                // iota
+                a00 ^= KeccakRoundConstants[i];
             }
-        }
 
-        private static ulong leftRotate(ulong v, int r)
-        {
-            return (v << r) | (v >> -r);
-        }
-
-        private static void Theta(ulong[] A)
-        {
-            ulong C0 = A[0 + 0] ^ A[0 + 5] ^ A[0 + 10] ^ A[0 + 15] ^ A[0 + 20];
-            ulong C1 = A[1 + 0] ^ A[1 + 5] ^ A[1 + 10] ^ A[1 + 15] ^ A[1 + 20];
-            ulong C2 = A[2 + 0] ^ A[2 + 5] ^ A[2 + 10] ^ A[2 + 15] ^ A[2 + 20];
-            ulong C3 = A[3 + 0] ^ A[3 + 5] ^ A[3 + 10] ^ A[3 + 15] ^ A[3 + 20];
-            ulong C4 = A[4 + 0] ^ A[4 + 5] ^ A[4 + 10] ^ A[4 + 15] ^ A[4 + 20];
-
-            ulong dX = leftRotate(C1, 1) ^ C4;
-
-            A[0] ^= dX;
-            A[5] ^= dX;
-            A[10] ^= dX;
-            A[15] ^= dX;
-            A[20] ^= dX;
-
-            dX = leftRotate(C2, 1) ^ C0;
-
-            A[1] ^= dX;
-            A[6] ^= dX;
-            A[11] ^= dX;
-            A[16] ^= dX;
-            A[21] ^= dX;
-
-            dX = leftRotate(C3, 1) ^ C1;
-
-            A[2] ^= dX;
-            A[7] ^= dX;
-            A[12] ^= dX;
-            A[17] ^= dX;
-            A[22] ^= dX;
-
-            dX = leftRotate(C4, 1) ^ C2;
-
-            A[3] ^= dX;
-            A[8] ^= dX;
-            A[13] ^= dX;
-            A[18] ^= dX;
-            A[23] ^= dX;
-
-            dX = leftRotate(C0, 1) ^ C3;
-
-            A[4] ^= dX;
-            A[9] ^= dX;
-            A[14] ^= dX;
-            A[19] ^= dX;
-            A[24] ^= dX;
-        }
-
-        private static void Rho(ulong[] A)
-        {
-            // KeccakRhoOffsets[0] == 0
-            for (int x = 1; x < 25; x++)
-            {
-                A[x] = leftRotate(A[x], KeccakRhoOffsets[x]);
-            }
-        }
-
-        private static void Pi(ulong[] A)
-        {
-            ulong a1 = A[1];
-            A[1] = A[6];
-            A[6] = A[9];
-            A[9] = A[22];
-            A[22] = A[14];
-            A[14] = A[20];
-            A[20] = A[2];
-            A[2] = A[12];
-            A[12] = A[13];
-            A[13] = A[19];
-            A[19] = A[23];
-            A[23] = A[15];
-            A[15] = A[4];
-            A[4] = A[24];
-            A[24] = A[21];
-            A[21] = A[8];
-            A[8] = A[16];
-            A[16] = A[5];
-            A[5] = A[3];
-            A[3] = A[18];
-            A[18] = A[17];
-            A[17] = A[11];
-            A[11] = A[7];
-            A[7] = A[10];
-            A[10] = a1;
-        }
-
-        private static void Chi(ulong[] A)
-        {
-            ulong chiC0, chiC1, chiC2, chiC3, chiC4;
-
-            for (int yBy5 = 0; yBy5 < 25; yBy5 += 5)
-            {
-                chiC0 = A[0 + yBy5] ^ ((~A[(((0 + 1) % 5) + yBy5)]) & A[(((0 + 2) % 5) + yBy5)]);
-                chiC1 = A[1 + yBy5] ^ ((~A[(((1 + 1) % 5) + yBy5)]) & A[(((1 + 2) % 5) + yBy5)]);
-                chiC2 = A[2 + yBy5] ^ ((~A[(((2 + 1) % 5) + yBy5)]) & A[(((2 + 2) % 5) + yBy5)]);
-                chiC3 = A[3 + yBy5] ^ ((~A[(((3 + 1) % 5) + yBy5)]) & A[(((3 + 2) % 5) + yBy5)]);
-                chiC4 = A[4 + yBy5] ^ ((~A[(((4 + 1) % 5) + yBy5)]) & A[(((4 + 2) % 5) + yBy5)]);
-
-                A[0 + yBy5] = chiC0;
-                A[1 + yBy5] = chiC1;
-                A[2 + yBy5] = chiC2;
-                A[3 + yBy5] = chiC3;
-                A[4 + yBy5] = chiC4;
-            }
-        }
-
-        private static void Iota(ulong[] A, int indexRound)
-        {
-            A[0] ^= KeccakRoundConstants[indexRound];
+            A[ 0] = a00; A[ 1] = a01; A[ 2] = a02; A[ 3] = a03; A[ 4] = a04;
+            A[ 5] = a05; A[ 6] = a06; A[ 7] = a07; A[ 8] = a08; A[ 9] = a09;
+            A[10] = a10; A[11] = a11; A[12] = a12; A[13] = a13; A[14] = a14;
+            A[15] = a15; A[16] = a16; A[17] = a17; A[18] = a18; A[19] = a19;
+            A[20] = a20; A[21] = a21; A[22] = a22; A[23] = a23; A[24] = a24;
         }
 
         public virtual IMemoable Copy()

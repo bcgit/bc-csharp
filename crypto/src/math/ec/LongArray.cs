@@ -372,6 +372,11 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        internal void CopyTo(long[] z, int zOff)
+        {
+            Array.Copy(m_ints, 0, z, zOff, m_ints.Length);
+        }
+
         public bool IsOne()
         {
             long[] a = m_ints;

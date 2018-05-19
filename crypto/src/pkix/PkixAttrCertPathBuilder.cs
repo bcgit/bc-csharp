@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Pkix
 			try
 			{
 				// check whether the issuer of <tbvCert> is a TrustAnchor
-				if (PkixCertPathValidatorUtilities.FindTrustAnchor(tbvCert, pkixParams.GetTrustAnchors()) != null)
+				if (PkixCertPathValidatorUtilities.IsIssuerTrustAnchor(tbvCert, pkixParams.GetTrustAnchors()))
 				{
 					PkixCertPath certPath = new PkixCertPath(tbvPath);
 					PkixCertPathValidatorResult result;

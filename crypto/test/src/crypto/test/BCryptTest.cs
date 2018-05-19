@@ -134,6 +134,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 DoTest(password, salt, cost, expected);
             }
 
+            IsTrue(AreEqual(BCrypt.Generate(BCrypt.PasswordToByteArray("12341234".ToCharArray()), Hex.Decode("01020304050607080102030405060708"), 5), Hex.Decode("cdd19088721c50e5cb49a7b743d93b5a6e67bef0f700cd78")));
+            IsTrue(AreEqual(BCrypt.Generate(BCrypt.PasswordToByteArray("1234".ToCharArray()), Hex.Decode("01020304050607080102030405060708"), 5), Hex.Decode("02a3269aca2732484057b40c614204814cbfc2becd8e093e")));
         }
 
         private void DoTest(byte[] password, byte[] salt, int cost, byte[] expected)
