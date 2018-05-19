@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/1.3.1">
+﻿<Project Sdk="MSBuild.Sdk.Extras/1.5.4">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard1.3;netstandard1.0;portable-net4+sl5+wp8+win8+wpa81;net4</TargetFrameworks>
     <AssemblyName>BouncyCastle.Crypto</AssemblyName>
@@ -40,7 +40,16 @@
   <ItemGroup>
     <Compile Include="..\bzip2\src\**\*.cs" LinkBase="bzip2" />
     <None Include="..\..\BouncyCastle.snk" />
-    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0011" PrivateAssets="All" />
+    <PackageReference Include="NerdBank.GitVersioning" Version="2.1.23" PrivateAssets="All" />
     <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.0" PrivateAssets="All" />
   </ItemGroup>
+  
+  <Target Name="SetBuildVer" AfterTargets="GetBuildVersion" BeforeTargets="SetCloudBuildVersionVars;SetCloudBuildNumberWithVersion">
+    <PropertyGroup>
+      <CloudBuildNumber>$(BuildVersion)</CloudBuildNumber>
+      <Version>$(BuildVersion)</Version>
+      <PackageVersion>$(BuildVersion)</PackageVersion>
+      <NuGetPackageVersion>$(BuildVersion)</NuGetPackageVersion>
+    </PropertyGroup>
+  </Target>
 </Project>

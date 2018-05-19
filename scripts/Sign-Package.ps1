@@ -6,6 +6,7 @@ if([string]::IsNullOrEmpty($env:SignClientSecret)){
 	return;
 }
 
+& nuget install SignClient -Version 0.9.1 -SolutionDir "$currentDirectory\..\" -Verbosity quiet -ExcludeVersion
 # Setup Variables we need to pass into the sign client tool
 
 $appSettings = "$currentDirectory\SignClient.json"
