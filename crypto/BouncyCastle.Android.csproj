@@ -641,7 +641,7 @@
     <Compile Include="src\crypto\DataLengthException.cs" />
     <Compile Include="src\crypto\digests\NonMemoableDigest.cs" />
     <Compile Include="src\crypto\engines\SerpentEngineBase.cs" />
-	<Compile Include="src\crypto\engines\SM4Engine.cs" />
+    <Compile Include="src\crypto\engines\SM4Engine.cs" />
     <Compile Include="src\crypto\engines\TnepresEngine.cs" />
     <Compile Include="src\crypto\generators\BCrypt.cs" />
     <Compile Include="src\crypto\generators\HKDFBytesGenerator.cs" />
