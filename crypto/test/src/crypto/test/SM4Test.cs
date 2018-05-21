@@ -74,11 +74,6 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        public String GetName()
-        {
-            return "SM4";
-        }
-
         public static void Main(
             String[] args)
         {
