@@ -427,6 +427,7 @@
     <Compile Include="src\test\RegressionTest.cs" />
     <Compile Include="src\test\SEEDTest.cs" />
     <Compile Include="src\test\SigTest.cs" />
+    <Compile Include="src\crypto\test\SM4Test.cs" />
     <Compile Include="src\test\TestUtilities.cs" />
     <Compile Include="src\test\WrapTest.cs" />
     <Compile Include="src\test\X509CertificatePairTest.cs" />
