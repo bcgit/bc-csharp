@@ -62,6 +62,7 @@ namespace Org.BouncyCastle.Security
             VMPC,
             VMPC_KSA3,
             XTEA,
+            SM4,
         };
         
         private enum CipherMode { ECB, NONE, CBC, CCM, CFB, CTR, CTS, EAX, GCM, GOFB, OCB, OFB, OPENPGPCFB, SIC };
@@ -459,6 +460,9 @@ namespace Org.BouncyCastle.Security
                     break;
                 case CipherAlgorithm.XTEA:
                     blockCipher = new XteaEngine();
+                    break;
+                case CipherAlgorithm.SM4:
+                    blockCipher = new SM4Engine();
                     break;
                 default:
                     throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");

@@ -635,6 +635,7 @@
     <Compile Include="src\crypto\DataLengthException.cs" />
     <Compile Include="src\crypto\digests\NonMemoableDigest.cs" />
     <Compile Include="src\crypto\engines\SerpentEngineBase.cs" />
+    <Compile Include="src\crypto\engines\SM4Engine.cs" />
     <Compile Include="src\crypto\engines\TnepresEngine.cs" />
     <Compile Include="src\crypto\generators\BCrypt.cs" />
     <Compile Include="src\crypto\generators\HKDFBytesGenerator.cs" />
@@ -1267,9 +1268,9 @@
     <Compile Include="src\math\ec\multiplier\ZSignedDigitL2RMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\ZSignedDigitR2LMultiplier.cs" />
     <Compile Include="src\math\ec\rfc7748\X25519.cs" />
-    <Compile Include="src\math\ec\rfc7748\X25519Field.cs"/>
-    <Compile Include="src\math\ec\rfc7748\X448.cs"/>
-    <Compile Include="src\math\ec\rfc7748\X448Field.cs"/>
+    <Compile Include="src\math\ec\rfc7748\X25519Field.cs" />
+    <Compile Include="src\math\ec\rfc7748\X448.cs" />
+    <Compile Include="src\math\ec\rfc7748\X448Field.cs" />
     <Compile Include="src\math\field\FiniteFields.cs" />
     <Compile Include="src\math\field\GF2Polynomial.cs" />
     <Compile Include="src\math\field\GenericPolynomialExtensionField.cs" />
