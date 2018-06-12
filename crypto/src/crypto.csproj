@@ -49,6 +49,7 @@
       <Version>$(BuildVersion)</Version>
       <PackageVersion>$(BuildVersion)</PackageVersion>
       <NuGetPackageVersion>$(BuildVersion)</NuGetPackageVersion>
+      <AssemblyVersion>$(BuildVersionSimple)</AssemblyVersion>
     </PropertyGroup>
   </Target>
 </Project>
