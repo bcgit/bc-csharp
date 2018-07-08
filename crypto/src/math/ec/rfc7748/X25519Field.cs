@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         private const int M25 = 0x01FFFFFF;
         private const int M26 = 0x03FFFFFF;
 
+        private static readonly int[] RootNegOne = { 0x020EA0B0, 0x0386C9D2, 0x00478C4E, 0x0035697F, 0x005E8630,
+            0x01FBD7A7, 0x0340264F, 0x01F0B2B4, 0x00027E0E, 0x00570649 };
+
         private X25519Field() {}
 
         public static void Add(int[] x, int[] y, int[] z)
@@ -19,6 +22,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             {
                 z[i] = x[i] + y[i];
             }
+        }
+
+        public static void AddOne(int[] z)
+        {
+            z[0] += 1;
+        }
+
+        public static void AddOne(int[] z, int zOff)
+        {
+            z[zOff] += 1;
         }
 
         public static void Apm(int[] x, int[] y, int[] zp, int[] zm)
@@ -54,6 +67,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[5] = z5; z[6] = z6; z[7] = z7; z[8] = z8; z[9] = z9;
         }
 
+        public static void CNegate(int negate, int[] z)
+        {
+            Debug.Assert(negate >> 1 == 0);
+
+            int mask = 0 - negate;
+            for (int i = 0; i < Size; ++i)
+            {
+                z[i] = (z[i] ^ mask) - mask;
+            }
+        }
+
         public static void Copy(int[] x, int xOff, int[] z, int zOff)
         {
             for (int i = 0; i < Size; ++i)
@@ -65,6 +89,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         public static int[] Create()
         {
             return new int[Size];
+        }
+
+        public static int[] CreateTable(int n)
+        {
+            return new int[Size * n];
         }
 
         public static void CSwap(int swap, int[] a, int[] b)
@@ -143,22 +172,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             // (250 1s) (1 0s) (1 1s) (1 0s) (2 1s)
             // Addition chain: [1] [2] 3 5 10 15 25 50 75 125 [250]
 
-            int[] x2 = Create();    Sqr(x, x2);             Mul(x, x2, x2);
-            int[] x3 = Create();    Sqr(x2, x3);            Mul(x, x3, x3);
-            int[] x5 = x3;          Sqr(x3, 2, x5);         Mul(x2, x5, x5);
-            int[] x10 = Create();   Sqr(x5, 5, x10);        Mul(x5, x10, x10);
-            int[] x15 = Create();   Sqr(x10, 5, x15);       Mul(x5, x15, x15);
-            int[] x25 = x5;         Sqr(x15, 10, x25);      Mul(x10, x25, x25);
-            int[] x50 = x10;        Sqr(x25, 25, x50);      Mul(x25, x50, x50);
-            int[] x75 = x15;        Sqr(x50, 25, x75);      Mul(x25, x75, x75);
-            int[] x125 = x25;       Sqr(x75, 50, x125);     Mul(x50, x125, x125);
-            int[] x250 = x50;       Sqr(x125, 125, x250);   Mul(x125, x250, x250);
-
-            int[] t = x125;
-            Sqr(x250, 2, t);
-            Mul(t, x, t);
+            int[] x2 = Create();
+            int[] t = Create();
+            PowPm5d8(x, x2, t);
             Sqr(t, 3, t);
             Mul(t, x2, z);
+        }
+
+        public static bool IsZeroVar(int[] x)
+        {
+            int d = 0;
+            for (int i = 0; i < Size; ++i)
+            {
+                d |= x[i];
+            }
+            return d == 0;
         }
 
         public static void Mul(int[] x, int y, int[] z)
@@ -345,12 +373,51 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[9]     = z9 + (int)t;
         }
 
+        public static void Negate(int[] x, int[] z)
+        {
+            for (int i = 0; i < Size; ++i)
+            {
+                z[i] = -x[i];
+            }
+        }
+
         public static void Normalize(int[] z)
         {
             int x = (z[9] >> 23) & 1;
             Reduce(z, x);
             Reduce(z, -x);
             Debug.Assert(z[9] >> 24 == 0);
+        }
+
+        public static void One(int[] z)
+        {
+            z[0] = 1;
+            for (int i = 1; i < Size; ++i)
+            {
+                z[i] = 0;
+            }
+        }
+
+        private static void PowPm5d8(int[] x, int[] rx2, int[] rz)
+        {
+            // z = x^((p-5)/8) = x^FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD
+            // (250 1s) (1 0s) (1 1s)
+            // Addition chain: [1] 2 3 5 10 15 25 50 75 125 [250]
+
+            int[] x2 = rx2;         Sqr(x, x2);             Mul(x, x2, x2);
+            int[] x3 = Create();    Sqr(x2, x3);            Mul(x, x3, x3);
+            int[] x5 = x3;          Sqr(x3, 2, x5);         Mul(x2, x5, x5);
+            int[] x10 = Create();   Sqr(x5, 5, x10);        Mul(x5, x10, x10);
+            int[] x15 = Create();   Sqr(x10, 5, x15);       Mul(x5, x15, x15);
+            int[] x25 = x5;         Sqr(x15, 10, x25);      Mul(x10, x25, x25);
+            int[] x50 = x10;        Sqr(x25, 25, x50);      Mul(x25, x50, x50);
+            int[] x75 = x15;        Sqr(x50, 25, x75);      Mul(x25, x75, x75);
+            int[] x125 = x25;       Sqr(x75, 50, x125);     Mul(x50, x125, x125);
+            int[] x250 = x50;       Sqr(x125, 125, x250);   Mul(x125, x250, x250);
+
+            int[] t = x125;
+            Sqr(x250, 2, t);
+            Mul(t, x, rz);
         }
 
         private static void Reduce(int[] z, int c)
@@ -509,11 +576,63 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        public static bool SqrtRatioVar(int[] u, int[] v, int[] z)
+        {
+            int[] uv3 = Create();
+            int[] uv7 = Create();
+
+            Mul(u, v, uv3);
+            Sqr(v, uv7);
+            Mul(uv3, uv7, uv3);
+            Sqr(uv7, uv7);
+            Mul(uv7, uv3, uv7);
+
+            int[] t = Create();
+            int[] x = Create();
+            PowPm5d8(uv7, t, x);
+            Mul(x, uv3, x);
+
+            int[] vx2 = Create();
+            Sqr(x, vx2);
+            Mul(vx2, v, vx2);
+
+            Sub(vx2, u, t);
+            Normalize(t);
+            if (IsZeroVar(t))
+            {
+                Copy(x, 0, z, 0);
+                return true;
+            }
+
+            Add(vx2, u, t);
+            Normalize(t);
+            if (IsZeroVar(t))
+            {
+                Mul(x, RootNegOne, z);
+                return true;
+            }
+
+            return false;
+        }
+
         public static void Sub(int[] x, int[] y, int[] z)
         {
             for (int i = 0; i < Size; ++i)
             {
                 z[i] = x[i] - y[i];
+            }
+        }
+
+        public static void SubOne(int[] z)
+        {
+            z[0] -= 1;
+        }
+
+        public static void Zero(int[] z)
+        {
+            for (int i = 0; i < Size; ++i)
+            {
+                z[i] = 0;
             }
         }
     }

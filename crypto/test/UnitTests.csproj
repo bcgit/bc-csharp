@@ -325,6 +325,8 @@
     <Compile Include="src\math\ec\custom\sec\test\SecP384R1FieldTest.cs" />
     <Compile Include="src\math\ec\rfc7748\test\X25519Test.cs" />
     <Compile Include="src\math\ec\rfc7748\test\X448Test.cs" />
+    <Compile Include="src\math\ec\rfc8032\test\Ed25519Test.cs" />
+    <Compile Include="src\math\ec\rfc8032\test\Ed448Test.cs" />
     <Compile Include="src\math\ec\test\AllTests.cs" />
     <Compile Include="src\math\ec\test\ECAlgorithmsTest.cs" />
     <Compile Include="src\math\ec\test\ECPointPerformanceTest.cs" />
