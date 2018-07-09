@@ -64,6 +64,13 @@ namespace Org.BouncyCastle.Asn1.X9
                 X9FieldElement x9A = new X9FieldElement(q, (Asn1OctetString) seq[0]);
                 X9FieldElement x9B = new X9FieldElement(q, (Asn1OctetString) seq[1]);
                 curve = new FpCurve(q, x9A.Value.ToBigInteger(), x9B.Value.ToBigInteger());
+
+                if (seq.Count == 4)
+                {
+                    BigInteger x9OrderN = ((DerInteger)seq[2]).Value;
+                    BigInteger x9CofactorH = ((DerInteger)seq[3]).Value;
+                    curve = new FpCurve(q, x9A.Value.ToBigInteger(), x9B.Value.ToBigInteger(), x9OrderN, x9CofactorH);
+                }
             }
             else
             {
