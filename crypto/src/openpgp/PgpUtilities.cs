@@ -356,7 +356,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
 			Stream pOut = lData.Open(output, fileType, file.Name, file.Length, file.LastWriteTime);
-			PipeFileContents(file, pOut, 4096);
+			PipeFileContents(file, pOut, 32768);
         }
 
 		/// <summary>Write out the passed in file as a literal data packet in partial packet format.</summary>
@@ -376,15 +376,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			FileStream inputStream = file.OpenRead();
 			byte[] buf = new byte[bufSize];
 
-			int len;
-            while ((len = inputStream.Read(buf, 0, buf.Length)) > 0)
+            try
             {
-                pOut.Write(buf, 0, len);
+			    int len;
+                while ((len = inputStream.Read(buf, 0, buf.Length)) > 0)
+                {
+                    pOut.Write(buf, 0, len);
+                }
             }
+            finally
+            {
+                Array.Clear(buf, 0, buf.Length);
 
-            Platform.Dispose(pOut);
-            Platform.Dispose(inputStream);
-		}
+                Platform.Dispose(pOut);
+                Platform.Dispose(inputStream);
+            }
+        }
 #endif
 
 		private const int ReadAhead = 60;
