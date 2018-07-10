@@ -144,8 +144,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
         protected virtual ECPoint CalculateU(SM2KeyExchangePublicParameters otherPub)
         {
-            ECPoint p1 = otherPub.StaticPublicKey.Q;
-            ECPoint p2 = otherPub.EphemeralPublicKey.Q;
+            ECDomainParameters dp = mStaticKey.Parameters;
+
+            ECPoint p1 = ECAlgorithms.CleanPoint(dp.Curve, otherPub.StaticPublicKey.Q);
+            ECPoint p2 = ECAlgorithms.CleanPoint(dp.Curve, otherPub.EphemeralPublicKey.Q);
 
             BigInteger x1 = Reduce(mEphemeralPubPoint.AffineXCoord.ToBigInteger());
             BigInteger x2 = Reduce(p2.AffineXCoord.ToBigInteger());

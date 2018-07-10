@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 curve.CreatePoint(
                     new BigInteger("2"), // x
                     new BigInteger("4018974056539037503335449422937059775635739389905545080690979365213431566280")), // y
-                mod_q);
+                mod_q, BigInteger.One);
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECGOST3410",
@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 curve.CreatePoint(
                     new BigInteger("2"), // x
                     new BigInteger("4018974056539037503335449422937059775635739389905545080690979365213431566280")), // y
-                mod_q);
+                mod_q, BigInteger.One);
 
             ECKeyPairGenerator          pGen = new ECKeyPairGenerator();
             ECKeyGenerationParameters   genParam = new ECKeyGenerationParameters(
@@ -184,7 +184,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 curve.CreatePoint(
                     new BigInteger("1"), // x
                     new BigInteger("64033881142927202683649881450433473985931760268884941288852745803908878638612")), // y
-                mod_q);
+                mod_q, BigInteger.One);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator("ECGOST3410");
             ECKeyGenerationParameters genParam = new ECKeyGenerationParameters(
@@ -234,7 +234,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 curve.CreatePoint(
                     new BigInteger("1"), // x
                     new BigInteger("28792665814854611296992347458380284135028636778229113005756334730996303888124")), // y
-                mod_q);
+                mod_q, BigInteger.One);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator("ECGOST3410");
             ECKeyGenerationParameters genParam = new ECKeyGenerationParameters(
@@ -284,7 +284,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 curve.CreatePoint(
                     new BigInteger("0"), // x
                     new BigInteger("29818893917731240733471273240314769927240550812383695689146495261604565990247")), // y
-                mod_q);
+                mod_q, BigInteger.One);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator("ECGOST3410");
             ECKeyGenerationParameters genParam = new ECKeyGenerationParameters(

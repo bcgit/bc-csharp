@@ -46,9 +46,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 n, BigInteger.One);
 
             ECDomainParameters parameters = new ECDomainParameters(
-                    curve,
-                    curve.DecodePoint(Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012")), // G
-                    n);
+                curve,
+                curve.DecodePoint(Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012")), // G
+                n, BigInteger.One);
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECDH",
@@ -220,9 +220,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                 n, BigInteger.One);
 
             ECDomainParameters parameters = new ECDomainParameters(
-                    curve,
-                    curve.DecodePoint(Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012")), // G
-                    n);
+                curve,
+                curve.DecodePoint(Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012")), // G
+                n, BigInteger.One);
 
             ECKeyPairGenerator eGen = new ECKeyPairGenerator();
             KeyGenerationParameters gParam = new ECKeyGenerationParameters(parameters, new SecureRandom());

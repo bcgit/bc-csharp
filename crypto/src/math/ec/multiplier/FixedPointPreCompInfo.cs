@@ -11,13 +11,6 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         protected ECPoint m_offset = null;
 
         /**
-         * Array holding the precomputed <code>ECPoint</code>s used for a fixed
-         * point multiplication.
-         */
-        [Obsolete("Will be removed")]
-		protected ECPoint[] m_preComp = null;
-
-        /**
          * Lookup table for the precomputed <code>ECPoint</code>s used for a fixed point multiplication.
          */
         protected ECLookupTable m_lookupTable = null;
@@ -40,13 +33,6 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 			get { return m_offset; }
 			set { this.m_offset = value; }
 		}
-
-        [Obsolete("Use 'LookupTable' property instead.")]
-        public virtual ECPoint[] PreComp
-        {
-            get { return m_preComp; }
-            set { this.m_preComp = value; }
-        }
 
         public virtual int Width
         {

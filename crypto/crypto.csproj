@@ -6154,6 +6154,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\multiplier\IPreCompCallback.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\multiplier\MixedNafR2LMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6180,6 +6185,11 @@
                 />
                 <File
                     RelPath = "src\math\ec\multiplier\ReferenceMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\ValidityPreCompInfo.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

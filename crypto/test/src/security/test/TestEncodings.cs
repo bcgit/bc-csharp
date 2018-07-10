@@ -32,24 +32,19 @@ namespace Org.BouncyCastle.Security.Tests
 			BigInteger ECPubQY = new BigInteger(Base64.Decode("JrlJfxu3WGhqwtL/55BOs/wsUeiDFsvXcGhB8DGx"));
 			BigInteger ECPrivD = new BigInteger(Base64.Decode("GYQmd/NF1B+He1iMkWt3by2Az6Eu07t0ynJ4YCAo"));
 
-			FpCurve curve = new FpCurve(
-				new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
-				new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-				new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
+            FpCurve curve = new FpCurve(
+                new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
+                new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
+                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16), // b
+                ECParraN, ECParraH);
 
-			ECDomainParameters ecDomain =
-				new ECDomainParameters(
-					curve,
-					new FpPoint(curve,
-						curve.FromBigInteger(ECParraGX),
-						curve.FromBigInteger(ECParraGY)),
-				ECParraN);
+			ECDomainParameters ecDomain = new ECDomainParameters(
+				curve,
+                curve.ValidatePoint(ECParraGX, ECParraGY),
+                ECParraN, ECParraH);
 
-			ECPublicKeyParameters ecPub = new ECPublicKeyParameters(
-				new FpPoint(
-					curve,
-					curve.FromBigInteger(ECPubQX),
-					curve.FromBigInteger(ECPubQY)),
+            ECPublicKeyParameters ecPub = new ECPublicKeyParameters(
+                curve.ValidatePoint(ECPubQX, ECPubQY),
 				ecDomain);
 
 			ECPrivateKeyParameters ecPriv = new ECPrivateKeyParameters(ECPrivD, ecDomain);

@@ -1253,12 +1253,14 @@
     <Compile Include="src\math\ec\multiplier\FixedPointPreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\FixedPointUtilities.cs" />
     <Compile Include="src\math\ec\multiplier\GlvMultiplier.cs" />
+    <Compile Include="src\math\ec\multiplier\IPreCompCallback.cs" />
     <Compile Include="src\math\ec\multiplier\MixedNafR2LMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\MontgomeryLadderMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\NafL2RMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\NafR2LMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\PreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\ReferenceMultiplier.cs" />
+    <Compile Include="src\math\ec\multiplier\ValidityPreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\WNafL2RMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\WNafPreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\WNafUtilities.cs" />

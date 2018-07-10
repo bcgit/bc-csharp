@@ -2,6 +2,7 @@ using System;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -31,24 +32,10 @@ namespace Org.BouncyCastle.Tests
 		{
 			IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECMQV");
 
-//			EllipticCurve curve = new EllipticCurve(
-//				new ECFieldFp(new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839")), // q
-//				new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-//				new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
-			ECCurve curve = new FpCurve(
-				new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
-				new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-				new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
+            X9ECParameters x9 = ECNamedCurveTable.GetByName("prime239v1");
+            ECDomainParameters ecSpec = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H);
 
-			ECDomainParameters ecSpec = new ECDomainParameters(
-				curve,
-//				ECPointUtil.DecodePoint(curve, Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-				curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-				new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307"), // n
-				BigInteger.One); //1); // h
-
-//			g.initialize(ecSpec, new SecureRandom());
-			g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom()));
+            g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom()));
 			
 			//
 			// U side

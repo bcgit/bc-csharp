@@ -52,11 +52,5 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
             return R.Add(info.Offset);
         }
-
-        [Obsolete("Is no longer used; remove any overrides in subclasses.")]
-        protected virtual int GetWidthForCombSize(int combSize)
-        {
-            return combSize > 257 ? 6 : 5;
-        }
     }
 }
