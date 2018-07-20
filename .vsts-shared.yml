@@ -2,18 +2,21 @@ parameters:
   signSteps: []
   
 steps:
-- task: NuGetToolInstaller@0
-  displayName: Use NuGet 4.7.0
+- task: DotNetCoreCLI@2  
   inputs:
-    versionSpec: 4.7.0
+    command: custom
+    custom: tool
+    arguments: install --tool-path . nbgv
+  displayName: Install NBGV tool
+  condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false))
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: build
-    projects: scripts/setversion.csproj
-    arguments: -c $(BuildConfiguration)   
+- script: nbgv cloud
   displayName: Set Version
-  condition: eq(variables['system.pullrequest.isfork'], false)
+  condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false))
+
+- task: DotNetCoreInstaller@0
+  inputs:
+    version: '2.1.400-preview-009063'
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -28,7 +31,7 @@ steps:
   inputs:
     command: test
     projects: .\crypto\test\crypto.test.csproj
-    arguments: -c $(BuildConfiguration)
+    arguments: -c $(BuildConfiguration) --collect:"Code Coverage" -s $(System.DefaultWorkingDirectory)\CodeCoverage.runsettings /p:DebugType=portable
   displayName: Run Tests
   
 - ${{ parameters.signSteps }}

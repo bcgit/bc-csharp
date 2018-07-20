@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.26906.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{43196EF9-B75F-4ABB-8967-DAFD621A7D05}"
 	ProjectSection(SolutionItems) = preProject
-		appveyor.yml = appveyor.yml
+		.vsts-ci.yml = .vsts-ci.yml
+		.vsts-pr.yml = .vsts-pr.yml
+		.vsts-shared.yml = .vsts-shared.yml
 		README.md = README.md
 	EndProjectSection
 EndProject
