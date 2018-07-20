@@ -195,6 +195,64 @@ namespace Org.BouncyCastle.Math.Raw
             return c == 0 ? 0 : IncAt(len, z, zOff, 1);
         }
 
+        public static uint CAdd(int len, int mask, uint[] x, uint[] y, uint[] z)
+        {
+            uint MASK = (uint)-(mask & 1);
+
+            ulong c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (ulong)x[i] + (y[i] & MASK);
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (uint)c;
+        }
+
+        public static void CMov(int len, int mask, uint[] x, int xOff, uint[] z, int zOff)
+        {
+            uint MASK = (uint)-(mask & 1);
+
+            for (int i = 0; i < len; ++i)
+            {
+                uint z_i = z[zOff + i], diff = z_i ^ x[xOff + i];
+                z_i ^= (diff & MASK);
+                z[zOff + i] = z_i;
+            }
+
+            //uint half = 0x55555555U, rest = half << (-(int)MASK);
+
+            //for (int i = 0; i < len; ++i)
+            //{
+            //    uint z_i = z[zOff + i], diff = z_i ^ x[xOff + i];
+            //    z_i ^= (diff & half);
+            //    z_i ^= (diff & rest);
+            //    z[zOff + i] = z_i;
+            //}
+        }
+
+        public static void CMov(int len, int mask, int[] x, int xOff, int[] z, int zOff)
+        {
+            mask = -(mask & 1);
+
+            for (int i = 0; i < len; ++i)
+            {
+                int z_i = z[zOff + i], diff = z_i ^ x[xOff + i];
+                z_i ^= (diff & mask);
+                z[zOff + i] = z_i;
+            }
+
+            //int half = 0x55555555, rest = half << (-mask);
+
+            //for (int i = 0; i < len; ++i)
+            //{
+            //    int z_i = z[zOff + i], diff = z_i ^ x[xOff + i];
+            //    z_i ^= (diff & half);
+            //    z_i ^= (diff & rest);
+            //    z[zOff + i] = z_i;
+            //}
+        }
+
         public static void Copy(int len, uint[] x, uint[] z)
         {
             Array.Copy(x, 0, z, 0, len);
@@ -446,6 +504,33 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 zz[zzOff + i + len] = (uint)MulWordAddTo(len, x[xOff + i], y, yOff, zz, zzOff + i);
             }
+        }
+
+        public static uint MulAddTo(int len, uint[] x, uint[] y, uint[] zz)
+        {
+            ulong zc = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                ulong c = MulWordAddTo(len, x[i], y, 0, zz, i) & M;
+                c += zc + (zz[i + len] & M);
+                zz[i + len] = (uint)c;
+                zc = c >> 32;
+            }
+            return (uint)zc;
+        }
+
+        public static uint MulAddTo(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] zz, int zzOff)
+        {
+            ulong zc = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                ulong c = MulWordAddTo(len, x[xOff + i], y, yOff, zz, zzOff) & M;
+                c += zc + (zz[zzOff + len] & M);
+                zz[zzOff + len] = (uint)c;
+                zc = c >> 32;
+                ++zzOff;
+            }
+            return (uint)zc;
         }
 
         public static uint Mul31BothAdd(int len, uint a, uint[] x, uint b, uint[] y, uint[] z, int zOff)

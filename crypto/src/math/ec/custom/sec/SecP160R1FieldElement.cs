@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP160R1FieldElement
-        : ECFieldElement
+        : AbstractFpFieldElement
     {
         public static readonly BigInteger Q = SecP160R1Curve.q;
 

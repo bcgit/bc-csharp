@@ -252,15 +252,9 @@ namespace Org.BouncyCastle.Tests
 
             SecureRandom k = FixedSecureRandom.From(kData);
 
-            ECCurve curve = new FpCurve(
-                new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
-                new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
-
-            ECDomainParameters spec = new ECDomainParameters(
-                curve,
-                curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307")); // n
+            X9ECParameters x9 = ECNamedCurveTable.GetByName("prime239v1");
+            ECCurve curve = x9.Curve;
+            ECDomainParameters spec = new ECDomainParameters(curve, x9.G, x9.N, x9.H);
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECDSA",
@@ -330,17 +324,9 @@ namespace Org.BouncyCastle.Tests
 
             SecureRandom k = FixedSecureRandom.From(kData);
 
-            ECCurve curve = new F2mCurve(
-                239, // m
-                36, // k
-                new BigInteger("32010857077C5431123A46B808906756F543423E8D27877578125778AC76", 16), // a
-                new BigInteger("790408F2EEDAF392B012EDEFB3392F30F4327C0CA3F31FC383C422AA8C16", 16)); // b
-
-            ECDomainParameters parameters = new ECDomainParameters(
-                curve,
-                curve.DecodePoint(Hex.Decode("0457927098FA932E7C0A96D3FD5B706EF7E5F5C156E16B7E7C86038552E91D61D8EE5077C33FECF6F1A16B268DE469C3C7744EA9A971649FC7A9616305")), // G
-                new BigInteger("220855883097298041197912187592864814557886993776713230936715041207411783"), // n
-                BigInteger.ValueOf(4)); // h
+            X9ECParameters x9 = ECNamedCurveTable.GetByName("c2tnb239v1");
+            ECCurve curve = x9.Curve;
+            ECDomainParameters parameters = new ECDomainParameters(curve, x9.G, x9.N, x9.H);
 
             ECPrivateKeyParameters sKey = new ECPrivateKeyParameters(
                 "ECDSA",
@@ -435,17 +421,9 @@ namespace Org.BouncyCastle.Tests
 
             SecureRandom k = FixedSecureRandom.From(kData);
 
-            ECCurve curve = new F2mCurve(
-                239, // m
-                36, // k
-                new BigInteger("32010857077C5431123A46B808906756F543423E8D27877578125778AC76", 16), // a
-                new BigInteger("790408F2EEDAF392B012EDEFB3392F30F4327C0CA3F31FC383C422AA8C16", 16)); // b
-
-            ECDomainParameters parameters = new ECDomainParameters(
-                curve,
-                curve.DecodePoint(Hex.Decode("0457927098FA932E7C0A96D3FD5B706EF7E5F5C156E16B7E7C86038552E91D61D8EE5077C33FECF6F1A16B268DE469C3C7744EA9A971649FC7A9616305")), // G
-                new BigInteger("220855883097298041197912187592864814557886993776713230936715041207411783"), // n
-                BigInteger.ValueOf(4)); // h
+            X9ECParameters x9 = ECNamedCurveTable.GetByName("c2tnb239v1");
+            ECCurve curve = x9.Curve;
+            ECDomainParameters parameters = new ECDomainParameters(curve, x9.G, x9.N, x9.H);
 
             ECPrivateKeyParameters sKey = new ECPrivateKeyParameters(
                 new BigInteger("145642755521911534651321230007534120304391871461646461466464667494947990"), // d
@@ -554,15 +532,9 @@ namespace Org.BouncyCastle.Tests
             //
             s = SignerUtilities.GetSigner("ECDSA");
 
-            ECCurve curve = new FpCurve(
-                new BigInteger("883423532389192164791648750360308885314476597252960362792450860609699839"), // q
-                new BigInteger("7fffffffffffffffffffffff7fffffffffff8000000000007ffffffffffc", 16), // a
-                new BigInteger("6b016c3bdcf18941d0d654921475ca71a9db2fb27d1d37796185c2942c0a", 16)); // b
-
-            ECDomainParameters ecSpec = new ECDomainParameters(
-                curve,
-                curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307")); // n
+            X9ECParameters x9 = ECNamedCurveTable.GetByName("prime239v1");
+            ECCurve curve = x9.Curve;
+            ECDomainParameters ecSpec = new ECDomainParameters(curve, x9.G, x9.N, x9.H);
 
             g = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
             g.Init(new ECKeyGenerationParameters(ecSpec, rand));
@@ -594,17 +566,9 @@ namespace Org.BouncyCastle.Tests
             //
             s = SignerUtilities.GetSigner("ECDSA");
 
-            curve = new F2mCurve(
-                    239, // m
-                    36, // k
-                    new BigInteger("32010857077C5431123A46B808906756F543423E8D27877578125778AC76", 16), // a
-                    new BigInteger("790408F2EEDAF392B012EDEFB3392F30F4327C0CA3F31FC383C422AA8C16", 16)); // b
-
-            ecSpec = new ECDomainParameters(
-                curve,
-                curve.DecodePoint(Hex.Decode("0457927098FA932E7C0A96D3FD5B706EF7E5F5C156E16B7E7C86038552E91D61D8EE5077C33FECF6F1A16B268DE469C3C7744EA9A971649FC7A9616305")), // G
-                new BigInteger("220855883097298041197912187592864814557886993776713230936715041207411783"), // n
-                BigInteger.ValueOf(4)); // h
+            x9 = ECNamedCurveTable.GetByName("c2tnb239v1");
+            curve = x9.Curve;
+            ecSpec = new ECDomainParameters(curve, x9.G, x9.N, x9.H);
 
             g = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
             g.Init(new ECKeyGenerationParameters(ecSpec, rand));

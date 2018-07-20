@@ -16,9 +16,14 @@
              * Although the various multipliers ought not to produce invalid output under normal
              * circumstances, a final check here is advised to guard against fault attacks.
              */
-            return ECAlgorithms.ValidatePoint(result);
+            return CheckResult(result);
         }
 
         protected abstract ECPoint MultiplyPositive(ECPoint p, BigInteger k);
+
+        protected virtual ECPoint CheckResult(ECPoint p)
+        {
+            return ECAlgorithms.ImplCheckResult(p);
+        }
     }
 }

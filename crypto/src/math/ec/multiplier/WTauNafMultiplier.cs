@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
             ZTauElement rho = Tnaf.PartModReduction(k, m, a, s, mu, (sbyte)10);
 
-            return MultiplyWTnaf(p, rho, curve.GetPreCompInfo(p, PRECOMP_NAME), a, mu);
+            return MultiplyWTnaf(p, rho, a, mu);
         }
 
         /**
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         * @return <code>p</code> multiplied by <code>&#955;</code>.
         */
         private AbstractF2mPoint MultiplyWTnaf(AbstractF2mPoint p, ZTauElement lambda,
-            PreCompInfo preCompInfo, sbyte a, sbyte mu)
+            sbyte a, sbyte mu)
         {
             ZTauElement[] alpha = (a == 0) ? Tnaf.Alpha0 : Tnaf.Alpha1;
 
@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             sbyte[]u = Tnaf.TauAdicWNaf(mu, lambda, Tnaf.Width,
                 BigInteger.ValueOf(Tnaf.Pow2Width), tw, alpha);
 
-            return MultiplyFromWTnaf(p, u, preCompInfo);
+            return MultiplyFromWTnaf(p, u);
         }
         
         /**
@@ -71,24 +71,14 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         * @param u The the WTNAF of <code>&#955;</code>..
         * @return <code>&#955; * p</code>
         */
-        private static AbstractF2mPoint MultiplyFromWTnaf(AbstractF2mPoint p, sbyte[] u, PreCompInfo preCompInfo)
+        private static AbstractF2mPoint MultiplyFromWTnaf(AbstractF2mPoint p, sbyte[] u)
         {
             AbstractF2mCurve curve = (AbstractF2mCurve)p.Curve;
             sbyte a = (sbyte)curve.A.ToBigInteger().IntValue;
 
-            AbstractF2mPoint[] pu;
-            if ((preCompInfo == null) || !(preCompInfo is WTauNafPreCompInfo))
-            {
-                pu = Tnaf.GetPreComp(p, a);
-
-                WTauNafPreCompInfo pre = new WTauNafPreCompInfo();
-                pre.PreComp = pu;
-                curve.SetPreCompInfo(p, PRECOMP_NAME, pre);
-            }
-            else
-            {
-                pu = ((WTauNafPreCompInfo)preCompInfo).PreComp;
-            }
+            WTauNafCallback callback = new WTauNafCallback(p, a);
+            WTauNafPreCompInfo preCompInfo = (WTauNafPreCompInfo)curve.Precompute(p, PRECOMP_NAME, callback);
+            AbstractF2mPoint[] pu = preCompInfo.PreComp;
 
             // TODO Include negations in precomp (optionally) and use from here
             AbstractF2mPoint[] puNeg = new AbstractF2mPoint[pu.Length];
@@ -120,6 +110,29 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 q = q.TauPow(tauCount);
             }
             return q;
+        }
+
+        private class WTauNafCallback
+            : IPreCompCallback
+        {
+            private readonly AbstractF2mPoint m_p;
+            private readonly sbyte m_a;
+
+            internal WTauNafCallback(AbstractF2mPoint p, sbyte a)
+            {
+                this.m_p = p;
+                this.m_a = a;
+            }
+
+            public PreCompInfo Precompute(PreCompInfo existing)
+            {
+                if (existing is WTauNafPreCompInfo)
+                    return existing;
+
+                WTauNafPreCompInfo result = new WTauNafPreCompInfo();
+                result.PreComp = Tnaf.GetPreComp(m_p, m_a);
+                return result;
+            }
         }
     }
 }

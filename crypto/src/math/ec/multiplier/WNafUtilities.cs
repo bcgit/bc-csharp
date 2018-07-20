@@ -287,12 +287,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         public static WNafPreCompInfo GetWNafPreCompInfo(PreCompInfo preCompInfo)
         {
-            if ((preCompInfo != null) && (preCompInfo is WNafPreCompInfo))
-            {
-                return (WNafPreCompInfo)preCompInfo;
-            }
-
-            return new WNafPreCompInfo();
+            return preCompInfo as WNafPreCompInfo;
         }
 
         /**
@@ -333,171 +328,13 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             WNafPreCompInfo wnafPreCompP = Precompute(p, width, includeNegated);
 
             ECPoint q = pointMap.Map(p);
-            WNafPreCompInfo wnafPreCompQ = GetWNafPreCompInfo(c.GetPreCompInfo(q, PRECOMP_NAME));
-
-            ECPoint twiceP = wnafPreCompP.Twice;
-            if (twiceP != null)
-            {
-                ECPoint twiceQ = pointMap.Map(twiceP);
-                wnafPreCompQ.Twice = twiceQ;
-            }
-
-            ECPoint[] preCompP = wnafPreCompP.PreComp;
-            ECPoint[] preCompQ = new ECPoint[preCompP.Length];
-            for (int i = 0; i < preCompP.Length; ++i)
-            {
-                preCompQ[i] = pointMap.Map(preCompP[i]);
-            }
-            wnafPreCompQ.PreComp = preCompQ;
-
-            if (includeNegated)
-            {
-                ECPoint[] preCompNegQ = new ECPoint[preCompQ.Length];
-                for (int i = 0; i < preCompNegQ.Length; ++i)
-                {
-                    preCompNegQ[i] = preCompQ[i].Negate();
-                }
-                wnafPreCompQ.PreCompNeg = preCompNegQ;
-            }
-
-            c.SetPreCompInfo(q, PRECOMP_NAME, wnafPreCompQ);
-
+            c.Precompute(q, PRECOMP_NAME, new MapPointCallback(wnafPreCompP, includeNegated, pointMap));
             return q;
         }
 
         public static WNafPreCompInfo Precompute(ECPoint p, int width, bool includeNegated)
         {
-            ECCurve c = p.Curve;
-            WNafPreCompInfo wnafPreCompInfo = GetWNafPreCompInfo(c.GetPreCompInfo(p, PRECOMP_NAME));
-
-            int iniPreCompLen = 0, reqPreCompLen = 1 << System.Math.Max(0, width - 2);
-
-            ECPoint[] preComp = wnafPreCompInfo.PreComp;
-            if (preComp == null)
-            {
-                preComp = EMPTY_POINTS;
-            }
-            else
-            {
-                iniPreCompLen = preComp.Length;
-            }
-
-            if (iniPreCompLen < reqPreCompLen)
-            {
-                preComp = ResizeTable(preComp, reqPreCompLen);
-
-                if (reqPreCompLen == 1)
-                {
-                    preComp[0] = p.Normalize();
-                }
-                else
-                {
-                    int curPreCompLen = iniPreCompLen;
-                    if (curPreCompLen == 0)
-                    {
-                        preComp[0] = p;
-                        curPreCompLen = 1;
-                    }
-
-                    ECFieldElement iso = null;
-
-                    if (reqPreCompLen == 2)
-                    {
-                        preComp[1] = p.ThreeTimes();
-                    }
-                    else
-                    {
-                        ECPoint twiceP = wnafPreCompInfo.Twice, last = preComp[curPreCompLen - 1];
-                        if (twiceP == null)
-                        {
-                            twiceP = preComp[0].Twice();
-                            wnafPreCompInfo.Twice = twiceP;
-
-                            /*
-                             * For Fp curves with Jacobian projective coordinates, use a (quasi-)isomorphism
-                             * where 'twiceP' is "affine", so that the subsequent additions are cheaper. This
-                             * also requires scaling the initial point's X, Y coordinates, and reversing the
-                             * isomorphism as part of the subsequent normalization.
-                             * 
-                             *  NOTE: The correctness of this optimization depends on:
-                             *      1) additions do not use the curve's A, B coefficients.
-                             *      2) no special cases (i.e. Q +/- Q) when calculating 1P, 3P, 5P, ...
-                             */
-                            if (!twiceP.IsInfinity && ECAlgorithms.IsFpCurve(c) && c.FieldSize >= 64)
-                            {
-                                switch (c.CoordinateSystem)
-                                {
-                                    case ECCurve.COORD_JACOBIAN:
-                                    case ECCurve.COORD_JACOBIAN_CHUDNOVSKY:
-                                    case ECCurve.COORD_JACOBIAN_MODIFIED:
-                                    {
-                                        iso = twiceP.GetZCoord(0);
-                                        twiceP = c.CreatePoint(twiceP.XCoord.ToBigInteger(),
-                                            twiceP.YCoord.ToBigInteger());
-
-                                        ECFieldElement iso2 = iso.Square(), iso3 = iso2.Multiply(iso);
-                                        last = last.ScaleX(iso2).ScaleY(iso3);
-
-                                        if (iniPreCompLen == 0)
-                                        {
-                                            preComp[0] = last;
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        while (curPreCompLen < reqPreCompLen)
-                        {
-                            /*
-                             * Compute the new ECPoints for the precomputation array. The values 1, 3,
-                             * 5, ..., 2^(width-1)-1 times p are computed
-                             */
-                            preComp[curPreCompLen++] = last = last.Add(twiceP);
-                        }
-                    }
-
-                    /*
-                     * Having oft-used operands in affine form makes operations faster.
-                     */
-                    c.NormalizeAll(preComp, iniPreCompLen, reqPreCompLen - iniPreCompLen, iso);
-                }
-            }
-
-            wnafPreCompInfo.PreComp = preComp;
-
-            if (includeNegated)
-            {
-                ECPoint[] preCompNeg = wnafPreCompInfo.PreCompNeg;
-
-                int pos;
-                if (preCompNeg == null)
-                {
-                    pos = 0;
-                    preCompNeg = new ECPoint[reqPreCompLen]; 
-                }
-                else
-                {
-                    pos = preCompNeg.Length;
-                    if (pos < reqPreCompLen)
-                    {
-                        preCompNeg = ResizeTable(preCompNeg, reqPreCompLen);
-                    }
-                }
-
-                while (pos < reqPreCompLen)
-                {
-                    preCompNeg[pos] = preComp[pos].Negate();
-                    ++pos;
-                }
-
-                wnafPreCompInfo.PreCompNeg = preCompNeg;
-            }
-
-            c.SetPreCompInfo(p, PRECOMP_NAME, wnafPreCompInfo);
-
-            return wnafPreCompInfo;
+            return (WNafPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME, new WNafCallback(p, width, includeNegated));
         }
 
         private static byte[] Trim(byte[] a, int length)
@@ -519,6 +356,224 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             ECPoint[] result = new ECPoint[length];
             Array.Copy(a, 0, result, 0, a.Length);
             return result;
+        }
+
+        private class MapPointCallback
+            : IPreCompCallback
+        {
+            private readonly WNafPreCompInfo m_wnafPreCompP;
+            private readonly bool m_includeNegated;
+            private readonly ECPointMap m_pointMap;
+
+            internal MapPointCallback(WNafPreCompInfo wnafPreCompP, bool includeNegated, ECPointMap pointMap)
+            {
+                this.m_wnafPreCompP = wnafPreCompP;
+                this.m_includeNegated = includeNegated;
+                this.m_pointMap = pointMap;
+            }
+
+            public PreCompInfo Precompute(PreCompInfo existing)
+            {
+                WNafPreCompInfo result = new WNafPreCompInfo();
+
+                ECPoint twiceP = m_wnafPreCompP.Twice;
+                if (twiceP != null)
+                {
+                    ECPoint twiceQ = m_pointMap.Map(twiceP);
+                    result.Twice = twiceQ;
+                }
+
+                ECPoint[] preCompP = m_wnafPreCompP.PreComp;
+                ECPoint[] preCompQ = new ECPoint[preCompP.Length];
+                for (int i = 0; i < preCompP.Length; ++i)
+                {
+                    preCompQ[i] = m_pointMap.Map(preCompP[i]);
+                }
+                result.PreComp = preCompQ;
+
+                if (m_includeNegated)
+                {
+                    ECPoint[] preCompNegQ = new ECPoint[preCompQ.Length];
+                    for (int i = 0; i < preCompNegQ.Length; ++i)
+                    {
+                        preCompNegQ[i] = preCompQ[i].Negate();
+                    }
+                    result.PreCompNeg = preCompNegQ;
+                }
+
+                return result;
+            }
+        }
+
+        private class WNafCallback
+            : IPreCompCallback
+        {
+            private readonly ECPoint m_p;
+            private readonly int m_width;
+            private readonly bool m_includeNegated;
+
+            internal WNafCallback(ECPoint p, int width, bool includeNegated)
+            {
+                this.m_p = p;
+                this.m_width = width;
+                this.m_includeNegated = includeNegated;
+            }
+
+            public PreCompInfo Precompute(PreCompInfo existing)
+            {
+                WNafPreCompInfo existingWNaf = existing as WNafPreCompInfo;
+
+                int reqPreCompLen = 1 << System.Math.Max(0, m_width - 2);
+
+                if (CheckExisting(existingWNaf, reqPreCompLen, m_includeNegated))
+                    return existingWNaf;
+
+                ECCurve c = m_p.Curve;
+                ECPoint[] preComp = null, preCompNeg = null;
+                ECPoint twiceP = null;
+
+                if (existingWNaf != null)
+                {
+                    preComp = existingWNaf.PreComp;
+                    preCompNeg = existingWNaf.PreCompNeg;
+                    twiceP = existingWNaf.Twice;
+                }
+
+                int iniPreCompLen = 0;
+                if (preComp == null)
+                {
+                    preComp = EMPTY_POINTS;
+                }
+                else
+                {
+                    iniPreCompLen = preComp.Length;
+                }
+
+                if (iniPreCompLen < reqPreCompLen)
+                {
+                    preComp = WNafUtilities.ResizeTable(preComp, reqPreCompLen);
+
+                    if (reqPreCompLen == 1)
+                    {
+                        preComp[0] = m_p.Normalize();
+                    }
+                    else
+                    {
+                        int curPreCompLen = iniPreCompLen;
+                        if (curPreCompLen == 0)
+                        {
+                            preComp[0] = m_p;
+                            curPreCompLen = 1;
+                        }
+
+                        ECFieldElement iso = null;
+
+                        if (reqPreCompLen == 2)
+                        {
+                            preComp[1] = m_p.ThreeTimes();
+                        }
+                        else
+                        {
+                            ECPoint isoTwiceP = twiceP, last = preComp[curPreCompLen - 1];
+                            if (isoTwiceP == null)
+                            {
+                                isoTwiceP = preComp[0].Twice();
+                                twiceP = isoTwiceP;
+
+                                /*
+                                 * For Fp curves with Jacobian projective coordinates, use a (quasi-)isomorphism
+                                 * where 'twiceP' is "affine", so that the subsequent additions are cheaper. This
+                                 * also requires scaling the initial point's X, Y coordinates, and reversing the
+                                 * isomorphism as part of the subsequent normalization.
+                                 * 
+                                 *  NOTE: The correctness of this optimization depends on:
+                                 *      1) additions do not use the curve's A, B coefficients.
+                                 *      2) no special cases (i.e. Q +/- Q) when calculating 1P, 3P, 5P, ...
+                                 */
+                                if (!twiceP.IsInfinity && ECAlgorithms.IsFpCurve(c) && c.FieldSize >= 64)
+                                {
+                                    switch (c.CoordinateSystem)
+                                    {
+                                    case ECCurve.COORD_JACOBIAN:
+                                    case ECCurve.COORD_JACOBIAN_CHUDNOVSKY:
+                                    case ECCurve.COORD_JACOBIAN_MODIFIED:
+                                    {
+                                        iso = twiceP.GetZCoord(0);
+                                        isoTwiceP = c.CreatePoint(twiceP.XCoord.ToBigInteger(),
+                                            twiceP.YCoord.ToBigInteger());
+
+                                        ECFieldElement iso2 = iso.Square(), iso3 = iso2.Multiply(iso);
+                                        last = last.ScaleX(iso2).ScaleY(iso3);
+
+                                        if (iniPreCompLen == 0)
+                                        {
+                                            preComp[0] = last;
+                                        }
+                                        break;
+                                    }
+                                    }
+                                }
+                            }
+
+                            while (curPreCompLen < reqPreCompLen)
+                            {
+                                /*
+                                 * Compute the new ECPoints for the precomputation array. The values 1, 3,
+                                 * 5, ..., 2^(width-1)-1 times p are computed
+                                 */
+                                preComp[curPreCompLen++] = last = last.Add(isoTwiceP);
+                            }
+                        }
+
+                        /*
+                         * Having oft-used operands in affine form makes operations faster.
+                         */
+                        c.NormalizeAll(preComp, iniPreCompLen, reqPreCompLen - iniPreCompLen, iso);
+                    }
+                }
+
+                if (m_includeNegated)
+                {
+                    int pos;
+                    if (preCompNeg == null)
+                    {
+                        pos = 0;
+                        preCompNeg = new ECPoint[reqPreCompLen]; 
+                    }
+                    else
+                    {
+                        pos = preCompNeg.Length;
+                        if (pos < reqPreCompLen)
+                        {
+                            preCompNeg = WNafUtilities.ResizeTable(preCompNeg, reqPreCompLen);
+                        }
+                    }
+
+                    while (pos < reqPreCompLen)
+                    {
+                        preCompNeg[pos] = preComp[pos].Negate();
+                        ++pos;
+                    }
+                }
+
+                WNafPreCompInfo result = new WNafPreCompInfo();
+                result.PreComp = preComp;
+                result.PreCompNeg = preCompNeg;
+                result.Twice = twiceP;
+                return result;
+            }
+
+            private bool CheckExisting(WNafPreCompInfo existingWNaf, int reqPreCompLen, bool includeNegated)
+            {
+                return existingWNaf != null
+                    && CheckTable(existingWNaf.PreComp, reqPreCompLen)
+                    && (!includeNegated || CheckTable(existingWNaf.PreCompNeg, reqPreCompLen));
+            }
+
+            private bool CheckTable(ECPoint[] table, int reqLen)
+            {
+                return table != null && table.Length >= reqLen;
+            }
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     [CLSCompliantAttribute(false)]
@@ -18,6 +20,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             {
                 z[i] = x[i] + y[i];
             }
+        }
+
+        public static void AddOne(uint[] z)
+        {
+            z[0] += 1;
+        }
+
+        public static void AddOne(uint[] z, int zOff)
+        {
+            z[zOff] += 1;
         }
 
         //public static void Apm(int[] x, int[] y, int[] zp, int[] zm)
@@ -60,6 +72,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             z[0] = z0; z[1] = z1; z[2] = z2; z[3] = z3; z[4] = z4; z[5] = z5; z[6] = z6; z[7] = z7;
             z[8] = z8; z[9] = z9; z[10] = z10; z[11] = z11; z[12] = z12; z[13] = z13; z[14] = z14; z[15] = z15;
+        }
+
+        public static void CNegate(int negate, uint[] z)
+        {
+            Debug.Assert(negate >> 1 == 0);
+
+            uint[] t = Create();
+            Sub(t, z, t);
+
+            Nat.CMov(Size, negate, t, 0, z, 0);
         }
 
         public static void Copy(uint[] x, int xOff, uint[] z, int zOff)
@@ -166,23 +188,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             // z = x^(p-2) = x^(2^448 - 2^224 - 3)
             // (223 1s) (1 0s) (222 1s) (1 0s) (1 1s)
             // Addition chain: [1] 2 3 6 9 18 19 37 74 111 [222] [223]
-            uint[] x2 = Create();    Sqr(x, x2);             Mul(x, x2, x2);
-            uint[] x3 = Create();    Sqr(x2, x3);            Mul(x, x3, x3);
-            uint[] x6 = Create();    Sqr(x3, 3, x6);         Mul(x3, x6, x6);
-            uint[] x9 = Create();    Sqr(x6, 3, x9);         Mul(x3, x9, x9);
-            uint[] x18 = Create();   Sqr(x9, 9, x18);        Mul(x9, x18, x18);
-            uint[] x19 = Create();   Sqr(x18, x19);          Mul(x, x19, x19);
-            uint[] x37 = Create();   Sqr(x19, 18, x37);      Mul(x18, x37, x37);
-            uint[] x74 = Create();   Sqr(x37, 37, x74);      Mul(x37, x74, x74);
-            uint[] x111 = Create();  Sqr(x74, 37, x111);     Mul(x37, x111, x111);
-            uint[] x222 = Create();  Sqr(x111, 111, x222);   Mul(x111, x222, x222);
-            uint[] x223 = Create();  Sqr(x222, x223);        Mul(x, x223, x223);
 
             uint[] t = Create();
-            Sqr(x223, 223, t);
-            Mul(t, x222, t);
+            PowPm3d4(x, t);
             Sqr(t, 2, t);
             Mul(t, x, z);
+        }
+
+        public static bool IsZeroVar(uint[] x)
+        {
+            uint d = 0;
+            for (int i = 0; i < Size; ++i)
+            {
+                d |= x[i];
+            }
+            return d == 0U;
         }
 
         public static void Mul(uint[] x, uint y, uint[] z)
@@ -563,12 +583,49 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[15] = z15;
         }
 
+        public static void Negate(uint[] x, uint[] z)
+        {
+            uint[] zero = Create();
+            Sub(zero, x, z);
+        }
+
         public static void Normalize(uint[] z)
         {
             //int x = (z[15] >> (28 - 1)) & 1;
             Reduce(z, 1);
             Reduce(z, -1);
             Debug.Assert(z[15] >> 28 == 0U);
+        }
+
+        public static void One(uint[] z)
+        {
+            z[0] = 1U;
+            for (int i = 1; i < Size; ++i)
+            {
+                z[i] = 0;
+            }
+        }
+
+        private static void PowPm3d4(uint[] x, uint[] z)
+        {
+            // z = x^((p-3)/4) = x^(2^446 - 2^222 - 1)
+            // (223 1s) (1 0s) (222 1s)
+            // Addition chain: 1 2 3 6 9 18 19 37 74 111 [222] [223]
+            uint[] x2 = Create();   Sqr(x, x2);             Mul(x, x2, x2);
+            uint[] x3 = Create();   Sqr(x2, x3);            Mul(x, x3, x3);
+            uint[] x6 = Create();   Sqr(x3, 3, x6);         Mul(x3, x6, x6);
+            uint[] x9 = Create();   Sqr(x6, 3, x9);         Mul(x3, x9, x9);
+            uint[] x18 = Create();  Sqr(x9, 9, x18);        Mul(x9, x18, x18);
+            uint[] x19 = Create();  Sqr(x18, x19);          Mul(x, x19, x19);
+            uint[] x37 = Create();  Sqr(x19, 18, x37);      Mul(x18, x37, x37);
+            uint[] x74 = Create();  Sqr(x37, 37, x74);      Mul(x37, x74, x74);
+            uint[] x111 = Create(); Sqr(x74, 37, x111);     Mul(x37, x111, x111);
+            uint[] x222 = Create(); Sqr(x111, 111, x222);   Mul(x111, x222, x222);
+            uint[] x223 = Create(); Sqr(x222, x223);        Mul(x, x223, x223);
+
+            uint[] t = Create();
+            Sqr(x223, 223, t);
+            Mul(t, x222, z);
         }
 
         private static void Reduce(uint[] z, int c)
@@ -836,6 +893,38 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        public static bool SqrtRatioVar(uint[] u, uint[] v, uint[] z)
+        {
+            uint[] u3v = Create();
+            uint[] u5v3 = Create();
+
+            Sqr(u, u3v);
+            Mul(u3v, v, u3v);
+            Sqr(u3v, u5v3);
+            Mul(u3v, u, u3v);
+            Mul(u5v3, u, u5v3);
+            Mul(u5v3, v, u5v3);
+
+            uint[] x = Create();
+            PowPm3d4(u5v3, x);
+            Mul(x, u3v, x);
+
+            uint[] t = Create();
+            Sqr(x, t);
+            Mul(t, v, t);
+
+            Sub(u, t, t);
+            Normalize(t);
+
+            if (IsZeroVar(t))
+            {
+                Copy(x, 0, z, 0);
+                return true;
+            }
+
+            return false;
+        }
+
         public static void Sub(uint[] x, uint[] y, uint[] z)
         {
             uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3], x4 = x[4], x5 = x[5], x6 = x[6], x7 = x[7];
@@ -899,6 +988,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[13] = z13;
             z[14] = z14;
             z[15] = z15;
+        }
+
+        public static void Zero(uint[] z)
+        {
+            for (int i = 0; i < Size; ++i)
+            {
+                z[i] = 0;
+            }
         }
     }
 }

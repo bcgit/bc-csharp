@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                n);
+                n, BigInteger.One);
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 new BigInteger("876300101507107567501066130761671078357010671067781776716671676178726717"), // d

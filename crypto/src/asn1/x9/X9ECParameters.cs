@@ -23,29 +23,32 @@ namespace Org.BouncyCastle.Asn1.X9
 		public static X9ECParameters GetInstance(Object obj)
 		{
 			if (obj is X9ECParameters)
-			{
 				return (X9ECParameters)obj;
-			}
 
-			if (obj != null)
-			{
+            if (obj != null)
 				return new X9ECParameters(Asn1Sequence.GetInstance(obj));
-			}
 
-			return null;
+            return null;
 		}
 
         public X9ECParameters(
             Asn1Sequence seq)
         {
             if (!(seq[0] is DerInteger)
-               || !((DerInteger) seq[0]).Value.Equals(BigInteger.One))
+                || !((DerInteger)seq[0]).Value.Equals(BigInteger.One))
             {
                 throw new ArgumentException("bad version in X9ECParameters");
             }
 
+            this.n = ((DerInteger)seq[4]).Value;
+
+            if (seq.Count == 6)
+            {
+                this.h = ((DerInteger)seq[5]).Value;
+            }
+
             X9Curve x9c = new X9Curve(
-                X9FieldID.GetInstance(seq[1]),
+                X9FieldID.GetInstance(seq[1]), n, h,
                 Asn1Sequence.GetInstance(seq[2]));
 
             this.curve = x9c.Curve;
@@ -53,20 +56,14 @@ namespace Org.BouncyCastle.Asn1.X9
 
             if (p is X9ECPoint)
             {
-                this.g = ((X9ECPoint)p);
+                this.g = (X9ECPoint)p;
             }
             else
             {
                 this.g = new X9ECPoint(curve, (Asn1OctetString)p);
             }
 
-            this.n = ((DerInteger)seq[4]).Value;
             this.seed = x9c.GetSeed();
-
-            if (seq.Count == 6)
-            {
-                this.h = ((DerInteger)seq[5]).Value;
-            }
         }
 
         public X9ECParameters(

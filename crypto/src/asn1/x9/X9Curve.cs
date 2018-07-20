@@ -47,8 +47,18 @@ namespace Org.BouncyCastle.Asn1.X9
             }
         }
 
+        [Obsolete("Use constructor including order/cofactor")]
         public X9Curve(
             X9FieldID		fieldID,
+            Asn1Sequence	seq)
+            : this(fieldID, null, null, seq)
+        {
+        }
+
+        public X9Curve(
+            X9FieldID		fieldID,
+            BigInteger      order,
+            BigInteger      cofactor,
             Asn1Sequence	seq)
         {
             if (fieldID == null)
@@ -60,47 +70,47 @@ namespace Org.BouncyCastle.Asn1.X9
 
             if (fieldIdentifier.Equals(X9ObjectIdentifiers.PrimeField))
             {
-                BigInteger q = ((DerInteger) fieldID.Parameters).Value;
-                X9FieldElement x9A = new X9FieldElement(q, (Asn1OctetString) seq[0]);
-                X9FieldElement x9B = new X9FieldElement(q, (Asn1OctetString) seq[1]);
-                curve = new FpCurve(q, x9A.Value.ToBigInteger(), x9B.Value.ToBigInteger());
+                BigInteger p = ((DerInteger)fieldID.Parameters).Value;
+                BigInteger A = new BigInteger(1, Asn1OctetString.GetInstance(seq[0]).GetOctets());
+                BigInteger B = new BigInteger(1, Asn1OctetString.GetInstance(seq[1]).GetOctets());
+                curve = new FpCurve(p, A, B, order, cofactor);
+            }
+            else if (fieldIdentifier.Equals(X9ObjectIdentifiers.CharacteristicTwoField)) 
+            {
+                // Characteristic two field
+                DerSequence parameters = (DerSequence)fieldID.Parameters;
+                int m = ((DerInteger)parameters[0]).Value.IntValue;
+                DerObjectIdentifier representation
+                    = (DerObjectIdentifier)parameters[1];
+
+                int k1 = 0;
+                int k2 = 0;
+                int k3 = 0;
+                if (representation.Equals(X9ObjectIdentifiers.TPBasis)) 
+                {
+                    // Trinomial basis representation
+                    k1 = ((DerInteger)parameters[2]).Value.IntValue;
+                }
+                else 
+                {
+                    // Pentanomial basis representation
+                    DerSequence pentanomial = (DerSequence) parameters[2];
+                    k1 = ((DerInteger) pentanomial[0]).Value.IntValue;
+                    k2 = ((DerInteger) pentanomial[1]).Value.IntValue;
+                    k3 = ((DerInteger) pentanomial[2]).Value.IntValue;
+                }
+                BigInteger A = new BigInteger(1, Asn1OctetString.GetInstance(seq[0]).GetOctets());
+                BigInteger B = new BigInteger(1, Asn1OctetString.GetInstance(seq[1]).GetOctets());
+                curve = new F2mCurve(m, k1, k2, k3, A, B, order, cofactor);
             }
             else
             {
-                if (fieldIdentifier.Equals(X9ObjectIdentifiers.CharacteristicTwoField)) 
-                {
-                    // Characteristic two field
-                    DerSequence parameters = (DerSequence)fieldID.Parameters;
-                    int m = ((DerInteger)parameters[0]).Value.IntValue;
-                    DerObjectIdentifier representation
-                        = (DerObjectIdentifier)parameters[1];
-
-                    int k1 = 0;
-                    int k2 = 0;
-                    int k3 = 0;
-                    if (representation.Equals(X9ObjectIdentifiers.TPBasis)) 
-                    {
-                        // Trinomial basis representation
-                        k1 = ((DerInteger)parameters[2]).Value.IntValue;
-                    }
-                    else 
-                    {
-                        // Pentanomial basis representation
-                        DerSequence pentanomial = (DerSequence) parameters[2];
-                        k1 = ((DerInteger) pentanomial[0]).Value.IntValue;
-                        k2 = ((DerInteger) pentanomial[1]).Value.IntValue;
-                        k3 = ((DerInteger) pentanomial[2]).Value.IntValue;
-                    }
-                    X9FieldElement x9A = new X9FieldElement(m, k1, k2, k3, (Asn1OctetString)seq[0]);
-                    X9FieldElement x9B = new X9FieldElement(m, k1, k2, k3, (Asn1OctetString)seq[1]);
-                    // TODO Is it possible to get the order (n) and cofactor(h) too?
-                    curve = new F2mCurve(m, k1, k2, k3, x9A.Value.ToBigInteger(), x9B.Value.ToBigInteger());
-                }
+                throw new ArgumentException("This type of ECCurve is not implemented");
             }
 
             if (seq.Count == 3)
             {
-                seed = ((DerBitString) seq[2]).GetBytes();
+                seed = ((DerBitString)seq[2]).GetBytes();
             }
         }
 

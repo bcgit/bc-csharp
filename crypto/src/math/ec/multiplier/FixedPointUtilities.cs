@@ -14,36 +14,40 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         public static FixedPointPreCompInfo GetFixedPointPreCompInfo(PreCompInfo preCompInfo)
         {
-            if ((preCompInfo != null) && (preCompInfo is FixedPointPreCompInfo))
-            {
-                return (FixedPointPreCompInfo)preCompInfo;
-            }
-
-            return new FixedPointPreCompInfo();
-        }
-
-        [Obsolete("Use 'Precompute(ECPoint)' instead, as minWidth parameter is now ignored")]
-        public static FixedPointPreCompInfo Precompute(ECPoint p, int minWidth)
-        {
-            return Precompute(p);
+            return preCompInfo as FixedPointPreCompInfo;
         }
 
         public static FixedPointPreCompInfo Precompute(ECPoint p)
         {
-            ECCurve c = p.Curve;
-            int minWidth = GetCombSize(c) > 257 ? 6 : 5;
+            return (FixedPointPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME, new FixedPointCallback(p));
+        }
 
-            int n = 1 << minWidth;
-            FixedPointPreCompInfo info = GetFixedPointPreCompInfo(c.GetPreCompInfo(p, PRECOMP_NAME));
-            ECPoint[] lookupTable = info.PreComp;
+        private class FixedPointCallback
+            : IPreCompCallback
+        {
+            private readonly ECPoint m_p;
 
-            if (lookupTable == null || lookupTable.Length < n)
+            internal FixedPointCallback(ECPoint p)
             {
-                int bits = GetCombSize(c);
+                this.m_p = p;
+            }
+
+            public PreCompInfo Precompute(PreCompInfo existing)
+            {
+                FixedPointPreCompInfo existingFP = (existing is FixedPointPreCompInfo) ? (FixedPointPreCompInfo)existing : null;
+
+                ECCurve c = m_p.Curve;
+                int bits = FixedPointUtilities.GetCombSize(c);
+                int minWidth = bits > 250 ? 6 : 5;
+                int n = 1 << minWidth;
+
+                if (CheckExisting(existingFP, n))
+                    return existingFP;
+
                 int d = (bits + minWidth - 1) / minWidth;
 
                 ECPoint[] pow2Table = new ECPoint[minWidth + 1];
-                pow2Table[0] = p;
+                pow2Table[0] = m_p;
                 for (int i = 1; i < minWidth; ++i)
                 {
                     pow2Table[i] = pow2Table[i - 1].TimesPow2(d);
@@ -53,8 +57,8 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 pow2Table[minWidth] = pow2Table[0].Subtract(pow2Table[1]);
 
                 c.NormalizeAll(pow2Table);
-    
-                lookupTable = new ECPoint[n];
+
+                ECPoint[] lookupTable = new ECPoint[n];
                 lookupTable[0] = pow2Table[0];
 
                 for (int bit = minWidth - 1; bit >= 0; --bit)
@@ -70,15 +74,22 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                 c.NormalizeAll(lookupTable);
 
-                info.LookupTable = c.CreateCacheSafeLookupTable(lookupTable, 0, lookupTable.Length);
-                info.Offset = pow2Table[minWidth];
-                info.PreComp = lookupTable;
-                info.Width = minWidth;
-
-                c.SetPreCompInfo(p, PRECOMP_NAME, info);
+                FixedPointPreCompInfo result = new FixedPointPreCompInfo();
+                result.LookupTable = c.CreateCacheSafeLookupTable(lookupTable, 0, lookupTable.Length);
+                result.Offset = pow2Table[minWidth];
+                result.Width = minWidth;
+                return result;
             }
 
-            return info;
+            private bool CheckExisting(FixedPointPreCompInfo existingFP, int n)
+            {
+                return existingFP != null && CheckTable(existingFP.LookupTable, n);
+            }
+
+            private bool CheckTable(ECLookupTable table, int n)
+            {
+                return table != null && table.Size >= n;
+            }
         }
     }
 }

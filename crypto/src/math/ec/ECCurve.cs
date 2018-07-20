@@ -161,15 +161,24 @@ namespace Org.BouncyCastle.Math.EC
         public virtual PreCompInfo GetPreCompInfo(ECPoint point, string name)
         {
             CheckPoint(point);
+
+            IDictionary table;
             lock (point)
             {
-                IDictionary table = point.m_preCompTable;
-                return table == null ? null : (PreCompInfo)table[name];
+                table = point.m_preCompTable;
+            }
+
+            if (null == table)
+                return null;
+
+            lock (table)
+            {
+                return (PreCompInfo)table[name];
             }
         }
 
         /**
-         * Adds <code>PreCompInfo</code> for a point on this curve, under a given name. Used by
+         * Compute a <code>PreCompInfo</code> for a point on this curve, under a given name. Used by
          * <code>ECMultiplier</code>s to save the precomputation for this <code>ECPoint</code> for use
          * by subsequent multiplication.
          * 
@@ -177,20 +186,34 @@ namespace Org.BouncyCastle.Math.EC
          *            The <code>ECPoint</code> to store precomputations for.
          * @param name
          *            A <code>String</code> used to index precomputations of different types.
-         * @param preCompInfo
-         *            The values precomputed by the <code>ECMultiplier</code>.
+         * @param callback
+         *            Called to calculate the <code>PreCompInfo</code>.
          */
-        public virtual void SetPreCompInfo(ECPoint point, string name, PreCompInfo preCompInfo)
+        public virtual PreCompInfo Precompute(ECPoint point, string name, IPreCompCallback callback)
         {
             CheckPoint(point);
+
+            IDictionary table;
             lock (point)
             {
-                IDictionary table = point.m_preCompTable;
+                table = point.m_preCompTable;
                 if (null == table)
                 {
                     point.m_preCompTable = table = Platform.CreateHashtable(4);
                 }
-                table[name] = preCompInfo;
+            }
+
+            lock (table)
+            {
+                PreCompInfo existing = (PreCompInfo)table[name];
+                PreCompInfo result = callback.Precompute(existing);
+
+                if (result != existing)
+                {
+                    table[name] = result;
+                }
+
+                return result;
             }
         }
 
@@ -208,7 +231,7 @@ namespace Org.BouncyCastle.Math.EC
             // TODO Default behaviour could be improved if the two curves have the same coordinate system by copying any Z coordinates.
             p = p.Normalize();
 
-            return ValidatePoint(p.XCoord.ToBigInteger(), p.YCoord.ToBigInteger(), p.IsCompressed);
+            return CreatePoint(p.XCoord.ToBigInteger(), p.YCoord.ToBigInteger(), p.IsCompressed);
         }
 
         /**
@@ -453,7 +476,7 @@ namespace Org.BouncyCastle.Math.EC
                     BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
 
                     p = DecompressPoint(yTilde, X);
-                    if (!p.SatisfiesCofactor())
+                    if (!p.ImplIsValid(true, true))
                         throw new ArgumentException("Invalid point");
 
                     break;
@@ -588,6 +611,7 @@ namespace Org.BouncyCastle.Math.EC
         protected readonly BigInteger m_q, m_r;
         protected readonly FpPoint m_infinity;
 
+        [Obsolete("Use constructor taking order/cofactor")]
         public FpCurve(BigInteger q, BigInteger a, BigInteger b)
             : this(q, a, b, null, null)
         {
@@ -598,7 +622,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             this.m_q = q;
             this.m_r = FpFieldElement.CalculateResidue(q);
-            this.m_infinity = new FpPoint(this, null, null);
+            this.m_infinity = new FpPoint(this, null, null, false);
 
             this.m_a = FromBigInteger(a);
             this.m_b = FromBigInteger(b);
@@ -607,6 +631,7 @@ namespace Org.BouncyCastle.Math.EC
             this.m_coord = FP_DEFAULT_COORDS;
         }
 
+        [Obsolete("Use constructor taking order/cofactor")]
         protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b)
             : this(q, r, a, b, null, null)
         {
@@ -617,7 +642,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             this.m_q = q;
             this.m_r = r;
-            this.m_infinity = new FpPoint(this, null, null);
+            this.m_infinity = new FpPoint(this, null, null, false);
 
             this.m_a = a;
             this.m_b = b;
@@ -794,7 +819,7 @@ namespace Org.BouncyCastle.Math.EC
             else
             {
                 ECFieldElement beta = xp.Square().Invert().Multiply(B).Add(A).Add(xp);
-                ECFieldElement z = SolveQuadradicEquation(beta);
+                ECFieldElement z = SolveQuadraticEquation(beta);
 
                 if (z != null)
                 {
@@ -831,11 +856,11 @@ namespace Org.BouncyCastle.Math.EC
          * D.1.6) The other solution is <code>z + 1</code>.
          *
          * @param beta
-         *            The value to solve the qradratic equation for.
+         *            The value to solve the quadratic equation for.
          * @return the solution for <code>z<sup>2</sup> + z = beta</code> or
          *         <code>null</code> if no solution exists.
          */
-        private ECFieldElement SolveQuadradicEquation(ECFieldElement beta)
+        internal ECFieldElement SolveQuadraticEquation(ECFieldElement beta)
         {
             if (beta.IsZero)
                 return beta;
@@ -957,6 +982,7 @@ namespace Org.BouncyCastle.Math.EC
          * for non-supersingular elliptic curves over
          * <code>F<sub>2<sup>m</sup></sub></code>.
          */
+        [Obsolete("Use constructor taking order/cofactor")]
         public F2mCurve(
             int			m,
             int			k,
@@ -1014,6 +1040,7 @@ namespace Org.BouncyCastle.Math.EC
          * for non-supersingular elliptic curves over
          * <code>F<sub>2<sup>m</sup></sub></code>.
          */
+        [Obsolete("Use constructor taking order/cofactor")]
         public F2mCurve(
             int			m,
             int			k1,
@@ -1065,7 +1092,7 @@ namespace Org.BouncyCastle.Math.EC
             this.k3 = k3;
             this.m_order = order;
             this.m_cofactor = cofactor;
-            this.m_infinity = new F2mPoint(this, null, null);
+            this.m_infinity = new F2mPoint(this, null, null, false);
 
             if (k1 == 0)
                 throw new ArgumentException("k1 must be > 0");
@@ -1099,7 +1126,7 @@ namespace Org.BouncyCastle.Math.EC
             this.m_order = order;
             this.m_cofactor = cofactor;
 
-            this.m_infinity = new F2mPoint(this, null, null);
+            this.m_infinity = new F2mPoint(this, null, null, false);
             this.m_a = a;
             this.m_b = b;
             this.m_coord = F2M_DEFAULT_COORDS;
@@ -1186,18 +1213,6 @@ namespace Org.BouncyCastle.Math.EC
         public int K3
         {
             get { return k3; }
-        }
-
-        [Obsolete("Use 'Order' property instead")]
-        public BigInteger N
-        {
-            get { return m_order; }
-        }
-
-        [Obsolete("Use 'Cofactor' property instead")]
-        public BigInteger H
-        {
-            get { return m_cofactor; }
         }
 
         public override ECLookupTable CreateCacheSafeLookupTable(ECPoint[] points, int off, int len)

@@ -10,10 +10,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         private const int C_A24 = (C_A + 2)/4;
 
         // 0x1
-        //private static readonly int[] S_x = new int[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        //private static readonly int[] S_x = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
         // 0x215132111D8354CB52385F46DCA2B71D440F6A51EB4D1207816B1E0137D48290
-        private static readonly int[] PsubS_x = new int[]{ 0x03D48290, 0x02C7804D, 0x01207816, 0x028F5A68, 0x00881ED4, 0x00A2B71D,
+        private static readonly int[] PsubS_x = { 0x03D48290, 0x02C7804D, 0x01207816, 0x028F5A68, 0x00881ED4, 0x00A2B71D,
             0x0217D1B7, 0x014CB523, 0x0088EC1A, 0x0042A264 };
 
         private static int[] precompBase = null;

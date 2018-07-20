@@ -6154,6 +6154,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\multiplier\IPreCompCallback.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\multiplier\MixedNafR2LMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6180,6 +6185,11 @@
                 />
                 <File
                     RelPath = "src\math\ec\multiplier\ReferenceMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\ValidityPreCompInfo.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6235,6 +6245,16 @@
                 />
                 <File
                     RelPath = "src\math\ec\rfc7748\X448Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc8032\Ed25519.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc8032\Ed448.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -12336,6 +12356,16 @@
                 />
                 <File
                     RelPath = "test\src\math\ec\rfc7748\test\X448Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\rfc8032\test\Ed25519Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\rfc8032\test\Ed448Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
