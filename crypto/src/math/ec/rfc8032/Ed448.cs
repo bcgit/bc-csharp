@@ -501,77 +501,80 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X448Field.One(p.z);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        //[MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            if (precompBase != null)
+            lock (typeof(Ed448))
             {
-                return;
-            }
-
-            PointExt p = new PointExt();
-            X448Field.Copy(B_x, 0, p.x, 0);
-            X448Field.Copy(B_y, 0, p.y, 0);
-            PointExtendXY(p);
-
-            precompBaseTable = PointPrecompVar(p, 1 << (WnafWidthBase - 2));
-
-            precompBase = new uint[PrecompBlocks * PrecompPoints * 2 * X448Field.Size];
-
-            int off = 0;
-            for (int b = 0; b < PrecompBlocks; ++b)
-            {
-                PointExt[] ds = new PointExt[PrecompTeeth];
-
-                PointExt sum = new PointExt();
-                PointSetNeutral(sum);
-
-                for (int t = 0; t < PrecompTeeth; ++t)
+                if (precompBase != null)
                 {
-                    PointAddVar(true, p, sum);
-                    PointDouble(p);
+                    return;
+                }
 
-                    ds[t] = PointCopy(p);
+                PointExt p = new PointExt();
+                X448Field.Copy(B_x, 0, p.x, 0);
+                X448Field.Copy(B_y, 0, p.y, 0);
+                PointExtendXY(p);
 
-                    for (int s = 1; s < PrecompSpacing; ++s)
+                precompBaseTable = PointPrecompVar(p, 1 << (WnafWidthBase - 2));
+
+                precompBase = new uint[PrecompBlocks * PrecompPoints * 2 * X448Field.Size];
+
+                int off = 0;
+                for (int b = 0; b < PrecompBlocks; ++b)
+                {
+                    PointExt[] ds = new PointExt[PrecompTeeth];
+
+                    PointExt sum = new PointExt();
+                    PointSetNeutral(sum);
+
+                    for (int t = 0; t < PrecompTeeth; ++t)
                     {
+                        PointAddVar(true, p, sum);
                         PointDouble(p);
+
+                        ds[t] = PointCopy(p);
+
+                        for (int s = 1; s < PrecompSpacing; ++s)
+                        {
+                            PointDouble(p);
+                        }
                     }
-                }
 
-                PointExt[] points = new PointExt[PrecompPoints];
-                int k = 0;
-                points[k++] = sum;
+                    PointExt[] points = new PointExt[PrecompPoints];
+                    int k = 0;
+                    points[k++] = sum;
 
-                for (int t = 0; t < (PrecompTeeth - 1); ++t)
-                {
-                    int size = 1 << t;
-                    for (int j = 0; j < size; ++j, ++k)
+                    for (int t = 0; t < (PrecompTeeth - 1); ++t)
                     {
-                        points[k] = PointCopy(points[k - size]);
-                        PointAddVar(false, ds[t], points[k]);
+                        int size = 1 << t;
+                        for (int j = 0; j < size; ++j, ++k)
+                        {
+                            points[k] = PointCopy(points[k - size]);
+                            PointAddVar(false, ds[t], points[k]);
+                        }
+                    }
+
+                    Debug.Assert(k == PrecompPoints);
+
+                    for (int i = 0; i < PrecompPoints; ++i)
+                    {
+                        PointExt q = points[i];
+                        // TODO[ed448] Batch inversion
+                        X448Field.Inv(q.z, q.z);
+                        X448Field.Mul(q.x, q.z, q.x);
+                        X448Field.Mul(q.y, q.z, q.y);
+
+                        //                X448Field.Normalize(q.x);
+                        //                X448Field.Normalize(q.y);
+
+                        X448Field.Copy(q.x, 0, precompBase, off); off += X448Field.Size;
+                        X448Field.Copy(q.y, 0, precompBase, off); off += X448Field.Size;
                     }
                 }
 
-                Debug.Assert(k == PrecompPoints);
-
-                for (int i = 0; i < PrecompPoints; ++i)
-                {
-                    PointExt q = points[i];
-                    // TODO[ed448] Batch inversion
-                    X448Field.Inv(q.z, q.z);
-                    X448Field.Mul(q.x, q.z, q.x);
-                    X448Field.Mul(q.y, q.z, q.y);
-
-    //                X448Field.Normalize(q.x);
-    //                X448Field.Normalize(q.y);
-
-                    X448Field.Copy(q.x, 0, precompBase, off);   off += X448Field.Size;
-                    X448Field.Copy(q.y, 0, precompBase, off);   off += X448Field.Size;
-                }
+                Debug.Assert(off == precompBase.Length);
             }
-
-            Debug.Assert(off == precompBase.Length);
         }
 
         private static void PruneScalar(byte[] n, int nOff, byte[] r)

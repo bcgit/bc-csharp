@@ -514,97 +514,100 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X25519Field.Zero(p.t);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        //[MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            if (precompBase != null)
+            lock (typeof(Ed25519))
             {
-                return;
-            }
-
-            // Precomputed table for the base point in verification ladder
-            {
-                PointExt b = new PointExt();
-                X25519Field.Copy(B_x, 0, b.x, 0);
-                X25519Field.Copy(B_y, 0, b.y, 0);
-                PointExtendXY(b);
-
-                precompBaseTable = PointPrecompVar(b, 1 << (WnafWidthBase - 2));
-            }
-
-            PointAccum p = new PointAccum();
-            X25519Field.Copy(B_x, 0, p.x, 0);
-            X25519Field.Copy(B_y, 0, p.y, 0);
-            PointExtendXY(p);
-
-            precompBase = new int[PrecompBlocks * PrecompPoints * 3 * X25519Field.Size];
-
-            int off = 0;
-            for (int b = 0; b < PrecompBlocks; ++b)
-            {
-                PointExt[] ds = new PointExt[PrecompTeeth];
-
-                PointExt sum = new PointExt();
-                PointSetNeutral(sum);
-
-                for (int t = 0; t < PrecompTeeth; ++t)
+                if (precompBase != null)
                 {
-                    PointExt q = PointCopy(p);
-                    PointAddVar(true, sum, q, sum);
-                    PointDouble(p);
+                    return;
+                }
 
-                    ds[t] = PointCopy(p);
+                // Precomputed table for the base point in verification ladder
+                {
+                    PointExt b = new PointExt();
+                    X25519Field.Copy(B_x, 0, b.x, 0);
+                    X25519Field.Copy(B_y, 0, b.y, 0);
+                    PointExtendXY(b);
 
-                    for (int s = 1; s < PrecompSpacing; ++s)
+                    precompBaseTable = PointPrecompVar(b, 1 << (WnafWidthBase - 2));
+                }
+
+                PointAccum p = new PointAccum();
+                X25519Field.Copy(B_x, 0, p.x, 0);
+                X25519Field.Copy(B_y, 0, p.y, 0);
+                PointExtendXY(p);
+
+                precompBase = new int[PrecompBlocks * PrecompPoints * 3 * X25519Field.Size];
+
+                int off = 0;
+                for (int b = 0; b < PrecompBlocks; ++b)
+                {
+                    PointExt[] ds = new PointExt[PrecompTeeth];
+
+                    PointExt sum = new PointExt();
+                    PointSetNeutral(sum);
+
+                    for (int t = 0; t < PrecompTeeth; ++t)
                     {
+                        PointExt q = PointCopy(p);
+                        PointAddVar(true, sum, q, sum);
                         PointDouble(p);
+
+                        ds[t] = PointCopy(p);
+
+                        for (int s = 1; s < PrecompSpacing; ++s)
+                        {
+                            PointDouble(p);
+                        }
                     }
-                }
 
-                PointExt[] points = new PointExt[PrecompPoints];
-                int k = 0;
-                points[k++] = sum;
+                    PointExt[] points = new PointExt[PrecompPoints];
+                    int k = 0;
+                    points[k++] = sum;
 
-                for (int t = 0; t < (PrecompTeeth - 1); ++t)
-                {
-                    int size = 1 << t;
-                    for (int j = 0; j < size; ++j, ++k)
+                    for (int t = 0; t < (PrecompTeeth - 1); ++t)
                     {
-                        PointAddVar(false, points[k - size], ds[t], points[k] = new PointExt());
+                        int size = 1 << t;
+                        for (int j = 0; j < size; ++j, ++k)
+                        {
+                            PointAddVar(false, points[k - size], ds[t], points[k] = new PointExt());
+                        }
+                    }
+
+                    Debug.Assert(k == PrecompPoints);
+
+                    for (int i = 0; i < PrecompPoints; ++i)
+                    {
+                        PointExt q = points[i];
+
+                        int[] x = X25519Field.Create();
+                        int[] y = X25519Field.Create();
+
+                        X25519Field.Add(q.z, q.z, x);
+                        // TODO[ed25519] Batch inversion
+                        X25519Field.Inv(x, y);
+                        X25519Field.Mul(q.x, y, x);
+                        X25519Field.Mul(q.y, y, y);
+
+                        PointPrecomp r = new PointPrecomp();
+                        X25519Field.Apm(y, x, r.ypx_h, r.ymx_h);
+                        X25519Field.Mul(x, y, r.xyd);
+                        X25519Field.Mul(r.xyd, C_d4, r.xyd);
+
+                        X25519Field.Normalize(r.ypx_h);
+                        X25519Field.Normalize(r.ymx_h);
+                        //X25519Field.Normalize(r.xyd);
+
+                        X25519Field.Copy(r.ypx_h, 0, precompBase, off); off += X25519Field.Size;
+                        X25519Field.Copy(r.ymx_h, 0, precompBase, off); off += X25519Field.Size;
+                        X25519Field.Copy(r.xyd, 0, precompBase, off); off += X25519Field.Size;
                     }
                 }
 
-                Debug.Assert(k == PrecompPoints);
-
-                for (int i = 0; i < PrecompPoints; ++i)
-                {
-                    PointExt q = points[i];
-
-                    int[] x = X25519Field.Create();
-                    int[] y = X25519Field.Create();
-
-                    X25519Field.Add(q.z, q.z, x);
-                    // TODO[ed25519] Batch inversion
-                    X25519Field.Inv(x, y);
-                    X25519Field.Mul(q.x, y, x);
-                    X25519Field.Mul(q.y, y, y);
-
-                    PointPrecomp r = new PointPrecomp();
-                    X25519Field.Apm(y, x, r.ypx_h, r.ymx_h);
-                    X25519Field.Mul(x, y, r.xyd);
-                    X25519Field.Mul(r.xyd, C_d4, r.xyd);
-
-                    X25519Field.Normalize(r.ypx_h);
-                    X25519Field.Normalize(r.ymx_h);
-                    //X25519Field.Normalize(r.xyd);
-
-                    X25519Field.Copy(r.ypx_h, 0, precompBase, off); off += X25519Field.Size;
-                    X25519Field.Copy(r.ymx_h, 0, precompBase, off); off += X25519Field.Size;
-                    X25519Field.Copy(r.xyd, 0, precompBase, off);   off += X25519Field.Size;
-                }
+                Debug.Assert(off == precompBase.Length);
             }
-
-            Debug.Assert(off == precompBase.Length);
         }
 
         private static void PruneScalar(byte[] n, int nOff, byte[] r)
