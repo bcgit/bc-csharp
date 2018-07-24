@@ -996,6 +996,7 @@
     <Compile Include="src\crypto\tls\DefaultTlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsCipherFactory.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsClient.cs" />
+    <Compile Include="src\crypto\tls\DefaultTlsDHVerifier.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsEncryptionCredentials.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsServer.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsSignerCredentials.cs" />
@@ -1039,7 +1040,6 @@
     <Compile Include="src\crypto\tls\PskTlsServer.cs" />
     <Compile Include="src\crypto\tls\RecordStream.cs" />
     <Compile Include="src\crypto\tls\SecurityParameters.cs" />
-    <Compile Include="src\crypto\tls\ServerDHParams.cs" />
     <Compile Include="src\crypto\tls\ServerName.cs" />
     <Compile Include="src\crypto\tls\ServerNameList.cs" />
     <Compile Include="src\crypto\tls\ServerOnlyTlsAuthentication.cs" />
@@ -1070,6 +1070,7 @@
     <Compile Include="src\crypto\tls\TlsCredentials.cs" />
     <Compile Include="src\crypto\tls\TlsDHKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsDHUtilities.cs" />
+    <Compile Include="src\crypto\tls\TlsDHVerifier.cs" />
     <Compile Include="src\crypto\tls\TlsDeflateCompression.cs" />
     <Compile Include="src\crypto\tls\TlsDheKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsDsaSigner.cs" />

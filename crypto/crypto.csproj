@@ -4869,6 +4869,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\DefaultTlsDHVerifier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\DefaultTlsEncryptionCredentials.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5084,11 +5089,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\tls\ServerDHParams.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\crypto\tls\ServerSrpParams.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5245,6 +5245,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsDHUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsDHVerifier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
