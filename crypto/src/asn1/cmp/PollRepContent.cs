@@ -33,6 +33,25 @@ namespace Org.BouncyCastle.Asn1.Cmp
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
 		}
 
+	    public PollRepContent(
+	        DerInteger certReqId,
+	        DerInteger checkAfter)
+	    {
+	        this.certReqId = certReqId;
+	        this.checkAfter = checkAfter;
+	        this.reason = null;
+	    }
+
+        public PollRepContent(
+	        DerInteger certReqId,
+	        DerInteger checkAfter,
+	        PkiFreeText reason)
+	    {
+	        this.certReqId = certReqId;
+	        this.checkAfter = checkAfter;
+	        this.reason = reason;
+	    }
+
 		public virtual DerInteger CertReqID
 		{
 			get { return certReqId; }
