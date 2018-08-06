@@ -447,6 +447,17 @@ namespace Org.BouncyCastle.Cms
             return Generate(content, false);
         }
 
+		/**
+        * generate a signed object that for a CMS Signed Data object
+        */
+        public CmsSignedData Generate(
+            string			signedContentType,
+            CmsProcessable	content,
+            bool			encapsulate)
+        {
+            return Generate(signedContentType, content, encapsulate, false);
+        }
+
         /**
         * generate a signed object that for a CMS Signed Data
         * object  - if encapsulate is true a copy
@@ -457,7 +468,8 @@ namespace Org.BouncyCastle.Cms
             string			signedContentType,
 			// FIXME Avoid accessing more than once to support CmsProcessableInputStream
             CmsProcessable	content,
-            bool			encapsulate)
+            bool			encapsulate,
+            bool			useDerEncodingForCerts)
         {
             Asn1EncodableVector digestAlgs = new Asn1EncodableVector();
             Asn1EncodableVector signerInfos = new Asn1EncodableVector();
@@ -513,14 +525,28 @@ namespace Org.BouncyCastle.Cms
 
 			if (_certs.Count != 0)
 			{
-				certificates = CmsUtilities.CreateBerSetFromList(_certs);
+				if (useDerEncodingForCerts)
+				{
+					certificates = CmsUtilities.CreateDerSetFromList(_certs);
+				}
+				else
+				{
+					certificates = CmsUtilities.CreateBerSetFromList(_certs);
+				}
 			}
 
 			Asn1Set certrevlist = null;
 
 			if (_crls.Count != 0)
 			{
-				certrevlist = CmsUtilities.CreateBerSetFromList(_crls);
+				if (useDerEncodingForCerts)
+				{
+					certrevlist = CmsUtilities.CreateDerSetFromList(_certs);
+				}
+				else
+				{
+					certrevlist = CmsUtilities.CreateBerSetFromList(_crls);
+				}
 			}
 
 			Asn1OctetString octs = null;
