@@ -513,15 +513,19 @@ namespace Org.BouncyCastle.Cms
 
 			if (_certs.Count != 0)
 			{
-				certificates = CmsUtilities.CreateBerSetFromList(_certs);
+				certificates = UseDerForCerts
+                    ?   CmsUtilities.CreateDerSetFromList(_certs)
+                    :   CmsUtilities.CreateBerSetFromList(_certs);
 			}
 
 			Asn1Set certrevlist = null;
 
 			if (_crls.Count != 0)
 			{
-				certrevlist = CmsUtilities.CreateBerSetFromList(_crls);
-			}
+                certrevlist = UseDerForCrls
+                    ?   CmsUtilities.CreateDerSetFromList(_crls)
+                    :   CmsUtilities.CreateBerSetFromList(_crls);
+            }
 
 			Asn1OctetString octs = null;
 			if (encapsulate)

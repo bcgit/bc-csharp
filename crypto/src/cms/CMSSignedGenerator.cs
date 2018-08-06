@@ -147,6 +147,8 @@ namespace Org.BouncyCastle.Cms
         internal IList _crls = Platform.CreateArrayList();
         internal IList _signers = Platform.CreateArrayList();
         internal IDictionary _digests = Platform.CreateHashtable();
+        internal bool _useDerForCerts = false;
+        internal bool _useDerForCrls = false;
 
         protected readonly SecureRandom rand;
 
@@ -249,6 +251,18 @@ namespace Org.BouncyCastle.Cms
         public IDictionary GetGeneratedDigests()
         {
             return Platform.CreateHashtable(_digests);
+        }
+
+        public bool UseDerForCerts
+        {
+            get { return _useDerForCerts; }
+            set { this._useDerForCerts = value; }
+        }
+
+        public bool UseDerForCrls
+        {
+            get { return _useDerForCrls; }
+            set { this._useDerForCrls = value; }
         }
 
         internal virtual void AddSignerCallback(
