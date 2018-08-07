@@ -210,71 +210,73 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="publicKey">Public Key to be included in cert reqest.</param>
         /// <param name="attributes">ASN1Set of Attributes.</param>
         /// <param name="signingKey">Matching Private key for nominated (above) public key to be used to sign the request.</param>
-        [Obsolete("Use constructor with an ISignatureFactory")]
         public Pkcs10CertificationRequest(
 			string					signatureAlgorithm,
 			X509Name				subject,
 			AsymmetricKeyParameter	publicKey,
 			Asn1Set					attributes,
 			AsymmetricKeyParameter	signingKey)
+            : this(new Asn1SignatureFactory(signatureAlgorithm, signingKey), subject, publicKey, attributes)
 		{
-			if (signatureAlgorithm == null)
-				throw new ArgumentNullException("signatureAlgorithm");
-			if (subject == null)
-				throw new ArgumentNullException("subject");
-			if (publicKey == null)
-				throw new ArgumentNullException("publicKey");
-			if (publicKey.IsPrivate)
-				throw new ArgumentException("expected public key", "publicKey");
-			if (!signingKey.IsPrivate)
-				throw new ArgumentException("key for signing must be private", "signingKey");
-
-            init(new Asn1SignatureFactory(signatureAlgorithm, signingKey), subject, publicKey, attributes, signingKey);
 		}
 
         /// <summary>
         /// Instantiate a Pkcs10CertificationRequest object with the necessary credentials.
         /// </summary>
-        ///<param name="signatureCalculatorFactory">The factory for signature calculators to sign the PKCS#10 request with.</param>
+        ///<param name="signatureFactory">The factory for signature calculators to sign the PKCS#10 request with.</param>
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
         /// <param name="publicKey">Public Key to be included in cert reqest.</param>
         /// <param name="attributes">ASN1Set of Attributes.</param>
-        /// <param name="signingKey">Matching Private key for nominated (above) public key to be used to sign the request.</param>
+        /// <param name="signingKey">Ignored.</param>
+        [Obsolete("Use constructor without 'signingKey' parameter (ignored here)")]
         public Pkcs10CertificationRequest(
-            ISignatureFactory signatureCalculatorFactory,
+            ISignatureFactory signatureFactory,
             X509Name subject,
             AsymmetricKeyParameter publicKey,
             Asn1Set attributes,
             AsymmetricKeyParameter signingKey)
+            : this(signatureFactory, subject, publicKey, attributes)
         {
-            if (signatureCalculatorFactory == null)
-                throw new ArgumentNullException("signatureCalculator");
+        }
+
+        /// <summary>
+        /// Instantiate a Pkcs10CertificationRequest object with the necessary credentials.
+        /// </summary>
+        ///<param name="signatureFactory">The factory for signature calculators to sign the PKCS#10 request with.</param>
+        /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
+        /// <param name="publicKey">Public Key to be included in cert reqest.</param>
+        /// <param name="attributes">ASN1Set of Attributes.</param>
+        public Pkcs10CertificationRequest(
+            ISignatureFactory signatureFactory,
+            X509Name subject,
+            AsymmetricKeyParameter publicKey,
+            Asn1Set attributes)
+        {
+            if (signatureFactory == null)
+                throw new ArgumentNullException("signatureFactory");
             if (subject == null)
                 throw new ArgumentNullException("subject");
             if (publicKey == null)
                 throw new ArgumentNullException("publicKey");
             if (publicKey.IsPrivate)
                 throw new ArgumentException("expected public key", "publicKey");
-            if (!signingKey.IsPrivate)
-                throw new ArgumentException("key for signing must be private", "signingKey");
 
-            init(signatureCalculatorFactory, subject, publicKey, attributes, signingKey);
+            Init(signatureFactory, subject, publicKey, attributes);
         }
 
-        private void init(
-            ISignatureFactory signatureCalculator, 
+        private void Init(
+            ISignatureFactory signatureFactory, 
             X509Name subject,
             AsymmetricKeyParameter publicKey,
-            Asn1Set attributes,
-            AsymmetricKeyParameter signingKey)
+            Asn1Set attributes)
         {
-            this.sigAlgId = (AlgorithmIdentifier)signatureCalculator.AlgorithmDetails;
+            this.sigAlgId = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
 
             SubjectPublicKeyInfo pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
 
             this.reqInfo = new CertificationRequestInfo(subject, pubInfo, attributes);
 
-            IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+            IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
 
             byte[] reqInfoData = reqInfo.GetDerEncoded();
 
