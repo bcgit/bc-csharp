@@ -32,8 +32,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
                 CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,
-                CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
-                CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA
             };
         }
 
