@@ -50,7 +50,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(IsMatchingBase)' == 'true'">
-      <PackageVersion>$(BuildVersionSimple)</PackageVersion>
+      <CloudBuildNumber>$(BuildVersionSimple)</CloudBuildNumber>
       <Version>$(BuildVersionSimple)</Version>
       <PackageVersion>$(BuildVersionSimple)</PackageVersion>
       <NuGetPackageVersion>$(BuildVersionSimple)</NuGetPackageVersion>
