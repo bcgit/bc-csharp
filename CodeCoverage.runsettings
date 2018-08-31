@@ -18,7 +18,7 @@ Included items must then not match any entries in the exclude list to remain inc
             <!-- Match assembly file paths: -->
             <ModulePaths>
               <Include>
-                <ModulePath>.*BouncyCastle.*</ModulePath>
+                <ModulePath>.*Crypto.*</ModulePath>
               </Include>
               <Exclude>
                 <ModulePath>.*Test.*</ModulePath>
