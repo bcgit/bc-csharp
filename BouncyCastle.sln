@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.vsts-pr.yml = .vsts-pr.yml
 		.vsts-shared.yml = .vsts-shared.yml
 		README.md = README.md
+		version.json = version.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "crypto", "crypto\src\crypto.csproj", "{60F6E5B2-8CE6-4817-89B6-369AAE1C6187}"

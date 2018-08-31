@@ -15,7 +15,7 @@
     <DebugType>embedded</DebugType>
     <PackageLicenseUrl>https://www.bouncycastle.org/csharp/licence.html</PackageLicenseUrl>
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
-    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES182</PackageReleaseNotes>
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES183</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/onovotny/bc-csharp</RepositoryUrl>
     <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
