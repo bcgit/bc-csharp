@@ -48,6 +48,14 @@
       <NuGetPackageVersion>$(BuildVersion)</NuGetPackageVersion>
       <AssemblyVersion>$(BuildVersionSimple)</AssemblyVersion>
     </PropertyGroup>
+
+    <PropertyGroup Condition="'$(IsMatchingBase)' == 'true'">
+      <PackageVersion>$(BuildVersionSimple)</PackageVersion>
+      <Version>$(BuildVersionSimple)</Version>
+      <PackageVersion>$(BuildVersionSimple)</PackageVersion>
+      <NuGetPackageVersion>$(BuildVersionSimple)</NuGetPackageVersion>
+      <AssemblyVersion>$(BuildVersionSimple)</AssemblyVersion>
+    </PropertyGroup>
   </Target>
   
   <Target Name="AddCommitHashToAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">
