@@ -4,6 +4,7 @@
 *.user
 *.userprefs
 *.vsp
+*.coverage
 
 *.nupkg
 
