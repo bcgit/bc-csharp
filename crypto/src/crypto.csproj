@@ -37,7 +37,7 @@
     <Compile Include="..\bzip2\src\**\*.cs" LinkBase="bzip2" />
     <None Include="..\..\BouncyCastle.snk" />
     <PackageReference Include="NerdBank.GitVersioning" Version="2.1.65" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-62925-02" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
   </ItemGroup>
   
   <Target Name="SetBuildVer" AfterTargets="GetBuildVersion" BeforeTargets="SetCloudBuildVersionVars;SetCloudBuildNumberWithVersion">

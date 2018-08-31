@@ -5,7 +5,7 @@
 *.userprefs
 *.vsp
 *.coverage
-
+*.exe
 *.nupkg
 
 Backup/
@@ -19,6 +19,7 @@ _Resharper*/
 *.ide/
 packages/
 .vs/
+.store/
 
 *.nuget.props
 *.nuget.targets
