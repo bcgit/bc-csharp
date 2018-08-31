@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.X509.Store
 		private X509Certificate certificate;
 		private DateTimeObject certificateValid;
 		private ISet extendedKeyUsage;
+        private bool ignoreX509NameOrdering;
 		private X509Name issuer;
 		private bool[] keyUsage;
 		private ISet policy;
@@ -43,6 +44,7 @@ namespace Org.BouncyCastle.X509.Store
 			this.certificate = o.Certificate;
 			this.certificateValid = o.CertificateValid;
 			this.extendedKeyUsage = o.ExtendedKeyUsage;
+            this.ignoreX509NameOrdering = o.IgnoreX509NameOrdering;
 			this.issuer = o.Issuer;
 			this.keyUsage = o.KeyUsage;
 			this.policy = o.Policy;
@@ -95,6 +97,12 @@ namespace Org.BouncyCastle.X509.Store
 			set { extendedKeyUsage = CopySet(value); }
 		}
 
+        public bool IgnoreX509NameOrdering
+        {
+            get { return ignoreX509NameOrdering; }
+            set { this.ignoreX509NameOrdering = value; }
+        }
+
 		public X509Name Issuer
 		{
 			get { return issuer; }
@@ -140,7 +148,8 @@ namespace Org.BouncyCastle.X509.Store
 			set { subject = value; }
 		}
 
-		public string SubjectAsString
+        [Obsolete("Avoid working with X509Name objects in string form")]
+        public string SubjectAsString
 		{
 			get { return subject != null ? subject.ToString() : null; }
 		}
@@ -212,7 +221,7 @@ namespace Org.BouncyCastle.X509.Store
 				}
 			}
 
-			if (issuer != null && !issuer.Equivalent(c.IssuerDN, true))
+			if (issuer != null && !issuer.Equivalent(c.IssuerDN, !ignoreX509NameOrdering))
 				return false;
 
 			if (keyUsage != null)
@@ -277,7 +286,7 @@ namespace Org.BouncyCastle.X509.Store
 			if (serialNumber != null && !serialNumber.Equals(c.SerialNumber))
 				return false;
 
-			if (subject != null && !subject.Equivalent(c.SubjectDN, true))
+            if (subject != null && !subject.Equivalent(c.SubjectDN, !ignoreX509NameOrdering))
 				return false;
 
 			if (!MatchExtension(subjectKeyIdentifier, c, X509Extensions.SubjectKeyIdentifier))

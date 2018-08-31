@@ -14,14 +14,22 @@ namespace Org.BouncyCastle.Crypto.Tls
     public abstract class DefaultTlsClient
         :   AbstractTlsClient
     {
+        protected TlsDHVerifier mDHVerifier;
+
         public DefaultTlsClient()
-            :   base()
+            : this(new DefaultTlsCipherFactory())
         {
         }
 
         public DefaultTlsClient(TlsCipherFactory cipherFactory)
-            :   base(cipherFactory)
+            : this(cipherFactory, new DefaultTlsDHVerifier())
         {
+        }
+
+        public DefaultTlsClient(TlsCipherFactory cipherFactory, TlsDHVerifier dhVerifier)
+            : base(cipherFactory)
+        {
+            this.mDHVerifier = dhVerifier;
         }
 
         public override int[] GetCipherSuites()
@@ -34,12 +42,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                 CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
                 CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
                 CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-                CipherSuite.TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,
-                CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA256,
-                CipherSuite.TLS_DHE_DSS_WITH_AES_128_CBC_SHA,
-                CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
-                CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
-                CipherSuite.TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
                 CipherSuite.TLS_RSA_WITH_AES_128_GCM_SHA256,
                 CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA256,
                 CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA,
@@ -85,12 +87,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual TlsKeyExchange CreateDHKeyExchange(int keyExchange)
         {
-            return new TlsDHKeyExchange(keyExchange, mSupportedSignatureAlgorithms, null);
+            return new TlsDHKeyExchange(keyExchange, mSupportedSignatureAlgorithms, mDHVerifier, null);
         }
 
         protected virtual TlsKeyExchange CreateDheKeyExchange(int keyExchange)
         {
-            return new TlsDheKeyExchange(keyExchange, mSupportedSignatureAlgorithms, null);
+            return new TlsDheKeyExchange(keyExchange, mSupportedSignatureAlgorithms, mDHVerifier, null);
         }
 
         protected virtual TlsKeyExchange CreateECDHKeyExchange(int keyExchange)

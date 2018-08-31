@@ -3,7 +3,6 @@ using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -14,8 +13,8 @@ namespace Org.BouncyCastle.Crypto.Tls
     {
         protected TlsSignerCredentials mServerCredentials = null;
 
-        public TlsDheKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, DHParameters dhParameters)
-            :   base(keyExchange, supportedSignatureAlgorithms, dhParameters)
+        public TlsDheKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, TlsDHVerifier dhVerifier, DHParameters dhParameters)
+            :   base(keyExchange, supportedSignatureAlgorithms, dhVerifier, dhParameters)
         {
         }
 
@@ -69,7 +68,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             SignerInputBuffer buf = new SignerInputBuffer();
             Stream teeIn = new TeeInputStream(input, buf);
 
-            ServerDHParams dhParams = ServerDHParams.Parse(teeIn);
+            this.mDHParameters = TlsDHUtilities.ReceiveDHParameters(mDHVerifier, teeIn);
+            this.mDHAgreePublicKey = new DHPublicKeyParameters(TlsDHUtilities.ReadDHParameter(teeIn), mDHParameters);
 
             DigitallySigned signed_params = ParseSignature(input);
 
@@ -77,9 +77,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             buf.UpdateSigner(signer);
             if (!signer.VerifySignature(signed_params.Signature))
                 throw new TlsFatalAlert(AlertDescription.decrypt_error);
-
-            this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(dhParams.PublicKey);
-            this.mDHParameters = ValidateDHParameters(mDHAgreePublicKey.Parameters);
         }
 
         protected virtual ISigner InitVerifyer(TlsSigner tlsSigner, SignatureAndHashAlgorithm algorithm,

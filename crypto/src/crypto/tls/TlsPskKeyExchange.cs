@@ -4,7 +4,6 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
@@ -18,6 +17,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected TlsPskIdentity mPskIdentity;
         protected TlsPskIdentityManager mPskIdentityManager;
 
+        protected TlsDHVerifier mDHVerifier;
         protected DHParameters mDHParameters;
         protected int[] mNamedCurves;
         protected byte[] mClientECPointFormats, mServerECPointFormats;
@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected byte[] mPremasterSecret;
 
         public TlsPskKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, TlsPskIdentity pskIdentity,
-            TlsPskIdentityManager pskIdentityManager, DHParameters dhParameters, int[] namedCurves,
+            TlsPskIdentityManager pskIdentityManager, TlsDHVerifier dhVerifier, DHParameters dhParameters, int[] namedCurves,
             byte[] clientECPointFormats, byte[] serverECPointFormats)
             :   base(keyExchange, supportedSignatureAlgorithms)
         {
@@ -54,6 +54,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             this.mPskIdentity = pskIdentity;
             this.mPskIdentityManager = pskIdentityManager;
+            this.mDHVerifier = dhVerifier;
             this.mDHParameters = dhParameters;
             this.mNamedCurves = namedCurves;
             this.mClientECPointFormats = clientECPointFormats;
@@ -162,10 +163,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (this.mKeyExchange == KeyExchangeAlgorithm.DHE_PSK)
             {
-                ServerDHParams serverDHParams = ServerDHParams.Parse(input);
-
-                this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(serverDHParams.PublicKey);
-                this.mDHParameters = mDHAgreePublicKey.Parameters;
+                this.mDHParameters = TlsDHUtilities.ReceiveDHParameters(mDHVerifier, input);
+                this.mDHAgreePublicKey = new DHPublicKeyParameters(TlsDHUtilities.ReadDHParameter(input), mDHParameters);
             }
             else if (this.mKeyExchange == KeyExchangeAlgorithm.ECDHE_PSK)
             {
@@ -240,9 +239,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             if (this.mKeyExchange == KeyExchangeAlgorithm.DHE_PSK)
             {
-                BigInteger Yc = TlsDHUtilities.ReadDHParameter(input);
-
-                this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(new DHPublicKeyParameters(Yc, mDHParameters));
+                this.mDHAgreePublicKey = new DHPublicKeyParameters(TlsDHUtilities.ReadDHParameter(input), mDHParameters);
             }
             else if (this.mKeyExchange == KeyExchangeAlgorithm.ECDHE_PSK)
             {

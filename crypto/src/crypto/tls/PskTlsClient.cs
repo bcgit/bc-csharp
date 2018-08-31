@@ -6,16 +6,23 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class PskTlsClient
         :   AbstractTlsClient
     {
+        protected TlsDHVerifier mDHVerifier;
         protected TlsPskIdentity mPskIdentity;
 
         public PskTlsClient(TlsPskIdentity pskIdentity)
-            :   this(new DefaultTlsCipherFactory(), pskIdentity)
+            : this(new DefaultTlsCipherFactory(), pskIdentity)
         {
         }
 
         public PskTlsClient(TlsCipherFactory cipherFactory, TlsPskIdentity pskIdentity)
-            :   base(cipherFactory)
+            : this(cipherFactory, new DefaultTlsDHVerifier(), pskIdentity)
         {
+        }
+
+        public PskTlsClient(TlsCipherFactory cipherFactory, TlsDHVerifier dhVerifier, TlsPskIdentity pskIdentity)
+            : base(cipherFactory)
+        {
+            this.mDHVerifier = dhVerifier;
             this.mPskIdentity = pskIdentity;
         }
 
@@ -25,8 +32,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
                 CipherSuite.TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,
-                CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
-                CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA
             };
         }
 
@@ -63,8 +68,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual TlsKeyExchange CreatePskKeyExchange(int keyExchange)
         {
-            return new TlsPskKeyExchange(keyExchange, mSupportedSignatureAlgorithms, mPskIdentity, null, null, mNamedCurves,
-                mClientECPointFormats, mServerECPointFormats);
+            return new TlsPskKeyExchange(keyExchange, mSupportedSignatureAlgorithms, mPskIdentity, null, mDHVerifier, null,
+                mNamedCurves, mClientECPointFormats, mServerECPointFormats);
         }
     }
 }

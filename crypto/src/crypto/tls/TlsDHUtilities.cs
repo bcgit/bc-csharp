@@ -417,36 +417,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             AsymmetricCipherKeyPair kp = GenerateDHKeyPair(random, dhParams);
 
             DHPublicKeyParameters dhPublic = (DHPublicKeyParameters)kp.Public;
-            new ServerDHParams(dhPublic).Encode(output);
+            WriteDHParameters(dhParams, output);
+            WriteDHParameter(dhPublic.Y, output);
 
             return (DHPrivateKeyParameters)kp.Private;
-        }
-
-        public static DHParameters ValidateDHParameters(DHParameters parameters)
-        {
-            BigInteger p = parameters.P;
-            BigInteger g = parameters.G;
-
-            if (!p.IsProbablePrime(2))
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-            if (g.CompareTo(Two) < 0 || g.CompareTo(p.Subtract(Two)) > 0)
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
-
-            return parameters;
-        }
-
-        public static DHPublicKeyParameters ValidateDHPublicKey(DHPublicKeyParameters key)
-        {
-            DHParameters parameters = ValidateDHParameters(key.Parameters);
-
-            BigInteger Y = key.Y;
-            if (Y.CompareTo(Two) < 0 || Y.CompareTo(parameters.P.Subtract(Two)) > 0)
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-
-            // TODO See RFC 2631 for more discussion of Diffie-Hellman validation
-
-            return key;
         }
 
         public static BigInteger ReadDHParameter(Stream input)
@@ -454,9 +428,32 @@ namespace Org.BouncyCastle.Crypto.Tls
             return new BigInteger(1, TlsUtilities.ReadOpaque16(input));
         }
 
+        public static DHParameters ReadDHParameters(Stream input)
+        {
+            BigInteger p = ReadDHParameter(input);
+            BigInteger g = ReadDHParameter(input);
+
+            return new DHParameters(p, g);
+        }
+
+        public static DHParameters ReceiveDHParameters(TlsDHVerifier dhVerifier, Stream input)
+        {
+            DHParameters dhParameters = ReadDHParameters(input);
+            if (!dhVerifier.Accept(dhParameters))
+                throw new TlsFatalAlert(AlertDescription.insufficient_security);
+
+            return dhParameters;
+        }
+
         public static void WriteDHParameter(BigInteger x, Stream output)
         {
             TlsUtilities.WriteOpaque16(BigIntegers.AsUnsignedByteArray(x), output);
+        }
+
+        public static void WriteDHParameters(DHParameters dhParameters, Stream output)
+        {
+            WriteDHParameter(dhParameters.P, output);
+            WriteDHParameter(dhParameters.G, output);
         }
     }
 }
