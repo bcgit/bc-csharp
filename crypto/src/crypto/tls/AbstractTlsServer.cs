@@ -354,5 +354,21 @@ namespace Org.BouncyCastle.Crypto.Tls
              */
             return new NewSessionTicket(0L, TlsUtilities.EmptyBytes);
         }
+
+        public virtual byte GetClientCertificateType(byte[] certificateTypes)
+        {
+            foreach (byte type in certificateTypes) {
+                if (type == 0) return type;  // Assume we only support X.509 certificates
+            }
+            throw new TlsFatalAlert(AlertDescription.handshake_failure);
+        }
+
+        public virtual byte GetServerCertificateType(byte[] certificateTypes)
+        {
+            foreach (byte type in certificateTypes) {
+                if (type == 0) return type;  // Assume we only support X.509 certificates
+            }
+            throw new TlsFatalAlert(AlertDescription.handshake_failure);
+        }
     }
 }

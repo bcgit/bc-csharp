@@ -89,5 +89,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <returns>The <see cref="NewSessionTicket">ticket</see>)</returns>
         /// <exception cref="IOException"></exception>
         NewSessionTicket GetNewSessionTicket();
+
+        byte GetClientCertificateType(byte[] certificateTypes);
+        byte GetServerCertificateType(byte[] certificateTypes);
     }
 }

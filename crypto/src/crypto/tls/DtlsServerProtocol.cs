@@ -690,16 +690,16 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             byte[] certificateTypes = TlsExtensionsUtilities.GetServerCertificateTypeExtensionClient(mClientExtensions);
             if (certificateTypes != null) {
-                state.serverCertificateType = certificateTypes[0];
-                TlsExtensionsUtilities.AddServerCertificateTypeExtensionServer(mServerExtensions, certificateTypes[0]);
+                state.serverCertificateType =  state.server.GetServerCertificateType(certificateTypes);
+                TlsExtensionsUtilities.AddServerCertificateTypeExtensionServer(mServerExtensions, (byte) state.serverCertificateType);
             }
 
             // TODO Look to see if there is going to be a client certificate request and don't bother sending if there isn't
 
             certificateTypes = TlsExtensionsUtilities.GetClientCertificateTypeExtensionClient(mClientExtensions);
             if (certificateTypes != null) {
-                state.clientCertificateType = certificateTypes[0];
-                TlsExtensionsUtilities.AddClientCertificateTypeExtensionServer(mServerExtensions, certificateTypes[0]);
+                state.clientCertificateType = state.server.GetClientCertificateType(certificateTypes);
+                TlsExtensionsUtilities.AddClientCertificateTypeExtensionServer(mServerExtensions, (byte) state.clientCertificateType);
             }
         }
 
