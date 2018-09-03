@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
@@ -52,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012")), // G
-                n);
+                n, BigInteger.One);
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECDSA",
@@ -98,12 +99,8 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void TestDecode()
         {
-            FpCurve curve = new FpCurve(
-                new BigInteger("6277101735386680763835789423207666416083908700390324961279"), // q
-                new BigInteger("fffffffffffffffffffffffffffffffefffffffffffffffc", 16), // a
-                new BigInteger("64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1", 16)); // b
-
-            ECPoint p = curve.DecodePoint(Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012")).Normalize();
+            X9ECParameters x9 = ECNamedCurveTable.GetByName("prime192v1");
+            ECPoint p = x9.G;
 
             if (!p.AffineXCoord.ToBigInteger().Equals(new BigInteger("188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012", 16)))
             {
@@ -115,7 +112,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Fail("y uncompressed incorrectly");
             }
 
-            byte[] encoding = p.GetEncoded();
+            byte[] encoding = p.GetEncoded(true);
 
             if (!AreEqual(encoding, Hex.Decode("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012")))
             {
@@ -149,7 +146,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                n);
+                n, BigInteger.One);
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECDSA",
@@ -651,7 +648,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                n);
+                n, BigInteger.One);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator();
             ECKeyGenerationParameters genParam = new ECKeyGenerationParameters(
@@ -683,7 +680,7 @@ namespace Org.BouncyCastle.Crypto.Tests
          * Basic Key Agreement Test
          */
         [Test]
-        public void TestECBasicAgreementTest()
+        public void TestECDHBasicAgreement()
         {
             SecureRandom random = new SecureRandom();
 
@@ -698,7 +695,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                n);
+                n, BigInteger.One);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator();
             ECKeyGenerationParameters genParam = new ECKeyGenerationParameters(parameters, random);
@@ -736,6 +733,35 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             k1 = e1.CalculateAgreement(p2.Public);
             k2 = e2.CalculateAgreement(p1.Public);
+
+            if (!k1.Equals(k2))
+            {
+                Fail("calculated agreement test failed");
+            }
+        }
+
+        [Test]
+        public void TestECDHBasicAgreementCofactor()
+        {
+            SecureRandom random = new SecureRandom();
+
+            X9ECParameters x9 = CustomNamedCurves.GetByName("curve25519");
+            ECDomainParameters ec = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed());
+
+            ECKeyPairGenerator kpg = new ECKeyPairGenerator();
+            kpg.Init(new ECKeyGenerationParameters(ec, random));
+
+            AsymmetricCipherKeyPair p1 = kpg.GenerateKeyPair();
+            AsymmetricCipherKeyPair p2 = kpg.GenerateKeyPair();
+
+            IBasicAgreement e1 = new ECDHBasicAgreement();
+            IBasicAgreement e2 = new ECDHBasicAgreement();
+
+            e1.Init(p1.Private);
+            e2.Init(p2.Private);
+
+            BigInteger k1 = e1.CalculateAgreement(p2.Public);
+            BigInteger k2 = e2.CalculateAgreement(p1.Public);
 
             if (!k1.Equals(k2))
             {
@@ -843,7 +869,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECDomainParameters parameters = new ECDomainParameters(
                 curve,
                 curve.DecodePoint(Hex.Decode("020ffa963cdca8816ccc33b8642bedf905c3d358573d3f27fbbd3b3cb9aaaf")), // G
-                n);
+                n, BigInteger.One);
 
             ECKeyPairGenerator pGen = new ECKeyPairGenerator();
 
@@ -909,7 +935,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             TestECDsa191bitBinary();
             TestECDsa239bitBinary();
             TestECDsaKeyGenTest();
-            TestECBasicAgreementTest();
+            TestECDHBasicAgreement();
+            TestECDHBasicAgreementCofactor();
 
             TestECDsaP224Sha224();
             TestECDsaP224OneByteOver();

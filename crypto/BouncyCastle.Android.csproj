@@ -388,6 +388,7 @@
     <Compile Include="src\asn1\tsp\TSTInfo.cs" />
     <Compile Include="src\asn1\tsp\TimeStampReq.cs" />
     <Compile Include="src\asn1\tsp\TimeStampResp.cs" />
+    <Compile Include="src\asn1\ua\UAObjectIdentifiers.cs" />
     <Compile Include="src\asn1\util\Asn1Dump.cs" />
     <Compile Include="src\asn1\util\Dump.cs" />
     <Compile Include="src\asn1\util\FilterStream.cs" />
@@ -714,6 +715,8 @@
     <Compile Include="src\crypto\agreement\srp\SRP6StandardGroups.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6Utilities.cs" />
     <Compile Include="src\crypto\agreement\srp\SRP6VerifierGenerator.cs" />
+    <Compile Include="src\crypto\digests\Blake2bDigest.cs" />
+    <Compile Include="src\crypto\digests\Blake2sDigest.cs" />
     <Compile Include="src\crypto\digests\DSTU7564Digest.cs" />
     <Compile Include="src\crypto\digests\GeneralDigest.cs" />
     <Compile Include="src\crypto\digests\GOST3411Digest.cs" />
@@ -999,6 +1002,7 @@
     <Compile Include="src\crypto\tls\DefaultTlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsCipherFactory.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsClient.cs" />
+    <Compile Include="src\crypto\tls\DefaultTlsDHVerifier.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsEncryptionCredentials.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsServer.cs" />
     <Compile Include="src\crypto\tls\DefaultTlsSignerCredentials.cs" />
@@ -1042,7 +1046,6 @@
     <Compile Include="src\crypto\tls\PskTlsServer.cs" />
     <Compile Include="src\crypto\tls\RecordStream.cs" />
     <Compile Include="src\crypto\tls\SecurityParameters.cs" />
-    <Compile Include="src\crypto\tls\ServerDHParams.cs" />
     <Compile Include="src\crypto\tls\ServerName.cs" />
     <Compile Include="src\crypto\tls\ServerNameList.cs" />
     <Compile Include="src\crypto\tls\ServerOnlyTlsAuthentication.cs" />
@@ -1073,6 +1076,7 @@
     <Compile Include="src\crypto\tls\TlsCredentials.cs" />
     <Compile Include="src\crypto\tls\TlsDHKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsDHUtilities.cs" />
+    <Compile Include="src\crypto\tls\TlsDHVerifier.cs" />
     <Compile Include="src\crypto\tls\TlsDeflateCompression.cs" />
     <Compile Include="src\crypto\tls\TlsDheKeyExchange.cs" />
     <Compile Include="src\crypto\tls\TlsDsaSigner.cs" />
@@ -1127,11 +1131,13 @@
     <Compile Include="src\math\ec\ECAlgorithms.cs" />
     <Compile Include="src\math\ec\ECCurve.cs" />
     <Compile Include="src\math\ec\ECFieldElement.cs" />
+    <Compile Include="src\math\ec\ECLookupTable.cs" />
     <Compile Include="src\math\ec\ECPoint.cs" />
     <Compile Include="src\math\ec\ECPointMap.cs" />
     <Compile Include="src\math\ec\LongArray.cs" />
     <Compile Include="src\math\ec\ScaleXPointMap.cs" />
     <Compile Include="src\math\ec\ScaleYPointMap.cs" />
+    <Compile Include="src\math\ec\SimpleLookupTable.cs" />
     <Compile Include="src\math\ec\abc\SimpleBigDecimal.cs" />
     <Compile Include="src\math\ec\abc\Tnaf.cs" />
     <Compile Include="src\math\ec\abc\ZTauElement.cs" />
@@ -1254,12 +1260,14 @@
     <Compile Include="src\math\ec\multiplier\FixedPointPreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\FixedPointUtilities.cs" />
     <Compile Include="src\math\ec\multiplier\GlvMultiplier.cs" />
+    <Compile Include="src\math\ec\multiplier\IPreCompCallback.cs" />
     <Compile Include="src\math\ec\multiplier\MixedNafR2LMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\MontgomeryLadderMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\NafL2RMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\NafR2LMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\PreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\ReferenceMultiplier.cs" />
+    <Compile Include="src\math\ec\multiplier\ValidityPreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\WNafL2RMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\WNafPreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\WNafUtilities.cs" />
@@ -1267,6 +1275,12 @@
     <Compile Include="src\math\ec\multiplier\WTauNafPreCompInfo.cs" />
     <Compile Include="src\math\ec\multiplier\ZSignedDigitL2RMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\ZSignedDigitR2LMultiplier.cs" />
+    <Compile Include="src\math\ec\rfc7748\X25519.cs" />
+    <Compile Include="src\math\ec\rfc7748\X25519Field.cs" />
+    <Compile Include="src\math\ec\rfc7748\X448.cs" />
+    <Compile Include="src\math\ec\rfc7748\X448Field.cs" />
+    <Compile Include="src\math\ec\rfc8032\Ed25519.cs" />
+    <Compile Include="src\math\ec\rfc8032\Ed448.cs" />
     <Compile Include="src\math\field\FiniteFields.cs" />
     <Compile Include="src\math\field\GF2Polynomial.cs" />
     <Compile Include="src\math\field\GenericPolynomialExtensionField.cs" />

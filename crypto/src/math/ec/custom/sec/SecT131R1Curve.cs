@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
@@ -7,7 +8,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     internal class SecT131R1Curve
         : AbstractF2mCurve
     {
-        private const int SecT131R1_DEFAULT_COORDS = COORD_LAMBDA_PROJECTIVE;
+        private const int SECT131R1_DEFAULT_COORDS = COORD_LAMBDA_PROJECTIVE;
+        private const int SECT131R1_FE_LONGS = 3;
 
         protected readonly SecT131R1Point m_infinity;
 
@@ -21,7 +23,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             this.m_order = new BigInteger(1, Hex.Decode("0400000000000000023123953A9464B54D"));
             this.m_cofactor = BigInteger.Two;
 
-            this.m_coord = SecT131R1_DEFAULT_COORDS;
+            this.m_coord = SECT131R1_DEFAULT_COORDS;
         }
 
         protected override ECCurve CloneCurve()
@@ -93,6 +95,63 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public virtual int K3
         {
             get { return 8; }
+        }
+
+        public override ECLookupTable CreateCacheSafeLookupTable(ECPoint[] points, int off, int len)
+        {
+            ulong[] table = new ulong[len * SECT131R1_FE_LONGS * 2];
+            {
+                int pos = 0;
+                for (int i = 0; i < len; ++i)
+                {
+                    ECPoint p = points[off + i];
+                    Nat192.Copy64(((SecT131FieldElement)p.RawXCoord).x, 0, table, pos); pos += SECT131R1_FE_LONGS;
+                    Nat192.Copy64(((SecT131FieldElement)p.RawYCoord).x, 0, table, pos); pos += SECT131R1_FE_LONGS;
+                }
+            }
+
+            return new SecT131R1LookupTable(this, table, len);
+        }
+
+        private class SecT131R1LookupTable
+            : ECLookupTable
+        {
+            private readonly SecT131R1Curve m_outer;
+            private readonly ulong[] m_table;
+            private readonly int m_size;
+
+            internal SecT131R1LookupTable(SecT131R1Curve outer, ulong[] table, int size)
+            {
+                this.m_outer = outer;
+                this.m_table = table;
+                this.m_size = size;
+            }
+
+            public virtual int Size
+            {
+                get { return m_size; }
+            }
+
+            public virtual ECPoint Lookup(int index)
+            {
+                ulong[] x = Nat192.Create64(), y = Nat192.Create64();
+                int pos = 0;
+
+                for (int i = 0; i < m_size; ++i)
+                {
+                    ulong MASK = (ulong)(long)(((i ^ index) - 1) >> 31);
+
+                    for (int j = 0; j < SECT131R1_FE_LONGS; ++j)
+                    {
+                        x[j] ^= m_table[pos + j] & MASK;
+                        y[j] ^= m_table[pos + SECT131R1_FE_LONGS + j] & MASK;
+                    }
+
+                    pos += (SECT131R1_FE_LONGS * 2);
+                }
+
+                return m_outer.CreateRawPoint(new SecT131FieldElement(x), new SecT131FieldElement(y), false);
+            }
         }
     }
 }

@@ -212,10 +212,17 @@ namespace Org.BouncyCastle.Crypto.Encodings
             // on encryption, we need to make sure our decrypted block comes back
             // the same size.
             //
+            bool wrongData = (block.Length < (2 * defHash.Length) + 1);
 
-            Array.Copy(data, 0, block, block.Length - data.Length, data.Length);
-
-            bool shortData = (block.Length < (2 * defHash.Length) + 1);
+            if (data.Length <= block.Length)
+            {
+                Array.Copy(data, 0, block, block.Length - data.Length, data.Length);
+            }
+            else
+            {
+                Array.Copy(data, 0, block, 0, block.Length);
+                wrongData = true;
+            }
 
             //
             // unmask the seed.
@@ -269,7 +276,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
             start++;
 
-            if (defHashWrong | shortData | dataStartWrong)
+            if (defHashWrong | wrongData | dataStartWrong)
             {
                 Arrays.Fill(block, 0);
                 throw new InvalidCipherTextException("data wrong");

@@ -587,6 +587,17 @@ namespace Org.BouncyCastle.Crypto.Generators
         internal const int MAX_PASSWORD_BYTES = 72;
 
         /**
+         * Converts a character password to bytes incorporating the required trailing zero byte.
+         *
+         * @param password the password to be encoded.
+         * @return a byte representation of the password in UTF8 + trailing zero.
+         */
+        public static byte[] PasswordToByteArray(char[] password)
+        {
+            return Arrays.Append(Strings.ToUtf8ByteArray(password), 0);
+        }
+
+        /**
          * Calculates the <b>bcrypt</b> hash of a password.
          * <p>
          * This implements the raw <b>bcrypt</b> function as defined in the bcrypt specification, not

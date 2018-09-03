@@ -165,6 +165,7 @@ namespace Org.BouncyCastle.Tests
             IList certchain = new ArrayList();
             certchain.Add(finalCert);
             certchain.Add(interCert);
+
 //			CertPath cp = CertificateFactory.GetInstance("X.509").GenerateCertPath(certchain);
             PkixCertPath cp = new PkixCertPath(certchain);
             ISet trust = new HashSet();
@@ -179,7 +180,7 @@ namespace Org.BouncyCastle.Tests
             MyChecker checker = new MyChecker();
             param.AddCertPathChecker(checker);
 
-            PkixCertPathValidatorResult result = (PkixCertPathValidatorResult) cpv.Validate(cp, param);
+            PkixCertPathValidatorResult result = (PkixCertPathValidatorResult)cpv.Validate(cp, param);
             PkixPolicyNode policyTree = result.PolicyTree;
             AsymmetricKeyParameter subjectPublicKey = result.SubjectPublicKey;
 
@@ -192,6 +193,28 @@ namespace Org.BouncyCastle.Tests
             {
                 Fail("wrong public key returned");
             }
+
+            IsTrue(result.TrustAnchor.TrustedCert.Equals(rootCert));
+
+            // try a path with trust anchor included.
+            certchain.Clear();
+            certchain.Add(finalCert);
+            certchain.Add(interCert);
+            certchain.Add(rootCert);
+
+            cp = new PkixCertPath(certchain);
+
+            cpv = new PkixCertPathValidator();
+            param = new PkixParameters(trust);
+            param.AddStore(x509CertStore);
+            param.AddStore(x509CrlStore);
+            param.Date = new DateTimeObject(validDate);
+            checker = new MyChecker();
+            param.AddCertPathChecker(checker);
+
+            result = (PkixCertPathValidatorResult)cpv.Validate(cp, param);
+
+            IsTrue(result.TrustAnchor.TrustedCert.Equals(rootCert));
 
             //
             // invalid path containing a valid one test
@@ -223,6 +246,7 @@ namespace Org.BouncyCastle.Tests
                 certchain = new ArrayList();
                 certchain.Add(finalCert);
                 certchain.Add(interCert);
+
 //				cp = CertificateFactory.GetInstance("X.509").GenerateCertPath(certchain);
                 cp = new PkixCertPath(certchain);
                 trust = new HashSet();

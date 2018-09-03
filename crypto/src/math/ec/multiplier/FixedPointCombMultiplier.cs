@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
     public class FixedPointCombMultiplier
@@ -21,39 +23,34 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 throw new InvalidOperationException("fixed-point comb doesn't support scalars larger than the curve order");
             }
 
-            int minWidth = GetWidthForCombSize(size);
-
-            FixedPointPreCompInfo info = FixedPointUtilities.Precompute(p, minWidth);
-            ECPoint[] lookupTable = info.PreComp;
+            FixedPointPreCompInfo info = FixedPointUtilities.Precompute(p);
+            ECLookupTable lookupTable = info.LookupTable;
             int width = info.Width;
 
             int d = (size + width - 1) / width;
 
             ECPoint R = c.Infinity;
 
-            int top = d * width - 1;
+            int fullComb = d * width;
+            uint[] K = Nat.FromBigInteger(fullComb, k);
+
+            int top = fullComb - 1;
             for (int i = 0; i < d; ++i)
             {
-                int index = 0;
+                int secretIndex = 0;
 
                 for (int j = top - i; j >= 0; j -= d)
                 {
-                    index <<= 1;
-                    if (k.TestBit(j))
-                    {
-                        index |= 1;
-                    }
+                    secretIndex <<= 1;
+                    secretIndex |= (int)Nat.GetBit(K, j);
                 }
 
-                R = R.TwicePlus(lookupTable[index]);
+                ECPoint add = lookupTable.Lookup(secretIndex);
+
+                R = R.TwicePlus(add);
             }
 
             return R.Add(info.Offset);
-        }
-
-        protected virtual int GetWidthForCombSize(int combSize)
-        {
-            return combSize > 257 ? 6 : 5;
         }
     }
 }

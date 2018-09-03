@@ -1799,6 +1799,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\ua\UAObjectIdentifiers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\util\ASN1Dump.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3320,6 +3325,16 @@
                 />
                 <File
                     RelPath = "src\crypto\agreement\srp\SRP6VerifierGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\Blake2bDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\Blake2sDigest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4854,6 +4869,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\DefaultTlsDHVerifier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\DefaultTlsEncryptionCredentials.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5069,11 +5089,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\tls\ServerDHParams.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\crypto\tls\ServerSrpParams.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5230,6 +5245,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\TlsDHUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\TlsDHVerifier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -5494,6 +5514,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\ECLookupTable.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\ECPoint.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5515,6 +5540,11 @@
                 />
                 <File
                     RelPath = "src\math\ec\ScaleYPointMap.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\SimpleLookupTable.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6129,6 +6159,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\multiplier\IPreCompCallback.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\multiplier\MixedNafR2LMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6155,6 +6190,11 @@
                 />
                 <File
                     RelPath = "src\math\ec\multiplier\ReferenceMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\ValidityPreCompInfo.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6190,6 +6230,36 @@
                 />
                 <File
                     RelPath = "src\math\ec\multiplier\ZSignedDigitR2LMultiplier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc7748\X25519.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc7748\X25519Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc7748\X448.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc7748\X448Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc8032\Ed25519.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\rfc8032\Ed448.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11445,6 +11515,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\Blake2bDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\Blake2sDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\BlockCipherMonteCarloTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12275,6 +12355,26 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\math\ec\rfc7748\test\X25519Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\rfc7748\test\X448Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\rfc8032\test\Ed25519Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\rfc8032\test\Ed448Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\math\ec\test\AllTests.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12296,6 +12396,11 @@
                 />
                 <File
                     RelPath = "test\src\math\ec\test\F2mProofer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\test\FixedPointTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

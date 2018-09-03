@@ -442,6 +442,22 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
         }
 
+        private void ImplValidityTest(ECCurve c, ECPoint g)
+        {
+            Assert.IsTrue(g.IsValid());
+
+            BigInteger h = c.Cofactor;
+            if (h != null && h.CompareTo(BigInteger.One) > 0)
+            {
+                if (ECAlgorithms.IsF2mCurve(c))
+                {
+                    ECPoint order2 = c.CreatePoint(BigInteger.Zero, c.B.Sqrt().ToBigInteger());
+                    ECPoint bad = g.Add(order2);
+                    Assert.IsFalse(bad.IsValid());
+                }
+            }
+        }
+
         private void ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(X9ECParameters x9ECParameters)
         {
             BigInteger n = x9ECParameters.N;
@@ -470,6 +486,8 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     ImplAddSubtractMultiplyTwiceEncodingTest(c, q, n);
 
                     ImplSqrtTest(c);
+
+                    ImplValidityTest(c, g);
                 }
             }
         }

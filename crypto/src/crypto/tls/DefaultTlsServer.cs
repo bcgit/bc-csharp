@@ -138,12 +138,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual TlsKeyExchange CreateDHKeyExchange(int keyExchange)
         {
-            return new TlsDHKeyExchange(keyExchange, mSupportedSignatureAlgorithms, GetDHParameters());
+            return new TlsDHKeyExchange(keyExchange, mSupportedSignatureAlgorithms, null, GetDHParameters());
         }
 
         protected virtual TlsKeyExchange CreateDheKeyExchange(int keyExchange)
         {
-            return new TlsDheKeyExchange(keyExchange, mSupportedSignatureAlgorithms, GetDHParameters());
+            return new TlsDheKeyExchange(keyExchange, mSupportedSignatureAlgorithms, null, GetDHParameters());
         }
 
         protected virtual TlsKeyExchange CreateECDHKeyExchange(int keyExchange)

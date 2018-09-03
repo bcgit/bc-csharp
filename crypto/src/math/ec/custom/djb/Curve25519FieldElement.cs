@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Math.EC.Custom.Djb
 {
     internal class Curve25519FieldElement
-        :   ECFieldElement
+        : AbstractFpFieldElement
     {
         public static readonly BigInteger Q = Curve25519.q;
 

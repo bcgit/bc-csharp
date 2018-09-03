@@ -325,7 +325,8 @@ namespace Org.BouncyCastle.Crypto.Operators
     /// Calculator factory class for signature generation in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
     /// signature algorithm details.
     /// </summary>
-	public class Asn1SignatureFactory: ISignatureFactory
+	public class Asn1SignatureFactory
+        : ISignatureFactory
 	{
 		private readonly AlgorithmIdentifier algID;
         private readonly string algorithm;
@@ -337,7 +338,8 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// </summary>
         /// <param name="algorithm">The name of the signature algorithm to use.</param>
         /// <param name="privateKey">The private key to be used in the signing operation.</param>
-		public Asn1SignatureFactory (string algorithm, AsymmetricKeyParameter privateKey): this(algorithm, privateKey, null)
+		public Asn1SignatureFactory (string algorithm, AsymmetricKeyParameter privateKey)
+            : this(algorithm, privateKey, null)
 		{
 		}
 
@@ -347,14 +349,21 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// <param name="algorithm">The name of the signature algorithm to use.</param>
         /// <param name="privateKey">The private key to be used in the signing operation.</param>
         /// <param name="random">The source of randomness to be used in signature calculation.</param>
-		public Asn1SignatureFactory (string algorithm, AsymmetricKeyParameter privateKey, SecureRandom random)
+		public Asn1SignatureFactory(string algorithm, AsymmetricKeyParameter privateKey, SecureRandom random)
 		{
-			DerObjectIdentifier sigOid = X509Utilities.GetAlgorithmOid (algorithm);
+            if (algorithm == null)
+                throw new ArgumentNullException("algorithm");
+            if (privateKey == null)
+                throw new ArgumentNullException("privateKey");
+            if (!privateKey.IsPrivate)
+                throw new ArgumentException("Key for signing must be private", "privateKey");
+
+			DerObjectIdentifier sigOid = X509Utilities.GetAlgorithmOid(algorithm);
 
             this.algorithm = algorithm;
             this.privateKey = privateKey;
             this.random = random;
-			this.algID = X509Utilities.GetSigAlgID (sigOid, algorithm);
+			this.algID = X509Utilities.GetSigAlgID(sigOid, algorithm);
 		}
 
 		public Object AlgorithmDetails
@@ -365,16 +374,12 @@ namespace Org.BouncyCastle.Crypto.Operators
         public IStreamCalculator CreateCalculator()
         {
             ISigner sig = SignerUtilities.GetSigner(algorithm);
-
+            ICipherParameters cp = privateKey;
             if (random != null)
             {
-                sig.Init(true, new ParametersWithRandom(privateKey, random));
+                cp = new ParametersWithRandom(cp, random);
             }
-            else
-            {
-                sig.Init(true, privateKey);
-            }
-
+            sig.Init(true, cp);
             return new SigCalculator(sig);
         }
 
@@ -437,7 +442,8 @@ namespace Org.BouncyCastle.Crypto.Operators
     /// Verifier class for signature verification in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
     /// signature algorithm details.
     /// </summary>
-    public class Asn1VerifierFactory: IVerifierFactory
+    public class Asn1VerifierFactory
+        : IVerifierFactory
 	{
 		private readonly AlgorithmIdentifier algID;
         private readonly AsymmetricKeyParameter publicKey;
@@ -447,15 +453,22 @@ namespace Org.BouncyCastle.Crypto.Operators
         /// </summary>
         /// <param name="algorithm">The name of the signature algorithm to use.</param>
         /// <param name="publicKey">The public key to be used in the verification operation.</param>
-        public Asn1VerifierFactory (String algorithm, AsymmetricKeyParameter publicKey)
+        public Asn1VerifierFactory(string algorithm, AsymmetricKeyParameter publicKey)
 		{
-			DerObjectIdentifier sigOid = X509Utilities.GetAlgorithmOid (algorithm);
+            if (algorithm == null)
+                throw new ArgumentNullException("algorithm");
+            if (publicKey == null)
+                throw new ArgumentNullException("publicKey");
+            if (publicKey.IsPrivate)
+                throw new ArgumentException("Key for verifying must be public", "publicKey");
+
+			DerObjectIdentifier sigOid = X509Utilities.GetAlgorithmOid(algorithm);
 
             this.publicKey = publicKey;
-			this.algID = X509Utilities.GetSigAlgID (sigOid, algorithm);
+			this.algID = X509Utilities.GetSigAlgID(sigOid, algorithm);
 		}
 
-		public Asn1VerifierFactory (AlgorithmIdentifier algorithm, AsymmetricKeyParameter publicKey)
+		public Asn1VerifierFactory(AlgorithmIdentifier algorithm, AsymmetricKeyParameter publicKey)
 		{
             this.publicKey = publicKey;
 			this.algID = algorithm;
@@ -540,7 +553,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 
 		public IVerifierFactory CreateVerifierFactory(Object algorithmDetails)
 		{
-            return new Asn1VerifierFactory ((AlgorithmIdentifier)algorithmDetails, publicKey);
+            return new Asn1VerifierFactory((AlgorithmIdentifier)algorithmDetails, publicKey);
 		}
 
 		/// <summary>

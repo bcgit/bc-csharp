@@ -224,7 +224,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
 				Asn1OctetString octets = Asn1OctetString.GetInstance(s[s.Count - 1].ToAsn1Object());
 
-				extensions.Add(oid, new X509Extension(isCritical, octets));
+                if (extensions.Contains(oid))
+                    throw new ArgumentException("repeated extension found: " + oid);
+
+                extensions.Add(oid, new X509Extension(isCritical, octets));
 				ordering.Add(oid);
 			}
         }

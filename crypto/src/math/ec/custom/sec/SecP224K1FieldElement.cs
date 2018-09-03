@@ -7,7 +7,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP224K1FieldElement
-        : ECFieldElement
+        : AbstractFpFieldElement
     {
         public static readonly BigInteger Q = SecP224K1Curve.q;
 

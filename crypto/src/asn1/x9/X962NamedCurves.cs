@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.X9
                 BigInteger h = BigInteger.One;
 
                 ECCurve cFp192v1 = new FpCurve(
-                    new BigInteger("6277101735386680763835789423207666416083908700390324961279"),
+                    new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFF", 16),
                     new BigInteger("fffffffffffffffffffffffffffffffefffffffffffffffc", 16),
                     new BigInteger("64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1", 16),
                     n, h);
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.X9
                 BigInteger h = BigInteger.One;
 
                 ECCurve cFp192v2 = new FpCurve(
-                    new BigInteger("6277101735386680763835789423207666416083908700390324961279"),
+                    new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFF", 16),
                     new BigInteger("fffffffffffffffffffffffffffffffefffffffffffffffc", 16),
                     new BigInteger("cc22d6dfb95c6b25e49c0d6364a4e5980c393aa21668d953", 16),
                     n, h);
@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Asn1.X9
                 BigInteger h = BigInteger.One;
 
                 ECCurve cFp192v3 = new FpCurve(
-                    new BigInteger("6277101735386680763835789423207666416083908700390324961279"),
+                    new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFF", 16),
                     new BigInteger("fffffffffffffffffffffffffffffffefffffffffffffffc", 16),
                     new BigInteger("22123dc2395a05caa7423daeccc94760a7d462256bd56916", 16),
                     n, h);

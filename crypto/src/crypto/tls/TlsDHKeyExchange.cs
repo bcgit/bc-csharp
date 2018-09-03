@@ -4,7 +4,6 @@ using System.IO;
 using System.Resources;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tls
@@ -14,6 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         :   AbstractTlsKeyExchange
     {
         protected TlsSigner mTlsSigner;
+        protected TlsDHVerifier mDHVerifier;
         protected DHParameters mDHParameters;
 
         protected AsymmetricKeyParameter mServerPublicKey;
@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected DHPrivateKeyParameters mDHAgreePrivateKey;
         protected DHPublicKeyParameters mDHAgreePublicKey;
 
-        public TlsDHKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, DHParameters dhParameters)
+        public TlsDHKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, TlsDHVerifier dhVerifier, DHParameters dhParameters)
             :   base(keyExchange, supportedSignatureAlgorithms)
         {
             switch (keyExchange)
@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 throw new InvalidOperationException("unsupported key exchange algorithm");
             }
 
+            this.mDHVerifier = dhVerifier;
             this.mDHParameters = dhParameters;
         }
 
@@ -88,8 +89,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 try
                 {
-                    this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey((DHPublicKeyParameters)this.mServerPublicKey);
-                    this.mDHParameters = ValidateDHParameters(mDHAgreePublicKey.Parameters);
+                    this.mDHAgreePublicKey = (DHPublicKeyParameters)this.mServerPublicKey;
+                    this.mDHParameters = mDHAgreePublicKey.Parameters;
                 }
                 catch (InvalidCastException e)
                 {
@@ -153,10 +154,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             // DH_anon is handled here, DHE_* in a subclass
 
-            ServerDHParams dhParams = ServerDHParams.Parse(input);
-
-            this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(dhParams.PublicKey);
-            this.mDHParameters = ValidateDHParameters(mDHAgreePublicKey.Parameters);
+            this.mDHParameters = TlsDHUtilities.ReceiveDHParameters(mDHVerifier, input);
+            this.mDHAgreePublicKey = new DHPublicKeyParameters(TlsDHUtilities.ReadDHParameter(input), mDHParameters);
         }
 
         public override void ValidateCertificateRequest(CertificateRequest certificateRequest)
@@ -233,9 +232,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 return;
             }
 
-            BigInteger Yc = TlsDHUtilities.ReadDHParameter(input);
-
-            this.mDHAgreePublicKey = TlsDHUtilities.ValidateDHPublicKey(new DHPublicKeyParameters(Yc, mDHParameters));
+            this.mDHAgreePublicKey = new DHPublicKeyParameters(TlsDHUtilities.ReadDHParameter(input), mDHParameters);
         }
 
         public override byte[] GeneratePremasterSecret()
@@ -251,19 +248,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
-
-        protected virtual int MinimumPrimeBits
-        {
-            get { return 1024; }
-        }
-
-        protected virtual DHParameters ValidateDHParameters(DHParameters parameters)
-        {
-            if (parameters.P.BitLength < MinimumPrimeBits)
-                throw new TlsFatalAlert(AlertDescription.insufficient_security);
-
-            return TlsDHUtilities.ValidateDHParameters(parameters);
         }
     }
 }

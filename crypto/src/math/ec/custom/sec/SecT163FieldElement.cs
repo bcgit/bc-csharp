@@ -6,9 +6,9 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecT163FieldElement
-        : ECFieldElement
+        : AbstractF2mFieldElement
     {
-        protected readonly ulong[] x;
+        protected internal readonly ulong[] x;
 
         public SecT163FieldElement(BigInteger x)
         {
@@ -148,6 +148,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong[] z = Nat192.Create64();
             SecT163Field.SquareN(x, pow, z);
             return new SecT163FieldElement(z);
+        }
+
+        public override int Trace()
+        {
+            return (int)SecT163Field.Trace(x);
         }
 
         public override ECFieldElement Invert()

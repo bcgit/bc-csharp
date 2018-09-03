@@ -74,6 +74,28 @@ namespace Org.BouncyCastle.Crypto.Tests
             new string[]{"8nv;PAN~-FQ]Emh@.TKG=^.t8R0EQC0T?x9|9g4xzxYmSbBO1qDx8kv-ehh0IBv>3KWhz.Z~jUF0tt8[5U@8;5:=[v6pf.IEJ", "$2a$08$eXo9KDc1BZyybBgMurpcD.GA1/ch3XhgBnIH10Xvjc2ogZaGg3t/m"},
         };
 
+
+        // 2y vectors generated from htpasswd -nB -C 12, nb leading username was removed.
+        private static readonly string[,] twoYVec = new string[,]{
+            {"a", "$2y$12$DB3BUbYa/SsEL7kCOVji0OauTkPkB5Y1OeyfxJHM7jvMrbml5sgD2"},
+            {"abc", "$2y$12$p.xODEbFcXUlHGbNxWZqAe6AA5FWupqXmN9tZea2ACDhwIx4EA2a6"},
+            {"hello world", "$2y$12$wfkxITYXjNLVpEi9nOjz7uXMhCXKSTY7O2y7X4bwY89aGSvRziguq"},
+            {"ABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXY", "$2y$12$QwAt5kuG68nW7v.87q0QPuwdki3romFc/RU/RV3Qqk4FPw6WdbQzu"}
+        };
+
+        // Same as 2y vectors only version changed to 2b to verify handling of that version.
+        private static readonly string[,] twoBVec = new string[,]{
+            {"a", "$2b$12$DB3BUbYa/SsEL7kCOVji0OauTkPkB5Y1OeyfxJHM7jvMrbml5sgD2"},
+            {"abc", "$2b$12$p.xODEbFcXUlHGbNxWZqAe6AA5FWupqXmN9tZea2ACDhwIx4EA2a6"},
+            {"hello world", "$2b$12$wfkxITYXjNLVpEi9nOjz7uXMhCXKSTY7O2y7X4bwY89aGSvRziguq"},
+            {"ABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXY", "$2b$12$QwAt5kuG68nW7v.87q0QPuwdki3romFc/RU/RV3Qqk4FPw6WdbQzu"}
+        };
+
+        public static void Main(string[] args)
+        {
+            RunTest(new OpenBsdBCryptTest());
+        }
+
         public override string Name
         {
             get { return "OpenBsdBCrypt"; }
@@ -129,11 +151,36 @@ namespace Org.BouncyCastle.Crypto.Tests
                     Fail("test4 mismatch: " + "[" + i + "] " + password);
                 }
             }
-        }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new OpenBsdBCryptTest());
+            {
+                int lower = twoYVec.GetLowerBound(0);
+                int upper = twoYVec.GetUpperBound(0);
+                for (int i = lower; i <= upper; i++)
+                {
+                    password = twoYVec[i, 0];
+                    encoded = twoYVec[i, 1];
+
+                    if (!OpenBsdBCrypt.CheckPassword(encoded, password.ToCharArray()))
+                    {
+                        Fail("twoYVec mismatch: " + "[" + i + "] " + password);
+                    }
+                }
+            }
+
+            {
+                int lower = twoBVec.GetLowerBound(0);
+                int upper = twoBVec.GetUpperBound(0);
+                for (int i = lower; i <= upper; i++)
+                {
+                    password = twoBVec[i, 0];
+                    encoded = twoBVec[i, 1];
+
+                    if (!OpenBsdBCrypt.CheckPassword(encoded, password.ToCharArray()))
+                    {
+                        Fail("twoBVec mismatch: " + "[" + i + "] " + password);
+                    }
+                }
+            }
         }
 
         [Test]

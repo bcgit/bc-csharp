@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -138,17 +139,28 @@ namespace Org.BouncyCastle.Security
                 PkcsObjectIdentifiers.IdHmacWithSha512);
             AddHMacKeyGenerator("SHA512/224");
             AddHMacKeyGenerator("SHA512/256");
-            AddHMacKeyGenerator("SHA3-224");
-            AddHMacKeyGenerator("SHA3-256");
-            AddHMacKeyGenerator("SHA3-384");
-            AddHMacKeyGenerator("SHA3-512");
+            AddHMacKeyGenerator("KECCAK224");
+            AddHMacKeyGenerator("KECCAK256");
+            AddHMacKeyGenerator("KECCAK288");
+            AddHMacKeyGenerator("KECCAK384");
+            AddHMacKeyGenerator("KECCAK512");
+            AddHMacKeyGenerator("SHA3-224",
+                NistObjectIdentifiers.IdHMacWithSha3_224);
+            AddHMacKeyGenerator("SHA3-256",
+                NistObjectIdentifiers.IdHMacWithSha3_256);
+            AddHMacKeyGenerator("SHA3-384",
+                NistObjectIdentifiers.IdHMacWithSha3_384);
+            AddHMacKeyGenerator("SHA3-512",
+                NistObjectIdentifiers.IdHMacWithSha3_512);
             AddHMacKeyGenerator("RIPEMD128");
             AddHMacKeyGenerator("RIPEMD160",
                 IanaObjectIdentifiers.HmacRipeMD160);
             AddHMacKeyGenerator("TIGER",
                 IanaObjectIdentifiers.HmacTiger);
-
-
+            AddHMacKeyGenerator("GOST3411-2012-256",
+                RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_256);
+            AddHMacKeyGenerator("GOST3411-2012-512",
+                RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_512);
 
             //
             // key pair generators.
@@ -183,11 +195,12 @@ namespace Org.BouncyCastle.Security
             AddDefaultKeySizeEntries(160, "HMACRIPEMD160", "HMACSHA1");
             AddDefaultKeySizeEntries(192, "AES", "AES192", "CAMELLIA192", "DESEDE3", "HMACTIGER",
                 "RIJNDAEL", "SERPENT", "TNEPRES");
-            AddDefaultKeySizeEntries(224, "HMACSHA224", "HMACSHA512/224");
+            AddDefaultKeySizeEntries(224, "HMACSHA3-224", "HMACKECCAK224", "HMACSHA224", "HMACSHA512/224");
             AddDefaultKeySizeEntries(256, "AES256", "CAMELLIA", "CAMELLIA256", "CAST6", "GOST28147",
-                "HC256", "HMACSHA256", "HMACSHA512/256", "RC5-64", "RC6", "THREEFISH-256", "TWOFISH");
-            AddDefaultKeySizeEntries(384, "HMACSHA384");
-            AddDefaultKeySizeEntries(512, "HMACSHA512", "THREEFISH-512");
+                "HC256", "HMACGOST3411-2012-256", "HMACSHA3-256", "HMACKECCAK256", "HMACSHA256", "HMACSHA512/256", "RC5-64", "RC6", "THREEFISH-256", "TWOFISH");
+            AddDefaultKeySizeEntries(288, "HMACKECCAK288");
+            AddDefaultKeySizeEntries(384, "HMACSHA3-384", "HMACKECCAK384", "HMACSHA384");
+            AddDefaultKeySizeEntries(512, "HMACGOST3411-2012-512", "HMACSHA3-512", "HMACKECCAK512", "HMACSHA512", "THREEFISH-512");
             AddDefaultKeySizeEntries(1024, "THREEFISH-1024");
         }
 

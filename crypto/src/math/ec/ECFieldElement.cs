@@ -101,8 +101,13 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
-    public class FpFieldElement
+    public abstract class AbstractFpFieldElement
         : ECFieldElement
+    {
+    }
+
+    public class FpFieldElement
+        : AbstractFpFieldElement
     {
         private readonly BigInteger q, r, x;
 
@@ -536,6 +541,45 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
+    public abstract class AbstractF2mFieldElement
+        :   ECFieldElement
+    {
+        public virtual ECFieldElement HalfTrace()
+        {
+            int m = FieldSize;
+            if ((m & 1) == 0)
+                throw new InvalidOperationException("Half-trace only defined for odd m");
+
+            ECFieldElement fe = this;
+            ECFieldElement ht = fe;
+            for (int i = 2; i < m; i += 2)
+            {
+                fe = fe.SquarePow(2);
+                ht = ht.Add(fe);
+            }
+
+            return ht;
+        }
+
+        public virtual int Trace()
+        {
+            int m = FieldSize;
+            ECFieldElement fe = this;
+            ECFieldElement tr = fe;
+            for (int i = 1; i < m; ++i)
+            {
+                fe = fe.Square();
+                tr = tr.Add(fe);
+            }
+            if (tr.IsZero)
+                return 0;
+            if (tr.IsOne)
+                return 1;
+
+            throw new InvalidOperationException("Internal error in trace calculation");
+        }
+    }
+
     /**
      * Class representing the Elements of the finite field
      * <code>F<sub>2<sup>m</sup></sub></code> in polynomial basis (PB)
@@ -544,7 +588,7 @@ namespace Org.BouncyCastle.Math.EC
      * representation is not supported.
      */
     public class F2mFieldElement
-        : ECFieldElement
+        :   AbstractF2mFieldElement
     {
         /**
          * Indicates gaussian normal basis representation (GNB). Number chosen
@@ -579,23 +623,24 @@ namespace Org.BouncyCastle.Math.EC
         /**
          * The <code>LongArray</code> holding the bits.
          */
-        private LongArray x;
+        internal LongArray x;
 
         /**
-            * Constructor for Ppb.
-            * @param m  The exponent <code>m</code> of
-            * <code>F<sub>2<sup>m</sup></sub></code>.
-            * @param k1 The integer <code>k1</code> where <code>x<sup>m</sup> +
-            * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            * represents the reduction polynomial <code>f(z)</code>.
-            * @param k2 The integer <code>k2</code> where <code>x<sup>m</sup> +
-            * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            * represents the reduction polynomial <code>f(z)</code>.
-            * @param k3 The integer <code>k3</code> where <code>x<sup>m</sup> +
-            * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            * represents the reduction polynomial <code>f(z)</code>.
-            * @param x The BigInteger representing the value of the field element.
-            */
+         * Constructor for Ppb.
+         * @param m  The exponent <code>m</code> of
+         * <code>F<sub>2<sup>m</sup></sub></code>.
+         * @param k1 The integer <code>k1</code> where <code>x<sup>m</sup> +
+         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+         * represents the reduction polynomial <code>f(z)</code>.
+         * @param k2 The integer <code>k2</code> where <code>x<sup>m</sup> +
+         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+         * represents the reduction polynomial <code>f(z)</code>.
+         * @param k3 The integer <code>k3</code> where <code>x<sup>m</sup> +
+         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+         * represents the reduction polynomial <code>f(z)</code>.
+         * @param x The BigInteger representing the value of the field element.
+         */
+        [Obsolete("Use ECCurve.FromBigInteger to construct field elements")]
         public F2mFieldElement(
             int			m,
             int			k1,
@@ -627,14 +672,15 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         /**
-            * Constructor for Tpb.
-            * @param m  The exponent <code>m</code> of
-            * <code>F<sub>2<sup>m</sup></sub></code>.
-            * @param k The integer <code>k</code> where <code>x<sup>m</sup> +
-            * x<sup>k</sup> + 1</code> represents the reduction
-            * polynomial <code>f(z)</code>.
-            * @param x The BigInteger representing the value of the field element.
-            */
+         * Constructor for Tpb.
+         * @param m  The exponent <code>m</code> of
+         * <code>F<sub>2<sup>m</sup></sub></code>.
+         * @param k The integer <code>k</code> where <code>x<sup>m</sup> +
+         * x<sup>k</sup> + 1</code> represents the reduction
+         * polynomial <code>f(z)</code>.
+         * @param x The BigInteger representing the value of the field element.
+         */
+        [Obsolete("Use ECCurve.FromBigInteger to construct field elements")]
         public F2mFieldElement(
             int			m,
             int			k,
@@ -644,7 +690,7 @@ namespace Org.BouncyCastle.Math.EC
             // Set k1 to k, and set k2 and k3 to 0
         }
 
-        private F2mFieldElement(int m, int[] ks, LongArray x)
+        internal F2mFieldElement(int m, int[] ks, LongArray x)
         {
             this.m = m;
             this.representation = (ks.Length == 1) ? Tpb : Ppb;

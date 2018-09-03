@@ -29,19 +29,21 @@ namespace Org.BouncyCastle.Tests
 
             SecureRandom k = FixedSecureRandom.From(kData);
 
-            BigInteger mod_p = new BigInteger("57896044618658097711785492504343953926634992332820282019728792003956564821041"); //p
+            BigInteger mod_p = new BigInteger("57896044618658097711785492504343953926634992332820282019728792003956564821041");
+            BigInteger mod_q = new BigInteger("57896044618658097711785492504343953927082934583725450622380973592137631069619");
 
             ECCurve curve = new FpCurve(
-                mod_p, // p
+                mod_p,
                 new BigInteger("7"), // a
-                new BigInteger("43308876546767276905765904595650931995942111794451039583252968842033849580414")); // b
+                new BigInteger("43308876546767276905765904595650931995942111794451039583252968842033849580414"), // b
+                mod_q, BigInteger.One);
 
             ECDomainParameters spec = new ECDomainParameters(
                 curve,
                 curve.CreatePoint(
                     new BigInteger("2"),
                     new BigInteger("4018974056539037503335449422937059775635739389905545080690979365213431566280")),
-                new BigInteger("57896044618658097711785492504343953927082934583725450622380973592137631069619")); // q
+                mod_q, BigInteger.One);
 
             ECPrivateKeyParameters sKey = new ECPrivateKeyParameters(
                 "ECGOST3410",
@@ -193,19 +195,21 @@ namespace Org.BouncyCastle.Tests
             s = SignerUtilities.GetSigner("ECGOST3410");
             g = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
 
-            BigInteger mod_p = new BigInteger("57896044618658097711785492504343953926634992332820282019728792003956564821041"); //p
+            BigInteger mod_p = new BigInteger("57896044618658097711785492504343953926634992332820282019728792003956564821041");
+            BigInteger mod_q = new BigInteger("57896044618658097711785492504343953927082934583725450622380973592137631069619");
 
             ECCurve curve = new FpCurve(
-                mod_p, // p
+                mod_p,
                 new BigInteger("7"), // a
-                new BigInteger("43308876546767276905765904595650931995942111794451039583252968842033849580414")); // b
+                new BigInteger("43308876546767276905765904595650931995942111794451039583252968842033849580414"), // b
+                mod_q, BigInteger.One);
 
             ECDomainParameters ecSpec = new ECDomainParameters(
                 curve,
                 curve.CreatePoint(
                     new BigInteger("2"),
                     new BigInteger("4018974056539037503335449422937059775635739389905545080690979365213431566280")),
-                new BigInteger("57896044618658097711785492504343953927082934583725450622380973592137631069619")); // q
+                mod_q, BigInteger.One);
 
             g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom()));
 

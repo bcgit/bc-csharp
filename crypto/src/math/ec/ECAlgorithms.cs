@@ -58,10 +58,10 @@ namespace Org.BouncyCastle.Math.EC
             GlvEndomorphism glvEndomorphism = c.GetEndomorphism() as GlvEndomorphism;
             if (glvEndomorphism != null)
             {
-                return ValidatePoint(ImplSumOfMultipliesGlv(imported, ks, glvEndomorphism));
+                return ImplCheckResult(ImplSumOfMultipliesGlv(imported, ks, glvEndomorphism));
             }
 
-            return ValidatePoint(ImplSumOfMultiplies(imported, ks));
+            return ImplCheckResult(ImplSumOfMultiplies(imported, ks));
         }
 
         public static ECPoint SumOfTwoMultiplies(ECPoint P, BigInteger a, ECPoint Q, BigInteger b)
@@ -74,18 +74,18 @@ namespace Org.BouncyCastle.Math.EC
                 AbstractF2mCurve f2mCurve = cp as AbstractF2mCurve;
                 if (f2mCurve != null && f2mCurve.IsKoblitz)
                 {
-                    return ValidatePoint(P.Multiply(a).Add(Q.Multiply(b)));
+                    return ImplCheckResult(P.Multiply(a).Add(Q.Multiply(b)));
                 }
             }
 
             GlvEndomorphism glvEndomorphism = cp.GetEndomorphism() as GlvEndomorphism;
             if (glvEndomorphism != null)
             {
-                return ValidatePoint(
+                return ImplCheckResult(
                     ImplSumOfMultipliesGlv(new ECPoint[] { P, Q }, new BigInteger[] { a, b }, glvEndomorphism));
             }
 
-            return ValidatePoint(ImplShamirsTrickWNaf(P, a, Q, b));
+            return ImplCheckResult(ImplShamirsTrickWNaf(P, a, Q, b));
         }
 
         /*
@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Math.EC
             ECCurve cp = P.Curve;
             Q = ImportPoint(cp, Q);
 
-            return ValidatePoint(ImplShamirsTrickJsf(P, k, Q, l));
+            return ImplCheckResult(ImplShamirsTrickJsf(P, k, Q, l));
         }
 
         public static ECPoint ImportPoint(ECCurve c, ECPoint p)
@@ -202,7 +202,24 @@ namespace Org.BouncyCastle.Math.EC
         public static ECPoint ValidatePoint(ECPoint p)
         {
             if (!p.IsValid())
-                throw new ArgumentException("Invalid point", "p");
+                throw new InvalidOperationException("Invalid point");
+
+            return p;
+        }
+
+        public static ECPoint CleanPoint(ECCurve c, ECPoint p)
+        {
+            ECCurve cp = p.Curve;
+            if (!c.Equals(cp))
+                throw new ArgumentException("Point must be on the same curve", "p");
+
+            return c.DecodePoint(p.GetEncoded(false));
+        }
+
+        internal static ECPoint ImplCheckResult(ECPoint p)
+        {
+            if (!p.IsValidPartial())
+                throw new InvalidOperationException("Invalid result");
 
             return p;
         }

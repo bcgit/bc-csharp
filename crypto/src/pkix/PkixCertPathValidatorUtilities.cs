@@ -143,6 +143,20 @@ namespace Org.BouncyCastle.Pkix
 			return trust;
 		}
 
+        internal static bool IsIssuerTrustAnchor(
+            X509Certificate cert,
+            ISet trustAnchors)
+        {
+            try
+            {
+                return FindTrustAnchor(cert, trustAnchors) != null;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
 		internal static void AddAdditionalStoresFromAltNames(
 			X509Certificate	cert,
 			PkixParameters	pkixParams)
