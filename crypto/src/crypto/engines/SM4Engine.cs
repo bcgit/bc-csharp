@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         public int ProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
             if (rk == null)
-                throw new InvalidOperationException("DES engine not initialised");
+                throw new InvalidOperationException("SM4 engine not initialised");
 
             Check.DataLength(inBuf, inOff, BLOCK_SIZE, "input buffer too short");
             Check.OutputLength(outBuf, outOff, BLOCK_SIZE, "output buffer too short");
