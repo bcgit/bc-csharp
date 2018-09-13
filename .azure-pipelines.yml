@@ -1,6 +1,12 @@
-parameters: 
-  signSteps: []
-  
+trigger:
+- netstandard
+- rel/*
+
+queue: Hosted VS2017
+
+variables: 
+  BuildConfiguration: Release
+
 steps:
 - task: DotNetCoreCLI@2  
   inputs:
@@ -30,7 +36,15 @@ steps:
     arguments: -c $(BuildConfiguration) --collect:"Code Coverage" -s $(System.DefaultWorkingDirectory)\CodeCoverage.runsettings /p:DebugType=portable
   displayName: Run Tests
   
-- ${{ parameters.signSteps }}
+- task: PowerShell@2
+  displayName: Authenticode Sign artifacts
+  inputs:
+    filePath: scripts/Sign-Package.ps1
+  env:
+    SignClientUser: $(SignClientUser)
+    SignClientSecret: $(SignClientSecret)
+    ArtifactDirectory: $(Build.ArtifactStagingDirectory)\Packages
+  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')), not(eq(variables['SignClientSecret'], '')), not(eq(variables['SignClientUser'], '')))
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Package Artifacts
@@ -38,4 +52,4 @@ steps:
     pathToPublish: $(Build.ArtifactStagingDirectory)\Packages
     artifactType: container
     artifactName: Packages
-  condition: eq(variables['system.pullrequest.isfork'], false)
+  condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false))
