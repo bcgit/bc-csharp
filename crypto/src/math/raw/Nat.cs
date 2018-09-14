@@ -488,21 +488,31 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static void Mul(int len, uint[] x, uint[] y, uint[] zz)
         {
-            zz[len] = (uint)MulWord(len, x[0], y, zz);
+            zz[len] = MulWord(len, x[0], y, zz);
 
             for (int i = 1; i < len; ++i)
             {
-                zz[i + len] = (uint)MulWordAddTo(len, x[i], y, 0, zz, i);
+                zz[i + len] = MulWordAddTo(len, x[i], y, 0, zz, i);
             }
         }
 
         public static void Mul(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] zz, int zzOff)
         {
-            zz[zzOff + len] = (uint)MulWord(len, x[xOff], y, yOff, zz, zzOff);
+            zz[zzOff + len] = MulWord(len, x[xOff], y, yOff, zz, zzOff);
 
             for (int i = 1; i < len; ++i)
             {
-                zz[zzOff + i + len] = (uint)MulWordAddTo(len, x[xOff + i], y, yOff, zz, zzOff + i);
+                zz[zzOff + i + len] = MulWordAddTo(len, x[xOff + i], y, yOff, zz, zzOff + i);
+            }
+        }
+
+        public static void Mul(uint[] x, int xOff, int xLen, uint[] y, int yOff, int yLen, uint[] zz, int zzOff)
+        {
+            zz[zzOff + yLen] = MulWord(yLen, x[xOff], y, yOff, zz, zzOff);
+
+            for (int i = 1; i < xLen; ++i)
+            {
+                zz[zzOff + i + yLen] = MulWordAddTo(yLen, x[xOff + i], y, yOff, zz, zzOff + i);
             }
         }
 
