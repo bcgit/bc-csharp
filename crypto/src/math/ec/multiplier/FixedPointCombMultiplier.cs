@@ -37,15 +37,17 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             int top = fullComb - 1;
             for (int i = 0; i < d; ++i)
             {
-                int secretIndex = 0;
+                uint secretIndex = 0;
 
                 for (int j = top - i; j >= 0; j -= d)
                 {
+                    uint secretBit = K[j >> 5] >> (j & 0x1F);
+                    secretIndex ^= secretBit >> 1;
                     secretIndex <<= 1;
-                    secretIndex |= (int)Nat.GetBit(K, j);
+                    secretIndex ^= secretBit;
                 }
 
-                ECPoint add = lookupTable.Lookup(secretIndex);
+                ECPoint add = lookupTable.Lookup((int)secretIndex);
 
                 R = R.TwicePlus(add);
             }

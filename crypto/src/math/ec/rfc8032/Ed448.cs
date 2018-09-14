@@ -971,8 +971,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     uint w = 0;
                     for (int t = 0; t < PrecompTeeth; ++t)
                     {
-                        uint tBit = (n[tPos >> 5] >> (tPos & 0x1F)) & 1U;
-                        w |= tBit << t;
+                        uint tBit = n[tPos >> 5] >> (tPos & 0x1F);
+                        w &= ~(1U << t);
+                        w ^= (tBit << t);
                         tPos += PrecompSpacing;
                     }
 
