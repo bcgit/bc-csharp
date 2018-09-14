@@ -22,10 +22,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748.Tests
         [Test]
         public void TestConsistency()
         {
-            byte[] u = new byte[32];    u[0] = 9;
-            byte[] k = new byte[32];
-            byte[] rF = new byte[32];
-            byte[] rV = new byte[32];
+            byte[] u = new byte[X25519.PointSize];      u[0] = 9;
+            byte[] k = new byte[X25519.ScalarSize];
+            byte[] rF = new byte[X25519.PointSize];
+            byte[] rV = new byte[X25519.PointSize];
 
             for (int i = 1; i <= 100; ++i)
             {
@@ -39,12 +39,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748.Tests
         [Test]
         public void TestECDH()
         {
-            byte[] kA = new byte[32];
-            byte[] kB = new byte[32];
-            byte[] qA = new byte[32];
-            byte[] qB = new byte[32];
-            byte[] sA = new byte[32];
-            byte[] sB = new byte[32];
+            byte[] kA = new byte[X25519.ScalarSize];
+            byte[] kB = new byte[X25519.ScalarSize];
+            byte[] qA = new byte[X25519.PointSize];
+            byte[] qB = new byte[X25519.PointSize];
+            byte[] sA = new byte[X25519.PointSize];
+            byte[] sB = new byte[X25519.PointSize];
 
             for (int i = 1; i <= 100; ++i)
             {
@@ -116,38 +116,43 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748.Tests
         private static void CheckECDHVector(string sA, string sAPub, string sB, string sBPub, string sK, string text)
         {
             byte[] a = Hex.Decode(sA);
-            byte[] b = Hex.Decode(sB);
+            Assert.AreEqual(X25519.ScalarSize, a.Length);
 
-            byte[] aPub = new byte[32];
+            byte[] b = Hex.Decode(sB);
+            Assert.AreEqual(X25519.ScalarSize, b.Length);
+
+            byte[] aPub = new byte[X25519.PointSize];
             X25519.ScalarMultBase(a, 0, aPub, 0);
             CheckValue(aPub, text, sAPub);
 
-            byte[] bPub = new byte[32];
+            byte[] bPub = new byte[X25519.PointSize];
             X25519.ScalarMultBase(b, 0, bPub, 0);
             CheckValue(bPub, text, sBPub);
 
-            byte[] aK = new byte[32];
+            byte[] aK = new byte[X25519.PointSize];
             X25519.ScalarMult(a, 0, bPub, 0, aK, 0);
             CheckValue(aK, text, sK);
 
-            byte[] bK = new byte[32];
+            byte[] bK = new byte[X25519.PointSize];
             X25519.ScalarMult(b, 0, aPub, 0, bK, 0);
             CheckValue(bK, text, sK);
         }
 
         private static void CheckIterated(int count)
         {
-            byte[] k = new byte[32]; k[0] = 9;
-            byte[] u = new byte[32]; u[0] = 9;
-            byte[] r = new byte[32];
+            Assert.AreEqual(X25519.PointSize, X25519.ScalarSize);
+
+            byte[] k = new byte[X25519.PointSize];     k[0] = 9;
+            byte[] u = new byte[X25519.PointSize];     u[0] = 9;
+            byte[] r = new byte[X25519.PointSize];
 
             int iterations = 0;
             while (iterations < count)
             {
                 X25519.ScalarMult(k, 0, u, 0, r, 0);
 
-                Array.Copy(k, 0, u, 0, 32);
-                Array.Copy(r, 0, k, 0, 32);
+                Array.Copy(k, 0, u, 0, X25519.PointSize);
+                Array.Copy(r, 0, k, 0, X25519.PointSize);
 
                 switch (++iterations)
                 {
@@ -175,8 +180,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748.Tests
         private static void CheckX25519Vector(string sk, string su, string se, string text)
         {
             byte[] k = Hex.Decode(sk);
+            Assert.AreEqual(X25519.ScalarSize, k.Length);
+
             byte[] u = Hex.Decode(su);
-            byte[] r = new byte[32];
+            Assert.AreEqual(X25519.PointSize, u.Length);
+
+            byte[] r = new byte[X25519.PointSize];
             X25519.ScalarMult(k, 0, u, 0, r, 0);
             CheckValue(r, text, se);
         }
