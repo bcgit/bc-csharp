@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Math.Raw;
@@ -18,6 +19,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int ScalarUints = 14;
         private const int ScalarBytes = ScalarUints * 4 + 1;
 
+        public static readonly int PrehashSize = 64;
         public static readonly int PublicKeySize = PointBytes;
         public static readonly int SecretKeySize = 57;
         public static readonly int SignatureSize = PointBytes + ScalarBytes;
@@ -103,9 +105,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static bool CheckPointVar(byte[] p)
         {
             if ((p[PointBytes - 1] & 0x7F) != 0x00)
-            {
                 return false;
-            }
 
             uint[] t = new uint[14];
             Decode32(p, 0, t, 0, 14);
@@ -115,13 +115,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static bool CheckScalarVar(byte[] s)
         {
             if (s[ScalarBytes - 1] != 0x00)
-            {
                 return false;
-            }
 
             uint[] n = new uint[ScalarUints];
             DecodeScalar(s, 0, n);
             return !Nat.Gte(ScalarUints, n, L);
+        }
+
+        public static IXof CreatePrehash()
+        {
+            return CreateXof();
+        }
+
+        private static IXof CreateXof()
+        {
+            return new ShakeDigest(256);
         }
 
         private static uint Decode16(byte[] bs, int off)
@@ -160,9 +168,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             byte[] py = Arrays.CopyOfRange(p, pOff, pOff + PointBytes);
             if (!CheckPointVar(py))
-            {
                 return false;
-            }
 
             int x_0 = (py[PointBytes - 1] & 0x80) >> 7;
             py[PointBytes - 1] &= 0x7F;
@@ -179,15 +185,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X448Field.AddOne(v);
 
             if (!X448Field.SqrtRatioVar(u, v, r.x))
-            {
                 return false;
-            }
 
             X448Field.Normalize(r.x);
             if (x_0 == 1 && X448Field.IsZeroVar(r.x))
-            {
                 return false;
-            }
 
             if (negate ^ (x_0 != (r.x[0] & 1)))
             {
@@ -205,7 +207,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Decode32(k, kOff, n, 0, ScalarUints);
         }
 
-        private static void Dom4(ShakeDigest d, byte x, byte[] y)
+        private static void Dom4(IXof d, byte x, byte[] y)
         {
             d.BlockUpdate(Dom4Prefix, 0, Dom4Prefix.Length);
             d.Update(x);
@@ -251,7 +253,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static void GeneratePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)
         {
-            ShakeDigest d = new ShakeDigest(256);
+            IXof d = CreateXof();
             byte[] h = new byte[ScalarBytes * 2];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
@@ -317,10 +319,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ws;
         }
 
-        private static void ImplSign(ShakeDigest d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        private static void ImplSign(IXof d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] ctx, byte phflag,
+            byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
-            byte phflag = 0x00;
-
             Dom4(d, phflag, ctx);
             d.BlockUpdate(h, ScalarBytes, ScalarBytes);
             d.BlockUpdate(m, mOff, mLen);
@@ -341,6 +342,90 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Array.Copy(R, 0, sig, sigOff, PointBytes);
             Array.Copy(S, 0, sig, sigOff + PointBytes, ScalarBytes);
+        }
+
+        private static void ImplSign(byte[] sk, int skOff, byte[] ctx, byte phflag, byte[] m, int mOff, int mLen,
+            byte[] sig, int sigOff)
+        {
+            if (!CheckContextVar(ctx))
+                throw new ArgumentException("ctx");
+
+            IXof d = CreateXof();
+            byte[] h = new byte[ScalarBytes * 2];
+
+            d.BlockUpdate(sk, skOff, SecretKeySize);
+            d.DoFinal(h, 0, h.Length);
+
+            byte[] s = new byte[ScalarBytes];
+            PruneScalar(h, 0, s);
+
+            byte[] pk = new byte[PointBytes];
+            ScalarMultBaseEncoded(s, pk, 0);
+
+            ImplSign(d, h, s, pk, 0, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
+
+        private static void ImplSign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte phflag,
+            byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        {
+            if (!CheckContextVar(ctx))
+                throw new ArgumentException("ctx");
+
+            IXof d = CreateXof();
+            byte[] h = new byte[ScalarBytes * 2];
+
+            d.BlockUpdate(sk, skOff, SecretKeySize);
+            d.DoFinal(h, 0, h.Length);
+
+            byte[] s = new byte[ScalarBytes];
+            PruneScalar(h, 0, s);
+
+            ImplSign(d, h, s, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
+
+        private static bool ImplVerify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte phflag,
+            byte[] m, int mOff, int mLen)
+        {
+            if (!CheckContextVar(ctx))
+                throw new ArgumentException("ctx");
+
+            byte[] R = Arrays.CopyOfRange(sig, sigOff, sigOff + PointBytes);
+            byte[] S = Arrays.CopyOfRange(sig, sigOff + PointBytes, sigOff + SignatureSize);
+
+            if (!CheckPointVar(R))
+                return false;
+
+            if (!CheckScalarVar(S))
+                return false;
+
+            PointExt pA = new PointExt();
+            if (!DecodePointVar(pk, pkOff, true, pA))
+                return false;
+
+            IXof d = CreateXof();
+            byte[] h = new byte[ScalarBytes * 2];
+
+            Dom4(d, phflag, ctx);
+            d.BlockUpdate(R, 0, PointBytes);
+            d.BlockUpdate(pk, pkOff, PointBytes);
+            d.BlockUpdate(m, mOff, mLen);
+            d.DoFinal(h, 0, h.Length);
+
+            byte[] k = ReduceScalar(h);
+
+            uint[] nS = new uint[ScalarUints];
+            DecodeScalar(S, 0, nS);
+
+            uint[] nA = new uint[ScalarUints];
+            DecodeScalar(k, 0, nA);
+
+            PointExt pR = new PointExt();
+            ScalarMultStraussVar(nS, nA, pA, pR);
+
+            byte[] check = new byte[PointBytes];
+            EncodePoint(pR, check, 0);
+
+            return Arrays.AreEqual(check, R);
         }
 
         private static void PointAddVar(bool negate, PointExt p, PointExt r)
@@ -505,9 +590,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static void Precompute()
         {
             if (precompBase != null)
-            {
                 return;
-            }
 
             PointExt p = new PointExt();
             X448Field.Copy(B_x, 0, p.x, 0);
@@ -907,9 +990,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
 
                 if (--cOff < 0)
-                {
                     break;
-                }
 
                 PointDouble(r);
             }
@@ -962,9 +1043,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
 
                 if (--bit < 0)
-                {
                     break;
-                }
 
                 PointDouble(r);
             }
@@ -972,96 +1051,77 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static void Sign(byte[] sk, int skOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
-            if (!CheckContextVar(ctx))
-            {
-                throw new ArgumentException("ctx");
-            }
+            byte phflag = 0x00;
 
-            ShakeDigest d = new ShakeDigest(256);
-            byte[] h = new byte[ScalarBytes * 2];
-
-            d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0, h.Length);
-
-            byte[] s = new byte[ScalarBytes];
-            PruneScalar(h, 0, s);
-
-            byte[] pk = new byte[PointBytes];
-            ScalarMultBaseEncoded(s, pk, 0);
-
-            ImplSign(d, h, s, pk, 0, ctx, m, mOff, mLen, sig, sigOff);
+            ImplSign(sk, skOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
         public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
-            if (!CheckContextVar(ctx))
-            {
-                throw new ArgumentException("ctx");
-            }
+            byte phflag = 0x00;
 
-            ShakeDigest d = new ShakeDigest(256);
-            byte[] h = new byte[ScalarBytes * 2];
+            ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
 
-            d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0, h.Length);
+        public static void SignPrehash(byte[] sk, int skOff, byte[] ctx, byte[] ph, int phOff, byte[] sig, int sigOff)
+        {
+            byte phflag = 0x01;
 
-            byte[] s = new byte[ScalarBytes];
-            PruneScalar(h, 0, s);
+            ImplSign(sk, skOff, ctx, phflag, ph, phOff, PrehashSize, sig, sigOff);
+        }
 
-            ImplSign(d, h, s, pk, pkOff, ctx, m, mOff, mLen, sig, sigOff);
+        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff, byte[] sig, int sigOff)
+        {
+            byte phflag = 0x01;
+
+            ImplSign(sk, skOff, pk, pkOff, ctx, phflag, ph, phOff, PrehashSize, sig, sigOff);
+        }
+
+        public static void SignPrehash(byte[] sk, int skOff, byte[] ctx, IXof ph, byte[] sig, int sigOff)
+        {
+            byte[] m = new byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m, 0, PrehashSize))
+                throw new ArgumentException("ph");
+
+            byte phflag = 0x01;
+
+            ImplSign(sk, skOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
+        }
+
+        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, IXof ph, byte[] sig, int sigOff)
+        {
+            byte[] m = new byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m, 0, PrehashSize))
+                throw new ArgumentException("ph");
+
+            byte phflag = 0x01;
+
+            ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
         }
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen)
         {
-            if (!CheckContextVar(ctx))
-            {
-                throw new ArgumentException("ctx");
-            }
-
-            byte[] R = Arrays.CopyOfRange(sig, sigOff, sigOff + PointBytes);
-            byte[] S = Arrays.CopyOfRange(sig, sigOff + PointBytes, sigOff + SignatureSize);
-
-            if (!CheckPointVar(R))
-            {
-                return false;
-            }
-            if (!CheckScalarVar(S))
-            {
-                return false;
-            }
-
-            PointExt pA = new PointExt();
-            if (!DecodePointVar(pk, pkOff, true, pA))
-            {
-                return false;
-            }
-
             byte phflag = 0x00;
 
-            ShakeDigest d = new ShakeDigest(256);
-            byte[] h = new byte[ScalarBytes * 2];
+            return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, mOff, mLen);
+        }
 
-            Dom4(d, phflag, ctx);
-            d.BlockUpdate(R, 0, PointBytes);
-            d.BlockUpdate(pk, pkOff, PointBytes);
-            d.BlockUpdate(m, mOff, mLen);
-            d.DoFinal(h, 0, h.Length);
+        public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff)
+        {
+            byte phflag = 0x01;
 
-            byte[] k = ReduceScalar(h);
+            return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, ph, phOff, PrehashSize);
+        }
 
-            uint[] nS = new uint[ScalarUints];
-            DecodeScalar(S, 0, nS);
+        public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, IXof ph)
+        {
+            byte[] m = new byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m, 0, PrehashSize))
+                throw new ArgumentException("ph");
 
-            uint[] nA = new uint[ScalarUints];
-            DecodeScalar(k, 0, nA);
+            byte phflag = 0x01;
 
-            PointExt pR = new PointExt();
-            ScalarMultStraussVar(nS, nA, pA, pR);
-
-            byte[] check = new byte[PointBytes];
-            EncodePoint(pR, check, 0);
-
-            return Arrays.AreEqual(check, R);
+            return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, 0, m.Length);
         }
     }
 }

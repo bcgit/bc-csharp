@@ -2,6 +2,7 @@
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -40,16 +41,93 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Ed25519.Sign(sk, 0, m, 0, mLen, sig1, 0);
                 Ed25519.Sign(sk, 0, pk, 0, m, 0, mLen, sig2, 0);
 
-                Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Consistent signatures #" + i);
+                Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed25519 consistent signatures #" + i);
 
                 bool shouldVerify = Ed25519.Verify(sig1, 0, pk, 0, m, 0, mLen);
 
-                Assert.IsTrue(shouldVerify, "Consistent sign/verify #" + i);
+                Assert.IsTrue(shouldVerify, "Ed25519 consistent sign/verify #" + i);
 
                 sig1[Ed25519.PublicKeySize - 1] ^= 0x80;
                 bool shouldNotVerify = Ed25519.Verify(sig1, 0, pk, 0, m, 0, mLen);
 
-                Assert.IsFalse(shouldNotVerify, "Consistent verification failure #" + i);
+                Assert.IsFalse(shouldNotVerify, "Ed25519 consistent verification failure #" + i);
+            }
+        }
+
+        [Test]
+        public void TestEd25519ctxConsistency()
+        {
+            byte[] sk = new byte[Ed25519.SecretKeySize];
+            byte[] pk = new byte[Ed25519.PublicKeySize];
+            byte[] ctx = new byte[Random.Next() & 7];
+            byte[] m = new byte[255];
+            byte[] sig1 = new byte[Ed25519.SignatureSize];
+            byte[] sig2 = new byte[Ed25519.SignatureSize];
+
+            Random.NextBytes(ctx);
+            Random.NextBytes(m);
+
+            for (int i = 0; i < 10; ++i)
+            {
+                Random.NextBytes(sk);
+                Ed25519.GeneratePublicKey(sk, 0, pk, 0);
+
+                int mLen = Random.Next() & 255;
+
+                Ed25519.Sign(sk, 0, ctx, m, 0, mLen, sig1, 0);
+                Ed25519.Sign(sk, 0, pk, 0, ctx, m, 0, mLen, sig2, 0);
+
+                Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed25519ctx consistent signatures #" + i);
+
+                bool shouldVerify = Ed25519.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+
+                Assert.IsTrue(shouldVerify, "Ed25519ctx consistent sign/verify #" + i);
+
+                sig1[Ed25519.PublicKeySize - 1] ^= 0x80;
+                bool shouldNotVerify = Ed25519.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+
+                Assert.IsFalse(shouldNotVerify, "Ed25519ctx consistent verification failure #" + i);
+            }
+        }
+
+        [Test]
+        public void TestEd25519phConsistency()
+        {
+            byte[] sk = new byte[Ed25519.SecretKeySize];
+            byte[] pk = new byte[Ed25519.PublicKeySize];
+            byte[] ctx = new byte[Random.Next() & 7];
+            byte[] m = new byte[255];
+            byte[] ph = new byte[Ed25519.PrehashSize];
+            byte[] sig1 = new byte[Ed25519.SignatureSize];
+            byte[] sig2 = new byte[Ed25519.SignatureSize];
+
+            Random.NextBytes(ctx);
+            Random.NextBytes(m);
+
+            for (int i = 0; i < 10; ++i)
+            {
+                Random.NextBytes(sk);
+                Ed25519.GeneratePublicKey(sk, 0, pk, 0);
+
+                int mLen = Random.Next() & 255;
+
+                IDigest prehash = Ed25519.CreatePrehash();
+                prehash.BlockUpdate(m, 0, mLen);
+                prehash.DoFinal(ph, 0);
+
+                Ed25519.SignPrehash(sk, 0, ctx, ph, 0, sig1, 0);
+                Ed25519.SignPrehash(sk, 0, pk, 0, ctx, ph, 0, sig2, 0);
+
+                Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed25519ph consistent signatures #" + i);
+
+                bool shouldVerify = Ed25519.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+
+                Assert.IsTrue(shouldVerify, "Ed25519ph consistent sign/verify #" + i);
+
+                sig1[Ed25519.PublicKeySize - 1] ^= 0x80;
+                bool shouldNotVerify = Ed25519.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+
+                Assert.IsFalse(shouldNotVerify, "Ed25519ph consistent verification failure #" + i);
             }
         }
 
@@ -201,18 +279,107 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 + "3dca179c138ac17ad9bef1177331a704"),
                 "Ed25519 Vector SHA(abc)");
         }
-      
+
+        [Test]
+        public void TestEd25519ctxVector1()
+        {
+            CheckEd25519ctxVector(
+                ("0305334e381af78f141cb666f6199f57"
+                + "bc3495335a256a95bd2a55bf546663f6"),
+                ("dfc9425e4f968f7f0c29f0259cf5f9ae"
+                + "d6851c2bb4ad8bfb860cfee0ab248292"),
+                "f726936d19c800494e3fdaff20b276a8",
+                "666f6f",
+                ("55a4cc2f70a54e04288c5f4cd1e45a7b"
+                + "b520b36292911876cada7323198dd87a"
+                + "8b36950b95130022907a7fb7c4e9b2d5"
+                + "f6cca685a587b4b21f4b888e4e7edb0d"),
+                "Ed25519ctx Vector #1");
+        }
+
+        [Test]
+        public void TestEd25519ctxVector2()
+        {
+            CheckEd25519ctxVector(
+                ("0305334e381af78f141cb666f6199f57"
+                + "bc3495335a256a95bd2a55bf546663f6"),
+                ("dfc9425e4f968f7f0c29f0259cf5f9ae"
+                + "d6851c2bb4ad8bfb860cfee0ab248292"),
+                "f726936d19c800494e3fdaff20b276a8",
+                "626172",
+                ("fc60d5872fc46b3aa69f8b5b4351d580"
+                + "8f92bcc044606db097abab6dbcb1aee3"
+                + "216c48e8b3b66431b5b186d1d28f8ee1"
+                + "5a5ca2df6668346291c2043d4eb3e90d"),
+                "Ed25519ctx Vector #2");
+        }
+
+        [Test]
+        public void TestEd25519ctxVector3()
+        {
+            CheckEd25519ctxVector(
+                ("0305334e381af78f141cb666f6199f57"
+                + "bc3495335a256a95bd2a55bf546663f6"),
+                ("dfc9425e4f968f7f0c29f0259cf5f9ae"
+                + "d6851c2bb4ad8bfb860cfee0ab248292"),
+                "508e9e6882b979fea900f62adceaca35",
+                "666f6f",
+                ("8b70c1cc8310e1de20ac53ce28ae6e72"
+                + "07f33c3295e03bb5c0732a1d20dc6490"
+                + "8922a8b052cf99b7c4fe107a5abb5b2c"
+                + "4085ae75890d02df26269d8945f84b0b"),
+                "Ed25519ctx Vector #3");
+        }
+
+        [Test]
+        public void TestEd25519ctxVector4()
+        {
+            CheckEd25519ctxVector(
+                ("ab9c2853ce297ddab85c993b3ae14bca"
+                + "d39b2c682beabc27d6d4eb20711d6560"),
+                ("0f1d1274943b91415889152e893d80e9"
+                + "3275a1fc0b65fd71b4b0dda10ad7d772"),
+                "f726936d19c800494e3fdaff20b276a8",
+                "666f6f",
+                ("21655b5f1aa965996b3f97b3c849eafb"
+                + "a922a0a62992f73b3d1b73106a84ad85"
+                + "e9b86a7b6005ea868337ff2d20a7f5fb"
+                + "d4cd10b0be49a68da2b2e0dc0ad8960f"),
+                "Ed25519ctx Vector #4");
+        }
+
+        [Test]
+        public void TestEd25519phVector1()
+        {
+            CheckEd25519phVector(
+                ("833fe62409237b9d62ec77587520911e"
+                + "9a759cec1d19755b7da901b96dca3d42"),
+                ("ec172b93ad5e563bf4932c70e1245034"
+                + "c35467ef2efd4d64ebf819683467e2bf"),
+                "616263",
+                "",
+                ("98a70222f0b8121aa9d30f813d683f80"
+                + "9e462b469c7ff87639499bb94e6dae41"
+                + "31f85042463c2a355a2003d062adf5aa"
+                + "a10b8c61e636062aaad11c2a26083406"),
+                "Ed25519ph Vector #1");
+        }
+
         private static void CheckEd25519Vector(string sSK, string sPK, string sM, string sSig, string text)
         {
             byte[] sk = Hex.Decode(sSK);
-
             byte[] pk = Hex.Decode(sPK);
+
             byte[] pkGen = new byte[Ed25519.PublicKeySize];
             Ed25519.GeneratePublicKey(sk, 0, pkGen, 0);
             Assert.IsTrue(Arrays.AreEqual(pk, pkGen), text);
          
 			byte[] m = Hex.Decode(sM);
             byte[] sig = Hex.Decode(sSig);
+
+            byte[] badsig = Arrays.Clone(sig);
+            badsig[Ed25519.SignatureSize - 1] ^= 0x80;
+
             byte[] sigGen = new byte[Ed25519.SignatureSize];
             Ed25519.Sign(sk, 0, m, 0, m.Length, sigGen, 0);
             Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
@@ -223,9 +390,109 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             bool shouldVerify = Ed25519.Verify(sig, 0, pk, 0, m, 0, m.Length);
             Assert.IsTrue(shouldVerify, text);
 
-			sig[Ed25519.SignatureSize - 1] ^= 0x80;
-            bool shouldNotVerify = Ed25519.Verify(sig, 0, pk, 0, m, 0, m.Length);
+            bool shouldNotVerify = Ed25519.Verify(badsig, 0, pk, 0, m, 0, m.Length);
             Assert.IsFalse(shouldNotVerify, text);
+        }
+
+        private static void CheckEd25519ctxVector(string sSK, string sPK, string sM, string sCTX, string sSig, string text)
+        {
+            byte[] sk = Hex.Decode(sSK);
+            byte[] pk = Hex.Decode(sPK);
+
+            byte[] pkGen = new byte[Ed25519.PublicKeySize];
+            Ed25519.GeneratePublicKey(sk, 0, pkGen, 0);
+            Assert.IsTrue(Arrays.AreEqual(pk, pkGen), text);
+
+            byte[] m = Hex.Decode(sM);
+            byte[] ctx = Hex.Decode(sCTX);
+            byte[] sig = Hex.Decode(sSig);
+
+            byte[] badsig = Arrays.Clone(sig);
+            badsig[Ed25519.SignatureSize - 1] ^= 0x80;
+
+            byte[] sigGen = new byte[Ed25519.SignatureSize];
+            Ed25519.Sign(sk, 0, ctx, m, 0, m.Length, sigGen, 0);
+            Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+
+            Ed25519.Sign(sk, 0, pk, 0, ctx, m, 0, m.Length, sigGen, 0);
+            Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+
+            bool shouldVerify = Ed25519.Verify(sig, 0, pk, 0, ctx, m, 0, m.Length);
+            Assert.IsTrue(shouldVerify, text);
+
+            bool shouldNotVerify = Ed25519.Verify(badsig, 0, pk, 0, ctx, m, 0, m.Length);
+            Assert.IsFalse(shouldNotVerify, text);
+        }
+
+        private static void CheckEd25519phVector(string sSK, string sPK, string sM, string sCTX, string sSig, string text)
+        {
+            byte[] sk = Hex.Decode(sSK);
+            byte[] pk = Hex.Decode(sPK);
+
+            byte[] pkGen = new byte[Ed25519.PublicKeySize];
+            Ed25519.GeneratePublicKey(sk, 0, pkGen, 0);
+            Assert.IsTrue(Arrays.AreEqual(pk, pkGen), text);
+
+            byte[] m = Hex.Decode(sM);
+            byte[] ctx = Hex.Decode(sCTX);
+            byte[] sig = Hex.Decode(sSig);
+
+            byte[] badsig = Arrays.Clone(sig);
+            badsig[Ed25519.SignatureSize - 1] ^= 0x80;
+
+            byte[] sigGen = new byte[Ed25519.SignatureSize];
+
+            {
+                IDigest prehash = Ed25519.CreatePrehash();
+                prehash.BlockUpdate(m, 0, m.Length);
+
+                byte[] ph = new byte[Ed25519.PrehashSize];
+                prehash.DoFinal(ph, 0);
+
+                Ed25519.SignPrehash(sk, 0, ctx, ph, 0, sigGen, 0);
+                Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+
+                Ed25519.SignPrehash(sk, 0, pk, 0, ctx, ph, 0, sigGen, 0);
+                Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+
+                bool shouldVerify = Ed25519.VerifyPrehash(sig, 0, pk, 0, ctx, ph, 0);
+                Assert.IsTrue(shouldVerify, text);
+
+                bool shouldNotVerify = Ed25519.VerifyPrehash(badsig, 0, pk, 0, ctx, ph, 0);
+                Assert.IsFalse(shouldNotVerify, text);
+            }
+
+            {
+                IDigest ph = Ed25519.CreatePrehash();
+                ph.BlockUpdate(m, 0, m.Length);
+
+                Ed25519.SignPrehash(sk, 0, ctx, ph, sigGen, 0);
+                Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+            }
+
+            {
+                IDigest ph = Ed25519.CreatePrehash();
+                ph.BlockUpdate(m, 0, m.Length);
+
+                Ed25519.SignPrehash(sk, 0, pk, 0, ctx, ph, sigGen, 0);
+                Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+            }
+
+            {
+                IDigest ph = Ed25519.CreatePrehash();
+                ph.BlockUpdate(m, 0, m.Length);
+
+                bool shouldVerify = Ed25519.VerifyPrehash(sig, 0, pk, 0, ctx, ph);
+                Assert.IsTrue(shouldVerify, text);
+            }
+
+            {
+                IDigest ph = Ed25519.CreatePrehash();
+                ph.BlockUpdate(m, 0, m.Length);
+
+                bool shouldNotVerify = Ed25519.VerifyPrehash(badsig, 0, pk, 0, ctx, ph);
+                Assert.IsFalse(shouldNotVerify, text);
+            }
         }
     }
 }
