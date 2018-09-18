@@ -315,7 +315,8 @@ We state, where EC MQV has not otherwise been disabled or removed:
                 In this release, the TLS library has moved to a whitelisting approach for client-side validation of server-presented
                 Diffie-Hellman (DH) parameters. In the default configuration, if a ciphersuite using ephemeral DH is selected by the
                 server, the client will abort the handshake if the proposed DH group is not one of those specified in RFC 3526 or RFC 7919,
-                or if the DH prime is < 2048 bits. The client therefore no longer offers DH ciphersuites by default.
+                or if the DH prime is &lt; 2048 bits. The client therefore no longer offers DH ciphersuites by default. See also the paper
+                <a href="https://eprint.iacr.org/2018/749">"Prime and Prejudice: Primality Testing Under Adversarial Conditions"</a>.
             </li>
         </ul>
 
