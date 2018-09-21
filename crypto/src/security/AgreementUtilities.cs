@@ -1,6 +1,7 @@
 using System.Collections;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
@@ -27,7 +28,10 @@ namespace Org.BouncyCastle.Security
             algorithms[X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id] = "ECCDHWITHSHA1KDF";
 			algorithms[X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id] = "ECDHWITHSHA1KDF";
 			algorithms[X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id] = "ECMQVWITHSHA1KDF";
-		}
+
+            algorithms[EdECObjectIdentifiers.id_X25519.Id] = "X25519";
+            algorithms[EdECObjectIdentifiers.id_X448.Id] = "X448";
+        }
 
         public static IBasicAgreement GetBasicAgreement(
 			DerObjectIdentifier oid)
@@ -38,15 +42,9 @@ namespace Org.BouncyCastle.Security
 		public static IBasicAgreement GetBasicAgreement(
 			string algorithm)
 		{
-			string upper = Platform.ToUpperInvariant(algorithm);
-			string mechanism = (string) algorithms[upper];
+            string mechanism = GetMechanism(algorithm);
 
-			if (mechanism == null)
-			{
-				mechanism = upper;
-			}
-
-			if (mechanism == "DH" || mechanism == "DIFFIEHELLMAN")
+            if (mechanism == "DH" || mechanism == "DIFFIEHELLMAN")
 				return new DHBasicAgreement();
 
 			if (mechanism == "ECDH")
@@ -72,15 +70,9 @@ namespace Org.BouncyCastle.Security
 			string agreeAlgorithm,
 			string wrapAlgorithm)
 		{
-			string upper = Platform.ToUpperInvariant(agreeAlgorithm);
-			string mechanism = (string) algorithms[upper];
+            string mechanism = GetMechanism(agreeAlgorithm);
 
-			if (mechanism == null)
-			{
-				mechanism = upper;
-			}
-
-			// 'DHWITHSHA1KDF' retained for backward compatibility
+            // 'DHWITHSHA1KDF' retained for backward compatibility
 			if (mechanism == "DHWITHSHA1KDF" || mechanism == "ECDHWITHSHA1KDF")
 				return new ECDHWithKdfBasicAgreement(
 					wrapAlgorithm,
@@ -96,10 +88,37 @@ namespace Org.BouncyCastle.Security
 			throw new SecurityUtilityException("Basic Agreement (with KDF) " + agreeAlgorithm + " not recognised.");
 		}
 
+        public static IRawAgreement GetRawAgreement(
+            DerObjectIdentifier oid)
+        {
+            return GetRawAgreement(oid.Id);
+        }
+
+        public static IRawAgreement GetRawAgreement(
+            string algorithm)
+        {
+            string mechanism = GetMechanism(algorithm);
+
+            if (mechanism == "X25519")
+                return new X25519Agreement();
+
+            if (mechanism == "X448")
+                return new X448Agreement();
+
+            throw new SecurityUtilityException("Raw Agreement " + algorithm + " not recognised.");
+        }
+
 		public static string GetAlgorithmName(
 			DerObjectIdentifier oid)
 		{
-			return (string) algorithms[oid.Id];
+			return (string)algorithms[oid.Id];
 		}
+
+        private static string GetMechanism(string algorithm)
+        {
+            string upper = Platform.ToUpperInvariant(algorithm);
+            string mechanism = (string)algorithms[upper];
+            return mechanism == null ? upper : mechanism;
+        }
 	}
 }

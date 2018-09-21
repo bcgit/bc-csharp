@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
@@ -26,20 +27,20 @@ namespace Org.BouncyCastle.X509
         /// <summary>
         /// Create a Subject Public Key Info object for a given public key.
         /// </summary>
-        /// <param name="key">One of ElGammalPublicKeyParameters, DSAPublicKeyParameter, DHPublicKeyParameters, RsaKeyParameters or ECPublicKeyParameters</param>
+        /// <param name="publicKey">One of ElGammalPublicKeyParameters, DSAPublicKeyParameter, DHPublicKeyParameters, RsaKeyParameters or ECPublicKeyParameters</param>
         /// <returns>A subject public key info object.</returns>
         /// <exception cref="Exception">Throw exception if object provided is not one of the above.</exception>
         public static SubjectPublicKeyInfo CreateSubjectPublicKeyInfo(
-            AsymmetricKeyParameter key)
+            AsymmetricKeyParameter publicKey)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-            if (key.IsPrivate)
-                throw new ArgumentException("Private key passed - public key expected.", "key");
+            if (publicKey == null)
+                throw new ArgumentNullException("publicKey");
+            if (publicKey.IsPrivate)
+                throw new ArgumentException("Private key passed - public key expected.", "publicKey");
 
-            if (key is ElGamalPublicKeyParameters)
+            if (publicKey is ElGamalPublicKeyParameters)
             {
-                ElGamalPublicKeyParameters _key = (ElGamalPublicKeyParameters)key;
+                ElGamalPublicKeyParameters _key = (ElGamalPublicKeyParameters)publicKey;
                 ElGamalParameters kp = _key.Parameters;
 
                 SubjectPublicKeyInfo info = new SubjectPublicKeyInfo(
@@ -51,9 +52,9 @@ namespace Org.BouncyCastle.X509
                 return info;
             }
 
-            if (key is DsaPublicKeyParameters)
+            if (publicKey is DsaPublicKeyParameters)
             {
-                DsaPublicKeyParameters _key = (DsaPublicKeyParameters) key;
+                DsaPublicKeyParameters _key = (DsaPublicKeyParameters) publicKey;
                 DsaParameters kp = _key.Parameters;
                 Asn1Encodable ae = kp == null
                     ?	null
@@ -64,9 +65,9 @@ namespace Org.BouncyCastle.X509
                     new DerInteger(_key.Y));
             }
 
-            if (key is DHPublicKeyParameters)
+            if (publicKey is DHPublicKeyParameters)
             {
-                DHPublicKeyParameters _key = (DHPublicKeyParameters) key;
+                DHPublicKeyParameters _key = (DHPublicKeyParameters) publicKey;
                 DHParameters kp = _key.Parameters;
 
                 SubjectPublicKeyInfo info = new SubjectPublicKeyInfo(
@@ -78,9 +79,9 @@ namespace Org.BouncyCastle.X509
                 return info;
             } // End of DH
 
-            if (key is RsaKeyParameters)
+            if (publicKey is RsaKeyParameters)
             {
-                RsaKeyParameters _key = (RsaKeyParameters) key;
+                RsaKeyParameters _key = (RsaKeyParameters) publicKey;
 
                 SubjectPublicKeyInfo info = new SubjectPublicKeyInfo(
                     new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance),
@@ -89,9 +90,9 @@ namespace Org.BouncyCastle.X509
                 return info;
             } // End of RSA.
 
-            if (key is ECPublicKeyParameters)
+            if (publicKey is ECPublicKeyParameters)
             {
-                ECPublicKeyParameters _key = (ECPublicKeyParameters) key;
+                ECPublicKeyParameters _key = (ECPublicKeyParameters) publicKey;
 
                 if (_key.AlgorithmName == "ECGOST3410")
                 {
@@ -139,9 +140,9 @@ namespace Org.BouncyCastle.X509
                 }
             } // End of EC
 
-            if (key is Gost3410PublicKeyParameters)
+            if (publicKey is Gost3410PublicKeyParameters)
             {
-                Gost3410PublicKeyParameters _key = (Gost3410PublicKeyParameters) key;
+                Gost3410PublicKeyParameters _key = (Gost3410PublicKeyParameters) publicKey;
 
                 if (_key.PublicKeyParamSet == null)
                     throw Platform.CreateNotImplementedException("Not a CryptoPro parameter set");
@@ -164,7 +165,35 @@ namespace Org.BouncyCastle.X509
                 return new SubjectPublicKeyInfo(algID, new DerOctetString(keyBytes));
             }
 
-            throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(key));
+            if (publicKey is X448PublicKeyParameters)
+            {
+                X448PublicKeyParameters key = (X448PublicKeyParameters)publicKey;
+
+                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448), key.GetEncoded());
+            }
+
+            if (publicKey is X25519PublicKeyParameters)
+            {
+                X25519PublicKeyParameters key = (X25519PublicKeyParameters)publicKey;
+
+                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519), key.GetEncoded());
+            }
+
+            if (publicKey is Ed448PublicKeyParameters)
+            {
+                Ed448PublicKeyParameters key = (Ed448PublicKeyParameters)publicKey;
+
+                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed448), key.GetEncoded());
+            }
+
+            if (publicKey is Ed25519PublicKeyParameters)
+            {
+                Ed25519PublicKeyParameters key = (Ed25519PublicKeyParameters)publicKey;
+
+                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519), key.GetEncoded());
+            }
+
+            throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
         }
 
         private static void ExtractBytes(

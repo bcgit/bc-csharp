@@ -4,6 +4,7 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -231,7 +232,13 @@ namespace Org.BouncyCastle.Security
             algorithms["GOST3411WITHECGOST3410"] = "ECGOST3410";
             algorithms[CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001.Id] = "ECGOST3410";
 
-
+            algorithms["ED25519"] = "Ed25519";
+            algorithms[EdECObjectIdentifiers.id_Ed25519.Id] = "Ed25519";
+            algorithms["ED25519CTX"] = "Ed25519ctx";
+            algorithms["ED25519PH"] = "Ed25519ph";
+            algorithms["ED448"] = "Ed448";
+            algorithms[EdECObjectIdentifiers.id_Ed448.Id] = "Ed448";
+            algorithms["ED448PH"] = "Ed448ph";
 
             oids["MD2withRSA"] = PkcsObjectIdentifiers.MD2WithRsaEncryption;
             oids["MD4withRSA"] = PkcsObjectIdentifiers.MD4WithRsaEncryption;
@@ -264,6 +271,9 @@ namespace Org.BouncyCastle.Security
 
             oids["GOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
             oids["ECGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
+
+            oids["Ed25519"] = EdECObjectIdentifiers.id_Ed25519;
+            oids["Ed448"] = EdECObjectIdentifiers.id_Ed448;
         }
 
         /// <summary>
@@ -360,6 +370,30 @@ namespace Org.BouncyCastle.Security
 
             if (mechanism == null)
                 mechanism = algorithm;
+
+            if (Platform.StartsWith(mechanism, "Ed"))
+            {
+                if (mechanism.Equals("Ed25519"))
+                {
+                    return new Ed25519Signer();
+                }
+                if (mechanism.Equals("Ed25519ctx"))
+                {
+                    return new Ed25519ctxSigner(Arrays.EmptyBytes);
+                }
+                if (mechanism.Equals("Ed25519ph"))
+                {
+                    return new Ed25519phSigner(Arrays.EmptyBytes);
+                }
+                if (mechanism.Equals("Ed448"))
+                {
+                    return new Ed448Signer(Arrays.EmptyBytes);
+                }
+                if (mechanism.Equals("Ed448ph"))
+                {
+                    return new Ed448phSigner(Arrays.EmptyBytes);
+                }
+            }
 
             if (mechanism.Equals("RSA"))
             {

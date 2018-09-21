@@ -2,6 +2,7 @@ using System.Collections;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Iana;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Nist;
@@ -180,12 +181,23 @@ namespace Org.BouncyCastle.Security
             AddKpgAlgorithm("ECGOST3410",
                 "ECGOST-3410",
                 "GOST-3410-2001");
+            AddKpgAlgorithm("Ed25519",
+                "Ed25519ctx",
+                "Ed25519ph",
+                EdECObjectIdentifiers.id_Ed25519);
+            AddKpgAlgorithm("Ed448",
+                "Ed448ph",
+                EdECObjectIdentifiers.id_Ed448);
             AddKpgAlgorithm("ELGAMAL");
             AddKpgAlgorithm("GOST3410",
                 "GOST-3410",
                 "GOST-3410-94");
             AddKpgAlgorithm("RSA",
                 "1.2.840.113549.1.1.1");
+            AddKpgAlgorithm("X25519",
+                EdECObjectIdentifiers.id_X25519);
+            AddKpgAlgorithm("X448",
+                EdECObjectIdentifiers.id_X448);
 
             AddDefaultKeySizeEntries(64, "DES");
             AddDefaultKeySizeEntries(80, "SKIPJACK");
@@ -216,11 +228,11 @@ namespace Org.BouncyCastle.Security
             string			canonicalName,
             params object[] aliases)
         {
-            kgAlgorithms[canonicalName] = canonicalName;
+            kgAlgorithms[Platform.ToUpperInvariant(canonicalName)] = canonicalName;
 
             foreach (object alias in aliases)
             {
-                kgAlgorithms[alias.ToString()] = canonicalName;
+                kgAlgorithms[Platform.ToUpperInvariant(alias.ToString())] = canonicalName;
             }
         }
 
@@ -228,11 +240,11 @@ namespace Org.BouncyCastle.Security
             string			canonicalName,
             params object[] aliases)
         {
-            kpgAlgorithms[canonicalName] = canonicalName;
+            kpgAlgorithms[Platform.ToUpperInvariant(canonicalName)] = canonicalName;
 
             foreach (object alias in aliases)
             {
-                kpgAlgorithms[alias.ToString()] = canonicalName;
+                kpgAlgorithms[Platform.ToUpperInvariant(alias.ToString())] = canonicalName;
             }
         }
 
@@ -248,7 +260,7 @@ namespace Org.BouncyCastle.Security
 
             foreach (object alias in aliases)
             {
-                kgAlgorithms[alias.ToString()] = mainName;
+                kgAlgorithms[Platform.ToUpperInvariant(alias.ToString())] = mainName;
             }
         }
 
@@ -318,6 +330,12 @@ namespace Org.BouncyCastle.Security
             if (Platform.StartsWith(canonicalName, "EC"))
                 return new ECKeyPairGenerator(canonicalName);
 
+            if (canonicalName == "Ed25519")
+                return new Ed25519KeyPairGenerator();
+
+            if (canonicalName == "Ed448")
+                return new Ed448KeyPairGenerator();
+
             if (canonicalName == "ELGAMAL")
                 return new ElGamalKeyPairGenerator();
 
@@ -326,6 +344,12 @@ namespace Org.BouncyCastle.Security
 
             if (canonicalName == "RSA")
                 return new RsaKeyPairGenerator();
+
+            if (canonicalName == "X25519")
+                return new X25519KeyPairGenerator();
+
+            if (canonicalName == "X448")
+                return new X448KeyPairGenerator();
 
             throw new SecurityUtilityException("KeyPairGenerator " + algorithm
                 + " (" + canonicalName + ") not supported.");

@@ -101,6 +101,7 @@
     <Compile Include="src\asn1\test\ParseTest.cs" />
     <Compile Include="src\asn1\test\ParsingTest.cs" />
     <Compile Include="src\asn1\test\PersonalDataUnitTest.cs" />
+    <Compile Include="src\asn1\test\PrivateKeyInfoTest.cs" />
     <Compile Include="src\asn1\test\ProcurationSyntaxUnitTest.cs" />
     <Compile Include="src\asn1\test\ProfessionInfoUnitTest.cs" />
     <Compile Include="src\asn1\test\QCStatementUnitTest.cs" />
@@ -186,6 +187,8 @@
     <Compile Include="src\crypto\test\ECIESTest.cs" />
     <Compile Include="src\crypto\test\ECNRTest.cs" />
     <Compile Include="src\crypto\test\ECTest.cs" />
+    <Compile Include="src\crypto\test\Ed25519Test.cs" />
+    <Compile Include="src\crypto\test\Ed448Test.cs" />
     <Compile Include="src\crypto\test\ElGamalTest.cs" />
     <Compile Include="src\crypto\test\EqualsHashCodeTest.cs" />
     <Compile Include="src\crypto\test\GCMTest.cs" />
@@ -284,6 +287,8 @@
     <Compile Include="src\crypto\test\VMPCMacTest.cs" />
     <Compile Include="src\crypto\test\VMPCTest.cs" />
     <Compile Include="src\crypto\test\WhirlpoolDigestTest.cs" />
+    <Compile Include="src\crypto\test\X25519Test.cs" />
+    <Compile Include="src\crypto\test\X448Test.cs" />
     <Compile Include="src\crypto\test\X931SignerTest.cs" />
     <Compile Include="src\crypto\test\XSalsa20Test.cs" />
     <Compile Include="src\crypto\test\XTEATest.cs" />

@@ -12,6 +12,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
     public abstract class Ed25519
     {
+        public enum Algorithm
+        {
+            Ed25519 = 0,
+            Ed25519ctx = 1,
+            Ed25519ph = 2,
+        }
+
         private const long M28L = 0x0FFFFFFFL;
         private const long M32L = 0xFFFFFFFFL;
 

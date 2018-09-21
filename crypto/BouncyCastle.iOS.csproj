@@ -253,6 +253,7 @@
     <Compile Include="src\asn1\cryptopro\GOST3410ParamSetParameters.cs" />
     <Compile Include="src\asn1\cryptopro\GOST3410PublicKeyAlgParameters.cs" />
     <Compile Include="src\asn1\eac\EACObjectIdentifiers.cs" />
+    <Compile Include="src\asn1\edec\EdECObjectIdentifiers.cs" />
     <Compile Include="src\asn1\esf\CertificateValues.cs" />
     <Compile Include="src\asn1\esf\CommitmentTypeIdentifier.cs" />
     <Compile Include="src\asn1\esf\CommitmentTypeIndication.cs" />
@@ -654,6 +655,7 @@
     <Compile Include="src\crypto\IEntropySource.cs" />
     <Compile Include="src\crypto\IEntropySourceProvider.cs" />
     <Compile Include="src\crypto\IMac.cs" />
+    <Compile Include="src\crypto\IRawAgreement.cs" />
     <Compile Include="src\crypto\ISignatureFactory.cs" />
     <Compile Include="src\crypto\IStreamCalculator.cs" />
     <Compile Include="src\crypto\ISigner.cs" />
@@ -694,6 +696,8 @@
     <Compile Include="src\crypto\agreement\ECMqvBasicAgreement.cs" />
     <Compile Include="src\crypto\agreement\ECMqvWithKdfBasicAgreement.cs" />
     <Compile Include="src\crypto\agreement\SM2KeyExchange.cs" />
+    <Compile Include="src\crypto\agreement\X25519Agreement.cs" />
+    <Compile Include="src\crypto\agreement\X448Agreement.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakeParticipant.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakePrimeOrderGroup.cs" />
     <Compile Include="src\crypto\agreement\jpake\JPakePrimeOrderGroups.cs" />
@@ -810,6 +814,8 @@
     <Compile Include="src\crypto\generators\DsaKeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\DsaParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\ECKeyPairGenerator.cs" />
+    <Compile Include="src\crypto\generators\Ed25519KeyPairGenerator.cs" />
+    <Compile Include="src\crypto\generators\Ed448KeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\ElGamalKeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\ElGamalParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\GOST3410KeyPairGenerator.cs" />
@@ -826,6 +832,8 @@
     <Compile Include="src\crypto\generators\RSABlindingFactorGenerator.cs" />
     <Compile Include="src\crypto\generators\RsaKeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\SCrypt.cs" />
+    <Compile Include="src\crypto\generators\X25519KeyPairGenerator.cs" />
+    <Compile Include="src\crypto\generators\X448KeyPairGenerator.cs" />
     <Compile Include="src\crypto\io\CipherStream.cs" />
     <Compile Include="src\crypto\io\DigestStream.cs" />
     <Compile Include="src\crypto\io\MacStream.cs" />
@@ -896,6 +904,12 @@
     <Compile Include="src\crypto\parameters\ECKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\ECPrivateKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\ECPublicKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\Ed25519KeyGenerationParameters.cs" />
+    <Compile Include="src\crypto\parameters\Ed25519PrivateKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\Ed25519PublicKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\Ed448KeyGenerationParameters.cs" />
+    <Compile Include="src\crypto\parameters\Ed448PrivateKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\Ed448PublicKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\ElGamalKeyGenerationParameters.cs" />
     <Compile Include="src\crypto\parameters\ElGamalKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\ElGamalParameters.cs" />
@@ -934,6 +948,12 @@
     <Compile Include="src\crypto\parameters\SM2KeyExchangePublicParameters.cs" />
     <Compile Include="src\crypto\parameters\Srp6GroupParameters.cs" />
     <Compile Include="src\crypto\parameters\TweakableBlockCipherParameters.cs" />
+    <Compile Include="src\crypto\parameters\X25519KeyGenerationParameters.cs" />
+    <Compile Include="src\crypto\parameters\X25519PrivateKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\X25519PublicKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\X448KeyGenerationParameters.cs" />
+    <Compile Include="src\crypto\parameters\X448PrivateKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\X448PublicKeyParameters.cs" />
     <Compile Include="src\crypto\prng\CryptoApiRandomGenerator.cs" />
     <Compile Include="src\crypto\prng\DigestRandomGenerator.cs" />
     <Compile Include="src\crypto\prng\IRandomGenerator.cs" />
@@ -945,6 +965,11 @@
     <Compile Include="src\crypto\signers\ECDsaSigner.cs" />
     <Compile Include="src\crypto\signers\ECGOST3410Signer.cs" />
     <Compile Include="src\crypto\signers\ECNRSigner.cs" />
+    <Compile Include="src\crypto\signers\Ed25519ctxSigner.cs" />
+    <Compile Include="src\crypto\signers\Ed25519phSigner.cs" />
+    <Compile Include="src\crypto\signers\Ed25519Signer.cs" />
+    <Compile Include="src\crypto\signers\Ed448phSigner.cs" />
+    <Compile Include="src\crypto\signers\Ed448Signer.cs" />
     <Compile Include="src\crypto\signers\GOST3410DigestSigner.cs" />
     <Compile Include="src\crypto\signers\GOST3410Signer.cs" />
     <Compile Include="src\crypto\signers\GenericSigner.cs" />

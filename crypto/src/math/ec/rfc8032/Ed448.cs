@@ -12,6 +12,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
     public abstract class Ed448
     {
+        public enum Algorithm
+        {
+            Ed448 = 0,
+            Ed448ph = 1,
+        }
+
         private const ulong M26UL = 0x03FFFFFFUL;
         private const ulong M28UL = 0x0FFFFFFFUL;
 

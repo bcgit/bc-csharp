@@ -51,6 +51,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			new Pkcs10Test(),
             new Pkcs12Test(),
 			new PkiFailureInfoTest(),
+            new PrivateKeyInfoTest(),
 			new ProcurationSyntaxUnitTest(),
 			new ProfessionInfoUnitTest(),
 			new QCStatementUnitTest(),

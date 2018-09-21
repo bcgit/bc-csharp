@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
 				Random.NextBytes(sk);
                 Ed25519.GeneratePublicKey(sk, 0, pk, 0);
 
-                int mLen = Random.Next() & 255;
+                int mLen = Random.NextInt() & 255;
 
                 Ed25519.Sign(sk, 0, m, 0, mLen, sig1, 0);
                 Ed25519.Sign(sk, 0, pk, 0, m, 0, mLen, sig2, 0);
@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
-            byte[] ctx = new byte[Random.Next() & 7];
+            byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] sig1 = new byte[Ed25519.SignatureSize];
             byte[] sig2 = new byte[Ed25519.SignatureSize];
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Random.NextBytes(sk);
                 Ed25519.GeneratePublicKey(sk, 0, pk, 0);
 
-                int mLen = Random.Next() & 255;
+                int mLen = Random.NextInt() & 255;
 
                 Ed25519.Sign(sk, 0, ctx, m, 0, mLen, sig1, 0);
                 Ed25519.Sign(sk, 0, pk, 0, ctx, m, 0, mLen, sig2, 0);
@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed25519.SecretKeySize];
             byte[] pk = new byte[Ed25519.PublicKeySize];
-            byte[] ctx = new byte[Random.Next() & 7];
+            byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] ph = new byte[Ed25519.PrehashSize];
             byte[] sig1 = new byte[Ed25519.SignatureSize];
@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Random.NextBytes(sk);
                 Ed25519.GeneratePublicKey(sk, 0, pk, 0);
 
-                int mLen = Random.Next() & 255;
+                int mLen = Random.NextInt() & 255;
 
                 IDigest prehash = Ed25519.CreatePrehash();
                 prehash.BlockUpdate(m, 0, mLen);
