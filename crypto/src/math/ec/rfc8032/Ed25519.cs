@@ -330,7 +330,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Dom2(d, phflag, ctx);
             d.BlockUpdate(R, 0, PointBytes);
-            d.BlockUpdate(pk, 0, PointBytes);
+            d.BlockUpdate(pk, pkOff, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
