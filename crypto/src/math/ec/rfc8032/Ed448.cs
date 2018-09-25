@@ -622,9 +622,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                     ds[t] = PointCopy(p);
 
-                    for (int s = 1; s < PrecompSpacing; ++s)
+                    if (b + t != PrecompBlocks + PrecompTeeth - 2)
                     {
-                        PointDouble(p);
+                        for (int s = 1; s < PrecompSpacing; ++s)
+                        {
+                            PointDouble(p);
+                        }
                     }
                 }
 
