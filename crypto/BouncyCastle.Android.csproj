@@ -801,6 +801,7 @@
     <Compile Include="src\crypto\engines\SerpentEngine.cs" />
     <Compile Include="src\crypto\engines\SkipjackEngine.cs" />
     <Compile Include="src\crypto\engines\SM2Engine.cs" />
+    <Compile Include="src\crypto\engines\SM4Engine.cs" />
     <Compile Include="src\crypto\engines\TEAEngine.cs" />
     <Compile Include="src\crypto\engines\ThreefishEngine.cs" />
     <Compile Include="src\crypto\engines\TwofishEngine.cs" />

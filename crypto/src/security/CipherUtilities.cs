@@ -53,6 +53,7 @@ namespace Org.BouncyCastle.Security
             SEED,
             SERPENT,
             SKIPJACK,
+            SM4,
             TEA,
             THREEFISH_256,
             THREEFISH_512,
@@ -433,6 +434,9 @@ namespace Org.BouncyCastle.Security
                 case CipherAlgorithm.SKIPJACK:
                     blockCipher = new SkipjackEngine();
                     break;
+                case CipherAlgorithm.SM4:
+                    blockCipher = new SM4Engine();
+                    break;
                 case CipherAlgorithm.TEA:
                     blockCipher = new TeaEngine();
                     break;
@@ -740,6 +744,7 @@ namespace Org.BouncyCastle.Security
                 case CipherAlgorithm.SEED: return new SeedEngine();
                 case CipherAlgorithm.SERPENT: return new SerpentEngine();
                 case CipherAlgorithm.SKIPJACK: return new SkipjackEngine();
+                case CipherAlgorithm.SM4: return new SM4Engine();
                 case CipherAlgorithm.TEA: return new TeaEngine();
                 case CipherAlgorithm.THREEFISH_256: return new ThreefishEngine(ThreefishEngine.BLOCKSIZE_256);
                 case CipherAlgorithm.THREEFISH_512: return new ThreefishEngine(ThreefishEngine.BLOCKSIZE_512);

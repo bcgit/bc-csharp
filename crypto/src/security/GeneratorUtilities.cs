@@ -110,6 +110,7 @@ namespace Org.BouncyCastle.Security
                 KisaObjectIdentifiers.IdSeedCbc);
             AddKgAlgorithm("SERPENT");
             AddKgAlgorithm("SKIPJACK");
+            AddKgAlgorithm("SM4");
             AddKgAlgorithm("TEA");
             AddKgAlgorithm("THREEFISH-256");
             AddKgAlgorithm("THREEFISH-512");
@@ -203,7 +204,7 @@ namespace Org.BouncyCastle.Security
             AddDefaultKeySizeEntries(80, "SKIPJACK");
             AddDefaultKeySizeEntries(128, "AES128", "BLOWFISH", "CAMELLIA128", "CAST5", "DESEDE",
                 "HC128", "HMACMD2", "HMACMD4", "HMACMD5", "HMACRIPEMD128", "IDEA", "NOEKEON",
-                "RC2", "RC4", "RC5", "SALSA20", "SEED", "TEA", "XTEA", "VMPC", "VMPC-KSA3");
+                "RC2", "RC4", "RC5", "SALSA20", "SEED", "SM4", "TEA", "XTEA", "VMPC", "VMPC-KSA3");
             AddDefaultKeySizeEntries(160, "HMACRIPEMD160", "HMACSHA1");
             AddDefaultKeySizeEntries(192, "AES", "AES192", "CAMELLIA192", "DESEDE3", "HMACTIGER",
                 "RIJNDAEL", "SERPENT", "TNEPRES");

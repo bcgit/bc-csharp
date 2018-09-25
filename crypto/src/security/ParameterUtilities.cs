@@ -103,6 +103,7 @@ namespace Org.BouncyCastle.Security
                 KisaObjectIdentifiers.IdSeedCbc);
             AddAlgorithm("SERPENT");
             AddAlgorithm("SKIPJACK");
+            AddAlgorithm("SM4");
             AddAlgorithm("TEA");
             AddAlgorithm("THREEFISH-256");
             AddAlgorithm("THREEFISH-512");
@@ -115,7 +116,8 @@ namespace Org.BouncyCastle.Security
 
             AddBasicIVSizeEntries(8, "BLOWFISH", "DES", "DESEDE", "DESEDE3");
             AddBasicIVSizeEntries(16, "AES", "AES128", "AES192", "AES256",
-                "CAMELLIA", "CAMELLIA128", "CAMELLIA192", "CAMELLIA256", "NOEKEON", "SEED");
+                "CAMELLIA", "CAMELLIA128", "CAMELLIA192", "CAMELLIA256",
+                "NOEKEON", "SEED", "SM4");
 
             // TODO These algorithms support an IV
             // but JCE doesn't seem to provide an AlgorithmParametersGenerator for them
