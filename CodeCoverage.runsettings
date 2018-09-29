@@ -21,7 +21,7 @@ Included items must then not match any entries in the exclude list to remain inc
                 <ModulePath>.*Crypto.*</ModulePath>
               </Include>
               <Exclude>
-                <ModulePath>.*Test.*</ModulePath>
+                <ModulePath>.*Test.dll$</ModulePath>
                 <ModulePath>.*nunit.*</ModulePath>
               </Exclude>
             </ModulePaths>
