@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "Ed25519"; }
         }
 
-        public static void Main(string[] args)
+        public static void MainOld(string[] args)
         {
             RunTest(new Ed25519Test());
         }
