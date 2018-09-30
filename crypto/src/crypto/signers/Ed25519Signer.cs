@@ -79,49 +79,62 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         private class Buffer : MemoryStream
         {
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            private readonly object lockObject = new object();
+
+            // https://stackoverflow.com/questions/2223656/what-does-methodimploptions-synchronized-do
+            // Not available in lower .net standard versions
+            //[MethodImpl(MethodImplOptions.Synchronized)]
             internal byte[] GenerateSignature(Ed25519PrivateKeyParameters privateKey, Ed25519PublicKeyParameters publicKey)
             {
+                lock (lockObject)
+                {
 #if PORTABLE
-                byte[] buf = ToArray();
-                int count = buf.Length;
+                    byte[] buf = ToArray();
+                    int count = buf.Length;
 #else
-                byte[] buf = GetBuffer();
-                int count = (int)Position;
+                    byte[] buf = GetBuffer();
+                    int count = (int)Position;
 #endif
-                byte[] signature = new byte[Ed25519PrivateKeyParameters.SignatureSize];
-                privateKey.Sign(Ed25519.Algorithm.Ed25519, publicKey, null, buf, 0, count, signature, 0);
-                Reset();
-                return signature;
+                    byte[] signature = new byte[Ed25519PrivateKeyParameters.SignatureSize];
+                    privateKey.Sign(Ed25519.Algorithm.Ed25519, publicKey, null, buf, 0, count, signature, 0);
+                    Reset();
+                    return signature;
+                }
             }
 
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            //[MethodImpl(MethodImplOptions.Synchronized)]
             internal bool VerifySignature(Ed25519PublicKeyParameters publicKey, byte[] signature)
             {
+                lock (lockObject)
+                {
 #if PORTABLE
-                byte[] buf = ToArray();
-                int count = buf.Length;
+                    byte[] buf = ToArray();
+                    int count = buf.Length;
 #else
-                byte[] buf = GetBuffer();
-                int count = (int)Position;
+                    byte[] buf = GetBuffer();
+                    int count = (int)Position;
 #endif
-                byte[] pk = publicKey.GetEncoded();
-                bool result = Ed25519.Verify(signature, 0, pk, 0, buf, 0, count);
-                Reset();
-                return result;
+                    byte[] pk = publicKey.GetEncoded();
+                    bool result = Ed25519.Verify(signature, 0, pk, 0, buf, 0, count);
+                    Reset();
+                    return result;
+                }
             }
 
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            //[MethodImpl(MethodImplOptions.Synchronized)]
             internal void Reset()
             {
+                lock (lockObject)
+                {
 #if PORTABLE
-                this.Position = 0L;
+                    this.Position = 0L;
 
-                // TODO Clear using Write method
+                    // TODO Clear using Write method
 #else
-                Array.Clear(GetBuffer(), 0, (int)Position);
+                    Array.Clear(GetBuffer(), 0, (int)Position);
 #endif
-                this.Position = 0L;
+                    this.Position = 0L;
+                }
             }
         }
     }
