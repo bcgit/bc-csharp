@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Math.EC.Multiplier
 {
     public abstract class WNafUtilities
@@ -8,8 +10,6 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         private static readonly int[] DEFAULT_WINDOW_SIZE_CUTOFFS = new int[]{ 13, 41, 121, 337, 897, 2305 };
 
-        private static readonly byte[] EMPTY_BYTES = new byte[0];
-        private static readonly int[] EMPTY_INTS = new int[0];
         private static readonly ECPoint[] EMPTY_POINTS = new ECPoint[0];
 
         public static int[] GenerateCompactNaf(BigInteger k)
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             if ((k.BitLength >> 16) != 0)
                 throw new ArgumentException("must have bitlength < 2^16", "k");
             if (k.SignValue == 0)
-                return EMPTY_INTS;
+                return Arrays.EmptyInts;
 
             BigInteger _3k = k.ShiftLeft(1).Add(k);
 
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             if ((k.BitLength >> 16) != 0)
                 throw new ArgumentException("must have bitlength < 2^16", "k");
             if (k.SignValue == 0)
-                return EMPTY_INTS;
+                return Arrays.EmptyInts;
 
             int[] wnaf = new int[k.BitLength / width + 1];
 
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         public static byte[] GenerateNaf(BigInteger k)
         {
             if (k.SignValue == 0)
-                return EMPTY_BYTES;
+                return Arrays.EmptyBytes;
 
             BigInteger _3k = k.ShiftLeft(1).Add(k);
 
@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             if (width < 2 || width > 8)
                 throw new ArgumentException("must be in the range [2, 8]", "width");
             if (k.SignValue == 0)
-                return EMPTY_BYTES;
+                return Arrays.EmptyBytes;
 
             byte[] wnaf = new byte[k.BitLength + 1];
 

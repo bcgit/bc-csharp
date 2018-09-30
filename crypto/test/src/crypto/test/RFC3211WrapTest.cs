@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 			catch (InvalidCipherTextException e)
 			{
-				if (!e.Message.Equals("wrapped key fails checksum"))
+                if (!e.Message.Equals("wrapped key corrupted"))
 				{
 					Fail("wrong exception");
 				}

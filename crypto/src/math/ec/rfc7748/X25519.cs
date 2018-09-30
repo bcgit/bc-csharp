@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     public abstract class X25519
     {
+        public const int PointSize = 32;
+        public const int ScalarSize = 32;
+
         private const int C_A = 486662;
         private const int C_A24 = (C_A + 2)/4;
 

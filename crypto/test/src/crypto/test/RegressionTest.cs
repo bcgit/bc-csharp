@@ -133,6 +133,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SM2EngineTest(),
             new SM2KeyExchangeTest(),
             new SM2SignerTest(),
+            new SM4Test(),
+            new X25519Test(),
+            new X448Test(),
+            new Ed25519Test(),
+            new Ed448Test(),
         };
 
         public static void MainOld(string[] args)

@@ -38,11 +38,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
 					Console.WriteLine("Signature date is: "
 						+ sig.GetHashedSubPackets().GetSignatureCreationTime());
 
-					NotationData[] data = sig.GetHashedSubPackets().GetNotationDataOccurences();
+					NotationData[] data = sig.GetHashedSubPackets().GetNotationDataOccurrences();
 
 					for (int i = 0; i < data.Length; i++)
 					{
-						Console.WriteLine("Found Notaion named '" + data[i].GetNotationName()
+						Console.WriteLine("Found Notation named '" + data[i].GetNotationName()
 							+"' with content '" + data[i].GetNotationValue() + "'.");
 					}
 				}

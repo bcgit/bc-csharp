@@ -5,6 +5,7 @@ using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
@@ -170,10 +171,35 @@ namespace Org.BouncyCastle.Security
 
 				return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
 			}
+            else if (algOid.Equals(EdECObjectIdentifiers.id_X25519))
+            {
+                return new X25519PrivateKeyParameters(GetRawKey(keyInfo, X25519PrivateKeyParameters.KeySize), 0);
+            }
+            else if (algOid.Equals(EdECObjectIdentifiers.id_X448))
+            {
+                return new X448PrivateKeyParameters(GetRawKey(keyInfo, X448PrivateKeyParameters.KeySize), 0);
+            }
+            else if (algOid.Equals(EdECObjectIdentifiers.id_Ed25519))
+            {
+                return new Ed25519PrivateKeyParameters(GetRawKey(keyInfo, Ed25519PrivateKeyParameters.KeySize), 0);
+            }
+            else if (algOid.Equals(EdECObjectIdentifiers.id_Ed448))
+            {
+                return new Ed448PrivateKeyParameters(GetRawKey(keyInfo, Ed448PrivateKeyParameters.KeySize), 0);
+            }
             else
             {
-                throw new SecurityUtilityException("algorithm identifier in key not recognised");
+                throw new SecurityUtilityException("algorithm identifier in private key not recognised");
             }
+        }
+
+        private static byte[] GetRawKey(PrivateKeyInfo keyInfo, int expectedSize)
+        {
+            byte[] result = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
+            if (expectedSize != result.Length)
+                throw new SecurityUtilityException("private key encoding has incorrect length");
+
+            return result;
         }
 
         public static AsymmetricKeyParameter DecryptKey(

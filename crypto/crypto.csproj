@@ -1149,6 +1149,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\edec\EdECObjectIdentifiers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\esf\CertificateValues.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3129,6 +3134,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IRawAgreement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\ISignatureFactory.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3245,6 +3255,16 @@
                 />
                 <File
                     RelPath = "src\crypto\agreement\SM2KeyExchange.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\X25519Agreement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\agreement\X448Agreement.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3749,6 +3769,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\engines\SM4Engine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\engines\TEAEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3849,6 +3874,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\generators\Ed25519KeyPairGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\generators\Ed448KeyPairGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\generators\ElGamalKeyPairGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3935,6 +3970,16 @@
                 />
                 <File
                     RelPath = "src\crypto\generators\SCrypt.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\generators\X25519KeyPairGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\generators\X448KeyPairGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4289,6 +4334,36 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\parameters\Ed25519KeyGenerationParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\Ed25519PrivateKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\Ed25519PublicKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\Ed448KeyGenerationParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\Ed448PrivateKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\Ed448PublicKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\parameters\ElGamalKeyGenerationParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4484,6 +4559,36 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\parameters\X25519KeyGenerationParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\X25519PrivateKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\X25519PublicKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\X448KeyGenerationParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\X448PrivateKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\X448PublicKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\prng\BasicEntropySourceProvider.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4605,6 +4710,31 @@
                 />
                 <File
                     RelPath = "src\crypto\signers\ECNRSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\Ed25519ctxSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\Ed25519phSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\Ed25519Signer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\Ed448phSigner.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\Ed448Signer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11230,6 +11360,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\asn1\test\PrivateKeyInfoTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\asn1\test\PKCS10Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11670,6 +11805,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\Ed25519Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\Ed448Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\ElGamalTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12090,6 +12235,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\SM4Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\SRP6Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12156,6 +12306,16 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\WhirlpoolDigestTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\X25519Test.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\X448Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -12886,6 +13046,11 @@
                 />
                 <File
                     RelPath = "test\src\test\SigTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\test\SM4Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

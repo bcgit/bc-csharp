@@ -136,8 +136,8 @@ namespace Org.BouncyCastle.Crypto.Digests
          */
         public Blake2bDigest(int digestSize)
         {
-            if (digestSize != 160 && digestSize != 256 && digestSize != 384 && digestSize != 512)
-                throw new ArgumentException("BLAKE2b digest restricted to one of [160, 256, 384, 512]");
+            if (digestSize < 8 || digestSize > 512 || digestSize % 8 != 0)
+                throw new ArgumentException("BLAKE2b digest bit length must be a multiple of 8 and not greater than 512");
 
             buffer = new byte[BLOCK_LENGTH_BYTES];
             keyLength = 0;

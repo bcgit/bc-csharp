@@ -31,6 +31,8 @@
 				<a href="#mozTocId3413">Notes:</a>
 		<ol>
             <li>
+                <a href="#mozTocId85318">Release 1.8.4</a>
+            <li>
                 <a href="#mozTocId85317">Release 1.8.3</a>
             <li>
                 <a href="#mozTocId85316">Release 1.8.2</a>
@@ -294,6 +296,17 @@ We state, where EC MQV has not otherwise been disabled or removed:
 		<hr style="WIDTH: 100%; HEIGHT: 2px">
 		<h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
 
+        <h4><a class="mozTocH4" name="mozTocId85318"></a>Release 1.8.4, TBD</h4>
+
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>Rfc3211WrapEngine would not properly handle messages longer than 127 bytes. This has been fixed.</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>Restrictions on the output sizes of the Blake2b/s digests have been removed.</li>
+        </ul>
+
         <h4><a class="mozTocH4" name="mozTocId85317"></a>Release 1.8.3, Saturday August 11, 2018</h4>
 
         <h5>IMPORTANT</h5>
@@ -302,7 +315,8 @@ We state, where EC MQV has not otherwise been disabled or removed:
                 In this release, the TLS library has moved to a whitelisting approach for client-side validation of server-presented
                 Diffie-Hellman (DH) parameters. In the default configuration, if a ciphersuite using ephemeral DH is selected by the
                 server, the client will abort the handshake if the proposed DH group is not one of those specified in RFC 3526 or RFC 7919,
-                or if the DH prime is < 2048 bits. The client therefore no longer offers DH ciphersuites by default.
+                or if the DH prime is &lt; 2048 bits. The client therefore no longer offers DH ciphersuites by default. See also the paper
+                <a href="https://eprint.iacr.org/2018/749">"Prime and Prejudice: Primality Testing Under Adversarial Conditions"</a>.
             </li>
         </ul>
 

@@ -94,6 +94,14 @@ namespace Org.BouncyCastle.Security.Tests
 
             AsymmetricCipherKeyPair ecGostPair = ecGostKpg.GenerateKeyPair();
 
+            IAsymmetricCipherKeyPairGenerator ed25519Kpg = GeneratorUtilities.GetKeyPairGenerator("Ed25519");
+            ed25519Kpg.Init(new Ed25519KeyGenerationParameters(new SecureRandom()));
+            AsymmetricCipherKeyPair ed25519Pair = ed25519Kpg.GenerateKeyPair();
+
+            IAsymmetricCipherKeyPairGenerator ed448Kpg = GeneratorUtilities.GetKeyPairGenerator("Ed448");
+            ed448Kpg.Init(new Ed448KeyGenerationParameters(new SecureRandom()));
+            AsymmetricCipherKeyPair ed448Pair = ed448Kpg.GenerateKeyPair();
+
             //
             // GOST3410 parameters
             //
@@ -146,6 +154,16 @@ namespace Org.BouncyCastle.Security.Tests
                 {
                     signParams = ecGostPair.Private;
                     verifyParams = ecGostPair.Public;
+                }
+                else if (cipherName == "ED25519")
+                {
+                    signParams = ed25519Pair.Private;
+                    verifyParams = ed25519Pair.Public;
+                }
+                else if (cipherName == "ED448")
+                {
+                    signParams = ed448Pair.Private;
+                    verifyParams = ed448Pair.Public;
                 }
                 else if (cipherName == "GOST3410")
                 {

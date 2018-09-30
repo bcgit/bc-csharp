@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
             while (extras > 0)
 			{
-				DerTaggedObject extra = (DerTaggedObject) seq[seqStart + 6 + extras];
+				DerTaggedObject extra = (DerTaggedObject)seq[seqStart + 6 + extras];
 
 				switch (extra.TagNo)
 				{
@@ -140,8 +140,12 @@ namespace Org.BouncyCastle.Asn1.X509
                     if (isV2)
                         throw new ArgumentException("version 2 certificate cannot contain extensions");
 
-                    extensions = X509Extensions.GetInstance(extra);
+                    extensions = X509Extensions.GetInstance(Asn1Sequence.GetInstance(extra, true));
 					break;
+                }
+                default:
+                {
+                    throw new ArgumentException("Unknown tag encountered in structure: " + extra.TagNo);
                 }
                 }
                 extras--;
