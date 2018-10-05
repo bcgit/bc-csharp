@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Asn1.Pkcs;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
@@ -36,7 +37,20 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.qInv = qInv;
         }
 
-		public BigInteger PublicExponent
+    public RsaPrivateCrtKeyParameters(RsaPrivateKeyStructure rsaPrivateKey)
+     : this(
+      rsaPrivateKey.Modulus,
+      rsaPrivateKey.PublicExponent,
+      rsaPrivateKey.PrivateExponent,
+      rsaPrivateKey.Prime1,
+      rsaPrivateKey.Prime2,
+      rsaPrivateKey.Exponent1,
+      rsaPrivateKey.Exponent2,
+      rsaPrivateKey.Coefficient
+      )
+    { }
+
+    public BigInteger PublicExponent
         {
             get { return e; }
 		}
