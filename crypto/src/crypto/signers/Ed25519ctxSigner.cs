@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual byte[] GenerateSignature()
         {
-            if (!forSigning)
+            if (!forSigning || null == privateKey)
                 throw new InvalidOperationException("Ed25519ctxSigner not initialised for signature generation.");
 
             return buffer.GenerateSignature(privateKey, publicKey, context);
@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual bool VerifySignature(byte[] signature)
         {
-            if (forSigning)
+            if (forSigning || null == publicKey)
                 throw new InvalidOperationException("Ed25519ctxSigner not initialised for verification");
 
             return buffer.VerifySignature(publicKey, context, signature);
