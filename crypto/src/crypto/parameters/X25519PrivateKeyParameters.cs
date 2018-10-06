@@ -56,7 +56,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             byte[] encoded = new byte[X25519.PointSize];
             publicKey.Encode(encoded, 0);
-            X25519.ScalarMult(data, 0, encoded, 0, buf, off);
+            if (!X25519.CalculateAgreement(data, 0, encoded, 0, buf, off))
+                throw new InvalidOperationException("X25519 agreement failed");
         }
     }
 }

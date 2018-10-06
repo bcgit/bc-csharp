@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     public abstract class X25519
@@ -20,6 +22,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             0x0217D1B7, 0x014CB523, 0x0088EC1A, 0x0042A264 };
 
         private static int[] precompBase = null;
+
+        public static bool CalculateAgreement(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
+        {
+            ScalarMult(k, kOff, u, uOff, r, rOff);
+            return !Arrays.AreAllZeroes(r, rOff, PointSize);
+        }
 
         private static uint Decode32(byte[] bs, int off)
         {

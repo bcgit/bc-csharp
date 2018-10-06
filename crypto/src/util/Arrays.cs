@@ -11,6 +11,16 @@ namespace Org.BouncyCastle.Utilities
         public static readonly byte[] EmptyBytes = new byte[0];
         public static readonly int[] EmptyInts = new int[0];
 
+        public static bool AreAllZeroes(byte[] buf, int off, int len)
+        {
+            uint bits = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                bits |= buf[off + i];
+            }
+            return bits == 0;
+        }
+
         public static bool AreEqual(
             bool[]  a,
             bool[]  b)
