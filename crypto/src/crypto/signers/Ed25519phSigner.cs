@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual byte[] GenerateSignature()
         {
-            if (!forSigning)
+            if (!forSigning || null == privateKey)
                 throw new InvalidOperationException("Ed25519phSigner not initialised for signature generation.");
 
             byte[] msg = new byte[Ed25519.PrehashSize];
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual bool VerifySignature(byte[] signature)
         {
-            if (forSigning)
+            if (forSigning || null == publicKey)
                 throw new InvalidOperationException("Ed25519phSigner not initialised for verification");
 
             byte[] pk = publicKey.GetEncoded();

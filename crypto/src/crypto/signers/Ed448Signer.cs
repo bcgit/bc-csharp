@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -60,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual byte[] GenerateSignature()
         {
-            if (!forSigning)
+            if (!forSigning || null == privateKey)
                 throw new InvalidOperationException("Ed448Signer not initialised for signature generation.");
 
             return buffer.GenerateSignature(privateKey, publicKey, context);
@@ -68,7 +69,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual bool VerifySignature(byte[] signature)
         {
-            if (forSigning)
+            if (forSigning || null == publicKey)
                 throw new InvalidOperationException("Ed448Signer not initialised for verification");
 
             return buffer.VerifySignature(publicKey, context, signature);
@@ -134,8 +135,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 {
 #if PORTABLE
                     this.Position = 0L;
-
-                    // TODO Clear using Write method
+                    Streams.WriteZeroes(this, count);
 #else
                     Array.Clear(GetBuffer(), 0, (int)Position);
 #endif

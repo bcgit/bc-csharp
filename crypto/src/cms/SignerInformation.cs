@@ -84,6 +84,30 @@ namespace Org.BouncyCastle.Cms
 			this.digestCalculator = digestCalculator;
 		}
 
+        /**
+         * Protected constructor. In some cases clients have their own idea about how to encode
+         * the signed attributes and calculate the signature. This constructor is to allow developers
+         * to deal with that by extending off the class and overridng methods like getSignedAttributes().
+         *
+         * @param baseInfo the SignerInformation to base this one on.
+         */
+        protected SignerInformation(SignerInformation baseInfo)
+        {
+            this.info = baseInfo.info;
+            this.contentType = baseInfo.contentType;
+            this.isCounterSignature = baseInfo.IsCounterSignature;
+            this.sid = baseInfo.SignerID;
+            this.digestAlgorithm = info.DigestAlgorithm;
+            this.signedAttributeSet = info.AuthenticatedAttributes;
+            this.unsignedAttributeSet = info.UnauthenticatedAttributes;
+            this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
+            this.signature = info.EncryptedDigest.GetOctets();
+            this.content = baseInfo.content;
+            this.resultDigest = baseInfo.resultDigest;
+            this.signedAttributeTable = baseInfo.signedAttributeTable;
+            this.unsignedAttributeTable = baseInfo.unsignedAttributeTable;
+        }
+
 		public bool IsCounterSignature
 		{
 			get { return isCounterSignature; }
