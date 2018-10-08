@@ -9,14 +9,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class RsaPrivateKeyStructure
         : Asn1Encodable
     {
-        private readonly BigInteger	modulus;
-        private readonly BigInteger	publicExponent;
-        private readonly BigInteger	privateExponent;
-        private readonly BigInteger	prime1;
-        private readonly BigInteger	prime2;
-        private readonly BigInteger	exponent1;
-        private readonly BigInteger	exponent2;
-        private readonly BigInteger	coefficient;
+        private readonly BigInteger modulus;
+        private readonly BigInteger publicExponent;
+        private readonly BigInteger privateExponent;
+        private readonly BigInteger prime1;
+        private readonly BigInteger prime2;
+        private readonly BigInteger exponent1;
+        private readonly BigInteger exponent2;
+        private readonly BigInteger coefficient;
 
         public static RsaPrivateKeyStructure GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
@@ -33,14 +33,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         }
 
         public RsaPrivateKeyStructure(
-            BigInteger	modulus,
-            BigInteger	publicExponent,
-            BigInteger	privateExponent,
-            BigInteger	prime1,
-            BigInteger	prime2,
-            BigInteger	exponent1,
-            BigInteger	exponent2,
-            BigInteger	coefficient)
+            BigInteger modulus,
+            BigInteger publicExponent,
+            BigInteger privateExponent,
+            BigInteger prime1,
+            BigInteger prime2,
+            BigInteger exponent1,
+            BigInteger exponent2,
+            BigInteger coefficient)
         {
             this.modulus = modulus;
             this.publicExponent = publicExponent;
@@ -56,18 +56,18 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public RsaPrivateKeyStructure(
             Asn1Sequence seq)
         {
-            BigInteger version = ((DerInteger) seq[0]).Value;
+            BigInteger version = ((DerInteger)seq[0]).Value;
             if (version.IntValue != 0)
                 throw new ArgumentException("wrong version for RSA private key");
 
-            modulus = ((DerInteger) seq[1]).Value;
-            publicExponent = ((DerInteger) seq[2]).Value;
-            privateExponent = ((DerInteger) seq[3]).Value;
-            prime1 = ((DerInteger) seq[4]).Value;
-            prime2 = ((DerInteger) seq[5]).Value;
-            exponent1 = ((DerInteger) seq[6]).Value;
-            exponent2 = ((DerInteger) seq[7]).Value;
-            coefficient = ((DerInteger) seq[8]).Value;
+            modulus = ((DerInteger)seq[1]).Value;
+            publicExponent = ((DerInteger)seq[2]).Value;
+            privateExponent = ((DerInteger)seq[3]).Value;
+            prime1 = ((DerInteger)seq[4]).Value;
+            prime2 = ((DerInteger)seq[5]).Value;
+            exponent1 = ((DerInteger)seq[6]).Value;
+            exponent2 = ((DerInteger)seq[7]).Value;
+            coefficient = ((DerInteger)seq[8]).Value;
         }
 
         public BigInteger Modulus
