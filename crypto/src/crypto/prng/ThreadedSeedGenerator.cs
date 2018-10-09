@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 #endif
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Prng
 {
     /**
@@ -71,35 +73,48 @@ namespace Org.BouncyCastle.Crypto.Prng
                 ThreadPool.QueueUserWorkItem(new WaitCallback(Run));
 #endif
 
-                for (int i = 0; i < end; i++)
-                {
-                    while (this.counter == last)
-                    {
-                        try
-                        {
 #if PORTABLE
-                            new AutoResetEvent(false).WaitOne(1);
-#else
-                            Thread.Sleep(1);
+                AutoResetEvent autoResetEvent = new AutoResetEvent(false);
 #endif
-                        }
-                        catch (Exception)
+
+                try
+                {
+                    for (int i = 0; i < end; i++)
+                    {
+                        while (this.counter == last)
                         {
-                            // ignore
+                            try
+                            {
+#if PORTABLE
+                                autoResetEvent.WaitOne(1);
+#else
+                                Thread.Sleep(1);
+#endif
+                            }
+                            catch (Exception)
+                            {
+                                // ignore
+                            }
+                        }
+
+                        last = this.counter;
+
+                        if (fast)
+                        {
+                            result[i] = (byte)last;
+                        }
+                        else
+                        {
+                            int bytepos = i / 8;
+                            result[bytepos] = (byte)((result[bytepos] << 1) | (last & 1));
                         }
                     }
-
-                    last = this.counter;
-
-                    if (fast)
-                    {
-                        result[i] = (byte)last;
-                    }
-                    else
-                    {
-                        int bytepos = i / 8;
-                        result[bytepos] = (byte)((result[bytepos] << 1) | (last & 1));
-                    }
+                }
+                finally
+                {
+#if PORTABLE
+                    autoResetEvent.Close();
+#endif
                 }
 
                 this.stop = true;
