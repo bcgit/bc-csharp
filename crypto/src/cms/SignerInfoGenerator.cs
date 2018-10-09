@@ -110,10 +110,10 @@ namespace Org.BouncyCastle.Cms
         }
 
         /**
-         * Build a generator with the passed in certHolder issuer and serial number as the signerIdentifier.
+         * Build a generator with the passed in X.509 certificate issuer and serial number as the signerIdentifier.
          *
          * @param contentSigner  operator for generating the final signature in the SignerInfo with.
-         * @param certHolder  carrier for the X.509 certificate related to the contentSigner.
+         * @param certificate  X.509 certificate related to the contentSigner.
          * @return  a SignerInfoGenerator
          * @throws OperatorCreationException   if the generator cannot be built.
          */
