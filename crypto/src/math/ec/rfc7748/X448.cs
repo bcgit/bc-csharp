@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 using Org.BouncyCastle.Utilities;
 
@@ -24,6 +23,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             0x0643ACE1U, 0x03F1BD65U, 0x084C1F82U, 0x0954459DU, 0x081B9672U, 0x0DD1031CU, 0x0EB7BDACU, 0x03881AFFU, 0x0423ACF0U,
             0x05013244U, 0x0F0FAB72U };
 
+        private static readonly object precompLock = new object();
         private static uint[] precompBase = null;
 
         public static bool CalculateAgreement(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
@@ -69,67 +69,69 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             X448Field.Mul(z, A, z);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            if (precompBase != null)
-                return;
-
-            precompBase = new uint[X448Field.Size * 446];
-
-            uint[] xs = precompBase;
-            uint[] zs = new uint[X448Field.Size * 445];
-
-            uint[] x = X448Field.Create();     x[0] = 5;          
-            uint[] z = X448Field.Create();     z[0] = 1;
-
-            uint[] n = X448Field.Create();
-            uint[] d = X448Field.Create();
-
-            //X448Field.Apm(x, z, n, d);
-            X448Field.Add(x, z, n);
-            X448Field.Sub(x, z, d);
-
-            uint[] c = X448Field.Create();     X448Field.Copy(d, 0, c, 0);
-
-            int off = 0;
-            for (;;)
+            lock (precompLock)
             {
-                X448Field.Copy(n, 0, xs, off);
+                if (precompBase != null)
+                    return;
 
-                if (off == (X448Field.Size * 445))
-                    break;
+                precompBase = new uint[X448Field.Size * 446];
 
-                PointDouble(x, z);
+                uint[] xs = precompBase;
+                uint[] zs = new uint[X448Field.Size * 445];
+
+                uint[] x = X448Field.Create();     x[0] = 5;          
+                uint[] z = X448Field.Create();     z[0] = 1;
+
+                uint[] n = X448Field.Create();
+                uint[] d = X448Field.Create();
 
                 //X448Field.Apm(x, z, n, d);
                 X448Field.Add(x, z, n);
                 X448Field.Sub(x, z, d);
-                X448Field.Mul(n, c, n);
-                X448Field.Mul(c, d, c);
 
-                X448Field.Copy(d, 0, zs, off);
+                uint[] c = X448Field.Create();     X448Field.Copy(d, 0, c, 0);
 
-                off += X448Field.Size;
-            }
+                int off = 0;
+                for (;;)
+                {
+                    X448Field.Copy(n, 0, xs, off);
 
-            uint[] u = X448Field.Create();
-            X448Field.Inv(c, u);
+                    if (off == (X448Field.Size * 445))
+                        break;
 
-            for (;;)
-            {
-                X448Field.Copy(xs, off, x, 0);
+                    PointDouble(x, z);
 
-                X448Field.Mul(x, u, x);
-                //X448Field.Normalize(x);
-                X448Field.Copy(x, 0, precompBase, off);
+                    //X448Field.Apm(x, z, n, d);
+                    X448Field.Add(x, z, n);
+                    X448Field.Sub(x, z, d);
+                    X448Field.Mul(n, c, n);
+                    X448Field.Mul(c, d, c);
 
-                if (off == 0)
-                    break;
+                    X448Field.Copy(d, 0, zs, off);
 
-                off -= X448Field.Size;
-                X448Field.Copy(zs, off, z, 0);
-                X448Field.Mul(u, z, u);
+                    off += X448Field.Size;
+                }
+
+                uint[] u = X448Field.Create();
+                X448Field.Inv(c, u);
+
+                for (;;)
+                {
+                    X448Field.Copy(xs, off, x, 0);
+
+                    X448Field.Mul(x, u, x);
+                    //X448Field.Normalize(x);
+                    X448Field.Copy(x, 0, precompBase, off);
+
+                    if (off == 0)
+                        break;
+
+                    off -= X448Field.Size;
+                    X448Field.Copy(zs, off, z, 0);
+                    X448Field.Mul(u, z, u);
+                }
             }
         }
 

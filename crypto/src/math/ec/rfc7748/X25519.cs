@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 using Org.BouncyCastle.Utilities;
 
@@ -21,6 +20,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         private static readonly int[] PsubS_x = { 0x03D48290, 0x02C7804D, 0x01207816, 0x028F5A68, 0x00881ED4, 0x00A2B71D,
             0x0217D1B7, 0x014CB523, 0x0088EC1A, 0x0042A264 };
 
+        private static readonly object precompLock = new object();
         private static int[] precompBase = null;
 
         public static bool CalculateAgreement(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
@@ -65,63 +65,65 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             X25519Field.Mul(z, A, z);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            if (precompBase != null)
-                return;
-
-            precompBase = new int[X25519Field.Size * 252];
-
-            int[] xs = precompBase;
-            int[] zs = new int[X25519Field.Size * 251];
-
-            int[] x = X25519Field.Create();     x[0] = 9;          
-            int[] z = X25519Field.Create();     z[0] = 1;
-
-            int[] n = X25519Field.Create();
-            int[] d = X25519Field.Create();
-
-            X25519Field.Apm(x, z, n, d);
-
-            int[] c = X25519Field.Create();     X25519Field.Copy(d, 0, c, 0);
-
-            int off = 0;
-            for (;;)
+            lock (precompLock)
             {
-                X25519Field.Copy(n, 0, xs, off);
+                if (precompBase != null)
+                    return;
 
-                if (off == (X25519Field.Size * 251))
-                    break;
+                precompBase = new int[X25519Field.Size * 252];
 
-                PointDouble(x, z);
+                int[] xs = precompBase;
+                int[] zs = new int[X25519Field.Size * 251];
+
+                int[] x = X25519Field.Create(); x[0] = 9;
+                int[] z = X25519Field.Create(); z[0] = 1;
+
+                int[] n = X25519Field.Create();
+                int[] d = X25519Field.Create();
 
                 X25519Field.Apm(x, z, n, d);
-                X25519Field.Mul(n, c, n);
-                X25519Field.Mul(c, d, c);
 
-                X25519Field.Copy(d, 0, zs, off);
+                int[] c = X25519Field.Create(); X25519Field.Copy(d, 0, c, 0);
 
-                off += X25519Field.Size;
-            }
+                int off = 0;
+                for (; ; )
+                {
+                    X25519Field.Copy(n, 0, xs, off);
 
-            int[] u = X25519Field.Create();
-            X25519Field.Inv(c, u);
+                    if (off == (X25519Field.Size * 251))
+                        break;
 
-            for (;;)
-            {
-                X25519Field.Copy(xs, off, x, 0);
+                    PointDouble(x, z);
 
-                X25519Field.Mul(x, u, x);
-                //X25519Field.Normalize(x);
-                X25519Field.Copy(x, 0, precompBase, off);
+                    X25519Field.Apm(x, z, n, d);
+                    X25519Field.Mul(n, c, n);
+                    X25519Field.Mul(c, d, c);
 
-                if (off == 0)
-                    break;
+                    X25519Field.Copy(d, 0, zs, off);
 
-                off -= X25519Field.Size;
-                X25519Field.Copy(zs, off, z, 0);
-                X25519Field.Mul(u, z, u);
+                    off += X25519Field.Size;
+                }
+
+                int[] u = X25519Field.Create();
+                X25519Field.Inv(c, u);
+
+                for (; ; )
+                {
+                    X25519Field.Copy(xs, off, x, 0);
+
+                    X25519Field.Mul(x, u, x);
+                    //X25519Field.Normalize(x);
+                    X25519Field.Copy(x, 0, precompBase, off);
+
+                    if (off == 0)
+                        break;
+
+                    off -= X25519Field.Size;
+                    X25519Field.Copy(zs, off, z, 0);
+                    X25519Field.Mul(u, z, u);
+                }
             }
         }
 
