@@ -658,6 +658,7 @@
     <Compile Include="src\crypto\IEntropySourceProvider.cs" />
     <Compile Include="src\crypto\IMac.cs" />
     <Compile Include="src\crypto\IRawAgreement.cs" />
+    <Compile Include="src\crypto\IRsa.cs" />
     <Compile Include="src\crypto\ISignatureFactory.cs" />
     <Compile Include="src\crypto\IStreamCalculator.cs" />
     <Compile Include="src\crypto\ISigner.cs" />
