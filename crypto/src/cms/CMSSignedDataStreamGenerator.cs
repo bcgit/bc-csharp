@@ -746,7 +746,7 @@ namespace Org.BouncyCastle.Cms
 			Stream result = s;
 			foreach (IDigest digest in digests)
 			{
-				result = GetSafeTeeOutputStream(result, new DigOutputStream(digest));
+				result = GetSafeTeeOutputStream(result, new DigestSink(digest));
 			}
 			return result;
 		}

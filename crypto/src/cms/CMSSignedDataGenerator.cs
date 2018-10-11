@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
@@ -128,7 +129,7 @@ namespace Org.BouncyCastle.Cms
                     IDigest dig = Helper.GetDigestInstance(digestName);
                     if (content != null)
                     {
-                        content.Write(new DigOutputStream(dig));
+                        content.Write(new DigestSink(dig));
                     }
                     hash = DigestUtilities.DoFinal(dig);
                     outer._digests.Add(digestOID, hash.Clone());

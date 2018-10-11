@@ -223,7 +223,7 @@ namespace Org.BouncyCastle.Cms
 					return new CmsProcessableInputStream(
 						new TeeInputStream(
 							readable.GetInputStream(),
-							new MacOutputStream(this.mac)));
+							new MacSink(this.mac)));
 				}
 				catch (IOException e)
 				{

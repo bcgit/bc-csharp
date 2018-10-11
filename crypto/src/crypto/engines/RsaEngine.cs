@@ -1,5 +1,7 @@
 using System;
 
+using Org.BouncyCastle.Math;
+
 namespace Org.BouncyCastle.Crypto.Engines
 {
     /**
@@ -8,7 +10,17 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class RsaEngine
 		: IAsymmetricBlockCipher
     {
-		private RsaCoreEngine core;
+		private readonly IRsa core;
+
+        public RsaEngine()
+            : this(new RsaCoreEngine())
+        {
+        }
+
+        public RsaEngine(IRsa rsa)
+        {
+            this.core = rsa;
+        }
 
         public virtual string AlgorithmName
         {
@@ -25,9 +37,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             bool				forEncryption,
             ICipherParameters	parameters)
         {
-			if (core == null)
-				core = new RsaCoreEngine();
-
 			core.Init(forEncryption, parameters);
 		}
 
@@ -69,10 +78,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             int		inOff,
             int		inLen)
         {
-			if (core == null)
-				throw new InvalidOperationException("RSA engine not initialised");
-
-			return core.ConvertOutput(core.ProcessBlock(core.ConvertInput(inBuf, inOff, inLen)));
+            BigInteger input = core.ConvertInput(inBuf, inOff, inLen);
+            BigInteger output = core.ProcessBlock(input);
+			return core.ConvertOutput(output);
         }
     }
 }

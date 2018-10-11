@@ -602,5 +602,17 @@ namespace Org.BouncyCastle.Security
         {
             return (string) algorithms[oid.Id];
         }
+
+        public static ISigner InitSigner(DerObjectIdentifier algorithmOid, bool forSigning, AsymmetricKeyParameter privateKey, SecureRandom random)
+        {
+            return InitSigner(algorithmOid.Id, forSigning, privateKey, random);
+        }
+
+        public static ISigner InitSigner(string algorithm, bool forSigning, AsymmetricKeyParameter privateKey, SecureRandom random)
+        {
+            ISigner signer = SignerUtilities.GetSigner(algorithm);
+            signer.Init(forSigning, ParameterUtilities.WithRandom(privateKey, random));
+            return signer;
+        }
     }
 }

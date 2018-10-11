@@ -596,7 +596,6 @@
     <Compile Include="src\cms\CounterSignatureDigestCalculator.cs" />
     <Compile Include="src\cms\DefaultAuthenticatedAttributeTableGenerator.cs" />
     <Compile Include="src\cms\DefaultSignedAttributeTableGenerator.cs" />
-    <Compile Include="src\cms\DigOutputStream.cs" />
     <Compile Include="src\cms\IDigestCalculator.cs" />
     <Compile Include="src\cms\KEKRecipientInfoGenerator.cs" />
     <Compile Include="src\cms\KEKRecipientInformation.cs" />
@@ -604,7 +603,6 @@
     <Compile Include="src\cms\KeyAgreeRecipientInformation.cs" />
     <Compile Include="src\cms\KeyTransRecipientInfoGenerator.cs" />
     <Compile Include="src\cms\KeyTransRecipientInformation.cs" />
-    <Compile Include="src\cms\MacOutputStream.cs" />
     <Compile Include="src\cms\OriginatorId.cs" />
     <Compile Include="src\cms\OriginatorInfoGenerator.cs" />
     <Compile Include="src\cms\OriginatorInformation.cs" />
@@ -616,7 +614,6 @@
     <Compile Include="src\cms\RecipientInfoGenerator.cs" />
     <Compile Include="src\cms\RecipientInformation.cs" />
     <Compile Include="src\cms\RecipientInformationStore.cs" />
-    <Compile Include="src\cms\SigOutputStream.cs" />
     <Compile Include="src\cms\SignerId.cs" />
     <Compile Include="src\cms\SignerInfoGenerator.cs" />
     <Compile Include="src\cms\SignerInformation.cs" />
@@ -835,8 +832,11 @@
     <Compile Include="src\crypto\generators\X25519KeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\X448KeyPairGenerator.cs" />
     <Compile Include="src\crypto\io\CipherStream.cs" />
+    <Compile Include="src\crypto\io\DigestSink.cs" />
     <Compile Include="src\crypto\io\DigestStream.cs" />
+    <Compile Include="src\crypto\io\MacSink.cs" />
     <Compile Include="src\crypto\io\MacStream.cs" />
+    <Compile Include="src\crypto\io\SignerSink.cs" />
     <Compile Include="src\crypto\io\SignerStream.cs" />
     <Compile Include="src\crypto\macs\CMac.cs" />
     <Compile Include="src\crypto\macs\CbcBlockCipherMac.cs" />
@@ -874,6 +874,10 @@
     <Compile Include="src\crypto\modes\gcm\Tables64kGcmMultiplier.cs" />
     <Compile Include="src\crypto\modes\gcm\Tables8kGcmMultiplier.cs" />
     <Compile Include="src\crypto\operators\Asn1Signature.cs" />
+    <Compile Include="src\crypto\operators\DefaultSignatureCalculator.cs" />
+    <Compile Include="src\crypto\operators\DefaultSignatureResult.cs" />
+    <Compile Include="src\crypto\operators\DefaultVerifierCalculator.cs" />
+    <Compile Include="src\crypto\operators\DefaultVerifierResult.cs" />
     <Compile Include="src\crypto\paddings\BlockCipherPadding.cs" />
     <Compile Include="src\crypto\paddings\ISO10126d2Padding.cs" />
     <Compile Include="src\crypto\paddings\ISO7816d4Padding.cs" />
