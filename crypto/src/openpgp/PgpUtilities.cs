@@ -367,7 +367,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             byte[]		buffer)
         {
             PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
-            Stream pOut = lData.Open(output, fileType, file.Name, file.LastWriteTime, buffer);
+            Stream pOut = lData.Open(output, fileType, file.Name, file.LastWriteTime, Arrays.Clone(buffer));
 			PipeFileContents(file, pOut, buffer.Length);
         }
 
