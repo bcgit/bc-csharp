@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Crypto.Prng
                 finally
                 {
 #if PORTABLE
-                    autoResetEvent.Close();
+                    autoResetEvent.Dispose();
 #endif
                 }
 
