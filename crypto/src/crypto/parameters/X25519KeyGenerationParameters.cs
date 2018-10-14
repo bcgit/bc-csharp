@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         : KeyGenerationParameters
     {
         public X25519KeyGenerationParameters(SecureRandom random)
-            : base(random, 256)
+            : base(random, 255)
         {
         }
     }

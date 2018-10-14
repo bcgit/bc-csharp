@@ -5,6 +5,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc8032
@@ -255,6 +256,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             X448Field.Encode(y, r, rOff);
             r[rOff + PointBytes - 1] = (byte)((x[0] & 1) << 7);
+        }
+
+        public static void GeneratePrivateKey(SecureRandom random, byte[] k)
+        {
+            random.NextBytes(k);
         }
 
         public static void GeneratePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)

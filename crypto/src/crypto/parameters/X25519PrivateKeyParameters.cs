@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public X25519PrivateKeyParameters(SecureRandom random)
             : base(true)
         {
-            random.NextBytes(data);
+            X25519.GeneratePrivateKey(random, data);
         }
 
         public X25519PrivateKeyParameters(byte[] buf, int off)
