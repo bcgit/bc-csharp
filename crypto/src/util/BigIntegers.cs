@@ -86,5 +86,10 @@ namespace Org.BouncyCastle.Utilities
             // fall back to a faster (restricted) method
             return new BigInteger(max.Subtract(min).BitLength - 1, random).Add(min);
         }
+
+        public static int GetUnsignedByteLength(BigInteger n)
+        {
+            return (n.BitLength + 7) / 8;
+        }
     }
 }

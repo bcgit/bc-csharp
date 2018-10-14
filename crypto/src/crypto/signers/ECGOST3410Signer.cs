@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * GOST R 34.10-2001 Signature Algorithm
      */
     public class ECGost3410Signer
-        : IDsa
+        : IDsaExt
     {
         private ECKeyParameters key;
         private SecureRandom random;
@@ -53,6 +53,11 @@ namespace Org.BouncyCastle.Crypto.Signers
 
                 this.key = (ECPublicKeyParameters)parameters;
             }
+        }
+
+        public virtual BigInteger Order
+        {
+            get { return key.Parameters.N; }
         }
 
         /**

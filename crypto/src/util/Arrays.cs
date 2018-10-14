@@ -469,6 +469,14 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        public static void Fill(byte[] buf, int from, int to, byte b)
+        {
+            for (int i = from; i < to; ++i)
+            {
+                buf[i] = b;
+            }
+        }
+
         public static byte[] CopyOf(byte[] data, int newLength)
         {
             byte[] tmp = new byte[newLength];

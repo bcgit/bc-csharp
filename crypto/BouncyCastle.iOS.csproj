@@ -137,6 +137,7 @@
     <Compile Include="src\asn1\anssi\ANSSINamedCurves.cs" />
     <Compile Include="src\asn1\anssi\ANSSIObjectIdentifiers.cs" />
     <Compile Include="src\asn1\bc\BCObjectIdentifiers.cs" />
+    <Compile Include="src\asn1\bsi\BsiObjectIdentifiers.cs" />
     <Compile Include="src\asn1\cmp\CAKeyUpdAnnContent.cs" />
     <Compile Include="src\asn1\cmp\CertConfirmContent.cs" />
     <Compile Include="src\asn1\cmp\CertOrEncCert.cs" />
@@ -646,6 +647,7 @@
     <Compile Include="src\crypto\IBufferedCipher.cs" />
     <Compile Include="src\crypto\ICipherParameters.cs" />
     <Compile Include="src\crypto\IDSA.cs" />
+    <Compile Include="src\crypto\IDsaExt.cs" />
     <Compile Include="src\crypto\IDerivationFunction.cs" />
     <Compile Include="src\crypto\IDerivationParameters.cs" />
     <Compile Include="src\crypto\IDigest.cs" />
@@ -980,14 +982,17 @@
     <Compile Include="src\crypto\signers\GOST3410Signer.cs" />
     <Compile Include="src\crypto\signers\GenericSigner.cs" />
     <Compile Include="src\crypto\signers\HMacDsaKCalculator.cs" />
+    <Compile Include="src\crypto\signers\IDsaEncoding.cs" />
     <Compile Include="src\crypto\signers\IDsaKCalculator.cs" />
     <Compile Include="src\crypto\signers\Iso9796d2PssSigner.cs" />
     <Compile Include="src\crypto\signers\Iso9796d2Signer.cs" />
     <Compile Include="src\crypto\signers\IsoTrailers.cs" />
+    <Compile Include="src\crypto\signers\PlainDsaEncoding.cs" />
     <Compile Include="src\crypto\signers\PssSigner.cs" />
     <Compile Include="src\crypto\signers\RandomDsaKCalculator.cs" />
     <Compile Include="src\crypto\signers\RsaDigestSigner.cs" />
     <Compile Include="src\crypto\signers\SM2Signer.cs" />
+    <Compile Include="src\crypto\signers\StandardDsaEncoding.cs" />
     <Compile Include="src\crypto\signers\X931Signer.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\AbstractTlsCipherFactory.cs" />
