@@ -517,14 +517,6 @@ namespace Org.BouncyCastle.Security
             {
                 return (new RsaDigestSigner(new NullDigest(), (AlgorithmIdentifier)null));
             }
-
-            if (Platform.EndsWith(mechanism, "withRSA"))
-            {
-                string digestName = mechanism.Substring(0, mechanism.LastIndexOf("with"));
-                IDigest digest = DigestUtilities.GetDigest(digestName);
-                return new RsaDigestSigner(digest);
-            }
-
             if (mechanism.Equals("RAWRSASSA-PSS"))
             {
                 // TODO Add support for other parameter settings
@@ -536,7 +528,12 @@ namespace Org.BouncyCastle.Security
                 // to be used can be overridden by subsequent parameter settings.
                 return (new PssSigner(new RsaBlindedEngine(), new Sha1Digest()));
             }
-
+            if (Platform.EndsWith(mechanism, "withRSA"))
+            {
+                string digestName = mechanism.Substring(0, mechanism.LastIndexOf("with"));
+                IDigest digest = DigestUtilities.GetDigest(digestName);
+                return new RsaDigestSigner(digest);
+            }
             if (Platform.EndsWith(mechanism, "withRSAandMGF1"))
             {
                 string digestName = mechanism.Substring(0, mechanism.LastIndexOf("with"));
