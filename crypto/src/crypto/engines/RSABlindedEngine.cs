@@ -13,9 +13,20 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class RsaBlindedEngine
         : IAsymmetricBlockCipher
     {
-        private readonly RsaCoreEngine core = new RsaCoreEngine();
+        private readonly IRsa core;
+
         private RsaKeyParameters key;
         private SecureRandom random;
+
+        public RsaBlindedEngine()
+            : this(new RsaCoreEngine())
+        {
+        }
+
+        public RsaBlindedEngine(IRsa rsa)
+        {
+            this.core = rsa;
+        }
 
         public virtual string AlgorithmName
         {

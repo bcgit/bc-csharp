@@ -56,7 +56,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             byte[] encoded = new byte[X448.PointSize];
             publicKey.Encode(encoded, 0);
-            X448.ScalarMult(data, 0, encoded, 0, buf, off);
+            if (!X448.CalculateAgreement(data, 0, encoded, 0, buf, off))
+                throw new InvalidOperationException("X448 agreement failed");
         }
     }
 }

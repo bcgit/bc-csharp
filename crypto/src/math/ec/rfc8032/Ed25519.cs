@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
@@ -61,6 +60,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int PrecompPoints = 1 << (PrecompTeeth - 1);
         private const int PrecompMask = PrecompPoints - 1;
 
+        private static readonly object precompLock = new object();
         // TODO[ed25519] Convert to PointPrecomp
         private static PointExt[] precompBaseTable = null;
         private static int[] precompBase = null;
@@ -631,10 +631,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X25519Field.Zero(p.t);
         }
 
-        //[MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            lock (typeof(Ed25519))
+            lock (precompLock)
             {
                 if (precompBase != null)
                     return;
@@ -679,7 +678,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                                 PointDouble(p);
                             }
                         }
-                }
+                    }
 
                     PointExt[] points = new PointExt[PrecompPoints];
                     int k = 0;

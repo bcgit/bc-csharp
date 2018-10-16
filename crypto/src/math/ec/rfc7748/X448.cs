@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
@@ -22,7 +23,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             0x0643ACE1U, 0x03F1BD65U, 0x084C1F82U, 0x0954459DU, 0x081B9672U, 0x0DD1031CU, 0x0EB7BDACU, 0x03881AFFU, 0x0423ACF0U,
             0x05013244U, 0x0F0FAB72U };
 
+        private static readonly object precompLock = new object();
         private static uint[] precompBase = null;
+
+        public static bool CalculateAgreement(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
+        {
+            ScalarMult(k, kOff, u, uOff, r, rOff);
+            return !Arrays.AreAllZeroes(r, rOff, PointSize);
+        }
 
         private static uint Decode32(byte[] bs, int off)
         {
@@ -61,12 +69,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             X448Field.Mul(z, A, z);
         }
 
-        // https://stackoverflow.com/questions/2223656/what-does-methodimploptions-synchronized-do
-        // Not available in lower .net standard versions
-        //[MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            lock (typeof(X448))
+            lock (precompLock)
             {
                 if (precompBase != null)
                     return;
@@ -76,8 +81,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 uint[] xs = precompBase;
                 uint[] zs = new uint[X448Field.Size * 445];
 
-                uint[] x = X448Field.Create(); x[0] = 5;
-                uint[] z = X448Field.Create(); z[0] = 1;
+                uint[] x = X448Field.Create();     x[0] = 5;          
+                uint[] z = X448Field.Create();     z[0] = 1;
 
                 uint[] n = X448Field.Create();
                 uint[] d = X448Field.Create();
@@ -86,10 +91,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 X448Field.Add(x, z, n);
                 X448Field.Sub(x, z, d);
 
-                uint[] c = X448Field.Create(); X448Field.Copy(d, 0, c, 0);
+                uint[] c = X448Field.Create();     X448Field.Copy(d, 0, c, 0);
 
                 int off = 0;
-                for (; ; )
+                for (;;)
                 {
                     X448Field.Copy(n, 0, xs, off);
 
@@ -112,7 +117,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 uint[] u = X448Field.Create();
                 X448Field.Inv(c, u);
 
-                for (; ; )
+                for (;;)
                 {
                     X448Field.Copy(xs, off, x, 0);
 

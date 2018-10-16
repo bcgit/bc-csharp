@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Cms
                 IMac mac = MacUtilities.GetMac(macAlgId.Algorithm);
 				// TODO Confirm no ParametersWithRandom needed
 	            mac.Init(cipherParameters);
-				Stream mOut = new TeeOutputStream(octetOutputStream, new MacOutputStream(mac));
+				Stream mOut = new TeeOutputStream(octetOutputStream, new MacSink(mac));
 
 				return new CmsAuthenticatedDataOutputStream(mOut, mac, cGen, authGen, eiGen);
 			}

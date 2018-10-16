@@ -376,6 +376,7 @@ namespace Org.BouncyCastle.Bcpg
             if (partialBuffer != null)
             {
                 PartialFlush(true);
+                Array.Clear(partialBuffer, 0, partialBuffer.Length);
                 partialBuffer = null;
             }
         }

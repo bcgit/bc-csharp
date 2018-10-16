@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
@@ -19,7 +20,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         private static readonly int[] PsubS_x = { 0x03D48290, 0x02C7804D, 0x01207816, 0x028F5A68, 0x00881ED4, 0x00A2B71D,
             0x0217D1B7, 0x014CB523, 0x0088EC1A, 0x0042A264 };
 
+        private static readonly object precompLock = new object();
         private static int[] precompBase = null;
+
+        public static bool CalculateAgreement(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
+        {
+            ScalarMult(k, kOff, u, uOff, r, rOff);
+            return !Arrays.AreAllZeroes(r, rOff, PointSize);
+        }
 
         private static uint Decode32(byte[] bs, int off)
         {
@@ -57,12 +65,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             X25519Field.Mul(z, A, z);
         }
 
-        // https://stackoverflow.com/questions/2223656/what-does-methodimploptions-synchronized-do
-        // Not available in lower .net standard versions
-        //[MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            lock (typeof(X25519))
+            lock (precompLock)
             {
                 if (precompBase != null)
                     return;

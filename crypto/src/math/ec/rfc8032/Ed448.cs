@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
@@ -70,6 +69,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int PrecompPoints = 1 << (PrecompTeeth - 1);
         private const int PrecompMask = PrecompPoints - 1;
 
+        private static readonly object precompLock = new object();
         // TODO[ed448] Convert to PointPrecomp
         private static PointExt[] precompBaseTable = null;
         private static uint[] precompBase = null;
@@ -463,12 +463,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X448Field.Mul(p.y, r.y, D);
             X448Field.Mul(C, D, E);
             X448Field.Mul(E, -C_d, E);
-    //        X448Field.Apm(B, E, F, G);
+            //X448Field.Apm(B, E, F, G);
             X448Field.Add(B, E, f);
             X448Field.Sub(B, E, g);
             X448Field.Add(r.x, r.y, E);
             X448Field.Mul(H, E, H);
-    //        X448Field.Apm(D, C, B, E);
+            //X448Field.Apm(D, C, B, E);
             X448Field.Add(D, C, b);
             X448Field.Sub(D, C, e);
             X448Field.Carry(b);
@@ -495,13 +495,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X448Field.Mul(p.y, r.y, D);
             X448Field.Mul(C, D, E);
             X448Field.Mul(E, -C_d, E);
-    //        X448Field.Apm(B, E, F, G);
+            //X448Field.Apm(B, E, F, G);
             X448Field.Add(B, E, F);
             X448Field.Sub(B, E, G);
             X448Field.Add(p.x, p.y, B);
             X448Field.Add(r.x, r.y, E);
             X448Field.Mul(B, E, H);
-    //        X448Field.Apm(D, C, B, E);
+            //X448Field.Apm(D, C, B, E);
             X448Field.Add(D, C, B);
             X448Field.Sub(D, C, E);
             X448Field.Carry(B);
@@ -592,10 +592,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X448Field.One(p.z);
         }
 
-        //[MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            lock (typeof(Ed448))
+            lock (precompLock)
             {
                 if (precompBase != null)
                     return;
@@ -631,7 +630,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                                 PointDouble(p);
                             }
                         }
-                }
+                    }
 
                     PointExt[] points = new PointExt[PrecompPoints];
                     int k = 0;
@@ -657,8 +656,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                         X448Field.Mul(q.x, q.z, q.x);
                         X448Field.Mul(q.y, q.z, q.y);
 
-                        //                X448Field.Normalize(q.x);
-                        //                X448Field.Normalize(q.y);
+                        //X448Field.Normalize(q.x);
+                        //X448Field.Normalize(q.y);
 
                         X448Field.Copy(q.x, 0, precompBase, off); off += X448Field.Size;
                         X448Field.Copy(q.y, 0, precompBase, off); off += X448Field.Size;
@@ -734,7 +733,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             x21 += x31 * L4_6;                          // x21:55/53
             x22 += x31 * L4_7;                          // x22:57/53
 
-    //        x30 += (x29 >> 28); x29 &= M28UL;
+            //x30 += (x29 >> 28); x29 &= M28UL;
             x14 += x30 * L4_0;                          // x14:54/--
             x15 += x30 * L4_1;                          // x15:54/53
             x16 += x30 * L4_2;                          // x16:56/--
@@ -754,7 +753,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             x19 += x29 * L4_6;                          // x19:57/52
             x20 += x29 * L4_7;                          // x20:58/52
 
-    //        x28 += (x27 >> 28); x27 &= M28UL;
+            //x28 += (x27 >> 28); x27 &= M28UL;
             x12 += x28 * L4_0;                          // x12:54/--
             x13 += x28 * L4_1;                          // x13:54/53
             x14 += x28 * L4_2;                          // x14:56/--
@@ -774,7 +773,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             x17 += x27 * L4_6;                          // x17:58/56
             x18 += x27 * L4_7;                          // x18:59/--
 
-    //        x26 += (x25 >> 28); x25 &= M28UL;
+            //x26 += (x25 >> 28); x25 &= M28UL;
             x10 += x26 * L4_0;                          // x10:54/--
             x11 += x26 * L4_1;                          // x11:54/53
             x12 += x26 * L4_2;                          // x12:56/--
@@ -951,7 +950,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Encode56(x10 | (x11 << 28), r, 35);
             Encode56(x12 | (x13 << 28), r, 42);
             Encode56(x14 | (x15 << 28), r, 49);
-    //        r[ScalarBytes - 1] = 0;
+            //r[ScalarBytes - 1] = 0;
             return r;
         }
 

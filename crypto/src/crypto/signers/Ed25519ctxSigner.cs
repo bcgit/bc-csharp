@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC.Rfc8032;
@@ -82,14 +81,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         private class Buffer : MemoryStream
         {
-            private readonly object lockObject = new object();
-
-            // https://stackoverflow.com/questions/2223656/what-does-methodimploptions-synchronized-do
-            // Not available in lower .net standard versions
-            //[MethodImpl(MethodImplOptions.Synchronized)]
             internal byte[] GenerateSignature(Ed25519PrivateKeyParameters privateKey, Ed25519PublicKeyParameters publicKey, byte[] ctx)
             {
-                lock (lockObject)
+                lock (this)
                 {
 #if PORTABLE
                     byte[] buf = ToArray();
@@ -105,10 +99,9 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
             }
 
-            //[MethodImpl(MethodImplOptions.Synchronized)]
             internal bool VerifySignature(Ed25519PublicKeyParameters publicKey, byte[] ctx, byte[] signature)
             {
-                lock (lockObject)
+                lock (this)
                 {
 #if PORTABLE
                     byte[] buf = ToArray();
@@ -124,16 +117,16 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
             }
 
-            //[MethodImpl(MethodImplOptions.Synchronized)]
             internal void Reset()
             {
-                lock (lockObject)
+                lock (this)
                 {
+                    long count = Position;
 #if PORTABLE
                     this.Position = 0L;
                     Streams.WriteZeroes(this, count);
 #else
-                    Array.Clear(GetBuffer(), 0, (int)Position);
+                    Array.Clear(GetBuffer(), 0, (int)count);
 #endif
                     this.Position = 0L;
                 }

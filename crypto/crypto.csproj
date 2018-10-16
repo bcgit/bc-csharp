@@ -2869,11 +2869,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\cms\DigOutputStream.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\cms\IDigestCalculator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -2905,11 +2900,6 @@
                 />
                 <File
                     RelPath = "src\cms\KeyTransRecipientInformation.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\cms\MacOutputStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -2985,11 +2975,6 @@
                 />
                 <File
                     RelPath = "src\cms\SignerInformationStore.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\cms\SigOutputStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3135,6 +3120,11 @@
                 />
                 <File
                     RelPath = "src\crypto\IRawAgreement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\IRsa.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -3989,12 +3979,27 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\io\DigestSink.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\io\DigestStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\io\MacSink.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\io\MacStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\io\SignerSink.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4180,6 +4185,26 @@
                 />
                 <File
                     RelPath = "src\crypto\operators\Asn1Signature.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\operators\DefaultSignatureCalculator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\operators\DefaultSignatureResult.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\operators\DefaultVerifierCalculator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\operators\DefaultVerifierResult.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

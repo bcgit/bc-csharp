@@ -299,6 +299,15 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Algorithm " + algorithm + " not recognised.");
         }
 
+        public static ICipherParameters WithRandom(ICipherParameters cp, SecureRandom random)
+        {
+            if (random != null)
+            {
+                cp = new ParametersWithRandom(cp, random);
+            }
+            return cp;
+        }
+
         private static Asn1OctetString CreateIVOctetString(
             SecureRandom	random,
             int				ivLength)
