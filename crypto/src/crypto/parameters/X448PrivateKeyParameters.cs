@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public X448PrivateKeyParameters(SecureRandom random)
             : base(true)
         {
-            random.NextBytes(data);
+            X448.GeneratePrivateKey(random, data);
         }
 
         public X448PrivateKeyParameters(byte[] buf, int off)

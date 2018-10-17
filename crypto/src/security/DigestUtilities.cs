@@ -31,6 +31,7 @@ namespace Org.BouncyCastle.Security
             GOST3411_2012_256, GOST3411_2012_512,
             KECCAK_224, KECCAK_256, KECCAK_288, KECCAK_384, KECCAK_512,
             MD2, MD4, MD5,
+            NONE,
             RIPEMD128, RIPEMD160, RIPEMD256, RIPEMD320,
             SHA_1, SHA_224, SHA_256, SHA_384, SHA_512,
             SHA_512_224, SHA_512_256,
@@ -222,6 +223,7 @@ namespace Org.BouncyCastle.Security
                     case DigestAlgorithm.MD2: return new MD2Digest();
                     case DigestAlgorithm.MD4: return new MD4Digest();
                     case DigestAlgorithm.MD5: return new MD5Digest();
+                    case DigestAlgorithm.NONE: return new NullDigest();
                     case DigestAlgorithm.RIPEMD128: return new RipeMD128Digest();
                     case DigestAlgorithm.RIPEMD160: return new RipeMD160Digest();
                     case DigestAlgorithm.RIPEMD256: return new RipeMD256Digest();

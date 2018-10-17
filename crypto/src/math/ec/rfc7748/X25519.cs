@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc7748
@@ -48,6 +49,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             n[0] &= 0xFFFFFFF8U;
             n[7] &= 0x7FFFFFFFU;
             n[7] |= 0x40000000U;
+        }
+
+        public static void GeneratePrivateKey(SecureRandom random, byte[] k)
+        {
+            random.NextBytes(k);
+
+            k[0] &= 0xF8;
+            k[ScalarSize - 1] &= 0x7F;
+            k[ScalarSize - 1] |= 0x40;
         }
 
         private static void PointDouble(int[] x, int[] z)

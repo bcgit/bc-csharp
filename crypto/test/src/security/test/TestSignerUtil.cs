@@ -140,7 +140,9 @@ namespace Org.BouncyCastle.Security.Tests
                     signParams = rsaPrivate;
                     verifyParams = rsaPublic;
                 }
-                else if (cipherName == "ECDSA")
+                else if (cipherName == "ECDSA"
+                    || cipherName == "CVC-ECDSA"
+                    || cipherName == "PLAIN-ECDSA")
                 {
                     signParams = ecPriv;
                     verifyParams = ecPub;

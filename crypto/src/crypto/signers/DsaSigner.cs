@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * Cryptography", pages 452 - 453.
      */
     public class DsaSigner
-        : IDsa
+        : IDsaExt
     {
         protected readonly IDsaKCalculator kCalculator;
 
@@ -70,6 +70,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
 
             this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);
+        }
+
+        public virtual BigInteger Order
+        {
+            get { return key.Parameters.Q; }
         }
 
         /**

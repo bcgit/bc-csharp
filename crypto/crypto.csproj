@@ -569,6 +569,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\bsi\BsiObjectIdentifiers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\cmp\CAKeyUpdAnnContent.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3099,6 +3104,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IDsaExt.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IEntropySource.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4784,6 +4794,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\signers\IDsaEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\signers\IDsaKCalculator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4804,6 +4819,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\signers\PlainDsaEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\signers\PSSSigner.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4820,6 +4840,11 @@
                 />
                 <File
                     RelPath = "src\crypto\signers\SM2Signer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\signers\StandardDsaEncoding.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
