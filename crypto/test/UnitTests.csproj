@@ -51,6 +51,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\asn1\test\ASN1IntegerTest.cs" />
     <Compile Include="src\asn1\test\ASN1SequenceParserTest.cs" />
     <Compile Include="src\asn1\test\ASN1UnitTest.cs" />
     <Compile Include="src\asn1\test\AdditionalInformationSyntaxUnitTest.cs" />

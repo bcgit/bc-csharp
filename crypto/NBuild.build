@@ -43,21 +43,21 @@
     <property name="switch" value="-" />
   </target>
   <target name="set-mono-2.0-framework-props">
-    <property name="compile-defines" value="NET_1_1" />
+    <property name="compile-defines" value="NET_2_0" />
     <property name="debug-extension" value="dll.mdb" />
     <property name="enable-nostdlib" value="false" />
     <property name="nunit-console" value="nunit-console" />
     <property name="switch" value="-" />
   </target>
   <target name="set-mono-3.5-framework-props">
-    <property name="compile-defines" value="NET_1_1" />
+    <property name="compile-defines" value="NET_2_0" />
     <property name="debug-extension" value="dll.mdb" />
     <property name="enable-nostdlib" value="false" />
     <property name="nunit-console" value="nunit-console" />
     <property name="switch" value="-" />
   </target>
   <target name="set-mono-4.0-framework-props">
-    <property name="compile-defines" value="NET_1_1" />
+    <property name="compile-defines" value="NET_2_0" />
     <property name="debug-extension" value="dll.mdb" />
     <property name="enable-nostdlib" value="false" />
     <property name="nunit-console" value="nunit-console" />
@@ -71,21 +71,21 @@
     <property name="switch" value="/" />
   </target>
   <target name="set-net-2.0-framework-props">
-    <property name="compile-defines" value="NET_1_1" />
+    <property name="compile-defines" value="NET_2_0" />
     <property name="debug-extension" value="pdb" />
     <property name="enable-nostdlib" value="true" />
     <property name="nunit-console" value="nunit-console.exe" />
     <property name="switch" value="/" />
   </target>
   <target name="set-net-3.5-framework-props">
-    <property name="compile-defines" value="NET_1_1" />
+    <property name="compile-defines" value="NET_2_0" />
     <property name="debug-extension" value="pdb" />
     <property name="enable-nostdlib" value="true" />
     <property name="nunit-console" value="nunit-console.exe" />
     <property name="switch" value="/" />
   </target>
   <target name="set-net-4.0-framework-props">
-    <property name="compile-defines" value="NET_1_1" />
+    <property name="compile-defines" value="NET_2_0" />
     <property name="debug-extension" value="pdb" />
     <property name="enable-nostdlib" value="true" />
     <property name="nunit-console" value="nunit-console.exe" />
