@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public X25519PublicKeyParameters GeneratePublicKey()
         {
             byte[] publicKey = new byte[X25519.PointSize];
-            X25519.ScalarMultBase(data, 0, publicKey, 0);
+            X25519.GeneratePublicKey(data, 0, publicKey, 0);
             return new X25519PublicKeyParameters(publicKey, 0);
         }
 

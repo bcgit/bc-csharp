@@ -61,6 +61,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             k[ScalarSize - 1] |= 0x80;
         }
 
+        public static void GeneratePublicKey(byte[] k, int kOff, byte[] r, int rOff)
+        {
+            ScalarMultBase(k, kOff, r, rOff);
+        }
+
         private static void PointDouble(uint[] x, uint[] z)
         {
             uint[] A = X448Field.Create();

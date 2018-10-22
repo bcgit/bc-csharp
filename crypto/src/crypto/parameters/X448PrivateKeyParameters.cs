@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public X448PublicKeyParameters GeneratePublicKey()
         {
             byte[] publicKey = new byte[X448.PointSize];
-            X448.ScalarMultBase(data, 0, publicKey, 0);
+            X448.GeneratePublicKey(data, 0, publicKey, 0);
             return new X448PublicKeyParameters(publicKey, 0);
         }
 
