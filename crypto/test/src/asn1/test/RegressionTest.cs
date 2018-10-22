@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			new AdditionalInformationSyntaxUnitTest(),
 			new AdmissionSyntaxUnitTest(),
 			new AdmissionsUnitTest(),
+            new Asn1IntegerTest(),
 			new AttributeTableUnitTest(),
             new BiometricDataUnitTest(),
             new BitStringTest(),

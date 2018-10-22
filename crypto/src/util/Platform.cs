@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET)
         internal static string GetEnvironmentVariable(
             string variable)
         {

@@ -11195,6 +11195,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\asn1\test\ASN1IntegerTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\asn1\test\ASN1SequenceParserTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
