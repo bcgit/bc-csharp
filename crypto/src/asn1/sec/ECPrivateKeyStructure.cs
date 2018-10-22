@@ -48,17 +48,8 @@ namespace Org.BouncyCastle.Asn1.Sec
         public ECPrivateKeyStructure(
             int         orderBitLength,
             BigInteger  key)
+            : this(orderBitLength, key, null)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-            if (orderBitLength < key.BitLength)
-                throw new ArgumentException("must be >= key bitlength", "orderBitLength");
-
-            byte[] bytes = BigIntegers.AsUnsignedByteArray((orderBitLength + 7) / 8, key);
-
-            this.seq = new DerSequence(
-                new DerInteger(1),
-                new DerOctetString(bytes));
         }
 
         [Obsolete("Use constructor which takes 'orderBitLength' instead, to guarantee correct encoding")]
