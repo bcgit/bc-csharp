@@ -934,6 +934,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             EncodePoint(p, r, rOff);
         }
 
+        internal static void ScalarMultBaseYZ(byte[] k, int kOff, int[] y, int[] z)
+        {
+            byte[] n = new byte[ScalarBytes];
+            PruneScalar(k, kOff, n);
+
+            PointAccum p = new PointAccum();
+            ScalarMultBase(n, p);
+            X25519Field.Copy(p.y, 0, y, 0);
+            X25519Field.Copy(p.z, 0, z, 0);
+        }
+
         private static void ScalarMultStraussVar(uint[] nb, uint[] np, PointExt p, PointAccum r)
         {
             Precompute();

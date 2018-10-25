@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -117,6 +118,8 @@ namespace Org.BouncyCastle.Pkcs
             if (privateKey is ECPrivateKeyParameters)
             {
                 ECPrivateKeyParameters priv = (ECPrivateKeyParameters)privateKey;
+                DerBitString publicKey = new DerBitString(ECKeyPairGenerator.GetCorrespondingPublicKey(priv).Q.GetEncoded(false));
+
                 ECDomainParameters dp = priv.Parameters;
                 int orderBitLength = dp.N.BitLength;
 
@@ -134,7 +137,7 @@ namespace Org.BouncyCastle.Pkcs
                     algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x2001, gostParams);
 
                     // TODO Do we need to pass any parameters here?
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D);
+                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, null);
                 }
                 else
                 {
@@ -149,8 +152,7 @@ namespace Org.BouncyCastle.Pkcs
                         x962 = new X962Parameters(priv.PublicKeyParamSet);
                     }
 
-                    // TODO Possible to pass the publicKey bitstring here?
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, x962);
+                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, x962);
 
                     algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
                 }

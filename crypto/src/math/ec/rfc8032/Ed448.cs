@@ -676,11 +676,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void PruneScalar(byte[] n, int nOff, byte[] r)
         {
-            Array.Copy(n, nOff, r, 0, ScalarBytes);
+            Array.Copy(n, nOff, r, 0, ScalarBytes - 1);
 
             r[0] &= 0xFC;
             r[ScalarBytes - 2] |= 0x80;
-            r[ScalarBytes - 1] &= 0x00;
+            r[ScalarBytes - 1]  = 0x00;
         }
 
         private static byte[] ReduceScalar(byte[] n)
@@ -1019,6 +1019,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PointExt p = new PointExt();
             ScalarMultBase(k, p);
             EncodePoint(p, r, rOff);
+        }
+
+        internal static void ScalarMultBaseXY(byte[] k, int kOff, uint[] x, uint[] y)
+        {
+            byte[] n = new byte[ScalarBytes];
+            PruneScalar(k, kOff, n);
+
+            PointExt p = new PointExt();
+            ScalarMultBase(n, p);
+            X448Field.Copy(p.x, 0, x, 0);
+            X448Field.Copy(p.y, 0, y, 0);
         }
 
         private static void ScalarMultStraussVar(uint[] nb, uint[] np, PointExt p, PointExt r)

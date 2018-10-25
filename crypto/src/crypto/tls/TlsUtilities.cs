@@ -1199,10 +1199,13 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     byte hashAlgorithm = signatureAndHashAlgorithm.Hash;
 
-                    // TODO Support values in the "Reserved for Private Use" range
-                    if (!HashAlgorithm.IsPrivate(hashAlgorithm))
+                    if (HashAlgorithm.IsRecognized(hashAlgorithm))
                     {
                         handshakeHash.TrackHashAlgorithm(hashAlgorithm);
+                    }
+                    else //if (HashAlgorithm.IsPrivate(hashAlgorithm))
+                    {
+                        // TODO Support values in the "Reserved for Private Use" range
                     }
                 }
             }

@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -20,45 +21,45 @@ namespace Org.BouncyCastle.Crypto.Tests
 	public class CcmTest
 		: SimpleTest
 	{
-		private byte[] K1 = Hex.Decode("404142434445464748494a4b4c4d4e4f");
-		private byte[] N1 = Hex.Decode("10111213141516");
-		private byte[] A1 = Hex.Decode("0001020304050607");
-		private byte[] P1 = Hex.Decode("20212223");
-		private byte[] C1 = Hex.Decode("7162015b4dac255d");
-		private byte[] T1 = Hex.Decode("6084341b");
+		private static readonly byte[] K1 = Hex.Decode("404142434445464748494a4b4c4d4e4f");
+        private static readonly byte[] N1 = Hex.Decode("10111213141516");
+        private static readonly byte[] A1 = Hex.Decode("0001020304050607");
+        private static readonly byte[] P1 = Hex.Decode("20212223");
+        private static readonly byte[] C1 = Hex.Decode("7162015b4dac255d");
+        private static readonly byte[] T1 = Hex.Decode("6084341b");
 
-		private byte[] K2 = Hex.Decode("404142434445464748494a4b4c4d4e4f");
-		private byte[] N2 = Hex.Decode("1011121314151617");
-		private byte[] A2 = Hex.Decode("000102030405060708090a0b0c0d0e0f");
-		private byte[] P2 = Hex.Decode("202122232425262728292a2b2c2d2e2f");
-		private byte[] C2 = Hex.Decode("d2a1f0e051ea5f62081a7792073d593d1fc64fbfaccd");
-		private byte[] T2 = Hex.Decode("7f479ffca464");
+        private static readonly byte[] K2 = Hex.Decode("404142434445464748494a4b4c4d4e4f");
+        private static readonly byte[] N2 = Hex.Decode("1011121314151617");
+        private static readonly byte[] A2 = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+        private static readonly byte[] P2 = Hex.Decode("202122232425262728292a2b2c2d2e2f");
+        private static readonly byte[] C2 = Hex.Decode("d2a1f0e051ea5f62081a7792073d593d1fc64fbfaccd");
+        private static readonly byte[] T2 = Hex.Decode("7f479ffca464");
 
-		private byte[] K3 = Hex.Decode("404142434445464748494a4b4c4d4e4f");
-		private byte[] N3 = Hex.Decode("101112131415161718191a1b");
-		private byte[] A3 = Hex.Decode("000102030405060708090a0b0c0d0e0f10111213");
-		private byte[] P3 = Hex.Decode("202122232425262728292a2b2c2d2e2f3031323334353637");
-		private byte[] C3 = Hex.Decode("e3b201a9f5b71a7a9b1ceaeccd97e70b6176aad9a4428aa5484392fbc1b09951");
-		private byte[] T3 = Hex.Decode("67c99240c7d51048");
+        private static readonly byte[] K3 = Hex.Decode("404142434445464748494a4b4c4d4e4f");
+        private static readonly byte[] N3 = Hex.Decode("101112131415161718191a1b");
+        private static readonly byte[] A3 = Hex.Decode("000102030405060708090a0b0c0d0e0f10111213");
+        private static readonly byte[] P3 = Hex.Decode("202122232425262728292a2b2c2d2e2f3031323334353637");
+        private static readonly byte[] C3 = Hex.Decode("e3b201a9f5b71a7a9b1ceaeccd97e70b6176aad9a4428aa5484392fbc1b09951");
+        private static readonly byte[] T3 = Hex.Decode("67c99240c7d51048");
 
-		private byte[] K4 = Hex.Decode("404142434445464748494a4b4c4d4e4f");
-		private byte[] N4 = Hex.Decode("101112131415161718191a1b1c");
-		private byte[] A4 = Hex.Decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-		private byte[] P4 = Hex.Decode("202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f");
-		private byte[] C4 = Hex.Decode("69915dad1e84c6376a68c2967e4dab615ae0fd1faec44cc484828529463ccf72b4ac6bec93e8598e7f0dadbcea5b");
-		private byte[] T4 = Hex.Decode("f4dd5d0ee404617225ffe34fce91");
+        private static readonly byte[] K4 = Hex.Decode("404142434445464748494a4b4c4d4e4f");
+        private static readonly byte[] N4 = Hex.Decode("101112131415161718191a1b1c");
+        private static readonly byte[] A4 = Hex.Decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
+        private static readonly byte[] P4 = Hex.Decode("202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f");
+        private static readonly byte[] C4 = Hex.Decode("69915dad1e84c6376a68c2967e4dab615ae0fd1faec44cc484828529463ccf72b4ac6bec93e8598e7f0dadbcea5b");
+        private static readonly byte[] T4 = Hex.Decode("f4dd5d0ee404617225ffe34fce91");
 
 		//
 		// long data vector
 		//
-		private byte[] C5 = Hex.Decode("49b17d8d3ea4e6174a48e2b65e6d8b417ac0dd3f8ee46ce4a4a2a509661cef52528c1cd9805333a5cfd482fa3f095a3c2fdd1cc47771c5e55fddd60b5c8d6d3fa5c8dd79d08b16242b6642106e7c0c28bd1064b31e6d7c9800c8397dbc3fa8071e6a38278b386c18d65d39c6ad1ef9501a5c8f68d38eb6474799f3cc898b4b9b97e87f9c95ce5c51bc9d758f17119586663a5684e0a0daf6520ec572b87473eb141d10471e4799ded9e607655402eca5176bbf792ef39dd135ac8d710da8e9e854fd3b95c681023f36b5ebe2fb213d0b62dd6e9e3cfe190b792ccb20c53423b2dca128f861a61d306910e1af418839467e466f0ec361d2539eedd99d4724f1b51c07beb40e875a87491ec8b27cd1");
-		private byte[] T5 = Hex.Decode("5c768856796b627b13ec8641581b");
+        private static readonly byte[] C5 = Hex.Decode("49b17d8d3ea4e6174a48e2b65e6d8b417ac0dd3f8ee46ce4a4a2a509661cef52528c1cd9805333a5cfd482fa3f095a3c2fdd1cc47771c5e55fddd60b5c8d6d3fa5c8dd79d08b16242b6642106e7c0c28bd1064b31e6d7c9800c8397dbc3fa8071e6a38278b386c18d65d39c6ad1ef9501a5c8f68d38eb6474799f3cc898b4b9b97e87f9c95ce5c51bc9d758f17119586663a5684e0a0daf6520ec572b87473eb141d10471e4799ded9e607655402eca5176bbf792ef39dd135ac8d710da8e9e854fd3b95c681023f36b5ebe2fb213d0b62dd6e9e3cfe190b792ccb20c53423b2dca128f861a61d306910e1af418839467e466f0ec361d2539eedd99d4724f1b51c07beb40e875a87491ec8b27cd1");
+        private static readonly byte[] T5 = Hex.Decode("5c768856796b627b13ec8641581b");
 
-		public override void PerformTest()
+        public override void PerformTest()
 		{
 			CcmBlockCipher ccm = new CcmBlockCipher(new AesEngine());
 
-			checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
+            checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
 			checkVectors(1, ccm, K2, 48, N2, A2, P2, T2, C2);
 			checkVectors(2, ccm, K3, 64, N3, A3, P3, T3, C3);
 

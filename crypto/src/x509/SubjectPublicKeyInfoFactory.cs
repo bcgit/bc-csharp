@@ -131,12 +131,12 @@ namespace Org.BouncyCastle.X509
                         x962 = new X962Parameters(_key.PublicKeyParamSet);
                     }
 
-                    Asn1OctetString p = (Asn1OctetString)(new X9ECPoint(_key.Q).ToAsn1Object());
+                    byte[] pubKey = _key.Q.GetEncoded(false);
 
                     AlgorithmIdentifier algID = new AlgorithmIdentifier(
                         X9ObjectIdentifiers.IdECPublicKey, x962.ToAsn1Object());
 
-                    return new SubjectPublicKeyInfo(algID, p.GetOctets());
+                    return new SubjectPublicKeyInfo(algID, pubKey);
                 }
             } // End of EC
 
