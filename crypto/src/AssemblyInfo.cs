@@ -33,9 +33,9 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Revision and Build Numbers
 // by using the '*' as shown below:
 
-[assembly: AssemblyVersion("1.8.3.0")]
-[assembly: AssemblyFileVersion("1.8.18223.1")]
-[assembly: AssemblyInformationalVersion("1.8.3")]
+[assembly: AssemblyVersion("1.8.4.0")]
+[assembly: AssemblyFileVersion("1.8.18300.1")]
+[assembly: AssemblyInformationalVersion("1.8.4")]
 
 //
 // In order to sign your assembly you must specify a key to use. Refer to the
