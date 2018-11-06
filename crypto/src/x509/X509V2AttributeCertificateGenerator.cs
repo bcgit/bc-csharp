@@ -164,7 +164,11 @@ namespace Org.BouncyCastle.X509
 				acInfoGen.SetExtensions(extGenerator.Generate());
 			}
 
-			AttributeCertificateInfo acInfo = acInfoGen.GenerateAttributeCertificateInfo();
+            AlgorithmIdentifier sigAlgID = (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails;
+
+            acInfoGen.SetSignature(sigAlgID);
+
+            AttributeCertificateInfo acInfo = acInfoGen.GenerateAttributeCertificateInfo();
 
             byte[] encoded = acInfo.GetDerEncoded();
 
@@ -174,15 +178,11 @@ namespace Org.BouncyCastle.X509
 
             Platform.Dispose(streamCalculator.Stream);
 
-            Asn1EncodableVector v = new Asn1EncodableVector();
-
-			v.Add(acInfo, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
-
-			try
+            try
 			{
-				v.Add(new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect()));
+                DerBitString signatureValue = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
 
-				return new X509V2AttributeCertificate(AttributeCertificate.GetInstance(new DerSequence(v)));
+                return new X509V2AttributeCertificate(new AttributeCertificate(acInfo, sigAlgID, signatureValue));
 			}
 			catch (Exception e)
 			{
