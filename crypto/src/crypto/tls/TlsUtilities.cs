@@ -963,14 +963,14 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             SecurityParameters securityParameters = context.SecurityParameters;
 
-            byte[] seed = securityParameters.extendedMasterSecret
+            byte[] seed = securityParameters.IsExtendedMasterSecret
                 ?   securityParameters.SessionHash
                 :   Concat(securityParameters.ClientRandom, securityParameters.ServerRandom);
 
             if (IsSsl(context))
                 return CalculateMasterSecret_Ssl(pre_master_secret, seed);
 
-            string asciiLabel = securityParameters.extendedMasterSecret
+            string asciiLabel = securityParameters.IsExtendedMasterSecret
                 ?   ExporterLabel.extended_master_secret
                 :   ExporterLabel.master_secret;
 

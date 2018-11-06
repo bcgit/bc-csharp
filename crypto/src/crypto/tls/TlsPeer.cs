@@ -6,6 +6,21 @@ namespace Org.BouncyCastle.Crypto.Tls
     public interface TlsPeer
     {
         /// <summary>
+        /// This implementation supports RFC 7627 and will always negotiate the extended_master_secret
+        /// extension where possible.
+        /// </summary>
+        /// <remarks>
+        /// When connecting to a peer that does not offer/accept this extension, it is recommended to
+        /// abort the handshake. This option is provided for interoperability with legacy peers,
+        /// although some TLS features will be disabled in that case (see RFC 7627 5.4).
+        /// </remarks>
+        /// <returns>
+        /// <code>true</code> if the handshake should be aborted when the peer does not negotiate the
+        /// extended_master_secret extension, or <code>false</code> to support legacy interoperability.
+        /// </returns>
+        bool RequiresExtendedMasterSecret();
+
+        /// <summary>
         /// draft-mathewson-no-gmtunixtime-00 2. "If existing users of a TLS implementation may rely on
         /// gmt_unix_time containing the current time, we recommend that implementors MAY provide the
         /// ability to set gmt_unix_time as an option only, off by default."

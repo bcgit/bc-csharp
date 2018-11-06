@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (sessionToResume != null && sessionToResume.IsResumable)
             {
                 SessionParameters sessionParameters = sessionToResume.ExportSessionParameters();
-                if (sessionParameters != null)
+                if (sessionParameters != null && sessionParameters.IsExtendedMasterSecret)
                 {
                     state.tlsSession = sessionToResume;
                     state.sessionParameters = sessionParameters;
@@ -356,6 +356,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                 state.sessionParameters = new SessionParameters.Builder()
                     .SetCipherSuite(securityParameters.CipherSuite)
                     .SetCompressionAlgorithm(securityParameters.CompressionAlgorithm)
+                    .SetExtendedMasterSecret(securityParameters.IsExtendedMasterSecret)
                     .SetMasterSecret(securityParameters.MasterSecret)
                     .SetPeerCertificate(serverCertificate)
                     .SetPskIdentity(securityParameters.PskIdentity)
@@ -383,8 +384,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual byte[] GenerateClientHello(ClientHandshakeState state, TlsClient client)
         {
-            MemoryStream buf = new MemoryStream();
-
             ProtocolVersion client_version = client.ClientVersion;
             if (!client_version.IsDtls)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -392,10 +391,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsClientContextImpl context = state.clientContext;
 
             context.SetClientVersion(client_version);
-            TlsUtilities.WriteVersion(client_version, buf);
 
             SecurityParameters securityParameters = context.SecurityParameters;
-            buf.Write(securityParameters.ClientRandom, 0, securityParameters.ClientRandom.Length);
 
             // Session ID
             byte[] session_id = TlsUtilities.EmptyBytes;
@@ -407,20 +404,35 @@ namespace Org.BouncyCastle.Crypto.Tls
                     session_id = TlsUtilities.EmptyBytes;
                 }
             }
+
+            bool fallback = client.IsFallback;
+
+            state.offeredCipherSuites = client.GetCipherSuites();
+
+            if (session_id.Length > 0 && state.sessionParameters != null)
+            {
+                if (!state.sessionParameters.IsExtendedMasterSecret
+                    || !Arrays.Contains(state.offeredCipherSuites, state.sessionParameters.CipherSuite)
+                    || CompressionMethod.cls_null != state.sessionParameters.CompressionAlgorithm)
+                {
+                    session_id = TlsUtilities.EmptyBytes;
+                }
+            }
+
+            state.clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(client.GetClientExtensions());
+
+            TlsExtensionsUtilities.AddExtendedMasterSecretExtension(state.clientExtensions);
+
+            MemoryStream buf = new MemoryStream();
+
+            TlsUtilities.WriteVersion(client_version, buf);
+
+            buf.Write(securityParameters.ClientRandom, 0, securityParameters.ClientRandom.Length);
+
             TlsUtilities.WriteOpaque8(session_id, buf);
 
             // Cookie
             TlsUtilities.WriteOpaque8(TlsUtilities.EmptyBytes, buf);
-
-            bool fallback = client.IsFallback;
-
-            /*
-             * Cipher suites
-             */
-            state.offeredCipherSuites = client.GetCipherSuites();
-
-            // Integer -> byte[]
-            state.clientExtensions = client.GetClientExtensions();
 
             // Cipher Suites (and SCSV)
             {
@@ -455,18 +467,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 TlsUtilities.WriteUint16ArrayWithUint16Length(state.offeredCipherSuites, buf);
             }
 
-            // TODO Add support for compression
-            // Compression methods
-            // state.offeredCompressionMethods = client.getCompressionMethods();
-            state.offeredCompressionMethods = new byte[]{ CompressionMethod.cls_null };
+            TlsUtilities.WriteUint8ArrayWithUint8Length(new byte[]{ CompressionMethod.cls_null }, buf);
 
-            TlsUtilities.WriteUint8ArrayWithUint8Length(state.offeredCompressionMethods, buf);
-
-            // Extensions
-            if (state.clientExtensions != null)
-            {
-                TlsProtocol.WriteExtensions(buf, state.clientExtensions);
-            }
+            TlsProtocol.WriteExtensions(buf, state.clientExtensions);
 
             return buf.ToArray();
         }
@@ -616,7 +619,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             state.client.NotifySelectedCipherSuite(selectedCipherSuite);
 
             byte selectedCompressionMethod = TlsUtilities.ReadUint8(buf);
-            if (!Arrays.Contains(state.offeredCompressionMethods, selectedCompressionMethod))
+            if (CompressionMethod.cls_null != selectedCompressionMethod)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             state.client.NotifySelectedCompressionMethod(selectedCompressionMethod);
 
@@ -637,6 +640,18 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             // Integer -> byte[]
             state.serverExtensions = TlsProtocol.ReadExtensions(buf);
+
+            /*
+             * RFC 7627 4. Clients and servers SHOULD NOT accept handshakes that do not use the extended
+             * master secret [..]. (and see 5.2, 5.3)
+             */
+            securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(state.serverExtensions);
+
+            if (!securityParameters.IsExtendedMasterSecret
+                && (state.resumedSession || state.client.RequiresExtendedMasterSecret()))
+            {
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+            }
 
             /*
              * RFC 3546 2.2 Note that the extended server hello message is only sent in response to an
@@ -725,7 +740,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             securityParameters.cipherSuite = selectedCipherSuite;
             securityParameters.compressionAlgorithm = selectedCompressionMethod;
 
-            if (sessionServerExtensions != null)
+            if (sessionServerExtensions != null && sessionServerExtensions.Count > 0)
             {
                 {
                     /*
@@ -739,8 +754,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                     securityParameters.encryptThenMac = serverSentEncryptThenMAC;
                 }
-
-                securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(sessionServerExtensions);
 
                 securityParameters.maxFragmentLength = EvaluateMaxFragmentLengthExtension(state.resumedSession,
                     sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
@@ -759,13 +772,6 @@ namespace Org.BouncyCastle.Crypto.Tls
                     && TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions, ExtensionType.session_ticket,
                         AlertDescription.illegal_parameter);
             }
-
-            /*
-             * TODO[session-hash]
-             * 
-             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
-             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
-             */
 
             if (sessionClientExtensions != null)
             {
@@ -839,7 +845,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             internal SessionParameters sessionParameters = null;
             internal SessionParameters.Builder sessionParametersBuilder = null;
             internal int[] offeredCipherSuites = null;
-            internal byte[] offeredCompressionMethods = null;
             internal IDictionary clientExtensions = null;
             internal IDictionary serverExtensions = null;
             internal byte[] selectedSessionID = null;
