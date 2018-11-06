@@ -1,5 +1,5 @@
 {
-  "version": "1.8.3",
+  "version": "1.8.4",
   "publicReleaseRefSpec": [
     "^refs/heads/master$", // we release out of master
     "^refs/heads/netstandard$", // we release out of netstandard
@@ -7,10 +7,5 @@
   ],
   "nugetPackageVersion":{
     "semVer": 2
-  },
-  "cloudBuild": {
-    "buildNumber": {
-      "enabled": false
-    }
   }
 }
