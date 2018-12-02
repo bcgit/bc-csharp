@@ -113,6 +113,7 @@ namespace Org.BouncyCastle.Cms
 			digestAliases.Add("SHA512", new string[] { "SHA-512" });
 
             noParams.Add(CmsSignedGenerator.EncryptionDsa);
+            noParams.Add(CmsSignedGenerator.EncryptionRsa);
             //			noParams.Add(EncryptionECDsa);
             noParams.Add(EncryptionECDsaWithSha1);
             noParams.Add(EncryptionECDsaWithSha224);
