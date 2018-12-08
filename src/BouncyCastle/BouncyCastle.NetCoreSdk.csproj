@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net45;net452;net472;netstandard2.0</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\build\BouncyCastle.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>$(NetCorePackageId)</PackageId>
+    <PackageId>BouncyCastle.Netstandard</PackageId>
+    <PackageReleaseNotes>"Microsoft.NET.Sdk" multi target version</PackageReleaseNotes>
+    <AssemblyName>BouncyCastle.Crypto</AssemblyName>
+    <RootNamespace>Org.BouncyCastle</RootNamespace>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Version>$(NetCoreVersion)</Version>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject></StartupObject>
+    
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>../../.nupkgs</PackageOutputPath>
+  </PropertyGroup>
+
+</Project>
