@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -67,7 +68,7 @@ namespace Org.BouncyCastle.Security
                     keyStructure.Coefficient);
             }
             // TODO?
-//			else if (algOid.Equals(X9ObjectIdentifiers.DHPublicNumber))
+            //			else if (algOid.Equals(X9ObjectIdentifiers.DHPublicNumber))
             else if (algOid.Equals(PkcsObjectIdentifiers.DhKeyAgreement))
             {
                 DHParameter para = new DHParameter(
@@ -82,7 +83,7 @@ namespace Org.BouncyCastle.Security
             }
             else if (algOid.Equals(OiwObjectIdentifiers.ElGamalAlgorithm))
             {
-                ElGamalParameter  para = new ElGamalParameter(
+                ElGamalParameter para = new ElGamalParameter(
                     Asn1Sequence.GetInstance(algID.Parameters.ToAsn1Object()));
                 DerInteger derX = (DerInteger)keyInfo.ParsePrivateKey();
 
@@ -126,7 +127,7 @@ namespace Org.BouncyCastle.Security
                     return new ECPrivateKeyParameters("EC", d, (DerObjectIdentifier)para.Parameters);
                 }
 
-                ECDomainParameters dParams = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H,  x9.GetSeed());
+                ECDomainParameters dParams = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed());
                 return new ECPrivateKeyParameters(d, dParams);
             }
             else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x2001))
@@ -163,14 +164,14 @@ namespace Org.BouncyCastle.Security
                 if (privKey is DerInteger)
                 {
                     x = DerInteger.GetInstance(privKey).PositiveValue;
-				}
+                }
                 else
                 {
                     x = new BigInteger(1, Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets()));
-				}
+                }
 
-				return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
-			}
+                return new Gost3410PrivateKeyParameters(x, gostParams.PublicKeyParamSet);
+            }
             else if (algOid.Equals(EdECObjectIdentifiers.id_X25519))
             {
                 return new X25519PrivateKeyParameters(GetRawKey(keyInfo, X25519PrivateKeyParameters.KeySize), 0);
@@ -186,6 +187,117 @@ namespace Org.BouncyCastle.Security
             else if (algOid.Equals(EdECObjectIdentifiers.id_Ed448))
             {
                 return new Ed448PrivateKeyParameters(GetRawKey(keyInfo, Ed448PrivateKeyParameters.KeySize), 0);
+            }
+            else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512)
+                     || algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256))
+            {
+                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(keyInfo.PrivateKeyAlgorithm.Parameters);
+                ECGOST3410Parameters ecSpec = null;
+                BigInteger d = null;
+                Asn1Object p = keyInfo.PrivateKeyAlgorithm.Parameters.ToAsn1Object();
+                if (p is Asn1Sequence && (Asn1Sequence.GetInstance(p).Count == 2 || Asn1Sequence.GetInstance(p).Count == 3))
+                {
+
+                    ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
+
+                    ecSpec = new ECGOST3410Parameters(
+                        new ECNamedDomainParameters(
+                            gostParams.PublicKeyParamSet, ecP),
+                            gostParams.PublicKeyParamSet,
+                            gostParams.DigestParamSet,
+                            gostParams.EncryptionParamSet);
+                    Asn1Encodable privKey = keyInfo.ParsePrivateKey();
+                    if (privKey is DerInteger)
+                    {
+                        d = DerInteger.GetInstance(privKey).PositiveValue;
+                    }
+                    else
+                    {
+                        byte[] encVal = Asn1OctetString.GetInstance(privKey).GetOctets();
+                        byte[] dVal = new byte[encVal.Length];
+
+                        for (int i = 0; i != encVal.Length; i++)
+                        {
+                            dVal[i] = encVal[encVal.Length - 1 - i];
+                        }
+
+                        d = new BigInteger(1, dVal);
+                    }
+
+
+                }
+                else
+                {
+                    X962Parameters parameters = X962Parameters.GetInstance(keyInfo.PrivateKeyAlgorithm.Parameters);
+
+                    if (parameters.IsNamedCurve)
+                    {
+                        DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(parameters.Parameters);
+                        X9ECParameters ecP = ECNamedCurveTable.GetByOid(oid);
+                        if (ecP == null)
+                        {
+                            ECDomainParameters gParam = ECGost3410NamedCurves.GetByOid(oid);
+                            ecSpec = new ECGOST3410Parameters(new ECNamedDomainParameters(
+                                    oid,
+                                    gParam.Curve,
+                                    gParam.G,
+                                    gParam.N,
+                                    gParam.H,
+                                    gParam.GetSeed()), gostParams.PublicKeyParamSet, gostParams.DigestParamSet,
+                                gostParams.EncryptionParamSet);
+                        }
+                        else
+                        {
+                            ecSpec = new ECGOST3410Parameters(new ECNamedDomainParameters(
+                                    oid,
+                                    ecP.Curve,
+                                    ecP.G,
+                                    ecP.N,
+                                    ecP.H,
+                                    ecP.GetSeed()), gostParams.PublicKeyParamSet, gostParams.DigestParamSet,
+                                gostParams.EncryptionParamSet);
+                        }
+                    }
+                    else if (parameters.IsImplicitlyCA)
+                    {
+                        ecSpec = null;
+                    }
+                    else
+                    {
+                        X9ECParameters ecP = X9ECParameters.GetInstance(parameters.Parameters);
+                        ecSpec = new ECGOST3410Parameters(new ECNamedDomainParameters(
+                                algOid,
+                                ecP.Curve,
+                                ecP.G,
+                                ecP.N,
+                                ecP.H,
+                                ecP.GetSeed()),
+                            gostParams.PublicKeyParamSet,
+                            gostParams.DigestParamSet,
+                            gostParams.EncryptionParamSet);
+                    }
+
+                    Asn1Encodable privKey = keyInfo.ParsePrivateKey();
+                    if (privKey is DerInteger)
+                    {
+                        DerInteger derD = DerInteger.GetInstance(privKey);
+                        d = derD.Value;
+                    }
+                    else
+                    {
+                        ECPrivateKeyStructure ec = ECPrivateKeyStructure.GetInstance(privKey);
+                        d = ec.GetKey();
+                    }
+                }
+
+                return new ECPrivateKeyParameters(
+                    d,
+                    new ECGOST3410Parameters(
+                        ecSpec,
+                        gostParams.PublicKeyParamSet,
+                        gostParams.DigestParamSet,
+                        gostParams.EncryptionParamSet));
+
             }
             else
             {
@@ -203,50 +315,50 @@ namespace Org.BouncyCastle.Security
         }
 
         public static AsymmetricKeyParameter DecryptKey(
-            char[]					passPhrase,
-            EncryptedPrivateKeyInfo	encInfo)
+            char[] passPhrase,
+            EncryptedPrivateKeyInfo encInfo)
         {
             return CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(passPhrase, encInfo));
         }
 
         public static AsymmetricKeyParameter DecryptKey(
-            char[]	passPhrase,
-            byte[]	encryptedPrivateKeyInfoData)
+            char[] passPhrase,
+            byte[] encryptedPrivateKeyInfoData)
         {
             return DecryptKey(passPhrase, Asn1Object.FromByteArray(encryptedPrivateKeyInfoData));
         }
 
         public static AsymmetricKeyParameter DecryptKey(
-            char[]	passPhrase,
-            Stream	encryptedPrivateKeyInfoStream)
+            char[] passPhrase,
+            Stream encryptedPrivateKeyInfoStream)
         {
             return DecryptKey(passPhrase, Asn1Object.FromStream(encryptedPrivateKeyInfoStream));
         }
 
         private static AsymmetricKeyParameter DecryptKey(
-            char[]		passPhrase,
-            Asn1Object	asn1Object)
+            char[] passPhrase,
+            Asn1Object asn1Object)
         {
             return DecryptKey(passPhrase, EncryptedPrivateKeyInfo.GetInstance(asn1Object));
         }
 
         public static byte[] EncryptKey(
-            DerObjectIdentifier		algorithm,
-            char[]					passPhrase,
-            byte[]					salt,
-            int						iterationCount,
-            AsymmetricKeyParameter	key)
+            DerObjectIdentifier algorithm,
+            char[] passPhrase,
+            byte[] salt,
+            int iterationCount,
+            AsymmetricKeyParameter key)
         {
             return EncryptedPrivateKeyInfoFactory.CreateEncryptedPrivateKeyInfo(
                 algorithm, passPhrase, salt, iterationCount, key).GetEncoded();
         }
 
         public static byte[] EncryptKey(
-            string					algorithm,
-            char[]					passPhrase,
-            byte[]					salt,
-            int						iterationCount,
-            AsymmetricKeyParameter	key)
+            string algorithm,
+            char[] passPhrase,
+            byte[] salt,
+            int iterationCount,
+            AsymmetricKeyParameter key)
         {
             return EncryptedPrivateKeyInfoFactory.CreateEncryptedPrivateKeyInfo(
                 algorithm, passPhrase, salt, iterationCount, key).GetEncoded();
