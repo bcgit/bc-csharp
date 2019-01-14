@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.IO;
-using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Crypto.Paddings;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509;
 
-namespace Org.BouncyCastle.Asn1.Cmp
+namespace Org.BouncyCastle.Cmp
 {
     public class ProtectedPkiMessageBuilder
     {
@@ -49,6 +42,12 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public ProtectedPkiMessageBuilder AddGeneralInfo(InfoTypeAndValue genInfo)
         {
             generalInfos.Add(genInfo);
+            return this;
+        }
+
+        public ProtectedPkiMessageBuilder SetMessageTime(DerGeneralizedTime generalizedTime)
+        {
+            hdrBuilBuilder.SetMessageTime(generalizedTime);
             return this;
         }
 
