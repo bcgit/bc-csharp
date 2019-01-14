@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
@@ -54,7 +56,7 @@ namespace crypto.test.src.ejbca.test
             GeneralName recipient = new GeneralName(issuerDN);
 
             ProtectedPkiMessageBuilder pbuilder = new ProtectedPkiMessageBuilder(sender, recipient);
-            // pbuilder. SetMessageTime(new Date());
+            pbuilder.SetMessageTime(new DerGeneralizedTime(DateTime.Now));
             // senderNonce
             pbuilder.SetSenderNonce(senderNonce);
             // TransactionId
