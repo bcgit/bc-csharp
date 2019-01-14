@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 
-namespace Org.BouncyCastle.Asn1.Crmf
+namespace Org.BouncyCastle.Crmf
 {
     public class CertificateRequestMessage
     {

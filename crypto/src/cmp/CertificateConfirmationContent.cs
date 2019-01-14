@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using Org.BouncyCastle.Cms;
+using Org.BouncyCastle.Asn1.Cmp;
 
 
-namespace Org.BouncyCastle.Asn1.Cmp
+namespace Org.BouncyCastle.Cmp
 {
     public class CertificateConfirmationContent
     {

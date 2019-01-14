@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Org.BouncyCastle.Asn1.Crmf
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Crmf;
+
+namespace Org.BouncyCastle.Crmf
 {
     public class AuthenticatorControl:IControl
     {
