@@ -20,8 +20,7 @@ namespace Org.BouncyCastle.Cms.Tests
         {
             get
             {
-                TestSuite suite = new TestSuite("CMS Tests");
-                suite.Add(new ProtectedMessageTest());
+                TestSuite suite = new TestSuite("CMS Tests");               
                 suite.Add(new CompressedDataTest());
                 suite.Add(new CompressedDataStreamTest());
                 suite.Add(new EnvelopedDataTest());
