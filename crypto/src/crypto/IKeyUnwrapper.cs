@@ -1,15 +1,16 @@
+using System;
+
 namespace Org.BouncyCastle.Crypto
 {
     /// <summary>
     /// Base interface for a key unwrapper.
     /// </summary>
-    /// <typeparam name="A">The algorithm details/parameter type for the key unwrapper.</typeparam>
-    public interface IKeyUnwrapper<out A>
+    public interface IKeyUnwrapper
 	{
         /// <summary>
         /// The parameter set used to configure this key unwrapper.
         /// </summary>
-        A AlgorithmDetails { get; }
+        Object AlgorithmDetails { get; }
 
         /// <summary>
         /// Unwrap the passed in data.
