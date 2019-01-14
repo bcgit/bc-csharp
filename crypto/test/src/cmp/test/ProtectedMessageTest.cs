@@ -174,7 +174,7 @@ namespace Org.BouncyCastle.Cmp.Tests
 
             
                        
-            IsTrue(msg.Verify(new Asn1MacFactoryProvider(),Strings.ToAsciiByteArray("TopSecret1234")));
+            IsTrue(msg.Verify(new PKMacBuilder(), "TopSecret1234".ToCharArray()));
 
         }
 
@@ -293,17 +293,10 @@ namespace Org.BouncyCastle.Cmp.Tests
             // Default instance.
             //
 
+            PKMacBuilder macFactory = new PKMacBuilder();
+            ProtectedPkiMessage msg = msgBuilder.Build(macFactory.Build("testpass".ToCharArray()));
 
-            PkMacFactory macFactory = new PkMacFactory(new SecureRandom());
-            macFactory.Password = Strings.ToAsciiByteArray("testpass");
-            ProtectedPkiMessage msg = msgBuilder.Build(macFactory);
-
-
-            MacVerifierFactory verifierFactory = new MacVerifierFactory(
-                new PkMacFactory((PbmParameter) msg.Header.ProtectionAlg.Parameters)
-                    {Password = Strings.ToAsciiByteArray("testpass")}
-            );
-            IsTrue(msg.Verify(verifierFactory));
+            IsTrue(msg.Verify(macFactory, "testpass".ToCharArray()));
         }
 
      
@@ -356,12 +349,7 @@ namespace Org.BouncyCastle.Cmp.Tests
 
         PbmParameter pbmParameters = PbmParameter.GetInstance(pkiMsg.Header.ProtectionAlg.Parameters);
 
-        MacVerifierFactory verifierFactory = new MacVerifierFactory(new PkMacFactory(pbmParameters)
-        {
-            Password = Strings.ToAsciiByteArray("secret")
-        });
-
-        IsTrue(pkiMsg.Verify(verifierFactory));
+        IsTrue(pkiMsg.Verify(new PKMacBuilder().SetParameters(pbmParameters), "secret".ToCharArray()));
     }
 
 
