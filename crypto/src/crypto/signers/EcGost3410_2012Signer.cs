@@ -1,7 +1,7 @@
 ﻿using Org.BouncyCastle.Math;
 using System;
 using System.IO;
-using NUnit.Core;
+
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Multiplier;
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             if (!forSigning)
             {
-                throw new InvalidOperationException("not initialised for signing.");
+                throw new InvalidOperationException("not initialized for signing");
             }
 
             byte[] mRev = new byte[message.Length]; // conversion is little-endian
@@ -79,15 +79,18 @@ namespace Org.BouncyCastle.Crypto.Signers
                     do
                     {
                         k = BigIntegers.CreateRandomBigInteger(n.BitLength, secureRandom);
-                    } while (k.Equals(BigInteger.Zero)); //  ECConstants.ZERO));
+                    }
+                    while (k.Equals(BigInteger.Zero)); //  ECConstants.ZERO));
 
                     ECPoint p = basePointMultiplier.Multiply(ec.G, k).Normalize();
 
                     r = p.AffineXCoord.ToBigInteger().Mod(n);
-                } while (r.Equals(BigInteger.Zero)); //  ECConstants.ZERO));
+                }
+                while (r.Equals(BigInteger.Zero)); //  ECConstants.ZERO));
 
                 s = (k.Multiply(e)).Add(d.Multiply(r)).Mod(n);
-            } while (s.Equals(BigInteger.Zero)); //   ECConstants.ZERO));
+            }
+            while (s.Equals(BigInteger.Zero)); //   ECConstants.ZERO));
 
             return new BigInteger[] { r, s };
         }
@@ -97,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             if (forSigning)
             {
-                throw new InvalidOperationException("not initialised for verification.");
+                throw new InvalidOperationException("not initialized for verification");
             }
 
 
@@ -146,6 +149,5 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             return new FixedPointCombMultiplier();
         }
-
     }
 }
