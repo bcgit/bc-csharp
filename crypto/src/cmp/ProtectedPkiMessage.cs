@@ -3,6 +3,8 @@ using Org.BouncyCastle.X509;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
@@ -10,8 +12,9 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Crmf;
 
-namespace Org.BouncyCastle.Asn1.Cmp
+namespace Org.BouncyCastle.Cmp
 {
    
     public class ProtectedPkiMessage
@@ -64,29 +67,31 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             return res;
         }
-        
 
-        
+        public bool Verify(IVerifierFactory verifierFactory)
+        {
+            IStreamCalculator streamCalculator = verifierFactory.CreateCalculator();
 
-        public bool Verify(IVerifierFactory verifier)
+            IVerifier result = (IVerifier)Process(streamCalculator);
+
+            return result.IsVerified(pkiMessage.Protection.GetBytes());
+        }
+
+        private Object Process(IStreamCalculator streamCalculator)
         {
            Asn1EncodableVector avec = new Asn1EncodableVector();
            avec.Add(pkiMessage.Header);
            avec.Add(pkiMessage.Body);
            byte[] enc =   new DerSequence(avec).GetDerEncoded();
 
-           IStreamCalculator streamCalculator = verifier.CreateCalculator();
-
            streamCalculator.Stream.Write(enc,0,enc.Length);
            streamCalculator.Stream.Flush();
            streamCalculator.Stream.Close();
           
-           IVerifier result = (IVerifier) streamCalculator.GetResult();     
-           return result.IsVerified(pkiMessage.Protection.GetBytes());          
+           return streamCalculator.GetResult();          
         }
 
-
-        public bool Verify(Asn1MacFactoryProvider asn1Factory, byte[] password)
+        public bool Verify(PKMacBuilder pkMacBuilder, char[] password)
         {
             if (!CmpObjectIdentifiers.passwordBasedMac.Equals(pkiMessage.Header.ProtectionAlg.Algorithm))
             {
@@ -95,13 +100,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             PbmParameter parameter = PbmParameter.GetInstance(pkiMessage.Header.ProtectionAlg.Parameters);
 
-            PkMacFactory macFactory = (PkMacFactory)asn1Factory.CreateMacFactory(parameter);
-                            
-            macFactory.Password = password;
-            MacVerifierFactory macVerifierFactory = new MacVerifierFactory(macFactory);
+            pkMacBuilder.SetParameters(parameter);
 
-            return Verify(macVerifierFactory);       
+            IBlockResult result = (IBlockResult)Process(pkMacBuilder.Build(password).CreateCalculator());
+
+            return Arrays.ConstantTimeAreEqual(result.Collect(), this.pkiMessage.Protection.GetBytes());
         }
-
     }
 }

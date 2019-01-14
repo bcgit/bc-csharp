@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crmf
         private CertTemplateBuilder _templateBuilder;
         private ArrayList _controls= new ArrayList();
         private ISignatureFactory _popSigner;
-        private PkMacFactory _pkMacBuilder;
+        private PKMacBuilder _pkMacBuilder;
         private char[] _password;
         private GeneralName _sender;
         private int _popoType = ProofOfPossession.TYPE_KEY_ENCIPHERMENT;
@@ -161,7 +161,7 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        public CertificateRequestMessageBuilder SetAuthInfoPKMAC(PkMacFactory pkmacFactory, char[] password)
+        public CertificateRequestMessageBuilder SetAuthInfoPKMAC(PKMacBuilder pkmacFactory, char[] password)
         {
             this._pkMacBuilder = pkmacFactory;
             this._password = password;
