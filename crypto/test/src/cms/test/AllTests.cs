@@ -3,7 +3,7 @@ using System;
 
 using NUnit.Core;
 using NUnit.Framework;
-
+using Org.BouncyCastle.Asn1.Tests;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Cms.Tests
@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Cms.Tests
             get
             {
                 TestSuite suite = new TestSuite("CMS Tests");
+                suite.Add(new ProtectedMessageTest());
                 suite.Add(new CompressedDataTest());
                 suite.Add(new CompressedDataStreamTest());
                 suite.Add(new EnvelopedDataTest());

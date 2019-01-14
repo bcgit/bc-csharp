@@ -4,6 +4,15 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+
+    public interface IControl
+    {
+        DerObjectIdentifier Type { get; }
+
+        Asn1Encodable Value { get; }
+    }
+
+
     public class Controls
         : Asn1Encodable
     {
