@@ -67,8 +67,7 @@ namespace crypto.test.src.ejbca.test
             PkiBody pkibody = new PkiBody(PkiBody.TYPE_INIT_REQ, msgs);
             pbuilder.SetBody(pkibody);
 
-                      
-            
+                                 
             AlgorithmIdentifier digAlg = new AlgorithmIdentifier("1.3.14.3.2.26"); // SHA1
             AlgorithmIdentifier macAlg = new AlgorithmIdentifier("1.2.840.113549.2.7"); // HMAC/SHA1
 
