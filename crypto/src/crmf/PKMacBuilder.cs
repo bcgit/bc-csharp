@@ -117,6 +117,11 @@ namespace Org.BouncyCastle.Crmf
         {       
         }
 
+        public PKMacBuilder(IPKMacPrimitivesProvider provider, AlgorithmIdentifier digestAlgorithmIdentifier, AlgorithmIdentifier macAlgorithmIdentifier) :
+            this(digestAlgorithmIdentifier, 1000, macAlgorithmIdentifier, provider)
+        {
+        }
+
         public PKMacBuilder(IPKMacPrimitivesProvider provider, int maxIterations)
         {
             this.provider = provider;
