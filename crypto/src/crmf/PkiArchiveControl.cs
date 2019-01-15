@@ -18,26 +18,47 @@ namespace Org.BouncyCastle.Crmf
 
         private readonly PkiArchiveOptions pkiArchiveOptions;
 
+        /// <summary>
+        /// Basic constructor - build from an PKIArchiveOptions structure.
+        /// </summary>
+        /// <param name="pkiArchiveOptions">the ASN.1 structure that will underlie this control.</param>
         public PkiArchiveControl(PkiArchiveOptions pkiArchiveOptions)
         {
             this.pkiArchiveOptions = pkiArchiveOptions;
         }
 
+        /// <summary>
+        /// Return the type of this control.
+        /// </summary>
+        /// <returns>CRMFObjectIdentifiers.id_regCtrl_pkiArchiveOptions</returns>
         public DerObjectIdentifier Type
         {
+            
             get { return type; }
         }
 
+        /// <summary>
+        /// Return the underlying ASN.1 object.
+        /// </summary>
+        /// <returns>a PKIArchiveOptions structure.</returns>    
         public Asn1Encodable Value
         {
             get { return pkiArchiveOptions; }
         }
 
+        /// <summary>
+        /// Return the archive control type, one of: encryptedPrivKey,keyGenParameters,or archiveRemGenPrivKey.
+        /// </summary>
+        /// <returns>the archive control type.</returns>
         public int ArchiveType
         {
             get { return pkiArchiveOptions.Type; }
         }
 
+        /// <summary>
+        /// Return whether this control contains enveloped data.
+        /// </summary>
+        /// <returns>true if the control contains enveloped data, false otherwise.</returns>
         public bool EnvelopedData
         {
             get
@@ -47,6 +68,10 @@ namespace Org.BouncyCastle.Crmf
             }
         }
 
+        /// <summary>
+        /// Return the enveloped data structure contained in this control.
+        /// </summary>
+        /// <returns>a CMSEnvelopedData object.</returns>
         public CmsEnvelopedData GetEnvelopedData()
         {
             try

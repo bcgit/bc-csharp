@@ -14,20 +14,36 @@ namespace Org.BouncyCastle.Crmf
     
         private readonly DerUtf8String token;
 
+        /// <summary>
+        /// Basic constructor - build from a UTF-8 string representing the token.
+        /// </summary>
+        /// <param name="token">UTF-8 string representing the token.</param>
         public RegTokenControl(DerUtf8String token)
         {
             this.token = token;
         }
-
+        /// <summary>
+        /// Basic constructor - build from a string representing the token.
+        /// </summary>
+        /// <param name="token">string representing the token.</param>
         public RegTokenControl(String token)
         {
             this.token = new DerUtf8String(token);
         }
 
+        /// <summary>
+        /// Return the type of this control.
+        /// </summary>
+        /// <returns>CRMFObjectIdentifiers.id_regCtrl_regToken</returns>
         public DerObjectIdentifier Type
         {
             get { return type; }
         }
+
+        /// <summary>
+        /// Return the token associated with this control (a UTF8String).
+        /// </summary>
+        /// <returns>a UTF8String.</returns>
         public Asn1Encodable Value
         {
             get { return token; }

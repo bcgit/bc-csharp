@@ -107,26 +107,45 @@ namespace Org.BouncyCastle.Crmf
         private byte[] salt;
         private int maxIterations;
 
+        /// <summary>
+        /// Default, IterationCount = 1000, OIW=IdSha1, Mac=HmacSHA1
+        /// </summary>
         public PKMacBuilder() :
             this(new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), 1000, new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance), new DefaultPKMacPrimitivesProvider())
         {
         }
 
+        /// <summary>
+        /// Defaults with IPKMacPrimitivesProvider
+        /// </summary>
+        /// <param name="provider"></param>
         public PKMacBuilder(IPKMacPrimitivesProvider provider) :
             this(new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), 1000, new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance), provider)
         {       
         }
 
+        /// <summary>
+        /// Create.
+        /// </summary>
+        /// <param name="provider">The Mac provider</param>
+        /// <param name="digestAlgorithmIdentifier">Digest Algorithm Id</param>
+        /// <param name="macAlgorithmIdentifier">Mac Algorithm Id</param>
         public PKMacBuilder(IPKMacPrimitivesProvider provider, AlgorithmIdentifier digestAlgorithmIdentifier, AlgorithmIdentifier macAlgorithmIdentifier) :
             this(digestAlgorithmIdentifier, 1000, macAlgorithmIdentifier, provider)
         {
         }
 
+        /// <summary>
+        /// Create a PKMAC builder enforcing a ceiling on the maximum iteration count.
+        /// </summary>
+        /// <param name="provider">supporting calculator</param>
+        /// <param name="maxIterations">max allowable value for iteration count.</param>
         public PKMacBuilder(IPKMacPrimitivesProvider provider, int maxIterations)
         {
             this.provider = provider;
             this.maxIterations = maxIterations;
         }
+
 
         private PKMacBuilder(AlgorithmIdentifier digestAlgorithmIdentifier, int iterationCount, AlgorithmIdentifier macAlgorithmIdentifier, IPKMacPrimitivesProvider provider)
         {
@@ -154,6 +173,12 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>
+        /// Set the iteration count.
+        /// </summary>
+        /// <param name="iterationCount">the iteration count.</param>
+        /// <returns>this</returns>
+        /// <exception cref="ArgumentException">if iteration count is less than 100</exception>
         public PKMacBuilder SetIterationCount(int iterationCount)
         {
             if (iterationCount < 100)
@@ -167,6 +192,11 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>
+        /// Set PbmParameters
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>this</returns>
         public PKMacBuilder SetParameters(PbmParameter parameters)
         {
             checkIterationCountCeiling(parameters.IterationCount.Value.IntValue);
@@ -176,6 +206,11 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>
+        /// The Secure random
+        /// </summary>
+        /// <param name="random">The random.</param>
+        /// <returns>this</returns>
         public PKMacBuilder SetSecureRandom(SecureRandom random)
         {
             this.random = random;
@@ -183,6 +218,11 @@ namespace Org.BouncyCastle.Crmf
             return this;          
         }
 
+        /// <summary>
+        /// Build an IMacFactory.
+        /// </summary>
+        /// <param name="password">The password.</param>
+        /// <returns>IMacFactory</returns>
         public IMacFactory Build(char[] password)
         {
             if (parameters != null)
