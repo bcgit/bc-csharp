@@ -42,7 +42,11 @@ namespace Org.BouncyCastle.Crmf
             byte[] d = _pubKeyInfo.GetDerEncoded();
             calc.Stream.Write(d, 0, d.Length);
             calc.Stream.Flush();
+#if PORTABLE
+            calc.Stream.Dispose();
+#else
             calc.Stream.Close();
+#endif
 
             this._publicKeyMAC = new PKMacValue(
                 (AlgorithmIdentifier)fact.AlgorithmDetails,
@@ -82,7 +86,11 @@ namespace Org.BouncyCastle.Crmf
             }
 
             calc.Stream.Flush();
+#if PORTABLE
+            calc.Stream.Dispose();
+#else
             calc.Stream.Close();
+#endif
             DefaultSignatureResult res = (DefaultSignatureResult)calc.GetResult();
             return new PopoSigningKey(popo, (AlgorithmIdentifier)signer.AlgorithmDetails, new DerBitString(res.Collect()));
         }

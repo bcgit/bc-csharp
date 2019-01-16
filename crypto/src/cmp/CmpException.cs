@@ -1,6 +1,7 @@
 ﻿using System;
+#if !PORTABLE
 using System.Runtime.Serialization;
-
+#endif
 
 namespace Org.BouncyCastle.Cmp
 {
@@ -18,8 +19,10 @@ namespace Org.BouncyCastle.Cmp
         {
         }
 
+#if !PORTABLE
         protected CmpException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
+#endif
     }
 }

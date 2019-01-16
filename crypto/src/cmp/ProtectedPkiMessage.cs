@@ -116,7 +116,11 @@ namespace Org.BouncyCastle.Cmp
 
             streamCalculator.Stream.Write(enc, 0, enc.Length);
             streamCalculator.Stream.Flush();
+#if PORTABLE
+            streamCalculator.Stream.Dispose();
+#else
             streamCalculator.Stream.Close();
+#endif
 
             return streamCalculator.GetResult();
         }

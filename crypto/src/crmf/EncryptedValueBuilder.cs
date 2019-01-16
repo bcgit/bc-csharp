@@ -121,8 +121,11 @@ namespace Org.BouncyCastle.Crmf
             try
             {
                 eOut.Write(data, 0, data.Length);
-
+#if PORTABLE
+                eOut.Dispose();
+#else
                 eOut.Close();
+#endif
             }
             catch (IOException e)
             {
