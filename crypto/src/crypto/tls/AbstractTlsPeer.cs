@@ -6,6 +6,11 @@ namespace Org.BouncyCastle.Crypto.Tls
     public abstract class AbstractTlsPeer
         :   TlsPeer
     {
+        public virtual bool RequiresExtendedMasterSecret()
+        {
+            return false;
+        }
+
         public virtual bool ShouldUseGmtUnixTime()
         {
             /*

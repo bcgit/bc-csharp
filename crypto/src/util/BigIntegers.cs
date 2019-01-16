@@ -46,6 +46,17 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Creates a Random BigInteger from the secure random of a given bit length.
+        /// </summary>
+        /// <param name="bitLength"></param>
+        /// <param name="secureRandom"></param>
+        /// <returns></returns>
+        public static BigInteger CreateRandomBigInteger(int bitLength, SecureRandom secureRandom)
+        {
+            return new BigInteger(bitLength, secureRandom);
+        }
+
         /**
         * Return a random BigInteger not less than 'min' and not greater than 'max'
         * 

@@ -33,6 +33,12 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new OptionalValidity(Asn1Sequence.GetInstance(obj));
         }
 
+        public OptionalValidity(Time notBefore, Time notAfter)
+        {
+            this.notBefore = notBefore;
+            this.notAfter = notAfter;
+        }
+
         public virtual Time NotBefore
         {
             get { return notBefore; }

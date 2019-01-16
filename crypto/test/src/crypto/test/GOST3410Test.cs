@@ -1553,15 +1553,15 @@ namespace Org.BouncyCastle.Crypto.Tests
 		{
 			new Gost3410_TEST1_512(),
 			new Gost3410_TEST2_512(),
-//	        new Gost3410_TEST1_1024(),
-//	        new Gost3410_TEST2_1024(),
-//	        new Gost3410_AParam(),
-//	        new Gost3410_BParam(),
-//	        new Gost3410_CParam(),
-//	        new Gost3410_DParam(),
-//	        new Gost3410_AExParam(),
-//	        new Gost3410_BExParam(),
-//	        new Gost3410_CExParam()
+  	        new Gost3410_TEST1_1024(),
+  	        new Gost3410_TEST2_1024(),
+            new Gost3410_AParam(),
+  	        new Gost3410_BParam(),
+  	        new Gost3410_CParam(),
+  	        new Gost3410_DParam(),
+  	        new Gost3410_AExParam(),
+  	        new Gost3410_BExParam(),
+  	        new Gost3410_CExParam()
 		};
 
 		public string Name
