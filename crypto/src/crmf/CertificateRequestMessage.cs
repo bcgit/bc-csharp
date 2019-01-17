@@ -211,8 +211,8 @@ namespace Org.BouncyCastle.Crmf
               calculator.Stream.Write(b,0,b.Length);
             }
             else
-            {
-                byte[] b = certReqMsg.GetDerEncoded();
+            {              
+                byte[] b = certReqMsg.CertReq.GetDerEncoded();
                 calculator.Stream.Write(b,0,b.Length);
             }
 

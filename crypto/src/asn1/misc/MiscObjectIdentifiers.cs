@@ -50,6 +50,8 @@ namespace Org.BouncyCastle.Asn1.Misc
         public static readonly string				Entrust					= "1.2.840.113533.7";
         public static readonly DerObjectIdentifier EntrustVersionExtension = new DerObjectIdentifier(Entrust + ".65.0");
 
+        public static readonly DerObjectIdentifier cast5CBC = new DerObjectIdentifier(Entrust+ ".66.10");
+
         //
         // Ascom
         //

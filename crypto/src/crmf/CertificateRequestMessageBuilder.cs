@@ -95,6 +95,12 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        public CertificateRequestMessageBuilder AddControl(IControl control)
+        {
+            _controls.Add(control);
+            return this;
+        }
+
         public CertificateRequestMessageBuilder SetProofOfPossessionSignKeySigner(ISignatureFactory popoSignatureFactory)
         {
             if (_popoPrivKey != null || _popRaVerified != null || _agreeMac != null)
@@ -102,7 +108,8 @@ namespace Org.BouncyCastle.Crmf
                 throw new InvalidOperationException("only one proof of possession is allowed.");
             }
 
-            this._popoType = ProofOfPossession.TYPE_KEY_ENCIPHERMENT;
+            this._popSigner = popoSignatureFactory;
+          
             return this;
         }
 
