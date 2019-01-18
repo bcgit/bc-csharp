@@ -9,8 +9,10 @@ using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 
-namespace Org.BouncyCastle.Crypto.Operators
+namespace Org.BouncyCastle.Operators
 {
     public class CmsContentEncryptorBuilder
     {
@@ -55,101 +57,8 @@ namespace Org.BouncyCastle.Crypto.Operators
         }
 
         public ICipherBuilderWithKey Build()
-         {
-            return new DefaultCipherBuilderWithKey(encryptionOID,keySize,random,new EnvelopedDataHelper());
-        }
-
-    }
-
-    public class DefaultCipherBuilderWithKey:ICipherBuilderWithKey
-    {
-
-        private readonly KeyParameter encKey;
-        private AlgorithmIdentifier algorithmIdentifier;
-       
-      
-
-
-        public DefaultCipherBuilderWithKey(DerObjectIdentifier encryptionOID, int keySize, SecureRandom random,EnvelopedDataHelper helper)
         {
-            if (random == null)
-            {
-                random= new SecureRandom();
-            }
-
-            CipherKeyGenerator keyGen = helper.CreateKeyGenerator(encryptionOID, random);
-            encKey = new KeyParameter(keyGen.GenerateKey());
-            algorithmIdentifier = helper.GenerateEncryptionAlgID(encryptionOID, encKey, random);
-          //  cipher = EnvelopedDataHelper.CreateContentCipher(true, encKey, algorithmIdentifier);
-        }
-
-
-        public object AlgorithmDetails
-        {
-            get { return algorithmIdentifier; }
-        }
-        public int GetMaxOutputSize(int inputLen)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public ICipher BuildCipher(Stream stream)
-        {
-
-            object cipher = EnvelopedDataHelper.CreateContentCipher(true, encKey, algorithmIdentifier);
-
-            //
-            // BufferedBlockCipher
-            // IStreamCipher
-            //
-
-            if (cipher is IStreamCipher)
-            {
-                   cipher = new BufferedStreamCipher((IStreamCipher)cipher);                
-            }
-
-            if (stream == null)
-            {
-                stream = new MemoryStream();
-            }
-
-            return new BufferedCipherWrapper((IBufferedCipher)cipher,stream);
-        }
-
-        public ICipherParameters Key
-        {
-            get { return encKey; }
+            return new Asn1CipherBuilderWithKey(encryptionOID,keySize,random);
         }
     }
-
-    public class BufferedCipherWrapper : ICipher
-    {
-        private readonly IBufferedCipher bufferedCipher;
-        private readonly CipherStream stream;
-
-        public BufferedCipherWrapper(IBufferedCipher bufferedCipher, Stream source)
-        {
-            this.bufferedCipher = bufferedCipher;
-            stream = new CipherStream(source, bufferedCipher, bufferedCipher);
-        }
-
-        public int GetMaxOutputSize(int inputLen)
-        {
-            return bufferedCipher.GetOutputSize(inputLen);
-        }
-
-        public int GetUpdateOutputSize(int inputLen)
-        {
-            return bufferedCipher.GetUpdateOutputSize(inputLen);
-        }
-
-        public Stream Stream
-        {
-            get { return stream; }
-        }
-    }
-  
-
-    
-
 }

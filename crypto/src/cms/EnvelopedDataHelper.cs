@@ -12,10 +12,11 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Crypto.Utilites;
 
 namespace Org.BouncyCastle.Cms
 {
-    public class EnvelopedDataHelper
+    internal class EnvelopedDataHelper
     {
         private static readonly IDictionary BaseCipherNames = Platform.CreateHashtable();
         private static readonly IDictionary MacAlgNames = Platform.CreateHashtable();
@@ -90,7 +91,6 @@ namespace Org.BouncyCastle.Cms
 
 
         public AlgorithmIdentifier GenerateEncryptionAlgID(DerObjectIdentifier encryptionOID, KeyParameter encKey, SecureRandom random)
-
         {
             return AlgorithmIdentifierFactory.GenerateEncryptionAlgID(encryptionOID, encKey.GetKey().Length * 8, random);
         }

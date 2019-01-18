@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
                 return new AlgorithmIdentifier(encryptionOID, cbcParams);
             }
-            else if (encryptionOID.Equals(PkcsObjectIdentifiers.Rc4))
+            else if (encryptionOID.Equals(PkcsObjectIdentifiers.rc4))
             {
                 return new AlgorithmIdentifier(encryptionOID, DerNull.Instance);
             }

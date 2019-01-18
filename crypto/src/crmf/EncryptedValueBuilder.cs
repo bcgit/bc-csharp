@@ -110,6 +110,7 @@ namespace Org.BouncyCastle.Crmf
             {
                 throw new CrmfException("cannot wrap key: " + e.Message, e);
             }
+
         }
 
         private EncryptedValue encryptData(byte[] data)

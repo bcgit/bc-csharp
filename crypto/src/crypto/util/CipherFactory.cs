@@ -13,10 +13,15 @@ using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 
-namespace Org.BouncyCastle.Crypto.Operators
+namespace Org.BouncyCastle.Crypto.Utilites
 {
     public class CipherFactory
     {
+        private CipherFactory()
+        {
+
+        }
+
         private static readonly short[] rc2Ekb =
         {
             0x5d, 0xbe, 0x9b, 0x8b, 0x11, 0x99, 0x6e, 0x4d, 0x59, 0xf3, 0x85, 0xa6, 0x3f, 0xb7, 0x83, 0xc5,
@@ -42,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         {
             DerObjectIdentifier encAlg = encryptionAlgID.Algorithm;
 
-            if (encAlg.Equals(PkcsObjectIdentifiers.Rc4))
+            if (encAlg.Equals(PkcsObjectIdentifiers.rc4))
             {
                 IStreamCipher cipher = new RC4Engine();
 

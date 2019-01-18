@@ -12,6 +12,10 @@ namespace Org.BouncyCastle.Crypto.Utilities
 {
     public class CipherKeyGeneratorFactory
     {
+        private CipherKeyGeneratorFactory()
+        {
+
+        }
 
         /**
    * Create a key generator for the passed in Object Identifier.
@@ -22,7 +26,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
    * @throws IllegalArgumentException if the algorithm cannot be identified.
    */
         public static CipherKeyGenerator CreateKeyGenerator(DerObjectIdentifier algorithm, SecureRandom random)
-
         {
             if (NistObjectIdentifiers.IdAes128Cbc.Equals(algorithm))
             {
@@ -72,7 +75,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
                 return keyGen;
             }
-            else if (PkcsObjectIdentifiers.Rc4.Equals(algorithm))
+            else if (PkcsObjectIdentifiers.rc4.Equals(algorithm))
             {
                 return createCipherKeyGenerator(random, 128);
             }
@@ -85,9 +88,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 throw new InvalidOperationException("cannot recognise cipher: " + algorithm);
             }
         }
-
-
-
 
         private static CipherKeyGenerator createCipherKeyGenerator(SecureRandom random, int keySize)
         {
