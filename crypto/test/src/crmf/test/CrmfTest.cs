@@ -21,6 +21,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Operators;
 
 namespace Org.BouncyCastle.Crmf.Tests
 {
@@ -114,12 +115,8 @@ namespace Org.BouncyCastle.Crmf.Tests
            
             certificateRequestMessageBuilder.AddControl(
                 new PKIArchiveControlBuilder(privateInfo, new GeneralName(new X509Name("CN=Test")))
-                    .AddRecipientGenerator(new KeyTransRecipientInfoGenerator()
-                    {
-                        RecipientCert = cert,
-                        SubjectKeyIdentifier = (DerOctetString)SubjectKeyIdentifier.CreateSha1KeyIdentifier(publicKeyInfo).ToAsn1Object()
-                     }).Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc)
-                        .Build())
+                    .AddRecipientGenerator(new CmsKeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
+                    .Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build())
             );
 
             var msg = certificateRequestMessageBuilder.Build();
