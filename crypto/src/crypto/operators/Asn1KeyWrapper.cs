@@ -35,6 +35,11 @@ namespace Org.BouncyCastle.Crypto.Operators
         }
     }
 
+    internal interface WapperProvider
+    {
+        object createWrapper();
+    }
+
     internal class RsaOaepWrapper : IKeyWrapper, IKeyUnwrapper
     {
         private readonly AlgorithmIdentifier algId;
