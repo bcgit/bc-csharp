@@ -29,20 +29,4 @@ namespace Org.BouncyCastle.Crypto.Operators
             throw new NotImplementedException();
         }
     }
-
-    public class Asn1KeyUnwrapper: IKeyUnwrapper
-    {
-        public object AlgorithmDetails
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public IBlockResult Unwrap(byte[] cipherText, int offset, int length)
-        {
-            throw new NotImplementedException();
-        }
-    }
 }
