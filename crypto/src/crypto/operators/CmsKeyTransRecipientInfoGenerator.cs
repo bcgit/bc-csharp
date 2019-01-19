@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Operators
         public CmsKeyTransRecipientInfoGenerator(X509Certificate recipCert, IKeyWrapper keyWrapper): base(new Asn1.Cms.IssuerAndSerialNumber(recipCert.IssuerDN, new DerInteger(recipCert.SerialNumber)))
         {
             this.keyWrapper = keyWrapper;
+            this.RecipientCert = recipCert;
+            this.RecipientPublicKey = recipCert.GetPublicKey();
         }
 
         public CmsKeyTransRecipientInfoGenerator(byte[] subjectKeyID, IKeyWrapper keyWrapper) : base(subjectKeyID)

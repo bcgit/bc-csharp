@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Crmf.Tests
             TestBasicMessageWithArchiveControl();
             TestBasicMessageWithArchiveControlJVMGenerated();
         }
-
+        
         [Test]
         public void TestFromJVM()
         {
@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Crmf.Tests
                 SignatureAlgorithm = "Sha1WithRSAEncryption"
             };
 
-            var cert = tcb.Build(rsaKeyPair.Private);
+            var cert = tcb.Build(rsaKeyPair.Private);         
 
             var publicKeyInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
             var privateInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(rsaKeyPair.Private);
