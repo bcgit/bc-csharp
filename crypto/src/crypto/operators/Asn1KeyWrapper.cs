@@ -17,15 +17,13 @@ namespace Org.BouncyCastle.Crypto.Operators
 {
     public class Asn1KeyWrapper : IKeyWrapper
     {
-        private X509Certificate cert;
         private string algorithm;
         private IKeyWrapper wrapper;
 
         public Asn1KeyWrapper(string algorithm, X509Certificate cert)
         {
             this.algorithm = algorithm;
-            this.cert = cert;
-            wrapper = KeyWrapperUtil.WrapperForName(algorithm);
+            wrapper = KeyWrapperUtil.WrapperForName(algorithm, cert.GetPublicKey());
         }
 
         public object AlgorithmDetails
@@ -55,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             providerMap["RSA/NONE/OAEPWITHSHA512ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_Sha512_Oaep);
         }
 
-        public static IKeyWrapper WrapperForName(string algorithm)
+        public static IKeyWrapper WrapperForName(string algorithm, ICipherParameters parameters)
         {
             WrapperProvider provider = (WrapperProvider)providerMap[Strings.ToUpperCase(algorithm)];
 
@@ -64,10 +62,10 @@ namespace Org.BouncyCastle.Crypto.Operators
                 throw new ArgumentException("could not resolve " + algorithm + " to a KeyWrapper");
             }
 
-            return (IKeyWrapper)provider.createWrapper();
+            return (IKeyWrapper)provider.createWrapper(true, parameters);
         }
 
-        public static IKeyUnwrapper UnwrapperForName(string algorithm)
+        public static IKeyUnwrapper UnwrapperForName(string algorithm, ICipherParameters parameters)
         {
             WrapperProvider provider = (WrapperProvider)providerMap[Strings.ToUpperCase(algorithm)];
             if (provider == null)
@@ -75,11 +73,11 @@ namespace Org.BouncyCastle.Crypto.Operators
                 throw new ArgumentException("could not resolve " + algorithm + " to a KeyUnwrapper");
             }
 
-            return (IKeyUnwrapper)provider.createWrapper();
+            return (IKeyUnwrapper)provider.createWrapper(false, parameters);
         }
     }
 
-    internal delegate object WrapperCreatorDelegate();
+    internal delegate object WrapperCreatorDelegate(bool forWrapping, ICipherParameters parameters);
 
     /// <summary>
     /// Wraps delegate and implements the WrapperProvider Interface.
@@ -93,48 +91,48 @@ namespace Org.BouncyCastle.Crypto.Operators
             this.creator = creator;
         }
 
-        public object createWrapper()
+        public object createWrapper(bool forWrapping, ICipherParameters parameters)
         {
-            return this.creator.Invoke();
+            return this.creator.Invoke(forWrapping, parameters);
         }
     }
 
     internal interface WrapperProvider
     {
-        object createWrapper();
+        object createWrapper(bool forWrapping, ICipherParameters parameters);
     }
 
     internal class RsaOaepWrapper : IKeyWrapper, IKeyUnwrapper
     {
-        internal static object Rsa_Sha1_Oaep()
+        internal static object Rsa_Sha1_Oaep(bool forWrapping, ICipherParameters parameters)
         {
-            return new RsaOaepWrapper(OiwObjectIdentifiers.IdSha1, new Sha1Digest());
+            return new RsaOaepWrapper(forWrapping, parameters, OiwObjectIdentifiers.IdSha1, new Sha1Digest());
         }
 
-        internal static object Rsa_Sha224_Oaep()
+        internal static object Rsa_Sha224_Oaep(bool forWrapping, ICipherParameters parameters)
         {
-            return new RsaOaepWrapper(NistObjectIdentifiers.IdSha224, new Sha224Digest());
+            return new RsaOaepWrapper(forWrapping, parameters, NistObjectIdentifiers.IdSha224, new Sha224Digest());
         }
 
-        internal static object Rsa_Sha256_Oaep()
+        internal static object Rsa_Sha256_Oaep(bool forWrapping, ICipherParameters parameters)
         {
-            return new RsaOaepWrapper(NistObjectIdentifiers.IdSha256, new Sha256Digest());
+            return new RsaOaepWrapper(forWrapping, parameters, NistObjectIdentifiers.IdSha256, new Sha256Digest());
         }
 
-        internal static object Rsa_Sha384_Oaep()
+        internal static object Rsa_Sha384_Oaep(bool forWrapping, ICipherParameters parameters)
         {
-            return new RsaOaepWrapper(NistObjectIdentifiers.IdSha384, new Sha384Digest());
+            return new RsaOaepWrapper(forWrapping, parameters, NistObjectIdentifiers.IdSha384, new Sha384Digest());
         }
 
-        internal static object Rsa_Sha512_Oaep()
+        internal static object Rsa_Sha512_Oaep(bool forWrapping, ICipherParameters parameters)
         {
-            return new RsaOaepWrapper(NistObjectIdentifiers.IdSha512, new Sha512Digest());
+            return new RsaOaepWrapper(forWrapping, parameters, NistObjectIdentifiers.IdSha512, new Sha512Digest());
         }
 
         private readonly AlgorithmIdentifier algId;
         private readonly IAsymmetricBlockCipher engine;
 
-        public RsaOaepWrapper(DerObjectIdentifier digestOid, IDigest digest)
+        public RsaOaepWrapper(bool forWrapping, ICipherParameters parameters, DerObjectIdentifier digestOid, IDigest digest)
         {
             AlgorithmIdentifier digestAlgId = new AlgorithmIdentifier(digestOid, DerNull.Instance);
 
@@ -145,6 +143,7 @@ namespace Org.BouncyCastle.Crypto.Operators
                     new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, digestAlgId),
                     RsaesOaepParameters.DefaultPSourceAlgorithm));
             this.engine = new OaepEncoding(new RsaBlindedEngine());
+            this.engine.Init(forWrapping, parameters);
         }
 
         public object AlgorithmDetails
