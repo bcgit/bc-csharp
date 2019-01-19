@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Crmf.Tests
             certificateRequestMessageBuilder.SetPublicKey(publicKeyInfo);
            
             certificateRequestMessageBuilder.AddControl(
-                new PKIArchiveControlBuilder(privateInfo, new GeneralName(new X509Name("CN=Test")))
+                new PkiArchiveControlBuilder(privateInfo, new GeneralName(new X509Name("CN=Test")))
                     .AddRecipientGenerator(new CmsKeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
                     .Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build())
             );
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Crmf.Tests
 
             checkCertReqMsgWithArchiveControl(rsaKeyPair,msg);
             checkCertReqMsgWithArchiveControl(rsaKeyPair, new CertificateRequestMessage(msg.GetEncoded()));
-    
+         
         }
 
         [Test]
@@ -172,13 +172,13 @@ namespace Org.BouncyCastle.Crmf.Tests
             KeyTransRecipientInformation info = (KeyTransRecipientInformation)collection[0];
 
             EncKeyWithID encKeyWithId = EncKeyWithID.GetInstance(info.GetContent(kp.Private));
-           
+                   
+
             IsTrue(encKeyWithId.HasIdentifier);
             IsTrue(!encKeyWithId.IsIdentifierUtf8String); // GeneralName at this point.
-
             
             IsTrue("Name", X509Name.GetInstance(GeneralName.GetInstance(encKeyWithId.Identifier).Name).Equivalent(new X509Name("CN=Test")));
-
+          
             PrivateKeyInfo privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
             IsTrue("Private Key", Arrays.AreEqual(privateKeyInfo.GetEncoded(), encKeyWithId.PrivateKey.GetEncoded()));
                             
