@@ -10,55 +10,16 @@ using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Asn1.Oiw;
+using Org.BouncyCastle.Asn1.Nist;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
-
-    public class KeyWrapperUtil
-    {
-        //
-        // Provider 
-        //
-        private static readonly IDictionary providerMap = Platform.CreateHashtable();
-
-        static KeyWrapperUtil()
-        {
-            providerMap["RSA/NONE/OAEPPADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_None_OaepPadding);
-            providerMap["RSA/NONE/OAEPWITHSHA256ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_None_OaepWithSha256andMGF1Padding);
-        }
-
-        public static IKeyWrapper WrapperForName(string algorithm)
-        {
-            WrapperProvider provider = (WrapperProvider)providerMap[Strings.ToUpperCase(algorithm)];
-
-            if (provider == null)
-            {
-                throw new ArgumentException("could not resolve " + algorithm + " to a KeyWrapper");
-            }
-
-            return (IKeyWrapper)provider.createWrapper();
-        }
-
-        public static IKeyUnwrapper UnWrapperForName(string algorithm)
-        {
-            WrapperProvider provider = (WrapperProvider)providerMap[Strings.ToUpperCase(algorithm)];
-            if (provider == null)
-            {
-                throw new ArgumentException("could not resolve " + algorithm + " to a KeyUnWrapper");
-            }
-
-            return (IKeyUnwrapper)provider.createWrapper();
-        }
-    }
-
-
     public class Asn1KeyWrapper : IKeyWrapper
     {
         private X509Certificate cert;
         private string algorithm;
         private IKeyWrapper wrapper;
-
-
 
         public Asn1KeyWrapper(string algorithm, X509Certificate cert)
         {
@@ -78,6 +39,46 @@ namespace Org.BouncyCastle.Crypto.Operators
         }
     }
 
+    internal class KeyWrapperUtil
+    {
+        //
+        // Provider 
+        //
+        private static readonly IDictionary providerMap = Platform.CreateHashtable();
+
+        static KeyWrapperUtil()
+        {
+            providerMap["RSA/NONE/OAEPWITHSHA1ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_Sha1_Oaep);
+            providerMap["RSA/NONE/OAEPWITHSHA224ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_Sha224_Oaep);
+            providerMap["RSA/NONE/OAEPWITHSHA256ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_Sha256_Oaep);
+            providerMap["RSA/NONE/OAEPWITHSHA384ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_Sha384_Oaep);
+            providerMap["RSA/NONE/OAEPWITHSHA512ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_Sha512_Oaep);
+        }
+
+        public static IKeyWrapper WrapperForName(string algorithm)
+        {
+            WrapperProvider provider = (WrapperProvider)providerMap[Strings.ToUpperCase(algorithm)];
+
+            if (provider == null)
+            {
+                throw new ArgumentException("could not resolve " + algorithm + " to a KeyWrapper");
+            }
+
+            return (IKeyWrapper)provider.createWrapper();
+        }
+
+        public static IKeyUnwrapper UnwrapperForName(string algorithm)
+        {
+            WrapperProvider provider = (WrapperProvider)providerMap[Strings.ToUpperCase(algorithm)];
+            if (provider == null)
+            {
+                throw new ArgumentException("could not resolve " + algorithm + " to a KeyUnwrapper");
+            }
+
+            return (IKeyUnwrapper)provider.createWrapper();
+        }
+    }
+
     internal delegate object WrapperCreatorDelegate();
 
     /// <summary>
@@ -92,40 +93,48 @@ namespace Org.BouncyCastle.Crypto.Operators
             this.creator = creator;
         }
 
-
         public object createWrapper()
         {
             return this.creator.Invoke();
         }
     }
 
-
-
     internal interface WrapperProvider
     {
         object createWrapper();
     }
 
-
-
     internal class RsaOaepWrapper : IKeyWrapper, IKeyUnwrapper
     {
-
-        internal static object Rsa_None_OaepPadding()
+        internal static object Rsa_Sha1_Oaep()
         {
-            return new RsaOaepWrapper(new Sha1Digest(), PkcsObjectIdentifiers.IdRsaesOaep);
+            return new RsaOaepWrapper(OiwObjectIdentifiers.IdSha1, new Sha1Digest());
         }
 
-        internal static object Rsa_None_OaepWithSha256andMGF1Padding()
+        internal static object Rsa_Sha224_Oaep()
         {
-            return new RsaOaepWrapper(new Sha256Digest(), PkcsObjectIdentifiers.IdRsaesOaep);
+            return new RsaOaepWrapper(NistObjectIdentifiers.IdSha224, new Sha224Digest());
         }
 
+        internal static object Rsa_Sha256_Oaep()
+        {
+            return new RsaOaepWrapper(NistObjectIdentifiers.IdSha256, new Sha256Digest());
+        }
+
+        internal static object Rsa_Sha384_Oaep()
+        {
+            return new RsaOaepWrapper(NistObjectIdentifiers.IdSha384, new Sha384Digest());
+        }
+
+        internal static object Rsa_Sha512_Oaep()
+        {
+            return new RsaOaepWrapper(NistObjectIdentifiers.IdSha512, new Sha512Digest());
+        }
 
         private readonly AlgorithmIdentifier algId;
         private readonly IAsymmetricBlockCipher engine;
 
-        public RsaOaepWrapper(IDigest digest, DerObjectIdentifier digestOid)
+        public RsaOaepWrapper(DerObjectIdentifier digestOid, IDigest digest)
         {
             AlgorithmIdentifier digestAlgId = new AlgorithmIdentifier(digestOid, DerNull.Instance);
 
@@ -137,6 +146,7 @@ namespace Org.BouncyCastle.Crypto.Operators
                     RsaesOaepParameters.DefaultPSourceAlgorithm));
             this.engine = new OaepEncoding(new RsaBlindedEngine());
         }
+
         public object AlgorithmDetails
         {
             get

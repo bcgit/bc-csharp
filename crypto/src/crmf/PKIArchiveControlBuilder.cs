@@ -9,7 +9,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Crmf
 {
-    public class PKIArchiveControlBuilder
+    public class PkiArchiveControlBuilder
     {
         private CmsEnvelopedDataGenerator envGen;
         private CmsProcessableByteArray keyContent;
@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="privateKeyInfo">the private key to be archived.</param>
         /// <param name="generalName">the general name to be associated with the private key.</param>
         ///
-        public PKIArchiveControlBuilder(PrivateKeyInfo privateKeyInfo, GeneralName generalName)
+        public PkiArchiveControlBuilder(PrivateKeyInfo privateKeyInfo, GeneralName generalName)
         {
             EncKeyWithID encKeyWithID = new EncKeyWithID(privateKeyInfo, generalName);
 
@@ -35,14 +35,11 @@ namespace Org.BouncyCastle.Crmf
 
             this.envGen = new CmsEnvelopedDataGenerator();
         }
-        
-
-
 
         ///<summary>Add a recipient generator to this control.</summary>       
         ///<param name="recipientGen"> recipient generator created for a specific recipient.</param>
         ///<returns>this builder object.</returns>       
-        public PKIArchiveControlBuilder AddRecipientGenerator(RecipientInfoGenerator recipientGen)
+        public PkiArchiveControlBuilder AddRecipientGenerator(RecipientInfoGenerator recipientGen)
         {
             envGen.AddRecipientInfoGenerator(recipientGen);
             return this;
@@ -56,6 +53,6 @@ namespace Org.BouncyCastle.Crmf
             CmsEnvelopedData envContent = envGen.Generate(keyContent, contentEncryptor);
             EnvelopedData envD = EnvelopedData.GetInstance(envContent.ContentInfo.Content);        
             return new PkiArchiveControl(new PkiArchiveOptions(new EncryptedKey(envD)));
+        }
     }
-}
 }

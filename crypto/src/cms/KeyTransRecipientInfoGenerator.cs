@@ -73,14 +73,11 @@ namespace Org.BouncyCastle.Cms
 
         public RecipientInfo Generate(KeyParameter contentEncryptionKey, SecureRandom random)
         {
-            byte[] keyBytes = contentEncryptionKey.GetKey();
             AlgorithmIdentifier keyEncryptionAlgorithm = this.AlgorithmDetails;
 
             this.random = random;
 
-            IWrapper keyWrapper = Helper.CreateWrapper(keyEncryptionAlgorithm.Algorithm.Id);
-            keyWrapper.Init(true, new ParametersWithRandom(recipientPublicKey, random));
-            byte[] encryptedKeyBytes = keyWrapper.Wrap(keyBytes, 0, keyBytes.Length);
+            byte[] encryptedKeyBytes = GenerateWrappedKey(contentEncryptionKey);
 
             RecipientIdentifier recipId;
             if (recipientTbsCert != null)
