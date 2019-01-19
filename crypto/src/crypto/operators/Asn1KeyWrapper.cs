@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         static KeyWrapperUtil()
         {
             providerMap["RSA/NONE/OAEPPADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_None_OaepPadding);
-            providerMap["RSA/NONE/OAEPWITHSHA256ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_None_OaepWithSha256andMGF1Padding);          
+            providerMap["RSA/NONE/OAEPWITHSHA256ANDMGF1PADDING"] = new WrapperCreator(RsaOaepWrapper.Rsa_None_OaepWithSha256andMGF1Padding);
         }
 
         public static IKeyWrapper WrapperForName(string algorithm)
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         private string algorithm;
         private IKeyWrapper wrapper;
 
-      
+
 
         public Asn1KeyWrapper(string algorithm, X509Certificate cert)
         {
@@ -106,14 +106,14 @@ namespace Org.BouncyCastle.Crypto.Operators
         object createWrapper();
     }
 
-   
+
 
     internal class RsaOaepWrapper : IKeyWrapper, IKeyUnwrapper
     {
 
         internal static object Rsa_None_OaepPadding()
         {
-            return new RsaOaepWrapper(new Sha1Digest(),PkcsObjectIdentifiers.IdRsaesOaep);
+            return new RsaOaepWrapper(new Sha1Digest(), PkcsObjectIdentifiers.IdRsaesOaep);
         }
 
         internal static object Rsa_None_OaepWithSha256andMGF1Padding()
@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 
         public RsaOaepWrapper(IDigest digest, DerObjectIdentifier digestOid)
         {
-            AlgorithmIdentifier digestAlgId = new AlgorithmIdentifier(digestOid, DerNull.Instance);       
+            AlgorithmIdentifier digestAlgId = new AlgorithmIdentifier(digestOid, DerNull.Instance);
 
             this.algId = new AlgorithmIdentifier(
                 PkcsObjectIdentifiers.IdRsaesOaep,
