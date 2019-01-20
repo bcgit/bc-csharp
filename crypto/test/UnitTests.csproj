@@ -137,6 +137,7 @@
     <Compile Include="src\cms\test\Rfc4134Test.cs" />
     <Compile Include="src\cms\test\SignedDataStreamTest.cs" />
     <Compile Include="src\cms\test\SignedDataTest.cs" />
+    <Compile Include="src\crmf\test\CrmfTest.cs" />
     <Compile Include="src\crypto\examples\DESExample.cs" />
     <Compile Include="src\crypto\io\test\AllTests.cs" />
     <Compile Include="src\crypto\io\test\CipherStreamTest.cs" />
@@ -185,11 +186,13 @@
     <Compile Include="src\crypto\test\EAXTest.cs" />
     <Compile Include="src\crypto\test\ECDHKEKGeneratorTest.cs" />
     <Compile Include="src\crypto\test\ECGOST3410Test.cs" />
+    <Compile Include="src\crypto\test\ECGOST3410_2012Test.cs" />
     <Compile Include="src\crypto\test\ECIESTest.cs" />
     <Compile Include="src\crypto\test\ECNRTest.cs" />
     <Compile Include="src\crypto\test\ECTest.cs" />
     <Compile Include="src\crypto\test\Ed25519Test.cs" />
     <Compile Include="src\crypto\test\Ed448Test.cs" />
+    <Compile Include="src\crypto\test\EGOST3410_2012SignatureTest.cs" />
     <Compile Include="src\crypto\test\ElGamalTest.cs" />
     <Compile Include="src\crypto\test\EqualsHashCodeTest.cs" />
     <Compile Include="src\crypto\test\GCMTest.cs" />
@@ -386,6 +389,7 @@
     <Compile Include="src\pkcs\test\EncryptedPrivateKeyInfoTest.cs" />
     <Compile Include="src\pkcs\test\PKCS10Test.cs" />
     <Compile Include="src\pkcs\test\PKCS12StoreTest.cs" />
+    <Compile Include="src\ProtectedMessageTest.cs" />
     <Compile Include="src\security\test\SecureRandomTest.cs" />
     <Compile Include="src\security\test\TestDigestUtil.cs" />
     <Compile Include="src\security\test\TestDotNetUtil.cs" />
@@ -1316,5 +1320,8 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\NewFolder1\" />
   </ItemGroup>
 </Project>

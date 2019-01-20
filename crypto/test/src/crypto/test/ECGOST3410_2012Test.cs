@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid("Tc26-Gost-3410-12-512-paramSetA");
             ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-            ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512,null);
+            ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512,null);
             ECKeyGenerationParameters paramameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(paramameters);
@@ -49,8 +49,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                     keyParameters = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(info);
 
                     { // Specifically cast and test gost parameters.
-                        ECGOST3410Parameters gParam = (ECGOST3410Parameters)generatedKeyParameters.Parameters;
-                        ECGOST3410Parameters rParam = (ECGOST3410Parameters)keyParameters.Parameters;
+                        ECGost3410Parameters gParam = (ECGost3410Parameters)generatedKeyParameters.Parameters;
+                        ECGost3410Parameters rParam = (ECGost3410Parameters)keyParameters.Parameters;
 
 
                         bool ok = SafeEquals(gParam.DigestParamSet, rParam.DigestParamSet) &&
@@ -64,8 +64,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                     }
 
-                    if (!((ECGOST3410Parameters)keyParameters.Parameters).Name.Equals(
-                        ((ECGOST3410Parameters)generatedKeyParameters.Parameters).Name))
+                    if (!((ECGost3410Parameters)keyParameters.Parameters).Name.Equals(
+                        ((ECGost3410Parameters)generatedKeyParameters.Parameters).Name))
                     {
                         return new SimpleTestResult(false, "Name does not match");
                     }
@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Crypto.Tests
            
                 DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid("Tc26-Gost-3410-12-512-paramSetA");
                 ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-                ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512,null);
+                ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512,null);
                 ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
                 ECKeyPairGenerator engine = new ECKeyPairGenerator();
                 engine.Init(parameters);
@@ -145,8 +145,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                     keyParameters = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(info);
 
                     { // Specifically cast and test gost parameters.
-                        ECGOST3410Parameters gParam = (ECGOST3410Parameters)generatedKeyParameters.Parameters;
-                        ECGOST3410Parameters rParam = (ECGOST3410Parameters)keyParameters.Parameters;
+                        ECGost3410Parameters gParam = (ECGost3410Parameters)generatedKeyParameters.Parameters;
+                        ECGost3410Parameters rParam = (ECGost3410Parameters)keyParameters.Parameters;
 
                         bool ok = SafeEquals(gParam.DigestParamSet, rParam.DigestParamSet) &&
                             SafeEquals(gParam.EncryptionParamSet, rParam.EncryptionParamSet) &&
@@ -169,8 +169,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                         return new SimpleTestResult(false, "D does not match");
                     }
 
-                    if (!((ECGOST3410Parameters)keyParameters.Parameters).Name.Equals(
-                        ((ECGOST3410Parameters)generatedKeyParameters.Parameters).Name))
+                    if (!((ECGost3410Parameters)keyParameters.Parameters).Name.Equals(
+                        ((ECGost3410Parameters)generatedKeyParameters.Parameters).Name))
                     {
                         return new SimpleTestResult(false, "Name does not match");
                     }
@@ -232,17 +232,17 @@ namespace Org.BouncyCastle.Crypto.Tests
                     return new SimpleTestResult(false, "Q does not match");
                 }
 
-                if (!((ECGOST3410Parameters)pkInfo.Parameters).PublicKeyParamSet.ToString().Equals("1.2.643.7.1.2.1.1.1"))
+                if (!((ECGost3410Parameters)pkInfo.Parameters).PublicKeyParamSet.ToString().Equals("1.2.643.7.1.2.1.1.1"))
                 {
                     return new SimpleTestResult(false, "PublicKeyParamSet does not match");
                 }
 
-                if (!((ECGOST3410Parameters)pkInfo.Parameters).DigestParamSet.ToString().Equals("1.2.643.7.1.1.2.2"))
+                if (!((ECGost3410Parameters)pkInfo.Parameters).DigestParamSet.ToString().Equals("1.2.643.7.1.1.2.2"))
                 {
                     return new SimpleTestResult(false, "DigestParamSet does not match");
                 }
 
-                if (((ECGOST3410Parameters)pkInfo.Parameters).EncryptionParamSet != null)
+                if (((ECGost3410Parameters)pkInfo.Parameters).EncryptionParamSet != null)
                 {
                     return new SimpleTestResult(false, "EncryptionParamSet is not null");
                 }
@@ -266,17 +266,17 @@ namespace Org.BouncyCastle.Crypto.Tests
                 }
 
 
-                if (!((ECGOST3410Parameters)pkInfo.Parameters).PublicKeyParamSet.ToString().Equals("1.2.643.7.1.2.1.2.1"))
+                if (!((ECGost3410Parameters)pkInfo.Parameters).PublicKeyParamSet.ToString().Equals("1.2.643.7.1.2.1.2.1"))
                 {
                     return new SimpleTestResult(false, "PublicKeyParamSet does not match");
                 }
 
-                if (!((ECGOST3410Parameters)pkInfo.Parameters).DigestParamSet.ToString().Equals("1.2.643.7.1.1.2.3"))
+                if (!((ECGost3410Parameters)pkInfo.Parameters).DigestParamSet.ToString().Equals("1.2.643.7.1.1.2.3"))
                 {
                     return new SimpleTestResult(false, "DigestParamSet does not match");
                 }
 
-                if (((ECGOST3410Parameters)pkInfo.Parameters).EncryptionParamSet != null)
+                if (((ECGost3410Parameters)pkInfo.Parameters).EncryptionParamSet != null)
                 {
                     return new SimpleTestResult(false, "EncryptionParamSet is not null");
                 }
@@ -304,17 +304,17 @@ namespace Org.BouncyCastle.Crypto.Tests
                     return new SimpleTestResult(false, "D does not match");
                 }
 
-                if (!((ECGOST3410Parameters)pkInfo.Parameters).PublicKeyParamSet.ToString().Equals("1.2.643.7.1.2.1.1.1"))
+                if (!((ECGost3410Parameters)pkInfo.Parameters).PublicKeyParamSet.ToString().Equals("1.2.643.7.1.2.1.1.1"))
                 {
                     return new SimpleTestResult(false, "PublicKeyParamSet does not match");
                 }
 
-                if (!((ECGOST3410Parameters)pkInfo.Parameters).DigestParamSet.ToString().Equals("1.2.643.7.1.1.2.2"))
+                if (!((ECGost3410Parameters)pkInfo.Parameters).DigestParamSet.ToString().Equals("1.2.643.7.1.1.2.2"))
                 {
                     return new SimpleTestResult(false, "DigestParamSet does not match");
                 }
 
-                if (((ECGOST3410Parameters)pkInfo.Parameters).EncryptionParamSet != null)
+                if (((ECGost3410Parameters)pkInfo.Parameters).EncryptionParamSet != null)
                 {
                     return new SimpleTestResult(false, "EncryptionParamSet is not null");
                 }
@@ -337,17 +337,17 @@ namespace Org.BouncyCastle.Crypto.Tests
                     return new SimpleTestResult(false, "D does not match");
                 }
 
-                if (!((ECGOST3410Parameters)pkInfo.Parameters).PublicKeyParamSet.ToString().Equals("1.2.643.7.1.2.1.2.1"))
+                if (!((ECGost3410Parameters)pkInfo.Parameters).PublicKeyParamSet.ToString().Equals("1.2.643.7.1.2.1.2.1"))
                 {
                     return new SimpleTestResult(false, "PublicKeyParamSet does not match");
                 }
 
-                if (!((ECGOST3410Parameters)pkInfo.Parameters).DigestParamSet.ToString().Equals("1.2.643.7.1.1.2.3"))
+                if (!((ECGost3410Parameters)pkInfo.Parameters).DigestParamSet.ToString().Equals("1.2.643.7.1.1.2.3"))
                 {
                     return new SimpleTestResult(false, "DigestParamSet does not match");
                 }
 
-                if (((ECGOST3410Parameters)pkInfo.Parameters).EncryptionParamSet != null)
+                if (((ECGost3410Parameters)pkInfo.Parameters).EncryptionParamSet != null)
                 {
                     return new SimpleTestResult(false, "EncryptionParamSet is not null");
                 }
@@ -363,7 +363,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid(oidStr);
             ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-            ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid, digest, null);
+            ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid, digest, null);
             ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
@@ -378,8 +378,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 
             { // Specifically cast and test gost parameters.
-                ECGOST3410Parameters gParam = (ECGOST3410Parameters)generatedKeyParameters.Parameters;
-                ECGOST3410Parameters rParam = (ECGOST3410Parameters)recoveredKeyParameters.Parameters;
+                ECGost3410Parameters gParam = (ECGost3410Parameters)generatedKeyParameters.Parameters;
+                ECGost3410Parameters rParam = (ECGost3410Parameters)recoveredKeyParameters.Parameters;
 
                 bool ok = SafeEquals(gParam.DigestParamSet, rParam.DigestParamSet) &&
                     SafeEquals(gParam.EncryptionParamSet, rParam.EncryptionParamSet) &&
@@ -398,8 +398,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 return new SimpleTestResult(false, "isPrivate does not match");
             }
 
-            if (!((ECGOST3410Parameters)recoveredKeyParameters.Parameters).Name.Equals(
-                ((ECGOST3410Parameters)generatedKeyParameters.Parameters).Name))
+            if (!((ECGost3410Parameters)recoveredKeyParameters.Parameters).Name.Equals(
+                ((ECGost3410Parameters)generatedKeyParameters.Parameters).Name))
             {
                 return new SimpleTestResult(false, "Name does not match");
             }
@@ -449,7 +449,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {         
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid(oidStr);
             ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-            ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp,oid,digest,null);
+            ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp,oid,digest,null);
             ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
@@ -461,8 +461,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECPublicKeyParameters recoveredKeyParameters = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(info);
 
             { // Specifically cast and test gost parameters.
-                ECGOST3410Parameters gParam = (ECGOST3410Parameters)generatedKeyParameters.Parameters;
-                ECGOST3410Parameters rParam = (ECGOST3410Parameters)recoveredKeyParameters.Parameters;
+                ECGost3410Parameters gParam = (ECGost3410Parameters)generatedKeyParameters.Parameters;
+                ECGost3410Parameters rParam = (ECGost3410Parameters)recoveredKeyParameters.Parameters;
 
 
                 bool ok = SafeEquals(gParam.DigestParamSet, rParam.DigestParamSet) &&
@@ -476,8 +476,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             }
 
-            if (!((ECGOST3410Parameters)recoveredKeyParameters.Parameters).Name.Equals(
-                   ((ECGOST3410Parameters)generatedKeyParameters.Parameters).Name))
+            if (!((ECGost3410Parameters)recoveredKeyParameters.Parameters).Name.Equals(
+                   ((ECGost3410Parameters)generatedKeyParameters.Parameters).Name))
             {
                 return new SimpleTestResult(false, "Name does not match");
             }

@@ -192,7 +192,7 @@ namespace Org.BouncyCastle.Security
                      || algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256))
             {
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(keyInfo.PrivateKeyAlgorithm.Parameters);
-                ECGOST3410Parameters ecSpec = null;
+                ECGost3410Parameters ecSpec = null;
                 BigInteger d = null;
                 Asn1Object p = keyInfo.PrivateKeyAlgorithm.Parameters.ToAsn1Object();
                 if (p is Asn1Sequence && (Asn1Sequence.GetInstance(p).Count == 2 || Asn1Sequence.GetInstance(p).Count == 3))
@@ -200,7 +200,7 @@ namespace Org.BouncyCastle.Security
 
                     ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
 
-                    ecSpec = new ECGOST3410Parameters(
+                    ecSpec = new ECGost3410Parameters(
                         new ECNamedDomainParameters(
                             gostParams.PublicKeyParamSet, ecP),
                             gostParams.PublicKeyParamSet,
@@ -237,7 +237,7 @@ namespace Org.BouncyCastle.Security
                         if (ecP == null)
                         {
                             ECDomainParameters gParam = ECGost3410NamedCurves.GetByOid(oid);
-                            ecSpec = new ECGOST3410Parameters(new ECNamedDomainParameters(
+                            ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(
                                     oid,
                                     gParam.Curve,
                                     gParam.G,
@@ -248,7 +248,7 @@ namespace Org.BouncyCastle.Security
                         }
                         else
                         {
-                            ecSpec = new ECGOST3410Parameters(new ECNamedDomainParameters(
+                            ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(
                                     oid,
                                     ecP.Curve,
                                     ecP.G,
@@ -265,7 +265,7 @@ namespace Org.BouncyCastle.Security
                     else
                     {
                         X9ECParameters ecP = X9ECParameters.GetInstance(parameters.Parameters);
-                        ecSpec = new ECGOST3410Parameters(new ECNamedDomainParameters(
+                        ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(
                                 algOid,
                                 ecP.Curve,
                                 ecP.G,
@@ -292,7 +292,7 @@ namespace Org.BouncyCastle.Security
 
                 return new ECPrivateKeyParameters(
                     d,
-                    new ECGOST3410Parameters(
+                    new ECGost3410Parameters(
                         ecSpec,
                         gostParams.PublicKeyParamSet,
                         gostParams.DigestParamSet,
