@@ -213,8 +213,8 @@ namespace Org.BouncyCastle.Security
                     case DigestAlgorithm.DSTU7564_384: return new Dstu7564Digest(384);
                     case DigestAlgorithm.DSTU7564_512: return new Dstu7564Digest(512);
                     case DigestAlgorithm.GOST3411: return new Gost3411Digest();
-                    case DigestAlgorithm.GOST3411_2012_256: return new GOST3411_2012_256Digest();
-                    case DigestAlgorithm.GOST3411_2012_512: return new GOST3411_2012_512Digest();
+                    case DigestAlgorithm.GOST3411_2012_256: return new Gost3411_2012_256Digest();
+                    case DigestAlgorithm.GOST3411_2012_512: return new Gost3411_2012_512Digest();
                     case DigestAlgorithm.KECCAK_224: return new KeccakDigest(224);
                     case DigestAlgorithm.KECCAK_256: return new KeccakDigest(256);
                     case DigestAlgorithm.KECCAK_288: return new KeccakDigest(288);

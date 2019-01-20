@@ -10,7 +10,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
-    public class ECGOST3410_2012Signer : IDsaExt
+    public class ECGost3410_2012Signer : IDsaExt
     {
         private ECKeyParameters key;
         private SecureRandom secureRandom;
