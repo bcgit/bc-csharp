@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using NUnit.Core;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
