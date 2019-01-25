@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                     new BigInteger("17614944419213781543809391949654080031942662045363639260709847859438286763994")), // y
                 spec);
 
-            ECGOST3410_2012Signer signer = new ECGOST3410_2012Signer();
+            ECGost3410_2012Signer signer = new ECGost3410_2012Signer();
             signer.Init(true, new ParametersWithRandom(privateKey, k));
 
             byte[] rev = e.ToByteArray();
@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 DerObjectIdentifier oid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA;
                 ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-                ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid,
+                ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid,
                     RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256, null);
                 ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
                 ECKeyPairGenerator engine = new ECKeyPairGenerator();
@@ -119,7 +119,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 DerObjectIdentifier oid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA;
                 ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-                ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid,
+                ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid,
                     RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512, null);
                 ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
                 ECKeyPairGenerator engine = new ECKeyPairGenerator();
@@ -141,13 +141,13 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECPrivateKeyParameters sKey = (ECPrivateKeyParameters)p.Private;
             ECPublicKeyParameters vKey = (ECPublicKeyParameters)p.Public;
 
-            ECGOST3410_2012Signer s = new ECGOST3410_2012Signer();
+            ECGost3410_2012Signer s = new ECGost3410_2012Signer();
 
             s.Init(true, sKey);
             BigInteger[] sig = s.GenerateSignature(data);
 
 
-            s = new ECGOST3410_2012Signer();
+            s = new ECGost3410_2012Signer();
             s.Init(false, vKey);
 
             if (!s.VerifySignature(data, sig[0], sig[1]))
@@ -159,8 +159,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             // Test with Digest signer.
             //           
             Gost3410DigestSigner digestSigner = new Gost3410DigestSigner(
-                new ECGOST3410_2012Signer(),
-                DigestUtilities.GetDigest(((ECGOST3410Parameters)vKey.Parameters).DigestParamSet));
+                new ECGost3410_2012Signer(),
+                DigestUtilities.GetDigest(((ECGost3410Parameters)vKey.Parameters).DigestParamSet));
             digestSigner.Init(true, sKey);
             digestSigner.BlockUpdate(data, 0, data.Length);
             byte[] sigBytes = digestSigner.GenerateSignature();
@@ -171,8 +171,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             digestSigner = new Gost3410DigestSigner(
-                new ECGOST3410_2012Signer(),
-                DigestUtilities.GetDigest(((ECGOST3410Parameters)vKey.Parameters).DigestParamSet));
+                new ECGost3410_2012Signer(),
+                DigestUtilities.GetDigest(((ECGost3410Parameters)vKey.Parameters).DigestParamSet));
             digestSigner.Init(false, vKey);
             digestSigner.BlockUpdate(data, 0, data.Length);
 

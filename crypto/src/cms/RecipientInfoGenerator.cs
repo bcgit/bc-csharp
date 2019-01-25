@@ -6,7 +6,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Cms
 {
-	interface RecipientInfoGenerator
+	public interface RecipientInfoGenerator
 	{
 		/// <summary>
 		/// Generate a RecipientInfo object for the given key.

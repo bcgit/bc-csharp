@@ -98,9 +98,9 @@ namespace Org.BouncyCastle.X509
                 ECPublicKeyParameters _key = (ECPublicKeyParameters) publicKey;
 
 
-                if (_key.Parameters is ECGOST3410Parameters)
+                if (_key.Parameters is ECGost3410Parameters)
                 {
-                    ECGOST3410Parameters gostParams = (ECGOST3410Parameters)_key.Parameters;
+                    ECGost3410Parameters gostParams = (ECGost3410Parameters)_key.Parameters;
 
                     BigInteger bX = _key.Q.AffineXCoord.ToBigInteger();
                     BigInteger bY = _key.Q.AffineYCoord.ToBigInteger();

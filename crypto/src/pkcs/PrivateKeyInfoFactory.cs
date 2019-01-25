@@ -124,9 +124,9 @@ namespace Org.BouncyCastle.Pkcs
                 ECDomainParameters dp = priv.Parameters;
 
                 // ECGOST3410
-                if (dp is ECGOST3410Parameters)
+                if (dp is ECGost3410Parameters)
                 {
-                    ECGOST3410Parameters domainParameters = (ECGOST3410Parameters) dp;
+                    ECGost3410Parameters domainParameters = (ECGost3410Parameters) dp;
 
                     Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
                         (domainParameters).PublicKeyParamSet,

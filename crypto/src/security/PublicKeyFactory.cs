@@ -261,8 +261,8 @@ namespace Org.BouncyCastle.Security
 
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(keyInfo.AlgorithmID.Parameters);
 
-                ECGOST3410Parameters ecDomainParameters =
-                    new ECGOST3410Parameters(
+                ECGost3410Parameters ecDomainParameters =
+                    new ECGost3410Parameters(
                         new ECNamedDomainParameters(gostParams.PublicKeyParamSet, ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet)),
                         gostParams.PublicKeyParamSet,
                         gostParams.DigestParamSet,

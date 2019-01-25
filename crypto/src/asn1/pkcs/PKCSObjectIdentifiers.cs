@@ -62,8 +62,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
 		public static readonly DerObjectIdentifier DesEde3Cbc	= new DerObjectIdentifier(EncryptionAlgorithm + ".7");
         public static readonly DerObjectIdentifier RC2Cbc		= new DerObjectIdentifier(EncryptionAlgorithm + ".2");
+        public static readonly DerObjectIdentifier rc4          = new DerObjectIdentifier(EncryptionAlgorithm + ".4");
 
-		//
+        //
         // object identifiers for digests
         //
         public const string DigestAlgorithm = "1.2.840.113549.2";

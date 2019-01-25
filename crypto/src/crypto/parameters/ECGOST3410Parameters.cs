@@ -4,7 +4,7 @@ using Org.BouncyCastle.Math.EC;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-    public class ECGOST3410Parameters : ECNamedDomainParameters
+    public class ECGost3410Parameters : ECNamedDomainParameters
     {
 
         private readonly DerObjectIdentifier _publicKeyParamSet;
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return _encryptionParamSet; }
         }
 
-        public ECGOST3410Parameters(
+        public ECGost3410Parameters(
             ECNamedDomainParameters dp,
             DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet,
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 
-        public ECGOST3410Parameters(ECDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
+        public ECGost3410Parameters(ECDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet,
             DerObjectIdentifier encryptionParamSet) : base(publicKeyParamSet, dp.Curve, dp.G, dp.N, dp.H, dp.GetSeed())
         {
