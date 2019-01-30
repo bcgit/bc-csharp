@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new InputStreamTest());

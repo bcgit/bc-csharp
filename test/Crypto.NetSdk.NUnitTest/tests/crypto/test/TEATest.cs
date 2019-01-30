@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "TEA"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new TeaTest());

@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Threefish-256"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new Threefish256Test());

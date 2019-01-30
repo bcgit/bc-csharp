@@ -291,7 +291,7 @@ namespace Org.BouncyCastle.Tests
             TestGeneration();
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             RunTest(new ECDsa5Test());

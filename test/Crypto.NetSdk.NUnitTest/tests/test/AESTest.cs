@@ -354,7 +354,7 @@ namespace Org.BouncyCastle.Tests
 			TestGcm();
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new AesTest());

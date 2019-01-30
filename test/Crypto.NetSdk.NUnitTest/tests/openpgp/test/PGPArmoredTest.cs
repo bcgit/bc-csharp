@@ -265,7 +265,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			get { return "PGPArmoredTest"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new PgpArmoredTest());

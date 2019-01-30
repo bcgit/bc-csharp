@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.AreEqual(Name + ": Okay", resultText);
         }
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
         {
             ITest test = new BlowfishTest();

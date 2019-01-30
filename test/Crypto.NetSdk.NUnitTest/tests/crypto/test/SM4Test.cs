@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "SM4"; }
         }
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             RunTest(new SM4Test());
         }

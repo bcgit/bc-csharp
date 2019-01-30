@@ -294,7 +294,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "HKDF"; }
         }
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             RunTest(new HkdfGeneratorTest());
         }

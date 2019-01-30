@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Serpent"; }
         }
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             RunTest(new SerpentTest());
         }

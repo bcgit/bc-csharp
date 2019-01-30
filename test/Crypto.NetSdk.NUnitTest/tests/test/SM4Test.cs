@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             RunTest(new SM4Test());
         }

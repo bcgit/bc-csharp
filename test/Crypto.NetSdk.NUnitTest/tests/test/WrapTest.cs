@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "WrapTest"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			ITest test = new WrapTest();

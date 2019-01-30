@@ -904,7 +904,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			doTestPkcs12Store();
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new Pkcs12StoreTest());

@@ -1069,7 +1069,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             get { return "PGPSignatureTest"; }
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             RunTest(new PgpSignatureTest());

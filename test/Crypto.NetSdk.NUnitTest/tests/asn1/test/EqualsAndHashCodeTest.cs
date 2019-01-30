@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "EqualsAndHashCode"; }
 		}
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
 			RunTest(new EqualsAndHashCodeTest());

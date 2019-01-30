@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new Sha384Digest((Sha384Digest)digest);
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             RunTest(new Sha384DigestTest());

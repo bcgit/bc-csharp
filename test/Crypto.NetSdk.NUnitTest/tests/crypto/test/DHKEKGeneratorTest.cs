@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "DHKekGenerator"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new DHKekGeneratorTest());

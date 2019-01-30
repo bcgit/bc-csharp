@@ -3,16 +3,16 @@
 
   <PropertyGroup>
     <Product>Bouncy Castle Cryptography API</Product>
-    <Authors>The Legion of the Bouncy Castle Inc</Authors>
+    <Authors>The Legion of the Bouncy Castle Inc; Alex Paskhin </Authors>
     <Company>The Legion of the Bouncy Castle Inc</Company>
     <PackageProjectUrl>https://github.com/bcgit/bc-csharp</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/bcgit/bc-csharp.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/alexapskhin/bc-csharp.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
     <PackageLicenseType>Apache-2.0</PackageLicenseType>
     <PackageTags>bouncycastle cryptography  encryption security</PackageTags>
     <Description>Bouncy Castle Cryptography API</Description>
-    <Copyright>Copyright (C) 2000-2018 The Legion of the Bouncy Castle Inc</Copyright>
+    <Copyright>Copyright (C) 2000-2019 The Legion of the Bouncy Castle Inc</Copyright>
   </PropertyGroup>
   
 </Project>

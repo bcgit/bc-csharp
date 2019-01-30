@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			Run3(10, password2, Hex.Decode("263216FCC2FAB31C"), 1000, Hex.Decode("5EC4C7A80DF652294C3925B6489A7AB857C83476"));
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new Pkcs12Test());

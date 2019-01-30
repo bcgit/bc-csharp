@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Ed448Test(),
         };
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             foreach (ITest test in tests)
             {

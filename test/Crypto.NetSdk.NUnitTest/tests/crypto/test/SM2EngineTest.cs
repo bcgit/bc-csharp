@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             DoEngineTestF2m();
         }
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             RunTest(new SM2EngineTest());
         }

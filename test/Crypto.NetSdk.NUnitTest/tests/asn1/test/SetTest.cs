@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			s = new DerSet(v);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new SetTest());

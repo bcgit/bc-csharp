@@ -18,117 +18,154 @@
 		<p>The following people have contributed to the C# Bouncy Castle Cryptography 
 			Package.</p>
 		<p>Thanks, may your castles never deflate!</p>
-		<ul>
-			<li>
-				<p>Kaiser Yang &lt;kaiseryang&#064yahoo.com&gt; - initial port of the lightweight 
-					API and ASN.1 library. Finding BigInteger loop problem.</p>
-			</li>
-			<li>
-				<p>Asier Murciego &lt;a.murciego&#064captiva-sys.es&gt; - Further patching to 
-					BigInteger library.</p>
-			</li>
-			<li>
-				<p>Megan Woods &lt;megan.woods&#064widestreet.com.au&gt; - X509 certificate 
-					generation, RSA/DSA digest signature classes.</p>
-			</li>
-			<li>
-				<p>David Del Vecchio &lt;ddelvecc&#064virginia.edu&gt; - patches to RSA Pkcs1 
-					Signature generation OID issues, help with clarifications on DateTime and 
-					certificates.</p>
-			</li>
-			<li>
-				<p>Nelson Fernandez &lt;nelson-bc&#064kpanic.com.ar&gt; - patches to allow 
-					compilation under mono.</p>
-			</li>
-			<li>
-				<p>Paulo Soares &lt;psoares&#064consiste.pt&gt; - patches to X509CertificateParser, 
-					C# port of JZlib plus inflater/deflater streams, C# port of Apache BZip2 
-					classes.</p>
-			</li>
-			<li>
-				<p>Pawel Niewiadomski &lt;11110000b&#064gmail.com&gt; - patches for X509 and CMS, 
-					unit test for time classes.</p>
-			</li>
-			<li>
-				<p>Jesper Johansen &lt;jesper&#064hc.jay.net&gt; - bug fix for DerT61String 
-					encodings.</p>
-			</li>
-			<li>
-				<p>Adam Sternberg &lt;agsternberg&#064gmail.com&gt; - identified problem with 
-					generation of PGP public keyrings.</p>
-			</li>
-			<li>
-				<p>Kirill Zhuklinets &lt;zhuklinets_k&#064gaz-is.ru&gt; - initial submission of 
-					bulk of Asn1.Esf classes (RFC 3126).</p>
-			</li>
-			<li>
-				<p>Dr Andrew Gray &lt;andrew.gray&#064rcrt.co.uk&gt; - identified problem with 
-					BigInteger.ModPow for negative exponents.</p>
-			</li>
-			<li>
-				<p>Mauricio Ulate &lt;mulate&#064gmail.com&gt; - identified problem with non-ASCII 
-					pass phrases in PGP.</p>
-			</li>
-			<li>
-				<p>John Allberg &lt;John.Allberg&#064teliasonera.com&gt; - initial implementation 
-					of CryptoApiRandomGenerator.</p>
-			</li>
-			<li>
-				<p>Mattias &Ouml;hrn &lt;mattias.ohrn&#064gmail.com&gt; - identified problem with 
-					Pkcs12Store.Save and provided fix.</p>
-			</li>
-			<li>
-				<p>Jen Andre &lt;jandre&#064gmail.com&gt; - initial implementation of 
-					case-insensitive searches for PGP keyrings.</p>
-			</li>
-			<li>
-				<p>#Cyrille37# &lt;cyrille37&#064gmail.com&gt; - identified problem with 
-					BigInteger.ModInverse for negative values.</p>
-			</li>
-			<li>
-				<p>David Reis Jr &lt;davidreis&#064yahoo.com&gt; - bug fix for X509CrlStoreSelector 
-					handling of NextUpdate, fix handling of null parameters for DSA in key 
-					factories, initial port of Pkix namespace and supporting tests.
-				</p>
-			</li>
-			<li>
-				<p>Ivan Peev &lt;ivan.peev&#064cozyroc.com&gt; - bug fix for version string 
-					displayed in PGP armored output.</p>
-			</li>
-			<li>
-				<p>Hector Ornelas Aciga &lt;hector.ornelas&#064sat.gob.mx&gt; - patch to add support for PKCS#5 Scheme 2 keys.</p>
-			</li>
-			<li>
-				<p>Tom Van Holle &lt;tvh&#064dsoft.be&gt; - patch to add new class: Pkcs10CertificationRequestDelaySigned.</p>
-			</li>
-			<li>
-				<p>Kalev Lember &lt;kalev&#064smartlink.ee&gt; - patch to fix compilation problem under Mono 2.8+.</p>
-			</li>
-			<li>
-				<p>Kyle Hamilton &lt;kyanha.bouncycastle&#064kyanha.net&gt; - identified problem with BigInteger.Multiply, patch for MiscPemGenerator infinite recursion,
-                proposed improvements in use of random numbers.</p>
-			</li>
-			<li>
-				<p>Atanas Krachev &lt;akrachev&#064gmail.com&gt; - added support for revocation signatures in OpenPGP.</p>
-			</li>
-			<li>
-				<p>Torsten Moschny &lt;t.moschny&#064web.de&gt; - identified problem where PrivateKeyFactory/PublicKeyFactory failed to preserve publicKeyParamSet for EC keys.</p>
-			</li>
-			<li>
-				<p>Thomas Heggelund &lt;the&#064dips.no&gt; - identified problem with RSAParameters fields requiring zero-byte padding to satisfy .NET.</p>
-			</li>
-			<li>
-				<p>Laszlo Magyar &lt;lmagyar1973&#064gmail.com&gt; - patch to fix problem with SubjectDirectoryAttributes constructor.</p>
-			</li>
-			<li>
-				<p>Tim Whittington (https://github.com/timw) - ports of ChaCha, GMAC, Memoable, Poly1305, Skein, SM3, Threefish, XSalsa20. Registerised Salsa20 core.</p>
-			</li>
-			<li>
-				<p>Oscar Jacobsson (https://github.com/OscarAyoy) - patch to fix DerEnumerated constructor (including test coverage).</p>
-			</li>
-			<li>
-				<p>Michael Krueger &lt;michael.krueger&#064secardeo.com&gt; - patch to fix Asn1.Cmp.RevDetails constructor.</p>
-			</li>
+        <ul>
+            <li>
+                <p>
+                    Kaiser Yang &lt;kaiseryang&#064yahoo.com&gt; - initial port of the lightweight
+                    API and ASN.1 library. Finding BigInteger loop problem.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Asier Murciego &lt;a.murciego&#064captiva-sys.es&gt; - Further patching to
+                    BigInteger library.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Megan Woods &lt;megan.woods&#064widestreet.com.au&gt; - X509 certificate
+                    generation, RSA/DSA digest signature classes.
+                </p>
+            </li>
+            <li>
+                <p>
+                    David Del Vecchio &lt;ddelvecc&#064virginia.edu&gt; - patches to RSA Pkcs1
+                    Signature generation OID issues, help with clarifications on DateTime and
+                    certificates.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Nelson Fernandez &lt;nelson-bc&#064kpanic.com.ar&gt; - patches to allow
+                    compilation under mono.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Paulo Soares &lt;psoares&#064consiste.pt&gt; - patches to X509CertificateParser,
+                    C# port of JZlib plus inflater/deflater streams, C# port of Apache BZip2
+                    classes.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Pawel Niewiadomski &lt;11110000b&#064gmail.com&gt; - patches for X509 and CMS,
+                    unit test for time classes.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Jesper Johansen &lt;jesper&#064hc.jay.net&gt; - bug fix for DerT61String
+                    encodings.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Adam Sternberg &lt;agsternberg&#064gmail.com&gt; - identified problem with
+                    generation of PGP public keyrings.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Kirill Zhuklinets &lt;zhuklinets_k&#064gaz-is.ru&gt; - initial submission of
+                    bulk of Asn1.Esf classes (RFC 3126).
+                </p>
+            </li>
+            <li>
+                <p>
+                    Dr Andrew Gray &lt;andrew.gray&#064rcrt.co.uk&gt; - identified problem with
+                    BigInteger.ModPow for negative exponents.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Mauricio Ulate &lt;mulate&#064gmail.com&gt; - identified problem with non-ASCII
+                    pass phrases in PGP.
+                </p>
+            </li>
+            <li>
+                <p>
+                    John Allberg &lt;John.Allberg&#064teliasonera.com&gt; - initial implementation
+                    of CryptoApiRandomGenerator.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Mattias &Ouml;hrn &lt;mattias.ohrn&#064gmail.com&gt; - identified problem with
+                    Pkcs12Store.Save and provided fix.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Jen Andre &lt;jandre&#064gmail.com&gt; - initial implementation of
+                    case-insensitive searches for PGP keyrings.
+                </p>
+            </li>
+            <li>
+                <p>
+                    #Cyrille37# &lt;cyrille37&#064gmail.com&gt; - identified problem with
+                    BigInteger.ModInverse for negative values.
+                </p>
+            </li>
+            <li>
+                <p>
+                    David Reis Jr &lt;davidreis&#064yahoo.com&gt; - bug fix for X509CrlStoreSelector
+                    handling of NextUpdate, fix handling of null parameters for DSA in key
+                    factories, initial port of Pkix namespace and supporting tests.
+                </p>
+            </li>
+            <li>
+                <p>
+                    Ivan Peev &lt;ivan.peev&#064cozyroc.com&gt; - bug fix for version string
+                    displayed in PGP armored output.
+                </p>
+            </li>
+            <li>
+                <p>Hector Ornelas Aciga &lt;hector.ornelas&#064sat.gob.mx&gt; - patch to add support for PKCS#5 Scheme 2 keys.</p>
+            </li>
+            <li>
+                <p>Tom Van Holle &lt;tvh&#064dsoft.be&gt; - patch to add new class: Pkcs10CertificationRequestDelaySigned.</p>
+            </li>
+            <li>
+                <p>Kalev Lember &lt;kalev&#064smartlink.ee&gt; - patch to fix compilation problem under Mono 2.8+.</p>
+            </li>
+            <li>
+                <p>
+                    Kyle Hamilton &lt;kyanha.bouncycastle&#064kyanha.net&gt; - identified problem with BigInteger.Multiply, patch for MiscPemGenerator infinite recursion,
+                    proposed improvements in use of random numbers.
+                </p>
+            </li>
+            <li>
+                <p>Atanas Krachev &lt;akrachev&#064gmail.com&gt; - added support for revocation signatures in OpenPGP.</p>
+            </li>
+            <li>
+                <p>Torsten Moschny &lt;t.moschny&#064web.de&gt; - identified problem where PrivateKeyFactory/PublicKeyFactory failed to preserve publicKeyParamSet for EC keys.</p>
+            </li>
+            <li>
+                <p>Thomas Heggelund &lt;the&#064dips.no&gt; - identified problem with RSAParameters fields requiring zero-byte padding to satisfy .NET.</p>
+            </li>
+            <li>
+                <p>Laszlo Magyar &lt;lmagyar1973&#064gmail.com&gt; - patch to fix problem with SubjectDirectoryAttributes constructor.</p>
+            </li>
+            <li>
+                <p>Tim Whittington (https://github.com/timw) - ports of ChaCha, GMAC, Memoable, Poly1305, Skein, SM3, Threefish, XSalsa20. Registerised Salsa20 core.</p>
+            </li>
+            <li>
+                <p>Oscar Jacobsson (https://github.com/OscarAyoy) - patch to fix DerEnumerated constructor (including test coverage).</p>
+            </li>
+            <li>
+                <p>Michael Krueger &lt;michael.krueger&#064secardeo.com&gt; - patch to fix Asn1.Cmp.RevDetails constructor.</p>
+            </li>
             <li>
                 <p>Daniel Nauck &lt;daniel.nauck&#064gmail.com&gt; - patch for Portable Class Library support.</p>
             </li>
@@ -142,8 +179,11 @@
                 <p>Nicolas Dorier (https://github.com/NicolasDorier) - patch to fix culture-dependent lookups in MacUtilities.</p>
             </li>
             <li>
-		<p>Artem Storozhuk &lt;storojs72&#064gmail.com&gt; initial implementation of DSTU7564 (digest) and DSTU7624 (cipher) and their associated modes.</p>
+                <p>Alex Paskhin (https://github.com/AlexPaskhin) - Net Core Sdk Migration.</p>
             </li>
-		</ul>
+            <li>
+                <p>Artem Storozhuk &lt;storojs72&#064gmail.com&gt; initial implementation of DSTU7564 (digest) and DSTU7624 (cipher) and their associated modes.</p>
+            </li>
+        </ul>
 	</body>
 </html>

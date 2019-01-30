@@ -378,7 +378,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			CheckAttributeCertificate(8, cert8);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new CertificateTest());

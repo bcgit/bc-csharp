@@ -654,7 +654,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             return true;
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             ITest test = new X509NameTest();

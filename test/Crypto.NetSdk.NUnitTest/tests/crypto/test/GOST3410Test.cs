@@ -1584,7 +1584,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return new SimpleTestResult(true, "Gost3410: Okay");
 		}
 
-		public void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			ITest test = new Gost3410Test();

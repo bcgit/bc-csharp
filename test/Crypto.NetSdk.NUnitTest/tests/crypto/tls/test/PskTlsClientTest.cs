@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
     {
         private static readonly SecureRandom secureRandom = new SecureRandom();
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             string hostname = "localhost";
             int port = 5556;

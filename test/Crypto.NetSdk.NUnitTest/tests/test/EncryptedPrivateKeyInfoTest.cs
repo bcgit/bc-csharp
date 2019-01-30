@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "EncryptedPrivateKeyInfoTest"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new EncryptedPrivateKeyInfoTest());

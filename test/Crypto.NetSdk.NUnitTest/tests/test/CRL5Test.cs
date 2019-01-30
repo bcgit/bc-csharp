@@ -248,7 +248,7 @@ namespace Org.BouncyCastle.Tests
 			TestDirectCrl();
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new Crl5Test());

@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 {
     public class AllTests
     {
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         }

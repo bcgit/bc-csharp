@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			DerUtf8StringTest test = new DerUtf8StringTest();

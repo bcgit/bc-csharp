@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             get { return "JPakeUtilities"; }
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             RunTest(new JPakeUtilitiesTest());

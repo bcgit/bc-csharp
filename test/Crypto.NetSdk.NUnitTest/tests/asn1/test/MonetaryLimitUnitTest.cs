@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("exponent", exponent, limit.Exponent.IntValue);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new MonetaryLimitUnitTest());

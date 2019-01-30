@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			onCheck("1.1", "1.1.2", true);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			ITest test = new OidTest();

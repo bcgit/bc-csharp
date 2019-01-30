@@ -136,7 +136,7 @@
 //				+ "| -compare <className1> <className2>]");
 //		}
 //
-//		public           void Main(string[] args)
+//		public  static void RunMainTests(string[] args)
 //		{
 //			if (args.Length == 0)
 //			{

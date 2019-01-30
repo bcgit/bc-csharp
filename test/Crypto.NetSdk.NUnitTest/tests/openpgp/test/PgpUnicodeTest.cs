@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             return new PgpSecretKeyRingBundle(SimpleTest.GetTestDataAsStream("openpgp.unicode." + keyName));
         }
 
-        //public           void Main(string[] args)
+        //public  static void RunMainTests(string[] args)
         //{
         //    Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         //}

@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "MGF1"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new Mgf1GeneratorTest());

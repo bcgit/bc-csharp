@@ -896,7 +896,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             RunTest(new OaepTest());
         }

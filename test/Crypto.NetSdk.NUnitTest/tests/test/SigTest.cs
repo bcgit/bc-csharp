@@ -361,7 +361,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "SigTest"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new SigTest());

@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "Tnepres"; }
         }
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             RunTest(new TnepresTest());
         }

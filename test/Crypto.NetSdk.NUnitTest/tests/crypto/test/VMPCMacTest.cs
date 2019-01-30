@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "VMPC-MAC"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new VmpcMacTest());

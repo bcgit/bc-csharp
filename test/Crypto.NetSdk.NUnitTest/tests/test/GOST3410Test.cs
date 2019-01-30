@@ -367,7 +367,7 @@ namespace Org.BouncyCastle.Tests
             parametersTest();
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[]	args)
         {
             RunTest(new Gost3410Test());

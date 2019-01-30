@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             new PgpParsingTest(),
         };
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             foreach (ITest test in tests)

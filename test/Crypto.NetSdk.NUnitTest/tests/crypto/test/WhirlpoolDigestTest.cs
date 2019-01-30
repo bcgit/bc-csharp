@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return new WhirlpoolDigest((WhirlpoolDigest)digest);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new WhirlpoolDigestTest());

@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			ISO9797Alg3MacTest test = new ISO9797Alg3MacTest();

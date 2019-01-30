@@ -263,7 +263,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             get { return "PgpECDHTest"; }
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             RunTest(new PgpECDHTest());

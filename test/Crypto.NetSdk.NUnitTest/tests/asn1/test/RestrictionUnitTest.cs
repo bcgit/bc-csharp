@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("restriction", res, restriction.RestrictionString);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new RestrictionUnitTest());

@@ -4,7 +4,13 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <DefineConstants>TRACE;LIB</DefineConstants>
-   
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <NoWarn>1701;1702;0618</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;0618;0672</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-		<Compile Include=".\tests\**\*.cs" Exclude="..\**\examples\*.cs">
+		<Compile Include=".\tests\**\*.cs" Exclude=".\tests\**\examples\*.cs">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
     <EmbeddedResource Include=".\data\**\*.*" Exclude="..\**\README.txt">

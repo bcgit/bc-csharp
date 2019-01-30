@@ -201,7 +201,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
         }
 
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             new ECPointPerformanceTest().TestMultiply();
         }

@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "RC2Wrap"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			ITest test = new RC2WrapTest();

@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new SimpleTestResult(true, Name + ": Okay");
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             ITest test = new RipeMD128HMacTest();

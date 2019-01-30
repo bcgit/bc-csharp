@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Tests
             new SM4Test()
 		};
 
-		public           void Main(
+		public  static void RunMainTests(
             string[] args)
         {
             for (int i = 0; i != tests.Length; i++)

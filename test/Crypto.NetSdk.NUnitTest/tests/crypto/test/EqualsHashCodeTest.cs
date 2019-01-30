@@ -253,7 +253,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			TestDsa();
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new EqualsHashCodeTest());

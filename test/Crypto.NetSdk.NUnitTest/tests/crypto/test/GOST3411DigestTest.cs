@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return new Gost3411Digest((Gost3411Digest)digest);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			ITest test = new Gost3411DigestTest();

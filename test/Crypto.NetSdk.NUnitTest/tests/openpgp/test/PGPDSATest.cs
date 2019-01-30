@@ -580,7 +580,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			get { return "PGPDSATest"; }
         }
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
         {
 			RunTest(new PgpDsaTest());

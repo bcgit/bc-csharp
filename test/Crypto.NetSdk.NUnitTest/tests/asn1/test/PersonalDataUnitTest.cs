@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkOptionalField("postalAddress", postalAddress, data.PostalAddress);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new PersonalDataUnitTest());

@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkOptionalField("addProfessionInfo", addProfInfo, profInfo.AddProfessionInfo);
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new ProfessionInfoUnitTest());

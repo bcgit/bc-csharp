@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Tests
 			}
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new Gost28147Test());

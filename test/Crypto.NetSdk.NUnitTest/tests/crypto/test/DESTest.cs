@@ -197,7 +197,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "DES"; }
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new DesTest());

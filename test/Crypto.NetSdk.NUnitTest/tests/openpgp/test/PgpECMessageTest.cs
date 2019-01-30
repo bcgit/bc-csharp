@@ -179,7 +179,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             get { return "PgpECMessageTest"; }
         }
 
-        public           void Main(
+        public  static void RunMainTests(
             string[] args)
         {
             RunTest(new PgpECMessageTest());

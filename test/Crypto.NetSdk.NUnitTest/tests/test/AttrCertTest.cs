@@ -604,7 +604,7 @@ namespace Org.BouncyCastle.Tests
 			doTestGenerateWithPrincipal();
 		}
 
-		public           void Main(
+		public  static void RunMainTests(
 			string[] args)
 		{
 			RunTest(new AttrCertTest());

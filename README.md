@@ -1,4 +1,16 @@
-# The Bouncy Castle Crypto Package For C Sharp
+# Inroduction
+
+The release build from repository https://github.com/AlexPaskhin/bc-csharp; it is the fork from https://github.com/bcgit/bc-csharp.
+
+It is the fulls scale software migration to the Net Core Sdk with full testing of the package.
+
+
+
+The project build with targets:net40;net45;net452;net472;netstandard2.0
+
+Nuget package located: https://www.nuget.org/packages/BouncyCastle.NetCoreSdk/1.9.0
+
+## The Bouncy Castle Crypto Package For C Sharp
 
 The Bouncy Castle Crypto package is a C\# implementation of cryptographic algorithms and protocols, it was developed by the Legion of the Bouncy Castle, a registered Australian Charity, with a little help! The Legion, and the latest goings on with this package, can be found at [http://www.bouncycastle.org](http://www.bouncycastle.org). In addition to providing basic cryptography algorithms, the package also provides support for CMS, TSP, X.509 certificate generation and a variety of other standards such as OpenPGP.
 

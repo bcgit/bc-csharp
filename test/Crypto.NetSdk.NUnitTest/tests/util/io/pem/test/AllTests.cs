@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
 	public class AllTests
 	{
 #if !LIB
-        public           void Main(string[] args)
+        public  static void RunMainTests(string[] args)
         {
             Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         }
