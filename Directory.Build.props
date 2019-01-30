@@ -8,8 +8,8 @@
     <PackageProjectUrl>https://github.com/bcgit/bc-csharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alexapskhin/bc-csharp.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
-    <PackageLicenseType>Apache-2.0</PackageLicenseType>
+    <PackageLicenseUrl>http://www.bouncycastle.org/licence.html</PackageLicenseUrl>
+    <PackageLicenseType>MIT</PackageLicenseType>
     <PackageTags>bouncycastle cryptography  encryption security</PackageTags>
     <Description>Bouncy Castle Cryptography API</Description>
     <Copyright>Copyright (C) 2000-2019 The Legion of the Bouncy Castle Inc</Copyright>
