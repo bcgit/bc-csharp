@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1.Cmp;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto.IO;
@@ -11,9 +13,10 @@ namespace Org.BouncyCastle.Cmp
 {
     public class CertificateStatus
     {
-        private DefaultSignatureAlgorithmIdentifierFinder sigAlgFinder = new DefaultSignatureAlgorithmIdentifierFinder();
-        private DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
-        private CertStatus certStatus;
+        private static readonly DefaultSignatureAlgorithmIdentifierFinder sigAlgFinder = new DefaultSignatureAlgorithmIdentifierFinder();
+
+        private readonly DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
+        private readonly CertStatus certStatus;
 
         public CertificateStatus(DefaultDigestAlgorithmIdentifierFinder digestAlgFinder, CertStatus certStatus)
         {
@@ -21,10 +24,10 @@ namespace Org.BouncyCastle.Cmp
             this.certStatus = certStatus;
         }
 
-         public PkiStatusInfo PkiStatusInfo
-         {
-             get { return certStatus.StatusInfo; }
-         }
+        public PkiStatusInfo PkiStatusInfo
+        {
+            get { return certStatus.StatusInfo; }
+        }
 
         public BigInteger CertRequestId
         {
@@ -33,19 +36,12 @@ namespace Org.BouncyCastle.Cmp
 
         public bool IsVerified(X509Certificate cert)
         {
+            AlgorithmIdentifier digAlg = digestAlgFinder.find(sigAlgFinder.Find(cert.SigAlgName));
+            if (null == digAlg)
+                throw new CmpException("cannot find algorithm for digest from signature " + cert.SigAlgName);
 
-            AlgorithmIdentifier digAlg = digestAlgFinder.find( sigAlgFinder.Find(cert.SigAlgName));
-            if (digAlg == null)
-            {
-                throw new CmpException("cannot find algorithm for digest from signature "+cert.SigAlgName);
-            }
+            byte[] digest = DigestUtilities.CalculateDigest(digAlg.Algorithm, cert.GetEncoded());
 
-            DigestSink digestSink = new DigestSink(DigestUtilities.GetDigest(digAlg.Algorithm));
-
-            digestSink.Write(cert.GetEncoded());
-
-            byte[] digest = new byte[digestSink.Digest.GetDigestSize()];
-            digestSink.Digest.DoFinal(digest, 0);
             return Arrays.ConstantTimeAreEqual(certStatus.CertHash.GetOctets(), digest);
         }
     }

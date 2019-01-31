@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crmf
 {
@@ -17,7 +16,7 @@ namespace Org.BouncyCastle.Crmf
         private readonly BigInteger _certReqId;
         private X509ExtensionsGenerator _extGenerator;
         private CertTemplateBuilder _templateBuilder;
-        private ArrayList _controls= new ArrayList();
+        private IList _controls = Platform.CreateArrayList();
         private ISignatureFactory _popSigner;
         private PKMacBuilder _pkMacBuilder;
         private char[] _password;
@@ -43,7 +42,6 @@ namespace Org.BouncyCastle.Crmf
 
             return this;
         }
-
 
         public CertificateRequestMessageBuilder SetIssuer(X509Name issuer)
         {
@@ -78,13 +76,13 @@ namespace Org.BouncyCastle.Crmf
         public CertificateRequestMessageBuilder SetValidity(Time notBefore, Time notAfter)
         {
             _templateBuilder.SetValidity(new OptionalValidity(notBefore, notAfter));
-            return this;                
+            return this;
         }
 
         public CertificateRequestMessageBuilder AddExtension(DerObjectIdentifier oid, bool critical,
             Asn1Encodable value)
         {
-           _extGenerator.AddExtension(oid,critical, value);
+            _extGenerator.AddExtension(oid, critical, value);
             return this;
         }
 
@@ -109,7 +107,7 @@ namespace Org.BouncyCastle.Crmf
             }
 
             this._popSigner = popoSignatureFactory;
-          
+
             return this;
         }
 
@@ -123,7 +121,6 @@ namespace Org.BouncyCastle.Crmf
             this._popoType = ProofOfPossession.TYPE_KEY_ENCIPHERMENT;
             this._popoPrivKey = new PopoPrivKey(msg);
 
-        
             return this;
         }
 
@@ -142,7 +139,7 @@ namespace Org.BouncyCastle.Crmf
 
             this._popoType = type;
             this._popoPrivKey = new PopoPrivKey(msg);
-            return this;        
+            return this;
         }
 
         public CertificateRequestMessageBuilder SetProofOfPossessionAgreeMac(PKMacValue macValue)
@@ -152,7 +149,7 @@ namespace Org.BouncyCastle.Crmf
                 throw new InvalidOperationException("only one proof of possession allowed");
             }
 
-            this._agreeMac = macValue;        
+            this._agreeMac = macValue;
             return this;
         }
 
@@ -189,35 +186,31 @@ namespace Org.BouncyCastle.Crmf
 
         public CertificateRequestMessage Build()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
-
-            v.Add(new DerInteger(this._certReqId));
+            Asn1EncodableVector v = new Asn1EncodableVector(new DerInteger(this._certReqId));
 
             if (!this._extGenerator.IsEmpty)
             {
-               this._templateBuilder.SetExtensions(_extGenerator.Generate());
+                this._templateBuilder.SetExtensions(_extGenerator.Generate());
             }
 
             v.Add(_templateBuilder.Build());
 
-            if (_controls.Count>0)
+            if (_controls.Count > 0)
             {
                 Asn1EncodableVector controlV = new Asn1EncodableVector();
 
-                foreach (Object item  in _controls)
+                foreach (object item in _controls)
                 {
-                    IControl control = (IControl) item;
+                    IControl control = (IControl)item;
                     controlV.Add(new AttributeTypeAndValue(control.Type, control.Value));
                 }
-                    
+
                 v.Add(new DerSequence(controlV));
             }
 
             CertRequest request = CertRequest.GetInstance(new DerSequence(v));
 
-            v = new Asn1EncodableVector();
-
-            v.Add(request);
+            v = new Asn1EncodableVector(request);
 
             if (_popSigner != null)
             {
@@ -226,27 +219,27 @@ namespace Org.BouncyCastle.Crmf
                 if (template.Subject == null || template.PublicKey == null)
                 {
                     SubjectPublicKeyInfo pubKeyInfo = request.CertTemplate.PublicKey;
-                  
+
                     ProofOfPossessionSigningKeyBuilder builder = new ProofOfPossessionSigningKeyBuilder(pubKeyInfo);
 
                     if (_sender != null)
                     {
-                        builder.setSender(_sender);
+                        builder.SetSender(_sender);
                     }
                     else
                     {
-                       // PkMa pkmacGenerator = new PKMACValueGenerator(_pkmacBuilder);
+                        //PKMACValueGenerator pkmacGenerator = new PKMACValueGenerator(_pkmacBuilder);
 
-                        builder.setPublicKeyMac(_pkMacBuilder, _password);
+                        builder.SetPublicKeyMac(_pkMacBuilder, _password);
                     }
 
-                    v.Add(new ProofOfPossession(builder.build(_popSigner)));
+                    v.Add(new ProofOfPossession(builder.Build(_popSigner)));
                 }
                 else
                 {
                     ProofOfPossessionSigningKeyBuilder builder = new ProofOfPossessionSigningKeyBuilder(request);
 
-                    v.Add(new ProofOfPossession(builder.build(_popSigner)));
+                    v.Add(new ProofOfPossession(builder.Build(_popSigner)));
                 }
             }
             else if (_popoPrivKey != null)
@@ -256,7 +249,7 @@ namespace Org.BouncyCastle.Crmf
             else if (_agreeMac != null)
             {
                 v.Add(new ProofOfPossession(ProofOfPossession.TYPE_KEY_AGREEMENT,
-                        PopoPrivKey.GetInstance(new DerTaggedObject(false, PopoPrivKey.agreeMAC, _agreeMac),true )));
+                        PopoPrivKey.GetInstance(new DerTaggedObject(false, PopoPrivKey.agreeMAC, _agreeMac), true)));
 
             }
             else if (_popRaVerified != null)

@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.IO;
 using System.Text;
+
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Crmf;
-using System.IO;
 using Org.BouncyCastle.Pkcs;
-using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Crmf
 {
     public class EncryptedValueBuilder
     {
-        private IKeyWrapper wrapper;
-        private ICipherBuilderWithKey encryptor;
-        private EncryptedValuePadder padder;
+        private readonly IKeyWrapper wrapper;
+        private readonly ICipherBuilderWithKey encryptor;
+        private readonly IEncryptedValuePadder padder;
 
         ///
         /// Create a builder that makes EncryptedValue structures.
@@ -30,7 +30,8 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="wrapper">wrapper a wrapper for key used to encrypt the actual data contained in the EncryptedValue.</param>
         /// <param name="encryptor">encryptor  an output encryptor to encrypt the actual data contained in the EncryptedValue. </param>
         ///
-        public EncryptedValueBuilder(IKeyWrapper wrapper, ICipherBuilderWithKey encryptor) : this(wrapper, encryptor, null)
+        public EncryptedValueBuilder(IKeyWrapper wrapper, ICipherBuilderWithKey encryptor)
+            : this(wrapper, encryptor, null)
         {
         }
 
@@ -41,7 +42,7 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="encryptor">encryptor  an output encryptor to encrypt the actual data contained in the EncryptedValue.</param>
         /// <param name="padder">padder a padder to ensure that the EncryptedValue created will always be a constant length.</param>
         ///
-        public EncryptedValueBuilder(IKeyWrapper wrapper, ICipherBuilderWithKey encryptor, EncryptedValuePadder padder)
+        public EncryptedValueBuilder(IKeyWrapper wrapper, ICipherBuilderWithKey encryptor, IEncryptedValuePadder padder)
         {
             this.wrapper = wrapper;
             this.encryptor = encryptor;
@@ -56,7 +57,7 @@ namespace Org.BouncyCastle.Crmf
         ///
         public EncryptedValue Build(char[] revocationPassphrase)
         {
-            return encryptData(padData(Strings.ToUtf8ByteArray(revocationPassphrase)));
+            return EncryptData(PadData(Strings.ToUtf8ByteArray(revocationPassphrase)));
         }
 
         ///<summary>
@@ -71,7 +72,7 @@ namespace Org.BouncyCastle.Crmf
         {
             try
             {
-                return encryptData(padData(holder.GetEncoded()));
+                return EncryptData(PadData(holder.GetEncoded()));
             }
             catch (IOException e)
             {
@@ -110,19 +111,16 @@ namespace Org.BouncyCastle.Crmf
             {
                 throw new CrmfException("cannot wrap key: " + e.Message, e);
             }
-
         }
 
-        private EncryptedValue encryptData(byte[] data)
+        private EncryptedValue EncryptData(byte[] data)
         {
             MemoryOutputStream bOut = new MemoryOutputStream();
-
             Stream eOut = encryptor.BuildCipher(bOut).Stream;
 
             try
             {
                 eOut.Write(data, 0, data.Length);
-
                 eOut.Close();
             }
             catch (IOException e)
@@ -132,8 +130,8 @@ namespace Org.BouncyCastle.Crmf
 
             AlgorithmIdentifier intendedAlg = null;
             AlgorithmIdentifier symmAlg = (AlgorithmIdentifier)encryptor.AlgorithmDetails;
-            DerBitString encSymmKey;
 
+            DerBitString encSymmKey;
             try
             {
                 encSymmKey = new DerBitString(wrapper.Wrap(((KeyParameter)encryptor.Key).GetKey()).Collect());
@@ -150,7 +148,7 @@ namespace Org.BouncyCastle.Crmf
             return new EncryptedValue(intendedAlg, symmAlg, encSymmKey, keyAlg, valueHint, encValue);
         }
 
-        private byte[] padData(byte[] data)
+        private byte[] PadData(byte[] data)
         {
             if (padder != null)
             {

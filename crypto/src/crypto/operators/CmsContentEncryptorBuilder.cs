@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.IO;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
@@ -16,25 +18,24 @@ namespace Org.BouncyCastle.Operators
 {
     public class CmsContentEncryptorBuilder
     {
-        private static readonly IDictionary keySizes = Platform.CreateHashtable();
+        private static readonly IDictionary KeySizes = Platform.CreateHashtable();
 
         static CmsContentEncryptorBuilder()
         {
-            keySizes[NistObjectIdentifiers.IdAes128Cbc] = 128;
-            keySizes[NistObjectIdentifiers.IdAes192Cbc] =192;
-            keySizes[NistObjectIdentifiers.IdAes256Cbc] =256;
+            KeySizes[NistObjectIdentifiers.IdAes128Cbc] = 128;
+            KeySizes[NistObjectIdentifiers.IdAes192Cbc] = 192;
+            KeySizes[NistObjectIdentifiers.IdAes256Cbc] = 256;
 
-           
-            keySizes[NttObjectIdentifiers.IdCamellia128Cbc] =128;
-            keySizes[NttObjectIdentifiers.IdCamellia192Cbc] =192;
-            keySizes[NttObjectIdentifiers.IdCamellia256Cbc] =256;
+            KeySizes[NttObjectIdentifiers.IdCamellia128Cbc] = 128;
+            KeySizes[NttObjectIdentifiers.IdCamellia192Cbc] = 192;
+            KeySizes[NttObjectIdentifiers.IdCamellia256Cbc] = 256;
         }
 
-        private static int getKeySize(DerObjectIdentifier oid)
+        private static int GetKeySize(DerObjectIdentifier oid)
         {
-            if (keySizes.Contains(oid))
+            if (KeySizes.Contains(oid))
             {
-                return (int)keySizes[oid];
+                return (int)KeySizes[oid];
             }
 
             return -1;
@@ -43,11 +44,12 @@ namespace Org.BouncyCastle.Operators
         private readonly DerObjectIdentifier encryptionOID;
         private readonly int keySize;
 
-      
-        private EnvelopedDataHelper helper = new EnvelopedDataHelper();
-        private SecureRandom random;
+        private readonly EnvelopedDataHelper helper = new EnvelopedDataHelper();
+        //private SecureRandom random;
 
-        public CmsContentEncryptorBuilder(DerObjectIdentifier encryptionOID):this(encryptionOID, getKeySize(encryptionOID)) { 
+        public CmsContentEncryptorBuilder(DerObjectIdentifier encryptionOID)
+            : this(encryptionOID, GetKeySize(encryptionOID))
+        {
         }
 
         public CmsContentEncryptorBuilder(DerObjectIdentifier encryptionOID, int keySize)
@@ -58,7 +60,8 @@ namespace Org.BouncyCastle.Operators
 
         public ICipherBuilderWithKey Build()
         {
-            return new Asn1CipherBuilderWithKey(encryptionOID,keySize,random);
+            //return new Asn1CipherBuilderWithKey(encryptionOID, keySize, random);
+            return new Asn1CipherBuilderWithKey(encryptionOID, keySize, null);
         }
     }
 }

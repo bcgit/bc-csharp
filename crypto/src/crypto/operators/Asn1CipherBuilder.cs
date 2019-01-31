@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.IO;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
@@ -7,44 +9,42 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
-    public class Asn1CipherBuilderWithKey:ICipherBuilderWithKey
+    public class Asn1CipherBuilderWithKey : ICipherBuilderWithKey
     {
-
         private readonly KeyParameter encKey;
         private AlgorithmIdentifier algorithmIdentifier;
-       
-      
+
         public Asn1CipherBuilderWithKey(DerObjectIdentifier encryptionOID, int keySize, SecureRandom random)
         {
             if (random == null)
             {
-                random= new SecureRandom();
+                random = new SecureRandom();
             }
+
             CipherKeyGenerator keyGen = CipherKeyGeneratorFactory.CreateKeyGenerator(encryptionOID, random);
-    
+
             encKey = new KeyParameter(keyGen.GenerateKey());
             algorithmIdentifier = AlgorithmIdentifierFactory.GenerateEncryptionAlgID(encryptionOID, encKey.GetKey().Length * 8, random);
         }
-
 
         public object AlgorithmDetails
         {
             get { return algorithmIdentifier; }
         }
+
         public int GetMaxOutputSize(int inputLen)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public ICipher BuildCipher(Stream stream)
         {
-
             object cipher = EnvelopedDataHelper.CreateContentCipher(true, encKey, algorithmIdentifier);
 
             //
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 
             if (cipher is IStreamCipher)
             {
-                   cipher = new BufferedStreamCipher((IStreamCipher)cipher);                
+                cipher = new BufferedStreamCipher((IStreamCipher)cipher);
             }
 
             if (stream == null)
@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Operators
                 stream = new MemoryStream();
             }
 
-            return new BufferedCipherWrapper((IBufferedCipher)cipher,stream);
+            return new BufferedCipherWrapper((IBufferedCipher)cipher, stream);
         }
 
         public ICipherParameters Key

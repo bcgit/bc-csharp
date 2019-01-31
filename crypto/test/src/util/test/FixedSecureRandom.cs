@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Utilities.Test
                                 bOut.Write(sources[i].data, 0, sources[i].data.Length);
                             }
                         }
-                        catch (IOException e)
+                        catch (IOException)
                         {
                             throw new ArgumentException("can't save value source.");
                         }
@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.Utilities.Test
                         {
                             bOut.Write(sources[i].data, 0, sources[i].data.Length);
                         }
-                        catch (IOException e)
+                        catch (IOException)
                         {
                             throw new ArgumentException("can't save value source.");
                         }
@@ -195,7 +195,7 @@ namespace Org.BouncyCastle.Utilities.Test
                             bOut.Write(sources[i].data, 0, sources[i].data.Length);
                         }
                     }
-                    catch (IOException e)
+                    catch (IOException)
                     {
                         throw new ArgumentException("can't save value source.");
                     }

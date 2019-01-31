@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Misc;
@@ -11,15 +12,13 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Utilities;
 
-namespace Org.BouncyCastle.Crypto.Utilites
+namespace Org.BouncyCastle.Crypto.Utilities
 {
     public class CipherFactory
     {
         private CipherFactory()
         {
-
         }
 
         private static readonly short[] rc2Ekb =
@@ -50,15 +49,12 @@ namespace Org.BouncyCastle.Crypto.Utilites
             if (encAlg.Equals(PkcsObjectIdentifiers.rc4))
             {
                 IStreamCipher cipher = new RC4Engine();
-
                 cipher.Init(forEncryption, encKey);
-
                 return cipher;
             }
             else
             {
                 BufferedBlockCipher cipher = CreateCipher(encryptionAlgID.Algorithm);
-
                 Asn1Object sParams = encryptionAlgID.Parameters.ToAsn1Object();
 
                 if (sParams != null && !(sParams is DerNull))
@@ -110,7 +106,6 @@ namespace Org.BouncyCastle.Crypto.Utilites
 
                 return cipher;
             }
-
         }
 
         private static BufferedBlockCipher CreateCipher(DerObjectIdentifier algorithm)
@@ -118,8 +113,8 @@ namespace Org.BouncyCastle.Crypto.Utilites
             IBlockCipher cipher;
 
             if (NistObjectIdentifiers.IdAes128Cbc.Equals(algorithm)
-        || NistObjectIdentifiers.IdAes192Cbc.Equals(algorithm)
-        || NistObjectIdentifiers.IdAes256Cbc.Equals(algorithm))
+                || NistObjectIdentifiers.IdAes192Cbc.Equals(algorithm)
+                || NistObjectIdentifiers.IdAes256Cbc.Equals(algorithm))
             {
                 cipher = new CbcBlockCipher(new AesEngine());
             }
@@ -146,6 +141,5 @@ namespace Org.BouncyCastle.Crypto.Utilites
 
             return new PaddedBufferedBlockCipher(cipher, new Pkcs7Padding());
         }
-
     }
 }

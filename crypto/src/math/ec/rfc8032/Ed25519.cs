@@ -959,7 +959,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PointSetNeutral(r);
 
             int bit = 255;
-            while (bit > 0 && (ws_b[bit] | ws_p[bit]) == 0)
+            while (bit > 0 && ((byte)ws_b[bit] | (byte)ws_p[bit]) == 0)
             {
                 --bit;
             }

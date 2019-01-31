@@ -158,7 +158,7 @@ namespace Org.BouncyCastle.Cms
 
         public CmsEnvelopedData Generate(CmsProcessable content, ICipherBuilderWithKey cipherBuilder)
         {
-            AlgorithmIdentifier encAlgId = null;
+            //AlgorithmIdentifier encAlgId = null;
             KeyParameter encKey;
             Asn1OctetString encContent;
 

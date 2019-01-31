@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+
 using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
     public class GenericKey
     {
-        private AlgorithmIdentifier algorithmIdentifier;
-        private object representation;
+        private readonly AlgorithmIdentifier algorithmIdentifier;
+        private readonly object representation;
 
         public GenericKey(object representation)
         {
-            algorithmIdentifier = null;
+            this.algorithmIdentifier = null;
             this.representation = representation;
         }
 

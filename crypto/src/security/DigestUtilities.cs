@@ -259,6 +259,11 @@ namespace Org.BouncyCastle.Security
             return (string) algorithms[oid.Id];
         }
 
+        public static byte[] CalculateDigest(DerObjectIdentifier id, byte[] input)
+        {
+            return CalculateDigest(id.Id, input);
+        }
+
         public static byte[] CalculateDigest(string algorithm, byte[] input)
         {
             IDigest digest = GetDigest(algorithm);

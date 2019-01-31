@@ -1,10 +1,11 @@
-﻿
+﻿using System;
+using System.IO;
+
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
-using System;
-using System.IO;
 
 namespace Org.BouncyCastle.Pkcs
 {
@@ -90,12 +91,11 @@ namespace Org.BouncyCastle.Pkcs
 
                 ICipher encIn = decryptorBuilder.BuildCipher(new MemoryInputStream(encryptedPrivateKeyInfo.GetEncryptedData()));
 
-                using (Stream strm = encIn.Stream)
-                {
-                    byte[] data = Streams.ReadAll(encIn.Stream);
-           
-                    return PrivateKeyInfo.GetInstance(data);
-                }
+                Stream strm = encIn.Stream;
+                byte[] data = Streams.ReadAll(encIn.Stream);
+                Platform.Dispose(strm);
+
+                return PrivateKeyInfo.GetInstance(data);
             }
             catch (Exception e)
             {

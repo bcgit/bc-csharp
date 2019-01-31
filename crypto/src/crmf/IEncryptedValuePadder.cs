@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Crmf
 {
-
      /// <summary>
      /// An encrypted value padder is used to make sure that prior to a value been
      /// encrypted the data is padded to a standard length.
      /// </summary>
-    public interface EncryptedValuePadder
+    public interface IEncryptedValuePadder
     {
         ///
         /// <summary>Return a byte array of padded data.</summary>

@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
@@ -6,22 +8,24 @@ using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
 {
     public class CertificateConfirmationContentBuilder
     {
-        DefaultSignatureAlgorithmIdentifierFinder sigAlgFinder = new DefaultSignatureAlgorithmIdentifierFinder();
-        private DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
-        private ArrayList acceptedCerts = new ArrayList();
-        private ArrayList acceptedReqIds = new ArrayList();
+        private static readonly DefaultSignatureAlgorithmIdentifierFinder sigAlgFinder = new DefaultSignatureAlgorithmIdentifierFinder();
 
-        public CertificateConfirmationContentBuilder() : this(new DefaultDigestAlgorithmIdentifierFinder())
+        private readonly DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
+        private readonly IList acceptedCerts = Platform.CreateArrayList();
+        private readonly IList acceptedReqIds = Platform.CreateArrayList();
+
+        public CertificateConfirmationContentBuilder()
+            : this(new DefaultDigestAlgorithmIdentifierFinder())
         {
-
         }
-    
+
         public CertificateConfirmationContentBuilder(DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
         {
             this.digestAlgFinder = digestAlgFinder;
@@ -40,27 +44,19 @@ namespace Org.BouncyCastle.Cmp
             Asn1EncodableVector v = new Asn1EncodableVector();
             for (int i = 0; i != acceptedCerts.Count; i++)
             {
-                X509Certificate cert = (X509Certificate) acceptedCerts[i];
-                BigInteger reqId = (BigInteger) acceptedReqIds[i];
+                X509Certificate cert = (X509Certificate)acceptedCerts[i];
+                BigInteger reqId = (BigInteger)acceptedReqIds[i];
 
 
-                
-                AlgorithmIdentifier algorithmIdentifier =  sigAlgFinder.Find(cert.SigAlgName);
+                AlgorithmIdentifier algorithmIdentifier = sigAlgFinder.Find(cert.SigAlgName);
 
                 AlgorithmIdentifier digAlg = digestAlgFinder.find(algorithmIdentifier);
-                if (digAlg == null)
-                {
+                if (null == digAlg)
                     throw new CmpException("cannot find algorithm for digest from signature");
-                }
 
-                DigestSink sink = new DigestSink(DigestUtilities.GetDigest(digAlg.Algorithm));
+                byte[] digest = DigestUtilities.CalculateDigest(digAlg.Algorithm, cert.GetEncoded());
 
-                sink.Write(cert.GetEncoded());
-
-                byte[] dig = new byte[sink.Digest.GetDigestSize()];
-                sink.Digest.DoFinal(dig, 0);
-
-                v.Add(new CertStatus(dig,reqId));
+                v.Add(new CertStatus(digest, reqId));
             }
 
             return new CertificateConfirmationContent(CertConfirmContent.GetInstance(new DerSequence(v)),

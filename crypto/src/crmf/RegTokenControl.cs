@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-using Org.BouncyCastle.Crmf;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 
 namespace Org.BouncyCastle.Crmf
 {
-    public class RegTokenControl:IControl
+    public class RegTokenControl
+        : IControl
     {
         private static readonly DerObjectIdentifier type = CrmfObjectIdentifiers.id_regCtrl_regToken;
-    
+
         private readonly DerUtf8String token;
 
         /// <summary>
@@ -22,11 +20,12 @@ namespace Org.BouncyCastle.Crmf
         {
             this.token = token;
         }
+
         /// <summary>
         /// Basic constructor - build from a string representing the token.
         /// </summary>
         /// <param name="token">string representing the token.</param>
-        public RegTokenControl(String token)
+        public RegTokenControl(string token)
         {
             this.token = new DerUtf8String(token);
         }

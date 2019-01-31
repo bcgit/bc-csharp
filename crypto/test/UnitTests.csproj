@@ -124,6 +124,7 @@
     <Compile Include="src\asn1\test\X509ExtensionsTest.cs" />
     <Compile Include="src\asn1\test\X509NameTest.cs" />
     <Compile Include="src\asn1\test\X9Test.cs" />
+    <Compile Include="src\cmp\test\ProtectedMessageTest.cs" />
     <Compile Include="src\cms\test\AllTests.cs" />
     <Compile Include="src\cms\test\AuthenticatedDataStreamTest.cs" />
     <Compile Include="src\cms\test\AuthenticatedDataTest.cs" />
@@ -192,7 +193,6 @@
     <Compile Include="src\crypto\test\ECTest.cs" />
     <Compile Include="src\crypto\test\Ed25519Test.cs" />
     <Compile Include="src\crypto\test\Ed448Test.cs" />
-    <Compile Include="src\crypto\test\EGOST3410_2012SignatureTest.cs" />
     <Compile Include="src\crypto\test\ElGamalTest.cs" />
     <Compile Include="src\crypto\test\EqualsHashCodeTest.cs" />
     <Compile Include="src\crypto\test\GCMTest.cs" />
@@ -389,7 +389,6 @@
     <Compile Include="src\pkcs\test\EncryptedPrivateKeyInfoTest.cs" />
     <Compile Include="src\pkcs\test\PKCS10Test.cs" />
     <Compile Include="src\pkcs\test\PKCS12StoreTest.cs" />
-    <Compile Include="src\ProtectedMessageTest.cs" />
     <Compile Include="src\security\test\SecureRandomTest.cs" />
     <Compile Include="src\security\test\TestDigestUtil.cs" />
     <Compile Include="src\security\test\TestDotNetUtil.cs" />
@@ -1320,8 +1319,5 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\NewFolder1\" />
   </ItemGroup>
 </Project>

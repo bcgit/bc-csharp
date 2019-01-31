@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using System;
+
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
@@ -50,7 +52,7 @@ namespace Org.BouncyCastle.Cmp
             return this;
         }
 
-        public RevocationDetails build()
+        public RevocationDetails Build()
         {
             return new RevocationDetails(new RevDetails(_templateBuilder.Build()));
         }

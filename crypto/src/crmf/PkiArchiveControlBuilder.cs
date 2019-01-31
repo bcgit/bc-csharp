@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -30,7 +31,7 @@ namespace Org.BouncyCastle.Crmf
             }
             catch (IOException e)
             {
-                throw new InvalidOperationException("unable to encode key and general name info");
+                throw new InvalidOperationException("unable to encode key and general name info", e);
             }
 
             this.envGen = new CmsEnvelopedDataGenerator();
