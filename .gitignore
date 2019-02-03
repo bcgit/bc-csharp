@@ -15,7 +15,7 @@ artifacts/
 StyleCop.Cache
 node_modules/
 *.snk
-s.nupkgs
+.nupkgs
 .nuget
 .r
 .w
