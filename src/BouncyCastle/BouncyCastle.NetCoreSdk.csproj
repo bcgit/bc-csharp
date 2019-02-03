@@ -17,6 +17,7 @@
     <RootNamespace>Org.BouncyCastle</RootNamespace>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Version>$(NetCoreVersion)</Version>
+    <PackageVersion>$(NetCorePackageVersion)</PackageVersion>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject></StartupObject>

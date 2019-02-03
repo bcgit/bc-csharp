@@ -6,7 +6,7 @@
     <Authors>The Legion of the Bouncy Castle Inc; Alex Paskhin </Authors>
     <Company>The Legion of the Bouncy Castle Inc</Company>
     <PackageProjectUrl>https://github.com/bcgit/bc-csharp</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/alexapskhin/bc-csharp.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/alexpaskhin/bc-csharp.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageLicenseUrl>http://www.bouncycastle.org/licence.html</PackageLicenseUrl>
     <PackageLicenseType>MIT</PackageLicenseType>

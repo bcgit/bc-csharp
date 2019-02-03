@@ -1,6 +1,6 @@
 # Inroduction
 
-The release build from repository https://github.com/AlexPaskhin/bc-csharp; it is the fork from https://github.com/bcgit/bc-csharp.
+The release build from repository https://github.com/AlexPaskhin/bc-csharp . It is the fork from https://github.com/bcgit/bc-csharp.
 
 It is the fulls scale software migration to the Net Core Sdk with full testing of the package.
 
@@ -8,7 +8,7 @@ It is the fulls scale software migration to the Net Core Sdk with full testing o
 
 The project build with targets:net40;net45;net452;net472;netstandard2.0
 
-Nuget package located: https://www.nuget.org/packages/BouncyCastle.NetCoreSdk/1.9.0
+Nuget package located: https://www.nuget.org/packages/BouncyCastle.NetCoreSdk
 
 ## The Bouncy Castle Crypto Package For C Sharp
 
