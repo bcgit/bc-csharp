@@ -14,7 +14,6 @@ _ReSharper.*
 artifacts/
 StyleCop.Cache
 node_modules/
-*.snk
 .nupkgs
 .nuget
 .r
