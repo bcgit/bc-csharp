@@ -6,11 +6,11 @@ namespace Org.BouncyCastle.Crypto
     /// Base interface for a key unwrapper.
     /// </summary>
     public interface IKeyUnwrapper
-	{
+    {
         /// <summary>
         /// The parameter set used to configure this key unwrapper.
         /// </summary>
-        Object AlgorithmDetails { get; }
+        object AlgorithmDetails { get; }
 
         /// <summary>
         /// Unwrap the passed in data.
@@ -20,6 +20,5 @@ namespace Org.BouncyCastle.Crypto
         /// <param name="length">The length of the data to be unwrapped.</param>
         /// <returns>an IBlockResult containing the unwrapped key data.</returns>
         IBlockResult Unwrap(byte[] cipherText, int offset, int length);
-	}
+    }
 }
-

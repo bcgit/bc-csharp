@@ -161,7 +161,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			string[] aliases = (string[]) digestAliases[algName];
 
-			return aliases == null ? new String[0] : (string[]) aliases.Clone();
+			return aliases == null ? new string[0] : (string[]) aliases.Clone();
 		}
 
 		/**

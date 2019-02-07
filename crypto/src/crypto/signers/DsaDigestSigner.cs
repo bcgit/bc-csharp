@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
                 return dsa.VerifySignature(hash, sig[0], sig[1]);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

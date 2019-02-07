@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -12,7 +10,7 @@ namespace Org.BouncyCastle.Crypto
         /// <summary>
         /// The parameter set used to configure this key wrapper.
         /// </summary>
-        Object AlgorithmDetails { get; }
+        object AlgorithmDetails { get; }
 
         /// <summary>
         /// Wrap the passed in key data.

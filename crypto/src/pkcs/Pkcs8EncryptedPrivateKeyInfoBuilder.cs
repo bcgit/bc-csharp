@@ -1,11 +1,11 @@
-﻿using Org.BouncyCastle.Asn1.Pkcs;
+﻿using System;
+using System.IO;
+
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 
 namespace Org.BouncyCastle.Pkcs
 {
@@ -36,10 +36,9 @@ namespace Org.BouncyCastle.Pkcs
                 ICipher cOut = encryptor.BuildCipher(bOut);
                 byte[] keyData = privateKeyInfo.GetEncoded();
 
-                using (var str = cOut.Stream)
-                {
-                    str.Write(keyData, 0, keyData.Length);
-                }
+                Stream str = cOut.Stream;
+                str.Write(keyData, 0, keyData.Length);
+                Platform.Dispose(str);
 
                 return new Pkcs8EncryptedPrivateKeyInfo(new EncryptedPrivateKeyInfo((AlgorithmIdentifier)encryptor.AlgorithmDetails, bOut.ToArray()));
             }

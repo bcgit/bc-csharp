@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Crypto;
@@ -16,18 +17,18 @@ namespace Org.BouncyCastle.Crmf
         private readonly CertReqMsg certReqMsg;
         private readonly Controls controls;
 
-        private static CertReqMsg ParseBytes(byte[] encoding)       
-        {        
-                return CertReqMsg.GetInstance(encoding);
+        private static CertReqMsg ParseBytes(byte[] encoding)
+        {
+            return CertReqMsg.GetInstance(encoding);
         }
 
         /// <summary>
         /// Create a CertificateRequestMessage from the passed in bytes.
         /// </summary>
         /// <param name="encoded">BER/DER encoding of the CertReqMsg structure.</param>
-        public CertificateRequestMessage(byte[] encoded):this(CertReqMsg.GetInstance(encoded))
+        public CertificateRequestMessage(byte[] encoded)
+            : this(CertReqMsg.GetInstance(encoded))
         {
-
         }
 
         public CertificateRequestMessage(CertReqMsg certReqMsg)
@@ -42,7 +43,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>A CertReqMsg</returns>
         public CertReqMsg ToAsn1Structure()
         {
-            return certReqMsg; 
+            return certReqMsg;
         }
 
         /// <summary>
@@ -70,7 +71,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>true if a control value of type is present, false otherwise.</returns>
         public bool HasControl(DerObjectIdentifier objectIdentifier)
         {
-            return findControl(objectIdentifier) != null;
+            return FindControl(objectIdentifier) != null;
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>the control value if present, null otherwise.</returns>
         public IControl GetControl(DerObjectIdentifier type)
         {
-            AttributeTypeAndValue found = findControl(type);
+            AttributeTypeAndValue found = FindControl(type);
             if (found != null)
             {
                 if (found.Type.Equals(CrmfObjectIdentifiers.id_regCtrl_pkiArchiveOptions))
@@ -97,14 +98,11 @@ namespace Org.BouncyCastle.Crmf
                 {
                     return new AuthenticatorControl(DerUtf8String.GetInstance(found.Value));
                 }
-            }        
+            }
             return null;
         }
 
-
-
-
-        public AttributeTypeAndValue findControl(DerObjectIdentifier type)
+        public AttributeTypeAndValue FindControl(DerObjectIdentifier type)
         {
             if (controls == null)
             {
@@ -163,9 +161,9 @@ namespace Org.BouncyCastle.Crmf
                 }
 
                 return false;
-
             }
         }
+
         /// <summary>
         /// Return whether or not a signing key proof-of-possession (POP) is valid.
         /// </summary>
@@ -189,8 +187,6 @@ namespace Org.BouncyCastle.Crmf
             throw new InvalidOperationException("not Signing Key type of proof of possession");
         }
 
-
-
         private bool verifySignature(IVerifierFactoryProvider verifierFactoryProvider, PopoSigningKey signKey)
         {
             IVerifierFactory verifer;
@@ -202,22 +198,22 @@ namespace Org.BouncyCastle.Crmf
             }
             catch (Exception ex)
             {
-                throw new CrmfException("unable to create verifier: "+ex.Message, ex);
+                throw new CrmfException("unable to create verifier: " + ex.Message, ex);
             }
 
             if (signKey.PoposkInput != null)
             {
                 byte[] b = signKey.GetDerEncoded();
-              calculator.Stream.Write(b,0,b.Length);
+                calculator.Stream.Write(b, 0, b.Length);
             }
             else
-            {              
+            {
                 byte[] b = certReqMsg.CertReq.GetDerEncoded();
-                calculator.Stream.Write(b,0,b.Length);
+                calculator.Stream.Write(b, 0, b.Length);
             }
 
-            DefaultVerifierResult result = (DefaultVerifierResult) calculator.GetResult();
-      
+            DefaultVerifierResult result = (DefaultVerifierResult)calculator.GetResult();
+
             return result.IsVerified(signKey.Signature.GetBytes());
         }
 

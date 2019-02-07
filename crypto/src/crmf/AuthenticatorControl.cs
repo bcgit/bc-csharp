@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 
@@ -7,9 +8,9 @@ namespace Org.BouncyCastle.Crmf
     /// <summary>
     /// Carrier for an authenticator control.
     /// </summary>
-    public class AuthenticatorControl:IControl
+    public class AuthenticatorControl
+        : IControl
     {
-
         private static readonly DerObjectIdentifier type = CrmfObjectIdentifiers.id_regCtrl_authenticator;
 
         private readonly DerUtf8String token;
@@ -27,7 +28,7 @@ namespace Org.BouncyCastle.Crmf
         /// Basic constructor - build from a string representing the token.
         /// </summary>
         /// <param name="token">string representing the token.</param>
-        public AuthenticatorControl(String token)
+        public AuthenticatorControl(string token)
         {
             this.token = new DerUtf8String(token);
         }
@@ -43,7 +44,8 @@ namespace Org.BouncyCastle.Crmf
         /// <summary>
         /// Return the token associated with this control (a UTF8String).
         /// </summary>
-        public Asn1Encodable Value {
+        public Asn1Encodable Value
+        {
             get { return token; }
         }
     }

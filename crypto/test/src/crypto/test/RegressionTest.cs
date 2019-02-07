@@ -23,6 +23,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new DeterministicDsaTest(),
             new Gost3410Test(),
             new ECGost3410Test(),
+            new ECGost3410_2012Test(),
             new EcIesTest(),
             new EcNrTest(),
             new MacTest(),

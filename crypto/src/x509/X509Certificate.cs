@@ -8,13 +8,13 @@ using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509.Extension;
-using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.X509
 {
@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.X509
 //		, PKCS12BagAttributeCarrier
     {
         private readonly X509CertificateStructure c;
-//        private Hashtable pkcs12Attributes = new Hashtable();
-//        private ArrayList pkcs12Ordering = new ArrayList();
+        //private Hashtable pkcs12Attributes = Platform.CreateHashtable();
+        //private ArrayList pkcs12Ordering = Platform.CreateArrayList();
 		private readonly BasicConstraints basicConstraints;
 		private readonly bool[] keyUsage;
 

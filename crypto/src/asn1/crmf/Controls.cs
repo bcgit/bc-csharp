@@ -1,7 +1,7 @@
-﻿using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Text;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {

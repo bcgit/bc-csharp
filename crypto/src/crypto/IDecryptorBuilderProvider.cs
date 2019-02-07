@@ -12,7 +12,6 @@ namespace Org.BouncyCastle.Crypto
         /// </summary>
         /// <param name="algorithmDetails">The algorithm details/parameters to use to create the final cipher.</param>
         /// <returns>A new cipher builder.</returns>
-        ICipherBuilder CreateDecryptorBuilder (Object algorithmDetails);
+        ICipherBuilder CreateDecryptorBuilder(object algorithmDetails);
     }
 }
-

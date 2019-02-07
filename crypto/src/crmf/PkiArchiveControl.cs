@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Crmf;
@@ -8,7 +7,8 @@ using Org.BouncyCastle.Cms;
 
 namespace Org.BouncyCastle.Crmf
 {
-    public class PkiArchiveControl:IControl
+    public class PkiArchiveControl
+        : IControl
     {
         public static readonly int encryptedPrivKey = PkiArchiveOptions.encryptedPrivKey;
         public static readonly int keyGenParameters = PkiArchiveOptions.keyGenParameters;
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>CRMFObjectIdentifiers.id_regCtrl_pkiArchiveOptions</returns>
         public DerObjectIdentifier Type
         {
-            
+
             get { return type; }
         }
 
@@ -87,9 +87,8 @@ namespace Org.BouncyCastle.Crmf
             }
             catch (Exception e)
             {
-                throw  new CrmfException("CRMF parsing error: "+e.Message, e);
+                throw new CrmfException("CRMF parsing error: " + e.Message, e);
             }
         }
-
     }
 }

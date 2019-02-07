@@ -1,20 +1,24 @@
-﻿namespace Org.BouncyCastle.Asn1.Cmp
+﻿using System;
+
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cmp;
+
+namespace Org.BouncyCastle.Cmp
 {
-    public class GeneralPKIMessage
+    public class GeneralPkiMessage
     {
         private readonly PkiMessage pkiMessage;
 
-        private static PkiMessage parseBytes(byte[] encoding)
+        private static PkiMessage ParseBytes(byte[] encoding)
         {
             return PkiMessage.GetInstance(Asn1Object.FromByteArray(encoding));
         }
-
 
         /// <summary>
         /// Wrap a PKIMessage ASN.1 structure.
         /// </summary>
         /// <param name="pkiMessage">PKI message.</param>
-        public GeneralPKIMessage(PkiMessage pkiMessage)
+        public GeneralPkiMessage(PkiMessage pkiMessage)
         {
             this.pkiMessage = pkiMessage;
         }
@@ -23,24 +27,19 @@
         /// Create a PKIMessage from the passed in bytes.
         /// </summary>
         /// <param name="encoding">BER/DER encoding of the PKIMessage</param>
-        public GeneralPKIMessage(byte[] encoding) : this(parseBytes(encoding))
+        public GeneralPkiMessage(byte[] encoding)
+            : this(ParseBytes(encoding))
         {
         }
 
         public PkiHeader Header
         {
-            get
-            {
-                return pkiMessage.Header;
-            }
+            get { return pkiMessage.Header; }
         }
 
         public PkiBody Body
         {
-            get
-            {
-                return pkiMessage.Body;
-            }
+            get { return pkiMessage.Body; }
         }
 
         /// <summary>

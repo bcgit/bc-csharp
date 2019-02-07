@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Crypto.Paddings;
 
 namespace Org.BouncyCastle.Crmf
 {
@@ -27,14 +25,14 @@ namespace Org.BouncyCastle.Crmf
             this._pubKeyInfo = pubKeyInfo;
         }
 
-        public ProofOfPossessionSigningKeyBuilder setSender(GeneralName name)
+        public ProofOfPossessionSigningKeyBuilder SetSender(GeneralName name)
         {
             this._name = name;
 
             return this;
         }
 
-        public ProofOfPossessionSigningKeyBuilder setPublicKeyMac(PKMacBuilder generator, char[] password)
+        public ProofOfPossessionSigningKeyBuilder SetPublicKeyMac(PKMacBuilder generator, char[] password)
         {
             IMacFactory fact = generator.Build(password);
 
@@ -55,7 +53,7 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
-        public PopoSigningKey build(ISignatureFactory signer)
+        public PopoSigningKey Build(ISignatureFactory signer)
         {
             if (_name != null && _publicKeyMAC != null)
             {

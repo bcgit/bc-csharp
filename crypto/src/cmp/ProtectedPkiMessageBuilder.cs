@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
@@ -14,14 +15,13 @@ namespace Org.BouncyCastle.Cmp
     {
         private PkiHeaderBuilder hdrBuilBuilder;
         private PkiBody body;
-        private List<object> generalInfos = new List<object>();
-        private List<object> extraCerts = new List<object>();
+        private IList generalInfos = Platform.CreateArrayList();
+        private IList extraCerts = Platform.CreateArrayList();
 
-        public ProtectedPkiMessageBuilder(GeneralName sender, GeneralName recipient) : this(PkiHeader.CMP_2000, sender,
-            recipient)
+        public ProtectedPkiMessageBuilder(GeneralName sender, GeneralName recipient)
+            : this(PkiHeader.CMP_2000, sender, recipient)
         {
         }
-
 
         public ProtectedPkiMessageBuilder(int pvno, GeneralName sender, GeneralName recipient)
         {
@@ -97,21 +97,20 @@ namespace Org.BouncyCastle.Cmp
                 throw new ArgumentException("AlgorithmDetails is not AlgorithmIdentifier");
             }
 
-            FinalizeHeader((AlgorithmIdentifier) signatureFactory.AlgorithmDetails);
+            FinalizeHeader((AlgorithmIdentifier)signatureFactory.AlgorithmDetails);
             PkiHeader header = hdrBuilBuilder.Build();
             DerBitString protection = new DerBitString(CalculateSignature(calculator, header, body));
             return FinalizeMessage(header, protection);
         }
 
         public ProtectedPkiMessage Build(IMacFactory factory)
-        {           
-                IStreamCalculator calculator = factory.CreateCalculator();                
-                FinalizeHeader((AlgorithmIdentifier)factory.AlgorithmDetails);
-                PkiHeader header = hdrBuilBuilder.Build();
-                DerBitString protection = new DerBitString(CalculateSignature(calculator, header, body));
-                return FinalizeMessage(header, protection);        
+        {
+            IStreamCalculator calculator = factory.CreateCalculator();
+            FinalizeHeader((AlgorithmIdentifier)factory.AlgorithmDetails);
+            PkiHeader header = hdrBuilBuilder.Build();
+            DerBitString protection = new DerBitString(CalculateSignature(calculator, header, body));
+            return FinalizeMessage(header, protection);
         }
-
 
         private void FinalizeHeader(AlgorithmIdentifier algorithmIdentifier)
         {
@@ -121,7 +120,7 @@ namespace Org.BouncyCastle.Cmp
                 InfoTypeAndValue[] genInfos = new InfoTypeAndValue[generalInfos.Count];
                 for (int t = 0; t < genInfos.Length; t++)
                 {
-                    genInfos[t] = (InfoTypeAndValue) generalInfos[t];
+                    genInfos[t] = (InfoTypeAndValue)generalInfos[t];
                 }
 
                 hdrBuilBuilder.SetGeneralInfo(genInfos);
@@ -135,7 +134,7 @@ namespace Org.BouncyCastle.Cmp
                 CmpCertificate[] cmpCertificates = new CmpCertificate[extraCerts.Count];
                 for (int i = 0; i < cmpCertificates.Length; i++)
                 {
-                    byte[] cert = ((X509Certificate) extraCerts[i]).GetEncoded();
+                    byte[] cert = ((X509Certificate)extraCerts[i]).GetEncoded();
                     cmpCertificates[i] = CmpCertificate.GetInstance((Asn1Sequence.FromByteArray(cert)));
                 }
 
@@ -152,7 +151,7 @@ namespace Org.BouncyCastle.Cmp
             avec.Add(body);
             byte[] encoded = new DerSequence(avec).GetEncoded();
             signer.Stream.Write(encoded, 0, encoded.Length);
-            Object result = signer.GetResult();
+            object result = signer.GetResult();
 
             if (result is DefaultSignatureResult)
             {
@@ -164,7 +163,7 @@ namespace Org.BouncyCastle.Cmp
             }
             else if (result is byte[])
             {
-                return (byte[]) result;
+                return (byte[])result;
             }
 
             throw new InvalidOperationException("result is not byte[] or DefaultSignatureResult");

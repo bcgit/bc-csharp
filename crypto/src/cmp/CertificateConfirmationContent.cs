@@ -1,15 +1,14 @@
-﻿
-using Org.BouncyCastle.Cms;
-using Org.BouncyCastle.Asn1.Cmp;
+﻿using System;
 
+using Org.BouncyCastle.Asn1.Cmp;
+using Org.BouncyCastle.Cms;
 
 namespace Org.BouncyCastle.Cmp
 {
     public class CertificateConfirmationContent
     {
-        private DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
-        private CertConfirmContent content;
-
+        private readonly DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
+        private readonly CertConfirmContent content;
 
         public CertificateConfirmationContent(CertConfirmContent content)
         {
@@ -38,6 +37,6 @@ namespace Org.BouncyCastle.Cmp
             }
 
             return ret;
-        } 
+        }
     }
 }

@@ -1,30 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Iana;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
-
 
 namespace Org.BouncyCastle.Crmf
 {
-
-    class PKMacStreamCalculator : IStreamCalculator
+    internal class PKMacStreamCalculator
+        : IStreamCalculator
     {
         private readonly MacSink _stream;
-        
+
         public PKMacStreamCalculator(IMac mac)
         {
             _stream = new MacSink(mac);
@@ -41,17 +35,16 @@ namespace Org.BouncyCastle.Crmf
         }
     }
 
-    class PKMacFactory : IMacFactory
+    internal class PKMacFactory
+        : IMacFactory
     {
         protected readonly PbmParameter parameters;
-        private byte[] key;
-        
-   
+        private readonly byte[] key;
+
         public PKMacFactory(byte[] key, PbmParameter parameters)
         {
             this.key = Arrays.Clone(key);
-
-            this.parameters = parameters;  
+            this.parameters = parameters;
         }
 
         public virtual object AlgorithmDetails
@@ -62,14 +55,13 @@ namespace Org.BouncyCastle.Crmf
         public virtual IStreamCalculator CreateCalculator()
         {
             IMac mac = MacUtilities.GetMac(parameters.Mac.Algorithm);
-
             mac.Init(new KeyParameter(key));
-
             return new PKMacStreamCalculator(mac);
         }
     }
 
-    class DefaultPKMacResult: IBlockResult
+    internal class DefaultPKMacResult
+        : IBlockResult
     {
         private readonly IMac mac;
 
@@ -81,9 +73,7 @@ namespace Org.BouncyCastle.Crmf
         public byte[] Collect()
         {
             byte[] res = new byte[mac.GetMacSize()];
-
             mac.DoFinal(res, 0);
-
             return res;
         }
 
@@ -121,7 +111,7 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="provider"></param>
         public PKMacBuilder(IPKMacPrimitivesProvider provider) :
             this(new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), 1000, new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance), provider)
-        {       
+        {
         }
 
         /// <summary>
@@ -146,7 +136,6 @@ namespace Org.BouncyCastle.Crmf
             this.maxIterations = maxIterations;
         }
 
-
         private PKMacBuilder(AlgorithmIdentifier digestAlgorithmIdentifier, int iterationCount, AlgorithmIdentifier macAlgorithmIdentifier, IPKMacPrimitivesProvider provider)
         {
             this.iterationCount = iterationCount;
@@ -164,9 +153,7 @@ namespace Org.BouncyCastle.Crmf
         public PKMacBuilder SetSaltLength(int saltLength)
         {
             if (saltLength < 8)
-            {
                 throw new ArgumentException("salt length must be at least 8 bytes");
-            }
 
             this.saltLength = saltLength;
 
@@ -182,10 +169,9 @@ namespace Org.BouncyCastle.Crmf
         public PKMacBuilder SetIterationCount(int iterationCount)
         {
             if (iterationCount < 100)
-            {
                 throw new ArgumentException("iteration count must be at least 100");
-            }
-            checkIterationCountCeiling(iterationCount);
+
+            CheckIterationCountCeiling(iterationCount);
 
             this.iterationCount = iterationCount;
 
@@ -199,7 +185,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>this</returns>
         public PKMacBuilder SetParameters(PbmParameter parameters)
         {
-            checkIterationCountCeiling(parameters.IterationCount.Value.IntValue);
+            CheckIterationCountCeiling(parameters.IterationCount.Value.IntValue);
 
             this.parameters = parameters;
 
@@ -215,7 +201,7 @@ namespace Org.BouncyCastle.Crmf
         {
             this.random = random;
 
-            return this;          
+            return this;
         }
 
         /// <summary>
@@ -226,33 +212,27 @@ namespace Org.BouncyCastle.Crmf
         public IMacFactory Build(char[] password)
         {
             if (parameters != null)
+                return GenCalculator(parameters, password);
+
+            byte[] salt = new byte[saltLength];
+
+            if (random == null)
             {
-                return genCalculator(parameters, password);
+                this.random = new SecureRandom();
             }
-            else
-            {
-                byte[] salt = new byte[saltLength];
 
-                if (random == null)
-                {
-                    this.random = new SecureRandom();
-                }
+            random.NextBytes(salt);
 
-                random.NextBytes(salt);
-
-                return genCalculator(new PbmParameter(salt, owf, iterationCount, mac), password);
-            }
+            return GenCalculator(new PbmParameter(salt, owf, iterationCount, mac), password);
         }
 
-        private void checkIterationCountCeiling(int iterationCount)
+        private void CheckIterationCountCeiling(int iterationCount)
         {
             if (maxIterations > 0 && iterationCount > maxIterations)
-            {
                 throw new ArgumentException("iteration count exceeds limit (" + iterationCount + " > " + maxIterations + ")");
-            }
         }
 
-        private IMacFactory genCalculator(PbmParameter parameters, char[] password)
+        private IMacFactory GenCalculator(PbmParameter parameters, char[] password)
         {
             // From RFC 4211
             //
@@ -273,8 +253,8 @@ namespace Org.BouncyCastle.Crmf
             byte[] salt = parameters.Salt.GetOctets();
             byte[] K = new byte[pw.Length + salt.Length];
 
-            System.Array.Copy(pw, 0, K, 0, pw.Length);
-            System.Array.Copy(salt, 0, K, pw.Length, salt.Length);
+            Array.Copy(pw, 0, K, 0, pw.Length);
+            Array.Copy(salt, 0, K, pw.Length, salt.Length);
 
             IDigest digest = provider.CreateDigest(parameters.Owf);
 
