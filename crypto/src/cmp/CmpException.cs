@@ -18,6 +18,5 @@ namespace Org.BouncyCastle.Cmp
             : base(message, innerException)
         {
         }
-#endif
     }
 }
