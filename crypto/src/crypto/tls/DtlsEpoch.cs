@@ -24,8 +24,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal long AllocateSequenceNumber()
         {
-            // TODO Check for overflow
-            return mSequenceNumber++;
+            lock (this)
+            {
+                if (mSequenceNumber >= (1L << 48))
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+
+                return mSequenceNumber++;
+            }
         }
 
         internal TlsCipher Cipher
@@ -45,7 +50,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal long SequenceNumber
         {
-            get { return mSequenceNumber; }
+            get { lock(this) return mSequenceNumber; }
         }
     }
 }
