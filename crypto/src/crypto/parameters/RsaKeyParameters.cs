@@ -8,12 +8,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 	public class RsaKeyParameters
 		: AsymmetricKeyParameter
     {
-        // the value is the product of the 132 smallest primes from 3 to 751
-        private static BigInteger SmallPrimesProduct = new BigInteger( 
-            "8138E8A0FCF3A4E84A771D40FD305D7F4AA59306D7251DE54D98AF8FE95729A1" +
-            "F73D893FA424CD2EDC8636A6C3285E022B0E3866A565AE8108EED8591CD4FE8D" +
-            "2CE86165A978D719EBF647F362D33FCA29CD179FB42401CBAF3DF0C614056F9C" +
-            "8F3CFD51E474AFB6BC6974F78DB8ABA8E9E517FDED658591AB7502BD41849462F",
+        // Hexadecimal value of the product of the 131 smallest odd primes from 3 to 743
+        private static readonly BigInteger SmallPrimesProduct = new BigInteger(
+                  "8138e8a0fcf3a4e84a771d40fd305d7f4aa59306d7251de54d98af8fe95729a1f"
+                + "73d893fa424cd2edc8636a6c3285e022b0e3866a565ae8108eed8591cd4fe8d2"
+                + "ce86165a978d719ebf647f362d33fca29cd179fb42401cbaf3df0c614056f9c8"
+                + "f3cfd51e474afb6bc6974f78db8aba8e9e517fded658591ab7502bd41849462f",
             16);
 
         private static BigInteger Validate(BigInteger modulus)
