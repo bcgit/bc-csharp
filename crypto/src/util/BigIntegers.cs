@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Utilities
     /**
      * BigInteger utilities.
      */
-    public abstract class BigIntegers
+    public static class BigIntegers
     {
         private const int MaxIterations = 1000;
 

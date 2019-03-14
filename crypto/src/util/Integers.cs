@@ -2,7 +2,7 @@
 
 namespace Org.BouncyCastle.Utilities
 {
-    public abstract class Integers
+    public static class Integers
     {
         public static int RotateLeft(int i, int distance)
         {
