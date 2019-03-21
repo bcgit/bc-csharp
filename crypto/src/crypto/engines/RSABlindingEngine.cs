@@ -14,12 +14,22 @@ namespace Org.BouncyCastle.Crypto.Engines
 	public class RsaBlindingEngine
 		: IAsymmetricBlockCipher
 	{
-		private readonly RsaCoreEngine core = new RsaCoreEngine();
+		private readonly IRsa core;
 
 		private RsaKeyParameters key;
 		private BigInteger blindingFactor;
 
 		private bool forEncryption;
+
+        public RsaBlindingEngine()
+            : this(new RsaCoreEngine())
+        {
+        }
+
+        public RsaBlindingEngine(IRsa rsa)
+        {
+            this.core = rsa;
+        }
 
         public virtual string AlgorithmName
 		{

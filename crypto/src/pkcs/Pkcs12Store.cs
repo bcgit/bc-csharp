@@ -367,6 +367,10 @@ namespace Org.BouncyCastle.Pkcs
                         keyCerts[name] = certEntry;
                         keys[name] = unmarkedKeyEntry;
                     }
+                    else
+                    {
+                        keys["unmarked"] = unmarkedKeyEntry;
+                    }
                 }
                 else
                 {

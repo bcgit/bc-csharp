@@ -31,6 +31,7 @@ namespace Org.BouncyCastle.Security
             GOST3411_2012_256, GOST3411_2012_512,
             KECCAK_224, KECCAK_256, KECCAK_288, KECCAK_384, KECCAK_512,
             MD2, MD4, MD5,
+            NONE,
             RIPEMD128, RIPEMD160, RIPEMD256, RIPEMD320,
             SHA_1, SHA_224, SHA_256, SHA_384, SHA_512,
             SHA_512_224, SHA_512_256,
@@ -212,8 +213,8 @@ namespace Org.BouncyCastle.Security
                     case DigestAlgorithm.DSTU7564_384: return new Dstu7564Digest(384);
                     case DigestAlgorithm.DSTU7564_512: return new Dstu7564Digest(512);
                     case DigestAlgorithm.GOST3411: return new Gost3411Digest();
-                    case DigestAlgorithm.GOST3411_2012_256: return new GOST3411_2012_256Digest();
-                    case DigestAlgorithm.GOST3411_2012_512: return new GOST3411_2012_512Digest();
+                    case DigestAlgorithm.GOST3411_2012_256: return new Gost3411_2012_256Digest();
+                    case DigestAlgorithm.GOST3411_2012_512: return new Gost3411_2012_512Digest();
                     case DigestAlgorithm.KECCAK_224: return new KeccakDigest(224);
                     case DigestAlgorithm.KECCAK_256: return new KeccakDigest(256);
                     case DigestAlgorithm.KECCAK_288: return new KeccakDigest(288);
@@ -222,6 +223,7 @@ namespace Org.BouncyCastle.Security
                     case DigestAlgorithm.MD2: return new MD2Digest();
                     case DigestAlgorithm.MD4: return new MD4Digest();
                     case DigestAlgorithm.MD5: return new MD5Digest();
+                    case DigestAlgorithm.NONE: return new NullDigest();
                     case DigestAlgorithm.RIPEMD128: return new RipeMD128Digest();
                     case DigestAlgorithm.RIPEMD160: return new RipeMD160Digest();
                     case DigestAlgorithm.RIPEMD256: return new RipeMD256Digest();
@@ -255,6 +257,11 @@ namespace Org.BouncyCastle.Security
             DerObjectIdentifier oid)
         {
             return (string) algorithms[oid.Id];
+        }
+
+        public static byte[] CalculateDigest(DerObjectIdentifier id, byte[] input)
+        {
+            return CalculateDigest(id.Id, input);
         }
 
         public static byte[] CalculateDigest(string algorithm, byte[] input)

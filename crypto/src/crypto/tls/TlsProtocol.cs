@@ -288,6 +288,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                         this.mSessionParameters = new SessionParameters.Builder()
                             .SetCipherSuite(this.mSecurityParameters.CipherSuite)
                             .SetCompressionAlgorithm(this.mSecurityParameters.CompressionAlgorithm)
+                            .SetExtendedMasterSecret(this.mSecurityParameters.IsExtendedMasterSecret)
                             .SetMasterSecret(this.mSecurityParameters.MasterSecret)
                             .SetPeerCertificate(this.mPeerCertificate)
                             .SetPskIdentity(this.mSecurityParameters.PskIdentity)
@@ -391,31 +392,30 @@ namespace Org.BouncyCastle.Crypto.Tls
                 if (queue.Available < totalLength)
                     break;
 
-                CheckReceivedChangeCipherSpec(mConnectionState == CS_END || type == HandshakeType.finished);
-
                 /*
                  * RFC 2246 7.4.9. The value handshake_messages includes all handshake messages
                  * starting at client hello up to, but not including, this finished message.
                  * [..] Note: [Also,] Hello Request messages are omitted from handshake hashes.
                  */
-                switch (type)
+                if (HandshakeType.hello_request != type)
                 {
-                case HandshakeType.hello_request:
-                    break;
-                case HandshakeType.finished:
-                default:
-                {
-                    TlsContext ctx = Context;
-                    if (type == HandshakeType.finished
-                        && this.mExpectedVerifyData == null
-                        && ctx.SecurityParameters.MasterSecret != null)
+                    if (HandshakeType.finished == type)
                     {
-                        this.mExpectedVerifyData = CreateVerifyData(!ctx.IsServer);
+                        CheckReceivedChangeCipherSpec(true);
+
+                        TlsContext ctx = Context;
+                        if (this.mExpectedVerifyData == null
+                            && ctx.SecurityParameters.MasterSecret != null)
+                        {
+                            this.mExpectedVerifyData = CreateVerifyData(!ctx.IsServer);
+                        }
+                    }
+                    else
+                    {
+                        CheckReceivedChangeCipherSpec(mConnectionState == CS_END);
                     }
 
                     queue.CopyTo(mRecordStream.HandshakeHashUpdater, totalLength);
-                    break;
-                }
                 }
 
                 queue.RemoveData(4);

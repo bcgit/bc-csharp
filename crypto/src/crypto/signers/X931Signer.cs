@@ -145,7 +145,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             t = t.Min(kParam.Modulus.Subtract(t));
 
-            return BigIntegers.AsUnsignedByteArray((kParam.Modulus.BitLength + 7) / 8, t);
+            int size = BigIntegers.GetUnsignedByteLength(kParam.Modulus);
+            return BigIntegers.AsUnsignedByteArray(size, t);
         }
 
         private void CreateSignatureBlock()

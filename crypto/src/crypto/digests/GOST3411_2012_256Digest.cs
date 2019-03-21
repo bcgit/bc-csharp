@@ -3,7 +3,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    public class GOST3411_2012_256Digest : GOST3411_2012Digest
+    public class Gost3411_2012_256Digest : Gost3411_2012Digest
     {
         private readonly static byte[] IV = {
             0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -21,12 +21,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             get { return "GOST3411-2012-256"; }
         }
 
-        public GOST3411_2012_256Digest() : base(IV)
+        public Gost3411_2012_256Digest() : base(IV)
         {
 
         }
 
-        public GOST3411_2012_256Digest(GOST3411_2012_256Digest other) : base(IV)
+        public Gost3411_2012_256Digest(Gost3411_2012_256Digest other) : base(IV)
         {
             Reset(other);
         }
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public override IMemoable Copy()
         {
-			return new GOST3411_2012_256Digest(this);
+			return new Gost3411_2012_256Digest(this);
         }
     }
 }

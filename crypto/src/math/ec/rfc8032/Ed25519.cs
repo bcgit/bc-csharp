@@ -1,16 +1,24 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
     public abstract class Ed25519
     {
+        public enum Algorithm
+        {
+            Ed25519 = 0,
+            Ed25519ctx = 1,
+            Ed25519ph = 2,
+        }
+
         private const long M28L = 0x0FFFFFFFL;
         private const long M32L = 0xFFFFFFFFL;
 
@@ -18,11 +26,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int ScalarUints = 8;
         private const int ScalarBytes = ScalarUints * 4;
 
+        public static readonly int PrehashSize = 64;
         public static readonly int PublicKeySize = PointBytes;
         public static readonly int SecretKeySize = 32;
         public static readonly int SignatureSize = PointBytes + ScalarBytes;
 
-        //private static readonly byte[] Dom2Prefix = Strings.ToByteArray("SigEd25519 no Ed25519 collisions");
+        private static readonly byte[] Dom2Prefix = Strings.ToByteArray("SigEd25519 no Ed25519 collisions");
 
         private static readonly uint[] P = { 0xFFFFFFEDU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0x7FFFFFFFU };
         private static readonly uint[] L = { 0x5CF5D3EDU, 0x5812631AU, 0xA2F79CD6U, 0x14DEF9DEU, 0x00000000U, 0x00000000U, 0x00000000U, 0x10000000U };
@@ -52,6 +61,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int PrecompPoints = 1 << (PrecompTeeth - 1);
         private const int PrecompMask = PrecompPoints - 1;
 
+        private static readonly object precompLock = new object();
         // TODO[ed25519] Convert to PointPrecomp
         private static PointExt[] precompBaseTable = null;
         private static int[] precompBase = null;
@@ -96,6 +106,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ReduceScalar(result);
         }
 
+        private static bool CheckContextVar(byte[] ctx, byte phflag)
+        {
+            return ctx == null && phflag == 0x00
+                || ctx != null && ctx.Length < 256;
+        }
+
         private static bool CheckPointVar(byte[] p)
         {
             uint[] t = new uint[8];
@@ -109,6 +125,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] n = new uint[ScalarUints];
             DecodeScalar(s, 0, n);
             return !Nat256.Gte(n, L);
+        }
+
+        private static IDigest CreateDigest()
+        {
+            return new Sha512Digest();
+        }
+
+        public static IDigest CreatePrehash()
+        {
+            return CreateDigest();
         }
 
         private static uint Decode24(byte[] bs, int off)
@@ -140,9 +166,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             byte[] py = Arrays.CopyOfRange(p, pOff, pOff + PointBytes);
             if (!CheckPointVar(py))
-            {
                 return false;
-            }
 
             int x_0 = (py[PointBytes - 1] & 0x80) >> 7;
             py[PointBytes - 1] &= 0x7F;
@@ -158,15 +182,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X25519Field.AddOne(v);
 
             if (!X25519Field.SqrtRatioVar(u, v, r.x))
-            {
                 return false;
-            }
 
             X25519Field.Normalize(r.x);
             if (x_0 == 1 && X25519Field.IsZeroVar(r.x))
-            {
                 return false;
-            }
 
             if (negate ^ (x_0 != (r.x[0] & 1)))
             {
@@ -180,6 +200,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static void DecodeScalar(byte[] k, int kOff, uint[] n)
         {
             Decode32(k, kOff, n, 0, ScalarUints);
+        }
+
+        private static void Dom2(IDigest d, byte phflag, byte[] ctx)
+        {
+            if (ctx != null)
+            {
+                d.BlockUpdate(Dom2Prefix, 0, Dom2Prefix.Length);
+                d.Update(phflag);
+                d.Update((byte)ctx.Length);
+                d.BlockUpdate(ctx, 0, ctx.Length);
+            }
         }
 
         private static void Encode24(uint n, byte[] bs, int off)
@@ -218,9 +249,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             r[rOff + PointBytes - 1] |= (byte)((x[0] & 1) << 7);
         }
 
+        public static void GeneratePrivateKey(SecureRandom random, byte[] k)
+        {
+            random.NextBytes(k);
+        }
+
         public static void GeneratePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)
         {
-            Sha512Digest d = new Sha512Digest();
+            IDigest d = CreateDigest();
             byte[] h = new byte[d.GetDigestSize()];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
@@ -286,8 +322,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ws;
         }
 
-        private static void ImplSign(Sha512Digest d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        private static void ImplSign(IDigest d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] ctx, byte phflag,
+            byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
+            Dom2(d, phflag, ctx);
             d.BlockUpdate(h, ScalarBytes, ScalarBytes);
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
@@ -296,8 +334,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] R = new byte[PointBytes];
             ScalarMultBaseEncoded(r, R, 0);
 
+            Dom2(d, phflag, ctx);
             d.BlockUpdate(R, 0, PointBytes);
-            d.BlockUpdate(pk, 0, PointBytes);
+            d.BlockUpdate(pk, pkOff, PointBytes);
             d.BlockUpdate(m, mOff, mLen);
             d.DoFinal(h, 0);
 
@@ -306,6 +345,90 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Array.Copy(R, 0, sig, sigOff, PointBytes);
             Array.Copy(S, 0, sig, sigOff + PointBytes, ScalarBytes);
+        }
+
+        private static void ImplSign(byte[] sk, int skOff, byte[] ctx, byte phflag, byte[] m, int mOff, int mLen,
+            byte[] sig, int sigOff)
+        {
+            if (!CheckContextVar(ctx, phflag))
+                throw new ArgumentException("ctx");
+
+            IDigest d = CreateDigest();
+            byte[] h = new byte[d.GetDigestSize()];
+
+            d.BlockUpdate(sk, skOff, SecretKeySize);
+            d.DoFinal(h, 0);
+
+            byte[] s = new byte[ScalarBytes];
+            PruneScalar(h, 0, s);
+
+            byte[] pk = new byte[PointBytes];
+            ScalarMultBaseEncoded(s, pk, 0);
+
+            ImplSign(d, h, s, pk, 0, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
+
+        private static void ImplSign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte phflag,
+            byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        {
+            if (!CheckContextVar(ctx, phflag))
+                throw new ArgumentException("ctx");
+
+            IDigest d = CreateDigest();
+            byte[] h = new byte[d.GetDigestSize()];
+
+            d.BlockUpdate(sk, skOff, SecretKeySize);
+            d.DoFinal(h, 0);
+
+            byte[] s = new byte[ScalarBytes];
+            PruneScalar(h, 0, s);
+
+            ImplSign(d, h, s, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
+
+        private static bool ImplVerify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte phflag,
+            byte[] m, int mOff, int mLen)
+        {
+            if (!CheckContextVar(ctx, phflag))
+                throw new ArgumentException("ctx");
+
+            byte[] R = Arrays.CopyOfRange(sig, sigOff, sigOff + PointBytes);
+            byte[] S = Arrays.CopyOfRange(sig, sigOff + PointBytes, sigOff + SignatureSize);
+
+            if (!CheckPointVar(R))
+                return false;
+
+            if (!CheckScalarVar(S))
+                return false;
+
+            PointExt pA = new PointExt();
+            if (!DecodePointVar(pk, pkOff, true, pA))
+                return false;
+
+            IDigest d = CreateDigest();
+            byte[] h = new byte[d.GetDigestSize()];
+
+            Dom2(d, phflag, ctx);
+            d.BlockUpdate(R, 0, PointBytes);
+            d.BlockUpdate(pk, pkOff, PointBytes);
+            d.BlockUpdate(m, mOff, mLen);
+            d.DoFinal(h, 0);
+
+            byte[] k = ReduceScalar(h);
+
+            uint[] nS = new uint[ScalarUints];
+            DecodeScalar(S, 0, nS);
+
+            uint[] nA = new uint[ScalarUints];
+            DecodeScalar(k, 0, nA);
+
+            PointAccum pR = new PointAccum();
+            ScalarMultStraussVar(nS, nA, pA, pR);
+
+            byte[] check = new byte[PointBytes];
+            EncodePoint(pR, check, 0);
+
+            return Arrays.AreEqual(check, R);
         }
 
         private static void PointAddVar(bool negate, PointExt p, PointAccum r)
@@ -514,97 +637,100 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X25519Field.Zero(p.t);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            if (precompBase != null)
+            lock (precompLock)
             {
-                return;
-            }
+                if (precompBase != null)
+                    return;
 
-            // Precomputed table for the base point in verification ladder
-            {
-                PointExt b = new PointExt();
-                X25519Field.Copy(B_x, 0, b.x, 0);
-                X25519Field.Copy(B_y, 0, b.y, 0);
-                PointExtendXY(b);
-
-                precompBaseTable = PointPrecompVar(b, 1 << (WnafWidthBase - 2));
-            }
-
-            PointAccum p = new PointAccum();
-            X25519Field.Copy(B_x, 0, p.x, 0);
-            X25519Field.Copy(B_y, 0, p.y, 0);
-            PointExtendXY(p);
-
-            precompBase = new int[PrecompBlocks * PrecompPoints * 3 * X25519Field.Size];
-
-            int off = 0;
-            for (int b = 0; b < PrecompBlocks; ++b)
-            {
-                PointExt[] ds = new PointExt[PrecompTeeth];
-
-                PointExt sum = new PointExt();
-                PointSetNeutral(sum);
-
-                for (int t = 0; t < PrecompTeeth; ++t)
+                // Precomputed table for the base point in verification ladder
                 {
-                    PointExt q = PointCopy(p);
-                    PointAddVar(true, sum, q, sum);
-                    PointDouble(p);
+                    PointExt b = new PointExt();
+                    X25519Field.Copy(B_x, 0, b.x, 0);
+                    X25519Field.Copy(B_y, 0, b.y, 0);
+                    PointExtendXY(b);
 
-                    ds[t] = PointCopy(p);
+                    precompBaseTable = PointPrecompVar(b, 1 << (WnafWidthBase - 2));
+                }
 
-                    for (int s = 1; s < PrecompSpacing; ++s)
+                PointAccum p = new PointAccum();
+                X25519Field.Copy(B_x, 0, p.x, 0);
+                X25519Field.Copy(B_y, 0, p.y, 0);
+                PointExtendXY(p);
+
+                precompBase = new int[PrecompBlocks * PrecompPoints * 3 * X25519Field.Size];
+
+                int off = 0;
+                for (int b = 0; b < PrecompBlocks; ++b)
+                {
+                    PointExt[] ds = new PointExt[PrecompTeeth];
+
+                    PointExt sum = new PointExt();
+                    PointSetNeutral(sum);
+
+                    for (int t = 0; t < PrecompTeeth; ++t)
                     {
+                        PointExt q = PointCopy(p);
+                        PointAddVar(true, sum, q, sum);
                         PointDouble(p);
+
+                        ds[t] = PointCopy(p);
+
+                        if (b + t != PrecompBlocks + PrecompTeeth - 2)
+                        {
+                            for (int s = 1; s < PrecompSpacing; ++s)
+                            {
+                                PointDouble(p);
+                            }
+                        }
                     }
-                }
 
-                PointExt[] points = new PointExt[PrecompPoints];
-                int k = 0;
-                points[k++] = sum;
+                    PointExt[] points = new PointExt[PrecompPoints];
+                    int k = 0;
+                    points[k++] = sum;
 
-                for (int t = 0; t < (PrecompTeeth - 1); ++t)
-                {
-                    int size = 1 << t;
-                    for (int j = 0; j < size; ++j, ++k)
+                    for (int t = 0; t < (PrecompTeeth - 1); ++t)
                     {
-                        PointAddVar(false, points[k - size], ds[t], points[k] = new PointExt());
+                        int size = 1 << t;
+                        for (int j = 0; j < size; ++j, ++k)
+                        {
+                            PointAddVar(false, points[k - size], ds[t], points[k] = new PointExt());
+                        }
+                    }
+
+                    Debug.Assert(k == PrecompPoints);
+
+                    for (int i = 0; i < PrecompPoints; ++i)
+                    {
+                        PointExt q = points[i];
+
+                        int[] x = X25519Field.Create();
+                        int[] y = X25519Field.Create();
+
+                        X25519Field.Add(q.z, q.z, x);
+                        // TODO[ed25519] Batch inversion
+                        X25519Field.Inv(x, y);
+                        X25519Field.Mul(q.x, y, x);
+                        X25519Field.Mul(q.y, y, y);
+
+                        PointPrecomp r = new PointPrecomp();
+                        X25519Field.Apm(y, x, r.ypx_h, r.ymx_h);
+                        X25519Field.Mul(x, y, r.xyd);
+                        X25519Field.Mul(r.xyd, C_d4, r.xyd);
+
+                        X25519Field.Normalize(r.ypx_h);
+                        X25519Field.Normalize(r.ymx_h);
+                        //X25519Field.Normalize(r.xyd);
+
+                        X25519Field.Copy(r.ypx_h, 0, precompBase, off); off += X25519Field.Size;
+                        X25519Field.Copy(r.ymx_h, 0, precompBase, off); off += X25519Field.Size;
+                        X25519Field.Copy(r.xyd, 0, precompBase, off); off += X25519Field.Size;
                     }
                 }
 
-                Debug.Assert(k == PrecompPoints);
-
-                for (int i = 0; i < PrecompPoints; ++i)
-                {
-                    PointExt q = points[i];
-
-                    int[] x = X25519Field.Create();
-                    int[] y = X25519Field.Create();
-
-                    X25519Field.Add(q.z, q.z, x);
-                    // TODO[ed25519] Batch inversion
-                    X25519Field.Inv(x, y);
-                    X25519Field.Mul(q.x, y, x);
-                    X25519Field.Mul(q.y, y, y);
-
-                    PointPrecomp r = new PointPrecomp();
-                    X25519Field.Apm(y, x, r.ypx_h, r.ymx_h);
-                    X25519Field.Mul(x, y, r.xyd);
-                    X25519Field.Mul(r.xyd, C_d4, r.xyd);
-
-                    X25519Field.Normalize(r.ypx_h);
-                    X25519Field.Normalize(r.ymx_h);
-                    //X25519Field.Normalize(r.xyd);
-
-                    X25519Field.Copy(r.ypx_h, 0, precompBase, off); off += X25519Field.Size;
-                    X25519Field.Copy(r.ymx_h, 0, precompBase, off); off += X25519Field.Size;
-                    X25519Field.Copy(r.xyd, 0, precompBase, off);   off += X25519Field.Size;
-                }
+                Debug.Assert(off == precompBase.Length);
             }
-
-            Debug.Assert(off == precompBase.Length);
         }
 
         private static void PruneScalar(byte[] n, int nOff, byte[] r)
@@ -795,9 +921,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
 
                 if ((cOff -= PrecompTeeth) < 0)
-                {
                     break;
-                }
 
                 PointDouble(r);
             }
@@ -808,6 +932,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PointAccum p = new PointAccum();
             ScalarMultBase(k, p);
             EncodePoint(p, r, rOff);
+        }
+
+        internal static void ScalarMultBaseYZ(byte[] k, int kOff, int[] y, int[] z)
+        {
+            byte[] n = new byte[ScalarBytes];
+            PruneScalar(k, kOff, n);
+
+            PointAccum p = new PointAccum();
+            ScalarMultBase(n, p);
+            X25519Field.Copy(p.y, 0, y, 0);
+            X25519Field.Copy(p.z, 0, z, 0);
         }
 
         private static void ScalarMultStraussVar(uint[] nb, uint[] np, PointExt p, PointAccum r)
@@ -824,7 +959,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PointSetNeutral(r);
 
             int bit = 255;
-            while (bit > 0 && (ws_b[bit] | ws_p[bit]) == 0)
+            while (bit > 0 && ((byte)ws_b[bit] | (byte)ws_p[bit]) == 0)
             {
                 --bit;
             }
@@ -850,9 +985,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
 
                 if (--bit < 0)
-                {
                     break;
-                }
 
                 PointDouble(r);
             }
@@ -860,78 +993,101 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static void Sign(byte[] sk, int skOff, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
-            Sha512Digest d = new Sha512Digest();
-            byte[] h = new byte[d.GetDigestSize()];
+            byte[] ctx = null;
+            byte phflag = 0x00;
 
-            d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0);
-
-            byte[] s = new byte[ScalarBytes];
-            PruneScalar(h, 0, s);
-
-            byte[] pk = new byte[PointBytes];
-            ScalarMultBaseEncoded(s, pk, 0);
-
-            ImplSign(d, h, s, pk, 0, m, mOff, mLen, sig, sigOff);
+            ImplSign(sk, skOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
         public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
-            Sha512Digest d = new Sha512Digest();
-            byte[] h = new byte[d.GetDigestSize()];
+            byte[] ctx = null;
+            byte phflag = 0x00;
 
-            d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0);
+            ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
 
-            byte[] s = new byte[ScalarBytes];
-            PruneScalar(h, 0, s);
+        public static void Sign(byte[] sk, int skOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        {
+            byte phflag = 0x00;
 
-            ImplSign(d, h, s, pk, pkOff, m, mOff, mLen, sig, sigOff);
+            ImplSign(sk, skOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
+
+        public static void Sign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        {
+            byte phflag = 0x00;
+
+            ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
+
+        public static void SignPrehash(byte[] sk, int skOff, byte[] ctx, byte[] ph, int phOff, byte[] sig, int sigOff)
+        {
+            byte phflag = 0x01;
+
+            ImplSign(sk, skOff, ctx, phflag, ph, phOff, PrehashSize, sig, sigOff);
+        }
+
+        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff, byte[] sig, int sigOff)
+        {
+            byte phflag = 0x01;
+
+            ImplSign(sk, skOff, pk, pkOff, ctx, phflag, ph, phOff, PrehashSize, sig, sigOff);
+        }
+
+        public static void SignPrehash(byte[] sk, int skOff, byte[] ctx, IDigest ph, byte[] sig, int sigOff)
+        {
+            byte[] m = new byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m, 0))
+                throw new ArgumentException("ph");
+
+            byte phflag = 0x01;
+
+            ImplSign(sk, skOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
+        }
+
+        public static void SignPrehash(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, IDigest ph, byte[] sig, int sigOff)
+        {
+            byte[] m = new byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m, 0))
+                throw new ArgumentException("ph");
+
+            byte phflag = 0x01;
+
+            ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
         }
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen)
         {
-            byte[] R = Arrays.CopyOfRange(sig, sigOff, sigOff + PointBytes);
-            byte[] S = Arrays.CopyOfRange(sig, sigOff + PointBytes, sigOff + SignatureSize);
+            byte[] ctx = null;
+            byte phflag = 0x00;
 
-            if (!CheckPointVar(R))
-            {
-                return false;
-            }
-            if (!CheckScalarVar(S))
-            {
-                return false;
-            }
+            return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, mOff, mLen);
+        }
 
-            PointExt pA = new PointExt();
-            if (!DecodePointVar(pk, pkOff, true, pA))
-            {
-                return false;
-            }
+        public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen)
+        {
+            byte phflag = 0x00;
 
-            Sha512Digest d = new Sha512Digest();
-            byte[] h = new byte[d.GetDigestSize()];
+            return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, mOff, mLen);
+        }
 
-            d.BlockUpdate(R, 0, PointBytes);
-            d.BlockUpdate(pk, pkOff, PointBytes);
-            d.BlockUpdate(m, mOff, mLen);
-            d.DoFinal(h, 0);
+        public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff)
+        {
+            byte phflag = 0x01;
 
-            byte[] k = ReduceScalar(h);
+            return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, ph, phOff, PrehashSize);
+        }
 
-            uint[] nS = new uint[ScalarUints];
-            DecodeScalar(S, 0, nS);
+        public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, IDigest ph)
+        {
+            byte[] m = new byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m, 0))
+                throw new ArgumentException("ph");
 
-            uint[] nA = new uint[ScalarUints];
-            DecodeScalar(k, 0, nA);
+            byte phflag = 0x01;
 
-            PointAccum pR = new PointAccum();
-            ScalarMultStraussVar(nS, nA, pA, pR);
-
-            byte[] check = new byte[PointBytes];
-            EncodePoint(pR, check, 0);
-
-            return Arrays.AreEqual(check, R);
+            return ImplVerify(sig, sigOff, pk, pkOff, ctx, phflag, m, 0, m.Length);
         }
     }
 }

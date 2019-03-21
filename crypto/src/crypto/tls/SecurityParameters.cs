@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         /**
          * @return {@link CompressionMethod}
          */
-        public byte CompressionAlgorithm
+        public virtual byte CompressionAlgorithm
         {
             get { return compressionAlgorithm; }
         }
@@ -98,6 +98,11 @@ namespace Org.BouncyCastle.Crypto.Tls
         public virtual byte[] SrpIdentity
         {
             get { return srpIdentity; }
+        }
+
+        public virtual bool IsExtendedMasterSecret
+        {
+            get { return extendedMasterSecret; }
         }
     }
 }

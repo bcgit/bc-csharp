@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -83,6 +84,30 @@ namespace Org.BouncyCastle.Cms
 			this.content = content;
 			this.digestCalculator = digestCalculator;
 		}
+
+        /**
+         * Protected constructor. In some cases clients have their own idea about how to encode
+         * the signed attributes and calculate the signature. This constructor is to allow developers
+         * to deal with that by extending off the class and overridng methods like getSignedAttributes().
+         *
+         * @param baseInfo the SignerInformation to base this one on.
+         */
+        protected SignerInformation(SignerInformation baseInfo)
+        {
+            this.info = baseInfo.info;
+            this.contentType = baseInfo.contentType;
+            this.isCounterSignature = baseInfo.IsCounterSignature;
+            this.sid = baseInfo.SignerID;
+            this.digestAlgorithm = info.DigestAlgorithm;
+            this.signedAttributeSet = info.AuthenticatedAttributes;
+            this.unsignedAttributeSet = info.UnauthenticatedAttributes;
+            this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
+            this.signature = info.EncryptedDigest.GetOctets();
+            this.content = baseInfo.content;
+            this.resultDigest = baseInfo.resultDigest;
+            this.signedAttributeTable = baseInfo.signedAttributeTable;
+            this.unsignedAttributeTable = baseInfo.unsignedAttributeTable;
+        }
 
 		public bool IsCounterSignature
 		{
@@ -363,7 +388,7 @@ namespace Org.BouncyCastle.Cms
 				{
 					if (content != null)
 					{
-						content.Write(new DigOutputStream(digest));
+						content.Write(new DigestSink(digest));
 					}
 					else if (signedAttributeSet == null)
 					{
@@ -461,8 +486,15 @@ namespace Org.BouncyCastle.Cms
 					}
 					else if (content != null)
 					{
-						// TODO Use raw signature of the hash value instead
-						content.Write(new SigOutputStream(sig));
+                        try
+                        {
+                            // TODO Use raw signature of the hash value instead
+                            content.Write(new SignerSink(sig));
+                        }
+                        catch (SignatureException e)
+                        {
+                            throw new CmsStreamException("signature problem: " + e);
+                        }
 					}
 				}
 				else

@@ -8,7 +8,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class EncryptionScheme
         : AlgorithmIdentifier
     {
-		public EncryptionScheme(
+        public EncryptionScheme(
+            DerObjectIdentifier	objectID)
+            : base(objectID)
+        {
+        }
+
+        public EncryptionScheme(
             DerObjectIdentifier	objectID,
             Asn1Encodable		parameters)
 			: base(objectID, parameters)

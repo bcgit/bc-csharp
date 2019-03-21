@@ -45,5 +45,21 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             return 224 <= hashAlgorithm && hashAlgorithm <= 255;
         }
+
+        public static bool IsRecognized(byte hashAlgorithm)
+        {
+            switch (hashAlgorithm)
+            {
+            case md5:
+            case sha1:
+            case sha224:
+            case sha256:
+            case sha384:
+            case sha512:
+                return true;
+            default:
+                return false;
+            }
+        }
     }
 }

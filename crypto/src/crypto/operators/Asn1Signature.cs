@@ -12,6 +12,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -236,90 +237,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 		}
 	}
 
-	internal class SignerBucket
-		: Stream
-	{
-		protected readonly ISigner signer;
 
-		public SignerBucket(
-			ISigner	signer)
-		{
-			this.signer = signer;
-		}
-
-		public override int Read(
-			byte[]	buffer,
-			int		offset,
-			int		count)
-		{
-			throw new NotImplementedException ();
-		}
-
-		public override int ReadByte()
-		{
-			throw new NotImplementedException ();
-		}
-
-		public override void Write(
-			byte[]	buffer,
-			int		offset,
-			int		count)
-		{
-			if (count > 0)
-			{
-				signer.BlockUpdate(buffer, offset, count);
-			}
-		}
-
-		public override void WriteByte(
-			byte b)
-		{
-			signer.Update(b);
-		}
-
-		public override bool CanRead
-		{
-			get { return false; }
-		}
-
-		public override bool CanWrite
-		{
-			get { return true; }
-		}
-
-		public override bool CanSeek
-		{
-			get { return false; }
-		}
-
-		public override long Length
-		{
-			get { return 0; }
-		}
-
-		public override long Position
-		{
-			get { throw new NotImplementedException (); }
-			set { throw new NotImplementedException (); }
-		}
-
-        public override void Flush()
-		{
-		}
-
-		public override long Seek(
-			long		offset,
-			SeekOrigin	origin)
-		{
-			throw new NotImplementedException ();
-		}
-
-		public override void SetLength(
-			long length)
-		{
-			throw new NotImplementedException ();
-		}
-	}
 
     /// <summary>
     /// Calculator factory class for signature generation in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
@@ -373,14 +291,9 @@ namespace Org.BouncyCastle.Crypto.Operators
 
         public IStreamCalculator CreateCalculator()
         {
-            ISigner sig = SignerUtilities.GetSigner(algorithm);
-            ICipherParameters cp = privateKey;
-            if (random != null)
-            {
-                cp = new ParametersWithRandom(cp, random);
-            }
-            sig.Init(true, cp);
-            return new SigCalculator(sig);
+            ISigner signer = SignerUtilities.InitSigner(algorithm, true, privateKey, random);
+
+            return new DefaultSignatureCalculator(signer);
         }
 
         /// <summary>
@@ -389,52 +302,6 @@ namespace Org.BouncyCastle.Crypto.Operators
         public static IEnumerable SignatureAlgNames
         {
             get { return X509Utilities.GetAlgNames(); }
-        }
-    }
-
-    internal class SigCalculator : IStreamCalculator
-    {
-        private readonly ISigner sig;
-        private readonly Stream stream;
-
-        internal SigCalculator(ISigner sig)
-        {
-            this.sig = sig;
-            this.stream = new SignerBucket(sig);
-        }
-
-        public Stream Stream
-        {
-            get { return stream; }
-        }
-
-        public object GetResult()
-        {
-            return new SigResult(sig);
-        }
-    }
-
-    internal class SigResult : IBlockResult
-    {
-        private readonly ISigner sig;
-
-        internal SigResult(ISigner sig)
-        {
-            this.sig = sig;
-        }
-
-        public byte[] Collect()
-        {
-            return sig.GenerateSignature();
-        }
-
-        public int Collect(byte[] destination, int offset)
-        {
-            byte[] signature = Collect();
-
-            Array.Copy(signature, 0, destination, offset, signature.Length);
-
-            return signature.Length;
         }
     }
 
@@ -480,58 +347,11 @@ namespace Org.BouncyCastle.Crypto.Operators
 		}
 
         public IStreamCalculator CreateCalculator()
-        {
-            ISigner sig = SignerUtilities.GetSigner(X509Utilities.GetSignatureName(algID));
+        {       
+           
+            ISigner verifier = SignerUtilities.InitSigner(X509Utilities.GetSignatureName(algID), false, publicKey, null);
 
-            sig.Init(false, publicKey);
-          
-            return new VerifierCalculator(sig);
-        }
-    }
-
-    internal class VerifierCalculator : IStreamCalculator
-    {
-        private readonly ISigner sig;
-        private readonly Stream stream;
-
-        internal VerifierCalculator(ISigner sig)
-        {
-            this.sig = sig;
-            this.stream = new SignerBucket(sig);
-        }
-
-        public Stream Stream
-        {
-            get { return stream; }
-        }
-
-        public object GetResult()
-        {
-            return new VerifierResult(sig);
-        }
-    }
-
-    internal class VerifierResult : IVerifier
-    {
-        private readonly ISigner sig;
-
-        internal VerifierResult(ISigner sig)
-        {
-            this.sig = sig;
-        }
-
-        public bool IsVerified(byte[] signature)
-        {
-            return sig.VerifySignature(signature);
-        }
-
-        public bool IsVerified(byte[] signature, int off, int length)
-        {
-            byte[] sigBytes = new byte[length];
-
-            Array.Copy(signature, 0, sigBytes, off, sigBytes.Length);
-
-            return sig.VerifySignature(signature);
+            return new DefaultVerifierCalculator(verifier);
         }
     }
 

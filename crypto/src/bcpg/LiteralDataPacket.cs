@@ -23,7 +23,11 @@ namespace Org.BouncyCastle.Bcpg
 			fileName = new byte[len];
 			for (int i = 0; i != len; ++i)
             {
-                fileName[i] = (byte)bcpgIn.ReadByte();
+                int ch = bcpgIn.ReadByte();
+                if (ch < 0)
+                    throw new IOException("literal data truncated in header");
+
+                fileName[i] = (byte)ch;
             }
 
 			modDate = (((uint)bcpgIn.ReadByte() << 24)

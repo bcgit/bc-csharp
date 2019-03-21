@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * EC-NR as described in IEEE 1363-2000
      */
     public class ECNRSigner
-        : IDsa
+        : IDsaExt
     {
         private bool			forSigning;
         private ECKeyParameters	key;
@@ -58,6 +58,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
+        public virtual BigInteger Order
+        {
+            get { return key.Parameters.N; }
+        }
+
         // Section 7.2.5 ECSP-NR, pg 34
         /**
          * generate a signature for the given message using the key we were
@@ -77,7 +82,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 throw new InvalidOperationException("not initialised for signing");
             }
 
-            BigInteger n = ((ECPrivateKeyParameters) this.key).Parameters.N;
+            BigInteger n = Order;
             int nBitLength = n.BitLength;
 
             BigInteger e = new BigInteger(1, message);

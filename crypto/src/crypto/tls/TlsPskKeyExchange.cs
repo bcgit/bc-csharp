@@ -36,6 +36,15 @@ namespace Org.BouncyCastle.Crypto.Tls
         protected TlsEncryptionCredentials mServerCredentials = null;
         protected byte[] mPremasterSecret;
 
+        [Obsolete("Use constructor that takes a TlsDHVerifier")]
+        public TlsPskKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, TlsPskIdentity pskIdentity,
+            TlsPskIdentityManager pskIdentityManager, DHParameters dhParameters, int[] namedCurves,
+            byte[] clientECPointFormats, byte[] serverECPointFormats)
+            :   this(keyExchange, supportedSignatureAlgorithms, pskIdentity, pskIdentityManager, new DefaultTlsDHVerifier(),
+                    dhParameters, namedCurves, clientECPointFormats, serverECPointFormats)
+        {
+        }
+
         public TlsPskKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, TlsPskIdentity pskIdentity,
             TlsPskIdentityManager pskIdentityManager, TlsDHVerifier dhVerifier, DHParameters dhParameters, int[] namedCurves,
             byte[] clientECPointFormats, byte[] serverECPointFormats)

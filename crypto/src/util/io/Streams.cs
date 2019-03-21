@@ -96,5 +96,30 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             buf.WriteTo(output);
         }
+
+        /// <exception cref="IOException"></exception>
+        public static int WriteBufTo(MemoryStream buf, byte[] output, int offset)
+        {
+#if PORTABLE
+            byte[] bytes = buf.ToArray();
+            bytes.CopyTo(output, offset);
+            return bytes.Length;
+#else
+            int size = (int)buf.Length;
+            buf.WriteTo(new MemoryStream(output, offset, size, true));
+            return size;
+#endif
+        }
+
+        public static void WriteZeroes(Stream outStr, long count)
+        {
+            byte[] zeroes = new byte[BufferSize];
+            while (count > BufferSize)
+            {
+                outStr.Write(zeroes, 0, BufferSize);
+                count -= BufferSize;
+            }
+            outStr.Write(zeroes, 0, (int)count);
+        }
     }
 }

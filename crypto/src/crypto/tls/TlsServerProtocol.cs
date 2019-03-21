@@ -562,12 +562,18 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mClientExtensions = ReadExtensions(buf);
 
             /*
-             * TODO[session-hash]
-             * 
-             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
-             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             * TODO[resumption] Check RFC 7627 5.4. for required behaviour 
+             */
+
+            /*
+             * RFC 7627 4. Clients and servers SHOULD NOT accept handshakes that do not use the extended
+             * master secret [..]. (and see 5.2, 5.3)
              */
             this.mSecurityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(mClientExtensions);
+            if (!mSecurityParameters.IsExtendedMasterSecret && mTlsServer.RequiresExtendedMasterSecret())
+            {
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+            }
 
             ContextAdmin.SetClientVersion(client_version);
 
@@ -726,7 +732,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsUtilities.WriteUint16(selectedCipherSuite, message);
             TlsUtilities.WriteUint8(selectedCompressionMethod, message);
 
-            this.mServerExtensions = mTlsServer.GetServerExtensions();
+            this.mServerExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(mTlsServer.GetServerExtensions());
 
             /*
              * RFC 5746 3.6. Server Behavior: Initial Handshake
@@ -750,14 +756,16 @@ namespace Org.BouncyCastle.Crypto.Tls
                      * If the secure_renegotiation flag is set to TRUE, the server MUST include an empty
                      * "renegotiation_info" extension in the ServerHello message.
                      */
-                    this.mServerExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(mServerExtensions);
                     this.mServerExtensions[ExtensionType.renegotiation_info] = CreateRenegotiationInfo(TlsUtilities.EmptyBytes);
                 }
             }
 
-            if (mSecurityParameters.extendedMasterSecret)
+            if (TlsUtilities.IsSsl(mTlsServerContext))
             {
-                this.mServerExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(mServerExtensions);
+                mSecurityParameters.extendedMasterSecret = false;
+            }
+            else if (mSecurityParameters.IsExtendedMasterSecret)
+            {
                 TlsExtensionsUtilities.AddExtendedMasterSecretExtension(mServerExtensions);
             }
 
@@ -767,7 +775,7 @@ namespace Org.BouncyCastle.Crypto.Tls
              * extensions.
              */
 
-            if (this.mServerExtensions != null)
+            if (this.mServerExtensions.Count > 0)
             {
                 this.mSecurityParameters.encryptThenMac = TlsExtensionsUtilities.HasEncryptThenMacExtension(mServerExtensions);
 

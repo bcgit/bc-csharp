@@ -23,6 +23,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new DeterministicDsaTest(),
             new Gost3410Test(),
             new ECGost3410Test(),
+            new ECGost3410_2012Test(),
             new EcIesTest(),
             new EcNrTest(),
             new MacTest(),
@@ -133,6 +134,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SM2EngineTest(),
             new SM2KeyExchangeTest(),
             new SM2SignerTest(),
+            new SM4Test(),
+            new X25519Test(),
+            new X448Test(),
+            new Ed25519Test(),
+            new Ed448Test(),
         };
 
         public static void Main(string[] args)

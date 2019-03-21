@@ -64,6 +64,7 @@ namespace Org.BouncyCastle.Tests
 			new MqvTest(),
 			new CMacTest(),
 			new Crl5Test(),
+            new SM4Test()
 		};
 
 		public static void Main(

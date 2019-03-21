@@ -13,6 +13,12 @@ namespace Org.BouncyCastle.Crypto.Tls
     {
         protected TlsSignerCredentials mServerCredentials = null;
 
+        [Obsolete("Use constructor that takes a TlsDHVerifier")]
+        public TlsDheKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, DHParameters dhParameters)
+            :   this(keyExchange, supportedSignatureAlgorithms, new DefaultTlsDHVerifier(), dhParameters)
+        {
+        }
+
         public TlsDheKeyExchange(int keyExchange, IList supportedSignatureAlgorithms, TlsDHVerifier dhVerifier, DHParameters dhParameters)
             :   base(keyExchange, supportedSignatureAlgorithms, dhVerifier, dhParameters)
         {

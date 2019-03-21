@@ -8,6 +8,19 @@ namespace Org.BouncyCastle.Utilities
     /// <summary> General array utilities.</summary>
     public abstract class Arrays
     {
+        public static readonly byte[] EmptyBytes = new byte[0];
+        public static readonly int[] EmptyInts = new int[0];
+
+        public static bool AreAllZeroes(byte[] buf, int off, int len)
+        {
+            uint bits = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                bits |= buf[off + i];
+            }
+            return bits == 0;
+        }
+
         public static bool AreEqual(
             bool[]  a,
             bool[]  b)
@@ -453,6 +466,14 @@ namespace Org.BouncyCastle.Utilities
             while (i > 0)
             {
                 buf[--i] = b;
+            }
+        }
+
+        public static void Fill(byte[] buf, int from, int to, byte b)
+        {
+            for (int i = from; i < to; ++i)
+            {
+                buf[i] = b;
             }
         }
 

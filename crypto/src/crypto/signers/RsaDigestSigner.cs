@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class RsaDigestSigner
         : ISigner
     {
-        private readonly IAsymmetricBlockCipher rsaEngine = new Pkcs1Encoding(new RsaBlindedEngine());
+        private readonly IAsymmetricBlockCipher rsaEngine;
         private readonly AlgorithmIdentifier algId;
         private readonly IDigest digest;
         private bool forSigning;
@@ -59,7 +59,23 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
         public RsaDigestSigner(IDigest digest, AlgorithmIdentifier algId)
+            :   this(new RsaCoreEngine(), digest, algId)
         {
+        }
+
+        public RsaDigestSigner(IRsa rsa, IDigest digest, DerObjectIdentifier digestOid)
+            :   this(rsa, digest, new AlgorithmIdentifier(digestOid, DerNull.Instance))
+        {
+        }
+
+        public RsaDigestSigner(IRsa rsa, IDigest digest, AlgorithmIdentifier algId)
+            :   this(new RsaBlindedEngine(rsa), digest, algId)
+        {
+        }
+
+        public RsaDigestSigner(IAsymmetricBlockCipher rsaEngine, IDigest digest, AlgorithmIdentifier algId)
+        {
+            this.rsaEngine = new Pkcs1Encoding(rsaEngine);
             this.digest = digest;
             this.algId = algId;
         }

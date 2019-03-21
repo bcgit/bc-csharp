@@ -1,10 +1,5 @@
 using System;
-using System.Collections;
-using System.IO;
-using System.Text;
 
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -14,26 +9,38 @@ namespace Org.BouncyCastle.Crypto.Signers
 	public class DsaDigestSigner
 		: ISigner
 	{
-		private readonly IDigest digest;
-		private readonly IDsa dsaSigner;
-		private bool forSigning;
+        private readonly IDsa dsa;
+        private readonly IDigest digest;
+        private readonly IDsaEncoding encoding;
+        private bool forSigning;
 
 		public DsaDigestSigner(
-			IDsa	signer,
+			IDsa	dsa,
 			IDigest	digest)
 		{
-			this.digest = digest;
-			this.dsaSigner = signer;
+            this.dsa = dsa;
+            this.digest = digest;
+            this.encoding = StandardDsaEncoding.Instance;
 		}
+
+        public DsaDigestSigner(
+            IDsaExt dsa,
+            IDigest digest,
+            IDsaEncoding encoding)
+        {
+            this.dsa = dsa;
+            this.digest = digest;
+            this.encoding = encoding;
+        }
 
 		public virtual string AlgorithmName
 		{
-			get { return digest.AlgorithmName + "with" + dsaSigner.AlgorithmName; }
+			get { return digest.AlgorithmName + "with" + dsa.AlgorithmName; }
 		}
 
         public virtual void Init(
-			bool							forSigning,
-			ICipherParameters	parameters)
+			bool forSigning,
+			ICipherParameters parameters)
 		{
 			this.forSigning = forSigning;
 
@@ -56,7 +63,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
 			Reset();
 
-			dsaSigner.Init(forSigning, parameters);
+			dsa.Init(forSigning, parameters);
 		}
 
 		/**
@@ -91,9 +98,16 @@ namespace Org.BouncyCastle.Crypto.Signers
 			byte[] hash = new byte[digest.GetDigestSize()];
 			digest.DoFinal(hash, 0);
 
-			BigInteger[] sig = dsaSigner.GenerateSignature(hash);
+            BigInteger[] sig = dsa.GenerateSignature(hash);
 
-			return DerEncode(sig[0], sig[1]);
+            try
+            {
+                return encoding.Encode(GetOrder(), sig[0], sig[1]);
+            }
+            catch (Exception)
+            {
+                throw new InvalidOperationException("unable to encode signature");
+            }
 		}
 
 		/// <returns>true if the internal state represents the signature described in the passed in array.</returns>
@@ -106,15 +120,16 @@ namespace Org.BouncyCastle.Crypto.Signers
 			byte[] hash = new byte[digest.GetDigestSize()];
 			digest.DoFinal(hash, 0);
 
-			try
-			{
-				BigInteger[] sig = DerDecode(signature);
-				return dsaSigner.VerifySignature(hash, sig[0], sig[1]);
-			}
-			catch (IOException)
-			{
-				return false;
-			}
+            try
+            {
+                BigInteger[] sig = encoding.Decode(GetOrder(), signature);
+
+                return dsa.VerifySignature(hash, sig[0], sig[1]);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
 		}
 
 		/// <summary>Reset the internal state</summary>
@@ -123,23 +138,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 			digest.Reset();
 		}
 
-		private byte[] DerEncode(
-			BigInteger	r,
-			BigInteger	s)
-		{
-			return new DerSequence(new DerInteger(r), new DerInteger(s)).GetDerEncoded();
-		}
-
-		private BigInteger[] DerDecode(
-			byte[] encoding)
-		{
-			Asn1Sequence s = (Asn1Sequence) Asn1Object.FromByteArray(encoding);
-
-			return new BigInteger[]
-			{
-				((DerInteger) s[0]).Value,
-				((DerInteger) s[1]).Value
-			};
-		}
+        protected virtual BigInteger GetOrder()
+        {
+            return dsa is IDsaExt ? ((IDsaExt)dsa).Order : null;
+        }
 	}
 }

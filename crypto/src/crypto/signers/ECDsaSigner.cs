@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * EC-DSA as described in X9.62
      */
     public class ECDsaSigner
-        : IDsa
+        : IDsaExt
     {
         private static readonly BigInteger Eight = BigInteger.ValueOf(8);
 
@@ -73,6 +73,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
 
             this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);
+        }
+
+        public virtual BigInteger Order
+        {
+            get { return key.Parameters.N; }
         }
 
         // 5.3 pg 28

@@ -27,18 +27,6 @@ namespace Org.BouncyCastle.Utilities.Test
             throw new TestFailedException(SimpleTestResult.Failed(this, message));
         }
 
-        internal void IsTrue(bool value)
-        {
-            if (!value)
-                throw new TestFailedException(SimpleTestResult.Failed(this, "no message"));
-        }
-
-        internal void IsTrue(string message, bool value)
-        {
-            if (!value)
-                throw new TestFailedException(SimpleTestResult.Failed(this, message));
-        }
-
         internal void Fail(
             string		message,
             Exception	throwable)
@@ -54,7 +42,56 @@ namespace Org.BouncyCastle.Utilities.Test
             throw new TestFailedException(SimpleTestResult.Failed(this, message, expected, found));
         }
 
-		internal bool AreEqual(
+        internal void IsTrue(bool value)
+        {
+            if (!value)
+                throw new TestFailedException(SimpleTestResult.Failed(this, "no message"));
+        }
+
+        internal void IsTrue(string message, bool value)
+        {
+            if (!value)
+                throw new TestFailedException(SimpleTestResult.Failed(this, message));
+        }
+
+        internal void IsEquals(object a, object b)
+        {
+            if (!a.Equals(b))
+                throw new TestFailedException(SimpleTestResult.Failed(this, "no message"));
+        }
+
+        internal void IsEquals(int a, int b)
+        {
+            if (a != b)
+                throw new TestFailedException(SimpleTestResult.Failed(this, "no message"));
+        }
+
+        internal void IsEquals(string message, bool a, bool b)
+        {
+            if (a != b)
+                throw new TestFailedException(SimpleTestResult.Failed(this, message));
+        }
+
+        internal void IsEquals(string message, long a, long b)
+        {
+            if (a != b)
+                throw new TestFailedException(SimpleTestResult.Failed(this, message));
+        }
+
+        internal void IsEquals(string message, object a, object b)
+        {
+            if (a == null && b == null)
+                return;
+
+            if (a == null)
+                throw new TestFailedException(SimpleTestResult.Failed(this, message));
+            if (b == null)
+                throw new TestFailedException(SimpleTestResult.Failed(this, message));
+            if (!a.Equals(b))
+                throw new TestFailedException(SimpleTestResult.Failed(this, message));
+        }
+
+        internal bool AreEqual(
             byte[] a,
             byte[] b)
         {

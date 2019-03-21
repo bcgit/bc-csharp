@@ -58,7 +58,6 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         {
             IDictionary clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(base.GetClientExtensions());
             TlsExtensionsUtilities.AddEncryptThenMacExtension(clientExtensions);
-            TlsExtensionsUtilities.AddExtendedMasterSecretExtension(clientExtensions);
             {
                 /*
                  * NOTE: If you are copying test code, do not blindly set these extensions in your own client.

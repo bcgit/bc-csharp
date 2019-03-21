@@ -2,6 +2,7 @@
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -24,7 +25,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         {
             byte[] sk = new byte[Ed448.SecretKeySize];
             byte[] pk = new byte[Ed448.PublicKeySize];
-            byte[] ctx = new byte[Random.Next() & 7];
+            byte[] ctx = new byte[Random.NextInt() & 7];
             byte[] m = new byte[255];
             byte[] sig1 = new byte[Ed448.SignatureSize];
             byte[] sig2 = new byte[Ed448.SignatureSize];
@@ -37,21 +38,62 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 Random.NextBytes(sk);
                 Ed448.GeneratePublicKey(sk, 0, pk, 0);
 
-                int mLen = Random.Next() & 255;
+                int mLen = Random.NextInt() & 255;
 
                 Ed448.Sign(sk, 0, ctx, m, 0, mLen, sig1, 0);
                 Ed448.Sign(sk, 0, pk, 0, ctx, m, 0, mLen, sig2, 0);
 
-                Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Consistent signatures #" + i);
+                Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed448 consistent signatures #" + i);
 
                 bool shouldVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-                Assert.IsTrue(shouldVerify, "Consistent sign/verify #" + i);
+                Assert.IsTrue(shouldVerify, "Ed448 consistent sign/verify #" + i);
 
                 sig1[Ed448.PublicKeySize - 1] ^= 0x80;
                 bool shouldNotVerify = Ed448.Verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-                Assert.IsFalse(shouldNotVerify, "Consistent verification failure #" + i);
+                Assert.IsFalse(shouldNotVerify, "Ed448 consistent verification failure #" + i);
+            }
+        }
+
+        [Test]
+        public void TestEd448phConsistency()
+        {
+            byte[] sk = new byte[Ed448.SecretKeySize];
+            byte[] pk = new byte[Ed448.PublicKeySize];
+            byte[] ctx = new byte[Random.NextInt() & 7];
+            byte[] m = new byte[255];
+            byte[] ph = new byte[Ed448.PrehashSize];
+            byte[] sig1 = new byte[Ed448.SignatureSize];
+            byte[] sig2 = new byte[Ed448.SignatureSize];
+
+            Random.NextBytes(ctx);
+            Random.NextBytes(m);
+
+            for (int i = 0; i < 10; ++i)
+            {
+                Random.NextBytes(sk);
+                Ed448.GeneratePublicKey(sk, 0, pk, 0);
+
+                int mLen = Random.NextInt() & 255;
+
+                IXof prehash = Ed448.CreatePrehash();
+                prehash.BlockUpdate(m, 0, mLen);
+                prehash.DoFinal(ph, 0, ph.Length);
+
+                Ed448.SignPrehash(sk, 0, ctx, ph, 0, sig1, 0);
+                Ed448.SignPrehash(sk, 0, pk, 0, ctx, ph, 0, sig2, 0);
+
+                Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed448ph consistent signatures #" + i);
+
+                bool shouldVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+
+                Assert.IsTrue(shouldVerify, "Ed448ph consistent sign/verify #" + i);
+
+                sig1[Ed448.PublicKeySize - 1] ^= 0x80;
+                bool shouldNotVerify = Ed448.VerifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+
+                Assert.IsFalse(shouldNotVerify, "Ed448ph consistent verification failure #" + i);
             }
         }
 
@@ -370,11 +412,61 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 "Ed448 Vector #1023");
         }
 
+        [Test]
+        public void TestEd448phVector1()
+        {
+            CheckEd448phVector(
+                ("833fe62409237b9d62ec77587520911e"
+                + "9a759cec1d19755b7da901b96dca3d42"
+                + "ef7822e0d5104127dc05d6dbefde69e3"
+                + "ab2cec7c867c6e2c49"),
+                ("259b71c19f83ef77a7abd26524cbdb31"
+                + "61b590a48f7d17de3ee0ba9c52beb743"
+                + "c09428a131d6b1b57303d90d8132c276"
+                + "d5ed3d5d01c0f53880"),
+                "616263",
+                "",
+                ("822f6901f7480f3d5f562c592994d969"
+                + "3602875614483256505600bbc281ae38"
+                + "1f54d6bce2ea911574932f52a4e6cadd"
+                + "78769375ec3ffd1b801a0d9b3f4030cd"
+                + "433964b6457ea39476511214f97469b5"
+                + "7dd32dbc560a9a94d00bff07620464a3"
+                + "ad203df7dc7ce360c3cd3696d9d9fab9"
+                + "0f00"),
+                "Ed448ph Vector #1");
+        }
+
+        [Test]
+        public void TestEd448phVector2()
+        {
+            CheckEd448phVector(
+                ("833fe62409237b9d62ec77587520911e"
+                + "9a759cec1d19755b7da901b96dca3d42"
+                + "ef7822e0d5104127dc05d6dbefde69e3"
+                + "ab2cec7c867c6e2c49"),
+                ("259b71c19f83ef77a7abd26524cbdb31"
+                + "61b590a48f7d17de3ee0ba9c52beb743"
+                + "c09428a131d6b1b57303d90d8132c276"
+                + "d5ed3d5d01c0f53880"),
+                "616263",
+                "666f6f",
+                ("c32299d46ec8ff02b54540982814dce9"
+                + "a05812f81962b649d528095916a2aa48"
+                + "1065b1580423ef927ecf0af5888f90da"
+                + "0f6a9a85ad5dc3f280d91224ba9911a3"
+                + "653d00e484e2ce232521481c8658df30"
+                + "4bb7745a73514cdb9bf3e15784ab7128"
+                + "4f8d0704a608c54a6b62d97beb511d13"
+                + "2100"),
+                "Ed448ph Vector #2");
+        }
+
         private static void CheckEd448Vector(string sSK, string sPK, string sM, string sCTX, string sSig, string text)
         {
             byte[] sk = Hex.Decode(sSK);
-
             byte[] pk = Hex.Decode(sPK);
+
             byte[] pkGen = new byte[Ed448.PublicKeySize];
             Ed448.GeneratePublicKey(sk, 0, pkGen, 0);
             Assert.IsTrue(Arrays.AreEqual(pk, pkGen), text);
@@ -383,6 +475,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             byte[] ctx = Hex.Decode(sCTX);
             byte[] sig = Hex.Decode(sSig);
             byte[] sigGen = new byte[Ed448.SignatureSize];
+
+            byte[] badsig = Arrays.Clone(sig);
+            badsig[Ed448.SignatureSize - 1] ^= 0x80;
+
             Ed448.Sign(sk, 0, ctx, m, 0, m.Length, sigGen, 0);
             Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
 
@@ -392,9 +488,79 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             bool shouldVerify = Ed448.Verify(sig, 0, pk, 0, ctx, m, 0, m.Length);
             Assert.IsTrue(shouldVerify, text);
 
-            sig[Ed448.SignatureSize - 1] ^= 0x80;
-            bool shouldNotVerify = Ed448.Verify(sig, 0, pk, 0, ctx, m, 0, m.Length);
+            bool shouldNotVerify = Ed448.Verify(badsig, 0, pk, 0, ctx, m, 0, m.Length);
             Assert.IsFalse(shouldNotVerify, text);
+        }
+
+        private static void CheckEd448phVector(string sSK, string sPK, string sM, string sCTX, string sSig, string text)
+        {
+            byte[] sk = Hex.Decode(sSK);
+            byte[] pk = Hex.Decode(sPK);
+
+            byte[] pkGen = new byte[Ed448.PublicKeySize];
+            Ed448.GeneratePublicKey(sk, 0, pkGen, 0);
+            Assert.IsTrue(Arrays.AreEqual(pk, pkGen), text);
+
+            byte[] m = Hex.Decode(sM);
+            byte[] ctx = Hex.Decode(sCTX);
+            byte[] sig = Hex.Decode(sSig);
+
+            byte[] badsig = Arrays.Clone(sig);
+            badsig[Ed448.SignatureSize - 1] ^= 0x80;
+
+            byte[] sigGen = new byte[Ed448.SignatureSize];
+
+            {
+                IXof prehash = Ed448.CreatePrehash();
+                prehash.BlockUpdate(m, 0, m.Length);
+
+                byte[] ph = new byte[Ed448.PrehashSize];
+                prehash.DoFinal(ph, 0, ph.Length);
+
+                Ed448.SignPrehash(sk, 0, ctx, ph, 0, sigGen, 0);
+                Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+
+                Ed448.SignPrehash(sk, 0, pk, 0, ctx, ph, 0, sigGen, 0);
+                Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+
+                bool shouldVerify = Ed448.VerifyPrehash(sig, 0, pk, 0, ctx, ph, 0);
+                Assert.IsTrue(shouldVerify, text);
+
+                bool shouldNotVerify = Ed448.VerifyPrehash(badsig, 0, pk, 0, ctx, ph, 0);
+                Assert.IsFalse(shouldNotVerify, text);
+            }
+
+            {
+                IXof ph = Ed448.CreatePrehash();
+                ph.BlockUpdate(m, 0, m.Length);
+
+                Ed448.SignPrehash(sk, 0, ctx, ph, sigGen, 0);
+                Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+            }
+
+            {
+                IXof ph = Ed448.CreatePrehash();
+                ph.BlockUpdate(m, 0, m.Length);
+
+                Ed448.SignPrehash(sk, 0, pk, 0, ctx, ph, sigGen, 0);
+                Assert.IsTrue(Arrays.AreEqual(sig, sigGen), text);
+            }
+
+            {
+                IXof ph = Ed448.CreatePrehash();
+                ph.BlockUpdate(m, 0, m.Length);
+
+                bool shouldVerify = Ed448.VerifyPrehash(sig, 0, pk, 0, ctx, ph);
+                Assert.IsTrue(shouldVerify, text);
+            }
+
+            {
+                IXof ph = Ed448.CreatePrehash();
+                ph.BlockUpdate(m, 0, m.Length);
+
+                bool shouldNotVerify = Ed448.VerifyPrehash(badsig, 0, pk, 0, ctx, ph);
+                Assert.IsFalse(shouldNotVerify, text);
+            }
         }
     }
 }

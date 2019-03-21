@@ -1,22 +1,28 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
+
+using Org.BouncyCastle.Math.EC.Rfc8032;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     public abstract class X25519
     {
+        public const int PointSize = 32;
+        public const int ScalarSize = 32;
+
         private const int C_A = 486662;
         private const int C_A24 = (C_A + 2)/4;
 
-        // 0x1
-        //private static readonly int[] S_x = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        //private static readonly int[] SqrtNeg486664 = { 0x03457E06, 0x03812ABF, 0x01A82CC6, 0x028A5BE8, 0x018B43A7,
+        //    0x03FC4F7E, 0x02C23700, 0x006BBD27, 0x03A30500, 0x001E4DDB };
 
-        // 0x215132111D8354CB52385F46DCA2B71D440F6A51EB4D1207816B1E0137D48290
-        private static readonly int[] PsubS_x = { 0x03D48290, 0x02C7804D, 0x01207816, 0x028F5A68, 0x00881ED4, 0x00A2B71D,
-            0x0217D1B7, 0x014CB523, 0x0088EC1A, 0x0042A264 };
-
-        private static int[] precompBase = null;
+        public static bool CalculateAgreement(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
+        {
+            ScalarMult(k, kOff, u, uOff, r, rOff);
+            return !Arrays.AreAllZeroes(r, rOff, PointSize);
+        }
 
         private static uint Decode32(byte[] bs, int off)
         {
@@ -39,6 +45,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             n[7] |= 0x40000000U;
         }
 
+        public static void GeneratePrivateKey(SecureRandom random, byte[] k)
+        {
+            random.NextBytes(k);
+
+            k[0] &= 0xF8;
+            k[ScalarSize - 1] &= 0x7F;
+            k[ScalarSize - 1] |= 0x40;
+        }
+
+        public static void GeneratePublicKey(byte[] k, int kOff, byte[] r, int rOff)
+        {
+            ScalarMultBase(k, kOff, r, rOff);
+        }
+
         private static void PointDouble(int[] x, int[] z)
         {
             int[] A = X25519Field.Create();
@@ -54,64 +74,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             X25519Field.Mul(z, A, z);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public static void Precompute()
         {
-            if (precompBase != null)
-                return;
-
-            precompBase = new int[X25519Field.Size * 252];
-
-            int[] xs = precompBase;
-            int[] zs = new int[X25519Field.Size * 251];
-
-            int[] x = X25519Field.Create();     x[0] = 9;          
-            int[] z = X25519Field.Create();     z[0] = 1;
-
-            int[] n = X25519Field.Create();
-            int[] d = X25519Field.Create();
-
-            X25519Field.Apm(x, z, n, d);
-
-            int[] c = X25519Field.Create();     X25519Field.Copy(d, 0, c, 0);
-
-            int off = 0;
-            for (;;)
-            {
-                X25519Field.Copy(n, 0, xs, off);
-
-                if (off == (X25519Field.Size * 251))
-                    break;
-
-                PointDouble(x, z);
-
-                X25519Field.Apm(x, z, n, d);
-                X25519Field.Mul(n, c, n);
-                X25519Field.Mul(c, d, c);
-
-                X25519Field.Copy(d, 0, zs, off);
-
-                off += X25519Field.Size;
-            }
-
-            int[] u = X25519Field.Create();
-            X25519Field.Inv(c, u);
-
-            for (;;)
-            {
-                X25519Field.Copy(xs, off, x, 0);
-
-                X25519Field.Mul(x, u, x);
-                //X25519Field.Normalize(x);
-                X25519Field.Copy(x, 0, precompBase, off);
-
-                if (off == 0)
-                    break;
-
-                off -= X25519Field.Size;
-                X25519Field.Copy(zs, off, z, 0);
-                X25519Field.Mul(u, z, u);
-            }
+            Ed25519.Precompute();
         }
 
         public static void ScalarMult(byte[] k, int kOff, byte[] u, int uOff, byte[] r, int rOff)
@@ -177,61 +142,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         public static void ScalarMultBase(byte[] k, int kOff, byte[] r, int rOff)
         {
-            Precompute();
+            int[] y = X25519Field.Create();
+            int[] z = X25519Field.Create();
 
-            uint[] n = new uint[8];     DecodeScalar(k, kOff, n);
+            Ed25519.ScalarMultBaseYZ(k, kOff, y, z);
 
-            int[] x0 = X25519Field.Create();
-            //int[] x1 = X25519Field.Create();        X25519Field.Copy(S_x, 0, x1, 0);
-            int[] x1 = X25519Field.Create();        x1[0] = 1;
-            int[] z1 = X25519Field.Create();        z1[0] = 1;        
-            int[] x2 = X25519Field.Create();        X25519Field.Copy(PsubS_x, 0, x2, 0);
-            int[] z2 = X25519Field.Create();        z2[0] = 1;        
+            X25519Field.Apm(z, y, y, z);
 
-            int[] A = x1;
-            int[] B = z1;
-            int[] C = x0;
-            int[] D = A;
-            int[] E = B;
+            X25519Field.Inv(z, z);
+            X25519Field.Mul(y, z, y);
 
-            Debug.Assert(n[7] >> 30 == 1U);
-
-            int off = 0, bit = 3, swap = 1;
-            do
-            {
-                X25519Field.Copy(precompBase, off, x0, 0);
-                off += X25519Field.Size;
-
-                int word = bit >> 5, shift = bit & 0x1F;
-                int kt = (int)(n[word] >> shift) & 1;
-                swap ^= kt;
-                X25519Field.CSwap(swap, x1, x2);
-                X25519Field.CSwap(swap, z1, z2);
-                swap = kt;
-
-                X25519Field.Apm(x1, z1, A, B);
-                X25519Field.Mul(x0, B, C);
-                X25519Field.Carry(A);
-                X25519Field.Apm(A, C, D, E);
-                X25519Field.Sqr(D, D);
-                X25519Field.Sqr(E, E);
-                X25519Field.Mul(z2, D, x1);
-                X25519Field.Mul(x2, E, z1);
-            }
-            while (++bit < 255);
-
-            Debug.Assert(swap == 1);
-
-            for (int i = 0; i < 3; ++i)
-            {
-                PointDouble(x1, z1);
-            }
-
-            X25519Field.Inv(z1, z1);
-            X25519Field.Mul(x1, z1, x1);
-
-            X25519Field.Normalize(x1);
-            X25519Field.Encode(x1, r, rOff);
+            X25519Field.Normalize(y);
+            X25519Field.Encode(y, r, rOff);
         }
     }
 }

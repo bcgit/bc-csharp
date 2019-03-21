@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static void AddSupportedEllipticCurvesExtension(IDictionary extensions, int[] namedCurves)
         {
-            extensions[ExtensionType.elliptic_curves] = CreateSupportedEllipticCurvesExtension(namedCurves);
+            extensions[ExtensionType.supported_groups] = CreateSupportedEllipticCurvesExtension(namedCurves);
         }
 
         public static void AddSupportedPointFormatsExtension(IDictionary extensions, byte[] ecPointFormats)
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public static int[] GetSupportedEllipticCurvesExtension(IDictionary extensions)
         {
-            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.elliptic_curves);
+            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.supported_groups);
             return extensionData == null ? null : ReadSupportedEllipticCurvesExtension(extensionData);
         }
 

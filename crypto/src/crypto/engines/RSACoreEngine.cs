@@ -9,13 +9,20 @@ namespace Org.BouncyCastle.Crypto.Engines
 	/**
 	* this does your basic RSA algorithm.
 	*/
-	class RsaCoreEngine
+	public class RsaCoreEngine
+        : IRsa
 	{
 		private RsaKeyParameters	key;
 		private bool				forEncryption;
 		private int					bitSize;
 
-		/**
+        private void CheckInitialised()
+        {
+            if (key == null)
+                throw new InvalidOperationException("RSA engine not initialised");
+        }
+
+        /**
 		* initialise the RSA engine.
 		*
 		* @param forEncryption true if we are encrypting, false otherwise.
@@ -47,6 +54,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 		*/
         public virtual int GetInputBlockSize()
 		{
+            CheckInitialised();
+
 			if (forEncryption)
 			{
 				return (bitSize - 1) / 8;
@@ -64,7 +73,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 		*/
         public virtual int GetOutputBlockSize()
 		{
-			if (forEncryption)
+            CheckInitialised();
+
+            if (forEncryption)
 			{
 				return (bitSize + 7) / 8;
 			}
@@ -77,7 +88,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 			int		inOff,
 			int		inLen)
 		{
-			int maxLength = (bitSize + 7) / 8;
+            CheckInitialised();
+
+            int maxLength = (bitSize + 7) / 8;
 
 			if (inLen > maxLength)
 				throw new DataLengthException("input too large for RSA cipher.");
@@ -93,7 +106,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         public virtual byte[] ConvertOutput(
 			BigInteger result)
 		{
-			byte[] output = result.ToByteArrayUnsigned();
+            CheckInitialised();
+
+            byte[] output = result.ToByteArrayUnsigned();
 
 			if (forEncryption)
 			{
@@ -115,7 +130,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         public virtual BigInteger ProcessBlock(
 			BigInteger input)
 		{
-			if (key is RsaPrivateCrtKeyParameters)
+            CheckInitialised();
+
+            if (key is RsaPrivateCrtKeyParameters)
 			{
 				//
 				// we have the extra factors, use the Chinese Remainder Theorem - the author

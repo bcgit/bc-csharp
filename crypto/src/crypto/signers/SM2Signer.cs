@@ -1,15 +1,11 @@
 ﻿using System;
-using System.IO;
 
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Signers
@@ -20,11 +16,22 @@ namespace Org.BouncyCastle.Crypto.Signers
     {
         private readonly IDsaKCalculator kCalculator = new RandomDsaKCalculator();
         private readonly SM3Digest digest = new SM3Digest();
+        private readonly IDsaEncoding encoding;
 
         private ECDomainParameters ecParams;
         private ECPoint pubPoint;
         private ECKeyParameters ecKey;
         private byte[] z;
+
+        public SM2Signer()
+        {
+            this.encoding = StandardDsaEncoding.Instance;
+        }
+
+        public SM2Signer(IDsaEncoding encoding)
+        {
+            this.encoding = encoding;
+        }
 
         public virtual string AlgorithmName
         {
@@ -92,13 +99,11 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             try
             {
-                BigInteger[] rs = DerDecode(signature);
-                if (rs != null)
-                {
-                    return VerifySignature(rs[0], rs[1]);
-                }
+                BigInteger[] rs = encoding.Decode(ecParams.N, signature);
+
+                return VerifySignature(rs[0], rs[1]);
             }
-            catch (IOException e)
+            catch (Exception)
             {
             }
 
@@ -154,9 +159,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             // A7
             try
             {
-                return DerEncode(r, s);
+                return encoding.Encode(ecParams.N, r, s);
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
                 throw new CryptoException("unable to encode signature: " + ex.Message, ex);
             }
@@ -232,27 +237,6 @@ namespace Org.BouncyCastle.Crypto.Signers
         protected virtual ECMultiplier CreateBasePointMultiplier()
         {
             return new FixedPointCombMultiplier();
-        }
-
-        protected virtual BigInteger[] DerDecode(byte[] encoding)
-        {
-            Asn1Sequence seq = Asn1Sequence.GetInstance(Asn1Object.FromByteArray(encoding));
-            if (seq.Count != 2)
-                return null;
-
-            BigInteger r = DerInteger.GetInstance(seq[0]).Value;
-            BigInteger s = DerInteger.GetInstance(seq[1]).Value;
-
-            byte[] expectedEncoding = DerEncode(r, s);
-            if (!Arrays.ConstantTimeAreEqual(expectedEncoding, encoding))
-                return null;
-
-            return new BigInteger[]{ r, s };
-        }
-
-        protected virtual byte[] DerEncode(BigInteger r, BigInteger s)
-        {
-            return new DerSequence(new DerInteger(r), new DerInteger(s)).GetEncoded(Asn1Encodable.Der);
         }
     }
 }

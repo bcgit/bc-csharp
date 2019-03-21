@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Cms
 				mac.Init(encKey);
 
 				MemoryStream bOut = new MemoryStream();
-				Stream mOut = new TeeOutputStream(bOut, new MacOutputStream(mac));
+				Stream mOut = new TeeOutputStream(bOut, new MacSink(mac));
 
 				content.Write(mOut);
 

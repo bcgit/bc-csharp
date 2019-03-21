@@ -49,12 +49,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             Arrays.Fill(V, (byte)0x01);
             Arrays.Fill(K, (byte)0);
 
-            byte[] x = new byte[(n.BitLength + 7) / 8];
+            int size = BigIntegers.GetUnsignedByteLength(n);
+            byte[] x = new byte[size];
             byte[] dVal = BigIntegers.AsUnsignedByteArray(d);
 
             Array.Copy(dVal, 0, x, x.Length - dVal.Length, dVal.Length);
 
-            byte[] m = new byte[(n.BitLength + 7) / 8];
+            byte[] m = new byte[size];
 
             BigInteger mInt = BitsToInt(message);
 
@@ -98,7 +99,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual BigInteger NextK()
         {
-            byte[] t = new byte[((n.BitLength + 7) / 8)];
+            byte[] t = new byte[BigIntegers.GetUnsignedByteLength(n)];
 
             for (;;)
             {
