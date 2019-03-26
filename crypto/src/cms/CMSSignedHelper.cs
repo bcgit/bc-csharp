@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Cms
 
 			encryptionAlgs.Add(X9ObjectIdentifiers.IdDsa.Id, "DSA");
 			encryptionAlgs.Add(PkcsObjectIdentifiers.RsaEncryption.Id, "RSA");
-			encryptionAlgs.Add(TeleTrusTObjectIdentifiers.TeleTrusTRsaSignatureAlgorithm, "RSA");
+			encryptionAlgs.Add(TeleTrusTObjectIdentifiers.TeleTrusTRsaSignatureAlgorithm.Id, "RSA");
 			encryptionAlgs.Add(X509ObjectIdentifiers.IdEARsa.Id, "RSA");
 			encryptionAlgs.Add(CmsSignedGenerator.EncryptionRsaPss, "RSAandMGF1");
 			encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x94.Id, "GOST3410");
