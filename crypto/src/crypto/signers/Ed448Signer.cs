@@ -101,6 +101,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             internal bool VerifySignature(Ed448PublicKeyParameters publicKey, byte[] ctx, byte[] signature)
             {
+                if (Ed448.SignatureSize != signature.Length)
+                    return false;
+
                 lock (this)
                 {
 #if PORTABLE

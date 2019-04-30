@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
@@ -83,24 +84,43 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] signature = signer.GenerateSignature();
 
             ISigner verifier = CreateSigner(algorithm, context);
-            verifier.Init(false, publicKey);
-            verifier.BlockUpdate(msg, 0, msg.Length);
-            bool shouldVerify = verifier.VerifySignature(signature);
 
-            if (!shouldVerify)
             {
-                Fail("Ed448(" + algorithm + ") signature failed to verify");
+                verifier.Init(false, publicKey);
+                verifier.BlockUpdate(msg, 0, msg.Length);
+                bool shouldVerify = verifier.VerifySignature(signature);
+
+                if (!shouldVerify)
+                {
+                    Fail("Ed448(" + algorithm + ") signature failed to verify");
+                }
             }
 
-            signature[Random.Next() % signature.Length] ^= (byte)(1 << (Random.NextInt() & 7));
-
-            verifier.Init(false, publicKey);
-            verifier.BlockUpdate(msg, 0, msg.Length);
-            bool shouldNotVerify = verifier.VerifySignature(signature);
-
-            if (shouldNotVerify)
             {
-                Fail("Ed448(" + algorithm + ") bad signature incorrectly verified");
+                byte[] wrongLengthSignature = Arrays.Append(signature, 0x00);
+
+                verifier.Init(false, publicKey);
+                verifier.BlockUpdate(msg, 0, msg.Length);
+                bool shouldNotVerify = verifier.VerifySignature(wrongLengthSignature);
+
+                if (shouldNotVerify)
+                {
+                    Fail("Ed448(" + algorithm + ") wrong length signature incorrectly verified");
+                }
+            }
+
+            {
+                byte[] badSignature = Arrays.Clone(signature);
+                badSignature[Random.Next() % badSignature.Length] ^= (byte)(1 << (Random.NextInt() & 7));
+
+                verifier.Init(false, publicKey);
+                verifier.BlockUpdate(msg, 0, msg.Length);
+                bool shouldNotVerify = verifier.VerifySignature(badSignature);
+
+                if (shouldNotVerify)
+                {
+                    Fail("Ed448(" + algorithm + ") bad signature incorrectly verified");
+                }
             }
         }
     }
