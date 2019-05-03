@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         public virtual byte[] GenerateSignature()
         {
             if (!forSigning || null == privateKey)
-                throw new InvalidOperationException("Ed448phSigner not initialised for signature generation.");
+                throw new InvalidOperationException("Ed448phSigner not initialized for signature generation.");
 
             byte[] msg = new byte[Ed448.PrehashSize];
             if (Ed448.PrehashSize != prehash.DoFinal(msg, 0, Ed448.PrehashSize))
