@@ -1,6 +1,5 @@
 ﻿using System;
 
-using Org.BouncyCastle.Asn1.Tests;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
