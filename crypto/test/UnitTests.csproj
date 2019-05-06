@@ -477,6 +477,13 @@
     <EmbeddedResource Include="data\ThawteSGCCA.crl" />
     <EmbeddedResource Include="data\crypto\SHA3TestVectors.txt" />
     <EmbeddedResource Include="data\crypto\SHAKETestVectors.txt" />
+    <EmbeddedResource Include="data\crypto\cavp\original_KDFCTR_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFCTR_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFDblPipelineCounter_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFDblPipelineNoCounter_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFFeedbackCounter_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFFeedbackNoCounter_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFFeedbackNoIV_gen.rsp" />
     <EmbeddedResource Include="data\PKITS\README.txt" />
     <EmbeddedResource Include="data\PKITS\certs\AllCertificatesNoPoliciesTest2EE.crt" />
     <EmbeddedResource Include="data\PKITS\certs\AllCertificatesSamePoliciesTest10EE.crt" />

@@ -3274,6 +3274,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IMacDerivationFunction.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IMacFactory.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4074,12 +4079,27 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\generators\KDF1BytesGenerator.cs"
+                    RelPath = "src\crypto\generators\Kdf1BytesGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\generators\KDF2BytesGenerator.cs"
+                    RelPath = "src\crypto\generators\Kdf2BytesGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\generators\KDFCounterBytesGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\generators\KDFDoublePipelineIterationBytesGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\generators\KDFFeedbackBytesGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4674,7 +4694,22 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\parameters\KDFParameters.cs"
+                    RelPath = "src\crypto\parameters\KDFCounterParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\KDFDoublePipelineIterationParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\KDFFeedbackParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\parameters\KdfParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -8105,6 +8140,34 @@
                 />
                 <File
                     RelPath = "test\data\crypto\SHAKETestVectors.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\cavp\original_KDFCTR_gen.rsp"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\cavp\KDFCTR_gen.rsp"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\cavp\KDFDblPipelineCounter_gen.rsp"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\cavp\KDFDblPipelineNoCounter_gen.rsp"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\cavp\KDFFeedbackCounter_gen.rsp"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\cavp\KDFFeedbackNoCounter_gen.rsp"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\crypto\cavp\KDFFeedbackNoIV_gen.rsp"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
