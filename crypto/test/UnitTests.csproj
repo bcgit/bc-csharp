@@ -316,6 +316,7 @@
     <Compile Include="src\crypto\tls\test\NetworkStream.cs" />
     <Compile Include="src\crypto\tls\test\PipedStream.cs" />
     <Compile Include="src\crypto\tls\test\PskTlsClientTest.cs" />
+    <Compile Include="src\crypto\tls\test\PskTlsServerTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsClientTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsProtocolNonBlockingTest.cs" />

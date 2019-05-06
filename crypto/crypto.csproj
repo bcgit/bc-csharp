@@ -12745,6 +12745,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\PskTlsServerTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\TlsClientTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
