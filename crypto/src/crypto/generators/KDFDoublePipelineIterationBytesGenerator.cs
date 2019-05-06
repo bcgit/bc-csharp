@@ -1,11 +1,12 @@
 ﻿using System;
+
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-    public class KDFDoublePipelineIterationBytesGenerator : IMacDerivationFunction
+    public class KdfDoublePipelineIterationBytesGenerator : IMacDerivationFunction
     {
         private static readonly BigInteger IntegerMax = BigInteger.ValueOf(0x7fffffff);
         private static readonly BigInteger Two = BigInteger.Two;
@@ -28,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         private byte[] k;
 
 
-        public KDFDoublePipelineIterationBytesGenerator(IMac prf)
+        public KdfDoublePipelineIterationBytesGenerator(IMac prf)
         {
             this.prf = prf;
             this.h = prf.GetMacSize();
@@ -39,7 +40,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public void Init(IDerivationParameters parameters)
         {
-            KDFDoublePipelineIterationParameters dpiParams = parameters as KDFDoublePipelineIterationParameters;
+            KdfDoublePipelineIterationParameters dpiParams = parameters as KdfDoublePipelineIterationParameters;
             if (dpiParams == null)
             {
                 throw new ArgumentException("Wrong type of arguments given");
@@ -131,15 +132,11 @@ namespace Org.BouncyCastle.Crypto.Generators
             prf.DoFinal(k, 0);
         }
 
-
         public IDigest Digest
         {
-            get
-            {
-                HMac hmac = (prf as HMac);
-                return hmac?.GetUnderlyingDigest();
-            }
+            get { return prf is HMac ? ((HMac)prf).GetUnderlyingDigest() : null; }
         }
+
         public int GenerateBytes(byte[] output, int outOff, int length)
         {
             int generatedBytesAfter = generatedBytes + length;

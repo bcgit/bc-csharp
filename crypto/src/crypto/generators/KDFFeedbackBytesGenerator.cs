@@ -1,11 +1,12 @@
 ﻿using System;
+
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-    public class KDFFeedbackBytesGenerator : IMacDerivationFunction
+    public class KdfFeedbackBytesGenerator : IMacDerivationFunction
     {
         private static readonly BigInteger IntegerMax = BigInteger.ValueOf(0x7fffffff);
         private static readonly BigInteger Two = BigInteger.Two;
@@ -30,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         // k is used as buffer for all K(i) values
         private byte[] k;
 
-        public KDFFeedbackBytesGenerator(IMac prf)
+        public KdfFeedbackBytesGenerator(IMac prf)
         {
             this.prf = prf;
             this.h = prf.GetMacSize();
@@ -40,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public void Init(IDerivationParameters parameters)
         {
-            KDFFeedbackParameters feedbackParams = parameters as KDFFeedbackParameters;
+            KdfFeedbackParameters feedbackParams = parameters as KdfFeedbackParameters;
             if (feedbackParams == null)
             {
                 throw new ArgumentException("Wrong type of arguments given");
@@ -80,12 +81,9 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public IDigest Digest
         {
-            get
-            {
-                HMac hmac = (prf as HMac);
-                return hmac?.GetUnderlyingDigest();
-            }
+            get { return prf is HMac ? ((HMac)prf).GetUnderlyingDigest() : null; }
         }
+
         public int GenerateBytes(byte[] output, int outOff, int length)
         {
             int generatedBytesAfter = generatedBytes + length;

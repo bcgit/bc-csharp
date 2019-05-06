@@ -1,9 +1,10 @@
 ﻿using System;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-    public class KDFCounterParameters : IDerivationParameters
+    public class KdfCounterParameters : IDerivationParameters
     {
         private byte[] ki;
         private byte[] fixedInputDataCounterPrefix;
@@ -16,7 +17,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <param name="ki">the KDF seed</param>
         /// <param name="fixedInputDataCounterSuffix">fixed input data to follow counter.</param>
         /// <param name="r">length of the counter in bits</param>
-        public KDFCounterParameters(byte[] ki, byte[] fixedInputDataCounterSuffix, int r) : this(ki, null, fixedInputDataCounterSuffix, r)
+        public KdfCounterParameters(byte[] ki, byte[] fixedInputDataCounterSuffix, int r) : this(ki, null, fixedInputDataCounterSuffix, r)
         {
         }
 
@@ -29,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <param name="fixedInputDataCounterPrefix">fixed input data to precede counter</param>
         /// <param name="fixedInputDataCounterSuffix">fixed input data to follow counter.</param>
         /// <param name="r">length of the counter in bits.</param>
-        public KDFCounterParameters(byte[] ki, byte[] fixedInputDataCounterPrefix, byte[] fixedInputDataCounterSuffix, int r)
+        public KdfCounterParameters(byte[] ki, byte[] fixedInputDataCounterPrefix, byte[] fixedInputDataCounterSuffix, int r)
         {
             if (ki == null)
             {

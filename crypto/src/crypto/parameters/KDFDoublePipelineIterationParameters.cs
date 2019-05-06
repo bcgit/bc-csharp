@@ -1,11 +1,11 @@
 ﻿using System;
+
 using Org.BouncyCastle.Asn1.Tests;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-
-    public class KDFDoublePipelineIterationParameters : IDerivationParameters
+    public class KdfDoublePipelineIterationParameters : IDerivationParameters
     {
         // could be any valid value, using 32, don't know why
         private static readonly int UNUSED_R = 32;
@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly int r;
         private readonly byte[] fixedInputData;
 
-        private KDFDoublePipelineIterationParameters(byte[] ki, byte[] fixedInputData, int r, bool useCounter)
+        private KdfDoublePipelineIterationParameters(byte[] ki, byte[] fixedInputData, int r, bool useCounter)
         {
             if (ki == null)
             {
@@ -43,16 +43,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.useCounter = useCounter;
         }
 
-        public static KDFDoublePipelineIterationParameters CreateWithCounter(
+        public static KdfDoublePipelineIterationParameters CreateWithCounter(
             byte[] ki, byte[] fixedInputData, int r)
         {
-            return new KDFDoublePipelineIterationParameters(ki, fixedInputData, r, true);
+            return new KdfDoublePipelineIterationParameters(ki, fixedInputData, r, true);
         }
 
-        public static KDFDoublePipelineIterationParameters CreateWithoutCounter(
+        public static KdfDoublePipelineIterationParameters CreateWithoutCounter(
             byte[] ki, byte[] fixedInputData)
         {
-            return new KDFDoublePipelineIterationParameters(ki, fixedInputData, UNUSED_R, false);
+            return new KdfDoublePipelineIterationParameters(ki, fixedInputData, UNUSED_R, false);
         }
 
         public byte[] Ki

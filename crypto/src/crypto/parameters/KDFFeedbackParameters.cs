@@ -1,9 +1,10 @@
 ﻿using System;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-    public class KDFFeedbackParameters : IDerivationParameters
+    public class KdfFeedbackParameters : IDerivationParameters
     {
         // could be any valid value, using 32, don't know why
         private static readonly int UNUSED_R = -1;
@@ -14,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly int r;
         private readonly byte[] fixedInputData;
 
-        private KDFFeedbackParameters(byte[] ki, byte[] iv, byte[] fixedInputData, int r, bool useCounter)
+        private KdfFeedbackParameters(byte[] ki, byte[] iv, byte[] fixedInputData, int r, bool useCounter)
         {
             if (ki == null)
             {
@@ -46,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.useCounter = useCounter;
         }
 
-        public static KDFFeedbackParameters CreateWithCounter(
+        public static KdfFeedbackParameters CreateWithCounter(
             byte[] ki, byte[] iv, byte[] fixedInputData, int r)
         {
             if (r != 8 && r != 16 && r != 24 && r != 32)
@@ -54,13 +55,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentException("Length of counter should be 8, 16, 24 or 32");
             }
 
-            return new KDFFeedbackParameters(ki, iv, fixedInputData, r, true);
+            return new KdfFeedbackParameters(ki, iv, fixedInputData, r, true);
         }
 
-        public static KDFFeedbackParameters CreateWithoutCounter(
+        public static KdfFeedbackParameters CreateWithoutCounter(
             byte[] ki, byte[] iv, byte[] fixedInputData)
         {
-            return new KDFFeedbackParameters(ki, iv, fixedInputData, UNUSED_R, false);
+            return new KdfFeedbackParameters(ki, iv, fixedInputData, UNUSED_R, false);
         }
 
         public byte[] Ki
