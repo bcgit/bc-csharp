@@ -297,6 +297,10 @@
     <Compile Include="src\crypto\test\X931SignerTest.cs" />
     <Compile Include="src\crypto\test\XSalsa20Test.cs" />
     <Compile Include="src\crypto\test\XTEATest.cs" />
+    <Compile Include="src\crypto\test\cavp\CavpReader.cs" />
+    <Compile Include="src\crypto\test\cavp\KDFCounterTests.cs" />
+    <Compile Include="src\crypto\test\cavp\KDFDoublePipelineTests.cs" />
+    <Compile Include="src\crypto\test\cavp\KDFFeedbackCounterTests.cs" />
     <Compile Include="src\crypto\tls\test\ByteQueueStreamTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsTestCase.cs" />
@@ -424,6 +428,7 @@
     <Compile Include="src\test\GOST3410Test.cs" />
     <Compile Include="src\test\HMacTest.cs" />
     <Compile Include="src\test\IESTest.cs" />
+    <Compile Include="src\test\KdfCounterTest.cs" />
     <Compile Include="src\test\MacTest.cs" />
     <Compile Include="src\test\MqvTest.cs" />
     <Compile Include="src\test\NamedCurveTest.cs" />

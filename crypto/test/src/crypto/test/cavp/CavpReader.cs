@@ -1,21 +1,30 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Security.Policy;
-using NUnit.Framework.Constraints;
+
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests.Cavp
 {
-
-    public class Vector : Hashtable
+    internal class Vector : Hashtable
     {
-        public Hashtable Header { get; set; }
+        private Hashtable mHeader = null;
+
+        public Vector(Hashtable header)
+        {
+            this.mHeader = header;
+        }
+
+        public Hashtable Header
+        {
+            get { return mHeader; }
+            set { this.mHeader = value; }
+        }
 
         public string ValueAsString(string name)
         {
@@ -49,192 +58,168 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
             return null;
         }
 
-        public int ValueAsInt(string name, int? def = null)
+        public int ValueAsInt(string name)
         {
             string value = this[name] as string;
             if (value == null)
-            {
-                if (def != null)
-                {
-                    return (int)def;
-                }
                 throw new InvalidOperationException(name + " was null");
-            }
+
             return Int32.Parse(value);
         }
 
+        public int ValueAsInt(string name, int def)
+        {
+            string value = this[name] as string;
+            if (value == null)
+                return def;
+
+            return Int32.Parse(value);
+        }
     }
 
-
-    public class CavpReader
+    internal class CavpReader
     {
-
-        public static ArrayList readVectorFile(string file)
+        public static ArrayList ReadVectorFile(string name)
         {
-            //
-            // Build path
-            //
-
-            string deployDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            string[] pathParts = new string[] { "..", "..", "test", "data", "crypto", "cavp" };
-            string vectorDir = "";
-            foreach (string pathPart in pathParts)
-            {
-                vectorDir += pathPart;
-                vectorDir += Path.DirectorySeparatorChar;
-            }
-
-            string vectorFile = Path.GetFullPath(Path.Combine(vectorDir, file));
-            string[] lines = File.ReadAllLines(vectorFile);
             ArrayList vectors = new ArrayList();
             Hashtable header = null;
             Vector currentVector = null;
 
-
             int headerState = 0;
 
-
-            foreach (string line in lines)
+            using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.cavp." + name)))
             {
-                // Reading a header or waiting to encounter a header
-                // and we encounter a vector line.
-                // Set up a new vector.
-                if (headerState <= 1 && !line.StartsWith("[") && line.Contains("="))
+                String line;
+                while (null != (line = r.ReadLine()))
                 {
-                    currentVector = new Vector() { Header = header };
-                    vectors.Add(currentVector);
-                    headerState = 2;
-                }
-
-                //
-                // Read
-                //
-                if (headerState == 2)
-                {
-                    //
-                    // Header line found immediately after vector elements.
-                    //
-                    if (line.StartsWith("[") && line.EndsWith("]"))
+                    // Reading a header or waiting to encounter a header
+                    // and we encounter a vector line.
+                    // Set up a new vector.
+                    if (headerState <= 1 && !line.StartsWith("[") && Contains(line, '='))
                     {
-                        headerState = 0;
-                    }
-                    else
-
-                    //
-                    // Not a valid line so we assume this is a break between vectors.
-                    //
-                    if (headerState == 2 && !line.Contains("="))
-                    {
-                        headerState = 0;
-                    }
-                    else
-
-                    //
-                    // Vector parameter.
-                    //
-                    if (!line.StartsWith("[") && line.Contains("="))
-                    {
-                        if (currentVector == null)
-                        {
-                            currentVector = new Vector() { Header = header };
-                            vectors.Add(currentVector);
-                        }
-
-
-                        string[] parts = line.Split('=');
-                        currentVector[parts[0].Trim()] = parts[1].Trim();
+                        currentVector = new Vector(header);
+                        vectors.Add(currentVector);
                         headerState = 2;
                     }
-                }
 
-                //
-                // Found start of header block.
-                // We need a new header map.
-                //
-                if (headerState == 0 && line.StartsWith("[") && line.EndsWith("]"))
-                {
-                    header = new Hashtable();
-                    headerState = 1;
-                }
-
-                //
-                // Read header lines.
-                //
-                if (headerState <= 1)
-                {
-                    if (line.StartsWith("[") && line.EndsWith("]"))
+                    //
+                    // Read
+                    //
+                    if (headerState == 2)
                     {
-                        // Strip away brackets.
-                        string trimmed = line.Substring(1, line.Length - 2);
-                        string[] parts = trimmed.Split('=');
-                        header[parts[0].Trim()] = parts[1].Trim();
+                        //
+                        // Header line found immediately after vector elements.
+                        //
+                        if (line.StartsWith("[") && line.EndsWith("]"))
+                        {
+                            headerState = 0;
+                        }
+                        else
+
+                            //
+                            // Not a valid line so we assume this is a break between vectors.
+                            //
+                            if (headerState == 2 && !Contains(line, '='))
+                            {
+                                headerState = 0;
+                            }
+                            else
+
+                                //
+                                // Vector parameter.
+                                //
+                                if (!line.StartsWith("[") && Contains(line, '='))
+                                {
+                                    if (currentVector == null)
+                                    {
+                                        currentVector = new Vector(header);
+                                        vectors.Add(currentVector);
+                                    }
+
+                                    string[] parts = line.Split('=');
+                                    currentVector[parts[0].Trim()] = parts[1].Trim();
+                                    headerState = 2;
+                                }
+                    }
+
+                    //
+                    // Found start of header block.
+                    // We need a new header map.
+                    //
+                    if (headerState == 0 && line.StartsWith("[") && line.EndsWith("]"))
+                    {
+                        header = new Hashtable();
                         headerState = 1;
+                    }
+
+                    //
+                    // Read header lines.
+                    //
+                    if (headerState <= 1)
+                    {
+                        if (line.StartsWith("[") && line.EndsWith("]"))
+                        {
+                            // Strip away brackets.
+                            string trimmed = line.Substring(1, line.Length - 2);
+                            string[] parts = trimmed.Split('=');
+                            header[parts[0].Trim()] = parts[1].Trim();
+                            headerState = 1;
+                        }
                     }
                 }
             }
-
 
             return vectors;
         }
 
-
-
-
-
-
-
-
-        public static IMac CreatePRF(Vector config)
+        public static IMac CreatePrf(Vector config)
         {
-            IMac prf;
             string type = config.HeaderAsString("PRF");
             if (type == null)
-            {
-                throw new ArgumentException("prf field was null.");
-            }
+                throw new ArgumentException("PRF field was null.");
 
+            return MacUtilities.GetMac(GetMacForPrf(type));
+        }
+
+        private static bool Contains(string s, char c)
+        {
+            return s.IndexOf(c) >= 0;
+        }
+
+        private static string GetMacForPrf(string type)
+        {
             if (type.StartsWith("CMAC_AES"))
             {
-                IBlockCipher blockCipher = new AesEngine();
-                prf = new CMac(blockCipher);
+                return "AESCMAC";
             }
             else if (type.StartsWith("CMAC_TDES"))
             {
-                IBlockCipher blockCipher = new DesEdeEngine();
-                prf = new CMac(blockCipher);
+                return "DESEDECMAC";
             }
             else if (type.StartsWith("HMAC_SHA1"))
             {
-                IDigest digest = new Sha1Digest();
-                prf = new HMac(digest);
+                return "HMAC/SHA1";
             }
             else if (type.StartsWith("HMAC_SHA224"))
             {
-                IDigest digest = new Sha224Digest();
-                prf = new HMac(digest);
+                return "HMAC/SHA224";
             }
             else if (type.StartsWith("HMAC_SHA256"))
             {
-                IDigest digest = new Sha256Digest();
-                prf = new HMac(digest);
+                return "HMAC/SHA256";
             }
             else if (type.StartsWith("HMAC_SHA384"))
             {
-                IDigest digest = new Sha384Digest();
-                prf = new HMac(digest);
+                return "HMAC/SHA384";
             }
             else if (type.StartsWith("HMAC_SHA512"))
             {
-                IDigest digest = new Sha512Digest();
-                prf = new HMac(digest);
+                return "HMAC/SHA512";
             }
             else
             {
                 throw new ArgumentException("Unknown Mac for PRF " + type);
             }
-            return prf;
         }
-
     }
 }

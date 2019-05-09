@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Tests
     [TestFixture]
     public class KdfCounterTest : SimpleTest
     {
-        private string kdfCtr = @"";
+        //private string kdfCtr = @"";
 
 
         [Test]
@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("dff1e50ac0b69dc40f1051d46c2b069c"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("30ec5f6fa1def33cff008178c4454211"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("ca1cf43e5ccd512cc719a2f9de41734c"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("c10b152e8c97b77e18704e0f0bd38305"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("e61a51e1633e7d0de704dcebbd8f962f"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("b03616e032b6d1aa53352a8d7dfabcfe"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("03dd577bd0e65a26502453d5de9e682b"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -177,7 +177,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("02f9ff0a7b136bdbdb09bc420a35d46f"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -199,7 +199,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("b6e04abd1651f8794d4326f4c684e631"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -222,7 +222,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("63cf79372dbe425d2c5832603fb96d93"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -245,7 +245,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("bc1b3659d7c2fcf008b0da456fd876c5"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -268,7 +268,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES128_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("90e33a1e76adedcabd2214326be71abf"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -291,7 +291,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("53d1705caab7b06886e2dbb53eea349aa7419a034e2d92b9"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -313,7 +313,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("d7e8eefc503a39e70d931f16645958ad06fb789f0cbc518b"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -335,7 +335,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("f7c1e0682a12f1f17d23dc8af5c463b8aa28f87ed82fad22"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -357,7 +357,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("f4267280cb8667c2cf82bb37f389da6391f58cc74deba0cc"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -379,7 +379,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("aea3dd304d0475e7969d0f278d23abe1fc0c7220f7fd7e73"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -401,7 +401,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("ff8902c49d5acf676a9fd0c435a0d340d19622690bf16993"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -423,7 +423,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("b880d5bbadd02b32af31b5d69bd5a2da2654f93e85474d64"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -445,7 +445,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("f3bb6d3d0a20c8256fa3ef7586b77dd950ccc1221f07ca82"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -467,7 +467,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("e09079196120accdf43293f3593e692481391080e233f40b"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -490,7 +490,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("60efefde5ac9d43b097b809752e7fc4c21181300101ee03b"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -513,7 +513,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("60c8df63954f410af68f1bde52fdd3432d6baf7079a4c795"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -536,7 +536,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES192_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("bdb7b0516fca692f5532667c2b34456de348afe6c1e43ad1"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -559,7 +559,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("aeb7201d055f754212b3e497bd0b25789a49e51da9f363df414a0f80e6f4e42c"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -581,7 +581,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("4df60800bf8e2f6055c5ad6be43ee3deb54e2a445bc88a576e111b9f7f66756f"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -603,7 +603,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("1612a40daa7fce6c6788b3b71311188ffb850613fd81d0e87a891831348e2f28"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -625,7 +625,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("d0b1b3b70b2393c48ca05159e7e28cbeadea93f28a7cdae964e5136070c45d5c"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -647,7 +647,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("d22779384558d1ae649896e8d844f29a4ff3dfc1a9fbb7c34e20738f8c795e17"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -669,7 +669,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("6205ae02dc1e943506ac7049889de1d9e4cfb7e696508ec999f4cb3d06ac5964"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -691,7 +691,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("404b2b964f2cc8f50b614f591a58d15c21844c115d8b62472f06bdd82a992a5e"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -713,7 +713,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("746c44c4129858d89e50e09dc44aec2ab2158c2e0c6bb73b35588e94e33a1958"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -735,7 +735,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("701c0f5a65a42d07077d6eedf540ef9374bcb74cb89bfe017e5ca1e9df6b2b70"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -758,7 +758,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("ce7ec625c6dcd1ff21ec48ed35ff70fc0f69946107e6583849f711a725ba1684"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -781,7 +781,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("bcc9da67e6309c4c365de53a040fa6a64f387d48257fd1751cffdfae6644c59a"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -804,7 +804,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_AES256_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("04618a8e172eb80eef23e5b95c736acf6b7aac16b9fdbdae1ef73d777380bb49"); IBlockCipher blockCipher = new AesEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -827,7 +827,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("b9414ff3788ce4e1a7db5046a012dd9c"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -849,7 +849,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("52a865ecdc1bc07b7d42efa8b9c8751f"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -871,7 +871,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("591f8097bee804e1089105acda371a59"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -893,7 +893,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("0cd1600ab3357416515adf83c39916e9"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -915,7 +915,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("f1adfb9fd1740d2deb7002be11064f2a"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -937,7 +937,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("12dde64a6eb639f5d3008ab1e866d6bc"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -959,7 +959,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("4b0ec2cfffc01d9af6e622f78cc143f5"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -981,7 +981,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("35261d795e6b35abf7631f39d9358655"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1003,7 +1003,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("9b7472291bbe27db6fab01fde89a09af"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1026,7 +1026,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("28908f47deb831129e9cca49e8cd4a4a"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1049,7 +1049,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("b1b415150a302d75d4d0787693491067"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1072,7 +1072,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES2_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("3363baa77afae6b2392959f759058ff2"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1095,7 +1095,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("89b3469ce73b4fef33244de2cb772bc239a4261a45993b3b"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1117,7 +1117,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("59850d301cc30ded3c9a78181ec7f466743c06ea1294f84b"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1139,7 +1139,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("a36813220b356493d6414e506e902c225a12190a353bf326"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1161,7 +1161,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("a1440ebcdfe3eb349b3394938bc4c3f0f52bffb15ed0a20c"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1183,7 +1183,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("7e3c2b8dcb802b4f504865711e7e8fdfa2f4025a5422d165"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1205,7 +1205,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("38e68dc86bc2f071b022447760f05d58d228c61161c6150b"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1227,7 +1227,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("6b3e828fedf4c09a5c12add793fe93dceebf4d73dd8aac7d"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1249,7 +1249,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("93e6c8cd13f94cf7261b3d1aae32236484af0c9deb10e706"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1271,7 +1271,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("acdcf0400857f9e500314327ecceed5a5524670f3a4db8fd"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1294,7 +1294,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("9b9c7898dc438b12b103fcaf6e80586c7c1d8b9ded1bddbe"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1317,7 +1317,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("9bc139be964cce8ef17205870faeea3329c219a300fb4db4"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1340,7 +1340,7 @@ namespace Org.BouncyCastle.Tests
             string name = "CMAC_TDES3_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("7ba45fbfa4b8aef5b6c0a193f8041440388f3c24479eb8f9"); IBlockCipher blockCipher = new DesEdeEngine();
                 IMac prf = new CMac(blockCipher); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1363,7 +1363,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("00a39bd547fb88b2d98727cf64c195c61e1cad6c"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1385,7 +1385,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("a510fe5ad1640d345a6dbba65d629c2a2fedd1ae"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1407,7 +1407,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("928c170199473291bf719a1985a13673afb8f298"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1429,7 +1429,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("f7591733c856593565130975351954d0155abf3c"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1451,7 +1451,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("7184596b9489c763b8399b3350e60929965a961c"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1473,7 +1473,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("87cb4849bfd2d206c09f6aea565207a733dde270"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1495,7 +1495,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("af9b01a7b62880584dc30904fc4ee34af814bda4"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1517,7 +1517,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("bc8ac288eea767df58a425a34412ccaa1444f40b"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1539,7 +1539,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("f3f5dfa9be304476e633ccaec4f988013600e415"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1562,7 +1562,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("6d85df76f0a7bb8ce5df4f14ebbc77a0037dc327"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1585,7 +1585,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("00fbfbfd14d5aea6d837e2c05f2bca244e04e578"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1608,7 +1608,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA1_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("4e8ec7f7d4b1595f62d400d02e2e8b7634cc5f41"); IDigest digest = new Sha1Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1631,7 +1631,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("7e2f7a5ab3e82ef927a005308456823da473787bf33d18a864aca63f"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1653,7 +1653,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("093b2ce84c6175d1723fbe94b9ee963b6251d018fcf8c05c2e3e9b0b"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1675,7 +1675,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("f09e65e8de7500847b43bd95e6c3506e01aadd484e9699b027897542"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1697,7 +1697,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("f5cb7cc6207f5920dd60155ddb68c3fbbdf5104365305d2c1abcd311"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1719,7 +1719,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("ab56556b107a3a79fe084df0f1bb3ad049a6cc1490f20da4b3df282c"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1741,7 +1741,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("473905e06f47138e9a4e3b8bdd5ae10dface4ba8f6dd16b142c38e14"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1763,7 +1763,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("4435e0203ca73e356595d8c237b549463055b27dc259ef1f31a57e3d"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1785,7 +1785,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("a31c0ed2aedb5fb260d1307d33db883f681d3efd300efcfd8fe306d7"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1807,7 +1807,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("92edfe9fddd85a3d13f183f57988d45d459657fee0d31679a6a2c293"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1830,7 +1830,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("7078b224ee6867f43ac3d2d555bb2dfc935fca44faec5f88124f6e1d"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1853,7 +1853,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("8d6af06e28ef54e21463f86cd02335e7efff7cb21215dd05537b8dd6"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1876,7 +1876,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA224_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("497bb6b1ff3c1d1bbd14a69dd7ccfa500ab9fc60849ce8083a1b2d58"); IDigest digest = new Sha224Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1899,7 +1899,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("3edc6b5b8f7aadbd713732b482b8f979286e1ea3b8f8f99c30c884cfe3349b83"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1921,7 +1921,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("743434c930fe923c350ec202bef28b768cd6062cf233324e21a86c31f9406583"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1943,7 +1943,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("388e93e0273e62f086f52f6f5369d9e4626d143dce3b6afc7caf2c6e7344276b"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1965,7 +1965,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("dd1d91b7d90b2bd3138533ce92b272fbf8a369316aefe242e659cc0ae238afe0"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -1987,7 +1987,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("08d0a37d2e2fb84d44838efaeac28135d964b0daf154369783cfe007fa883966"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2009,7 +2009,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("3b11d0b6f1b49d1a41eecc7448766bbfee47d32a28a3f2be3d3b5f21c4d1e6c6"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2031,7 +2031,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("585245d11e0b69d10e2ea39c76c8625003aa775037e476009856ac8e3e9f9b48"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2053,7 +2053,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("ec8674a48a7baf28f865e63a3e8313fd55a09c8a46fb491916a871d1e65ab7f4"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2075,7 +2075,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("6fd0f7b67db5b9ef0fd21d4408dae15af5524b00e8d583e9872760ebf6d53397"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2098,7 +2098,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("e4f6a0b7bc8941f115f9523a050f527687213a4236bb8047d9ec6671be35278c"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2121,7 +2121,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("367fc005cb2565a92cf8b1cfdf4869ccad04c9fdfc8250d027d82a33cd0b36e0"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2144,7 +2144,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA256_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("60e118235b5fca0b15f8dbe6109b6a1a2f9d0d6f69cecfb5f65d4eb5a1c00a36"); IDigest digest = new Sha256Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2167,7 +2167,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("0be1999848a7a14a555649048fcadf2f644304d163190dc9b23a21b80e3c8c373515d6267d9c5cfd31b560ffd6a2cd5c"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2189,7 +2189,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("26ef897e4b617b597f766ec8d8ccf44c543e790a7d218f029dcb4a3695ae2caccce9d3e935f6741581f2f53e49cd46f8"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2211,7 +2211,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("4fab4f1e3512b5f443ec31d2f6425d5f0fc13a5f82c83f72788a48a1bd499495ff18fb7acc0d4c1666c99db12e28f725"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2233,7 +2233,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("216ed044769c4c3908188ece61601af8819c30f501d12995df608e06f5e0e607ab54f542ee2da41906dfdb4971f20f9d"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2255,7 +2255,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("a63c1e7cb3b65787dcece40a6707a3d1211875dc2dfe3442c186bccc9268b1e746f308ae4340821b31249836c752cb6f"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2277,7 +2277,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("b405fe54dd52824cf0c298f941878bfe08baf6c77f544b2331dda0cc488fb60e89ad4689053d2f83fa87573b69a6ff54"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2299,7 +2299,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("41d9d61dbf3ce97a65efb73a871a63171160af827a4c29e0637ec07c3d04c32493fff643b86ebc91a73e197d787323cb"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2321,7 +2321,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("0afcbfc7257a9d2385a559dbe218f05bac917b6223ab50c7452eb37715e617f3878c463b15fb5b98e98c61182a5df745"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2343,7 +2343,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("0f5541afd9cfa90bd50e1e85570f65a6df52bf095066cdcbd4e315771e9e0e79d10397f6e65404c504f0a32d22abd18b"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2366,7 +2366,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("2fdfe31fc474ee16d4720224cffa1d45213bbce5b7c3252415e40c57980cfe8d1c6f21fad1efb45c67e927f4d803ee3e"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2389,7 +2389,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("dfbb581823c48942933ba98b8c375da2d8e3dddbea5008661b1796652da6c1f355e27a2bc5dd30e74780e6079e1682b4"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2412,7 +2412,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA384_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("dabfd087e001767172bfc631a0d243494adbf243112a4525e24a1ce279854a4635621b17334360d3818ed4feeb28d2fd"); IDigest digest = new Sha384Digest();
                 IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
@@ -2435,7 +2435,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_BEFORE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("6ea2c385bb3e7bbafc2225cee1d3ee103ce300c1fdf033d0c1e99c57e6a596e037020838e857c0434040b58a5ca5410be672b888ef9955bdd54eb6a67416ff6a"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("be119901ed8679b243508b97663f35da322774d7d2012d6557da6657c1176a115ebc73b0f1bfa1dba6b8c3b124f0a47cff2998b230c955b0ea809784");
@@ -2456,7 +2456,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_BEFORE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("bb0c55c7201ceb2e1369a6c49e2cdc1ae5e4cd1d64638105072c3a9172b2fa6a127c4d6d55132585fb2644b5ae3cf9d347875e0d0bf80945eaabef3b4319605e"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("89bf925033f00635c100e2c88a98ad9f08cd6a002b934617d4ebfffc0fe9bca1d19bd942da3704da127c7493cc62c67f507c415e4cb67d7d0be70005");
@@ -2477,7 +2477,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_BEFORE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("d10933b0683f6787c33eccea1c311b8444270504fb3980bfd56443ba4068722184c31541d9174f71068b7789440bc34cec456e115067f9c65a5f2883c6868204"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("dcb2ea8d715821d6393bd49a3e35f69a6c2519edb614f80fbc3f7ae1d65ff4a04c499e75d08819a09092ddaadba510e03cb2ac898804590dbd61fb7e");
@@ -2498,7 +2498,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_BEFORE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("dd5dbd45593ee2ac139748e7645b450f223d2ff297b73fd71cbcebe71d41653c950b88500de5322d99ef18dfdd30428294c4b3094f4c954334e593bd982ec614"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("b50b0c963c6b3034b8cf19cd3f5c4ebe4f4985af0c03e575db62e6fdf1ecfe4f28b95d7ce16df85843246e1557ce95bb26cc9a21974bbd2eb69e8355");
@@ -2519,7 +2519,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_AFTER_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("ab052ef2e9137415060435b9a73a67623e07f3467981fe8093c440973658851028c86e44a1fd9100b413792f14e257683aa74b83ecd96d24c862c2263a496cfb"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("668831e2701803581eb9083a0928cc00d83a3c19ca4df061d155a880a66ba24857ad6f4bd7a67382215b5b9d81b37737d74f7a5ef78486aeea2f9ac1");
@@ -2540,7 +2540,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_AFTER_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("8c38d9f55e75b83b92ca7cda2df3e384a47445620aaa5b74ec74399a2ad5d3ba2b65970916e49bd0b01ec03563c3652962a3438a1c06bfbf6c6bd7586b41841a"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("45668072071d4f12af25cb2140a7e2f09ef62942bceb5ba9b87c57e233b3656a572ae38a1466566a8be649c79f479c255cb8d3821c02c75cb5171884");
@@ -2561,7 +2561,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_AFTER_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("63bd6f4163b34ece4477605db93e6eb7f4a8c0707471b081d8bdfce44e5823b62d346fa60a3d338c675eba7e5c0920f50197872af24a124d3bb20c45d30dbd99"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("699bc682c47f969db1d62ffd906711d34ebdb9fccd597e6f5ecc7d7258b8574947307cafa369ece5a4da3cc6d1fcc669f51db24a10112cc5cd9070dc");
@@ -2582,7 +2582,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_AFTER_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("e482268362f80ca7f777b4202d03234a5f0ed59b578a6b8792ff54d900af6940beacc7d3fb801661f64392e5658d4f82e3b5d63b190a44c032b6a8ac51a2acc2"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] fixedInputData = Hex.Decode("9ce99ad9a90f45785e749a66df7489c4200904141391274dfb24a5e4ea8cafc87f920b33fcbac0d93fc59d4bf558b7f2a9e1435cb454a4f180300e17");
@@ -2603,7 +2603,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_MIDDLE_FIXED_8_BITS ";
             {
                 int r = 8;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("7b7ed39b91cdbc0c0b3cfed4830a1c5b47971c80054d3c82b75a98e98ac06adf86307afdeb15a7d83d896cc8dc0c0f8d7eb450ba31f4c12ec6fb131778cc2dc0"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("e4e853508f5b07a1c8e7033d0d683affdac3b7cd5931c53933b49bd30ec149300735cfc34a307dcb609a26c9378e8f75bc5f");
@@ -2625,7 +2625,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_MIDDLE_FIXED_16_BITS ";
             {
                 int r = 16;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("3ee8a94d1a45078967a76f1094923fb0f67691bf54159d100a0c2c9dc12cac84c394a9a1efb05df78e0f03342b9129b2bf06d1e4f6bd25965fcdf2ecc74f4a2c"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("5527ea9f8ffa12569dc4c1e95a92b213072b50db9dae2a53d8a0d63640749057f3c936377400d69387df468e1a54cf19530c");
@@ -2647,7 +2647,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_MIDDLE_FIXED_24_BITS ";
             {
                 int r = 24;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode("5572ceb20ce4cb93b4a3781e55846f4d012fe5598924beb134a17dedf2b59da3bc997d5a105b423cf49849c33bbcef564a993c8a648b4d8fb567f4c08030f9b9"); IDigest digest = new Sha512Digest(); IMac prf = new HMac(digest); KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 byte[] DataBeforeCtrData = Hex.Decode("bca2eda0ac96d53e7f94f41ef880cd2dcfccd2bd0c116a87c7e6485fe7535469da538c92f6d6c8443f480d10ebfca36e441d");
@@ -2669,7 +2669,7 @@ namespace Org.BouncyCastle.Tests
             string name = "HMAC_SHA512_MIDDLE_FIXED_32_BITS ";
             {
                 int r = 32;
-                int count = 0;
+                //int count = 0;
                 int l = 128;
                 byte[] ki = Hex.Decode(
                     "4cfbc55d3a2334c71787ea1c4b9426106b1ba327a909d54fc9b3113f4b74617fec68858a05ea9943fffb0623af633f2a16ae87afa37e3f304da41f7b83e4cb91");

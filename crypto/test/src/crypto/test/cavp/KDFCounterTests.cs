@@ -1,52 +1,40 @@
 ﻿using System;
 using System.Collections;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
+
 using NUnit.Framework;
-using Org.BouncyCastle.Asn1.Cmp;
+
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests.Cavp
 {
-
-
     [TestFixture]
-    public class KDFCounterTests : SimpleTest
+    public class KdfCounterTests : SimpleTest
     {
-        private StringWriter sout;
-
-        public KDFCounterTests()
+        public KdfCounterTests()
         {
-
         }
-
 
         public override string Name
         {
-            get { return "KDFCounterTests"; }
+            get { return "KdfCounterTests"; }
         }
-
 
         [Test]
         public override void PerformTest()
         {
             string file = "KDFCTR_gen.rsp";
-            ArrayList vectors = CavpReader.readVectorFile(file);
+            ArrayList vectors = CavpReader.ReadVectorFile(file);
             ProcessVectors(file, vectors);
         }
 
-
-        private void ProcessVectors(String name, ArrayList vectors)
+        private void ProcessVectors(string name, ArrayList vectors)
         {
-            foreach (object _vector in vectors)
+            foreach (Vector vector in vectors)
             {
-                Vector vector = _vector as Vector;
-                IMac prf = CavpReader.CreatePRF(vector);
+                IMac prf = CavpReader.CreatePrf(vector);
                 KdfCounterBytesGenerator gen = new KdfCounterBytesGenerator(prf);
                 int r = -1;
                 {
@@ -88,13 +76,11 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
                 gen.GenerateBytes(koGenerated, 0, koGenerated.Length);
 
                 byte[] koVectors = vector.ValueAsBytes("KO");
-
-                compareKO(name, vector, count, koGenerated, koVectors);
+                CompareKO(name, vector, count, koGenerated, koVectors);
             }
         }
 
-        private static void compareKO(
-            string name, Vector config, int test, byte[] calculatedOKM, byte[] testOKM)
+        private static void CompareKO(string name, Vector config, int test, byte[] calculatedOKM, byte[] testOKM)
         {
             if (!Arrays.AreEqual(calculatedOKM, testOKM))
             {

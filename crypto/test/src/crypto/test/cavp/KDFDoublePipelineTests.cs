@@ -1,44 +1,38 @@
 ﻿using System;
 using System.Collections;
-using NUnit.Core;
+
 using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests.Cavp
 {
     [TestFixture]
-    public class KDFDoublePipelineTests : SimpleTest
+    public class KdfDoublePipelineTests : SimpleTest
     {
         public override string Name
         {
-            get { return "KDFDoublePipelineTests"; }
+            get { return "KdfDoublePipelineTests"; }
         }
 
         [Test]
         public override void PerformTest()
         {
-            KDFDblPipelineNoCounter();
-            KDFDblPipelineCounter();
+            KdfDblPipelineNoCounterTest();
+            KdfDblPipelineCounterTest();
         }
 
-
-
-
-        public void KDFDblPipelineNoCounter()
+        private void KdfDblPipelineNoCounterTest()
         {
             string file = "KDFDblPipelineNoCounter_gen.rsp";
-            ArrayList vectors = CavpReader.readVectorFile(file);
+            ArrayList vectors = CavpReader.ReadVectorFile(file);
 
-            foreach (object _vector in vectors)
+            foreach (Vector vector in vectors)
             {
-                Vector vector = _vector as Vector;
-
-
-                IMac prf = CavpReader.CreatePRF(vector);
+                IMac prf = CavpReader.CreatePrf(vector);
                 KdfDoublePipelineIterationBytesGenerator gen = new KdfDoublePipelineIterationBytesGenerator(prf);
 
                 int count = vector.ValueAsInt("COUNT");
@@ -52,30 +46,21 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
                 gen.GenerateBytes(koGenerated, 0, koGenerated.Length);
 
                 byte[] koVectors = vector.ValueAsBytes("KO");
-
-                compareKO(file, vector, count, koGenerated, koVectors);
-
+                CompareKO(file, vector, count, koGenerated, koVectors);
             }
         }
 
-
-
-
-
-        public void KDFDblPipelineCounter()
+        private void KdfDblPipelineCounterTest()
         {
             string file = "KDFDblPipelineCounter_gen.rsp";
-            ArrayList vectors = CavpReader.readVectorFile(file);
+            ArrayList vectors = CavpReader.ReadVectorFile(file);
 
-            foreach (object _vector in vectors)
+            foreach (Vector vector in vectors)
             {
-                Vector vector = _vector as Vector;
                 if (vector.HeaderAsString("CTRLOCATION") != "AFTER_ITER")
-                {
                     continue;
-                }
 
-                IMac prf = CavpReader.CreatePRF(vector);
+                IMac prf = CavpReader.CreatePrf(vector);
                 KdfDoublePipelineIterationBytesGenerator gen = new KdfDoublePipelineIterationBytesGenerator(prf);
                 int r = -1;
                 {
@@ -97,14 +82,11 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
                 gen.GenerateBytes(koGenerated, 0, koGenerated.Length);
 
                 byte[] koVectors = vector.ValueAsBytes("KO");
-
-                compareKO(file, vector, count, koGenerated, koVectors);
-
+                CompareKO(file, vector, count, koGenerated, koVectors);
             }
         }
 
-        private static void compareKO(
-            string name, Vector config, int test, byte[] calculatedOKM, byte[] testOKM)
+        private static void CompareKO(string name, Vector config, int test, byte[] calculatedOKM, byte[] testOKM)
         {
             if (!Arrays.AreEqual(calculatedOKM, testOKM))
             {

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections;
-using NUnit.Core;
+
 using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
@@ -10,30 +11,28 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Crypto.Tests.Cavp
 {
     [TestFixture]
-    public class KDFFeedbackCounterTests : SimpleTest
+    public class KdfFeedbackCounterTests : SimpleTest
     {
         public override string Name
         {
-            get { return "KDFFeedbackCounterTests"; }
+            get { return "KdfFeedbackCounterTests"; }
         }
+
         [Test]
         public override void PerformTest()
         {
-            KDFFeedbackCounterTest();
-            KDFFeedbackNoCounterTest();
+            KdfFeedbackCounterTest();
+            KdfFeedbackNoCounterTest();
         }
 
-        private void KDFFeedbackNoCounterTest()
+        private void KdfFeedbackNoCounterTest()
         {
             string file = "KDFFeedbackNoCounter_gen.rsp";
-            ArrayList vectors = CavpReader.readVectorFile(file);
+            ArrayList vectors = CavpReader.ReadVectorFile(file);
 
-            foreach (object _vector in vectors)
+            foreach (Vector vector in vectors)
             {
-                Vector vector = _vector as Vector;
-
-
-                IMac prf = CavpReader.CreatePRF(vector);
+                IMac prf = CavpReader.CreatePrf(vector);
                 KdfFeedbackBytesGenerator gen = new KdfFeedbackBytesGenerator(prf);
 
                 int count = vector.ValueAsInt("COUNT");
@@ -48,30 +47,21 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
                 gen.GenerateBytes(koGenerated, 0, koGenerated.Length);
 
                 byte[] koVectors = vector.ValueAsBytes("KO");
-
-                compareKO(file, vector, count, koGenerated, koVectors);
-
+                CompareKO(file, vector, count, koGenerated, koVectors);
             }
         }
 
-
-
-        private void KDFFeedbackCounterTest()
+        private void KdfFeedbackCounterTest()
         {
             string file = "KDFFeedbackCounter_gen.rsp";
-            ArrayList vectors = CavpReader.readVectorFile(file);
+            ArrayList vectors = CavpReader.ReadVectorFile(file);
 
-            foreach (object _vector in vectors)
+            foreach (Vector vector in vectors)
             {
-                Vector vector = _vector as Vector;
-
                 if (vector.HeaderAsString("CTRLOCATION") != "AFTER_ITER")
-                {
                     continue;
-                }
 
-
-                IMac prf = CavpReader.CreatePRF(vector);
+                IMac prf = CavpReader.CreatePrf(vector);
                 KdfFeedbackBytesGenerator gen = new KdfFeedbackBytesGenerator(prf);
                 int r = -1;
                 {
@@ -94,15 +84,11 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
                 gen.GenerateBytes(koGenerated, 0, koGenerated.Length);
 
                 byte[] koVectors = vector.ValueAsBytes("KO");
-
-                compareKO(file, vector, count, koGenerated, koVectors);
-
+                CompareKO(file, vector, count, koGenerated, koVectors);
             }
         }
 
-
-        private static void compareKO(
-            string name, Vector config, int test, byte[] calculatedOKM, byte[] testOKM)
+        private static void CompareKO(string name, Vector config, int test, byte[] calculatedOKM, byte[] testOKM)
         {
             if (!Arrays.AreEqual(calculatedOKM, testOKM))
             {

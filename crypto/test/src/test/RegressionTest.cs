@@ -1,5 +1,5 @@
 using System;
-using Org.BouncyCastle.Crypto.Tests.Cavp;
+
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Tests
@@ -65,10 +65,7 @@ namespace Org.BouncyCastle.Tests
 			new CMacTest(),
 			new Crl5Test(),
             new SM4Test(),
-            new KdfCounterTest(), 
-            new KDFCounterTests(), 
-            new KDFDoublePipelineTests(), 
-            new KDFFeedbackCounterTests()
+            new KdfCounterTest()
 		};
 
 		public static void Main(

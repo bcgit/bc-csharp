@@ -12713,6 +12713,26 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\cavp\CavpReader.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\cavp\KDFCounterTests.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\cavp\KDFDoublePipelineTests.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\cavp\KDFFeedbackCounterTests.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\ByteQueueStreamTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -13349,6 +13369,11 @@
                 />
                 <File
                     RelPath = "test\src\test\IESTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\test\KdfCounterTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
