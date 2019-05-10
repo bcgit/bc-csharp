@@ -748,12 +748,17 @@ namespace Org.BouncyCastle.Crypto.Tls
          */
         public virtual void OfferInput(byte[] input)
         {
+            this.OfferInput(input, 0, input.Length);
+        }
+        
+        public virtual void OfferInput(byte[] input, int offset, int length)
+        {
             if (mBlocking)
                 throw new InvalidOperationException("Cannot use OfferInput() in blocking mode! Use Stream instead.");
             if (mClosed)
                 throw new IOException("Connection is closed, cannot accept any more input");
 
-            mInputBuffers.Write(input);
+            mInputBuffers.Write(input, offset, length);
 
             // loop while there are enough bytes to read the length of the next record
             while (mInputBuffers.Available >= RecordStream.TLS_HEADER_SIZE)
