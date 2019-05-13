@@ -32,12 +32,12 @@ namespace Org.BouncyCastle.Crypto.Tls
             catch (TlsFatalAlert fatalAlert)
             {
                 mRecordLayer.Fail(fatalAlert.AlertDescription);
-                throw fatalAlert;
+                throw;
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 mRecordLayer.Fail(AlertDescription.internal_error);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
@@ -55,12 +55,12 @@ namespace Org.BouncyCastle.Crypto.Tls
             catch (TlsFatalAlert fatalAlert)
             {
                 mRecordLayer.Fail(fatalAlert.AlertDescription);
-                throw fatalAlert;
+                throw;
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 mRecordLayer.Fail(AlertDescription.internal_error);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

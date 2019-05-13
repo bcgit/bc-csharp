@@ -494,9 +494,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         throw new PgpException("unknown public key algorithm encountered");
                 }
             }
-            catch (PgpException e)
+            catch (PgpException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

@@ -361,9 +361,9 @@ namespace Org.BouncyCastle.Bcpg
                     buffer[pos++] = (byte) c;
                 }
             }
-            catch (IOException ioe)
+            catch (IOException)
             {
-                if (pos == offset) throw ioe;
+                if (pos == offset) throw;
             }
 
 			return pos - offset;
@@ -496,9 +496,9 @@ namespace Org.BouncyCastle.Bcpg
                     buffer[pos++] = (byte) c;
                 }
             }
-            catch (IOException ioe)
+            catch (IOException)
             {
-                if (pos == offset) throw ioe;
+                if (pos == offset) throw;
             }
 
             return pos - offset;

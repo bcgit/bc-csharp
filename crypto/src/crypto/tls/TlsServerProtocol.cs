@@ -503,9 +503,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 if (!tlsSigner.VerifyRawSignature(signatureAlgorithm, clientCertificateVerify.Signature, publicKey, hash))
                     throw new TlsFatalAlert(AlertDescription.decrypt_error);
             }
-            catch (TlsFatalAlert e)
+            catch (TlsFatalAlert)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

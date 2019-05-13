@@ -313,9 +313,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm,
                     rawPassPhrase, false, useSha1, rand, false));
 			}
-            catch (PgpException e)
+            catch (PgpException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

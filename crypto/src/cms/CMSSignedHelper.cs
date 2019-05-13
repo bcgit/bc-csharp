@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				return DigestUtilities.GetDigest(algorithm);
 			}
-			catch (SecurityUtilityException e)
+			catch (SecurityUtilityException)
 			{
 				// This is probably superfluous on C#, since no provider infrastructure,
 				// assuming DigestUtilities already knows all the aliases
@@ -198,7 +198,7 @@ namespace Org.BouncyCastle.Cms
 					try { return DigestUtilities.GetDigest(alias); }
 					catch (SecurityUtilityException) {}
 				}
-				throw e;
+				throw;
 			}
 		}
 

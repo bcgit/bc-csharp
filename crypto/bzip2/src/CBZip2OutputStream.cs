@@ -553,11 +553,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private void BsFinishedWithStream() {
             while (bsLive > 0) {
                 int ch = (bsBuff >> 24);
-                try {
-                    bsStream.WriteByte((byte)ch); // write 8-bit
-                } catch (IOException e) {
-                    throw  e;
-                }
+                bsStream.WriteByte((byte)ch); // write 8-bit
                 bsBuff <<= 8;
                 bsLive -= 8;
                 bytesOut++;
@@ -567,11 +563,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private void BsW(int n, int v) {
             while (bsLive >= 8) {
                 int ch = (bsBuff >> 24);
-                try {
-                    bsStream.WriteByte((byte)ch); // write 8-bit
-                } catch (IOException e) {
-                    throw e;
-                }
+                bsStream.WriteByte((byte)ch); // write 8-bit
                 bsBuff <<= 8;
                 bsLive -= 8;
                 bytesOut++;

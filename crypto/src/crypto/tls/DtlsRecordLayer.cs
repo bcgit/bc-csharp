@@ -139,34 +139,32 @@ namespace Org.BouncyCastle.Crypto.Tls
                     record = new byte[receiveLimit];
                 }
 
-                try
+                if (mRetransmit != null && DateTimeUtilities.CurrentUnixMs() > mRetransmitExpiry)
                 {
-                    if (mRetransmit != null && DateTimeUtilities.CurrentUnixMs() > mRetransmitExpiry)
-                    {
-                        mRetransmit = null;
-                        mRetransmitEpoch = null;
-                    }
+                    mRetransmit = null;
+                    mRetransmitEpoch = null;
+                }
 
-                    int received = ReceiveRecord(record, 0, receiveLimit, waitMillis);
-                    if (received < 0)
-                    {
-                        return received;
-                    }
-                    if (received < RECORD_HEADER_LENGTH)
-                    {
-                        continue;
-                    }
-                    int length = TlsUtilities.ReadUint16(record, 11);
-                    if (received != (length + RECORD_HEADER_LENGTH))
-                    {
-                        continue;
-                    }
+                int received = ReceiveRecord(record, 0, receiveLimit, waitMillis);
+                if (received < 0)
+                {
+                    return received;
+                }
+                if (received < RECORD_HEADER_LENGTH)
+                {
+                    continue;
+                }
+                int length = TlsUtilities.ReadUint16(record, 11);
+                if (received != (length + RECORD_HEADER_LENGTH))
+                {
+                    continue;
+                }
 
-                    byte type = TlsUtilities.ReadUint8(record, 0);
+                byte type = TlsUtilities.ReadUint8(record, 0);
 
-                    // TODO Support user-specified custom protocols?
-                    switch (type)
-                    {
+                // TODO Support user-specified custom protocols?
+                switch (type)
+                {
                     case ContentType.alert:
                     case ContentType.application_data:
                     case ContentType.change_cipher_spec:
@@ -176,61 +174,61 @@ namespace Org.BouncyCastle.Crypto.Tls
                     default:
                         // TODO Exception?
                         continue;
-                    }
+                }
 
-                    int epoch = TlsUtilities.ReadUint16(record, 3);
+                int epoch = TlsUtilities.ReadUint16(record, 3);
 
-                    DtlsEpoch recordEpoch = null;
-                    if (epoch == mReadEpoch.Epoch)
-                    {
-                        recordEpoch = mReadEpoch;
-                    }
-                    else if (type == ContentType.handshake && mRetransmitEpoch != null
-                        && epoch == mRetransmitEpoch.Epoch)
-                    {
-                        recordEpoch = mRetransmitEpoch;
-                    }
+                DtlsEpoch recordEpoch = null;
+                if (epoch == mReadEpoch.Epoch)
+                {
+                    recordEpoch = mReadEpoch;
+                }
+                else if (type == ContentType.handshake && mRetransmitEpoch != null
+                                                       && epoch == mRetransmitEpoch.Epoch)
+                {
+                    recordEpoch = mRetransmitEpoch;
+                }
 
-                    if (recordEpoch == null)
-                    {
-                        continue;
-                    }
+                if (recordEpoch == null)
+                {
+                    continue;
+                }
 
-                    long seq = TlsUtilities.ReadUint48(record, 5);
-                    if (recordEpoch.ReplayWindow.ShouldDiscard(seq))
-                    {
-                        continue;
-                    }
+                long seq = TlsUtilities.ReadUint48(record, 5);
+                if (recordEpoch.ReplayWindow.ShouldDiscard(seq))
+                {
+                    continue;
+                }
 
-                    ProtocolVersion version = TlsUtilities.ReadVersion(record, 1);
-                    if (!version.IsDtls)
-                    {
-                        continue;
-                    }
+                ProtocolVersion version = TlsUtilities.ReadVersion(record, 1);
+                if (!version.IsDtls)
+                {
+                    continue;
+                }
 
-                    if (mReadVersion != null && !mReadVersion.Equals(version))
-                    {
-                        continue;
-                    }
+                if (mReadVersion != null && !mReadVersion.Equals(version))
+                {
+                    continue;
+                }
 
-                    byte[] plaintext = recordEpoch.Cipher.DecodeCiphertext(
-                        GetMacSequenceNumber(recordEpoch.Epoch, seq), type, record, RECORD_HEADER_LENGTH,
-                        received - RECORD_HEADER_LENGTH);
+                byte[] plaintext = recordEpoch.Cipher.DecodeCiphertext(
+                    GetMacSequenceNumber(recordEpoch.Epoch, seq), type, record, RECORD_HEADER_LENGTH,
+                    received - RECORD_HEADER_LENGTH);
 
-                    recordEpoch.ReplayWindow.ReportAuthenticated(seq);
+                recordEpoch.ReplayWindow.ReportAuthenticated(seq);
 
-                    if (plaintext.Length > this.mPlaintextLimit)
-                    {
-                        continue;
-                    }
+                if (plaintext.Length > this.mPlaintextLimit)
+                {
+                    continue;
+                }
 
-                    if (mReadVersion == null)
-                    {
-                        mReadVersion = version;
-                    }
+                if (mReadVersion == null)
+                {
+                    mReadVersion = version;
+                }
 
-                    switch (type)
-                    {
+                switch (type)
+                {
                     case ContentType.alert:
                     {
                         if (plaintext.Length == 2)
@@ -304,26 +302,20 @@ namespace Org.BouncyCastle.Crypto.Tls
                         // TODO[RFC 6520]
                         continue;
                     }
-                    }
+                }
 
-                    /*
+                /*
                      * NOTE: If we receive any non-handshake data in the new epoch implies the peer has
                      * received our final flight.
                      */
-                    if (!mInHandshake && mRetransmit != null)
-                    {
-                        this.mRetransmit = null;
-                        this.mRetransmitEpoch = null;
-                    }
-
-                    Array.Copy(plaintext, 0, buf, off, plaintext.Length);
-                    return plaintext.Length;
-                }
-                catch (IOException e)
+                if (!mInHandshake && mRetransmit != null)
                 {
-                    // NOTE: Assume this is a timeout for the moment
-                    throw e;
+                    this.mRetransmit = null;
+                    this.mRetransmitEpoch = null;
                 }
+
+                Array.Copy(plaintext, 0, buf, off, plaintext.Length);
+                return plaintext.Length;
             }
         }
 

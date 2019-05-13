@@ -134,10 +134,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				return encStream;
 			}
-			catch (PgpException e)
-			{
-				throw e;
-			}
+			catch (PgpException)
+            {
+                throw;
+            }
 			catch (Exception e)
 			{
 				throw new PgpException("Exception creating cipher", e);

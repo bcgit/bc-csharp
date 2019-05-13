@@ -159,9 +159,9 @@ namespace Org.BouncyCastle.X509
 
 				return ReadDerCrl(asn1);
 			}
-			catch (CrlException e)
+			catch (CrlException)
 			{
-				throw e;
+				throw;
 			}
 			catch (Exception e)
 			{

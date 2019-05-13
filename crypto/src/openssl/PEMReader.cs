@@ -358,9 +358,9 @@ namespace Org.BouncyCastle.OpenSsl
 
                 return new AsymmetricCipherKeyPair(pubSpec, privSpec);
             }
-            catch (IOException e)
+            catch (IOException)
             {
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
