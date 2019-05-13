@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.X9
 
 		public static DHValidationParms GetInstance(object obj)
 		{
-			if (obj == null || obj is DHDomainParameters)
+			if (obj == null || obj is DHValidationParms)
 				return (DHValidationParms)obj;
 
 			if (obj is Asn1Sequence)
