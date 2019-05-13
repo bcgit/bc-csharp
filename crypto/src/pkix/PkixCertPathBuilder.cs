@@ -34,21 +34,14 @@ namespace Org.BouncyCastle.Pkix
 		public virtual PkixCertPathBuilderResult Build(
 			PkixBuilderParameters pkixParams)
 		{
-			// search target certificates
+            // search target certificates
 
-			IX509Selector certSelect = pkixParams.GetTargetCertConstraints();
-			if (!(certSelect is X509CertStoreSelector))
-			{
-				throw new PkixCertPathBuilderException(
-					"TargetConstraints must be an instance of "
-					+ typeof(X509CertStoreSelector).FullName + " for "
-					+ Platform.GetTypeName(this) + " class.");
-			}
+            X509CertStoreSelector certSelect = pkixParams.GetTargetCertConstraints();
 
 			ISet targets = new HashSet();
 			try
 			{
-				targets.AddAll(PkixCertPathValidatorUtilities.FindCertificates((X509CertStoreSelector)certSelect, pkixParams.GetStores()));
+				targets.AddAll(PkixCertPathValidatorUtilities.FindCertificates(certSelect, pkixParams.GetStores()));
 				// TODO Should this include an entry for pkixParams.GetAdditionalStores() too?
 			}
 			catch (Exception e)
