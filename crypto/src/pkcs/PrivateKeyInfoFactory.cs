@@ -5,10 +5,12 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -116,8 +118,35 @@ namespace Org.BouncyCastle.Pkcs
 
             if (privateKey is ECPrivateKeyParameters)
             {
-                ECPrivateKeyParameters priv = (ECPrivateKeyParameters)privateKey;
+                ECPrivateKeyParameters priv = (ECPrivateKeyParameters) privateKey;                 
+                DerBitString publicKey = new DerBitString(ECKeyPairGenerator.GetCorrespondingPublicKey(priv).Q.GetEncoded(false));
+
                 ECDomainParameters dp = priv.Parameters;
+
+                // ECGOST3410
+                if (dp is ECGost3410Parameters)
+                {
+                    ECGost3410Parameters domainParameters = (ECGost3410Parameters) dp;
+
+                    Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
+                        (domainParameters).PublicKeyParamSet,
+                        (domainParameters).DigestParamSet,
+                        (domainParameters).EncryptionParamSet);
+
+                    bool is512 = priv.D.BitLength > 256;
+                    DerObjectIdentifier identifier = (is512) ?
+                        RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512 :
+                        RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
+                    int size = (is512) ? 64 : 32;
+
+                    byte[] encKey = new byte[size];
+
+                    ExtractBytes(encKey, size, 0, priv.D);
+
+                    return new PrivateKeyInfo(new AlgorithmIdentifier(identifier, gostParams), new DerOctetString(encKey));
+                } 
+
+
                 int orderBitLength = dp.N.BitLength;
 
                 AlgorithmIdentifier algID;
@@ -134,7 +163,7 @@ namespace Org.BouncyCastle.Pkcs
                     algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x2001, gostParams);
 
                     // TODO Do we need to pass any parameters here?
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D);
+                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, null);
                 }
                 else
                 {
@@ -149,8 +178,7 @@ namespace Org.BouncyCastle.Pkcs
                         x962 = new X962Parameters(priv.PublicKeyParamSet);
                     }
 
-                    // TODO Possible to pass the publicKey bitstring here?
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, x962);
+                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, x962);
 
                     algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
                 }
@@ -242,6 +270,22 @@ namespace Org.BouncyCastle.Pkcs
             byte[] keyBytes = cipher.DoFinal(encInfo.GetEncryptedData());
 
             return PrivateKeyInfo.GetInstance(keyBytes);
+        }
+
+        private static void ExtractBytes(byte[] encKey, int size, int offSet, BigInteger bI)
+        {
+            byte[] val = bI.ToByteArray();
+            if (val.Length < size)
+            {
+                byte[] tmp = new byte[size];
+                Array.Copy(val, 0, tmp, tmp.Length - val.Length, val.Length);
+                val = tmp;
+            }
+
+            for (int i = 0; i != size; i++)
+            {
+                encKey[offSet + i] = val[val.Length - 1 - i];
+            }
         }
     }
 }

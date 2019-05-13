@@ -8,17 +8,21 @@ namespace Org.BouncyCastle.Crypto.Tls
         :   TlsSession
     {
         internal readonly byte[] mSessionID;
-        internal SessionParameters mSessionParameters;
+        internal readonly SessionParameters mSessionParameters;
+        internal bool mResumable;
 
         internal TlsSessionImpl(byte[] sessionID, SessionParameters sessionParameters)
         {
             if (sessionID == null)
                 throw new ArgumentNullException("sessionID");
-            if (sessionID.Length < 1 || sessionID.Length > 32)
-                throw new ArgumentException("must have length between 1 and 32 bytes, inclusive", "sessionID");
+            if (sessionID.Length > 32)
+                throw new ArgumentException("cannot be longer than 32 bytes", "sessionID");
 
             this.mSessionID = Arrays.Clone(sessionID);
             this.mSessionParameters = sessionParameters;
+            this.mResumable = sessionID.Length > 0
+                && null != sessionParameters
+                && sessionParameters.IsExtendedMasterSecret;
         }
 
         public virtual SessionParameters ExportSessionParameters()
@@ -36,19 +40,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual void Invalidate()
         {
-            lock (this)
-            {
-                if (this.mSessionParameters != null)
-                {
-                    this.mSessionParameters.Clear();
-                    this.mSessionParameters = null;
-                }
-            }
+            lock (this) this.mResumable = false;
         }
 
         public virtual bool IsResumable
         {
-            get { lock (this) return this.mSessionParameters != null; }
+            get { lock (this) return mResumable; }
         }
     }
 }

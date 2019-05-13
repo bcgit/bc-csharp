@@ -5,23 +5,20 @@ namespace Org.BouncyCastle.Asn1.BC
 	public abstract class BCObjectIdentifiers
 	{
         /**
-         *  iso.org.dod.internet.private.enterprise.legion-of-the-bouncy-castle
-         *<p>
-         *  1.3.6.1.4.1.22554
+         * iso.org.dod.internet.private.enterprise.legion-of-the-bouncy-castle
+         * <p>1.3.6.1.4.1.22554</p>
          */
         public static readonly DerObjectIdentifier bc = new DerObjectIdentifier("1.3.6.1.4.1.22554");
 
         /**
          * pbe(1) algorithms
-         * <p>
-         * 1.3.6.1.4.1.22554.1
+         * <p>1.3.6.1.4.1.22554.1</p>
          */
         public static readonly DerObjectIdentifier bc_pbe        = bc.Branch("1");
 
         /**
          * SHA-1(1)
-         * <p>
-         * 1.3.6.1.4.1.22554.1.1
+         * <p>1.3.6.1.4.1.22554.1.1</p>
          */
         public static readonly DerObjectIdentifier bc_pbe_sha1   = bc_pbe.Branch("1");
 

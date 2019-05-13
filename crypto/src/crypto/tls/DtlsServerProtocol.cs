@@ -268,6 +268,24 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             handshake.Finish();
 
+            //{
+            //    state.sessionParameters = new SessionParameters.Builder()
+            //        .SetCipherSuite(securityParameters.CipherSuite)
+            //        .SetCompressionAlgorithm(securityParameters.CompressionAlgorithm)
+            //        .SetExtendedMasterSecret(securityParameters.IsExtendedMasterSecret)
+            //        .SetMasterSecret(securityParameters.MasterSecret)
+            //        .SetPeerCertificate(state.clientCertificate)
+            //        .SetPskIdentity(securityParameters.PskIdentity)
+            //        .SetSrpIdentity(securityParameters.SrpIdentity)
+            //        // TODO Consider filtering extensions that aren't relevant to resumed sessions
+            //        .SetServerExtensions(state.serverExtensions)
+            //        .Build();
+
+            //    state.tlsSession = TlsUtilities.ImportSession(state.tlsSession.SessionID, state.sessionParameters);
+
+            //    state.serverContext.SetResumableSession(state.tlsSession);
+            //}
+
             state.server.NotifyHandshakeComplete();
 
             return new DtlsTransport(recordLayer);
@@ -356,7 +374,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsUtilities.WriteUint16(selectedCipherSuite, buf);
             TlsUtilities.WriteUint8(selectedCompressionMethod, buf);
 
-            state.serverExtensions = state.server.GetServerExtensions();
+            state.serverExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(state.server.GetServerExtensions());
 
             /*
              * RFC 5746 3.6. Server Behavior: Initial Handshake
@@ -380,14 +398,12 @@ namespace Org.BouncyCastle.Crypto.Tls
                      * If the secure_renegotiation flag is set to TRUE, the server MUST include an empty
                      * "renegotiation_info" extension in the ServerHello message.
                      */
-                    state.serverExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(state.serverExtensions);
                     state.serverExtensions[ExtensionType.renegotiation_info] = TlsProtocol.CreateRenegotiationInfo(TlsUtilities.EmptyBytes);
                 }
             }
 
-            if (securityParameters.extendedMasterSecret)
+            if (securityParameters.IsExtendedMasterSecret)
             {
-                state.serverExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(state.serverExtensions);
                 TlsExtensionsUtilities.AddExtendedMasterSecretExtension(state.serverExtensions);
             }
 
@@ -397,7 +413,7 @@ namespace Org.BouncyCastle.Crypto.Tls
              * extensions.
              */
 
-            if (state.serverExtensions != null)
+            if (state.serverExtensions.Count > 0)
             {
                 securityParameters.encryptThenMac = TlsExtensionsUtilities.HasEncryptThenMacExtension(state.serverExtensions);
 
@@ -583,12 +599,18 @@ namespace Org.BouncyCastle.Crypto.Tls
             SecurityParameters securityParameters = context.SecurityParameters;
 
             /*
-             * TODO[session-hash]
-             * 
-             * draft-ietf-tls-session-hash-04 4. Clients and servers SHOULD NOT accept handshakes
-             * that do not use the extended master secret [..]. (and see 5.2, 5.3)
+             * TODO[resumption] Check RFC 7627 5.4. for required behaviour 
+             */
+
+            /*
+             * RFC 7627 4. Clients and servers SHOULD NOT accept handshakes that do not use the extended
+             * master secret [..]. (and see 5.2, 5.3)
              */
             securityParameters.extendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(state.clientExtensions);
+            if (!securityParameters.IsExtendedMasterSecret && state.server.RequiresExtendedMasterSecret())
+            {
+                throw new TlsFatalAlert(AlertDescription.handshake_failure);
+            }
 
             context.SetClientVersion(client_version);
 

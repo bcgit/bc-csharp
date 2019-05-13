@@ -288,6 +288,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                         this.mSessionParameters = new SessionParameters.Builder()
                             .SetCipherSuite(this.mSecurityParameters.CipherSuite)
                             .SetCompressionAlgorithm(this.mSecurityParameters.CompressionAlgorithm)
+                            .SetExtendedMasterSecret(this.mSecurityParameters.IsExtendedMasterSecret)
                             .SetMasterSecret(this.mSecurityParameters.MasterSecret)
                             .SetPeerCertificate(this.mPeerCertificate)
                             .SetPskIdentity(this.mSecurityParameters.PskIdentity)

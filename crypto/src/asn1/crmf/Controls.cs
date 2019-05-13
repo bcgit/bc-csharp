@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Text;
 
 using Org.BouncyCastle.Utilities;
 
@@ -25,7 +26,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
         }
 
-		public Controls(params AttributeTypeAndValue[] atvs)
+        public Controls(params AttributeTypeAndValue[] atvs)
         {
             content = new DerSequence(atvs);
         }

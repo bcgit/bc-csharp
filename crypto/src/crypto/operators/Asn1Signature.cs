@@ -12,6 +12,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -236,6 +237,8 @@ namespace Org.BouncyCastle.Crypto.Operators
 		}
 	}
 
+
+
     /// <summary>
     /// Calculator factory class for signature generation in ASN.1 based profiles that use an AlgorithmIdentifier to preserve
     /// signature algorithm details.
@@ -344,7 +347,8 @@ namespace Org.BouncyCastle.Crypto.Operators
 		}
 
         public IStreamCalculator CreateCalculator()
-        {
+        {       
+           
             ISigner verifier = SignerUtilities.InitSigner(X509Utilities.GetSignatureName(algID), false, publicKey, null);
 
             return new DefaultVerifierCalculator(verifier);

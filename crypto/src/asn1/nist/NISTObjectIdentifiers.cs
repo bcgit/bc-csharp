@@ -70,6 +70,35 @@ namespace Org.BouncyCastle.Asn1.Nist
         public static readonly DerObjectIdentifier DsaWithSha224 = new DerObjectIdentifier(IdDsaWithSha2 + ".1");
         public static readonly DerObjectIdentifier DsaWithSha256 = new DerObjectIdentifier(IdDsaWithSha2 + ".2");
         public static readonly DerObjectIdentifier DsaWithSha384 = new DerObjectIdentifier(IdDsaWithSha2 + ".3");
-        public static readonly DerObjectIdentifier DsaWithSha512 = new DerObjectIdentifier(IdDsaWithSha2 + ".4"); 
+        public static readonly DerObjectIdentifier DsaWithSha512 = new DerObjectIdentifier(IdDsaWithSha2 + ".4");
+
+        /** 2.16.840.1.101.3.4.3.5 */
+        public static readonly DerObjectIdentifier IdDsaWithSha3_224 = new DerObjectIdentifier(IdDsaWithSha2 + ".5");
+        /** 2.16.840.1.101.3.4.3.6 */
+        public static readonly DerObjectIdentifier IdDsaWithSha3_256 = new DerObjectIdentifier(IdDsaWithSha2 + ".6");
+        /** 2.16.840.1.101.3.4.3.7 */
+        public static readonly DerObjectIdentifier IdDsaWithSha3_384 = new DerObjectIdentifier(IdDsaWithSha2 + ".7");
+        /** 2.16.840.1.101.3.4.3.8 */
+        public static readonly DerObjectIdentifier IdDsaWithSha3_512 = new DerObjectIdentifier(IdDsaWithSha2 + ".8");
+
+        // ECDSA with SHA-3
+        /** 2.16.840.1.101.3.4.3.9 */
+        public static readonly DerObjectIdentifier IdEcdsaWithSha3_224 = new DerObjectIdentifier(IdDsaWithSha2 + ".9");
+        /** 2.16.840.1.101.3.4.3.10 */
+        public static readonly DerObjectIdentifier IdEcdsaWithSha3_256 = new DerObjectIdentifier(IdDsaWithSha2 + ".10");
+        /** 2.16.840.1.101.3.4.3.11 */
+        public static readonly DerObjectIdentifier IdEcdsaWithSha3_384 = new DerObjectIdentifier(IdDsaWithSha2 + ".11");
+        /** 2.16.840.1.101.3.4.3.12 */
+        public static readonly DerObjectIdentifier IdEcdsaWithSha3_512 = new DerObjectIdentifier(IdDsaWithSha2 + ".12");
+
+        // RSA PKCS #1 v1.5 Signature with SHA-3 family.
+        /** 2.16.840.1.101.3.4.3.9 */
+        public static readonly DerObjectIdentifier IdRsassaPkcs1V15WithSha3_224 = new DerObjectIdentifier(IdDsaWithSha2 + ".13");
+        /** 2.16.840.1.101.3.4.3.10 */
+        public static readonly DerObjectIdentifier IdRsassaPkcs1V15WithSha3_256 = new DerObjectIdentifier(IdDsaWithSha2 + ".14");
+        /** 2.16.840.1.101.3.4.3.11 */
+        public static readonly DerObjectIdentifier IdRsassaPkcs1V15WithSha3_384 = new DerObjectIdentifier(IdDsaWithSha2 + ".15");
+        /** 2.16.840.1.101.3.4.3.12 */
+        public static readonly DerObjectIdentifier IdRsassaPkcs1V15WithSha3_512 = new DerObjectIdentifier(IdDsaWithSha2 + ".16");
     }
 }

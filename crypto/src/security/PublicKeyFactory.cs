@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -16,6 +17,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Security
 {
@@ -234,6 +236,40 @@ namespace Org.BouncyCastle.Security
             else if (algOid.Equals(EdECObjectIdentifiers.id_Ed448))
             {
                 return new Ed448PublicKeyParameters(GetRawKey(keyInfo, Ed448PublicKeyParameters.KeySize), 0);
+            } else if (
+                algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256) ||
+                algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+            {
+
+                byte[] keyEnc = ((DerOctetString)Asn1Object.FromByteArray(keyInfo.PublicKeyData.GetOctets())).str;
+
+                int fieldSize = 32;
+                if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+                {
+                    fieldSize = 64;
+                }
+
+                int keySize = 2 * fieldSize;
+
+                byte[] x9Encoding = new byte[1 + keySize];
+                x9Encoding[0] = 0x04;
+                for (int i = 1; i <= fieldSize; ++i)
+                {
+                    x9Encoding[i] = keyEnc[fieldSize - i];
+                    x9Encoding[i + fieldSize] = keyEnc[keySize - i];
+                }
+
+                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(keyInfo.AlgorithmID.Parameters);
+
+                ECGost3410Parameters ecDomainParameters =
+                    new ECGost3410Parameters(
+                        new ECNamedDomainParameters(gostParams.PublicKeyParamSet, ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet)),
+                        gostParams.PublicKeyParamSet,
+                        gostParams.DigestParamSet,
+                        gostParams.EncryptionParamSet);
+              
+                return new ECPublicKeyParameters(ecDomainParameters.Curve.DecodePoint(x9Encoding), ecDomainParameters);
+
             }
             else
             {

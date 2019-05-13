@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 		{
 			base.PerformTest();
 
-			HMac gMac = new HMac(new GOST3411_2012_512Digest());
+			HMac gMac = new HMac(new Gost3411_2012_512Digest());
 
 			gMac.Init(new KeyParameter(Hex.Decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")));
 
@@ -79,13 +79,13 @@ namespace Org.BouncyCastle.Crypto.Tests
 		}
 
         public GOST3411_2012_512DigestTest()
-            : base(new GOST3411_2012_512Digest(), messages, digests)
+            : base(new Gost3411_2012_512Digest(), messages, digests)
         {
         }
 
         protected override IDigest CloneDigest(IDigest digest)
         {
-            return new GOST3411_2012_512Digest((GOST3411_2012_512Digest)digest);
+            return new Gost3411_2012_512Digest((Gost3411_2012_512Digest)digest);
         }
 
         [Test]

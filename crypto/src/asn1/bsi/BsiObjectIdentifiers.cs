@@ -79,23 +79,22 @@ namespace Org.BouncyCastle.Asn1.Bsi
 	    public static readonly DerObjectIdentifier ecka_eg_SessionKDF_AES192  = ecka_eg_SessionKDF.Branch("3");
 	    public static readonly DerObjectIdentifier ecka_eg_SessionKDF_AES256  = ecka_eg_SessionKDF.Branch("4");
 
-	    /** AES encryption (CBC) and authentication (CMAC)
+	    /* AES encryption (CBC) and authentication (CMAC)
 	     * OID: 0.4.0.127.0.7.1.x */
 	    //TODO: replace "1" with correct OID
 	    //public static readonly DerObjectIdentifier aes_cbc_cmac = algorithm.Branch("1");
 
-	    /** AES encryption (CBC) and authentication (CMAC) with 128 bit
+	    /* AES encryption (CBC) and authentication (CMAC) with 128 bit
 	     * OID: 0.4.0.127.0.7.1.x.y1 */
 	    //TODO:  replace "1" with correct OID
 	    //public static readonly DerObjectIdentifier id_aes128_CBC_CMAC = aes_cbc_cmac.Branch("1");
 
-
-	    /** AES encryption (CBC) and authentication (CMAC) with 192 bit
+        /* AES encryption (CBC) and authentication (CMAC) with 192 bit
 	     * OID: 0.4.0.127.0.7.1.x.y2 */
 	    //TODO:  replace "1" with correct OID
 	    //public static readonly DerObjectIdentifier id_aes192_CBC_CMAC = aes_cbc_cmac.Branch("1");
 
-	    /** AES encryption (CBC) and authentication (CMAC) with 256 bit
+	    /* AES encryption (CBC) and authentication (CMAC) with 256 bit
 	     * OID: 0.4.0.127.0.7.1.x.y3 */
 	    //TODO:  replace "1" with correct OID
 	    //public static readonly DerObjectIdentifier id_aes256_CBC_CMAC = aes_cbc_cmac.Branch("1");

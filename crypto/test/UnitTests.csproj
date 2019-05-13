@@ -124,6 +124,7 @@
     <Compile Include="src\asn1\test\X509ExtensionsTest.cs" />
     <Compile Include="src\asn1\test\X509NameTest.cs" />
     <Compile Include="src\asn1\test\X9Test.cs" />
+    <Compile Include="src\cmp\test\ProtectedMessageTest.cs" />
     <Compile Include="src\cms\test\AllTests.cs" />
     <Compile Include="src\cms\test\AuthenticatedDataStreamTest.cs" />
     <Compile Include="src\cms\test\AuthenticatedDataTest.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="src\cms\test\Rfc4134Test.cs" />
     <Compile Include="src\cms\test\SignedDataStreamTest.cs" />
     <Compile Include="src\cms\test\SignedDataTest.cs" />
+    <Compile Include="src\crmf\test\CrmfTest.cs" />
     <Compile Include="src\crypto\examples\DESExample.cs" />
     <Compile Include="src\crypto\io\test\AllTests.cs" />
     <Compile Include="src\crypto\io\test\CipherStreamTest.cs" />
@@ -185,6 +187,7 @@
     <Compile Include="src\crypto\test\EAXTest.cs" />
     <Compile Include="src\crypto\test\ECDHKEKGeneratorTest.cs" />
     <Compile Include="src\crypto\test\ECGOST3410Test.cs" />
+    <Compile Include="src\crypto\test\ECGOST3410_2012Test.cs" />
     <Compile Include="src\crypto\test\ECIESTest.cs" />
     <Compile Include="src\crypto\test\ECNRTest.cs" />
     <Compile Include="src\crypto\test\ECTest.cs" />

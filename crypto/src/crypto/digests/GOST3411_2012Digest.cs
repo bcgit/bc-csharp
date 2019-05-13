@@ -4,7 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    public abstract class GOST3411_2012Digest:IDigest,IMemoable
+    public abstract class Gost3411_2012Digest:IDigest,IMemoable
     {
         private readonly byte[] IV = new byte[64];
         private readonly byte[] N = new byte[64];
@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private int bOff = 64;
 
-        protected GOST3411_2012Digest(byte[] IV)
+        protected Gost3411_2012Digest(byte[] IV)
         {
             System.Array.Copy(IV,this.IV,64);
             System.Array.Copy(IV, h, 64);
@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public void Reset(IMemoable other)
         {
-            GOST3411_2012Digest o = (GOST3411_2012Digest)other;
+            Gost3411_2012Digest o = (Gost3411_2012Digest)other;
 
             System.Array.Copy(o.IV, 0, this.IV, 0, 64);
             System.Array.Copy(o.N, 0, this.N, 0, 64);

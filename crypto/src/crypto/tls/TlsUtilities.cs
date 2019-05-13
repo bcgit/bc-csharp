@@ -963,14 +963,14 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             SecurityParameters securityParameters = context.SecurityParameters;
 
-            byte[] seed = securityParameters.extendedMasterSecret
+            byte[] seed = securityParameters.IsExtendedMasterSecret
                 ?   securityParameters.SessionHash
                 :   Concat(securityParameters.ClientRandom, securityParameters.ServerRandom);
 
             if (IsSsl(context))
                 return CalculateMasterSecret_Ssl(pre_master_secret, seed);
 
-            string asciiLabel = securityParameters.extendedMasterSecret
+            string asciiLabel = securityParameters.IsExtendedMasterSecret
                 ?   ExporterLabel.extended_master_secret
                 :   ExporterLabel.master_secret;
 
@@ -1199,10 +1199,13 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     byte hashAlgorithm = signatureAndHashAlgorithm.Hash;
 
-                    // TODO Support values in the "Reserved for Private Use" range
-                    if (!HashAlgorithm.IsPrivate(hashAlgorithm))
+                    if (HashAlgorithm.IsRecognized(hashAlgorithm))
                     {
                         handshakeHash.TrackHashAlgorithm(hashAlgorithm);
+                    }
+                    else //if (HashAlgorithm.IsPrivate(hashAlgorithm))
+                    {
+                        // TODO Support values in the "Reserved for Private Use" range
                     }
                 }
             }
@@ -2338,7 +2341,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 keyExchangeAlgorithm = GetKeyExchangeAlgorithm(cipherSuite);
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 return true;
             }

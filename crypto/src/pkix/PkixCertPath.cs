@@ -306,7 +306,7 @@ namespace Org.BouncyCastle.Pkix
 				return false;
 
 			IEnumerator e1 = thisCerts.GetEnumerator();
-			IEnumerator e2 = thisCerts.GetEnumerator();
+			IEnumerator e2 = otherCerts.GetEnumerator();
 
 			while (e1.MoveNext())
 			{

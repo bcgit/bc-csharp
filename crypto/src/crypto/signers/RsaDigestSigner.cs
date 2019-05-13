@@ -69,8 +69,13 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
         public RsaDigestSigner(IRsa rsa, IDigest digest, AlgorithmIdentifier algId)
+            :   this(new RsaBlindedEngine(rsa), digest, algId)
         {
-            this.rsaEngine = new Pkcs1Encoding(new RsaBlindedEngine(rsa));
+        }
+
+        public RsaDigestSigner(IAsymmetricBlockCipher rsaEngine, IDigest digest, AlgorithmIdentifier algId)
+        {
+            this.rsaEngine = new Pkcs1Encoding(rsaEngine);
             this.digest = digest;
             this.algId = algId;
         }
