@@ -210,7 +210,7 @@ namespace Org.BouncyCastle.Asn1.X509
             Asn1TaggedObject	tagObj,
             bool				explicitly)
         {
-            return GetInstance(Asn1TaggedObject.GetInstance(tagObj, true));
+            return GetInstance(Asn1TaggedObject.GetInstance(tagObj, explicitly));
         }
 
 		public int TagNo
