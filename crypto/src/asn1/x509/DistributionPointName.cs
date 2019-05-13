@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.X509
             Asn1TaggedObject	obj,
             bool				explicitly)
         {
-            return GetInstance(Asn1TaggedObject.GetInstance(obj, true));
+            return GetInstance(Asn1TaggedObject.GetInstance(obj, explicitly));
         }
 
 		public static DistributionPointName GetInstance(
