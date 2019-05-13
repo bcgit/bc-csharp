@@ -185,7 +185,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             // check password:
             if (password == null)
-                throw new ArgumentNullException("Missing password.");
+                throw new ArgumentNullException("password", "Missing password.");
 
             int start = bcryptString.LastIndexOf('$') + 1, end = bcryptString.Length - 31;
             byte[] salt = DecodeSaltString(bcryptString.Substring(start, end - start));

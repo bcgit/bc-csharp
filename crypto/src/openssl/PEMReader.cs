@@ -353,7 +353,7 @@ namespace Org.BouncyCastle.OpenSsl
                     }
 
                     default:
-                        throw new ArgumentException("Unknown key type: " + type, "type");
+                        throw new ArgumentException("Unknown key type: " + type, "pemObject");
                 }
 
                 return new AsymmetricCipherKeyPair(pubSpec, privSpec);

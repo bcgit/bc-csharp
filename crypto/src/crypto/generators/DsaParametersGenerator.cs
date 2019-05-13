@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             this.usageIndex = parameters.UsageIndex;
 
             if ((L < 1024 || L > 3072) || L % 1024 != 0)
-                throw new ArgumentException("Values must be between 1024 and 3072 and a multiple of 1024", "L");
+                throw new ArgumentException("Values for L must be between 1024 and 3072 and a multiple of 1024", "parameters");
             if (L == 1024 && N != 160)
                 throw new ArgumentException("N must be 160 for L = 1024");
             if (L == 2048 && (N != 224 && N != 256))

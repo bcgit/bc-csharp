@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (certificate == null)
                 throw new ArgumentNullException("certificate");
             if (certificate.IsEmpty)
-                throw new ArgumentException("cannot be empty", "clientCertificate");
+                throw new ArgumentException("cannot be empty", "certificate");
             if (privateKey == null)
                 throw new ArgumentNullException("privateKey");
             if (!privateKey.IsPrivate)

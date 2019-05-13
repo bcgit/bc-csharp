@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Pkix
 			if (certPath == null && index != -1)
 			{
 				throw new ArgumentNullException(
-					"certPath = null and index != -1");
+					"certPath", "certPath = null and index != -1");
 			}
 			if (index < -1
 				|| (certPath != null && index >= certPath.Certificates.Count))

@@ -28,9 +28,9 @@ namespace Org.BouncyCastle.Crypto.Generators
         public static byte[] Generate(byte[] P, byte[] S, int N, int r, int p, int dkLen)
 		{
             if (P == null)
-                throw new ArgumentNullException("Passphrase P must be provided.");
+                throw new ArgumentNullException("P", "Passphrase P must be provided.");
             if (S == null)
-                throw new ArgumentNullException("Salt S must be provided.");
+                throw new ArgumentNullException("S", "Salt S must be provided.");
             if (N <= 1 || !IsPowerOf2(N))
                 throw new ArgumentException("Cost parameter N must be > 1 and a power of 2.");
             // Only value of r that cost (as an int) could be exceeded for is 1
