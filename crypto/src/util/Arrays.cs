@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Utilities
         public static string ToString(
             object[] a)
         {
-            StringBuilder sb = new StringBuilder('[');
+            StringBuilder sb = new StringBuilder("[");
             if (a.Length > 0)
             {
                 sb.Append(a[0]);
