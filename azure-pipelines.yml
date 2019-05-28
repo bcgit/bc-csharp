@@ -7,12 +7,17 @@ pr:
 - rel/*
 
 pool:
-  vmImage: vs2017-win2016
+  vmImage: windows-2019
 
 variables: 
   BuildConfiguration: Release
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 steps:
+- task: DotNetCoreInstaller@0
+  inputs:
+    version: '3.0.100-preview5-011568'
+
 - task: DotNetCoreCLI@2  
   inputs:
     command: custom

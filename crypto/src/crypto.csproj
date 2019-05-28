@@ -6,7 +6,7 @@
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <Product>Bouncy Castle for .NET ($(TargetFramework))</Product>
-    <Copyright>© 2000-2018 Legion of the Bouncy Castle Inc. </Copyright>
+    <Copyright>© 2000-2019 Legion of the Bouncy Castle Inc. </Copyright>
     <Company>The Legion of the Bouncy Castle Inc.</Company>
     <Authors>Oren Novotny</Authors>
     <Title>Bouncy Castle Portable</Title>
@@ -36,8 +36,8 @@
   <ItemGroup>
     <Compile Include="..\bzip2\src\**\*.cs" LinkBase="bzip2" />
     <None Include="..\..\BouncyCastle.snk" />
-    <PackageReference Include="NerdBank.GitVersioning" Version="2.3.105" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
+    <PackageReference Include="NerdBank.GitVersioning" Version="2.3.151" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19270-01" PrivateAssets="All" />
   </ItemGroup>
   
   <Target Name="SetBuildVer" AfterTargets="GetBuildVersion" BeforeTargets="SetCloudBuildVersionVars;SetCloudBuildNumberWithVersion">
