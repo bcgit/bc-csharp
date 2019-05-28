@@ -22,10 +22,10 @@
     <PackageTags>bouncycastle cryptography encryption security</PackageTags>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <NoWarn>1591;618;672</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>1591;618;672</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.0' ">
     <DefineConstants>$(DefineConstants);PORTABLE;NO_THREADS;NEW_REFLECTION;SYS_RUNTIME</DefineConstants>

@@ -5,6 +5,7 @@
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <NoWarn>1591;618;672</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="src\**\*.cs" Exclude="**\examples\**\*.cs" />
