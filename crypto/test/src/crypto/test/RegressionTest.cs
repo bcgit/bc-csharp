@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Crypto.Tests.Cavp;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
@@ -139,6 +140,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             new X448Test(),
             new Ed25519Test(),
             new Ed448Test(),
+            new KdfCounterTests(), 
+            new KdfDoublePipelineTests(), 
+            new KdfFeedbackCounterTests()
         };
 
         public static void MainOld(string[] args)

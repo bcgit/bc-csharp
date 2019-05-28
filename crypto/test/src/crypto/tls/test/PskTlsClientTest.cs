@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tls.Tests
 {
@@ -33,8 +34,12 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
              * started with "-psk 6161616161" to make the keys match, and possibly the "-psk_hint"
              * option should be present.
              */
-            string psk_identity = "Client_identity";
-            byte[] psk = new byte[]{ 0x61, 0x61, 0x61, 0x61, 0x61 };
+            //string psk_identity = "Client_identity";
+            //byte[] psk = new byte[]{ 0x61, 0x61, 0x61, 0x61, 0x61 };
+
+            // These correspond to the configuration of MockPskTlsServer
+            string psk_identity = "client";
+            byte[] psk = Strings.ToUtf8ByteArray("TLS_TEST_PSK");
 
             BasicTlsPskIdentity pskIdentity = new BasicTlsPskIdentity(psk_identity, psk);
 

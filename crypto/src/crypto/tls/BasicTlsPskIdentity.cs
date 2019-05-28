@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual byte[] GetPsk()
         {
-            return mPsk;
+            return Arrays.Clone(mPsk);
         }
     }
 }
