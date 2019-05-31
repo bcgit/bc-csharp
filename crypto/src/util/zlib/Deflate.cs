@@ -174,7 +174,6 @@ namespace Org.BouncyCastle.Utilities.Zlib {
         internal ZStream strm;         // pointer back to this zlib stream
         internal int status;           // as the name implies
         internal byte[] pending_buf;   // output still pending
-        internal int pending_buf_size; // size of pending_buf
         internal int pending_out;      // next pending byte to output to the stream
         internal int pending;          // nb of bytes in the pending buffer
         internal int noheader;         // suppress zlib header and adler32
@@ -802,12 +801,8 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             // Stored blocks are limited to 0xffff bytes, pending_buf is limited
             // to pending_buf_size, and each stored block has a 5 byte header:
 
-            int max_block_size = 0xffff;
+            int max_block_size = System.Math.Min(0xffff, pending_buf.Length - 5);
             int max_start;
-
-            if(max_block_size > pending_buf_size - 5) {
-                max_block_size = pending_buf_size - 5;
-            }
 
             // Copy as much as possible from input to output:
             while(true){
@@ -1382,7 +1377,6 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             // We overlay pending_buf and d_buf+l_buf. This works since the average
             // output size for (length,distance) codes is <= 24 bits.
             pending_buf = new byte[lit_bufsize*4];
-            pending_buf_size = lit_bufsize*4;
 
             d_buf = lit_bufsize;
             l_buf = (1+2)*lit_bufsize;

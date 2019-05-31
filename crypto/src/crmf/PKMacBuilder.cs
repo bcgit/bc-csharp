@@ -93,8 +93,7 @@ namespace Org.BouncyCastle.Crmf
         private SecureRandom random;
         private PbmParameter parameters;
         private int iterationCount;
-        private int saltLength;
-        private byte[] salt;
+        private int saltLength = 20;
         private int maxIterations;
 
         /// <summary>
