@@ -35,15 +35,15 @@ namespace Org.BouncyCastle.Tests.Nist
 		private static readonly string NIST_TEST_POLICY_2 = "2.16.840.1.101.3.2.1.48.2";
 		private static readonly string NIST_TEST_POLICY_3 = "2.16.840.1.101.3.2.1.48.3";
 
-		private static IDictionary certs = new Hashtable();
-		private static IDictionary crls = new Hashtable();
+		private static readonly IDictionary certs = new Hashtable();
+        private static readonly IDictionary crls = new Hashtable();
 
-		private static ISet noPolicies = new HashSet();
-		private static ISet anyPolicy = new HashSet();
-		private static ISet nistTestPolicy1 = new HashSet();
-		private static ISet nistTestPolicy2 = new HashSet();
-		private static ISet nistTestPolicy3 = new HashSet();
-		private static ISet nistTestPolicy1And2 = new HashSet();
+        private static readonly ISet noPolicies = new HashSet();
+        private static readonly ISet anyPolicy = new HashSet();
+        private static readonly ISet nistTestPolicy1 = new HashSet();
+        private static readonly ISet nistTestPolicy2 = new HashSet();
+        private static readonly ISet nistTestPolicy3 = new HashSet();
+        private static readonly ISet nistTestPolicy1And2 = new HashSet();
 
 		static NistCertPathTest()
 		{
@@ -54,7 +54,6 @@ namespace Org.BouncyCastle.Tests.Nist
 			nistTestPolicy3.Add(NIST_TEST_POLICY_3);
 			nistTestPolicy1And2.Add(NIST_TEST_POLICY_1);
 			nistTestPolicy1And2.Add(NIST_TEST_POLICY_2);
-
 		}
 
 		[Test]
@@ -474,7 +473,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			string[] certList = new string[] { "inhibitAnyPolicy1CACert", "inhibitAnyPolicy1SelfIssuedCACert", "inhibitAnyPolicy1subCA2Cert", "ValidSelfIssuedinhibitAnyPolicyTest7EE" };
 			string[] crlList = new string[] { TRUST_ANCHOR_ROOT_CRL, "inhibitAnyPolicy1CACRL", "inhibitAnyPolicy1subCA2CRL" };
 
-			doBuilderTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null, false, false);
+			DoBuilderTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null, false, false);
 		}
 
 		// 4.4.19
@@ -484,7 +483,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			string[] certList = new string[] { "SeparateCertificateandCRLKeysCertificateSigningCACert", "SeparateCertificateandCRLKeysCRLSigningCert", "ValidSeparateCertificateandCRLKeysTest19EE" };
 			string[] crlList = new string[] { TRUST_ANCHOR_ROOT_CRL, "SeparateCertificateandCRLKeysCRL" };
 
-			doBuilderTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null, false, false);
+			DoBuilderTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null, false, false);
 		}
 
 		[Test]
@@ -600,6 +599,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			try
 			{
 				DoTest(trustAnchor, certs, crls, policies);
+
 				Assert.Fail("path accepted when should be rejected");
 			}
 			catch (PkixCertPathValidatorException e)
@@ -673,7 +673,6 @@ namespace Org.BouncyCastle.Tests.Nist
 				"CRL/Collection",
 				new X509CollectionStoreParameters(x509Crls));
 
-//			CertPathValidator validator = CertPathValidator.GetInstance("PKIX");
 			PkixCertPathValidator validator = new PkixCertPathValidator();
 			PkixParameters parameters = new PkixParameters(trustedSet);
 
@@ -693,7 +692,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			return validator.Validate(certPath, parameters);
 		}
 
-		private PkixCertPathBuilderResult doBuilderTest(
+		private PkixCertPathBuilderResult DoBuilderTest(
 			string		trustAnchor,
 			string[]	certs,
 			string[]	crls,
@@ -727,7 +726,6 @@ namespace Org.BouncyCastle.Tests.Nist
 				"CRL/Collection",
 				new X509CollectionStoreParameters(x509Crls));
 
-//			CertPathBuilder builder = CertPathBuilder.GetInstance("PKIX");   
 			PkixCertPathBuilder builder = new PkixCertPathBuilder();
 
 			X509CertStoreSelector endSelector = new X509CertStoreSelector();
@@ -766,70 +764,55 @@ namespace Org.BouncyCastle.Tests.Nist
 			}
 		}
 
-		private X509Certificate LoadCert(
-			string certName)
-		{
-			X509Certificate cert = (X509Certificate)certs[certName];
+        private X509Certificate LoadCert(string certName)
+        {
+            X509Certificate cert = (X509Certificate)certs[certName];
+            if (null != cert)
+                return cert;
 
-			if (cert != null)
-			{
-				return cert;
-			}
+            Stream fs = null;
 
-			Stream fs = null;
+            try
+            {
+                fs = SimpleTest.GetTestDataAsStream("PKITS.certs." + certName + ".crt");
+                cert = new X509CertificateParser().ReadCertificate(fs);
+                certs[certName] = cert;
+                return cert;
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException("exception loading certificate " + certName + ": " + e);
+            }
+            finally
+            {
+                fs.Close();
+            }
+        }
 
-			try
-			{
-				fs = SimpleTest.GetTestDataAsStream("PKITS.certs." + certName + ".crt");
+        private X509Crl LoadCrl(string crlName)
+        {
+            X509Crl crl = (X509Crl)crls[crlName];
+            if (null != crl)
+                return crl;
 
-				cert = new X509CertificateParser().ReadCertificate(fs);
+            Stream fs = null;
 
-				certs[certName] = cert;
-
-				return cert;
-			}
-			catch (Exception e)
-			{
-				throw new InvalidOperationException("exception loading certificate " + certName + ": " + e);
-			}
-			finally
-			{
-				fs.Close();
-			}
-		}
-
-		private X509Crl LoadCrl(
-			string crlName)
-			//throws Exception
-		{
-			X509Crl crl = (X509Crl)certs[crlName];
-        
-			if (crl != null)
-			{
-				return crl;
-			}
-
-			Stream fs = null;
-
-			try
-			{
-				fs = SimpleTest.GetTestDataAsStream("PKITS.crls." + crlName + ".crl");
-
-				crl = new X509CrlParser().ReadCrl(fs);
-
-				crls[crlName] = crl;
-
-				return crl;
-			}
-			catch (Exception)
-			{
-				throw new InvalidOperationException("exception loading CRL: " + crlName);
-			}
-			finally
-			{
-				fs.Close();
-			}
-		}
+            try
+            {
+                fs = SimpleTest.GetTestDataAsStream("PKITS.crls." + crlName + ".crl");
+                crl = new X509CrlParser().ReadCrl(fs);
+                crls[crlName] = crl;
+                return crl;
+            }
+            catch (Exception)
+            {
+                throw new InvalidOperationException("exception loading CRL: " + crlName);
+            }
+            finally
+            {
+                fs.Close();
+            }
+        }
 
 		private TrustAnchor GetTrustAnchor(string trustAnchorName)
 		{

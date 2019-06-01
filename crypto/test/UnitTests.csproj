@@ -451,6 +451,7 @@
     <Compile Include="src\test\X509CertificatePairTest.cs" />
     <Compile Include="src\test\X509StoreTest.cs" />
     <Compile Include="src\test\nist\NistCertPathTest.cs" />
+    <Compile Include="src\test\nist\NistCertPathTest2.cs" />
     <Compile Include="src\test\rsa3\RSA3CertTest.cs" />
     <Compile Include="src\tsp\test\AllTests.cs" />
     <Compile Include="src\tsp\test\GenTimeAccuracyTest.cs" />

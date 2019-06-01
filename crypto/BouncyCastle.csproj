@@ -388,7 +388,10 @@
     <Compile Include="src\asn1\util\Asn1Dump.cs" />
     <Compile Include="src\asn1\util\Dump.cs" />
     <Compile Include="src\asn1\util\FilterStream.cs" />
+    <Compile Include="src\asn1\x500\AttributeTypeAndValue.cs" />
     <Compile Include="src\asn1\x500\DirectoryString.cs" />
+    <Compile Include="src\asn1\x500\Rdn.cs" />
+    <Compile Include="src\asn1\x500\style\IetfUtilities.cs" />
     <Compile Include="src\asn1\x509\AccessDescription.cs" />
     <Compile Include="src\asn1\x509\AlgorithmIdentifier.cs" />
     <Compile Include="src\asn1\x509\AttCertIssuer.cs" />
