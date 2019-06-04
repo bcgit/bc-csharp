@@ -136,6 +136,7 @@
     <Compile Include="src\asn1\anssi\ANSSINamedCurves.cs" />
     <Compile Include="src\asn1\anssi\ANSSIObjectIdentifiers.cs" />
     <Compile Include="src\asn1\bc\BCObjectIdentifiers.cs" />
+    <Compile Include="src\asn1\bc\LinkedCertificate.cs" />
     <Compile Include="src\asn1\bsi\BsiObjectIdentifiers.cs" />
     <Compile Include="src\asn1\cmp\CAKeyUpdAnnContent.cs" />
     <Compile Include="src\asn1\cmp\CertConfirmContent.cs" />

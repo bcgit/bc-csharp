@@ -37,6 +37,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			new IssuingDistributionPointUnitTest(),
 			new KeyUsageTest(),
             new LDSSecurityObjectUnitTest(),
+            new LinkedCertificateTest(),
             new MiscTest(),
 			new MonetaryLimitUnitTest(),
 			new MonetaryValueUnitTest(),

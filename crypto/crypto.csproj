@@ -569,6 +569,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\bc\LinkedCertificate.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\bsi\BsiObjectIdentifiers.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -11664,6 +11669,11 @@
                 />
                 <File
                     RelPath = "test\src\asn1\test\LDSSecurityObjectUnitTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\asn1\test\LinkedCertificateTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

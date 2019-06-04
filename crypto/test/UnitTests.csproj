@@ -85,6 +85,7 @@
     <Compile Include="src\asn1\test\IssuingDistributionPointTest.cs" />
     <Compile Include="src\asn1\test\KeyUsageTest.cs" />
     <Compile Include="src\asn1\test\LDSSecurityObjectUnitTest.cs" />
+    <Compile Include="src\asn1\test\LinkedCertificateTest.cs" />
     <Compile Include="src\asn1\test\MiscTest.cs" />
     <Compile Include="src\asn1\test\MonetaryLimitUnitTest.cs" />
     <Compile Include="src\asn1\test\MonetaryValueUnitTest.cs" />
