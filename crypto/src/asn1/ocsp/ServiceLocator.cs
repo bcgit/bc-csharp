@@ -83,13 +83,8 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(issuer);
-
-			if (locator != null)
-            {
-                v.Add(locator);
-            }
-
-			return new DerSequence(v);
+            v.AddOptional(locator);
+            return new DerSequence(v);
         }
     }
 }

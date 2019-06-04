@@ -126,22 +126,13 @@ namespace Org.BouncyCastle.Asn1.X509
 		*
 		* @return a DERObject
 		*/
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector vec = new Asn1EncodableVector();
-
-			if (forward != null)
-			{
-				vec.Add(new DerTaggedObject(0, forward));
-			}
-
-			if (reverse != null)
-			{
-				vec.Add(new DerTaggedObject(1, reverse));
-			}
-
-			return new DerSequence(vec);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptionalTagged(true, 0, forward);
+            v.AddOptionalTagged(true, 1, reverse);
+            return new DerSequence(v);
+        }
 
 		/**
 		* @return Returns the forward.

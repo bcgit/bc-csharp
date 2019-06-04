@@ -77,13 +77,8 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(tbsRequest);
-
-			if (optionalSignature != null)
-            {
-                v.Add(new DerTaggedObject(true, 0, optionalSignature));
-            }
-
-			return new DerSequence(v);
+            v.AddOptionalTagged(true, 0, optionalSignature);
+            return new DerSequence(v);
         }
     }
 }

@@ -162,18 +162,12 @@ namespace Org.BouncyCastle.Asn1.X509
 		 *   
 		 * </pre>
 		 */
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(digestedObjectType);
-
-			if (otherObjectTypeID != null)
-            {
-                v.Add(otherObjectTypeID);
-            }
-
-			v.Add(digestAlgorithm, objectDigest);
-
-			return new DerSequence(v);
+            v.AddOptional(otherObjectTypeID);
+            v.Add(digestAlgorithm, objectDigest);
+            return new DerSequence(v);
         }
     }
 }

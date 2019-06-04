@@ -64,21 +64,12 @@ namespace Org.BouncyCastle.Asn1.X509
 			get { return _notAfter; }
 		}
 
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (_notBefore != null)
-			{
-				v.Add(new DerTaggedObject(false, 0, _notBefore));
-			}
-
-			if (_notAfter != null)
-			{
-				v.Add(new DerTaggedObject(false, 1, _notAfter));
-			}
-
-			return new DerSequence(v);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptionalTagged(false, 0, _notBefore);
+            v.AddOptionalTagged(false, 1, _notAfter);
+            return new DerSequence(v);
+        }
 	}
 }

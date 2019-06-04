@@ -93,12 +93,7 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(ephemeralPublicKey);
-
-			if (addedukm != null)
-			{
-				v.Add(new DerTaggedObject(true, 0, addedukm));
-			}
-
+            v.AddOptionalTagged(true, 0, addedukm);
 			return new DerSequence(v);
 		}
 	}

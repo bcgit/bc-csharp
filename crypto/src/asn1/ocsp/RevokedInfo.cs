@@ -83,14 +83,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          */
         public override Asn1Object ToAsn1Object()
         {
-			Asn1EncodableVector v = new Asn1EncodableVector(revocationTime);
-
-			if (revocationReason != null)
-            {
-                v.Add(new DerTaggedObject(true, 0, revocationReason));
-            }
-
-			return new DerSequence(v);
+            Asn1EncodableVector v = new Asn1EncodableVector(revocationTime);
+            v.AddOptionalTagged(true, 0, revocationReason);
+            return new DerSequence(v);
         }
     }
 }

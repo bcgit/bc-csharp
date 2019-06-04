@@ -104,17 +104,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 			get { return attributes; }
 		}
 
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
-				version, subject, subjectPKInfo);
-
-			if (attributes != null)
-            {
-                v.Add(new DerTaggedObject(false, 0, attributes));
-            }
-
-			return new DerSequence(v);
+            Asn1EncodableVector v = new Asn1EncodableVector(version, subject, subjectPKInfo);
+            v.AddOptionalTagged(false, 0, attributes);
+            return new DerSequence(v);
         }
 
         private static void ValidateAttributes(Asn1Set attributes)

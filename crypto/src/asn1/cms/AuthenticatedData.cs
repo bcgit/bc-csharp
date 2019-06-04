@@ -196,33 +196,13 @@ namespace Org.BouncyCastle.Asn1.Cms
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(version);
-
-			if (originatorInfo != null)
-			{
-				v.Add(new DerTaggedObject(false, 0, originatorInfo));
-			}
-
+            v.AddOptionalTagged(false, 0, originatorInfo);
 			v.Add(recipientInfos, macAlgorithm);
-
-			if (digestAlgorithm != null)
-			{
-				v.Add(new DerTaggedObject(false, 1, digestAlgorithm));
-			}
-
+            v.AddOptionalTagged(false, 1, digestAlgorithm);
 			v.Add(encapsulatedContentInfo);
-
-			if (authAttrs != null)
-			{
-				v.Add(new DerTaggedObject(false, 2, authAttrs));
-			}
-
+            v.AddOptionalTagged(false, 2, authAttrs);
 			v.Add(mac);
-
-			if (unauthAttrs != null)
-			{
-				v.Add(new DerTaggedObject(false, 3, unauthAttrs));
-			}
-
+            v.AddOptionalTagged(false, 3, unauthAttrs);
 			return new BerSequence(v);
 		}
 

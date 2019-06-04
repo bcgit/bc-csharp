@@ -83,12 +83,7 @@ namespace Org.BouncyCastle.Asn1.Esf
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(commitmentTypeId);
-
-			if (commitmentTypeQualifier != null)
-            {
-                v.Add(commitmentTypeQualifier);
-            }
-
+            v.AddOptional(commitmentTypeQualifier);
 			return new DerSequence(v);
         }
     }

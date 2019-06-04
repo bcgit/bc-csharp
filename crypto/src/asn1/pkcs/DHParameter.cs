@@ -57,16 +57,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             get { return l == null ? null : l.PositiveValue; }
         }
 
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(p, g);
-
-			if (this.l != null)
-            {
-                v.Add(l);
-            }
-
-			return new DerSequence(v);
+            v.AddOptional(l);
+            return new DerSequence(v);
         }
     }
 }
