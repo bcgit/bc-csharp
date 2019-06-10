@@ -25,6 +25,8 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestAlgorithms()
         {
+            SecureRandom RANDOM = new SecureRandom();
+
             //
             // RSA parameters
             //
@@ -90,29 +92,43 @@ namespace Org.BouncyCastle.Security.Tests
             ecGostKpg.Init(
                 new ECKeyGenerationParameters(
                     CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
-                    new SecureRandom()));
+                    RANDOM));
 
             AsymmetricCipherKeyPair ecGostPair = ecGostKpg.GenerateKeyPair();
 
             IAsymmetricCipherKeyPairGenerator ed25519Kpg = GeneratorUtilities.GetKeyPairGenerator("Ed25519");
-            ed25519Kpg.Init(new Ed25519KeyGenerationParameters(new SecureRandom()));
+            ed25519Kpg.Init(new Ed25519KeyGenerationParameters(RANDOM));
             AsymmetricCipherKeyPair ed25519Pair = ed25519Kpg.GenerateKeyPair();
 
             IAsymmetricCipherKeyPairGenerator ed448Kpg = GeneratorUtilities.GetKeyPairGenerator("Ed448");
-            ed448Kpg.Init(new Ed448KeyGenerationParameters(new SecureRandom()));
+            ed448Kpg.Init(new Ed448KeyGenerationParameters(RANDOM));
             AsymmetricCipherKeyPair ed448Pair = ed448Kpg.GenerateKeyPair();
 
             //
             // GOST3410 parameters
             //
             IAsymmetricCipherKeyPairGenerator gostKpg = GeneratorUtilities.GetKeyPairGenerator("GOST3410");
-            gostKpg.Init(
-                new Gost3410KeyGenerationParameters(
-                    new SecureRandom(),
-                    CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
-
+            gostKpg.Init(new Gost3410KeyGenerationParameters(RANDOM, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
             AsymmetricCipherKeyPair gostPair = gostKpg.GenerateKeyPair();
 
+            //
+            // SM2 parameters
+            //
+            BigInteger SM2_ECC_P = new BigInteger("8542D69E4C044F18E8B92435BF6FF7DE457283915C45517D722EDB8B08F1DFC3", 16);
+            BigInteger SM2_ECC_A = new BigInteger("787968B4FA32C3FD2417842E73BBFEFF2F3C848B6831D7E0EC65228B3937E498", 16);
+            BigInteger SM2_ECC_B = new BigInteger("63E4C6D3B23B0C849CF84241484BFE48F61D59A5B16BA06E6E12D1DA27C5249A", 16);
+            BigInteger SM2_ECC_N = new BigInteger("8542D69E4C044F18E8B92435BF6FF7DD297720630485628D5AE74EE7C32E79B7", 16);
+            BigInteger SM2_ECC_H = BigInteger.One;
+            BigInteger SM2_ECC_GX = new BigInteger("421DEBD61B62EAB6746434EBC3CC315E32220B3BADD50BDC4C4E6C147FEDD43D", 16);
+            BigInteger SM2_ECC_GY = new BigInteger("0680512BCBB42C07D47349D2153B70C4E5D7FDFCBFA36EA1A85841B9E46E09A2", 16);
+
+            ECCurve sm2Curve = new FpCurve(SM2_ECC_P, SM2_ECC_A, SM2_ECC_B, SM2_ECC_N, SM2_ECC_H);
+            ECPoint sm2G = sm2Curve.CreatePoint(SM2_ECC_GX, SM2_ECC_GY);
+            ECDomainParameters sm2Domain = new ECDomainParameters(sm2Curve, sm2G, SM2_ECC_N, SM2_ECC_H);
+
+            ECKeyPairGenerator sm2Kpg = new ECKeyPairGenerator();
+            sm2Kpg.Init(new ECKeyGenerationParameters(sm2Domain, RANDOM));
+            AsymmetricCipherKeyPair sm2Pair = sm2Kpg.GenerateKeyPair();
 
 
             //
@@ -120,7 +136,7 @@ namespace Org.BouncyCastle.Security.Tests
             //
             byte[] shortMsg = new byte[] { 1, 4, 5, 6, 8, 8, 4, 2, 1, 3 };
             byte[] longMsg = new byte[100];
-            new SecureRandom().NextBytes(longMsg);
+            RANDOM.NextBytes(longMsg);
 
             foreach (string algorithm in SignerUtilities.Algorithms)
             {
@@ -171,6 +187,11 @@ namespace Org.BouncyCastle.Security.Tests
                 {
                     signParams = gostPair.Private;
                     verifyParams = gostPair.Public;
+                }
+                else if (cipherName == "SM2")
+                {
+                    signParams = sm2Pair.Private;
+                    verifyParams = sm2Pair.Public;
                 }
                 else
                 {

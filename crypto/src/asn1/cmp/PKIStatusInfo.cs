@@ -149,17 +149,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(status);
-
-			if (statusString != null)
-			{
-				v.Add(statusString);
-			}
-
-			if (failInfo!= null)
-			{
-				v.Add(failInfo);
-			}
-
+            v.AddOptional(statusString, failInfo);
 			return new DerSequence(v);
 		}
 	}

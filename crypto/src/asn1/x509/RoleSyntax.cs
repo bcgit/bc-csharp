@@ -190,19 +190,13 @@ namespace Org.BouncyCastle.Asn1.X509
 		*           }
 		* </pre>
 		*/
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (this.roleAuthority != null)
-			{
-				v.Add(new DerTaggedObject(false, 0, roleAuthority));
-			}
-
-			v.Add(new DerTaggedObject(true, 1, roleName));
-
-			return new DerSequence(v);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptionalTagged(false, 0, roleAuthority);
+            v.Add(new DerTaggedObject(true, 1, roleName));
+            return new DerSequence(v);
+        }
 
 		public override string ToString()
 		{

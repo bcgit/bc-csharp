@@ -569,6 +569,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\bc\LinkedCertificate.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\bsi\BsiObjectIdentifiers.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -1829,7 +1834,22 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\x500\AttributeTypeAndValue.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\x500\DirectoryString.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\x500\Rdn.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\x500\style\IetfUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11653,6 +11673,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\asn1\test\LinkedCertificateTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\asn1\test\MiscTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -13484,6 +13509,11 @@
                 />
                 <File
                     RelPath = "test\src\test\nist\NistCertPathTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\test\nist\NistCertPathTest2.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

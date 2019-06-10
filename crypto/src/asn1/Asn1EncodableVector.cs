@@ -61,6 +61,14 @@ namespace Org.BouncyCastle.Asn1
 			}
 		}
 
+        public void AddOptionalTagged(bool isExplicit, int tagNo, Asn1Encodable obj)
+        {
+            if (null != obj)
+            {
+                v.Add(new DerTaggedObject(isExplicit, tagNo, obj));
+            }
+        }
+
 		public Asn1Encodable this[
 			int index]
 		{

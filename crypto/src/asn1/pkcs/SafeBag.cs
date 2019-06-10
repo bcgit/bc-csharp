@@ -54,17 +54,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 			get { return bagAttributes; }
 		}
 
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
-				bagID, new DerTaggedObject(0, bagValue));
-
-			if (bagAttributes != null)
-            {
-                v.Add(bagAttributes);
-            }
-
-			return new DerSequence(v);
+            Asn1EncodableVector v = new Asn1EncodableVector(bagID, new DerTaggedObject(0, bagValue));
+            v.AddOptional(bagAttributes);
+            return new DerSequence(v);
         }
     }
 }

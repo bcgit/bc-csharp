@@ -72,19 +72,23 @@ namespace Org.BouncyCastle.Tests
 
 		private readonly string[] dnIntersection = { "O=test org, OU=test org unit, CN=John Doe" };
 
-		private readonly string testDN = "O=test org, OU=test org unit, CN=John Doe";
+        // Note: In BC text conversion is ISO format - IETF starts at the back.
+        private readonly string testDN = "O=test org, OU=test org unit, CN=John Doe";
 
-		private readonly string[] testDNIsConstraint = {
-			"O=test org, OU=test org unit",
-			"O=test org, OU=test org unit, CN=John Doe" };
+        private readonly string[] testDNIsConstraint =
+        {
+            "O=test org, OU=test org unit",
+            "O=test org, OU=test org unit, CN=John Doe",
+        };
 
-		private readonly string[] testDNIsNotConstraint = {
-			"O=test org, OU=test org unit, CN=John Doe2",
-			"O=test org, OU=test org unit2",
-			"OU=test org unit, O=test org, CN=John Doe",
-			"O=test org, OU=test org unit, CN=John Doe, L=USA" };
+        private readonly string[] testDNIsNotConstraint =
+        {
+            "O=test org, OU=test org unit, CN=John Doe2",
+            "O=test org, OU=test org unit2",
+            "O=test org, OU=test org unit, CN=John Doe, L=USA"
+        };
 
-		private readonly string testDNS = "abc.test.com";
+        private readonly string testDNS = "abc.test.com";
 
 		private readonly string[] testDNSIsConstraint = { "test.com", "abc.test.com", "test.com" };
 
@@ -185,7 +189,15 @@ namespace Org.BouncyCastle.Tests
 				uriintersect);
 			TestConstraints(GeneralName.IPAddress, testIP, testIPIsConstraint,
 				testIPIsNotConstraint, ip1, ip2, ipunion, ipintersect);
-		}
+
+            PkixNameConstraintValidator constraintValidator = new PkixNameConstraintValidator();
+            constraintValidator.IntersectPermittedSubtree(new DerSequence(new GeneralSubtree(
+                new GeneralName(GeneralName.DirectoryName,
+                    new X509Name(true, "ou=permittedSubtree1, o=Test Certificates 2011, c=US")))));
+            constraintValidator.checkPermitted(
+                new GeneralName(GeneralName.DirectoryName,
+                    new X509Name(true, "cn=Valid DN nameConstraints EE Certificate Test1, ou=permittedSubtree1, o=Test Certificates 2011, c=US")));
+        }
 
 		/**
 		 * Tests string based GeneralNames for inclusion or exclusion.

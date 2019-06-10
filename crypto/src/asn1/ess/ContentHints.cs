@@ -80,14 +80,8 @@ namespace Org.BouncyCastle.Asn1.Ess
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (contentDescription != null)
-			{
-				v.Add(contentDescription);
-			}
-
+            v.AddOptional(contentDescription);
 			v.Add(contentType);
-
 			return new DerSequence(v);
 		}
 	}

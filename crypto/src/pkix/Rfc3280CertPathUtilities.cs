@@ -810,18 +810,18 @@ namespace Org.BouncyCastle.Pkix
 					validCerts.Add(signingCert);
 					validKeys.Add(PkixCertPathValidatorUtilities.GetNextWorkingKey(certs, 0));
 				}
-				catch (PkixCertPathBuilderException e)
-				{
-					throw new Exception("Internal error.", e);
-				}
-				catch (PkixCertPathValidatorException e)
-				{
-					throw new Exception("Public key of issuer certificate of CRL could not be retrieved.", e);
-				}
-				//catch (Exception e)
-				//{
-				//    throw new Exception(e.Message);
-				//}
+                catch (PkixCertPathBuilderException e)
+                {
+                    throw new Exception("CertPath for CRL signer failed to validate.", e);
+                }
+                catch (PkixCertPathValidatorException e)
+                {
+                    throw new Exception("Public key of issuer certificate of CRL could not be retrieved.", e);
+                }
+                //catch (Exception e)
+                //{
+                //    throw new Exception(e.Message);
+                //}
 			}
 
 			ISet checkKeys = new HashSet();

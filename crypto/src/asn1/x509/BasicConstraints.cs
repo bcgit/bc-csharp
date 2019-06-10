@@ -106,18 +106,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (cA != null)
-			{
-				v.Add(cA);
-			}
-
-            if (pathLenConstraint != null)  // yes some people actually do this when cA is false...
-            {
-                v.Add(pathLenConstraint);
-            }
-
-			return new DerSequence(v);
+            v.AddOptional(cA,
+                pathLenConstraint); // yes some people actually do this when cA is false...
+            return new DerSequence(v);
         }
 
 		public override string ToString()

@@ -209,25 +209,25 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*/
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector vec = new Asn1EncodableVector();
-			if (country != null)
-			{
-				vec.Add(new DerTaggedObject(true, 1, new DerPrintableString(country, true)));
-			}
-			if (typeOfSubstitution != null)
-			{
-				vec.Add(new DerTaggedObject(true, 2, typeOfSubstitution));
-			}
-			if (thirdPerson != null)
-			{
-				vec.Add(new DerTaggedObject(true, 3, thirdPerson));
-			}
-			else
-			{
-				vec.Add(new DerTaggedObject(true, 3, certRef));
-			}
+            Asn1EncodableVector v = new Asn1EncodableVector();
 
-			return new DerSequence(vec);
+            if (country != null)
+            {
+                v.Add(new DerTaggedObject(true, 1, new DerPrintableString(country, true)));
+            }
+
+            v.AddOptionalTagged(true, 2, typeOfSubstitution);
+
+            if (thirdPerson != null)
+            {
+                v.Add(new DerTaggedObject(true, 3, thirdPerson));
+            }
+            else
+            {
+                v.Add(new DerTaggedObject(true, 3, certRef));
+            }
+
+            return new DerSequence(v);
 		}
 	}
 }

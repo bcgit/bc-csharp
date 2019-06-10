@@ -178,11 +178,7 @@ namespace Org.BouncyCastle.Asn1.X509
 				v.Add(new DerTaggedObject(false, 0, minimum));
 			}
 
-			if (maximum != null)
-			{
-				v.Add(new DerTaggedObject(false, 1, maximum));
-			}
-
+            v.AddOptionalTagged(false, 1, maximum);
 			return new DerSequence(v);
 		}
 	}

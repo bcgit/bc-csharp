@@ -131,24 +131,13 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
-
-            AddOptional(v, 0, intendedAlg);
-            AddOptional(v, 1, symmAlg);
-            AddOptional(v, 2, encSymmKey);
-            AddOptional(v, 3, keyAlg);
-            AddOptional(v, 4, valueHint);
-
+            v.AddOptionalTagged(false, 0, intendedAlg);
+            v.AddOptionalTagged(false, 1, symmAlg);
+            v.AddOptionalTagged(false, 2, encSymmKey);
+            v.AddOptionalTagged(false, 3, keyAlg);
+            v.AddOptionalTagged(false, 4, valueHint);
             v.Add(encValue);
-
             return new DerSequence(v);
-        }
-
-        private void AddOptional(Asn1EncodableVector v, int tagNo, Asn1Encodable obj)
-        {
-            if (obj != null)
-            {
-                v.Add(new DerTaggedObject(false, tagNo, obj));
-            }
         }
     }
 }

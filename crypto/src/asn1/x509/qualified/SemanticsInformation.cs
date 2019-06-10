@@ -104,21 +104,17 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             return nameRegistrationAuthorities;
         }
 
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector seq = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptional(semanticsIdentifier);
 
-            if (this.semanticsIdentifier != null)
+            if (null != nameRegistrationAuthorities)
             {
-                seq.Add(semanticsIdentifier);
+                v.Add(new DerSequence(nameRegistrationAuthorities));
             }
 
-			if (this.nameRegistrationAuthorities != null)
-            {
-                seq.Add(new DerSequence(nameRegistrationAuthorities));
-            }
-
-			return new DerSequence(seq);
+            return new DerSequence(v);
         }
     }
 }

@@ -134,6 +134,8 @@ namespace Org.BouncyCastle.Cms
             algorithms["SHA512WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_512;
             algorithms["SHA3-512WITHSPHINCS256"] = BCObjectIdentifiers.sphincs256_with_SHA3_512;
             algorithms["SHA512WITHSPHINCS256"] = BCObjectIdentifiers.sphincs256_with_SHA512;
+
+            algorithms["SHA256WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha256;
             algorithms["SM3WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sm3;
 
             algorithms["SHA256WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHA256;
@@ -200,6 +202,7 @@ namespace Org.BouncyCastle.Cms
             //
             // SM2
             //
+            noParams.Add((object)GMObjectIdentifiers.sm2sign_with_sha256);
             noParams.Add((object)GMObjectIdentifiers.sm2sign_with_sm3);
 
             //
@@ -283,8 +286,9 @@ namespace Org.BouncyCastle.Cms
             digestOids[CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001] = CryptoProObjectIdentifiers.GostR3411;
             digestOids[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
             digestOids[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512;
-            digestOids[GMObjectIdentifiers.sm2sign_with_sm3] = GMObjectIdentifiers.sm3;
 
+            digestOids[GMObjectIdentifiers.sm2sign_with_sha256] = NistObjectIdentifiers.IdSha256;
+            digestOids[GMObjectIdentifiers.sm2sign_with_sm3] = GMObjectIdentifiers.sm3;
         }
 
         private static AlgorithmIdentifier Generate(string signatureAlgorithm)

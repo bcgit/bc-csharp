@@ -623,7 +623,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         public void Dstu7564TestFunction()
         {
             string resultText = Perform().ToString();
-            Console.WriteLine(resultText);
+
             Assert.AreEqual(Name + ": Okay", resultText);
         }
     }

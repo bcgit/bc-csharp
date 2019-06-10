@@ -92,29 +92,16 @@ namespace Org.BouncyCastle.Asn1.X509
 			get { return cRLIssuer; }
         }
 
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
 
-			if (distributionPoint != null)
-            {
-                //
-                // as this is a CHOICE it must be explicitly tagged
-                //
-                v.Add(new DerTaggedObject(0, distributionPoint));
-            }
+            // As this is a CHOICE it must be explicitly tagged
+            v.AddOptionalTagged(true, 0, distributionPoint);
 
-			if (reasons != null)
-            {
-                v.Add(new DerTaggedObject(false, 1, reasons));
-            }
-
-			if (cRLIssuer != null)
-            {
-                v.Add(new DerTaggedObject(false, 2, cRLIssuer));
-            }
-
-			return new DerSequence(v);
+            v.AddOptionalTagged(false, 1, reasons);
+            v.AddOptionalTagged(false, 2, cRLIssuer);
+            return new DerSequence(v);
         }
 
 		public override string ToString()

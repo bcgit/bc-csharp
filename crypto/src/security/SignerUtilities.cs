@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1.Bsi;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
 using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -344,6 +345,11 @@ namespace Org.BouncyCastle.Security
             algorithms[EdECObjectIdentifiers.id_Ed448.Id] = "Ed448";
             algorithms["ED448PH"] = "Ed448ph";
 
+            algorithms["SHA256WITHSM2"] = "SHA256withSM2";
+            algorithms[GMObjectIdentifiers.sm2sign_with_sha256.Id] = "SHA256withSM2";
+            algorithms["SM3WITHSM2"] = "SM3withSM2";
+            algorithms[GMObjectIdentifiers.sm2sign_with_sm3.Id] = "SM3withSM2";
+
             oids["MD2withRSA"] = PkcsObjectIdentifiers.MD2WithRsaEncryption;
             oids["MD4withRSA"] = PkcsObjectIdentifiers.MD4WithRsaEncryption;
             oids["MD5withRSA"] = PkcsObjectIdentifiers.MD5WithRsaEncryption;
@@ -392,6 +398,9 @@ namespace Org.BouncyCastle.Security
 
             oids["Ed25519"] = EdECObjectIdentifiers.id_Ed25519;
             oids["Ed448"] = EdECObjectIdentifiers.id_Ed448;
+
+            oids["SHA256withSM2"] = GMObjectIdentifiers.sm2sign_with_sha256;
+            oids["SM3withSM2"] = GMObjectIdentifiers.sm2sign_with_sm3;
         }
 
         /// <summary>
@@ -568,6 +577,13 @@ namespace Org.BouncyCastle.Security
                 string digestName = mechanism.Substring(0, mechanism.LastIndexOf("with"));
                 IDigest digest = DigestUtilities.GetDigest(digestName);
                 return new DsaDigestSigner(new ECNRSigner(), digest);
+            }
+
+            if (Platform.EndsWith(mechanism, "withSM2"))
+            {
+                string digestName = mechanism.Substring(0, mechanism.LastIndexOf("with"));
+                IDigest digest = DigestUtilities.GetDigest(digestName);
+                return new SM2Signer(digest);
             }
 
             if (mechanism.Equals("GOST3410"))

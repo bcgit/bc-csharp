@@ -126,13 +126,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
-                octStr, iterationCount);
+            Asn1EncodableVector v = new Asn1EncodableVector(octStr, iterationCount);
+            v.AddOptional(keyLength);
 
-            if (keyLength != null)
-            {
-                v.Add(keyLength);
-            }
             if (!IsDefaultPrf)
             {
                 v.Add(prf);

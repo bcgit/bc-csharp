@@ -150,22 +150,9 @@ namespace Org.BouncyCastle.Asn1.Esf
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (countryName != null)
-			{
-				v.Add(new DerTaggedObject(true, 0, countryName));
-			}
-
-			if (localityName != null)
-			{
-				v.Add(new DerTaggedObject(true, 1, localityName));
-			}
-
-			if (postalAddress != null)
-			{
-				v.Add(new DerTaggedObject(true, 2, postalAddress));
-			}
-
+            v.AddOptionalTagged(true, 0, countryName);
+            v.AddOptionalTagged(true, 1, localityName);
+            v.AddOptionalTagged(true, 2, postalAddress);
 			return new DerSequence(v);
 		}
 	}

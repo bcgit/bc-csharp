@@ -181,31 +181,25 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 		*
 		* @return an Asn1Object
 		*/
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector vec = new Asn1EncodableVector();
-			vec.Add(nameOrPseudonym);
-			if (nameDistinguisher != null)
-			{
-				vec.Add(new DerTaggedObject(false, 0, new DerInteger(nameDistinguisher)));
-			}
-			if (dateOfBirth != null)
-			{
-				vec.Add(new DerTaggedObject(false, 1, dateOfBirth));
-			}
-			if (placeOfBirth != null)
-			{
-				vec.Add(new DerTaggedObject(true, 2, placeOfBirth));
-			}
-			if (gender != null)
-			{
-				vec.Add(new DerTaggedObject(false, 3, new DerPrintableString(gender, true)));
-			}
-			if (postalAddress != null)
-			{
-				vec.Add(new DerTaggedObject(true, 4, postalAddress));
-			}
-			return new DerSequence(vec);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(nameOrPseudonym);
+
+            if (null != nameDistinguisher)
+            {
+                v.Add(new DerTaggedObject(false, 0, new DerInteger(nameDistinguisher)));
+            }
+
+            v.AddOptionalTagged(false, 1, dateOfBirth);
+            v.AddOptionalTagged(true, 2, placeOfBirth);
+
+            if (null != gender)
+            {
+                v.Add(new DerTaggedObject(false, 3, new DerPrintableString(gender, true)));
+            }
+
+            v.AddOptionalTagged(true, 4, postalAddress);
+            return new DerSequence(v);
+        }
 	}
 }

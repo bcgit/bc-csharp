@@ -100,21 +100,12 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * NameConstraints ::= SEQUENCE { permittedSubtrees [0] GeneralSubtrees
 		 * OPTIONAL, excludedSubtrees [1] GeneralSubtrees OPTIONAL }
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (permitted != null)
-			{
-				v.Add(new DerTaggedObject(false, 0, permitted));
-			}
-
-			if (excluded != null)
-			{
-				v.Add(new DerTaggedObject(false, 1, excluded));
-			}
-
-			return new DerSequence(v);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptionalTagged(false, 0, permitted);
+            v.AddOptionalTagged(false, 1, excluded);
+            return new DerSequence(v);
+        }
 	}
 }
