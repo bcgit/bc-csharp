@@ -268,12 +268,12 @@ namespace Org.BouncyCastle.Math.EC.Tests
         {
             for (int i = 0; i < Fp.p.Length; i++)
             {
-                ImplTestAllPoints(Fp.p[0], Fp.infinity);
+                ImplTestAllPoints(Fp.p[i], Fp.infinity);
             }
 
             for (int i = 0; i < F2m.p.Length; i++)
             {
-                ImplTestAllPoints(F2m.p[0], F2m.infinity);
+                ImplTestAllPoints(F2m.p[i], F2m.infinity);
             }
         }
 
