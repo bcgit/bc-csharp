@@ -31,6 +31,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         private DtlsEpoch mRetransmitEpoch = null;
         private long mRetransmitExpiry = 0;
 
+        public bool Closed
+        {
+            get { return mClosed; }
+        }
         internal DtlsRecordLayer(DatagramTransport transport, TlsContext context, TlsPeer peer, byte contentType)
         {
             this.mTransport = transport;
