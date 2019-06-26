@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             byte[] buf = null;
 
             // TODO Check the conditions under which we should reset this
-            int readTimeoutMillis = 1000;
+            int readTimeoutMillis = 200;
 
             for (;;)
             {
@@ -93,6 +93,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     for (;;)
                     {
+		                if (mRecordLayer.Closed)
+		                {
+		                    throw new TlsFatalAlert(AlertDescription.user_canceled, new Exception("User canceled handshake"));
+		                }
                         Message pending = GetPendingMessage();
                         if (pending != null)
                             return pending;
@@ -161,7 +165,7 @@ namespace Org.BouncyCastle.Crypto.Tls
              * TODO[DTLS] implementations SHOULD back off handshake packet size during the
              * retransmit backoff.
              */
-            return System.Math.Min(timeoutMillis * 2, 60000);
+            return System.Math.Min(timeoutMillis * 2, 1600);
         }
 
         /**
