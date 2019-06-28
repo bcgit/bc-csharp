@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         :   DtlsProtocol
     {
         protected bool mVerifyRequests = true;
+        private DtlsRecordLayer mRecordLayer;
 
         public DtlsServerProtocol(SecureRandom secureRandom)
             :   base(secureRandom)
@@ -23,6 +24,14 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             get { return mVerifyRequests; }
             set { this.mVerifyRequests = value; }
+        }
+
+        public virtual void Cancel()
+        {
+            if (mRecordLayer != null)
+            {
+                mRecordLayer.Close();
+            }
         }
 
         public virtual DtlsTransport Accept(TlsServer server, DatagramTransport transport)
@@ -44,27 +53,27 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             server.Init(state.serverContext);
 
-            DtlsRecordLayer recordLayer = new DtlsRecordLayer(transport, state.serverContext, server, ContentType.handshake);
+            mRecordLayer = new DtlsRecordLayer(transport, state.serverContext, server, ContentType.handshake);
 
             // TODO Need to handle sending of HelloVerifyRequest without entering a full connection
 
             try
             {
-                return ServerHandshake(state, recordLayer);
+                return ServerHandshake(state, mRecordLayer);
             }
             catch (TlsFatalAlert fatalAlert)
             {
-                AbortServerHandshake(state, recordLayer, fatalAlert.AlertDescription);
+                AbortServerHandshake(state, mRecordLayer, fatalAlert.AlertDescription);
                 throw fatalAlert;
             }
             catch (IOException e)
             {
-                AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
+                AbortServerHandshake(state, mRecordLayer, AlertDescription.internal_error);
                 throw e;
             }
             catch (Exception e)
             {
-                AbortServerHandshake(state, recordLayer, AlertDescription.internal_error);
+                AbortServerHandshake(state, mRecordLayer, AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             finally
