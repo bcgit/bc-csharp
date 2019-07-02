@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.136
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BouncyCastle", "crypto\BouncyCastle.csproj", "{4C235092-820C-4DEB-9074-D356FB797D8B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "crypto\test\UnitTests.csproj", "{D4EB669D-7C88-48C0-A480-C5CC73A7369B}"
@@ -19,6 +21,12 @@ Global
 		{D4EB669D-7C88-48C0-A480-C5CC73A7369B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4EB669D-7C88-48C0-A480-C5CC73A7369B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4EB669D-7C88-48C0-A480-C5CC73A7369B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C6BD6300-F057-44F9-A192-014CDC7E406D}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = crypto\BouncyCastle.csproj

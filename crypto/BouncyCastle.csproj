@@ -704,6 +704,9 @@
     <Compile Include="src\crypto\InvalidCipherTextException.cs" />
     <Compile Include="src\crypto\KeyGenerationParameters.cs" />
     <Compile Include="src\crypto\MaxBytesExceededException.cs" />
+    <Compile Include="src\crypto\modes\ChaCha20Poly1305.cs" />
+    <Compile Include="src\crypto\modes\IAeadCipher.cs" />
+    <Compile Include="src\crypto\modes\IAeadStreamCipher.cs" />
     <Compile Include="src\crypto\OutputLengthException.cs" />
     <Compile Include="src\crypto\Security.cs" />
     <Compile Include="src\crypto\SimpleBlockResult.cs" />

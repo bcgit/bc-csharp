@@ -168,6 +168,7 @@
     <Compile Include="src\crypto\test\BlowfishTest.cs" />
     <Compile Include="src\crypto\test\CAST6Test.cs" />
     <Compile Include="src\crypto\test\CCMTest.cs" />
+    <Compile Include="src\crypto\test\ChaCha20Poly1305Test.cs" />
     <Compile Include="src\crypto\test\ChaChaTest.cs" />
     <Compile Include="src\crypto\test\CMacTest.cs" />
     <Compile Include="src\crypto\test\CTSTest.cs" />
