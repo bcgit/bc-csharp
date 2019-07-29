@@ -337,6 +337,7 @@
     <Compile Include="src\crypto\tls\test\TlsTestSuite.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestUtilities.cs" />
     <Compile Include="src\crypto\tls\test\UnreliableDatagramTransport.cs" />
+    <Compile Include="src\math\ec\custom\sec\test\SecP128R1FieldTest.cs" />
     <Compile Include="src\math\ec\custom\sec\test\SecP256R1FieldTest.cs" />
     <Compile Include="src\math\ec\custom\sec\test\SecP384R1FieldTest.cs" />
     <Compile Include="src\math\ec\rfc7748\test\X25519Test.cs" />
