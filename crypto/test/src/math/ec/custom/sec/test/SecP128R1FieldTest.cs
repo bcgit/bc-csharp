@@ -2,11 +2,7 @@
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1.Sec;
-using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Math.Raw;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec.Tests
