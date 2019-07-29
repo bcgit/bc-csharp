@@ -270,6 +270,23 @@ namespace Org.BouncyCastle.Math.Raw
             Array.Copy(x, xOff, z, zOff, len);
         }
 
+        public static ulong[] Copy64(int len, ulong[] x)
+        {
+            ulong[] z = new ulong[len];
+            Array.Copy(x, 0, z, 0, len);
+            return z;
+        }
+
+        public static void Copy64(int len, ulong[] x, ulong[] z)
+        {
+            Array.Copy(x, 0, z, 0, len);
+        }
+
+        public static void Copy64(int len, ulong[] x, int xOff, ulong[] z, int zOff)
+        {
+            Array.Copy(x, xOff, z, zOff, len);
+        }
+
         public static uint[] Create(int len)
         {
             return new uint[len];
