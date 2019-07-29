@@ -98,31 +98,37 @@ namespace Org.BouncyCastle.Crypto.Generators
 			uint[] blockY = new uint[BCount];
 
 			uint[] X = new uint[BCount];
-			uint[][] V = new uint[N][];
+            uint[] V = new uint[N * BCount];
 
 			try
 			{
 				Array.Copy(B, BOff, X, 0, BCount);
 
-				for (int i = 0; i < N; ++i)
-				{
-					V[i] = (uint[])X.Clone();
-					BlockMix(X, blockX1, blockX2, blockY, r);
-				}
+                int off = 0;
+                for (int i = 0; i < N; i += 2)
+                {
+                    Array.Copy(X, 0, V, off, BCount);
+                    off += BCount;
+                    BlockMix(X, blockX1, blockX2, blockY, r);
+                    Array.Copy(blockY, 0, V, off, BCount);
+                    off += BCount;
+                    BlockMix(blockY, blockX1, blockX2, X, r);
+                }
 
 				uint mask = (uint)N - 1;
 				for (int i = 0; i < N; ++i)
 				{
 					uint j = X[BCount - 16] & mask;
-					Xor(X, V[j], 0, X);
-					BlockMix(X, blockX1, blockX2, blockY, r);
-				}
+                    Array.Copy(V, j * BCount, blockY, 0, BCount);
+                    Xor(blockY, X, 0, blockY);
+                    BlockMix(blockY, blockX1, blockX2, X, r);
+                }
 
 				Array.Copy(X, 0, B, BOff, BCount);
 			}
 			finally
 			{
-				ClearAll(V);
+				Clear(V);
 				ClearAll(X, blockX1, blockX2, blockY);
 			}
 		}
@@ -143,8 +149,6 @@ namespace Org.BouncyCastle.Crypto.Generators
 				YOff = halfLen + BOff - YOff;
 				BOff += 16;
 			}
-
-			Array.Copy(Y, 0, B, 0, Y.Length);
 		}
 
 		private static void Xor(uint[] a, uint[] b, int bOff, uint[] output)
