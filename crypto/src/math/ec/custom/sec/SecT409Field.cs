@@ -319,10 +319,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
-            for (int i = 0; i < 6; ++i)
-            {
-                Interleave.Expand64To128(x[i], zz, i << 1);
-            }
+            Interleave.Expand64To128(x[0], zz, 0);
+            Interleave.Expand64To128(x[1], zz, 2);
+            Interleave.Expand64To128(x[2], zz, 4);
+            Interleave.Expand64To128(x[3], zz, 6);
+            Interleave.Expand64To128(x[4], zz, 8);
+            Interleave.Expand64To128(x[5], zz, 10);
             zz[12] = Interleave.Expand32to64((uint)x[6]);
         }
     }

@@ -329,10 +329,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             Interleave.Expand64To128(x[0], zz, 0);
             Interleave.Expand64To128(x[1], zz, 2);
-
-            ulong x2 = x[2];
-            zz[4] = Interleave.Expand32to64((uint)x2);
-            zz[5] = Interleave.Expand8to16((uint)(x2 >> 32));
+            Interleave.Expand64To128(x[2], zz, 4);
         }
     }
 }
