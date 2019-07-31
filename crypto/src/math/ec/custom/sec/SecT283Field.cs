@@ -45,9 +45,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static ulong[] FromBigInteger(BigInteger x)
         {
-            ulong[] z = Nat320.FromBigInteger64(x);
-            Reduce37(z, 0);
-            return z;
+            return Nat.FromBigInteger64(283, x);
         }
 
         public static void Invert(ulong[] x, ulong[] z)

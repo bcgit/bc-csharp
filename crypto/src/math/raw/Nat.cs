@@ -384,6 +384,22 @@ namespace Org.BouncyCastle.Math.Raw
             return z;
         }
 
+        public static ulong[] FromBigInteger64(int bits, BigInteger x)
+        {
+            if (x.SignValue < 0 || x.BitLength > bits)
+                throw new ArgumentException();
+
+            int len = (bits + 63) >> 6;
+            ulong[] z = Create64(len);
+            int i = 0;
+            while (x.SignValue != 0)
+            {
+                z[i++] = (ulong)x.LongValue;
+                x = x.ShiftRight(64);
+            }
+            return z;
+        }
+
         public static uint GetBit(uint[] x, int bit)
         {
             if (bit == 0)
