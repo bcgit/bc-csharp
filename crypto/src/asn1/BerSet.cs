@@ -5,48 +5,46 @@ namespace Org.BouncyCastle.Asn1
     {
 		public static new readonly BerSet Empty = new BerSet();
 
-		public static new BerSet FromVector(
-			Asn1EncodableVector v)
+		public static new BerSet FromVector(Asn1EncodableVector elementVector)
 		{
-			return v.Count < 1 ? Empty : new BerSet(v);
+            return elementVector.Count < 1 ? Empty : new BerSet(elementVector);
 		}
 
-		internal static new BerSet FromVector(
-			Asn1EncodableVector v,
-			bool				needsSorting)
+        internal static new BerSet FromVector(Asn1EncodableVector elementVector, bool needsSorting)
 		{
-			return v.Count < 1 ? Empty : new BerSet(v, needsSorting);
+            return elementVector.Count < 1 ? Empty : new BerSet(elementVector, needsSorting);
 		}
 
 		/**
          * create an empty sequence
          */
         public BerSet()
+            : base()
         {
         }
 
         /**
          * create a set containing one object
          */
-        public BerSet(Asn1Encodable obj) : base(obj)
+        public BerSet(Asn1Encodable element)
+            : base(element)
         {
         }
 
         /**
          * create a set containing a vector of objects.
          */
-        public BerSet(Asn1EncodableVector v) : base(v, false)
+        public BerSet(Asn1EncodableVector elementVector)
+            : base(elementVector, false)
         {
         }
 
-        internal BerSet(Asn1EncodableVector v, bool needsSorting) : base(v, needsSorting)
+        internal BerSet(Asn1EncodableVector elementVector, bool needsSorting)
+            : base(elementVector, needsSorting)
         {
         }
 
-        /*
-         */
-        internal override void Encode(
-            DerOutputStream derOut)
+        internal override void Encode(DerOutputStream derOut)
         {
             if (derOut is Asn1OutputStream || derOut is BerOutputStream)
             {
