@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Cmp
 
             streamCalculator.Stream.Write(enc, 0, enc.Length);
             streamCalculator.Stream.Flush();
-            streamCalculator.Stream.Close();
+            Platform.Dispose(streamCalculator.Stream);
 
             return streamCalculator.GetResult();
         }

@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.X500.Style
                 }
                 catch (IOException e)
                 {
-                    throw new ArgumentException("Other value has no encoded form", "value", e);
+                    throw new ArgumentException("Other value has no encoded form", e);
                 }
             }
 
@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Asn1.X500.Style
 
             while (endBuf >= 0 && vBuf[endBuf] == ' ')
             {
-                vBuf.Insert(endBuf, '\\');
+                vBuf.Insert(endBuf, "\\");
                 endBuf--;
             }
 
