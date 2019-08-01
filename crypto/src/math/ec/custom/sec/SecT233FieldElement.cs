@@ -150,6 +150,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return new SecT233FieldElement(z);
         }
 
+        public override ECFieldElement HalfTrace()
+        {
+            ulong[] z = Nat256.Create64();
+            SecT233Field.HalfTrace(x, z);
+            return new SecT233FieldElement(z);
+        }
+
+        public override bool HasFastTrace
+        {
+            get { return true; }
+        }
+
         public override int Trace()
         {
             return (int)SecT233Field.Trace(x);

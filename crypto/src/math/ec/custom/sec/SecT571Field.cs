@@ -55,9 +55,32 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
+        private static void AddTo(ulong[] x, ulong[] z)
+        {
+            for (int i = 0; i < 9; ++i)
+            {
+                z[i] ^= x[i];
+            }
+        }
+
         public static ulong[] FromBigInteger(BigInteger x)
         {
             return Nat.FromBigInteger64(571, x);
+        }
+
+        public static void HalfTrace(ulong[] x, ulong[] z)
+        {
+            ulong[] tt = Nat576.CreateExt64();
+
+            Nat576.Copy64(x, z);
+            for (int i = 1; i < 571; i += 2)
+            {
+                ImplSquare(z, tt);
+                Reduce(tt, z);
+                ImplSquare(z, tt);
+                Reduce(tt, z);
+                AddTo(x, z);
+            }
         }
 
         public static void Invert(ulong[] x, ulong[] z)

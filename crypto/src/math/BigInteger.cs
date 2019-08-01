@@ -249,7 +249,7 @@ namespace Org.BouncyCastle.Math
             return (nBits + BitsPerByte - 1) / BitsPerByte;
         }
 
-        internal static BigInteger Arbitrary(int sizeInBits)
+        public static BigInteger Arbitrary(int sizeInBits)
         {
             return new BigInteger(sizeInBits, RandomSource);
         }

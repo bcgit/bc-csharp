@@ -1421,34 +1421,44 @@ namespace Org.BouncyCastle.Math.EC
             if (BigInteger.Two.Equals(cofactor))
             {
                 /*
-                 *  Check that the trace of (X + A) is 0, then there exists a solution to L^2 + L = X + A,
-                 *  and so a halving is possible, so this point is the double of another.  
+                 * Check that 0 == Tr(X + A); then there exists a solution to L^2 + L = X + A, and
+                 * so a halving is possible, so this point is the double of another.
+                 * 
+                 * Note: Tr(A) == 1 for cofactor 2 curves.
                  */
                 ECPoint N = this.Normalize();
                 ECFieldElement X = N.AffineXCoord;
-                ECFieldElement rhs = X.Add(curve.A);
-                return ((AbstractF2mFieldElement)rhs).Trace() == 0;
+                return 0 != ((AbstractF2mFieldElement)X).Trace();
             }
             if (BigInteger.ValueOf(4).Equals(cofactor))
             {
                 /*
                  * Solve L^2 + L = X + A to find the half of this point, if it exists (fail if not).
-                 * Generate both possibilities for the square of the half-point's x-coordinate (w),
-                 * and check if Tr(w + A) == 0 for at least one; then a second halving is possible
-                 * (see comments for cofactor 2 above), so this point is four times another.
                  * 
-                 * Note: Tr(x^2) == Tr(x). 
+                 * Note: Tr(A) == 0 for cofactor 4 curves.
                  */
                 ECPoint N = this.Normalize();
                 ECFieldElement X = N.AffineXCoord;
-                ECFieldElement lambda = ((AbstractF2mCurve)curve).SolveQuadraticEquation(X.Add(curve.A));
-                if (lambda == null)
+                ECFieldElement L = ((AbstractF2mCurve)curve).SolveQuadraticEquation(X.Add(curve.A));
+                if (null == L)
                     return false;
 
-                ECFieldElement w = X.Multiply(lambda).Add(N.AffineYCoord);
-                ECFieldElement t = w.Add(curve.A);
-                return ((AbstractF2mFieldElement)t).Trace() == 0
-                    || ((AbstractF2mFieldElement)(t.Add(X))).Trace() == 0;
+                /*
+                 * A solution exists, therefore 0 == Tr(X + A) == Tr(X).
+                 */
+                ECFieldElement Y = N.AffineYCoord;
+                ECFieldElement T = X.Multiply(L).Add(Y);
+
+                /*
+                 * Either T or (T + X) is the square of a half-point's x coordinate (hx). In either
+                 * case, the half-point can be halved again when 0 == Tr(hx + A).
+                 * 
+                 * Note: Tr(hx + A) == Tr(hx) == Tr(hx^2) == Tr(T) == Tr(T + X)
+                 *
+                 * Check that 0 == Tr(T); then there exists a solution to L^2 + L = hx + A, and so a
+                 * second halving is possible and this point is four times some other.
+                 */
+                return 0 == ((AbstractF2mFieldElement)T).Trace();
             }
 
             return base.SatisfiesOrder();

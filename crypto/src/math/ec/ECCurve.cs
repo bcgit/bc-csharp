@@ -862,12 +862,29 @@ namespace Org.BouncyCastle.Math.EC
          */
         internal ECFieldElement SolveQuadraticEquation(ECFieldElement beta)
         {
+            AbstractF2mFieldElement betaF2m = (AbstractF2mFieldElement)beta;
+
+            bool fastTrace = betaF2m.HasFastTrace;
+            if (fastTrace && 0 != betaF2m.Trace())
+                return null;
+
+            int m = FieldSize;
+
+            // For odd m, use the half-trace 
+            if (0 != (m & 1))
+            {
+                ECFieldElement r = betaF2m.HalfTrace();
+                if (fastTrace || r.Square().Add(r).Add(beta).IsZero)
+                    return r;
+
+                return null;
+            }
+
             if (beta.IsZero)
                 return beta;
 
             ECFieldElement gamma, z, zeroElement = FromBigInteger(BigInteger.Zero);
 
-            int m = FieldSize;
             do
             {
                 ECFieldElement t = FromBigInteger(BigInteger.Arbitrary(m));
