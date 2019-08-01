@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         public ECNamedDomainParameters(DerObjectIdentifier name, ECDomainParameters dp)
-            : this(name, dp.curve, dp.g, dp.n, dp.h, dp.seed)
+            : this(name, dp.Curve, dp.G, dp.N, dp.H, dp.GetSeed())
         {
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 
 #if PORTABLE
@@ -344,28 +345,34 @@ namespace Org.BouncyCastle.Asn1
             {
                 byte[] a = (byte[])x, b = (byte[])y;
 #endif
+                Debug.Assert(a.Length >= 2 && b.Length >= 2);
+
+                /*
+                 * NOTE: Set elements in DER encodings are ordered first according to their tags (class and
+                 * number); the CONSTRUCTED bit is not part of the tag.
+                 * 
+                 * For SET-OF, this is unimportant. All elements have the same tag and DER requires them to
+                 * either all be in constructed form or all in primitive form, according to that tag. The
+                 * elements are effectively ordered according to their content octets.
+                 * 
+                 * For SET, the elements will have distinct tags, and each will be in constructed or
+                 * primitive form accordingly. Failing to ignore the CONSTRUCTED bit could therefore lead to
+                 * ordering inversions.
+                 */
+                int a0 = a[0] & ~Asn1Tags.Constructed;
+                int b0 = b[0] & ~Asn1Tags.Constructed;
+                if (a0 != b0)
+                    return a0 < b0 ? -1 : 1;
+
                 int len = System.Math.Min(a.Length, b.Length);
-                for (int i = 0; i != len; ++i)
+                for (int i = 1; i < len; ++i)
                 {
                     byte ai = a[i], bi = b[i];
                     if (ai != bi)
                         return ai < bi ? -1 : 1;
                 }
-                if (a.Length > b.Length)
-                    return AllZeroesFrom(a, len) ? 0 : 1;
-                if (a.Length < b.Length)
-                    return AllZeroesFrom(b, len) ? 0 : -1;
+                Debug.Assert(a.Length == b.Length);
                 return 0;
-            }
-
-            private bool AllZeroesFrom(byte[] bs, int pos)
-            {
-                while (pos < bs.Length)
-                {
-                    if (bs[pos++] != 0)
-                        return false;
-                }
-                return true;
             }
         }
     }
