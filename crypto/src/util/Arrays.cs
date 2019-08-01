@@ -721,5 +721,19 @@ namespace Org.BouncyCastle.Utilities
 
             return result;
         }
+
+        public static bool IsNullOrContainsNull(object[] array)
+        {
+            if (null == array)
+                return true;
+
+            int count = array.Length;
+            for (int i = 0; i < count; ++i)
+            {
+                if (null == array[i])
+                    return true;
+            }
+            return false;
+        }
     }
 }

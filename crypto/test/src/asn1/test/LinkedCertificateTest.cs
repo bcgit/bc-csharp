@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
                 Fail("getInstance() failed to detect bad object.");
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 // expected
             }
