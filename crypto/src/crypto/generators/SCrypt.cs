@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				uint mask = (uint)N - 1;
 				for (int i = 0; i < N; ++i)
 				{
-					uint j = X[BCount - 16] & mask;
+					int j = (int)(X[BCount - 16] & mask);
                     Array.Copy(V, j * BCount, blockY, 0, BCount);
                     Xor(blockY, X, 0, blockY);
                     BlockMix(blockY, blockX1, blockX2, X, r);
