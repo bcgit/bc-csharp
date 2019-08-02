@@ -5984,7 +5984,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\ScaleXNegateYPointMap.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\ScaleXPointMap.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\ScaleYNegateXPointMap.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6559,7 +6569,22 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\endo\EndoUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\endo\GlvEndomorphism.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\GlvTypeAEndomorphism.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\GlvTypeAParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6570,6 +6595,11 @@
                 />
                 <File
                     RelPath = "src\math\ec\endo\GlvTypeBParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\ScalarSplitParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

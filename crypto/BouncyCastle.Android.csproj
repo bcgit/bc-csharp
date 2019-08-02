@@ -1225,7 +1225,9 @@
     <Compile Include="src\math\ec\ECPoint.cs" />
     <Compile Include="src\math\ec\ECPointMap.cs" />
     <Compile Include="src\math\ec\LongArray.cs" />
+    <Compile Include="src\math\ec\ScaleXNegateYPointMap.cs" />
     <Compile Include="src\math\ec\ScaleXPointMap.cs" />
+    <Compile Include="src\math\ec\ScaleYNegateXPointMap.cs" />
     <Compile Include="src\math\ec\ScaleYPointMap.cs" />
     <Compile Include="src\math\ec\SimpleLookupTable.cs" />
     <Compile Include="src\math\ec\abc\SimpleBigDecimal.cs" />
@@ -1340,9 +1342,13 @@
     <Compile Include="src\math\ec\custom\sec\SecT571R1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecT571R1Point.cs" />
     <Compile Include="src\math\ec\endo\ECEndomorphism.cs" />
+    <Compile Include="src\math\ec\endo\EndoUtilities.cs" />
     <Compile Include="src\math\ec\endo\GlvEndomorphism.cs" />
+    <Compile Include="src\math\ec\endo\GlvTypeAEndomorphism.cs" />
+    <Compile Include="src\math\ec\endo\GlvTypeAParameters.cs" />
     <Compile Include="src\math\ec\endo\GlvTypeBEndomorphism.cs" />
     <Compile Include="src\math\ec\endo\GlvTypeBParameters.cs" />
+    <Compile Include="src\math\ec\endo\ScalarSplitParameters.cs" />
     <Compile Include="src\math\ec\multiplier\AbstractECMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\DoubleAddMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\ECMultiplier.cs" />

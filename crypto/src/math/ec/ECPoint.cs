@@ -306,11 +306,25 @@ namespace Org.BouncyCastle.Math.EC
                 : Curve.CreateRawPoint(RawXCoord.Multiply(scale), RawYCoord, RawZCoords, IsCompressed);
         }
 
+        public virtual ECPoint ScaleXNegateY(ECFieldElement scale)
+        {
+            return IsInfinity
+                ? this
+                : Curve.CreateRawPoint(RawXCoord.Multiply(scale), RawYCoord.Negate(), RawZCoords, IsCompressed);
+        }
+
         public virtual ECPoint ScaleY(ECFieldElement scale)
         {
             return IsInfinity
                 ? this
                 : Curve.CreateRawPoint(RawXCoord, RawYCoord.Multiply(scale), RawZCoords, IsCompressed);
+        }
+
+        public virtual ECPoint ScaleYNegateX(ECFieldElement scale)
+        {
+            return IsInfinity
+                ? this
+                : Curve.CreateRawPoint(RawXCoord.Negate(), RawYCoord.Multiply(scale), RawZCoords, IsCompressed);
         }
 
         public override bool Equals(object obj)
@@ -1500,6 +1514,11 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
+        public override ECPoint ScaleXNegateY(ECFieldElement scale)
+        {
+            return ScaleX(scale);
+        }
+
         public override ECPoint ScaleY(ECFieldElement scale)
         {
             if (this.IsInfinity)
@@ -1522,6 +1541,11 @@ namespace Org.BouncyCastle.Math.EC
                 return base.ScaleY(scale);
             }
             }
+        }
+
+        public override ECPoint ScaleYNegateX(ECFieldElement scale)
+        {
+            return ScaleY(scale);
         }
 
         public override ECPoint Subtract(ECPoint b)

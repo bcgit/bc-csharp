@@ -2,13 +2,13 @@
 
 namespace Org.BouncyCastle.Math.EC.Endo
 {
-    public class GlvTypeBEndomorphism
+    public class GlvTypeAEndomorphism
         :   GlvEndomorphism
     {
-        protected readonly GlvTypeBParameters m_parameters;
+        protected readonly GlvTypeAParameters m_parameters;
         protected readonly ECPointMap m_pointMap;
 
-        public GlvTypeBEndomorphism(ECCurve curve, GlvTypeBParameters parameters)
+        public GlvTypeAEndomorphism(ECCurve curve, GlvTypeAParameters parameters)
         {
             /*
              * NOTE: 'curve' MUST only be used to create a suitable ECFieldElement. Due to the way
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
              */
 
             this.m_parameters = parameters;
-            this.m_pointMap = new ScaleXPointMap(curve.FromBigInteger(parameters.Beta));
+            this.m_pointMap = new ScaleYNegateXPointMap(curve.FromBigInteger(parameters.I));
         }
 
         public virtual BigInteger[] DecomposeScalar(BigInteger k)
