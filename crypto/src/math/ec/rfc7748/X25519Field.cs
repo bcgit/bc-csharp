@@ -179,14 +179,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Mul(t, x2, z);
         }
 
-        public static bool IsZeroVar(int[] x)
+        public static int IsZero(int[] x)
         {
             int d = 0;
             for (int i = 0; i < Size; ++i)
             {
                 d |= x[i];
             }
-            return d == 0;
+            d |= d >> 16;
+            d &= 0xFFFF;
+            return (d - 1) >> 31;
+        }
+
+        public static bool IsZeroVar(int[] x)
+        {
+            return 0 != IsZero(x);
         }
 
         public static void Mul(int[] x, int y, int[] z)
