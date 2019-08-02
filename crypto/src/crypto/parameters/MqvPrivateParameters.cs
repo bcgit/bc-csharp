@@ -1,5 +1,8 @@
 using System;
 
+using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
+
 namespace Org.BouncyCastle.Crypto.Parameters
 {
 	public class MqvPrivateParameters
@@ -32,9 +35,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             if (ephemeralPublicKey == null)
             {
-                ephemeralPublicKey = new ECPublicKeyParameters(
-                    parameters.G.Multiply(ephemeralPrivateKey.D),
-                    parameters);
+                ECPoint q = new FixedPointCombMultiplier().Multiply(parameters.G, ephemeralPrivateKey.D);
+
+                ephemeralPublicKey = new ECPublicKeyParameters(q, parameters);
             }
             else if (!parameters.Equals(ephemeralPublicKey.Parameters))
             {
