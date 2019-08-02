@@ -7,6 +7,8 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     public class WNafPreCompInfo
         : PreCompInfo 
     {
+        protected int m_confWidth = -1;
+
         /**
          * Array holding the precomputed <code>ECPoint</code>s used for a Window
          * NAF multiplication.
@@ -25,6 +27,14 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          */
         protected ECPoint m_twice = null;
 
+        protected int m_width = -1;
+
+        public virtual int ConfWidth
+        {
+            get { return m_confWidth; }
+            set { this.m_confWidth = value; }
+        }
+
         public virtual ECPoint[] PreComp
         {
             get { return m_preComp; }
@@ -41,6 +51,12 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         {
             get { return m_twice; }
             set { this.m_twice = value; }
+        }
+
+        public virtual int Width
+        {
+            get { return m_width; }
+            set { this.m_width = value; }
         }
     }
 }

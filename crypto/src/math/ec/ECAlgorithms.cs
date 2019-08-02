@@ -268,11 +268,14 @@ namespace Org.BouncyCastle.Math.EC
             k = k.Abs();
             l = l.Abs();
 
-            int widthP = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(k.BitLength)));
-            int widthQ = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(l.BitLength)));
+            int minWidthP = WNafUtilities.GetWindowSize(k.BitLength, 8);
+            int minWidthQ = WNafUtilities.GetWindowSize(l.BitLength, 8);
 
-            WNafPreCompInfo infoP = WNafUtilities.Precompute(P, widthP, true);
-            WNafPreCompInfo infoQ = WNafUtilities.Precompute(Q, widthQ, true);
+            WNafPreCompInfo infoP = WNafUtilities.Precompute(P, minWidthP, true);
+            WNafPreCompInfo infoQ = WNafUtilities.Precompute(Q, minWidthQ, true);
+
+            int widthP = System.Math.Min(8, infoP.Width);
+            int widthQ = System.Math.Min(8, infoQ.Width);
 
             ECPoint[] preCompP = negK ? infoP.PreCompNeg : infoP.PreComp;
             ECPoint[] preCompQ = negL ? infoQ.PreCompNeg : infoQ.PreComp;
@@ -292,19 +295,22 @@ namespace Org.BouncyCastle.Math.EC
             k = k.Abs();
             l = l.Abs();
 
-            int width = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(System.Math.Max(k.BitLength, l.BitLength))));
+            int minWidth = WNafUtilities.GetWindowSize(System.Math.Max(k.BitLength, l.BitLength), 8);
 
-            ECPoint Q = WNafUtilities.MapPointWithPrecomp(P, width, true, pointMapQ);
+            ECPoint Q = WNafUtilities.MapPointWithPrecomp(P, minWidth, true, pointMapQ); 
             WNafPreCompInfo infoP = WNafUtilities.GetWNafPreCompInfo(P);
             WNafPreCompInfo infoQ = WNafUtilities.GetWNafPreCompInfo(Q);
+
+            int widthP = System.Math.Min(8, infoP.Width);
+            int widthQ = System.Math.Min(8, infoQ.Width);
 
             ECPoint[] preCompP = negK ? infoP.PreCompNeg : infoP.PreComp;
             ECPoint[] preCompQ = negL ? infoQ.PreCompNeg : infoQ.PreComp;
             ECPoint[] preCompNegP = negK ? infoP.PreComp : infoP.PreCompNeg;
             ECPoint[] preCompNegQ = negL ? infoQ.PreComp : infoQ.PreCompNeg;
 
-            byte[] wnafP = WNafUtilities.GenerateWindowNaf(width, k);
-            byte[] wnafQ = WNafUtilities.GenerateWindowNaf(width, l);
+            byte[] wnafP = WNafUtilities.GenerateWindowNaf(widthP, k);
+            byte[] wnafQ = WNafUtilities.GenerateWindowNaf(widthQ, l);
 
             return ImplShamirsTrickWNaf(preCompP, preCompNegP, wnafP, preCompQ, preCompNegQ, wnafQ);
         }
@@ -373,8 +379,12 @@ namespace Org.BouncyCastle.Math.EC
             {
                 BigInteger ki = ks[i]; negs[i] = ki.SignValue < 0; ki = ki.Abs();
 
-                int width = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(ki.BitLength)));
-                infos[i] = WNafUtilities.Precompute(ps[i], width, true);
+                int minWidth = WNafUtilities.GetWindowSize(ki.BitLength, 8);
+                WNafPreCompInfo info = WNafUtilities.Precompute(ps[i], minWidth, true);
+
+                int width = System.Math.Min(8, info.Width);
+
+                infos[i] = info; 
                 wnafs[i] = WNafUtilities.GenerateWindowNaf(width, ki);
             }
 
@@ -427,13 +437,19 @@ namespace Org.BouncyCastle.Math.EC
                 BigInteger kj0 = ks[j0]; negs[j0] = kj0.SignValue < 0; kj0 = kj0.Abs();
                 BigInteger kj1 = ks[j1]; negs[j1] = kj1.SignValue < 0; kj1 = kj1.Abs();
 
-                int width = System.Math.Max(2, System.Math.Min(16, WNafUtilities.GetWindowSize(System.Math.Max(kj0.BitLength, kj1.BitLength))));
+                int minWidth = WNafUtilities.GetWindowSize(System.Math.Max(kj0.BitLength, kj1.BitLength), 8);
+                ECPoint P = ps[i], Q = WNafUtilities.MapPointWithPrecomp(P, minWidth, true, pointMap);
 
-                ECPoint P = ps[i], Q = WNafUtilities.MapPointWithPrecomp(P, width, true, pointMap);
-                infos[j0] = WNafUtilities.GetWNafPreCompInfo(P);
-                infos[j1] = WNafUtilities.GetWNafPreCompInfo(Q);
-                wnafs[j0] = WNafUtilities.GenerateWindowNaf(width, kj0);
-                wnafs[j1] = WNafUtilities.GenerateWindowNaf(width, kj1);
+                WNafPreCompInfo infoP = WNafUtilities.GetWNafPreCompInfo(P);
+                WNafPreCompInfo infoQ = WNafUtilities.GetWNafPreCompInfo(Q);
+
+                int widthP = System.Math.Min(8, infoP.Width);
+                int widthQ = System.Math.Min(8, infoQ.Width);
+
+                infos[j0] = infoP;
+                infos[j1] = infoQ;
+                wnafs[j0] = WNafUtilities.GenerateWindowNaf(widthP, kj0);
+                wnafs[j1] = WNafUtilities.GenerateWindowNaf(widthQ, kj1);
             }
 
             return ImplSumOfMultiplies(negs, infos, wnafs);
