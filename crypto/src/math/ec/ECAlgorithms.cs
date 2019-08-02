@@ -288,7 +288,7 @@ namespace Org.BouncyCastle.Math.EC
             return ImplShamirsTrickWNaf(preCompP, preCompNegP, wnafP, preCompQ, preCompNegQ, wnafQ);
         }
 
-        internal static ECPoint ImplShamirsTrickWNaf(ECPoint P, BigInteger k, ECPointMap pointMapQ, BigInteger l)
+        internal static ECPoint ImplShamirsTrickWNaf(ECEndomorphism endomorphism, ECPoint P, BigInteger k, BigInteger l)
         {
             bool negK = k.SignValue < 0, negL = l.SignValue < 0;
 
@@ -297,9 +297,9 @@ namespace Org.BouncyCastle.Math.EC
 
             int minWidth = WNafUtilities.GetWindowSize(System.Math.Max(k.BitLength, l.BitLength), 8);
 
-            ECPoint Q = WNafUtilities.MapPointWithPrecomp(P, minWidth, true, pointMapQ); 
-            WNafPreCompInfo infoP = WNafUtilities.GetWNafPreCompInfo(P);
-            WNafPreCompInfo infoQ = WNafUtilities.GetWNafPreCompInfo(Q);
+            WNafPreCompInfo infoP = WNafUtilities.Precompute(P, minWidth, true);
+            ECPoint Q = EndoUtilities.MapPoint(endomorphism, P);
+            WNafPreCompInfo infoQ = WNafUtilities.PrecomputeWithPointMap(Q, endomorphism.PointMap, infoP, true);
 
             int widthP = System.Math.Min(8, infoP.Width);
             int widthQ = System.Math.Min(8, infoQ.Width);
@@ -405,30 +405,32 @@ namespace Org.BouncyCastle.Math.EC
                 abs[j++] = ab[1];
             }
 
-            ECPointMap pointMap = glvEndomorphism.PointMap;
             if (glvEndomorphism.HasEfficientPointMap)
             {
-                return ECAlgorithms.ImplSumOfMultiplies(ps, pointMap, abs);
+                return ImplSumOfMultiplies(glvEndomorphism, ps, abs);
             }
 
             ECPoint[] pqs = new ECPoint[len << 1];
             for (int i = 0, j = 0; i < len; ++i)
             {
-                ECPoint p = ps[i], q = pointMap.Map(p);
+                ECPoint p = ps[i];
+                ECPoint q = EndoUtilities.MapPoint(glvEndomorphism, p); 
                 pqs[j++] = p;
                 pqs[j++] = q;
             }
 
-            return ECAlgorithms.ImplSumOfMultiplies(pqs, abs);
+            return ImplSumOfMultiplies(pqs, abs);
         }
 
-        internal static ECPoint ImplSumOfMultiplies(ECPoint[] ps, ECPointMap pointMap, BigInteger[] ks)
+        internal static ECPoint ImplSumOfMultiplies(ECEndomorphism endomorphism, ECPoint[] ps, BigInteger[] ks)
         {
             int halfCount = ps.Length, fullCount = halfCount << 1;
 
             bool[] negs = new bool[fullCount];
             WNafPreCompInfo[] infos = new WNafPreCompInfo[fullCount];
             byte[][] wnafs = new byte[fullCount][];
+
+            ECPointMap pointMap = endomorphism.PointMap;
 
             for (int i = 0; i < halfCount; ++i)
             {
@@ -438,10 +440,11 @@ namespace Org.BouncyCastle.Math.EC
                 BigInteger kj1 = ks[j1]; negs[j1] = kj1.SignValue < 0; kj1 = kj1.Abs();
 
                 int minWidth = WNafUtilities.GetWindowSize(System.Math.Max(kj0.BitLength, kj1.BitLength), 8);
-                ECPoint P = ps[i], Q = WNafUtilities.MapPointWithPrecomp(P, minWidth, true, pointMap);
 
-                WNafPreCompInfo infoP = WNafUtilities.GetWNafPreCompInfo(P);
-                WNafPreCompInfo infoQ = WNafUtilities.GetWNafPreCompInfo(Q);
+                ECPoint P = ps[i];
+                WNafPreCompInfo infoP = WNafUtilities.Precompute(P, minWidth, true);
+                ECPoint Q = EndoUtilities.MapPoint(endomorphism, P);
+                WNafPreCompInfo infoQ = WNafUtilities.PrecomputeWithPointMap(Q, pointMap, infoP, true);
 
                 int widthP = System.Math.Min(8, infoP.Width);
                 int widthQ = System.Math.Min(8, infoQ.Width);

@@ -1337,6 +1337,7 @@
     <Compile Include="src\math\ec\custom\sec\SecT571R1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecT571R1Point.cs" />
     <Compile Include="src\math\ec\endo\ECEndomorphism.cs" />
+    <Compile Include="src\math\ec\endo\EndoPreCompInfo.cs" />
     <Compile Include="src\math\ec\endo\EndoUtilities.cs" />
     <Compile Include="src\math\ec\endo\GlvEndomorphism.cs" />
     <Compile Include="src\math\ec\endo\GlvTypeAEndomorphism.cs" />

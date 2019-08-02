@@ -6569,6 +6569,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\endo\EndoPreCompInfo.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\endo\EndoUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

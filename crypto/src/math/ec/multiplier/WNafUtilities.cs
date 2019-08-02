@@ -361,6 +361,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             return System.Math.Max(2, System.Math.Min(maxWidth, w + 2));
         }
 
+        [Obsolete]
         public static ECPoint MapPointWithPrecomp(ECPoint p, int minWidth, bool includeNegated,
             ECPointMap pointMap)
         {
@@ -374,7 +375,15 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
         public static WNafPreCompInfo Precompute(ECPoint p, int minWidth, bool includeNegated)
         {
-            return (WNafPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME, new WNafCallback(p, minWidth, includeNegated));
+            return (WNafPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME,
+                new PrecomputeCallback(p, minWidth, includeNegated));
+        }
+
+        public static WNafPreCompInfo PrecomputeWithPointMap(ECPoint p, ECPointMap pointMap, WNafPreCompInfo fromWNaf,
+            bool includeNegated)
+        {
+            return (WNafPreCompInfo)p.Curve.Precompute(p, PRECOMP_NAME,
+                new PrecomputeWithPointMapCallback(p, pointMap, fromWNaf, includeNegated));
         }
 
         private static byte[] Trim(byte[] a, int length)
@@ -485,14 +494,14 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             }
         }
 
-        private class WNafCallback
+        private class PrecomputeCallback
             : IPreCompCallback
         {
             private readonly ECPoint m_p;
             private readonly int m_minWidth;
             private readonly bool m_includeNegated;
 
-            internal WNafCallback(ECPoint p, int minWidth, bool includeNegated)
+            internal PrecomputeCallback(ECPoint p, int minWidth, bool includeNegated)
             {
                 this.m_p = p;
                 this.m_minWidth = minWidth;
@@ -656,6 +665,82 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
             {
                 return null != existingWNaf
                     && existingWNaf.Width >= System.Math.Max(existingWNaf.ConfWidth, width) 
+                    && CheckTable(existingWNaf.PreComp, reqPreCompLen)
+                    && (!includeNegated || CheckTable(existingWNaf.PreCompNeg, reqPreCompLen));
+            }
+
+            private bool CheckTable(ECPoint[] table, int reqLen)
+            {
+                return null != table && table.Length >= reqLen;
+            }
+        }
+
+        private class PrecomputeWithPointMapCallback
+            : IPreCompCallback
+        {
+            private readonly ECPoint m_point;
+            private readonly ECPointMap m_pointMap;
+            private readonly WNafPreCompInfo m_fromWNaf;
+            private readonly bool m_includeNegated;
+
+            internal PrecomputeWithPointMapCallback(ECPoint point, ECPointMap pointMap, WNafPreCompInfo fromWNaf,
+                bool includeNegated)
+            {
+                this.m_point = point;
+                this.m_pointMap = pointMap;
+                this.m_fromWNaf = fromWNaf;
+                this.m_includeNegated = includeNegated;
+            }
+
+            public PreCompInfo Precompute(PreCompInfo existing)
+            {
+                WNafPreCompInfo existingWNaf = existing as WNafPreCompInfo;
+
+                int width = m_fromWNaf.Width;
+                int reqPreCompLen = m_fromWNaf.PreComp.Length;
+
+                if (CheckExisting(existingWNaf, width, reqPreCompLen, m_includeNegated))
+                    return existingWNaf;
+
+                /*
+                 * TODO Ideally this method would support incremental calculation, but given the
+                 * existing use-cases it would be of little-to-no benefit.
+                 */
+                WNafPreCompInfo result = new WNafPreCompInfo();
+
+                ECPoint twiceFrom = m_fromWNaf.Twice;
+                if (null != twiceFrom)
+                {
+                    ECPoint twice = m_pointMap.Map(twiceFrom);
+                    result.Twice = twice;
+                }
+
+                ECPoint[] preCompFrom = m_fromWNaf.PreComp;
+                ECPoint[] preComp = new ECPoint[preCompFrom.Length];
+                for (int i = 0; i < preCompFrom.Length; ++i)
+                {
+                    preComp[i] = m_pointMap.Map(preCompFrom[i]);
+                }
+                result.PreComp = preComp;
+                result.Width = width;
+
+                if (m_includeNegated)
+                {
+                    ECPoint[] preCompNeg = new ECPoint[preComp.Length];
+                    for (int i = 0; i < preCompNeg.Length; ++i)
+                    {
+                        preCompNeg[i] = preComp[i].Negate();
+                    }
+                    result.PreCompNeg = preCompNeg;
+                }
+
+                return result;
+            }
+
+            private bool CheckExisting(WNafPreCompInfo existingWNaf, int width, int reqPreCompLen, bool includeNegated)
+            {
+                return null != existingWNaf
+                    && existingWNaf.Width >= width
                     && CheckTable(existingWNaf.PreComp, reqPreCompLen)
                     && (!includeNegated || CheckTable(existingWNaf.PreCompNeg, reqPreCompLen));
             }
