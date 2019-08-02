@@ -32,8 +32,11 @@ namespace Org.BouncyCastle.X509
 		private readonly BasicConstraints basicConstraints;
 		private readonly bool[] keyUsage;
 
-		private bool hashValueSet;
-		private int hashValue;
+        private readonly object cacheLock = new object();
+        private AsymmetricKeyParameter publicKeyValue;
+
+		private volatile bool hashValueSet;
+        private volatile int hashValue;
 
 		protected X509Certificate()
 		{
@@ -387,7 +390,24 @@ namespace Org.BouncyCastle.X509
 		/// <returns>The public key parameters.</returns>
 		public virtual AsymmetricKeyParameter GetPublicKey()
 		{
-			return PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
+            // Cache the public key to support repeated-use optimizations
+            lock (cacheLock)
+            {
+                if (null != publicKeyValue)
+                    return publicKeyValue;
+            }
+
+			AsymmetricKeyParameter temp = PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
+
+            lock (cacheLock)
+            {
+                if (null == publicKeyValue)
+                {
+                    publicKeyValue = temp;
+                }
+
+                return publicKeyValue;
+            }
 		}
 
 		/// <summary>
@@ -399,35 +419,40 @@ namespace Org.BouncyCastle.X509
 			return c.GetDerEncoded();
 		}
 
-		public override bool Equals(
-			object obj)
+        public override bool Equals(object other)
 		{
-			if (obj == this)
+			if (this == other)
 				return true;
 
-			X509Certificate other = obj as X509Certificate;
-
-			if (other == null)
+			X509Certificate that = other as X509Certificate;
+			if (null == that)
 				return false;
 
-			return c.Equals(other.c);
+            if (this.hashValueSet && that.hashValueSet)
+            {
+                if (this.hashValue != that.hashValue)
+                    return false;
+            }
+            else if (!this.c.Signature.Equals(that.c.Signature))
+            {
+                return false;
+            }
+
+			return this.c.Equals(that.c);
 
 			// NB: May prefer this implementation of Equals if more than one certificate implementation in play
-//			return Arrays.AreEqual(this.GetEncoded(), other.GetEncoded());
+            //return Arrays.AreEqual(this.GetEncoded(), that.GetEncoded());
 		}
 
 		public override int GetHashCode()
 		{
-			lock (this)
+			if (!hashValueSet)
 			{
-				if (!hashValueSet)
-				{
-					hashValue = c.GetHashCode();
-					hashValueSet = true;
-				}
+				hashValue = this.c.GetHashCode();
+				hashValueSet = true;
 			}
 
-			return hashValue;
+            return hashValue;
 		}
 
 //		public void setBagAttribute(
