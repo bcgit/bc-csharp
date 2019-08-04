@@ -54,9 +54,9 @@ namespace Org.BouncyCastle.Asn1.Tsp
 				{
 					seconds = (DerInteger) seq[i];
 				}
-				else if (seq[i] is DerTaggedObject)
+                else if (seq[i] is Asn1TaggedObject)
 				{
-					DerTaggedObject extra = (DerTaggedObject) seq[i];
+                    Asn1TaggedObject extra = (Asn1TaggedObject)seq[i];
 
 					switch (extra.TagNo)
 					{

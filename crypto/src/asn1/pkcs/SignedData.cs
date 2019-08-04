@@ -66,9 +66,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 // an interesting feature of SignedData is that there appear to be varying implementations...
                 // for the moment we ignore anything which doesn't fit.
                 //
-                if (o is DerTaggedObject)
+                if (o is Asn1TaggedObject)
                 {
-                    DerTaggedObject tagged = (DerTaggedObject) o;
+                    Asn1TaggedObject tagged = (Asn1TaggedObject)o;
 
                     switch (tagged.TagNo)
                     {
