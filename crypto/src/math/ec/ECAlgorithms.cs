@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Field;
+using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Math.EC
 {
@@ -265,14 +266,25 @@ namespace Org.BouncyCastle.Math.EC
         {
             bool negK = k.SignValue < 0, negL = l.SignValue < 0;
 
-            k = k.Abs();
-            l = l.Abs();
+            BigInteger kAbs = k.Abs(), lAbs = l.Abs();
 
-            int minWidthP = WNafUtilities.GetWindowSize(k.BitLength, 8);
-            int minWidthQ = WNafUtilities.GetWindowSize(l.BitLength, 8);
+            int minWidthP = WNafUtilities.GetWindowSize(kAbs.BitLength, 8);
+            int minWidthQ = WNafUtilities.GetWindowSize(lAbs.BitLength, 8);
 
             WNafPreCompInfo infoP = WNafUtilities.Precompute(P, minWidthP, true);
             WNafPreCompInfo infoQ = WNafUtilities.Precompute(Q, minWidthQ, true);
+
+            // When P, Q are 'promoted' (i.e. reused several times), switch to fixed-point algorithm
+            {
+                ECCurve c = P.Curve;
+                int combSize = FixedPointUtilities.GetCombSize(c);
+                if (!negK && !negL
+                    && k.BitLength <= combSize && l.BitLength <= combSize
+                    && infoP.IsPromoted && infoQ.IsPromoted)
+                {
+                    return ImplShamirsTrickFixedPoint(P, k, Q, l);
+                }
+            }
 
             int widthP = System.Math.Min(8, infoP.Width);
             int widthQ = System.Math.Min(8, infoQ.Width);
@@ -282,8 +294,8 @@ namespace Org.BouncyCastle.Math.EC
             ECPoint[] preCompNegP = negK ? infoP.PreComp : infoP.PreCompNeg;
             ECPoint[] preCompNegQ = negL ? infoQ.PreComp : infoQ.PreCompNeg;
 
-            byte[] wnafP = WNafUtilities.GenerateWindowNaf(widthP, k);
-            byte[] wnafQ = WNafUtilities.GenerateWindowNaf(widthQ, l);
+            byte[] wnafP = WNafUtilities.GenerateWindowNaf(widthP, kAbs);
+            byte[] wnafQ = WNafUtilities.GenerateWindowNaf(widthQ, lAbs);
 
             return ImplShamirsTrickWNaf(preCompP, preCompNegP, wnafP, preCompQ, preCompNegQ, wnafQ);
         }
@@ -510,6 +522,79 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             return R;
+        }
+
+        private static ECPoint ImplShamirsTrickFixedPoint(ECPoint p, BigInteger k, ECPoint q, BigInteger l)
+        {
+            ECCurve c = p.Curve;
+            int combSize = FixedPointUtilities.GetCombSize(c);
+
+            if (k.BitLength > combSize || l.BitLength > combSize)
+            {
+                /*
+                 * TODO The comb works best when the scalars are less than the (possibly unknown) order.
+                 * Still, if we want to handle larger scalars, we could allow customization of the comb
+                 * size, or alternatively we could deal with the 'extra' bits either by running the comb
+                 * multiple times as necessary, or by using an alternative multiplier as prelude.
+                 */
+                throw new InvalidOperationException("fixed-point comb doesn't support scalars larger than the curve order");
+            }
+
+            FixedPointPreCompInfo infoP = FixedPointUtilities.Precompute(p);
+            FixedPointPreCompInfo infoQ = FixedPointUtilities.Precompute(q);
+
+            ECLookupTable lookupTableP = infoP.LookupTable;
+            ECLookupTable lookupTableQ = infoQ.LookupTable;
+
+            int widthP = infoP.Width;
+            int widthQ = infoQ.Width;
+
+            // TODO This shouldn't normally happen, but a better "solution" is desirable anyway
+            if (widthP != widthQ)
+            {
+                FixedPointCombMultiplier m = new FixedPointCombMultiplier();
+                ECPoint r1 = m.Multiply(p, k);
+                ECPoint r2 = m.Multiply(q, l);
+                return r1.Add(r2);
+            }
+
+            int width = widthP;
+
+            int d = (combSize + width - 1) / width;
+
+            ECPoint R = c.Infinity;
+
+            int fullComb = d * width;
+            uint[] K = Nat.FromBigInteger(fullComb, k);
+            uint[] L = Nat.FromBigInteger(fullComb, l);
+
+            int top = fullComb - 1; 
+            for (int i = 0; i < d; ++i)
+            {
+                uint secretIndexK = 0, secretIndexL = 0;
+
+                for (int j = top - i; j >= 0; j -= d)
+                {
+                    uint secretBitK = K[j >> 5] >> (j & 0x1F);
+                    secretIndexK ^= secretBitK >> 1;
+                    secretIndexK <<= 1;
+                    secretIndexK ^= secretBitK;
+
+                    uint secretBitL = L[j >> 5] >> (j & 0x1F);
+                    secretIndexL ^= secretBitL >> 1;
+                    secretIndexL <<= 1;
+                    secretIndexL ^= secretBitL;
+                }
+
+                ECPoint addP = lookupTableP.Lookup((int)secretIndexK);
+                ECPoint addQ = lookupTableQ.Lookup((int)secretIndexL);
+
+                ECPoint T = addP.Add(addQ);
+
+                R = R.TwicePlus(T);
+            }
+
+            return R.Add(infoP.Offset).Add(infoQ.Offset);
         }
     }
 }

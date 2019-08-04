@@ -5,8 +5,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     * algorithm.
     */
     public class WNafPreCompInfo
-        : PreCompInfo 
+        : PreCompInfo
     {
+        internal volatile int m_promotionCountdown = 4;
+
         protected int m_confWidth = -1;
 
         /**
@@ -28,6 +30,27 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         protected ECPoint m_twice = null;
 
         protected int m_width = -1;
+
+        internal int DecrementPromotionCountdown()
+        {
+            int t = m_promotionCountdown;
+            if (t > 0)
+            {
+                m_promotionCountdown = --t;
+            }
+            return t;
+        }
+
+        internal int PromotionCountdown
+        {
+            get { return m_promotionCountdown; }
+            set { this.m_promotionCountdown = value; }
+        }
+
+        public virtual bool IsPromoted
+        {
+            get { return m_promotionCountdown <= 0; }
+        }
 
         public virtual int ConfWidth
         {

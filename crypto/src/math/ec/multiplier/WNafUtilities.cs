@@ -425,11 +425,13 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                 if (null != existingWNaf && existingWNaf.ConfWidth == m_confWidth)
                 {
+                    existingWNaf.PromotionCountdown = 0;
                     return existingWNaf;
                 }
 
                 WNafPreCompInfo result = new WNafPreCompInfo();
 
+                result.PromotionCountdown = 0;
                 result.ConfWidth = m_confWidth;
 
                 if (null != existingWNaf)
@@ -516,7 +518,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 int reqPreCompLen = 1 << (width - 2);
 
                 if (CheckExisting(existingWNaf, width, reqPreCompLen, m_includeNegated))
+                {
+                    existingWNaf.DecrementPromotionCountdown();
                     return existingWNaf;
+                }
 
                 WNafPreCompInfo result = new WNafPreCompInfo();
 
@@ -526,6 +531,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 
                 if (null != existingWNaf)
                 {
+                    int promotionCountdown = existingWNaf.DecrementPromotionCountdown();
+                    result.PromotionCountdown = promotionCountdown;
+
                     int confWidth = existingWNaf.ConfWidth;
                     result.ConfWidth = confWidth;
 
@@ -700,13 +708,18 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                 int reqPreCompLen = m_fromWNaf.PreComp.Length;
 
                 if (CheckExisting(existingWNaf, width, reqPreCompLen, m_includeNegated))
+                {
+                    existingWNaf.DecrementPromotionCountdown();
                     return existingWNaf;
+                }
 
                 /*
                  * TODO Ideally this method would support incremental calculation, but given the
                  * existing use-cases it would be of little-to-no benefit.
                  */
                 WNafPreCompInfo result = new WNafPreCompInfo();
+
+                result.PromotionCountdown = m_fromWNaf.PromotionCountdown;
 
                 ECPoint twiceFrom = m_fromWNaf.Twice;
                 if (null != twiceFrom)
