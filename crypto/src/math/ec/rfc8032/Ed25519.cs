@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static sbyte[] GetWnaf(uint[] n, int width)
         {
-            Debug.Assert(n[ScalarUints - 1] >> 31 == 0);
+            Debug.Assert(n[ScalarUints - 1] >> 28 == 0);
 
             uint[] t = new uint[ScalarUints * 2];
             {
@@ -284,7 +284,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            sbyte[] ws = new sbyte[256];
+            sbyte[] ws = new sbyte[253];
 
             uint pow2 = 1U << width;
             uint mask = pow2 - 1U;
@@ -423,7 +423,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             DecodeScalar(k, 0, nA);
 
             PointAccum pR = new PointAccum();
-            ScalarMultStraussVar(nS, nA, pA, pR);
+            ScalarMultStrausVar(nS, nA, pA, pR);
 
             byte[] check = new byte[PointBytes];
             EncodePoint(pR, check, 0);
@@ -597,10 +597,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             for (int i = 0; i < PrecompPoints; ++i)
             {
-                int mask = ((i ^ index) - 1) >> 31;
-                Nat.CMov(X25519Field.Size, mask, precompBase, off, p.ypx_h, 0); off += X25519Field.Size;
-                Nat.CMov(X25519Field.Size, mask, precompBase, off, p.ymx_h, 0); off += X25519Field.Size;
-                Nat.CMov(X25519Field.Size, mask, precompBase, off, p.xyd, 0);   off += X25519Field.Size;
+                int cond = ((i ^ index) - 1) >> 31;
+                X25519Field.CMov(cond, precompBase, off, p.ypx_h, 0);   off += X25519Field.Size;
+                X25519Field.CMov(cond, precompBase, off, p.ymx_h, 0);   off += X25519Field.Size;
+                X25519Field.CMov(cond, precompBase, off, p.xyd, 0);     off += X25519Field.Size;
             }
         }
 
@@ -945,7 +945,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X25519Field.Copy(p.z, 0, z, 0);
         }
 
-        private static void ScalarMultStraussVar(uint[] nb, uint[] np, PointExt p, PointAccum r)
+        private static void ScalarMultStrausVar(uint[] nb, uint[] np, PointExt p, PointAccum r)
         {
             Precompute();
 
@@ -958,13 +958,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             PointSetNeutral(r);
 
-            int bit = 255;
-            while (bit > 0 && ((byte)ws_b[bit] | (byte)ws_p[bit]) == 0)
-            {
-                --bit;
-            }
-
-            for (; ; )
+            for (int bit = 252;;)
             {
                 int wb = ws_b[bit];
                 if (wb != 0)
