@@ -1,7 +1,7 @@
 Portable.BouncyCastle
 ================
 
-BouncyCastle portable version with support for .NET 4, .NET Standard 1.0-2.0, WP, Silverlight, MonoAndroid, Xamarin.iOS, .NET Core
+BouncyCastle portable version with support for .NET 4, .NET Standard 2.0, MonoAndroid, Xamarin.iOS, .NET Core
 
 ================
 
