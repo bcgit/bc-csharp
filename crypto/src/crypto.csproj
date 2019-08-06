@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard1.3;netstandard1.0;net4</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net4</TargetFrameworks>
     <AssemblyName>BouncyCastle.Crypto</AssemblyName>
     <RootNamespace>crypto</RootNamespace>
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
@@ -11,7 +11,7 @@
     <Authors>Oren Novotny</Authors>
     <Title>Bouncy Castle Portable</Title>
     <PackageId>Portable.BouncyCastle</PackageId>
-    <Description>BouncyCastle portable version with support for .NET 4, .NET Standard 1.0-2.0, .NET Core</Description>
+    <Description>BouncyCastle portable version with support for .NET 4, .NET Standard 2.0, .NET Core</Description>
     <DebugType>embedded</DebugType>
     <PackageLicenseUrl>https://www.bouncycastle.org/csharp/licence.html</PackageLicenseUrl>
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
