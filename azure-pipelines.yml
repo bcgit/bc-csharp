@@ -48,15 +48,8 @@ steps:
   inputs:
     command: test
     projects: .\crypto\test\crypto.test.csproj
-    arguments: -f netcoreapp2.1 -c $(BuildConfiguration) --collect:"XPlat Code Coverage" -s $(System.DefaultWorkingDirectory)\CodeCoverage.runsettings
-  displayName: Run Test (.NET Core)
-  
-- task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: .\crypto\test\crypto.test.csproj
-    arguments: -f net462 -c $(BuildConfiguration)
-  displayName: Run Test (.NET Framework)  
+    arguments: -c $(BuildConfiguration) --collect:"XPlat Code Coverage" -s $(System.DefaultWorkingDirectory)\CodeCoverage.runsettings
+  displayName: Run Tests
 
 - script: reportgenerator -reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/reports -reporttypes:"Cobertura"
   displayName: Create reports
