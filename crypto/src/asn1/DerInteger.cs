@@ -60,14 +60,12 @@ namespace Org.BouncyCastle.Asn1
 			return new DerInteger(Asn1OctetString.GetInstance(o).GetOctets());
         }
 
-		public DerInteger(
-            int value)
+		public DerInteger(int value)
         {
             bytes = BigInteger.ValueOf(value).ToByteArray();
         }
 
-		public DerInteger(
-            BigInteger value)
+		public DerInteger(BigInteger value)
         {
             if (value == null)
                 throw new ArgumentNullException("value");
@@ -75,33 +73,31 @@ namespace Org.BouncyCastle.Asn1
 			bytes = value.ToByteArray();
         }
 
-		public DerInteger(
-            byte[] bytes)
+        public DerInteger(byte[] bytes)
+            : this(bytes, true)
         {
-            if (bytes.Length > 1)
-            {
-                if ((bytes[0] == 0 && (bytes[1] & 0x80) == 0)
-                    || (bytes[0] == (byte)0xff && (bytes[1] & 0x80) != 0))
-                {
-                    if (!AllowUnsafe())
-                        throw new ArgumentException("malformed integer");
-                }
-            }
-            this.bytes = Arrays.Clone(bytes);
         }
 
-		public BigInteger Value
+        internal DerInteger(byte[] bytes, bool clone)
         {
-            get { return new BigInteger(bytes); }
+            if (IsMalformed(bytes))
+                throw new ArgumentException("malformed integer", "bytes");
+
+            this.bytes = clone ? Arrays.Clone(bytes) : bytes;
         }
 
-		/**
+        /**
          * in some cases positive values Get crammed into a space,
          * that's not quite big enough...
          */
         public BigInteger PositiveValue
         {
             get { return new BigInteger(1, bytes); }
+        }
+
+        public BigInteger Value
+        {
+            get { return new BigInteger(bytes); }
         }
 
         internal override void Encode(
@@ -130,5 +126,24 @@ namespace Org.BouncyCastle.Asn1
 		{
 			return Value.ToString();
 		}
-	}
+
+        /**
+         * Apply the correct validation for an INTEGER primitive following the BER rules.
+         *
+         * @param bytes The raw encoding of the integer.
+         * @return true if the (in)put fails this validation.
+         */
+        internal static bool IsMalformed(byte[] bytes)
+        {
+            switch (bytes.Length)
+            {
+            case 0:
+                return true;
+            case 1:
+                return false;
+            default:
+                return (sbyte)bytes[0] == ((sbyte)bytes[1] >> 7) && !AllowUnsafe();
+            }
+        }
+    }
 }

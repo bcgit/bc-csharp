@@ -49,30 +49,28 @@ namespace Org.BouncyCastle.Asn1
             return FromOctetString(((Asn1OctetString)o).GetOctets());
         }
 
-        public DerEnumerated(
-            int val)
+        public DerEnumerated(int val)
         {
+            if (val < 0)
+                throw new ArgumentException("enumerated must be non-negative", "val");
+
             bytes = BigInteger.ValueOf(val).ToByteArray();
         }
 
-        public DerEnumerated(
-            BigInteger val)
+        public DerEnumerated(BigInteger val)
         {
+            if (val.SignValue < 0)
+                throw new ArgumentException("enumerated must be non-negative", "val");
+
             bytes = val.ToByteArray();
         }
 
-        public DerEnumerated(
-            byte[] bytes)
+        public DerEnumerated(byte[] bytes)
         {
-            if (bytes.Length > 1)
-            {
-                if ((bytes[0] == 0 && (bytes[1] & 0x80) == 0)
-                    || (bytes[0] == (byte)0xff && (bytes[1] & 0x80) != 0))
-                {
-                    if (!DerInteger.AllowUnsafe())
-                        throw new ArgumentException("malformed enumerated");
-                }
-            }
+            if (DerInteger.IsMalformed(bytes))
+                throw new ArgumentException("malformed enumerated", "bytes");
+            if (0 != (bytes[0] & 0x80))
+                throw new ArgumentException("enumerated must be non-negative", "bytes");
 
             this.bytes = Arrays.Clone(bytes);
         }

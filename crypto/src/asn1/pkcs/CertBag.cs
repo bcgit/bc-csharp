@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
 //			this.seq = seq;
             this.certID = DerObjectIdentifier.GetInstance(seq[0]);
-            this.certValue = DerTaggedObject.GetInstance(seq[1]).GetObject();
+            this.certValue = Asn1TaggedObject.GetInstance(seq[1]).GetObject();
         }
 
 		public CertBag(

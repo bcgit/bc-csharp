@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1
     abstract public class Asn1Set
         : Asn1Object, IEnumerable
     {
-        // NOTE: Only non-readonly to support LazyDerSequence
+        // NOTE: Only non-readonly to support LazyDerSet
         internal Asn1Encodable[] elements;
 
         /**
