@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     internal class SecP160K1Curve
         : AbstractFpCurve
     {
-        public static readonly BigInteger q = SecP160R2Curve.q;
+        public static readonly BigInteger q = SecP160R2FieldElement.Q;
 
         private const int SECP160K1_DEFAULT_COORDS = COORD_JACOBIAN;
         private const int SECP160K1_FE_INTS = 5;

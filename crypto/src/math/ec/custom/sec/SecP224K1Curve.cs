@@ -8,8 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     internal class SecP224K1Curve
         : AbstractFpCurve
     {
-        public static readonly BigInteger q = new BigInteger(1,
-            Hex.Decode("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFE56D"));
+        public static readonly BigInteger q = SecP224K1FieldElement.Q;
 
         private const int SECP224K1_DEFAULT_COORDS = COORD_JACOBIAN;
         private const int SECP224K1_FE_INTS = 7;

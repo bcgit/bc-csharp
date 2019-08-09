@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
     internal class Curve25519
         : AbstractFpCurve
     {
-        public static readonly BigInteger q = Nat256.ToBigInteger(Curve25519Field.P);
+        public static readonly BigInteger q = Curve25519FieldElement.Q;
 
         private static readonly BigInteger C_a = new BigInteger(1, Hex.Decode("2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA984914A144"));
         private static readonly BigInteger C_b = new BigInteger(1, Hex.Decode("7B425ED097B425ED097B425ED097B425ED097B425ED097B4260B5E9C7710C864"));

@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
     internal class Curve25519FieldElement
         : AbstractFpFieldElement
     {
-        public static readonly BigInteger Q = Curve25519.q;
+        public static readonly BigInteger Q = Nat256.ToBigInteger(Curve25519Field.P);
 
         // Calculated as ECConstants.TWO.modPow(Q.shiftRight(2), Q)
         private static readonly uint[] PRECOMP_POW2 = new uint[]{ 0x4a0ea0b0, 0xc4ee1b27, 0xad2fe478, 0x2f431806,

@@ -8,8 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
     internal class SM2P256V1Curve
         : AbstractFpCurve
     {
-        public static readonly BigInteger q = new BigInteger(1,
-            Hex.Decode("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF"));
+        public static readonly BigInteger q = SM2P256V1FieldElement.Q;
 
         private const int SM2P256V1_DEFAULT_COORDS = COORD_JACOBIAN;
         private const int SM2P256V1_FE_INTS = 8;

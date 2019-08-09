@@ -2,13 +2,15 @@
 
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP256R1FieldElement
         : AbstractFpFieldElement
     {
-        public static readonly BigInteger Q = SecP256R1Curve.q;
+        public static readonly BigInteger Q = new BigInteger(1,
+            Hex.Decode("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"));
 
         protected internal readonly uint[] x;
 
