@@ -298,7 +298,7 @@ namespace Org.BouncyCastle.X509
 		/// </summary>
 		public virtual bool[] GetKeyUsage()
 		{
-			return keyUsage == null ? null : (bool[]) keyUsage.Clone();
+            return Arrays.Clone(keyUsage);
 		}
 
 		// TODO Replace with something that returns a list of DerObjectIdentifier
