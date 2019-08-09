@@ -1332,6 +1332,17 @@ namespace Org.BouncyCastle.Math
             }
         }
 
+        public int IntValueExact
+        {
+            get
+            {
+                if (BitLength > 31)
+                    throw new ArithmeticException("BigInteger out of int range");
+
+                return IntValue;
+            }
+        }
+
         /**
          * return whether or not a BigInteger is probably prime with a
          * probability of 1 - (1/2)**certainty.
@@ -1585,6 +1596,17 @@ namespace Org.BouncyCastle.Math
                 }
 
                 return sign < 0 ? -v : v;
+            }
+        }
+
+        public long LongValueExact
+        {
+            get
+            {
+                if (BitLength > 63)
+                    throw new ArithmeticException("BigInteger out of long range");
+
+                return LongValue;
             }
         }
 
