@@ -366,35 +366,23 @@ namespace Org.BouncyCastle.Utilities
             return hc;
         }
 
-        public static byte[] Clone(
-            byte[] data)
+        public static bool[] Clone(bool[] data)
+        {
+            return data == null ? null : (bool[])data.Clone();
+        }
+
+        public static byte[] Clone(byte[] data)
         {
             return data == null ? null : (byte[])data.Clone();
         }
 
-        public static byte[] Clone(
-            byte[] data, 
-            byte[] existing)
-        {
-            if (data == null)
-            {
-                return null;
-            }
-            if ((existing == null) || (existing.Length != data.Length))
-            {
-                return Clone(data);
-            }
-            Array.Copy(data, 0, existing, 0, existing.Length);
-            return existing;
-        }
-
-        public static int[] Clone(
-            int[] data)
+        public static int[] Clone(int[] data)
         {
             return data == null ? null : (int[])data.Clone();
         }
 
-        internal static uint[] Clone(uint[] data)
+        [CLSCompliantAttribute(false)]
+        public static uint[] Clone(uint[] data)
         {
             return data == null ? null : (uint[])data.Clone();
         }
@@ -405,25 +393,28 @@ namespace Org.BouncyCastle.Utilities
         }
 
         [CLSCompliantAttribute(false)]
-        public static ulong[] Clone(
-            ulong[] data)
+        public static ulong[] Clone(ulong[] data)
         {
-            return data == null ? null : (ulong[]) data.Clone();
+            return data == null ? null : (ulong[])data.Clone();
+        }
+
+        public static byte[] Clone(byte[] data, byte[] existing)
+        {
+            if (data == null)
+                return null;
+            if (existing == null || existing.Length != data.Length)
+                return Clone(data);
+            Array.Copy(data, 0, existing, 0, existing.Length);
+            return existing;
         }
 
         [CLSCompliantAttribute(false)]
-        public static ulong[] Clone(
-            ulong[] data, 
-            ulong[] existing)
+        public static ulong[] Clone(ulong[] data, ulong[] existing)
         {
             if (data == null)
-            {
                 return null;
-            }
-            if ((existing == null) || (existing.Length != data.Length))
-            {
+            if (existing == null || existing.Length != data.Length)
                 return Clone(data);
-            }
             Array.Copy(data, 0, existing, 0, existing.Length);
             return existing;
         }
