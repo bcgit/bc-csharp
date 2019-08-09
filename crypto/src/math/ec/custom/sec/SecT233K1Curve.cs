@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     {
         private const int SECT233K1_DEFAULT_COORDS = COORD_LAMBDA_PROJECTIVE;
         private const int SECT233K1_FE_LONGS = 4;
+        private static readonly ECFieldElement[] SECT233K1_AFFINE_ZS = new ECFieldElement[] { new SecT233FieldElement(BigInteger.One) };
 
         protected readonly SecT233K1Point m_infinity;
 
@@ -120,7 +121,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         }
 
         private class SecT233K1LookupTable
-            : ECLookupTable
+            : AbstractECLookupTable
         {
             private readonly SecT233K1Curve m_outer;
             private readonly ulong[] m_table;
@@ -133,12 +134,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 this.m_size = size;
             }
 
-            public virtual int Size
+            public override int Size
             {
                 get { return m_size; }
             }
 
-            public virtual ECPoint Lookup(int index)
+            public override ECPoint Lookup(int index)
             {
                 ulong[] x = Nat256.Create64(), y = Nat256.Create64();
                 int pos = 0;
@@ -156,7 +157,26 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     pos += (SECT233K1_FE_LONGS * 2);
                 }
 
-                return m_outer.CreateRawPoint(new SecT233FieldElement(x), new SecT233FieldElement(y), false);
+                return CreatePoint(x, y);
+            }
+
+            public override ECPoint LookupVar(int index)
+            {
+                ulong[] x = Nat256.Create64(), y = Nat256.Create64();
+                int pos = index * SECT233K1_FE_LONGS * 2;
+
+                for (int j = 0; j < SECT233K1_FE_LONGS; ++j)
+                {
+                    x[j] = m_table[pos + j];
+                    y[j] = m_table[pos + SECT233K1_FE_LONGS + j];
+                }
+
+                return CreatePoint(x, y);
+            }
+
+            private ECPoint CreatePoint(ulong[] x, ulong[] y)
+            {
+                return m_outer.CreateRawPoint(new SecT233FieldElement(x), new SecT233FieldElement(y), SECT233K1_AFFINE_ZS, false);
             }
         }
     }

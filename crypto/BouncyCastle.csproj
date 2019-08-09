@@ -1212,6 +1212,7 @@
     <Compile Include="src\crypto\util\Pack.cs" />
     <Compile Include="src\math\BigInteger.cs" />
     <Compile Include="src\math\Primes.cs" />
+    <Compile Include="src\math\ec\AbstractECLookupTable.cs" />
     <Compile Include="src\math\ec\ECAlgorithms.cs" />
     <Compile Include="src\math\ec\ECCurve.cs" />
     <Compile Include="src\math\ec\ECFieldElement.cs" />

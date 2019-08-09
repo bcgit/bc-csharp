@@ -3,7 +3,7 @@
 namespace Org.BouncyCastle.Math.EC
 {
     public class SimpleLookupTable
-        : ECLookupTable
+        : AbstractECLookupTable
     {
         private static ECPoint[] Copy(ECPoint[] points, int off, int len)
         {
@@ -22,12 +22,17 @@ namespace Org.BouncyCastle.Math.EC
             this.points = Copy(points, off, len);
         }
 
-        public virtual int Size
+        public override int Size
         {
             get { return points.Length; }
         }
 
-        public virtual ECPoint Lookup(int index)
+        public override ECPoint Lookup(int index)
+        {
+            throw new NotSupportedException("Constant-time lookup not supported");
+        }
+
+        public override ECPoint LookupVar(int index)
         {
             return points[index];
         }

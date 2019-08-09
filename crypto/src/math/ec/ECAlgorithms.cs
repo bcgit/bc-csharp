@@ -586,8 +586,8 @@ namespace Org.BouncyCastle.Math.EC
                     secretIndexL ^= secretBitL;
                 }
 
-                ECPoint addP = lookupTableP.Lookup((int)secretIndexK);
-                ECPoint addQ = lookupTableQ.Lookup((int)secretIndexL);
+                ECPoint addP = lookupTableP.LookupVar((int)secretIndexK);
+                ECPoint addQ = lookupTableQ.LookupVar((int)secretIndexL);
 
                 ECPoint T = addP.Add(addQ);
 

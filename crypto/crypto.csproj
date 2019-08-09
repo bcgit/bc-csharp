@@ -5949,6 +5949,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\AbstractECLookupTable.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\ECAlgorithms.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         private const int SECP384R1_DEFAULT_COORDS = COORD_JACOBIAN;
         private const int SECP384R1_FE_INTS = 12;
+        private static readonly ECFieldElement[] SECP384R1_AFFINE_ZS = new ECFieldElement[] { new SecP384R1FieldElement(BigInteger.One) };
 
         protected readonly SecP384R1Point m_infinity;
 
@@ -93,7 +94,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         }
 
         private class SecP384R1LookupTable
-            : ECLookupTable
+            : AbstractECLookupTable
         {
             private readonly SecP384R1Curve m_outer;
             private readonly uint[] m_table;
@@ -106,12 +107,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 this.m_size = size;
             }
 
-            public virtual int Size
+            public override int Size
             {
                 get { return m_size; }
             }
 
-            public virtual ECPoint Lookup(int index)
+            public override ECPoint Lookup(int index)
             {
                 uint[] x = Nat.Create(SECP384R1_FE_INTS), y = Nat.Create(SECP384R1_FE_INTS);
                 int pos = 0;
@@ -129,7 +130,26 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     pos += (SECP384R1_FE_INTS * 2);
                 }
 
-                return m_outer.CreateRawPoint(new SecP384R1FieldElement(x), new SecP384R1FieldElement(y), false);
+                return CreatePoint(x, y);
+            }
+
+            public override ECPoint LookupVar(int index)
+            {
+                uint[] x = Nat.Create(SECP384R1_FE_INTS), y = Nat.Create(SECP384R1_FE_INTS);
+                int pos = index * SECP384R1_FE_INTS * 2;
+
+                for (int j = 0; j < SECP384R1_FE_INTS; ++j)
+                {
+                    x[j] = m_table[pos + j];
+                    y[j] = m_table[pos + SECP384R1_FE_INTS + j];
+                }
+
+                return CreatePoint(x, y);
+            }
+
+            private ECPoint CreatePoint(uint[] x, uint[] y)
+            {
+                return m_outer.CreateRawPoint(new SecP384R1FieldElement(x), new SecP384R1FieldElement(y), SECP384R1_AFFINE_ZS, false);
             }
         }
     }

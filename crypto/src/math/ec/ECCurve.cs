@@ -521,7 +521,7 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         private class DefaultLookupTable
-            : ECLookupTable
+            : AbstractECLookupTable
         {
             private readonly ECCurve m_outer;
             private readonly byte[] m_table;
@@ -534,12 +534,12 @@ namespace Org.BouncyCastle.Math.EC
                 this.m_size = size;
             }
 
-            public virtual int Size
+            public override int Size
             {
                 get { return m_size; }
             }
 
-            public virtual ECPoint Lookup(int index)
+            public override ECPoint Lookup(int index)
             {
                 int FE_BYTES = (m_outer.FieldSize + 7) / 8;
                 byte[] x = new byte[FE_BYTES], y = new byte[FE_BYTES];
@@ -558,6 +558,26 @@ namespace Org.BouncyCastle.Math.EC
                     pos += (FE_BYTES * 2);
                 }
 
+                return CreatePoint(x, y);
+            }
+
+            public override ECPoint LookupVar(int index)
+            {
+                int FE_BYTES = (m_outer.FieldSize + 7) / 8;
+                byte[] x = new byte[FE_BYTES], y = new byte[FE_BYTES];
+                int pos = index * FE_BYTES * 2;
+
+                for (int j = 0; j < FE_BYTES; ++j)
+                {
+                    x[j] = m_table[pos + j];
+                    y[j] = m_table[pos + FE_BYTES + j];
+                }
+
+                return CreatePoint(x, y);
+            }
+
+            private ECPoint CreatePoint(byte[] x, byte[] y)
+            {
                 ECFieldElement X = m_outer.FromBigInteger(new BigInteger(1, x));
                 ECFieldElement Y = m_outer.FromBigInteger(new BigInteger(1, y));
                 return m_outer.CreateRawPoint(X, Y, false);
@@ -1251,7 +1271,7 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         private class DefaultF2mLookupTable
-            : ECLookupTable
+            : AbstractECLookupTable
         {
             private readonly F2mCurve m_outer;
             private readonly long[] m_table;
@@ -1264,16 +1284,13 @@ namespace Org.BouncyCastle.Math.EC
                 this.m_size = size;
             }
 
-            public virtual int Size
+            public override int Size
             {
                 get { return m_size; }
             }
 
-            public virtual ECPoint Lookup(int index)
+            public override ECPoint Lookup(int index)
             {
-                int m = m_outer.m;
-                int[] ks = m_outer.IsTrinomial() ? new int[]{ m_outer.k1 } : new int[]{ m_outer.k1, m_outer.k2, m_outer.k3 }; 
-
                 int FE_LONGS = (m_outer.m + 63) / 64;
                 long[] x = new long[FE_LONGS], y = new long[FE_LONGS];
                 int pos = 0;
@@ -1290,6 +1307,29 @@ namespace Org.BouncyCastle.Math.EC
 
                     pos += (FE_LONGS * 2);
                 }
+
+                return CreatePoint(x, y);
+            }
+
+            public override ECPoint LookupVar(int index)
+            {
+                int FE_LONGS = (m_outer.m + 63) / 64;
+                long[] x = new long[FE_LONGS], y = new long[FE_LONGS];
+                int pos = index * FE_LONGS * 2;
+
+                for (int j = 0; j < FE_LONGS; ++j)
+                {
+                    x[j] = m_table[pos + j];
+                    y[j] = m_table[pos + FE_LONGS + j];
+                }
+
+                return CreatePoint(x, y);
+            }
+
+            private ECPoint CreatePoint(long[] x, long[] y)
+            {
+                int m = m_outer.m;
+                int[] ks = m_outer.IsTrinomial() ? new int[] { m_outer.k1 } : new int[] { m_outer.k1, m_outer.k2, m_outer.k3 }; 
 
                 ECFieldElement X = new F2mFieldElement(m, ks, new LongArray(x));
                 ECFieldElement Y = new F2mFieldElement(m, ks, new LongArray(y));

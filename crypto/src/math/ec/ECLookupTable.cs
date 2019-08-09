@@ -6,5 +6,6 @@ namespace Org.BouncyCastle.Math.EC
     {
         int Size { get; }
         ECPoint Lookup(int index);
+        ECPoint LookupVar(int index);
     }
 }

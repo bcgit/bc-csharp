@@ -10,9 +10,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
     {
         public static readonly BigInteger q = Nat256.ToBigInteger(Curve25519Field.P);
 
-        private const int Curve25519_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
-        private const int CURVE25519_FE_INTS = 8;
+        private static readonly BigInteger C_a = new BigInteger(1, Hex.Decode("2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA984914A144"));
+        private static readonly BigInteger C_b = new BigInteger(1, Hex.Decode("7B425ED097B425ED097B425ED097B425ED097B425ED097B4260B5E9C7710C864"));
 
+        private const int CURVE25519_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
+        private const int CURVE25519_FE_INTS = 8;
+        private static readonly ECFieldElement[] CURVE25519_AFFINE_ZS = new ECFieldElement[] {
+            new Curve25519FieldElement(BigInteger.One), new Curve25519FieldElement(C_a) }; 
         protected readonly Curve25519Point m_infinity;
 
         public Curve25519()
@@ -20,13 +24,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
         {
             this.m_infinity = new Curve25519Point(this, null, null);
 
-            this.m_a = FromBigInteger(new BigInteger(1,
-                Hex.Decode("2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA984914A144")));
-            this.m_b = FromBigInteger(new BigInteger(1,
-                Hex.Decode("7B425ED097B425ED097B425ED097B425ED097B425ED097B4260B5E9C7710C864")));
+            this.m_a = FromBigInteger(C_a);
+            this.m_b = FromBigInteger(C_b);
             this.m_order = new BigInteger(1, Hex.Decode("1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED"));
             this.m_cofactor = BigInteger.ValueOf(8);
-            this.m_coord = Curve25519_DEFAULT_COORDS;
+            this.m_coord = CURVE25519_DEFAULT_COORDS;
         }
 
         protected override ECCurve CloneCurve()
@@ -92,7 +94,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
         }
 
         private class Curve25519LookupTable
-            : ECLookupTable
+            : AbstractECLookupTable
         {
             private readonly Curve25519 m_outer;
             private readonly uint[] m_table;
@@ -105,12 +107,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
                 this.m_size = size;
             }
 
-            public virtual int Size
+            public override int Size
             {
                 get { return m_size; }
             }
 
-            public virtual ECPoint Lookup(int index)
+            public override ECPoint Lookup(int index)
             {
                 uint[] x = Nat256.Create(), y = Nat256.Create();
                 int pos = 0;
@@ -128,7 +130,26 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
                     pos += (CURVE25519_FE_INTS * 2);
                 }
 
-                return m_outer.CreateRawPoint(new Curve25519FieldElement(x), new Curve25519FieldElement(y), false);
+                return CreatePoint(x, y);
+            }
+
+            public override ECPoint LookupVar(int index)
+            {
+                uint[] x = Nat256.Create(), y = Nat256.Create();
+                int pos = index * CURVE25519_FE_INTS * 2;
+
+                for (int j = 0; j < CURVE25519_FE_INTS; ++j)
+                {
+                    x[j] = m_table[pos + j];
+                    y[j] = m_table[pos + CURVE25519_FE_INTS + j];
+                }
+
+                return CreatePoint(x, y);
+            }
+
+            private ECPoint CreatePoint(uint[] x, uint[] y)
+            {
+                return m_outer.CreateRawPoint(new Curve25519FieldElement(x), new Curve25519FieldElement(y), CURVE25519_AFFINE_ZS, false);
             }
         }
     }
