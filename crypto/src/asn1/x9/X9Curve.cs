@@ -79,9 +79,8 @@ namespace Org.BouncyCastle.Asn1.X9
             {
                 // Characteristic two field
                 DerSequence parameters = (DerSequence)fieldID.Parameters;
-                int m = ((DerInteger)parameters[0]).Value.IntValue;
-                DerObjectIdentifier representation
-                    = (DerObjectIdentifier)parameters[1];
+                int m = ((DerInteger)parameters[0]).IntValueExact;
+                DerObjectIdentifier representation = (DerObjectIdentifier)parameters[1];
 
                 int k1 = 0;
                 int k2 = 0;
@@ -89,15 +88,15 @@ namespace Org.BouncyCastle.Asn1.X9
                 if (representation.Equals(X9ObjectIdentifiers.TPBasis)) 
                 {
                     // Trinomial basis representation
-                    k1 = ((DerInteger)parameters[2]).Value.IntValue;
+                    k1 = ((DerInteger)parameters[2]).IntValueExact;
                 }
                 else 
                 {
                     // Pentanomial basis representation
                     DerSequence pentanomial = (DerSequence) parameters[2];
-                    k1 = ((DerInteger) pentanomial[0]).Value.IntValue;
-                    k2 = ((DerInteger) pentanomial[1]).Value.IntValue;
-                    k3 = ((DerInteger) pentanomial[2]).Value.IntValue;
+                    k1 = ((DerInteger)pentanomial[0]).IntValueExact;
+                    k2 = ((DerInteger)pentanomial[1]).IntValueExact;
+                    k3 = ((DerInteger)pentanomial[2]).IntValueExact;
                 }
                 BigInteger A = new BigInteger(1, Asn1OctetString.GetInstance(seq[0]).GetOctets());
                 BigInteger B = new BigInteger(1, Asn1OctetString.GetInstance(seq[1]).GetOctets());

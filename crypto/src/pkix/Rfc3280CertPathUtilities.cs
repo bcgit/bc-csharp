@@ -1620,7 +1620,7 @@ namespace Org.BouncyCastle.Pkix
 						Asn1TaggedObject constraint = Asn1TaggedObject.GetInstance(policyConstraints.Current);
 						if (constraint.TagNo == 0)
 						{
-							tmpInt = DerInteger.GetInstance(constraint, false).Value.IntValue;
+                            tmpInt = DerInteger.GetInstance(constraint, false).IntValueExact;
 							if (tmpInt < explicitPolicy)
 							{
 								return tmpInt;
@@ -1675,7 +1675,7 @@ namespace Org.BouncyCastle.Pkix
 						Asn1TaggedObject constraint = Asn1TaggedObject.GetInstance(policyConstraints.Current);
 						if (constraint.TagNo == 1)
 						{
-							tmpInt = DerInteger.GetInstance(constraint, false).Value.IntValue;
+                            tmpInt = DerInteger.GetInstance(constraint, false).IntValueExact;
 							if (tmpInt < policyMapping)
 							{
 								return tmpInt;
@@ -1789,7 +1789,7 @@ namespace Org.BouncyCastle.Pkix
 
 			if (iap != null)
 			{
-				int _inhibitAnyPolicy = iap.Value.IntValue;
+                int _inhibitAnyPolicy = iap.IntValueExact;
 
 				if (_inhibitAnyPolicy < inhibitAnyPolicy)
 					return _inhibitAnyPolicy;
@@ -2062,7 +2062,7 @@ namespace Org.BouncyCastle.Pkix
 						case 0:
 							try
 							{
-								tmpInt = DerInteger.GetInstance(constraint, false).Value.IntValue;
+                                tmpInt = DerInteger.GetInstance(constraint, false).IntValueExact;
 							}
 							catch (Exception e)
 							{

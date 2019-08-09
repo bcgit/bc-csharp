@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Asn1.Icao
 
 		public int DataGroupNumber
 		{
-			get { return dataGroupNumber.Value.IntValue; }
+            get { return dataGroupNumber.IntValueExact; }
 		}
 
 		public Asn1OctetString DataGroupHashValue

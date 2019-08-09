@@ -153,7 +153,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public int Version
 		{
-			get { return version.Value.IntValue + 1; }
+            get { return version.IntValueExact + 1; }
 		}
 
 		public DerInteger VersionNumber

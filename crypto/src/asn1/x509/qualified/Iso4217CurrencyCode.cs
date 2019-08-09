@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 			if (obj is DerInteger)
             {
                 DerInteger numericobj = DerInteger.GetInstance(obj);
-                int numeric = numericobj.Value.IntValue;
+                int numeric = numericobj.IntValueExact;
                 return new Iso4217CurrencyCode(numeric);
             }
 
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 
 		public string Alphabetic { get { return ((DerPrintableString) obj).GetString(); } }
 
-		public int Numeric { get { return ((DerInteger)obj).Value.IntValue; } }
+        public int Numeric { get { return ((DerInteger)obj).IntValueExact; } }
 
 		public override Asn1Object ToAsn1Object()
         {

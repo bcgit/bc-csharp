@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Cms
 		*/
 		public int Version
 		{
-			get { return info.Version.Value.IntValue; }
+			get { return info.Version.IntValueExact; }
 		}
 
 		public AlgorithmIdentifier DigestAlgorithmID
@@ -349,8 +349,8 @@ namespace Org.BouncyCastle.Cms
 						throw new CmsException("RSASSA-PSS signature parameters specified unknown MGF");
 
                     IDigest pssDigest = DigestUtilities.GetDigest(pss.HashAlgorithm.Algorithm);
-					int saltLength = pss.SaltLength.Value.IntValue;
-					byte trailerField = (byte) pss.TrailerField.Value.IntValue;
+                    int saltLength = pss.SaltLength.IntValueExact;
+                    byte trailerField = (byte)pss.TrailerField.IntValueExact;
 
 					// RFC 4055 3.1
 					// The value MUST be 1, which represents the trailer field with hexadecimal value 0xBC

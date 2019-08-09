@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 				switch ((Choice) declaration.TagNo)
 				{
 					case Choice.NotYoungerThan:
-						return DerInteger.GetInstance(declaration, false).Value.IntValue;
+                        return DerInteger.GetInstance(declaration, false).IntValueExact;
 					default:
 						return -1;
 				}

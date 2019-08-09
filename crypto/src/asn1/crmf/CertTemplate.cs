@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public virtual int Version
         {
-            get { return version.Value.IntValue; }
+            get { return version.IntValueExact; }
         }
 
         public virtual DerInteger SerialNumber

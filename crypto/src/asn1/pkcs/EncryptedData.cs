@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 			if (seq.Count != 2)
 				throw new ArgumentException("Wrong number of elements in sequence", "seq");
 
-			int version = ((DerInteger) seq[0]).Value.IntValue;
+            int version = ((DerInteger)seq[0]).IntValueExact;
 			if (version != 0)
             {
                 throw new ArgumentException("sequence not version 0");

@@ -16,7 +16,11 @@ namespace Org.BouncyCastle.Asn1
             return allowUnsafeValue != null && Platform.EqualsIgnoreCase("true", allowUnsafeValue);
         }
 
+        internal const int SignExtSigned = -1;
+        internal const int SignExtUnsigned = 0xFF;
+
         private readonly byte[] bytes;
+        private readonly int start;
 
         /**
          * return an integer from the passed in object
@@ -62,7 +66,14 @@ namespace Org.BouncyCastle.Asn1
 
 		public DerInteger(int value)
         {
-            bytes = BigInteger.ValueOf(value).ToByteArray();
+            this.bytes = BigInteger.ValueOf(value).ToByteArray();
+            this.start = 0;
+        }
+
+        public DerInteger(long value)
+        {
+            this.bytes = BigInteger.ValueOf(value).ToByteArray();
+            this.start = 0;
         }
 
 		public DerInteger(BigInteger value)
@@ -70,7 +81,8 @@ namespace Org.BouncyCastle.Asn1
             if (value == null)
                 throw new ArgumentNullException("value");
 
-			bytes = value.ToByteArray();
+			this.bytes = value.ToByteArray();
+            this.start = 0;
         }
 
         public DerInteger(byte[] bytes)
@@ -84,6 +96,7 @@ namespace Org.BouncyCastle.Asn1
                 throw new ArgumentException("malformed integer", "bytes");
 
             this.bytes = clone ? Arrays.Clone(bytes) : bytes;
+            this.start = SignBytesToSkip(bytes);
         }
 
         /**
@@ -100,8 +113,39 @@ namespace Org.BouncyCastle.Asn1
             get { return new BigInteger(bytes); }
         }
 
-        internal override void Encode(
-            DerOutputStream derOut)
+        public bool HasValue(BigInteger x)
+        {
+            return null != x
+                // Fast check to avoid allocation
+                && IntValue(bytes, start, SignExtSigned) == x.IntValue
+                && Value.Equals(x);
+        }
+
+        public int IntPositiveValueExact
+        {
+            get
+            {
+                int count = bytes.Length - start;
+                if (count > 4 || (count == 4 && 0 != (bytes[start] & 0x80)))
+                    throw new ArithmeticException("ASN.1 Integer out of positive int range");
+
+                return IntValue(bytes, start, SignExtUnsigned);
+            }
+        }
+
+        public int IntValueExact
+        {
+            get
+            {
+                int count = bytes.Length - start;
+                if (count > 4)
+                    throw new ArithmeticException("ASN.1 Integer out of int range");
+
+                return IntValue(bytes, start, SignExtSigned);
+            }
+        }
+
+        internal override void Encode(DerOutputStream derOut)
         {
             derOut.WriteEncoded(Asn1Tags.Integer, bytes);
         }
@@ -111,21 +155,32 @@ namespace Org.BouncyCastle.Asn1
 			return Arrays.GetHashCode(bytes);
         }
 
-		protected override bool Asn1Equals(
-			Asn1Object asn1Object)
+		protected override bool Asn1Equals(Asn1Object asn1Object)
 		{
 			DerInteger other = asn1Object as DerInteger;
-
 			if (other == null)
 				return false;
 
-			return Arrays.AreEqual(this.bytes, other.bytes);
+            return Arrays.AreEqual(this.bytes, other.bytes);
         }
 
 		public override string ToString()
 		{
 			return Value.ToString();
 		}
+
+        internal static int IntValue(byte[] bytes, int start, int signExt)
+        {
+            int length = bytes.Length;
+            int pos = System.Math.Max(start, length - 4);
+
+            int val = (sbyte)bytes[pos] & signExt;
+            while (++pos < length)
+            {
+                val = (val << 8) | bytes[pos];
+            }
+            return val;
+        }
 
         /**
          * Apply the correct validation for an INTEGER primitive following the BER rules.
@@ -144,6 +199,17 @@ namespace Org.BouncyCastle.Asn1
             default:
                 return (sbyte)bytes[0] == ((sbyte)bytes[1] >> 7) && !AllowUnsafe();
             }
+        }
+
+        internal static int SignBytesToSkip(byte[] bytes)
+        {
+            int pos = 0, last = bytes.Length - 1;
+            while (pos < last
+                && (sbyte)bytes[pos] == ((sbyte)bytes[pos + 1] >> 7))
+            {
+                ++pos;
+            }
+            return pos;
         }
     }
 }
