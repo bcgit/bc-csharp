@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "DESede"; }
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new DesEdeTest());

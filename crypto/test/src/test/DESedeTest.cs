@@ -281,7 +281,7 @@ namespace Org.BouncyCastle.Tests
             wrapTest("TDEA", 1, kek1, iv1, in1, out1);
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new DesEdeTest());

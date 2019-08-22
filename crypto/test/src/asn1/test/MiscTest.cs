@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             get { return "Misc"; }
         }
 #if !LIB
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new MiscTest());

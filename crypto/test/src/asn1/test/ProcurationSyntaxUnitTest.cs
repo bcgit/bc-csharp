@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkOptionalField("certRef", certRef, procuration.CertRef);
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new ProcurationSyntaxUnitTest());

@@ -199,7 +199,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "Mac"; }
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new MacTest());

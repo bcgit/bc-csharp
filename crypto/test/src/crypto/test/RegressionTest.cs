@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new KdfFeedbackCounterTests()
         };
 
-        public static void MainOld(string[] args)
+        public static void Main(string[] args)
         {
             foreach (ITest test in tests)
             {

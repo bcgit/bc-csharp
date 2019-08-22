@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new MD2Digest((MD2Digest)digest);
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new MD2DigestTest());

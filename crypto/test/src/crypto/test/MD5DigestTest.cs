@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new MD5Digest((MD5Digest)digest);
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new MD5DigestTest());

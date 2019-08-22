@@ -394,7 +394,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new NamedCurveTest());

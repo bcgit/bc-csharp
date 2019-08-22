@@ -236,7 +236,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "PSS"; }
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new PssTest());

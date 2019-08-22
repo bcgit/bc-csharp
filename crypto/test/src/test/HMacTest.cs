@@ -244,7 +244,7 @@ namespace Org.BouncyCastle.Tests
             get { return "HMac"; }
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new HMacTest());

@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             get { return "HashDRBG"; }
         }
 
-        public static void MainOld(string[] args)
+        public static void Main(string[] args)
         {
             RunTest(new HashDrbgTest());
         }

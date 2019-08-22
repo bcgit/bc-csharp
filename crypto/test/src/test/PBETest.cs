@@ -510,7 +510,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "PbeTest"; }
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new PbeTest());

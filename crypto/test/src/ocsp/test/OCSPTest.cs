@@ -835,7 +835,7 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			doTestIrregularVersionReq();
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new OcspTest());

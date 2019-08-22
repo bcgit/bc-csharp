@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "SMIME"; }
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			ITest test = new SmimeTest();

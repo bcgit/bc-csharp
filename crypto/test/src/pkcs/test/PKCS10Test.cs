@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             }
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
 			RunTest(new Pkcs10Test());

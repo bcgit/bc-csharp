@@ -7,6 +7,14 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <NoWarn>1591;618;672</NoWarn>
   </PropertyGroup>
+
+  <!-- Need this so we don't have to rename all of the Main() methods in the test codebase -->
+  <PropertyGroup>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <StartupObject>crypto.test.Program</StartupObject>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  
   <ItemGroup>
     <Compile Include="src\**\*.cs" Exclude="**\examples\**\*.cs" />
     <EmbeddedResource Include="data\**\*.*" Exclude="**\README.txt" />

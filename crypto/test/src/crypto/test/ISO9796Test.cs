@@ -952,7 +952,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             DoFullMessageTest();
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new ISO9796Test());

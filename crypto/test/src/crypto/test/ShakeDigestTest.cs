@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return s;
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new ShakeDigestTest());

@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             get { return "JPakePrimeOrderGroup"; }
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new JPakePrimeOrderGroupTest());

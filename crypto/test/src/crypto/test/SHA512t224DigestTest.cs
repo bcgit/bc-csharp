@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new Sha512tDigest((Sha512tDigest)digest);
         }
 
-        public static void MainOld(
+        public static void Main(
             string[]    args)
         {
             RunTest(new Sha512t224DigestTest());

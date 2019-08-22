@@ -744,7 +744,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			ITest test = new RsaTest();

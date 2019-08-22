@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {"ABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXYABCDEFGHIJKLMNOPQRSTUVWXY", "$2b$12$QwAt5kuG68nW7v.87q0QPuwdki3romFc/RU/RV3Qqk4FPw6WdbQzu"}
         };
 
-        public static void MainOld(string[] args)
+        public static void Main(string[] args)
         {
             RunTest(new OpenBsdBCryptTest());
         }

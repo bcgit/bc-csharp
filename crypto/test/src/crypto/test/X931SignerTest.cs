@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public static void MainOld(string[] args)
+        public static void Main(string[] args)
         {
             RunTest(new X931SignerTest());
         }

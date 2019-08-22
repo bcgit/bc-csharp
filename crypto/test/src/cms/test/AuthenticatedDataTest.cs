@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Cms.Tests
 //		super(name);
 //		}
 //		
-//		public static void MainOld(string args[])
+//		public static void Main(string args[])
 //		{
 //		junit.textui.TestRunner.run(AuthenticatedDataTest.class);
 //		}

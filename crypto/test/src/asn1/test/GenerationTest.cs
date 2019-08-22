@@ -308,7 +308,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "Generation"; }
 		}
 #if !LIB
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
 			RunTest(new GenerationTest());

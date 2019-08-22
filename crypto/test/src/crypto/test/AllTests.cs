@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	public class AllTests
 	{
 #if !LIB
-        public static void MainOld(string[] args)
+        public static void Main(string[] args)
         {
             Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
         }

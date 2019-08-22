@@ -195,7 +195,7 @@ namespace Org.BouncyCastle.Tests
 			TestWrapOids();
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new CamelliaTest());

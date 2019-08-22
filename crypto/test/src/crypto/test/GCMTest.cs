@@ -728,7 +728,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return value;
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new GcmTest());

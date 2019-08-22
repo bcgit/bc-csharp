@@ -494,7 +494,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             TestECHMacDeterministic();
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new DeterministicDsaTest());

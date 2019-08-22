@@ -235,7 +235,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             DoTest(p1, p2);
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new EcIesTest());

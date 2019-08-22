@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			}
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new WriterTest());

@@ -723,7 +723,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "Dstu7624"; }
         }
 
-        public static void MainOld(
+        public static void Main(
            string[] args)
         {
             Dstu7624Test test = new Dstu7624Test();

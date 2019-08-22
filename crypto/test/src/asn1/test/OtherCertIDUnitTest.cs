@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkOptionalField("issuerSerial", issuerSerial, certID.IssuerSerial);
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new OtherCertIDUnitTest());

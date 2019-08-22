@@ -325,7 +325,7 @@ namespace Org.BouncyCastle.Tests
 			TestRandom256();
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new ElGamalTest());

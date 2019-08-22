@@ -349,7 +349,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 #endif
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new Asn1IntegerTest());

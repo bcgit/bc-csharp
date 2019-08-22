@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "KDF2"; }
 		}
 
-		public static void MainOld(
+		public static void Main(
 			string[] args)
 		{
 			RunTest(new Kdf2GeneratorTest());

@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Tests
             new KdfCounterTest()
 		};
 
-		public static void MainOld(
+		public static void Main(
             string[] args)
         {
             for (int i = 0; i != tests.Length; i++)

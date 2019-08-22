@@ -819,7 +819,7 @@ namespace Org.BouncyCastle.Tests
             get { return "DSA/ECDSA"; }
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new DsaTest());

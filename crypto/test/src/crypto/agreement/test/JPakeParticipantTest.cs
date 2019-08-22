@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             get { return "JPakeParticipant"; }
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             RunTest(new JPakeParticipantTest());

@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             return BasicPkcs10Test("Universal CR", req2);
         }
 
-        public static void MainOld(
+        public static void Main(
             string[] args)
         {
             ITest test = new Pkcs10Test();
