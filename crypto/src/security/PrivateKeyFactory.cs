@@ -213,18 +213,9 @@ namespace Org.BouncyCastle.Security
                     }
                     else
                     {
-                        byte[] encVal = Asn1OctetString.GetInstance(privKey).GetOctets();
-                        byte[] dVal = new byte[encVal.Length];
-
-                        for (int i = 0; i != encVal.Length; i++)
-                        {
-                            dVal[i] = encVal[encVal.Length - 1 - i];
-                        }
-
+                        byte[] dVal = Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets());
                         d = new BigInteger(1, dVal);
                     }
-
-
                 }
                 else
                 {

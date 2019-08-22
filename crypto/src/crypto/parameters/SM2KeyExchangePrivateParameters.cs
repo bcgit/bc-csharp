@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
@@ -29,11 +30,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (!parameters.Equals(ephemeralPrivateKey.Parameters))
                 throw new ArgumentException("Static and ephemeral private keys have different domain parameters");
 
+            ECMultiplier m = new FixedPointCombMultiplier();
+
             this.mInitiator = initiator;
             this.mStaticPrivateKey = staticPrivateKey;
-            this.mStaticPublicPoint = parameters.G.Multiply(staticPrivateKey.D).Normalize();
+            this.mStaticPublicPoint = m.Multiply(parameters.G, staticPrivateKey.D).Normalize(); 
             this.mEphemeralPrivateKey = ephemeralPrivateKey;
-            this.mEphemeralPublicPoint = parameters.G.Multiply(ephemeralPrivateKey.D).Normalize();
+            this.mEphemeralPublicPoint = m.Multiply(parameters.G, ephemeralPrivateKey.D).Normalize();
         }
 
         public virtual bool IsInitiator

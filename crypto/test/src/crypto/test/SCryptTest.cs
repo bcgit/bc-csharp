@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 SCrypt.Generate(pass, salt, N, r, p, len);
                 Fail(msg);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 //Console.Error.WriteLine(e.StackTrace);
             }

@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             {
                 RecipientInfo ri = RecipientInfo.GetInstance(o);
 
-                if (ri.Version.Value.IntValue != 0)
+                if (ri.Version.IntValueExact != 0)
                 {
                     return 2;
                 }

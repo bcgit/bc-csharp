@@ -384,9 +384,10 @@ namespace Org.BouncyCastle.Math.Raw
                 c += x_i * y_4 + zz[i + 4];
                 zz[i + 4] = (uint)c;
                 c >>= 32;
-                c += zc + zz[i + 5];
-                zz[i + 5] = (uint)c;
-                zc = c >> 32;
+
+                zc += c + zz[i + 5];
+                zz[i + 5] = (uint)zc;
+                zc >>= 32;
             }
             return (uint)zc;
         }
@@ -418,9 +419,10 @@ namespace Org.BouncyCastle.Math.Raw
                 c += x_i * y_4 + zz[zzOff + 4];
                 zz[zzOff + 4] = (uint)c;
                 c >>= 32;
-                c += zc + zz[zzOff + 5];
-                zz[zzOff + 5] = (uint)c;
-                zc = c >> 32;
+
+                zc += c + zz[zzOff + 5];
+                zz[zzOff + 5] = (uint)zc;
+                zc >>= 32;
                 ++zzOff;
             }
             return (uint)zc;

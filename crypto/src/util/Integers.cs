@@ -4,6 +4,21 @@ namespace Org.BouncyCastle.Utilities
 {
     public abstract class Integers
     {
+        public static int NumberOfLeadingZeros(int i)
+        {
+            if (i <= 0)
+                return (~i >> (31 - 5)) & (1 << 5);
+
+            uint u = (uint)i;
+            int n = 1;
+            if (0 == (u >> 16)) { n += 16; u <<= 16; }
+            if (0 == (u >> 24)) { n +=  8; u <<=  8; }
+            if (0 == (u >> 28)) { n +=  4; u <<=  4; }
+            if (0 == (u >> 30)) { n +=  2; u <<=  2; }
+            n -= (int)(u >> 31);
+            return n;
+        }
+
         public static int RotateLeft(int i, int distance)
         {
             return (i << distance) ^ (int)((uint)i >> -distance);

@@ -13,68 +13,49 @@ namespace Org.BouncyCastle.Asn1
 	{
 		public static readonly DerSet Empty = new DerSet();
 
-		public static DerSet FromVector(
-			Asn1EncodableVector v)
+		public static DerSet FromVector(Asn1EncodableVector elementVector)
 		{
-			return v.Count < 1 ? Empty : new DerSet(v);
+            return elementVector.Count < 1 ? Empty : new DerSet(elementVector);
 		}
 
-		internal static DerSet FromVector(
-			Asn1EncodableVector	v,
-			bool				needsSorting)
+		internal static DerSet FromVector(Asn1EncodableVector elementVector, bool needsSorting)
 		{
-			return v.Count < 1 ? Empty : new DerSet(v, needsSorting);
+            return elementVector.Count < 1 ? Empty : new DerSet(elementVector, needsSorting);
 		}
 
 		/**
 		 * create an empty set
 		 */
 		public DerSet()
-			: base(0)
+			: base()
 		{
 		}
 
 		/**
 		 * @param obj - a single object that makes up the set.
 		 */
-		public DerSet(
-			Asn1Encodable obj)
-			: base(1)
+		public DerSet(Asn1Encodable element)
+			: base(element)
 		{
-			AddObject(obj);
 		}
 
-		public DerSet(
-			params Asn1Encodable[] v)
-			: base(v.Length)
+		public DerSet(params Asn1Encodable[] elements)
+			: base(elements)
 		{
-			foreach (Asn1Encodable o in v)
-			{
-				AddObject(o);
-			}
-
 			Sort();
 		}
 
 		/**
 		 * @param v - a vector of objects making up the set.
 		 */
-		public DerSet(
-			Asn1EncodableVector v)
-			: this(v, true)
+		public DerSet(Asn1EncodableVector elementVector)
+			: this(elementVector, true)
 		{
 		}
 
-		internal DerSet(
-			Asn1EncodableVector	v,
-			bool				needsSorting)
-			: base(v.Count)
+		internal DerSet(Asn1EncodableVector	elementVector, bool needsSorting)
+			: base(elementVector)
 		{
-			foreach (Asn1Encodable o in v)
-			{
-				AddObject(o);
-			}
-
 			if (needsSorting)
 			{
 				Sort();
@@ -89,8 +70,7 @@ namespace Org.BouncyCastle.Asn1
 		 * ASN.1 descriptions given. Rather than just outputing Set,
 		 * we also have to specify Constructed, and the objects length.
 		 */
-		internal override void Encode(
-			DerOutputStream derOut)
+		internal override void Encode(DerOutputStream derOut)
 		{
 			// TODO Intermediate buffer could be avoided if we could calculate expected length
 			MemoryStream bOut = new MemoryStream();

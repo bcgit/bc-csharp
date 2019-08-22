@@ -230,63 +230,51 @@ namespace Org.BouncyCastle.Crypto.Digests
 			Array.Clear(X, 0, 16);
         }
 
-		private static uint Sum1Ch(
-            uint    x,
-            uint    y,
-            uint    z)
+		private static uint Sum1Ch(uint x, uint y, uint z)
 		{
 //			return Sum1(x) + Ch(x, y, z);
 	        return (((x >> 6) | (x << 26)) ^ ((x >> 11) | (x << 21)) ^ ((x >> 25) | (x << 7)))
-				+ ((x & y) ^ ((~x) & z));
-		}
+                //+ ((x & y) ^ ((~x) & z));
+                + (z ^ (x & (y ^ z)));
+        }
 
-		private static uint Sum0Maj(
-            uint	x,
-            uint    y,
-            uint    z)
+		private static uint Sum0Maj(uint x, uint y, uint z)
 		{
 //			return Sum0(x) + Maj(x, y, z);
 	        return (((x >> 2) | (x << 30)) ^ ((x >> 13) | (x << 19)) ^ ((x >> 22) | (x << 10)))
-				+ ((x & y) ^ (x & z) ^ (y & z));
-		}
+                //+ ((x & y) ^ (x & z) ^ (y & z));
+                + ((x & y) | (z & (x ^ y)));
+        }
 
 //		/* SHA-256 functions */
-//        private static uint Ch(
-//            uint    x,
-//            uint    y,
-//            uint    z)
+//        private static uint Ch(uint x, uint y, uint z)
 //        {
-//            return ((x & y) ^ ((~x) & z));
+//            return (x & y) ^ ((~x) & z);
+//            //return z ^ (x & (y ^ z));
 //        }
 //
-//        private static uint Maj(
-//            uint	x,
-//            uint    y,
-//            uint    z)
+//        private static uint Maj(uint x, uint y, uint z)
 //        {
-//            return ((x & y) ^ (x & z) ^ (y & z));
+//            //return (x & y) ^ (x & z) ^ (y & z);
+//            return (x & y) | (z & (x ^ y));
 //        }
 //
-//        private static uint Sum0(
-//            uint x)
+//        private static uint Sum0(uint x)
 //        {
 //	        return ((x >> 2) | (x << 30)) ^ ((x >> 13) | (x << 19)) ^ ((x >> 22) | (x << 10));
 //        }
 //
-//        private static uint Sum1(
-//            uint x)
+//        private static uint Sum1(uint x)
 //        {
 //	        return ((x >> 6) | (x << 26)) ^ ((x >> 11) | (x << 21)) ^ ((x >> 25) | (x << 7));
 //        }
 
-        private static uint Theta0(
-            uint x)
+        private static uint Theta0(uint x)
         {
 	        return ((x >> 7) | (x << 25)) ^ ((x >> 18) | (x << 14)) ^ (x >> 3);
         }
 
-        private static uint Theta1(
-            uint x)
+        private static uint Theta1(uint x)
         {
 	        return ((x >> 17) | (x << 15)) ^ ((x >> 19) | (x << 13)) ^ (x >> 10);
         }

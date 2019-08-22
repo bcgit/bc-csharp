@@ -732,7 +732,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				SignerInfo s = SignerInfo.GetInstance(si.ToSignerInfo());
 
-				if (s.Version.Value.IntValue == 3)
+				if (s.Version.IntValueExact == 3)
 				{
 					return true;
 				}

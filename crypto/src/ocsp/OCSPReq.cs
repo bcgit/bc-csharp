@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Ocsp
 
 		public int Version
 		{
-			get { return req.TbsRequest.Version.Value.IntValue + 1; }
+            get { return req.TbsRequest.Version.IntValueExact + 1; }
 		}
 
 		public GeneralName RequestorName

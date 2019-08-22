@@ -3,13 +3,15 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP224K1FieldElement
         : AbstractFpFieldElement
     {
-        public static readonly BigInteger Q = SecP224K1Curve.q;
+        public static readonly BigInteger Q = new BigInteger(1,
+            Hex.Decode("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFE56D"));
 
         // Calculated as BigInteger.Two.ModPow(Q.ShiftRight(2), Q)
         private static readonly uint[] PRECOMP_POW2 = new uint[]{ 0x33bfd202, 0xdcfad133, 0x2287624a, 0xc3811ba8,

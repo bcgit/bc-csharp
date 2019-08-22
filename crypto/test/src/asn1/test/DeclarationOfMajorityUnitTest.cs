@@ -20,11 +20,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 			DerGeneralizedTime dateOfBirth = new DerGeneralizedTime("20070315173729Z");
 			DeclarationOfMajority decl = new DeclarationOfMajority(dateOfBirth);
 
-			checkConstruction(decl, DeclarationOfMajority.Choice.DateOfBirth, dateOfBirth, -1);
+			CheckConstruction(decl, DeclarationOfMajority.Choice.DateOfBirth, dateOfBirth, -1);
 
 			decl = new DeclarationOfMajority(6);
 
-			checkConstruction(decl, DeclarationOfMajority.Choice.NotYoungerThan, null, 6);
+			CheckConstruction(decl, DeclarationOfMajority.Choice.NotYoungerThan, null, 6);
 
 			decl = DeclarationOfMajority.GetInstance(null);
 
@@ -45,28 +45,24 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		private void checkConstruction(
+		private void CheckConstruction(
 			DeclarationOfMajority			decl,
 			DeclarationOfMajority.Choice	type,
 			DerGeneralizedTime				dateOfBirth,
 			int								notYoungerThan)
 		{
-			checkValues(decl, type, dateOfBirth, notYoungerThan);
+			CheckValues(decl, type, dateOfBirth, notYoungerThan);
 
 			decl = DeclarationOfMajority.GetInstance(decl);
 
-			checkValues(decl, type, dateOfBirth, notYoungerThan);
+			CheckValues(decl, type, dateOfBirth, notYoungerThan);
 
-			Asn1InputStream aIn = new Asn1InputStream(decl.ToAsn1Object().GetEncoded());
+            decl = DeclarationOfMajority.GetInstance(Asn1Object.FromByteArray(decl.GetEncoded()));
 
-			DerTaggedObject info = (DerTaggedObject) aIn.ReadObject();
-
-			decl = DeclarationOfMajority.GetInstance(info);
-
-			checkValues(decl, type, dateOfBirth, notYoungerThan);
+			CheckValues(decl, type, dateOfBirth, notYoungerThan);
 		}
 
-		private void checkValues(
+		private void CheckValues(
 			DeclarationOfMajority			decl,
 			DeclarationOfMajority.Choice	type,
 			DerGeneralizedTime				dateOfBirth,

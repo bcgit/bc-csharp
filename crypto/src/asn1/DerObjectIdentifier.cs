@@ -210,36 +210,36 @@ namespace Org.BouncyCastle.Asn1
             return identifier;
         }
 
-        private static bool IsValidBranchID(
-            string branchID, int start)
+        private static bool IsValidBranchID(string branchID, int start)
         {
-            bool periodAllowed = false;
+            int digitCount = 0;
 
             int pos = branchID.Length;
             while (--pos >= start)
             {
                 char ch = branchID[pos];
 
-                // TODO Leading zeroes?
-                if ('0' <= ch && ch <= '9')
-                {
-                    periodAllowed = true;
-                    continue;
-                }
-
                 if (ch == '.')
                 {
-                    if (!periodAllowed)
+                    if (0 == digitCount || (digitCount > 1 && branchID[pos + 1] == '0'))
                         return false;
 
-                    periodAllowed = false;
-                    continue;
+                    digitCount = 0;
                 }
-
-                return false;
+                else if ('0' <= ch && ch <= '9')
+                {
+                    ++digitCount;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
-            return periodAllowed;
+            if (0 == digitCount || (digitCount > 1 && branchID[pos + 1] == '0'))
+                return false;
+
+            return true;
         }
 
         private static bool IsValidIdentifier(string identifier)

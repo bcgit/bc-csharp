@@ -11,51 +11,38 @@ namespace Org.BouncyCastle.Asn1
 	{
 		public static readonly DerSequence Empty = new DerSequence();
 
-		public static DerSequence FromVector(
-			Asn1EncodableVector v)
+		public static DerSequence FromVector(Asn1EncodableVector elementVector)
 		{
-			return v.Count < 1 ? Empty : new DerSequence(v);
+            return elementVector.Count < 1 ? Empty : new DerSequence(elementVector);
 		}
 
 		/**
 		 * create an empty sequence
 		 */
 		public DerSequence()
-			: base(0)
+			: base()
 		{
 		}
 
 		/**
 		 * create a sequence containing one object
 		 */
-		public DerSequence(
-			Asn1Encodable obj)
-			: base(1)
+		public DerSequence(Asn1Encodable element)
+			: base(element)
 		{
-			AddObject(obj);
 		}
 
-		public DerSequence(
-			params Asn1Encodable[] v)
-			: base(v.Length)
+		public DerSequence(params Asn1Encodable[] elements)
+            : base(elements)
 		{
-			foreach (Asn1Encodable ae in v)
-			{
-				AddObject(ae);
-			}
 		}
 
 		/**
 		 * create a sequence containing a vector of objects.
 		 */
-		public DerSequence(
-			Asn1EncodableVector v)
-			: base(v.Count)
+		public DerSequence(Asn1EncodableVector elementVector)
+            : base(elementVector)
 		{
-			foreach (Asn1Encodable ae in v)
-			{
-				AddObject(ae);
-			}
 		}
 
 		/*
@@ -66,8 +53,7 @@ namespace Org.BouncyCastle.Asn1
 		 * ASN.1 descriptions given. Rather than just outputing Sequence,
 		 * we also have to specify Constructed, and the objects length.
 		 */
-		internal override void Encode(
-			DerOutputStream derOut)
+		internal override void Encode(DerOutputStream derOut)
 		{
 			// TODO Intermediate buffer could be avoided if we could calculate expected length
 			MemoryStream bOut = new MemoryStream();

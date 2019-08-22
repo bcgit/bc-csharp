@@ -179,7 +179,7 @@ namespace Org.BouncyCastle.Cms
 		 */
 		public int Version
 		{
-			get { return _signedData.Version.Value.IntValue; }
+			get { return _signedData.Version.IntValueExact; }
 		}
 
 		public ISet DigestOids

@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Asn1.Icao
 
 		public virtual int Version
 		{
-			get { return version.Value.IntValue; }
+            get { return version.IntValueExact; }
 		}
 
 		public X509CertificateStructure[] GetCertStructs()

@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     {
         private const int SECT571K1_DEFAULT_COORDS = COORD_LAMBDA_PROJECTIVE;
         private const int SECT571K1_FE_LONGS = 9;
+        private static readonly ECFieldElement[] SECT571K1_AFFINE_ZS = new ECFieldElement[] { new SecT571FieldElement(BigInteger.One) };
 
         protected readonly SecT571K1Point m_infinity;
 
@@ -120,7 +121,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         }
 
         private class SecT571K1LookupTable
-            : ECLookupTable
+            : AbstractECLookupTable
         {
             private readonly SecT571K1Curve m_outer;
             private readonly ulong[] m_table;
@@ -133,12 +134,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 this.m_size = size;
             }
 
-            public virtual int Size
+            public override int Size
             {
                 get { return m_size; }
             }
 
-            public virtual ECPoint Lookup(int index)
+            public override ECPoint Lookup(int index)
             {
                 ulong[] x = Nat576.Create64(), y = Nat576.Create64();
                 int pos = 0;
@@ -156,7 +157,26 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     pos += (SECT571K1_FE_LONGS * 2);
                 }
 
-                return m_outer.CreateRawPoint(new SecT571FieldElement(x), new SecT571FieldElement(y), false);
+                return CreatePoint(x, y);
+            }
+
+            public override ECPoint LookupVar(int index)
+            {
+                ulong[] x = Nat576.Create64(), y = Nat576.Create64();
+                int pos = index * SECT571K1_FE_LONGS * 2;
+
+                for (int j = 0; j < SECT571K1_FE_LONGS; ++j)
+                {
+                    x[j] = m_table[pos + j];
+                    y[j] = m_table[pos + SECT571K1_FE_LONGS + j];
+                }
+
+                return CreatePoint(x, y);
+            }
+
+            private ECPoint CreatePoint(ulong[] x, ulong[] y)
+            {
+                return m_outer.CreateRawPoint(new SecT571FieldElement(x), new SecT571FieldElement(y), SECT571K1_AFFINE_ZS, false);
             }
         }
     }

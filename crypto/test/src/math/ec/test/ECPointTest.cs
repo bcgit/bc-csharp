@@ -5,9 +5,11 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Tests
 {
@@ -399,10 +401,15 @@ namespace Org.BouncyCastle.Math.EC.Tests
             ImplTestMultiply(q, n.BitLength);
             ImplTestMultiply(infinity, n.BitLength);
 
+            int logSize = 32 - Integers.NumberOfLeadingZeros(curve.FieldSize - 1);
+            int rounds = System.Math.Max(2, System.Math.Min(10, 32 - 3 * logSize));
+
             ECPoint p = q;
-            for (int i = 0; i < 10; ++i)
+            for (int i = 0; ; )
             {
                 ImplTestEncoding(p);
+                if (++i == rounds)
+                    break;
                 p = p.Twice();
             }
         }
@@ -446,14 +453,42 @@ namespace Org.BouncyCastle.Math.EC.Tests
         {
             Assert.IsTrue(g.IsValid());
 
-            BigInteger h = c.Cofactor;
-            if (h != null && h.CompareTo(BigInteger.One) > 0)
+            if (ECAlgorithms.IsF2mCurve(c))
             {
-                if (ECAlgorithms.IsF2mCurve(c))
+                BigInteger h = c.Cofactor;
+                if (null != h)
                 {
-                    ECPoint order2 = c.CreatePoint(BigInteger.Zero, c.B.Sqrt().ToBigInteger());
-                    ECPoint bad = g.Add(order2);
-                    Assert.IsFalse(bad.IsValid());
+                    if (!h.TestBit(0))
+                    {
+                        ECFieldElement sqrtB = c.B.Sqrt();
+                        ECPoint order2 = c.CreatePoint(BigInteger.Zero, sqrtB.ToBigInteger());
+                        Assert.IsTrue(order2.Twice().IsInfinity);
+                        Assert.IsFalse(order2.IsValid());
+                        ECPoint bad2 = g.Add(order2);
+                        Assert.IsFalse(bad2.IsValid());
+                        ECPoint good2 = bad2.Add(order2);
+                        Assert.IsTrue(good2.IsValid());
+
+                        if (!h.TestBit(1))
+                        {
+                            ECFieldElement L = SolveQuadraticEquation(c, c.A);
+                            Assert.IsNotNull(L);
+                            ECFieldElement T = sqrtB;
+                            ECFieldElement x = T.Sqrt();
+                            ECFieldElement y = T.Add(x.Multiply(L));
+                            ECPoint order4 = c.CreatePoint(x.ToBigInteger(), y.ToBigInteger());
+                            Assert.IsTrue(order4.Twice().Equals(order2));
+                            Assert.IsFalse(order4.IsValid());
+                            ECPoint bad4_1 = g.Add(order4);
+                            Assert.IsFalse(bad4_1.IsValid());
+                            ECPoint bad4_2 = bad4_1.Add(order4);
+                            Assert.IsFalse(bad4_2.IsValid());
+                            ECPoint bad4_3 = bad4_2.Add(order4);
+                            Assert.IsFalse(bad4_3.IsValid());
+                            ECPoint good4 = bad4_3.Add(order4);
+                            Assert.IsTrue(good4.IsValid());
+                        }
+                    }
                 }
             }
         }
@@ -543,6 +578,55 @@ namespace Org.BouncyCastle.Math.EC.Tests
             }
         }
 
+        [Test]
+        public void TestExampleFpB0()
+        {
+            /*
+             * The supersingular curve y^2 = x^3 - 3.x (i.e. with 'B' == 0) from RFC 6508 2.1, with
+             * curve parameters from RFC 6509 Appendix A.
+             */
+            BigInteger p = FromHex(
+                  "997ABB1F0A563FDA65C61198DAD0657A"
+                + "416C0CE19CB48261BE9AE358B3E01A2E"
+                + "F40AAB27E2FC0F1B228730D531A59CB0"
+                + "E791B39FF7C88A19356D27F4A666A6D0"
+                + "E26C6487326B4CD4512AC5CD65681CE1"
+                + "B6AFF4A831852A82A7CF3C521C3C09AA"
+                + "9F94D6AF56971F1FFCE3E82389857DB0"
+                + "80C5DF10AC7ACE87666D807AFEA85FEB");
+            BigInteger a = p.Subtract(BigInteger.ValueOf(3));
+            BigInteger b = BigInteger.Zero;
+            byte[] S = null;
+            BigInteger n = p.Add(BigInteger.One).ShiftRight(2);
+            BigInteger h = BigInteger.ValueOf(4);
+
+            ECCurve curve = ConfigureCurve(new FpCurve(p, a, b, n, h));
+
+            X9ECPoint G = ConfigureBasepoint(curve, "04"
+                // Px
+                + "53FC09EE332C29AD0A7990053ED9B52A"
+                + "2B1A2FD60AEC69C698B2F204B6FF7CBF"
+                + "B5EDB6C0F6CE2308AB10DB9030B09E10"
+                + "43D5F22CDB9DFA55718BD9E7406CE890"
+                + "9760AF765DD5BCCB337C86548B72F2E1"
+                + "A702C3397A60DE74A7C1514DBA66910D"
+                + "D5CFB4CC80728D87EE9163A5B63F73EC"
+                + "80EC46C4967E0979880DC8ABEAE63895"
+                // Py
+                + "0A8249063F6009F1F9F1F0533634A135"
+                + "D3E82016029906963D778D821E141178"
+                + "F5EA69F4654EC2B9E7F7F5E5F0DE55F6"
+                + "6B598CCF9A140B2E416CFF0CA9E032B9"
+                + "70DAE117AD547C6CCAD696B5B7652FE0"
+                + "AC6F1E80164AA989492D979FC5A4D5F2"
+                + "13515AD7E9CB99A980BDAD5AD5BB4636"
+                + "ADB9B5706A67DCDE75573FD71BEF16D7");
+
+            X9ECParameters x9 = new X9ECParameters(curve, G, n, h, S);
+
+            ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9);
+        }
+
         private void AssertPointsEqual(string message, ECPoint a, ECPoint b)
         {
             // NOTE: We intentionally test points for equality in both directions
@@ -564,6 +648,53 @@ namespace Org.BouncyCastle.Math.EC.Tests
             {
                 Assert.IsTrue(Arrays.AreEqual(a, b));
             }
+        }
+
+        private static X9ECPoint ConfigureBasepoint(ECCurve curve, string encoding)
+        {
+            X9ECPoint G = new X9ECPoint(curve, Hex.Decode(encoding));
+            //WNafUtilities.ConfigureBasepoint(G.Point);
+            return G;
+        }
+
+        private static ECCurve ConfigureCurve(ECCurve curve)
+        {
+            return curve;
+        }
+
+        private static BigInteger FromHex(string hex)
+        {
+            return new BigInteger(1, Hex.Decode(hex));
+        }
+
+        private static ECFieldElement SolveQuadraticEquation(ECCurve c, ECFieldElement rhs)
+        {
+            if (rhs.IsZero)
+                return rhs;
+
+            ECFieldElement gamma, z, zeroElement = c.FromBigInteger(BigInteger.Zero);
+
+            int m = c.FieldSize;
+            do
+            {
+                ECFieldElement t = c.FromBigInteger(BigInteger.Arbitrary(m));
+                z = zeroElement;
+                ECFieldElement w = rhs;
+                for (int i = 1; i < m; i++)
+                {
+                    ECFieldElement w2 = w.Square();
+                    z = z.Square().Add(w2.Multiply(t));
+                    w = w2.Add(rhs);
+                }
+                if (!w.IsZero)
+                {
+                    return null;
+                }
+                gamma = z.Square().Add(z);
+            }
+            while (gamma.IsZero);
+
+            return z;
         }
     }
 }

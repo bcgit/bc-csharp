@@ -220,8 +220,9 @@ namespace Org.BouncyCastle.Cmp.Tests
             GeneralName sender = new GeneralName(new X509Name("CN=Sender"));
             GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
 
-            ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient);
-            msgBuilder.AddCmpCertificate(cert);
+            ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient)
+                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, CertRepMessage.GetInstance(new DerSequence(new DerSequence()))))
+                .AddCmpCertificate(cert);
 
             ISignatureFactory sigFact = new Asn1SignatureFactory("MD5WithRSA", rsaKeyPair.Private);
 
@@ -254,8 +255,9 @@ namespace Org.BouncyCastle.Cmp.Tests
             GeneralName sender = new GeneralName(new X509Name("CN=Sender"));
             GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
 
-            ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient);
-            msgBuilder.AddCmpCertificate(cert);
+            ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient)
+                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, CertRepMessage.GetInstance(new DerSequence(new DerSequence()))))
+                .AddCmpCertificate(cert);
 
             //
             // Default instance.

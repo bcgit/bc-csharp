@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Asn1.Misc
 
 		public int KeyLength
 		{
-			get { return keyLength.Value.IntValue; }
+            get { return keyLength.IntValueExact; }
 		}
 
 		/**

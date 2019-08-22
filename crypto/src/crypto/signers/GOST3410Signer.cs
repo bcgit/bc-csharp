@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -67,12 +68,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         public virtual BigInteger[] GenerateSignature(
 			byte[] message)
 		{
-			byte[] mRev = new byte[message.Length]; // conversion is little-endian
-			for (int i = 0; i != mRev.Length; i++)
-			{
-				mRev[i] = message[mRev.Length - 1 - i];
-			}
-
+            byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
 			BigInteger m = new BigInteger(1, mRev);
 			Gost3410Parameters parameters = key.Parameters;
 			BigInteger k;
@@ -102,13 +98,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 			BigInteger	r,
 			BigInteger	s)
 		{
-			byte[] mRev = new byte[message.Length]; // conversion is little-endian
-			for (int i = 0; i != mRev.Length; i++)
-			{
-				mRev[i] = message[mRev.Length - 1 - i];
-			}
-
-			BigInteger m = new BigInteger(1, mRev);
+            byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
+            BigInteger m = new BigInteger(1, mRev);
 			Gost3410Parameters parameters = key.Parameters;
 
 			if (r.SignValue < 0 || parameters.Q.CompareTo(r) <= 0)

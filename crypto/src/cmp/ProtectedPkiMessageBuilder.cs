@@ -90,6 +90,9 @@ namespace Org.BouncyCastle.Cmp
 
         public ProtectedPkiMessage Build(ISignatureFactory signatureFactory)
         {
+            if (null == body)
+                throw new InvalidOperationException("body must be set before building");
+
             IStreamCalculator calculator = signatureFactory.CreateCalculator();
 
             if (!(signatureFactory.AlgorithmDetails is AlgorithmIdentifier))
@@ -105,6 +108,9 @@ namespace Org.BouncyCastle.Cmp
 
         public ProtectedPkiMessage Build(IMacFactory factory)
         {
+            if (null == body)
+                throw new InvalidOperationException("body must be set before building");
+
             IStreamCalculator calculator = factory.CreateCalculator();
             FinalizeHeader((AlgorithmIdentifier)factory.AlgorithmDetails);
             PkiHeader header = hdrBuilBuilder.Build();

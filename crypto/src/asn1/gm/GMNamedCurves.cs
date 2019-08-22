@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Endo;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -15,6 +16,13 @@ namespace Org.BouncyCastle.Asn1.GM
     {
         private GMNamedCurves()
         {
+        }
+
+        private static X9ECPoint ConfigureBasepoint(ECCurve curve, string encoding)
+        {
+            X9ECPoint G = new X9ECPoint(curve, Hex.Decode(encoding));
+            WNafUtilities.ConfigureBasepoint(G.Point);
+            return G;
         }
 
         private static ECCurve ConfigureCurve(ECCurve curve)
@@ -47,10 +55,8 @@ namespace Org.BouncyCastle.Asn1.GM
                 BigInteger h = BigInteger.One;
 
                 ECCurve curve = ConfigureCurve(new FpCurve(p, a, b, n, h));
-                X9ECPoint G = new X9ECPoint(curve, Hex.Decode("04"
-                    + "32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7"
-                    + "BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0"));
-
+                X9ECPoint G = ConfigureBasepoint(curve,
+                    "0432C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0");
                 return new X9ECParameters(curve, G, n, h, S);
             }
         }
@@ -75,9 +81,8 @@ namespace Org.BouncyCastle.Asn1.GM
                 BigInteger h = BigInteger.One;
 
                 ECCurve curve = ConfigureCurve(new FpCurve(p, a, b, n, h));
-                X9ECPoint G = new X9ECPoint(curve, Hex.Decode("04"
-                    + "4AD5F7048DE709AD51236DE6" + "5E4D4B482C836DC6E4106640"
-                    + "02BB3A02D4AAADACAE24817A" + "4CA3A1B014B5270432DB27D2"));
+                X9ECPoint G = ConfigureBasepoint(curve,
+                    "044AD5F7048DE709AD51236DE65E4D4B482C836DC6E410664002BB3A02D4AAADACAE24817A4CA3A1B014B5270432DB27D2");
 
                 return new X9ECParameters(curve, G, n, h, S);
             }

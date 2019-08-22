@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Ocsp
 
 		public int Status
 		{
-			get { return this.resp.ResponseStatus.Value.IntValue; }
+            get { return this.resp.ResponseStatus.IntValueExact; }
 		}
 
 		public object GetResponseObject()

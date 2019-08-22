@@ -310,7 +310,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             //
             Asn1Object pubKeyObj = Asn1Object.FromByteArray(pubKeyEnc);
             RsaPublicKeyStructure pubStruct = RsaPublicKeyStructure.GetInstance(
-                SubjectPublicKeyInfo.GetInstance(pubKeyObj).GetPublicKey());
+                SubjectPublicKeyInfo.GetInstance(pubKeyObj).ParsePublicKey());
 
             //
             // extract the private key info.

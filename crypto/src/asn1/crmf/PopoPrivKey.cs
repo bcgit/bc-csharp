@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 this.obj = DerBitString.GetInstance(obj, false);
                 break;
             case subsequentMessage:
-                this.obj = SubsequentMessage.ValueOf(DerInteger.GetInstance(obj, false).Value.IntValue);
+                this.obj = SubsequentMessage.ValueOf(DerInteger.GetInstance(obj, false).IntValueExact);
                 break;
             case dhMAC:
                 this.obj = DerBitString.GetInstance(obj, false);
