@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        #if !LIB
+#if !LIB
 		public static void MainOld(
             string[] args)
         {
