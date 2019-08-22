@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 if (!isShutdown)
                 {
                     isShutdown = true;
-                    //serverThread.Interrupt();                    
+                    serverThread.Interrupt();                    
                     serverThread.Join(100);
                 }
             }
