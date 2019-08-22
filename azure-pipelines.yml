@@ -14,9 +14,11 @@ variables:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 steps:
-- task: DotNetCoreInstaller@0
+- task: UseDotNet@2
   inputs:
-    version: '3.0.100-preview7-012821'
+    version: '3.0.100-preview8-013656'
+    includePreviewVersions: true
+    performMultiLevelLookup: true
 
 - task: DotNetCoreCLI@2  
   inputs:
