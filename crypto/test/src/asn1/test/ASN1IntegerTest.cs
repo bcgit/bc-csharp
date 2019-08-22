@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                IsTrue(e.Message.StartsWith("malformed integer"));
             }
 
             // No support for thread-local override in C# version
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                IsTrue(e.Message.StartsWith("malformed integer"));
             }
 
             try
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed enumerated", e.Message);
+                IsTrue(e.Message.StartsWith("malformed enumerated"));
             }
 
             try
@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed enumerated", e.Message);
+                IsTrue(e.Message.StartsWith("malformed enumerated"));
             }
 #endif
         }
@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                IsTrue(e.Message.StartsWith("malformed integer"));
             }
         }
 
@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                IsTrue(e.Message.StartsWith("malformed integer"));
             }
         }
 
@@ -209,7 +209,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                IsTrue(e.Message.StartsWith("malformed integer"));
             }
         }
 
@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                IsTrue(e.Message.StartsWith("malformed integer"));
             }
         }
 
