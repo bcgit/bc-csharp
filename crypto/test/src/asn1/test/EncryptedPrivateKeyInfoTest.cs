@@ -132,7 +132,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             return new SimpleTestResult(true, Name + ": Okay");
         }
 
-#if !LIB
 		public static void Main(
 			string[] args)
 		{
@@ -141,7 +140,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			Console.WriteLine(result);
         }
-#endif
 
         [Test]
         public void TestFunction()

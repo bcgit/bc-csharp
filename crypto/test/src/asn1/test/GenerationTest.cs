@@ -307,13 +307,12 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			get { return "Generation"; }
 		}
-#if !LIB
+
         public static void Main(
             string[] args)
         {
 			RunTest(new GenerationTest());
         }
-#endif
 
 		[Test]
         public void TestFunction()

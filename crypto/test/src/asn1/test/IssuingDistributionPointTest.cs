@@ -115,13 +115,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			return o1.Equals(o2);
 		}
-#if !LIB
+
         public static void Main(
 			string[] args)
 		{
 			RunTest(new IssuingDistributionPointUnitTest());
 		}
-#endif
+
         [Test]
         public void TestFunction()
         {

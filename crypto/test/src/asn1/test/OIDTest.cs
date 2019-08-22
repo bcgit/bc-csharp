@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			onCheck("1.1", "1.1.1", true);
 			onCheck("1.1", "1.1.2", true);
 		}
-#if !LIB
+
 		public static void Main(
 			string[] args)
 		{
@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			Console.WriteLine(result);
 		}
-#endif
+
 		[Test]
 		public void TestFunction()
 		{

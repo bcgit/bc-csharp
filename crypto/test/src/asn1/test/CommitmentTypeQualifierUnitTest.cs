@@ -90,13 +90,11 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-#if !LIB
         public static void Main(
             string[] args)
         {
             RunTest(new CommitmentTypeQualifierUnitTest());
         }
-#endif
 
         [Test]
         public void TestFunction()

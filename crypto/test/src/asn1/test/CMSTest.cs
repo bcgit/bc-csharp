@@ -286,7 +286,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "CMS"; }
 		}
 
-#if !LIB
 		public static void Main(
 			string[] args)
 		{
@@ -295,7 +294,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			Console.WriteLine(result);
 		}
-#endif
 
 		[Test]
 		public void TestFunction()

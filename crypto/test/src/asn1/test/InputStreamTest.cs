@@ -67,13 +67,12 @@ namespace Org.BouncyCastle.Asn1.Tests
 				}
 			}
 		}
-#if !LIB
+
 		public static void Main(
 			string[] args)
 		{
 			RunTest(new InputStreamTest());
 		}
-#endif
 
 		[Test]
 		public void TestFunction()

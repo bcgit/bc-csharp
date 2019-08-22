@@ -191,13 +191,13 @@ namespace Org.BouncyCastle.Asn1.Tests
 				Fail("version info found when none expected.");
 			}
         }
-#if !LIB
+
         public static void Main(
             string[]    args)
         {
             RunTest(new LDSSecurityObjectUnitTest());
         }
-#endif
+
         [Test]
         public void TestFunction()
         {

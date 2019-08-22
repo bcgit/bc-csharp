@@ -28,13 +28,12 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			EssCertIDv2.GetInstance(asn1Object);
 		}
-#if !LIB
+
 		public static void Main(
 			string[] args)
 		{
 			RunTest(new EssCertIDv2UnitTest());
 		}
-#endif
 
 		[Test]
         public void TestFunction()

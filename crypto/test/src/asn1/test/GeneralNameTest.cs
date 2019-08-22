@@ -98,13 +98,12 @@ namespace Org.BouncyCastle.Asn1.Tests
 				Fail("ipv6h failed");
 			}
 		}
-#if !LIB
+
 		public static void Main(
 			string[] args)
 		{
 			RunTest(new GeneralNameTest());
 		}
-#endif
 
 		[Test]
 		public void TestFunction()

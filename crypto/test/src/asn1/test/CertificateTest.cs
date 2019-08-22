@@ -378,13 +378,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 			CheckAttributeCertificate(8, cert8);
 		}
 
-#if !LIB
 		public static void Main(
 			string[] args)
 		{
 			RunTest(new CertificateTest());
 		}
-#endif
 
 		[Test]
 		public void TestFunction()

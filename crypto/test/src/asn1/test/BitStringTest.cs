@@ -159,13 +159,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "BitString"; }
         }
 
-#if !LIB
         public static void Main(
             string[] args)
         {
             RunTest(new BitStringTest());
         }
-#endif
 
         [Test]
         public void TestFunction()

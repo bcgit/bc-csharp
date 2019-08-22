@@ -76,13 +76,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("certificateHash", digest, certHash.CertificateHash);
 		}
 
-#if !LIB
 		public static void Main(
 			string[] args)
 		{
 			RunTest(new CertHashUnitTest());
 		}
-#endif
 
 		[Test]
 		public void TestFunction()
