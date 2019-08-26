@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 nonce = param.GetNonce();
                 initialAssociatedText = param.GetAssociatedText();
-                macSize = param.MacSize / 8;
+                macSize = GetMacSize(param.MacSize);
                 cipherParameters = param.Key;
             }
             else if (parameters is ParametersWithIV)
@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 nonce = param.GetIV();
                 initialAssociatedText = null;
-                macSize = macBlock.Length / 2;
+                macSize = GetMacSize(64);
                 cipherParameters = param.Parameters;
             }
             else
@@ -432,6 +432,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             cMac.BlockUpdate(data, dataOff, dataLen);
 
             return cMac.DoFinal(macBlock, 0);
+        }
+
+        private int GetMacSize(int requestedMacBits)
+        {
+            if (requestedMacBits < 32 || requestedMacBits > 128 || 0 != (requestedMacBits & 15))
+                throw new ArgumentException("tag length in octets must be one of {4,6,8,10,12,14,16}");
+
+            return requestedMacBits >> 3;
         }
 
         private int GetAssociatedTextLength()
