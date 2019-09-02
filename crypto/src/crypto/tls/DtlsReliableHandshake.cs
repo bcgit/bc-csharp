@@ -93,6 +93,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     for (;;)
                     {
+                        if (mRecordLayer.Closed)
+                        {
+                            throw new TlsFatalAlert(AlertDescription.user_canceled, new Exception("User canceled handshake"));
+                        }
                         Message pending = GetPendingMessage();
                         if (pending != null)
                             return pending;

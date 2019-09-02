@@ -10,9 +10,19 @@ namespace Org.BouncyCastle.Crypto.Tls
     public class DtlsClientProtocol
         :   DtlsProtocol
     {
+        private DtlsRecordLayer mRecordLayer;
+
         public DtlsClientProtocol(SecureRandom secureRandom)
             :   base(secureRandom)
         {
+        }
+
+        public virtual void Cancel()
+        {
+            if (mRecordLayer != null)
+            {
+                mRecordLayer.Close();
+            }
         }
 
         public virtual DtlsTransport Connect(TlsClient client, DatagramTransport transport)
@@ -34,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             client.Init(state.clientContext);
 
-            DtlsRecordLayer recordLayer = new DtlsRecordLayer(transport, state.clientContext, client, ContentType.handshake);
+            mRecordLayer = new DtlsRecordLayer(transport, state.clientContext, client, ContentType.handshake);
 
             TlsSession sessionToResume = state.client.GetSessionToResume();
             if (sessionToResume != null && sessionToResume.IsResumable)
@@ -49,21 +59,21 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             try
             {
-                return ClientHandshake(state, recordLayer);
+                return ClientHandshake(state, mRecordLayer);
             }
             catch (TlsFatalAlert fatalAlert)
             {
-                AbortClientHandshake(state, recordLayer, fatalAlert.AlertDescription);
+                AbortClientHandshake(state, mRecordLayer, fatalAlert.AlertDescription);
                 throw fatalAlert;
             }
             catch (IOException e)
             {
-                AbortClientHandshake(state, recordLayer, AlertDescription.internal_error);
+                AbortClientHandshake(state, mRecordLayer, AlertDescription.internal_error);
                 throw e;
             }
             catch (Exception e)
             {
-                AbortClientHandshake(state, recordLayer, AlertDescription.internal_error);
+                AbortClientHandshake(state, mRecordLayer, AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             finally
