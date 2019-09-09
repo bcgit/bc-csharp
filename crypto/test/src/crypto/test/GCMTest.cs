@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -356,39 +357,38 @@ namespace Org.BouncyCastle.Crypto.Tests
                 // expected
             }
 
-            // TODO
-            //AEADTestUtil.testTampering(this, gcm, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]));
+            AeadTestUtilities.TestTampering(this, gcm, new AeadParameters(new KeyParameter(new byte[16]), 128, new byte[16]));
 
-            //byte[] P = Strings.toByteArray("Hello world!");
-            //byte[] buf = new byte[100];
+            byte[] P = Strings.ToByteArray("Hello world!");
+            byte[] buf = new byte[100];
 
-            //GCMBlockCipher c = new GCMBlockCipher(createAESEngine());
-            //AEADParameters aeadParameters = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]);
-            //c.init(true, aeadParameters);
+            GcmBlockCipher c = new GcmBlockCipher(CreateAesEngine());
+            AeadParameters aeadParameters = new AeadParameters(new KeyParameter(new byte[16]), 128, new byte[16]);
+            c.Init(true, aeadParameters);
 
-            //c.processBytes(P, 0, P.length, buf, 0);
+            c.ProcessBytes(P, 0, P.Length, buf, 0);
 
-            //c.doFinal(buf, 0);
+            c.DoFinal(buf, 0);
 
-            //try
-            //{
-            //    c.doFinal(buf, 0);
-            //    fail("no exception on reuse");
-            //}
-            //catch (IllegalStateException e)
-            //{
-            //    isTrue("wrong message", e.getMessage().equals("GCM cipher cannot be reused for encryption"));
-            //}
+            try
+            {
+                c.DoFinal(buf, 0);
+                Fail("no exception on reuse");
+            }
+            catch (InvalidOperationException e)
+            {
+                IsTrue("wrong message", e.Message.Equals("GCM cipher cannot be reused for encryption"));
+            }
 
-            //try
-            //{
-            //    c.init(true, aeadParameters);
-            //    fail("no exception on reuse");
-            //}
-            //catch (IllegalArgumentException e)
-            //{
-            //    isTrue("wrong message", e.getMessage().equals("cannot reuse nonce for GCM encryption"));
-            //}
+            try
+            {
+                c.Init(true, aeadParameters);
+                Fail("no exception on reuse");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue("wrong message", e.Message.Equals("cannot reuse nonce for GCM encryption"));
+            }
         }
 
         private void RunTestCase(string[] testVector)
