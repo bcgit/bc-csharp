@@ -14,12 +14,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         /// Creates a 20 rounds ChaCha engine.
         /// </summary>
         public ChaCha7539Engine()
+            : base()
         {
         }
 
         public override string AlgorithmName
         {
-            get { return "ChaCha7539" + rounds; }
+            get { return "ChaCha7539"; }
         }
 
         protected override int NonceSize

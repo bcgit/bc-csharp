@@ -65,6 +65,11 @@ namespace Org.BouncyCastle.Security
             AddAlgorithm("CAST5",
                 "1.2.840.113533.7.66.10");
             AddAlgorithm("CAST6");
+            AddAlgorithm("CHACHA");
+            AddAlgorithm("CHACHA7539",
+                "CHACHA20",
+                "CHACHA20-POLY1305",
+                PkcsObjectIdentifiers.IdAlgAeadChaCha20Poly1305);
             AddAlgorithm("DES",
                 OiwObjectIdentifiers.DesCbc,
                 OiwObjectIdentifiers.DesCfb,
@@ -114,7 +119,8 @@ namespace Org.BouncyCastle.Security
             AddAlgorithm("VMPC-KSA3");
             AddAlgorithm("XTEA");
 
-            AddBasicIVSizeEntries(8, "BLOWFISH", "DES", "DESEDE", "DESEDE3");
+            AddBasicIVSizeEntries(8, "BLOWFISH", "CHACHA", "DES", "DESEDE", "DESEDE3", "SALSA20");
+            AddBasicIVSizeEntries(12, "CHACHA7539");
             AddBasicIVSizeEntries(16, "AES", "AES128", "AES192", "AES256",
                 "CAMELLIA", "CAMELLIA128", "CAMELLIA192", "CAMELLIA256",
                 "NOEKEON", "SEED", "SM4");
@@ -315,13 +321,9 @@ namespace Org.BouncyCastle.Security
             return new DerOctetString(CreateIV(random, ivLength));
         }
 
-        private static byte[] CreateIV(
-            SecureRandom	random,
-            int				ivLength)
+        private static byte[] CreateIV(SecureRandom random, int ivLength)
         {
-            byte[] iv = new byte[ivLength];
-            random.NextBytes(iv);
-            return iv;
+            return SecureRandom.GetNextBytes(random, ivLength);
         }
 
         private static int FindBasicIVSize(

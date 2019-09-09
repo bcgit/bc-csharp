@@ -652,6 +652,7 @@
     <Compile Include="src\crypto\AsymmetricCipherKeyPair.cs" />
     <Compile Include="src\crypto\AsymmetricKeyParameter.cs" />
     <Compile Include="src\crypto\BufferedAeadBlockCipher.cs" />
+    <Compile Include="src\crypto\BufferedAeadCipher.cs" />
     <Compile Include="src\crypto\BufferedAsymmetricBlockCipher.cs" />
     <Compile Include="src\crypto\BufferedBlockCipher.cs" />
     <Compile Include="src\crypto\BufferedCipherBase.cs" />

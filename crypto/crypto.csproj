@@ -3144,6 +3144,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\BufferedAeadCipher.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\BufferedAsymmetricBlockCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
