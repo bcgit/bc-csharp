@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
     {
         private static BigInteger FromHex(string hex)
         {
-            return new BigInteger(1, Hex.Decode(hex));
+            return new BigInteger(1, Hex.DecodeStrict(hex));
         }
 
         private static DHParameters FromPG(string hexP, string hexG)

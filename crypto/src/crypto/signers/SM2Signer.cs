@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 baseParam = parameters;
                 // the default value, string value is "1234567812345678"
-                userID = Hex.Decode("31323334353637383132333435363738");
+                userID = Hex.DecodeStrict("31323334353637383132333435363738");
             }
 
             if (forSigning)

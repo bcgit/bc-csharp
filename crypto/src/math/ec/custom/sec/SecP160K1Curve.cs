@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             this.m_a = FromBigInteger(BigInteger.Zero);
             this.m_b = FromBigInteger(BigInteger.ValueOf(7));
-            this.m_order = new BigInteger(1, Hex.Decode("0100000000000000000001B8FA16DFAB9ACA16B6B3"));
+            this.m_order = new BigInteger(1, Hex.DecodeStrict("0100000000000000000001B8FA16DFAB9ACA16B6B3"));
             this.m_cofactor = BigInteger.One;
             this.m_coord = SECP160K1_DEFAULT_COORDS;
         }

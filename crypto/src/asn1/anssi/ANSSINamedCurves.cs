@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1.Anssi
     {
         private static X9ECPoint ConfigureBasepoint(ECCurve curve, string encoding)
         {
-            X9ECPoint G = new X9ECPoint(curve, Hex.Decode(encoding));
+            X9ECPoint G = new X9ECPoint(curve, Hex.DecodeStrict(encoding));
             WNafUtilities.ConfigureBasepoint(G.Point);
             return G;
         }
@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.Anssi
 
         private static BigInteger FromHex(string hex)
         {
-            return new BigInteger(1, Hex.Decode(hex));
+            return new BigInteger(1, Hex.DecodeStrict(hex));
         }
 
         /*

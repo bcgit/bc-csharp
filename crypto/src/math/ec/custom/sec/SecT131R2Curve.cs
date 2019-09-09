@@ -19,9 +19,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             this.m_infinity = new SecT131R2Point(this, null, null);
 
-            this.m_a = FromBigInteger(new BigInteger(1, Hex.Decode("03E5A88919D7CAFCBF415F07C2176573B2")));
-            this.m_b = FromBigInteger(new BigInteger(1, Hex.Decode("04B8266A46C55657AC734CE38F018F2192")));
-            this.m_order = new BigInteger(1, Hex.Decode("0400000000000000016954A233049BA98F"));
+            this.m_a = FromBigInteger(new BigInteger(1, Hex.DecodeStrict("03E5A88919D7CAFCBF415F07C2176573B2")));
+            this.m_b = FromBigInteger(new BigInteger(1, Hex.DecodeStrict("04B8266A46C55657AC734CE38F018F2192")));
+            this.m_order = new BigInteger(1, Hex.DecodeStrict("0400000000000000016954A233049BA98F"));
             this.m_cofactor = BigInteger.Two;
 
             this.m_coord = SECT131R2_DEFAULT_COORDS;

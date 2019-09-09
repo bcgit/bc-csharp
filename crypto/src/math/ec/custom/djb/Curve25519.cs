@@ -10,8 +10,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
     {
         public static readonly BigInteger q = Curve25519FieldElement.Q;
 
-        private static readonly BigInteger C_a = new BigInteger(1, Hex.Decode("2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA984914A144"));
-        private static readonly BigInteger C_b = new BigInteger(1, Hex.Decode("7B425ED097B425ED097B425ED097B425ED097B425ED097B4260B5E9C7710C864"));
+        private static readonly BigInteger C_a = new BigInteger(1, Hex.DecodeStrict("2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA984914A144"));
+        private static readonly BigInteger C_b = new BigInteger(1, Hex.DecodeStrict("7B425ED097B425ED097B425ED097B425ED097B425ED097B4260B5E9C7710C864"));
 
         private const int CURVE25519_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
         private const int CURVE25519_FE_INTS = 8;
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
 
             this.m_a = FromBigInteger(C_a);
             this.m_b = FromBigInteger(C_b);
-            this.m_order = new BigInteger(1, Hex.Decode("1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED"));
+            this.m_order = new BigInteger(1, Hex.DecodeStrict("1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED"));
             this.m_cofactor = BigInteger.ValueOf(8);
             this.m_coord = CURVE25519_DEFAULT_COORDS;
         }

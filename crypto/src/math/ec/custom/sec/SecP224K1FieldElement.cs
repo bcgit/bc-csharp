@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         : AbstractFpFieldElement
     {
         public static readonly BigInteger Q = new BigInteger(1,
-            Hex.Decode("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFE56D"));
+            Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFE56D"));
 
         // Calculated as BigInteger.Two.ModPow(Q.ShiftRight(2), Q)
         private static readonly uint[] PRECOMP_POW2 = new uint[]{ 0x33bfd202, 0xdcfad133, 0x2287624a, 0xc3811ba8,

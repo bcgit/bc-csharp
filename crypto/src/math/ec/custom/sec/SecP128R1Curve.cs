@@ -22,10 +22,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             this.m_infinity = new SecP128R1Point(this, null, null);
 
             this.m_a = FromBigInteger(new BigInteger(1,
-                Hex.Decode("FFFFFFFDFFFFFFFFFFFFFFFFFFFFFFFC")));
+                Hex.DecodeStrict("FFFFFFFDFFFFFFFFFFFFFFFFFFFFFFFC")));
             this.m_b = FromBigInteger(new BigInteger(1,
-                Hex.Decode("E87579C11079F43DD824993C2CEE5ED3")));
-            this.m_order = new BigInteger(1, Hex.Decode("FFFFFFFE0000000075A30D1B9038A115"));
+                Hex.DecodeStrict("E87579C11079F43DD824993C2CEE5ED3")));
+            this.m_order = new BigInteger(1, Hex.DecodeStrict("FFFFFFFE0000000075A30D1B9038A115"));
             this.m_cofactor = BigInteger.One;
 
             this.m_coord = SECP128R1_DEFAULT_COORDS;

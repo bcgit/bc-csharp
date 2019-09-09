@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
     {
         private static BigInteger FromHex(string hex)
         {
-            return new BigInteger(1, Hex.Decode(hex));
+            return new BigInteger(1, Hex.DecodeStrict(hex));
         }
 
         private static Srp6GroupParameters FromNG(string hexN, string hexG)
