@@ -885,11 +885,13 @@
     <Compile Include="src\crypto\modes\CbcBlockCipher.cs" />
     <Compile Include="src\crypto\modes\CcmBlockCipher.cs" />
     <Compile Include="src\crypto\modes\CfbBlockCipher.cs" />
+    <Compile Include="src\crypto\modes\ChaCha20Poly1305.cs" />
     <Compile Include="src\crypto\modes\CtsBlockCipher.cs" />
     <Compile Include="src\crypto\modes\EAXBlockCipher.cs" />
     <Compile Include="src\crypto\modes\GCMBlockCipher.cs" />
     <Compile Include="src\crypto\modes\GOFBBlockCipher.cs" />
     <Compile Include="src\crypto\modes\IAeadBlockCipher.cs" />
+    <Compile Include="src\crypto\modes\IAeadCipher.cs" />
     <Compile Include="src\crypto\modes\KCcmBlockCipher.cs" />
     <Compile Include="src\crypto\modes\KCtrBlockCipher.cs" />
     <Compile Include="src\crypto\modes\OCBBlockCipher.cs" />

@@ -4304,6 +4304,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\modes\ChaCha20Poly1305.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\modes\CTSBlockCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4325,6 +4330,11 @@
                 />
                 <File
                     RelPath = "src\crypto\modes\IAeadBlockCipher.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\modes\IAeadCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -12144,6 +12154,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\CCMTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\ChaCha20Poly1305Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
