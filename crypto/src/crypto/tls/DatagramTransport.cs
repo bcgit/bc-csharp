@@ -4,6 +4,7 @@ using System.IO;
 namespace Org.BouncyCastle.Crypto.Tls
 {
     public interface DatagramTransport
+        : TlsCloseable
     {
         /// <exception cref="IOException"/>
         int GetReceiveLimit();
@@ -16,8 +17,5 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         /// <exception cref="IOException"/>
         void Send(byte[] buf, int off, int len);
-
-        /// <exception cref="IOException"/>
-        void Close();
     }
 }

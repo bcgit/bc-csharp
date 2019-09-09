@@ -1153,6 +1153,7 @@
     <Compile Include="src\crypto\tls\TlsClientContext.cs" />
     <Compile Include="src\crypto\tls\TlsClientContextImpl.cs" />
     <Compile Include="src\crypto\tls\TlsClientProtocol.cs" />
+    <Compile Include="src\crypto\tls\TlsCloseable.cs" />
     <Compile Include="src\crypto\tls\TlsCompression.cs" />
     <Compile Include="src\crypto\tls\TlsContext.cs" />
     <Compile Include="src\crypto\tls\TlsCredentials.cs" />

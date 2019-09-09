@@ -93,6 +93,9 @@ namespace Org.BouncyCastle.Crypto.Tls
                 {
                     for (;;)
                     {
+                        if (mRecordLayer.IsClosed)
+                            throw new TlsFatalAlert(AlertDescription.user_canceled);
+
                         Message pending = GetPendingMessage();
                         if (pending != null)
                             return pending;

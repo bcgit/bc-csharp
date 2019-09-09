@@ -6,6 +6,23 @@ namespace Org.BouncyCastle.Crypto.Tls
     public abstract class AbstractTlsPeer
         :   TlsPeer
     {
+        private volatile TlsCloseable mCloseHandle;
+
+        /// <exception cref="IOException"/>
+        public virtual void Cancel()
+        {
+            TlsCloseable closeHandle = this.mCloseHandle;
+            if (null != closeHandle)
+            {
+                closeHandle.Close();
+            }
+        }
+
+        public virtual void NotifyCloseHandle(TlsCloseable closeHandle)
+        {
+            this.mCloseHandle = closeHandle;
+        }
+
         public virtual bool RequiresExtendedMasterSecret()
         {
             return false;
