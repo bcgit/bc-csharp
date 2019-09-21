@@ -105,6 +105,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Salsa20Test(),
             new XSalsa20Test(),
             new ChaChaTest(),
+            new ChaCha20Poly1305Test(),
             new CMacTest(),
             new EaxTest(),
             new GcmTest(),

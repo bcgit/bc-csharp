@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Tls
 {
     public abstract class TlsProtocol
+        : TlsCloseable
     {
         /*
          * Our Connection states

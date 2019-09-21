@@ -138,7 +138,7 @@ namespace Org.BouncyCastle.Asn1.X500.Style
         {
             try
             {
-                return Asn1Object.FromByteArray(Hex.Decode(oValue.Substring(1)));
+                return Asn1Object.FromByteArray(Hex.DecodeStrict(oValue, 1, oValue.Length - 1));
             }
             catch (IOException e)
             {

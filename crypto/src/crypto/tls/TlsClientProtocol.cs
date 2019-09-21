@@ -92,6 +92,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mTlsClient.Init(mTlsClientContext);
             this.mRecordStream.Init(mTlsClientContext);
 
+            tlsClient.NotifyCloseHandle(this);
+
             TlsSession sessionToResume = tlsClient.GetSessionToResume();
             if (sessionToResume != null && sessionToResume.IsResumable)
             {

@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Sec
 
         private static X9ECPoint ConfigureBasepoint(ECCurve curve, string encoding)
         {
-            X9ECPoint G = new X9ECPoint(curve, Hex.Decode(encoding));
+            X9ECPoint G = new X9ECPoint(curve, Hex.DecodeStrict(encoding));
             WNafUtilities.ConfigureBasepoint(G.Point);
             return G;
         }
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Asn1.Sec
 
         private static BigInteger FromHex(string hex)
         {
-            return new BigInteger(1, Hex.Decode(hex));
+            return new BigInteger(1, Hex.DecodeStrict(hex));
         }
 
         /*
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("DB7C2ABF62E35E668076BEAD208B");
                 BigInteger a = FromHex("DB7C2ABF62E35E668076BEAD2088");
                 BigInteger b = FromHex("659EF8BA043916EEDE8911702B22");
-                byte[] S = Hex.Decode("00F50B028E4D696E676875615175290472783FB1");
+                byte[] S = Hex.DecodeStrict("00F50B028E4D696E676875615175290472783FB1");
                 BigInteger n = FromHex("DB7C2ABF62E35E7628DFAC6561C5");
                 BigInteger h = BigInteger.One;
 
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("DB7C2ABF62E35E668076BEAD208B");
                 BigInteger a = FromHex("6127C24C05F38A0AAAF65C0EF02C");
                 BigInteger b = FromHex("51DEF1815DB5ED74FCC34C85D709");
-                byte[] S = Hex.Decode("002757A1114D696E6768756151755316C05E0BD4");
+                byte[] S = Hex.DecodeStrict("002757A1114D696E6768756151755316C05E0BD4");
                 BigInteger n = FromHex("36DF0AAFD8B8D7597CA10520D04B");
                 BigInteger h = BigInteger.ValueOf(4);
 
@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("FFFFFFFDFFFFFFFFFFFFFFFFFFFFFFFF");
                 BigInteger a = FromHex("FFFFFFFDFFFFFFFFFFFFFFFFFFFFFFFC");
                 BigInteger b = FromHex("E87579C11079F43DD824993C2CEE5ED3");
-                byte[] S = Hex.Decode("000E0D4D696E6768756151750CC03A4473D03679");
+                byte[] S = Hex.DecodeStrict("000E0D4D696E6768756151750CC03A4473D03679");
                 BigInteger n = FromHex("FFFFFFFE0000000075A30D1B9038A115");
                 BigInteger h = BigInteger.One;
 
@@ -144,7 +144,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("FFFFFFFDFFFFFFFFFFFFFFFFFFFFFFFF");
                 BigInteger a = FromHex("D6031998D1B3BBFEBF59CC9BBFF9AEE1");
                 BigInteger b = FromHex("5EEEFCA380D02919DC2C6558BB6D8A5D");
-                byte[] S = Hex.Decode("004D696E67687561517512D8F03431FCE63B88F4");
+                byte[] S = Hex.DecodeStrict("004D696E67687561517512D8F03431FCE63B88F4");
                 BigInteger n = FromHex("3FFFFFFF7FFFFFFFBE0024720613B5A3");
                 BigInteger h = BigInteger.ValueOf(4);
 
@@ -216,7 +216,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFF");
                 BigInteger a = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFC");
                 BigInteger b = FromHex("1C97BEFC54BD7A8B65ACF89F81D4D4ADC565FA45");
-                byte[] S = Hex.Decode("1053CDE42C14D696E67687561517533BF3F83345");
+                byte[] S = Hex.DecodeStrict("1053CDE42C14D696E67687561517533BF3F83345");
                 BigInteger n = FromHex("0100000000000000000001F4C8F927AED3CA752257");
                 BigInteger h = BigInteger.One;
 
@@ -245,7 +245,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFAC73");
                 BigInteger a = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFAC70");
                 BigInteger b = FromHex("B4E134D3FB59EB8BAB57274904664D5AF50388BA");
-                byte[] S = Hex.Decode("B99B99B099B323E02709A4D696E6768756151751");
+                byte[] S = Hex.DecodeStrict("B99B99B099B323E02709A4D696E6768756151751");
                 BigInteger n = FromHex("0100000000000000000000351EE786A818F3A1A16B");
                 BigInteger h = BigInteger.One;
 
@@ -317,7 +317,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFF");
                 BigInteger a = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFC");
                 BigInteger b = FromHex("64210519E59C80E70FA7E9AB72243049FEB8DEECC146B9B1");
-                byte[] S = Hex.Decode("3045AE6FC8422F64ED579528D38120EAE12196D5");
+                byte[] S = Hex.DecodeStrict("3045AE6FC8422F64ED579528D38120EAE12196D5");
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22831");
                 BigInteger h = BigInteger.One;
 
@@ -389,7 +389,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000001");
                 BigInteger a = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFE");
                 BigInteger b = FromHex("B4050A850C04B3ABF54132565044B0B7D7BFD8BA270B39432355FFB4");
-                byte[] S = Hex.Decode("BD71344799D5C7FCDC45B59FA3B9AB8F6A948BC5");
+                byte[] S = Hex.DecodeStrict("BD71344799D5C7FCDC45B59FA3B9AB8F6A948BC5");
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFF16A2E0B8F03E13DD29455C5C2A3D");
                 BigInteger h = BigInteger.One;
 
@@ -461,7 +461,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF");
                 BigInteger a = FromHex("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC");
                 BigInteger b = FromHex("5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B");
-                byte[] S = Hex.Decode("C49D360886E704936A6678E1139D26B7819F7E90");
+                byte[] S = Hex.DecodeStrict("C49D360886E704936A6678E1139D26B7819F7E90");
                 BigInteger n = FromHex("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
                 BigInteger h = BigInteger.One;
 
@@ -490,7 +490,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFF0000000000000000FFFFFFFF");
                 BigInteger a = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFF0000000000000000FFFFFFFC");
                 BigInteger b = FromHex("B3312FA7E23EE7E4988E056BE3F82D19181D9C6EFE8141120314088F5013875AC656398D8A2ED19D2A85C8EDD3EC2AEF");
-                byte[] S = Hex.Decode("A335926AA319A27A1D00896A6773A4827ACDAC73");
+                byte[] S = Hex.DecodeStrict("A335926AA319A27A1D00896A6773A4827ACDAC73");
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973");
                 BigInteger h = BigInteger.One;
 
@@ -520,7 +520,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger p = FromHex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
                 BigInteger a = FromHex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC");
                 BigInteger b = FromHex("0051953EB9618E1C9A1F929A21A0B68540EEA2DA725B99B315F3B8B489918EF109E156193951EC7E937B1652C0BD3BB1BF073573DF883D2C34F1EF451FD46B503F00");
-                byte[] S = Hex.Decode("D09E8800291CB85396CC6717393284AAA0DA64BA");
+                byte[] S = Hex.DecodeStrict("D09E8800291CB85396CC6717393284AAA0DA64BA");
                 BigInteger n = FromHex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409");
                 BigInteger h = BigInteger.One;
 
@@ -551,7 +551,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = FromHex("003088250CA6E7C7FE649CE85820F7");
                 BigInteger b = FromHex("00E8BEE4D3E2260744188BE0E9C723");
-                byte[] S = Hex.Decode("10E723AB14D696E6768756151756FEBF8FCB49A9");
+                byte[] S = Hex.DecodeStrict("10E723AB14D696E6768756151756FEBF8FCB49A9");
                 BigInteger n = FromHex("0100000000000000D9CCEC8A39E56F");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -581,7 +581,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = FromHex("00689918DBEC7E5A0DD6DFC0AA55C7");
                 BigInteger b = FromHex("0095E9A9EC9B297BD4BF36E059184F");
-                byte[] S = Hex.Decode("10C0FB15760860DEF1EEF4D696E676875615175D");
+                byte[] S = Hex.DecodeStrict("10C0FB15760860DEF1EEF4D696E676875615175D");
                 BigInteger n = FromHex("010000000000000108789B2496AF93");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -613,7 +613,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = FromHex("07A11B09A76B562144418FF3FF8C2570B8");
                 BigInteger b = FromHex("0217C05610884B63B9C6C7291678F9D341");
-                byte[] S = Hex.Decode("4D696E676875615175985BD3ADBADA21B43A97E2");
+                byte[] S = Hex.DecodeStrict("4D696E676875615175985BD3ADBADA21B43A97E2");
                 BigInteger n = FromHex("0400000000000000023123953A9464B54D");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -645,7 +645,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = FromHex("03E5A88919D7CAFCBF415F07C2176573B2");
                 BigInteger b = FromHex("04B8266A46C55657AC734CE38F018F2192");
-                byte[] S = Hex.Decode("985BD3ADBAD4D696E676875615175A21B43A97E3");
+                byte[] S = Hex.DecodeStrict("985BD3ADBAD4D696E676875615175A21B43A97E3");
                 BigInteger n = FromHex("0400000000000000016954A233049BA98F");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -709,7 +709,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = FromHex("07B6882CAAEFA84F9554FF8428BD88E246D2782AE2");
                 BigInteger b = FromHex("0713612DCDDCB40AAB946BDA29CA91F73AF958AFD9");
-                byte[] S = Hex.Decode("24B7B137C8A14D696E6768756151756FD0DA2E5C");
+                byte[] S = Hex.DecodeStrict("24B7B137C8A14D696E6768756151756FD0DA2E5C");
                 BigInteger n = FromHex("03FFFFFFFFFFFFFFFFFFFF48AAB689C29CA710279B");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -741,7 +741,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("020A601907B8C953CA1481EB10512F78744A3205FD");
-                byte[] S = Hex.Decode("85E25BFE5C86226CDB12016F7553F9D0E693A268");
+                byte[] S = Hex.DecodeStrict("85E25BFE5C86226CDB12016F7553F9D0E693A268");
                 BigInteger n = FromHex("040000000000000000000292FE77E70C12A4234C33");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -771,7 +771,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = FromHex("0017858FEB7A98975169E171F77B4087DE098AC8A911DF7B01");
                 BigInteger b = FromHex("00FDFB49BFE6C3A89FACADAA7A1E5BBC7CC1C2E5D831478814");
-                byte[] S = Hex.Decode("103FAEC74D696E676875615175777FC5B191EF30");
+                byte[] S = Hex.DecodeStrict("103FAEC74D696E676875615175777FC5B191EF30");
                 BigInteger n = FromHex("01000000000000000000000000C7F34A778F443ACC920EBA49");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -801,7 +801,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = FromHex("0163F35A5137C2CE3EA6ED8667190B0BC43ECD69977702709B");
                 BigInteger b = FromHex("00C9BB9E8927D4D64C377E2AB2856A5B16E3EFB7F61D4316AE");
-                byte[] S = Hex.Decode("10B7B4D696E676875615175137C8A16FD0DA2211");
+                byte[] S = Hex.DecodeStrict("10B7B4D696E676875615175137C8A16FD0DA2211");
                 BigInteger n = FromHex("010000000000000000000000015AAB561B005413CCD4EE99D5");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -861,7 +861,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("0066647EDE6C332C7F8C0923BB58213B333B20E9CE4281FE115F7D8F90AD");
-                byte[] S = Hex.Decode("74D59FF07F6B413D0EA14B344B20A2DB049B50C3");
+                byte[] S = Hex.DecodeStrict("74D59FF07F6B413D0EA14B344B20A2DB049B50C3");
                 BigInteger n = FromHex("01000000000000000000000000000013E974E72F8A6922031D2603CFE0D7");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -956,7 +956,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("027B680AC8B8596DA5A4AF8A19A0303FCA97FD7645309FA2A581485AF6263E313B79A2F5");
-                byte[] S = Hex.Decode("77E2B07370EB0F832A6DD5B62DFC88CD06BB84BE");
+                byte[] S = Hex.DecodeStrict("77E2B07370EB0F832A6DD5B62DFC88CD06BB84BE");
                 BigInteger n = FromHex("03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEF90399660FC938A90165B042A7CEFADB307");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -1018,7 +1018,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("0021A5C2C8EE9FEB5C4B9A753B7B476B7FD6422EF1F3DD674761FA99D6AC27C8A9A197B272822F6CD57A55AA4F50AE317B13545F");
-                byte[] S = Hex.Decode("4099B5A457F9D69F79213D094C4BCD4D4262210B");
+                byte[] S = Hex.DecodeStrict("4099B5A457F9D69F79213D094C4BCD4D4262210B");
                 BigInteger n = FromHex("010000000000000000000000000000000000000000000000000001E2AAD6A612F33307BE5FA47C3C9E052F838164CD37D9A21173");
                 BigInteger h = BigInteger.ValueOf(2);
 
@@ -1084,7 +1084,7 @@ namespace Org.BouncyCastle.Asn1.Sec
             {
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("02F40E7E2221F295DE297117B7F3D62F5C6A97FFCB8CEFF1CD6BA8CE4A9A18AD84FFABBD8EFA59332BE7AD6756A66E294AFD185A78FF12AA520E4DE739BACA0C7FFEFF7F2955727A");
-                byte[] S = Hex.Decode("2AA058F73A0E33AB486B0F610410C53A7F132310");
+                byte[] S = Hex.DecodeStrict("2AA058F73A0E33AB486B0F610410C53A7F132310");
                 BigInteger n = FromHex("03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE661CE18FF55987308059B186823851EC7DD9CA1161DE93D5174D66E8382E9BB2FE84E47");
                 BigInteger h = BigInteger.ValueOf(2);
 

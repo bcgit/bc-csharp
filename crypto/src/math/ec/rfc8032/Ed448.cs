@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
     public abstract class Ed448
     {
+        // x^2 + y^2 == 1 - 39081 * x^2 * y^2
+
         public enum Algorithm
         {
             Ed448 = 0,
@@ -107,6 +109,46 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static bool CheckContextVar(byte[] ctx)
         {
             return ctx != null && ctx.Length < 256;
+        }
+
+        private static int CheckPoint(uint[] x, uint[] y)
+        {
+            uint[] t = X448Field.Create();
+            uint[] u = X448Field.Create();
+            uint[] v = X448Field.Create();
+
+            X448Field.Sqr(x, u);
+            X448Field.Sqr(y, v);
+            X448Field.Mul(u, v, t);
+            X448Field.Add(u, v, u);
+            X448Field.Mul(t, -C_d, t);
+            X448Field.SubOne(t);
+            X448Field.Add(t, u, t);
+            X448Field.Normalize(t);
+
+            return X448Field.IsZero(t);
+        }
+
+        private static int CheckPoint(uint[] x, uint[] y, uint[] z)
+        {
+            uint[] t = X448Field.Create();
+            uint[] u = X448Field.Create();
+            uint[] v = X448Field.Create();
+            uint[] w = X448Field.Create();
+
+            X448Field.Sqr(x, u);
+            X448Field.Sqr(y, v);
+            X448Field.Sqr(z, w);
+            X448Field.Mul(u, v, t);
+            X448Field.Add(u, v, u);
+            X448Field.Mul(u, w, u);
+            X448Field.Sqr(w, w);
+            X448Field.Mul(t, -C_d, t);
+            X448Field.Sub(t, w, t);
+            X448Field.Add(t, u, t);
+            X448Field.Normalize(t);
+
+            return X448Field.IsZero(t);
         }
 
         private static bool CheckPointVar(byte[] p)
@@ -243,7 +285,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Encode24((uint)(n >> 32), bs, off + 4);
         }
 
-        private static void EncodePoint(PointExt p, byte[] r, int rOff)
+        private static int EncodePoint(PointExt p, byte[] r, int rOff)
         {
             uint[] x = X448Field.Create();
             uint[] y = X448Field.Create();
@@ -254,8 +296,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X448Field.Normalize(x);
             X448Field.Normalize(y);
 
+            int result = CheckPoint(x, y);
+
             X448Field.Encode(y, r, rOff);
             r[rOff + PointBytes - 1] = (byte)((x[0] & 1) << 7);
+
+            return result;
         }
 
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
@@ -435,9 +481,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ScalarMultStrausVar(nS, nA, pA, pR);
 
             byte[] check = new byte[PointBytes];
-            EncodePoint(pR, check, 0);
-
-            return Arrays.AreEqual(check, R);
+            return 0 != EncodePoint(pR, check, 0) && Arrays.AreEqual(check, R);
         }
 
         private static void PointAddVar(bool negate, PointExt p, PointExt r)
@@ -1018,7 +1062,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             PointExt p = new PointExt();
             ScalarMultBase(k, p);
-            EncodePoint(p, r, rOff);
+            if (0 == EncodePoint(p, r, rOff))
+                throw new InvalidOperationException();
         }
 
         internal static void ScalarMultBaseXY(byte[] k, int kOff, uint[] x, uint[] y)
@@ -1028,6 +1073,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             PointExt p = new PointExt();
             ScalarMultBase(n, p);
+
+            if (0 == CheckPoint(p.x, p.y, p.z))
+                throw new InvalidOperationException();
+
             X448Field.Copy(p.x, 0, x, 0);
             X448Field.Copy(p.y, 0, y, 0);
         }

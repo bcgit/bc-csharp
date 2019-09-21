@@ -300,7 +300,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         {
             // A.2.3 Verifiable Canonical Generation of the Generator g
             BigInteger e = p.Subtract(BigInteger.One).Divide(q);
-            byte[] ggen = Hex.Decode("6767656E");
+            byte[] ggen = Hex.DecodeStrict("6767656E");
 
             // 7. U = domain_parameter_seed || "ggen" || index || count.
             byte[] U = new byte[seed.Length + ggen.Length + 1 + 2];

@@ -159,6 +159,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          */
         public static readonly DerObjectIdentifier IdRsaKem = IdAlg.Branch("14");
 
+        /**
+         * <pre>
+         * id-alg-AEADChaCha20Poly1305 OBJECT IDENTIFIER ::=
+         * { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1)
+         *    pkcs9(9) smime(16) alg(3) 18 }
+         *
+         * AEADChaCha20Poly1305Nonce ::= OCTET STRING (SIZE(12))
+         * </pre>
+         */
+        public static readonly DerObjectIdentifier IdAlgAeadChaCha20Poly1305 = IdAlg.Branch("18");
+
         //
         // SMIME capability sub oids.
         //

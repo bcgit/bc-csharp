@@ -33,6 +33,9 @@ namespace Org.BouncyCastle.Security
             CAMELLIA,
             CAST5,
             CAST6,
+            CHACHA,
+            CHACHA20_POLY1305,
+            CHACHA7539,
             DES,
             DESEDE,
             ELGAMAL,
@@ -64,7 +67,7 @@ namespace Org.BouncyCastle.Security
             VMPC_KSA3,
             XTEA,
         };
-        
+
         private enum CipherMode { ECB, NONE, CBC, CCM, CFB, CTR, CTS, EAX, GCM, GOFB, OCB, OFB, OPENPGPCFB, SIC };
         private enum CipherPadding
         {
@@ -207,6 +210,9 @@ namespace Org.BouncyCastle.Security
             algorithms[KisaObjectIdentifiers.IdSeedCbc.Id] = "SEED/CBC/PKCS7PADDING";
 
             algorithms["1.3.6.1.4.1.3029.1.2"] = "BLOWFISH/CBC";
+
+            algorithms["CHACHA20"] = "CHACHA7539";
+            algorithms[PkcsObjectIdentifiers.IdAlgAeadChaCha20Poly1305.Id] = "CHACHA20-POLY1305";
         }
 
         private CipherUtilities()
@@ -333,6 +339,7 @@ namespace Org.BouncyCastle.Security
 
             string[] parts = algorithm.Split('/');
 
+            IAeadCipher aeadCipher = null;
             IBlockCipher blockCipher = null;
             IAsymmetricBlockCipher asymBlockCipher = null;
             IStreamCipher streamCipher = null;
@@ -375,6 +382,15 @@ namespace Org.BouncyCastle.Security
                     break;
                 case CipherAlgorithm.CAST6:
                     blockCipher = new Cast6Engine();
+                    break;
+                case CipherAlgorithm.CHACHA:
+                    streamCipher = new ChaChaEngine();
+                    break;
+                case CipherAlgorithm.CHACHA20_POLY1305:
+                    aeadCipher = new ChaCha20Poly1305();
+                    break;
+                case CipherAlgorithm.CHACHA7539:
+                    streamCipher = new ChaCha7539Engine();
                     break;
                 case CipherAlgorithm.DES:
                     blockCipher = new DesEngine();
@@ -466,6 +482,14 @@ namespace Org.BouncyCastle.Security
                     break;
                 default:
                     throw new SecurityUtilityException("Cipher " + algorithm + " not recognised.");
+            }
+
+            if (aeadCipher != null)
+            {
+                if (parts.Length > 1)
+                    throw new ArgumentException("Modes and paddings cannot be applied to AEAD ciphers");
+
+                return new BufferedAeadCipher(aeadCipher);
             }
 
             if (streamCipher != null)

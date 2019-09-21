@@ -35,6 +35,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             client.Init(state.clientContext);
 
             DtlsRecordLayer recordLayer = new DtlsRecordLayer(transport, state.clientContext, client, ContentType.handshake);
+            client.NotifyCloseHandle(recordLayer);
 
             TlsSession sessionToResume = state.client.GetSessionToResume();
             if (sessionToResume != null && sessionToResume.IsResumable)

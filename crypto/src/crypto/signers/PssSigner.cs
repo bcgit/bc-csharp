@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -250,11 +251,12 @@ namespace Org.BouncyCastle.Crypto.Signers
 				block[i] ^= dbMask[i];
 			}
 
-			block[0] &= (byte) ((0xff >> ((block.Length * 8) - emBits)));
+            h.CopyTo(block, block.Length - hLen - 1);
 
-			h.CopyTo(block, block.Length - hLen - 1);
+            uint firstByteMask = 0xFFU >> ((block.Length * 8) - emBits);
 
-			block[block.Length - 1] = trailer;
+            block[0] &= (byte)firstByteMask;
+            block[block.Length - 1] = trailer;
 
 			byte[] b = cipher.ProcessBlock(block, 0, block.Length);
 
@@ -269,12 +271,16 @@ namespace Org.BouncyCastle.Crypto.Signers
 		public virtual bool VerifySignature(
 			byte[] signature)
 		{
-			contentDigest1.DoFinal(mDash, mDash.Length - hLen - sLen);
+            contentDigest1.DoFinal(mDash, mDash.Length - hLen - sLen);
 
-			byte[] b = cipher.ProcessBlock(signature, 0, signature.Length);
+            byte[] b = cipher.ProcessBlock(signature, 0, signature.Length);
+            Arrays.Fill(block, 0, block.Length - b.Length, 0);
 			b.CopyTo(block, block.Length - b.Length);
 
-			if (block[block.Length - 1] != trailer)
+            uint firstByteMask = 0xFFU >> ((block.Length * 8) - emBits);
+
+			if (block[0] != (byte)(block[0] & firstByteMask)
+                || block[block.Length - 1] != trailer)
 			{
 				ClearBlock(block);
 				return false;
@@ -287,7 +293,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 				block[i] ^= dbMask[i];
 			}
 
-			block[0] &= (byte) ((0xff >> ((block.Length * 8) - emBits)));
+            block[0] &= (byte)firstByteMask;
 
 			for (int i = 0; i != block.Length - hLen - sLen - 2; i++)
 			{

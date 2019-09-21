@@ -94,6 +94,8 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mTlsServer.Init(mTlsServerContext);
             this.mRecordStream.Init(mTlsServerContext);
 
+            tlsServer.NotifyCloseHandle(this);
+
             this.mRecordStream.SetRestrictReadVersion(false);
 
             BlockForHandshake();

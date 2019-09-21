@@ -928,7 +928,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             try
             {
-                return Asn1Object.FromByteArray(Hex.Decode(v.Substring(1)));
+                return Asn1Object.FromByteArray(Hex.DecodeStrict(v, 1, v.Length - 1));
             }
             catch (IOException e)
             {

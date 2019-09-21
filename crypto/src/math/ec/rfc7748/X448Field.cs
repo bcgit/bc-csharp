@@ -1009,6 +1009,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[15] = z15;
         }
 
+        public static void SubOne(uint[] z)
+        {
+            uint[] one = Create();
+            one[0] = 1U;
+
+            Sub(z, one, z);
+        }
+
         public static void Zero(uint[] z)
         {
             for (int i = 0; i < Size; ++i)

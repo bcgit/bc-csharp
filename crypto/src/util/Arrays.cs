@@ -81,20 +81,45 @@ namespace Org.BouncyCastle.Utilities
         /// <param name="a">first array</param>
         /// <param name="b">second array</param>
         /// <returns>true if arrays equal, false otherwise.</returns>
-        public static bool ConstantTimeAreEqual(
-            byte[]	a,
-            byte[]	b)
+        public static bool ConstantTimeAreEqual(byte[] a, byte[] b)
         {
-            int i = a.Length;
-            if (i != b.Length)
+            if (null == a || null == b)
                 return false;
-            int cmp = 0;
-            while (i != 0)
+            if (a == b)
+                return true;
+
+            int len = System.Math.Min(a.Length, b.Length);
+            int nonEqual = a.Length ^ b.Length;
+            for (int i = 0; i < len; ++i)
             {
-                --i;
-                cmp |= (a[i] ^ b[i]);
+                nonEqual |= (a[i] ^ b[i]);
             }
-            return cmp == 0;
+            for (int i = len; i < b.Length; ++i)
+            {
+                nonEqual |= (b[i] ^ ~b[i]);
+            }
+            return 0 == nonEqual;
+        }
+
+        public static bool ConstantTimeAreEqual(int len, byte[] a, int aOff, byte[] b, int bOff)
+        {
+            if (null == a)
+                throw new ArgumentNullException("a");
+            if (null == b)
+                throw new ArgumentNullException("b");
+            if (len < 0)
+                throw new ArgumentException("cannot be negative", "len");
+            if (aOff > (a.Length - len))
+                throw new IndexOutOfRangeException("'aOff' value invalid for specified length");
+            if (bOff > (b.Length - len))
+                throw new IndexOutOfRangeException("'bOff' value invalid for specified length");
+
+            int d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= (a[aOff + i] ^ b[bOff + i]);
+            }
+            return 0 == d;
         }
 
         public static bool AreEqual(
@@ -711,6 +736,22 @@ namespace Org.BouncyCastle.Utilities
             }
 
             return result;
+        }
+
+        public static void Clear(byte[] data)
+        {
+            if (null != data)
+            {
+                Array.Clear(data, 0, data.Length);
+            }
+        }
+
+        public static void Clear(int[] data)
+        {
+            if (null != data)
+            {
+                Array.Clear(data, 0, data.Length);
+            }
         }
 
         public static bool IsNullOrContainsNull(object[] array)

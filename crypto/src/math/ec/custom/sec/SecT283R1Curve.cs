@@ -20,8 +20,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             this.m_infinity = new SecT283R1Point(this, null, null);
 
             this.m_a = FromBigInteger(BigInteger.One);
-            this.m_b = FromBigInteger(new BigInteger(1, Hex.Decode("027B680AC8B8596DA5A4AF8A19A0303FCA97FD7645309FA2A581485AF6263E313B79A2F5")));
-            this.m_order = new BigInteger(1, Hex.Decode("03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEF90399660FC938A90165B042A7CEFADB307"));
+            this.m_b = FromBigInteger(new BigInteger(1, Hex.DecodeStrict("027B680AC8B8596DA5A4AF8A19A0303FCA97FD7645309FA2A581485AF6263E313B79A2F5")));
+            this.m_order = new BigInteger(1, Hex.DecodeStrict("03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEF90399660FC938A90165B042A7CEFADB307"));
             this.m_cofactor = BigInteger.Two;
 
             this.m_coord = SECT283R1_DEFAULT_COORDS;

@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         : AbstractFpFieldElement
     {
         public static readonly BigInteger Q = new BigInteger(1,
-            Hex.Decode("FFFFFFFDFFFFFFFFFFFFFFFFFFFFFFFF"));
+            Hex.DecodeStrict("FFFFFFFDFFFFFFFFFFFFFFFFFFFFFFFF"));
 
         protected internal readonly uint[] x;
 
