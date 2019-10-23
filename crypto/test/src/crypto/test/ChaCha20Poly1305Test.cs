@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             SecureRandom random = new SecureRandom();
             random.SetSeed(DateTimeUtilities.CurrentUnixMs());
 
-            for (int i = 0; i < 10; ++i)
+            for (int i = 0; i < 100; ++i)
             {
                 RandomTest(random);
             }
@@ -205,8 +205,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] K = new byte[kLength];
             random.NextBytes(K);
 
+            int pHead = random.Next(256);
             int pLength = random.Next(65536);
-            byte[] P = new byte[pLength];
+            int pTail = random.Next(256);
+            byte[] P = new byte[pHead + pLength + pTail];
             random.NextBytes(P);
 
             int aLength = random.Next(256);
@@ -223,28 +225,31 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             AeadParameters parameters = new AeadParameters(new KeyParameter(K), 16 * 8, nonce, A);
             ChaCha20Poly1305 cipher = InitCipher(true, parameters);
-            byte[] C = new byte[cipher.GetOutputSize(P.Length)];
-            int predicted = cipher.GetUpdateOutputSize(P.Length);
 
-            int split = NextInt(random, SA.Length + 1);
-            cipher.ProcessAadBytes(SA, 0, split);
-            cipher.ProcessAadBytes(SA, split, SA.Length - split);
+            int ctLength = cipher.GetOutputSize(pLength);
+            byte[] C = new byte[saLength + ctLength];
+            Array.Copy(SA, 0, C, 0, saLength);
 
-            int len = cipher.ProcessBytes(P, 0, P.Length, C, 0);
+            int split = NextInt(random, saLength + 1);
+            cipher.ProcessAadBytes(C, 0, split);
+            cipher.ProcessAadBytes(C, split, saLength - split);
+
+            int predicted = cipher.GetUpdateOutputSize(pLength);
+            int len = cipher.ProcessBytes(P, pHead, pLength, C, saLength);
             if (predicted != len)
             {
                 Fail("encryption reported incorrect update length in randomised test");
             }
 
-            len += cipher.DoFinal(C, len);
-            if (C.Length != len)
+            len += cipher.DoFinal(C, saLength + len);
+            if (ctLength != len)
             {
                 Fail("encryption reported incorrect length in randomised test");
             }
 
             byte[] encT = cipher.GetMac();
-            byte[] tail = new byte[C.Length - P.Length];
-            Array.Copy(C, P.Length, tail, 0, tail.Length);
+            byte[] tail = new byte[ctLength - pLength];
+            Array.Copy(C, saLength + pLength, tail, 0, tail.Length);
 
             if (!AreEqual(encT, tail))
             {
@@ -252,22 +257,26 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             cipher.Init(false, parameters);
-            byte[] decP = new byte[cipher.GetOutputSize(C.Length)];
-            predicted = cipher.GetUpdateOutputSize(C.Length);
 
-            split = NextInt(random, SA.Length + 1);
-            cipher.ProcessAadBytes(SA, 0, split);
-            cipher.ProcessAadBytes(SA, split, SA.Length - split);
+            int decPHead = random.Next(256);
+            int decPLength = cipher.GetOutputSize(ctLength);
+            int decPTail = random.Next(256);
+            byte[] decP = new byte[decPHead + decPLength + decPTail];
 
-            len = cipher.ProcessBytes(C, 0, C.Length, decP, 0);
+            split = NextInt(random, saLength + 1);
+            cipher.ProcessAadBytes(C, 0, split);
+            cipher.ProcessAadBytes(C, split, saLength - split);
+
+            predicted = cipher.GetUpdateOutputSize(ctLength);
+            len = cipher.ProcessBytes(C, saLength, ctLength, decP, decPHead);
             if (predicted != len)
             {
                 Fail("decryption reported incorrect update length in randomised test");
             }
 
-            len += cipher.DoFinal(decP, len);
+            len += cipher.DoFinal(decP, decPHead + len);
 
-            if (!AreEqual(P, decP))
+            if (!AreEqual(P, pHead, pHead + pLength, decP, decPHead, decPHead + decPLength))
             {
                 Fail("incorrect decrypt in randomised test");
             }
@@ -282,16 +291,20 @@ namespace Org.BouncyCastle.Crypto.Tests
             // key reuse test
             //
             cipher.Init(false, AeadTestUtilities.ReuseKey(parameters));
-            decP = new byte[cipher.GetOutputSize(C.Length)];
 
-            split = NextInt(random, SA.Length + 1);
-            cipher.ProcessAadBytes(SA, 0, split);
-            cipher.ProcessAadBytes(SA, split, SA.Length - split);
+            decPHead = random.Next(256);
+            decPLength = cipher.GetOutputSize(ctLength);
+            decPTail = random.Next(256);
+            decP = new byte[decPHead + decPLength + decPTail];
 
-            len = cipher.ProcessBytes(C, 0, C.Length, decP, 0);
-            len += cipher.DoFinal(decP, len);
+            split = NextInt(random, saLength + 1);
+            cipher.ProcessAadBytes(C, 0, split);
+            cipher.ProcessAadBytes(C, split, saLength - split);
 
-            if (!AreEqual(P, decP))
+            len = cipher.ProcessBytes(C, saLength, ctLength, decP, decPHead);
+            len += cipher.DoFinal(decP, decPHead + len);
+
+            if (!AreEqual(P, pHead, pHead + pLength, decP, decPHead, decPHead + decPLength))
             {
                 Fail("incorrect decrypt in randomised test");
             }
