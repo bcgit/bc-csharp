@@ -6,75 +6,106 @@ pr:
 - netstandard
 - rel/*
 
-pool:
-  vmImage: windows-2019
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: windows-latest
 
-variables: 
-  BuildConfiguration: Release
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    variables: 
+      BuildConfiguration: Release
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
-steps:
-- task: UseDotNet@2
-  inputs:
-    version: '3.0.100-preview8-013656'
-    includePreviewVersions: true
-    performMultiLevelLookup: true
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        version: 3.0.x
+        performMultiLevelLookup: true
 
-- task: DotNetCoreCLI@2  
-  inputs:
-    command: custom
-    custom: tool
-    arguments: install --tool-path . nbgv
-  displayName: Install NBGV tool
+    - task: DotNetCoreCLI@2  
+      inputs:
+        command: custom
+        custom: tool
+        arguments: install --tool-path . nbgv
+      displayName: Install NBGV tool
 
-- script: nbgv cloud
-  displayName: Set Version
+    - script: nbgv cloud
+      displayName: Set Version
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: pack
-    packagesToPack: .\crypto\src\crypto.csproj
-    packDirectory: $(Build.ArtifactStagingDirectory)\Packages
-    configuration: $(BuildConfiguration)
-    arguments: /p:PackageId="Portable.BouncyCastle" 
-  displayName: Build  
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: pack
+        packagesToPack: .\crypto\src\crypto.csproj
+        packDirectory: $(Build.ArtifactStagingDirectory)\Packages
+        configuration: $(BuildConfiguration)
+        arguments: /p:PackageId="Portable.BouncyCastle" 
+      displayName: Build  
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: custom
-    custom: tool
-    arguments: install --tool-path . dotnet-reportgenerator-globaltool
-  displayName: Install ReportGenerator tool
-  
-- task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: .\crypto\test\crypto.test.csproj
-    arguments: -c $(BuildConfiguration) --collect:"XPlat Code Coverage" -s $(System.DefaultWorkingDirectory)\CodeCoverage.runsettings
-  displayName: Run Tests
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: custom
+        custom: tool
+        arguments: install --tool-path . dotnet-reportgenerator-globaltool
+      displayName: Install ReportGenerator tool
+      
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: test
+        projects: .\crypto\test\crypto.test.csproj
+        arguments: -c $(BuildConfiguration) --collect:"XPlat Code Coverage" -s $(System.DefaultWorkingDirectory)\CodeCoverage.runsettings
+      displayName: Run Tests
 
-- script: reportgenerator -reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/reports -reporttypes:"Cobertura"
-  displayName: Create reports
+    - script: reportgenerator -reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/reports -reporttypes:"Cobertura"
+      displayName: Create reports
 
-- task: PublishCodeCoverageResults@1
-  displayName: 'Publish code coverage'
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: $(Build.SourcesDirectory)/reports/Cobertura.xml
-  
-- task: PowerShell@2
-  displayName: Authenticode Sign artifacts
-  inputs:
-    filePath: scripts/Sign-Package.ps1
-  env:
-    SignClientUser: $(SignClientUser)
-    SignClientSecret: $(SignClientSecret)
-    ArtifactDirectory: $(Build.ArtifactStagingDirectory)\Packages
-  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')), not(eq(variables['SignClientSecret'], '')), not(eq(variables['SignClientUser'], '')))
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage'
+      inputs:
+        codeCoverageTool: Cobertura
+        summaryFileLocation: $(Build.SourcesDirectory)/reports/Cobertura.xml
 
-- task: PublishBuildArtifacts@1
-  displayName: Publish Package Artifacts
-  inputs:
-    pathToPublish: $(Build.ArtifactStagingDirectory)\Packages
-    artifactType: container
-    artifactName: Packages
+    - publish: $(Build.ArtifactStagingDirectory)\Packages   
+      displayName: Publish Build Artifacts  
+      artifact: BuildPackages
+
+    - publish: config
+      displayName: Publish Signing Scripts
+      artifact: config
+
+- stage: CodeSign
+  condition: and(succeeded('Build'), not(eq(variables['build.reason'], 'PullRequest')))
+  jobs:
+  - deployment: CodeSign
+    displayName: Code Signing
+    pool:
+      vmImage: windows-latest    
+    environment: Code Sign - CI
+    variables:
+    - group: Sign Client Credentials
+    strategy:
+      runOnce:
+        deploy:
+          steps: 
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: custom
+              custom: tool
+              arguments: install --tool-path . SignClient
+            displayName: Install SignTool tool
+
+          - pwsh: |
+              .\SignClient "Sign" `
+              --baseDirectory "$(Pipeline.Workspace)\BuildPackages" `
+              --input "**/*.nupkg" `
+              --config "$(Pipeline.Workspace)\config\signclient.json" `
+              --user "$(SignClientUser)" `
+              --secret "$(SignClientSecret)" `
+              --name "Portable.BouncyCastle" `
+              --description "Portable.BouncyCastle" `
+              --descriptionUrl "https://github.com/onovotny/bc-csharp"
+            displayName: Sign packages
+              
+          - publish: $(Pipeline.Workspace)/BuildPackages
+            displayName: Publish Signed Packages
+            artifact: SignedPackages
