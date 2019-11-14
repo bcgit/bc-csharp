@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Bsi;
@@ -14,7 +13,6 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
@@ -586,13 +584,21 @@ namespace Org.BouncyCastle.Security
                 return new SM2Signer(digest);
             }
 
-            if (mechanism.Equals("GOST3410"))
+            if (mechanism.Equals("GOST3410") || mechanism.Equals("GOST3411WITHGOST3410"))
             {
                 return new Gost3410DigestSigner(new Gost3410Signer(), new Gost3411Digest());
             }
-            if (mechanism.Equals("ECGOST3410"))
+            if (mechanism.Equals("ECGOST3410") || mechanism.Equals("GOST3411WITHECGOST3410"))
             {
                 return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411Digest());
+            }
+            if (mechanism.Equals("GOST3411_2012_256WITHECGOST3410"))
+            {
+                return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411_2012_256Digest());
+            }
+            if (mechanism.Equals("GOST3411_2012_512WITHECGOST3410"))
+            {
+                return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411_2012_512Digest());
             }
 
             if (mechanism.Equals("SHA1WITHRSA/ISO9796-2"))
