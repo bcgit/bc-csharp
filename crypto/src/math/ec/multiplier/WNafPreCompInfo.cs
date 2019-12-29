@@ -5,8 +5,12 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     * algorithm.
     */
     public class WNafPreCompInfo
-        : PreCompInfo 
+        : PreCompInfo
     {
+        internal volatile int m_promotionCountdown = 4;
+
+        protected int m_confWidth = -1;
+
         /**
          * Array holding the precomputed <code>ECPoint</code>s used for a Window
          * NAF multiplication.
@@ -25,6 +29,35 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          */
         protected ECPoint m_twice = null;
 
+        protected int m_width = -1;
+
+        internal int DecrementPromotionCountdown()
+        {
+            int t = m_promotionCountdown;
+            if (t > 0)
+            {
+                m_promotionCountdown = --t;
+            }
+            return t;
+        }
+
+        internal int PromotionCountdown
+        {
+            get { return m_promotionCountdown; }
+            set { this.m_promotionCountdown = value; }
+        }
+
+        public virtual bool IsPromoted
+        {
+            get { return m_promotionCountdown <= 0; }
+        }
+
+        public virtual int ConfWidth
+        {
+            get { return m_confWidth; }
+            set { this.m_confWidth = value; }
+        }
+
         public virtual ECPoint[] PreComp
         {
             get { return m_preComp; }
@@ -41,6 +74,12 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         {
             get { return m_twice; }
             set { this.m_twice = value; }
+        }
+
+        public virtual int Width
+        {
+            get { return m_width; }
+            set { this.m_width = value; }
         }
     }
 }

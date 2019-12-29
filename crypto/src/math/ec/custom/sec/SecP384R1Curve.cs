@@ -8,11 +8,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     internal class SecP384R1Curve
         : AbstractFpCurve
     {
-        public static readonly BigInteger q = new BigInteger(1,
-            Hex.Decode("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFF0000000000000000FFFFFFFF"));
+        public static readonly BigInteger q = SecP384R1FieldElement.Q;
 
         private const int SECP384R1_DEFAULT_COORDS = COORD_JACOBIAN;
         private const int SECP384R1_FE_INTS = 12;
+        private static readonly ECFieldElement[] SECP384R1_AFFINE_ZS = new ECFieldElement[] { new SecP384R1FieldElement(BigInteger.One) };
 
         protected readonly SecP384R1Point m_infinity;
 
@@ -22,10 +22,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             this.m_infinity = new SecP384R1Point(this, null, null);
 
             this.m_a = FromBigInteger(new BigInteger(1,
-                Hex.Decode("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFF0000000000000000FFFFFFFC")));
+                Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFF0000000000000000FFFFFFFC")));
             this.m_b = FromBigInteger(new BigInteger(1,
-                Hex.Decode("B3312FA7E23EE7E4988E056BE3F82D19181D9C6EFE8141120314088F5013875AC656398D8A2ED19D2A85C8EDD3EC2AEF")));
-            this.m_order = new BigInteger(1, Hex.Decode("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973"));
+                Hex.DecodeStrict("B3312FA7E23EE7E4988E056BE3F82D19181D9C6EFE8141120314088F5013875AC656398D8A2ED19D2A85C8EDD3EC2AEF")));
+            this.m_order = new BigInteger(1, Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973"));
             this.m_cofactor = BigInteger.One;
             this.m_coord = SECP384R1_DEFAULT_COORDS;
         }
@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         }
 
         private class SecP384R1LookupTable
-            : ECLookupTable
+            : AbstractECLookupTable
         {
             private readonly SecP384R1Curve m_outer;
             private readonly uint[] m_table;
@@ -106,12 +106,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 this.m_size = size;
             }
 
-            public virtual int Size
+            public override int Size
             {
                 get { return m_size; }
             }
 
-            public virtual ECPoint Lookup(int index)
+            public override ECPoint Lookup(int index)
             {
                 uint[] x = Nat.Create(SECP384R1_FE_INTS), y = Nat.Create(SECP384R1_FE_INTS);
                 int pos = 0;
@@ -129,7 +129,26 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     pos += (SECP384R1_FE_INTS * 2);
                 }
 
-                return m_outer.CreateRawPoint(new SecP384R1FieldElement(x), new SecP384R1FieldElement(y), false);
+                return CreatePoint(x, y);
+            }
+
+            public override ECPoint LookupVar(int index)
+            {
+                uint[] x = Nat.Create(SECP384R1_FE_INTS), y = Nat.Create(SECP384R1_FE_INTS);
+                int pos = index * SECP384R1_FE_INTS * 2;
+
+                for (int j = 0; j < SECP384R1_FE_INTS; ++j)
+                {
+                    x[j] = m_table[pos + j];
+                    y[j] = m_table[pos + SECP384R1_FE_INTS + j];
+                }
+
+                return CreatePoint(x, y);
+            }
+
+            private ECPoint CreatePoint(uint[] x, uint[] y)
+            {
+                return m_outer.CreateRawPoint(new SecP384R1FieldElement(x), new SecP384R1FieldElement(y), SECP384R1_AFFINE_ZS, false);
             }
         }
     }

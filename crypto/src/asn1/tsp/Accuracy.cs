@@ -22,26 +22,22 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			DerInteger millis,
 			DerInteger micros)
 		{
-			//Verifications
-			if (millis != null
-				&& (millis.Value.IntValue < MinMillis
-					|| millis.Value.IntValue > MaxMillis))
-			{
-				throw new ArgumentException(
-					"Invalid millis field : not in (1..999)");
-			}
+            if (null != millis)
+            {
+                int millisValue = millis.IntValueExact;
+                if (millisValue < MinMillis || millisValue > MaxMillis)
+                    throw new ArgumentException("Invalid millis field : not in (1..999)");
+            }
+            if (null != micros)
+            {
+                int microsValue = micros.IntValueExact;
+                if (microsValue < MinMicros || microsValue > MaxMicros)
+                    throw new ArgumentException("Invalid micros field : not in (1..999)");
+            }
 
-			if (micros != null
-				&& (micros.Value.IntValue < MinMicros
-					|| micros.Value.IntValue > MaxMicros))
-			{
-				throw new ArgumentException(
-					"Invalid micros field : not in (1..999)");
-			}
-
-			this.seconds = seconds;
-			this.millis = millis;
-			this.micros = micros;
+            this.seconds = seconds;
+            this.millis = millis;
+            this.micros = micros;
 		}
 
 		private Accuracy(
@@ -54,33 +50,27 @@ namespace Org.BouncyCastle.Asn1.Tsp
 				{
 					seconds = (DerInteger) seq[i];
 				}
-				else if (seq[i] is DerTaggedObject)
+                else if (seq[i] is Asn1TaggedObject)
 				{
-					DerTaggedObject extra = (DerTaggedObject) seq[i];
+                    Asn1TaggedObject extra = (Asn1TaggedObject)seq[i];
 
-					switch (extra.TagNo)
-					{
-						case 0:
-							millis = DerInteger.GetInstance(extra, false);
-							if (millis.Value.IntValue < MinMillis
-								|| millis.Value.IntValue > MaxMillis)
-							{
-								throw new ArgumentException(
-									"Invalid millis field : not in (1..999).");
-							}
-							break;
-						case 1:
-							micros = DerInteger.GetInstance(extra, false);
-							if (micros.Value.IntValue < MinMicros
-								|| micros.Value.IntValue > MaxMicros)
-							{
-								throw new ArgumentException(
-									"Invalid micros field : not in (1..999).");
-							}
-							break;
-						default:
-							throw new ArgumentException("Invalig tag number");
-					}
+                    switch (extra.TagNo)
+                    {
+                    case 0:
+                        millis = DerInteger.GetInstance(extra, false);
+                        int millisValue = millis.IntValueExact;
+                        if (millisValue < MinMillis || millisValue > MaxMillis)
+                            throw new ArgumentException("Invalid millis field : not in (1..999)");
+                        break;
+                    case 1:
+                        micros = DerInteger.GetInstance(extra, false);
+                        int microsValue = micros.IntValueExact;
+                        if (microsValue < MinMicros || microsValue > MaxMicros)
+                            throw new ArgumentException("Invalid micros field : not in (1..999)");
+                        break;
+                    default:
+                        throw new ArgumentException("Invalid tag number");
+                    }
 				}
 			}
 		}
@@ -126,26 +116,13 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		 *             }
 		 * </pre>
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-
-			if (seconds != null)
-			{
-				v.Add(seconds);
-			}
-
-			if (millis != null)
-			{
-				v.Add(new DerTaggedObject(false, 0, millis));
-			}
-
-			if (micros != null)
-			{
-				v.Add(new DerTaggedObject(false, 1, micros));
-			}
-
-			return new DerSequence(v);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptional(seconds);
+            v.AddOptionalTagged(false, 0, millis);
+            v.AddOptionalTagged(false, 1, micros);
+            return new DerSequence(v);
+        }
 	}
 }

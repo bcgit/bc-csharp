@@ -100,18 +100,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		public override Asn1Object ToAsn1Object()
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(status);
-			AddOptional(v, 0, newSigCert);
-			AddOptional(v, 1, caCerts);
-			AddOptional(v, 2, keyPairHist);
+            v.AddOptionalTagged(true, 0, newSigCert);
+            v.AddOptionalTagged(true, 1, caCerts);
+            v.AddOptionalTagged(true, 2, keyPairHist);
 			return new DerSequence(v);
-		}
-
-		private void AddOptional(Asn1EncodableVector v, int tagNo, Asn1Encodable obj)
-		{
-			if (obj != null)
-			{
-				v.Add(new DerTaggedObject(true, tagNo, obj));
-			}
 		}
 	}
 }

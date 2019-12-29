@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Asn1
 			Asn1Object o1 = ToAsn1Object();
 			Asn1Object o2 = other.ToAsn1Object();
 
-			return o1 == o2 || o1.CallAsn1Equals(o2);
+			return o1 == o2 || (null != o2 && o1.CallAsn1Equals(o2));
 		}
 
 		public abstract Asn1Object ToAsn1Object();

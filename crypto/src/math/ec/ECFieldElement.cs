@@ -550,32 +550,63 @@ namespace Org.BouncyCastle.Math.EC
             if ((m & 1) == 0)
                 throw new InvalidOperationException("Half-trace only defined for odd m");
 
-            ECFieldElement fe = this;
-            ECFieldElement ht = fe;
-            for (int i = 2; i < m; i += 2)
+            //ECFieldElement ht = this;
+            //for (int i = 1; i < m; i += 2)
+            //{
+            //    ht = ht.SquarePow(2).Add(this);
+            //}
+
+            int n = (m + 1) >> 1;
+            int k = 31 - Integers.NumberOfLeadingZeros(n);
+            int nk = 1;
+
+            ECFieldElement ht = this;
+            while (k > 0)
             {
-                fe = fe.SquarePow(2);
-                ht = ht.Add(fe);
+                ht = ht.SquarePow(nk << 1).Add(ht);
+                nk = n >> --k;
+                if (0 != (nk & 1))
+                {
+                    ht = ht.SquarePow(2).Add(this);
+                }
             }
 
             return ht;
         }
 
+        public virtual bool HasFastTrace
+        {
+            get { return false; }
+        }
+
         public virtual int Trace()
         {
             int m = FieldSize;
-            ECFieldElement fe = this;
-            ECFieldElement tr = fe;
-            for (int i = 1; i < m; ++i)
+
+            //ECFieldElement tr = this;
+            //for (int i = 1; i < m; ++i)
+            //{
+            //    tr = tr.Square().Add(this);
+            //}
+
+            int k = 31 - Integers.NumberOfLeadingZeros(m);
+            int mk = 1;
+
+            ECFieldElement tr = this;
+            while (k > 0)
             {
-                fe = fe.Square();
-                tr = tr.Add(fe);
+                tr = tr.SquarePow(mk).Add(tr);
+                mk = m >> --k;
+                if (0 != (mk & 1))
+                {
+                    tr = tr.Square().Add(this);
+                }
             }
+
             if (tr.IsZero)
                 return 0;
             if (tr.IsOne)
                 return 1;
-
             throw new InvalidOperationException("Internal error in trace calculation");
         }
     }

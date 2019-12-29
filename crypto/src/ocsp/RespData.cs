@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Ocsp
 
 		public int Version
 		{
-			get { return data.Version.Value.IntValue + 1; }
+            get { return data.Version.IntValueExact + 1; }
 		}
 
 		public RespID GetResponderId()

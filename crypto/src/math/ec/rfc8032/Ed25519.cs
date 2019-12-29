@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
     public abstract class Ed25519
     {
+        // -x^2 + y^2 == 1 + 0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3 * x^2 * y^2
+
         public enum Algorithm
         {
             Ed25519 = 0,
@@ -110,6 +112,46 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             return ctx == null && phflag == 0x00
                 || ctx != null && ctx.Length < 256;
+        }
+
+        private static int CheckPoint(int[] x, int[] y)
+        {
+            int[] t = X25519Field.Create();
+            int[] u = X25519Field.Create();
+            int[] v = X25519Field.Create();
+
+            X25519Field.Sqr(x, u);
+            X25519Field.Sqr(y, v);
+            X25519Field.Mul(u, v, t);
+            X25519Field.Sub(v, u, v);
+            X25519Field.Mul(t, C_d, t);
+            X25519Field.AddOne(t);
+            X25519Field.Sub(t, v, t);
+            X25519Field.Normalize(t);
+
+            return X25519Field.IsZero(t);
+        }
+
+        private static int CheckPoint(int[] x, int[] y, int[] z)
+        {
+            int[] t = X25519Field.Create();
+            int[] u = X25519Field.Create();
+            int[] v = X25519Field.Create();
+            int[] w = X25519Field.Create();
+
+            X25519Field.Sqr(x, u);
+            X25519Field.Sqr(y, v);
+            X25519Field.Sqr(z, w);
+            X25519Field.Mul(u, v, t);
+            X25519Field.Sub(v, u, v);
+            X25519Field.Mul(v, w, v);
+            X25519Field.Sqr(w, w);
+            X25519Field.Mul(t, C_d, t);
+            X25519Field.Add(t, w, t);
+            X25519Field.Sub(t, v, t);
+            X25519Field.Normalize(t);
+
+            return X25519Field.IsZero(t);
         }
 
         private static bool CheckPointVar(byte[] p)
@@ -234,7 +276,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Encode24((uint)(n >> 32), bs, off + 4);
         }
 
-        private static void EncodePoint(PointAccum p, byte[] r, int rOff)
+        private static int EncodePoint(PointAccum p, byte[] r, int rOff)
         {
             int[] x = X25519Field.Create();
             int[] y = X25519Field.Create();
@@ -245,8 +287,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             X25519Field.Normalize(x);
             X25519Field.Normalize(y);
 
+            int result = CheckPoint(x, y);
+
             X25519Field.Encode(y, r, rOff);
             r[rOff + PointBytes - 1] |= (byte)((x[0] & 1) << 7);
+
+            return result;
         }
 
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
@@ -270,7 +316,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static sbyte[] GetWnaf(uint[] n, int width)
         {
-            Debug.Assert(n[ScalarUints - 1] >> 31 == 0);
+            Debug.Assert(n[ScalarUints - 1] >> 28 == 0);
 
             uint[] t = new uint[ScalarUints * 2];
             {
@@ -284,7 +330,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            sbyte[] ws = new sbyte[256];
+            sbyte[] ws = new sbyte[253];
 
             uint pow2 = 1U << width;
             uint mask = pow2 - 1U;
@@ -423,12 +469,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             DecodeScalar(k, 0, nA);
 
             PointAccum pR = new PointAccum();
-            ScalarMultStraussVar(nS, nA, pA, pR);
+            ScalarMultStrausVar(nS, nA, pA, pR);
 
             byte[] check = new byte[PointBytes];
-            EncodePoint(pR, check, 0);
-
-            return Arrays.AreEqual(check, R);
+            return 0 != EncodePoint(pR, check, 0) && Arrays.AreEqual(check, R);
         }
 
         private static void PointAddVar(bool negate, PointExt p, PointAccum r)
@@ -597,10 +641,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             for (int i = 0; i < PrecompPoints; ++i)
             {
-                int mask = ((i ^ index) - 1) >> 31;
-                Nat.CMov(X25519Field.Size, mask, precompBase, off, p.ypx_h, 0); off += X25519Field.Size;
-                Nat.CMov(X25519Field.Size, mask, precompBase, off, p.ymx_h, 0); off += X25519Field.Size;
-                Nat.CMov(X25519Field.Size, mask, precompBase, off, p.xyd, 0);   off += X25519Field.Size;
+                int cond = ((i ^ index) - 1) >> 31;
+                X25519Field.CMov(cond, precompBase, off, p.ypx_h, 0);   off += X25519Field.Size;
+                X25519Field.CMov(cond, precompBase, off, p.ymx_h, 0);   off += X25519Field.Size;
+                X25519Field.CMov(cond, precompBase, off, p.xyd, 0);     off += X25519Field.Size;
             }
         }
 
@@ -931,7 +975,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             PointAccum p = new PointAccum();
             ScalarMultBase(k, p);
-            EncodePoint(p, r, rOff);
+            if (0 == EncodePoint(p, r, rOff))
+                throw new InvalidOperationException();
         }
 
         internal static void ScalarMultBaseYZ(byte[] k, int kOff, int[] y, int[] z)
@@ -941,11 +986,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             PointAccum p = new PointAccum();
             ScalarMultBase(n, p);
+
+            if (0 == CheckPoint(p.x, p.y, p.z))
+                throw new InvalidOperationException();
+
             X25519Field.Copy(p.y, 0, y, 0);
             X25519Field.Copy(p.z, 0, z, 0);
         }
 
-        private static void ScalarMultStraussVar(uint[] nb, uint[] np, PointExt p, PointAccum r)
+        private static void ScalarMultStrausVar(uint[] nb, uint[] np, PointExt p, PointAccum r)
         {
             Precompute();
 
@@ -958,13 +1007,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             PointSetNeutral(r);
 
-            int bit = 255;
-            while (bit > 0 && ((byte)ws_b[bit] | (byte)ws_p[bit]) == 0)
-            {
-                --bit;
-            }
-
-            for (; ; )
+            for (int bit = 252;;)
             {
                 int wb = ws_b[bit];
                 if (wb != 0)

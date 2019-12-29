@@ -187,17 +187,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(version, privateKeyAlgorithm, privateKey);
-
-            if (attributes != null)
-            {
-                v.Add(new DerTaggedObject(false, 0, attributes));
-            }
-
-            if (publicKey != null)
-            {
-                v.Add(new DerTaggedObject(false, 1, publicKey));
-            }
-
+            v.AddOptionalTagged(false, 0, attributes);
+            v.AddOptionalTagged(false, 1, publicKey);
             return new DerSequence(v);
         }
     }

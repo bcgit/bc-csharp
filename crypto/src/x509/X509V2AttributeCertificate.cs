@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.X509
 
 		public virtual int Version
 		{
-			get { return cert.ACInfo.Version.Value.IntValue + 1; }
+            get { return cert.ACInfo.Version.IntValueExact + 1; }
 		}
 
 		public virtual BigInteger SerialNumber

@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                     string name = Strings.FromUtf8ByteArray(identity);
                     if (name.Equals("client"))
                     {
-                        return new byte[16];
+                        return Strings.ToUtf8ByteArray("TLS_TEST_PSK");
                     }
                 }
                 return null;

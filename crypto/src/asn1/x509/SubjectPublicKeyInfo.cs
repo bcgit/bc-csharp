@@ -66,6 +66,18 @@ namespace Org.BouncyCastle.Asn1.X509
 			get { return algID; }
         }
 
+        /**
+         * for when the public key is an encoded object - if the bitstring
+         * can't be decoded this routine raises an IOException.
+         *
+         * @exception IOException - if the bit string doesn't represent a Der
+         * encoded object.
+         */
+        public Asn1Object ParsePublicKey()
+        {
+            return Asn1Object.FromByteArray(keyData.GetOctets());
+        }
+
 		/**
          * for when the public key is an encoded object - if the bitstring
          * can't be decoded this routine raises an IOException.
@@ -73,6 +85,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * @exception IOException - if the bit string doesn't represent a Der
          * encoded object.
          */
+        [Obsolete("Use 'ParsePublicKey' instead")]
         public Asn1Object GetPublicKey()
         {
 			return Asn1Object.FromByteArray(keyData.GetOctets());

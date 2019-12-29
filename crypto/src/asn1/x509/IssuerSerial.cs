@@ -84,17 +84,11 @@ namespace Org.BouncyCastle.Asn1.X509
          *  }
          * </pre>
          */
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				issuer, serial);
-
-			if (issuerUid != null)
-			{
-				v.Add(issuerUid);
-			}
-
-			return new DerSequence(v);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(issuer, serial);
+            v.AddOptional(issuerUid);
+            return new DerSequence(v);
+        }
 	}
 }

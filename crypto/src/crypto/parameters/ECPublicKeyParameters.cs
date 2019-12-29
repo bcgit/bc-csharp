@@ -24,10 +24,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             DerObjectIdentifier publicKeyParamSet)
             : base("ECGOST3410", false, publicKeyParamSet)
         {
-            if (q == null)
-                throw new ArgumentNullException("q");
-
-            this.q = ECDomainParameters.Validate(Parameters.Curve, q);
+            this.q = ECDomainParameters.ValidatePublicPoint(Parameters.Curve, q);
         }
 
         public ECPublicKeyParameters(
@@ -36,10 +33,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             ECDomainParameters	parameters)
             : base(algorithm, false, parameters)
         {
-            if (q == null)
-                throw new ArgumentNullException("q");
-
-            this.q = ECDomainParameters.Validate(Parameters.Curve, q);
+            this.q = ECDomainParameters.ValidatePublicPoint(Parameters.Curve, q);
         }
 
         public ECPublicKeyParameters(
@@ -48,10 +42,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             DerObjectIdentifier publicKeyParamSet)
             : base(algorithm, false, publicKeyParamSet)
         {
-            if (q == null)
-                throw new ArgumentNullException("q");
-
-            this.q = ECDomainParameters.Validate(Parameters.Curve, q);
+            this.q = ECDomainParameters.ValidatePublicPoint(Parameters.Curve, q);
         }
 
         public ECPoint Q

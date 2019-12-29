@@ -214,37 +214,20 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		 *
 		 * </pre>
 		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				version, tsaPolicyId, messageImprint, serialNumber, genTime);
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(version, tsaPolicyId, messageImprint, serialNumber, genTime);
+            v.AddOptional(accuracy);
 
-			if (accuracy != null)
-			{
-				v.Add(accuracy);
-			}
+            if (ordering != null && ordering.IsTrue)
+            {
+                v.Add(ordering);
+            }
 
-			if (ordering != null && ordering.IsTrue)
-			{
-				v.Add(ordering);
-			}
-
-			if (nonce != null)
-			{
-				v.Add(nonce);
-			}
-
-			if (tsa != null)
-			{
-				v.Add(new DerTaggedObject(true, 0, tsa));
-			}
-
-			if (extensions != null)
-			{
-				v.Add(new DerTaggedObject(false, 1, extensions));
-			}
-
-			return new DerSequence(v);
-		}
+            v.AddOptional(nonce);
+            v.AddOptionalTagged(true, 0, tsa);
+            v.AddOptionalTagged(false, 1, extensions);
+            return new DerSequence(v);
+        }
 	}
 }

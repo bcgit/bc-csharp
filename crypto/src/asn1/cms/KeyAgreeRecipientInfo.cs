@@ -125,16 +125,9 @@ namespace Org.BouncyCastle.Asn1.Cms
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
-				version, new DerTaggedObject(true, 0, originator));
-
-			if (ukm != null)
-            {
-                v.Add(new DerTaggedObject(true, 1, ukm));
-            }
-
+            Asn1EncodableVector v = new Asn1EncodableVector(version, new DerTaggedObject(true, 0, originator));
+            v.AddOptionalTagged(true, 1, ukm);
 			v.Add(keyEncryptionAlgorithm, recipientEncryptedKeys);
-
 			return new DerSequence(v);
         }
     }

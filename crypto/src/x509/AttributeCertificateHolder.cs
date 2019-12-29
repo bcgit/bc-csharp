@@ -128,8 +128,8 @@ namespace Org.BouncyCastle.X509
 				ObjectDigestInfo odi = holder.ObjectDigestInfo;
 
 				return odi == null
-					?	-1
-					:	odi.DigestedObjectType.Value.IntValue;
+					?   -1
+                    :   odi.DigestedObjectType.IntValueExact;
 			}
 		}
 

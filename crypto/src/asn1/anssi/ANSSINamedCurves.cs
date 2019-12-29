@@ -4,6 +4,7 @@ using System.Collections;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -12,6 +13,13 @@ namespace Org.BouncyCastle.Asn1.Anssi
 {
     public class AnssiNamedCurves
     {
+        private static X9ECPoint ConfigureBasepoint(ECCurve curve, string encoding)
+        {
+            X9ECPoint G = new X9ECPoint(curve, Hex.DecodeStrict(encoding));
+            WNafUtilities.ConfigureBasepoint(G.Point);
+            return G;
+        }
+
         private static ECCurve ConfigureCurve(ECCurve curve)
         {
             return curve;
@@ -19,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.Anssi
 
         private static BigInteger FromHex(string hex)
         {
-            return new BigInteger(1, Hex.Decode(hex));
+            return new BigInteger(1, Hex.DecodeStrict(hex));
         }
 
         /*
@@ -42,9 +50,8 @@ namespace Org.BouncyCastle.Asn1.Anssi
                 BigInteger h = BigInteger.One;
 
                 ECCurve curve = ConfigureCurve(new FpCurve(p, a, b, n, h));
-                X9ECPoint G = new X9ECPoint(curve, Hex.Decode("04"
-                    + "B6B3D4C356C139EB31183D4749D423958C27D2DCAF98B70164C97A2DD98F5CFF"
-                    + "6142E0F7C8B204911F9271F0F3ECEF8C2701C307E8E4C9E183115A1554062CFB"));
+                X9ECPoint G = ConfigureBasepoint(curve,
+                    "04B6B3D4C356C139EB31183D4749D423958C27D2DCAF98B70164C97A2DD98F5CFF6142E0F7C8B204911F9271F0F3ECEF8C2701C307E8E4C9E183115A1554062CFB");
 
                 return new X9ECParameters(curve, G, n, h, S);
             }

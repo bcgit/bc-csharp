@@ -112,19 +112,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector av = new Asn1EncodableVector();
-
-            if (noticeRef != null)
-            {
-                av.Add(noticeRef);
-            }
-
-            if (explicitText != null)
-            {
-                av.Add(explicitText);
-            }
-
-            return new DerSequence(av);
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptional(noticeRef, explicitText);
+            return new DerSequence(v);
         }
     }
 }

@@ -98,21 +98,11 @@ namespace Org.BouncyCastle.Asn1.X9
 			get { return this.validationParms; }
 		}
 
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(p, g, q);
-
-			if (this.j != null)
-			{
-				v.Add(this.j);
-			}
-
-			if (this.validationParms != null)
-			{
-				v.Add(this.validationParms);
-			}
-
-			return new DerSequence(v);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(p, g, q);
+            v.AddOptional(j, validationParms);
+            return new DerSequence(v);
+        }
 	}
 }

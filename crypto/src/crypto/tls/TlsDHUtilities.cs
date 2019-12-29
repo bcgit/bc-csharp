@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Tls
          */
         private static BigInteger FromHex(String hex)
         {
-            return new BigInteger(1, Hex.Decode(hex));
+            return new BigInteger(1, Hex.DecodeStrict(hex));
         }
 
         private static DHParameters FromSafeP(String hexP)

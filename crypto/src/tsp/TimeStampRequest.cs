@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Tsp
 
 		public int Version
 		{
-			get { return req.Version.Value.IntValue; }
+            get { return req.Version.IntValueExact; }
 		}
 
 		public string MessageImprintAlgOid

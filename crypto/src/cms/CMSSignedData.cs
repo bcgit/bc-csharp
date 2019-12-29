@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Cms
 		/// <summary>Return the version number for this object.</summary>
 		public int Version
 		{
-			get { return signedData.Version.Value.IntValue; }
+			get { return signedData.Version.IntValueExact; }
 		}
 
 		/**

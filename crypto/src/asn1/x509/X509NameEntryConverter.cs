@@ -61,9 +61,7 @@ namespace Org.BouncyCastle.Asn1.X509
             string	hexString,
             int		offset)
         {
-			string str = hexString.Substring(offset);
-
-			return Asn1Object.FromByteArray(Hex.Decode(str));
+            return Asn1Object.FromByteArray(Hex.DecodeStrict(hexString, offset, hexString.Length - offset));
         }
 
 		/**

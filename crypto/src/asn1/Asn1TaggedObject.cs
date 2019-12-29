@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1
         {
             if (explicitly)
             {
-                return (Asn1TaggedObject) obj.GetObject();
+                return GetInstance(obj.GetObject());
             }
 
             throw new ArgumentException("implicitly tagged tagged object");

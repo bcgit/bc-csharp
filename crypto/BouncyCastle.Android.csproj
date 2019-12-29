@@ -142,6 +142,7 @@
     <Compile Include="src\asn1\anssi\ANSSINamedCurves.cs" />
     <Compile Include="src\asn1\anssi\ANSSIObjectIdentifiers.cs" />
     <Compile Include="src\asn1\bc\BCObjectIdentifiers.cs" />
+    <Compile Include="src\asn1\bc\LinkedCertificate.cs" />
     <Compile Include="src\asn1\bsi\BsiObjectIdentifiers.cs" />
     <Compile Include="src\asn1\cmp\CAKeyUpdAnnContent.cs" />
     <Compile Include="src\asn1\cmp\CertConfirmContent.cs" />
@@ -394,7 +395,10 @@
     <Compile Include="src\asn1\util\Asn1Dump.cs" />
     <Compile Include="src\asn1\util\Dump.cs" />
     <Compile Include="src\asn1\util\FilterStream.cs" />
+    <Compile Include="src\asn1\x500\AttributeTypeAndValue.cs" />
     <Compile Include="src\asn1\x500\DirectoryString.cs" />
+    <Compile Include="src\asn1\x500\Rdn.cs" />
+    <Compile Include="src\asn1\x500\style\IetfUtilities.cs" />
     <Compile Include="src\asn1\x509\AccessDescription.cs" />
     <Compile Include="src\asn1\x509\AlgorithmIdentifier.cs" />
     <Compile Include="src\asn1\x509\AttCertIssuer.cs" />
@@ -653,6 +657,7 @@
     <Compile Include="src\crypto\AsymmetricCipherKeyPair.cs" />
     <Compile Include="src\crypto\AsymmetricKeyParameter.cs" />
     <Compile Include="src\crypto\BufferedAeadBlockCipher.cs" />
+    <Compile Include="src\crypto\BufferedAeadCipher.cs" />
     <Compile Include="src\crypto\BufferedAsymmetricBlockCipher.cs" />
     <Compile Include="src\crypto\BufferedBlockCipher.cs" />
     <Compile Include="src\crypto\BufferedCipherBase.cs" />
@@ -689,6 +694,7 @@
     <Compile Include="src\crypto\IKeyUnwrapper.cs" />
     <Compile Include="src\crypto\IKeyWrapper.cs" />
     <Compile Include="src\crypto\IMac.cs" />
+    <Compile Include="src\crypto\IMacDerivationFunction.cs" />
     <Compile Include="src\crypto\IMacFactory.cs" />
     <Compile Include="src\crypto\IRawAgreement.cs" />
     <Compile Include="src\crypto\IRsa.cs" />
@@ -847,6 +853,9 @@
     <Compile Include="src\crypto\generators\GOST3410ParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\Kdf1BytesGenerator.cs" />
     <Compile Include="src\crypto\generators\Kdf2BytesGenerator.cs" />
+    <Compile Include="src\crypto\generators\KDFCounterBytesGenerator.cs" />
+    <Compile Include="src\crypto\generators\KDFDoublePipelineIterationBytesGenerator.cs" />
+    <Compile Include="src\crypto\generators\KDFFeedbackBytesGenerator.cs" />
     <Compile Include="src\crypto\generators\Mgf1BytesGenerator.cs" />
     <Compile Include="src\crypto\generators\NaccacheSternKeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\OpenSSLPBEParametersGenerator.cs" />
@@ -882,11 +891,13 @@
     <Compile Include="src\crypto\modes\CbcBlockCipher.cs" />
     <Compile Include="src\crypto\modes\CcmBlockCipher.cs" />
     <Compile Include="src\crypto\modes\CfbBlockCipher.cs" />
+    <Compile Include="src\crypto\modes\ChaCha20Poly1305.cs" />
     <Compile Include="src\crypto\modes\CtsBlockCipher.cs" />
     <Compile Include="src\crypto\modes\EAXBlockCipher.cs" />
     <Compile Include="src\crypto\modes\GCMBlockCipher.cs" />
     <Compile Include="src\crypto\modes\GOFBBlockCipher.cs" />
     <Compile Include="src\crypto\modes\IAeadBlockCipher.cs" />
+    <Compile Include="src\crypto\modes\IAeadCipher.cs" />
     <Compile Include="src\crypto\modes\KCcmBlockCipher.cs" />
     <Compile Include="src\crypto\modes\KCtrBlockCipher.cs" />
     <Compile Include="src\crypto\modes\OCBBlockCipher.cs" />
@@ -963,6 +974,9 @@
     <Compile Include="src\crypto\parameters\ISO18033KDFParameters.cs" />
     <Compile Include="src\crypto\parameters\IesParameters.cs" />
     <Compile Include="src\crypto\parameters\IesWithCipherParameters.cs" />
+    <Compile Include="src\crypto\parameters\KDFCounterParameters.cs" />
+    <Compile Include="src\crypto\parameters\KDFDoublePipelineIterationParameters.cs" />
+    <Compile Include="src\crypto\parameters\KDFFeedbackParameters.cs" />
     <Compile Include="src\crypto\parameters\KdfParameters.cs" />
     <Compile Include="src\crypto\parameters\KeyParameter.cs" />
     <Compile Include="src\crypto\parameters\MgfParameters.cs" />
@@ -1147,6 +1161,7 @@
     <Compile Include="src\crypto\tls\TlsClientContext.cs" />
     <Compile Include="src\crypto\tls\TlsClientContextImpl.cs" />
     <Compile Include="src\crypto\tls\TlsClientProtocol.cs" />
+    <Compile Include="src\crypto\tls\TlsCloseable.cs" />
     <Compile Include="src\crypto\tls\TlsCompression.cs" />
     <Compile Include="src\crypto\tls\TlsContext.cs" />
     <Compile Include="src\crypto\tls\TlsCredentials.cs" />
@@ -1207,6 +1222,7 @@
     <Compile Include="src\crypto\util\Pack.cs" />
     <Compile Include="src\math\BigInteger.cs" />
     <Compile Include="src\math\Primes.cs" />
+    <Compile Include="src\math\ec\AbstractECLookupTable.cs" />
     <Compile Include="src\math\ec\ECAlgorithms.cs" />
     <Compile Include="src\math\ec\ECCurve.cs" />
     <Compile Include="src\math\ec\ECFieldElement.cs" />
@@ -1214,7 +1230,9 @@
     <Compile Include="src\math\ec\ECPoint.cs" />
     <Compile Include="src\math\ec\ECPointMap.cs" />
     <Compile Include="src\math\ec\LongArray.cs" />
+    <Compile Include="src\math\ec\ScaleXNegateYPointMap.cs" />
     <Compile Include="src\math\ec\ScaleXPointMap.cs" />
+    <Compile Include="src\math\ec\ScaleYNegateXPointMap.cs" />
     <Compile Include="src\math\ec\ScaleYPointMap.cs" />
     <Compile Include="src\math\ec\SimpleLookupTable.cs" />
     <Compile Include="src\math\ec\abc\SimpleBigDecimal.cs" />
@@ -1329,9 +1347,14 @@
     <Compile Include="src\math\ec\custom\sec\SecT571R1Curve.cs" />
     <Compile Include="src\math\ec\custom\sec\SecT571R1Point.cs" />
     <Compile Include="src\math\ec\endo\ECEndomorphism.cs" />
+    <Compile Include="src\math\ec\endo\EndoPreCompInfo.cs" />
+    <Compile Include="src\math\ec\endo\EndoUtilities.cs" />
     <Compile Include="src\math\ec\endo\GlvEndomorphism.cs" />
+    <Compile Include="src\math\ec\endo\GlvTypeAEndomorphism.cs" />
+    <Compile Include="src\math\ec\endo\GlvTypeAParameters.cs" />
     <Compile Include="src\math\ec\endo\GlvTypeBEndomorphism.cs" />
     <Compile Include="src\math\ec\endo\GlvTypeBParameters.cs" />
+    <Compile Include="src\math\ec\endo\ScalarSplitParameters.cs" />
     <Compile Include="src\math\ec\multiplier\AbstractECMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\DoubleAddMultiplier.cs" />
     <Compile Include="src\math\ec\multiplier\ECMultiplier.cs" />

@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         : ISigner
     {
         private readonly IDsaKCalculator kCalculator = new RandomDsaKCalculator();
-        private readonly SM3Digest digest = new SM3Digest();
+        private readonly IDigest digest;
         private readonly IDsaEncoding encoding;
 
         private ECDomainParameters ecParams;
@@ -24,13 +24,24 @@ namespace Org.BouncyCastle.Crypto.Signers
         private byte[] z;
 
         public SM2Signer()
+            : this(StandardDsaEncoding.Instance, new SM3Digest())
         {
-            this.encoding = StandardDsaEncoding.Instance;
+        }
+
+        public SM2Signer(IDigest digest)
+            : this(StandardDsaEncoding.Instance, digest)
+        {
         }
 
         public SM2Signer(IDsaEncoding encoding)
+            : this(encoding, new SM3Digest())
+        {
+        }
+
+        public SM2Signer(IDsaEncoding encoding, IDigest digest)
         {
             this.encoding = encoding;
+            this.digest = digest;
         }
 
         public virtual string AlgorithmName
@@ -47,11 +58,15 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 baseParam = ((ParametersWithID)parameters).Parameters;
                 userID = ((ParametersWithID)parameters).GetID();
+
+                if (userID.Length >= 8192)
+                    throw new ArgumentException("SM2 user ID must be less than 2^16 bits long");
             }
             else
             {
                 baseParam = parameters;
-                userID = Hex.Decode("31323334353637383132333435363738"); // the default value (ASCII "1234567812345678")
+                // the default value, string value is "1234567812345678"
+                userID = Hex.DecodeStrict("31323334353637383132333435363738");
             }
 
             if (forSigning)
@@ -124,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] eHash = DigestUtilities.DoFinal(digest);
 
             BigInteger n = ecParams.N;
-            BigInteger e = CalculateE(eHash);
+            BigInteger e = CalculateE(n, eHash);
             BigInteger d = ((ECPrivateKeyParameters)ecKey).D;
 
             BigInteger r, s;
@@ -184,7 +199,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] eHash = DigestUtilities.DoFinal(digest);
 
             // B4
-            BigInteger e = CalculateE(eHash);
+            BigInteger e = CalculateE(n, eHash);
 
             // B5
             BigInteger t = r.Add(s).Mod(n);
@@ -229,8 +244,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             digest.BlockUpdate(p, 0, p.Length);
         }
 
-        protected virtual BigInteger CalculateE(byte[] message)
+        protected virtual BigInteger CalculateE(BigInteger n, byte[] message)
         {
+            // TODO Should hashes larger than the order be truncated as with ECDSA?
             return new BigInteger(1, message);
         }
 

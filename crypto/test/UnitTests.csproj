@@ -86,6 +86,7 @@
     <Compile Include="src\asn1\test\IssuingDistributionPointTest.cs" />
     <Compile Include="src\asn1\test\KeyUsageTest.cs" />
     <Compile Include="src\asn1\test\LDSSecurityObjectUnitTest.cs" />
+    <Compile Include="src\asn1\test\LinkedCertificateTest.cs" />
     <Compile Include="src\asn1\test\MiscTest.cs" />
     <Compile Include="src\asn1\test\MonetaryLimitUnitTest.cs" />
     <Compile Include="src\asn1\test\MonetaryValueUnitTest.cs" />
@@ -168,6 +169,7 @@
     <Compile Include="src\crypto\test\BlowfishTest.cs" />
     <Compile Include="src\crypto\test\CAST6Test.cs" />
     <Compile Include="src\crypto\test\CCMTest.cs" />
+    <Compile Include="src\crypto\test\ChaCha20Poly1305Test.cs" />
     <Compile Include="src\crypto\test\ChaChaTest.cs" />
     <Compile Include="src\crypto\test\CMacTest.cs" />
     <Compile Include="src\crypto\test\CTSTest.cs" />
@@ -298,6 +300,10 @@
     <Compile Include="src\crypto\test\X931SignerTest.cs" />
     <Compile Include="src\crypto\test\XSalsa20Test.cs" />
     <Compile Include="src\crypto\test\XTEATest.cs" />
+    <Compile Include="src\crypto\test\cavp\CavpReader.cs" />
+    <Compile Include="src\crypto\test\cavp\KDFCounterTests.cs" />
+    <Compile Include="src\crypto\test\cavp\KDFDoublePipelineTests.cs" />
+    <Compile Include="src\crypto\test\cavp\KDFFeedbackCounterTests.cs" />
     <Compile Include="src\crypto\tls\test\ByteQueueStreamTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\DtlsTestCase.cs" />
@@ -317,6 +323,7 @@
     <Compile Include="src\crypto\tls\test\NetworkStream.cs" />
     <Compile Include="src\crypto\tls\test\PipedStream.cs" />
     <Compile Include="src\crypto\tls\test\PskTlsClientTest.cs" />
+    <Compile Include="src\crypto\tls\test\PskTlsServerTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsClientTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsProtocolTest.cs" />
     <Compile Include="src\crypto\tls\test\TlsProtocolNonBlockingTest.cs" />
@@ -332,6 +339,7 @@
     <Compile Include="src\crypto\tls\test\TlsTestSuite.cs" />
     <Compile Include="src\crypto\tls\test\TlsTestUtilities.cs" />
     <Compile Include="src\crypto\tls\test\UnreliableDatagramTransport.cs" />
+    <Compile Include="src\math\ec\custom\sec\test\SecP128R1FieldTest.cs" />
     <Compile Include="src\math\ec\custom\sec\test\SecP256R1FieldTest.cs" />
     <Compile Include="src\math\ec\custom\sec\test\SecP384R1FieldTest.cs" />
     <Compile Include="src\math\ec\rfc7748\test\X25519Test.cs" />
@@ -424,6 +432,7 @@
     <Compile Include="src\test\GOST3410Test.cs" />
     <Compile Include="src\test\HMacTest.cs" />
     <Compile Include="src\test\IESTest.cs" />
+    <Compile Include="src\test\KdfCounterTest.cs" />
     <Compile Include="src\test\MacTest.cs" />
     <Compile Include="src\test\MqvTest.cs" />
     <Compile Include="src\test\NamedCurveTest.cs" />
@@ -446,6 +455,7 @@
     <Compile Include="src\test\X509CertificatePairTest.cs" />
     <Compile Include="src\test\X509StoreTest.cs" />
     <Compile Include="src\test\nist\NistCertPathTest.cs" />
+    <Compile Include="src\test\nist\NistCertPathTest2.cs" />
     <Compile Include="src\test\rsa3\RSA3CertTest.cs" />
     <Compile Include="src\tsp\test\AllTests.cs" />
     <Compile Include="src\tsp\test\GenTimeAccuracyTest.cs" />
@@ -477,6 +487,13 @@
     <EmbeddedResource Include="data\ThawteSGCCA.crl" />
     <EmbeddedResource Include="data\crypto\SHA3TestVectors.txt" />
     <EmbeddedResource Include="data\crypto\SHAKETestVectors.txt" />
+    <EmbeddedResource Include="data\crypto\cavp\original_KDFCTR_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFCTR_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFDblPipelineCounter_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFDblPipelineNoCounter_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFFeedbackCounter_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFFeedbackNoCounter_gen.rsp" />
+    <EmbeddedResource Include="data\crypto\cavp\KDFFeedbackNoIV_gen.rsp" />
     <EmbeddedResource Include="data\PKITS\README.txt" />
     <EmbeddedResource Include="data\PKITS\certs\AllCertificatesNoPoliciesTest2EE.crt" />
     <EmbeddedResource Include="data\PKITS\certs\AllCertificatesSamePoliciesTest10EE.crt" />

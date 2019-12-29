@@ -47,6 +47,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             SetPlaintextLimit(MAX_FRAGMENT_LENGTH);
         }
 
+        internal bool IsClosed
+        {
+            get { return mClosed; }
+        }
+
         internal virtual void SetPlaintextLimit(int plaintextLimit)
         {
             this.mPlaintextLimit = plaintextLimit;

@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Tsp
 		private int GetTimeComponent(
 			DerInteger time)
 		{
-			return time == null ? 0 : time.Value.IntValue;
+            return time == null ? 0 : time.IntValueExact;
 		}
 
 		public override string ToString()

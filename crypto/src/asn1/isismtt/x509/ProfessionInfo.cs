@@ -302,28 +302,21 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @return an Asn1Object
 		*/
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector vec = new Asn1EncodableVector();
-			if (namingAuthority != null)
-			{
-				vec.Add(new DerTaggedObject(true, 0, namingAuthority));
-			}
-			vec.Add(professionItems);
-			if (professionOids != null)
-			{
-				vec.Add(professionOids);
-			}
-			if (registrationNumber != null)
-			{
-				vec.Add(new DerPrintableString(registrationNumber, true));
-			}
-			if (addProfessionInfo != null)
-			{
-				vec.Add(addProfessionInfo);
-			}
-			return new DerSequence(vec);
-		}
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptionalTagged(true, 0, namingAuthority);
+            v.Add(professionItems);
+            v.AddOptional(professionOids);
+
+            if (registrationNumber != null)
+            {
+                v.Add(new DerPrintableString(registrationNumber, true));
+            }
+
+            v.AddOptional(addProfessionInfo);
+            return new DerSequence(v);
+        }
 
 		/**
 		* @return Returns the addProfessionInfo.

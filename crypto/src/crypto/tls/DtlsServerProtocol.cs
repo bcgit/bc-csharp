@@ -45,6 +45,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             server.Init(state.serverContext);
 
             DtlsRecordLayer recordLayer = new DtlsRecordLayer(transport, state.serverContext, server, ContentType.handshake);
+            server.NotifyCloseHandle(recordLayer);
 
             // TODO Need to handle sending of HelloVerifyRequest without entering a full connection
 

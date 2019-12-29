@@ -224,36 +224,23 @@ namespace Org.BouncyCastle.Asn1.X509
          *  }
          * </pre>
          */
-		public override Asn1Object ToAsn1Object()
-		{
-			if (version == 1)
-			{
-				Asn1EncodableVector v = new Asn1EncodableVector();
+        public override Asn1Object ToAsn1Object()
+        {
+            if (version == 1)
+            {
+                Asn1EncodableVector v = new Asn1EncodableVector();
+                v.AddOptionalTagged(false, 0, baseCertificateID);
+                v.AddOptionalTagged(false, 1, entityName);
+                v.AddOptionalTagged(false, 2, objectDigestInfo);
+                return new DerSequence(v);
+            }
 
-				if (baseCertificateID != null)
-				{
-					v.Add(new DerTaggedObject(false, 0, baseCertificateID));
-				}
+            if (entityName != null)
+            {
+                return new DerTaggedObject(false, 1, entityName);
+            }
 
-				if (entityName != null)
-				{
-					v.Add(new DerTaggedObject(false, 1, entityName));
-				}
-
-				if (objectDigestInfo != null)
-				{
-					v.Add(new DerTaggedObject(false, 2, objectDigestInfo));
-				}
-
-				return new DerSequence(v);
-			}
-
-			if (entityName != null)
-			{
-				return new DerTaggedObject(false, 1, entityName);
-			}
-
-			return new DerTaggedObject(false, 0, baseCertificateID);
-		}
+            return new DerTaggedObject(false, 0, baseCertificateID);
+        }
 	}
 }

@@ -243,13 +243,10 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector vec = new Asn1EncodableVector();
-            if (admissionAuthority != null)
-            {
-                vec.Add(admissionAuthority);
-            }
-            vec.Add(contentsOfAdmissions);
-            return new DerSequence(vec);
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.AddOptional(admissionAuthority);
+            v.Add(contentsOfAdmissions);
+            return new DerSequence(v);
         }
 
         /**

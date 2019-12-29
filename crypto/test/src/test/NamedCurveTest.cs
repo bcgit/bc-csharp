@@ -251,15 +251,15 @@ namespace Org.BouncyCastle.Tests
                 // Current test cases don't work for GOST34.10 2012
                 return;
 
-                keyAlgorithm = "ECGOST3410-2012";
-                if (name.IndexOf("256") > 0)
-                {
-                    sgr = SignerUtilities.GetSigner("ECGOST3410-2012-256");
-                }
-                else
-                {
-                    sgr = SignerUtilities.GetSigner("ECGOST3410-2012-512");
-                }
+                //keyAlgorithm = "ECGOST3410-2012";
+                //if (name.IndexOf("256") > 0)
+                //{
+                //    sgr = SignerUtilities.GetSigner("ECGOST3410-2012-256");
+                //}
+                //else
+                //{
+                //    sgr = SignerUtilities.GetSigner("ECGOST3410-2012-512");
+                //}
             }
             else
             {

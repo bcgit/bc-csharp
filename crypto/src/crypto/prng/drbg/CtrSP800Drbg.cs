@@ -148,7 +148,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
 	    // -- Internal state migration ---
 
-        private static readonly byte[] K_BITS = Hex.Decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F");
+        private static readonly byte[] K_BITS = Hex.DecodeStrict("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F");
 
         // 1. If (number_of_bits_to_return > max_number_of_bits), then return an
 	    // ERROR_FLAG.

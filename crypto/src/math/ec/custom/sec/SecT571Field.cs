@@ -55,11 +55,32 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
+        private static void AddTo(ulong[] x, ulong[] z)
+        {
+            for (int i = 0; i < 9; ++i)
+            {
+                z[i] ^= x[i];
+            }
+        }
+
         public static ulong[] FromBigInteger(BigInteger x)
         {
-            ulong[] z = Nat576.FromBigInteger64(x);
-            Reduce5(z, 0);
-            return z;
+            return Nat.FromBigInteger64(571, x);
+        }
+
+        public static void HalfTrace(ulong[] x, ulong[] z)
+        {
+            ulong[] tt = Nat576.CreateExt64();
+
+            Nat576.Copy64(x, z);
+            for (int i = 1; i < 571; i += 2)
+            {
+                ImplSquare(z, tt);
+                Reduce(tt, z);
+                ImplSquare(z, tt);
+                Reduce(tt, z);
+                AddTo(x, z);
+            }
         }
 
         public static void Invert(ulong[] x, ulong[] z)
@@ -324,10 +345,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
-            for (int i = 0; i < 9; ++i)
-            {
-                Interleave.Expand64To128(x[i], zz, i << 1);
-            }
+            Interleave.Expand64To128(x[0], zz, 0);
+            Interleave.Expand64To128(x[1], zz, 2);
+            Interleave.Expand64To128(x[2], zz, 4);
+            Interleave.Expand64To128(x[3], zz, 6);
+            Interleave.Expand64To128(x[4], zz, 8);
+            Interleave.Expand64To128(x[5], zz, 10);
+            Interleave.Expand64To128(x[6], zz, 12);
+            Interleave.Expand64To128(x[7], zz, 14);
+            Interleave.Expand64To128(x[8], zz, 16);
         }
     }
 }

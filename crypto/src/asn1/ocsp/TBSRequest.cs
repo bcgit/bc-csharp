@@ -124,28 +124,19 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
 
-			//
-			// if default don't include - unless explicitly provided. Not strictly correct
-			// but required for some requests
-			//
-			if (!version.Equals(V1) || versionSet)
-			{
+            //
+            // if default don't include - unless explicitly provided. Not strictly correct
+            // but required for some requests
+            //
+            if (!version.Equals(V1) || versionSet)
+            {
                 v.Add(new DerTaggedObject(true, 0, version));
             }
 
-			if (requestorName != null)
-            {
-                v.Add(new DerTaggedObject(true, 1, requestorName));
-            }
-
-			v.Add(requestList);
-
-			if (requestExtensions != null)
-            {
-                v.Add(new DerTaggedObject(true, 2, requestExtensions));
-            }
-
-			return new DerSequence(v);
+            v.AddOptionalTagged(true, 1, requestorName);
+            v.Add(requestList);
+            v.AddOptionalTagged(true, 2, requestExtensions);
+            return new DerSequence(v);
         }
     }
 }

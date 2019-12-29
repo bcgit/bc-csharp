@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Ocsp
 					throw new InvalidOperationException("attempt to get a reason where none is available");
 				}
 
-				return info.RevocationReason.Value.IntValue;
+                return info.RevocationReason.IntValueExact;
 			}
 		}
 	}

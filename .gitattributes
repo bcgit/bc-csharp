@@ -13,6 +13,7 @@
 *.nunit    text diff=xml
 *.pem      text
 *.README   text
+*.rsp      text
 *.sln      text
 *.tmpl     text
 *.txt      text

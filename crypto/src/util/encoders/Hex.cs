@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
     /// </summary>
     public sealed class Hex
     {
-        private static readonly IEncoder encoder = new HexEncoder();
+        private static readonly HexEncoder encoder = new HexEncoder();
 
         private Hex()
         {
@@ -125,6 +125,28 @@ namespace Org.BouncyCastle.Utilities.Encoders
             Stream	outStream)
         {
             return encoder.DecodeString(data, outStream);
+        }
+
+        /**
+         * Decode the hexadecimal-encoded string strictly i.e. any non-hexadecimal characters will be
+         * considered an error.
+         *
+         * @return a byte array representing the decoded data.
+         */
+        public static byte[] DecodeStrict(string str)
+        {
+            return encoder.DecodeStrict(str, 0, str.Length);
+        }
+
+        /**
+         * Decode the hexadecimal-encoded string strictly i.e. any non-hexadecimal characters will be
+         * considered an error.
+         *
+         * @return a byte array representing the decoded data.
+         */
+        public static byte[] DecodeStrict(string str, int off, int len)
+        {
+            return encoder.DecodeStrict(str, off, len);
         }
     }
 }

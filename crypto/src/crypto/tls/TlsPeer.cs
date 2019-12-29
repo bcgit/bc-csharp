@@ -5,6 +5,11 @@ namespace Org.BouncyCastle.Crypto.Tls
 {
     public interface TlsPeer
     {
+        void NotifyCloseHandle(TlsCloseable closehandle);
+
+        /// <exception cref="IOException"/>
+        void Cancel();
+
         /// <summary>
         /// This implementation supports RFC 7627 and will always negotiate the extended_master_secret
         /// extension where possible.

@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
                     }
                 }
             }
-            else if (obj is DerTaggedObject)
+            else if (obj is Asn1TaggedObject)
             {
                 string tab = indent + Tab;
                 buf.Append(indent);
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
                     buf.Append("Tagged [");
                 }
 
-                DerTaggedObject o = (DerTaggedObject)obj;
+                Asn1TaggedObject o = (Asn1TaggedObject)obj;
 
                 buf.Append(((int)o.TagNo).ToString());
                 buf.Append(']');

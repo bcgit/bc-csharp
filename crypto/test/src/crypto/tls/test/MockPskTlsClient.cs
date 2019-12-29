@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         internal TlsSession mSession;
 
         internal MockPskTlsClient(TlsSession session)
-            :   this(session, new BasicTlsPskIdentity("client", new byte[16]))
+            : this(session, new BasicTlsPskIdentity("client", Strings.ToUtf8ByteArray("TLS_TEST_PSK")))
         {
         }
 

@@ -93,8 +93,7 @@ namespace Org.BouncyCastle.Crmf
         private SecureRandom random;
         private PbmParameter parameters;
         private int iterationCount;
-        private int saltLength;
-        private byte[] salt;
+        private int saltLength = 20;
         private int maxIterations;
 
         /// <summary>
@@ -185,7 +184,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>this</returns>
         public PKMacBuilder SetParameters(PbmParameter parameters)
         {
-            CheckIterationCountCeiling(parameters.IterationCount.Value.IntValue);
+            CheckIterationCountCeiling(parameters.IterationCount.IntValueExact);
 
             this.parameters = parameters;
 
@@ -258,7 +257,7 @@ namespace Org.BouncyCastle.Crmf
 
             IDigest digest = provider.CreateDigest(parameters.Owf);
 
-            int iter = parameters.IterationCount.Value.IntValue;
+            int iter = parameters.IterationCount.IntValueExact;
 
             digest.BlockUpdate(K, 0, K.Length);
 

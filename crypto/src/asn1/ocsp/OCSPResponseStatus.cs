@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         }
 
 		public OcspResponseStatus(DerEnumerated value)
-			: base(value.Value.IntValue)
+            : base(value.IntValueExact)
         {
         }
     }

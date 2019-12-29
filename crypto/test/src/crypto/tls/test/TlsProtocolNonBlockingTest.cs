@@ -79,9 +79,9 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
             if (fragment)
             {
+                byte[] buffer = new byte[1];
                 while (from.GetAvailableOutputBytes() > 0)
                 {
-                    byte[] buffer = new byte[1];
                     from.ReadOutput(buffer, 0, 1);
                     to.OfferInput(buffer);
                 }

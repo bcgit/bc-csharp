@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             new DerInteger(Hex.Decode("ffda47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b0e"));
 
-            new DerEnumerated(Hex.Decode("ffda47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b0e"));
+            new DerEnumerated(Hex.Decode("005a47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b0e"));
 
             SetAllowUnsafeProperty(false);
 
@@ -95,6 +95,17 @@ namespace Org.BouncyCastle.Asn1.Tests
             try
             {
                 new DerEnumerated(Hex.Decode("ffda47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b0e"));
+
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                IsEquals("malformed enumerated", e.Message);
+            }
+
+            try
+            {
+                new DerEnumerated(Hex.Decode("005a47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b0e"));
 
                 Fail("no exception");
             }
@@ -173,7 +184,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             try
             {
                 byte[] rawInt = Hex.Decode("FF81FF");
-                DerInteger i = new DerInteger(rawInt);
+                new DerInteger(rawInt);
                 Fail("Expecting illegal argument exception.");
             }
             catch (ArgumentException e)
@@ -212,7 +223,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             try
             {
                 byte[] rawInt = Hex.Decode("FFFFFFFF01FF");
-                DerInteger i = new DerInteger(rawInt);
+                new DerInteger(rawInt);
                 Fail("Expecting illegal argument exception.");
             }
             catch (ArgumentException e)
@@ -235,7 +246,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             {
                 SetAllowUnsafeProperty(true);
                 byte[] rawInt = Hex.Decode("0000000010FF");
-                DerInteger i = new DerInteger(rawInt);
+                new DerInteger(rawInt);
                 Fail("Expecting illegal argument exception.");
             }
             catch (ArgumentException e)
@@ -254,7 +265,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             {
                 SetAllowUnsafeProperty(true);
                 byte[] rawInt = Hex.Decode("FFFFFFFF10FF");
-                DerInteger i = new DerInteger(rawInt);
+                new DerInteger(rawInt);
                 Fail("Expecting illegal argument exception.");
             }
             catch (ArgumentException e)

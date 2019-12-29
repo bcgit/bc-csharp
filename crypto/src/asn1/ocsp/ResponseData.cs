@@ -140,19 +140,14 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
 
-			if (versionPresent || !version.Equals(V1))
-			{
-				v.Add(new DerTaggedObject(true, 0, version));
-			}
-
-			v.Add(responderID, producedAt, responses);
-
-			if (responseExtensions != null)
+            if (versionPresent || !version.Equals(V1))
             {
-                v.Add(new DerTaggedObject(true, 1, responseExtensions));
+                v.Add(new DerTaggedObject(true, 0, version));
             }
 
-			return new DerSequence(v);
+            v.Add(responderID, producedAt, responses);
+            v.AddOptionalTagged(true, 1, responseExtensions);
+            return new DerSequence(v);
         }
     }
 }

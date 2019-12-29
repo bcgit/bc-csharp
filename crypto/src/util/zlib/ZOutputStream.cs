@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
             return z;
         }
 
-        private const int BufferSize = 512;
+        private const int BufferSize = 4096;
 
 		protected ZStream z;
 		protected int flushLevel = JZlib.Z_NO_FLUSH;

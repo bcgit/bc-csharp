@@ -66,9 +66,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 // an interesting feature of SignedData is that there appear to be varying implementations...
                 // for the moment we ignore anything which doesn't fit.
                 //
-                if (o is DerTaggedObject)
+                if (o is Asn1TaggedObject)
                 {
-                    DerTaggedObject tagged = (DerTaggedObject) o;
+                    Asn1TaggedObject tagged = (Asn1TaggedObject)o;
 
                     switch (tagged.TagNo)
                     {
@@ -136,21 +136,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
-                version, digestAlgorithms, contentInfo);
-
-            if (certificates != null)
-            {
-                v.Add(new DerTaggedObject(false, 0, certificates));
-            }
-
-            if (crls != null)
-            {
-                v.Add(new DerTaggedObject(false, 1, crls));
-            }
-
+            Asn1EncodableVector v = new Asn1EncodableVector(version, digestAlgorithms, contentInfo);
+            v.AddOptionalTagged(false, 0, certificates);
+            v.AddOptionalTagged(false, 1, crls);
             v.Add(signerInfos);
-
             return new BerSequence(v);
         }
     }

@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 			if (obj is DerInteger)
             {
                 DerInteger predefinedBiometricTypeObj = DerInteger.GetInstance(obj);
-                int predefinedBiometricType = predefinedBiometricTypeObj.Value.IntValue;
+                int predefinedBiometricType = predefinedBiometricTypeObj.IntValueExact;
 
 				return new TypeOfBiometricData(predefinedBiometricType);
             }
@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 
 		public int PredefinedBiometricType
 		{
-			get { return ((DerInteger) obj).Value.IntValue; }
+            get { return ((DerInteger)obj).IntValueExact; }
 		}
 
 		public DerObjectIdentifier BiometricDataOid

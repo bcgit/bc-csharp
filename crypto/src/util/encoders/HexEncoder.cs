@@ -172,5 +172,31 @@ namespace Org.BouncyCastle.Utilities.Encoders
 
             return length;
         }
+
+        internal byte[] DecodeStrict(string str, int off, int len)
+        {
+            if (null == str)
+                throw new ArgumentNullException("str");
+            if (off < 0 || len < 0 || off > (str.Length - len))
+                throw new IndexOutOfRangeException("invalid offset and/or length specified");
+            if (0 != (len & 1))
+                throw new ArgumentException("a hexadecimal encoding must have an even number of characters", "len");
+
+            int resultLen = len >> 1;
+            byte[] result = new byte[resultLen];
+
+            int strPos = off;
+            for (int i = 0; i < resultLen; ++i)
+            {
+                byte b1 = decodingTable[str[strPos++]];
+                byte b2 = decodingTable[str[strPos++]];
+
+                if ((b1 | b2) >= 0x80)
+                    throw new IOException("invalid characters encountered in Hex data");
+
+                result[i] = (byte)((b1 << 4) | b2);
+            }
+            return result;
+        }
     }
 }

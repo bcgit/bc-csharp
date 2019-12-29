@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Tls
 {
     public abstract class TlsProtocol
+        : TlsCloseable
     {
         /*
          * Our Connection states
@@ -729,10 +730,18 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /**
+         * Equivalent to <code>OfferInput(input, 0, input.length)</code>
+         * @see TlsProtocol#OfferInput(byte[], int, int)
+         * @param input The input buffer to offer
+         * @throws IOException If an error occurs while decrypting or processing a record
+         */
+        public virtual void OfferInput(byte[] input)
+        {
+            OfferInput(input, 0, input.Length);
+        }
+
+        /**
          * Offer input from an arbitrary source. Only allowed in non-blocking mode.<br/>
-         * <br/>
-         * After this method returns, the input buffer is "owned" by this object. Other code
-         * must not attempt to do anything with it.<br/>
          * <br/>
          * This method will decrypt and process all records that are fully available.
          * If only part of a record is available, the buffer will be retained until the
@@ -744,16 +753,18 @@ namespace Org.BouncyCastle.Crypto.Tls
          * You should always check to see if there is any available output after calling
          * this method by calling {@link #getAvailableOutputBytes()}.
          * @param input The input buffer to offer
+         * @param inputOff The offset within the input buffer that input begins
+         * @param inputLen The number of bytes of input being offered
          * @throws IOException If an error occurs while decrypting or processing a record
          */
-        public virtual void OfferInput(byte[] input)
+        public virtual void OfferInput(byte[] input, int inputOff, int inputLen)
         {
             if (mBlocking)
                 throw new InvalidOperationException("Cannot use OfferInput() in blocking mode! Use Stream instead.");
             if (mClosed)
                 throw new IOException("Connection is closed, cannot accept any more input");
 
-            mInputBuffers.Write(input);
+            mInputBuffers.Write(input, inputOff, inputLen);
 
             // loop while there are enough bytes to read the length of the next record
             while (mInputBuffers.Available >= RecordStream.TLS_HEADER_SIZE)

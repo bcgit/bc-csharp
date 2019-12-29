@@ -119,14 +119,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(version);
-
-			if (keyDerivationAlgorithm != null)
-            {
-                v.Add(new DerTaggedObject(false, 0, keyDerivationAlgorithm));
-            }
-
+            v.AddOptionalTagged(false, 0, keyDerivationAlgorithm);
 			v.Add(keyEncryptionAlgorithm, encryptedKey);
-
 			return new DerSequence(v);
         }
     }

@@ -45,15 +45,14 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
-		public CrlReason(
-			DerEnumerated reason)
-			: base(reason.Value.IntValue)
+		public CrlReason(DerEnumerated reason)
+			: base(reason.IntValueExact)
         {
         }
 
 		public override string ToString()
 		{
-			int reason = Value.IntValue;
+			int reason = IntValueExact;
 			string str = (reason < 0 || reason > 10) ? "Invalid" : ReasonString[reason];
 			return "CrlReason: " + str;
 		}    

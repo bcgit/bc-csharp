@@ -133,22 +133,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
-				version, issuerAndSerialNumber, digAlgorithm);
-
-			if (authenticatedAttributes != null)
-            {
-                v.Add(new DerTaggedObject(false, 0, authenticatedAttributes));
-            }
-
-			v.Add(digEncryptionAlgorithm, encryptedDigest);
-
-			if (unauthenticatedAttributes != null)
-            {
-                v.Add(new DerTaggedObject(false, 1, unauthenticatedAttributes));
-            }
-
-			return new DerSequence(v);
+            Asn1EncodableVector v = new Asn1EncodableVector(version, issuerAndSerialNumber, digAlgorithm);
+            v.AddOptionalTagged(false, 0, authenticatedAttributes);
+            v.Add(digEncryptionAlgorithm, encryptedDigest);
+            v.AddOptionalTagged(false, 1, unauthenticatedAttributes);
+            return new DerSequence(v);
         }
     }
 }

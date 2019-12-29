@@ -193,13 +193,13 @@ namespace Org.BouncyCastle.Asn1.X509
             }
 
 			if (seqPos < seq.Count
-                && !(seq[seqPos] is DerTaggedObject))
+                && !(seq[seqPos] is Asn1TaggedObject))
             {
 				revokedCertificates = Asn1Sequence.GetInstance(seq[seqPos++]);
 			}
 
 			if (seqPos < seq.Count
-                && seq[seqPos] is DerTaggedObject)
+                && seq[seqPos] is Asn1TaggedObject)
             {
 				crlExtensions = X509Extensions.GetInstance(seq[seqPos]);
 			}
@@ -207,7 +207,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public int Version
         {
-            get { return version.Value.IntValue + 1; }
+            get { return version.IntValueExact + 1; }
         }
 
 		public DerInteger VersionNumber

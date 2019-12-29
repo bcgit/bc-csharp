@@ -19,18 +19,20 @@ namespace Org.BouncyCastle.Asn1
 		{
 			lock (this)
 			{
-				if (encoded != null)
-				{
-					Asn1InputStream e = new LazyAsn1InputStream(encoded);
+                if (null != encoded)
+                {
+                    Asn1EncodableVector v = new Asn1EncodableVector();
+                    Asn1InputStream e = new LazyAsn1InputStream(encoded);
 
-					Asn1Object o;
-					while ((o = e.ReadObject()) != null)
-					{
-						AddObject(o);
-					}
+                    Asn1Object o;
+                    while ((o = e.ReadObject()) != null)
+                    {
+                        v.Add(o);
+                    }
 
-					encoded = null;
-				}
+                    this.elements = v.TakeElements();
+                    this.encoded = null;
+                }
 			}
 		}
 
