@@ -262,5 +262,10 @@ namespace Org.BouncyCastle.Crypto.Tls
         public virtual void NotifyNewSessionTicket(NewSessionTicket newSessionTicket)
         {
         }
+
+        public virtual AbstractCertificate ParseServerCertificate(short certType, Stream io)
+        {
+            return null;
+        }
     }
 }

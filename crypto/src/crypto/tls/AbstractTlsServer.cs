@@ -370,5 +370,10 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             throw new TlsFatalAlert(AlertDescription.handshake_failure);
         }
+
+        public virtual AbstractCertificate ParseCertificate(short certificateType, Stream io)
+        {
+            return null;
+        }
     }
 }

@@ -144,5 +144,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         /// <param name="newSessionTicket">The <see cref="NewSessionTicket">ticket</see></param>
         /// <exception cref="IOException"/>
         void NotifyNewSessionTicket(NewSessionTicket newSessionTicket);
+
+        AbstractCertificate ParseServerCertificate(short certificateType, Stream io);
     }
 }

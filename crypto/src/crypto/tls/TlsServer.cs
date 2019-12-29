@@ -92,5 +92,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         byte GetClientCertificateType(byte[] certificateTypes);
         byte GetServerCertificateType(byte[] certificateTypes);
+
+        AbstractCertificate ParseCertificate(short certificateType, Stream io);
     }
 }

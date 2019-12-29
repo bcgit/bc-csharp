@@ -14,5 +14,6 @@ namespace Org.BouncyCastle.Crypto.Tls
          * RFC 7250
          */
         public const byte RawPublicKey = 2;
+        public const byte CwtPublicKey = 254;
     }
 }

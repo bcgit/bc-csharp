@@ -572,17 +572,24 @@ namespace Org.BouncyCastle.Crypto.Tls
             state.client.NotifyNewSessionTicket(newSessionTicket);
         }
 
+
         protected virtual AbstractCertificate ParseServerCertificate(ClientHandshakeState state, Stream stm)
         {
+            AbstractCertificate cert = state.client.ParseServerCertificate(state.serverCertificateType, stm);
+            if (cert != null) return cert;
+
             switch (state.serverCertificateType) {
-                case CertificateType.X509:
-                    return Certificate.Parse(stm);
+            case CertificateType.X509:
+                return Certificate.Parse(stm);
 
-                case CertificateType.RawPublicKey:
-                    return RawPublicKey.Parse(stm);
+            case CertificateType.RawPublicKey:
+                return RawPublicKey.Parse(stm);
 
-                default:
-                    throw new TlsFatalAlert(AlertDescription.bad_certificate);
+            case CertificateType.CwtPublicKey:
+                return CwtPublicKey.Parse(stm);
+
+            default:
+                throw new TlsFatalAlert(AlertDescription.bad_certificate);
             }
         }
 

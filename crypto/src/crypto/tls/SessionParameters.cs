@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private bool mExtendedMasterSecret;
 
         private SessionParameters(int cipherSuite, byte compressionAlgorithm, byte[] masterSecret,
-            AbstractCertificate peerCertificate, byte[] pskIdentity, byte[] srpIdentity, byte[] encodedServerExtensions)
+            AbstractCertificate peerCertificate, byte[] pskIdentity, byte[] srpIdentity, byte[] encodedServerExtensions,
             bool extendedMasterSecret)
         {
             this.mCipherSuite = cipherSuite;

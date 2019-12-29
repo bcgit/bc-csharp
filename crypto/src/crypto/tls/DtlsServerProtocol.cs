@@ -493,6 +493,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected virtual AbstractCertificate ParseCertificate(ServerHandshakeState state, Stream buf)
         {
+            AbstractCertificate cert = state.server.ParseCertificate(state.clientCertificateType, buf);
+            if (cert != null) return cert;
+
             switch (state.clientCertificateType) {
                 case CertificateType.X509:
                     return Certificate.Parse(buf);
