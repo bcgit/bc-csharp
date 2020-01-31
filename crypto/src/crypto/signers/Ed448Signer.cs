@@ -34,10 +34,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
-                // TODO Allow IAsymmetricCipherKeyPair to be an ICipherParameters?
-
                 this.privateKey = (Ed448PrivateKeyParameters)parameters;
-                this.publicKey = privateKey.GeneratePublicKey();
+                this.publicKey = null;
             }
             else
             {
@@ -63,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (!forSigning || null == privateKey)
                 throw new InvalidOperationException("Ed448Signer not initialised for signature generation.");
 
-            return buffer.GenerateSignature(privateKey, publicKey, context);
+            return buffer.GenerateSignature(privateKey, context);
         }
 
         public virtual bool VerifySignature(byte[] signature)
@@ -81,7 +79,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         private class Buffer : MemoryStream
         {
-            internal byte[] GenerateSignature(Ed448PrivateKeyParameters privateKey, Ed448PublicKeyParameters publicKey, byte[] ctx)
+            internal byte[] GenerateSignature(Ed448PrivateKeyParameters privateKey, byte[] ctx)
             {
                 lock (this)
                 {
@@ -93,7 +91,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     int count = (int)Position;
 #endif
                     byte[] signature = new byte[Ed448PrivateKeyParameters.SignatureSize];
-                    privateKey.Sign(Ed448.Algorithm.Ed448, publicKey, ctx, buf, 0, count, signature, 0);
+                    privateKey.Sign(Ed448.Algorithm.Ed448, ctx, buf, 0, count, signature, 0);
                     Reset();
                     return signature;
                 }
