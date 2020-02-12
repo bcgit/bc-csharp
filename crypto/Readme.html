@@ -305,10 +305,14 @@ We state, where EC MQV has not otherwise been disabled or removed:
         <h5>Defects Fixed</h5>
         <ul>
             <li>EdDSA verifiers now reject overly long signatures.</li>
+            <li>Fixed field reduction for custom secp128r1 curve.</li>
+            <li>ASN.1: Enforce no leading zeroes in OID branches (longer than 1 character).</li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>
             <li>TLS: BasicTlsPskIdentity now reusable (returns cloned array from GetPsk).</li>
+            <li>Improved performance for multiple ECDSA verifications using same public key.</li>
+            <li>Support has been added for ChaCha20-Poly1305 AEAD mode from RFC 7539.</li>
         </ul>
 
         <h4><a class="mozTocH4" name="mozTocId85319"></a>Release 1.8.5, Thursday January 31, 2019</h4>
