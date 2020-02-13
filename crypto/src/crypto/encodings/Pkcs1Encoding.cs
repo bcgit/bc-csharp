@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         {
             string strictProperty = Platform.GetEnvironmentVariable(StrictLengthEnabledProperty);
 
-            strictLengthEnabled = new bool[]{ strictProperty == null || strictProperty.Equals("true")};
+            strictLengthEnabled = new bool[]{ strictProperty == null || Platform.EqualsIgnoreCase("true", strictProperty) };
         }
 
 
