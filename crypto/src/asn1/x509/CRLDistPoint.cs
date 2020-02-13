@@ -8,32 +8,28 @@ namespace Org.BouncyCastle.Asn1.X509
     public class CrlDistPoint
         : Asn1Encodable
     {
-        internal readonly Asn1Sequence seq;
-
-		public static CrlDistPoint GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+		public static CrlDistPoint GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static CrlDistPoint GetInstance(
-            object obj)
+		public static CrlDistPoint GetInstance(object obj)
         {
-            if (obj is CrlDistPoint || obj == null)
-            {
-                return (CrlDistPoint) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new CrlDistPoint((Asn1Sequence) obj);
-            }
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj is CrlDistPoint)
+                return (CrlDistPoint)obj;
+            if (obj == null)
+                return null;
+            return new CrlDistPoint(Asn1Sequence.GetInstance(obj));
 		}
 
-		private CrlDistPoint(
+        public static CrlDistPoint FromExtensions(X509Extensions extensions)
+        {
+            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.CrlDistributionPoints));
+        }
+
+        internal readonly Asn1Sequence seq;
+
+        private CrlDistPoint(
             Asn1Sequence seq)
         {
             this.seq = seq;

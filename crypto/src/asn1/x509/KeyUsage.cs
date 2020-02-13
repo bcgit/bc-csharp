@@ -30,23 +30,23 @@ namespace Org.BouncyCastle.Asn1.X509
         public const int EncipherOnly     = (1 << 0);
         public const int DecipherOnly     = (1 << 15);
 
-		public static new KeyUsage GetInstance(
-			object obj)
+		public static new KeyUsage GetInstance(object obj)
 		{
 			if (obj is KeyUsage)
-			{
 				return (KeyUsage)obj;
-			}
-
-			if (obj is X509Extension)
-			{
-				return GetInstance(X509Extension.ConvertValueToObject((X509Extension) obj));
-			}
-
+            if (obj is X509Extension)
+				return GetInstance(X509Extension.ConvertValueToObject((X509Extension)obj));
+            if (obj == null)
+                return null;
 			return new KeyUsage(DerBitString.GetInstance(obj));
 		}
 
-		/**
+        public static KeyUsage FromExtensions(X509Extensions extensions)
+        {
+            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.KeyUsage));
+        }
+
+        /**
          * Basic constructor.
          *
          * @param usage - the bitwise OR of the Key Usage flags giving the

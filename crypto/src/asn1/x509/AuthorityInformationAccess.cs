@@ -26,7 +26,10 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AuthorityInformationAccess
         : Asn1Encodable
     {
-        private readonly AccessDescription[] descriptions;
+        private static AccessDescription[] Copy(AccessDescription[] descriptions)
+        {
+            return (AccessDescription[])descriptions.Clone();
+        }
 
         public static AuthorityInformationAccess GetInstance(object obj)
         {
@@ -36,6 +39,13 @@ namespace Org.BouncyCastle.Asn1.X509
                 return null;
             return new AuthorityInformationAccess(Asn1Sequence.GetInstance(obj));
         }
+
+        public static AuthorityInformationAccess FromExtensions(X509Extensions extensions)
+        {
+            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AuthorityInfoAccess));
+        }
+
+        private readonly AccessDescription[] descriptions;
 
         private AuthorityInformationAccess(
             Asn1Sequence seq)
@@ -57,6 +67,12 @@ namespace Org.BouncyCastle.Asn1.X509
             this.descriptions = new AccessDescription[]{ description };
         }
 
+        public AuthorityInformationAccess(
+            AccessDescription[] descriptions)
+        {
+            this.descriptions = Copy(descriptions);
+        }
+
         /**
          * create an AuthorityInformationAccess with the oid and location provided.
          */
@@ -67,7 +83,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public AccessDescription[] GetAccessDescriptions()
         {
-            return (AccessDescription[])descriptions.Clone();
+            return Copy(descriptions);
         }
 
         public override Asn1Object ToAsn1Object()
