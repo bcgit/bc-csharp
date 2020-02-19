@@ -204,7 +204,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 Array.Copy(enc, 2, pEnc, 0, pLen);
 
                 int keyLen = enc[pLen + 2];
-                if ((2 + pLen + 1 + keyLen) > enc.length)
+                if ((2 + pLen + 1 + keyLen) > enc.Length)
                     throw new PgpException("encoded length out of range");
 
                 byte[] keyEnc = new byte[keyLen];
