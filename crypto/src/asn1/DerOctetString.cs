@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1
 {
     public class DerOctetString
@@ -10,9 +12,13 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-		public DerOctetString(
-			Asn1Encodable obj)
-			: base(obj)
+        public DerOctetString(IAsn1Convertible obj)
+            : this(obj.ToAsn1Object())
+        {
+        }
+
+        public DerOctetString(Asn1Encodable obj)
+            : base(obj.GetEncoded(Asn1Encodable.Der))
         {
         }
 

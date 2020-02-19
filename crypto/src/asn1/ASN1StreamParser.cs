@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1
 			if (_in is IndefiniteLengthInputStream)
 			{
 				if (!constructed)
-					throw new IOException("indefinite length primitive encoding encountered");
+					throw new IOException("indefinite-length primitive encoding encountered");
 
 				return ReadIndef(tag);
 			}
@@ -134,12 +134,13 @@ namespace Org.BouncyCastle.Asn1
 			//
 			// calculate length
 			//
-			int length = Asn1InputStream.ReadLength(_in, _limit);
+			int length = Asn1InputStream.ReadLength(_in, _limit,
+                tagNo == Asn1Tags.OctetString || tagNo == Asn1Tags.Sequence || tagNo == Asn1Tags.Set || tagNo == Asn1Tags.External);
 
-			if (length < 0) // indefinite length method
+			if (length < 0) // indefinite-length method
 			{
 				if (!isConstructed)
-					throw new IOException("indefinite length primitive encoding encountered");
+					throw new IOException("indefinite-length primitive encoding encountered");
 
 				IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(_in, _limit);
 				Asn1StreamParser sp = new Asn1StreamParser(indIn, _limit);
@@ -158,7 +159,7 @@ namespace Org.BouncyCastle.Asn1
 			}
 			else
 			{
-				DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(_in, length);
+				DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(_in, length, _limit);
 
 				if ((tag & Asn1Tags.Application) != 0)
 				{

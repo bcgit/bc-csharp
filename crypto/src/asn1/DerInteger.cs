@@ -145,6 +145,18 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        public long LongValueExact
+        {
+            get
+            {
+                int count = bytes.Length - start;
+                if (count > 8)
+                    throw new ArithmeticException("ASN.1 Integer out of long range");
+
+                return LongValue(bytes, start, SignExtSigned);
+            }
+        }
+
         internal override void Encode(DerOutputStream derOut)
         {
             derOut.WriteEncoded(Asn1Tags.Integer, bytes);
@@ -175,6 +187,19 @@ namespace Org.BouncyCastle.Asn1
             int pos = System.Math.Max(start, length - 4);
 
             int val = (sbyte)bytes[pos] & signExt;
+            while (++pos < length)
+            {
+                val = (val << 8) | bytes[pos];
+            }
+            return val;
+        }
+
+        internal static long LongValue(byte[] bytes, int start, int signExt)
+        {
+            int length = bytes.Length;
+            int pos = System.Math.Max(start, length - 8);
+
+            long val = (sbyte)bytes[pos] & signExt;
             while (++pos < length)
             {
                 val = (val << 8) | bytes[pos];
