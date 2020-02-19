@@ -39,11 +39,14 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 			{
 				line = line.Substring(BeginString.Length);
 				int index = line.IndexOf('-');
-				string type = line.Substring(0, index);
 
-				if (index > 0)
-					return LoadObject(type);
-			}
+                if (index > 0 && Platform.EndsWith(line, "-----") && (line.Length - index) == 5)
+                {
+                    string type = line.Substring(0, index);
+
+                    return LoadObject(type);
+                }
+            }
 
 			return null;
 		}
