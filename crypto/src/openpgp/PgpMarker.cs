@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
 	/// <remarks>
@@ -7,12 +10,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpMarker
 		: PgpObject
     {
-        private readonly MarkerPacket p;
+        private readonly MarkerPacket data;
 
 		public PgpMarker(
-            BcpgInputStream bcpgIn)
+            BcpgInputStream bcpgInput)
         {
-            p = (MarkerPacket) bcpgIn.ReadPacket();
+            Packet packet = bcpgInput.ReadPacket();
+            if (!(packet is MarkerPacket))
+                throw new IOException("unexpected packet in stream: " + packet);
+
+            this.data = (MarkerPacket)packet;
         }
 	}
 }

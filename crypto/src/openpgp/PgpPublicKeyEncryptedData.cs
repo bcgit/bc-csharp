@@ -197,12 +197,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] enc = secKeyData[0];
 
                 int pLen = ((((enc[0] & 0xff) << 8) + (enc[1] & 0xff)) + 7) / 8;
-                byte[] pEnc = new byte[pLen];
+                if ((2 + pLen + 1) > enc.Length) 
+                    throw new PgpException("encoded length out of range");
 
+                byte[] pEnc = new byte[pLen];
                 Array.Copy(enc, 2, pEnc, 0, pLen);
 
-                byte[] keyEnc = new byte[enc[pLen + 2]];
+                int keyLen = enc[pLen + 2];
+                if ((2 + pLen + 1 + keyLen) > enc.length)
+                    throw new PgpException("encoded length out of range");
 
+                byte[] keyEnc = new byte[keyLen];
                 Array.Copy(enc, 2 + pLen + 1, keyEnc, 0, keyEnc.Length);
 
                 ECPoint publicPoint = x9Params.Curve.DecodePoint(pEnc);

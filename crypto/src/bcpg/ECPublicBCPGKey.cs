@@ -81,10 +81,10 @@ namespace Org.BouncyCastle.Bcpg
             BcpgInputStream bcpgIn)
         {
             int length = bcpgIn.ReadByte();
+            if (length < 0)
+                throw new EndOfStreamException();
             if (length == 0 || length == 0xFF)
-            {
-                throw new IOException("future extensions not yet implemented.");
-            }
+                throw new IOException("future extensions not yet implemented");
 
             byte[] buffer = new byte[length + 2];
             bcpgIn.ReadFully(buffer, 2, buffer.Length - 2);

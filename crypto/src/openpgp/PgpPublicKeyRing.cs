@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     + "tag 0x" + ((int)initialTag).ToString("X"));
             }
 
-            PublicKeyPacket pubPk = (PublicKeyPacket) bcpgInput.ReadPacket();
+            PublicKeyPacket pubPk = ReadPublicKeyPacket(bcpgInput);
             TrustPacket trustPk = ReadOptionalTrustPacket(bcpgInput);
 
             // direct signatures and revocations
@@ -186,9 +186,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return found ? new PgpPublicKeyRing(keys) : null;
         }
 
+        internal static PublicKeyPacket ReadPublicKeyPacket(BcpgInputStream bcpgInput)
+        {
+            Packet packet = bcpgInput.ReadPacket();
+            if (!(packet is PublicKeyPacket))
+                throw new IOException("unexpected packet in stream: " + packet);
+
+            return (PublicKeyPacket)packet;
+        }
+
         internal static PgpPublicKey ReadSubkey(BcpgInputStream bcpgInput)
         {
-            PublicKeyPacket	pk = (PublicKeyPacket) bcpgInput.ReadPacket();
+            PublicKeyPacket	pk = ReadPublicKeyPacket(bcpgInput);
             TrustPacket kTrust = ReadOptionalTrustPacket(bcpgInput);
 
             // PGP 8 actually leaves out the signature.

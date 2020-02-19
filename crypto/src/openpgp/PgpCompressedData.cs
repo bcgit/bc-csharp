@@ -14,7 +14,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		public PgpCompressedData(
             BcpgInputStream bcpgInput)
         {
-            data = (CompressedDataPacket) bcpgInput.ReadPacket();
+            Packet packet = bcpgInput.ReadPacket();
+            if (!(packet is CompressedDataPacket))
+                throw new IOException("unexpected packet in stream: " + packet);
+
+            this.data = (CompressedDataPacket)packet;
         }
 
 		/// <summary>The algorithm used for compression</summary>

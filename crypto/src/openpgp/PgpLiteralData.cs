@@ -16,12 +16,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>The special name indicating a "for your eyes only" packet.</summary>
         public const string Console = "_CONSOLE";
 
-		private LiteralDataPacket data;
+		private readonly LiteralDataPacket data;
 
 		public PgpLiteralData(
             BcpgInputStream bcpgInput)
         {
-            data = (LiteralDataPacket) bcpgInput.ReadPacket();
+            Packet packet = bcpgInput.ReadPacket();
+            if (!(packet is LiteralDataPacket))
+                throw new IOException("unexpected packet in stream: " + packet);
+
+            this.data = (LiteralDataPacket)packet;
         }
 
 		/// <summary>The format of the data stream - Binary or Text</summary>
