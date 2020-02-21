@@ -12,24 +12,16 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		private readonly PkiStatusInfo	pkiStatusInfo;
 		private readonly ContentInfo	timeStampToken;
 
-		public static TimeStampResp GetInstance(
-			object o)
-		{
-			if (o == null || o is TimeStampResp)
-			{
-				return (TimeStampResp) o;
-			}
+        public static TimeStampResp GetInstance(object obj)
+        {
+            if (obj is TimeStampResp)
+                return (TimeStampResp)obj;
+            if (obj == null)
+                return null;
+            return new TimeStampResp(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (o is Asn1Sequence)
-			{
-				return new TimeStampResp((Asn1Sequence) o);
-			}
-
-			throw new ArgumentException(
-				"Unknown object in 'TimeStampResp' factory: " + Platform.GetTypeName(o));
-		}
-
-		private TimeStampResp(
+        private TimeStampResp(
 			Asn1Sequence seq)
 		{
 			this.pkiStatusInfo = PkiStatusInfo.GetInstance(seq[0]);
