@@ -515,9 +515,9 @@ namespace Org.BouncyCastle.X509
 
 					if (ext.Value != null)
 					{
-						byte[] octs = ext.Value.GetOctets();
-						Asn1Object obj = Asn1Object.FromByteArray(octs);
-						buf.Append("                       critical(").Append(ext.IsCritical).Append(") ");
+                        Asn1Object obj = X509ExtensionUtilities.FromExtensionValue(ext.Value);
+
+                        buf.Append("                       critical(").Append(ext.IsCritical).Append(") ");
 						try
 						{
 							if (oid.Equals(X509Extensions.BasicConstraints))
