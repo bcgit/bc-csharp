@@ -323,7 +323,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ScalarMultBaseEncoded(s, pk, pkOff);
         }
 
-        private static sbyte[] GetWnaf(uint[] n, int width)
+        private static sbyte[] GetWnafVar(uint[] n, int width)
         {
             Debug.Assert(n[ScalarUints - 1] >> 30 == 0U);
 
@@ -1087,8 +1087,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             int width = 5;
 
-            sbyte[] ws_b = GetWnaf(nb, WnafWidthBase);
-            sbyte[] ws_p = GetWnaf(np, width);
+            sbyte[] ws_b = GetWnafVar(nb, WnafWidthBase);
+            sbyte[] ws_p = GetWnafVar(np, width);
 
             PointExt[] tp = PointPrecompVar(p, 1 << (width - 2));
 

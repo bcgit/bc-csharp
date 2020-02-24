@@ -12,6 +12,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	/// <remarks>A PGP signature object.</remarks>
     public class PgpSignature
     {
+        private static SignaturePacket Cast(Packet packet)
+        {
+            if (!(packet is SignaturePacket))
+                throw new IOException("unexpected packet in stream: " + packet);
+
+            return (SignaturePacket)packet;
+        }
+
         public const int BinaryDocument = 0x00;
         public const int CanonicalTextDocument = 0x01;
         public const int StandAlone = 0x02;
@@ -38,7 +46,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 		internal PgpSignature(
             BcpgInputStream bcpgInput)
-            : this((SignaturePacket)bcpgInput.ReadPacket())
+            : this(Cast(bcpgInput.ReadPacket()))
         {
         }
 

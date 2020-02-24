@@ -359,14 +359,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             case CipherSuite.DRAFT_TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256:
 
             /*
-             * draft-zauner-tls-aes-ocb-04
-             */
-            case CipherSuite.DRAFT_TLS_DHE_RSA_WITH_AES_128_OCB:
-            case CipherSuite.DRAFT_TLS_DHE_RSA_WITH_AES_256_OCB:
-            case CipherSuite.DRAFT_TLS_DHE_PSK_WITH_AES_128_OCB:
-            case CipherSuite.DRAFT_TLS_DHE_PSK_WITH_AES_256_OCB:
-
-            /*
              * DH_anon cipher suites are consider ephemeral DH 
              */
             case CipherSuite.TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:

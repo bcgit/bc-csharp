@@ -393,37 +393,31 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         protected override void HandleAlertWarningMessage(byte alertDescription)
         {
-            base.HandleAlertWarningMessage(alertDescription);
-
-            switch (alertDescription)
+            /*
+             * SSL 3.0 If the server has sent a certificate request Message, the client must send
+             * either the certificate message or a no_certificate alert.
+             */
+            if (AlertDescription.no_certificate == alertDescription && null != mCertificateRequest
+                && TlsUtilities.IsSsl(mTlsServerContext))
             {
-            case AlertDescription.no_certificate:
-            {
-                /*
-                 * SSL 3.0 If the server has sent a certificate request Message, the client must send
-                 * either the certificate message or a no_certificate alert.
-                 */
-                if (TlsUtilities.IsSsl(Context) && this.mCertificateRequest != null)
+                switch (mConnectionState)
                 {
-                    switch (this.mConnectionState)
+                case CS_SERVER_HELLO_DONE:
+                case CS_CLIENT_SUPPLEMENTAL_DATA:
+                {
+                    if (mConnectionState < CS_CLIENT_SUPPLEMENTAL_DATA)
                     {
-                    case CS_SERVER_HELLO_DONE:
-                    case CS_CLIENT_SUPPLEMENTAL_DATA:
-                    {
-                        if (mConnectionState < CS_CLIENT_SUPPLEMENTAL_DATA)
-                        {
-                            mTlsServer.ProcessClientSupplementalData(null);
-                        }
+                        mTlsServer.ProcessClientSupplementalData(null);
+                    }
 
-                        NotifyClientCertificate(Certificate.EmptyChain);
-                        this.mConnectionState = CS_CLIENT_CERTIFICATE;
-                        return;
-                    }
-                    }
+                    NotifyClientCertificate(Certificate.EmptyChain);
+                    this.mConnectionState = CS_CLIENT_CERTIFICATE;
+                    return;
                 }
-                throw new TlsFatalAlert(AlertDescription.unexpected_message);
+                }
             }
-            } 
+
+            base.HandleAlertWarningMessage(alertDescription);
         }
 
         protected virtual void NotifyClientCertificate(AbstractCertificate clientCertificate)

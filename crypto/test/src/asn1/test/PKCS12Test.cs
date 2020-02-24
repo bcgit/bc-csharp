@@ -114,9 +114,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		public override void PerformTest()
 		{
-			Asn1Sequence obj = (Asn1Sequence) Asn1Object.FromByteArray(pkcs12);
-
-			Pfx                 bag = new Pfx(obj);
+			Pfx                 bag = Pfx.GetInstance(pkcs12);
 			ContentInfo         info = bag.AuthSafe;
 			MacData             mData = bag.MacData;
 			DigestInfo          dInfo = mData.Mac;
@@ -124,9 +122,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 			byte[]              salt = mData.GetSalt();
 			int                 itCount = mData.IterationCount.IntValue;
 
-			byte[] octets = ((Asn1OctetString) info.Content).GetOctets();
-			AuthenticatedSafe authSafe = new AuthenticatedSafe(
-				(Asn1Sequence) Asn1Object.FromByteArray(octets));
+			Asn1OctetString content = Asn1OctetString.GetInstance(info.Content);
+			AuthenticatedSafe authSafe = AuthenticatedSafe.GetInstance(content.GetOctets());
 			ContentInfo[] c = authSafe.GetContentInfo();
 
 			//
@@ -137,10 +134,10 @@ namespace Org.BouncyCastle.Asn1.Tests
 				Fail("Failed comparison data test");
 			}
 
-			octets = ((Asn1OctetString)c[0].Content).GetOctets();
-			Asn1Sequence seq = (Asn1Sequence) Asn1Object.FromByteArray(octets);
+            Asn1OctetString authSafeContent = Asn1OctetString.GetInstance(c[0].Content);
+            Asn1Sequence seq = Asn1Sequence.GetInstance(authSafeContent.GetOctets());
 
-			SafeBag b = new SafeBag((Asn1Sequence)seq[0]);
+            SafeBag b = SafeBag.GetInstance(seq[0]);
 			if (!b.BagID.Equals(PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag))
 			{
 				Fail("Failed comparison shroudedKeyBag test");
@@ -152,9 +149,9 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			b = new SafeBag(PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag, encInfo.ToAsn1Object(), b.BagAttributes);
 
-			byte[] encodedBytes = new DerSequence(b).GetEncoded();
+			byte[] contentOctets = new DerSequence(b).GetEncoded();
 
-			c[0] = new ContentInfo(PkcsObjectIdentifiers.Data, new BerOctetString(encodedBytes));
+			c[0] = new ContentInfo(PkcsObjectIdentifiers.Data, new BerOctetString(contentOctets));
 
 			//
 			// certificates
@@ -173,16 +170,19 @@ namespace Org.BouncyCastle.Asn1.Tests
 			//
 			authSafe = new AuthenticatedSafe(c);
 
-			info = new ContentInfo(PkcsObjectIdentifiers.Data, new BerOctetString(authSafe.GetEncoded()));
+            contentOctets = authSafe.GetEncoded();
 
-			mData = new MacData(new DigestInfo(algId, dInfo.GetDigest()), salt, itCount);
+            info = new ContentInfo(PkcsObjectIdentifiers.Data, new BerOctetString(contentOctets));
+
+            mData = new MacData(new DigestInfo(algId, dInfo.GetDigest()), salt, itCount);
 
 			bag = new Pfx(info, mData);
 
 			//
 			// comparison test
 			//
-			if (!Arrays.AreEqual(bag.GetEncoded(), pkcs12))
+            byte[] pfxEncoding = bag.GetEncoded();
+			if (!Arrays.AreEqual(pfxEncoding, pkcs12))
 			{
 				Fail("Failed comparison test");
 			}

@@ -49,7 +49,8 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             this.encryptionParamSet = encryptionParamSet;
         }
 
-		public Gost3410PublicKeyAlgParameters(
+        [Obsolete("Use 'GetInstance' instead")]
+        public Gost3410PublicKeyAlgParameters(
             Asn1Sequence seq)
         {
             this.publicKeyParamSet = (DerObjectIdentifier) seq[0];

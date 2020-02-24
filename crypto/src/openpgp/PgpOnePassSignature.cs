@@ -9,14 +9,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	/// <remarks>A one pass signature object.</remarks>
     public class PgpOnePassSignature
     {
-        private OnePassSignaturePacket sigPack;
-        private int signatureType;
+        private static OnePassSignaturePacket Cast(Packet packet)
+        {
+            if (!(packet is OnePassSignaturePacket))
+                throw new IOException("unexpected packet in stream: " + packet);
+
+            return (OnePassSignaturePacket)packet;
+        }
+
+        private readonly OnePassSignaturePacket sigPack;
+        private readonly int signatureType;
 		private ISigner sig;
 		private byte lastb;
 
 		internal PgpOnePassSignature(
             BcpgInputStream bcpgInput)
-            : this((OnePassSignaturePacket) bcpgInput.ReadPacket())
+            : this(Cast(bcpgInput.ReadPacket()))
         {
         }
 

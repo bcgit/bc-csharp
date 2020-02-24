@@ -19,6 +19,8 @@ namespace Org.BouncyCastle.Pkcs
 {
     public class Pkcs12Store
     {
+        public const string IgnoreUselessPasswordProperty = "Org.BouncyCastle.Pkcs12.IgnoreUselessPassword";
+
         private readonly IgnoresCaseHashtable	keys = new IgnoresCaseHashtable();
         private readonly IDictionary            localIds = Platform.CreateHashtable();
         private readonly IgnoresCaseHashtable	certs = new IgnoresCaseHashtable();
@@ -198,20 +200,22 @@ namespace Org.BouncyCastle.Pkcs
             if (input == null)
                 throw new ArgumentNullException("input");
 
-            Asn1Sequence obj = (Asn1Sequence) Asn1Object.FromStream(input);
-            Pfx bag = new Pfx(obj);
+            Pfx bag = Pfx.GetInstance(Asn1Object.FromStream(input));
             ContentInfo info = bag.AuthSafe;
             bool wrongPkcs12Zero = false;
 
-            if (password != null && bag.MacData != null) // check the mac code
+            if (bag.MacData != null) // check the mac code
             {
+                if (password == null)
+                    throw new ArgumentNullException("password", "no password supplied when one expected");
+
                 MacData mData = bag.MacData;
                 DigestInfo dInfo = mData.Mac;
                 AlgorithmIdentifier algId = dInfo.AlgorithmID;
                 byte[] salt = mData.GetSalt();
                 int itCount = mData.IterationCount.IntValue;
 
-                byte[] data = ((Asn1OctetString) info.Content).GetOctets();
+                byte[] data = Asn1OctetString.GetInstance(info.Content).GetOctets();
 
                 byte[] mac = CalculatePbeMac(algId.Algorithm, salt, itCount, password, false, data);
                 byte[] dig = dInfo.GetDigest();
@@ -230,6 +234,16 @@ namespace Org.BouncyCastle.Pkcs
                     wrongPkcs12Zero = true;
                 }
             }
+            else if (password != null)
+            {
+                string ignoreProperty = Platform.GetEnvironmentVariable(IgnoreUselessPasswordProperty);
+                bool ignore = ignoreProperty != null && Platform.EqualsIgnoreCase("true", ignoreProperty);
+
+                if (!ignore)
+                {
+                    throw new IOException("password supplied for keystore that does not require one");
+                }
+            }
 
             keys.Clear();
             localIds.Clear();
@@ -239,9 +253,8 @@ namespace Org.BouncyCastle.Pkcs
 
             if (info.ContentType.Equals(PkcsObjectIdentifiers.Data))
             {
-                byte[] octs = ((Asn1OctetString)info.Content).GetOctets();
-                AuthenticatedSafe authSafe = new AuthenticatedSafe(
-                    (Asn1Sequence) Asn1OctetString.FromByteArray(octs));
+                Asn1OctetString content = Asn1OctetString.GetInstance(info.Content);
+                AuthenticatedSafe authSafe = AuthenticatedSafe.GetInstance(content.GetOctets());
                 ContentInfo[] cis = authSafe.GetContentInfo();
 
                 foreach (ContentInfo ci in cis)
@@ -251,7 +264,7 @@ namespace Org.BouncyCastle.Pkcs
                     byte[] octets = null;
                     if (oid.Equals(PkcsObjectIdentifiers.Data))
                     {
-                        octets = ((Asn1OctetString)ci.Content).GetOctets();
+                        octets = Asn1OctetString.GetInstance(ci.Content).GetOctets();
                     }
                     else if (oid.Equals(PkcsObjectIdentifiers.EncryptedData))
                     {
@@ -269,7 +282,7 @@ namespace Org.BouncyCastle.Pkcs
 
                     if (octets != null)
                     {
-                        Asn1Sequence seq = (Asn1Sequence)Asn1Object.FromByteArray(octets);
+                        Asn1Sequence seq = Asn1Sequence.GetInstance(octets);
 
                         foreach (Asn1Sequence subSeq in seq)
                         {
@@ -527,15 +540,15 @@ namespace Org.BouncyCastle.Pkcs
                     X509Certificate x509c = c.Certificate;
                     X509CertificateEntry nextC = null;
 
-                    Asn1OctetString ext = x509c.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
-                    if (ext != null)
+                    Asn1OctetString akiValue = x509c.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
+                    if (akiValue != null)
                     {
-                        AuthorityKeyIdentifier id = AuthorityKeyIdentifier.GetInstance(
-                            Asn1Object.FromByteArray(ext.GetOctets()));
+                        AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.GetInstance(akiValue.GetOctets());
 
-                        if (id.GetKeyIdentifier() != null)
+                        byte[] keyID = aki.GetKeyIdentifier();
+                        if (keyID != null)
                         {
-                            nextC = (X509CertificateEntry) chainCerts[new CertId(id.GetKeyIdentifier())];
+                            nextC = (X509CertificateEntry)chainCerts[new CertId(keyID)];
                         }
                     }
 
@@ -1098,6 +1111,11 @@ namespace Org.BouncyCastle.Pkcs
             public ICollection Values
             {
                 get { return orig.Values; }
+            }
+
+            public int Count
+            {
+                get { return orig.Count; }
             }
         }
     }

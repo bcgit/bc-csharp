@@ -398,6 +398,26 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			+ "AHoAeQB0AGsAbwB3AG4AaQBrAGEwMTAhMAkGBSsOAwIaBQAEFKJpUOIj0OtI"
 			+ "j2CPp38YIFBEqvjsBAi8G+yhJe3A/wICCAA=");
 
+		private static readonly byte[] certsOnly = Base64.Decode(
+            "MIICnwIBAzCCApgGCSqGSIb3DQEHAaCCAokEggKFMIICgTCCAn0GCSqGSIb3"
+            + "DQEHAaCCAm4EggJqMIICZjCCAmIGCyqGSIb3DQEMCgEDoIICHDCCAhgGCiq"
+            + "GSIb3DQEJFgGgggIIBIICBDCCAgAwggFpoAMCAQICBHcheqIwDQYJKoZIhv"
+            + "cNAQELBQAwMjENMAsGA1UEChMERGVtbzENMAsGA1UECxMERGVtbzESMBAGA"
+            + "1UEAxMJRGVtbyBjZXJ0MCAXDTE5MDgzMTEzMDgzNloYDzIxMDkwNTE5MTMw"
+            + "ODM2WjAyMQ0wCwYDVQQKEwREZW1vMQ0wCwYDVQQLEwREZW1vMRIwEAYDVQQ"
+            + "DEwlEZW1vIGNlcnQwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAKOVC4"
+            + "Qeg0KPAPRB9WcZdvXitiJ+E6rd3czQGNzEFC6FesAllH3PHSWuUZ2YjhiVM"
+            + "YJyzwVP1II04iCRaIc65R45oVrHZ2ybWAOda2hBtySjQ2pIQQpoKE7nvL3j"
+            + "JcHoCIBJVf3c3xpfh7RucCOGiZDjU9CYPG8yznsazb5+fPF/AgMBAAGjITA"
+            + "fMB0GA1UdDgQWBBR/7wUDwa7T0vNzNgjOKdjz2Up9RzANBgkqhkiG9w0BAQ"
+            + "sFAAOBgQADzPFsaLhVYD/k9qMueYKi8Ftwijr37niF98cgAHEtq6TGsh3Se"
+            + "8gEK3dNJL18vm7NXgGsl8jUWsE9hCF9ar+/cDZ+KrZlZ5PLfifXJJKFqVAh"
+            + "sOORef0NRIVcTCoyQTW4pNpNZP9Ul5LJ3iIDjafgJMyEkRbavqdyfSqVTvY"
+            + "NpjEzMBkGCSqGSIb3DQEJFDEMHgoAYQBsAGkAYQBzMBYGDGCGSAGG+Watyn"
+            + "sBATEGBgRVHSUA");
+
+        private readonly SecureRandom Random = new SecureRandom();
+
 		/**
 		* we generate a self signed certificate for the sake of testing - RSA
 		*/
@@ -451,7 +471,43 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			return new X509CertificateEntry(certGen.Generate(privKey));
 		}
 
-		public void doTestPkcs12Store()
+        private void DoTestCertsOnly()
+        {
+            Pkcs12Store pkcs12 = new Pkcs12StoreBuilder().Build();
+
+            pkcs12.Load(new MemoryStream(certsOnly, false), null);
+
+            IsTrue(pkcs12.ContainsAlias("alias"));
+
+            MemoryStream bOut = new MemoryStream();
+
+            pkcs12.Save(bOut, null, Random);
+
+            pkcs12 = new Pkcs12StoreBuilder().Build();
+
+            pkcs12.Load(new MemoryStream(bOut.ToArray(), false), null);
+
+            IsTrue(pkcs12.ContainsAlias("alias"));
+
+            try
+            {
+                pkcs12.Load(new MemoryStream(certsOnly, false), "1".ToCharArray());
+                Fail("no exception");
+            }
+            catch (IOException e)
+            {
+                IsEquals("password supplied for keystore that does not require one", e.Message);
+            }
+
+            // TODO Modify environment variables in tests?
+            //System.setProperty(Pkcs12Store.IgnoreUselessPasswordProperty, "true");
+
+            //pkcs12.Load(new MemoryStream(certsOnly, false), "1".ToCharArray());
+
+            //System.setProperty(Pkcs12Store.IgnoreUselessPasswordProperty, "false");
+        }
+
+		private void DoTestPkcs12Store()
 		{
 			BigInteger mod = new BigInteger("bb1be8074e4787a8d77967f1575ef72dd7582f9b3347724413c021beafad8f32dba5168e280cbf284df722283dad2fd4abc750e3d6487c2942064e2d8d80641aa5866d1f6f1f83eec26b9b46fecb3b1c9856a303148a5cc899c642fb16f3d9d72f52526c751dc81622c420c82e2cfda70fe8d13f16cc7d6a613a5b2a2b5894d1", 16);
 
@@ -502,7 +558,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			// save test
 			//
 			MemoryStream bOut = new MemoryStream();
-			store.Save(bOut, passwd, new SecureRandom());
+			store.Save(bOut, passwd, Random);
 
 			stream = new MemoryStream(bOut.ToArray(), false);
 			store.Load(stream, passwd);
@@ -589,8 +645,8 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			}
 
 			MemoryStream store1Stream = new MemoryStream();
-			store.Save(store1Stream, passwd, new SecureRandom());
-			testNoExtraLocalKeyID(store1Stream.ToArray());
+			store.Save(store1Stream, passwd, Random);
+			DoTestNoExtraLocalKeyID(store1Stream.ToArray());
 
 			//
 			// no friendly name test
@@ -655,7 +711,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 				Fail("Certificate chain wrong length");
 			}
 
-			store.Save(new MemoryStream(), storagePassword, new SecureRandom());
+			store.Save(new MemoryStream(), storagePassword, Random);
 
 			//
 			// basic certificate check
@@ -741,7 +797,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			store.Load(stream, "".ToCharArray());
 		}
 
-		private void testSupportedTypes(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain)
+		private void DoTestSupportedTypes(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain)
 		{
 			basicStoreTest(privKey, chain,
 				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
@@ -763,7 +819,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
 			MemoryStream bOut = new MemoryStream();
 
-			store.Save(bOut, passwd, new SecureRandom());
+			store.Save(bOut, passwd, Random);
 
 			store.Load(new MemoryStream(bOut.ToArray(), false), passwd);
 
@@ -851,11 +907,11 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			}
 		}
 
-		private void testNoExtraLocalKeyID(byte[] store1data)
+		private void DoTestNoExtraLocalKeyID(byte[] store1data)
 		{
 			IAsymmetricCipherKeyPairGenerator kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
 			kpg.Init(new RsaKeyGenerationParameters(
-				BigInteger.ValueOf(0x10001), new SecureRandom(), 512, 25));
+				BigInteger.ValueOf(0x10001), Random, 512, 25));
 
 			AsymmetricCipherKeyPair newPair =  kpg.GenerateKeyPair();
 
@@ -882,7 +938,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
 			MemoryStream bOut = new MemoryStream();
 
-			store2.Save(bOut, passwd, new SecureRandom());
+			store2.Save(bOut, passwd, Random);
 
 			store2.Load(new MemoryStream(bOut.ToArray(), false), passwd);
 
@@ -901,7 +957,8 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
 		public override void PerformTest()
 		{
-			doTestPkcs12Store();
+            DoTestCertsOnly();
+			DoTestPkcs12Store();
 		}
 
 		public static void Main(

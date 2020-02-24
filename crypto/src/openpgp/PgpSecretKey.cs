@@ -536,11 +536,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                     for (int i = 0; i != 4; i++)
                     {
-                        int encLen = (((encData[pos] << 8) | (encData[pos + 1] & 0xff)) + 7) / 8;
+                        int encLen = ((((encData[pos] & 0xff) << 8) | (encData[pos + 1] & 0xff)) + 7) / 8;
 
                         data[pos] = encData[pos];
                         data[pos + 1] = encData[pos + 1];
                         pos += 2;
+
+                        if (encLen > (encData.Length - pos))
+                            throw new PgpException("out of range encLen found in encData");
 
                         byte[] tmp = RecoverKeyData(encAlgorithm, "/CFB/NoPadding", key, iv, encData, pos, encLen);
                         Array.Copy(tmp, 0, data, pos, encLen);
@@ -984,10 +987,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             int pos = 0;
             for (int i = 0; i != 4; i++)
             {
-                int encLen = (((rawKeyData[pos] << 8) | (rawKeyData[pos + 1] & 0xff)) + 7) / 8;
+                int encLen = ((((rawKeyData[pos] & 0xff) << 8) | (rawKeyData[pos + 1] & 0xff)) + 7) / 8;
 
                 keyData[pos] = rawKeyData[pos];
                 keyData[pos + 1] = rawKeyData[pos + 1];
+
+                if (encLen > (rawKeyData.Length - (pos + 2)))
+                    throw new PgpException("out of range encLen found in rawKeyData");
 
                 byte[] tmp;
                 if (i == 0)

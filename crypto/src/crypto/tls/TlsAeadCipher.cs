@@ -105,7 +105,10 @@ namespace Org.BouncyCastle.Crypto.Tls
                 decryptKey = server_write_key;
             }
 
+            // NOTE: Ensure dummy nonce is not part of the generated sequence(s)
             byte[] dummyNonce = new byte[fixed_iv_length + record_iv_length];
+            dummyNonce[0] = (byte)~encryptImplicitNonce[0];
+            dummyNonce[1] = (byte)~decryptImplicitNonce[1];
 
             this.encryptCipher.Init(true, new AeadParameters(encryptKey, 8 * macSize, dummyNonce));
             this.decryptCipher.Init(false, new AeadParameters(decryptKey, 8 * macSize, dummyNonce));

@@ -52,6 +52,9 @@ namespace Org.BouncyCastle.Bcpg
 			if (tag < 0)
 				throw new EndOfStreamException("unexpected EOF reading signature sub packet");
 
+            if (bodyLen <= 0)
+                throw new EndOfStreamException("out of range data found in signature sub packet");
+
             byte[] data = new byte[bodyLen - 1];
 
             //

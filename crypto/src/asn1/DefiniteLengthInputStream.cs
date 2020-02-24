@@ -13,10 +13,8 @@ namespace Org.BouncyCastle.Asn1
 		private readonly int _originalLength;
 		private int _remaining;
 
-        internal DefiniteLengthInputStream(
-            Stream	inStream,
-            int		length)
-            : base(inStream, length)
+        internal DefiniteLengthInputStream(Stream inStream, int length, int limit)
+            : base(inStream, limit)
         {
 			if (length < 0)
 				throw new ArgumentException("negative lengths not allowed", "length");
@@ -30,7 +28,7 @@ namespace Org.BouncyCastle.Asn1
 			}
         }
 
-		internal int Remaining
+        internal int Remaining
 		{
 			get { return _remaining; }
 		}
@@ -80,6 +78,14 @@ namespace Org.BouncyCastle.Asn1
             if (_remaining != buf.Length)
                 throw new ArgumentException("buffer length not right for data");
 
+            if (_remaining == 0)
+                return;
+
+            // make sure it's safe to do this!
+            int limit = Limit;
+            if (_remaining >= limit)
+                throw new IOException("corrupted stream - out of bounds length found: " + _remaining + " >= " + limit);
+
             if ((_remaining -= Streams.ReadFully(_in, buf)) != 0)
                 throw new EndOfStreamException("DEF length " + _originalLength + " object truncated by " + _remaining);
             SetParentEofDetect(true);
@@ -90,7 +96,12 @@ namespace Org.BouncyCastle.Asn1
 			if (_remaining == 0)
 				return EmptyBytes;
 
-			byte[] bytes = new byte[_remaining];
+            // make sure it's safe to do this!
+            int limit = Limit;
+            if (_remaining >= limit)
+                throw new IOException("corrupted stream - out of bounds length found: " + _remaining + " >= " + limit);
+
+            byte[] bytes = new byte[_remaining];
 			if ((_remaining -= Streams.ReadFully(_in, bytes)) != 0)
 				throw new EndOfStreamException("DEF length " + _originalLength + " object truncated by " + _remaining);
 			SetParentEofDetect(true);

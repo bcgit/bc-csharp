@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			BcpgInputStream bcpgInput)
 		{
 			return (bcpgInput.NextPacketTag() == PacketTag.Trust)
-				?	(TrustPacket) bcpgInput.ReadPacket()
+				?	(TrustPacket)bcpgInput.ReadPacket()
 				:	null;
 		}
 
