@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.IO;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -10,10 +11,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpEncryptedDataList
 		: PgpObject
     {
-        private IList list = Platform.CreateArrayList();
-        private InputStreamPacket data;
+        private readonly IList list = Platform.CreateArrayList();
+        private readonly InputStreamPacket data;
 
-		public PgpEncryptedDataList(
+        public PgpEncryptedDataList(
             BcpgInputStream bcpgInput)
         {
             while (bcpgInput.NextPacketTag() == PacketTag.PublicKeyEncryptedSession
@@ -22,9 +23,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 list.Add(bcpgInput.ReadPacket());
             }
 
-			data = (InputStreamPacket)bcpgInput.ReadPacket();
+            Packet packet = bcpgInput.ReadPacket();
+            if (!(packet is InputStreamPacket))
+                throw new IOException("unexpected packet in stream: " + packet);
 
-			for (int i = 0; i != list.Count; i++)
+            this.data = (InputStreamPacket)packet;
+
+            for (int i = 0; i != list.Count; i++)
             {
                 if (list[i] is SymmetricKeyEncSessionPacket)
                 {

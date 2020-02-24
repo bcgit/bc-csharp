@@ -8,32 +8,33 @@ namespace Org.BouncyCastle.Asn1.X509
 	public class GeneralNames
 		: Asn1Encodable
 	{
-		private readonly GeneralName[] names;
+        private static GeneralName[] Copy(GeneralName[] names)
+        {
+            return (GeneralName[])names.Clone();
+        }
 
-		public static GeneralNames GetInstance(
-			object obj)
+        public static GeneralNames GetInstance(object obj)
 		{
-			if (obj == null || obj is GeneralNames)
-			{
-				return (GeneralNames) obj;
-			}
-
-			if (obj is Asn1Sequence)
-			{
-				return new GeneralNames((Asn1Sequence) obj);
-			}
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj is GeneralNames)
+                return (GeneralNames)obj;
+            if (obj == null)
+                return null;
+            return new GeneralNames(Asn1Sequence.GetInstance(obj));
 		}
 
-		public static GeneralNames GetInstance(
-			Asn1TaggedObject	obj,
-			bool				explicitly)
+		public static GeneralNames GetInstance(Asn1TaggedObject obj, bool explicitly)
 		{
 			return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
 		}
 
-		/// <summary>Construct a GeneralNames object containing one GeneralName.</summary>
+        public static GeneralNames FromExtensions(X509Extensions extensions, DerObjectIdentifier extOid)
+        {
+            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, extOid));
+        }
+
+        private readonly GeneralName[] names;
+
+        /// <summary>Construct a GeneralNames object containing one GeneralName.</summary>
 		/// <param name="name">The name to be contained.</param>
 		public GeneralNames(
 			GeneralName name)
@@ -44,7 +45,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public GeneralNames(
             GeneralName[] names)
         {
-            this.names = (GeneralName[])names.Clone();
+            this.names = Copy(names);
         }
 
 		private GeneralNames(
@@ -60,7 +61,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public GeneralName[] GetNames()
 		{
-			return (GeneralName[]) names.Clone();
+            return Copy(names);
 		}
 
 		/**

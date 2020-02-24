@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 		private static readonly byte[] tstInfoDudDate = Hex.Decode(
 			  "303e02010106022a033021300906052b0e03021a050004140000000000000000000000000000000000000000"
-			+ "020118180f32303056313130313038313732315a");
+            + "020118180f32303030563130313038313732315a");
 
 		[Test]
 		public void TestTstInfo1()

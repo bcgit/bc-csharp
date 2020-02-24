@@ -8,38 +8,31 @@ namespace Org.BouncyCastle.Asn1.X509
     public class BasicConstraints
         : Asn1Encodable
     {
-        private readonly DerBoolean	cA;
-        private readonly DerInteger	pathLenConstraint;
-
-		public static BasicConstraints GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+		public static BasicConstraints GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static BasicConstraints GetInstance(
-            object obj)
+		public static BasicConstraints GetInstance(object obj)
         {
-            if (obj == null || obj is BasicConstraints)
-            {
-                return (BasicConstraints) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new BasicConstraints((Asn1Sequence) obj);
-            }
-
-			if (obj is X509Extension)
-			{
-				return GetInstance(X509Extension.ConvertValueToObject((X509Extension) obj));
-			}
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+            if (obj is BasicConstraints)
+                return (BasicConstraints)obj;
+            if (obj is X509Extension)
+                return GetInstance(X509Extension.ConvertValueToObject((X509Extension)obj));
+            if (obj == null)
+                return null;
+            return new BasicConstraints(Asn1Sequence.GetInstance(obj));
 		}
 
-		private BasicConstraints(
+        public static BasicConstraints FromExtensions(X509Extensions extensions)
+        {
+            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.BasicConstraints));
+        }
+
+        private readonly DerBoolean cA;
+        private readonly DerInteger pathLenConstraint;
+
+        private BasicConstraints(
             Asn1Sequence seq)
         {
 			if (seq.Count > 0)
@@ -105,7 +98,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector();
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.AddOptional(cA,
                 pathLenConstraint); // yes some people actually do this when cA is false...
             return new DerSequence(v);

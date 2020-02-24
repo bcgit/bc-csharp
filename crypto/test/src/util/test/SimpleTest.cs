@@ -91,12 +91,15 @@ namespace Org.BouncyCastle.Utilities.Test
                 throw new TestFailedException(SimpleTestResult.Failed(this, message));
         }
 
-        internal bool AreEqual(
-            byte[] a,
-            byte[] b)
+        internal bool AreEqual(byte[] a, byte[] b)
         {
-			return Arrays.AreEqual(a, b);
-		}
+            return Arrays.AreEqual(a, b);
+        }
+
+        internal bool AreEqual(byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex)
+        {
+            return Arrays.AreEqual(a, aFromIndex, aToIndex, b, bFromIndex, bToIndex);
+        }
 
 		public virtual ITestResult Perform()
         {

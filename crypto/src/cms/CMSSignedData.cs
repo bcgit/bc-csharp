@@ -280,6 +280,16 @@ namespace Org.BouncyCastle.Cms
 			return contentInfo.GetEncoded();
 		}
 
+        /**
+         * return the ASN.1 encoded representation of this object using the specified encoding.
+         *
+         * @param encoding the ASN.1 encoding format to use ("BER" or "DER").
+         */
+        public byte[] GetEncoded(string encoding)
+        {
+            return contentInfo.GetEncoded(encoding);
+        }
+
 		/**
 		* Replace the signerinformation store associated with this
 		* CmsSignedData object with the new one passed in. You would

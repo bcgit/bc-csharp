@@ -67,20 +67,7 @@ namespace Org.BouncyCastle.Asn1
 			this.str = str;
         }
 
-        internal Asn1OctetString(
-            Asn1Encodable obj)
-        {
-            try
-            {
-				this.str = obj.GetEncoded(Asn1Encodable.Der);
-            }
-            catch (IOException e)
-            {
-                throw new ArgumentException("Error processing object : " + e.ToString());
-            }
-        }
-
-		public Stream GetOctetStream()
+        public Stream GetOctetStream()
 		{
 			return new MemoryStream(str, false);
 		}

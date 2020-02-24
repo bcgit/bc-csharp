@@ -63,6 +63,14 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
 			lengthTest("RSA PRIVATE KEY", headers, new byte[103]);
 		}
 
+        [Test]
+        public void TestMalformed()
+        {
+            PemReader rd = new PemReader(new StringReader("-----BEGIN \n"));
+
+            Assert.IsNull(rd.ReadPemObject());
+        }
+
 		private void lengthTest(string type, IList headers, byte[] data)
 		{
 			StringWriter sw = new StringWriter();

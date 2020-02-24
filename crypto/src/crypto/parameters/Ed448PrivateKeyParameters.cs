@@ -16,6 +16,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private readonly byte[] data = new byte[KeySize];
 
+        private Ed448PublicKeyParameters cachedPublicKey;
+
         public Ed448PrivateKeyParameters(SecureRandom random)
             : base(true)
         {
@@ -47,23 +49,33 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public Ed448PublicKeyParameters GeneratePublicKey()
         {
-            byte[] publicKey = new byte[Ed448.PublicKeySize];
-            Ed448.GeneratePublicKey(data, 0, publicKey, 0);
-            return new Ed448PublicKeyParameters(publicKey, 0);
+            lock (data)
+            {
+                if (null == cachedPublicKey)
+                {
+                    byte[] publicKey = new byte[Ed448.PublicKeySize];
+                    Ed448.GeneratePublicKey(data, 0, publicKey, 0);
+                    cachedPublicKey = new Ed448PublicKeyParameters(publicKey, 0);
+                }
+
+                return cachedPublicKey;
+            }
         }
 
+        [Obsolete("Use overload that doesn't take a public key")]
         public void Sign(Ed448.Algorithm algorithm, Ed448PublicKeyParameters publicKey, byte[] ctx, byte[] msg, int msgOff, int msgLen,
             byte[] sig, int sigOff)
         {
+            Sign(algorithm, ctx, msg, msgOff, msgLen, sig, sigOff);
+        }
+
+        public void Sign(Ed448.Algorithm algorithm, byte[] ctx, byte[] msg, int msgOff, int msgLen,
+            byte[] sig, int sigOff)
+        {
+            Ed448PublicKeyParameters publicKey = GeneratePublicKey();
+
             byte[] pk = new byte[Ed448.PublicKeySize];
-            if (null == publicKey)
-            {
-                Ed448.GeneratePublicKey(data, 0, pk, 0);
-            }
-            else
-            {
-                publicKey.Encode(pk, 0);
-            }
+            publicKey.Encode(pk, 0);
 
             switch (algorithm)
             {

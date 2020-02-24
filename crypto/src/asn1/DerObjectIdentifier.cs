@@ -24,8 +24,18 @@ namespace Org.BouncyCastle.Asn1
         {
             if (obj == null || obj is DerObjectIdentifier)
                 return (DerObjectIdentifier) obj;
+
+            if (obj is Asn1Encodable)
+            {
+                Asn1Object asn1Obj = ((Asn1Encodable)obj).ToAsn1Object();
+
+                if (asn1Obj is DerObjectIdentifier)
+                    return (DerObjectIdentifier)asn1Obj;
+            }
+
             if (obj is byte[])
                 return FromOctetString((byte[])obj);
+
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 

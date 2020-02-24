@@ -8,23 +8,20 @@ namespace Org.BouncyCastle.Asn1
         : BaseInputStream
     {
         protected readonly Stream _in;
-		private int _limit;
+        private int _limit;
 
-        internal LimitedInputStream(
-            Stream	inStream,
-			int		limit)
+        internal LimitedInputStream(Stream inStream, int limit)
         {
             this._in = inStream;
-			this._limit = limit;
+            this._limit = limit;
         }
 
-	    internal virtual int GetRemaining()
-	    {
-	        // TODO: maybe one day this can become more accurate
-	        return _limit;
-	    }
+        internal virtual int Limit
+        {
+            get { return _limit; }
+        }
 
-		protected virtual void SetParentEofDetect(bool on)
+        protected virtual void SetParentEofDetect(bool on)
         {
             if (_in is IndefiniteLengthInputStream)
             {

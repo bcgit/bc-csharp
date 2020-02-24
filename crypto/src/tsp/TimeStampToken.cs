@@ -244,9 +244,18 @@ namespace Org.BouncyCastle.Tsp
 		 */
 		public byte[] GetEncoded()
 		{
-			return tsToken.GetEncoded();
-		}
+            return tsToken.GetEncoded(Asn1Encodable.Der);
+        }
 
+        /**
+         * return the ASN.1 encoded representation of this object using the specified encoding.
+         *
+         * @param encoding the ASN.1 encoding format to use ("BER" or "DER").
+         */
+        public byte[] GetEncoded(string encoding)
+        {
+            return tsToken.GetEncoded(encoding);
+        }
 
 		// perhaps this should be done using an interface on the ASN.1 classes...
 		private class CertID

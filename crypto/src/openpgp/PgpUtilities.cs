@@ -27,17 +27,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			try
 			{
-				Asn1Sequence s = (Asn1Sequence) Asn1Object.FromByteArray(encoding);
+                Asn1Sequence s = Asn1Sequence.GetInstance(encoding);
 
-				i1 = (DerInteger) s[0];
-				i2 = (DerInteger) s[1];
+				i1 = DerInteger.GetInstance(s[0]);
+                i2 = DerInteger.GetInstance(s[1]);
 			}
-			catch (IOException e)
+			catch (Exception e)
 			{
 				throw new PgpException("exception encoding signature", e);
 			}
 
-			return new MPInteger[]{ new MPInteger(i1.Value), new MPInteger(i2.Value) };
+			return new MPInteger[]{
+                new MPInteger(i1.Value),
+                new MPInteger(i2.Value)
+            };
 		}
 
 		public static MPInteger[] RsaSigToMpi(

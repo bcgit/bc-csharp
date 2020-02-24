@@ -5,6 +5,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -25,56 +26,51 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AuthorityKeyIdentifier
         : Asn1Encodable
     {
-        internal readonly Asn1OctetString	keyidentifier;
-        internal readonly GeneralNames		certissuer;
-        internal readonly DerInteger		certserno;
-
-		public static AuthorityKeyIdentifier GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static AuthorityKeyIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-		public static AuthorityKeyIdentifier GetInstance(
-            object obj)
+		public static AuthorityKeyIdentifier GetInstance(object obj)
         {
             if (obj is AuthorityKeyIdentifier)
-            {
-                return (AuthorityKeyIdentifier) obj;
-            }
-
-			if (obj is Asn1Sequence)
-            {
-                return new AuthorityKeyIdentifier((Asn1Sequence) obj);
-            }
-
-	        if (obj is X509Extension)
-			{
-				return GetInstance(X509Extension.ConvertValueToObject((X509Extension) obj));
-			}
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
+                return (AuthorityKeyIdentifier)obj;
+            if (obj is X509Extension)
+                return GetInstance(X509Extension.ConvertValueToObject((X509Extension)obj));
+            if (obj == null)
+                return null;
+            return new AuthorityKeyIdentifier(Asn1Sequence.GetInstance(obj));
 		}
 
-		protected internal AuthorityKeyIdentifier(
+        public static AuthorityKeyIdentifier FromExtensions(X509Extensions extensions)
+        {
+            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AuthorityKeyIdentifier));
+        }
+
+        private readonly Asn1OctetString keyidentifier;
+        private readonly GeneralNames certissuer;
+        private readonly DerInteger certserno;
+
+        protected internal AuthorityKeyIdentifier(
             Asn1Sequence seq)
         {
-			foreach (Asn1TaggedObject o in seq)
+            foreach (Asn1Encodable element in seq)
 			{
-				switch (o.TagNo)
+                Asn1TaggedObject obj = Asn1TaggedObject.GetInstance(element);
+
+				switch (obj.TagNo)
                 {
-					case 0:
-						this.keyidentifier = Asn1OctetString.GetInstance(o, false);
-						break;
-					case 1:
-						this.certissuer = GeneralNames.GetInstance(o, false);
-						break;
-					case 2:
-						this.certserno = DerInteger.GetInstance(o, false);
-						break;
-					default:
-						throw new ArgumentException("illegal tag");
+				case 0:
+					this.keyidentifier = Asn1OctetString.GetInstance(obj, false);
+					break;
+				case 1:
+					this.certissuer = GeneralNames.GetInstance(obj, false);
+					break;
+				case 2:
+					this.certserno = DerInteger.GetInstance(obj, false);
+					break;
+				default:
+					throw new ArgumentException("illegal tag");
                 }
             }
         }
@@ -94,14 +90,8 @@ namespace Org.BouncyCastle.Asn1.X509
          **/
         public AuthorityKeyIdentifier(
             SubjectPublicKeyInfo spki)
+            : this(spki, null, null)
         {
-            IDigest digest = new Sha1Digest();
-            byte[] resBuf = new byte[digest.GetDigestSize()];
-
-			byte[] bytes = spki.PublicKeyData.GetBytes();
-            digest.BlockUpdate(bytes, 0, bytes.Length);
-            digest.DoFinal(resBuf, 0);
-            this.keyidentifier = new DerOctetString(resBuf);
         }
 
         /**
@@ -115,27 +105,24 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             IDigest digest = new Sha1Digest();
             byte[] resBuf = new byte[digest.GetDigestSize()];
-
 			byte[] bytes = spki.PublicKeyData.GetBytes();
             digest.BlockUpdate(bytes, 0, bytes.Length);
             digest.DoFinal(resBuf, 0);
 
 			this.keyidentifier = new DerOctetString(resBuf);
             this.certissuer = name;
-            this.certserno = new DerInteger(serialNumber);
+            this.certserno = serialNumber == null ? null : new DerInteger(serialNumber);
         }
 
-		/**
+        /**
 		 * create an AuthorityKeyIdentifier with the GeneralNames tag and
 		 * the serial number provided.
 		 */
 		public AuthorityKeyIdentifier(
 			GeneralNames	name,
 			BigInteger		serialNumber)
+            : this((byte[])null, name, serialNumber)
 		{
-			this.keyidentifier = null;
-			this.certissuer = GeneralNames.GetInstance(name.ToAsn1Object());
-			this.certserno = new DerInteger(serialNumber);
 		}
 
 		/**
@@ -143,13 +130,11 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public AuthorityKeyIdentifier(
 			byte[] keyIdentifier)
+            : this(keyIdentifier, null, null)
 		{
-			this.keyidentifier = new DerOctetString(keyIdentifier);
-			this.certissuer = null;
-			this.certserno = null;
 		}
 
-		/**
+        /**
 		 * create an AuthorityKeyIdentifier with a precomupted key identifier
 		 * and the GeneralNames tag and the serial number provided as well.
 		 */
@@ -158,9 +143,9 @@ namespace Org.BouncyCastle.Asn1.X509
 			GeneralNames	name,
 			BigInteger		serialNumber)
 		{
-			this.keyidentifier = new DerOctetString(keyIdentifier);
-			this.certissuer = GeneralNames.GetInstance(name.ToAsn1Object());
-			this.certserno = new DerInteger(serialNumber);
+			this.keyidentifier = keyIdentifier == null ? null : new DerOctetString(keyIdentifier);
+			this.certissuer = name;
+			this.certserno = serialNumber == null ? null : new DerInteger(serialNumber);
 		}
 
 		public byte[] GetKeyIdentifier()
@@ -178,7 +163,7 @@ namespace Org.BouncyCastle.Asn1.X509
             get { return certserno == null ? null : certserno.Value; }
         }
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          */
         public override Asn1Object ToAsn1Object()
@@ -192,7 +177,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public override string ToString()
         {
-            return ("AuthorityKeyIdentifier: KeyID(" + this.keyidentifier.GetOctets() + ")");
+            string keyID = (keyidentifier != null) ? Hex.ToHexString(keyidentifier.GetOctets()) : "null";
+
+            return "AuthorityKeyIdentifier: KeyID(" + keyID + ")";
         }
     }
 }

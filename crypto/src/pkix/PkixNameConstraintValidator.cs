@@ -47,11 +47,24 @@ namespace Org.BouncyCastle.Pkix
             if (subtree.Count < 1 || subtree.Count > dns.Count)
                 return false;
 
+            int start = 0;
+            Rdn subtreeRdnStart = Rdn.GetInstance(subtree[0]);
+            for (int j = 0; j < dns.Count; j++)
+            {
+                start = j;
+                Rdn dnsRdn = Rdn.GetInstance(dns[j]);
+                if (IetfUtilities.RdnAreEqual(subtreeRdnStart, dnsRdn))
+                    break;
+            }
+
+            if (subtree.Count > dns.Count - start)
+                return false;
+
             for (int j = 0; j < subtree.Count; ++j)
             {
                 // both subtree and dns are a ASN.1 Name and the elements are a RDN
                 Rdn subtreeRdn = Rdn.GetInstance(subtree[j]);
-                Rdn dnsRdn = Rdn.GetInstance(dns[j]);
+                Rdn dnsRdn = Rdn.GetInstance(dns[start + j]);
 
                 // check if types and values of all naming attributes are matching, other types which are not restricted are allowed, see https://tools.ietf.org/html/rfc5280#section-7.1
 

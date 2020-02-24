@@ -53,9 +53,7 @@ namespace Org.BouncyCastle.Utilities
         /// <param name="a">Left side.</param>
         /// <param name="b">Right side.</param>
         /// <returns>True if equal.</returns>
-        public static bool AreEqual(
-            byte[]	a,
-            byte[]	b)
+        public static bool AreEqual(byte[] a, byte[] b)
         {
             if (a == b)
                 return true;
@@ -64,6 +62,23 @@ namespace Org.BouncyCastle.Utilities
                 return false;
 
             return HaveSameContents(a, b);
+        }
+
+        public static bool AreEqual(byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex)
+        {
+            int aLength = aToIndex - aFromIndex;
+            int bLength = bToIndex - bFromIndex;
+
+            if (aLength != bLength)
+                return false;
+
+            for (int i = 0; i < aLength; ++i)
+            {
+                if (a[aFromIndex + i] != b[bFromIndex + i])
+                    return false;
+            }
+
+            return true;
         }
 
         [Obsolete("Use 'AreEqual' method instead")]

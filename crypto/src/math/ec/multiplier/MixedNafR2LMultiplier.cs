@@ -6,6 +6,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
      * Class implementing the NAF (Non-Adjacent Form) multiplication algorithm (right-to-left) using
      * mixed coordinates.
      */
+    [Obsolete("Will be removed")]
     public class MixedNafR2LMultiplier 
         : AbstractECMultiplier
     {

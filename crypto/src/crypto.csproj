@@ -6,7 +6,7 @@
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <Product>Bouncy Castle for .NET ($(TargetFramework))</Product>
-    <Copyright>© 2000-2019 Legion of the Bouncy Castle Inc. </Copyright>
+    <Copyright>© 2000-2020 Legion of the Bouncy Castle Inc. </Copyright>
     <Company>The Legion of the Bouncy Castle Inc.</Company>
     <Authors>Oren Novotny</Authors>
     <Title>Bouncy Castle Portable</Title>
@@ -15,7 +15,7 @@
     <DebugType>embedded</DebugType>
     <PackageLicenseUrl>https://www.bouncycastle.org/csharp/licence.html</PackageLicenseUrl>
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
-    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES185</PackageReleaseNotes>
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES186</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/onovotny/bc-csharp</RepositoryUrl>
     <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
@@ -36,7 +36,7 @@
   <ItemGroup>
     <Compile Include="..\bzip2\src\**\*.cs" LinkBase="bzip2" />
     <None Include="..\..\BouncyCastle.snk" />
-    <PackageReference Include="NerdBank.GitVersioning" Version="3.0.28" PrivateAssets="All" />
+    <PackageReference Include="NerdBank.GitVersioning" Version="3.0.50" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
   

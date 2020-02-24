@@ -33,10 +33,8 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
-                // TODO Allow AsymmetricCipherKeyPair to be a CipherParameters?
-
                 this.privateKey = (Ed25519PrivateKeyParameters)parameters;
-                this.publicKey = privateKey.GeneratePublicKey();
+                this.publicKey = null;
             }
             else
             {
@@ -67,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 throw new InvalidOperationException("Prehash digest failed");
 
             byte[] signature = new byte[Ed25519PrivateKeyParameters.SignatureSize];
-            privateKey.Sign(Ed25519.Algorithm.Ed25519ph, publicKey, context, msg, 0, Ed25519.PrehashSize, signature, 0);
+            privateKey.Sign(Ed25519.Algorithm.Ed25519ph, context, msg, 0, Ed25519.PrehashSize, signature, 0);
             return signature;
         }
 

@@ -14,9 +14,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class ExtendedKeyUsage
         : Asn1Encodable
     {
-        internal readonly IDictionary usageTable = Platform.CreateHashtable();
-        internal readonly Asn1Sequence seq;
-
         public static ExtendedKeyUsage GetInstance(
             Asn1TaggedObject	obj,
             bool				explicitly)
@@ -28,34 +25,32 @@ namespace Org.BouncyCastle.Asn1.X509
             object obj)
         {
             if (obj is ExtendedKeyUsage)
-            {
-                return (ExtendedKeyUsage) obj;
-            }
-
-            if (obj is Asn1Sequence)
-            {
-                return new ExtendedKeyUsage((Asn1Sequence) obj);
-            }
-
+                return (ExtendedKeyUsage)obj;
             if (obj is X509Extension)
-            {
-                return GetInstance(X509Extension.ConvertValueToObject((X509Extension) obj));
-            }
-
-            throw new ArgumentException("Invalid ExtendedKeyUsage: " + Platform.GetTypeName(obj));
+                return GetInstance(X509Extension.ConvertValueToObject((X509Extension)obj));
+            if (obj == null)
+                return null;
+            return new ExtendedKeyUsage(Asn1Sequence.GetInstance(obj));
         }
+
+        public static ExtendedKeyUsage FromExtensions(X509Extensions extensions)
+        {
+            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.ExtendedKeyUsage));
+        }
+
+        internal readonly IDictionary usageTable = Platform.CreateHashtable();
+        internal readonly Asn1Sequence seq;
 
         private ExtendedKeyUsage(
             Asn1Sequence seq)
         {
             this.seq = seq;
 
-            foreach (object o in seq)
+            foreach (Asn1Encodable element in seq)
             {
-                if (!(o is DerObjectIdentifier))
-                    throw new ArgumentException("Only DerObjectIdentifier instances allowed in ExtendedKeyUsage.");
+                DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(element);
 
-                this.usageTable[o] = o;
+                this.usageTable[oid] = oid;
             }
         }
 
@@ -86,10 +81,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
             foreach (object usage in usages)
             {
-                Asn1Encodable o = KeyPurposeID.GetInstance(usage);
+                DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(usage);
 
-                v.Add(o);
-                this.usageTable[o] = o;
+                v.Add(oid);
+                this.usageTable[oid] = oid;
             }
 
             this.seq = new DerSequence(v);
