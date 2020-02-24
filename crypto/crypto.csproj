@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
     <ProductVersion>7.10.3077</ProductVersion>
@@ -21,7 +21,6 @@
     <StartupObject />
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>0.0</OldToolsVersion>
@@ -37,7 +36,7 @@
     <DebugSymbols>true</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <NoStdLib>false</NoStdLib>
-    <NoWarn>1591;618</NoWarn>
+    <NoWarn>1591</NoWarn>
     <Optimize>false</Optimize>
     <RegisterForComInterop>false</RegisterForComInterop>
     <RemoveIntegerChecks>false</RemoveIntegerChecks>
@@ -67,12 +66,6 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CBOR, Version=4.0.1.0, Culture=neutral, PublicKeyToken=9cd62db60ea5554c, processorArchitecture=MSIL">
-      <HintPath>..\..\..\COSE\COSE-csharp\examples\packages\PeterO.Cbor.4.0.1\lib\net20\CBOR.dll</HintPath>
-    </Reference>
-    <Reference Include="Numbers, Version=1.4.3.0, Culture=neutral, PublicKeyToken=9cd62db60ea5554c, processorArchitecture=MSIL">
-      <HintPath>..\..\..\COSE\COSE-csharp\examples\packages\PeterO.Numbers.1.4.3\lib\net20\Numbers.dll</HintPath>
-    </Reference>
     <Reference Include="nunit.core">
       <Name>nunit.core</Name>
       <HintPath>test\lib\nunit.core.dll</HintPath>
@@ -172,6 +165,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\asn1\bc\BCObjectIdentifiers.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\asn1\bc\LinkedCertificate.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\asn1\BERApplicationSpecific.cs">
@@ -1119,7 +1115,16 @@
     <Compile Include="src\asn1\util\FilterStream.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\asn1\x500\AttributeTypeAndValue.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\asn1\x500\DirectoryString.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\asn1\x500\Rdn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\asn1\x500\style\IetfUtilities.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\asn1\x509\AccessDescription.cs">
@@ -1980,6 +1985,9 @@
     <Compile Include="src\crypto\BufferedAeadBlockCipher.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\crypto\BufferedAeadCipher.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\crypto\BufferedAsymmetricBlockCipher.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -2343,10 +2351,19 @@
     <Compile Include="src\crypto\generators\HKDFBytesGenerator.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="src\crypto\generators\KDF1BytesGenerator.cs">
+    <Compile Include="src\crypto\generators\Kdf1BytesGenerator.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="src\crypto\generators\KDF2BytesGenerator.cs">
+    <Compile Include="src\crypto\generators\Kdf2BytesGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\generators\KDFCounterBytesGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\generators\KDFDoublePipelineIterationBytesGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\generators\KDFFeedbackBytesGenerator.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\generators\MGF1BytesGenerator.cs">
@@ -2449,6 +2466,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\IMac.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\IMacDerivationFunction.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\IMacFactory.cs">
@@ -2568,6 +2588,9 @@
     <Compile Include="src\crypto\modes\CFBBlockCipher.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\crypto\modes\ChaCha20Poly1305.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\crypto\modes\CTSBlockCipher.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -2605,6 +2628,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\modes\IAeadBlockCipher.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\modes\IAeadCipher.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\modes\KCcmBlockCipher.cs">
@@ -2817,7 +2843,16 @@
     <Compile Include="src\crypto\parameters\ISO18033KDFParameters.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="src\crypto\parameters\KDFParameters.cs">
+    <Compile Include="src\crypto\parameters\KDFCounterParameters.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\parameters\KDFDoublePipelineIterationParameters.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\parameters\KDFFeedbackParameters.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\parameters\KdfParameters.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\parameters\KeyParameter.cs">
@@ -3057,7 +3092,9 @@
     <Compile Include="src\crypto\StreamBlockCipher.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="src\crypto\tls\AbstractCertificate.cs" />
+    <Compile Include="src\crypto\tls\AbstractCertificate.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\crypto\tls\AbstractTlsAgreementCredentials.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -3163,7 +3200,9 @@
     <Compile Include="src\crypto\tls\ContentType.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="src\crypto\tls\CwtPublicKey.cs" />
+    <Compile Include="src\crypto\tls\CwtPublicKey.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\crypto\tls\DatagramTransport.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -3302,7 +3341,9 @@
     <Compile Include="src\crypto\tls\PskTlsServer.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="src\crypto\tls\RawPublicKey.cs" />
+    <Compile Include="src\crypto\tls\RawPublicKey.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\crypto\tls\RecordStream.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -3382,6 +3423,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\tls\TlsClientProtocol.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\tls\TlsCloseable.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\tls\TlsCompression.cs">
@@ -3568,6 +3612,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\abc\ZTauElement.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\AbstractECLookupTable.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\custom\djb\Curve25519.cs">
@@ -3915,13 +3962,28 @@
     <Compile Include="src\math\ec\endo\ECEndomorphism.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\math\ec\endo\EndoPreCompInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\endo\EndoUtilities.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\math\ec\endo\GlvEndomorphism.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\endo\GlvTypeAEndomorphism.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\endo\GlvTypeAParameters.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\endo\GlvTypeBEndomorphism.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\endo\GlvTypeBParameters.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\endo\ScalarSplitParameters.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\LongArray.cs">
@@ -4011,7 +4073,13 @@
     <Compile Include="src\math\ec\rfc8032\Ed448.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\math\ec\ScaleXNegateYPointMap.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\math\ec\ScaleXPointMap.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\ScaleYNegateXPointMap.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\ScaleYPointMap.cs">
@@ -4944,6 +5012,9 @@
     <Compile Include="test\src\asn1\test\LDSSecurityObjectUnitTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\src\asn1\test\LinkedCertificateTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test\src\asn1\test\MiscTest.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -5196,7 +5267,22 @@
     <Compile Include="test\src\crypto\test\CAST6Test.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\src\crypto\test\cavp\CavpReader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\src\crypto\test\cavp\KDFCounterTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\src\crypto\test\cavp\KDFDoublePipelineTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\src\crypto\test\cavp\KDFFeedbackCounterTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test\src\crypto\test\CCMTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\src\crypto\test\ChaCha20Poly1305Test.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\src\crypto\test\ChaChaTest.cs">
@@ -5637,6 +5723,9 @@
     <Compile Include="test\src\crypto\tls\test\PskTlsClientTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\src\crypto\tls\test\PskTlsServerTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test\src\crypto\tls\test\TlsClientTest.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -5680,6 +5769,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\src\crypto\tls\test\UnreliableDatagramTransport.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\src\math\ec\custom\sec\test\SecP128R1FieldTest.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\src\math\ec\custom\sec\test\SecP256R1FieldTest.cs">
@@ -5961,6 +6053,9 @@
     <Compile Include="test\src\test\IESTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\src\test\KdfCounterTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test\src\test\MacTest.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -5974,6 +6069,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\src\test\nist\NistCertPathTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\src\test\nist\NistCertPathTest2.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test\src\test\NoekeonTest.cs">
@@ -6103,6 +6201,13 @@
     <EmbeddedResource Include="test\data\cms\sigs\PSSSignDataSHA512Enc.sig" />
     <EmbeddedResource Include="test\data\cms\sigs\rawsha256nonull.p7m" />
     <EmbeddedResource Include="test\data\cms\sigs\SignedMSPkcs7.sig" />
+    <EmbeddedResource Include="test\data\crypto\cavp\KDFCTR_gen.rsp" />
+    <EmbeddedResource Include="test\data\crypto\cavp\KDFDblPipelineCounter_gen.rsp" />
+    <EmbeddedResource Include="test\data\crypto\cavp\KDFDblPipelineNoCounter_gen.rsp" />
+    <EmbeddedResource Include="test\data\crypto\cavp\KDFFeedbackCounter_gen.rsp" />
+    <EmbeddedResource Include="test\data\crypto\cavp\KDFFeedbackNoCounter_gen.rsp" />
+    <EmbeddedResource Include="test\data\crypto\cavp\KDFFeedbackNoIV_gen.rsp" />
+    <EmbeddedResource Include="test\data\crypto\cavp\original_KDFCTR_gen.rsp" />
     <EmbeddedResource Include="test\data\crypto\SHA3TestVectors.txt" />
     <EmbeddedResource Include="test\data\crypto\SHAKETestVectors.txt" />
     <EmbeddedResource Include="test\data\hc256\hc128\ecrypt_HC-128.txt" />
@@ -6931,7 +7036,6 @@
     <EmbeddedResource Include="test\data\tls\x509-server-key.pem" />
     <EmbeddedResource Include="test\data\tls\x509-server.pem" />
     <None Include="NBuild.build" />
-    <None Include="packages.config" />
     <None Include="testcfg.nunit" />
     <None Include="test\data\keys\README.txt" />
     <None Include="test\data\openpgp\dsa\README.txt" />
