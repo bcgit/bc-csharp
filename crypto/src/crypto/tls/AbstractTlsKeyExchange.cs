@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public abstract void SkipServerCredentials();
 
-        public virtual void ProcessServerCertificate(Certificate serverCertificate)
+        public virtual void ProcessServerCertificate(AbstractCertificate serverCertificate)
         {
             if (mSupportedSignatureAlgorithms == null)
             {
@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public abstract void ProcessClientCredentials(TlsCredentials clientCredentials);
 
-        public virtual void ProcessClientCertificate(Certificate clientCertificate)
+        public virtual void ProcessClientCertificate(AbstractCertificate clientCertificate)
         {
         }
 

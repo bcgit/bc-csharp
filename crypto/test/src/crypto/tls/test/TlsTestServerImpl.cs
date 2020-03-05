@@ -136,8 +136,10 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
         }
 
-        public override void NotifyClientCertificate(Certificate clientCertificate)
+        public override void NotifyClientCertificate(AbstractCertificate clientCertificateIn)
         {
+            Certificate clientCertificate = clientCertificateIn as Certificate;
+
             bool isEmpty = (clientCertificate == null || clientCertificate.IsEmpty);
 
             if (isEmpty != (mConfig.clientAuth == TlsTestConfig.CLIENT_AUTH_NONE))

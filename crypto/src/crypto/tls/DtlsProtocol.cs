@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         }
 
         /// <exception cref="IOException"/>
-        protected static byte[] GenerateCertificate(Certificate certificate)
+        protected static byte[] GenerateCertificate(AbstractCertificate certificate)
         {
             MemoryStream buf = new MemoryStream();
             certificate.Encode(buf);

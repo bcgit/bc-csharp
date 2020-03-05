@@ -26,11 +26,13 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal virtual void Clear()
         {
+#if false
             if (this.masterSecret != null)
             {
                 Arrays.Fill(this.masterSecret, (byte)0);
                 this.masterSecret = null;
             }
+#endif
         }
 
         /**

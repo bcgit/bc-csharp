@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         void ProcessServerCredentials(TlsCredentials serverCredentials);
 
         /// <exception cref="IOException"/>
-        void ProcessServerCertificate(Certificate serverCertificate);
+        void ProcessServerCertificate(AbstractCertificate serverCertificate);
 
         bool RequiresServerKeyExchange { get; }
 
@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         void ProcessClientCredentials(TlsCredentials clientCredentials);
 
         /// <exception cref="IOException"/>
-        void ProcessClientCertificate(Certificate clientCertificate);
+        void ProcessClientCertificate(AbstractCertificate clientCertificate);
 
         /// <exception cref="IOException"/>
         void GenerateClientKeyExchange(Stream output);

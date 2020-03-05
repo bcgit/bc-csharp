@@ -10,18 +10,18 @@ namespace Org.BouncyCastle.Crypto.Tls
         :   AbstractTlsSignerCredentials
     {
         protected readonly TlsContext mContext;
-        protected readonly Certificate mCertificate;
+        protected readonly AbstractCertificate mCertificate;
         protected readonly AsymmetricKeyParameter mPrivateKey;
         protected readonly SignatureAndHashAlgorithm mSignatureAndHashAlgorithm;
 
         protected readonly TlsSigner mSigner;
 
-        public DefaultTlsSignerCredentials(TlsContext context, Certificate certificate, AsymmetricKeyParameter privateKey)
+        public DefaultTlsSignerCredentials(TlsContext context, AbstractCertificate certificate, AsymmetricKeyParameter privateKey)
             :   this(context, certificate, privateKey, null)
         {
         }
 
-        public DefaultTlsSignerCredentials(TlsContext context, Certificate certificate, AsymmetricKeyParameter privateKey,
+        public DefaultTlsSignerCredentials(TlsContext context, AbstractCertificate certificate, AsymmetricKeyParameter privateKey,
             SignatureAndHashAlgorithm signatureAndHashAlgorithm)
         {
             if (certificate == null)
@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             this.mSignatureAndHashAlgorithm = signatureAndHashAlgorithm;
         }
 
-        public override Certificate Certificate
+        public override AbstractCertificate Certificate
         {
             get { return mCertificate; }
         }
