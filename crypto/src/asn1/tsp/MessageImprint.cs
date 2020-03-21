@@ -11,28 +11,16 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		private readonly AlgorithmIdentifier	hashAlgorithm;
 		private readonly byte[]					hashedMessage;
 
-		/**
-		 * @param o
-		 * @return a MessageImprint object.
-		 */
-		public static MessageImprint GetInstance(
-			object o)
-		{
-			if (o == null || o is MessageImprint)
-			{
-				return (MessageImprint) o;
-			}
+        public static MessageImprint GetInstance(object obj)
+        {
+            if (obj is MessageImprint)
+                return (MessageImprint)obj;
+            if (obj == null)
+                return null;
+            return new MessageImprint(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (o is Asn1Sequence)
-			{
-				return new MessageImprint((Asn1Sequence) o);
-			}
-
-			throw new ArgumentException(
-				"Unknown object in 'MessageImprint' factory: " + Platform.GetTypeName(o));
-		}
-
-		private MessageImprint(
+        private MessageImprint(
 			Asn1Sequence seq)
 		{
 			if (seq.Count != 2)

@@ -79,152 +79,153 @@ namespace Org.BouncyCastle.Pkix
 			DateTime					validDate,
 			IList						certPathCerts)
 		{
-			if (paramsPKIX.IsRevocationEnabled)
+			if (!paramsPKIX.IsRevocationEnabled)
+            {
+                return;
+            }
+
+            // check if revocation is available
+            if (attrCert.GetExtensionValue(X509Extensions.NoRevAvail) != null)
+            {
+                if (attrCert.GetExtensionValue(X509Extensions.CrlDistributionPoints) != null
+                    || attrCert.GetExtensionValue(X509Extensions.AuthorityInfoAccess) != null)
+                {
+                    throw new PkixCertPathValidatorException(
+                        "No rev avail extension is set, but also an AC revocation pointer.");
+                }
+
+                return;
+            }
+
+            CrlDistPoint crldp = null;
+			try
 			{
-				// check if revocation is available
-				if (attrCert.GetExtensionValue(X509Extensions.NoRevAvail) == null)
+				crldp = CrlDistPoint.GetInstance(
+					PkixCertPathValidatorUtilities.GetExtensionValue(
+						attrCert, X509Extensions.CrlDistributionPoints));
+			}
+			catch (Exception e)
+			{
+				throw new PkixCertPathValidatorException(
+					"CRL distribution point extension could not be read.", e);
+			}
+			try
+			{
+				PkixCertPathValidatorUtilities
+					.AddAdditionalStoresFromCrlDistributionPoint(crldp, paramsPKIX);
+			}
+			catch (Exception e)
+			{
+				throw new PkixCertPathValidatorException(
+					"No additional CRL locations could be decoded from CRL distribution point extension.", e);
+			}
+
+			CertStatus certStatus = new CertStatus();
+			ReasonsMask reasonsMask = new ReasonsMask();
+
+			Exception lastException = null;
+			bool validCrlFound = false;
+			// for each distribution point
+			if (crldp != null)
+			{
+				DistributionPoint[] dps = null;
+				try
 				{
-					CrlDistPoint crldp = null;
-					try
+					dps = crldp.GetDistributionPoints();
+				}
+				catch (Exception e)
+				{
+					throw new PkixCertPathValidatorException(
+						"Distribution points could not be read.", e);
+				}
+				try
+				{
+					for (int i = 0; i < dps.Length
+						&& certStatus.Status == CertStatus.Unrevoked
+						&& !reasonsMask.IsAllReasons; i++)
 					{
-						crldp = CrlDistPoint.GetInstance(
-							PkixCertPathValidatorUtilities.GetExtensionValue(
-								attrCert, X509Extensions.CrlDistributionPoints));
+						PkixParameters paramsPKIXClone = (PkixParameters) paramsPKIX
+							.Clone();
+						CheckCrl(dps[i], attrCert, paramsPKIXClone,
+							validDate, issuerCert, certStatus, reasonsMask,
+							certPathCerts);
+						validCrlFound = true;
 					}
-					catch (Exception e)
-					{
-						throw new PkixCertPathValidatorException(
-							"CRL distribution point extension could not be read.", e);
-					}
-					try
-					{
-						PkixCertPathValidatorUtilities
-							.AddAdditionalStoresFromCrlDistributionPoint(crldp, paramsPKIX);
-					}
-					catch (Exception e)
-					{
-						throw new PkixCertPathValidatorException(
-							"No additional CRL locations could be decoded from CRL distribution point extension.", e);
-					}
-					CertStatus certStatus = new CertStatus();
-					ReasonsMask reasonsMask = new ReasonsMask();
+				}
+				catch (Exception e)
+				{
+					lastException = new Exception(
+						"No valid CRL for distribution point found.", e);
+				}
+			}
 
-					Exception lastException = null;
-					bool validCrlFound = false;
-					// for each distribution point
-					if (crldp != null)
-					{
-						DistributionPoint[] dps = null;
-						try
-						{
-							dps = crldp.GetDistributionPoints();
-						}
-						catch (Exception e)
-						{
-							throw new PkixCertPathValidatorException(
-								"Distribution points could not be read.", e);
-						}
-						try
-						{
-							for (int i = 0; i < dps.Length
-								&& certStatus.Status == CertStatus.Unrevoked
-								&& !reasonsMask.IsAllReasons; i++)
-							{
-								PkixParameters paramsPKIXClone = (PkixParameters) paramsPKIX
-									.Clone();
-								CheckCrl(dps[i], attrCert, paramsPKIXClone,
-									validDate, issuerCert, certStatus, reasonsMask,
-									certPathCerts);
-								validCrlFound = true;
-							}
-						}
-						catch (Exception e)
-						{
-							lastException = new Exception(
-								"No valid CRL for distribution point found.", e);
-						}
-					}
+			/*
+			* If the revocation status has not been determined, repeat the
+			* process above with any available CRLs not specified in a
+			* distribution point but issued by the certificate issuer.
+			*/
 
+			if (certStatus.Status == CertStatus.Unrevoked
+				&& !reasonsMask.IsAllReasons)
+			{
+				try
+				{
 					/*
-					* If the revocation status has not been determined, repeat the
-					* process above with any available CRLs not specified in a
-					* distribution point but issued by the certificate issuer.
+					* assume a DP with both the reasons and the cRLIssuer
+					* fields omitted and a distribution point name of the
+					* certificate issuer.
 					*/
-
-					if (certStatus.Status == CertStatus.Unrevoked
-						&& !reasonsMask.IsAllReasons)
+                    X509Name issuer;
+                    try
+                    {
+                        issuer = X509Name.GetInstance(attrCert.Issuer.GetPrincipals()[0].GetEncoded());
+                    }
+                    catch (Exception e)
 					{
-						try
-						{
-							/*
-							* assume a DP with both the reasons and the cRLIssuer
-							* fields omitted and a distribution point name of the
-							* certificate issuer.
-							*/
-							Asn1Object issuer = null;
-							try
-							{
-								issuer = new Asn1InputStream(
-									attrCert.Issuer.GetPrincipals()[0].GetEncoded()).ReadObject();
-							}
-							catch (Exception e)
-							{
-								throw new Exception(
-									"Issuer from certificate for CRL could not be reencoded.",
-									e);
-							}
-							DistributionPoint dp = new DistributionPoint(
-								new DistributionPointName(0, new GeneralNames(
-									new GeneralName(GeneralName.DirectoryName, issuer))), null, null);
-							PkixParameters paramsPKIXClone = (PkixParameters) paramsPKIX.Clone();
-							CheckCrl(dp, attrCert, paramsPKIXClone, validDate,
-								issuerCert, certStatus, reasonsMask, certPathCerts);
-							validCrlFound = true;
-						}
-						catch (Exception e)
-						{
-							lastException = new Exception(
-								"No valid CRL for distribution point found.", e);
-						}
+						throw new Exception(
+							"Issuer from certificate for CRL could not be reencoded.",
+							e);
 					}
-
-					if (!validCrlFound)
-					{
-						throw new PkixCertPathValidatorException(
-							"No valid CRL found.", lastException);
-					}
-					if (certStatus.Status != CertStatus.Unrevoked)
-					{
-                        // This format is enforced by the NistCertPath tests
-                        string formattedDate = certStatus.RevocationDate.Value.ToString(
-                            "ddd MMM dd HH:mm:ss K yyyy");
-                        string message = "Attribute certificate revocation after "
-							+ formattedDate;
-						message += ", reason: "
-							+ Rfc3280CertPathUtilities.CrlReasons[certStatus.Status];
-						throw new PkixCertPathValidatorException(message);
-					}
-					if (!reasonsMask.IsAllReasons
-						&& certStatus.Status == CertStatus.Unrevoked)
-					{
-						certStatus.Status = CertStatus.Undetermined;
-					}
-					if (certStatus.Status == CertStatus.Undetermined)
-					{
-						throw new PkixCertPathValidatorException(
-							"Attribute certificate status could not be determined.");
-					}
-
+					DistributionPoint dp = new DistributionPoint(
+						new DistributionPointName(0, new GeneralNames(
+							new GeneralName(GeneralName.DirectoryName, issuer))), null, null);
+					PkixParameters paramsPKIXClone = (PkixParameters) paramsPKIX.Clone();
+					CheckCrl(dp, attrCert, paramsPKIXClone, validDate,
+						issuerCert, certStatus, reasonsMask, certPathCerts);
+					validCrlFound = true;
 				}
-				else
+				catch (Exception e)
 				{
-					if (attrCert.GetExtensionValue(X509Extensions.CrlDistributionPoints) != null
-						|| attrCert.GetExtensionValue(X509Extensions.AuthorityInfoAccess) != null)
-					{
-						throw new PkixCertPathValidatorException(
-							"No rev avail extension is set, but also an AC revocation pointer.");
-					}
+					lastException = new Exception(
+						"No valid CRL for distribution point found.", e);
 				}
+			}
+
+			if (!validCrlFound)
+			{
+				throw new PkixCertPathValidatorException(
+					"No valid CRL found.", lastException);
+			}
+			if (certStatus.Status != CertStatus.Unrevoked)
+			{
+                // This format is enforced by the NistCertPath tests
+                string formattedDate = certStatus.RevocationDate.Value.ToString(
+                    "ddd MMM dd HH:mm:ss K yyyy");
+                string message = "Attribute certificate revocation after "
+					+ formattedDate;
+				message += ", reason: "
+					+ Rfc3280CertPathUtilities.CrlReasons[certStatus.Status];
+				throw new PkixCertPathValidatorException(message);
+			}
+			if (!reasonsMask.IsAllReasons
+				&& certStatus.Status == CertStatus.Unrevoked)
+			{
+				certStatus.Status = CertStatus.Undetermined;
+			}
+			if (certStatus.Status == CertStatus.Undetermined)
+			{
+				throw new PkixCertPathValidatorException(
+					"Attribute certificate status could not be determined.");
 			}
 		}
 

@@ -529,46 +529,50 @@ namespace Org.BouncyCastle.Pkix
 
 			X509Name issuer = GetIssuerPrincipal(cert);
 
-			if (issuer.Equivalent(crl_entry.GetCertificateIssuer(), true)
-				|| issuer.Equivalent(crl.IssuerDN, true))
-			{
-				DerEnumerated reasonCode = null;
-				if (crl_entry.HasExtensions)
-				{
-					try
-					{
-						reasonCode = DerEnumerated.GetInstance(
-							GetExtensionValue(crl_entry, X509Extensions.ReasonCode));
-					}
-					catch (Exception e)
-					{
-						throw new Exception(
-							"Reason code CRL entry extension could not be decoded.",
-							e);
-					}
-				}
+			if (!issuer.Equivalent(crl_entry.GetCertificateIssuer(), true)
+				&& !issuer.Equivalent(crl.IssuerDN, true))
+            {
+                return;
+            }
 
-				// for reason keyCompromise, caCompromise, aACompromise or
-				// unspecified
-				if (!(validDate.Ticks < crl_entry.RevocationDate.Ticks)
-					|| reasonCode == null
-					|| reasonCode.Value.TestBit(0)
-					|| reasonCode.Value.TestBit(1)
-					|| reasonCode.Value.TestBit(2)
-					|| reasonCode.Value.TestBit(8))
-				{
-					if (reasonCode != null) // (i) or (j) (1)
-					{
-						certStatus.Status = reasonCode.Value.SignValue;
-					}
-					else // (i) or (j) (2)
-					{
-						certStatus.Status = CrlReason.Unspecified;
-					}
-					certStatus.RevocationDate = new DateTimeObject(crl_entry.RevocationDate);
-				}
-			}
-		}
+            int reasonCodeValue = CrlReason.Unspecified;
+
+            if (crl_entry.HasExtensions)
+            {
+                try
+                {
+                    Asn1Object extValue = GetExtensionValue(crl_entry, X509Extensions.ReasonCode);
+                    DerEnumerated reasonCode = DerEnumerated.GetInstance(extValue);
+                    if (null != reasonCode)
+                    {
+                        reasonCodeValue = reasonCode.IntValueExact;
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Reason code CRL entry extension could not be decoded.", e);
+                }
+            }
+
+            DateTime revocationDate = crl_entry.RevocationDate;
+            if (validDate.Ticks < revocationDate.Ticks)
+            {
+                switch (reasonCodeValue)
+                {
+                case CrlReason.Unspecified:
+                case CrlReason.KeyCompromise:
+                case CrlReason.CACompromise:
+                case CrlReason.AACompromise:
+                    break;
+                default:
+                    return;
+                }
+            }
+
+            // (i) or (j)
+            certStatus.Status = reasonCodeValue;
+            certStatus.RevocationDate = new DateTimeObject(revocationDate);
+        }
 
 		/**
 		* Return the next working key inheriting DSA parameters if necessary.

@@ -188,7 +188,7 @@ namespace Org.BouncyCastle.X509
 
 						if (ext.Value != null)
 						{
-							Asn1Object obj = Asn1Object.FromByteArray(ext.Value.GetOctets());
+                            Asn1Object obj = X509ExtensionUtilities.FromExtensionValue(ext.Value);
 
 							buf.Append("                       critical(")
 								.Append(ext.IsCritical)

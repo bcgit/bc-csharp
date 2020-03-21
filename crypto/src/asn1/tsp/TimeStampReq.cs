@@ -15,24 +15,16 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		private readonly DerBoolean				certReq;
 		private readonly X509Extensions			extensions;
 
-		public static TimeStampReq GetInstance(
-			object o)
-		{
-			if (o == null || o is TimeStampReq)
-			{
-				return (TimeStampReq) o;
-			}
+        public static TimeStampReq GetInstance(object obj)
+        {
+            if (obj is TimeStampReq)
+                return (TimeStampReq)obj;
+            if (obj == null)
+                return null;
+            return new TimeStampReq(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (o is Asn1Sequence)
-			{
-				return new TimeStampReq((Asn1Sequence) o);
-			}
-
-			throw new ArgumentException(
-				"Unknown object in 'TimeStampReq' factory: " + Platform.GetTypeName(o));
-		}
-
-		private TimeStampReq(
+        private TimeStampReq(
 			Asn1Sequence seq)
 		{
 			int nbObjects = seq.Count;

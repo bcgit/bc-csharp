@@ -21,35 +21,13 @@ namespace Org.BouncyCastle.Asn1.Tsp
 		private readonly GeneralName			tsa;
 		private readonly X509Extensions			extensions;
 
-		public static TstInfo GetInstance(
-			object o)
+		public static TstInfo GetInstance(object obj)
 		{
-			if (o == null || o is TstInfo)
-			{
-				return (TstInfo) o;
-			}
-
-			if (o is Asn1Sequence)
-			{
-				return new TstInfo((Asn1Sequence) o);
-			}
-
-			if (o is Asn1OctetString)
-			{
-				try
-				{
-					byte[] octets = ((Asn1OctetString)o).GetOctets();
-					return GetInstance(Asn1Object.FromByteArray(octets));
-				}
-				catch (IOException)
-				{
-					throw new ArgumentException(
-						"Bad object format in 'TstInfo' factory.");
-				}
-			}
-
-			throw new ArgumentException(
-				"Unknown object in 'TstInfo' factory: " + Platform.GetTypeName(o));
+            if (obj is TstInfo)
+                return (TstInfo)obj;
+            if (obj == null)
+                return null;
+            return new TstInfo(Asn1Sequence.GetInstance(obj));
 		}
 
 		private TstInfo(
