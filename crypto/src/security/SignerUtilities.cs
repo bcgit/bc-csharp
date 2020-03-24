@@ -11,6 +11,7 @@ using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -337,6 +338,11 @@ namespace Org.BouncyCastle.Security
             algorithms["GOST3411WITHECGOST3410"] = "ECGOST3410";
             algorithms[CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001.Id] = "ECGOST3410";
 
+            algorithms["GOST3411-2012-256WITHECGOST3410-2012-256"] = "ECGOST3410-2012-256";
+            algorithms[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256.Id] = "ECGOST3410-2012-256";
+            algorithms["GOST3411-2012-512WITHECGOST3410-2012-512"] = "ECGOST3410-2012-512";
+            algorithms[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512.Id] = "ECGOST3410-2012-512";
+
             algorithms["ED25519"] = "Ed25519";
             algorithms[EdECObjectIdentifiers.id_Ed25519.Id] = "Ed25519";
             algorithms["ED25519CTX"] = "Ed25519ctx";
@@ -593,6 +599,14 @@ namespace Org.BouncyCastle.Security
             if (mechanism.Equals("ECGOST3410"))
             {
                 return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411Digest());
+            }
+            if (mechanism.Equals("ECGOST3410-2012-256"))
+            {
+                return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411_2012_256Digest());
+            }
+            if (mechanism.Equals("ECGOST3410-2012-512"))
+            {
+                return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411_2012_512Digest());
             }
 
             if (mechanism.Equals("SHA1WITHRSA/ISO9796-2"))

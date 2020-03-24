@@ -474,6 +474,8 @@ namespace Org.BouncyCastle.Cms
         public static readonly string EncryptionRsaPss = PkcsObjectIdentifiers.IdRsassaPss.Id;
         public static readonly string EncryptionGost3410 = CryptoProObjectIdentifiers.GostR3410x94.Id;
         public static readonly string EncryptionECGost3410 = CryptoProObjectIdentifiers.GostR3410x2001.Id;
+        public static readonly string EncryptionECGost3410_2012_256 = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256.Id;
+        public static readonly string EncryptionECGost3410_2012_512 = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512.Id;
 
         internal IList _certs = Platform.CreateArrayList();
         internal IList _crls = Platform.CreateArrayList();
