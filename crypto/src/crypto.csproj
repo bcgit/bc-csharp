@@ -8,22 +8,26 @@
     <Product>Bouncy Castle for .NET ($(TargetFramework))</Product>
     <Copyright>© 2000-2020 Legion of the Bouncy Castle Inc. </Copyright>
     <Company>The Legion of the Bouncy Castle Inc.</Company>
-    <Authors>Oren Novotny</Authors>
+    <Authors>Claire Novotny</Authors>
     <Title>Bouncy Castle Portable</Title>
     <PackageId>Portable.BouncyCastle</PackageId>
-    <Description>BouncyCastle portable version with support for .NET 4, .NET Standard 2.0, .NET Core</Description>
+    <Description>BouncyCastle portable version with support for .NET 4, .NET Standard 2.0</Description>
     <DebugType>embedded</DebugType>
     <PackageLicenseUrl>https://www.bouncycastle.org/csharp/licence.html</PackageLicenseUrl>
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
-    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES186</PackageReleaseNotes>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/onovotny/bc-csharp</RepositoryUrl>
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES186</PackageReleaseNotes>    
     <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
     <PackageTags>bouncycastle cryptography encryption security</PackageTags>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <NoWarn>1591;618;672</NoWarn>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>  
+  
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -33,10 +37,11 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
     <DefineConstants>$(DefineConstants);PORTABLE;NO_THREADS;NEW_REFLECTION;SYS_RUNTIME;DOTNET</DefineConstants>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\bzip2\src\**\*.cs" LinkBase="bzip2" />
     <None Include="..\..\BouncyCastle.snk" />
-    <PackageReference Include="NerdBank.GitVersioning" Version="3.0.50" PrivateAssets="All" />
+    <PackageReference Include="NerdBank.GitVersioning" Version="3.1.74" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
   
