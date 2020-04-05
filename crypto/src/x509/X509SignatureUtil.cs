@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.X509
 {
@@ -68,6 +69,12 @@ namespace Org.BouncyCastle.X509
 					return GetDigestAlgName((DerObjectIdentifier)ecDsaParams[0]) + "withECDSA";
 				}
 			}
+
+            string sigName = SignerUtilities.GetEncodingName(sigAlgId.Algorithm);
+            if (null != sigName)
+            {
+                return sigName;
+            }
 
             return sigAlgId.Algorithm.Id;
 		}
