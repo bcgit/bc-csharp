@@ -100,7 +100,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             internal bool VerifySignature(Ed25519PublicKeyParameters publicKey, byte[] ctx, byte[] signature)
             {
                 if (Ed25519.SignatureSize != signature.Length)
+                {
+                    Reset();
                     return false;
+                }
 
                 lock (this)
                 {
