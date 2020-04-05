@@ -251,8 +251,14 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             if (null == inBytes)
                 throw new ArgumentNullException("inBytes");
+            /*
+             * Following bc-java, we allow null when no output is expected (e.g. based on a
+             * GetUpdateOutputSize call).
+             */
             if (null == outBytes)
-                throw new ArgumentNullException("outBytes");
+            {
+                //throw new ArgumentNullException("outBytes");
+            }
             if (inOff < 0)
                 throw new ArgumentException("cannot be negative", "inOff");
             if (len < 0)
@@ -487,7 +493,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private void PadMac(ulong count)
         {
-            int partial = (int)count % MacSize;
+            int partial = (int)count & (MacSize - 1);
             if (0 != partial)
             {
                 mPoly1305.BlockUpdate(Zeroes, 0, MacSize - partial);
