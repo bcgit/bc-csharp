@@ -82,7 +82,8 @@ namespace Org.BouncyCastle.Crypto.Operators
 			noParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
 			noParams.Add(X9ObjectIdentifiers.ECDsaWithSha512);
 			noParams.Add(X9ObjectIdentifiers.IdDsaWithSha1);
-			noParams.Add(NistObjectIdentifiers.DsaWithSha224);
+            noParams.Add(OiwObjectIdentifiers.DsaWithSha1); 
+            noParams.Add(NistObjectIdentifiers.DsaWithSha224);
 			noParams.Add(NistObjectIdentifiers.DsaWithSha256);
 			noParams.Add(NistObjectIdentifiers.DsaWithSha384);
 			noParams.Add(NistObjectIdentifiers.DsaWithSha512);
