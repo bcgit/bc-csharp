@@ -429,6 +429,7 @@
     <Compile Include="src\asn1\x509\NameConstraints.cs" />
     <Compile Include="src\asn1\x509\NoticeReference.cs" />
     <Compile Include="src\asn1\x509\ObjectDigestInfo.cs" />
+    <Compile Include="src\asn1\x509\OtherName.cs" />
     <Compile Include="src\asn1\x509\PolicyInformation.cs" />
     <Compile Include="src\asn1\x509\PolicyMappings.cs" />
     <Compile Include="src\asn1\x509\PolicyQualifierId.cs" />
