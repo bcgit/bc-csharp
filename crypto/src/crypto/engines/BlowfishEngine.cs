@@ -308,7 +308,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private byte[] workingKey;
 
-		private bool compatibility = false;
+		private bool useLittleEndian = false;
 
         public BlowfishEngine()
         {
@@ -318,16 +318,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             S3 = new uint[SBOX_SK];
             P = new uint[P_SZ];
         }
-
-		public BlowfishEngine(bool compatibility)
-		{
-			S0 = new uint[SBOX_SK];
-			S1 = new uint[SBOX_SK];
-			S2 = new uint[SBOX_SK];
-			S3 = new uint[SBOX_SK];
-			P = new uint[P_SZ];
-			this.compatibility = compatibility;
-		}
 
 		/**
         * initialise a Blowfish cipher.
@@ -358,6 +348,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 		{
 			get { return false; }
 		}
+
+		public bool UseLittleEndian { get => useLittleEndian; set => useLittleEndian = value; }
 
 		public  int ProcessBlock(
             byte[]	input,
@@ -519,7 +511,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
 			uint xl;
 			uint xr;
-			if (compatibility)
+			if (useLittleEndian)
 			{
 				xl = Pack.LE_To_UInt32(src, srcIndex);
 				xr = Pack.LE_To_UInt32(src, srcIndex + 4);
@@ -540,7 +532,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             xr ^= P[ROUNDS + 1];
 
-			if (compatibility)
+			if (useLittleEndian)
 			{
 				Pack.UInt32_To_LE(xr, dst, dstIndex);
 				Pack.UInt32_To_LE(xl, dst, dstIndex + 4);
@@ -566,7 +558,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			uint xl;
 			uint xr;
 
-			if (compatibility)
+			if (useLittleEndian)
 			{
 				xl = Pack.LE_To_UInt32(src, srcIndex);
 				xr = Pack.LE_To_UInt32(src, srcIndex + 4);
@@ -587,7 +579,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             xr ^= P[0];
 
-			if (compatibility)
+			if (useLittleEndian)
 			{
 				Pack.UInt32_To_LE(xr, dst, dstIndex);
 				Pack.UInt32_To_LE(xl, dst, dstIndex + 4);
