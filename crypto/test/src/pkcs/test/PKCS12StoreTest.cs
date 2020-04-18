@@ -480,7 +480,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
          + "ADBLMC8wCwYJYIZIAWUDBAIBBCDAU3cgA2uJqlRZ+VamaDDOoqvwwnJKOBUy"
          + "vn/gZKm4FgQU91hwRSdR+ekb4Lt7bjUUxaC/XYYCAgfQ");
 
-	private static readonly byte[] sentrixHard = Base64.Decode(
+	private static readonly byte[] sentrixSoft = Base64.Decode(
            "MIIKgQIBAzCCCj0GCSqGSIb3DQEHAaCCCi4EggoqMIIKJjCCAdoGCSqGSIb3"
          + "DQEHAaCCAcsEggHHMIIBwzCCAb8GCyqGSIb3DQEMCgECoIHMMIHJMBwGCiqG"
          + "SIb3DQEMAQMwDgQItChrbpZXBp8CAgfQBIGoEus4fyZZwKntfPRRch685zDx"
@@ -921,6 +921,14 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			//
 			stream = new MemoryStream(pkcs12nopass, false);
 			store.Load(stream, "".ToCharArray());
+
+			stream = new MemoryStream(sentrixHard, false);
+			store = new Pkcs12StoreBuilder().Build();
+			store.Load(stream, "0000".ToCharArray());
+
+			stream = new MemoryStream(sentrixSoft, false);
+			store = new Pkcs12StoreBuilder().Build();
+			store.Load(stream, "0000".ToCharArray());
 		}
 
 		private void DoTestSupportedTypes(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain)
