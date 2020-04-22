@@ -1066,7 +1066,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
         public override string Name
         {
-            get { return "PGPSignatureTest"; }
+            get { return "PgpSignatureTest"; }
         }
 
         public static void Main(

@@ -111,35 +111,68 @@ namespace Org.BouncyCastle.Bcpg
         {
             this.outStream = outStream;
             this.headers = Platform.CreateHashtable(1);
-            this.headers.Add(HeaderVersion, Version);
+            SetHeader(HeaderVersion, Version);
         }
 
         public ArmoredOutputStream(Stream outStream, IDictionary headers)
+            : this(outStream)
         {
-            this.outStream = outStream;
-            this.headers = Platform.CreateHashtable(headers);
-            if (!this.headers.Contains(HeaderVersion))
+            foreach (string header in headers.Keys)
             {
-                this.headers.Add(HeaderVersion, Version);
+                IList headerList = Platform.CreateArrayList(1);
+                headerList.Add(headers[header]);
+
+                this.headers[header] = headerList;
             }
         }
 
         /**
-         * Set an additional header entry. A null value will clear the entry for name.
-         *
+         * Set an additional header entry. Any current value(s) under the same name will be
+         * replaced by the new one. A null value will clear the entry for name.         *
          * @param name the name of the header entry.
          * @param v the value of the header entry.
          */
-        public void SetHeader(string name, string v)
+        public void SetHeader(string name, string val)
         {
-            if (v == null)
+            if (val == null)
             {
-                headers.Remove(name);
+                this.headers.Remove(name);
             }
             else
             {
-                headers[name] = v;
+                IList valueList = (IList)headers[name];
+                if (valueList == null)
+                {
+                    valueList = Platform.CreateArrayList(1);
+                    this.headers[name] = valueList;
+                }
+                else
+                {
+                    valueList.Clear();
+                }
+                valueList.Add(val);
             }
+        }
+
+        /**
+         * Set an additional header entry. The current value(s) will continue to exist together
+         * with the new one. Adding a null value has no effect.
+         *
+         * @param name the name of the header entry.
+         * @param value the value of the header entry.
+         */
+        public void AddHeader(string name, string val)
+        {
+            if (val == null || name == null)
+                return;
+
+            IList valueList = (IList)headers[name];
+            if (valueList == null)
+            {
+                valueList = Platform.CreateArrayList(1);
+                this.headers[name] = valueList;
+            }
+            valueList.Add(val);
         }
 
         /**
@@ -147,13 +180,13 @@ namespace Org.BouncyCastle.Bcpg
          */
         public void ResetHeaders()
         {
-            string existingVersion = (string)headers[HeaderVersion];
+            IList versions = (IList)headers[HeaderVersion];
 
             headers.Clear();
 
-            if (existingVersion != null)
+            if (versions != null)
             {
-                headers.Add(HeaderVersion, existingVersion);
+                headers[HeaderVersion] = versions;
             }
         }
 
@@ -264,9 +297,13 @@ namespace Org.BouncyCastle.Bcpg
                 }
 
                 DoWrite(headerStart + type + headerTail + nl);
-                if (headers.Contains(HeaderVersion))
+
                 {
-                    WriteHeaderEntry(HeaderVersion, (string)headers[HeaderVersion]);
+                    IList versionHeaders = (IList)headers[HeaderVersion];
+                    if (versionHeaders != null)
+                    {
+                        WriteHeaderEntry(HeaderVersion, versionHeaders[0].ToString());
+                    }
                 }
 
                 foreach (DictionaryEntry de in headers)
@@ -274,8 +311,11 @@ namespace Org.BouncyCastle.Bcpg
                     string k = (string)de.Key;
                     if (k != HeaderVersion)
                     {
-                        string v = (string)de.Value;
-                        WriteHeaderEntry(k, v);
+                        IList values = (IList)de.Value;
+                        foreach (string v in values)
+                        {
+                            WriteHeaderEntry(k, v);
+                        }
                     }
                 }
 

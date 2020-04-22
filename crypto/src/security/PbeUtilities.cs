@@ -217,7 +217,7 @@ namespace Org.BouncyCastle.Security
             }
             else if (type.Equals(Pkcs5S2))
             {
-                generator = new Pkcs5S2ParametersGenerator();
+                generator = new Pkcs5S2ParametersGenerator(digest);
             }
             else if (type.Equals(Pkcs12))
             {
@@ -404,8 +404,8 @@ namespace Org.BouncyCastle.Security
                 DerObjectIdentifier encOid = encScheme.Algorithm;
                 Asn1Object encParams = encScheme.Parameters.ToAsn1Object();
 
-                // TODO What about s2p.KeyDerivationFunc.Algorithm?
                 Pbkdf2Params pbeParams = Pbkdf2Params.GetInstance(s2p.KeyDerivationFunc.Parameters.ToAsn1Object());
+                IDigest digest = DigestUtilities.GetDigest(pbeParams.Prf.Algorithm);
 
                 byte[] iv;
                 if (encOid.Equals(PkcsObjectIdentifiers.RC2Cbc)) // PKCS5.B.2.3
@@ -427,7 +427,7 @@ namespace Org.BouncyCastle.Security
                     :	GeneratorUtilities.GetDefaultKeySize(encOid);
 
                 PbeParametersGenerator gen = MakePbeGenerator(
-                    (string)algorithmType[mechanism], null, keyBytes, salt, iterationCount);
+                    (string)algorithmType[mechanism], digest, keyBytes, salt, iterationCount);
 
                 parameters = gen.GenerateDerivedParameters(encOid.Id, keyLength);
 

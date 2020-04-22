@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
 
             // No support for thread-local override in C# version
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("test 1", "failed to construct sequence from byte[]: corrupted stream detected", e.Message);
+                CheckArgumentException("test 1", e, "failed to construct sequence from byte[]: corrupted stream detected");
             }
 
             try
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
 
             try
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed enumerated", e.Message);
+                CheckArgumentException(e, "malformed enumerated");
             }
 
             try
@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed enumerated", e.Message);
+                CheckArgumentException(e, "malformed enumerated");
             }
 #endif
         }
@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
         }
 
@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
         }
 
@@ -209,7 +209,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
         }
 
@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
         }
 
@@ -251,7 +251,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
         }
 
@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
         }
         */
@@ -336,8 +336,17 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsEquals("malformed integer", e.Message);
+                CheckArgumentException(e, "malformed integer");
             }
+        }
+        private void CheckArgumentException(ArgumentException e, String expectedMessage)
+        {
+            IsTrue(e.Message.StartsWith(expectedMessage));
+        }
+
+        private void CheckArgumentException(String errorText, ArgumentException e, String expectedMessage)
+        {
+            IsTrue(errorText, e.Message.StartsWith(expectedMessage));
         }
 
         private void SetAllowUnsafeProperty(bool allowUnsafe)

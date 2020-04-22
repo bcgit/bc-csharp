@@ -197,6 +197,37 @@ namespace Org.BouncyCastle.Tests
             constraintValidator.checkPermitted(
                 new GeneralName(GeneralName.DirectoryName,
                     new X509Name(true, "cn=Valid DN nameConstraints EE Certificate Test1, ou=permittedSubtree1, o=Test Certificates 2011, c=US")));
+
+            GeneralName name = new GeneralName(GeneralName.OtherName, new OtherName(new DerObjectIdentifier("1.1"), DerNull.Instance));
+            GeneralSubtree subtree = new GeneralSubtree(name);
+
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.IntersectPermittedSubtree(new DerSequence(subtree));
+
+            name = new GeneralName(GeneralName.OtherName, new OtherName(new DerObjectIdentifier("1.1"), DerNull.Instance));
+            subtree = new GeneralSubtree(name);
+
+            validator = new PkixNameConstraintValidator();
+            validator.IntersectPermittedSubtree(new DerSequence(subtree));
+            validator.AddExcludedSubtree(subtree);
+
+            try
+            {
+                validator.checkExcluded(name);
+            }
+            catch (PkixNameConstraintValidatorException e)
+            {
+                IsEquals("OtherName is from an excluded subtree.", e.Message);
+            }
+
+            try
+            {
+                validator.checkPermitted(name);
+            }
+            catch (PkixNameConstraintValidatorException e)
+            {
+                Fail(e.Message);
+            }
         }
 
 		/**

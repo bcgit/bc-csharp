@@ -60,18 +60,25 @@ namespace Org.BouncyCastle.Security
 
             algorithms["SHA1"] = "SHA-1";
             algorithms[OiwObjectIdentifiers.IdSha1.Id] = "SHA-1";
+            algorithms[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "SHA-1";
+            algorithms[MiscObjectIdentifiers.HMAC_SHA1.Id] = "SHA-1";
             algorithms["SHA224"] = "SHA-224";
             algorithms[NistObjectIdentifiers.IdSha224.Id] = "SHA-224";
+            algorithms[PkcsObjectIdentifiers.IdHmacWithSha224.Id] = "SHA-224";
             algorithms["SHA256"] = "SHA-256";
             algorithms[NistObjectIdentifiers.IdSha256.Id] = "SHA-256";
+            algorithms[PkcsObjectIdentifiers.IdHmacWithSha256.Id] = "SHA-256";
             algorithms["SHA384"] = "SHA-384";
             algorithms[NistObjectIdentifiers.IdSha384.Id] = "SHA-384";
+            algorithms[PkcsObjectIdentifiers.IdHmacWithSha384.Id] = "SHA-384";
             algorithms["SHA512"] = "SHA-512";
             algorithms[NistObjectIdentifiers.IdSha512.Id] = "SHA-512";
+            algorithms[PkcsObjectIdentifiers.IdHmacWithSha512.Id] = "SHA-512";
             algorithms["SHA512/224"] = "SHA-512/224";
             algorithms[NistObjectIdentifiers.IdSha512_224.Id] = "SHA-512/224";
             algorithms["SHA512/256"] = "SHA-512/256";
             algorithms[NistObjectIdentifiers.IdSha512_256.Id] = "SHA-512/256";
+            algorithms[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "SHA-512/256";
 
             algorithms["RIPEMD-128"] = "RIPEMD128";
             algorithms[TeleTrusTObjectIdentifiers.RipeMD128.Id] = "RIPEMD128";
@@ -91,9 +98,13 @@ namespace Org.BouncyCastle.Security
             algorithms["KECCAK512"] = "KECCAK-512";
 
             algorithms[NistObjectIdentifiers.IdSha3_224.Id] = "SHA3-224";
+            algorithms[NistObjectIdentifiers.IdHMacWithSha3_224.Id] = "SHA3-224";
             algorithms[NistObjectIdentifiers.IdSha3_256.Id] = "SHA3-256";
+            algorithms[NistObjectIdentifiers.IdHMacWithSha3_256.Id] = "SHA3-256";
             algorithms[NistObjectIdentifiers.IdSha3_384.Id] = "SHA3-384";
+            algorithms[NistObjectIdentifiers.IdHMacWithSha3_384.Id] = "SHA3-384";
             algorithms[NistObjectIdentifiers.IdSha3_512.Id] = "SHA3-512";
+            algorithms[NistObjectIdentifiers.IdHMacWithSha3_512.Id] = "SHA3-512";
             algorithms[NistObjectIdentifiers.IdShake128.Id] = "SHAKE128";
             algorithms[NistObjectIdentifiers.IdShake256.Id] = "SHAKE256";
 
