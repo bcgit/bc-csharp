@@ -167,6 +167,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             get { return privateKeyAlgorithm; }
         }
 
+        public virtual Asn1OctetString PrivateKeyData
+        {
+            get { return privateKey; }
+        } 
+
         public virtual Asn1Object ParsePrivateKey()
         {
             return Asn1Object.FromByteArray(privateKey.GetOctets());

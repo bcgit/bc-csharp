@@ -206,15 +206,25 @@ namespace Org.BouncyCastle.Security
                             gostParams.PublicKeyParamSet,
                             gostParams.DigestParamSet,
                             gostParams.EncryptionParamSet);
-                    Asn1Encodable privKey = keyInfo.ParsePrivateKey();
-                    if (privKey is DerInteger)
+
+                    Asn1OctetString privEnc = keyInfo.PrivateKeyData;
+                    if (privEnc.GetOctets().Length == 32 || privEnc.GetOctets().Length == 64)
                     {
-                        d = DerInteger.GetInstance(privKey).PositiveValue;
+                        byte[] dVal = Arrays.Reverse(privEnc.GetOctets());
+                        d = new BigInteger(1, dVal);
                     }
                     else
                     {
-                        byte[] dVal = Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets());
-                        d = new BigInteger(1, dVal);
+                        Asn1Encodable privKey = keyInfo.ParsePrivateKey();
+                        if (privKey is DerInteger)
+                        {
+                            d = DerInteger.GetInstance(privKey).PositiveValue;
+                        }
+                        else
+                        {
+                            byte[] dVal = Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets());
+                            d = new BigInteger(1, dVal);
+                        }
                     }
                 }
                 else
