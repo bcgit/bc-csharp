@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Security
         {
             algorithms["PKCS5SCHEME1"] = "Pkcs5scheme1";
             algorithms["PKCS5SCHEME2"] = "Pkcs5scheme2";
+            algorithms["PBKDF2"] = "Pkcs5scheme2";
             algorithms[PkcsObjectIdentifiers.IdPbeS2.Id] = "Pkcs5scheme2";
 //			algorithms[PkcsObjectIdentifiers.IdPbkdf2.Id] = "Pkcs5scheme2";
 
@@ -322,6 +323,35 @@ namespace Org.BouncyCastle.Security
             {
                 return new PbeParameter(salt, iterationCount);
             }
+        }
+
+        public static Asn1Encodable GenerateAlgorithmParameters( 
+            DerObjectIdentifier cipherAlgorithm,
+            DerObjectIdentifier hashAlgorithm,
+            byte[] salt,
+            int iterationCount,
+            SecureRandom secureRandom)
+        {
+            EncryptionScheme encScheme;
+            if (NistObjectIdentifiers.IdAes128Cbc.Equals(cipherAlgorithm)
+                || NistObjectIdentifiers.IdAes192Cbc.Equals(cipherAlgorithm)
+                || NistObjectIdentifiers.IdAes256Cbc.Equals(cipherAlgorithm)
+                || NistObjectIdentifiers.IdAes128Cfb.Equals(cipherAlgorithm)
+                || NistObjectIdentifiers.IdAes192Cfb.Equals(cipherAlgorithm)
+                || NistObjectIdentifiers.IdAes256Cfb.Equals(cipherAlgorithm))
+            {
+                byte[] iv = new byte[16];
+                secureRandom.NextBytes(iv);
+                encScheme = new EncryptionScheme(cipherAlgorithm, new DerOctetString(iv));
+            }
+            else
+            {
+                throw new ArgumentException("unknown cipher: " + cipherAlgorithm);
+            }
+
+            KeyDerivationFunc func = new KeyDerivationFunc(PkcsObjectIdentifiers.IdPbkdf2, new Pbkdf2Params(salt, iterationCount, new AlgorithmIdentifier(hashAlgorithm, DerNull.Instance)));
+
+            return new PbeS2Parameters(func, encScheme);
         }
 
         public static ICipherParameters GenerateCipherParameters(
