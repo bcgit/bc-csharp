@@ -103,7 +103,7 @@ stages:
               --secret "$(SignClientSecret)" `
               --name "Portable.BouncyCastle" `
               --description "Portable.BouncyCastle" `
-              --descriptionUrl "https://github.com/onovotny/bc-csharp"
+              --descriptionUrl "https://github.com/novotnyllc/bc-csharp"
             displayName: Sign packages
               
           - publish: $(Pipeline.Workspace)/BuildPackages
