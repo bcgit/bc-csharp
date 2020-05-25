@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual void Update(byte input)
         {
-            Absorb(new byte[]{ input }, 0, 1);
+            Absorb(input);
         }
 
         public virtual void BlockUpdate(byte[] input, int inOff, int len)
@@ -147,6 +147,21 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.fixedOutputLength = (1600 - rate) >> 1;
         }
 
+        protected void Absorb(byte data)
+        {
+            if ((bitsInQueue & 7) != 0)
+                throw new InvalidOperationException("attempt to absorb with odd length queue");
+            if (squeezing)
+                throw new InvalidOperationException("attempt to absorb while squeezing");
+
+            dataQueue[bitsInQueue >> 3] = data;
+            if ((bitsInQueue += 8) == rate)
+            {
+                KeccakAbsorb(dataQueue, 0);
+                bitsInQueue = 0;
+            }
+        }
+
         protected void Absorb(byte[] data, int off, int len)
         {
             if ((bitsInQueue & 7) != 0)
@@ -157,35 +172,31 @@ namespace Org.BouncyCastle.Crypto.Digests
             int bytesInQueue = bitsInQueue >> 3;
             int rateBytes = rate >> 3;
 
-            int count = 0;
-            while (count < len)
+            if (len < (rateBytes - bytesInQueue))
             {
-                if (bytesInQueue == 0 && count <= (len - rateBytes))
-                {
-                    do
-                    {
-                        KeccakAbsorb(data, off + count);
-                        count += rateBytes;
-                    }
-                    while (count <= (len - rateBytes));
-                }
-                else
-                {
-                    int partialBlock = System.Math.Min(rateBytes - bytesInQueue, len - count);
-                    Array.Copy(data, off + count, dataQueue, bytesInQueue, partialBlock);
-
-                    bytesInQueue += partialBlock;
-                    count += partialBlock;
-
-                    if (bytesInQueue == rateBytes)
-                    {
-                        KeccakAbsorb(dataQueue, 0);
-                        bytesInQueue = 0;
-                    }
-                }
+                Array.Copy(data, off, dataQueue, bytesInQueue, len);
+                this.bitsInQueue += len << 3;
+                return;
             }
 
-            bitsInQueue = bytesInQueue << 3;
+            int count = 0;
+            if (bytesInQueue > 0)
+            {
+                int available = rateBytes - bytesInQueue;
+                Array.Copy(data, off, dataQueue, bytesInQueue, available);
+                count += available;
+                KeccakAbsorb(dataQueue, 0);
+            }
+
+            int remaining;
+            while ((remaining = (len - count)) >= rateBytes)
+            {
+                KeccakAbsorb(data, off + count);
+                count += rateBytes;
+            }
+
+            Array.Copy(data, off + count, dataQueue, 0, remaining);
+            this.bitsInQueue = remaining << 3;
         }
 
         protected void AbsorbBits(int data, int bits)
@@ -208,14 +219,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             Debug.Assert(bitsInQueue < rate);
 
-            dataQueue[bitsInQueue >> 3] |= (byte)(1U << (bitsInQueue & 7));
+            dataQueue[bitsInQueue >> 3] |= (byte)(1 << (bitsInQueue & 7));
 
             if (++bitsInQueue == rate)
             {
                 KeccakAbsorb(dataQueue, 0);
-                bitsInQueue = 0;
             }
-
+            else
             {
                 int full = bitsInQueue >> 6, partial = bitsInQueue & 63;
                 int off = 0;
@@ -229,14 +239,11 @@ namespace Org.BouncyCastle.Crypto.Digests
                     ulong mask = (1UL << partial) - 1UL;
                     state[full] ^= Pack.LE_To_UInt64(dataQueue, off) & mask;
                 }
-                state[(rate - 1) >> 6] ^= (1UL << 63);
             }
 
-            KeccakPermutation();
+            state[(rate - 1) >> 6] ^= (1UL << 63);
 
-            KeccakExtract();
-            bitsInQueue = rate;
-
+            bitsInQueue = 0;
             squeezing = true;
         }
 
@@ -254,9 +261,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 if (bitsInQueue == 0)
                 {
-                    KeccakPermutation();
                     KeccakExtract();
-                    bitsInQueue = rate;
                 }
                 int partialBlock = (int)System.Math.Min((long)bitsInQueue, outputLength - i);
                 Array.Copy(dataQueue, (rate - bitsInQueue) >> 3, output, offset + (int)(i >> 3), partialBlock >> 3);
@@ -279,7 +284,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private void KeccakExtract()
         {
+            KeccakPermutation();
+
             Pack.UInt64_To_LE(state, 0, rate >> 6, dataQueue, 0);
+
+            this.bitsInQueue = rate;
         }
 
         private void KeccakPermutation()

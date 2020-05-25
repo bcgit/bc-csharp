@@ -390,7 +390,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 		public override string Name
         {
-			get { return "PGPPBETest"; }
+			get { return "PgpPbeTest"; }
         }
 
 		public static void Main(

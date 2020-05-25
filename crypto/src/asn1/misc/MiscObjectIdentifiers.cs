@@ -52,6 +52,8 @@ namespace Org.BouncyCastle.Asn1.Misc
 
         public static readonly DerObjectIdentifier cast5CBC = new DerObjectIdentifier(Entrust+ ".66.10");
 
+        public static readonly DerObjectIdentifier HMAC_SHA1 = new DerObjectIdentifier("1.3.6.1.5.5.8.1.2");
+
         //
         // Ascom
         //

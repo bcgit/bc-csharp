@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
         public override string Name
         {
-            get { return "PGPNoPrivateKeyTest"; }
+            get { return "PgpNoPrivateKeyTest"; }
         }
 
         public static void Main(

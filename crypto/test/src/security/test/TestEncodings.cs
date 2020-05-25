@@ -179,5 +179,18 @@ namespace Org.BouncyCastle.Security.Tests
             Assert.IsTrue(true, "DSATest worked.");
 
         }
+
+        [Test]
+        public void TestGost2012()
+        {
+            byte[] data = Base64.Decode(
+                "MIGiAgEAMCEGCCqFAwcBAQECMBUGCSqFAwcBAgECAQYIKoUDBwEBAgMEQIXnWrZ6"
+                + "ajvbCU6x9jK49PgQqCP00T/lW3laXCXueMF8X4Q1y3N9zfOJT2s/IgyPJVrUhgtO"
+                + "1Akp+Roh8bCPPlqgODA2BggqhQMCCQMIATEqBCi72ZvrBVW6mFL/bQeXeMTf8Jh8"
+                + "p/diI7Cg8ig4mXg3tsIUf4vBi61b");
+    
+            var keyInfo = PrivateKeyInfo.GetInstance(data);
+            var akp = Org.BouncyCastle.Security.PrivateKeyFactory.CreateKey(keyInfo);
+        }
     }
 }

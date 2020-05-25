@@ -172,7 +172,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             return (totalRate - minRate - maxRate) / (NUM_ROUNDS - 2);
         }
 
-        [Test]
+        [Test, Ignore("Perf")]
         public void TestMultiply()
         {
             ArrayList nameList = new ArrayList();

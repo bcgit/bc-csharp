@@ -48,16 +48,10 @@ namespace Org.BouncyCastle.X509
 			{
 				this.sigAlgName = X509SignatureUtilities.GetSignatureName(c.SignatureAlgorithm);
 
-				if (c.SignatureAlgorithm.Parameters != null)
-				{
-					this.sigAlgParams = ((Asn1Encodable)c.SignatureAlgorithm.Parameters).GetDerEncoded();
-				}
-				else
-				{
-					this.sigAlgParams = null;
-				}
+                Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
+                this.sigAlgParams = (null == parameters) ? null : parameters.GetEncoded(Asn1Encodable.Der);
 
-				this.isIndirect = IsIndirectCrl;
+                this.isIndirect = IsIndirectCrl;
 			}
 			catch (Exception e)
 			{

@@ -74,7 +74,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (forSigning || null == publicKey)
                 throw new InvalidOperationException("Ed25519phSigner not initialised for verification");
             if (Ed25519.SignatureSize != signature.Length)
+            {
+                prehash.Reset();
                 return false;
+            }
 
             byte[] pk = publicKey.GetEncoded();
             return Ed25519.VerifyPrehash(signature, 0, pk, 0, context, prehash);
