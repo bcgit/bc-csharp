@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                         }
                     }
                 }
-                catch (IOException)
+                catch (IOException e) when (!(e is TlsFatalAlert))
                 {
                     // NOTE: Assume this is a timeout for the moment
                 }
