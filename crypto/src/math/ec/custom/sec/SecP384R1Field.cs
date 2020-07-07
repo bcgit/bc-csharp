@@ -9,15 +9,16 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP384R1Field
     {
-            // 2^384 - 2^128 - 2^96 + 2^32 - 1
-        private static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFE, 0xFFFFFFFF,
-            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        private static readonly uint[] PExt = new uint[]{ 0x00000001, 0xFFFFFFFE, 0x00000000, 0x00000002, 0x00000000, 0xFFFFFFFE,
-            0x00000000, 0x00000002, 0x00000001, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFE, 0x00000001, 0x00000000,
-            0xFFFFFFFE, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        private static readonly uint[] PExtInv = new uint[]{ 0xFFFFFFFF, 0x00000001, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFF, 0x00000001,
-            0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001, 0xFFFFFFFE, 0xFFFFFFFF,
-            0x00000001, 0x00000002 };
+        // 2^384 - 2^128 - 2^96 + 2^32 - 1
+        internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFE,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+        private static readonly uint[] PExt = new uint[]{ 0x00000001, 0xFFFFFFFE, 0x00000000, 0x00000002, 0x00000000,
+            0xFFFFFFFE, 0x00000000, 0x00000002, 0x00000001, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFE, 0x00000001,
+            0x00000000, 0xFFFFFFFE, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+            0xFFFFFFFF };
+        private static readonly uint[] PExtInv = new uint[]{ 0xFFFFFFFF, 0x00000001, 0xFFFFFFFF, 0xFFFFFFFD,
+            0xFFFFFFFF, 0x00000001, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001,
+            0xFFFFFFFE, 0xFFFFFFFF, 0x00000001, 0x00000002 };
         private const uint P11 = 0xFFFFFFFF;
         private const uint PExt23 = 0xFFFFFFFF;
 
@@ -80,7 +81,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
              * Raise this element to the exponent 2^384 - 2^128 - 2^96 + 2^32 - 3
              *
              * Breaking up the exponent's binary representation into "repunits", we get:
-             * { 255 1s } { 1 0s } { 32 1s } { 64 0s } { 30 1s } { 1 0s} { 1 1s}
+             * { 255 1s } { 1 0s } { 32 1s } { 64 0s } { 30 1s } { 1 0s } { 1 1s }
              *
              * Therefore we need an addition chain containing 1, 30, 32, 255 (the lengths of the repunits)
              * We use: [1], 2, 3, 6, 12, 24, [30], [32], 62, 124, 248, 254, [255]

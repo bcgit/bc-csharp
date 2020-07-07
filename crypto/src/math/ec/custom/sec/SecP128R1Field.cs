@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP128R1Field
     {
         // 2^128 - 2^97 - 1
-        internal static readonly uint[] P = new uint[] { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFD };
-        internal static readonly uint[] PExt = new uint[] { 0x00000001, 0x00000000, 0x00000000, 0x00000004, 0xFFFFFFFE,
+        internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFD };
+        private static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000000, 0x00000004, 0xFFFFFFFE,
             0xFFFFFFFF, 0x00000003, 0xFFFFFFFC };
         private static readonly uint[] PExtInv = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFB,
             0x00000001, 0x00000000, 0xFFFFFFFC, 0x00000003 };
@@ -66,6 +68,66 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
+        public static void Inv(uint[] x, uint[] z)
+        {
+            /*
+             * Raise this element to the exponent 2^128 - 2^97 - 3
+             *
+             * Breaking up the exponent's binary representation into "repunits", we get:
+             * { 30 1s } { 1 0s } { 95 1s } { 1 0s } { 1 1s }
+             *
+             * We use an addition chain for the beginning: [1], 2, 3, [5], 10, 20, [30]
+             */
+
+            if (0 != IsZero(x))
+                throw new ArgumentException("cannot be 0", "x");
+
+            uint[] x1 = x;
+            uint[] x2 = Nat128.Create();
+            Square(x1, x2);
+            Multiply(x2, x1, x2);
+            uint[] x3 = Nat128.Create();
+            Square(x2, x3);
+            Multiply(x3, x1, x3);
+            uint[] x5 = x3;
+            SquareN(x3, 2, x5);
+            Multiply(x5, x2, x5);
+            uint[] x10 = x2;
+            SquareN(x5, 5, x10);
+            Multiply(x10, x5, x10);
+            uint[] x20 = Nat128.Create();
+            SquareN(x10, 10, x20);
+            Multiply(x20, x10, x20);
+            uint[] x30 = x20;
+            SquareN(x20, 10, x30);
+            Multiply(x30, x10, x30);
+
+            uint[] t = x10;
+            SquareN(x30, 31, t);
+            Multiply(t, x30, t);
+            SquareN(t, 30, t);
+            Multiply(t, x30, t);
+            SquareN(t, 30, t);
+            Multiply(t, x30, t);
+            SquareN(t, 5, t);
+            Multiply(t, x5, t);
+            SquareN(t, 2, t);
+
+            // NOTE that x1 and z could be the same array
+            Multiply(x1, t, z);
+        }
+
+        public static int IsZero(uint[] x)
+        {
+            uint d = 0;
+            for (int i = 0; i < 4; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return ((int)d - 1) >> 31;
+        }
+
         public static void Multiply(uint[] x, uint[] y, uint[] z)
         {
             uint[] tt = Nat128.CreateExt();
@@ -84,14 +146,34 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Negate(uint[] x, uint[] z)
         {
-            if (Nat128.IsZero(x))
+            if (0 != IsZero(x))
             {
-                Nat128.Zero(z);
+                Nat128.Sub(P, P, z);
             }
             else
             {
                 Nat128.Sub(P, x, z);
             }
+        }
+
+        public static void Random(SecureRandom r, uint[] z)
+        {
+            byte[] bb = new byte[4 * 4];
+            do
+            {
+                r.NextBytes(bb);
+                Pack.LE_To_UInt32(bb, 0, z, 0, 4);
+            }
+            while (0 == Nat.LessThan(4, z, P));
+        }
+
+        public static void RandomMult(SecureRandom r, uint[] z)
+        {
+            do
+            {
+                Random(r, z);
+            }
+            while (0 != IsZero(z));
         }
 
         public static void Reduce(uint[] xx, uint[] z)

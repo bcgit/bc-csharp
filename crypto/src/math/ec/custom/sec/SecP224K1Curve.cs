@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
@@ -88,6 +89,20 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
 
             return new SecP224K1LookupTable(this, table, len);
+        }
+
+        public override ECFieldElement RandomFieldElement(SecureRandom r)
+        {
+            uint[] x = Nat224.Create();
+            SecP224K1Field.Random(r, x);
+            return new SecP224K1FieldElement(x);
+        }
+
+        public override ECFieldElement RandomFieldElementMult(SecureRandom r)
+        {
+            uint[] x = Nat224.Create();
+            SecP224K1Field.RandomMult(r, x);
+            return new SecP224K1FieldElement(x);
         }
 
         private class SecP224K1LookupTable

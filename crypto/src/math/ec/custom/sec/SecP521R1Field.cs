@@ -10,9 +10,10 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     internal class SecP521R1Field
     {
         // 2^521 - 1
-        private static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
-            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x1FF };
-        private const int P16 = 0x1FF;
+        internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+            0xFFFFFFFF, 0xFFFFFFFF, 0x1FF };
+        private const uint P16 = 0x1FFU;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
         {
@@ -59,7 +60,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
              * Raise this element to the exponent 2^521 - 3
              *
              * Breaking up the exponent's binary representation into "repunits", we get:
-             * { 519 1s } { 1 0s} { 1 1s}
+             * { 519 1s } { 1 0s } { 1 1s }
              *
              * Therefore we need an addition chain containing 1, 519 (the lengths of the repunits)
              * We use: [1], 2, 4, 8, 16, 32, 64, 128, 256, 512, 516, 518, [519]
@@ -150,7 +151,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             {
                 r.NextBytes(bb);
                 Pack.LE_To_UInt32(bb, 0, z, 0, 17);
-                z[16] &= 0x000001FFU;
+                z[16] &= P16;
             }
             while (0 == Nat.LessThan(17, z, P));
         }
@@ -218,7 +219,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if (c < 0)
             {
                 c += Nat.Dec(16, z);
-                c &= P16;
+                c &= (int)P16;
             }
             z[16] = (uint)c;
         }

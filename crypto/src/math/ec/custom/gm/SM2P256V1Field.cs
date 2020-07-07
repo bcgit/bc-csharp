@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Math.EC.Custom.GM
 {
     internal class SM2P256V1Field
     {
         // 2^256 - 2^224 - 2^96 + 2^64 - 1
-        internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
-            0xFFFFFFFF, 0xFFFFFFFE };
-        internal static readonly uint[] PExt = new uint[]{ 00000001, 0x00000000, 0xFFFFFFFE, 0x00000001, 0x00000001,
+        internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE };
+        private static readonly uint[] PExt = new uint[]{ 00000001, 0x00000000, 0xFFFFFFFE, 0x00000001, 0x00000001,
             0xFFFFFFFE, 0x00000000, 0x00000002, 0xFFFFFFFE, 0xFFFFFFFD, 0x00000003, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF,
             0x00000000, 0xFFFFFFFE };
-        internal const uint P7 = 0xFFFFFFFE;
-        internal const uint PExt15 = 0xFFFFFFFE;
+        private const uint P7 = 0xFFFFFFFE;
+        private const uint PExt15 = 0xFFFFFFFE;
 
         public static void Add(uint[] x, uint[] y, uint[] z)
         {
@@ -53,6 +55,64 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
             return z;
         }
 
+        public static void Inv(uint[] x, uint[] z)
+        {
+            /*
+             * Raise this element to the exponent 2^256 - 2^224 - 2^96 + 2^64 - 3
+             *
+             * Breaking up the exponent's binary representation into "repunits", we get:
+             * { 31 1s } { 1 0s } { 128 1s } { 32 0s } { 62 1s } { 1 0s } { 1 1s }
+             *
+             * We use an addition chain for the beginning: [1], 2, [4], 6, 12, 24, 30, [31] 
+             */
+
+            if (0 != IsZero(x))
+                throw new ArgumentException("cannot be 0", "x");
+
+            uint[] x1 = x;
+            uint[] x2 = Nat256.Create();
+            Square(x1, x2);
+            Multiply(x2, x1, x2);
+            uint[] x4 = Nat256.Create();
+            SquareN(x2, 2, x4);
+            Multiply(x4, x2, x4);
+            uint[] x6 = Nat256.Create();
+            SquareN(x4, 2, x6);
+            Multiply(x6, x2, x6);
+            uint[] x12 = x2;
+            SquareN(x6, 6, x12);
+            Multiply(x12, x6, x12);
+            uint[] x24 = Nat256.Create();
+            SquareN(x12, 12, x24);
+            Multiply(x24, x12, x24);
+            uint[] x30 = x12;
+            SquareN(x24, 6, x30);
+            Multiply(x30, x6, x30);
+            uint[] x31 = x6;
+            Square(x30, x31);
+            Multiply(x31, x1, x31);
+
+            uint[] t = x24;
+            SquareN(x31, 32, t);
+            Multiply(t, x31, t);
+            SquareN(t, 31, t);
+            Multiply(t, x31, t);
+            SquareN(t, 31, t);
+            Multiply(t, x31, t);
+            SquareN(t, 31, t);
+            Multiply(t, x31, t);
+            SquareN(t, 4, t);
+            Multiply(t, x4, t);
+            SquareN(t, 63, t);
+            Multiply(t, x31, t);
+            SquareN(t, 31, t);
+            Multiply(t, x31, t);
+            SquareN(t, 2, t);
+
+            // NOTE that x1 and z could be the same array
+            Multiply(x1, t, z);
+        }
+
         public static void Half(uint[] x, uint[] z)
         {
             if ((x[0] & 1) == 0)
@@ -64,6 +124,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
                 uint c = Nat256.Add(x, P, z);
                 Nat.ShiftDownBit(8, z, c);
             }
+        }
+
+        public static int IsZero(uint[] x)
+        {
+            uint d = 0;
+            for (int i = 0; i < 8; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return ((int)d - 1) >> 31;
         }
 
         public static void Multiply(uint[] x, uint[] y, uint[] z)
@@ -84,14 +155,34 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
 
         public static void Negate(uint[] x, uint[] z)
         {
-            if (Nat256.IsZero(x))
+            if (0 != IsZero(x))
             {
-                Nat256.Zero(z);
+                Nat256.Sub(P, P, z);
             }
             else
             {
                 Nat256.Sub(P, x, z);
             }
+        }
+
+        public static void Random(SecureRandom r, uint[] z)
+        {
+            byte[] bb = new byte[8 * 4];
+            do
+            {
+                r.NextBytes(bb);
+                Pack.LE_To_UInt32(bb, 0, z, 0, 8);
+            }
+            while (0 == Nat.LessThan(8, z, P));
+        }
+
+        public static void RandomMult(SecureRandom r, uint[] z)
+        {
+            do
+            {
+                Random(r, z);
+            }
+            while (0 != IsZero(z));
         }
 
         public static void Reduce(uint[] xx, uint[] z)

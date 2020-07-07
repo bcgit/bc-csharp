@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Djb
 {
     internal class Curve25519Field
     {
-        // 2^255 - 2^4 - 2^1 - 1
-        internal static readonly uint[] P = new uint[]{ 0xFFFFFFED, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
-            0xFFFFFFFF, 0x7FFFFFFF };
+        // 2^255 - 19
+        internal static readonly uint[] P = new uint[]{ 0xFFFFFFED, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+            0xFFFFFFFF, 0xFFFFFFFF, 0x7FFFFFFF };
         private const uint P7 = 0x7FFFFFFF;
         private static readonly uint[] PExt = new uint[]{ 0x00000169, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
             0x00000000, 0x00000000, 0x00000000, 0xFFFFFFED, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
@@ -66,6 +68,71 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
             }
         }
 
+        public static void Inv(uint[] x, uint[] z)
+        {
+            /*
+             * Raise this element to the exponent 2^255 - 21
+             *
+             * Breaking up the exponent's binary representation into "repunits", we get:
+             * { 250 1s } { 1 0s } { 1 1s } { 1 0s } { 2 1s }
+             *
+             * Therefore we need an addition chain containing 1, 2, 250 (the lengths of the repunits)
+             * We use: [1], [2], 3, 5, 10, 15, 25, 50, 75, 125, [250]
+             */
+
+            if (0 != IsZero(x))
+                throw new ArgumentException("cannot be 0", "x");
+
+            uint[] x1 = x;
+            uint[] x2 = Nat256.Create();
+            Square(x1, x2);
+            Multiply(x2, x1, x2);
+            uint[] x3 = Nat256.Create();
+            Square(x2, x3);
+            Multiply(x3, x1, x3);
+            uint[] x5 = x3;
+            SquareN(x3, 2, x5);
+            Multiply(x5, x2, x5);
+            uint[] x10 = Nat256.Create();
+            SquareN(x5, 5, x10);
+            Multiply(x10, x5, x10);
+            uint[] x15 = Nat256.Create();
+            SquareN(x10, 5, x15);
+            Multiply(x15, x5, x15);
+            uint[] x25 = x5;
+            SquareN(x15, 10, x25);
+            Multiply(x25, x10, x25);
+            uint[] x50 = x10;
+            SquareN(x25, 25, x50);
+            Multiply(x50, x25, x50);
+            uint[] x75 = x15;
+            SquareN(x50, 25, x75);
+            Multiply(x75, x25, x75);
+            uint[] x125 = x25;
+            SquareN(x75, 50, x125);
+            Multiply(x125, x50, x125);
+            uint[] x250 = x50;
+            SquareN(x125, 125, x250);
+            Multiply(x250, x125, x250);
+
+            uint[] t = x250;
+            SquareN(t, 2, t);
+            Multiply(t, x1, t);
+            SquareN(t, 3, t);
+            Multiply(t, x2, z);
+        }
+
+        public static int IsZero(uint[] x)
+        {
+            uint d = 0;
+            for (int i = 0; i < 8; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return ((int)d - 1) >> 31;
+        }
+
         public static void Multiply(uint[] x, uint[] y, uint[] z)
         {
             uint[] tt = Nat256.CreateExt();
@@ -84,14 +151,35 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
 
         public static void Negate(uint[] x, uint[] z)
         {
-            if (Nat256.IsZero(x))
+            if (0 != IsZero(x))
             {
-                Nat256.Zero(z);
+                Nat256.Sub(P, P, z);
             }
             else
             {
                 Nat256.Sub(P, x, z);
             }
+        }
+
+        public static void Random(SecureRandom r, uint[] z)
+        {
+            byte[] bb = new byte[8 * 4];
+            do
+            {
+                r.NextBytes(bb);
+                Pack.LE_To_UInt32(bb, 0, z, 0, 8);
+                z[7] &= P7;
+            }
+            while (0 == Nat.LessThan(8, z, P));
+        }
+
+        public static void RandomMult(SecureRandom r, uint[] z)
+        {
+            do
+            {
+                Random(r, z);
+            }
+            while (0 != IsZero(z));
         }
 
         public static void Reduce(uint[] xx, uint[] z)
