@@ -88,9 +88,7 @@ namespace Org.BouncyCastle.Asn1
 		public IEnumerator GetEnumerator()
 		{
 			if (octs == null)
-			{
-				return GenerateOcts().GetEnumerator();
-			}
+                return new ChunkEnumerator(str, chunkSize);
 
 			return octs.GetEnumerator();
 		}
@@ -100,22 +98,6 @@ namespace Org.BouncyCastle.Asn1
         {
 			return GetEnumerator();
 		}
-
-		private IList GenerateOcts()
-        {
-            IList vec = Platform.CreateArrayList();
-            for (int i = 0; i < str.Length; i += chunkSize)
-            { 
-				int end = System.Math.Min(str.Length, i + chunkSize);
-
-                byte[] nStr = new byte[end - i]; 
-
-                Array.Copy(str, i, nStr, 0, nStr.Length);
-
-                vec.Add(new DerOctetString(nStr));
-             } 
-             return vec; 
-        }
 
         internal override void Encode(
             DerOutputStream derOut)
@@ -140,6 +122,55 @@ namespace Org.BouncyCastle.Asn1
             else
             {
                 base.Encode(derOut);
+            }
+        }
+
+        private class ChunkEnumerator
+            : IEnumerator
+        {
+            private readonly byte[] octets;
+            private readonly int chunkSize;
+
+            private DerOctetString currentChunk = null;
+            private int nextChunkPos = 0;
+
+            internal ChunkEnumerator(byte[] octets, int chunkSize)
+            {
+                this.octets = octets;
+                this.chunkSize = chunkSize;
+            }
+
+            public object Current
+            {
+                get
+                {
+                    if (null == currentChunk)
+                        throw new InvalidOperationException();
+
+                    return currentChunk;
+                }
+            }
+
+            public bool MoveNext()
+            {
+                if (nextChunkPos >= octets.Length)
+                {
+                    this.currentChunk = null;
+                    return false;
+                }
+
+                int length = System.Math.Min(octets.Length - nextChunkPos, chunkSize);
+                byte[] chunk = new byte[length];
+                Array.Copy(octets, nextChunkPos, chunk, 0, length);
+                this.currentChunk = new DerOctetString(chunk);
+                this.nextChunkPos += length;
+                return true;
+            }
+
+            public void Reset()
+            {
+                this.currentChunk = null;
+                this.nextChunkPos = 0;
             }
         }
     }
