@@ -254,39 +254,39 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			for (int i = rounds; i > 0; i -= 2)
 			{
-				x04 ^= R((x00+x12), 7);
-				x08 ^= R((x04+x00), 9);
-				x12 ^= R((x08+x04),13);
-				x00 ^= R((x12+x08),18);
-				x09 ^= R((x05+x01), 7);
-				x13 ^= R((x09+x05), 9);
-				x01 ^= R((x13+x09),13);
-				x05 ^= R((x01+x13),18);
-				x14 ^= R((x10+x06), 7);
-				x02 ^= R((x14+x10), 9);
-				x06 ^= R((x02+x14),13);
-				x10 ^= R((x06+x02),18);
-				x03 ^= R((x15+x11), 7);
-				x07 ^= R((x03+x15), 9);
-				x11 ^= R((x07+x03),13);
-				x15 ^= R((x11+x07),18);
+				x04 ^= Integers.RotateLeft((x00+x12), 7);
+				x08 ^= Integers.RotateLeft((x04+x00), 9);
+				x12 ^= Integers.RotateLeft((x08+x04),13);
+				x00 ^= Integers.RotateLeft((x12+x08),18);
+				x09 ^= Integers.RotateLeft((x05+x01), 7);
+				x13 ^= Integers.RotateLeft((x09+x05), 9);
+				x01 ^= Integers.RotateLeft((x13+x09),13);
+				x05 ^= Integers.RotateLeft((x01+x13),18);
+				x14 ^= Integers.RotateLeft((x10+x06), 7);
+				x02 ^= Integers.RotateLeft((x14+x10), 9);
+				x06 ^= Integers.RotateLeft((x02+x14),13);
+				x10 ^= Integers.RotateLeft((x06+x02),18);
+				x03 ^= Integers.RotateLeft((x15+x11), 7);
+				x07 ^= Integers.RotateLeft((x03+x15), 9);
+				x11 ^= Integers.RotateLeft((x07+x03),13);
+				x15 ^= Integers.RotateLeft((x11+x07),18);
 
-				x01 ^= R((x00+x03), 7);
-				x02 ^= R((x01+x00), 9);
-				x03 ^= R((x02+x01),13);
-				x00 ^= R((x03+x02),18);
-				x06 ^= R((x05+x04), 7);
-				x07 ^= R((x06+x05), 9);
-				x04 ^= R((x07+x06),13);
-				x05 ^= R((x04+x07),18);
-				x11 ^= R((x10+x09), 7);
-				x08 ^= R((x11+x10), 9);
-				x09 ^= R((x08+x11),13);
-				x10 ^= R((x09+x08),18);
-				x12 ^= R((x15+x14), 7);
-				x13 ^= R((x12+x15), 9);
-				x14 ^= R((x13+x12),13);
-				x15 ^= R((x14+x13),18);
+				x01 ^= Integers.RotateLeft((x00+x03), 7);
+				x02 ^= Integers.RotateLeft((x01+x00), 9);
+				x03 ^= Integers.RotateLeft((x02+x01),13);
+				x00 ^= Integers.RotateLeft((x03+x02),18);
+				x06 ^= Integers.RotateLeft((x05+x04), 7);
+				x07 ^= Integers.RotateLeft((x06+x05), 9);
+				x04 ^= Integers.RotateLeft((x07+x06),13);
+				x05 ^= Integers.RotateLeft((x04+x07),18);
+				x11 ^= Integers.RotateLeft((x10+x09), 7);
+				x08 ^= Integers.RotateLeft((x11+x10), 9);
+				x09 ^= Integers.RotateLeft((x08+x11),13);
+				x10 ^= Integers.RotateLeft((x09+x08),18);
+				x12 ^= Integers.RotateLeft((x15+x14), 7);
+				x13 ^= Integers.RotateLeft((x12+x15), 9);
+				x14 ^= Integers.RotateLeft((x13+x12),13);
+				x15 ^= Integers.RotateLeft((x14+x13),18);
 			}
 
 			x[ 0] = x00 + input[ 0];
@@ -305,19 +305,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			x[13] = x13 + input[13];
 			x[14] = x14 + input[14];
 			x[15] = x15 + input[15];
-		}
-
-		/**
-		 * Rotate left
-		 *
-		 * @param   x   value to rotate
-		 * @param   y   amount to rotate x
-		 *
-		 * @return  rotated x
-		 */
-		internal static uint R(uint x, int y)
-		{
-			return (x << y) | (x >> (32 - y));
 		}
 
 		private void ResetLimitCounter()
