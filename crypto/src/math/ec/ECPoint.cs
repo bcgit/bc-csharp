@@ -1964,7 +1964,7 @@ namespace Org.BouncyCastle.Math.EC
             ECFieldElement X1 = this.RawXCoord;
             if (X1.IsZero)
             {
-                // A point with X == 0 is it's own additive inverse
+                // A point with X == 0 is its own additive inverse
                 return curve.Infinity;
             }
 
@@ -2074,7 +2074,7 @@ namespace Org.BouncyCastle.Math.EC
             ECFieldElement X1 = this.RawXCoord;
             if (X1.IsZero)
             {
-                // A point with X == 0 is it's own additive inverse
+                // A point with X == 0 is its own additive inverse
                 return b;
             }
 
