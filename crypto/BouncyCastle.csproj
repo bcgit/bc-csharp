@@ -1146,6 +1146,7 @@
     <Compile Include="src\crypto\tls\Ssl3Mac.cs" />
     <Compile Include="src\crypto\tls\SupplementalDataEntry.cs" />
     <Compile Include="src\crypto\tls\SupplementalDataType.cs" />
+    <Compile Include="src\crypto\tls\Timeout.cs" />
     <Compile Include="src\crypto\tls\TlsAeadCipher.cs" />
     <Compile Include="src\crypto\tls\TlsAgreementCredentials.cs" />
     <Compile Include="src\crypto\tls\TlsAuthentication.cs" />
