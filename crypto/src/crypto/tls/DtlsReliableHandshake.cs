@@ -76,6 +76,8 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal Message ReceiveMessage()
         {
+            // TODO Add support for "overall" handshake timeout
+
             if (mSending)
             {
                 mSending = false;
@@ -89,41 +91,37 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             for (;;)
             {
-                try
+                if (mRecordLayer.IsClosed)
+                    throw new TlsFatalAlert(AlertDescription.user_canceled);
+
+                Message pending = GetPendingMessage();
+                if (pending != null)
+                    return pending;
+
+                int receiveLimit = mRecordLayer.GetReceiveLimit();
+                if (buf == null || buf.Length < receiveLimit)
                 {
-                    for (;;)
-                    {
-                        if (mRecordLayer.IsClosed)
-                            throw new TlsFatalAlert(AlertDescription.user_canceled);
-
-                        Message pending = GetPendingMessage();
-                        if (pending != null)
-                            return pending;
-
-                        int receiveLimit = mRecordLayer.GetReceiveLimit();
-                        if (buf == null || buf.Length < receiveLimit)
-                        {
-                            buf = new byte[receiveLimit];
-                        }
-
-                        int received = mRecordLayer.Receive(buf, 0, receiveLimit, readTimeoutMillis);
-                        if (received < 0)
-                            break;
-
-                        bool resentOutbound = ProcessRecord(MaxReceiveAhead, mRecordLayer.ReadEpoch, buf, 0, received);
-                        if (resentOutbound)
-                        {
-                            readTimeoutMillis = BackOff(readTimeoutMillis);
-                        }
-                    }
-                }
-                catch (IOException)
-                {
-                    // NOTE: Assume this is a timeout for the moment
+                    buf = new byte[receiveLimit];
                 }
 
-                ResendOutboundFlight();
-                readTimeoutMillis = BackOff(readTimeoutMillis);
+                int received = mRecordLayer.Receive(buf, 0, receiveLimit, readTimeoutMillis);
+
+                bool resentOutbound;
+                if (received < 0)
+                {
+                    ResendOutboundFlight();
+                    resentOutbound = true;
+                }
+                else
+                {
+                    resentOutbound = ProcessRecord(MaxReceiveAhead, mRecordLayer.ReadEpoch, buf, 0, received);
+                }
+
+                // TODO Review conditions for resend/backoff  
+                if (resentOutbound)
+                {
+                    readTimeoutMillis = BackOff(readTimeoutMillis);
+                }
             }
         }
 
