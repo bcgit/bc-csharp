@@ -307,6 +307,7 @@ We state, where EC MQV has not otherwise been disabled or removed:
         <h5>Defects Fixed</h5>
         <ul>
             <li>ChaCha20Poly1305 could fail for large (&gt;~2GB) files. This has been fixed.</li>
+            <li>EdDSA verifiers now reset correctly after rejecting overly long signatures.</li>
             <li>DTLS: Fixed infinite loop on IO exceptions.</li>
         </ul>
         <h5>Additional Features and Functionality</h5>
