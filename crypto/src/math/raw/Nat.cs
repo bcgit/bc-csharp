@@ -278,6 +278,34 @@ namespace Org.BouncyCastle.Math.Raw
             //}
         }
 
+        public static int Compare(int len, uint[] x, uint[] y)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[i];
+                uint y_i = y[i];
+                if (x_i < y_i)
+                    return -1;
+                if (x_i > y_i)
+                    return 1;
+            }
+            return 0;
+        }
+
+        public static int Compare(int len, uint[] x, int xOff, uint[] y, int yOff)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[xOff + i];
+                uint y_i = y[yOff + i];
+                if (x_i < y_i)
+                    return -1;
+                if (x_i > y_i)
+                    return 1;
+            }
+            return 0;
+        }
+
         public static void Copy(int len, uint[] x, uint[] z)
         {
             Array.Copy(x, 0, z, 0, len);
