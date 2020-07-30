@@ -5619,6 +5619,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\Timeout.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsAeadCipher.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

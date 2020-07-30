@@ -5,7 +5,7 @@ using Org.BouncyCastle.Math.EC.Abc;
 using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Field;
-using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC
@@ -98,6 +98,10 @@ namespace Org.BouncyCastle.Math.EC
         public abstract int FieldSize { get; }
         public abstract ECFieldElement FromBigInteger(BigInteger x);
         public abstract bool IsValidFieldElement(BigInteger x);
+
+        public abstract ECFieldElement RandomFieldElement(SecureRandom r);
+
+        public abstract ECFieldElement RandomFieldElementMult(SecureRandom r);
 
         public virtual Config Configure()
         {
@@ -598,6 +602,30 @@ namespace Org.BouncyCastle.Math.EC
             return x != null && x.SignValue >= 0 && x.CompareTo(Field.Characteristic) < 0;
         }
 
+        public override ECFieldElement RandomFieldElement(SecureRandom r)
+        {
+            /*
+             * NOTE: BigInteger comparisons in the rejection sampling are not constant-time, so we
+             * use the product of two independent elements to mitigate side-channels.
+             */
+            BigInteger p = Field.Characteristic;
+            ECFieldElement fe1 = FromBigInteger(ImplRandomFieldElement(r, p));
+            ECFieldElement fe2 = FromBigInteger(ImplRandomFieldElement(r, p));
+            return fe1.Multiply(fe2);
+        }
+
+        public override ECFieldElement RandomFieldElementMult(SecureRandom r)
+        {
+            /*
+             * NOTE: BigInteger comparisons in the rejection sampling are not constant-time, so we
+             * use the product of two independent elements to mitigate side-channels.
+             */
+            BigInteger p = Field.Characteristic;
+            ECFieldElement fe1 = FromBigInteger(ImplRandomFieldElementMult(r, p));
+            ECFieldElement fe2 = FromBigInteger(ImplRandomFieldElementMult(r, p));
+            return fe1.Multiply(fe2);
+        }
+
         protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
         {
             ECFieldElement x = FromBigInteger(X1);
@@ -617,6 +645,28 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             return CreateRawPoint(x, y, true);
+        }
+
+        private static BigInteger ImplRandomFieldElement(SecureRandom r, BigInteger p)
+        {
+            BigInteger x;
+            do
+            {
+                x = BigIntegers.CreateRandomBigInteger(p.BitLength, r);
+            }
+            while (x.CompareTo(p) >= 0);
+            return x;
+        }
+
+        private static BigInteger ImplRandomFieldElementMult(SecureRandom r, BigInteger p)
+        {
+            BigInteger x;
+            do
+            {
+                x = BigIntegers.CreateRandomBigInteger(p.BitLength, r);
+            }
+            while (x.SignValue <= 0 || x.CompareTo(p) >= 0);
+            return x;
         }
     }
 
@@ -793,11 +843,6 @@ namespace Org.BouncyCastle.Math.EC
         {
         }
 
-        public override bool IsValidFieldElement(BigInteger x)
-        {
-            return x != null && x.SignValue >= 0 && x.BitLength <= FieldSize;
-        }
-
         [Obsolete("Per-point compression property will be removed")]
         public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
         {
@@ -827,6 +872,29 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             return CreateRawPoint(X, Y, withCompression);
+        }
+
+        public override bool IsValidFieldElement(BigInteger x)
+        {
+            return x != null && x.SignValue >= 0 && x.BitLength <= FieldSize;
+        }
+
+        public override ECFieldElement RandomFieldElement(SecureRandom r)
+        {
+            int m = FieldSize;
+            return FromBigInteger(BigIntegers.CreateRandomBigInteger(m, r));
+        }
+
+        public override ECFieldElement RandomFieldElementMult(SecureRandom r)
+        {
+            /*
+             * NOTE: BigInteger comparisons in the rejection sampling are not constant-time, so we
+             * use the product of two independent elements to mitigate side-channels.
+             */
+            int m = FieldSize;
+            ECFieldElement fe1 = FromBigInteger(ImplRandomFieldElementMult(r, m));
+            ECFieldElement fe2 = FromBigInteger(ImplRandomFieldElementMult(r, m));
+            return fe1.Multiply(fe2);
         }
 
         protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
@@ -957,6 +1025,17 @@ namespace Org.BouncyCastle.Math.EC
             {
                 return m_order != null && m_cofactor != null && m_b.IsOne && (m_a.IsZero || m_a.IsOne);
             }
+        }
+
+        private static BigInteger ImplRandomFieldElementMult(SecureRandom r, int m)
+        {
+            BigInteger x;
+            do
+            {
+                x = BigIntegers.CreateRandomBigInteger(m, r);
+            }
+            while (x.SignValue <= 0);
+            return x;
         }
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Net.Sockets;
 using System.IO;
 using System.Text;
 
@@ -2344,6 +2345,13 @@ namespace Org.BouncyCastle.Crypto.Tls
                 }
             }
             return v;
+        }
+
+        public static bool IsTimeout(SocketException e)
+        {
+            // TODO Net 2.0+
+            //return SocketError.TimedOut == e.SocketErrorCode;
+            return 10060 == e.ErrorCode;
         }
     }
 }

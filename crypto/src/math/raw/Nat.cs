@@ -570,6 +570,30 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
+        public static int LessThan(int len, uint[] x, uint[] y)
+        {
+            long c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (long)x[i] - y[i];
+                c >>= 32;
+            }
+            Debug.Assert(c == 0L || c == -1L);
+            return (int)c;
+        }
+
+        public static int LessThan(int len, uint[] x, int xOff, uint[] y, int yOff)
+        {
+            long c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (long)x[xOff + i] - y[yOff + i];
+                c >>= 32;
+            }
+            Debug.Assert(c == 0L || c == -1L);
+            return (int)c;
+        }
+
         public static void Mul(int len, uint[] x, uint[] y, uint[] zz)
         {
             zz[len] = MulWord(len, x[0], y, zz);

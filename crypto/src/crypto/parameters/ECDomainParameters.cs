@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities;
@@ -15,6 +16,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly BigInteger h;
 
         private BigInteger hInv;
+
+        public ECDomainParameters(X9ECParameters x9)
+            : this(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed())
+        {
+        }
 
         public ECDomainParameters(
             ECCurve     curve,

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Sockets;
 
 using Org.BouncyCastle.Utilities.Date;
 
@@ -12,6 +13,21 @@ namespace Org.BouncyCastle.Crypto.Tls
         private const int MAX_FRAGMENT_LENGTH = 1 << 14;
         private const long TCP_MSL = 1000L * 60 * 2;
         private const long RETRANSMIT_TIMEOUT = TCP_MSL * 2;
+
+        private static void SendDatagram(DatagramTransport sender, byte[] buf, int off, int len)
+        {
+            //try
+            //{
+            //    sender.Send(buf, off, len);
+            //}
+            //catch (InterruptedIOException e)
+            //{
+            //    e.bytesTransferred = 0;
+            //    throw e;
+            //}
+
+            sender.Send(buf, off, len);
+        }
 
         private readonly DatagramTransport mTransport;
         private readonly TlsContext mContext;
@@ -29,7 +45,7 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         private DtlsHandshakeRetransmit mRetransmit = null;
         private DtlsEpoch mRetransmitEpoch = null;
-        private long mRetransmitExpiry = 0;
+        private Timeout mRetransmitTimeout = null;
 
         internal DtlsRecordLayer(DatagramTransport transport, TlsContext context, TlsPeer peer, byte contentType)
         {
@@ -100,7 +116,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 this.mRetransmit = retransmit;
                 this.mRetransmitEpoch = mCurrentEpoch;
-                this.mRetransmitExpiry = DateTimeUtilities.CurrentUnixMs() + RETRANSMIT_TIMEOUT;
+                this.mRetransmitTimeout = new Timeout(RETRANSMIT_TIMEOUT);
             }
 
             this.mInHandshake = false;
@@ -134,202 +150,38 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         public virtual int Receive(byte[] buf, int off, int len, int waitMillis)
         {
+            long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
+
+            Timeout timeout = Timeout.ForWaitMillis(waitMillis, currentTimeMillis); 
             byte[] record = null;
 
-            for (;;)
+            while (waitMillis >= 0)
             {
+                if (mRetransmitTimeout != null && mRetransmitTimeout.RemainingMillis(currentTimeMillis) < 1)
+                {
+                    mRetransmit = null;
+                    mRetransmitEpoch = null;
+                    mRetransmitTimeout = null;
+                }
+
                 int receiveLimit = System.Math.Min(len, GetReceiveLimit()) + RECORD_HEADER_LENGTH;
                 if (record == null || record.Length < receiveLimit)
                 {
                     record = new byte[receiveLimit];
                 }
 
-                try
+                int received = ReceiveRecord(record, 0, receiveLimit, waitMillis);
+                int processed = ProcessRecord(received, record, buf, off);
+                if (processed >= 0)
                 {
-                    if (mRetransmit != null && DateTimeUtilities.CurrentUnixMs() > mRetransmitExpiry)
-                    {
-                        mRetransmit = null;
-                        mRetransmitEpoch = null;
-                    }
-
-                    int received = ReceiveRecord(record, 0, receiveLimit, waitMillis);
-                    if (received < 0)
-                    {
-                        return received;
-                    }
-                    if (received < RECORD_HEADER_LENGTH)
-                    {
-                        continue;
-                    }
-                    int length = TlsUtilities.ReadUint16(record, 11);
-                    if (received != (length + RECORD_HEADER_LENGTH))
-                    {
-                        continue;
-                    }
-
-                    byte type = TlsUtilities.ReadUint8(record, 0);
-
-                    // TODO Support user-specified custom protocols?
-                    switch (type)
-                    {
-                    case ContentType.alert:
-                    case ContentType.application_data:
-                    case ContentType.change_cipher_spec:
-                    case ContentType.handshake:
-                    case ContentType.heartbeat:
-                        break;
-                    default:
-                        // TODO Exception?
-                        continue;
-                    }
-
-                    int epoch = TlsUtilities.ReadUint16(record, 3);
-
-                    DtlsEpoch recordEpoch = null;
-                    if (epoch == mReadEpoch.Epoch)
-                    {
-                        recordEpoch = mReadEpoch;
-                    }
-                    else if (type == ContentType.handshake && mRetransmitEpoch != null
-                        && epoch == mRetransmitEpoch.Epoch)
-                    {
-                        recordEpoch = mRetransmitEpoch;
-                    }
-
-                    if (recordEpoch == null)
-                    {
-                        continue;
-                    }
-
-                    long seq = TlsUtilities.ReadUint48(record, 5);
-                    if (recordEpoch.ReplayWindow.ShouldDiscard(seq))
-                    {
-                        continue;
-                    }
-
-                    ProtocolVersion version = TlsUtilities.ReadVersion(record, 1);
-                    if (!version.IsDtls)
-                    {
-                        continue;
-                    }
-
-                    if (mReadVersion != null && !mReadVersion.Equals(version))
-                    {
-                        continue;
-                    }
-
-                    byte[] plaintext = recordEpoch.Cipher.DecodeCiphertext(
-                        GetMacSequenceNumber(recordEpoch.Epoch, seq), type, record, RECORD_HEADER_LENGTH,
-                        received - RECORD_HEADER_LENGTH);
-
-                    recordEpoch.ReplayWindow.ReportAuthenticated(seq);
-
-                    if (plaintext.Length > this.mPlaintextLimit)
-                    {
-                        continue;
-                    }
-
-                    if (mReadVersion == null)
-                    {
-                        mReadVersion = version;
-                    }
-
-                    switch (type)
-                    {
-                    case ContentType.alert:
-                    {
-                        if (plaintext.Length == 2)
-                        {
-                            byte alertLevel = plaintext[0];
-                            byte alertDescription = plaintext[1];
-
-                            mPeer.NotifyAlertReceived(alertLevel, alertDescription);
-
-                            if (alertLevel == AlertLevel.fatal)
-                            {
-                                Failed();
-                                throw new TlsFatalAlert(alertDescription);
-                            }
-
-                            // TODO Can close_notify be a fatal alert?
-                            if (alertDescription == AlertDescription.close_notify)
-                            {
-                                CloseTransport();
-                            }
-                        }
-
-                        continue;
-                    }
-                    case ContentType.application_data:
-                    {
-                        if (mInHandshake)
-                        {
-                            // TODO Consider buffering application data for new epoch that arrives
-                            // out-of-order with the Finished message
-                            continue;
-                        }
-                        break;
-                    }
-                    case ContentType.change_cipher_spec:
-                    {
-                        // Implicitly receive change_cipher_spec and change to pending cipher state
-
-                        for (int i = 0; i < plaintext.Length; ++i)
-                        {
-                            byte message = TlsUtilities.ReadUint8(plaintext, i);
-                            if (message != ChangeCipherSpec.change_cipher_spec)
-                            {
-                                continue;
-                            }
-
-                            if (mPendingEpoch != null)
-                            {
-                                mReadEpoch = mPendingEpoch;
-                            }
-                        }
-
-                        continue;
-                    }
-                    case ContentType.handshake:
-                    {
-                        if (!mInHandshake)
-                        {
-                            if (mRetransmit != null)
-                            {
-                                mRetransmit.ReceivedHandshakeRecord(epoch, plaintext, 0, plaintext.Length);
-                            }
-
-                            // TODO Consider support for HelloRequest
-                            continue;
-                        }
-                        break;
-                    }
-                    case ContentType.heartbeat:
-                    {
-                        // TODO[RFC 6520]
-                        continue;
-                    }
-                    }
-
-                    /*
-                     * NOTE: If we receive any non-handshake data in the new epoch implies the peer has
-                     * received our final flight.
-                     */
-                    if (!mInHandshake && mRetransmit != null)
-                    {
-                        this.mRetransmit = null;
-                        this.mRetransmitEpoch = null;
-                    }
-
-                    Array.Copy(plaintext, 0, buf, off, plaintext.Length);
-                    return plaintext.Length;
+                    return processed;
                 }
-                catch (IOException e)
-                {
-                    // NOTE: Assume this is a timeout for the moment
-                    throw e;
-                }
+
+                currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
+                waitMillis = Timeout.GetWaitMillis(timeout, currentTimeMillis);
             }
+
+            return -1;
         }
 
         /// <exception cref="IOException"/>
@@ -458,6 +310,205 @@ namespace Org.BouncyCastle.Crypto.Tls
             SendRecord(ContentType.alert, error, 0, 2);
         }
 
+        private int ReceiveDatagram(byte[] buf, int off, int len, int waitMillis)
+        {
+            //try
+            //{
+            //    return mTransport.Receive(buf, off, len, waitMillis);
+            //}
+            //catch (SocketTimeoutException e)
+            //{
+            //    return -1;
+            //}
+            //catch (InterruptedIOException e)
+            //{
+            //    e.bytesTransferred = 0;
+            //    throw e;
+            //}
+
+            try
+            {
+                return mTransport.Receive(buf, off, len, waitMillis);
+            }
+            catch (SocketException e)
+            {
+                if (TlsUtilities.IsTimeout(e))
+                    return -1;
+
+                throw e;
+            }
+        }
+
+        private int ProcessRecord(int received, byte[] record, byte[] buf, int off)
+        {
+            // NOTE: received < 0 (timeout) is covered by this first case
+            if (received < RECORD_HEADER_LENGTH)
+            {
+                return -1;
+            }
+            int length = TlsUtilities.ReadUint16(record, 11);
+            if (received != (length + RECORD_HEADER_LENGTH))
+            {
+                return -1;
+            }
+
+            byte type = TlsUtilities.ReadUint8(record, 0);
+
+            switch (type)
+            {
+            case ContentType.alert:
+            case ContentType.application_data:
+            case ContentType.change_cipher_spec:
+            case ContentType.handshake:
+            case ContentType.heartbeat:
+                break;
+            default:
+                return -1;
+            }
+
+            int epoch = TlsUtilities.ReadUint16(record, 3);
+
+            DtlsEpoch recordEpoch = null;
+            if (epoch == mReadEpoch.Epoch)
+            {
+                recordEpoch = mReadEpoch;
+            }
+            else if (type == ContentType.handshake && mRetransmitEpoch != null
+                && epoch == mRetransmitEpoch.Epoch)
+            {
+                recordEpoch = mRetransmitEpoch;
+            }
+
+            if (recordEpoch == null)
+            {
+                return -1;
+            }
+
+            long seq = TlsUtilities.ReadUint48(record, 5);
+            if (recordEpoch.ReplayWindow.ShouldDiscard(seq))
+            {
+                return -1;
+            }
+
+            ProtocolVersion version = TlsUtilities.ReadVersion(record, 1);
+            if (!version.IsDtls)
+            {
+                return -1;
+            }
+
+            if (mReadVersion != null && !mReadVersion.Equals(version))
+            {
+                return -1;
+            }
+
+            byte[] plaintext = recordEpoch.Cipher.DecodeCiphertext(
+                GetMacSequenceNumber(recordEpoch.Epoch, seq), type, record, RECORD_HEADER_LENGTH,
+                received - RECORD_HEADER_LENGTH);
+
+            recordEpoch.ReplayWindow.ReportAuthenticated(seq);
+
+            if (plaintext.Length > this.mPlaintextLimit)
+            {
+                return -1;
+            }
+
+            if (mReadVersion == null)
+            {
+                mReadVersion = version;
+            }
+
+            switch (type)
+            {
+            case ContentType.alert:
+            {
+                if (plaintext.Length == 2)
+                {
+                    byte alertLevel = plaintext[0];
+                    byte alertDescription = plaintext[1];
+
+                    mPeer.NotifyAlertReceived(alertLevel, alertDescription);
+
+                    if (alertLevel == AlertLevel.fatal)
+                    {
+                        Failed();
+                        throw new TlsFatalAlert(alertDescription);
+                    }
+
+                    // TODO Can close_notify be a fatal alert?
+                    if (alertDescription == AlertDescription.close_notify)
+                    {
+                        CloseTransport();
+                    }
+                }
+
+                return -1;
+            }
+            case ContentType.application_data:
+            {
+                if (mInHandshake)
+                {
+                    // TODO Consider buffering application data for new epoch that arrives
+                    // out-of-order with the Finished message
+                    return -1;
+                }
+                break;
+            }
+            case ContentType.change_cipher_spec:
+            {
+                // Implicitly receive change_cipher_spec and change to pending cipher state
+
+                for (int i = 0; i < plaintext.Length; ++i)
+                {
+                    byte message = TlsUtilities.ReadUint8(plaintext, i);
+                    if (message != ChangeCipherSpec.change_cipher_spec)
+                    {
+                        continue;
+                    }
+
+                    if (mPendingEpoch != null)
+                    {
+                        mReadEpoch = mPendingEpoch;
+                    }
+                }
+
+                return -1;
+            }
+            case ContentType.handshake:
+            {
+                if (!mInHandshake)
+                {
+                    if (mRetransmit != null)
+                    {
+                        mRetransmit.ReceivedHandshakeRecord(epoch, plaintext, 0, plaintext.Length);
+                    }
+
+                    // TODO Consider support for HelloRequest
+                    return -1;
+                }
+                break;
+            }
+            case ContentType.heartbeat:
+            {
+                // TODO[RFC 6520]
+                return -1;
+            }
+            }
+
+            /*
+             * NOTE: If we receive any non-handshake data in the new epoch implies the peer has
+             * received our final flight.
+             */
+            if (!mInHandshake && mRetransmit != null)
+            {
+                this.mRetransmit = null;
+                this.mRetransmitEpoch = null;
+                this.mRetransmitTimeout = null;
+            }
+
+            Array.Copy(plaintext, 0, buf, off, plaintext.Length);
+            return plaintext.Length;
+        }
+
         private int ReceiveRecord(byte[] buf, int off, int len, int waitMillis)
         {
             if (mRecordQueue.Available > 0)
@@ -476,7 +527,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
 
             {
-                int received = mTransport.Receive(buf, off, len, waitMillis);
+                int received = ReceiveDatagram(buf, off, len, waitMillis);
                 if (received >= RECORD_HEADER_LENGTH)
                 {
                     int fragmentLength = TlsUtilities.ReadUint16(buf, off + 11);
@@ -524,7 +575,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             TlsUtilities.WriteUint16(ciphertext.Length, record, 11);
             Array.Copy(ciphertext, 0, record, RECORD_HEADER_LENGTH, ciphertext.Length);
 
-            mTransport.Send(record, 0, record.Length);
+            SendDatagram(mTransport, record, 0, record.Length);
         }
 
         private static long GetMacSequenceNumber(int epoch, long sequence_number)

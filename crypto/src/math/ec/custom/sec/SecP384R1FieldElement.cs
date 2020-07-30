@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             //return Multiply(b.Invert());
             uint[] z = Nat.Create(12);
-            Mod.Invert(SecP384R1Field.P, ((SecP384R1FieldElement)b).x, z);
+            SecP384R1Field.Inv(((SecP384R1FieldElement)b).x, z);
             SecP384R1Field.Multiply(z, x, z);
             return new SecP384R1FieldElement(z);
         }
@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             //return new SecP384R1FieldElement(ToBigInteger().ModInverse(Q));
             uint[] z = Nat.Create(12);
-            Mod.Invert(SecP384R1Field.P, x, z);
+            SecP384R1Field.Inv(x, z);
             return new SecP384R1FieldElement(z);
         }
 

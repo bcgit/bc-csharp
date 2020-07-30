@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Security
                     return new ECPublicKeyParameters("EC", q, (DerObjectIdentifier)para.Parameters);
                 }
 
-                ECDomainParameters dParams = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed());
+                ECDomainParameters dParams = new ECDomainParameters(x9);
                 return new ECPublicKeyParameters(q, dParams);
             }
             else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x2001))
@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
                 DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
 
-                ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(publicKeyParamSet);
+                X9ECParameters ecP = ECGost3410NamedCurves.GetByOidX9(publicKeyParamSet);
                 if (ecP == null)
                     return null;
 
@@ -238,7 +238,7 @@ namespace Org.BouncyCastle.Security
                 DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
 
                 ECGost3410Parameters ecDomainParameters =new ECGost3410Parameters(
-                    new ECNamedDomainParameters(publicKeyParamSet, ECGost3410NamedCurves.GetByOid(publicKeyParamSet)),
+                    new ECNamedDomainParameters(publicKeyParamSet, ECGost3410NamedCurves.GetByOidX9(publicKeyParamSet)),
                     publicKeyParamSet,
                     gostParams.DigestParamSet,
                     gostParams.EncryptionParamSet);

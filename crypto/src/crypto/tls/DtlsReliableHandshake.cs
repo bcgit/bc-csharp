@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -11,20 +12,27 @@ namespace Org.BouncyCastle.Crypto.Tls
         private const int MaxReceiveAhead = 16;
         private const int MessageHeaderLength = 12;
 
+        private const int InitialResendMillis = 1000;
+        private const int MaxResendMillis = 60000;
+
         private readonly DtlsRecordLayer mRecordLayer;
+        private readonly Timeout mHandshakeTimeout;
 
         private TlsHandshakeHash mHandshakeHash;
 
         private IDictionary mCurrentInboundFlight = Platform.CreateHashtable();
         private IDictionary mPreviousInboundFlight = null;
         private IList mOutboundFlight = Platform.CreateArrayList();
-        private bool mSending = true;
+
+        private int mResendMillis = -1;
+        private Timeout mResendTimeout = null;
 
         private int mMessageSeq = 0, mNextReceiveSeq = 0;
 
-        internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport)
+        internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis)
         {
             this.mRecordLayer = transport;
+            this.mHandshakeTimeout = Timeout.ForWaitMillis(timeoutMillis); 
             this.mHandshakeHash = new DeferredHash();
             this.mHandshakeHash.Init(context);
         }
@@ -50,10 +58,13 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             TlsUtilities.CheckUint24(body.Length);
 
-            if (!mSending)
+            if (mResendTimeout != null)
             {
                 CheckInboundFlight();
-                mSending = true;
+
+                mResendMillis = -1;
+                mResendTimeout = null;
+
                 mOutboundFlight.Clear();
             }
 
@@ -76,61 +87,61 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal Message ReceiveMessage()
         {
-            if (mSending)
+            long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
+
+            if (mResendTimeout == null)
             {
-                mSending = false;
+                mResendMillis = InitialResendMillis;
+                mResendTimeout = new Timeout(mResendMillis, currentTimeMillis);
+
                 PrepareInboundFlight(Platform.CreateHashtable());
             }
 
             byte[] buf = null;
 
-            // TODO Check the conditions under which we should reset this
-            int readTimeoutMillis = 1000;
-
             for (;;)
             {
-                try
+                if (mRecordLayer.IsClosed)
+                    throw new TlsFatalAlert(AlertDescription.user_canceled);
+
+                Message pending = GetPendingMessage();
+                if (pending != null)
+                    return pending;
+
+                int handshakeMillis = Timeout.GetWaitMillis(mHandshakeTimeout, currentTimeMillis);
+                if (handshakeMillis < 0)
+                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+                int waitMillis = System.Math.Max(1, Timeout.GetWaitMillis(mResendTimeout, currentTimeMillis));
+                if (handshakeMillis > 0)
                 {
-                    for (;;)
-                    {
-                        if (mRecordLayer.IsClosed)
-                            throw new TlsFatalAlert(AlertDescription.user_canceled);
-
-                        Message pending = GetPendingMessage();
-                        if (pending != null)
-                            return pending;
-
-                        int receiveLimit = mRecordLayer.GetReceiveLimit();
-                        if (buf == null || buf.Length < receiveLimit)
-                        {
-                            buf = new byte[receiveLimit];
-                        }
-
-                        int received = mRecordLayer.Receive(buf, 0, receiveLimit, readTimeoutMillis);
-                        if (received < 0)
-                            break;
-
-                        bool resentOutbound = ProcessRecord(MaxReceiveAhead, mRecordLayer.ReadEpoch, buf, 0, received);
-                        if (resentOutbound)
-                        {
-                            readTimeoutMillis = BackOff(readTimeoutMillis);
-                        }
-                    }
-                }
-                catch (IOException)
-                {
-                    // NOTE: Assume this is a timeout for the moment
+                    waitMillis = System.Math.Min(waitMillis, handshakeMillis);
                 }
 
-                ResendOutboundFlight();
-                readTimeoutMillis = BackOff(readTimeoutMillis);
+                int receiveLimit = mRecordLayer.GetReceiveLimit();
+                if (buf == null || buf.Length < receiveLimit)
+                {
+                    buf = new byte[receiveLimit];
+                }
+
+                int received = mRecordLayer.Receive(buf, 0, receiveLimit, waitMillis);
+                if (received < 0)
+                {
+                    ResendOutboundFlight();
+                }
+                else
+                {
+                    ProcessRecord(MaxReceiveAhead, mRecordLayer.ReadEpoch, buf, 0, received);
+                }
+
+                currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
             }
         }
 
         internal void Finish()
         {
             DtlsHandshakeRetransmit retransmit = null;
-            if (!mSending)
+            if (mResendTimeout != null)
             {
                 CheckInboundFlight();
             }
@@ -164,7 +175,7 @@ namespace Org.BouncyCastle.Crypto.Tls
              * TODO[DTLS] implementations SHOULD back off handshake packet size during the
              * retransmit backoff.
              */
-            return System.Math.Min(timeoutMillis * 2, 60000);
+            return System.Math.Min(timeoutMillis * 2, MaxResendMillis);
         }
 
         /**
@@ -203,7 +214,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             mCurrentInboundFlight = nextFlight;
         }
 
-        private bool ProcessRecord(int windowSize, int epoch, byte[] buf, int off, int len)
+        private void ProcessRecord(int windowSize, int epoch, byte[] buf, int off, int len)
         {
             bool checkPreviousFlight = false;
 
@@ -273,13 +284,11 @@ namespace Org.BouncyCastle.Crypto.Tls
                 len -= message_length;
             }
 
-            bool result = checkPreviousFlight && CheckAll(mPreviousInboundFlight);
-            if (result)
+            if (checkPreviousFlight && CheckAll(mPreviousInboundFlight))
             {
                 ResendOutboundFlight();
                 ResetAll(mPreviousInboundFlight);
             }
-            return result;
         }
 
         private void ResendOutboundFlight()
@@ -289,6 +298,9 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 WriteMessage((Message)mOutboundFlight[i]);
             }
+
+            mResendMillis = BackOff(mResendMillis);
+            mResendTimeout = new Timeout(mResendMillis);
         }
 
         private Message UpdateHandshakeMessagesDigest(Message message)

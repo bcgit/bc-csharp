@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
-using System.Diagnostics;
 using System.Text;
 
 using Org.BouncyCastle.Math.EC.Multiplier;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Math.EC
 {
@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Math.EC
      */
     public abstract class ECPoint
     {
+        private static readonly SecureRandom Random = new SecureRandom();
+
         protected static ECFieldElement[] EMPTY_ZS = new ECFieldElement[0];
 
         protected static ECFieldElement[] GetInitialZCoords(ECCurve curve)
@@ -230,13 +232,29 @@ namespace Org.BouncyCastle.Math.EC
                 }
                 default:
                 {
-                    ECFieldElement Z1 = RawZCoords[0];
-                    if (Z1.IsOne)
-                    {
+                    ECFieldElement z = RawZCoords[0];
+                    if (z.IsOne)
                         return this;
-                    }
 
-                    return Normalize(Z1.Invert());
+                    if (null == m_curve)
+                        throw new InvalidOperationException("Detached points must be in affine coordinates");
+
+                    /*
+                     * Use blinding to avoid the side-channel leak identified and analyzed in the paper
+                     * "Yet another GCD based inversion side-channel affecting ECC implementations" by Nir
+                     * Drucker and Shay Gueron.
+                     *
+                     * To blind the calculation of z^-1, choose a multiplicative (i.e. non-zero) field
+                     * element 'b' uniformly at random, then calculate the result instead as (z * b)^-1 * b.
+                     * Any side-channel in the implementation of 'inverse' now only leaks information about
+                     * the value (z * b), and no longer reveals information about 'z' itself.
+                     */
+                    // TODO Add CryptoServicesRegistrar class and use here
+                    //SecureRandom r = CryptoServicesRegistrar.GetSecureRandom();
+                    SecureRandom r = Random;
+                    ECFieldElement b = m_curve.RandomFieldElementMult(r);
+                    ECFieldElement zInv = z.Multiply(b).Invert().Multiply(b);
+                    return Normalize(zInv);
                 }
             }
         }
@@ -1946,7 +1964,7 @@ namespace Org.BouncyCastle.Math.EC
             ECFieldElement X1 = this.RawXCoord;
             if (X1.IsZero)
             {
-                // A point with X == 0 is it's own additive inverse
+                // A point with X == 0 is its own additive inverse
                 return curve.Infinity;
             }
 
@@ -2056,7 +2074,7 @@ namespace Org.BouncyCastle.Math.EC
             ECFieldElement X1 = this.RawXCoord;
             if (X1.IsZero)
             {
-                // A point with X == 0 is it's own additive inverse
+                // A point with X == 0 is its own additive inverse
                 return b;
             }
 
