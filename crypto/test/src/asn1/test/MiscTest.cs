@@ -40,6 +40,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void DoDerIntegerTest()
         {
+            SetAllowUnsafeProperty(false);
+
             try
             {
                 new DerInteger(new byte[] { 0, 0, 0, 1});
@@ -55,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc 2", e.Message.StartsWith("malformed integer"));
+                IsTrue("wrong exc 2: " + e.Message, e.Message.StartsWith("malformed integer"));
             }
 
             try
@@ -64,7 +66,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc 3", e.Message.StartsWith("malformed enumerated"));
+                IsTrue("wrong exc 3: " + e.Message, e.Message.StartsWith("malformed enumerated"));
             }
 
             try
@@ -73,7 +75,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc 4", e.Message.StartsWith("malformed enumerated"));
+                IsTrue("wrong exc 4: " + e.Message, e.Message.StartsWith("malformed enumerated"));
             }
         }
 
@@ -143,6 +145,15 @@ namespace Org.BouncyCastle.Asn1.Tests
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
+        private void SetAllowUnsafeProperty(bool allowUnsafe)
+        {
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET) || NET_1_1
+            // Can't SetEnvironmentVariable !
+#else
+            Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, allowUnsafe ? "true" : "false");
+#endif
         }
     }
 }
