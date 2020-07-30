@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         private const int MaxResendMillis = 60000;
 
         private readonly DtlsRecordLayer mRecordLayer;
+        private readonly Timeout mHandshakeTimeout;
 
         private TlsHandshakeHash mHandshakeHash;
 
@@ -28,9 +29,10 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         private int mMessageSeq = 0, mNextReceiveSeq = 0;
 
-        internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport)
+        internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis)
         {
             this.mRecordLayer = transport;
+            this.mHandshakeTimeout = Timeout.ForWaitMillis(timeoutMillis); 
             this.mHandshakeHash = new DeferredHash();
             this.mHandshakeHash.Init(context);
         }
@@ -85,7 +87,6 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         internal Message ReceiveMessage()
         {
-            // TODO Add support for "overall" handshake timeout
             long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
 
             if (mResendTimeout == null)
@@ -107,7 +108,15 @@ namespace Org.BouncyCastle.Crypto.Tls
                 if (pending != null)
                     return pending;
 
+                int handshakeMillis = Timeout.GetWaitMillis(mHandshakeTimeout, currentTimeMillis);
+                if (handshakeMillis < 0)
+                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
                 int waitMillis = System.Math.Max(1, Timeout.GetWaitMillis(mResendTimeout, currentTimeMillis));
+                if (handshakeMillis > 0)
+                {
+                    waitMillis = System.Math.Min(waitMillis, handshakeMillis);
+                }
 
                 int receiveLimit = mRecordLayer.GetReceiveLimit();
                 if (buf == null || buf.Length < receiveLimit)

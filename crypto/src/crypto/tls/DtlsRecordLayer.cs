@@ -152,12 +152,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         {
             long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
 
-            Timeout timeout = null;
-            if (waitMillis > 0)
-            {
-                timeout = new Timeout(waitMillis, currentTimeMillis);
-            }
-
+            Timeout timeout = Timeout.ForWaitMillis(waitMillis, currentTimeMillis); 
             byte[] record = null;
 
             while (waitMillis >= 0)
