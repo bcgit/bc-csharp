@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed integer"));
+                IsTrue("wrong exc 1", e.Message.StartsWith("malformed integer"));
             }
 
             try
@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed integer"));
+                IsTrue("wrong exc 2", e.Message.StartsWith("malformed integer"));
             }
 
             try
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed enumerated"));
+                IsTrue("wrong exc 3", e.Message.StartsWith("malformed enumerated"));
             }
 
             try
@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed enumerated"));
+                IsTrue("wrong exc 4", e.Message.StartsWith("malformed enumerated"));
             }
         }
 
