@@ -97,10 +97,7 @@ namespace Org.BouncyCastle.OpenSsl
                 AsymmetricKeyParameter akp = (AsymmetricKeyParameter) obj;
                 if (akp.IsPrivate)
                 {
-                    string keyType;
-                    encoding = EncodePrivateKey(akp, out keyType);
-
-                    type = keyType + " PRIVATE KEY";
+                    encoding = EncodePrivateKey(akp, out type);
                 }
                 else
                 {
@@ -174,10 +171,7 @@ namespace Org.BouncyCastle.OpenSsl
                 AsymmetricKeyParameter akp = (AsymmetricKeyParameter) obj;
                 if (akp.IsPrivate)
                 {
-                    string keyType;
-                    keyData = EncodePrivateKey(akp, out keyType);
-
-                    type = keyType + " PRIVATE KEY";
+                    keyData = EncodePrivateKey(akp, out type);
                 }
             }
 
@@ -221,7 +215,7 @@ namespace Org.BouncyCastle.OpenSsl
 
             if (oid.Equals(X9ObjectIdentifiers.IdDsa))
             {
-                keyType = "DSA";
+                keyType = "DSA PRIVATE KEY";
 
                 DsaParameter p = DsaParameter.GetInstance(algID.Parameters);
 
@@ -240,19 +234,23 @@ namespace Org.BouncyCastle.OpenSsl
 
             if (oid.Equals(PkcsObjectIdentifiers.RsaEncryption))
             {
-                keyType = "RSA";
+                keyType = "RSA PRIVATE KEY";
+
+                return info.ParsePrivateKey().GetEncoded();
             }
             else if (oid.Equals(CryptoProObjectIdentifiers.GostR3410x2001)
                 || oid.Equals(X9ObjectIdentifiers.IdECPublicKey))
             {
-                keyType = "EC";
+                keyType = "EC PRIVATE KEY";
+
+                return info.ParsePrivateKey().GetEncoded();
             }
             else
             {
-                throw new ArgumentException("Cannot handle private key of type: " + Platform.GetTypeName(akp), "akp");
-            }
+                keyType = "PRIVATE KEY";
 
-            return info.ParsePrivateKey().GetEncoded();
+                return info.GetEncoded();
+            }
         }
 
         public PemObject Generate()
