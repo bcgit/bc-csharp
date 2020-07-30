@@ -19,6 +19,20 @@ namespace Org.BouncyCastle.Utilities
             return n;
         }
 
+        public static int NumberOfTrailingZeros(int i)
+        {
+            if (i == 0)
+                return 32;
+
+            int count = 0;
+            while ((i & 1) == 0)
+            {
+                i >>= 1;
+                ++count;
+            }
+            return count;
+        }
+
         public static int RotateLeft(int i, int distance)
         {
             return (i << distance) ^ (int)((uint)i >> -distance);

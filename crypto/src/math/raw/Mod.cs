@@ -144,7 +144,7 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             {
-                int zeroes = GetTrailingZeroes(u[0]);
+                int zeroes = Integers.NumberOfTrailingZeros((int)u[0]);
                 if (zeroes > 0)
                 {
                     Nat.ShiftDownBits(uLen, u, zeroes, 0);
@@ -169,18 +169,6 @@ namespace Org.BouncyCastle.Math.Raw
                 Debug.Assert(xc == 0 || xc == -1);
                 Nat.ShiftDownBit(len, x, (uint)xc);
             }
-        }
-
-        private static int GetTrailingZeroes(uint x)
-        {
-            Debug.Assert(x != 0);
-            int count = 0;
-            while ((x & 1) == 0)
-            {
-                x >>= 1;
-                ++count;
-            }
-            return count;
         }
     }
 }
