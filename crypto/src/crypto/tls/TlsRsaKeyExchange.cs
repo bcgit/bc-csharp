@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Tls
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
             if (serverCertificate.IsEmpty)
-                throw new TlsFatalAlert(AlertDescription.bad_certificate);
+                throw new TlsFatalAlert(AlertDescription.decode_error);
 
             X509CertificateStructure x509Cert = serverCertificate.GetCertificateAt(0);
 
