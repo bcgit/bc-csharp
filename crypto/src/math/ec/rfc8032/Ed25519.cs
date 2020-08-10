@@ -1100,6 +1100,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
         }
 
+        public static void SignByExtendedKey(byte[] h, byte[] ctx, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        {
+            byte phflag = 0x00;
+
+            byte[] s = new byte[ScalarBytes];
+            PruneScalar(h, 0, s);
+
+            byte[] pk = new byte[PointBytes];
+            ScalarMultBaseEncoded(s, pk, 0);
+
+            IDigest d = CreateDigest();
+
+            ImplSign(d, h, s, pk, 0, ctx, phflag, m, mOff, mLen, sig, sigOff);
+        }
+
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen)
         {
             byte[] ctx = null;
