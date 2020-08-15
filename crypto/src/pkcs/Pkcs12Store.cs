@@ -27,7 +27,9 @@ namespace Org.BouncyCastle.Pkcs
         private readonly IDictionary            chainCerts = Platform.CreateHashtable();
         private readonly IDictionary            keyCerts = Platform.CreateHashtable();
         private readonly DerObjectIdentifier	keyAlgorithm;
+        private readonly DerObjectIdentifier    keyPrfAlgorithm;
         private readonly DerObjectIdentifier	certAlgorithm;
+        private readonly DerObjectIdentifier    certPrfAlgorithm;
         private readonly bool					useDerEncoding;
 
         private AsymmetricKeyEntry unmarkedKeyEntry = null;
@@ -89,12 +91,28 @@ namespace Org.BouncyCastle.Pkcs
             bool				useDerEncoding)
         {
             this.keyAlgorithm = keyAlgorithm;
+            this.keyPrfAlgorithm = null;
             this.certAlgorithm = certAlgorithm;
+            this.certPrfAlgorithm = null;
+            this.useDerEncoding = useDerEncoding;
+        }
+
+        internal Pkcs12Store(
+            DerObjectIdentifier keyAlgorithm,
+            DerObjectIdentifier keyPrfAlgorithm,
+            DerObjectIdentifier certAlgorithm,
+            DerObjectIdentifier certPrfAlgorithm,
+            bool useDerEncoding)
+        {
+            this.keyAlgorithm = keyAlgorithm;
+            this.keyPrfAlgorithm = keyPrfAlgorithm;
+            this.certAlgorithm = certAlgorithm;
+            this.certPrfAlgorithm = certPrfAlgorithm;
             this.useDerEncoding = useDerEncoding;
         }
 
         // TODO Consider making obsolete
-//		[Obsolete("Use 'Pkcs12StoreBuilder' instead")]
+        //		[Obsolete("Use 'Pkcs12StoreBuilder' instead")]
         public Pkcs12Store()
             : this(PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
                 PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc, false)
@@ -748,8 +766,16 @@ namespace Org.BouncyCastle.Pkcs
                 else
                 {
                     bagOid = PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag;
-                    bagData = EncryptedPrivateKeyInfoFactory.CreateEncryptedPrivateKeyInfo(
-                        keyAlgorithm, password, kSalt, MinIterations, privKey.Key);
+                    if (keyPrfAlgorithm != null)
+                    {
+                        bagData = EncryptedPrivateKeyInfoFactory.CreateEncryptedPrivateKeyInfo(
+                                        keyAlgorithm, keyPrfAlgorithm, password, kSalt, MinIterations, random, privKey.Key);
+                    }
+                    else
+                    {
+                        bagData = EncryptedPrivateKeyInfoFactory.CreateEncryptedPrivateKeyInfo(
+                                            keyAlgorithm, password, kSalt, MinIterations, privKey.Key);
+                    }
                 }
 
                 Asn1EncodableVector kName = new Asn1EncodableVector();
@@ -952,7 +978,7 @@ namespace Org.BouncyCastle.Pkcs
             byte[] certBagsEncoding = new DerSequence(certBags).GetDerEncoded();
 
             ContentInfo certsInfo;
-            if (password == null)
+            if (password == null || certAlgorithm == null)
             {
                 certsInfo = new ContentInfo(PkcsObjectIdentifiers.Data, new BerOctetString(certBagsEncoding));
             }

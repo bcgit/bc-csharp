@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Djb
@@ -91,6 +92,20 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
             }
 
             return new Curve25519LookupTable(this, table, len);
+        }
+
+        public override ECFieldElement RandomFieldElement(SecureRandom r)
+        {
+            uint[] x = Nat256.Create();
+            Curve25519Field.Random(r, x);
+            return new Curve25519FieldElement(x);
+        }
+
+        public override ECFieldElement RandomFieldElementMult(SecureRandom r)
+        {
+            uint[] x = Nat256.Create();
+            Curve25519Field.RandomMult(r, x);
+            return new Curve25519FieldElement(x);
         }
 
         private class Curve25519LookupTable

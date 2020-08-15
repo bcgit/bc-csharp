@@ -72,7 +72,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignature.PositiveCertification,
             PgpSignature.CasualCertification,
             PgpSignature.NoCertification,
-            PgpSignature.DefaultCertification
+            PgpSignature.DefaultCertification,
+            PgpSignature.DirectKey,
         };
 
         private long				keyId;
@@ -369,6 +370,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     return seconds;
                 }
+
+                seconds = GetExpirationTimeFromSig(false, PgpSignature.DirectKey);
+                if (seconds >= 0)
+                {
+                    return seconds;
+                }
             }
 
             return 0;
@@ -386,6 +393,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 PgpSignatureSubpacketVector hashed = sig.GetHashedSubPackets();
                 if (hashed == null)
+                    continue;
+
+                if (!hashed.HasSubpacket(SignatureSubpacketTag.KeyExpireTime))
                     continue;
 
                 long current = hashed.GetKeyExpirationTime();
@@ -447,10 +457,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-        /// <summary>True, if this is a master key.</summary>
+        /// <summary>True, if this could be a master key.</summary>
         public bool IsMasterKey
         {
-            get { return subSigs == null; }
+            get { return (subSigs == null) && !(this.IsEncryptionKey && publicPk.Algorithm != PublicKeyAlgorithmTag.RsaGeneral); }
         }
 
         /// <summary>The algorithm code associated with the public key.</summary>

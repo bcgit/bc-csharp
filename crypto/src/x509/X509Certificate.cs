@@ -29,6 +29,8 @@ namespace Org.BouncyCastle.X509
         private readonly X509CertificateStructure c;
         //private Hashtable pkcs12Attributes = Platform.CreateHashtable();
         //private ArrayList pkcs12Ordering = Platform.CreateArrayList();
+        private readonly string sigAlgName;
+        private readonly byte[] sigAlgParams;
 		private readonly BasicConstraints basicConstraints;
 		private readonly bool[] keyUsage;
 
@@ -46,6 +48,18 @@ namespace Org.BouncyCastle.X509
 			X509CertificateStructure c)
 		{
 			this.c = c;
+
+            try
+            {
+                this.sigAlgName = X509SignatureUtilities.GetSignatureName(c.SignatureAlgorithm);
+
+                Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
+                this.sigAlgParams = (null == parameters) ? null : parameters.GetEncoded(Asn1Encodable.Der);
+            }
+            catch (Exception e)
+            {
+                throw new CrlException("Certificate contents invalid: " + e);
+            }
 
 			try
 			{
@@ -249,7 +263,7 @@ namespace Org.BouncyCastle.X509
 		/// <returns>A sting representing the signature algorithm.</returns>
 		public virtual string SigAlgName
 		{
-            get { return SignerUtilities.GetEncodingName(c.SignatureAlgorithm.Algorithm); }
+            get { return sigAlgName; }
 		}
 
 		/// <summary>
@@ -267,12 +281,7 @@ namespace Org.BouncyCastle.X509
 		/// <returns>A byte array containing the Der encoded version of the parameters or null if there are none.</returns>
 		public virtual byte[] GetSigAlgParams()
 		{
-			if (c.SignatureAlgorithm.Parameters != null)
-			{
-				return c.SignatureAlgorithm.Parameters.GetDerEncoded();
-			}
-
-			return null;
+            return Arrays.Clone(sigAlgParams);
 		}
 
 		/// <summary>
@@ -515,9 +524,9 @@ namespace Org.BouncyCastle.X509
 
 					if (ext.Value != null)
 					{
-						byte[] octs = ext.Value.GetOctets();
-						Asn1Object obj = Asn1Object.FromByteArray(octs);
-						buf.Append("                       critical(").Append(ext.IsCritical).Append(") ");
+                        Asn1Object obj = X509ExtensionUtilities.FromExtensionValue(ext.Value);
+
+                        buf.Append("                       critical(").Append(ext.IsCritical).Append(") ");
 						try
 						{
 							if (oid.Equals(X509Extensions.BasicConstraints))

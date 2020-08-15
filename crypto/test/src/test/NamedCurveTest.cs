@@ -41,11 +41,6 @@ namespace Org.BouncyCastle.Tests
         private static ECDomainParameters GetCurveParameters(
             string name)
         {
-            ECDomainParameters ecdp = ECGost3410NamedCurves.GetByName(name);
-
-            if (ecdp != null)
-                return ecdp;
-
             X9ECParameters ecP = ECNamedCurveTable.GetByName(name);
 
             if (ecP == null)

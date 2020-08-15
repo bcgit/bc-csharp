@@ -278,6 +278,34 @@ namespace Org.BouncyCastle.Math.Raw
             //}
         }
 
+        public static int Compare(int len, uint[] x, uint[] y)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[i];
+                uint y_i = y[i];
+                if (x_i < y_i)
+                    return -1;
+                if (x_i > y_i)
+                    return 1;
+            }
+            return 0;
+        }
+
+        public static int Compare(int len, uint[] x, int xOff, uint[] y, int yOff)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[xOff + i];
+                uint y_i = y[yOff + i];
+                if (x_i < y_i)
+                    return -1;
+                if (x_i > y_i)
+                    return 1;
+            }
+            return 0;
+        }
+
         public static void Copy(int len, uint[] x, uint[] z)
         {
             Array.Copy(x, 0, z, 0, len);
@@ -568,6 +596,30 @@ namespace Org.BouncyCastle.Math.Raw
                 }
             }
             return true;
+        }
+
+        public static int LessThan(int len, uint[] x, uint[] y)
+        {
+            long c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (long)x[i] - y[i];
+                c >>= 32;
+            }
+            Debug.Assert(c == 0L || c == -1L);
+            return (int)c;
+        }
+
+        public static int LessThan(int len, uint[] x, int xOff, uint[] y, int yOff)
+        {
+            long c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (long)x[xOff + i] - y[yOff + i];
+                c >>= 32;
+            }
+            Debug.Assert(c == 0L || c == -1L);
+            return (int)c;
         }
 
         public static void Mul(int len, uint[] x, uint[] y, uint[] zz)

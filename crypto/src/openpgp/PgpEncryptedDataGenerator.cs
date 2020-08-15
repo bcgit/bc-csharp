@@ -82,11 +82,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             : EncMethod
         {
 			internal PgpPublicKey pubKey;
+            internal bool sessionKeyObfuscation;
             internal byte[][] data;
 
-            internal PubMethod(PgpPublicKey pubKey)
+            internal PubMethod(PgpPublicKey pubKey, bool sessionKeyObfuscation)
             {
                 this.pubKey = pubKey;
+                this.sessionKeyObfuscation = sessionKeyObfuscation;
             }
 
             public override void AddSessionInfo(
@@ -144,7 +146,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 IWrapper w = PgpUtilities.CreateWrapper(ecKey.SymmetricKeyAlgorithm);
                 w.Init(true, new ParametersWithRandom(key, random));
 
-                byte[] paddedSessionData = PgpPad.PadSessionData(sessionInfo);
+                byte[] paddedSessionData = PgpPad.PadSessionData(sessionInfo, sessionKeyObfuscation);
 
                 byte[] C = w.Wrap(paddedSessionData, 0, paddedSessionData.Length);
                 byte[] VB = new MPInteger(new BigInteger(1, ephPub.Q.GetEncoded(false))).GetEncoded();
@@ -317,18 +319,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>Add a public key encrypted session key to the encrypted object.</summary>
-        public void AddMethod(
-            PgpPublicKey key)
+        public void AddMethod(PgpPublicKey key)
         {
-			if (!key.IsEncryptionKey)
+            AddMethod(key, true);
+        }
+
+        public void AddMethod(PgpPublicKey key, bool sessionKeyObfuscation)
+        {
+            if (!key.IsEncryptionKey)
             {
                 throw new ArgumentException("passed in key not an encryption key!");
             }
 
-			methods.Add(new PubMethod(key));
+            methods.Add(new PubMethod(key, sessionKeyObfuscation));
         }
 
-		private void AddCheckSum(
+        private void AddCheckSum(
             byte[] sessionInfo)
         {
 			Debug.Assert(sessionInfo != null);

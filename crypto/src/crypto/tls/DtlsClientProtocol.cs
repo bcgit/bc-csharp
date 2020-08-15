@@ -82,7 +82,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         internal virtual DtlsTransport ClientHandshake(ClientHandshakeState state, DtlsRecordLayer recordLayer)
         {
             SecurityParameters securityParameters = state.clientContext.SecurityParameters;
-            DtlsReliableHandshake handshake = new DtlsReliableHandshake(state.clientContext, recordLayer);
+            DtlsReliableHandshake handshake = new DtlsReliableHandshake(state.clientContext, recordLayer,
+                state.client.GetHandshakeTimeoutMillis());
 
             byte[] clientHelloBody = GenerateClientHello(state, state.client);
 

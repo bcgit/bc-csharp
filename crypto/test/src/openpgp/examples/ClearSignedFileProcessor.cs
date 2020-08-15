@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
     * To sign a file: ClearSignedFileProcessor -s fileName secretKey passPhrase.
 	* </p>
     * <p>
-    * To decrypt: ClearSignedFileProcessor -v fileName signatureFile publicKeyFile.
+    * To decrypt: ClearSignedFileProcessor -v signatureFile publicKeyFile.
 	* </p>
     */
     public sealed class ClearSignedFileProcessor

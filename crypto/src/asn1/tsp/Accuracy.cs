@@ -75,24 +75,16 @@ namespace Org.BouncyCastle.Asn1.Tsp
 			}
 		}
 
-		public static Accuracy GetInstance(
-			object o)
-		{
-			if (o == null || o is Accuracy)
-			{
-				return (Accuracy) o;
-			}
+        public static Accuracy GetInstance(object obj)
+        {
+            if (obj is Accuracy)
+                return (Accuracy)obj;
+            if (obj == null)
+                return null;
+            return new Accuracy(Asn1Sequence.GetInstance(obj));
+        }
 
-			if (o is Asn1Sequence)
-			{
-				return new Accuracy((Asn1Sequence) o);
-			}
-
-			throw new ArgumentException(
-				"Unknown object in 'Accuracy' factory: " + Platform.GetTypeName(o));
-		}
-
-		public DerInteger Seconds
+        public DerInteger Seconds
 		{
 			get { return seconds; }
 		}

@@ -4,6 +4,7 @@ using System.Threading;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Prng;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
@@ -232,31 +233,27 @@ namespace Org.BouncyCastle.Security
             generator.NextBytes(buf, off, len);
         }
 
-        private static readonly double DoubleScale = System.Math.Pow(2.0, 64.0);
+        private static readonly double DoubleScale = 1.0 / Convert.ToDouble(1L << 53);
 
         public override double NextDouble()
         {
-            return Convert.ToDouble((ulong) NextLong()) / DoubleScale;
+            ulong x = (ulong)NextLong() >> 11;
+
+            return Convert.ToDouble(x) * DoubleScale;
         }
 
         public virtual int NextInt()
         {
             byte[] bytes = new byte[4];
             NextBytes(bytes);
-
-            uint result = bytes[0];
-            result <<= 8;
-            result |= bytes[1];
-            result <<= 8;
-            result |= bytes[2];
-            result <<= 8;
-            result |= bytes[3];
-            return (int)result;
+            return (int)Pack.BE_To_UInt32(bytes);
         }
 
         public virtual long NextLong()
         {
-            return ((long)(uint) NextInt() << 32) | (long)(uint) NextInt();
+            byte[] bytes = new byte[8];
+            NextBytes(bytes);
+            return (long)Pack.BE_To_UInt64(bytes);
         }
     }
 }

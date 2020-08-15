@@ -83,8 +83,8 @@ namespace Org.BouncyCastle.Crypto.Tls
         internal virtual DtlsTransport ServerHandshake(ServerHandshakeState state, DtlsRecordLayer recordLayer)
         {
             SecurityParameters securityParameters = state.serverContext.SecurityParameters;
-            DtlsReliableHandshake handshake = new DtlsReliableHandshake(state.serverContext, recordLayer);
-
+            DtlsReliableHandshake handshake = new DtlsReliableHandshake(state.serverContext, recordLayer,
+                state.server.GetHandshakeTimeoutMillis());
             DtlsReliableHandshake.Message clientMessage = handshake.ReceiveMessage();
 
             // NOTE: DTLSRecordLayer requires any DTLS version, we don't otherwise constrain this

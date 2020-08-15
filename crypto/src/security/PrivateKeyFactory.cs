@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(
                     algID.Parameters.ToAsn1Object());
 
-                ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
+                X9ECParameters ecP = ECGost3410NamedCurves.GetByOidX9(gostParams.PublicKeyParamSet);
 
                 if (ecP == null)
                     throw new ArgumentException("Unrecognized curve OID for GostR3410x2001 private key");
@@ -198,7 +198,7 @@ namespace Org.BouncyCastle.Security
                 if (p is Asn1Sequence && (Asn1Sequence.GetInstance(p).Count == 2 || Asn1Sequence.GetInstance(p).Count == 3))
                 {
 
-                    ECDomainParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
+                    X9ECParameters ecP = ECGost3410NamedCurves.GetByOidX9(gostParams.PublicKeyParamSet);
 
                     ecSpec = new ECGost3410Parameters(
                         new ECNamedDomainParameters(
@@ -206,15 +206,25 @@ namespace Org.BouncyCastle.Security
                             gostParams.PublicKeyParamSet,
                             gostParams.DigestParamSet,
                             gostParams.EncryptionParamSet);
-                    Asn1Encodable privKey = keyInfo.ParsePrivateKey();
-                    if (privKey is DerInteger)
+
+                    Asn1OctetString privEnc = keyInfo.PrivateKeyData;
+                    if (privEnc.GetOctets().Length == 32 || privEnc.GetOctets().Length == 64)
                     {
-                        d = DerInteger.GetInstance(privKey).PositiveValue;
+                        byte[] dVal = Arrays.Reverse(privEnc.GetOctets());
+                        d = new BigInteger(1, dVal);
                     }
                     else
                     {
-                        byte[] dVal = Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets());
-                        d = new BigInteger(1, dVal);
+                        Asn1Encodable privKey = keyInfo.ParsePrivateKey();
+                        if (privKey is DerInteger)
+                        {
+                            d = DerInteger.GetInstance(privKey).PositiveValue;
+                        }
+                        else
+                        {
+                            byte[] dVal = Arrays.Reverse(Asn1OctetString.GetInstance(privKey).GetOctets());
+                            d = new BigInteger(1, dVal);
+                        }
                     }
                 }
                 else
@@ -225,29 +235,10 @@ namespace Org.BouncyCastle.Security
                     {
                         DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(parameters.Parameters);
                         X9ECParameters ecP = ECNamedCurveTable.GetByOid(oid);
-                        if (ecP == null)
-                        {
-                            ECDomainParameters gParam = ECGost3410NamedCurves.GetByOid(oid);
-                            ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(
-                                    oid,
-                                    gParam.Curve,
-                                    gParam.G,
-                                    gParam.N,
-                                    gParam.H,
-                                    gParam.GetSeed()), gostParams.PublicKeyParamSet, gostParams.DigestParamSet,
-                                gostParams.EncryptionParamSet);
-                        }
-                        else
-                        {
-                            ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(
-                                    oid,
-                                    ecP.Curve,
-                                    ecP.G,
-                                    ecP.N,
-                                    ecP.H,
-                                    ecP.GetSeed()), gostParams.PublicKeyParamSet, gostParams.DigestParamSet,
-                                gostParams.EncryptionParamSet);
-                        }
+
+                        ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(oid, ecP),
+                            gostParams.PublicKeyParamSet, gostParams.DigestParamSet,
+                            gostParams.EncryptionParamSet);
                     }
                     else if (parameters.IsImplicitlyCA)
                     {
@@ -256,15 +247,8 @@ namespace Org.BouncyCastle.Security
                     else
                     {
                         X9ECParameters ecP = X9ECParameters.GetInstance(parameters.Parameters);
-                        ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(
-                                algOid,
-                                ecP.Curve,
-                                ecP.G,
-                                ecP.N,
-                                ecP.H,
-                                ecP.GetSeed()),
-                            gostParams.PublicKeyParamSet,
-                            gostParams.DigestParamSet,
+                        ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(algOid, ecP),
+                            gostParams.PublicKeyParamSet, gostParams.DigestParamSet,
                             gostParams.EncryptionParamSet);
                     }
 

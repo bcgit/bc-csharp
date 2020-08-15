@@ -151,6 +151,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             }
         }
 
+        public virtual DerInteger Version
+        {
+            get { return version; }
+        }
+
         public virtual Asn1Set Attributes
         {
             get { return attributes; }
@@ -166,6 +171,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         {
             get { return privateKeyAlgorithm; }
         }
+
+        public virtual Asn1OctetString PrivateKeyData
+        {
+            get { return privateKey; }
+        } 
 
         public virtual Asn1Object ParsePrivateKey()
         {

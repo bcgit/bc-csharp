@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 		public override string Name
         {
-			get { return "PGPPacketTest"; }
+			get { return "PgpPacketTest"; }
         }
 
 		public static void Main(

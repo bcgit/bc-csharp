@@ -116,21 +116,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (publicKeyParamSet == null)
                 throw new ArgumentNullException("publicKeyParamSet");
 
-            ECDomainParameters p = ECGost3410NamedCurves.GetByOid(publicKeyParamSet);
+            X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(publicKeyParamSet);
 
-            if (p == null)
-            {
-                X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(publicKeyParamSet);
+            if (x9 == null)
+                throw new ArgumentException("OID is not a valid public key parameter set", "publicKeyParamSet");
 
-                if (x9 == null)
-                {
-                    throw new ArgumentException("OID is not a valid public key parameter set", "publicKeyParamSet");
-                }
-
-                p = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed());
-            }
-
-            return p;
+            return new ECDomainParameters(x9);
         }
     }
 }

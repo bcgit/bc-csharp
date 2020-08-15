@@ -10,6 +10,7 @@ using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Security.Tests
 {
@@ -33,6 +34,18 @@ namespace Org.BouncyCastle.Security.Tests
             SecureRandom random = new SecureRandom();
 
             CheckSecureRandom(random);
+        }
+
+        [Test]
+        public void TestNextDouble()
+        {
+            double min = new SecureRandom(new FixedRandomGenerator(0x00)).NextDouble();
+            Assert.GreaterOrEqual(min, 0.0);
+            Assert.Less(min, 1.0);
+
+            double max = new SecureRandom(new FixedRandomGenerator(0xFF)).NextDouble();
+            Assert.GreaterOrEqual(max, 0.0);
+            Assert.Less(max, 1.0);
         }
 
         [Test]
@@ -197,6 +210,41 @@ namespace Org.BouncyCastle.Security.Tests
             chi2 /= total;
 
             return chi2;
+        }
+
+        private abstract class TestRandomGenerator
+            : IRandomGenerator
+        {
+            public virtual void AddSeedMaterial(byte[] seed)
+            {
+            }
+
+            public virtual void AddSeedMaterial(long seed)
+            {
+            }
+
+            public virtual void NextBytes(byte[] bytes)
+            {
+                NextBytes(bytes, 0, bytes.Length);
+            }
+
+            public abstract void NextBytes(byte[] bytes, int start, int len);
+        }
+
+        private sealed class FixedRandomGenerator
+            : TestRandomGenerator
+        {
+            private readonly byte b;
+
+            internal FixedRandomGenerator(byte b)
+            {
+                this.b = b;
+            }
+
+            public override void NextBytes(byte[] bytes, int start, int len)
+            {
+                Arrays.Fill(bytes, start, start + len, b);
+            }
         }
     }
 }

@@ -200,6 +200,7 @@ namespace Org.BouncyCastle.Security
                 "GOST-3410-94");
             AddKpgAlgorithm("RSA",
                 "1.2.840.113549.1.1.1");
+            AddKpgAlgorithm("RSASSA-PSS");
             AddKpgAlgorithm("X25519",
                 EdECObjectIdentifiers.id_X25519);
             AddKpgAlgorithm("X448",
@@ -349,7 +350,7 @@ namespace Org.BouncyCastle.Security
             if (canonicalName == "GOST3410")
                 return new Gost3410KeyPairGenerator();
 
-            if (canonicalName == "RSA")
+            if (canonicalName == "RSA" || canonicalName == "RSASSA-PSS")
                 return new RsaKeyPairGenerator();
 
             if (canonicalName == "X25519")

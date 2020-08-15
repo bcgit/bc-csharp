@@ -1213,7 +1213,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
         public override string Name
         {
-            get { return "PGPRSATest"; }
+            get { return "PgpRsaTest"; }
         }
 
         public static void Main(

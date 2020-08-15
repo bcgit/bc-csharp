@@ -124,6 +124,35 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			}
 		}
 
+        private void repeatHeaderTest()
+        {
+            MemoryStream bOut = new MemoryStream();
+            ArmoredOutputStream aOut = new ArmoredOutputStream(bOut);
+
+            aOut.SetHeader("Comment", "Line 1");
+            aOut.AddHeader("Comment", "Line 2");
+
+            aOut.Write(sample, 0, sample.Length);
+
+            aOut.Close();
+
+            MemoryStream bIn = new MemoryStream(bOut.ToArray(), false);
+            ArmoredInputStream aIn = new ArmoredInputStream(bIn, true);
+
+            string[] hdrs = aIn.GetArmorHeaders();
+            int count = 0;
+
+            for (int i = 0; i != hdrs.Length; i++)
+            {
+                if (hdrs[i].IndexOf("Comment: ") == 0)
+                {
+                    count++;
+                }
+            }
+
+            IsEquals(2, count);
+        }
+
 		public override void PerformTest()
 		{
 			//
@@ -258,7 +287,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			blankLineTest();
             pgpUtilTest();
-		}
+            repeatHeaderTest();
+        }
 
 		public override string Name
 		{

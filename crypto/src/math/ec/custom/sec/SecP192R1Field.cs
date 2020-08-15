@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecP192R1Field
     {
         // 2^192 - 2^64 - 1
-        internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        internal static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000002, 0x00000000, 0x00000001,
+        internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF,
+            0xFFFFFFFF };
+        private static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000002, 0x00000000, 0x00000001,
             0x00000000, 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-        private static readonly uint[] PExtInv = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFF, 0xFFFFFFFE,
-            0xFFFFFFFF, 0x00000001, 0x00000000, 0x00000002 };
+        private static readonly uint[] PExtInv = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFF,
+            0xFFFFFFFE, 0xFFFFFFFF, 0x00000001, 0x00000000, 0x00000002 };
         private const uint P5 = 0xFFFFFFFF;
         private const uint PExt11 = 0xFFFFFFFF;
 
@@ -69,6 +72,73 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
+        public static void Inv(uint[] x, uint[] z)
+        {
+            /*
+             * Raise this element to the exponent 2^192 - 2^64 - 1
+             *
+             * Breaking up the exponent's binary representation into "repunits", we get:
+             * { 127 1s } { 1 0s } { 62 1s } { 1 0s } { 1 1s }
+             *
+             * Therefore we need an addition chain containing 1, 62, 127 (the lengths of the repunits)
+             * We use: [1], 2, 3, 6, 12, 24, 30, 32, [62], 65, [127]
+             */
+
+            if (0 != IsZero(x))
+                throw new ArgumentException("cannot be 0", "x");
+
+            uint[] x1 = x;
+            uint[] x2 = Nat192.Create();
+            Square(x1, x2);
+            Multiply(x2, x1, x2);
+            uint[] x3 = Nat192.Create();
+            Square(x2, x3);
+            Multiply(x3, x1, x3);
+            uint[] x6 = Nat192.Create();
+            SquareN(x3, 3, x6);
+            Multiply(x6, x3, x6);
+            uint[] x12 = Nat192.Create();
+            SquareN(x6, 6, x12);
+            Multiply(x12, x6, x12);
+            uint[] x24 = Nat192.Create();
+            SquareN(x12, 12, x24);
+            Multiply(x24, x12, x24);
+            uint[] x30 = x12;
+            SquareN(x24, 6, x30);
+            Multiply(x30, x6, x30);
+            uint[] x32 = x6;
+            SquareN(x30, 2, x32);
+            Multiply(x32, x2, x32);
+            uint[] x62 = x2;
+            SquareN(x32, 30, x62);
+            Multiply(x62, x30, x62);
+            uint[] x65 = x24;
+            SquareN(x62, 3, x65);
+            Multiply(x65, x3, x65);
+            uint[] x127 = x3;
+            SquareN(x65, 62, x127);
+            Multiply(x127, x62, x127);
+
+            uint[] t = x127;
+            SquareN(t, 63, t);
+            Multiply(t, x62, t);
+            SquareN(t, 2, t);
+
+            // NOTE that x1 and z could be the same array
+            Multiply(x1, t, z);
+        }
+
+        public static int IsZero(uint[] x)
+        {
+            uint d = 0;
+            for (int i = 0; i < 6; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return ((int)d - 1) >> 31;
+        }
+
         public static void Multiply(uint[] x, uint[] y, uint[] z)
         {
             uint[] tt = Nat192.CreateExt();
@@ -90,14 +160,34 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Negate(uint[] x, uint[] z)
         {
-            if (Nat192.IsZero(x))
+            if (0 != IsZero(x))
             {
-                Nat192.Zero(z);
+                Nat192.Sub(P, P, z);
             }
             else
             {
                 Nat192.Sub(P, x, z);
             }
+        }
+
+        public static void Random(SecureRandom r, uint[] z)
+        {
+            byte[] bb = new byte[6 * 4];
+            do
+            {
+                r.NextBytes(bb);
+                Pack.LE_To_UInt32(bb, 0, z, 0, 6);
+            }
+            while (0 == Nat.LessThan(6, z, P));
+        }
+
+        public static void RandomMult(SecureRandom r, uint[] z)
+        {
+            do
+            {
+                Random(r, z);
+            }
+            while (0 != IsZero(z));
         }
 
         public static void Reduce(uint[] xx, uint[] z)
