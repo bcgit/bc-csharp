@@ -2,12 +2,11 @@ namespace Org.BouncyCastle.Crypto
 {
     /// <summary>
     /// Base interface for operator factories that create stream-based digest calculators.
-    /// </summary>
-    /// <typeparam name="A">The algorithm details/parameter type for the digest factory.</typeparam>
-    public interface IDigestFactory<out A>
+    /// </summary>   
+    public interface IDigestFactory
 	{
 		/// <summary>The algorithm details object for calculators made by this factory.</summary>
-		A AlgorithmDetails { get ; }
+		object AlgorithmDetails { get ; }
 
 		/// <summary>Return the size of the digest associated with this factory.</summary>
 		/// <returns>The length of the digest produced by this calculators from this factory in bytes.</returns>
@@ -19,6 +18,6 @@ namespace Org.BouncyCastle.Crypto
 		/// and producing the digest block.
 		/// </summary>
 		/// <returns>A calculator producing an IBlockResult with the final digest in it.</returns>
-		IStreamCalculator<IBlockResult> CreateCalculator();
+		IStreamCalculator CreateCalculator();
 	}
 }
