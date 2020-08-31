@@ -1,23 +1,16 @@
 using System;
 using System.Collections;
 using System.IO;
-using System.Runtime.InteropServices.ComTypes;
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Ess;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
@@ -129,7 +122,7 @@ namespace Org.BouncyCastle.Tsp
            Asn1.Cms.AttributeTable signedAttr,
            Asn1.Cms.AttributeTable unsignedAttr) : this(
                makeInfoGenerator(key, cert, digestOID, signedAttr, unsignedAttr),
-               DigestFactory.Get(OiwObjectIdentifiers.IdSha1),
+               Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1),
                tsaPolicyOID != null?new DerObjectIdentifier(tsaPolicyOID):null, false)
         {
 

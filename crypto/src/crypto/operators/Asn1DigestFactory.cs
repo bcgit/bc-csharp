@@ -1,44 +1,32 @@
 ﻿using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Oiw;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.IO;
-using Org.BouncyCastle.Crypto.Paddings;
-using Org.BouncyCastle.Crypto.Tests;
 using Org.BouncyCastle.Security;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
+
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
-
-
-
-    public class DigestFactory : IDigestFactory
+    public class Asn1DigestFactory : IDigestFactory
     {
 
-        public static DigestFactory Get(DerObjectIdentifier oid)
+        public static Asn1DigestFactory Get(DerObjectIdentifier oid)
         {
-            return new DigestFactory(DigestUtilities.GetDigest(oid), oid);          
+            return new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);          
         }
 
-        public static DigestFactory Get(String mechanism)
+        public static Asn1DigestFactory Get(String mechanism)
         {
             DerObjectIdentifier oid = DigestUtilities.GetObjectIdentifier(mechanism);
-            return new DigestFactory(DigestUtilities.GetDigest(oid), oid);
+            return new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);
         }
 
 
         private IDigest digest;
         private DerObjectIdentifier oid;
 
-        public DigestFactory(IDigest digest, DerObjectIdentifier oid)
+        public Asn1DigestFactory(IDigest digest, DerObjectIdentifier oid)
         {
             this.digest = digest;
             this.oid = oid;
