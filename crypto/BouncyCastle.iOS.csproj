@@ -909,6 +909,7 @@
     <Compile Include="src\crypto\modes\gcm\Tables64kGcmMultiplier.cs" />
     <Compile Include="src\crypto\modes\gcm\Tables8kGcmMultiplier.cs" />
     <Compile Include="src\crypto\operators\Asn1CipherBuilder.cs" />
+    <Compile Include="src\crypto\operators\Asn1DigestFactory.cs" />
     <Compile Include="src\crypto\operators\Asn1KeyWrapper.cs" />
     <Compile Include="src\crypto\operators\Asn1Signature.cs" />
     <Compile Include="src\crypto\operators\CmsContentEncryptorBuilder.cs" />
