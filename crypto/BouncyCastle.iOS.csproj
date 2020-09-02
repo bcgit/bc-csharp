@@ -683,6 +683,7 @@
     <Compile Include="src\crypto\IDerivationFunction.cs" />
     <Compile Include="src\crypto\IDerivationParameters.cs" />
     <Compile Include="src\crypto\IDigest.cs" />
+    <Compile Include="src\crypto\IDigestFactory.cs" />
     <Compile Include="src\crypto\IDSA.cs" />
     <Compile Include="src\crypto\IDsaExt.cs" />
     <Compile Include="src\crypto\IEntropySource.cs" />
