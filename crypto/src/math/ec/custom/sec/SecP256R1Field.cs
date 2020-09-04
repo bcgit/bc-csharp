@@ -70,60 +70,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Inv(uint[] x, uint[] z)
         {
-            /*
-             * Raise this element to the exponent 2^256 - 2^224 + 2^192 + 2^96 - 3
-             *
-             * Breaking up the exponent's binary representation into "repunits", we get:
-             * { 32 1s } { 31 0s } { 1 1s } { 96 0s } { 94 1s } { 1 0s } { 1 1s }
-             *
-             * Therefore we need an addition chain containing 1, 32, 94 (the lengths of the repunits)
-             * We use: [1], 2, 4, 8, 16, [32], 64, 80, 88, 92, [94]
-             */
-
-            if (0 != IsZero(x))
-                throw new ArgumentException("cannot be 0", "x");
-
-            uint[] x1 = x;
-            uint[] x2 = Nat256.Create();
-            Square(x1, x2);
-            Multiply(x2, x1, x2);
-            uint[] x4 = Nat256.Create();
-            SquareN(x2, 2, x4);
-            Multiply(x4, x2, x4);
-            uint[] x8 = Nat256.Create();
-            SquareN(x4, 4, x8);
-            Multiply(x8, x4, x8);
-            uint[] x16 = Nat256.Create();
-            SquareN(x8, 8, x16);
-            Multiply(x16, x8, x16);
-            uint[] x32 = Nat256.Create();
-            SquareN(x16, 16, x32);
-            Multiply(x32, x16, x32);
-            uint[] x64 = Nat256.Create();
-            SquareN(x32, 32, x64);
-            Multiply(x64, x32, x64);
-            uint[] x80 = x64;
-            SquareN(x64, 16, x80);
-            Multiply(x80, x16, x80);
-            uint[] x88 = x16;
-            SquareN(x80, 8, x88);
-            Multiply(x88, x8, x88);
-            uint[] x92 = x8;
-            SquareN(x88, 4, x92);
-            Multiply(x92, x4, x92);
-            uint[] x94 = x4;
-            SquareN(x92, 2, x94);
-            Multiply(x94, x2, x94);
-
-            uint[] t = x32;
-            SquareN(t, 32, t);
-            Multiply(t, x1, t);
-            SquareN(t, 190, t);
-            Multiply(t, x94, t);
-            SquareN(t, 2, t);
-
-            // NOTE that x1 and z could be the same array
-            Multiply(x1, t, z);
+            Mod.CheckedModOddInverse(P, x, z);
         }
 
         public static int IsZero(uint[] x)

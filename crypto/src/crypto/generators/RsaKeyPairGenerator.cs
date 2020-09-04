@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 //
                 BigInteger dP = d.Remainder(pSub1);
                 BigInteger dQ = d.Remainder(qSub1);
-                BigInteger qInv = q.ModInverse(p);
+                BigInteger qInv = BigIntegers.ModOddInverse(p, q);
 
                 return new AsymmetricCipherKeyPair(
                     new RsaKeyParameters(false, n, e),

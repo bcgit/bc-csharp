@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Utilities
@@ -10,6 +11,9 @@ namespace Org.BouncyCastle.Utilities
      */
     public abstract class BigIntegers
     {
+        public static readonly BigInteger Zero = BigInteger.Zero;
+        public static readonly BigInteger One = BigInteger.One;
+
         private const int MaxIterations = 1000;
 
         /**
@@ -129,6 +133,52 @@ namespace Org.BouncyCastle.Utilities
 
             // fall back to a faster (restricted) method
             return new BigInteger(max.Subtract(min).BitLength - 1, random).Add(min);
+        }
+
+        public static BigInteger ModOddInverse(BigInteger M, BigInteger X)
+        {
+            if (!M.TestBit(0))
+                throw new ArgumentException("must be odd", "M");
+            if (M.SignValue != 1)
+                throw new ArithmeticException("BigInteger: modulus not positive");
+            if (X.SignValue < 0 || X.CompareTo(M) >= 0)
+            {
+                X = X.Mod(M);
+            }
+
+            int bits = M.BitLength;
+            uint[] m = Nat.FromBigInteger(bits, M);
+            uint[] x = Nat.FromBigInteger(bits, X);
+            int len = m.Length;
+            uint[] z = Nat.Create(len);
+            if (0 == Mod.ModOddInverse(m, x, z))
+                throw new ArithmeticException("BigInteger not invertible");
+            return Nat.ToBigInteger(len, z);
+        }
+
+        public static BigInteger ModOddInverseVar(BigInteger M, BigInteger X)
+        {
+            if (!M.TestBit(0))
+                throw new ArgumentException("must be odd", "M");
+            if (M.SignValue != 1)
+                throw new ArithmeticException("BigInteger: modulus not positive");
+            if (M.Equals(One))
+                return Zero;
+            if (X.SignValue < 0 || X.CompareTo(M) >= 0)
+            {
+                X = X.Mod(M);
+            }
+            if (X.Equals(One))
+                return One;
+
+            int bits = M.BitLength;
+            uint[] m = Nat.FromBigInteger(bits, M);
+            uint[] x = Nat.FromBigInteger(bits, X);
+            int len = m.Length;
+            uint[] z = Nat.Create(len);
+            if (!Mod.ModOddInverseVar(m, x, z))
+                throw new ArithmeticException("BigInteger not invertible");
+            return Nat.ToBigInteger(len, z);
         }
 
         public static int GetUnsignedByteLength(BigInteger n)

@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 {
                     if (hInv == null)
                     {
-                        hInv = h.ModInverse(n);
+                        hInv = BigIntegers.ModOddInverseVar(n, h);
                     }
                     return hInv;
                 }

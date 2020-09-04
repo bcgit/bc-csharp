@@ -75,54 +75,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Inv(uint[] x, uint[] z)
         {
-            /*
-             * Raise this element to the exponent 2^224 - 2^96 - 1
-             *
-             * Breaking up the exponent's binary representation into "repunits", we get:
-             * { 127 1s } { 1 0s } { 96 1s }
-             *
-             * Therefore we need an addition chain containing 96, 127 (the lengths of the repunits)
-             * We use: 1, 2, 3, 6, 12, 24, 48, [96], 120, 126, [127]
-             */
-
-            if (0 != IsZero(x))
-                throw new ArgumentException("cannot be 0", "x");
-
-            uint[] x1 = x;
-            uint[] x2 = Nat224.Create();
-            Square(x1, x2);
-            Multiply(x2, x1, x2);
-            uint[] x3 = x2;
-            Square(x2, x3);
-            Multiply(x3, x1, x3);
-            uint[] x6 = Nat224.Create();
-            SquareN(x3, 3, x6);
-            Multiply(x6, x3, x6);
-            uint[] x12 = x3;
-            SquareN(x6, 6, x12);
-            Multiply(x12, x6, x12);
-            uint[] x24 = Nat224.Create();
-            SquareN(x12, 12, x24);
-            Multiply(x24, x12, x24);
-            uint[] x48 = x12;
-            SquareN(x24, 24, x48);
-            Multiply(x48, x24, x48);
-            uint[] x96 = Nat224.Create();
-            SquareN(x48, 48, x96);
-            Multiply(x96, x48, x96);
-            uint[] x120 = x48;
-            SquareN(x96, 24, x120);
-            Multiply(x120, x24, x120);
-            uint[] x126 = x24;
-            SquareN(x120, 6, x126);
-            Multiply(x126, x6, x126);
-            uint[] x127 = x6;
-            Square(x126, x127);
-            Multiply(x127, x1, x127);
-
-            uint[] t = x127;
-            SquareN(t, 97, t);
-            Multiply(t, x96, z);
+            Mod.CheckedModOddInverse(P, x, z);
         }
 
         public static int IsZero(uint[] x)

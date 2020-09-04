@@ -1,9 +1,9 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             BigInteger r = parameters.G.ModPow(k, parameters.P).Mod(q);
 
-            k = k.ModInverse(q).Multiply(m.Add(x.Multiply(r)));
+            k = BigIntegers.ModOddInverse(q, k).Multiply(m.Add(x.Multiply(r)));
 
             BigInteger s = k.Mod(q);
 
@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 return false;
             }
 
-            BigInteger w = s.ModInverse(q);
+            BigInteger w = BigIntegers.ModOddInverseVar(q, s);
 
             BigInteger u1 = m.Multiply(w).Mod(q);
             BigInteger u2 = r.Multiply(w).Mod(q);

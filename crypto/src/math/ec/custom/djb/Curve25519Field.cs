@@ -70,56 +70,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
 
         public static void Inv(uint[] x, uint[] z)
         {
-            /*
-             * Raise this element to the exponent 2^255 - 21
-             *
-             * Breaking up the exponent's binary representation into "repunits", we get:
-             * { 250 1s } { 1 0s } { 1 1s } { 1 0s } { 2 1s }
-             *
-             * Therefore we need an addition chain containing 1, 2, 250 (the lengths of the repunits)
-             * We use: [1], [2], 3, 5, 10, 15, 25, 50, 75, 125, [250]
-             */
-
-            if (0 != IsZero(x))
-                throw new ArgumentException("cannot be 0", "x");
-
-            uint[] x1 = x;
-            uint[] x2 = Nat256.Create();
-            Square(x1, x2);
-            Multiply(x2, x1, x2);
-            uint[] x3 = Nat256.Create();
-            Square(x2, x3);
-            Multiply(x3, x1, x3);
-            uint[] x5 = x3;
-            SquareN(x3, 2, x5);
-            Multiply(x5, x2, x5);
-            uint[] x10 = Nat256.Create();
-            SquareN(x5, 5, x10);
-            Multiply(x10, x5, x10);
-            uint[] x15 = Nat256.Create();
-            SquareN(x10, 5, x15);
-            Multiply(x15, x5, x15);
-            uint[] x25 = x5;
-            SquareN(x15, 10, x25);
-            Multiply(x25, x10, x25);
-            uint[] x50 = x10;
-            SquareN(x25, 25, x50);
-            Multiply(x50, x25, x50);
-            uint[] x75 = x15;
-            SquareN(x50, 25, x75);
-            Multiply(x75, x25, x75);
-            uint[] x125 = x25;
-            SquareN(x75, 50, x125);
-            Multiply(x125, x50, x125);
-            uint[] x250 = x50;
-            SquareN(x125, 125, x250);
-            Multiply(x250, x125, x250);
-
-            uint[] t = x250;
-            SquareN(t, 2, t);
-            Multiply(t, x1, t);
-            SquareN(t, 3, t);
-            Multiply(t, x2, z);
+            Mod.CheckedModOddInverse(P, x, z);
         }
 
         public static int IsZero(uint[] x)

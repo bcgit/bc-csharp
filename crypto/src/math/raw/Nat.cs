@@ -447,6 +447,72 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
+        public static uint EqualTo(int len, uint[] x, uint y)
+        {
+            uint d = x[0] ^ y;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualTo(int len, uint[] x, int xOff, uint y)
+        {
+            uint d = x[xOff] ^ y;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[xOff + i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualTo(int len, uint[] x, uint[] y)
+        {
+            uint d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[i] ^ y[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualTo(int len, uint[] x, int xOff, uint[] y, int yOff)
+        {
+            uint d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[xOff + i] ^ y[yOff + i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualToZero(int len, uint[] x)
+        {
+            uint d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualToZero(int len, uint[] x, int xOff)
+        {
+            uint d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[xOff + i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
         public static uint[] FromBigInteger(int bits, BigInteger x)
         {
             if (x.SignValue < 0 || x.BitLength > bits)
