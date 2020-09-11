@@ -19,17 +19,6 @@ namespace Org.BouncyCastle.Math.Raw
         private const int M30 = 0x3FFFFFFF;
         private const ulong M32UL = 0xFFFFFFFFUL;
 
-        [Obsolete("Will be removed")]
-        public static void Add(uint[] p, uint[] x, uint[] y, uint[] z)
-        {
-            int len = p.Length;
-            uint c = Nat.Add(len, x, y, z);
-            if (c != 0)
-            {
-                Nat.SubFrom(len, p, z);
-            }
-        }
-
         public static void CheckedModOddInverse(uint[] m, uint[] x, uint[] z)
         {
             if (0 == ModOddInverse(m, x, z))
@@ -54,12 +43,6 @@ namespace Org.BouncyCastle.Math.Raw
             x *= 2 - d * x;                     // d.x == 1 mod 2**48
             Debug.Assert(d * x == 1);
             return x;
-        }
-
-        [Obsolete("Use 'CheckedModOddInverseVar' instead")]
-        public static void Invert(uint[] m, uint[] x, uint[] z)
-        {
-            CheckedModOddInverseVar(m, x, z);
         }
 
         public static uint ModOddInverse(uint[] m, uint[] x, uint[] z)
@@ -215,17 +198,6 @@ namespace Org.BouncyCastle.Math.Raw
             while (Nat.Gte(len, s, p));
 
             return s;
-        }
-
-        [Obsolete("Will be removed")]
-        public static void Subtract(uint[] p, uint[] x, uint[] y, uint[] z)
-        {
-            int len = p.Length;
-            int c = Nat.Sub(len, x, y, z);
-            if (c != 0)
-            {
-                Nat.AddTo(len, p, z);
-            }
         }
 
         private static void CNegate30(int len, int cond, int[] D)
