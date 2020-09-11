@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint[] FromBigInteger(BigInteger x)
         {
-            uint[] z = Nat256.FromBigInteger(x);
+            uint[] z = Nat.FromBigInteger(256, x);
             if (z[7] == P7 && Nat256.Gte(z, P))
             {
                 Nat256.SubFrom(P, z);

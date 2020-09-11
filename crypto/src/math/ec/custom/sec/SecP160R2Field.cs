@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint[] FromBigInteger(BigInteger x)
         {
-            uint[] z = Nat160.FromBigInteger(x);
+            uint[] z = Nat.FromBigInteger(160, x);
             if (z[4] == P4 && Nat160.Gte(z, P))
             {
                 Nat160.SubFrom(P, z);

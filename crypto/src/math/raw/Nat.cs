@@ -515,32 +515,42 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static uint[] FromBigInteger(int bits, BigInteger x)
         {
+            if (bits < 1)
+                throw new ArgumentException();
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
 
             int len = (bits + 31) >> 5;
+            Debug.Assert(len > 0);
             uint[] z = Create(len);
-            int i = 0;
-            while (x.SignValue != 0)
+
+            // NOTE: Use a fixed number of loop iterations
+            z[0] = (uint)x.IntValue;
+            for (int i = 1; i < len; ++i)
             {
-                z[i++] = (uint)x.IntValue;
                 x = x.ShiftRight(32);
+                z[i] = (uint)x.IntValue;
             }
             return z;
         }
 
         public static ulong[] FromBigInteger64(int bits, BigInteger x)
         {
+            if (bits < 1)
+                throw new ArgumentException();
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
 
             int len = (bits + 63) >> 6;
+            Debug.Assert(len > 0);
             ulong[] z = Create64(len);
-            int i = 0;
-            while (x.SignValue != 0)
+
+            // NOTE: Use a fixed number of loop iterations
+            z[0] = (ulong)x.LongValue;
+            for (int i = 1; i < len; ++i)
             {
-                z[i++] = (ulong)x.LongValue;
                 x = x.ShiftRight(64);
+                z[i] = (ulong)x.LongValue;
             }
             return z;
         }

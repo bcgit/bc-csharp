@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
 
         public static uint[] FromBigInteger(BigInteger x)
         {
-            uint[] z = Nat256.FromBigInteger(x);
+            uint[] z = Nat.FromBigInteger(256, x);
             while (Nat256.Gte(z, P))
             {
                 Nat256.SubFrom(P, z);

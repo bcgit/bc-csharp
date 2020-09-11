@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint[] FromBigInteger(BigInteger x)
         {
-            uint[] z = Nat224.FromBigInteger(x);
+            uint[] z = Nat.FromBigInteger(224, x);
             if (z[6] == P6 && Nat224.Gte(z, P))
             {
                 Nat224.SubFrom(P, z);
