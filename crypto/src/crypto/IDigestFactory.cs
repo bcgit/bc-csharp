@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Crypto
 {
     /// <summary>

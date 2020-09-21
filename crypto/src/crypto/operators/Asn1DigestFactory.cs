@@ -1,16 +1,15 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using System;
+using System.IO;
+
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Security;
-using System;
-using System.IO;
-
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
     public class Asn1DigestFactory : IDigestFactory
     {
-
         public static Asn1DigestFactory Get(DerObjectIdentifier oid)
         {
             return new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);          
@@ -22,46 +21,50 @@ namespace Org.BouncyCastle.Crypto.Operators
             return new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);
         }
 
-
-        private IDigest digest;
-        private DerObjectIdentifier oid;
+        private readonly IDigest mDigest;
+        private readonly DerObjectIdentifier mOid;
 
         public Asn1DigestFactory(IDigest digest, DerObjectIdentifier oid)
         {
-            this.digest = digest;
-            this.oid = oid;
+            this.mDigest = digest;
+            this.mOid = oid;
         }    
 
-        public object AlgorithmDetails => new AlgorithmIdentifier(oid);
+        public virtual object AlgorithmDetails
+        {
+            get { return new AlgorithmIdentifier(mOid); }
+        }
 
-        public int DigestLength => digest.GetDigestSize();
+        public virtual int DigestLength
+        {
+            get { return mDigest.GetDigestSize(); }
+        }
 
-        public IStreamCalculator CreateCalculator() => new DfDigestStream(digest);
-        
+        public virtual IStreamCalculator CreateCalculator()
+        {
+            return new DfDigestStream(mDigest);
+        }
     }
-
 
     internal class DfDigestStream : IStreamCalculator
     {
-
-        private DigestSink stream;
+        private readonly DigestSink mStream;
 
         public DfDigestStream(IDigest digest)
         {          
-            stream = new DigestSink(digest);
+            this.mStream = new DigestSink(digest);
         }
 
-        public Stream Stream => stream;
+        public Stream Stream
+        {
+            get { return mStream; }
+        }
 
         public object GetResult()
         {
-            byte[] result = new byte[stream.Digest.GetDigestSize()];
-            stream.Digest.DoFinal(result, 0);
+            byte[] result = new byte[mStream.Digest.GetDigestSize()];
+            mStream.Digest.DoFinal(result, 0);
             return new SimpleBlockResult(result);
         }
-      
     }
-
-   
-
 }
