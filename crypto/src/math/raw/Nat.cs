@@ -1406,5 +1406,13 @@ namespace Org.BouncyCastle.Math.Raw
                 z[i] = 0;
             }
         }
+
+        public static void Zero64(int len, ulong[] z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = 0UL;
+            }
+        }
     }
 }

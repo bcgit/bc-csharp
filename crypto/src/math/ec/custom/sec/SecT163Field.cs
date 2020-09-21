@@ -106,14 +106,14 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Multiply(ulong[] x, ulong[] y, ulong[] z)
         {
-            ulong[] tt = Nat192.CreateExt64();
+            ulong[] tt = new ulong[8];
             ImplMultiply(x, y, tt);
             Reduce(tt, z);
         }
 
         public static void MultiplyAddToExt(ulong[] x, ulong[] y, ulong[] zz)
         {
-            ulong[] tt = Nat192.CreateExt64();
+            ulong[] tt = new ulong[8];
             ImplMultiply(x, y, tt);
             AddExt(zz, tt, zz);
         }
@@ -225,21 +225,22 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             g1  = ((g0 >> 55) ^ (g1 <<  9)) & M55;
             g0 &= M55;
 
+            ulong[] u = zz;
             ulong[] H = new ulong[10];
 
-            ImplMulw(f0, g0, H, 0);               // H(0)       55/54 bits
-            ImplMulw(f2, g2, H, 2);               // H(INF)     55/50 bits
+            ImplMulw(u, f0, g0, H, 0);              // H(0)       55/54 bits
+            ImplMulw(u, f2, g2, H, 2);              // H(INF)     55/50 bits
 
             ulong t0 = f0 ^ f1 ^ f2;
             ulong t1 = g0 ^ g1 ^ g2;
 
-            ImplMulw(t0, t1, H, 4);               // H(1)       55/54 bits
+            ImplMulw(u, t0, t1, H, 4);              // H(1)       55/54 bits
         
             ulong t2 = (f1 << 1) ^ (f2 << 2);
             ulong t3 = (g1 << 1) ^ (g2 << 2);
 
-            ImplMulw(f0 ^ t2, g0 ^ t3, H, 6);     // H(t)       55/56 bits
-            ImplMulw(t0 ^ t2, t1 ^ t3, H, 8);     // H(t + 1)   55/56 bits
+            ImplMulw(u, f0 ^ t2, g0 ^ t3, H, 6);    // H(t)       55/56 bits
+            ImplMulw(u, t0 ^ t2, t1 ^ t3, H, 8);    // H(t + 1)   55/56 bits
 
             ulong t4 = H[6] ^ H[8];
             ulong t5 = H[7] ^ H[9];
@@ -312,12 +313,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ImplCompactExt(zz);
         }
 
-        protected static void ImplMulw(ulong x, ulong y, ulong[] z, int zOff)
+        protected static void ImplMulw(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
         {
             Debug.Assert(x >> 56 == 0);
             Debug.Assert(y >> 56 == 0);
 
-            ulong[] u = new ulong[8];
             //u[0] = 0;
             u[1] = y;
             u[2] = u[1] << 1;
@@ -349,9 +349,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
-            Interleave.Expand64To128(x[0], zz, 0);
-            Interleave.Expand64To128(x[1], zz, 2);
-            Interleave.Expand64To128(x[2], zz, 4);
+            Interleave.Expand64To128(x, 0, 3, zz, 0);
         }
     }
 }
