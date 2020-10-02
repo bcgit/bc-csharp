@@ -158,6 +158,7 @@
     <Compile Include="src\crypto\test\AESFastTest.cs" />
     <Compile Include="src\crypto\test\AESLightTest.cs" />
     <Compile Include="src\crypto\test\AESTest.cs" />
+    <Compile Include="src\crypto\test\AESWrapPadTest.cs" />
     <Compile Include="src\crypto\test\AESWrapTest.cs" />
     <Compile Include="src\crypto\test\AllTests.cs" />
     <Compile Include="src\crypto\test\BCryptTest.cs" />
