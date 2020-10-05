@@ -3269,6 +3269,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\IDigestFactory.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\IDSA.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4420,6 +4425,11 @@
                 />
                 <File
                     RelPath = "src\crypto\operators\Asn1CipherBuilder.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\operators\Asn1DigestFactory.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

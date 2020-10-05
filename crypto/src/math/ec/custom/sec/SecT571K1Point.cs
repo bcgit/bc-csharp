@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
     internal class SecT571K1Point
@@ -79,8 +81,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             ECCurve curve = this.Curve;
 
-            ECFieldElement X1 = this.RawXCoord;
-            ECFieldElement X2 = b.RawXCoord;
+            SecT571FieldElement X1 = (SecT571FieldElement)this.RawXCoord;
+            SecT571FieldElement X2 = (SecT571FieldElement)b.RawXCoord;
 
             if (X1.IsZero)
             {
@@ -90,82 +92,118 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 return b.Add(this);
             }
 
-            ECFieldElement L1 = this.RawYCoord, Z1 = this.RawZCoords[0];
-            ECFieldElement L2 = b.RawYCoord, Z2 = b.RawZCoords[0];
+            SecT571FieldElement L1 = (SecT571FieldElement)this.RawYCoord, Z1 = (SecT571FieldElement)this.RawZCoords[0];
+            SecT571FieldElement L2 = (SecT571FieldElement)b.RawYCoord, Z2 = (SecT571FieldElement)b.RawZCoords[0];
 
-            bool Z1IsOne = Z1.IsOne;
-            ECFieldElement U2 = X2, S2 = L2;
-            if (!Z1IsOne)
+            ulong[] t1 = Nat576.Create64();
+            ulong[] t2 = Nat576.Create64();
+            ulong[] t3 = Nat576.Create64();
+            ulong[] t4 = Nat576.Create64();
+
+            ulong[] Z1Precomp = Z1.IsOne ? null : SecT571Field.PrecompMultiplicand(Z1.x);
+            ulong[] U2, S2;
+            if (Z1Precomp == null)
             {
-                U2 = U2.Multiply(Z1);
-                S2 = S2.Multiply(Z1);
+                U2 = X2.x;
+                S2 = L2.x;
+            }
+            else
+            {
+                SecT571Field.MultiplyPrecomp(X2.x, Z1Precomp, U2 = t2);
+                SecT571Field.MultiplyPrecomp(L2.x, Z1Precomp, S2 = t4);
             }
 
-            bool Z2IsOne = Z2.IsOne;
-            ECFieldElement U1 = X1, S1 = L1;
-            if (!Z2IsOne)
+            ulong[] Z2Precomp = Z2.IsOne ? null : SecT571Field.PrecompMultiplicand(Z2.x);
+            ulong[] U1, S1;
+            if (Z2Precomp == null)
             {
-                U1 = U1.Multiply(Z2);
-                S1 = S1.Multiply(Z2);
+                U1 = X1.x;
+                S1 = L1.x;
+            }
+            else
+            {
+                SecT571Field.MultiplyPrecomp(X1.x, Z2Precomp, U1 = t1);
+                SecT571Field.MultiplyPrecomp(L1.x, Z2Precomp, S1 = t3);
             }
 
-            ECFieldElement A = S1.Add(S2);
-            ECFieldElement B = U1.Add(U2);
+            ulong[] A = t3;
+            SecT571Field.Add(S1, S2, A);
 
-            if (B.IsZero)
+            ulong[] B = t4;
+            SecT571Field.Add(U1, U2, B);
+
+            if (Nat576.IsZero64(B))
             {
-                if (A.IsZero)
+                if (Nat576.IsZero64(A))
                     return Twice();
 
                 return curve.Infinity;
             }
 
-            ECFieldElement X3, L3, Z3;
+            SecT571FieldElement X3, L3, Z3;
             if (X2.IsZero)
             {
                 // TODO This can probably be optimized quite a bit
                 ECPoint p = this.Normalize();
-                X1 = p.XCoord;
+                X1 = (SecT571FieldElement)p.XCoord;
                 ECFieldElement Y1 = p.YCoord;
 
                 ECFieldElement Y2 = L2;
                 ECFieldElement L = Y1.Add(Y2).Divide(X1);
 
-                X3 = L.Square().Add(L).Add(X1);
+                X3 = (SecT571FieldElement)L.Square().Add(L).Add(X1);
                 if (X3.IsZero)
                 {
                     return new SecT571K1Point(curve, X3, curve.B, IsCompressed);
                 }
 
                 ECFieldElement Y3 = L.Multiply(X1.Add(X3)).Add(X3).Add(Y1);
-                L3 = Y3.Divide(X3).Add(X3);
-                Z3 = curve.FromBigInteger(BigInteger.One);
+                L3 = (SecT571FieldElement)Y3.Divide(X3).Add(X3);
+                Z3 = (SecT571FieldElement)curve.FromBigInteger(BigInteger.One);
             }
             else
             {
-                B = B.Square();
+                SecT571Field.Square(B, B);
 
-                ECFieldElement AU1 = A.Multiply(U1);
-                ECFieldElement AU2 = A.Multiply(U2);
+                ulong[] APrecomp = SecT571Field.PrecompMultiplicand(A);
 
-                X3 = AU1.Multiply(AU2);
+                ulong[] AU1 = t1;
+                ulong[] AU2 = t2;
+
+                SecT571Field.MultiplyPrecomp(U1, APrecomp, AU1);
+                SecT571Field.MultiplyPrecomp(U2, APrecomp, AU2);
+
+                X3 = new SecT571FieldElement(t1);
+                SecT571Field.Multiply(AU1, AU2, X3.x);
+
                 if (X3.IsZero)
                 {
                     return new SecT571K1Point(curve, X3, curve.B, IsCompressed);
                 }
 
-                ECFieldElement ABZ2 = A.Multiply(B);
-                if (!Z2IsOne)
+                Z3 = new SecT571FieldElement(t3);
+                SecT571Field.MultiplyPrecomp(B, APrecomp, Z3.x);
+
+                if (Z2Precomp != null)
                 {
-                    ABZ2 = ABZ2.Multiply(Z2);
+                    SecT571Field.MultiplyPrecomp(Z3.x, Z2Precomp, Z3.x);
                 }
 
-                L3 = AU2.Add(B).SquarePlusProduct(ABZ2, L1.Add(Z1));
+                //L3 = AU2.Add(B).SquarePlusProduct(ABZ2, L1.Add(Z1));
+                ulong[] tt = Nat576.CreateExt64();
 
-                Z3 = ABZ2;
-                if (!Z1IsOne)
+                SecT571Field.Add(AU2, B, t4);
+                SecT571Field.SquareAddToExt(t4, tt);
+
+                SecT571Field.Add(L1.x, Z1.x, t4);
+                SecT571Field.MultiplyAddToExt(t4, Z3.x, tt);
+
+                L3 = new SecT571FieldElement(t4);
+                SecT571Field.Reduce(tt, L3.x);
+
+                if (Z1Precomp != null)
                 {
-                    Z3 = Z3.Multiply(Z1);
+                    SecT571Field.MultiplyPrecomp(Z3.x, Z1Precomp, Z3.x);
                 }
             }
 

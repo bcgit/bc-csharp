@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -139,7 +140,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		{
 			BigInteger m = key.Modulus;
 			BigInteger msg = blindedMsg;
-			BigInteger blindFactorInverse = blindingFactor.ModInverse(m);
+			BigInteger blindFactorInverse = BigIntegers.ModOddInverse(m, blindingFactor);
 			msg = msg.Multiply(blindFactorInverse);
 			msg = msg.Mod(m);
 

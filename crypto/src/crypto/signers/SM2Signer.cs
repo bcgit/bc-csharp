@@ -6,6 +6,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Signers
@@ -164,7 +165,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 while (r.SignValue == 0 || r.Add(k).Equals(n));
 
                 // A6
-                BigInteger dPlus1ModN = d.Add(BigInteger.One).ModInverse(n);
+                BigInteger dPlus1ModN = BigIntegers.ModOddInverse(n, d.Add(BigIntegers.One));
 
                 s = k.Subtract(r.Multiply(d)).Mod(n);
                 s = dPlus1ModN.Multiply(s).Mod(n);

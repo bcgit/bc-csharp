@@ -433,18 +433,17 @@ namespace Org.BouncyCastle.Math.EC
         }
 
         /**
-         * Sets the default <code>ECMultiplier</code>, unless already set. 
+         * Sets the default <code>ECMultiplier</code>, unless already set.
+         *
+         * We avoid locking for performance reasons, so there is no uniqueness guarantee.
          */
         public virtual ECMultiplier GetMultiplier()
         {
-            lock (this)
+            if (this.m_multiplier == null)
             {
-                if (this.m_multiplier == null)
-                {
-                    this.m_multiplier = CreateDefaultMultiplier();
-                }
-                return this.m_multiplier;
+                this.m_multiplier = CreateDefaultMultiplier();
             }
+            return this.m_multiplier;
         }
 
         /**

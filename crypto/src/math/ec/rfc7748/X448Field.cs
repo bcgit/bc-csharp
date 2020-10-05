@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     [CLSCompliantAttribute(false)]
@@ -9,6 +11,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         public const int Size = 16;
 
         private const uint M28 = 0x0FFFFFFFU;
+
+        private static readonly uint[] P32 = new uint[]{ 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+            0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFEU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+            0xFFFFFFFFU, 0xFFFFFFFFU };
 
         protected X448Field() {}
 
@@ -129,6 +135,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        public static void Decode(uint[] x, int xOff, uint[] z)
+        {
+            Decode224(x, xOff, z, 0);
+            Decode224(x, xOff + 7, z, 8);
+        }
+
         public static void Decode(byte[] x, int xOff, uint[] z)
         {
             Decode56(x, xOff, z, 0);
@@ -139,6 +151,21 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Decode56(x, xOff + 35, z, 10);
             Decode56(x, xOff + 42, z, 12);
             Decode56(x, xOff + 49, z, 14);
+        }
+
+        private static void Decode224(uint[] x, int xOff, uint[] z, int zOff)
+        {
+            uint x0 = x[xOff + 0], x1 = x[xOff + 1], x2 = x[xOff + 2], x3 = x[xOff + 3];
+            uint x4 = x[xOff + 4], x5 = x[xOff + 5], x6 = x[xOff + 6];
+
+            z[zOff + 0] = x0 & M28;
+            z[zOff + 1] = (x0 >> 28 | x1 <<  4) & M28;
+            z[zOff + 2] = (x1 >> 24 | x2 <<  8) & M28;
+            z[zOff + 3] = (x2 >> 20 | x3 << 12) & M28;
+            z[zOff + 4] = (x3 >> 16 | x4 << 16) & M28;
+            z[zOff + 5] = (x4 >> 12 | x5 << 20) & M28;
+            z[zOff + 6] = (x5 >>  8 | x6 << 24) & M28;
+            z[zOff + 7] = x6 >> 4;
         }
 
         private static uint Decode24(byte[] bs, int off)
@@ -166,6 +193,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[zOff + 1] = (lo >> 28) | (hi << 4);
         }
 
+        public static void Encode(uint[] x, uint[] z, int zOff)
+        {
+            Encode224(x, 0, z, zOff);
+            Encode224(x, 8, z, zOff + 7);
+        }
+
         public static void Encode(uint[] x, byte[] z, int zOff)
         {
             Encode56(x, 0, z, zOff);
@@ -176,6 +209,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Encode56(x, 10, z, zOff + 35);
             Encode56(x, 12, z, zOff + 42);
             Encode56(x, 14, z, zOff + 49);
+        }
+
+        private static void Encode224(uint[] x, int xOff, uint[] z, int zOff)
+        {
+            uint x0 = x[xOff + 0], x1 = x[xOff + 1], x2 = x[xOff + 2], x3 = x[xOff + 3];
+            uint x4 = x[xOff + 4], x5 = x[xOff + 5], x6 = x[xOff + 6], x7 = x[xOff + 7];
+
+            z[zOff + 0] =  x0        | (x1 << 28);
+            z[zOff + 1] = (x1 >>  4) | (x2 << 24);
+            z[zOff + 2] = (x2 >>  8) | (x3 << 20);
+            z[zOff + 3] = (x3 >> 12) | (x4 << 16);
+            z[zOff + 4] = (x4 >> 16) | (x5 << 12);
+            z[zOff + 5] = (x5 >> 20) | (x6 <<  8);
+            z[zOff + 6] = (x6 >> 24) | (x7 <<  4);
         }
 
         private static void Encode24(uint n, byte[] bs, int off)
@@ -202,14 +249,35 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         public static void Inv(uint[] x, uint[] z)
         {
-            // z = x^(p-2) = x^(2^448 - 2^224 - 3)
-            // (223 1s) (1 0s) (222 1s) (1 0s) (1 1s)
-            // Addition chain: [1] 2 3 6 9 18 19 37 74 111 [222] [223]
+            //uint[] t = Create();
+            //PowPm3d4(x, t);
+            //Sqr(t, 2, t);
+            //Mul(t, x, z);
 
             uint[] t = Create();
-            PowPm3d4(x, t);
-            Sqr(t, 2, t);
-            Mul(t, x, z);
+            uint[] u = new uint[14];
+
+            Copy(x, 0, t, 0);
+            Normalize(t);
+            Encode(t, u, 0);
+
+            Mod.ModOddInverse(P32, u, u);
+
+            Decode(u, 0, z);
+        }
+
+        public static void InvVar(uint[] x, uint[] z)
+        {
+            uint[] t = Create();
+            uint[] u = new uint[14];
+
+            Copy(x, 0, t, 0);
+            Normalize(t);
+            Encode(t, u, 0);
+
+            Mod.ModOddInverseVar(P32, u, u);
+
+            Decode(u, 0, z);
         }
 
         public static int IsZero(uint[] x)

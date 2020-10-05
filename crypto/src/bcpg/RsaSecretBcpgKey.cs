@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -21,7 +22,7 @@ namespace Org.BouncyCastle.Bcpg
 
 			this.expP = d.Value.Remainder(p.Value.Subtract(BigInteger.One));
 			this.expQ = d.Value.Remainder(q.Value.Subtract(BigInteger.One));
-			this.crt = q.Value.ModInverse(p.Value);
+			this.crt = BigIntegers.ModOddInverse(p.Value, q.Value);
 		}
 
 		public RsaSecretBcpgKey(
@@ -44,11 +45,11 @@ namespace Org.BouncyCastle.Bcpg
 			this.d = new MPInteger(d);
 			this.p = new MPInteger(p);
 			this.q = new MPInteger(q);
-			this.u = new MPInteger(p.ModInverse(q));
+			this.u = new MPInteger(BigIntegers.ModOddInverse(q, p));
 
 			this.expP = d.Remainder(p.Subtract(BigInteger.One));
 			this.expQ = d.Remainder(q.Subtract(BigInteger.One));
-			this.crt = q.ModInverse(p);
+			this.crt = BigIntegers.ModOddInverse(p, q);
 		}
 
 		public BigInteger Modulus

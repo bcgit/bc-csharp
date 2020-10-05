@@ -782,5 +782,15 @@ namespace Org.BouncyCastle.Utilities
             }
             return false;
         }
+
+        public static bool IsNullOrEmpty(byte[] array)
+        {
+            return null == array || array.Length < 1;
+        }
+
+        public static bool IsNullOrEmpty(object[] array)
+        {
+            return null == array || array.Length < 1;
+        }
     }
 }

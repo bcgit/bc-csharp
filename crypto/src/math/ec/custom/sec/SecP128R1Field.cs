@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint[] FromBigInteger(BigInteger x)
         {
-            uint[] z = Nat128.FromBigInteger(x);
+            uint[] z = Nat.FromBigInteger(128, x);
             if (z[3] >= P3 && Nat128.Gte(z, P))
             {
                 Nat128.SubFrom(P, z);
@@ -70,51 +70,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Inv(uint[] x, uint[] z)
         {
-            /*
-             * Raise this element to the exponent 2^128 - 2^97 - 3
-             *
-             * Breaking up the exponent's binary representation into "repunits", we get:
-             * { 30 1s } { 1 0s } { 95 1s } { 1 0s } { 1 1s }
-             *
-             * We use an addition chain for the beginning: [1], 2, 3, [5], 10, 20, [30]
-             */
-
-            if (0 != IsZero(x))
-                throw new ArgumentException("cannot be 0", "x");
-
-            uint[] x1 = x;
-            uint[] x2 = Nat128.Create();
-            Square(x1, x2);
-            Multiply(x2, x1, x2);
-            uint[] x3 = Nat128.Create();
-            Square(x2, x3);
-            Multiply(x3, x1, x3);
-            uint[] x5 = x3;
-            SquareN(x3, 2, x5);
-            Multiply(x5, x2, x5);
-            uint[] x10 = x2;
-            SquareN(x5, 5, x10);
-            Multiply(x10, x5, x10);
-            uint[] x20 = Nat128.Create();
-            SquareN(x10, 10, x20);
-            Multiply(x20, x10, x20);
-            uint[] x30 = x20;
-            SquareN(x20, 10, x30);
-            Multiply(x30, x10, x30);
-
-            uint[] t = x10;
-            SquareN(x30, 31, t);
-            Multiply(t, x30, t);
-            SquareN(t, 30, t);
-            Multiply(t, x30, t);
-            SquareN(t, 30, t);
-            Multiply(t, x30, t);
-            SquareN(t, 5, t);
-            Multiply(t, x5, t);
-            SquareN(t, 2, t);
-
-            // NOTE that x1 and z could be the same array
-            Multiply(x1, t, z);
+            Mod.CheckedModOddInverse(P, x, z);
         }
 
         public static int IsZero(uint[] x)

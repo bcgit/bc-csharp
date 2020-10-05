@@ -702,7 +702,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     {
                         PointExt q = points[i];
                         // TODO[ed448] Batch inversion
-                        X448Field.Inv(q.z, q.z);
+                        X448Field.InvVar(q.z, q.z);
                         X448Field.Mul(q.x, q.z, q.x);
                         X448Field.Mul(q.y, q.z, q.y);
 

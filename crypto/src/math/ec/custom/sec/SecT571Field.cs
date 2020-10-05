@@ -9,10 +9,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     {
         private const ulong M59 = ulong.MaxValue >> 5;
 
-        private const ulong RM = 0xEF7BDEF7BDEF7BDEUL;
-
-        private static readonly ulong[] ROOT_Z = new ulong[]{ 0x2BE1195F08CAFB99UL, 0x95F08CAF84657C23UL, 0xCAF84657C232BE11UL, 0x657C232BE1195F08UL,
-            0xF84657C2308CAF84UL, 0x7C232BE1195F08CAUL, 0xBE1195F08CAF8465UL, 0x5F08CAF84657C232UL, 0x784657C232BE119UL };
+        private static readonly ulong[] ROOT_Z = new ulong[]{ 0x2BE1195F08CAFB99UL, 0x95F08CAF84657C23UL,
+            0xCAF84657C232BE11UL, 0x657C232BE1195F08UL, 0xF84657C2308CAF84UL, 0x7C232BE1195F08CAUL,
+            0xBE1195F08CAF8465UL, 0x5F08CAF84657C232UL, 0x784657C232BE119UL };
 
         public static void Add(ulong[] x, ulong[] y, ulong[] z)
         {
@@ -27,6 +26,14 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             for (int i = 0; i < 9; ++i)
             {
                 z[zOff + i] = x[xOff + i] ^ y[yOff + i];
+            }
+        }
+
+        public static void AddBothTo(ulong[] x, ulong[] y, ulong[] z)
+        {
+            for (int i = 0; i < 9; ++i)
+            {
+                z[i] ^= x[i] ^ y[i];
             }
         }
 
@@ -148,6 +155,46 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             AddExt(zz, tt, zz);
         }
 
+        public static void MultiplyPrecomp(ulong[] x, ulong[] precomp, ulong[] z)
+        {
+            ulong[] tt = Nat576.CreateExt64();
+            ImplMultiplyPrecomp(x, precomp, tt);
+            Reduce(tt, z);
+        }
+
+        public static void MultiplyPrecompAddToExt(ulong[] x, ulong[] precomp, ulong[] zz)
+        {
+            ulong[] tt = Nat576.CreateExt64();
+            ImplMultiplyPrecomp(x, precomp, tt);
+            AddExt(zz, tt, zz);
+        }
+
+        public static ulong[] PrecompMultiplicand(ulong[] x)
+        {
+            /*
+             * Precompute table of all 4-bit products of x (first section)
+             */
+            int len = 9 << 4;
+            ulong[] t = new ulong[len << 1];
+            Array.Copy(x, 0, t, 9, 9);
+            //Reduce5(t, 9);
+            int tOff = 0;
+            for (int i = 7; i > 0; --i)
+            {
+                tOff += 18;
+                Nat.ShiftUpBit64(9, t, tOff >> 1, 0UL, t, tOff);
+                Reduce5(t, tOff);
+                Add(t, 9, t, tOff, t, tOff + 9);
+            }
+
+            /*
+             * Second section with all 4-bit products of x shifted 4 bits
+             */
+            Nat.ShiftUpBits64(len, t, 0, 4, 0UL, t, len);
+
+            return t;
+        }
+
         public static void Reduce(ulong[] xx, ulong[] z)
         {
             ulong xx09 = xx[9];
@@ -239,32 +286,91 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMultiply(ulong[] x, ulong[] y, ulong[] zz)
         {
-            //for (int i = 0; i < 9; ++i)
-            //{
-            //    ImplMulwAcc(x, y[i], zz, i);
-            //}
+            //ulong[] precomp = PrecompMultiplicand(y);
 
-            /*
-             * Precompute table of all 4-bit products of y
-             */
-            ulong[] T0 = new ulong[9 << 4];
-            Array.Copy(y, 0, T0, 9, 9);
-    //        Reduce5(T0, 9);
-            int tOff = 0;
-            for (int i = 7; i > 0; --i)
+            //ImplMultiplyPrecomp(x, precomp, zz);
+
+            ulong[] u = new ulong[16];
+            for (int i = 0; i < 9; ++i)
             {
-                tOff += 18;
-                Nat.ShiftUpBit64(9, T0, tOff >> 1, 0UL, T0, tOff);
-                Reduce5(T0, tOff);
-                Add(T0, 9, T0, tOff, T0, tOff + 9);
+                ImplMulwAcc(u, x[i], y[i], zz, i << 1);
             }
 
-            /*
-             * Second table with all 4-bit products of B shifted 4 bits
-             */
-            ulong[] T1 = new ulong[T0.Length];
-            Nat.ShiftUpBits64(T0.Length, T0, 0, 4, 0L, T1, 0);
+            ulong v0 = zz[0], v1 = zz[1];
+            v0 ^= zz[ 2]; zz[1] = v0 ^ v1; v1 ^= zz[ 3];
+            v0 ^= zz[ 4]; zz[2] = v0 ^ v1; v1 ^= zz[ 5];
+            v0 ^= zz[ 6]; zz[3] = v0 ^ v1; v1 ^= zz[ 7];
+            v0 ^= zz[ 8]; zz[4] = v0 ^ v1; v1 ^= zz[ 9];
+            v0 ^= zz[10]; zz[5] = v0 ^ v1; v1 ^= zz[11];
+            v0 ^= zz[12]; zz[6] = v0 ^ v1; v1 ^= zz[13];
+            v0 ^= zz[14]; zz[7] = v0 ^ v1; v1 ^= zz[15];
+            v0 ^= zz[16]; zz[8] = v0 ^ v1; v1 ^= zz[17];
 
+            ulong w = v0 ^ v1;
+            zz[ 9] = zz[0] ^ w;
+            zz[10] = zz[1] ^ w;
+            zz[11] = zz[2] ^ w;
+            zz[12] = zz[3] ^ w;
+            zz[13] = zz[4] ^ w;
+            zz[14] = zz[5] ^ w;
+            zz[15] = zz[6] ^ w;
+            zz[16] = zz[7] ^ w;
+            zz[17] = zz[8] ^ w;
+
+            ImplMulwAcc(u, x[0] ^ x[1], y[0] ^ y[1], zz, 1);
+
+            ImplMulwAcc(u, x[0] ^ x[2], y[0] ^ y[2], zz, 2);
+
+            ImplMulwAcc(u, x[0] ^ x[3], y[0] ^ y[3], zz, 3);
+            ImplMulwAcc(u, x[1] ^ x[2], y[1] ^ y[2], zz, 3);
+
+            ImplMulwAcc(u, x[0] ^ x[4], y[0] ^ y[4], zz, 4);
+            ImplMulwAcc(u, x[1] ^ x[3], y[1] ^ y[3], zz, 4);
+
+            ImplMulwAcc(u, x[0] ^ x[5], y[0] ^ y[5], zz, 5);
+            ImplMulwAcc(u, x[1] ^ x[4], y[1] ^ y[4], zz, 5);
+            ImplMulwAcc(u, x[2] ^ x[3], y[2] ^ y[3], zz, 5);
+
+            ImplMulwAcc(u, x[0] ^ x[6], y[0] ^ y[6], zz, 6);
+            ImplMulwAcc(u, x[1] ^ x[5], y[1] ^ y[5], zz, 6);
+            ImplMulwAcc(u, x[2] ^ x[4], y[2] ^ y[4], zz, 6);
+
+            ImplMulwAcc(u, x[0] ^ x[7], y[0] ^ y[7], zz, 7);
+            ImplMulwAcc(u, x[1] ^ x[6], y[1] ^ y[6], zz, 7);
+            ImplMulwAcc(u, x[2] ^ x[5], y[2] ^ y[5], zz, 7);
+            ImplMulwAcc(u, x[3] ^ x[4], y[3] ^ y[4], zz, 7);
+
+            ImplMulwAcc(u, x[0] ^ x[8], y[0] ^ y[8], zz, 8);
+            ImplMulwAcc(u, x[1] ^ x[7], y[1] ^ y[7], zz, 8);
+            ImplMulwAcc(u, x[2] ^ x[6], y[2] ^ y[6], zz, 8);
+            ImplMulwAcc(u, x[3] ^ x[5], y[3] ^ y[5], zz, 8);
+
+            ImplMulwAcc(u, x[1] ^ x[8], y[1] ^ y[8], zz, 9);
+            ImplMulwAcc(u, x[2] ^ x[7], y[2] ^ y[7], zz, 9);
+            ImplMulwAcc(u, x[3] ^ x[6], y[3] ^ y[6], zz, 9);
+            ImplMulwAcc(u, x[4] ^ x[5], y[4] ^ y[5], zz, 9);
+
+            ImplMulwAcc(u, x[2] ^ x[8], y[2] ^ y[8], zz, 10);
+            ImplMulwAcc(u, x[3] ^ x[7], y[3] ^ y[7], zz, 10);
+            ImplMulwAcc(u, x[4] ^ x[6], y[4] ^ y[6], zz, 10);
+
+            ImplMulwAcc(u, x[3] ^ x[8], y[3] ^ y[8], zz, 11);
+            ImplMulwAcc(u, x[4] ^ x[7], y[4] ^ y[7], zz, 11);
+            ImplMulwAcc(u, x[5] ^ x[6], y[5] ^ y[6], zz, 11);
+
+            ImplMulwAcc(u, x[4] ^ x[8], y[4] ^ y[8], zz, 12);
+            ImplMulwAcc(u, x[5] ^ x[7], y[5] ^ y[7], zz, 12);
+
+            ImplMulwAcc(u, x[5] ^ x[8], y[5] ^ y[8], zz, 13);
+            ImplMulwAcc(u, x[6] ^ x[7], y[6] ^ y[7], zz, 13);
+
+            ImplMulwAcc(u, x[6] ^ x[8], y[6] ^ y[8], zz, 14);
+
+            ImplMulwAcc(u, x[7] ^ x[8], y[7] ^ y[8], zz, 15);
+        }
+
+        protected static void ImplMultiplyPrecomp(ulong[] x, ulong[] precomp, ulong[] zz)
+        {
             uint MASK = 0xF;
 
             /*
@@ -278,9 +384,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     uint aVal = (uint)(x[j] >> k);
                     uint u = aVal & MASK;
                     uint v = (aVal >> 4) & MASK;
-                    AddBothTo(T0, (int)(9 * u), T1, (int)(9 * v), zz, j - 1);
+                    AddBothTo(precomp, (int)(9 * u), precomp, (int)(9 * (v + 16)), zz, j - 1);
                 }
-                Nat.ShiftUpBits64(16, zz, 0, 8, 0L);
+                Nat.ShiftUpBits64(16, zz, 0, 8, 0UL);
             }
 
             for (int k = 56; k >= 0; k -= 8)
@@ -290,70 +396,54 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     uint aVal = (uint)(x[j] >> k);
                     uint u = aVal & MASK;
                     uint v = (aVal >> 4) & MASK;
-                    AddBothTo(T0, (int)(9 * u), T1, (int)(9 * v), zz, j);
+                    AddBothTo(precomp, (int)(9 * u), precomp, (int)(9 * (v + 16)), zz, j);
                 }
                 if (k > 0)
                 {
-                    Nat.ShiftUpBits64(18, zz, 0, 8, 0L);
+                    Nat.ShiftUpBits64(18, zz, 0, 8, 0UL);
                 }
             }
         }
 
-        protected static void ImplMulwAcc(ulong[] xs, ulong y, ulong[] z, int zOff)
+        protected static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
         {
-            ulong[] u = new ulong[32];
             //u[0] = 0;
             u[1] = y;
-            for (int i = 2; i < 32; i += 2)
+            for (int i = 2; i < 16; i += 2)
             {
                 u[i    ] = u[i >> 1] << 1;
                 u[i + 1] = u[i     ] ^  y;
             }
 
-            ulong l = 0;
-            for (int i = 0; i < 9; ++i)
+            uint j = (uint)x;
+            ulong g, h = 0, l = u[j & 15]
+                              ^ u[(j >> 4) & 15] << 4;
+            int k = 56;
+            do
             {
-                ulong x = xs[i];
-
-                uint j = (uint)x;
-
-                l ^= u[j & 31];
-
-                ulong g, h = 0;
-                int k = 60;
-                do
-                {
-                    j  = (uint)(x >> k);
-                    g  = u[j & 31];
-                    l ^= (g <<  k);
-                    h ^= (g >> -k);
-                }
-                while ((k -= 5) > 0);
-
-                for (int p = 0; p < 4; ++p)
-                {
-                    x = (x & RM) >> 1;
-                    h ^= x & (ulong)(((long)y << p) >> 63);
-                }
-
-                z[zOff + i] ^= l;
-
-                l = h;
+                j  = (uint)(x >> k);
+                g  = u[j & 15]
+                   ^ u[(j >> 4) & 15] << 4;
+                l ^= (g << k);
+                h ^= (g >> -k);
             }
-            z[zOff + 9] ^= l;
+            while ((k -= 8) > 0);
+
+            for (int p = 0; p < 7; ++p)
+            {
+                x = (x & 0xFEFEFEFEFEFEFEFEUL) >> 1;
+                h ^= x & (ulong)((long)(y << p) >> 63);
+            }
+
+            Debug.Assert(h >> 63 == 0);
+
+            z[zOff    ] ^= l;
+            z[zOff + 1] ^= h;
         }
 
         protected static void ImplSquare(ulong[] x, ulong[] zz)
         {
-            Interleave.Expand64To128(x[0], zz, 0);
-            Interleave.Expand64To128(x[1], zz, 2);
-            Interleave.Expand64To128(x[2], zz, 4);
-            Interleave.Expand64To128(x[3], zz, 6);
-            Interleave.Expand64To128(x[4], zz, 8);
-            Interleave.Expand64To128(x[5], zz, 10);
-            Interleave.Expand64To128(x[6], zz, 12);
-            Interleave.Expand64To128(x[7], zz, 14);
-            Interleave.Expand64To128(x[8], zz, 16);
+            Interleave.Expand64To128(x, 0, 9, zz, 0);
         }
     }
 }

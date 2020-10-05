@@ -278,6 +278,34 @@ namespace Org.BouncyCastle.Math.Raw
             //}
         }
 
+        public static int Compare(int len, uint[] x, uint[] y)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[i];
+                uint y_i = y[i];
+                if (x_i < y_i)
+                    return -1;
+                if (x_i > y_i)
+                    return 1;
+            }
+            return 0;
+        }
+
+        public static int Compare(int len, uint[] x, int xOff, uint[] y, int yOff)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[xOff + i];
+                uint y_i = y[yOff + i];
+                if (x_i < y_i)
+                    return -1;
+                if (x_i > y_i)
+                    return 1;
+            }
+            return 0;
+        }
+
         public static void Copy(int len, uint[] x, uint[] z)
         {
             Array.Copy(x, 0, z, 0, len);
@@ -419,34 +447,110 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
+        public static uint EqualTo(int len, uint[] x, uint y)
+        {
+            uint d = x[0] ^ y;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualTo(int len, uint[] x, int xOff, uint y)
+        {
+            uint d = x[xOff] ^ y;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[xOff + i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualTo(int len, uint[] x, uint[] y)
+        {
+            uint d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[i] ^ y[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualTo(int len, uint[] x, int xOff, uint[] y, int yOff)
+        {
+            uint d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[xOff + i] ^ y[yOff + i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualToZero(int len, uint[] x)
+        {
+            uint d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
+        public static uint EqualToZero(int len, uint[] x, int xOff)
+        {
+            uint d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[xOff + i];
+            }
+            d = (d >> 1) | (d & 1);
+            return (uint)(((int)d - 1) >> 31);
+        }
+
         public static uint[] FromBigInteger(int bits, BigInteger x)
         {
+            if (bits < 1)
+                throw new ArgumentException();
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
 
             int len = (bits + 31) >> 5;
+            Debug.Assert(len > 0);
             uint[] z = Create(len);
-            int i = 0;
-            while (x.SignValue != 0)
+
+            // NOTE: Use a fixed number of loop iterations
+            z[0] = (uint)x.IntValue;
+            for (int i = 1; i < len; ++i)
             {
-                z[i++] = (uint)x.IntValue;
                 x = x.ShiftRight(32);
+                z[i] = (uint)x.IntValue;
             }
             return z;
         }
 
         public static ulong[] FromBigInteger64(int bits, BigInteger x)
         {
+            if (bits < 1)
+                throw new ArgumentException();
             if (x.SignValue < 0 || x.BitLength > bits)
                 throw new ArgumentException();
 
             int len = (bits + 63) >> 6;
+            Debug.Assert(len > 0);
             ulong[] z = Create64(len);
-            int i = 0;
-            while (x.SignValue != 0)
+
+            // NOTE: Use a fixed number of loop iterations
+            z[0] = (ulong)x.LongValue;
+            for (int i = 1; i < len; ++i)
             {
-                z[i++] = (ulong)x.LongValue;
                 x = x.ShiftRight(64);
+                z[i] = (ulong)x.LongValue;
             }
             return z;
         }
@@ -1300,6 +1404,14 @@ namespace Org.BouncyCastle.Math.Raw
             for (int i = 0; i < len; ++i)
             {
                 z[i] = 0;
+            }
+        }
+
+        public static void Zero64(int len, ulong[] z)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = 0UL;
             }
         }
     }

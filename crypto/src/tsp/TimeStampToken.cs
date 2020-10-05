@@ -10,7 +10,6 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
@@ -85,9 +84,17 @@ namespace Org.BouncyCastle.Tsp
 
 				if (attr != null)
 				{
-					SigningCertificate signCert = SigningCertificate.GetInstance(attr.AttrValues[0]);
 
-					this.certID = new CertID(EssCertID.GetInstance(signCert.GetCerts()[0]));
+					if (attr.AttrValues[0] is SigningCertificateV2)
+					{
+						SigningCertificateV2 signCert = SigningCertificateV2.GetInstance(attr.AttrValues[0]);
+						this.certID = new CertID(EssCertIDv2.GetInstance(signCert.GetCerts()[0]));
+					}
+					else
+					{
+						SigningCertificate signCert = SigningCertificate.GetInstance(attr.AttrValues[0]);
+						this.certID = new CertID(EssCertID.GetInstance(signCert.GetCerts()[0]));
+					}
 				}
 				else
 				{

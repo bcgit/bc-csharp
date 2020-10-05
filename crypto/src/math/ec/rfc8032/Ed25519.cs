@@ -754,7 +754,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                         X25519Field.Add(q.z, q.z, x);
                         // TODO[ed25519] Batch inversion
-                        X25519Field.Inv(x, y);
+                        X25519Field.InvVar(x, y);
                         X25519Field.Mul(q.x, y, x);
                         X25519Field.Mul(q.y, y, y);
 

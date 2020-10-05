@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static uint[] FromBigInteger(BigInteger x)
         {
-            uint[] z = Nat160.FromBigInteger(x);
+            uint[] z = Nat.FromBigInteger(160, x);
             if (z[4] == P4 && Nat160.Gte(z, P))
             {
                 Nat160.SubFrom(P, z);
@@ -74,58 +74,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Inv(uint[] x, uint[] z)
         {
-            /*
-             * Raise this element to the exponent 2^160 - 2^31 - 3
-             *
-             * Breaking up the exponent's binary representation into "repunits", we get:
-             * { 128 1s } { 1 0s } { 29 1s } { 1 0s } { 1 1s }
-             *
-             * Therefore we need an addition chain containing 1, 29, 128 (the lengths of the repunits)
-             * We use: [1], 2, 3, 6, 12, 24, 27, [29], 32, 64, [128]
-             */
-
-            if (0 != IsZero(x))
-                throw new ArgumentException("cannot be 0", "x");
-
-            uint[] x1 = x;
-            uint[] x2 = Nat160.Create();
-            Square(x1, x2);
-            Multiply(x2, x1, x2);
-            uint[] x3 = Nat160.Create();
-            Square(x2, x3);
-            Multiply(x3, x1, x3);
-            uint[] x6 = Nat160.Create();
-            SquareN(x3, 3, x6);
-            Multiply(x6, x3, x6);
-            uint[] x12 = Nat160.Create();
-            SquareN(x6, 6, x12);
-            Multiply(x12, x6, x12);
-            uint[] x24 = x6;
-            SquareN(x12, 12, x24);
-            Multiply(x24, x12, x24);
-            uint[] x27 = x12;
-            SquareN(x24, 3, x27);
-            Multiply(x27, x3, x27);
-            uint[] x29 = x24;
-            SquareN(x27, 2, x29);
-            Multiply(x29, x2, x29);
-            uint[] x32 = x2;
-            SquareN(x29, 3, x32);
-            Multiply(x32, x3, x32);
-            uint[] x64 = x3;
-            SquareN(x32, 32, x64);
-            Multiply(x64, x32, x64);
-            uint[] x128 = x27;
-            SquareN(x64, 64, x128);
-            Multiply(x128, x64, x128);
-
-            uint[] t = x128;
-            SquareN(t, 30, t);
-            Multiply(t, x29, t);
-            SquareN(t, 2, t);
-
-            // NOTE that x1 and z could be the same array
-            Multiply(x1, t, z);
+            Mod.CheckedModOddInverse(P, x, z);
         }
 
         public static int IsZero(uint[] x)

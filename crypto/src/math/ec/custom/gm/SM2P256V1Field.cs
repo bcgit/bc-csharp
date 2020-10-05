@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
 
         public static uint[] FromBigInteger(BigInteger x)
         {
-            uint[] z = Nat256.FromBigInteger(x);
+            uint[] z = Nat.FromBigInteger(256, x);
             if (z[7] >= P7 && Nat256.Gte(z, P))
             {
                 Nat256.SubFrom(P, z);
@@ -57,60 +57,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
 
         public static void Inv(uint[] x, uint[] z)
         {
-            /*
-             * Raise this element to the exponent 2^256 - 2^224 - 2^96 + 2^64 - 3
-             *
-             * Breaking up the exponent's binary representation into "repunits", we get:
-             * { 31 1s } { 1 0s } { 128 1s } { 32 0s } { 62 1s } { 1 0s } { 1 1s }
-             *
-             * We use an addition chain for the beginning: [1], 2, [4], 6, 12, 24, 30, [31] 
-             */
-
-            if (0 != IsZero(x))
-                throw new ArgumentException("cannot be 0", "x");
-
-            uint[] x1 = x;
-            uint[] x2 = Nat256.Create();
-            Square(x1, x2);
-            Multiply(x2, x1, x2);
-            uint[] x4 = Nat256.Create();
-            SquareN(x2, 2, x4);
-            Multiply(x4, x2, x4);
-            uint[] x6 = Nat256.Create();
-            SquareN(x4, 2, x6);
-            Multiply(x6, x2, x6);
-            uint[] x12 = x2;
-            SquareN(x6, 6, x12);
-            Multiply(x12, x6, x12);
-            uint[] x24 = Nat256.Create();
-            SquareN(x12, 12, x24);
-            Multiply(x24, x12, x24);
-            uint[] x30 = x12;
-            SquareN(x24, 6, x30);
-            Multiply(x30, x6, x30);
-            uint[] x31 = x6;
-            Square(x30, x31);
-            Multiply(x31, x1, x31);
-
-            uint[] t = x24;
-            SquareN(x31, 32, t);
-            Multiply(t, x31, t);
-            SquareN(t, 31, t);
-            Multiply(t, x31, t);
-            SquareN(t, 31, t);
-            Multiply(t, x31, t);
-            SquareN(t, 31, t);
-            Multiply(t, x31, t);
-            SquareN(t, 4, t);
-            Multiply(t, x4, t);
-            SquareN(t, 63, t);
-            Multiply(t, x31, t);
-            SquareN(t, 31, t);
-            Multiply(t, x31, t);
-            SquareN(t, 2, t);
-
-            // NOTE that x1 and z could be the same array
-            Multiply(x1, t, z);
+            Mod.CheckedModOddInverse(P, x, z);
         }
 
         public static void Half(uint[] x, uint[] z)
