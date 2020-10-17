@@ -7,8 +7,24 @@ using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
-    public class NistEccTest
+    [TestFixture]
+    public class NistEccTest : SimpleTest
     {
+        public override string Name { get; } = "NistEcc";
+
+        public override void PerformTest()
+        {
+            foreach (var testVector in CollectTestVectors())
+            {
+                TestMultiply(
+                    curve: testVector[0] as string,
+                    k: testVector[1] as BigInteger,
+                    expectedX:testVector[2] as BigInteger,
+                    expectedY: testVector[3] as BigInteger
+                    );
+            }
+        }
+
         public IEnumerable<object[]> CollectTestVectors()
         {
             string curve = null;
@@ -55,7 +71,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        [TestCaseSource(nameof(CollectTestVectors))]
         public void TestMultiply(string curve, BigInteger k, BigInteger expectedX, BigInteger expectedY)
         {
             // Arrange
@@ -65,8 +80,21 @@ namespace Org.BouncyCastle.Crypto.Tests
             var ecPoint = x9EcParameters.G.Multiply(k).Normalize();
 
             // Assert
-            Assert.AreEqual(expectedX, ecPoint.XCoord.ToBigInteger(), "Unexpected X Coordinate");
-            Assert.AreEqual(expectedY, ecPoint.YCoord.ToBigInteger(), "Unexpected Y Coordinate");
+            IsEquals("Unexpected X Coordinate", expectedX, ecPoint.AffineXCoord.ToBigInteger());
+            IsEquals("Unexpected Y Coordinate", expectedY, ecPoint.AffineYCoord.ToBigInteger());
+        }
+
+        public static void Main(string[] args)
+        {
+            RunTest(new NistEccTest());
+        }
+
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
         }
     }
 }
