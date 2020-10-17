@@ -219,6 +219,7 @@
     <Compile Include="src\crypto\test\MacTest.cs" />
     <Compile Include="src\crypto\test\ModeTest.cs" />
     <Compile Include="src\crypto\test\NaccacheSternTest.cs" />
+    <Compile Include="src\crypto\test\NistEccTest.cs" />
     <Compile Include="src\crypto\test\NoekeonTest.cs" />
     <Compile Include="src\crypto\test\NonMemoableDigestTest.cs" />
     <Compile Include="src\crypto\test\NullTest.cs" />
@@ -471,6 +472,7 @@
     <EmbeddedResource Include="data\suvaRoot1.crt" />
     <EmbeddedResource Include="data\ThawteSGCCA.cer" />
     <EmbeddedResource Include="data\ThawteSGCCA.crl" />
+    <EmbeddedResource Include="data\crypto\nist_ecc.txt" />
     <EmbeddedResource Include="data\crypto\SHA3TestVectors.txt" />
     <EmbeddedResource Include="data\crypto\SHAKETestVectors.txt" />
     <EmbeddedResource Include="data\PKITS\README.txt" />
