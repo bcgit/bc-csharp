@@ -2,7 +2,6 @@ using System;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -15,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 	{
 		private static readonly byte[] H;
 		private static readonly SecureRandom random = new SecureRandom(); 
-		private static readonly IGcmMultiplier mul = new Tables64kGcmMultiplier();
+		private static readonly IGcmMultiplier mul = new Tables4kGcmMultiplier();
 		private static readonly IGcmExponentiator exp = new Tables1kGcmExponentiator();
 		private static readonly byte[] Empty = new byte[0];
 

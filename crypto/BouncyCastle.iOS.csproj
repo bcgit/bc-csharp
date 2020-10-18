@@ -907,6 +907,7 @@
     <Compile Include="src\crypto\modes\gcm\IGcmExponentiator.cs" />
     <Compile Include="src\crypto\modes\gcm\IGcmMultiplier.cs" />
     <Compile Include="src\crypto\modes\gcm\Tables1kGcmExponentiator.cs" />
+    <Compile Include="src\crypto\modes\gcm\Tables4kGcmMultiplier.cs" />
     <Compile Include="src\crypto\modes\gcm\Tables64kGcmMultiplier.cs" />
     <Compile Include="src\crypto\modes\gcm\Tables8kGcmMultiplier.cs" />
     <Compile Include="src\crypto\operators\Asn1CipherBuilder.cs" />

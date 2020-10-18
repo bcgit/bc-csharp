@@ -9,13 +9,13 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         : IGcmMultiplier
     {
         private byte[] H;
-        private uint[][][] M;
+        private ulong[][] T;
 
         public void Init(byte[] H)
         {
-            if (M == null)
+            if (T == null)
             {
-                M = new uint[32][][];
+                T = new ulong[32][];
             }
             else if (Arrays.AreEqual(this.H, H))
             {
@@ -24,80 +24,58 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
             this.H = Arrays.Clone(H);
 
-            M[0] = new uint[16][];
-            M[1] = new uint[16][];
-            M[0][0] = new uint[4];
-            M[1][0] = new uint[4];
-            M[1][8] = GcmUtilities.AsUints(H);
-
-            for (int j = 4; j >= 1; j >>= 1)
+            for (int i = 0; i < 32; ++i)
             {
-                uint[] tmp = (uint[])M[1][j + j].Clone();
-                GcmUtilities.MultiplyP(tmp);
-                M[1][j] = tmp;
-            }
+                ulong[] t = T[i] = new ulong[32];
 
-            {
-                uint[] tmp = (uint[])M[1][1].Clone();
-                GcmUtilities.MultiplyP(tmp);
-                M[0][8] = tmp;
-            }
+                // t[0] = 0
 
-            for (int j = 4; j >= 1; j >>= 1)
-            {
-                uint[] tmp = (uint[])M[0][j + j].Clone();
-                GcmUtilities.MultiplyP(tmp);
-                M[0][j] = tmp;
-            }
-
-            for (int i = 0; ; )
-            {
-                for (int j = 2; j < 16; j += j)
+                if (i == 0)
                 {
-                    for (int k = 1; k < j; ++k)
-                    {
-                        uint[] tmp = (uint[])M[i][j].Clone();
-                        GcmUtilities.Xor(tmp, M[i][k]);
-                        M[i][j + k] = tmp;
-                    }
+                    // t[1] = H.p^3
+                    GcmUtilities.AsUlongs(this.H, t, 2);
+                    GcmUtilities.MultiplyP3(t, 2, t, 2);
+                }
+                else
+                {
+                    // t[1] = T[i-1][1].p^4
+                    GcmUtilities.MultiplyP4(T[i - 1], 2, t, 2);
                 }
 
-                if (++i == 32) return;
-
-                if (i > 1)
+                for (int n = 2; n < 16; n += 2)
                 {
-                    M[i] = new uint[16][];
-                    M[i][0] = new uint[4];
-                    for (int j = 8; j > 0; j >>= 1)
-                    {
-                        uint[] tmp = (uint[])M[i - 2][j].Clone();
-                        GcmUtilities.MultiplyP8(tmp);
-                        M[i][j] = tmp;
-                    }
+                    // t[2.n] = t[n].p^-1
+                    GcmUtilities.DivideP(t, n, t, n << 1);
+
+                    // t[2.n + 1] = t[2.n] + t[1]
+                    GcmUtilities.Xor(t, n << 1, t, 2, t, (n + 1) << 1);
                 }
             }
         }
 
         public void MultiplyH(byte[] x)
         {
-            uint[] z = new uint[4];
+            //ulong[] z = new ulong[2];
+            //for (int i = 15; i >= 0; --i)
+            //{
+            //    GcmUtilities.Xor(z, 0, T[i + i + 1], (x[i] & 0x0F) << 1);
+            //    GcmUtilities.Xor(z, 0, T[i + i], (x[i] & 0xF0) >> 3);
+            //}
+            //Pack.UInt64_To_BE(z, x, 0);
+
+            ulong z0 = 0, z1 = 0;
+
             for (int i = 15; i >= 0; --i)
             {
-                //GcmUtilities.Xor(z, M[i + i][x[i] & 0x0f]);
-                uint[] m = M[i + i][x[i] & 0x0f];
-                z[0] ^= m[0];
-                z[1] ^= m[1];
-                z[2] ^= m[2];
-                z[3] ^= m[3];
-                //GcmUtilities.Xor(z, M[i + i + 1][(x[i] & 0xf0) >> 4]);
-                m = M[i + i + 1][(x[i] & 0xf0) >> 4];
-                z[0] ^= m[0];
-                z[1] ^= m[1];
-                z[2] ^= m[2];
-                z[3] ^= m[3];
+                ulong[] tu = T[i + i + 1], tv = T[i + i];
+                int uPos = (x[i] & 0x0F) << 1, vPos = (x[i] & 0xF0) >> 3;
+
+                z0 ^= tu[uPos + 0] ^ tv[vPos + 0];
+                z1 ^= tu[uPos + 1] ^ tv[vPos + 1];
             }
 
-            Pack.UInt32_To_BE(z, x, 0);
+            Pack.UInt64_To_BE(z0, x, 0);
+            Pack.UInt64_To_BE(z1, x, 8);
         }
     }
 }

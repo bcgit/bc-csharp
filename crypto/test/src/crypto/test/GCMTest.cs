@@ -1,9 +1,7 @@
 using System;
-using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
@@ -418,6 +416,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             RunTestCase(null, null, testName, K, IV, A, P, C, T);
 
             RunTestCase(new BasicGcmMultiplier(), new BasicGcmMultiplier(), testName, K, IV, A, P, C, T);
+            RunTestCase(new Tables4kGcmMultiplier(), new Tables4kGcmMultiplier(), testName, K, IV, A, P, C, T);
             RunTestCase(new Tables8kGcmMultiplier(), new Tables8kGcmMultiplier(), testName, K, IV, A, P, C, T);
             RunTestCase(new Tables64kGcmMultiplier(), new Tables64kGcmMultiplier(), testName, K, IV, A, P, C, T);
         }
@@ -555,6 +554,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             srng.SetSeed(DateTimeUtilities.CurrentUnixMs());
             RandomTests(srng, null);
             RandomTests(srng, new BasicGcmMultiplier());
+            RandomTests(srng, new Tables4kGcmMultiplier());
             RandomTests(srng, new Tables8kGcmMultiplier());
             RandomTests(srng, new Tables64kGcmMultiplier());
         }
