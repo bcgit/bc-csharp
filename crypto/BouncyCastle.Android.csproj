@@ -1395,6 +1395,7 @@
     <Compile Include="src\math\field\IPolynomial.cs" />
     <Compile Include="src\math\field\IPolynomialExtensionField.cs" />
     <Compile Include="src\math\field\PrimeField.cs" />
+    <Compile Include="src\math\raw\Bits.cs" />
     <Compile Include="src\math\raw\Interleave.cs" />
     <Compile Include="src\math\raw\Mod.cs" />
     <Compile Include="src\math\raw\Nat.cs" />
@@ -1557,6 +1558,7 @@
     <Compile Include="src\util\Enums.cs" />
     <Compile Include="src\util\IMemoable.cs" />
     <Compile Include="src\util\Integers.cs" />
+    <Compile Include="src\util\Longs.cs" />
     <Compile Include="src\util\MemoableResetException.cs" />
     <Compile Include="src\util\Platform.cs" />
     <Compile Include="src\util\Strings.cs" />

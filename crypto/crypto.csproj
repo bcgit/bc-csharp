@@ -6834,6 +6834,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\raw\Bits.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\raw\Interleave.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -7640,6 +7645,11 @@
                 />
                 <File
                     RelPath = "src\util\Integers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\util\Longs.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
