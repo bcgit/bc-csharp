@@ -120,6 +120,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             return new uint[Size];
         }
 
+        public static uint[] CreateTable(int n)
+        {
+            return new uint[Size * n];
+        }
+
         public static void CSwap(int swap, uint[] a, uint[] b)
         {
             Debug.Assert(swap >> 1 == 0);

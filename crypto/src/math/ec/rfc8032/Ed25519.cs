@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Ed25519ph = 2,
         }
 
+        private class F : X25519Field {};
+
+        private const long M08L = 0x000000FFL;
         private const long M28L = 0x0FFFFFFFL;
         private const long M32L = 0xFFFFFFFFL;
 
@@ -33,10 +36,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static readonly int SecretKeySize = 32;
         public static readonly int SignatureSize = PointBytes + ScalarBytes;
 
-        private static readonly byte[] Dom2Prefix = Strings.ToByteArray("SigEd25519 no Ed25519 collisions");
+        // "SigEd25519 no Ed25519 collisions"
+        private static readonly byte[] Dom2Prefix = new byte[]{ 0x53, 0x69, 0x67, 0x45, 0x64, 0x32, 0x35, 0x35, 0x31,
+            0x39, 0x20, 0x6e, 0x6f, 0x20, 0x45, 0x64, 0x32, 0x35, 0x35, 0x31, 0x39, 0x20, 0x63, 0x6f, 0x6c, 0x6c, 0x69,
+            0x73, 0x69, 0x6f, 0x6e, 0x73 };
 
-        private static readonly uint[] P = { 0xFFFFFFEDU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0x7FFFFFFFU };
-        private static readonly uint[] L = { 0x5CF5D3EDU, 0x5812631AU, 0xA2F79CD6U, 0x14DEF9DEU, 0x00000000U, 0x00000000U, 0x00000000U, 0x10000000U };
+        private static readonly uint[] P = { 0xFFFFFFEDU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+            0xFFFFFFFFU, 0xFFFFFFFFU, 0x7FFFFFFFU };
+        private static readonly uint[] L = { 0x5CF5D3EDU, 0x5812631AU, 0xA2F79CD6U, 0x14DEF9DEU, 0x00000000U,
+            0x00000000U, 0x00000000U, 0x10000000U };
 
         private const int L0 = unchecked((int)0xFCF5D3ED);  // L0:26/--
         private const int L1 =                0x012631A6;   // L1:24/22
@@ -70,26 +78,32 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private class PointAccum
         {
-            internal int[] x = X25519Field.Create();
-            internal int[] y = X25519Field.Create();
-            internal int[] z = X25519Field.Create();
-            internal int[] u = X25519Field.Create();
-            internal int[] v = X25519Field.Create();
+            internal int[] x = F.Create();
+            internal int[] y = F.Create();
+            internal int[] z = F.Create();
+            internal int[] u = F.Create();
+            internal int[] v = F.Create();
+        }
+
+        private class PointAffine
+        {
+            internal int[] x = F.Create();
+            internal int[] y = F.Create();
         }
 
         private class PointExt
         {
-            internal int[] x = X25519Field.Create();
-            internal int[] y = X25519Field.Create();
-            internal int[] z = X25519Field.Create();
-            internal int[] t = X25519Field.Create();
+            internal int[] x = F.Create();
+            internal int[] y = F.Create();
+            internal int[] z = F.Create();
+            internal int[] t = F.Create();
         }
 
         private class PointPrecomp
         {
-            internal int[] ypx_h = X25519Field.Create();
-            internal int[] ymx_h = X25519Field.Create();
-            internal int[] xyd = X25519Field.Create();
+            internal int[] ypx_h = F.Create();
+            internal int[] ymx_h = F.Create();
+            internal int[] xyd = F.Create();
         }
 
         private static byte[] CalculateS(byte[] r, byte[] k, byte[] s)
@@ -116,42 +130,42 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static int CheckPoint(int[] x, int[] y)
         {
-            int[] t = X25519Field.Create();
-            int[] u = X25519Field.Create();
-            int[] v = X25519Field.Create();
+            int[] t = F.Create();
+            int[] u = F.Create();
+            int[] v = F.Create();
 
-            X25519Field.Sqr(x, u);
-            X25519Field.Sqr(y, v);
-            X25519Field.Mul(u, v, t);
-            X25519Field.Sub(v, u, v);
-            X25519Field.Mul(t, C_d, t);
-            X25519Field.AddOne(t);
-            X25519Field.Sub(t, v, t);
-            X25519Field.Normalize(t);
+            F.Sqr(x, u);
+            F.Sqr(y, v);
+            F.Mul(u, v, t);
+            F.Sub(v, u, v);
+            F.Mul(t, C_d, t);
+            F.AddOne(t);
+            F.Sub(t, v, t);
+            F.Normalize(t);
 
-            return X25519Field.IsZero(t);
+            return F.IsZero(t);
         }
 
         private static int CheckPoint(int[] x, int[] y, int[] z)
         {
-            int[] t = X25519Field.Create();
-            int[] u = X25519Field.Create();
-            int[] v = X25519Field.Create();
-            int[] w = X25519Field.Create();
+            int[] t = F.Create();
+            int[] u = F.Create();
+            int[] v = F.Create();
+            int[] w = F.Create();
 
-            X25519Field.Sqr(x, u);
-            X25519Field.Sqr(y, v);
-            X25519Field.Sqr(z, w);
-            X25519Field.Mul(u, v, t);
-            X25519Field.Sub(v, u, v);
-            X25519Field.Mul(v, w, v);
-            X25519Field.Sqr(w, w);
-            X25519Field.Mul(t, C_d, t);
-            X25519Field.Add(t, w, t);
-            X25519Field.Sub(t, v, t);
-            X25519Field.Normalize(t);
+            F.Sqr(x, u);
+            F.Sqr(y, v);
+            F.Sqr(z, w);
+            F.Mul(u, v, t);
+            F.Sub(v, u, v);
+            F.Mul(v, w, v);
+            F.Sqr(w, w);
+            F.Mul(t, C_d, t);
+            F.Add(t, w, t);
+            F.Sub(t, v, t);
+            F.Normalize(t);
 
-            return X25519Field.IsZero(t);
+            return F.IsZero(t);
         }
 
         private static bool CheckPointVar(byte[] p)
@@ -204,7 +218,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
         }
 
-        private static bool DecodePointVar(byte[] p, int pOff, bool negate, PointExt r)
+        private static bool DecodePointVar(byte[] p, int pOff, bool negate, PointAffine r)
         {
             byte[] py = Arrays.CopyOfRange(p, pOff, pOff + PointBytes);
             if (!CheckPointVar(py))
@@ -213,29 +227,28 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             int x_0 = (py[PointBytes - 1] & 0x80) >> 7;
             py[PointBytes - 1] &= 0x7F;
 
-            X25519Field.Decode(py, 0, r.y);
+            F.Decode(py, 0, r.y);
 
-            int[] u = X25519Field.Create();
-            int[] v = X25519Field.Create();
+            int[] u = F.Create();
+            int[] v = F.Create();
 
-            X25519Field.Sqr(r.y, u);
-            X25519Field.Mul(C_d, u, v);
-            X25519Field.SubOne(u);
-            X25519Field.AddOne(v);
+            F.Sqr(r.y, u);
+            F.Mul(C_d, u, v);
+            F.SubOne(u);
+            F.AddOne(v);
 
-            if (!X25519Field.SqrtRatioVar(u, v, r.x))
+            if (!F.SqrtRatioVar(u, v, r.x))
                 return false;
 
-            X25519Field.Normalize(r.x);
-            if (x_0 == 1 && X25519Field.IsZeroVar(r.x))
+            F.Normalize(r.x);
+            if (x_0 == 1 && F.IsZeroVar(r.x))
                 return false;
 
             if (negate ^ (x_0 != (r.x[0] & 1)))
             {
-                X25519Field.Negate(r.x, r.x);
+                F.Negate(r.x, r.x);
             }
 
-            PointExtendXY(r);
             return true;
         }
 
@@ -248,10 +261,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             if (ctx != null)
             {
-                d.BlockUpdate(Dom2Prefix, 0, Dom2Prefix.Length);
-                d.Update(phflag);
-                d.Update((byte)ctx.Length);
-                d.BlockUpdate(ctx, 0, ctx.Length);
+                int n = Dom2Prefix.Length;
+                byte[] t = new byte[n + 2 + ctx.Length];
+                Dom2Prefix.CopyTo(t, 0);
+                t[n] = phflag;
+                t[n + 1] = (byte)ctx.Length;
+                ctx.CopyTo(t, n + 2);
+
+                d.BlockUpdate(t, 0, t.Length);
             }
         }
 
@@ -278,18 +295,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static int EncodePoint(PointAccum p, byte[] r, int rOff)
         {
-            int[] x = X25519Field.Create();
-            int[] y = X25519Field.Create();
+            int[] x = F.Create();
+            int[] y = F.Create();
 
-            X25519Field.Inv(p.z, y);
-            X25519Field.Mul(p.x, y, x);
-            X25519Field.Mul(p.y, y, y);
-            X25519Field.Normalize(x);
-            X25519Field.Normalize(y);
+            F.Inv(p.z, y);
+            F.Mul(p.x, y, x);
+            F.Mul(p.y, y, y);
+            F.Normalize(x);
+            F.Normalize(y);
 
             int result = CheckPoint(x, y);
 
-            X25519Field.Encode(y, r, rOff);
+            F.Encode(y, r, rOff);
             r[rOff + PointBytes - 1] |= (byte)((x[0] & 1) << 7);
 
             return result;
@@ -312,6 +329,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PruneScalar(h, 0, s);
 
             ScalarMultBaseEncoded(s, pk, pkOff);
+        }
+
+        private static uint GetWindow4(uint[] x, int n)
+        {
+            int w = (int)((uint)n >> 3), b = (n & 7) << 2;
+            return (x[w] >> b) & 15U;
         }
 
         private static sbyte[] GetWnafVar(uint[] n, int width)
@@ -414,8 +437,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(d, h, s, pk, 0, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
-        private static void ImplSign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte phflag,
-            byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+        private static void ImplSign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte phflag, byte[] m,
+            int mOff, int mLen, byte[] sig, int sigOff)
         {
             if (!CheckContextVar(ctx, phflag))
                 throw new ArgumentException("ctx");
@@ -432,8 +455,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(d, h, s, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
-        private static bool ImplVerify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte phflag,
-            byte[] m, int mOff, int mLen)
+        private static bool ImplVerify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte phflag, byte[] m,
+            int mOff, int mLen)
         {
             if (!CheckContextVar(ctx, phflag))
                 throw new ArgumentException("ctx");
@@ -447,7 +470,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!CheckScalarVar(S))
                 return false;
 
-            PointExt pA = new PointExt();
+            PointAffine pA = new PointAffine();
             if (!DecodePointVar(pk, pkOff, true, pA))
                 return false;
 
@@ -475,161 +498,238 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return 0 != EncodePoint(pR, check, 0) && Arrays.AreEqual(check, R);
         }
 
+        private static void PointAdd(PointExt p, PointAccum r)
+        {
+            int[] a = F.Create();
+            int[] b = F.Create();
+            int[] c = F.Create();
+            int[] d = F.Create();
+            int[] e = r.u;
+            int[] f = F.Create();
+            int[] g = F.Create();
+            int[] h = r.v;
+
+            F.Apm(r.y, r.x, b, a);
+            F.Apm(p.y, p.x, d, c);
+            F.Mul(a, c, a);
+            F.Mul(b, d, b);
+            F.Mul(r.u, r.v, c);
+            F.Mul(c, p.t, c);
+            F.Mul(c, C_d2, c);
+            F.Mul(r.z, p.z, d);
+            F.Add(d, d, d);
+            F.Apm(b, a, h, e);
+            F.Apm(d, c, g, f);
+            F.Carry(g);
+            F.Mul(e, f, r.x);
+            F.Mul(g, h, r.y);
+            F.Mul(f, g, r.z);
+        }
+
+        private static void PointAdd(PointExt p, PointExt r)
+        {
+            int[] a = F.Create();
+            int[] b = F.Create();
+            int[] c = F.Create();
+            int[] d = F.Create();
+            int[] e = F.Create();
+            int[] f = F.Create();
+            int[] g = F.Create();
+            int[] h = F.Create();
+
+            F.Apm(p.y, p.x, b, a);
+            F.Apm(r.y, r.x, d, c);
+            F.Mul(a, c, a);
+            F.Mul(b, d, b);
+            F.Mul(p.t, r.t, c);
+            F.Mul(c, C_d2, c);
+            F.Mul(p.z, r.z, d);
+            F.Add(d, d, d);
+            F.Apm(b, a, h, e);
+            F.Apm(d, c, g, f);
+            F.Carry(g);
+            F.Mul(e, f, r.x);
+            F.Mul(g, h, r.y);
+            F.Mul(f, g, r.z);
+            F.Mul(e, h, r.t);
+        }
+
         private static void PointAddVar(bool negate, PointExt p, PointAccum r)
         {
-            int[] A = X25519Field.Create();
-            int[] B = X25519Field.Create();
-            int[] C = X25519Field.Create();
-            int[] D = X25519Field.Create();
-            int[] E = r.u;
-            int[] F = X25519Field.Create();
-            int[] G = X25519Field.Create();
-            int[] H = r.v;
+            int[] a = F.Create();
+            int[] b = F.Create();
+            int[] c = F.Create();
+            int[] d = F.Create();
+            int[] e = r.u;
+            int[] f = F.Create();
+            int[] g = F.Create();
+            int[] h = r.v;
 
-            int[] c, d, f, g;
+            int[] nc, nd, nf, ng;
             if (negate)
             {
-                c = D; d = C; f = G; g = F;
+                nc = d; nd = c; nf = g; ng = f;
             }
             else
             {
-                c = C; d = D; f = F; g = G;
+                nc = c; nd = d; nf = f; ng = g;
             }
 
-            X25519Field.Apm(r.y, r.x, B, A);
-            X25519Field.Apm(p.y, p.x, d, c);
-            X25519Field.Mul(A, C, A);
-            X25519Field.Mul(B, D, B);
-            X25519Field.Mul(r.u, r.v, C);
-            X25519Field.Mul(C, p.t, C);
-            X25519Field.Mul(C, C_d2, C);
-            X25519Field.Mul(r.z, p.z, D);
-            X25519Field.Add(D, D, D);
-            X25519Field.Apm(B, A, H, E);
-            X25519Field.Apm(D, C, g, f);
-            X25519Field.Carry(g);
-            X25519Field.Mul(E, F, r.x);
-            X25519Field.Mul(G, H, r.y);
-            X25519Field.Mul(F, G, r.z);
+            F.Apm(r.y, r.x, b, a);
+            F.Apm(p.y, p.x, nd, nc);
+            F.Mul(a, c, a);
+            F.Mul(b, d, b);
+            F.Mul(r.u, r.v, c);
+            F.Mul(c, p.t, c);
+            F.Mul(c, C_d2, c);
+            F.Mul(r.z, p.z, d);
+            F.Add(d, d, d);
+            F.Apm(b, a, h, e);
+            F.Apm(d, c, ng, nf);
+            F.Carry(ng);
+            F.Mul(e, f, r.x);
+            F.Mul(g, h, r.y);
+            F.Mul(f, g, r.z);
         }
 
         private static void PointAddVar(bool negate, PointExt p, PointExt q, PointExt r)
         {
-            int[] A = X25519Field.Create();
-            int[] B = X25519Field.Create();
-            int[] C = X25519Field.Create();
-            int[] D = X25519Field.Create();
-            int[] E = X25519Field.Create();
-            int[] F = X25519Field.Create();
-            int[] G = X25519Field.Create();
-            int[] H = X25519Field.Create();
+            int[] a = F.Create();
+            int[] b = F.Create();
+            int[] c = F.Create();
+            int[] d = F.Create();
+            int[] e = F.Create();
+            int[] f = F.Create();
+            int[] g = F.Create();
+            int[] h = F.Create();
 
-            int[] c, d, f, g;
+            int[] nc, nd, nf, ng;
             if (negate)
             {
-                c = D; d = C; f = G; g = F;
+                nc = d; nd = c; nf = g; ng = f;
             }
             else
             {
-                c = C; d = D; f = F; g = G;
+                nc = c; nd = d; nf = f; ng = g;
             }
 
-            X25519Field.Apm(p.y, p.x, B, A);
-            X25519Field.Apm(q.y, q.x, d, c);
-            X25519Field.Mul(A, C, A);
-            X25519Field.Mul(B, D, B);
-            X25519Field.Mul(p.t, q.t, C);
-            X25519Field.Mul(C, C_d2, C);
-            X25519Field.Mul(p.z, q.z, D);
-            X25519Field.Add(D, D, D);
-            X25519Field.Apm(B, A, H, E);
-            X25519Field.Apm(D, C, g, f);
-            X25519Field.Carry(g);
-            X25519Field.Mul(E, F, r.x);
-            X25519Field.Mul(G, H, r.y);
-            X25519Field.Mul(F, G, r.z);
-            X25519Field.Mul(E, H, r.t);
+            F.Apm(p.y, p.x, b, a);
+            F.Apm(q.y, q.x, nd, nc);
+            F.Mul(a, c, a);
+            F.Mul(b, d, b);
+            F.Mul(p.t, q.t, c);
+            F.Mul(c, C_d2, c);
+            F.Mul(p.z, q.z, d);
+            F.Add(d, d, d);
+            F.Apm(b, a, h, e);
+            F.Apm(d, c, ng, nf);
+            F.Carry(ng);
+            F.Mul(e, f, r.x);
+            F.Mul(g, h, r.y);
+            F.Mul(f, g, r.z);
+            F.Mul(e, h, r.t);
         }
 
         private static void PointAddPrecomp(PointPrecomp p, PointAccum r)
         {
-            int[] A = X25519Field.Create();
-            int[] B = X25519Field.Create();
-            int[] C = X25519Field.Create();
-            int[] E = r.u;
-            int[] F = X25519Field.Create();
-            int[] G = X25519Field.Create();
-            int[] H = r.v;
+            int[] a = F.Create();
+            int[] b = F.Create();
+            int[] c = F.Create();
+            int[] e = r.u;
+            int[] f = F.Create();
+            int[] g = F.Create();
+            int[] h = r.v;
 
-            X25519Field.Apm(r.y, r.x, B, A);
-            X25519Field.Mul(A, p.ymx_h, A);
-            X25519Field.Mul(B, p.ypx_h, B);
-            X25519Field.Mul(r.u, r.v, C);
-            X25519Field.Mul(C, p.xyd, C);
-            X25519Field.Apm(B, A, H, E);
-            X25519Field.Apm(r.z, C, G, F);
-            X25519Field.Carry(G);
-            X25519Field.Mul(E, F, r.x);
-            X25519Field.Mul(G, H, r.y);
-            X25519Field.Mul(F, G, r.z);
+            F.Apm(r.y, r.x, b, a);
+            F.Mul(a, p.ymx_h, a);
+            F.Mul(b, p.ypx_h, b);
+            F.Mul(r.u, r.v, c);
+            F.Mul(c, p.xyd, c);
+            F.Apm(b, a, h, e);
+            F.Apm(r.z, c, g, f);
+            F.Carry(g);
+            F.Mul(e, f, r.x);
+            F.Mul(g, h, r.y);
+            F.Mul(f, g, r.z);
         }
 
         private static PointExt PointCopy(PointAccum p)
         {
             PointExt r = new PointExt();
-            X25519Field.Copy(p.x, 0, r.x, 0);
-            X25519Field.Copy(p.y, 0, r.y, 0);
-            X25519Field.Copy(p.z, 0, r.z, 0);
-            X25519Field.Mul(p.u, p.v, r.t);
+            F.Copy(p.x, 0, r.x, 0);
+            F.Copy(p.y, 0, r.y, 0);
+            F.Copy(p.z, 0, r.z, 0);
+            F.Mul(p.u, p.v, r.t);
+            return r;
+        }
+
+        private static PointExt PointCopy(PointAffine p)
+        {
+            PointExt r = new PointExt();
+            F.Copy(p.x, 0, r.x, 0);
+            F.Copy(p.y, 0, r.y, 0);
+            PointExtendXY(r);
             return r;
         }
 
         private static PointExt PointCopy(PointExt p)
         {
             PointExt r = new PointExt();
-            X25519Field.Copy(p.x, 0, r.x, 0);
-            X25519Field.Copy(p.y, 0, r.y, 0);
-            X25519Field.Copy(p.z, 0, r.z, 0);
-            X25519Field.Copy(p.t, 0, r.t, 0);
+            PointCopy(p, r);
             return r;
+        }
+
+        private static void PointCopy(PointAffine p, PointAccum r)
+        {
+            F.Copy(p.x, 0, r.x, 0);
+            F.Copy(p.y, 0, r.y, 0);
+            PointExtendXY(r);
+        }
+
+        private static void PointCopy(PointExt p, PointExt r)
+        {
+            F.Copy(p.x, 0, r.x, 0);
+            F.Copy(p.y, 0, r.y, 0);
+            F.Copy(p.z, 0, r.z, 0);
+            F.Copy(p.t, 0, r.t, 0);
         }
 
         private static void PointDouble(PointAccum r)
         {
-            int[] A = X25519Field.Create();
-            int[] B = X25519Field.Create();
-            int[] C = X25519Field.Create();
-            int[] E = r.u;
-            int[] F = X25519Field.Create();
-            int[] G = X25519Field.Create();
-            int[] H = r.v;
+            int[] a = F.Create();
+            int[] b = F.Create();
+            int[] c = F.Create();
+            int[] e = r.u;
+            int[] f = F.Create();
+            int[] g = F.Create();
+            int[] h = r.v;
 
-            X25519Field.Sqr(r.x, A);
-            X25519Field.Sqr(r.y, B);
-            X25519Field.Sqr(r.z, C);
-            X25519Field.Add(C, C, C);
-            X25519Field.Apm(A, B, H, G);
-            X25519Field.Add(r.x, r.y, E);
-            X25519Field.Sqr(E, E);
-            X25519Field.Sub(H, E, E);
-            X25519Field.Add(C, G, F);
-            X25519Field.Carry(F);
-            X25519Field.Mul(E, F, r.x);
-            X25519Field.Mul(G, H, r.y);
-            X25519Field.Mul(F, G, r.z);
+            F.Sqr(r.x, a);
+            F.Sqr(r.y, b);
+            F.Sqr(r.z, c);
+            F.Add(c, c, c);
+            F.Apm(a, b, h, g);
+            F.Add(r.x, r.y, e);
+            F.Sqr(e, e);
+            F.Sub(h, e, e);
+            F.Add(c, g, f);
+            F.Carry(f);
+            F.Mul(e, f, r.x);
+            F.Mul(g, h, r.y);
+            F.Mul(f, g, r.z);
         }
 
         private static void PointExtendXY(PointAccum p)
         {
-            X25519Field.One(p.z);
-            X25519Field.Copy(p.x, 0, p.u, 0);
-            X25519Field.Copy(p.y, 0, p.v, 0);
+            F.One(p.z);
+            F.Copy(p.x, 0, p.u, 0);
+            F.Copy(p.y, 0, p.v, 0);
         }
 
         private static void PointExtendXY(PointExt p)
         {
-            X25519Field.One(p.z);
-            X25519Field.Mul(p.x, p.y, p.t);
+            F.One(p.z);
+            F.Mul(p.x, p.y, p.t);
         }
 
         private static void PointLookup(int block, int index, PointPrecomp p)
@@ -637,18 +737,81 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Debug.Assert(0 <= block && block < PrecompBlocks);
             Debug.Assert(0 <= index && index < PrecompPoints);
 
-            int off = block * PrecompPoints * 3 * X25519Field.Size;
+            int off = block * PrecompPoints * 3 * F.Size;
 
             for (int i = 0; i < PrecompPoints; ++i)
             {
                 int cond = ((i ^ index) - 1) >> 31;
-                X25519Field.CMov(cond, precompBase, off, p.ypx_h, 0);   off += X25519Field.Size;
-                X25519Field.CMov(cond, precompBase, off, p.ymx_h, 0);   off += X25519Field.Size;
-                X25519Field.CMov(cond, precompBase, off, p.xyd, 0);     off += X25519Field.Size;
+                F.CMov(cond, precompBase, off, p.ypx_h, 0);     off += F.Size;
+                F.CMov(cond, precompBase, off, p.ymx_h, 0);     off += F.Size;
+                F.CMov(cond, precompBase, off, p.xyd, 0);       off += F.Size;
             }
         }
 
-        private static PointExt[] PointPrecompVar(PointExt p, int count)
+        private static void PointLookup(uint[] x, int n, int[] table, PointExt r)
+        {
+            // TODO This method is currently hardcoded to 4-bit windows and 8 precomputed points
+
+            uint w = GetWindow4(x, n);
+
+            int sign = (int)(w >> (4 - 1)) ^ 1;
+            int abs = ((int)w ^ -sign) & 7;
+
+            Debug.Assert(sign == 0 || sign == 1);
+            Debug.Assert(0 <= abs && abs < 8);
+
+            for (int i = 0, off = 0; i < 8; ++i)
+            {
+                int cond = ((i ^ abs) - 1) >> 31;
+                F.CMov(cond, table, off, r.x, 0);       off += F.Size;
+                F.CMov(cond, table, off, r.y, 0);       off += F.Size;
+                F.CMov(cond, table, off, r.z, 0);       off += F.Size;
+                F.CMov(cond, table, off, r.t, 0);       off += F.Size;
+            }
+
+            F.CNegate(sign, r.x);
+            F.CNegate(sign, r.t);
+        }
+
+        private static void PointLookup(int[] table, int index, PointExt r)
+        {
+            int off = F.Size * 4 * index;
+
+            F.Copy(table, off, r.x, 0);     off += F.Size;
+            F.Copy(table, off, r.y, 0);     off += F.Size;
+            F.Copy(table, off, r.z, 0);     off += F.Size;
+            F.Copy(table, off, r.t, 0);
+        }
+
+        private static int[] PointPrecompute(PointAffine p, int count)
+        {
+            Debug.Assert(count > 0);
+
+            PointExt q = PointCopy(p);
+            PointExt d = PointCopy(q);
+            PointAdd(q, d);
+
+            int[] table = X25519Field.CreateTable(count * 4);
+            int off = 0;
+
+            int i = 0;
+            for (;;)
+            {
+                X25519Field.Copy(q.x, 0, table, off); off += X25519Field.Size;
+                X25519Field.Copy(q.y, 0, table, off); off += X25519Field.Size;
+                X25519Field.Copy(q.z, 0, table, off); off += X25519Field.Size;
+                X25519Field.Copy(q.t, 0, table, off); off += X25519Field.Size;
+
+                if (++i == count)
+                    break;
+
+                PointAdd(d, q);
+            }
+
+            return table;
+        }
+
+        private static PointExt[] PointPrecomputeVar(PointExt p, int count)
         {
             Debug.Assert(count > 0);
 
@@ -666,19 +829,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void PointSetNeutral(PointAccum p)
         {
-            X25519Field.Zero(p.x);
-            X25519Field.One(p.y);
-            X25519Field.One(p.z);
-            X25519Field.Zero(p.u);
-            X25519Field.One(p.v);
+            F.Zero(p.x);
+            F.One(p.y);
+            F.One(p.z);
+            F.Zero(p.u);
+            F.One(p.v);
         }
 
         private static void PointSetNeutral(PointExt p)
         {
-            X25519Field.Zero(p.x);
-            X25519Field.One(p.y);
-            X25519Field.One(p.z);
-            X25519Field.Zero(p.t);
+            F.Zero(p.x);
+            F.One(p.y);
+            F.One(p.z);
+            F.Zero(p.t);
         }
 
         public static void Precompute()
@@ -691,19 +854,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 // Precomputed table for the base point in verification ladder
                 {
                     PointExt b = new PointExt();
-                    X25519Field.Copy(B_x, 0, b.x, 0);
-                    X25519Field.Copy(B_y, 0, b.y, 0);
+                    F.Copy(B_x, 0, b.x, 0);
+                    F.Copy(B_y, 0, b.y, 0);
                     PointExtendXY(b);
 
-                    precompBaseTable = PointPrecompVar(b, 1 << (WnafWidthBase - 2));
+                    precompBaseTable = PointPrecomputeVar(b, 1 << (WnafWidthBase - 2));
                 }
 
                 PointAccum p = new PointAccum();
-                X25519Field.Copy(B_x, 0, p.x, 0);
-                X25519Field.Copy(B_y, 0, p.y, 0);
+                F.Copy(B_x, 0, p.x, 0);
+                F.Copy(B_y, 0, p.y, 0);
                 PointExtendXY(p);
 
-                precompBase = new int[PrecompBlocks * PrecompPoints * 3 * X25519Field.Size];
+                precompBase = F.CreateTable(PrecompBlocks * PrecompPoints * 3);
 
                 int off = 0;
                 for (int b = 0; b < PrecompBlocks; ++b)
@@ -745,31 +908,65 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                     Debug.Assert(k == PrecompPoints);
 
+                    int[] cs = F.CreateTable(PrecompPoints);
+
+                    // TODO[ed25519] A single batch inversion across all blocks?
+                    {
+                        int[] u = F.Create();
+                        F.Copy(points[0].z, 0, u, 0);
+                        F.Copy(u, 0, cs, 0);
+
+                        int i = 0;
+                        while (++i < PrecompPoints)
+                        {
+                            F.Mul(u, points[i].z, u);
+                            F.Copy(u, 0, cs, i * F.Size);
+                        }
+
+                        F.Add(u, u, u);
+                        F.InvVar(u, u);
+                        --i;
+
+                        int[] t = F.Create();
+
+                        while (i > 0)
+                        {
+                            int j = i--;
+                            F.Copy(cs, i * F.Size, t, 0);
+                            F.Mul(t, u, t);
+                            F.Copy(t, 0, cs, j * F.Size);
+                            F.Mul(u, points[j].z, u);
+                        }
+
+                        F.Copy(u, 0, cs, 0);
+                    }
+
                     for (int i = 0; i < PrecompPoints; ++i)
                     {
                         PointExt q = points[i];
 
-                        int[] x = X25519Field.Create();
-                        int[] y = X25519Field.Create();
+                        int[] x = F.Create();
+                        int[] y = F.Create();
 
-                        X25519Field.Add(q.z, q.z, x);
-                        // TODO[ed25519] Batch inversion
-                        X25519Field.InvVar(x, y);
-                        X25519Field.Mul(q.x, y, x);
-                        X25519Field.Mul(q.y, y, y);
+                        //F.Add(q.z, q.z, x);
+                        //F.InvVar(x, y);
+                        F.Copy(cs, i * F.Size, y, 0);
+
+                        F.Mul(q.x, y, x);
+                        F.Mul(q.y, y, y);
 
                         PointPrecomp r = new PointPrecomp();
-                        X25519Field.Apm(y, x, r.ypx_h, r.ymx_h);
-                        X25519Field.Mul(x, y, r.xyd);
-                        X25519Field.Mul(r.xyd, C_d4, r.xyd);
+                        F.Apm(y, x, r.ypx_h, r.ymx_h);
+                        F.Mul(x, y, r.xyd);
+                        F.Mul(r.xyd, C_d4, r.xyd);
 
-                        X25519Field.Normalize(r.ypx_h);
-                        X25519Field.Normalize(r.ymx_h);
-                        //X25519Field.Normalize(r.xyd);
+                        F.Normalize(r.ypx_h);
+                        F.Normalize(r.ymx_h);
+                        //F.Normalize(r.xyd);
 
-                        X25519Field.Copy(r.ypx_h, 0, precompBase, off); off += X25519Field.Size;
-                        X25519Field.Copy(r.ymx_h, 0, precompBase, off); off += X25519Field.Size;
-                        X25519Field.Copy(r.xyd, 0, precompBase, off); off += X25519Field.Size;
+                        F.Copy(r.ypx_h, 0, precompBase, off);       off += F.Size;
+                        F.Copy(r.ymx_h, 0, precompBase, off);       off += F.Size;
+                        F.Copy(r.xyd, 0, precompBase, off);         off += F.Size;
                     }
                 }
 
@@ -806,7 +1003,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             long x15 = (Decode24(n, 53) << 4) & M32L;   // x15:28/--
             long x16 = Decode32(n, 56) & M32L;          // x16:32/--
             long x17 = (Decode24(n, 60) << 4) & M32L;   // x17:28/--
-            long x18 = n[63] & 0xFFL;                   // x18:08/--
+            long x18 = n[63]                  & M08L;   // x18:08/--
             long t;
 
             //x18 += (x17 >> 28); x17 &= M28L;
@@ -922,18 +1119,59 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return r;
         }
 
+        private static void ScalarMult(byte[] k, PointAffine p, PointAccum r)
+        {
+            uint[] n = new uint[ScalarUints];
+            DecodeScalar(k, 0, n);
+
+            Debug.Assert(0U == (n[0] & 7));
+            Debug.Assert(1U == n[ScalarUints - 1] >> 30);
+
+            Nat.ShiftDownBits(ScalarUints, n, 3, 1U);
+
+            // Recode the scalar into signed-digit form
+            {
+                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
+                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 0U);             Debug.Assert(c2 == (1U << 31));
+            }
+
+            Debug.Assert(1U == n[ScalarUints - 1] >> 28);
+
+            int[] table = PointPrecompute(p, 8);
+            PointExt q = new PointExt();
+
+            // Replace first 4 doublings (2^4 * P) with 1 addition (P + 15 * P)
+            PointCopy(p, r);
+            PointLookup(table, 7, q);
+            PointAdd(q, r);
+
+            int w = 62;
+            for (;;)
+            {
+                PointLookup(n, w, table, q);
+                PointAdd(q, r);
+
+                PointDouble(r);
+                PointDouble(r);
+                PointDouble(r);
+
+                if (--w < 0)
+                    break;
+
+                PointDouble(r);
+            }
+        }
+
         private static void ScalarMultBase(byte[] k, PointAccum r)
         {
             Precompute();
-
-            PointSetNeutral(r);
 
             uint[] n = new uint[ScalarUints];
             DecodeScalar(k, 0, n);
 
             // Recode the scalar into signed-digit form, then group comb bits in each block
             {
-                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0);
+                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
                 uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
 
                 for (int i = 0; i < ScalarUints; ++i)
@@ -944,8 +1182,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             PointPrecomp p = new PointPrecomp();
 
+            PointSetNeutral(r);
+
             int cOff = (PrecompSpacing - 1) * PrecompTeeth;
-            for (; ; )
+            for (;;)
             {
                 for (int b = 0; b < PrecompBlocks; ++b)
                 {
@@ -958,8 +1198,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                     PointLookup(b, abs, p);
 
-                    X25519Field.CSwap(sign, p.ypx_h, p.ymx_h);
-                    X25519Field.CNegate(sign, p.xyd);
+                    F.CSwap(sign, p.ypx_h, p.ymx_h);
+                    F.CNegate(sign, p.xyd);
 
                     PointAddPrecomp(p, r);
                 }
@@ -990,11 +1230,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (0 == CheckPoint(p.x, p.y, p.z))
                 throw new InvalidOperationException();
 
-            X25519Field.Copy(p.y, 0, y, 0);
-            X25519Field.Copy(p.z, 0, z, 0);
+            F.Copy(p.y, 0, y, 0);
+            F.Copy(p.z, 0, z, 0);
         }
 
-        private static void ScalarMultStrausVar(uint[] nb, uint[] np, PointExt p, PointAccum r)
+        private static void ScalarMultStrausVar(uint[] nb, uint[] np, PointAffine p, PointAccum r)
         {
             Precompute();
 
@@ -1003,7 +1243,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             sbyte[] ws_b = GetWnafVar(nb, WnafWidthBase);
             sbyte[] ws_p = GetWnafVar(np, width);
 
-            PointExt[] tp = PointPrecompVar(p, 1 << (width - 2));
+            PointExt[] tp = PointPrecomputeVar(PointCopy(p), 1 << (width - 2));
 
             PointSetNeutral(r);
 

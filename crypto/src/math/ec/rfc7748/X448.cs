@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         public const int PointSize = 56;
         public const int ScalarSize = 56;
 
+        private class F : X448Field {};
+
         private const uint C_A = 156326;
         private const uint C_A24 = (C_A + 2)/4;
 
@@ -60,19 +62,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         private static void PointDouble(uint[] x, uint[] z)
         {
-            uint[] A = X448Field.Create();
-            uint[] B = X448Field.Create();
+            uint[] a = F.Create();
+            uint[] b = F.Create();
 
-            //X448Field.Apm(x, z, A, B);
-            X448Field.Add(x, z, A);
-            X448Field.Sub(x, z, B);
-            X448Field.Sqr(A, A);
-            X448Field.Sqr(B, B);
-            X448Field.Mul(A, B, x);
-            X448Field.Sub(A, B, A);
-            X448Field.Mul(A, C_A24, z);
-            X448Field.Add(z, B, z);
-            X448Field.Mul(z, A, z);
+            //F.Apm(x, z, a, b);
+            F.Add(x, z, a);
+            F.Sub(x, z, b);
+            F.Sqr(a, a);
+            F.Sqr(b, b);
+            F.Mul(a, b, x);
+            F.Sub(a, b, a);
+            F.Mul(a, C_A24, z);
+            F.Add(z, b, z);
+            F.Mul(z, a, z);
         }
 
         public static void Precompute()
@@ -84,52 +86,52 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         {
             uint[] n = new uint[14];    DecodeScalar(k, kOff, n);
 
-            uint[] x1 = X448Field.Create();     X448Field.Decode(u, uOff, x1);
-            uint[] x2 = X448Field.Create();     X448Field.Copy(x1, 0, x2, 0);
-            uint[] z2 = X448Field.Create();     z2[0] = 1;
-            uint[] x3 = X448Field.Create();     x3[0] = 1;
-            uint[] z3 = X448Field.Create();
+            uint[] x1 = F.Create();     F.Decode(u, uOff, x1);
+            uint[] x2 = F.Create();     F.Copy(x1, 0, x2, 0);
+            uint[] z2 = F.Create();     z2[0] = 1;
+            uint[] x3 = F.Create();     x3[0] = 1;
+            uint[] z3 = F.Create();
 
-            uint[] t1 = X448Field.Create();
-            uint[] t2 = X448Field.Create();
+            uint[] t1 = F.Create();
+            uint[] t2 = F.Create();
 
             Debug.Assert(n[13] >> 31 == 1U);
 
             int bit = 447, swap = 1;
             do
             {
-                //X448Field.Apm(x3, z3, t1, x3);
-                X448Field.Add(x3, z3, t1);
-                X448Field.Sub(x3, z3, x3);
-                //X448Field.Apm(x2, z2, z3, x2);
-                X448Field.Add(x2, z2, z3);
-                X448Field.Sub(x2, z2, x2);
+                //F.Apm(x3, z3, t1, x3);
+                F.Add(x3, z3, t1);
+                F.Sub(x3, z3, x3);
+                //F.Apm(x2, z2, z3, x2);
+                F.Add(x2, z2, z3);
+                F.Sub(x2, z2, x2);
 
-                X448Field.Mul(t1, x2, t1);
-                X448Field.Mul(x3, z3, x3);
-                X448Field.Sqr(z3, z3);
-                X448Field.Sqr(x2, x2);
+                F.Mul(t1, x2, t1);
+                F.Mul(x3, z3, x3);
+                F.Sqr(z3, z3);
+                F.Sqr(x2, x2);
 
-                X448Field.Sub(z3, x2, t2);
-                X448Field.Mul(t2, C_A24, z2);
-                X448Field.Add(z2, x2, z2);
-                X448Field.Mul(z2, t2, z2);
-                X448Field.Mul(x2, z3, x2);
+                F.Sub(z3, x2, t2);
+                F.Mul(t2, C_A24, z2);
+                F.Add(z2, x2, z2);
+                F.Mul(z2, t2, z2);
+                F.Mul(x2, z3, x2);
 
-                //X448Field.Apm(t1, x3, x3, z3);
-                X448Field.Sub(t1, x3, z3);
-                X448Field.Add(t1, x3, x3);
-                X448Field.Sqr(x3, x3);
-                X448Field.Sqr(z3, z3);
-                X448Field.Mul(z3, x1, z3);
+                //F.Apm(t1, x3, x3, z3);
+                F.Sub(t1, x3, z3);
+                F.Add(t1, x3, x3);
+                F.Sqr(x3, x3);
+                F.Sqr(z3, z3);
+                F.Mul(z3, x1, z3);
 
                 --bit;
 
                 int word = bit >> 5, shift = bit & 0x1F;
                 int kt = (int)(n[word] >> shift) & 1;
                 swap ^= kt;
-                X448Field.CSwap(swap, x2, x3);
-                X448Field.CSwap(swap, z2, z3);
+                F.CSwap(swap, x2, x3);
+                F.CSwap(swap, z2, z3);
                 swap = kt;
             }
             while (bit >= 2);
@@ -141,26 +143,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 PointDouble(x2, z2);
             }
 
-            X448Field.Inv(z2, z2);
-            X448Field.Mul(x2, z2, x2);
+            F.Inv(z2, z2);
+            F.Mul(x2, z2, x2);
 
-            X448Field.Normalize(x2);
-            X448Field.Encode(x2, r, rOff);
+            F.Normalize(x2);
+            F.Encode(x2, r, rOff);
         }
 
         public static void ScalarMultBase(byte[] k, int kOff, byte[] r, int rOff)
         {
-            uint[] x = X448Field.Create();
-            uint[] y = X448Field.Create();
+            uint[] x = F.Create();
+            uint[] y = F.Create();
 
             Ed448.ScalarMultBaseXY(k, kOff, x, y);
 
-            X448Field.Inv(x, x);
-            X448Field.Mul(x, y, x);
-            X448Field.Sqr(x, x);
+            F.Inv(x, x);
+            F.Mul(x, y, x);
+            F.Sqr(x, x);
 
-            X448Field.Normalize(x);
-            X448Field.Encode(x, r, rOff);
+            F.Normalize(x);
+            F.Encode(x, r, rOff);
         }
     }
 }
