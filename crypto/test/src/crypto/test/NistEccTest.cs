@@ -1,8 +1,11 @@
-using System.Collections.Generic;
+using System;
+using System.Collections;
 using System.IO;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
@@ -14,19 +17,20 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public override void PerformTest()
         {
-            foreach (var testVector in CollectTestVectors())
+            foreach (object[] testVector in CollectTestVectors())
             {
                 TestMultiply(
-                    curve: testVector[0] as string,
-                    k: testVector[1] as BigInteger,
-                    expectedX:testVector[2] as BigInteger,
-                    expectedY: testVector[3] as BigInteger
+                    testVector[0] as string,
+                    testVector[1] as BigInteger,
+                    testVector[2] as BigInteger,
+                    testVector[3] as BigInteger
                     );
             }
         }
 
-        public IEnumerable<object[]> CollectTestVectors()
+        public IEnumerable CollectTestVectors()
         {
+            ArrayList testVectors = new ArrayList();
             string curve = null;
             BigInteger k = null;
             BigInteger x = null;
@@ -37,12 +41,12 @@ namespace Org.BouncyCastle.Crypto.Tests
                 string line;
                 while (null != (line = r.ReadLine()))
                 {
-                    var capture = new Regex(@"^ ?(\w+):? =? ?(\w+)", RegexOptions.Compiled);
-                    var data = capture.Match(line);
+                    Regex capture = new Regex(@"^ ?(\w+):? =? ?(\w+)", RegexOptions.Compiled);
+                    Match data = capture.Match(line);
 
                     if (!data.Success) continue;
-                    var nistKey = data.Groups[1].Value;
-                    var nistValue = data.Groups[2].Value;
+                    string nistKey = data.Groups[1].Value;
+                    string nistValue = data.Groups[2].Value;
                     switch (nistKey)
                     {
                         case "Curve":
@@ -62,22 +66,24 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                     if (null != curve && null != k && null != x && null != y)
                     {
-                        yield return new object[] {curve, k, x, y};
+                        testVectors.Add(new object[] {curve, k, x, y});
                         k = null;
                         x = null;
                         y = null;
                     }
                 }
             }
+
+            return testVectors;
         }
 
         public void TestMultiply(string curve, BigInteger k, BigInteger expectedX, BigInteger expectedY)
         {
             // Arrange
-            var x9EcParameters = Asn1.Nist.NistNamedCurves.GetByName(curve);
+            X9ECParameters x9EcParameters = Asn1.Nist.NistNamedCurves.GetByName(curve);
 
             // Act
-            var ecPoint = x9EcParameters.G.Multiply(k).Normalize();
+            ECPoint ecPoint = x9EcParameters.G.Multiply(k).Normalize();
 
             // Assert
             IsEquals("Unexpected X Coordinate", expectedX, ecPoint.AffineXCoord.ToBigInteger());
