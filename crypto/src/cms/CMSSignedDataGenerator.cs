@@ -88,7 +88,8 @@ namespace Org.BouncyCastle.Cms
                 this.sigCalc = sigCalc;
                 this.signerIdentifier = signerIdentifier;
                 this.digestOID = new DefaultDigestAlgorithmIdentifierFinder().find((AlgorithmIdentifier)sigCalc.AlgorithmDetails).Algorithm.Id;
-                this.encOID = ((AlgorithmIdentifier)sigCalc.AlgorithmDetails).Algorithm.Id;
+                this.encOID = Helper.FindEncryptionAlgOID((AlgorithmIdentifier)sigCalc.AlgorithmDetails);
+                
                 this.sAttr = sAttr;
                 this.unsAttr = unsAttr;
                 this.baseSignedTable = baseSignedTable;

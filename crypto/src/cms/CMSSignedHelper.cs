@@ -127,7 +127,16 @@ namespace Org.BouncyCastle.Cms
             ecAlgorithms.Add(CmsSignedGenerator.DigestSha512, EncryptionECDsaWithSha512);
     }
 
-		/**
+        internal string FindEncryptionAlgOID(AlgorithmIdentifier algorithmDetails)
+        {
+            string algName = (string)encryptionAlgs[algorithmDetails.Algorithm.Id];
+            if ("RSA" == algName)
+                return CmsSignedGenerator.EncryptionRsa;    /* this strips off the digest algorithm */
+            else
+                return algorithmDetails.Algorithm.Id;
+        }
+
+        /**
         * Return the digest algorithm using one of the standard JCA string
         * representations rather than the algorithm identifier (if possible).
         */
