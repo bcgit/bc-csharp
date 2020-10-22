@@ -372,9 +372,9 @@ namespace Org.BouncyCastle.Tsp
             public Asn1.Cms.AttributeTable GetAttributes(IDictionary parameters)
             {
                 Asn1.Cms.AttributeTable tab = infoGen.signedGen.GetAttributes(parameters);
-                if (tab[PkcsObjectIdentifiers.IdAASigningCertificate] == null)
+                if (tab[PkcsObjectIdentifiers.IdAASigningCertificateV2] == null)
                 {
-                    return tab.Add(PkcsObjectIdentifiers.IdAASigningCertificate, new SigningCertificateV2(essCertID));
+                    return tab.Add(PkcsObjectIdentifiers.IdAASigningCertificateV2, new SigningCertificateV2(essCertID));
                 }
                 return tab;
             }

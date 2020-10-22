@@ -2,11 +2,16 @@ using System;
 using System.Collections;
 
 using NUnit.Framework;
-
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.Ess;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -21,16 +26,21 @@ namespace Org.BouncyCastle.Tsp.Tests
 		private static AsymmetricKeyParameter privateKey;
 		private static X509Certificate cert;
 		private static IX509Store certs;
+		
+		
 
 		static TspTest()
 		{
 			string signDN = "O=Bouncy Castle, C=AU";
 			AsymmetricCipherKeyPair signKP = TspTestUtil.MakeKeyPair();
 			X509Certificate signCert = TspTestUtil.MakeCACertificate(signKP, signDN, signKP, signDN);
+	
 
 			string origDN = "CN=Eric H. Echidna, E=eric@bouncycastle.org, O=Bouncy Castle, C=AU";
 			AsymmetricCipherKeyPair origKP = TspTestUtil.MakeKeyPair();
 			privateKey = origKP.Private;
+
+			
 
 			cert = TspTestUtil.MakeCertificate(origKP, origDN, signKP, signDN);
 
@@ -544,5 +554,89 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			Assert.AreEqual(0, certificates.Count);
 		}
+
+		[Test]
+		public void TestBasicSha256()
+        {
+
+			var sInfoGenerator = makeInfoGenerator(privateKey, cert, TspAlgorithms.Sha256, null, null);
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+				sInfoGenerator,
+				Asn1DigestFactory.Get(NistObjectIdentifiers.IdSha256),new DerObjectIdentifier("1.2"),true);
+
+
+			tsTokenGen.SetCertificates(certs);
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha256, new byte[32]);
+
+			Assert.IsFalse(request.CertReq);
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+
+			tsToken.Validate(cert);
+
+			TimeStampTokenInfo tstInfo = tsToken.TimeStampInfo;
+
+			AttributeTable table = tsToken.SignedAttributes;
+
+			var r = table.Get(PkcsObjectIdentifiers.IdAASigningCertificateV2);
+			Assert.NotNull(r);
+			Assert.AreEqual(PkcsObjectIdentifiers.IdAASigningCertificateV2, r.AttrType);
+			var set = r.AttrValues;
+			SigningCertificateV2 sCert = SigningCertificateV2.GetInstance(set[0]);
+
+			var issSerNum = sCert.GetCerts()[0].IssuerSerial;
+
+			Assert.AreEqual(cert.SerialNumber, issSerNum.Serial.Value);	
+
+		}
+
+		internal static SignerInfoGenerator makeInfoGenerator(
+		 AsymmetricKeyParameter key,
+		 X509Certificate cert,
+		 string digestOID,
+
+		 Asn1.Cms.AttributeTable signedAttr,
+		 Asn1.Cms.AttributeTable unsignedAttr)
+		{
+
+
+			TspUtil.ValidateCertificate(cert);
+
+			//
+			// Add the ESSCertID attribute
+			//
+			IDictionary signedAttrs;
+			if (signedAttr != null)
+			{
+				signedAttrs = signedAttr.ToDictionary();
+			}
+			else
+			{
+				signedAttrs = Platform.CreateHashtable();
+			}
+
+	
+
+			string digestName = CmsSignedHelper.Instance.GetDigestAlgName(digestOID);
+			string signatureName = digestName + "with" + CmsSignedHelper.Instance.GetEncryptionAlgName(CmsSignedHelper.Instance.GetEncOid(key, digestOID));
+
+			Asn1SignatureFactory sigfact = new Asn1SignatureFactory(signatureName, key);
+			return new SignerInfoGeneratorBuilder()
+			 .WithSignedAttributeGenerator(
+				new DefaultSignedAttributeTableGenerator(
+					new Asn1.Cms.AttributeTable(signedAttrs)))
+			  .WithUnsignedAttributeGenerator(
+				new SimpleAttributeTableGenerator(unsignedAttr))
+				.Build(sigfact, cert);
+		}
+
 	}
 }
