@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Text;
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -17,6 +19,11 @@ using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tsp
 {
+    public enum Resolution
+    {
+        R_SECONDS, R_TENTHS_OF_SECONDS, R_HUNDREDTHS_OF_SECONDS, R_MILLISECONDS
+    }
+
     public class TimeStampTokenGenerator
     {
         private int accuracySeconds = -1;
@@ -30,6 +37,14 @@ namespace Org.BouncyCastle.Tsp
         private IX509Store x509Crls;
         private SignerInfoGenerator signerInfoGenerator;
         IDigestFactory digestCalculator;
+
+        private Resolution resolution = Resolution.R_SECONDS;
+      
+        public Resolution Resolution
+        {
+            get { return resolution; }
+            set { resolution = value; }
+        }
 
         /**
 		 * basic creation - only the default attributes will be included here.
@@ -289,8 +304,18 @@ namespace Org.BouncyCastle.Tsp
                 tsaPolicy = new DerObjectIdentifier(request.ReqPolicy);
             }
 
+            DerGeneralizedTime generalizedTime;
+            if (resolution != Resolution.R_SECONDS)
+            {
+                generalizedTime = new DerGeneralizedTime(createGeneralizedTime(genTime));
+            } else
+            {
+                generalizedTime = new DerGeneralizedTime(genTime);
+            }
+
+
             TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
-                new DerInteger(serialNumber), new DerGeneralizedTime(genTime), accuracy,
+                new DerInteger(serialNumber), generalizedTime, accuracy,
                 derOrdering, nonce, tsa, request.Extensions);
 
             try
@@ -333,6 +358,56 @@ namespace Org.BouncyCastle.Tsp
             //			}
         }
 
+        private string createGeneralizedTime(DateTime genTime)
+        {
+            String format = "yyyyMMddHHmmss.fff";
+           
+            StringBuilder sBuild = new StringBuilder(genTime.ToString(format));
+            int dotIndex = sBuild.ToString().IndexOf(".");
+
+            if (dotIndex <0)
+            {
+                sBuild.Append("Z");
+                return sBuild.ToString();
+            }
+
+            switch(resolution)
+            {
+                case Resolution.R_TENTHS_OF_SECONDS:
+                    if (sBuild.Length > dotIndex + 2)
+                    {
+                        sBuild.Remove(dotIndex + 2, sBuild.Length-(dotIndex+2));
+                    }
+                    break;
+                case Resolution.R_HUNDREDTHS_OF_SECONDS:
+                    if (sBuild.Length > dotIndex + 3)
+                    {
+                        sBuild.Remove(dotIndex + 3, sBuild.Length-(dotIndex+3));
+                    }
+                    break;
+
+
+                case Resolution.R_SECONDS:
+                case Resolution.R_MILLISECONDS:
+                    // do nothing.
+                    break;
+             
+            }
+
+           
+            while (sBuild[sBuild.Length - 1] == '0')
+            {
+                sBuild.Remove(sBuild.Length - 1,1);
+            }
+
+            if (sBuild.Length - 1 == dotIndex)
+            {
+                sBuild.Remove(sBuild.Length - 1, 1);
+            }
+
+            sBuild.Append("Z");
+            return sBuild.ToString();
+        }
 
         private class TableGen : CmsAttributeTableGenerator
         {
