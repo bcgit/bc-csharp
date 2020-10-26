@@ -459,6 +459,7 @@
     <Compile Include="src\tsp\test\AllTests.cs" />
     <Compile Include="src\tsp\test\GenTimeAccuracyTest.cs" />
     <Compile Include="src\tsp\test\ParseTest.cs" />
+    <Compile Include="src\tsp\test\NewTspTest.cs" />
     <Compile Include="src\tsp\test\TSPTest.cs" />
     <Compile Include="src\tsp\test\TSPTestUtil.cs" />
     <Compile Include="src\tsp\test\TimeStampTokenInfoTest.cs" />
