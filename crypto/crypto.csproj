@@ -13648,6 +13648,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\tsp\test\NewTspTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\tsp\test\TSPTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
