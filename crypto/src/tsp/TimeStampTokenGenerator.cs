@@ -253,9 +253,18 @@ namespace Org.BouncyCastle.Tsp
         //------------------------------------------------------------------------------
 
         public TimeStampToken Generate(
+           TimeStampRequest request,
+           BigInteger serialNumber,
+           DateTime genTime)
+        {
+            return Generate(request, serialNumber, genTime, null);
+        }
+
+
+            public TimeStampToken Generate(
             TimeStampRequest request,
             BigInteger serialNumber,
-            DateTime genTime)
+            DateTime genTime, X509Extensions additionalExtensions)
         {
             DerObjectIdentifier digestAlgOID = new DerObjectIdentifier(request.MessageImprintAlgOid);
 
@@ -304,6 +313,33 @@ namespace Org.BouncyCastle.Tsp
                 tsaPolicy = new DerObjectIdentifier(request.ReqPolicy);
             }
 
+
+            X509Extensions respExtensions = request.Extensions;
+            if (additionalExtensions != null)
+            {
+                X509ExtensionsGenerator extGen = new X509ExtensionsGenerator();
+
+                if (respExtensions != null)
+                {                    
+                    foreach(object oid in respExtensions.ExtensionOids)
+                    {
+                        DerObjectIdentifier id = DerObjectIdentifier.GetInstance(oid);
+                        extGen.AddExtension(id, respExtensions.GetExtension(DerObjectIdentifier.GetInstance(id)));
+                    }                   
+                }
+
+                foreach (object oid in additionalExtensions.ExtensionOids)
+                {
+                    DerObjectIdentifier id = DerObjectIdentifier.GetInstance(oid);
+                    extGen.AddExtension(id, additionalExtensions.GetExtension(DerObjectIdentifier.GetInstance(id)));
+
+                }
+           
+                respExtensions = extGen.Generate();
+            }
+
+
+
             DerGeneralizedTime generalizedTime;
             if (resolution != Resolution.R_SECONDS)
             {
@@ -316,7 +352,7 @@ namespace Org.BouncyCastle.Tsp
 
             TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
                 new DerInteger(serialNumber), generalizedTime, accuracy,
-                derOrdering, nonce, tsa, request.Extensions);
+                derOrdering, nonce, tsa, respExtensions);
 
             try
             {

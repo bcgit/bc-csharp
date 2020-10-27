@@ -10,10 +10,10 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Tls;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 using System;
@@ -52,7 +52,6 @@ namespace Org.BouncyCastle.Tsp.Tests
 				new X509CollectionStoreParameters(certList));
 
 
-
 			basicTest(origKP.Private, cert, certs);
 			resolutionTest(origKP.Private, cert, certs, Resolution.R_SECONDS, "19700101000009Z");
 			resolutionTest(origKP.Private, cert, certs, Resolution.R_TENTHS_OF_SECONDS, "19700101000009.9Z");
@@ -64,12 +63,404 @@ namespace Org.BouncyCastle.Tsp.Tests
 			responseValidationTest(origKP.Private, cert, certs);
 			incorrectHashTest(origKP.Private, cert, certs);
 			badAlgorithmTest(origKP.Private, cert, certs);
-			//timeNotAvailableTest(origKP.Private, cert, certs);
+			timeNotAvailableTest(origKP.Private, cert, certs);
+			badPolicyTest(origKP.Private, cert, certs);
+			tokenEncodingTest(origKP.Private, cert, certs);
+			certReqTest(origKP.Private, cert, certs);
+			testAccuracyZeroCerts(origKP.Private, cert, certs);
+			testAccuracyWithCertsAndOrdering(origKP.Private, cert, certs);
+			testNoNonse(origKP.Private, cert, certs);
+			extensionTest(origKP.Private, cert, certs);
+			additionalExtensionTest(origKP.Private, cert, certs);
+
+		}
+
+        private void additionalExtensionTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+        {
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+				 privateKey, cert, TspAlgorithms.Sha1, "1.2");
+
+			tsTokenGen.SetCertificates(certs);
+			tsTokenGen.SetTsa(new Asn1.X509.GeneralName(new X509Name("CN=Test")));
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20], BigInteger.ValueOf(100));
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
+
+			X509ExtensionsGenerator extensionsGenerator = new X509ExtensionsGenerator();
+			extensionsGenerator.AddExtension(X509Extensions.AuditIdentity, false, new DerUtf8String("Test"));
+
+
+			TimeStampResponse tsResp = tsRespGen.GenerateGrantedResponse(request, new BigInteger("23"), new DateTimeObject( DateTime.UtcNow), "Okay", extensionsGenerator.Generate());
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+
+			tsToken.Validate(cert);
+
+            Asn1.Cms.AttributeTable table = tsToken.SignedAttributes;
+
+			Assert.NotNull(table[PkcsObjectIdentifiers.IdAASigningCertificate],"no signingCertificate attribute found");
+
+			X509Extensions ext = tsToken.TimeStampInfo.TstInfo.Extensions;
+
+			Assert.True(1 == ext.GetExtensionOids().Length);
+
+			X509Extension left = new X509Extension(DerBoolean.False, new DerOctetString( new DerUtf8String("Test").GetEncoded()));
+			Assert.True(left.Equals (ext.GetExtension(X509Extensions.AuditIdentity)));
+
 
 
 		}
 
-        private void timeNotAvailableTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+		private void extensionTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+        {
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+				 privateKey, cert, TspAlgorithms.Sha1, "1.2");
+
+			tsTokenGen.SetCertificates(certs);
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+
+			// --- These are test case only values
+			reqGen.SetReqPolicy("2.5.29.56"); 
+			reqGen.AddExtension(new DerObjectIdentifier("1.3.6.1.5.5.7.1.2"), true, new DerOctetString(new byte[20]));
+			// --- not for any real world purpose.
+
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
+
+			try
+			{
+				request.Validate(new ArrayList(), new ArrayList(), new ArrayList());
+				Assert.Fail("expected exception");
+			} catch(Exception ex)
+            {
+				Assert.True("request contains unknown algorithm" == ex.Message);
+            }
+
+			ArrayList algorithms = new ArrayList();
+			algorithms.Add(TspAlgorithms.Sha1);
+
+			try
+			{
+				request.Validate(algorithms, new ArrayList(), new ArrayList());
+				Assert.Fail("no exception");
+			}
+			catch (Exception e)
+			{
+				Assert.IsTrue(e.Message == "request contains unknown policy");
+			}
+
+			ArrayList policies = new ArrayList();
+
+			// Testing only do not use in real world.
+			policies.Add("2.5.29.56");
+
+			try
+			{
+				request.Validate(algorithms, policies, new ArrayList());
+				Assert.Fail("no exception");
+			}
+			catch (Exception e)
+			{
+				Assert.IsTrue(e.Message == "request contains unknown extension");
+			}
+
+			ArrayList extensions = new ArrayList();
+
+			// Testing only do not use in real world/
+			extensions.Add("1.3.6.1.5.5.7.1.2");
+
+
+			// should validate with full set
+			request.Validate(algorithms, policies, extensions);
+
+			// should validate with null policy
+			request.Validate(algorithms, null, extensions);
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, new BigInteger("23"), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+
+			tsToken.Validate(cert);
+
+            Asn1.Cms.AttributeTable table = tsToken.SignedAttributes;
+
+			Assert.NotNull(table[PkcsObjectIdentifiers.IdAASigningCertificate], "no signingCertificate attribute found");
+		}
+
+		private void testNoNonse(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+        {
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+				privateKey, cert, TspAlgorithms.MD5, "1.2.3");
+
+			tsTokenGen.SetCertificates(certs);
+	
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
+
+			ArrayList algorithms = new ArrayList();
+			algorithms.Add(TspAlgorithms.Sha1);
+
+			request.Validate(algorithms, new ArrayList(), new ArrayList());
+
+			Assert.False(request.CertReq);
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, new BigInteger("24"), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+
+			tsToken.Validate(cert);
+
+			tsResp.Validate(request);
+
+			TimeStampTokenInfo tstInfo = tsToken.TimeStampInfo;
+
+			GenTimeAccuracy accuracy = tstInfo.GenTimeAccuracy;
+
+			Assert.IsNull(accuracy);
+
+			Assert.IsTrue(new BigInteger("24").Equals(tstInfo.SerialNumber));
+
+
+			Assert.IsTrue("1.2.3" ==  tstInfo.Policy);
+
+			Assert.False( tstInfo.IsOrdered);
+
+			Assert.IsNull(tstInfo.Nonce);
+
+			//
+			// test certReq
+			//
+			IX509Store store = tsToken.GetCertificates();
+
+			ICollection certificates = store.GetMatches(null);
+
+			Assert.IsTrue(0 == certificates.Count);
+
+
+		}
+
+		private void testAccuracyWithCertsAndOrdering(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+        {
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+				privateKey, cert, TspAlgorithms.MD5, "1.2.3");
+
+			tsTokenGen.SetCertificates(certs);
+
+			tsTokenGen.SetAccuracySeconds(1);
+			tsTokenGen.SetAccuracyMillis(2);
+			tsTokenGen.SetAccuracyMicros(3);
+
+			tsTokenGen.SetOrdering(true);
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+
+			reqGen.SetCertReq(true);
+
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20], BigInteger.ValueOf(100));
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
+
+
+			//
+			// This is different to the Java API.
+			//
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+
+
+			tsResp.Validate(request);
+
+			TimeStampTokenInfo tstInfo = tsToken.TimeStampInfo;
+
+			GenTimeAccuracy accuracy = tstInfo.GenTimeAccuracy;
+
+			Assert.IsTrue(1 == accuracy.Seconds);
+			Assert.IsTrue(2 == accuracy.Millis);
+			Assert.IsTrue(3 == accuracy.Micros);
+
+			Assert.IsTrue(new BigInteger("23").Equals(tstInfo.SerialNumber));
+
+			Assert.IsTrue("1.2.3" == tstInfo.Policy);
+
+			IX509Store store = tsToken.GetCertificates();
+
+			ICollection certificates = store.GetMatches(null);
+
+			Assert.IsTrue(2 == certificates.Count);
+
+		}
+
+		private void testAccuracyZeroCerts(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+        {
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+			  privateKey, cert, TspAlgorithms.MD5, "1.2");
+
+			tsTokenGen.SetCertificates(certs);
+
+			tsTokenGen.SetAccuracySeconds(1);
+			tsTokenGen.SetAccuracyMillis(2);
+			tsTokenGen.SetAccuracyMicros(3);
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+			
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20], BigInteger.ValueOf(100));
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+	
+			tsResp.Validate(request);
+
+			TimeStampTokenInfo tstInfo = tsToken.TimeStampInfo;
+
+			GenTimeAccuracy accuracy = tstInfo.GenTimeAccuracy;
+
+			Assert.IsTrue(1 == accuracy.Seconds);
+			Assert.IsTrue(2 == accuracy.Millis);
+			Assert.IsTrue(3 == accuracy.Micros);
+
+			Assert.IsTrue(new BigInteger("23").Equals(tstInfo.SerialNumber));
+
+			Assert.IsTrue("1.2" == tstInfo.Policy);
+
+			IX509Store store = tsToken.GetCertificates();
+
+			ICollection certificates = store.GetMatches(null);
+
+			Assert.IsTrue(0 == certificates.Count);
+		}
+
+        private void certReqTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+        {
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+			  privateKey, cert, TspAlgorithms.MD5, "1.2");
+
+			tsTokenGen.SetCertificates(certs);
+			
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+			reqGen.SetCertReq(false);
+
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20], BigInteger.ValueOf(100));
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+
+			Assert.IsNull(tsToken.TimeStampInfo.GenTimeAccuracy);  // check for abscence of accuracy
+
+			Assert.True("1.2".Equals( tsToken.TimeStampInfo.Policy));
+
+			try
+			{
+				tsToken.Validate(cert);
+			}
+			catch (TspValidationException e)
+			{
+				Assert.Fail("certReq(false) verification of token failed.");
+			}
+
+			var store = tsToken.GetCertificates();
+			var certsColl = store.GetMatches(null);
+
+			if (certsColl.Count >0)
+			{
+				Assert.Fail("certReq(false) found certificates in response.");
+			}
+		}
+
+		private void tokenEncodingTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+        {
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+				 privateKey, cert, TspAlgorithms.Sha1, "1.2.3.4.5.6");
+
+			tsTokenGen.SetCertificates(certs);
+		
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20], BigInteger.ValueOf(100));
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampResponse tsResponse = new TimeStampResponse(tsResp.GetEncoded());
+
+			if (!Arrays.AreEqual(tsResponse.GetEncoded(), tsResp.GetEncoded())
+				|| !Arrays.AreEqual(tsResponse.TimeStampToken.GetEncoded(),
+				tsResp.TimeStampToken.GetEncoded()))
+			{
+				Assert.Fail();
+			}
+		}
+
+		private void badPolicyTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
+        {
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+				  privateKey, cert, TspAlgorithms.Sha1, "1.2");
+
+			tsTokenGen.SetCertificates(certs);
+			
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+			reqGen.SetReqPolicy("1.1");
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed, new ArrayList());
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+
+			if (tsToken != null)
+			{
+				Assert.Fail("badPolicy - token not null.");
+			}
+
+			PkiFailureInfo failInfo = tsResp.GetFailInfo();
+
+			if (failInfo == null)
+			{
+				Assert.Fail("badPolicy - failInfo set to null.");
+			}
+
+			if (failInfo.IntValue != PkiFailureInfo.UnacceptedPolicy)
+			{
+				Assert.Fail("badPolicy - wrong failure info returned.");
+			}
+
+
+		}
+
+		private void timeNotAvailableTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
         {
 			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
 				   privateKey, cert, TspAlgorithms.Sha1, "1.2");
@@ -83,35 +474,35 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			TimeStampResponse tsResp = null;
 
-			try
-			{
-				tsResp = tsRespGen.Generate(request, new BigInteger("23"), null);
-			}
-			catch (TspException e)
-			{
-				Console.WriteLine();
-			}
 
+			//
+			// This is different to the java api.
+			// the java version has two calls, generateGrantedResponse and generateRejectedResponse
+			// See line 726 of NewTspTest
+			//
+
+			tsResp = tsRespGen.Generate(request, new BigInteger("23"), null);
+					
 			tsResp = new TimeStampResponse(tsResp.GetEncoded());
 
-			//TimeStampToken tsToken = tsResp.TimeStampToken;
+			TimeStampToken tsToken = tsResp.TimeStampToken;
 
-			//if (tsToken != null)
-			//{
-			//	fail("timeNotAvailable - token not null.");
-			//}
+			if (tsToken != null)
+			{
+				Assert.Fail("timeNotAvailable - token not null.");
+			}
 
-			//PKIFailureInfo failInfo = tsResp.getFailInfo();
+			PkiFailureInfo failInfo = tsResp.GetFailInfo();
 
-			//if (failInfo == null)
-			//{
-			//	fail("timeNotAvailable - failInfo set to null.");
-			//}
+			if (failInfo == null)
+			{
+				Assert.Fail("timeNotAvailable - failInfo set to null.");
+			}
 
-			//if (failInfo.intValue() != PKIFailureInfo.timeNotAvailable)
-			//{
-			//	fail("timeNotAvailable - wrong failure info returned.");
-			//}
+			if (failInfo.IntValue != PkiFailureInfo.TimeNotAvailable)
+			{
+				Assert.Fail("timeNotAvailable - wrong failure info returned.");
+			}
 		}
 
         private void badAlgorithmTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)

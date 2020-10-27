@@ -77,5 +77,16 @@ namespace Org.BouncyCastle.Asn1.X509
 		{
 			return new X509Extensions(extOrdering, extensions);
 		}
-	}
+
+        internal void AddExtension(DerObjectIdentifier oid,  X509Extension x509Extension)
+        {
+            if (extensions.Contains(oid))
+            {				
+				throw new ArgumentException  ("extension " + oid + " already added");
+			}
+
+			extOrdering.Add(oid);
+			extensions.Add(oid, x509Extension);
+        }
+    }
 }

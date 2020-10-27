@@ -20,6 +20,7 @@ using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Crypto.Tls;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -127,7 +128,9 @@ namespace Org.BouncyCastle.Cms
             ecAlgorithms.Add(CmsSignedGenerator.DigestSha512, EncryptionECDsaWithSha512);
     }
 
-		/**
+       
+
+        /**
         * Return the digest algorithm using one of the standard JCA string
         * representations rather than the algorithm identifier (if possible).
         */
@@ -422,5 +425,18 @@ namespace Org.BouncyCastle.Cms
 
             return encOID;
         }
-    }
+
+		public IX509Store GetCertificates(Asn1Set certificates)
+		{
+			ArrayList certList = new ArrayList();
+			if (certificates != null)
+            {				
+				foreach (Asn1Encodable enc in certificates)
+                {
+					certList.Add(X509CertificateStructure.GetInstance(enc));
+                }				
+			}
+			return new X509CollectionStore(certList);
+		}
+	}
 }

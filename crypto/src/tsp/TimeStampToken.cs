@@ -146,7 +146,12 @@ namespace Org.BouncyCastle.Tsp
 			return tsToken.GetCrls(type);
 		}
 
-	    public IX509Store GetAttributeCertificates(
+        public IX509Store GetCertificates()
+        {
+			return tsToken.GetCertificates();
+        }
+
+        public IX509Store GetAttributeCertificates(
 			string type)
 	    {
 	        return tsToken.GetAttributeCertificates(type);
