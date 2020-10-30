@@ -558,8 +558,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 		[Test]
 		public void TestBasicSha256()
         {
-
-			var sInfoGenerator = makeInfoGenerator(privateKey, cert, TspAlgorithms.Sha256, null, null);
+			SignerInfoGenerator sInfoGenerator = MakeInfoGenerator(privateKey, cert, TspAlgorithms.Sha256, null, null);
 			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
 				sInfoGenerator,
 				Asn1DigestFactory.Get(NistObjectIdentifiers.IdSha256),new DerObjectIdentifier("1.2"),true);
@@ -586,29 +585,21 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			AttributeTable table = tsToken.SignedAttributes;
 
-			var r = table.Get(PkcsObjectIdentifiers.IdAASigningCertificateV2);
+			Asn1.Cms.Attribute r = table[PkcsObjectIdentifiers.IdAASigningCertificateV2];
 			Assert.NotNull(r);
 			Assert.AreEqual(PkcsObjectIdentifiers.IdAASigningCertificateV2, r.AttrType);
-			var set = r.AttrValues;
+			Asn1Set set = r.AttrValues;
 			SigningCertificateV2 sCert = SigningCertificateV2.GetInstance(set[0]);
 
-			var issSerNum = sCert.GetCerts()[0].IssuerSerial;
+			Asn1.X509.IssuerSerial issSerNum = sCert.GetCerts()[0].IssuerSerial;
 
 			Assert.AreEqual(cert.SerialNumber, issSerNum.Serial.Value);	
-
 		}
 
-		internal static SignerInfoGenerator makeInfoGenerator(
-		 AsymmetricKeyParameter key,
-		 X509Certificate cert,
-		 string digestOID,
-
-		 Asn1.Cms.AttributeTable signedAttr,
-		 Asn1.Cms.AttributeTable unsignedAttr)
-		{
-
-
-			TspUtil.ValidateCertificate(cert);
+        internal static SignerInfoGenerator MakeInfoGenerator(AsymmetricKeyParameter key, X509Certificate cert,
+			string digestOID, Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
+        {
+            TspUtil.ValidateCertificate(cert);
 
 			//
 			// Add the ESSCertID attribute
@@ -620,13 +611,12 @@ namespace Org.BouncyCastle.Tsp.Tests
 			}
 			else
 			{
-				signedAttrs = Platform.CreateHashtable();
+				signedAttrs = new Hashtable();
 			}
 
-	
-
-			string digestName = CmsSignedHelper.Instance.GetDigestAlgName(digestOID);
-			string signatureName = digestName + "with" + CmsSignedHelper.Instance.GetEncryptionAlgName(CmsSignedHelper.Instance.GetEncOid(key, digestOID));
+			string digestName = TspTestUtil.GetDigestAlgName(digestOID);
+			string signatureName = digestName + "with" + TspTestUtil.GetEncryptionAlgName(
+				TspTestUtil.GetEncOid(key, digestOID));
 
 			Asn1SignatureFactory sigfact = new Asn1SignatureFactory(signatureName, key);
 			return new SignerInfoGeneratorBuilder()
@@ -637,6 +627,5 @@ namespace Org.BouncyCastle.Tsp.Tests
 				new SimpleAttributeTableGenerator(unsignedAttr))
 				.Build(sigfact, cert);
 		}
-
 	}
 }

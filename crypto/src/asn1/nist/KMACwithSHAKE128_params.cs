@@ -10,50 +10,44 @@ namespace Org.BouncyCastle.Asn1.Nist
     ///     customizationString  OCTET STRING DEFAULT ''H
     /// } 
     /// </summary>
-public class KMACwithSHAKE128_params : Asn1Encodable
+public class KMacWithShake128Params : Asn1Encodable
 {
-
     private static readonly byte[] EMPTY_STRING = new byte[0];
     private static readonly int DEF_LENGTH = 256;
 
     private readonly int outputLength;
     private readonly byte[] customizationString;
 
-
-    public KMACwithSHAKE128_params(int outputLength)
+    public KMacWithShake128Params(int outputLength)
     {
         this.outputLength = outputLength;
         this.customizationString = EMPTY_STRING;
     }
 
-    public KMACwithSHAKE128_params(int outputLength, byte[] customizationString)
+    public KMacWithShake128Params(int outputLength, byte[] customizationString)
     {
         this.outputLength = outputLength;
         this.customizationString = Arrays.Clone(customizationString);
     }
 
-
-    public static KMACwithSHAKE128_params getInstance(Object o)
+    public static KMacWithShake128Params GetInstance(object o)
     {
-        if (o is KMACwithSHAKE128_params)
+        if (o is KMacWithShake128Params)
         {
-            return (KMACwithSHAKE128_params)o;
+            return (KMacWithShake128Params)o;
         }
         else if (o != null)
         {
-            return new KMACwithSHAKE128_params(Asn1Sequence.GetInstance(o));
+            return new KMacWithShake128Params(Asn1Sequence.GetInstance(o));
         }
 
         return null;
     }
 
-
-    private KMACwithSHAKE128_params(Asn1Sequence seq)
+    private KMacWithShake128Params(Asn1Sequence seq)
     {
         if (seq.Count > 2)
-        {
             throw new InvalidOperationException("sequence size greater than 2");
-        }
 
         if (seq.Count == 2)
         {
@@ -80,8 +74,6 @@ public class KMACwithSHAKE128_params : Asn1Encodable
         }
     }
 
-
-
     public int OutputLength
     {
         get { return outputLength; }
@@ -91,7 +83,6 @@ public class KMACwithSHAKE128_params : Asn1Encodable
     {
         get { return Arrays.Clone(customizationString); }
     }
-
 
     public override Asn1Object ToAsn1Object()
     {

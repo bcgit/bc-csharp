@@ -1,20 +1,26 @@
-﻿using NUnit.Framework;
+﻿using System;
+
+using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
-    public class CSHAKETest
+    [TestFixture]
+    public class CShakeTest
+        : SimpleTest
     {
-        [Test]
-        public void PerformTest()
+        public override string Name
         {
-            CSHAKEDigest cshake = new CSHAKEDigest(128, new byte[0], Strings.ToByteArray("Email Signature"));
+            get { return "CSHAKE"; }
+        }
+
+        public override void PerformTest()
+        {
+            CShakeDigest cshake = new CShakeDigest(128, new byte[0], Strings.ToByteArray("Email Signature"));
            
             cshake.BlockUpdate(Hex.Decode("00010203"), 0, 4);
 
@@ -24,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("c1c36925b6409a04f1b504fcbca9d82b4017277cb5ed2b2065fc1d3814d5aaf5"), res));
 
-            cshake = new CSHAKEDigest(128, new byte[0], Strings.ToByteArray("Email Signature"));
+            cshake = new CShakeDigest(128, new byte[0], Strings.ToByteArray("Email Signature"));
 
             cshake.BlockUpdate(Hex.Decode(
           "000102030405060708090A0B0C0D0E0F" +
@@ -47,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("C5221D50E4F822D96A2E8881A961420F294B7B24FE3D2094BAED2C6524CC166B "), res));
 
-            cshake = new CSHAKEDigest(256, new byte[0], Strings.ToByteArray("Email Signature"));
+            cshake = new CShakeDigest(256, new byte[0], Strings.ToByteArray("Email Signature"));
 
             cshake.BlockUpdate(Hex.Decode("00010203"), 0, 4);
 
@@ -61,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Tests
            "64020E2BE0560858D9C00C037E34A969" +
            "37C561A74C412BB4C746469527281C8C"), res));
 
-            cshake = new CSHAKEDigest(256, new byte[0], Strings.ToByteArray("Email Signature"));
+            cshake = new CShakeDigest(256, new byte[0], Strings.ToByteArray("Email Signature"));
 
             cshake.BlockUpdate(Hex.Decode(
                 "000102030405060708090A0B0C0D0E0F" +
@@ -92,33 +98,33 @@ namespace Org.BouncyCastle.Crypto.Tests
             longBlockTest();
             checkZeroPadZ();
 
-            checkSHAKE(128, new CSHAKEDigest(128, new byte[0], new byte[0]), Hex.Decode("eeaabeef"));
-            checkSHAKE(256, new CSHAKEDigest(256, new byte[0], null), Hex.Decode("eeaabeef"));
-            checkSHAKE(128, new CSHAKEDigest(128, null, new byte[0]), Hex.Decode("eeaabeef"));
-            checkSHAKE(128, new CSHAKEDigest(128, null, null), Hex.Decode("eeaabeef"));
-            checkSHAKE(256, new CSHAKEDigest(256, null, null), Hex.Decode("eeaabeef"));
+            checkSHAKE(128, new CShakeDigest(128, new byte[0], new byte[0]), Hex.Decode("eeaabeef"));
+            checkSHAKE(256, new CShakeDigest(256, new byte[0], null), Hex.Decode("eeaabeef"));
+            checkSHAKE(128, new CShakeDigest(128, null, new byte[0]), Hex.Decode("eeaabeef"));
+            checkSHAKE(128, new CShakeDigest(128, null, null), Hex.Decode("eeaabeef"));
+            checkSHAKE(256, new CShakeDigest(256, null, null), Hex.Decode("eeaabeef"));
         }
 
         private void checkZeroPadZ()
         {
             byte[] buf = new byte[20];
 
-            CSHAKEDigest cshake1 = new CSHAKEDigest(256, new byte[0], new byte[265]);
+            CShakeDigest cshake1 = new CShakeDigest(256, new byte[0], new byte[265]);
             cshake1.DoOutput(buf, 0, buf.Length);
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("6e393540387004f087c4180db008acf6825190cf"), buf));
 
-            CSHAKEDigest cshake2 = new CSHAKEDigest(128, new byte[0], new byte[329]);
+            CShakeDigest cshake2 = new CShakeDigest(128, new byte[0], new byte[329]);
             cshake2.DoOutput(buf, 0, buf.Length);
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("309bd7c285fcf8b839c9686b2cc00bd578947bee"), buf));
 
-            cshake2 = new CSHAKEDigest(128, new byte[29], new byte[300]);
+            cshake2 = new CShakeDigest(128, new byte[29], new byte[300]);
             cshake2.DoOutput(buf, 0, buf.Length);
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("ff6aafd83b8d22fc3e2e9b9948b581967ed9c5e7"), buf));
         }
 
         private void doFinalTest()
         {
-            CSHAKEDigest cshake = new CSHAKEDigest(128, new byte[0], Strings.ToByteArray("Email Signature"));
+            CShakeDigest cshake = new CShakeDigest(128, new byte[0], Strings.ToByteArray("Email Signature"));
 
             cshake.BlockUpdate(Hex.Decode("00010203"), 0, 4);
 
@@ -138,7 +144,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             cshake.DoFinal(res, 0, res.Length);
 
-            var s = Hex.ToHexString(res);
+            string s = Hex.ToHexString(res);
 
             Console.WriteLine(s);
 
@@ -167,7 +173,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             
                 for (int i = 10000; i != data.Length; i++)
                 {
-                    CSHAKEDigest cshake_ = new CSHAKEDigest(128, new byte[0], Arrays.CopyOfRange(data, 0, i));
+                    CShakeDigest cshake_ = new CShakeDigest(128, new byte[0], Arrays.CopyOfRange(data, 0, i));
 
                     cshake_.BlockUpdate(Hex.Decode("00010203"), 0, 4);
 
@@ -175,7 +181,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 }
             
 
-            CSHAKEDigest cshake = new CSHAKEDigest(256, new byte[0], new byte[200]);
+            CShakeDigest cshake = new CShakeDigest(256, new byte[0], new byte[200]);
 
             cshake.BlockUpdate(Arrays.CopyOfRange(data, 0, 200), 0, 200);
 
@@ -184,7 +190,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("4a899b5be460d85a9789215bc17f88b8f8ac049bd3b519f561e7b5d3870dafa3"), res));
         }
 
-        private void checkSHAKE(int bitSize, CSHAKEDigest cshake, byte[] msg)
+        private void checkSHAKE(int bitSize, CShakeDigest cshake, byte[] msg)
         {
             
             ShakeDigest ref_ = new ShakeDigest(bitSize);
@@ -201,5 +207,18 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.IsTrue(Arrays.AreEqual(res1, res2));
         }
 
+        public static void Main(
+            string[] args)
+        {
+            RunTest(new CShakeTest());
+        }
+
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
+        }
     }
 }

@@ -9,50 +9,44 @@ namespace Org.BouncyCastle.Asn1.Nist
     ///     customizationString  OCTET STRING DEFAULT ''H
     /// } 
     /// </summary>
-public class KMACwithSHAKE256_params : Asn1Encodable
+public class KMacWithShake256Params : Asn1Encodable
 {
-
     private static readonly byte[] EMPTY_STRING = new byte[0];
     private static readonly int DEF_LENGTH = 512;
 
     private readonly int outputLength;
     private readonly byte[] customizationString;
 
-
-    public KMACwithSHAKE256_params(int outputLength)
+    public KMacWithShake256Params(int outputLength)
     {
         this.outputLength = outputLength;
         this.customizationString = EMPTY_STRING;
     }
 
-    public KMACwithSHAKE256_params(int outputLength, byte[] customizationString)
+    public KMacWithShake256Params(int outputLength, byte[] customizationString)
     {
         this.outputLength = outputLength;
         this.customizationString = Arrays.Clone(customizationString);
     }
 
-
-    public static KMACwithSHAKE256_params getInstance(Object o)
+    public static KMacWithShake256Params GetInstance(Object o)
     {
-        if (o is KMACwithSHAKE256_params)
+        if (o is KMacWithShake256Params)
         {
-            return (KMACwithSHAKE256_params)o;
+            return (KMacWithShake256Params)o;
         }
         else if (o != null)
         {
-            return new KMACwithSHAKE256_params(Asn1Sequence.GetInstance(o));
+            return new KMacWithShake256Params(Asn1Sequence.GetInstance(o));
         }
 
         return null;
     }
 
-
-    private KMACwithSHAKE256_params(Asn1Sequence seq)
+    private KMacWithShake256Params(Asn1Sequence seq)
     {
         if (seq.Count > 2)
-        {
             throw new InvalidOperationException("sequence size greater than 2");
-        }
 
         if (seq.Count == 2)
         {
@@ -79,8 +73,6 @@ public class KMACwithSHAKE256_params : Asn1Encodable
         }
     }
 
-
-
     public int OutputLength
     {
         get { return outputLength; }
@@ -90,7 +82,6 @@ public class KMACwithSHAKE256_params : Asn1Encodable
     {
         get { return Arrays.Clone(customizationString); }
     }
-
 
     public override Asn1Object ToAsn1Object()
     {
