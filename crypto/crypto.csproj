@@ -1484,6 +1484,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\nist\KMACwithSHAKE128_params.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\nist\KMACwithSHAKE256_params.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\nist\NISTNamedCurves.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3564,6 +3574,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\digests\CSHAKEDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\digests\DSTU7564Digest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3715,6 +3730,11 @@
                 />
                 <File
                     RelPath = "src\crypto\digests\WhirlpoolDigest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\digests\XofUtils.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4279,6 +4299,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\macs\ISO9797Alg3Mac.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\macs\KMac.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\macs\Poly1305.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -4290,11 +4320,6 @@
                 />
                 <File
                     RelPath = "src\crypto\macs\SkeinMac.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\crypto\macs\ISO9797Alg3Mac.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11763,6 +11788,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\asn1\test\KMacParamsTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\asn1\test\LDSSecurityObjectUnitTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12218,6 +12248,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\CSHAKETest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\CTSTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -12339,6 +12374,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\GMacTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\KMACTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

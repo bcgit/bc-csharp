@@ -84,6 +84,7 @@
     <Compile Include="src\asn1\test\Iso4217CurrencyCodeUnitTest.cs" />
     <Compile Include="src\asn1\test\IssuingDistributionPointTest.cs" />
     <Compile Include="src\asn1\test\KeyUsageTest.cs" />
+    <Compile Include="src\asn1\test\KMacParamsTest.cs" />
     <Compile Include="src\asn1\test\LDSSecurityObjectUnitTest.cs" />
     <Compile Include="src\asn1\test\LinkedCertificateTest.cs" />
     <Compile Include="src\asn1\test\MiscTest.cs" />
@@ -171,6 +172,7 @@
     <Compile Include="src\crypto\test\ChaCha20Poly1305Test.cs" />
     <Compile Include="src\crypto\test\ChaChaTest.cs" />
     <Compile Include="src\crypto\test\CMacTest.cs" />
+    <Compile Include="src\crypto\test\CSHAKETest.cs" />
     <Compile Include="src\crypto\test\CTSTest.cs" />
     <Compile Include="src\crypto\test\CamelliaLightTest.cs" />
     <Compile Include="src\crypto\test\CamelliaTest.cs" />
@@ -216,6 +218,7 @@
     <Compile Include="src\crypto\test\KDF1GeneratorTest.cs" />
     <Compile Include="src\crypto\test\KDF2GeneratorTest.cs" />
     <Compile Include="src\crypto\test\KeccakDigestTest.cs" />
+    <Compile Include="src\crypto\test\KMACTest.cs" />
     <Compile Include="src\crypto\test\MD2DigestTest.cs" />
     <Compile Include="src\crypto\test\MD4DigestTest.cs" />
     <Compile Include="src\crypto\test\MD5DigestTest.cs" />
