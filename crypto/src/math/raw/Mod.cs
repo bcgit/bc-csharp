@@ -486,24 +486,6 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
-        //private static void Negate30(int len, int[] D)
-        //{
-        //    Debug.Assert(len > 0);
-        //    Debug.Assert(D.Length >= len);
-
-        //    int last = len - 1;
-        //    long cd = 0L;
-
-        //    for (int i = 0; i < last; ++i)
-        //    {
-        //        cd -= D[i];
-        //        D[i] = (int)cd & M30; cd >>= 30;
-        //    }
-
-        //    cd -= D[last];
-        //    D[last] = (int)cd;
-        //}
-
         private static int Negate30(int len30, int[] D)
         {
             Debug.Assert(len30 > 0);
