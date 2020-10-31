@@ -8275,6 +8275,10 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\crypto\nist_ecc.txt"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\crypto\SHA3TestVectors.txt"
                     BuildAction = "EmbeddedResource"
                 />
@@ -12379,6 +12383,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\KMACTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\NistEccTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
