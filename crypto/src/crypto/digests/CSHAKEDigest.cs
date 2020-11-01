@@ -1,15 +1,13 @@
-﻿using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
     /// <summary>
     /// Customizable SHAKE function.
     /// </summary>
-    public class CSHAKEDigest : ShakeDigest
+    public class CShakeDigest : ShakeDigest
     {
         private static readonly byte[] padding = new byte[100];
         private readonly byte[] diff;
@@ -20,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// <param name="bitLength">bit length of the underlying SHAKE function, 128 or 256.</param>
         /// <param name="N">the function name string, note this is reserved for use by NIST. Avoid using it if not required.</param>
         /// <param name="S">the customization string - available for local use.</param>
-        public CSHAKEDigest(int bitLength, byte[] N, byte[] S) : base(bitLength)
+        public CShakeDigest(int bitLength, byte[] N, byte[] S) : base(bitLength)
         {
             if ((N == null || N.Length == 0) && (S == null || S.Length == 0))
             {
@@ -28,11 +26,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             else
             {
-                diff = Arrays.ConcatenateAll(XofUtils.leftEncode(rate / 8), encodeString(N), encodeString(S));
+                diff = Arrays.ConcatenateAll(XofUtilities.LeftEncode(rate / 8), encodeString(N), encodeString(S));
                 DiffPadAndAbsorb();
             }
         }
-
 
         // bytepad in SP 800-185
         private void DiffPadAndAbsorb()
@@ -61,13 +58,16 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             if (str == null || str.Length == 0)
             {
-                return XofUtils.leftEncode(0);
+                return XofUtilities.LeftEncode(0);
             }
 
-            return Arrays.Concatenate(XofUtils.leftEncode(str.Length * 8L), str);
+            return Arrays.Concatenate(XofUtilities.LeftEncode(str.Length * 8L), str);
         }
 
-        public override string AlgorithmName => "CSHAKE" + fixedOutputLength;
+        public override string AlgorithmName
+        {
+            get { return "CSHAKE" + fixedOutputLength; }
+        }
 
         public override int DoFinal(byte[] output, int outOff)
         {           
@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        public void Reset()
+        public override void Reset()
         {
             base.Reset();
 

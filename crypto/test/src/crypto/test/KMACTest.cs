@@ -1,19 +1,26 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Text;
+
+using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
-    public class KMACTest
+    [TestFixture]
+    public class KMacTest
+        : SimpleTest
     {
-        [Test]
-        public void performTest()
+        public override string Name
+        {
+            get { return "KMAC"; }
+        }
+
+        public override void PerformTest()
         {
             KMac kmac = new KMac(128,  new byte[0] { });
 
@@ -133,7 +140,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         }
 
-        public void doFinalTest()
+        private void doFinalTest()
         {
             KMac kmac = new KMac(128, Encoding.ASCII.GetBytes("My Tagged Application"));
 
@@ -240,6 +247,20 @@ namespace Org.BouncyCastle.Crypto.Tests
             kmac.DoFinal(res2, 0, res2.Length);
 
             Assert.IsTrue(Arrays.AreEqual(res1, res2));
+        }
+
+        public static void Main(
+            string[] args)
+        {
+            RunTest(new KMacTest());
+        }
+
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
         }
     }
 }

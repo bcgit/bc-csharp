@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    public class XofUtils
+    internal class XofUtilities
     {
-        public static byte[] leftEncode(long strLen)
+        internal static byte[] LeftEncode(long strLen)
         {
             byte n = 1;
 
@@ -29,7 +26,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return b;
         }
 
-        public static byte[] rightEncode(long strLen)
+        internal static byte[] RightEncode(long strLen)
         {
             byte n = 1;
 
