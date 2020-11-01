@@ -325,6 +325,8 @@
     <Compile Include="src\asn1\misc\NetscapeRevocationURL.cs" />
     <Compile Include="src\asn1\misc\VerisignCzagExtension.cs" />
     <Compile Include="src\asn1\mozilla\PublicKeyAndChallenge.cs" />
+    <Compile Include="src\asn1\nist\KMACwithSHAKE128_params.cs" />
+    <Compile Include="src\asn1\nist\KMACwithSHAKE256_params.cs" />
     <Compile Include="src\asn1\nist\NISTNamedCurves.cs" />
     <Compile Include="src\asn1\nist\NISTObjectIdentifiers.cs" />
     <Compile Include="src\asn1\ntt\NTTObjectIdentifiers.cs" />
@@ -748,6 +750,7 @@
     <Compile Include="src\crypto\agreement\srp\SRP6VerifierGenerator.cs" />
     <Compile Include="src\crypto\digests\Blake2bDigest.cs" />
     <Compile Include="src\crypto\digests\Blake2sDigest.cs" />
+    <Compile Include="src\crypto\digests\CSHAKEDigest.cs" />
     <Compile Include="src\crypto\digests\DSTU7564Digest.cs" />
     <Compile Include="src\crypto\digests\GeneralDigest.cs" />
     <Compile Include="src\crypto\digests\GOST3411Digest.cs" />
@@ -778,6 +781,7 @@
     <Compile Include="src\crypto\digests\SkeinEngine.cs" />
     <Compile Include="src\crypto\digests\TigerDigest.cs" />
     <Compile Include="src\crypto\digests\WhirlpoolDigest.cs" />
+    <Compile Include="src\crypto\digests\XofUtils.cs" />
     <Compile Include="src\crypto\ec\CustomNamedCurves.cs" />
     <Compile Include="src\crypto\encodings\ISO9796d1Encoding.cs" />
     <Compile Include="src\crypto\encodings\OaepEncoding.cs" />
@@ -886,6 +890,7 @@
     <Compile Include="src\crypto\macs\GOST28147Mac.cs" />
     <Compile Include="src\crypto\macs\HMac.cs" />
     <Compile Include="src\crypto\macs\ISO9797Alg3Mac.cs" />
+    <Compile Include="src\crypto\macs\KMac.cs" />
     <Compile Include="src\crypto\macs\Poly1305.cs" />
     <Compile Include="src\crypto\macs\SipHash.cs" />
     <Compile Include="src\crypto\macs\SkeinMac.cs" />

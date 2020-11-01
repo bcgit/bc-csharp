@@ -143,7 +143,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             new Ed448Test(),
             new KdfCounterTests(), 
             new KdfDoublePipelineTests(), 
-            new KdfFeedbackCounterTests()
+            new KdfFeedbackCounterTests(),
+            new CShakeTest(),
+            new KMacTest()
         };
 
         public static void Main(string[] args)

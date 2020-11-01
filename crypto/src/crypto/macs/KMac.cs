@@ -1,19 +1,18 @@
-﻿using Org.BouncyCastle.Crypto.Digests;
+﻿using System;
+using System.Text;
+
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Org.BouncyCastle.Crypto.Macs
 {
-    public class KMac : IMac, IXof
+    public class KMac
+        : IMac, IXof
     {
-
         private static readonly byte[] padding = new byte[100];
 
-        private readonly CSHAKEDigest cshake;
+        private readonly CShakeDigest cshake;
         private readonly int bitLength;
         private readonly int outputLength;
 
@@ -21,23 +20,22 @@ namespace Org.BouncyCastle.Crypto.Macs
         private bool initialised;
         private bool firstOutput;
 
-
         public KMac(int bitLength, byte[] S)
         {
-            this.cshake = new CSHAKEDigest(bitLength, Encoding.ASCII.GetBytes("KMAC"),S);
+            this.cshake = new CShakeDigest(bitLength, Encoding.ASCII.GetBytes("KMAC"), S);
             this.bitLength = bitLength;
             this.outputLength = bitLength * 2 / 8;
         }
 
-
-        public string AlgorithmName => "KMAC" + cshake.AlgorithmName.Substring(6);
+        public string AlgorithmName
+        {
+            get { return "KMAC" + cshake.AlgorithmName.Substring(6); }
+        }
 
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (!initialised)
-            {
                 throw new InvalidOperationException("KMAC not initialized");
-            }
 
             cshake.BlockUpdate(input, inOff, len);
         }
@@ -47,11 +45,9 @@ namespace Org.BouncyCastle.Crypto.Macs
             if (firstOutput)
             {
                 if (!initialised)
-                {
                     throw new InvalidOperationException("KMAC not initialized");
-                }
 
-                byte[] encOut = XofUtils.rightEncode(GetMacSize() * 8);
+                byte[] encOut = XofUtilities.RightEncode(GetMacSize() * 8);
 
                 cshake.BlockUpdate(encOut, 0, encOut.Length);
             }
@@ -68,11 +64,9 @@ namespace Org.BouncyCastle.Crypto.Macs
             if (firstOutput)
             {
                 if (!initialised)
-                {
                     throw new InvalidOperationException("KMAC not initialized");
-                }
 
-                byte[] encOut = XofUtils.rightEncode(outLen * 8);
+                byte[] encOut = XofUtilities.RightEncode(outLen * 8);
 
                 cshake.BlockUpdate(encOut, 0, encOut.Length);
             }
@@ -89,11 +83,9 @@ namespace Org.BouncyCastle.Crypto.Macs
             if (firstOutput)
             {
                 if (!initialised)
-                {
                     throw new InvalidOperationException("KMAC not initialized");
-                }
 
-                byte[] encOut = XofUtils.rightEncode(0);
+                byte[] encOut = XofUtilities.RightEncode(0);
 
                 cshake.BlockUpdate(encOut, 0, encOut.Length);
 
@@ -147,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         private void bytePad(byte[] X, int w)
         {
-            byte[] bytes = XofUtils.leftEncode(w);
+            byte[] bytes = XofUtilities.LeftEncode(w);
             BlockUpdate(bytes, 0, bytes.Length);
             byte[] encX = encode(X);
             BlockUpdate(encX, 0, encX.Length);
@@ -168,15 +160,13 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         private static byte[] encode(byte[] X)
         {
-            return Arrays.Concatenate(XofUtils.leftEncode(X.Length * 8), X);
+            return Arrays.Concatenate(XofUtilities.LeftEncode(X.Length * 8), X);
         }
 
         public void Update(byte input)
         {
             if (!initialised)
-            {
                 throw new InvalidOperationException("KMAC not initialized");
-            }
 
             cshake.Update(input);
         }

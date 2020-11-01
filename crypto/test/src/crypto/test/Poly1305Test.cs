@@ -13,8 +13,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
-	/*
-	 */
+	[TestFixture]
 	public class Poly1305Test
 		: SimpleTest
 	{

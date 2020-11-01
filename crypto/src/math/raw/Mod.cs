@@ -82,15 +82,18 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert(-1 == signF | 0 == signF);
 
             CNegate30(len30, signF, F);
-            CNegate30(len30, signF, D);
 
-            Decode30(bits, D, 0, z, 0);
-
-            int signD = D[len30 - 1] >> 31;
+            int signD = CNegate30(len30, signF, D);
             Debug.Assert(-1 == signD | 0 == signD);
 
-            signD += (int)Nat.CAdd(len32, signD, z, m, z);
-            Debug.Assert(0 == signD & 0 != Nat.LessThan(len32, z, m));
+            // TODO 'D' should already be in [P, -P), but absent a proof we support [-2P, 2P)  
+            signD = CSub30(len30, ~signD, D, M);
+            signD = CAdd30(len30,  signD, D, M);
+            signD = CAdd30(len30,  signD, D, M);
+            Debug.Assert(0 == signD);
+
+            Decode30(bits, D, 0, z, 0);
+            Debug.Assert(0 != Nat.LessThan(len32, z, m));
 
             return (uint)(EqualTo(len30, F, 1) & EqualToZero(len30, G));
         }
@@ -162,16 +165,26 @@ namespace Org.BouncyCastle.Math.Raw
             if (!IsOne(lenFG, F))
                 return false;
 
-            Decode30(bits, D, 0, z, 0);
-
             int signD = D[lenDE - 1] >> 31;
             Debug.Assert(-1 == signD | 0 == signD);
 
+            // TODO 'D' should already be in [P, -P), but absent a proof we support [-2P, 2P)  
             if (signD < 0)
             {
-                signD += (int)Nat.AddTo(len32, m, z);
+                signD = Add30(len30, D, M);
             }
-            Debug.Assert(0 == signD && !Nat.Gte(len32, z, m));
+            else
+            {
+                signD = Sub30(len30, D, M);
+            }
+            if (signD < 0)
+            {
+                signD = Add30(len30, D, M);
+            }
+            Debug.Assert(0 == signD);
+
+            Decode30(bits, D, 0, z, 0);
+            Debug.Assert(!Nat.Gte(len32, z, m));
 
             return true;
         }
@@ -200,22 +213,71 @@ namespace Org.BouncyCastle.Math.Raw
             return s;
         }
 
-        private static void CNegate30(int len, int cond, int[] D)
+        private static int Add30(int len30, int[] D, int[] M)
         {
-            Debug.Assert(len > 0);
-            Debug.Assert(D.Length >= len);
+            Debug.Assert(len30 > 0);
+            Debug.Assert(D.Length >= len30);
+            Debug.Assert(M.Length >= len30);
 
-            int last = len - 1;
-            long cd = 0L;
-
+            int c = 0, last = len30 - 1;
             for (int i = 0; i < last; ++i)
             {
-                cd += (D[i] ^ cond) - cond;
-                D[i] = (int)cd & M30; cd >>= 30;
+                c += D[i] + M[i];
+                D[i] = c & M30; c >>= 30;
             }
+            c += D[last] + M[last];
+            D[last] = c; c >>= 30;
+            return c;
+        }
 
-            cd += (D[last] ^ cond) - cond;
-            D[last] = (int)cd;
+        private static int CAdd30(int len30, int cond, int[] D, int[] M)
+        {
+            Debug.Assert(len30 > 0);
+            Debug.Assert(D.Length >= len30);
+            Debug.Assert(M.Length >= len30);
+
+            int c = 0, last = len30 - 1;
+            for (int i = 0; i < last; ++i)
+            {
+                c += D[i] + (M[i] & cond);
+                D[i] = c & M30; c >>= 30;
+            }
+            c += D[last] + (M[last] & cond);
+            D[last] = c; c >>= 30;
+            return c;
+        }
+
+        private static int CNegate30(int len30, int cond, int[] D)
+        {
+            Debug.Assert(len30 > 0);
+            Debug.Assert(D.Length >= len30);
+
+            int c = 0, last = len30 - 1;
+            for (int i = 0; i < last; ++i)
+            {
+                c += (D[i] ^ cond) - cond;
+                D[i] = c & M30; c >>= 30;
+            }
+            c += (D[last] ^ cond) - cond;
+            D[last] = c; c >>= 30;
+            return c;
+        }
+
+        private static int CSub30(int len30, int cond, int[] D, int[] M)
+        {
+            Debug.Assert(len30 > 0);
+            Debug.Assert(D.Length >= len30);
+            Debug.Assert(M.Length >= len30);
+
+            int c = 0, last = len30 - 1;
+            for (int i = 0; i < last; ++i)
+            {
+                c += D[i] - (M[i] & cond);
+                D[i] = c & M30; c >>= 30;
+            }
+            c += D[last] - (M[last] & cond);
+            D[last] = c; c >>= 30;
+            return c;
         }
 
         private static void Decode30(int bits, int[] x, int xOff, uint[] z, int zOff)
@@ -424,30 +486,45 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
-        private static void Negate30(int len, int[] D)
+        private static int Negate30(int len30, int[] D)
         {
-            Debug.Assert(len > 0);
-            Debug.Assert(D.Length >= len);
+            Debug.Assert(len30 > 0);
+            Debug.Assert(D.Length >= len30);
 
-            int last = len - 1;
-            long cd = 0L;
-
+            int c = 0, last = len30 - 1;
             for (int i = 0; i < last; ++i)
             {
-                cd -= D[i];
-                D[i] = (int)cd & M30; cd >>= 30;
+                c -= D[i];
+                D[i] = c & M30; c >>= 30;
             }
-
-            cd -= D[last];
-            D[last] = (int)cd;
+            c -= D[last];
+            D[last] = c; c >>= 30;
+            return c;
         }
 
-        private static void UpdateDE30(int len, int[] D, int[] E, int[] t, int m0Inv30x4, int[] M)
+        private static int Sub30(int len30, int[] D, int[] M)
         {
-            Debug.Assert(len > 0);
-            Debug.Assert(D.Length >= len);
-            Debug.Assert(E.Length >= len);
-            Debug.Assert(M.Length >= len);
+            Debug.Assert(len30 > 0);
+            Debug.Assert(D.Length >= len30);
+            Debug.Assert(M.Length >= len30);
+
+            int c = 0, last = len30 - 1;
+            for (int i = 0; i < last; ++i)
+            {
+                c += D[i] - M[i];
+                D[i] = c & M30; c >>= 30;
+            }
+            c += D[last] - M[last];
+            D[last] = c; c >>= 30;
+            return c;
+        }
+
+        private static void UpdateDE30(int len30, int[] D, int[] E, int[] t, int m0Inv30x4, int[] M)
+        {
+            Debug.Assert(len30 > 0);
+            Debug.Assert(D.Length >= len30);
+            Debug.Assert(E.Length >= len30);
+            Debug.Assert(M.Length >= len30);
             Debug.Assert(m0Inv30x4 * M[0] == -1 << 2);
 
             int u = t[0], v = t[1], q = t[2], r = t[3];
@@ -472,7 +549,7 @@ namespace Org.BouncyCastle.Math.Raw
             cd >>= 30;
             ce >>= 30;
 
-            for (i = 1; i < len; ++i)
+            for (i = 1; i < len30; ++i)
             {
                 di = D[i];
                 ei = E[i];
@@ -487,15 +564,15 @@ namespace Org.BouncyCastle.Math.Raw
                 E[i - 1] = (int)ce & M30; ce >>= 30;
             }
 
-            D[len - 1] = (int)cd;
-            E[len - 1] = (int)ce;
+            D[len30 - 1] = (int)cd;
+            E[len30 - 1] = (int)ce;
         }
 
-        private static void UpdateFG30(int len, int[] F, int[] G, int[] t)
+        private static void UpdateFG30(int len30, int[] F, int[] G, int[] t)
         {
-            Debug.Assert(len > 0);
-            Debug.Assert(F.Length >= len);
-            Debug.Assert(G.Length >= len);
+            Debug.Assert(len30 > 0);
+            Debug.Assert(F.Length >= len30);
+            Debug.Assert(G.Length >= len30);
 
             int u = t[0], v = t[1], q = t[2], r = t[3];
             int fi, gi, i;
@@ -513,7 +590,7 @@ namespace Org.BouncyCastle.Math.Raw
             cf >>= 30;
             cg >>= 30;
 
-            for (i = 1; i < len; ++i)
+            for (i = 1; i < len30; ++i)
             {
                 fi = F[i];
                 gi = G[i];
@@ -525,8 +602,8 @@ namespace Org.BouncyCastle.Math.Raw
                 G[i - 1] = (int)cg & M30; cg >>= 30;
             }
 
-            F[len - 1] = (int)cf;
-            G[len - 1] = (int)cg;
+            F[len30 - 1] = (int)cf;
+            G[len30 - 1] = (int)cg;
         }
     }
 }

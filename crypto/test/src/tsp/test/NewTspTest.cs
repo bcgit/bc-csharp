@@ -1,7 +1,11 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Collections;
+using System.IO;
+
+using NUnit.Framework;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
-using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
@@ -15,19 +19,12 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
-using System;
-using System.Collections;
-using System.IO;
-
 
 namespace Org.BouncyCastle.Tsp.Tests
 {
-
-
 	public class NewTspTest
 	{
 		private static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0);
-
 
 		[Test]
 		public void TestGeneral()
@@ -38,18 +35,17 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			string origDN = "CN=Eric H. Echidna, E=eric@bouncycastle.org, O=Bouncy Castle, C=AU";
 			AsymmetricCipherKeyPair origKP = TspTestUtil.MakeKeyPair();
-			var privateKey = origKP.Private;
+			AsymmetricKeyParameter privateKey = origKP.Private;
 
-			var cert = TspTestUtil.MakeCertificate(origKP, origDN, signKP, signDN);
+			X509Certificate cert = TspTestUtil.MakeCertificate(origKP, origDN, signKP, signDN);
 
 			IList certList = new ArrayList();
 			certList.Add(cert);
 			certList.Add(signCert);
 
-			var certs = X509StoreFactory.Create(
+			IX509Store certs = X509StoreFactory.Create(
 				"Certificate/Collection",
 				new X509CollectionStoreParameters(certList));
-
 
 			basicTest(origKP.Private, cert, certs);
 			resolutionTest(origKP.Private, cert, certs, Resolution.R_SECONDS, "19700101000009Z");
@@ -71,7 +67,6 @@ namespace Org.BouncyCastle.Tsp.Tests
 			testNoNonse(origKP.Private, cert, certs);
 			extensionTest(origKP.Private, cert, certs);
 			additionalExtensionTest(origKP.Private, cert, certs);
-
 		}
 
         private void additionalExtensionTest(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
@@ -378,15 +373,15 @@ namespace Org.BouncyCastle.Tsp.Tests
 			{
 				tsToken.Validate(cert);
 			}
-			catch (TspValidationException e)
+			catch (TspValidationException)
 			{
 				Assert.Fail("certReq(false) verification of token failed.");
 			}
 
-			var store = tsToken.GetCertificates();
-			var certsColl = store.GetMatches(null);
+			IX509Store store = tsToken.GetCertificates();
+			ICollection certsColl = store.GetMatches(null);
 
-			if (certsColl.Count >0)
+			if (certsColl.Count > 0)
 			{
 				Assert.Fail("certReq(false) found certificates in response.");
 			}
@@ -654,7 +649,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 				IStreamCalculator calc = digCalc.CreateCalculator();
 				using (Stream s = calc.Stream)
 				{
-					var crt = cert.GetEncoded();
+					byte[] crt = cert.GetEncoded();
 					s.Write(crt, 0, crt.Length);
 				}
 
@@ -667,7 +662,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 				IStreamCalculator calc = digCalc.CreateCalculator();
 				using (Stream s = calc.Stream)
 				{
-					var crt = cert.GetEncoded();
+					byte[] crt = cert.GetEncoded();
 					s.Write(crt, 0, crt.Length);
 				}
 
@@ -761,13 +756,12 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 		private void basicSha256Test(AsymmetricKeyParameter privateKey, X509Certificate cert, IX509Store certs)
 		{
-			var sInfoGenerator = makeInfoGenerator(privateKey, cert, TspAlgorithms.Sha256, null, null);
-			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
-				sInfoGenerator,
-				Asn1DigestFactory.Get(NistObjectIdentifiers.IdSha256), new DerObjectIdentifier("1.2"), true);
+			SignerInfoGenerator sInfoGenerator = makeInfoGenerator(privateKey, cert, TspAlgorithms.Sha256, null, null);
+            TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+                sInfoGenerator,
+                Asn1DigestFactory.Get(NistObjectIdentifiers.IdSha256), new DerObjectIdentifier("1.2"), true);
 
-
-			tsTokenGen.SetCertificates(certs);
+            tsTokenGen.SetCertificates(certs);
 
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
 			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha256, new byte[32], BigInteger.ValueOf(100));
@@ -792,7 +786,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			IStreamCalculator calc = digCalc.CreateCalculator();
 			using (Stream s = calc.Stream)
 			{
-				var crt = cert.GetEncoded();
+				byte[] crt = cert.GetEncoded();
 				s.Write(crt, 0, crt.Length);
 			}
 
@@ -802,7 +796,6 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			Assert.IsTrue(Arrays.AreEqual(certHash, sigCertV2.GetCerts()[0].GetCertHash()));
 		}
-
 
 		private void resolutionTest(AsymmetricKeyParameter privateKey, X509.X509Certificate cert, IX509Store certs, Resolution resoution, string timeString)
 		{
@@ -882,8 +875,6 @@ namespace Org.BouncyCastle.Tsp.Tests
 		 Asn1.Cms.AttributeTable signedAttr,
 		 Asn1.Cms.AttributeTable unsignedAttr)
 		{
-
-
 			TspUtil.ValidateCertificate(cert);
 
 			//
@@ -896,13 +887,12 @@ namespace Org.BouncyCastle.Tsp.Tests
 			}
 			else
 			{
-				signedAttrs = Platform.CreateHashtable();
+				signedAttrs = new Hashtable();
 			}
 
-
-
-			string digestName = CmsSignedHelper.Instance.GetDigestAlgName(digestOID);
-			string signatureName = digestName + "with" + CmsSignedHelper.Instance.GetEncryptionAlgName(CmsSignedHelper.Instance.GetEncOid(key, digestOID));
+            string digestName = TspTestUtil.GetDigestAlgName(digestOID);
+            string signatureName = digestName + "with" + TspTestUtil.GetEncryptionAlgName(
+				TspTestUtil.GetEncOid(key, digestOID));
 
 			Asn1SignatureFactory sigfact = new Asn1SignatureFactory(signatureName, key);
 			return new SignerInfoGeneratorBuilder()
