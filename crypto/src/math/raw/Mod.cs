@@ -54,7 +54,6 @@ namespace Org.BouncyCastle.Math.Raw
 
             int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
             int len30 = (bits + 29) / 30;
-            int m0Inv30x4 = -(int)Inverse32(m[0]) << 2;
 
             int[] t = new int[4];
             int[] D = new int[len30];
@@ -69,31 +68,32 @@ namespace Org.BouncyCastle.Math.Raw
             Array.Copy(M, 0, F, 0, len30);
 
             int eta = -1;
+            int m0Inv32 = (int)Inverse32((uint)M[0]);
             int maxDivsteps = GetMaximumDivsteps(bits);
 
             for (int divSteps = 0; divSteps < maxDivsteps; divSteps += 30)
             {
                 eta = Divsteps30(eta, F[0], G[0], t);
-                UpdateDE30(len30, D, E, t, m0Inv30x4, M);
+                UpdateDE30(len30, D, E, t, m0Inv32, M);
                 UpdateFG30(len30, F, G, t);
             }
 
             int signF = F[len30 - 1] >> 31;
-            Debug.Assert(-1 == signF | 0 == signF);
 
-            CNegate30(len30, signF, F);
-
-            int signD = CNegate30(len30, signF, D);
-            Debug.Assert(-1 == signD | 0 == signD);
-
-            // TODO 'D' should already be in [P, -P), but absent a proof we support [-2P, 2P)  
-            signD = CSub30(len30, ~signD, D, M);
-            signD = CAdd30(len30,  signD, D, M);
-            signD = CAdd30(len30,  signD, D, M);
-            Debug.Assert(0 == signD);
+            /*
+             * D is in the range (-2.M, M). First, conditionally add M if D is negative, to bring it
+             * into the range (-M, M). Then normalize by conditionally negating (according to signF)
+             * and/or then adding M, to bring it into the range [0, M).
+             */
+            int signD = D[len30 - 1] >> 31;
+            signD = CAdd30(len30, signD, D, M);
+            CNormalize30(len30, signF, D, M);
 
             Decode30(bits, D, 0, z, 0);
             Debug.Assert(0 != Nat.LessThan(len32, z, m));
+
+            signF = CNegate30(len30, signF, F);
+            Debug.Assert(0 == signF);
 
             return (uint)(EqualTo(len30, F, 1) & EqualToZero(len30, G));
         }
@@ -107,7 +107,6 @@ namespace Org.BouncyCastle.Math.Raw
 
             int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
             int len30 = (bits + 29) / 30;
-            int m0Inv30x4 = -(int)Inverse32(m[0]) << 2;
 
             int[] t = new int[4];
             int[] D = new int[len30];
@@ -124,6 +123,7 @@ namespace Org.BouncyCastle.Math.Raw
             int clzG = Integers.NumberOfLeadingZeros(G[len30 - 1] | 1) - (len30 * 30 + 2 - bits);
             int eta = -1 - clzG;
             int lenDE = len30, lenFG = len30;
+            int m0Inv32 = (int)Inverse32((uint)M[0]);
             int maxDivsteps = GetMaximumDivsteps(bits);
 
             int divsteps = 0;
@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Math.Raw
                 divsteps += 30;
 
                 eta = Divsteps30Var(eta, F[0], G[0], t);
-                UpdateDE30(lenDE, D, E, t, m0Inv30x4, M);
+                UpdateDE30(lenDE, D, E, t, m0Inv32, M);
                 UpdateFG30(lenFG, F, G, t);
 
                 int fn = F[lenFG - 1];
@@ -154,32 +154,30 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             int signF = F[lenFG - 1] >> 31;
-            Debug.Assert(-1 == signF | 0 == signF);
 
-            if (0 != signF)
+            /*
+             * D is in the range (-2.M, M). First, conditionally add M if D is negative, to bring it
+             * into the range (-M, M). Then normalize by conditionally negating (according to signF)
+             * and/or then adding M, to bring it into the range [0, M).
+             */
+            int signD = D[lenDE - 1] >> 31;
+            if (signD < 0)
             {
-                Negate30(lenFG, F);
-                Negate30(lenDE, D);
+                signD = Add30(lenDE, D, M);
             }
+            if (signF < 0)
+            {
+                signD = Negate30(lenDE, D);
+                signF = Negate30(lenFG, F);
+            }
+            Debug.Assert(0 == signF);
 
             if (!IsOne(lenFG, F))
                 return false;
 
-            int signD = D[lenDE - 1] >> 31;
-            Debug.Assert(-1 == signD | 0 == signD);
-
-            // TODO 'D' should already be in [P, -P), but absent a proof we support [-2P, 2P)  
             if (signD < 0)
             {
-                signD = Add30(len30, D, M);
-            }
-            else
-            {
-                signD = Sub30(len30, D, M);
-            }
-            if (signD < 0)
-            {
-                signD = Add30(len30, D, M);
+                signD = Add30(lenDE, D, M);
             }
             Debug.Assert(0 == signD);
 
@@ -263,21 +261,22 @@ namespace Org.BouncyCastle.Math.Raw
             return c;
         }
 
-        private static int CSub30(int len30, int cond, int[] D, int[] M)
+        private static void CNormalize30(int len30, int condNegate, int[] D, int[] M)
         {
             Debug.Assert(len30 > 0);
             Debug.Assert(D.Length >= len30);
             Debug.Assert(M.Length >= len30);
 
             int c = 0, last = len30 - 1;
+            int condAdd = (D[last] >> 31) ^ condNegate;
             for (int i = 0; i < last; ++i)
             {
-                c += D[i] - (M[i] & cond);
+                c += (D[i] ^ condNegate) - condNegate + (M[i] & condAdd);
                 D[i] = c & M30; c >>= 30;
             }
-            c += D[last] - (M[last] & cond);
-            D[last] = c; c >>= 30;
-            return c;
+            c += (D[last] ^ condNegate) - condNegate + (M[last] & condAdd);
+            D[last] = c;
+            Debug.Assert(c >> 30 == 0);
         }
 
         private static void Decode30(int bits, int[] x, int xOff, uint[] z, int zOff)
@@ -349,7 +348,7 @@ namespace Org.BouncyCastle.Math.Raw
             int f = f0, g = g0, m, w, x, y, z;
             int i = 30, limit, zeros;
 
-            for (;;)
+            for (; ; )
             {
                 // Use a sentinel bit to count zeros only up to i.
                 zeros = Integers.NumberOfTrailingZeros(g | (-1 << i));
@@ -502,46 +501,46 @@ namespace Org.BouncyCastle.Math.Raw
             return c;
         }
 
-        private static int Sub30(int len30, int[] D, int[] M)
-        {
-            Debug.Assert(len30 > 0);
-            Debug.Assert(D.Length >= len30);
-            Debug.Assert(M.Length >= len30);
-
-            int c = 0, last = len30 - 1;
-            for (int i = 0; i < last; ++i)
-            {
-                c += D[i] - M[i];
-                D[i] = c & M30; c >>= 30;
-            }
-            c += D[last] - M[last];
-            D[last] = c; c >>= 30;
-            return c;
-        }
-
-        private static void UpdateDE30(int len30, int[] D, int[] E, int[] t, int m0Inv30x4, int[] M)
+        private static void UpdateDE30(int len30, int[] D, int[] E, int[] t, int m0Inv32, int[] M)
         {
             Debug.Assert(len30 > 0);
             Debug.Assert(D.Length >= len30);
             Debug.Assert(E.Length >= len30);
             Debug.Assert(M.Length >= len30);
-            Debug.Assert(m0Inv30x4 * M[0] == -1 << 2);
+            Debug.Assert(m0Inv32 * M[0] == 1);
 
             int u = t[0], v = t[1], q = t[2], r = t[3];
-            int di, ei, i, md, me;
+            int di, ei, i, md, me, mi, sd, se;
             long cd, ce;
 
+            /*
+             * We accept D (E) in the range (-2.M, M) and conceptually add the modulus to the input
+             * value if it is initially negative. Instead of adding it explicitly, we add u and/or v (q
+             * and/or r) to md (me).
+             */
+            sd = D[len30 - 1] >> 31;
+            se = E[len30 - 1] >> 31;
+
+            md = (u & sd) + (v & se);
+            me = (q & sd) + (r & se);
+
+            mi = M[0];
             di = D[0];
             ei = E[0];
 
             cd = (long)u * di + (long)v * ei;
             ce = (long)q * di + (long)r * ei;
 
-            md = (m0Inv30x4 * (int)cd) >> 2;
-            me = (m0Inv30x4 * (int)ce) >> 2;
+            /*
+             * Subtract from md/me an extra term in the range [0, 2^30) such that the low 30 bits of the
+             * intermediate D/E values will be 0, allowing clean division by 2^30. The final D/E are
+             * thus in the range (-2.M, M), consistent with the input constraint.
+             */
+            md -= (m0Inv32 * (int)cd + md) & M30;
+            me -= (m0Inv32 * (int)ce + me) & M30;
 
-            cd += (long)M[0] * md;
-            ce += (long)M[0] * me;
+            cd += (long)mi * md;
+            ce += (long)mi * me;
 
             Debug.Assert(((int)cd & M30) == 0);
             Debug.Assert(((int)ce & M30) == 0);
@@ -551,14 +550,12 @@ namespace Org.BouncyCastle.Math.Raw
 
             for (i = 1; i < len30; ++i)
             {
+                mi = M[i];
                 di = D[i];
                 ei = E[i];
 
-                cd += (long)u * di + (long)v * ei;
-                ce += (long)q * di + (long)r * ei;
-
-                cd += (long)M[i] * md;
-                ce += (long)M[i] * me;
+                cd += (long)u * di + (long)v * ei + (long)mi * md;
+                ce += (long)q * di + (long)r * ei + (long)mi * me;
 
                 D[i - 1] = (int)cd & M30; cd >>= 30;
                 E[i - 1] = (int)ce & M30; ce >>= 30;

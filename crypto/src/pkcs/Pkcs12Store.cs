@@ -1058,16 +1058,27 @@ namespace Org.BouncyCastle.Pkcs
             bool				wrongPkcs12Zero,
             byte[]				data)
         {
-            IBufferedCipher cipher = PbeUtilities.CreateEngine(algId.Algorithm) as IBufferedCipher;
+            IBufferedCipher cipher = PbeUtilities.CreateEngine(algId) as IBufferedCipher;
 
             if (cipher == null)
                 throw new Exception("Unknown encryption algorithm: " + algId.Algorithm);
 
-            Pkcs12PbeParams pbeParameters = Pkcs12PbeParams.GetInstance(algId.Parameters);
-            ICipherParameters cipherParams = PbeUtilities.GenerateCipherParameters(
-                algId.Algorithm, password, wrongPkcs12Zero, pbeParameters);
-            cipher.Init(forEncryption, cipherParams);
-            return cipher.DoFinal(data);
+            if (algId.Algorithm.Equals(PkcsObjectIdentifiers.IdPbeS2))
+            {
+                PbeS2Parameters pbeParameters = PbeS2Parameters.GetInstance(algId.Parameters);
+                ICipherParameters cipherParams = PbeUtilities.GenerateCipherParameters(
+                    algId.Algorithm, password, pbeParameters);
+                cipher.Init(forEncryption, cipherParams);
+                return cipher.DoFinal(data);
+            }
+            else
+            {
+                Pkcs12PbeParams pbeParameters = Pkcs12PbeParams.GetInstance(algId.Parameters);
+                ICipherParameters cipherParams = PbeUtilities.GenerateCipherParameters(
+                    algId.Algorithm, password, wrongPkcs12Zero, pbeParameters);
+                cipher.Init(forEncryption, cipherParams);
+                return cipher.DoFinal(data);
+            }
         }
 
         private class IgnoresCaseHashtable
