@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Crypto.Tls
                     mRetransmitTimeout = null;
                 }
 
-                int receiveLimit = System.Math.Min(len, GetReceiveLimit()) + RECORD_HEADER_LENGTH;
+                int receiveLimit = mTransport.GetReceiveLimit();
                 if (record == null || record.Length < receiveLimit)
                 {
                     record = new byte[receiveLimit];
