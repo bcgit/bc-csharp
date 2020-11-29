@@ -41,8 +41,16 @@ namespace Org.BouncyCastle.Crypto.Tls
             }
             catch (TlsFatalAlert fatalAlert)
             {
-                mRecordLayer.Fail(fatalAlert.AlertDescription);
-                throw fatalAlert;
+                if (fatalAlert.AlertDescription == AlertDescription.bad_record_mac)
+                {
+                    // DTLS can ignore corrupt records
+                    return -1;
+                }
+                else
+                {
+                    mRecordLayer.Fail(fatalAlert.AlertDescription);
+                    throw fatalAlert;
+                }
             }
             //catch (InterruptedIOException e)
             //{
