@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
-
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -174,6 +174,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     bcpgKey = new ECDHPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q, HashAlgorithmTag.Sha256, SymmetricKeyAlgorithmTag.Aes128);
                 }
                 else if (algorithm == PublicKeyAlgorithmTag.ECDsa)
+                {
+                    bcpgKey = new ECDsaPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q);
+                }
+                else if (algorithm == PublicKeyAlgorithmTag.EdDsa)
                 {
                     bcpgKey = new ECDsaPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q);
                 }
@@ -495,7 +499,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.ECDsa:
                         return GetECKey("ECDSA");
                     case PublicKeyAlgorithmTag.ECDH:
-                        return GetECKey("ECDH");
+                        if (((ECPublicBcpgKey)publicPk.Key).CurveOid.Id.Equals(MiscObjectIdentifiers.Curve25519.Id))
+                            return new X25519PublicKeyParameters(((ECPublicBcpgKey)publicPk.Key).EncodedPoint.ToByteArrayUnsigned(), 0);
+                        else
+                            return GetECKey("ECDH");
+                    case PublicKeyAlgorithmTag.EdDsa:
+                        return new Ed25519PublicKeyParameters(((ECPublicBcpgKey)publicPk.Key).EncodedPoint.ToByteArrayUnsigned(), 1);
                     case PublicKeyAlgorithmTag.ElGamalEncrypt:
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
                         ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey)publicPk.Key;
