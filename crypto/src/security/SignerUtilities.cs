@@ -610,6 +610,13 @@ namespace Org.BouncyCastle.Security
                 return new DsaDigestSigner(new ECDsaSigner(), digest);
             }
 
+            if (Platform.EndsWith(mechanism, "WITHEDDSA"))
+            {
+                string digestName = mechanism.Substring(0, mechanism.LastIndexOf("WITH"));
+                IDigest digest = DigestUtilities.GetDigest(digestName);
+                return new DsaDigestSigner(new EdDsa22519Signer(), digest);
+            }
+
             if (Platform.EndsWith(mechanism, "withCVC-ECDSA")
                 || Platform.EndsWith(mechanism, "withPLAIN-ECDSA"))
             {

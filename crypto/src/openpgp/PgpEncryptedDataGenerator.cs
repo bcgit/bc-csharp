@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.IO;
 
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
@@ -10,6 +11,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -105,7 +107,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 if (pubKey.Algorithm != PublicKeyAlgorithmTag.ECDH)
                 {
                     IBufferedCipher c;
-				    switch (pubKey.Algorithm)
+                    switch (pubKey.Algorithm)
                     {
                         case PublicKeyAlgorithmTag.RsaEncrypt:
                         case PublicKeyAlgorithmTag.RsaGeneral:
@@ -119,29 +121,49 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                             throw new PgpException("Can't use DSA for encryption.");
                         case PublicKeyAlgorithmTag.ECDsa:
                             throw new PgpException("Can't use ECDSA for encryption.");
+                        case PublicKeyAlgorithmTag.EdDsa:
+                            throw new PgpException("Can't use EdDSA for encryption.");
                         default:
                             throw new PgpException("unknown asymmetric algorithm: " + pubKey.Algorithm);
                     }
 
                     AsymmetricKeyParameter akp = pubKey.GetKey();
-				    c.Init(true, new ParametersWithRandom(akp, random));
+                    c.Init(true, new ParametersWithRandom(akp, random));
                     return c.DoFinal(sessionInfo);
                 }
 
                 ECDHPublicBcpgKey ecKey = (ECDHPublicBcpgKey)pubKey.PublicKeyPacket.Key;
+                KeyParameter key;
+                byte[] encodedPublicKey;
 
-                // Generate the ephemeral key pair
-                IAsymmetricCipherKeyPairGenerator gen = GeneratorUtilities.GetKeyPairGenerator("ECDH");
-                gen.Init(new ECKeyGenerationParameters(ecKey.CurveOid, random));
+                if (ecKey.CurveOid.Id.Equals(MiscObjectIdentifiers.Curve25519.Id))
+                {
+                    byte[] privateKey = new byte[X25519.PointSize];
+                    X25519.GeneratePrivateKey(random, privateKey);
+                    byte[] sharedKey = new byte[32];
+                    X25519.CalculateAgreement(privateKey, 0, BigIntegers.AsUnsignedByteArray(ecKey.EncodedPoint), 1, sharedKey, 0);
+                    byte[] publicKey = new byte[X25519.PointSize + 1];
+                    publicKey[0] = 0x40; // compressed point
+                    X25519.GeneratePublicKey(privateKey, 0, publicKey, 1);
+                    encodedPublicKey = publicKey;
+                    key = new KeyParameter(Rfc6637Utilities.CreateKey(pubKey.PublicKeyPacket, sharedKey));
+                }
+                else
+                {
+                    // Generate the ephemeral key pair
+                    IAsymmetricCipherKeyPairGenerator gen = GeneratorUtilities.GetKeyPairGenerator("ECDH");
+                    gen.Init(new ECKeyGenerationParameters(ecKey.CurveOid, random));
 
-                AsymmetricCipherKeyPair ephKp = gen.GenerateKeyPair();
-                ECPrivateKeyParameters ephPriv = (ECPrivateKeyParameters)ephKp.Private;
-                ECPublicKeyParameters ephPub = (ECPublicKeyParameters)ephKp.Public;
+                    AsymmetricCipherKeyPair ephKp = gen.GenerateKeyPair();
+                    ECPrivateKeyParameters ephPriv = (ECPrivateKeyParameters)ephKp.Private;
+                    ECPublicKeyParameters ephPub = (ECPublicKeyParameters)ephKp.Public;
 
-                ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey.GetKey();
-                ECPoint S = pub.Q.Multiply(ephPriv.D).Normalize();
+                    ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey.GetKey();
+                    ECPoint S = pub.Q.Multiply(ephPriv.D).Normalize();
 
-                KeyParameter key = new KeyParameter(Rfc6637Utilities.CreateKey(pubKey.PublicKeyPacket, S));
+                    key = new KeyParameter(Rfc6637Utilities.CreateKey(pubKey.PublicKeyPacket, S));
+                    encodedPublicKey = ephPub.Q.GetEncoded(false);
+                }
 
                 IWrapper w = PgpUtilities.CreateWrapper(ecKey.SymmetricKeyAlgorithm);
                 w.Init(true, new ParametersWithRandom(key, random));
@@ -149,7 +171,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] paddedSessionData = PgpPad.PadSessionData(sessionInfo, sessionKeyObfuscation);
 
                 byte[] C = w.Wrap(paddedSessionData, 0, paddedSessionData.Length);
-                byte[] VB = new MPInteger(new BigInteger(1, ephPub.Q.GetEncoded(false))).GetEncoded();
+                byte[] VB = new MPInteger(new BigInteger(1, encodedPublicKey)).GetEncoded();
 
                 byte[] rv = new byte[VB.Length + 1 + C.Length];
 

@@ -8,8 +8,11 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Custom.Djb;
+using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -210,12 +213,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] keyEnc = new byte[keyLen];
                 Array.Copy(enc, 2 + pLen + 1, keyEnc, 0, keyEnc.Length);
 
-                ECPoint publicPoint = x9Params.Curve.DecodePoint(pEnc);
+                KeyParameter key;
 
-                ECPrivateKeyParameters privKeyParams = (ECPrivateKeyParameters)privKey.Key;
-                ECPoint S = publicPoint.Multiply(privKeyParams.D).Normalize();
-
-                KeyParameter key = new KeyParameter(Rfc6637Utilities.CreateKey(privKey.PublicKeyPacket, S));
+                if (privKey.Key is X25519PrivateKeyParameters x25519privKeyParams)
+                {
+                    byte[] sharedKey = new byte[32];
+                    byte[] reversedPrivateKey = new byte[32];
+                    x25519privKeyParams.Encode(reversedPrivateKey, 0);
+                    Array.Reverse((Array)reversedPrivateKey);
+                    X25519.ScalarMult(reversedPrivateKey, 0, pEnc, 1, sharedKey, 0);
+                    key = new KeyParameter(Rfc6637Utilities.CreateKey(privKey.PublicKeyPacket, sharedKey));
+                }
+                else
+                {
+                    ECPoint publicPoint = x9Params.Curve.DecodePoint(pEnc);
+                    ECPrivateKeyParameters privKeyParams = (ECPrivateKeyParameters)privKey.Key;
+                    ECPoint S = publicPoint.Multiply(privKeyParams.D).Normalize();
+                    key = new KeyParameter(Rfc6637Utilities.CreateKey(privKey.PublicKeyPacket, S));
+                }
 
                 IWrapper w = PgpUtilities.CreateWrapper(ecKey.SymmetricKeyAlgorithm);
                 w.Init(false, key);

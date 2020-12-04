@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
-
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -674,10 +674,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     privateKey = new DsaPrivateKeyParameters(dsaPriv.X, dsaParams);
                     break;
                 case PublicKeyAlgorithmTag.ECDH:
-                    privateKey = GetECKey("ECDH", bcpgIn);
+                    if (((ECPublicBcpgKey)secret.PublicKeyPacket.Key).CurveOid.Id.Equals(MiscObjectIdentifiers.Curve25519.Id))
+                        privateKey = new X25519PrivateKeyParameters(new ECSecretBcpgKey(bcpgIn).X.ToByteArrayUnsigned(), 0);
+                    else
+                        privateKey = GetECKey("ECDH", bcpgIn);
                     break;
                 case PublicKeyAlgorithmTag.ECDsa:
                     privateKey = GetECKey("ECDSA", bcpgIn);
+                    break;
+                case PublicKeyAlgorithmTag.EdDsa:
+                    privateKey = new Ed25519PrivateKeyParameters(new ECSecretBcpgKey(bcpgIn).X.ToByteArrayUnsigned(), 0);
                     break;
                 case PublicKeyAlgorithmTag.ElGamalEncrypt:
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
