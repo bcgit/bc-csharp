@@ -1334,8 +1334,8 @@ namespace Org.BouncyCastle.Pkcs.Tests
 		public void TestFunction()
 		{
 			string resultText = Perform().ToString();
-			Console.Out.WriteLine(resultText);
-			Assert.AreEqual(Name + ": Okay", resultText);
+
+            Assert.AreEqual(Name + ": Okay", resultText);
 		}
 	}
 }

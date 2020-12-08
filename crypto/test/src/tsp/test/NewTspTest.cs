@@ -598,7 +598,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 				Assert.Fail("response validation failed on invalid nonce.");
 			}
-			catch (TspValidationException e)
+			catch (TspValidationException)
 			{
 				// ignore
 			}
@@ -611,7 +611,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 				Assert.Fail("response validation failed on wrong digest.");
 			}
-			catch (TspValidationException e)
+			catch (TspValidationException)
 			{
 				// ignore
 			}
@@ -624,7 +624,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 				Assert.Fail("response validation failed on wrong digest.");
 			}
-			catch (TspValidationException e)
+			catch (TspValidationException)
 			{
 				// ignore
 			}
@@ -670,27 +670,20 @@ namespace Org.BouncyCastle.Tsp.Tests
 			}
 
 
-			EssCertID essCertid = new EssCertID(certHash, issuerSerial);
-			EssCertIDv2 essCertidV2 = new EssCertIDv2(certHash256, issuerSerial);
+			EssCertID essCertID = new EssCertID(certHash, issuerSerial);
+			EssCertIDv2 essCertIDv2 = new EssCertIDv2(certHash256, issuerSerial);
 
-			signerInfoGenBuilder.WithSignedAttributeGenerator(new TestAttrGen()
-			{
-				EssCertID = essCertid,
-				EssCertIDv2 = essCertidV2
-			});
+            signerInfoGenBuilder.WithSignedAttributeGenerator(new TestAttrGen(essCertID, essCertIDv2));
 
 
 			Asn1SignatureFactory sigfact = new Asn1SignatureFactory("SHA1WithRSA", privateKey);
-			SignerInfoGenerator
-				 signerInfoGenerator = signerInfoGenBuilder.Build(sigfact, cert);
+			SignerInfoGenerator signerInfoGenerator = signerInfoGenBuilder.Build(sigfact, cert);
 
-			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
-				signerInfoGenerator,
-				Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1), new DerObjectIdentifier("1.2"), true);
+            TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(signerInfoGenerator,
+                Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1), new DerObjectIdentifier("1.2"), true);
 
+            tsTokenGen.SetCertificates(certs);
 
-			tsTokenGen.SetCertificates(certs);
-		
 
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
 			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20], BigInteger.ValueOf(100));
@@ -904,28 +897,37 @@ namespace Org.BouncyCastle.Tsp.Tests
 				.Build(sigfact, cert);
 		}
 
-
-
-
-		private class TestAttrGen : CmsAttributeTableGenerator
+        private class TestAttrGen : CmsAttributeTableGenerator
 		{
+            private readonly EssCertID mEssCertID;
+            private readonly EssCertIDv2 mEssCertIDv2;
 
-			public EssCertID EssCertID { get; set; }
+            public TestAttrGen(EssCertID essCertID, EssCertIDv2 essCertIDv2)
+            {
+                this.mEssCertID = essCertID;
+                this.mEssCertIDv2 = essCertIDv2;
+            }
 
-			public EssCertIDv2 EssCertIDv2 { get; set; }
+			public EssCertID EssCertID
+            {
+                get { return mEssCertID; }
+            }
 
-			public Asn1.Cms.AttributeTable GetAttributes(IDictionary parameters)
+            public EssCertIDv2 EssCertIDv2
+            {
+                get { return mEssCertIDv2; }
+            }
+
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary parameters)
 			{
 				CmsAttributeTableGenerator attrGen = new DefaultSignedAttributeTableGenerator();
 
-				Asn1.Cms.AttributeTable table = attrGen.GetAttributes(parameters);
+                Asn1.Cms.AttributeTable table = attrGen.GetAttributes(parameters);
 				table = table.Add(PkcsObjectIdentifiers.IdAASigningCertificate, new SigningCertificate(EssCertID));
 				table = table.Add(PkcsObjectIdentifiers.IdAASigningCertificateV2, new SigningCertificateV2(new EssCertIDv2[] { EssCertIDv2 }));
 
-				return table;
+                return table;
 			}
 		}
-
 	}
-
 }
