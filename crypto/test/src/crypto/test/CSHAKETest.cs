@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             cshake.DoOutput(res, 0, res.Length);
 
-           Assert.IsTrue(!Arrays.AreEqual(Hex.Decode("c1c36925b6409a04f1b504fcbca9d82b4017277cb5ed2b2065fc1d3814d5aaf5"), res));
+            Assert.IsTrue(!Arrays.AreEqual(Hex.Decode("c1c36925b6409a04f1b504fcbca9d82b4017277cb5ed2b2065fc1d3814d5aaf5"), res));
 
             cshake.DoFinal(res, 0, res.Length);
 
@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             string s = Hex.ToHexString(res);
 
-            Console.WriteLine(s);
+            //Console.WriteLine(s);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("c1c36925b6409a04f1b504fcbca9d82b4017277cb5ed2b2065fc1d3814d5aaf5"), res));
 

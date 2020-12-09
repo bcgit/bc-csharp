@@ -79,21 +79,17 @@ namespace Org.BouncyCastle.Math.Raw
             }
 
             int signF = F[len30 - 1] >> 31;
+            CNegate30(len30, signF, F);
 
             /*
              * D is in the range (-2.M, M). First, conditionally add M if D is negative, to bring it
              * into the range (-M, M). Then normalize by conditionally negating (according to signF)
              * and/or then adding M, to bring it into the range [0, M).
              */
-            int signD = D[len30 - 1] >> 31;
-            signD = CAdd30(len30, signD, D, M);
             CNormalize30(len30, signF, D, M);
 
             Decode30(bits, D, 0, z, 0);
             Debug.Assert(0 != Nat.LessThan(len32, z, m));
-
-            signF = CNegate30(len30, signF, F);
-            Debug.Assert(0 == signF);
 
             return (uint)(EqualTo(len30, F, 1) & EqualToZero(len30, G));
         }
@@ -228,24 +224,7 @@ namespace Org.BouncyCastle.Math.Raw
             return c;
         }
 
-        private static int CAdd30(int len30, int cond, int[] D, int[] M)
-        {
-            Debug.Assert(len30 > 0);
-            Debug.Assert(D.Length >= len30);
-            Debug.Assert(M.Length >= len30);
-
-            int c = 0, last = len30 - 1;
-            for (int i = 0; i < last; ++i)
-            {
-                c += D[i] + (M[i] & cond);
-                D[i] = c & M30; c >>= 30;
-            }
-            c += D[last] + (M[last] & cond);
-            D[last] = c; c >>= 30;
-            return c;
-        }
-
-        private static int CNegate30(int len30, int cond, int[] D)
+        private static void CNegate30(int len30, int cond, int[] D)
         {
             Debug.Assert(len30 > 0);
             Debug.Assert(D.Length >= len30);
@@ -257,8 +236,7 @@ namespace Org.BouncyCastle.Math.Raw
                 D[i] = c & M30; c >>= 30;
             }
             c += (D[last] ^ cond) - cond;
-            D[last] = c; c >>= 30;
-            return c;
+            D[last] = c;
         }
 
         private static void CNormalize30(int len30, int condNegate, int[] D, int[] M)
@@ -267,16 +245,36 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert(D.Length >= len30);
             Debug.Assert(M.Length >= len30);
 
-            int c = 0, last = len30 - 1;
-            int condAdd = (D[last] >> 31) ^ condNegate;
-            for (int i = 0; i < last; ++i)
+            int last = len30 - 1;
+
             {
-                c += (D[i] ^ condNegate) - condNegate + (M[i] & condAdd);
-                D[i] = c & M30; c >>= 30;
+                int c = 0, condAdd = D[last] >> 31;
+                for (int i = 0; i < last; ++i)
+                {
+                    int di = D[i] + (M[i] & condAdd);
+                    di = (di ^ condNegate) - condNegate;
+                    c += di; D[i] = c & M30; c >>= 30;
+                }
+                {
+                    int di = D[last] + (M[last] & condAdd);
+                    di = (di ^ condNegate) - condNegate;
+                    c += di; D[last] = c;
+                }
             }
-            c += (D[last] ^ condNegate) - condNegate + (M[last] & condAdd);
-            D[last] = c;
-            Debug.Assert(c >> 30 == 0);
+
+            {
+                int c = 0, condAdd = D[last] >> 31;
+                for (int i = 0; i < last; ++i)
+                {
+                    int di = D[i] + (M[i] & condAdd);
+                    c += di; D[i] = c & M30; c >>= 30;
+                }
+                {
+                    int di = D[last] + (M[last] & condAdd);
+                    c += di; D[last] = c;
+                }
+                Debug.Assert(c >> 30 == 0);
+            }
         }
 
         private static void Decode30(int bits, int[] x, int xOff, uint[] z, int zOff)

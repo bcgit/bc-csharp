@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Text.RegularExpressions;
+
 using NUnit.Framework;
+
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -13,7 +15,10 @@ namespace Org.BouncyCastle.Crypto.Tests
     [TestFixture]
     public class NistEccTest : SimpleTest
     {
-        public override string Name { get; } = "NistEcc";
+        public override string Name
+        {
+            get { return "NistEcc"; }
+        }
 
         public override void PerformTest()
         {
@@ -43,24 +48,25 @@ namespace Org.BouncyCastle.Crypto.Tests
                 {
                     Regex capture = new Regex(@"^ ?(\w+):? =? ?(\w+)", RegexOptions.Compiled);
                     Match data = capture.Match(line);
+                    if (!data.Success)
+                        continue;
 
-                    if (!data.Success) continue;
                     string nistKey = data.Groups[1].Value;
                     string nistValue = data.Groups[2].Value;
                     switch (nistKey)
                     {
                         case "Curve":
                             // Change curve name from LNNN to L-NNN ie: P256 to P-256
-                            curve = $"{nistValue.Substring(0, 1)}-{nistValue.Substring(1)}";
+                            curve = nistValue.Insert(1, "-");
                             break;
                         case "k":
                             k = new BigInteger(nistValue, 10);
                             break;
                         case "x":
-                            x = new BigInteger(nistValue, radix: 16);
+                            x = new BigInteger(nistValue, 16);
                             break;
                         case "y":
-                            y = new BigInteger(nistValue, radix: 16);
+                            y = new BigInteger(nistValue, 16);
                             break;
                     }
 
