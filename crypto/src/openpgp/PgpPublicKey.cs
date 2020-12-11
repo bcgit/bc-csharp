@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using Org.BouncyCastle.Asn1.Gnu;
 using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
@@ -10,6 +11,7 @@ using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -185,6 +187,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     throw new PgpException("unknown EC algorithm");
                 }
+            }
+            else if (pubKey is Ed25519PublicKeyParameters)
+            {
+                Ed25519PublicKeyParameters ecK = (Ed25519PublicKeyParameters)pubKey;
+                byte[] encodedPoint = new byte[Ed25519.PublicKeySize + 1];
+                encodedPoint[0] = 0x40;
+                ecK.Encode(encodedPoint, 1);
+                bcpgKey = new ECDsaPublicBcpgKey(GnuObjectIdentifiers.Ed25519, new BigInteger(1, encodedPoint));
             }
             else if (pubKey is ElGamalPublicKeyParameters)
             {
