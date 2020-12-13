@@ -203,7 +203,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] encodedPoint = new byte[X25519.PointSize + 1];
                 encodedPoint[0] = 0x40;
                 ecK.Encode(encodedPoint, 1);
-                Array.Reverse(encodedPoint, 1, X25519.PointSize);
                 bcpgKey = new ECDHPublicBcpgKey(
                     MiscObjectIdentifiers.Curve25519,
                     new BigInteger(1, encodedPoint),
@@ -526,7 +525,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         if (((ECPublicBcpgKey)publicPk.Key).CurveOid.Id.Equals(MiscObjectIdentifiers.Curve25519.Id))
                         {
                             byte[] encodedPoint = ((ECPublicBcpgKey)publicPk.Key).EncodedPoint.ToByteArrayUnsigned();
-                            Array.Reverse(encodedPoint, 1, X25519.PointSize);
                             return new X25519PublicKeyParameters(encodedPoint, 1);
                         }
                         else

@@ -299,6 +299,75 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
         }
 
+
+        private void EncryptDecryptX25519KeysTest()
+        {
+            SecureRandom random = SecureRandom.GetInstance("SHA1PRNG");
+
+            /*IAsymmetricCipherKeyPairGenerator keyGen = GeneratorUtilities.GetKeyPairGenerator(algorithm);
+            keyGen.Init(new ECKeyGenerationParameters(curve, random));
+
+            AsymmetricCipherKeyPair kpEnc = keyGen.GenerateKeyPair();
+
+            PgpKeyPair ecdhKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.ECDH, kpEnc, DateTime.UtcNow);*/
+            PgpPublicKeyRing publicKeyRing = new PgpPublicKeyRing(testX25519PubKey);
+
+            PgpSecretKeyRing secretKeyRing = new PgpSecretKeyRing(testX25519PrivKey);
+
+            PgpSecretKey secretKey = secretKeyRing.GetSecretKey(0x6c37367cd2f455c5);
+
+            byte[] text = Encoding.ASCII.GetBytes("hello world!");
+
+            PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
+            MemoryStream ldOut = new MemoryStream();
+            Stream pOut = lData.Open(ldOut, PgpLiteralDataGenerator.Utf8, PgpLiteralData.Console, text.Length, DateTime.UtcNow);
+
+            pOut.Write(text, 0, text.Length);
+
+            pOut.Close();
+
+            byte[] data = ldOut.ToArray();
+
+            MemoryStream cbOut = new MemoryStream();
+
+            PgpEncryptedDataGenerator cPk = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Cast5, random);
+            cPk.AddMethod(publicKeyRing.GetPublicKey(0x6c37367cd2f455c5));
+
+            Stream cOut = cPk.Open(new UncloseableStream(cbOut), data.Length);
+
+            cOut.Write(data, 0, data.Length);
+
+            cOut.Close();
+
+            PgpObjectFactory pgpF = new PgpObjectFactory(cbOut.ToArray());
+
+            PgpEncryptedDataList encList = (PgpEncryptedDataList)pgpF.NextPgpObject();
+
+            PgpPublicKeyEncryptedData encP = (PgpPublicKeyEncryptedData)encList[0];
+
+            Stream clear = encP.GetDataStream(secretKey.ExtractPrivateKey("test".ToCharArray()));
+
+            pgpF = new PgpObjectFactory(clear);
+
+            PgpLiteralData ld = (PgpLiteralData)pgpF.NextPgpObject();
+
+            clear = ld.GetInputStream();
+            MemoryStream bOut = new MemoryStream();
+
+            int ch;
+            while ((ch = clear.ReadByte()) >= 0)
+            {
+                bOut.WriteByte((byte)ch);
+            }
+
+            byte[] output = bOut.ToArray();
+
+            if (!AreEqual(output, text))
+            {
+                Fail("wrong plain text in Generated packet");
+            }
+        }
+
         private void GnuPGCrossCheck()
         {
             PgpSecretKeyRing secretKeyRing = new PgpSecretKeyRing(testX25519PrivKey);
@@ -357,6 +426,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Generate();
 
             Generate25519();
+
+            EncryptDecryptX25519KeysTest();
         }
 
         private void DoBasicKeyRingCheck(PgpPublicKeyRing pubKeyRing)
