@@ -57,9 +57,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     secKey = new DsaSecretBcpgKey(dsK.X);
                     break;
                 case PublicKeyAlgorithmTag.ECDH:
+                    if (privKey.Key is X25519PrivateKeyParameters)
+                    {
+                        X25519PrivateKeyParameters x25519K = (X25519PrivateKeyParameters)privKey.Key;
+                        byte[] secretKey = new byte[X25519PrivateKeyParameters.KeySize];
+                        x25519K.Encode(secretKey, 0);
+                        Array.Reverse(secretKey);
+                        secKey = new ECSecretBcpgKey(new BigInteger(1, secretKey));
+                    }
+                    else
+                    {
+                        ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
+                        secKey = new ECSecretBcpgKey(ecK.D);
+                    }
+                    break;
                 case PublicKeyAlgorithmTag.ECDsa:
-                    ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
-                    secKey = new ECSecretBcpgKey(ecK.D);
+                    ECPrivateKeyParameters ecdsaK = (ECPrivateKeyParameters)privKey.Key;
+                    secKey = new ECSecretBcpgKey(ecdsaK.D);
                     break;
                 case PublicKeyAlgorithmTag.EdDsa:
                     Ed25519PrivateKeyParameters edK = (Ed25519PrivateKeyParameters)privKey.Key;
@@ -683,7 +697,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     break;
                 case PublicKeyAlgorithmTag.ECDH:
                     if (((ECPublicBcpgKey)secret.PublicKeyPacket.Key).CurveOid.Id.Equals(MiscObjectIdentifiers.Curve25519.Id))
-                        privateKey = new X25519PrivateKeyParameters(new ECSecretBcpgKey(bcpgIn).X.ToByteArrayUnsigned(), 0);
+                    {
+                        var x = new ECSecretBcpgKey(bcpgIn).X.ToByteArrayUnsigned();
+                        Array.Reverse(x);
+                        privateKey = new X25519PrivateKeyParameters(x, 0);
+                    }
                     else
                         privateKey = GetECKey("ECDH", bcpgIn);
                     break;
