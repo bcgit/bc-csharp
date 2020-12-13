@@ -7,19 +7,19 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
     /**
-     * Utility functions for looking a S-expression keys. This class will move when it finds a better home!
+     * Reader for S-expression keys. This class will move when it finds a better home!
      * <p>
      * Format documented here:
      * http://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob;f=agent/keyformat.txt;h=42c4b1f06faf1bbe71ffadc2fee0fad6bec91a97;hb=refs/heads/master
      * http://people.csail.mit.edu/rivest/Sexp.txt
      * </p>
      */
-    class SXprUtilities
+    class SXprReader
     {
         Stream stream;
         int peekedByte;
 
-        internal SXprUtilities(Stream stream)
+        public SXprReader(Stream stream)
         {
             this.stream = stream;
             this.peekedByte = -1;
@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return new MyS2k(HashAlgorithmTag.Sha1, iv, iterationCount);
         }
 
-        private void SkipWhitespace()
+        public void SkipWhitespace()
         {
             int ch = ReadByte();
             while (ch == ' ' || ch == '\r' || ch == '\n')
