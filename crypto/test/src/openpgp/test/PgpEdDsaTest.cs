@@ -184,8 +184,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             //
             // sExpr
             //
-            // TODO: Fails the OCB MAC check when decoding key but works otherwise
-            /*byte[] msg = Encoding.ASCII.GetBytes("hello world!");
+            byte[] msg = Encoding.ASCII.GetBytes("hello world!");
 
             PgpSecretKey key = PgpSecretKey.ParseSecretKeyFromSExpr(new MemoryStream(sExprKey, false), "test".ToCharArray());
 
@@ -200,7 +199,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             if (!sig.Verify())
             {
                 Fail("signature failed to verify!");
-            }*/
+            }
         }
 
         private static object First(IEnumerable e)
