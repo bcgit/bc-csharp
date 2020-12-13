@@ -11,6 +11,7 @@ using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -195,6 +196,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 encodedPoint[0] = 0x40;
                 ecK.Encode(encodedPoint, 1);
                 bcpgKey = new ECDsaPublicBcpgKey(GnuObjectIdentifiers.Ed25519, new BigInteger(1, encodedPoint));
+            }
+            else if (pubKey is X25519PublicKeyParameters)
+            {
+                X25519PublicKeyParameters ecK = (X25519PublicKeyParameters)pubKey;
+                byte[] encodedPoint = new byte[X25519.PointSize + 1];
+                encodedPoint[0] = 0x40;
+                ecK.Encode(encodedPoint, 1);
+                Array.Reverse(encodedPoint, 1, X25519.PointSize);
+                bcpgKey = new ECDHPublicBcpgKey(
+                    MiscObjectIdentifiers.Curve25519,
+                    new BigInteger(1, encodedPoint),
+                    HashAlgorithmTag.Sha256,
+                    SymmetricKeyAlgorithmTag.Aes128);
             }
             else if (pubKey is ElGamalPublicKeyParameters)
             {
@@ -510,7 +524,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         return GetECKey("ECDSA");
                     case PublicKeyAlgorithmTag.ECDH:
                         if (((ECPublicBcpgKey)publicPk.Key).CurveOid.Id.Equals(MiscObjectIdentifiers.Curve25519.Id))
-                            return new X25519PublicKeyParameters(((ECPublicBcpgKey)publicPk.Key).EncodedPoint.ToByteArrayUnsigned(), 0);
+                        {
+                            byte[] encodedPoint = ((ECPublicBcpgKey)publicPk.Key).EncodedPoint.ToByteArrayUnsigned();
+                            Array.Reverse(encodedPoint, 1, X25519.PointSize);
+                            return new X25519PublicKeyParameters(encodedPoint, 1);
+                        }
                         else
                             return GetECKey("ECDH");
                     case PublicKeyAlgorithmTag.EdDsa:

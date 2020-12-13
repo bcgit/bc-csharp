@@ -217,11 +217,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 if (privKey.Key is X25519PrivateKeyParameters x25519privKeyParams)
                 {
-                    byte[] sharedKey = new byte[32];
-                    byte[] reversedPrivateKey = new byte[32];
-                    x25519privKeyParams.Encode(reversedPrivateKey, 0);
-                    Array.Reverse((Array)reversedPrivateKey);
-                    X25519.ScalarMult(reversedPrivateKey, 0, pEnc, 1, sharedKey, 0);
+                    byte[] sharedKey = new byte[X25519.PointSize];
+                    byte[] privateKey = new byte[X25519.PointSize];
+                    x25519privKeyParams.Encode(privateKey, 0);
+                    X25519.CalculateAgreement(privateKey, 0, pEnc, 1, sharedKey, 0);
                     key = new KeyParameter(Rfc6637Utilities.CreateKey(privKey.PublicKeyPacket, sharedKey));
                 }
                 else

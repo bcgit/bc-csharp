@@ -104,6 +104,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             private byte[] EncryptSessionInfo(byte[] sessionInfo, SecureRandom random)
             {
+                AsymmetricKeyParameter akp = pubKey.GetKey();
+                
                 if (pubKey.Algorithm != PublicKeyAlgorithmTag.ECDH)
                 {
                     IBufferedCipher c;
@@ -127,7 +129,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                             throw new PgpException("unknown asymmetric algorithm: " + pubKey.Algorithm);
                     }
 
-                    AsymmetricKeyParameter akp = pubKey.GetKey();
                     c.Init(true, new ParametersWithRandom(akp, random));
                     return c.DoFinal(sessionInfo);
                 }
@@ -136,12 +137,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 KeyParameter key;
                 byte[] encodedPublicKey;
 
-                if (ecKey.CurveOid.Id.Equals(MiscObjectIdentifiers.Curve25519.Id))
+                if (akp is X25519PublicKeyParameters)
                 {
+                    X25519PublicKeyParameters pub = (X25519PublicKeyParameters)akp;
                     byte[] privateKey = new byte[X25519.PointSize];
                     X25519.GeneratePrivateKey(random, privateKey);
                     byte[] sharedKey = new byte[32];
-                    X25519.CalculateAgreement(privateKey, 0, BigIntegers.AsUnsignedByteArray(ecKey.EncodedPoint), 1, sharedKey, 0);
+                    X25519.CalculateAgreement(privateKey, 0, pub.GetEncoded(), 0, sharedKey, 0);
                     byte[] publicKey = new byte[X25519.PointSize + 1];
                     publicKey[0] = 0x40; // compressed point
                     X25519.GeneratePublicKey(privateKey, 0, publicKey, 1);
@@ -158,7 +160,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     ECPrivateKeyParameters ephPriv = (ECPrivateKeyParameters)ephKp.Private;
                     ECPublicKeyParameters ephPub = (ECPublicKeyParameters)ephKp.Public;
 
-                    ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey.GetKey();
+                    ECPublicKeyParameters pub = (ECPublicKeyParameters)akp;
                     ECPoint S = pub.Q.Multiply(ephPriv.D).Normalize();
 
                     key = new KeyParameter(Rfc6637Utilities.CreateKey(pubKey.PublicKeyPacket, S));
