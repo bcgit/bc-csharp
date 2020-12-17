@@ -6,7 +6,7 @@
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <Product>Bouncy Castle for .NET ($(TargetFramework))</Product>
-    <Copyright>© 2000-2020 Legion of the Bouncy Castle Inc. </Copyright>
+    <Copyright>© 2000-2021 Legion of the Bouncy Castle Inc. </Copyright>
     <Company>The Legion of the Bouncy Castle Inc.</Company>
     <Authors>Claire Novotny</Authors>
     <Title>Bouncy Castle Portable</Title>
@@ -15,7 +15,7 @@
     <DebugType>embedded</DebugType>
     <PackageLicenseUrl>https://www.bouncycastle.org/csharp/licence.html</PackageLicenseUrl>
     <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
-    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES188</PackageReleaseNotes>    
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#RELEASENOTES189</PackageReleaseNotes>    
     <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
     <PackageTags>bouncycastle cryptography encryption security</PackageTags>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
