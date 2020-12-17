@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Tsp;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Date;
 
@@ -162,6 +163,68 @@ namespace Org.BouncyCastle.Tsp
                 throw new TspException("created badly formatted response!", e);
             }
         }
+
+
+        public TimeStampResponse GenerateGrantedResponse(
+            TimeStampRequest request,
+            BigInteger serialNumber,
+            DateTimeObject genTime, 
+            String statusString, 
+            X509Extensions additionalExtensions)
+        {
+            TimeStampResp resp;
+
+            try
+            {
+                if (genTime == null)
+                    throw new TspValidationException("The time source is not available.",
+                        PkiFailureInfo.TimeNotAvailable);
+
+                request.Validate(acceptedAlgorithms, acceptedPolicies, acceptedExtensions);
+
+                this.status = PkiStatus.Granted;
+                this.AddStatusString(statusString);
+
+                PkiStatusInfo pkiStatusInfo = GetPkiStatusInfo();
+
+                ContentInfo tstTokenContentInfo;
+                try
+                {
+                    TimeStampToken token = tokenGenerator.Generate(request, serialNumber, genTime.Value,additionalExtensions);
+                    byte[] encoded = token.ToCmsSignedData().GetEncoded();
+
+                    tstTokenContentInfo = ContentInfo.GetInstance(Asn1Object.FromByteArray(encoded));
+                }
+                catch (IOException e)
+                {
+                    throw new TspException("Timestamp token received cannot be converted to ContentInfo", e);
+                }
+
+                resp = new TimeStampResp(pkiStatusInfo, tstTokenContentInfo);
+            }
+            catch (TspValidationException e)
+            {
+                status = PkiStatus.Rejection;
+
+                this.SetFailInfoField(e.FailureCode);
+                this.AddStatusString(e.Message);
+
+                PkiStatusInfo pkiStatusInfo = GetPkiStatusInfo();
+
+                resp = new TimeStampResp(pkiStatusInfo, null);
+            }
+
+            try
+            {
+                return new TimeStampResponse(resp);
+            }
+            catch (IOException e)
+            {
+                throw new TspException("created badly formatted response!", e);
+            }
+        }
+       
+
 
         class FailInfo
             : DerBitString

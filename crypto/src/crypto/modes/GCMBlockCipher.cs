@@ -59,8 +59,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (m == null)
             {
-                // TODO Consider a static property specifying default multiplier
-                m = new Tables8kGcmMultiplier();
+                m = new Tables4kGcmMultiplier();
             }
 
             this.cipher = c;
@@ -444,7 +443,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 byte[] H_c = new byte[16];
                 if (exp == null)
                 {
-                    exp = new Tables1kGcmExponentiator();
+                    exp = new BasicGcmExponentiator();
                     exp.Init(H);
                 }
                 exp.ExponentiateX(c, H_c);

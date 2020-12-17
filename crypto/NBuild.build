@@ -16,7 +16,7 @@
   <property name="dist-path" value="./dist"/>
 
   <!-- Version -->
-  <property name="version" value="1.8.8"/>
+  <property name="version" value="1.8.9"/>
   <property name="name" value="BouncyCastle.Crypto"/>
 
   <property name="OPTIONAL_STRONG_NAME" value="" />
