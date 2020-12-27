@@ -336,6 +336,8 @@ namespace Org.BouncyCastle.Security
             algorithms["ECGOST-3410-2001"] = "ECGOST3410";
             algorithms["GOST3411WITHECGOST3410"] = "ECGOST3410";
             algorithms[CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001.Id] = "ECGOST3410";
+            algorithms["GOST3411-2012-256WITHECGOST3410"] = "GOST3411-2012-256withECGOST3410";
+            algorithms["GOST3411-2012-512WITHECGOST3410"] = "GOST3411-2012-512withECGOST3410";
 
             algorithms["ED25519"] = "Ed25519";
             algorithms[EdECObjectIdentifiers.id_Ed25519.Id] = "Ed25519";
@@ -593,6 +595,14 @@ namespace Org.BouncyCastle.Security
             if (mechanism.Equals("ECGOST3410"))
             {
                 return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411Digest());
+            }
+            if (mechanism.Equals("GOST3411-2012-256withECGOST3410"))
+            {
+                return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411_2012_256Digest());
+            }
+            if (mechanism.Equals("GOST3411-2012-512withECGOST3410"))
+            {
+                return new Gost3410DigestSigner(new ECGost3410Signer(), new Gost3411_2012_512Digest());
             }
 
             if (mechanism.Equals("SHA1WITHRSA/ISO9796-2"))

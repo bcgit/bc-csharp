@@ -90,6 +90,8 @@ namespace Org.BouncyCastle.Cms
 			encryptionAlgs.Add(CmsSignedGenerator.EncryptionRsaPss, "RSAandMGF1");
 			encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x94.Id, "GOST3410");
 			encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x2001.Id, "ECGOST3410");
+			encryptionAlgs.Add(Asn1.Rosstandart.RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256.Id, "ECGOST3410");
+			encryptionAlgs.Add(Asn1.Rosstandart.RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512.Id, "ECGOST3410");
 			encryptionAlgs.Add("1.3.6.1.4.1.5849.1.6.2", "ECGOST3410");
 			encryptionAlgs.Add("1.3.6.1.4.1.5849.1.1.5", "GOST3410");
 
@@ -105,6 +107,8 @@ namespace Org.BouncyCastle.Cms
 			digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD160.Id, "RIPEMD160");
 			digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD256.Id, "RIPEMD256");
 			digestAlgs.Add(CryptoProObjectIdentifiers.GostR3411.Id,  "GOST3411");
+			digestAlgs.Add(Asn1.Rosstandart.RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id, "GOST3411-2012-256");
+			digestAlgs.Add(Asn1.Rosstandart.RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id, "GOST3411-2012-512");
 			digestAlgs.Add("1.3.6.1.4.1.5849.1.2.1",  "GOST3411");
 
 			digestAliases.Add("SHA1", new string[] { "SHA-1" });
