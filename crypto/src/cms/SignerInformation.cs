@@ -578,6 +578,16 @@ namespace Org.BouncyCastle.Cms
 
 					return Arrays.ConstantTimeAreEqual(digest, sigHash);
 				}
+				else if (algorithm.Equals("RSAandMGF1"))
+				{
+					ISigner sig = SignerUtilities.GetSigner("NONEWITHRSAPSS");
+
+					sig.Init(false, key);
+
+					sig.BlockUpdate(digest, 0, digest.Length);
+
+					return sig.VerifySignature(signature);
+				}
 				else if (algorithm.Equals("DSA"))
 				{
 					ISigner sig = SignerUtilities.GetSigner("NONEwithDSA");

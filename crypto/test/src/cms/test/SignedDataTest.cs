@@ -18,6 +18,7 @@ using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Asn1.Utilities;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
@@ -394,6 +395,34 @@ namespace Org.BouncyCastle.Cms.Tests
 				X509Certificate cert = (X509Certificate) certEnum.Current;
 
 				Assert.IsTrue(signer.Verify(cert));
+		
+				if (contentDigest != null)
+				{
+					Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
+				}
+			}
+		}
+
+		private void VerifyDirectSignatures(
+			CmsSignedData s,
+			byte[] contentDigest)
+		{
+			IX509Store x509Certs = s.GetCertificates("Collection");
+
+			SignerInformationStore signers = s.GetSignerInfos();
+			ICollection c = signers.GetSigners();
+
+			foreach (SignerInformation signer in c)
+			{
+				ICollection certCollection = x509Certs.GetMatches(signer.SignerID);
+
+				IEnumerator certEnum = certCollection.GetEnumerator();
+
+				certEnum.MoveNext();
+				X509Certificate cert = (X509Certificate)certEnum.Current;
+
+				Assert.IsTrue(signer.Verify(cert));
+				Assert.IsTrue(null == signer.GetEncodedSignedAttributes());
 
 				if (contentDigest != null)
 				{
@@ -721,6 +750,12 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
+		public void TestSha256WithRsaPssDirect()
+		{
+			rsaPssDirectTest("SHA256", CmsSignedDataGenerator.DigestSha256);
+		}
+
+		[Test]
 		public void TestSha384WithRsaPss()
 		{
 			rsaPssTest("SHA384", CmsSignedDataGenerator.DigestSha384);
@@ -914,6 +949,28 @@ namespace Org.BouncyCastle.Cms.Tests
             byte[] expectedDigest = DigestUtilities.CalculateDigest(digestName, msgBytes);
 
             VerifySignatures(s, expectedDigest);
+		}
+
+		private void rsaPssDirectTest(
+			string digestName,
+			string digestOID)
+		{
+			byte[] msgBytes = Encoding.ASCII.GetBytes("Hello World!");
+			CmsProcessable msg = new CmsProcessableByteArray(msgBytes);
+
+			IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+			CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+			gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().SetDirectSignature(true).Build(
+				new Asn1SignatureFactory(digestName + "withRSAandMGF1", OrigKP.Private), OrigCert));
+			gen.AddCertificates(x509Certs);
+
+			CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false);
+		
+			// compute expected content digest
+			byte[] expectedDigest = DigestUtilities.CalculateDigest(digestName, msgBytes);
+
+			VerifyDirectSignatures(s, expectedDigest);
 		}
 
 		private void SubjectKeyIDTest(
