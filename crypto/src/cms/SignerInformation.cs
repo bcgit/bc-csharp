@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -350,14 +349,22 @@ namespace Org.BouncyCastle.Cms
 
                     IDigest pssDigest = DigestUtilities.GetDigest(pss.HashAlgorithm.Algorithm);
                     int saltLength = pss.SaltLength.IntValueExact;
-                    byte trailerField = (byte)pss.TrailerField.IntValueExact;
 
-					// RFC 4055 3.1
-					// The value MUST be 1, which represents the trailer field with hexadecimal value 0xBC
-					if (trailerField != 1)
+                    // RFC 4055 3.1
+                    // The value MUST be 1, which represents the trailer field with hexadecimal value 0xBC
+                    if (!Asn1.Pkcs.RsassaPssParameters.DefaultTrailerField.Equals(pss.TrailerField))
 						throw new CmsException("RSASSA-PSS signature parameters must have trailerField of 1");
 
-					sig = new PssSigner(new RsaBlindedEngine(), pssDigest, saltLength);
+					IAsymmetricBlockCipher rsa = new RsaBlindedEngine();
+
+					if (signedAttributeSet == null && digestCalculator != null)
+					{
+                        sig = PssSigner.CreateRawSigner(rsa, pssDigest, pssDigest, saltLength, PssSigner.TrailerImplicit);
+                    }
+                    else
+					{
+						sig = new PssSigner(rsa, pssDigest, saltLength);
+					}
 				}
 				catch (Exception e)
 				{
@@ -481,8 +488,15 @@ namespace Org.BouncyCastle.Cms
 				{
 					if (digestCalculator != null)
 					{
-						// need to decrypt signature and check message bytes
-						return VerifyDigest(resultDigest, key, this.GetSignature());
+						if (sig is PssSigner)
+						{
+							sig.BlockUpdate(resultDigest, 0, resultDigest.Length);
+						}
+						else
+						{
+							// need to decrypt signature and check message bytes
+							return VerifyDigest(resultDigest, key, this.GetSignature());
+						}
 					}
 					else if (content != null)
 					{
@@ -577,16 +591,6 @@ namespace Org.BouncyCastle.Cms
 					byte[] sigHash = digInfo.GetDigest();
 
 					return Arrays.ConstantTimeAreEqual(digest, sigHash);
-				}
-				else if (algorithm.Equals("RSAandMGF1"))
-				{
-					ISigner sig = SignerUtilities.GetSigner("NONEWITHRSAPSS");
-
-					sig.Init(false, key);
-
-					sig.BlockUpdate(digest, 0, digest.Length);
-
-					return sig.VerifySignature(signature);
 				}
 				else if (algorithm.Equals("DSA"))
 				{
