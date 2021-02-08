@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 			// "It MUST be set to 0."
 			Asn1Object tmp = seq[index++].ToAsn1Object();
 			version = DerInteger.GetInstance(tmp);
-			if (version.IntValueExact != 0)
+			if (!version.HasValue(0))
 				throw new ArgumentException("AuthEnvelopedData version number must be 0");
 
 			tmp = seq[index++].ToAsn1Object();

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 
@@ -62,7 +61,7 @@ namespace Org.BouncyCastle.Asn1.Icao
 			e.MoveNext();
 			Asn1Sequence datagroupHashSeq = Asn1Sequence.GetInstance(e.Current);
 
-			if (version.Value.Equals(BigInteger.One))
+			if (version.HasValue(1))
 			{
 				e.MoveNext();
 				versionInfo = LdsVersionInfo.GetInstance(e.Current);

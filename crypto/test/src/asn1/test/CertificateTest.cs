@@ -360,8 +360,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 			AttributeCertificateInfo acInfo = obj.ACInfo;
 
 			// Version
-			if (!(acInfo.Version.Equals(new DerInteger(1)))
-				&& (!(acInfo.Version.Equals(new DerInteger(2)))))
+			DerInteger version = acInfo.Version;
+			if (!version.HasValue(1) && !version.HasValue(2))
 			{
 				Fail("failed AC Version test for id " + id);
 			}
@@ -427,7 +427,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			AttributeCertificateInfo acInfo = obj.ACInfo;
 
 			// Version
-			if (acInfo.Version.IntValueExact != 0)
+			if (!acInfo.Version.HasValue(0))
 			{
 				Fail("failed AC Version test for id " + id);
 			}

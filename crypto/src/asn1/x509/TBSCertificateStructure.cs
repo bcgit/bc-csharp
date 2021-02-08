@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -82,15 +81,15 @@ namespace Org.BouncyCastle.Asn1.X509
             bool isV1 = false;
             bool isV2 = false;
 
-            if (version.Value.Equals(BigInteger.Zero))
+            if (version.HasValue(0))
             {
                 isV1 = true;
             }
-            else if (version.Value.Equals(BigInteger.One))
+            else if (version.HasValue(1))
             {
                 isV2 = true;
             }
-            else if (!version.Value.Equals(BigInteger.Two))
+            else if (!version.HasValue(2))
             {
                 throw new ArgumentException("version number not recognised");
             }
@@ -220,7 +219,7 @@ namespace Org.BouncyCastle.Asn1.X509
             Asn1EncodableVector v = new Asn1EncodableVector();
 
             // DEFAULT Zero
-            if (!version.HasValue(BigIntegers.Zero))
+            if (!version.HasValue(0))
             {
                 v.Add(new DerTaggedObject(true, 0, version));
             }
@@ -238,7 +237,7 @@ namespace Org.BouncyCastle.Asn1.X509
             }
             else
             {
-                v.Add(new DerSequence());
+                v.Add(DerSequence.Empty);
             }
 
             v.Add(subjectPublicKeyInfo);

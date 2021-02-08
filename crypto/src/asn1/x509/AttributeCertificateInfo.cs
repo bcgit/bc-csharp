@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             Asn1EncodableVector v = new Asn1EncodableVector(9);
 
-            if (version.IntValueExact != 0)
+            if (!version.HasValue(0))
             {
                 v.Add(version);
             }

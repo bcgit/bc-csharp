@@ -49,7 +49,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             Assert.IsNotNull(enumerated, "ENUMERATED expected");
 
-            Assert.AreEqual(1, enumerated.Value.IntValue, "Unexpected ENUMERATED value");
+            Assert.AreEqual(1, enumerated.IntValueExact, "Unexpected ENUMERATED value");
+            Assert.IsTrue(enumerated.HasValue(1), "Unexpected ENUMERATED value");
 
             DerBoolean boolean = sequence[1] as DerBoolean;
 
@@ -76,13 +77,15 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             Assert.IsNotNull(enumerated1, "ENUMERATED expected");
 
-            Assert.AreEqual(257, enumerated1.Value.IntValue, "Unexpected ENUMERATED value");
+            Assert.AreEqual(257, enumerated1.IntValueExact, "Unexpected ENUMERATED value");
+            Assert.IsTrue(enumerated1.HasValue(257), "Unexpected ENUMERATED value");
 
             DerEnumerated enumerated2 = sequence[1] as DerEnumerated;
 
             Assert.IsNotNull(enumerated2, "ENUMERATED expected");
 
-            Assert.AreEqual(514, enumerated2.Value.IntValue, "Unexpected ENUMERATED value");
+            Assert.AreEqual(514, enumerated2.IntValueExact, "Unexpected ENUMERATED value");
+            Assert.IsTrue(enumerated2.HasValue(514), "Unexpected ENUMERATED value");
         }
 
         /// <summary>
@@ -103,7 +106,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             Assert.IsNotNull(enumerated, "ENUMERATED expected");
 
-            Assert.AreEqual(65793, enumerated.Value.IntValue, "Unexpected ENUMERATED value");
+            Assert.AreEqual(65793, enumerated.IntValueExact, "Unexpected ENUMERATED value");
+            Assert.IsTrue(enumerated.HasValue(65793), "Unexpected ENUMERATED value");
 
             DerObjectIdentifier objectId = sequence[1] as DerObjectIdentifier;
 
