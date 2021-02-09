@@ -288,6 +288,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             byte[] output = new byte[block.Length - start];
 
             Array.Copy(block, start, output, 0, output.Length);
+            Array.Clear(block, 0, block.Length);
 
             return output;
         }
