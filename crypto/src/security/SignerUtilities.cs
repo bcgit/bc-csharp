@@ -87,26 +87,36 @@ namespace Org.BouncyCastle.Security
             algorithms["SHA-1WITHRSAANDMGF1"] = "SHA-1withRSAandMGF1";
             algorithms["SHA1WITHRSA/PSS"] = "SHA-1withRSAandMGF1";
             algorithms["SHA-1WITHRSA/PSS"] = "SHA-1withRSAandMGF1";
+            algorithms["SHA1WITHRSASSA-PSS"] = "SHA-1withRSAandMGF1";
+            algorithms["SHA-1WITHRSASSA-PSS"] = "SHA-1withRSAandMGF1";
 
             algorithms["SHA224WITHRSAANDMGF1"] = "SHA-224withRSAandMGF1";
             algorithms["SHA-224WITHRSAANDMGF1"] = "SHA-224withRSAandMGF1";
             algorithms["SHA224WITHRSA/PSS"] = "SHA-224withRSAandMGF1";
             algorithms["SHA-224WITHRSA/PSS"] = "SHA-224withRSAandMGF1";
+            algorithms["SHA224WITHRSASSA-PSS"] = "SHA-224withRSAandMGF1";
+            algorithms["SHA-224WITHRSASSA-PSS"] = "SHA-224withRSAandMGF1";
 
             algorithms["SHA256WITHRSAANDMGF1"] = "SHA-256withRSAandMGF1";
             algorithms["SHA-256WITHRSAANDMGF1"] = "SHA-256withRSAandMGF1";
             algorithms["SHA256WITHRSA/PSS"] = "SHA-256withRSAandMGF1";
             algorithms["SHA-256WITHRSA/PSS"] = "SHA-256withRSAandMGF1";
+            algorithms["SHA256WITHRSASSA-PSS"] = "SHA-256withRSAandMGF1";
+            algorithms["SHA-256WITHRSASSA-PSS"] = "SHA-256withRSAandMGF1";
 
             algorithms["SHA384WITHRSAANDMGF1"] = "SHA-384withRSAandMGF1";
             algorithms["SHA-384WITHRSAANDMGF1"] = "SHA-384withRSAandMGF1";
             algorithms["SHA384WITHRSA/PSS"] = "SHA-384withRSAandMGF1";
             algorithms["SHA-384WITHRSA/PSS"] = "SHA-384withRSAandMGF1";
+            algorithms["SHA384WITHRSASSA-PSS"] = "SHA-384withRSAandMGF1";
+            algorithms["SHA-384WITHRSASSA-PSS"] = "SHA-384withRSAandMGF1";
 
             algorithms["SHA512WITHRSAANDMGF1"] = "SHA-512withRSAandMGF1";
             algorithms["SHA-512WITHRSAANDMGF1"] = "SHA-512withRSAandMGF1";
             algorithms["SHA512WITHRSA/PSS"] = "SHA-512withRSAandMGF1";
             algorithms["SHA-512WITHRSA/PSS"] = "SHA-512withRSAandMGF1";
+            algorithms["SHA512WITHRSASSA-PSS"] = "SHA-512withRSAandMGF1";
+            algorithms["SHA-512WITHRSASSA-PSS"] = "SHA-512withRSAandMGF1";
 
             algorithms["RIPEMD128WITHRSA"] = "RIPEMD128withRSA";
             algorithms["RIPEMD128WITHRSAENCRYPTION"] = "RIPEMD128withRSA";
@@ -535,7 +545,7 @@ namespace Org.BouncyCastle.Security
             {
                 // TODO The Sha1Digest here is a default. In JCE version, the actual digest
                 // to be used can be overridden by subsequent parameter settings.
-                return (new PssSigner(new RsaBlindedEngine(), new Sha1Digest()));
+                return new PssSigner(new RsaBlindedEngine(), new Sha1Digest());
             }
             if (Platform.EndsWith(mechanism, "withRSA"))
             {
