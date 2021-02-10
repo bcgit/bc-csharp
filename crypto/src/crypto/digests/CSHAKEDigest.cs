@@ -7,9 +7,21 @@ namespace Org.BouncyCastle.Crypto.Digests
     /// <summary>
     /// Customizable SHAKE function.
     /// </summary>
-    public class CShakeDigest : ShakeDigest
+    public class CShakeDigest
+        : ShakeDigest
     {
         private static readonly byte[] padding = new byte[100];
+
+        private static byte[] EncodeString(byte[] str)
+        {
+            if (Arrays.IsNullOrEmpty(str))
+            {
+                return XofUtilities.LeftEncode(0L);
+            }
+
+            return Arrays.Concatenate(XofUtilities.LeftEncode(str.Length * 8L), str);
+        }
+
         private readonly byte[] diff;
 
         /// <summary>
@@ -18,7 +30,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// <param name="bitLength">bit length of the underlying SHAKE function, 128 or 256.</param>
         /// <param name="N">the function name string, note this is reserved for use by NIST. Avoid using it if not required.</param>
         /// <param name="S">the customization string - available for local use.</param>
-        public CShakeDigest(int bitLength, byte[] N, byte[] S) : base(bitLength)
+        public CShakeDigest(int bitLength, byte[] N, byte[] S)
+            : base(bitLength)
         {
             if ((N == null || N.Length == 0) && (S == null || S.Length == 0))
             {
@@ -26,7 +39,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             else
             {
-                diff = Arrays.ConcatenateAll(XofUtilities.LeftEncode(rate / 8), encodeString(N), encodeString(S));
+                diff = Arrays.ConcatenateAll(XofUtilities.LeftEncode(rate / 8), EncodeString(N), EncodeString(S));
                 DiffPadAndAbsorb();
             }
         }
@@ -54,52 +67,26 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        private byte[] encodeString(byte[] str)
-        {
-            if (str == null || str.Length == 0)
-            {
-                return XofUtilities.LeftEncode(0);
-            }
-
-            return Arrays.Concatenate(XofUtilities.LeftEncode(str.Length * 8L), str);
-        }
-
         public override string AlgorithmName
         {
             get { return "CSHAKE" + fixedOutputLength; }
         }
 
-        public override int DoFinal(byte[] output, int outOff)
-        {           
-            return DoFinal(output, outOff,GetDigestSize());
-        }
-
-        public override int DoFinal(byte[] output, int outOff, int outLen)
-        {
-            int length = DoOutput(output, outOff, outLen);
-
-            Reset();
-
-            return length;
-        }
-
         public override int DoOutput(byte[] output, int outOff, int outLen)
         {
-            if (diff != null)
-            {
-                if (!squeezing)
-                {
-                    AbsorbBits(0x00, 2);
-                }
-
-                Squeeze(output, outOff, ((long)outLen) * 8);
-
-                return outLen;
-            }
-            else
+            if (diff == null)
             {
                 return base.DoOutput(output, outOff, outLen);
             }
+
+            if (!squeezing)
+            {
+                AbsorbBits(0x00, 2);
+            }
+
+            Squeeze(output, outOff, ((long)outLen) << 3);
+
+            return outLen;
         }
 
         public override void Reset()
