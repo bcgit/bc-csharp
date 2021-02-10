@@ -478,6 +478,7 @@
     <Compile Include="src\util\test\SimpleTestResult.cs" />
     <Compile Include="src\util\test\TestFailedException.cs" />
     <Compile Include="src\util\test\TestRandomBigInteger.cs" />
+    <Compile Include="src\util\test\TestRandomData.cs" />
     <Compile Include="src\util\test\UncloseableStream.cs" />
     <Compile Include="src\x509\test\TestCertificateGen.cs" />
   </ItemGroup>

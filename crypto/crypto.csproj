@@ -13762,6 +13762,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\util\test\TestRandomData.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\util\test\UncloseableStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
