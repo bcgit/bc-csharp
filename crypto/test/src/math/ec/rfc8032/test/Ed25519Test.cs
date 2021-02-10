@@ -13,8 +13,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
     public class Ed25519Test
     {
 		private static readonly SecureRandom Random = new SecureRandom();
-      
-		[SetUp]
+
+        private static readonly byte[] Neutral = Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000000");
+
+        [SetUp]
         public void SetUp()
         {
             Ed25519.Precompute();
@@ -363,6 +365,92 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 + "31f85042463c2a355a2003d062adf5aa"
                 + "a10b8c61e636062aaad11c2a26083406"),
                 "Ed25519ph Vector #1");
+        }
+
+        [Test]
+        public void TestPublicKeyValidationFull()
+        {
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Neutral, 0));
+
+            byte[] sk = new byte[Ed25519.SecretKeySize];
+            byte[] pk = new byte[Ed25519.PublicKeySize];
+
+            for (int i = 0; i < 10; ++i)
+            {
+                Random.NextBytes(sk);
+                Ed25519.GeneratePublicKey(sk, 0, pk, 0);
+                Assert.IsTrue(Ed25519.ValidatePublicKeyFull(pk, 0));
+            }
+
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
+
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("D73D6044821BD0DF4068AE1792F0851170F53062150AA70A87E2A58A05A26115"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("F9D557BE0F3C700571CD8AD9CFDE0A2C67F88EE71830073C7756A0599311AD94"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("7A772BBC08D53BF381B150D8411B9AF134BBF24B90A038EFD8DA4A17B32606A1"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("DC6EF81316C08B91209A73FE8E208DD319F56C6A47956A03AF7D6D826A88AC87"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("6EEDF105177868C9AD48DAF2C36EE3B169D892A02A3BF83101B1D50D86BFB19E"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("4BAAB5711F22FF7479E6D9BD2C5BC4DCD3CFC9F36921971496907B1F2B62C6BA"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("D96A46432581A80085F978F7FC0977E228C5A3FD2E64D588BB5F5E5A84E4ABAE"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("10C326AE15FA5BA89EDDAB89C860797385298F4C7750BAEB94A5AAC9A876B538"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("7808F3F6EB858E9BBD2570F20A9F7502175F312FA2DBE4C96EB5C683B384AA60"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("0DE943C51E91AA3ED9FFA82D39A9813D94F59246452F6A7780D067BC61342FE1"), 0));
+
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("10026DBFB4C55628716BB0EF979A10DD5AC7AA970C229B5E68DD993E2C20E7D5"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("68EC52D16C1DB4483AA8679277C34E0DC56EB7D064D302B9749F0D31A901D484"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("6E54C8F00669422D5697E09C0575AE1E699841ACF1690A5DFAA25E3160F3A2EF"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("CA66B62D361F790AA9658161BA0FFDC3CE60624151258C7301926DFE0C67EE64"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("88D912C322AE3D0907B38ED08727FBF06D51C5D1DE622B5BC24DAB30078AE9FF"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("F24683E044CE3F14BCA24F1356AE7767509E17EFA2606438BA275860819E14B8"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("B2865F02E6D19A94CE6147B574095733B3628A2FBE2C84022262D88F7D6C4F7D"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("FA4DA03321816C1C9066BD250982DDD1B4349C43C5E124D2B39F8DDA4E5364F8"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("FCADF40DE51A943F3B7847DBEBA0627B33D020D81DFFABF2B3701BD9B746952A"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyFull(Hex.DecodeStrict("379B071E6F7E2479D5A8588AB708137808D63F689127D4A228E2C1681873C55E"), 0));
+        }
+
+        [Test]
+        public void TestPublicKeyValidationPartial()
+        {
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Neutral, 0));
+
+            byte[] sk = new byte[Ed25519.SecretKeySize];
+            byte[] pk = new byte[Ed25519.PublicKeySize];
+
+            for (int i = 0; i < 10; ++i)
+            {
+                Random.NextBytes(sk);
+                Ed25519.GeneratePublicKey(sk, 0, pk, 0);
+                Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(pk, 0));
+            }
+
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
+
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("D73D6044821BD0DF4068AE1792F0851170F53062150AA70A87E2A58A05A26115"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("F9D557BE0F3C700571CD8AD9CFDE0A2C67F88EE71830073C7756A0599311AD94"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("7A772BBC08D53BF381B150D8411B9AF134BBF24B90A038EFD8DA4A17B32606A1"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("DC6EF81316C08B91209A73FE8E208DD319F56C6A47956A03AF7D6D826A88AC87"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("6EEDF105177868C9AD48DAF2C36EE3B169D892A02A3BF83101B1D50D86BFB19E"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("4BAAB5711F22FF7479E6D9BD2C5BC4DCD3CFC9F36921971496907B1F2B62C6BA"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("D96A46432581A80085F978F7FC0977E228C5A3FD2E64D588BB5F5E5A84E4ABAE"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("10C326AE15FA5BA89EDDAB89C860797385298F4C7750BAEB94A5AAC9A876B538"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("7808F3F6EB858E9BBD2570F20A9F7502175F312FA2DBE4C96EB5C683B384AA60"), 0));
+            Assert.IsFalse(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("0DE943C51E91AA3ED9FFA82D39A9813D94F59246452F6A7780D067BC61342FE1"), 0));
+
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("10026DBFB4C55628716BB0EF979A10DD5AC7AA970C229B5E68DD993E2C20E7D5"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("68EC52D16C1DB4483AA8679277C34E0DC56EB7D064D302B9749F0D31A901D484"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("6E54C8F00669422D5697E09C0575AE1E699841ACF1690A5DFAA25E3160F3A2EF"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("CA66B62D361F790AA9658161BA0FFDC3CE60624151258C7301926DFE0C67EE64"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("88D912C322AE3D0907B38ED08727FBF06D51C5D1DE622B5BC24DAB30078AE9FF"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("F24683E044CE3F14BCA24F1356AE7767509E17EFA2606438BA275860819E14B8"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("B2865F02E6D19A94CE6147B574095733B3628A2FBE2C84022262D88F7D6C4F7D"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("FA4DA03321816C1C9066BD250982DDD1B4349C43C5E124D2B39F8DDA4E5364F8"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("FCADF40DE51A943F3B7847DBEBA0627B33D020D81DFFABF2B3701BD9B746952A"), 0));
+            Assert.IsTrue(Ed25519.ValidatePublicKeyPartial(Hex.DecodeStrict("379B071E6F7E2479D5A8588AB708137808D63F689127D4A228E2C1681873C55E"), 0));
         }
 
         private static void CheckEd25519Vector(string sSK, string sPK, string sM, string sSig, string text)

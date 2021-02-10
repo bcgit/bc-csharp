@@ -173,6 +173,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return !Nat.Gte(ScalarUints, n, L);
         }
 
+        private static byte[] Copy(byte[] buf, int off, int len)
+        {
+            byte[] result = new byte[len];
+            Array.Copy(buf, off, result, 0, len);
+            return result;
+        }
+
         public static IXof CreatePrehash()
         {
             return CreateXof();
@@ -217,7 +224,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static bool DecodePointVar(byte[] p, int pOff, bool negate, PointExt r)
         {
-            byte[] py = Arrays.CopyOfRange(p, pOff, pOff + PointBytes);
+            byte[] py = Copy(p, pOff, PointBytes);
             if (!CheckPointVar(py))
                 return false;
 
@@ -459,8 +466,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!CheckContextVar(ctx))
                 throw new ArgumentException("ctx");
 
-            byte[] R = Arrays.CopyOfRange(sig, sigOff, sigOff + PointBytes);
-            byte[] S = Arrays.CopyOfRange(sig, sigOff + PointBytes, sigOff + SignatureSize);
+            byte[] R = Copy(sig, sigOff, PointBytes);
+            byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
 
             if (!CheckPointVar(R))
                 return false;
@@ -494,6 +501,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             byte[] check = new byte[PointBytes];
             return 0 != EncodePoint(pR, check, 0) && Arrays.AreEqual(check, R);
+        }
+
+        private static bool IsNeutralElementVar(uint[] x, uint[] y)
+        {
+            return F.IsZeroVar(x) && F.IsOneVar(y);
+        }
+
+        private static bool IsNeutralElementVar(uint[] x, uint[] y, uint[] z)
+        {
+            return F.IsZeroVar(x) && F.AreEqualVar(y, z);
         }
 
         private static void PointAdd(PointExt p, PointExt r)
@@ -1255,6 +1272,28 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(p.y, 0, y, 0);
         }
 
+        private static void ScalarMultOrder(PointExt p, PointExt r)
+        {
+            uint[] n = new uint[ScalarUints];
+            Nat.ShiftDownBit(ScalarUints, L, 1, n);
+
+            uint[] table = PointPrecompute(p, 8);
+            PointExt q = new PointExt();
+
+            PointLookup(n, 111, table, r);
+
+            for (int w = 110; w >= 0; --w)
+            {
+                for (int i = 0; i < 4; ++i)
+                {
+                    PointDouble(r);
+                }
+
+                PointLookup(n, w, table, q);
+                PointAdd(q, r);
+            }
+        }
+
         private static void ScalarMultStrausVar(uint[] nb, uint[] np, PointExt p, PointExt r)
         {
             Precompute();
@@ -1343,6 +1382,35 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte phflag = 0x01;
 
             ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
+        }
+
+        public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
+        {
+            PointExt p = new PointExt();
+            if (!DecodePointVar(pk, pkOff, false, p))
+                return false;
+
+            F.Normalize(p.x);
+            F.Normalize(p.y);
+            F.Normalize(p.z);
+
+            if (IsNeutralElementVar(p.x, p.y, p.z))
+                return false;
+
+            PointExt r = new PointExt();
+            ScalarMultOrder(p, r);
+
+            F.Normalize(r.x);
+            F.Normalize(r.y);
+            F.Normalize(r.z);
+
+            return IsNeutralElementVar(r.x, r.y, r.z);
+        }
+
+        public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
+        {
+            PointExt p = new PointExt();
+            return DecodePointVar(pk, pkOff, false, p);
         }
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] m, int mOff, int mLen)

@@ -183,6 +183,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return !Nat256.Gte(n, L);
         }
 
+        private static byte[] Copy(byte[] buf, int off, int len)
+        {
+            byte[] result = new byte[len];
+            Array.Copy(buf, off, result, 0, len);
+            return result;
+        }
+
         private static IDigest CreateDigest()
         {
             return new Sha512Digest();
@@ -220,7 +227,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static bool DecodePointVar(byte[] p, int pOff, bool negate, PointAffine r)
         {
-            byte[] py = Arrays.CopyOfRange(p, pOff, pOff + PointBytes);
+            byte[] py = Copy(p, pOff, PointBytes);
             if (!CheckPointVar(py))
                 return false;
 
@@ -461,8 +468,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!CheckContextVar(ctx, phflag))
                 throw new ArgumentException("ctx");
 
-            byte[] R = Arrays.CopyOfRange(sig, sigOff, sigOff + PointBytes);
-            byte[] S = Arrays.CopyOfRange(sig, sigOff + PointBytes, sigOff + SignatureSize);
+            byte[] R = Copy(sig, sigOff, PointBytes);
+            byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
 
             if (!CheckPointVar(R))
                 return false;
@@ -496,6 +503,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             byte[] check = new byte[PointBytes];
             return 0 != EncodePoint(pR, check, 0) && Arrays.AreEqual(check, R);
+        }
+
+        private static bool IsNeutralElementVar(int[] x, int[] y)
+        {
+            return F.IsZeroVar(x) && F.IsOneVar(y);
+        }
+
+        private static bool IsNeutralElementVar(int[] x, int[] y, int[] z)
+        {
+            return F.IsZeroVar(x) && F.AreEqualVar(y, z);
         }
 
         private static void PointAdd(PointExt p, PointAccum r)
@@ -1234,6 +1251,36 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(p.z, 0, z, 0);
         }
 
+        private static void ScalarMultOrder(PointAffine p, PointAccum r)
+        {
+            uint[] n = new uint[ScalarUints];
+            Nat.ShiftDownBit(ScalarUints, L, 0, n);
+            n[ScalarUints - 1] |= 1U << 28;
+
+            int[] table = PointPrecompute(p, 8);
+            PointExt q = new PointExt();
+
+            // Replace first 4 doublings (2^4 * P) with 1 addition (P + 15 * P)
+            PointCopy(p, r);
+            PointLookup(table, 7, q);
+            PointAdd(q, r);
+
+            int w = 62;
+            for (;;)
+            {
+                PointLookup(n, w, table, q);
+                PointAdd(q, r);
+
+                if (--w < 0)
+                    break;
+
+                for (int i = 0; i < 4; ++i)
+                {
+                    PointDouble(r);
+                }
+            }
+        }
+
         private static void ScalarMultStrausVar(uint[] nb, uint[] np, PointAffine p, PointAccum r)
         {
             Precompute();
@@ -1338,6 +1385,34 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte phflag = 0x01;
 
             ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
+        }
+
+        public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
+        {
+            PointAffine p = new PointAffine();
+            if (!DecodePointVar(pk, pkOff, false, p))
+                return false;
+
+            F.Normalize(p.x);
+            F.Normalize(p.y);
+
+            if (IsNeutralElementVar(p.x, p.y))
+                return false;
+
+            PointAccum r = new PointAccum();
+            ScalarMultOrder(p, r);
+
+            F.Normalize(r.x);
+            F.Normalize(r.y);
+            F.Normalize(r.z);
+
+            return IsNeutralElementVar(r.x, r.y, r.z);
+        }
+
+        public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
+        {
+            PointAffine p = new PointAffine();
+            return DecodePointVar(pk, pkOff, false, p);
         }
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen)
