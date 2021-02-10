@@ -53,30 +53,60 @@ namespace Org.BouncyCastle.Security
             algorithms[OiwObjectIdentifiers.MD5WithRsa.Id] = "MD5withRSA";
 
             algorithms["SHA1WITHRSA"] = "SHA-1withRSA";
-            algorithms["SHA1WITHRSAENCRYPTION"] = "SHA-1withRSA";
             algorithms["SHA-1WITHRSA"] = "SHA-1withRSA";
+            algorithms["SHA1WITHRSAENCRYPTION"] = "SHA-1withRSA";
+            algorithms["SHA-1WITHRSAENCRYPTION"] = "SHA-1withRSA";
             algorithms[PkcsObjectIdentifiers.Sha1WithRsaEncryption.Id] = "SHA-1withRSA";
             algorithms[OiwObjectIdentifiers.Sha1WithRsa.Id] = "SHA-1withRSA";
 
             algorithms["SHA224WITHRSA"] = "SHA-224withRSA";
-            algorithms["SHA224WITHRSAENCRYPTION"] = "SHA-224withRSA";
-            algorithms[PkcsObjectIdentifiers.Sha224WithRsaEncryption.Id] = "SHA-224withRSA";
             algorithms["SHA-224WITHRSA"] = "SHA-224withRSA";
+            algorithms["SHA224WITHRSAENCRYPTION"] = "SHA-224withRSA";
+            algorithms["SHA-224WITHRSAENCRYPTION"] = "SHA-224withRSA";
+            algorithms[PkcsObjectIdentifiers.Sha224WithRsaEncryption.Id] = "SHA-224withRSA";
 
             algorithms["SHA256WITHRSA"] = "SHA-256withRSA";
-            algorithms["SHA256WITHRSAENCRYPTION"] = "SHA-256withRSA";
-            algorithms[PkcsObjectIdentifiers.Sha256WithRsaEncryption.Id] = "SHA-256withRSA";
             algorithms["SHA-256WITHRSA"] = "SHA-256withRSA";
+            algorithms["SHA256WITHRSAENCRYPTION"] = "SHA-256withRSA";
+            algorithms["SHA-256WITHRSAENCRYPTION"] = "SHA-256withRSA";
+            algorithms[PkcsObjectIdentifiers.Sha256WithRsaEncryption.Id] = "SHA-256withRSA";
 
             algorithms["SHA384WITHRSA"] = "SHA-384withRSA";
-            algorithms["SHA384WITHRSAENCRYPTION"] = "SHA-384withRSA";
-            algorithms[PkcsObjectIdentifiers.Sha384WithRsaEncryption.Id] = "SHA-384withRSA";
             algorithms["SHA-384WITHRSA"] = "SHA-384withRSA";
+            algorithms["SHA384WITHRSAENCRYPTION"] = "SHA-384withRSA";
+            algorithms["SHA-384WITHRSAENCRYPTION"] = "SHA-384withRSA";
+            algorithms[PkcsObjectIdentifiers.Sha384WithRsaEncryption.Id] = "SHA-384withRSA";
 
             algorithms["SHA512WITHRSA"] = "SHA-512withRSA";
-            algorithms["SHA512WITHRSAENCRYPTION"] = "SHA-512withRSA";
-            algorithms[PkcsObjectIdentifiers.Sha512WithRsaEncryption.Id] = "SHA-512withRSA";
             algorithms["SHA-512WITHRSA"] = "SHA-512withRSA";
+            algorithms["SHA512WITHRSAENCRYPTION"] = "SHA-512withRSA";
+            algorithms["SHA-512WITHRSAENCRYPTION"] = "SHA-512withRSA";
+            algorithms[PkcsObjectIdentifiers.Sha512WithRsaEncryption.Id] = "SHA-512withRSA";
+
+            algorithms["SHA512(224)WITHRSA"] = "SHA-512(224)withRSA";
+            algorithms["SHA-512(224)WITHRSA"] = "SHA-512(224)withRSA";
+            algorithms["SHA512(224)WITHRSAENCRYPTION"] = "SHA-512(224)withRSA";
+            algorithms["SHA-512(224)WITHRSAENCRYPTION"] = "SHA-512(224)withRSA";
+            algorithms[PkcsObjectIdentifiers.Sha512_224WithRSAEncryption.Id] = "SHA-512(224)withRSA";
+
+            algorithms["SHA512(256)WITHRSA"] = "SHA-512(256)withRSA";
+            algorithms["SHA-512(256)WITHRSA"] = "SHA-512(256)withRSA";
+            algorithms["SHA512(256)WITHRSAENCRYPTION"] = "SHA-512(256)withRSA";
+            algorithms["SHA-512(256)WITHRSAENCRYPTION"] = "SHA-512(256)withRSA";
+            algorithms[PkcsObjectIdentifiers.Sha512_256WithRSAEncryption.Id] = "SHA-512(256)withRSA";
+
+            algorithms["SHA3-224WITHRSA"] = "SHA3-224withRSA";
+            algorithms["SHA3-224WITHRSAENCRYPTION"] = "SHA3-224withRSA";
+            algorithms[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224.Id] = "SHA3-224withRSA";
+            algorithms["SHA3-256WITHRSA"] = "SHA3-256withRSA";
+            algorithms["SHA3-256WITHRSAENCRYPTION"] = "SHA3-256withRSA";
+            algorithms[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256.Id] = "SHA3-256withRSA";
+            algorithms["SHA3-384WITHRSA"] = "SHA3-384withRSA";
+            algorithms["SHA3-384WITHRSAENCRYPTION"] = "SHA3-384withRSA";
+            algorithms[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384.Id] = "SHA3-384withRSA";
+            algorithms["SHA3-512WITHRSA"] = "SHA3-512withRSA";
+            algorithms["SHA3-512WITHRSAENCRYPTION"] = "SHA3-512withRSA";
+            algorithms[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512.Id] = "SHA3-512withRSA";
 
             algorithms["PSSWITHRSA"] = "PSSwithRSA";
             algorithms["RSASSA-PSS"] = "PSSwithRSA";
@@ -369,6 +399,12 @@ namespace Org.BouncyCastle.Security
             oids["SHA-256withRSA"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
             oids["SHA-384withRSA"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
             oids["SHA-512withRSA"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
+            oids["SHA-512(224)withRSA"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
+            oids["SHA-512(256)withRSA"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
+            oids["SHA3-224withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224;
+            oids["SHA3-256withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256;
+            oids["SHA3-384withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384;
+            oids["SHA3-512withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512;
 
             oids["PSSwithRSA"] = PkcsObjectIdentifiers.IdRsassaPss;
             oids["SHA-1withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;

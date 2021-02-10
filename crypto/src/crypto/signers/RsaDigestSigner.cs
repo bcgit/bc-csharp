@@ -42,6 +42,12 @@ namespace Org.BouncyCastle.Crypto.Signers
             oidMap["SHA-256"] = NistObjectIdentifiers.IdSha256;
             oidMap["SHA-384"] = NistObjectIdentifiers.IdSha384;
             oidMap["SHA-512"] = NistObjectIdentifiers.IdSha512;
+            oidMap["SHA-512/224"] = NistObjectIdentifiers.IdSha512_224;
+            oidMap["SHA-512/256"] = NistObjectIdentifiers.IdSha512_256;
+            oidMap["SHA3-224"] = NistObjectIdentifiers.IdSha3_224;
+            oidMap["SHA3-256"] = NistObjectIdentifiers.IdSha3_256;
+            oidMap["SHA3-384"] = NistObjectIdentifiers.IdSha3_384;
+            oidMap["SHA3-512"] = NistObjectIdentifiers.IdSha3_512;
 
             oidMap["MD2"] = PkcsObjectIdentifiers.MD2;
             oidMap["MD4"] = PkcsObjectIdentifiers.MD4;

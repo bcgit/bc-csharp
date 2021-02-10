@@ -74,9 +74,14 @@ namespace Org.BouncyCastle.Security
             algorithms["SHA512"] = "SHA-512";
             algorithms[NistObjectIdentifiers.IdSha512.Id] = "SHA-512";
             algorithms[PkcsObjectIdentifiers.IdHmacWithSha512.Id] = "SHA-512";
+
             algorithms["SHA512/224"] = "SHA-512/224";
+            algorithms["SHA512(224)"] = "SHA-512/224";
+            algorithms["SHA-512(224)"] = "SHA-512/224";
             algorithms[NistObjectIdentifiers.IdSha512_224.Id] = "SHA-512/224";
             algorithms["SHA512/256"] = "SHA-512/256";
+            algorithms["SHA512(256)"] = "SHA-512/256";
+            algorithms["SHA-512(256)"] = "SHA-512/256";
             algorithms[NistObjectIdentifiers.IdSha512_256.Id] = "SHA-512/256";
 
             algorithms["RIPEMD-128"] = "RIPEMD128";

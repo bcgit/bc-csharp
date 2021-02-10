@@ -7,7 +7,6 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
@@ -458,7 +457,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			s = new CmsSignedData(hashes, s.GetEncoded());
 
-			VerifySignatures(s, null);
+			VerifySignatures(s);
 		}
 
         [Test]
@@ -760,6 +759,72 @@ namespace Org.BouncyCastle.Cms.Tests
 		{
 			rsaPssTest("SHA384", CmsSignedDataGenerator.DigestSha384);
 		}
+
+        [Test]
+        public void TestSha1WithRsaDigest()
+        {
+            RsaDigestTest("SHA1withRSA");
+        }
+
+        [Test]
+        public void TestSha224WithRsaDigest()
+        {
+            RsaDigestTest("SHA224withRSA");
+        }
+
+        [Test]
+        public void TestSha256WithRsaDigest()
+        {
+            RsaDigestTest("SHA256withRSA");
+        }
+
+        [Test]
+        public void TestSha384WithRsaDigest()
+        {
+            RsaDigestTest("SHA384withRSA");
+        }
+
+        [Test]
+        public void TestSha512WithRsaDigest()
+        {
+            RsaDigestTest("SHA512withRSA");
+        }
+
+        [Test]
+        public void TestSha3_224WithRsaDigest()
+        {
+            RsaDigestTest("SHA3-224withRSA");
+        }
+
+        [Test]
+        public void TestSha3_256WithRsaDigest()
+        {
+            RsaDigestTest("SHA3-256withRSA");
+        }
+
+        [Test]
+        public void TestSha3_384WithRsaDigest()
+        {
+            RsaDigestTest("SHA3-384withRSA");
+        }
+
+        [Test]
+        public void TestSha3_512WithRsaDigest()
+        {
+            RsaDigestTest("SHA3-512withRSA");
+        }
+
+        [Test]
+        public void testSHA512_224ithRSADigest()
+        {
+            RsaDigestTest("SHA512(224)withRSA");
+        }
+
+        [Test]
+        public void testSHA512_256ithRSADigest()
+        {
+            RsaDigestTest("SHA512(256)withRSA");
+        }
 
 		[Test]
 		public void TestSha224WithRsaEncapsulated()
@@ -1469,7 +1534,29 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		private void VerifySignatures(
+        private void RsaDigestTest(string signatureAlgorithmName)
+        {
+            byte[] data = Encoding.ASCII.GetBytes("Hello World!");
+            CmsProcessable msg = new CmsProcessableByteArray(data);
+
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+            gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().Build(
+                new Asn1SignatureFactory(signatureAlgorithmName, OrigKP.Private), OrigCert));
+            gen.AddCertificates(x509Certs);
+
+            CmsSignedData s = gen.Generate(msg, false);
+
+            //
+            // compute expected content digest
+            //
+            string digestName = signatureAlgorithmName.Substring(0, signatureAlgorithmName.IndexOf("with"));
+
+            VerifySignatures(s, DigestUtilities.CalculateDigest(digestName, data));
+        }
+
+        private void VerifySignatures(
 			CmsSignedDataParser sp)
 		{
 			IX509Store x509Certs = sp.GetCertificates("Collection");
