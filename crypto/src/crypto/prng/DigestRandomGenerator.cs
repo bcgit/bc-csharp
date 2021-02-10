@@ -1,7 +1,7 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Prng
 {
@@ -40,8 +40,11 @@ namespace Org.BouncyCastle.Crypto.Prng
 		{
 			lock (this)
 			{
-				DigestUpdate(inSeed);
-				DigestUpdate(seed);
+                if (!Arrays.IsNullOrEmpty(inSeed))
+                {
+                    DigestUpdate(inSeed);
+                }
+                DigestUpdate(seed);
 				DigestDoFinal(seed);
 			}
 		}
