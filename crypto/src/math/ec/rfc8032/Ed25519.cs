@@ -27,7 +27,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const long M28L = 0x0FFFFFFFL;
         private const long M32L = 0xFFFFFFFFL;
 
-        private const int PointBytes = 32;
+        private const int CoordUints = 8;
+        private const int PointBytes = CoordUints * 4;
         private const int ScalarUints = 8;
         private const int ScalarBytes = ScalarUints * 4;
 
@@ -170,15 +171,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static bool CheckPointVar(byte[] p)
         {
-            uint[] t = new uint[8];
-            Decode32(p, 0, t, 0, 8);
-            t[7] &= 0x7FFFFFFFU;
+            uint[] t = new uint[CoordUints];
+            Decode32(p, 0, t, 0, CoordUints);
+            t[CoordUints - 1] &= 0x7FFFFFFFU;
             return !Nat256.Gte(t, P);
         }
 
-        private static bool CheckScalarVar(byte[] s)
+        private static bool CheckScalarVar(byte[] s, uint[] n)
         {
-            uint[] n = new uint[ScalarUints];
             DecodeScalar(s, 0, n);
             return !Nat256.Gte(n, L);
         }
@@ -346,7 +346,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static sbyte[] GetWnafVar(uint[] n, int width)
         {
-            Debug.Assert(n[ScalarUints - 1] >> 28 == 0);
+            Debug.Assert(n[ScalarUints - 1] <= L[ScalarUints - 1]);
+            Debug.Assert(2 <= width && width <= 8);
 
             uint[] t = new uint[ScalarUints * 2];
             {
@@ -362,9 +363,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             sbyte[] ws = new sbyte[253];
 
-            uint pow2 = 1U << width;
-            uint mask = pow2 - 1U;
-            uint sign = pow2 >> 1;
+            int lead = 32 - width;
 
             uint carry = 0U;
             int j = 0;
@@ -382,12 +381,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                         continue;
                     }
 
-                    uint digit = (word16 & mask) + carry;
-                    carry = digit & sign;
-                    digit -= (carry << 1);
-                    carry >>= (width - 1);
+                    uint digit = (word16 | 1U) << lead;
+                    carry = digit >> 31;
 
-                    ws[(i << 4) + j] = (sbyte)digit;
+                    ws[(i << 4) + j] = (sbyte)((int)digit >> lead);
 
                     j += width;
                 }
@@ -474,7 +471,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!CheckPointVar(R))
                 return false;
 
-            if (!CheckScalarVar(S))
+            uint[] nS = new uint[ScalarUints];
+            if (!CheckScalarVar(S, nS))
                 return false;
 
             PointAffine pA = new PointAffine();
@@ -491,9 +489,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             d.DoFinal(h, 0);
 
             byte[] k = ReduceScalar(h);
-
-            uint[] nS = new uint[ScalarUints];
-            DecodeScalar(S, 0, nS);
 
             uint[] nA = new uint[ScalarUints];
             DecodeScalar(k, 0, nA);
@@ -1251,33 +1246,31 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(p.z, 0, z, 0);
         }
 
-        private static void ScalarMultOrder(PointAffine p, PointAccum r)
+        private static void ScalarMultOrderVar(PointAffine p, PointAccum r)
         {
-            uint[] n = new uint[ScalarUints];
-            Nat.ShiftDownBit(ScalarUints, L, 0, n);
-            n[ScalarUints - 1] |= 1U << 28;
+            int width = 5;
 
-            int[] table = PointPrecompute(p, 8);
-            PointExt q = new PointExt();
+            sbyte[] ws_p = GetWnafVar(L, width);
 
-            // Replace first 4 doublings (2^4 * P) with 1 addition (P + 15 * P)
-            PointCopy(p, r);
-            PointLookup(table, 7, q);
-            PointAdd(q, r);
+            PointExt[] tp = PointPrecomputeVar(PointCopy(p), 1 << (width - 2));
 
-            int w = 62;
-            for (;;)
+            PointSetNeutral(r);
+
+            for (int bit = 252; ;)
             {
-                PointLookup(n, w, table, q);
-                PointAdd(q, r);
+                int wp = ws_p[bit];
+                if (wp != 0)
+                {
+                    int sign = wp >> 31;
+                    int index = (wp ^ sign) >> 1;
 
-                if (--w < 0)
+                    PointAddVar((sign != 0), tp[index], r);
+                }
+
+                if (--bit < 0)
                     break;
 
-                for (int i = 0; i < 4; ++i)
-                {
-                    PointDouble(r);
-                }
+                PointDouble(r);
             }
         }
 
@@ -1400,7 +1393,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 return false;
 
             PointAccum r = new PointAccum();
-            ScalarMultOrder(p, r);
+            ScalarMultOrderVar(p, r);
 
             F.Normalize(r.x);
             F.Normalize(r.y);
