@@ -43,20 +43,31 @@ namespace Org.BouncyCastle.Asn1.X509
 		private AttributeCertificateInfo(
             Asn1Sequence seq)
         {
-			if (seq.Count < 7 || seq.Count > 9)
+			if (seq.Count < 6 || seq.Count > 9)
 			{
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
 			}
 
-			this.version = DerInteger.GetInstance(seq[0]);
-            this.holder = Holder.GetInstance(seq[1]);
-            this.issuer = AttCertIssuer.GetInstance(seq[2]);
-            this.signature = AlgorithmIdentifier.GetInstance(seq[3]);
-            this.serialNumber = DerInteger.GetInstance(seq[4]);
-            this.attrCertValidityPeriod = AttCertValidityPeriod.GetInstance(seq[5]);
-            this.attributes = Asn1Sequence.GetInstance(seq[6]);
+            int start;
+            if (seq[0] is DerInteger)   // in version 1 certs version is DEFAULT  v1(0)
+            {
+                this.version = DerInteger.GetInstance(seq[0]);
+                start = 1;
+            }
+            else
+            {
+                this.version = new DerInteger(0);
+                start = 0;
+            }
 
-			for (int i = 7; i < seq.Count; i++)
+            this.holder = Holder.GetInstance(seq[start]);
+            this.issuer = AttCertIssuer.GetInstance(seq[start + 1]);
+            this.signature = AlgorithmIdentifier.GetInstance(seq[start + 2]);
+            this.serialNumber = DerInteger.GetInstance(seq[start + 3]);
+            this.attrCertValidityPeriod = AttCertValidityPeriod.GetInstance(seq[start + 4]);
+            this.attributes = Asn1Sequence.GetInstance(seq[start + 5]);
+
+			for (int i = start + 6; i < seq.Count; i++)
             {
                 Asn1Encodable obj = (Asn1Encodable) seq[i];
 
@@ -136,9 +147,16 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(version, holder, issuer, signature, serialNumber,
-                attrCertValidityPeriod, attributes);
+            Asn1EncodableVector v = new Asn1EncodableVector(9);
+
+            if (!version.HasValue(0))
+            {
+                v.Add(version);
+            }
+
+            v.Add(holder, issuer, signature, serialNumber, attrCertValidityPeriod, attributes);
             v.AddOptional(issuerUniqueID, extensions);
+
             return new DerSequence(v);
         }
     }

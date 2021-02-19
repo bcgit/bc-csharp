@@ -46,6 +46,23 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         //    }
         //}
 
+        public static int AreEqual(uint[] x, uint[] y)
+        {
+            uint d = 0;
+            for (int i = 0; i < Size; ++i)
+            {
+                d |= x[i] ^ y[i];
+            }
+            d |= d >> 16;
+            d &= 0xFFFF;
+            return ((int)d - 1) >> 31;
+        }
+
+        public static bool AreEqualVar(uint[] x, uint[] y)
+        {
+            return 0 != AreEqual(x, y);
+        }
+
         public static void Carry(uint[] z)
         {
             uint z0 = z[0], z1 = z[1], z2 = z[2], z3 = z[3], z4 = z[4], z5 = z[5], z6 = z[6], z7 = z[7];
@@ -283,6 +300,23 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Mod.ModOddInverseVar(P32, u, u);
 
             Decode(u, 0, z);
+        }
+
+        public static int IsOne(uint[] x)
+        {
+            uint d = x[0] ^ 1;
+            for (int i = 1; i < Size; ++i)
+            {
+                d |= x[i];
+            }
+            d |= d >> 16;
+            d &= 0xFFFF;
+            return ((int)d - 1) >> 31;
+        }
+
+        public static bool IsOneVar(uint[] x)
+        {
+            return 0 != IsOne(x);
         }
 
         public static int IsZero(uint[] x)

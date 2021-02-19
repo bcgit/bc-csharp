@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		{
 			Asn1EncodableVector v = new Asn1EncodableVector(baseName);
 
-			if (minimum != null && minimum.Value.SignValue != 0)
+			if (minimum != null && !minimum.HasValue(0))
 			{
 				v.Add(new DerTaggedObject(false, 0, minimum));
 			}

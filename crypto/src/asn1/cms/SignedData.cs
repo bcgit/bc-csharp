@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             {
                 SignerInfo s = SignerInfo.GetInstance(obj);
 
-                if (s.Version.IntValueExact == 3)
+                if (s.Version.HasValue(3))
                 {
                     return true;
                 }

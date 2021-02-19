@@ -46,6 +46,11 @@ namespace Org.BouncyCastle.Crypto.Digests
             get { return "SHAKE" + fixedOutputLength; }
         }
 
+        public override int GetDigestSize()
+        {
+            return fixedOutputLength >> 2;
+        }
+
         public override int DoFinal(byte[] output, int outOff)
         {
             return DoFinal(output, outOff, GetDigestSize());
@@ -53,11 +58,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public virtual int DoFinal(byte[] output, int outOff, int outLen)
         {
-            DoOutput(output, outOff, outLen);
+            int length = DoOutput(output, outOff, outLen);
 
             Reset();
 
-            return outLen;
+            return length;
         }
 
         public virtual int DoOutput(byte[] output, int outOff, int outLen)

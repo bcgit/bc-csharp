@@ -7,7 +7,6 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
@@ -18,6 +17,7 @@ using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Asn1.Utilities;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
@@ -394,6 +394,34 @@ namespace Org.BouncyCastle.Cms.Tests
 				X509Certificate cert = (X509Certificate) certEnum.Current;
 
 				Assert.IsTrue(signer.Verify(cert));
+		
+				if (contentDigest != null)
+				{
+					Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
+				}
+			}
+		}
+
+		private void VerifyDirectSignatures(
+			CmsSignedData s,
+			byte[] contentDigest)
+		{
+			IX509Store x509Certs = s.GetCertificates("Collection");
+
+			SignerInformationStore signers = s.GetSignerInfos();
+			ICollection c = signers.GetSigners();
+
+			foreach (SignerInformation signer in c)
+			{
+				ICollection certCollection = x509Certs.GetMatches(signer.SignerID);
+
+				IEnumerator certEnum = certCollection.GetEnumerator();
+
+				certEnum.MoveNext();
+				X509Certificate cert = (X509Certificate)certEnum.Current;
+
+				Assert.IsTrue(signer.Verify(cert));
+				Assert.IsTrue(null == signer.GetEncodedSignedAttributes());
 
 				if (contentDigest != null)
 				{
@@ -429,7 +457,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			s = new CmsSignedData(hashes, s.GetEncoded());
 
-			VerifySignatures(s, null);
+			VerifySignatures(s);
 		}
 
         [Test]
@@ -721,10 +749,82 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
+		public void TestSha256WithRsaPssDirect()
+		{
+			rsaPssDirectTest("SHA256", CmsSignedDataGenerator.DigestSha256);
+		}
+
+		[Test]
 		public void TestSha384WithRsaPss()
 		{
 			rsaPssTest("SHA384", CmsSignedDataGenerator.DigestSha384);
 		}
+
+        [Test]
+        public void TestSha1WithRsaDigest()
+        {
+            RsaDigestTest("SHA1withRSA");
+        }
+
+        [Test]
+        public void TestSha224WithRsaDigest()
+        {
+            RsaDigestTest("SHA224withRSA");
+        }
+
+        [Test]
+        public void TestSha256WithRsaDigest()
+        {
+            RsaDigestTest("SHA256withRSA");
+        }
+
+        [Test]
+        public void TestSha384WithRsaDigest()
+        {
+            RsaDigestTest("SHA384withRSA");
+        }
+
+        [Test]
+        public void TestSha512WithRsaDigest()
+        {
+            RsaDigestTest("SHA512withRSA");
+        }
+
+        [Test]
+        public void TestSha3_224WithRsaDigest()
+        {
+            RsaDigestTest("SHA3-224withRSA");
+        }
+
+        [Test]
+        public void TestSha3_256WithRsaDigest()
+        {
+            RsaDigestTest("SHA3-256withRSA");
+        }
+
+        [Test]
+        public void TestSha3_384WithRsaDigest()
+        {
+            RsaDigestTest("SHA3-384withRSA");
+        }
+
+        [Test]
+        public void TestSha3_512WithRsaDigest()
+        {
+            RsaDigestTest("SHA3-512withRSA");
+        }
+
+        [Test]
+        public void testSHA512_224ithRSADigest()
+        {
+            RsaDigestTest("SHA512(224)withRSA");
+        }
+
+        [Test]
+        public void testSHA512_256ithRSADigest()
+        {
+            RsaDigestTest("SHA512(256)withRSA");
+        }
 
 		[Test]
 		public void TestSha224WithRsaEncapsulated()
@@ -914,6 +1014,28 @@ namespace Org.BouncyCastle.Cms.Tests
             byte[] expectedDigest = DigestUtilities.CalculateDigest(digestName, msgBytes);
 
             VerifySignatures(s, expectedDigest);
+		}
+
+		private void rsaPssDirectTest(
+			string digestName,
+			string digestOID)
+		{
+			byte[] msgBytes = Encoding.ASCII.GetBytes("Hello World!");
+			CmsProcessable msg = new CmsProcessableByteArray(msgBytes);
+
+			IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+			CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+			gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().SetDirectSignature(true).Build(
+				new Asn1SignatureFactory(digestName + "withRSAandMGF1", OrigKP.Private), OrigCert));
+			gen.AddCertificates(x509Certs);
+
+			CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false);
+		
+			// compute expected content digest
+			byte[] expectedDigest = DigestUtilities.CalculateDigest(digestName, msgBytes);
+
+			VerifyDirectSignatures(s, expectedDigest);
 		}
 
 		private void SubjectKeyIDTest(
@@ -1412,7 +1534,29 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		private void VerifySignatures(
+        private void RsaDigestTest(string signatureAlgorithmName)
+        {
+            byte[] data = Encoding.ASCII.GetBytes("Hello World!");
+            CmsProcessable msg = new CmsProcessableByteArray(data);
+
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+            gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().Build(
+                new Asn1SignatureFactory(signatureAlgorithmName, OrigKP.Private), OrigCert));
+            gen.AddCertificates(x509Certs);
+
+            CmsSignedData s = gen.Generate(msg, false);
+
+            //
+            // compute expected content digest
+            //
+            string digestName = signatureAlgorithmName.Substring(0, signatureAlgorithmName.IndexOf("with"));
+
+            VerifySignatures(s, DigestUtilities.CalculateDigest(digestName, data));
+        }
+
+        private void VerifySignatures(
 			CmsSignedDataParser sp)
 		{
 			IX509Store x509Certs = sp.GetCertificates("Collection");

@@ -1719,7 +1719,7 @@ namespace Org.BouncyCastle.Tests
             {
                 DerEnumerated reasonCode = (DerEnumerated)X509ExtensionUtilities.FromExtensionValue(ext);
 
-                if (reasonCode.Value.IntValue != CrlReason.PrivilegeWithdrawn)
+                if (!reasonCode.HasValue(CrlReason.PrivilegeWithdrawn))
                 {
                     Fail("CRL entry reasonCode wrong");
                 }
@@ -1807,7 +1807,7 @@ namespace Org.BouncyCastle.Tests
             {
                 DerEnumerated reasonCode = (DerEnumerated)X509ExtensionUtilities.FromExtensionValue(ext);
 
-                if (reasonCode.Value.IntValue != CrlReason.PrivilegeWithdrawn)
+                if (!reasonCode.HasValue(CrlReason.PrivilegeWithdrawn))
                 {
                     Fail("CRL entry reasonCode wrong");
                 }
@@ -1895,7 +1895,7 @@ namespace Org.BouncyCastle.Tests
             {
                 DerEnumerated reasonCode = (DerEnumerated)X509ExtensionUtilities.FromExtensionValue(ext);
 
-                if (reasonCode.Value.IntValue != CrlReason.PrivilegeWithdrawn)
+                if (!reasonCode.HasValue(CrlReason.PrivilegeWithdrawn))
                 {
                     Fail("CRL entry reasonCode wrong");
                 }
@@ -1934,6 +1934,21 @@ namespace Org.BouncyCastle.Tests
                 if (crlEnt.SerialNumber.IntValue == 1)
                 {
                     oneFound = true;
+                    Asn1OctetString extn = entry.GetExtensionValue(X509Extensions.ReasonCode);
+
+                    if (extn != null)
+                    {
+                        DerEnumerated reasonCode = (DerEnumerated)X509ExtensionUtilities.FromExtensionValue(extn);
+
+                        if (!reasonCode.HasValue(CrlReason.PrivilegeWithdrawn))
+                        {
+                            Fail("CRL entry reasonCode wrong");
+                        }
+                    }
+                    else
+                    {
+                        Fail("CRL entry reasonCode not found");
+                    }
                 }
                 else if (crlEnt.SerialNumber.IntValue == 2)
                 {

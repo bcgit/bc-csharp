@@ -1,5 +1,7 @@
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Bcpg
 {
 	/// <remarks>Basic type for a PGP Signature sub-packet.</remarks>
@@ -89,6 +91,25 @@ namespace Org.BouncyCastle.Bcpg
             }
 
             os.Write(data, 0, data.Length);
+        }
+
+        public override int GetHashCode()
+        {
+            return (critical ? 1 : 0) + 7 * (int)type + 49 * Arrays.GetHashCode(data);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == this)
+                return true;
+
+            SignatureSubpacket other = obj as SignatureSubpacket;
+            if (null == other)
+                return false;
+
+            return this.type == other.type
+                && this.critical == other.critical
+                && Arrays.AreEqual(this.data, other.data);
         }
     }
 }

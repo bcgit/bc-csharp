@@ -27,7 +27,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const long M28L = 0x0FFFFFFFL;
         private const long M32L = 0xFFFFFFFFL;
 
-        private const int PointBytes = 32;
+        private const int CoordUints = 8;
+        private const int PointBytes = CoordUints * 4;
         private const int ScalarUints = 8;
         private const int ScalarBytes = ScalarUints * 4;
 
@@ -170,17 +171,23 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static bool CheckPointVar(byte[] p)
         {
-            uint[] t = new uint[8];
-            Decode32(p, 0, t, 0, 8);
-            t[7] &= 0x7FFFFFFFU;
+            uint[] t = new uint[CoordUints];
+            Decode32(p, 0, t, 0, CoordUints);
+            t[CoordUints - 1] &= 0x7FFFFFFFU;
             return !Nat256.Gte(t, P);
         }
 
-        private static bool CheckScalarVar(byte[] s)
+        private static bool CheckScalarVar(byte[] s, uint[] n)
         {
-            uint[] n = new uint[ScalarUints];
             DecodeScalar(s, 0, n);
             return !Nat256.Gte(n, L);
+        }
+
+        private static byte[] Copy(byte[] buf, int off, int len)
+        {
+            byte[] result = new byte[len];
+            Array.Copy(buf, off, result, 0, len);
+            return result;
         }
 
         private static IDigest CreateDigest()
@@ -220,7 +227,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static bool DecodePointVar(byte[] p, int pOff, bool negate, PointAffine r)
         {
-            byte[] py = Arrays.CopyOfRange(p, pOff, pOff + PointBytes);
+            byte[] py = Copy(p, pOff, PointBytes);
             if (!CheckPointVar(py))
                 return false;
 
@@ -339,7 +346,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static sbyte[] GetWnafVar(uint[] n, int width)
         {
-            Debug.Assert(n[ScalarUints - 1] >> 28 == 0);
+            Debug.Assert(n[ScalarUints - 1] <= L[ScalarUints - 1]);
+            Debug.Assert(2 <= width && width <= 8);
 
             uint[] t = new uint[ScalarUints * 2];
             {
@@ -355,9 +363,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             sbyte[] ws = new sbyte[253];
 
-            uint pow2 = 1U << width;
-            uint mask = pow2 - 1U;
-            uint sign = pow2 >> 1;
+            int lead = 32 - width;
 
             uint carry = 0U;
             int j = 0;
@@ -375,12 +381,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                         continue;
                     }
 
-                    uint digit = (word16 & mask) + carry;
-                    carry = digit & sign;
-                    digit -= (carry << 1);
-                    carry >>= (width - 1);
+                    uint digit = (word16 | 1U) << lead;
+                    carry = digit >> 31;
 
-                    ws[(i << 4) + j] = (sbyte)digit;
+                    ws[(i << 4) + j] = (sbyte)((int)digit >> lead);
 
                     j += width;
                 }
@@ -461,13 +465,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!CheckContextVar(ctx, phflag))
                 throw new ArgumentException("ctx");
 
-            byte[] R = Arrays.CopyOfRange(sig, sigOff, sigOff + PointBytes);
-            byte[] S = Arrays.CopyOfRange(sig, sigOff + PointBytes, sigOff + SignatureSize);
+            byte[] R = Copy(sig, sigOff, PointBytes);
+            byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
 
             if (!CheckPointVar(R))
                 return false;
 
-            if (!CheckScalarVar(S))
+            uint[] nS = new uint[ScalarUints];
+            if (!CheckScalarVar(S, nS))
                 return false;
 
             PointAffine pA = new PointAffine();
@@ -485,9 +490,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             byte[] k = ReduceScalar(h);
 
-            uint[] nS = new uint[ScalarUints];
-            DecodeScalar(S, 0, nS);
-
             uint[] nA = new uint[ScalarUints];
             DecodeScalar(k, 0, nA);
 
@@ -496,6 +498,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             byte[] check = new byte[PointBytes];
             return 0 != EncodePoint(pR, check, 0) && Arrays.AreEqual(check, R);
+        }
+
+        private static bool IsNeutralElementVar(int[] x, int[] y)
+        {
+            return F.IsZeroVar(x) && F.IsOneVar(y);
+        }
+
+        private static bool IsNeutralElementVar(int[] x, int[] y, int[] z)
+        {
+            return F.IsZeroVar(x) && F.AreEqualVar(y, z);
         }
 
         private static void PointAdd(PointExt p, PointAccum r)
@@ -1234,6 +1246,34 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(p.z, 0, z, 0);
         }
 
+        private static void ScalarMultOrderVar(PointAffine p, PointAccum r)
+        {
+            int width = 5;
+
+            sbyte[] ws_p = GetWnafVar(L, width);
+
+            PointExt[] tp = PointPrecomputeVar(PointCopy(p), 1 << (width - 2));
+
+            PointSetNeutral(r);
+
+            for (int bit = 252; ;)
+            {
+                int wp = ws_p[bit];
+                if (wp != 0)
+                {
+                    int sign = wp >> 31;
+                    int index = (wp ^ sign) >> 1;
+
+                    PointAddVar((sign != 0), tp[index], r);
+                }
+
+                if (--bit < 0)
+                    break;
+
+                PointDouble(r);
+            }
+        }
+
         private static void ScalarMultStrausVar(uint[] nb, uint[] np, PointAffine p, PointAccum r)
         {
             Precompute();
@@ -1338,6 +1378,34 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte phflag = 0x01;
 
             ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
+        }
+
+        public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
+        {
+            PointAffine p = new PointAffine();
+            if (!DecodePointVar(pk, pkOff, false, p))
+                return false;
+
+            F.Normalize(p.x);
+            F.Normalize(p.y);
+
+            if (IsNeutralElementVar(p.x, p.y))
+                return false;
+
+            PointAccum r = new PointAccum();
+            ScalarMultOrderVar(p, r);
+
+            F.Normalize(r.x);
+            F.Normalize(r.y);
+            F.Normalize(r.z);
+
+            return IsNeutralElementVar(r.x, r.y, r.z);
+        }
+
+        public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
+        {
+            PointAffine p = new PointAffine();
+            return DecodePointVar(pk, pkOff, false, p);
         }
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen)

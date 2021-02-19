@@ -93,6 +93,12 @@ namespace Org.BouncyCastle.Asn1
             get { return new BigInteger(bytes); }
         }
 
+        public bool HasValue(int x)
+        {
+            return (bytes.Length - start) <= 4
+                && DerInteger.IntValue(bytes, start, DerInteger.SignExtSigned) == x;
+        }
+
         public bool HasValue(BigInteger x)
         {
             return null != x

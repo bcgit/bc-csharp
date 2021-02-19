@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
@@ -31,10 +32,41 @@ namespace Org.BouncyCastle.X509
 		: X509ExtensionBase
 		// TODO Add interface Crl?
 	{
-		private readonly CertificateList c;
+        private class CachedEncoding
+        {
+            private readonly byte[] encoding;
+            private readonly CrlException exception;
+
+            internal CachedEncoding(byte[] encoding, CrlException exception)
+            {
+                this.encoding = encoding;
+                this.exception = exception;
+            }
+
+            internal byte[] Encoding
+            {
+                get { return encoding; }
+            }
+
+            internal byte[] GetEncoded()
+            {
+                if (null != exception)
+                    throw exception;
+
+                if (null == encoding)
+                    throw new CrlException();
+
+                return encoding;
+            }
+        }
+
+        private readonly CertificateList c;
 		private readonly string sigAlgName;
 		private readonly byte[] sigAlgParams;
 		private readonly bool isIndirect;
+
+        private readonly object cacheLock = new object();
+        private CachedEncoding cachedEncoding;
 
         private volatile bool hashValueSet;
         private volatile int hashValue;
@@ -64,18 +96,6 @@ namespace Org.BouncyCastle.X509
 			return c.Version >= 2
 				?	c.TbsCertList.Extensions
 				:	null;
-		}
-
-		public virtual byte[] GetEncoded()
-		{
-			try
-			{
-				return c.GetDerEncoded();
-			}
-			catch (Exception e)
-			{
-				throw new CrlException(e.ToString());
-			}
 		}
 
 		public virtual void Verify(
@@ -226,7 +246,17 @@ namespace Org.BouncyCastle.X509
 			return Arrays.Clone(sigAlgParams);
 		}
 
-		public override bool Equals(object other)
+        /// <summary>
+        /// Return the DER encoding of this CRL.
+        /// </summary>
+        /// <returns>A byte array containing the DER encoding of this CRL.</returns>
+        /// <exception cref="CrlException">If there is an error encoding the CRL.</exception>
+        public virtual byte[] GetEncoded()
+        {
+            return Arrays.Clone(GetCachedEncoding().GetEncoded());
+        }
+
+        public override bool Equals(object other)
 		{
             if (this == other)
                 return true;
@@ -240,22 +270,28 @@ namespace Org.BouncyCastle.X509
                 if (this.hashValue != that.hashValue)
                     return false;
             }
-            else if (!this.c.Signature.Equals(that.c.Signature))
+            else if (null == this.cachedEncoding || null == that.cachedEncoding)
             {
-                return false;
+                DerBitString signature = c.Signature;
+                if (null != signature && !signature.Equals(that.c.Signature))
+                    return false;
             }
 
-            return this.c.Equals(that.c);
+            byte[] thisEncoding = this.GetCachedEncoding().Encoding;
+            byte[] thatEncoding = that.GetCachedEncoding().Encoding;
 
-            // NB: May prefer this implementation of Equals if more than one CRL implementation in play
-			//return Arrays.AreEqual(this.GetEncoded(), that.GetEncoded());
+            return null != thisEncoding
+                && null != thatEncoding
+                && Arrays.AreEqual(thisEncoding, thatEncoding);
 		}
 
         public override int GetHashCode()
         {
             if (!hashValueSet)
             {
-                hashValue = this.c.GetHashCode();
+                byte[] thisEncoding = this.GetCachedEncoding().Encoding;
+
+                hashValue = Arrays.GetHashCode(thisEncoding);
                 hashValueSet = true;
             }
 
@@ -433,5 +469,37 @@ namespace Org.BouncyCastle.X509
 				return isIndirect;
 			}
 		}
-	}
+
+        private CachedEncoding GetCachedEncoding()
+        {
+            lock (cacheLock)
+            {
+                if (null != cachedEncoding)
+                    return cachedEncoding;
+            }
+
+            byte[] encoding = null;
+            CrlException exception = null;
+            try
+            {
+                encoding = c.GetEncoded(Asn1Encodable.Der);
+            }
+            catch (IOException e)
+            {
+                exception = new CrlException("Failed to DER-encode CRL", e);
+            }
+
+            CachedEncoding temp = new CachedEncoding(encoding, exception);
+
+            lock (cacheLock)
+            {
+                if (null == cachedEncoding)
+                {
+                    cachedEncoding = temp;
+                }
+
+                return cachedEncoding;
+            }
+        }
+    }
 }

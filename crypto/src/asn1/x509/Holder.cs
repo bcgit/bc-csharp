@@ -27,9 +27,9 @@ namespace Org.BouncyCastle.Asn1.X509
 	 * 
 	 * <pre>
 	 *         subject CHOICE {
-	 *          baseCertificateID [0] IssuerSerial,
+	 *          baseCertificateID [0] EXPLICIT IssuerSerial,
 	 *          -- associated with a Public Key Certificate
-	 *          subjectName [1] GeneralNames },
+	 *          subjectName [1] EXPLICIT GeneralNames },
 	 *          -- associated with a name
 	 * </pre>
 	 * </p>
@@ -74,10 +74,10 @@ namespace Org.BouncyCastle.Asn1.X509
 			switch (tagObj.TagNo)
 			{
 				case 0:
-					baseCertificateID = IssuerSerial.GetInstance(tagObj, false);
+					baseCertificateID = IssuerSerial.GetInstance(tagObj, true);
 					break;
 				case 1:
-					entityName = GeneralNames.GetInstance(tagObj, false);
+					entityName = GeneralNames.GetInstance(tagObj, true);
 					break;
 				default:
 					throw new ArgumentException("unknown tag in Holder");
@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             if (version == 1)
             {
-                Asn1EncodableVector v = new Asn1EncodableVector();
+                Asn1EncodableVector v = new Asn1EncodableVector(3);
                 v.AddOptionalTagged(false, 0, baseCertificateID);
                 v.AddOptionalTagged(false, 1, entityName);
                 v.AddOptionalTagged(false, 2, objectDigestInfo);
@@ -237,10 +237,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
             if (entityName != null)
             {
-                return new DerTaggedObject(false, 1, entityName);
+                return new DerTaggedObject(true, 1, entityName);
             }
 
-            return new DerTaggedObject(false, 0, baseCertificateID);
+            return new DerTaggedObject(true, 0, baseCertificateID);
         }
 	}
 }

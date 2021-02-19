@@ -79,6 +79,44 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
+        public static void Mul(uint[] x, uint[] y, uint[] zz)
+        {
+            Nat224.Mul(x, y, zz);
+            Nat224.Mul(x, 7, y, 7, zz, 14);
+
+            uint c21 = Nat224.AddToEachOther(zz, 7, zz, 14);
+            uint c14 = c21 + Nat224.AddTo(zz, 0, zz, 7, 0);
+            c21 += Nat224.AddTo(zz, 21, zz, 14, c14);
+
+            uint[] dx = Nat224.Create(), dy = Nat224.Create();
+            bool neg = Nat224.Diff(x, 7, x, 0, dx, 0) != Nat224.Diff(y, 7, y, 0, dy, 0);
+
+            uint[] tt = Nat224.CreateExt();
+            Nat224.Mul(dx, dy, tt);
+
+            c21 += neg ? Nat.AddTo(14, tt, 0, zz, 7) : (uint)Nat.SubFrom(14, tt, 0, zz, 7);
+            Nat.AddWordAt(28, c21, zz, 21);
+        }
+
+        public static void Square(uint[] x, uint[] zz)
+        {
+            Nat224.Square(x, zz);
+            Nat224.Square(x, 7, zz, 14);
+
+            uint c21 = Nat224.AddToEachOther(zz, 7, zz, 14);
+            uint c14 = c21 + Nat224.AddTo(zz, 0, zz, 7, 0);
+            c21 += Nat224.AddTo(zz, 21, zz, 14, c14);
+
+            uint[] dx = Nat224.Create();
+            Nat224.Diff(x, 7, x, 0, dx, 0);
+
+            uint[] tt = Nat224.CreateExt();
+            Nat224.Square(dx, tt);
+
+            c21 += (uint)Nat.SubFrom(14, tt, 0, zz, 7);
+            Nat.AddWordAt(28, c21, zz, 21);
+        }
+
         public static BigInteger ToBigInteger64(ulong[] x)
         {
             byte[] bs = new byte[56];

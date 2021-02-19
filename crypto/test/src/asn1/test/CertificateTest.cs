@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -180,6 +178,67 @@ namespace Org.BouncyCastle.Asn1.Tests
 			+ "lHMkpI7WqAZikdnAEQ5jQsVWEuVejWxR6gjejKxc0fb9qpIui7/GoI5Eh6dmG20e"
 			+ "xbwJL3+6YYFrZwxR8cC5rPvWrblUR5XKJy+Zp/H5+t9iANnL1L8J");
 
+        // V1 attribute certificate
+        private static readonly byte[] attrCertv1 = Base64.Decode(
+            "MIIFdDCCBFygXTBbMFOkUTBPMQswCQYDVQQGEwJERTEcMBoGA1UECgwTRGV1"
+            + "dHNjaGUgVGVsZWtvbSBBRzEiMCAGA1UEAwwZVGVsZVNlYyBQS1MgU2lnRyBD"
+            + "QSAxNzpQTgIEG1toDjBTpFEwTzELMAkGA1UEBhMCREUxHDAaBgNVBAoME0Rl"
+			+ "dXRzY2hlIFRlbGVrb20gQUcxIjAgBgNVBAMMGVRlbGVTZWMgUEtTIFNpZ0cg"
+			+ "Q0EgMjU6UE4wDQYJKoZIhvcNAQELBQACBCep3f0wIhgPMjAxMDA0MTIxMTI5"
+			+ "MTJaGA8yMDEyMDQxMjEwNTkyOFowggGmMIIBogYFKyQIAwgxggGXDIIBk1Ro"
+			+ "ZSBxdWFsaWZpZWQgc2lnbmF0dXJlIGF0IGhhbmQgaXMgcmVzdHJpY3RlZCB0"
+			+ "byBwcmVzZW50aW5nIGludm9pY2VzIG9yIGNyZWRpdHMgdG8gY3VzdG9tZXJz"
+			+ "IGFjY29yZGluZyB0byBFVSBDb3VuY2lsIGRpcmVjdGl2ZSAyMDAxLzExNS9F"
+			+ "QyAoMjB0aCBEZWNlbWJlciAyMDAxKSBhbmQgR2VybWFuIFZBVCB0YXggKMKn"
+			+ "MTQgVVN0RykuICBEaWUgdm9ybGllZ2VuZGUgcXVhbGlmaXppZXJ0ZSBTaWdu"
+			+ "YXR1ciBpc3QgYXVmIGRpZSAgUHJhZXNlbnRhdGlvbiB2b24gUmVjaG51bmdl"
+			+ "biBvZGVyIEd1dHNjaHJpZnRlbiBnZW1hZXNzIEVVIERpcmVrdGl2ZSAyMDAx"
+			+ "LzExNS9FQyAoMjAuIERlemVtYmVyIDIwMDEpIHVuZCBkZXV0c2NoZW0gVW1z"
+			+ "YXR6c3RldWVyZ2VzZXR6ICAowqcxNCBVU3RHKSBiZXNjaHJhZW5rdC4wggHB"
+			+ "MB8GA1UdIwQYMBaAFM6i1yR/z8IikpxpU/Fdh8BPxhq8MEMGA1UdIAQ8MDow"
+			+ "OAYFKyQIAQEwLzAtBggrBgEFBQcCARYhaHR0cDovL3Brcy50ZWxlc2VjLmRl"
+			+ "L2Nwcy9jcHMucGRmMIIBBAYDVR0fBIH8MIH5MIH2oG2ga4Y1bGRhcDovL3Br"
+			+ "cy1sZGFwLnRlbGVzZWMuZGUvbz1EZXV0c2NoZSBUZWxla29tIEFHLGM9ZGWG"
+			+ "Mmh0dHA6Ly9wa3MudGVsZXNlYy5kZS90ZWxlc2VjL3NlcnZsZXQvZG93bmxv"
+			+ "YWRfY3JsooGEpIGBMH8xCzAJBgNVBAYTAkRFMRwwGgYDVQQKFBNEZXV0c2No"
+			+ "ZSBUZWxla29tIEFHMR8wHQYDVQQLFBZQcm9kdWt0emVudHJ1bSBUZWxlU2Vj"
+			+ "MTEwDAYHAoIGAQoHFBMBMTAhBgNVBAMUGlRlbGVTZWMgUEtTIFNpZ0cgRElS"
+			+ "IDM1OlBOMDcGCCsGAQUFBwEBBCswKTAnBggrBgEFBQcwAYYbaHR0cDovL3Br"
+			+ "cy50ZWxlc2VjLmRlL29jc3ByMBgGCCsGAQUFBwEDBAwwCjAIBgYEAI5GAQEw"
+			+ "DQYJKoZIhvcNAQELBQADggEBAEz2OvU9YytJUKHMDQcND5njIyUXTkSrlWjV"
+			+ "F28uwxVlveO4JPTAY7PvXy69HUuTPwlvqCfJIUF2RLPZFQx0wFto8ajC9v5X"
+			+ "SqwQcINXRakpE6FPAdQFnH44TaIQWXW1hy9xr8GuD0uhQLTJGYqVzHfLoM8e"
+			+ "llPNHUVhC7CEOxDb1PTHCUlQFNkFRmeeqzEVoj1F0pM6wI5zf8+w2WwrFPCD"
+			+ "jrjEr/VoBRoEi/tKnsLq6oOkizUKT0KJEnSyYxoOa7euT1yX+Co94SPnMZi5"
+			+ "qukHSj8Kiio6Jecl//qDPG/mHo1ro+8rH+rbze7EEfKMp5yeWCwXGthL9oYo"
+            + "RYl+UuI=");
+
+		// bad issuer certificate
+		private static readonly byte[] dudCert = Base64.Decode(
+			"MIICLzCCAZgCBFp/9TowDQYJKoZIhvcNAQEFBQAwAjEAMB4XDTA4MDcyNTEzNTQ0" +
+			"MFoXDTEzMDgyNTA1MDAwMFowgboxCzAJBgNVBAYTAlVTMQ0wCwYDVQQIEwRJb3dh" +
+			"MRMwEQYDVQQHEwpEZXMgTW9pbmVzMT0wOwYDVQQKEzRTdGF0ZSBvZiBJb3dhLCBE" +
+			"ZXBhcnRtZW50IG9mIEFkbWluaXN0cmF0aXZlIFNlcnZpY2VzMSowKAYDVQQLEyFJ" +
+			"bmZvcm1hdGlvbiBUZWNobm9sb2d5IEVudGVycHJpc2UxHDAaBgNVBAMTE3d3dy5k" +
+			"b20uc3RhdGUuaWEudXMwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAK0C7Jca" +
+			"C0RiD0hcBcPUdGc78y815yPuHGmF/A2K+3LbwfFXDhsY7ebRxHVfL7gt+nFBvJ2r" +
+			"MqDBIMHFB3vYdSnGbND41eso6cLnzkMVtSisG25Tat3F8BF/js54sa0mFEn4qMQ+" +
+			"6T6jxyPflsjKpmi6L7lfRdPNbBbKSmK9ik2lAgMBAAEwDQYJKoZIhvcNAQEFBQAD" +
+			"gYEAc9Rx95MiPzJiCn3nOoP+3PPQCGTyUcUWZfYKXuC7aOzMYUXes71Q3K1/W6Vy" +
+			"V2Tlrbj0KT8j2/kBmy8+7d5whnUklJNsH6VJMst3V4Uxvk3os+uaW0FHsW389sNY" +
+			"/5LdslDjfqV2nUc2GqDPn38PATL26SRJKlCvU2NagdID3WM="
+		);
+
+		// malformed cert
+		private static readonly byte[] bangerCert = Base64.Decode(
+			"MIIBSKADAgECAgECMA0GCSqGSIb3DQEEBAUAMCUxCzAJBgNVBAMMAkFVMRYwFAYD" +
+			"VQQKDA1CaXVuYHkgQGFzdGtlMB4XDTcwMDExMTQyNjAwMVoXDTcwMDEwNzAwMDAw" +
+			"MlowNjELMQkGA1UBAwwCQVUxFjAUBgNVAQwMDUJsdW5jeSZDY3Nzb2UxDzANBgNV" +
+			"AQsMBlRlc3cgNTAYMBAGBisOBwMDATAGAgEBAgECAwQAAgEDoYGVMIGSMGEGA1Yd" +
+			"IwEB /wRXNVWAFDZPdpTPzKi7o8EJokoQU2uqCHRRoTqkOzA2NAs2CgYDVQYDDAJ" +
+			"HVTEWMBQGA1QECQwNQmhwbmR5J0Ngc3RsYDAPMA0CA1UECwwGUWVzdyA0hQECMCA" +
+			"GA1UdDgEB/wQWBBQ2T3OSzciou6PBCqRJEFNrqgh2UTALBgNVHQkEBAMGBBE=");
+
 		private static readonly string[] subjects =
 		{
 			"C=AU,ST=Victoria,L=South Melbourne,O=Connect 4 Pty Ltd,OU=Webserver Team,CN=www2.connect4.com.au,E=webmaster@connect4.com.au",
@@ -200,10 +259,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			int		id,
 			byte[]	cert)
 		{
-			Asn1Object seq = Asn1Object.FromByteArray(cert);
-			string dump = Asn1Dump.DumpAsString(seq);
-
-			X509CertificateStructure obj = X509CertificateStructure.GetInstance(seq);
+			X509CertificateStructure obj = X509CertificateStructure.GetInstance(cert);
 			TbsCertificateStructure tbsCert = obj.TbsCertificate;
 
 			if (!tbsCert.Subject.ToString().Equals(subjects[id - 1]))
@@ -300,15 +356,12 @@ namespace Org.BouncyCastle.Asn1.Tests
 			int		id,
 			byte[]	cert)
 		{
-			Asn1Sequence seq = (Asn1Sequence) Asn1Object.FromByteArray(cert);
-			string dump = Asn1Dump.DumpAsString(seq);
-
-			AttributeCertificate obj = AttributeCertificate.GetInstance(seq);
+			AttributeCertificate obj = AttributeCertificate.GetInstance(cert);
 			AttributeCertificateInfo acInfo = obj.ACInfo;
 
 			// Version
-			if (!(acInfo.Version.Equals(new DerInteger(1)))
-				&& (!(acInfo.Version.Equals(new DerInteger(2)))))
+			DerInteger version = acInfo.Version;
+			if (!version.HasValue(1) && !version.HasValue(2))
 			{
 				Fail("failed AC Version test for id " + id);
 			}
@@ -366,6 +419,94 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
+		public void CheckV1AttributeCertificate(
+			int     id,
+			byte[]  cert)
+		{
+            AttributeCertificate obj = AttributeCertificate.GetInstance(cert);
+			AttributeCertificateInfo acInfo = obj.ACInfo;
+
+			// Version
+			if (!acInfo.Version.HasValue(0))
+			{
+				Fail("failed AC Version test for id " + id);
+			}
+
+			// Holder
+			Holder h = acInfo.Holder;
+			if (h == null)
+			{
+				Fail("failed AC Holder test, it's null, for id " + id);
+			}
+
+			// Issuer
+			AttCertIssuer aci = acInfo.Issuer;
+			if (aci == null)
+			{
+				Fail("failed AC Issuer test, it's null, for id " + id);
+			}
+
+			// Signature
+			AlgorithmIdentifier sig = acInfo.Signature;
+			if (sig == null)
+			{
+				Fail("failed AC Signature test for id " + id);
+			}
+
+			// Serial
+			DerInteger serial = acInfo.SerialNumber;
+
+			// Validity
+			AttCertValidityPeriod validity = acInfo.AttrCertValidityPeriod;
+			if (validity == null)
+			{
+				Fail("failed AC AttCertValidityPeriod test for id " + id);
+			}
+
+			// Attributes
+			Asn1Sequence attribSeq = acInfo.Attributes;
+			AttributeX509[] att = new AttributeX509[attribSeq.Count];
+			for (int i = 0; i < attribSeq.Count; i++)
+			{
+				att[i] = AttributeX509.GetInstance(attribSeq[i]);
+			}
+
+			// IssuerUniqueId
+			// TODO, how to best test?
+
+			// X509 Extensions
+			X509Extensions ext = acInfo.Extensions;
+			if (ext != null)
+			{
+				foreach (DerObjectIdentifier oid in ext.ExtensionOids)
+				{
+					X509Extension extVal = ext.GetExtension(oid);
+				}
+			}
+		}
+
+		private void CheckDudCertificate()
+		{
+			X509CertificateStructure cert = X509CertificateStructure.GetInstance(dudCert);
+
+			if (!"".Equals(cert.Issuer.ToString()))
+			{
+				Fail("empty issuer not recognised correctly");
+			}
+		}
+
+		private void CheckMalformed()
+		{
+			try
+			{
+				TbsCertificateStructure cert = TbsCertificateStructure.GetInstance(bangerCert);
+			}
+			catch (ArgumentException e)
+			{
+				// expected - anything else is not!
+			}
+		}
+
 		public override void PerformTest()
 		{
 			CheckCertificate(1, cert1);
@@ -376,6 +517,9 @@ namespace Org.BouncyCastle.Asn1.Tests
 			CheckCertificate(6, cert6);
 			CheckCertificate(7, cert7);
 			CheckAttributeCertificate(8, cert8);
+			CheckV1AttributeCertificate(9, attrCertv1);
+			CheckDudCertificate();
+			CheckMalformed();
 		}
 
 		public static void Main(

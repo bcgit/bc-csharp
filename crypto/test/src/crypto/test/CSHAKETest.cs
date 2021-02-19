@@ -170,22 +170,22 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 data[i] = (byte)i;
             }
-            
-                for (int i = 10000; i != data.Length; i++)
-                {
-                    CShakeDigest cshake_ = new CShakeDigest(128, new byte[0], Arrays.CopyOfRange(data, 0, i));
 
-                    cshake_.BlockUpdate(Hex.Decode("00010203"), 0, 4);
+            byte[] hex0123 = Hex.DecodeStrict("00010203");
+            for (int i = 10000; i != data.Length; i++)
+            {
+                CShakeDigest cshake_ = new CShakeDigest(128, new byte[0], Arrays.CopyOfRange(data, 0, i));
 
-                    cshake_.DoFinal(res, 0);
-                }
-            
+                cshake_.BlockUpdate(hex0123, 0, 4);
+
+                cshake_.DoFinal(res, 0, 16);
+            }
 
             CShakeDigest cshake = new CShakeDigest(256, new byte[0], new byte[200]);
 
-            cshake.BlockUpdate(Arrays.CopyOfRange(data, 0, 200), 0, 200);
+            cshake.BlockUpdate(data, 0, 200);
 
-            cshake.DoFinal(res, 0);
+            cshake.DoFinal(res, 0, 32);
 
             Assert.IsTrue(Arrays.AreEqual(Hex.Decode("4a899b5be460d85a9789215bc17f88b8f8ac049bd3b519f561e7b5d3870dafa3"), res));
         }
