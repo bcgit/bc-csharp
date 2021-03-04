@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Tsp
 
             this.signerInfoGenerator = signerInfoGen;
             this.digestCalculator = digestCalculator;
-            this.tsaPolicyOID = tsaPolicy.Id;
+            this.tsaPolicyOID = tsaPolicy != null ? tsaPolicy.Id : null;
 
             if (signerInfoGenerator.certificate == null)
             {
@@ -140,10 +140,6 @@ namespace Org.BouncyCastle.Tsp
                Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1),
                tsaPolicyOID != null?new DerObjectIdentifier(tsaPolicyOID):null, false)
         {
-
-            this.tsaPolicyOID = tsaPolicyOID;
-
-        
         }
 
 
