@@ -44,6 +44,12 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        public CShakeDigest(CShakeDigest source)
+            : base(source)
+        {
+            this.diff = Arrays.Clone(source.diff);
+        }
+
         // bytepad in SP 800-185
         private void DiffPadAndAbsorb()
         {

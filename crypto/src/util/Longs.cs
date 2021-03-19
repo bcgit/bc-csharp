@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Utilities
 {
     public abstract class Longs
     {
+        public static readonly uint BYTES = 8;
+        public static readonly uint SIZE = 64;
+
         public static long Reverse(long i)
         {
             i = (long)Bits.BitPermuteStepSimple((ulong)i, 0x5555555555555555UL, 1);
