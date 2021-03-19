@@ -292,7 +292,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
         catch (InvalidOperationException e)
         {
-            IsEquals("Fpe disabled", e.Message);
+            IsEquals("FPE disabled", e.Message);
         }
         Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable", "false");
 
@@ -323,7 +323,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         ulong valueToEncrypt = 0x31009155FFL;
 
-        byte[] bytes = Pack.UInt64_To_BE(valueToEncrypt);
+        byte[] bytes = Hex.Decode("00000031009155FF");
         byte[] enc = new byte[bytes.Length];
         //Encrypt
 
@@ -508,8 +508,8 @@ namespace Org.BouncyCastle.Crypto.Tests
     {
         get { return "SP80038GTest"; }
     }
-
-    public override void PerformTest()
+        [Test]
+        public override void PerformTest()
     {
         testFF1();
         testFF1w();

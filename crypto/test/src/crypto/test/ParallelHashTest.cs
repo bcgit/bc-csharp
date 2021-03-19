@@ -24,8 +24,8 @@ public class ParallelHashTest
     {
         get { return "ParallelHash"; }
     }
-
-    public override void PerformTest()
+        [Test]
+        public override void PerformTest()
     {
         ParallelHash  pHash = new ParallelHash(128, new byte[0], 8);
 

@@ -23,7 +23,8 @@ public class TupleHashTest
         get { return "TupleHash"; }
     }
 
-    public override void PerformTest()
+        [Test]
+        public override void PerformTest()
     {
         TupleHash tHash = new TupleHash(128, new byte[0]);
 

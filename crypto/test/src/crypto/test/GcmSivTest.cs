@@ -27,7 +27,8 @@ public class GcmSivTest
         get { return "GCM-SIV"; }
     }
 
-    public override void PerformTest()
+        [Test]
+        public override void PerformTest()
     {
         new AESGcmSiv128Test1().testTheCipher(this);
         new AESGcmSiv128Test2().testTheCipher(this);
