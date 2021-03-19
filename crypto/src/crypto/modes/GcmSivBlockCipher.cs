@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;

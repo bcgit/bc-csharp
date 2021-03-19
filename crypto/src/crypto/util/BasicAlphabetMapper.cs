@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             outBuf = new byte[input.Length];
             for (int i = 0; i != input.Length; i++)
             {
-                outBuf[i] = (byte)indexMap[input[i]];
+                outBuf[i] = (byte)(int)indexMap[input[i]];
             }
         }
         else
