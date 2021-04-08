@@ -665,6 +665,8 @@
     <Compile Include="src\crypto\CryptoException.cs" />
     <Compile Include="src\crypto\DataLengthException.cs" />
     <Compile Include="src\crypto\digests\NonMemoableDigest.cs" />
+    <Compile Include="src\crypto\engines\AesWrapPadEngine.cs" />
+    <Compile Include="src\crypto\engines\Rfc5649WrapEngine.cs" />
     <Compile Include="src\crypto\engines\SerpentEngineBase.cs" />
     <Compile Include="src\crypto\engines\TnepresEngine.cs" />
     <Compile Include="src\crypto\generators\BCrypt.cs" />
