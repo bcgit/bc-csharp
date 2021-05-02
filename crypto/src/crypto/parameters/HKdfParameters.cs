@@ -6,9 +6,9 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     /**
-     * Parameter class for the HkdfBytesGenerator class.
+     * Parameter class for the HKdfBytesGenerator class.
      */
-    public class HkdfParameters
+    public class HKdfParameters
         : IDerivationParameters
     {
         private readonly byte[] ikm;
@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly byte[] salt;
         private readonly byte[] info;
 
-        private HkdfParameters(byte[] ikm, bool skip, byte[] salt, byte[] info)
+        private HKdfParameters(byte[] ikm, bool skip, byte[] salt, byte[] info)
         {
             if (ikm == null)
                 throw new ArgumentNullException("ikm");
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
          * @param salt the salt to use, may be null for a salt for hashLen zeros
          * @param info the info to use, may be null for an info field of zero bytes
          */
-        public HkdfParameters(byte[] ikm, byte[] salt, byte[] info)
+        public HKdfParameters(byte[] ikm, byte[] salt, byte[] info)
             : this(ikm, false, salt, info)
         {
         }
@@ -65,14 +65,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
          * @param info the info to use, may be null for an info field of zero bytes
          * @return HKDFParameters that makes the implementation skip step 1
          */
-        public static HkdfParameters SkipExtractParameters(byte[] ikm, byte[] info)
+        public static HKdfParameters SkipExtractParameters(byte[] ikm, byte[] info)
         {
-            return new HkdfParameters(ikm, true, null, info);
+            return new HKdfParameters(ikm, true, null, info);
         }
 
-        public static HkdfParameters DefaultParameters(byte[] ikm)
+        public static HKdfParameters DefaultParameters(byte[] ikm)
         {
-            return new HkdfParameters(ikm, false, null, null);
+            return new HKdfParameters(ikm, false, null, null);
         }
 
         /**

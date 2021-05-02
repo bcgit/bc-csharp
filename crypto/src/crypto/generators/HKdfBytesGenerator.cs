@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Generators
      * (output keying material) and is likely to have better security properties
      * than KDF's based on just a hash function.
      */
-    public class HkdfBytesGenerator
+    public class HKdfBytesGenerator
         : IDerivationFunction
     {
         private HMac hMacHash;
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Generators
          *
          * @param hash the digest to be used as the source of generatedBytes bytes
          */
-        public HkdfBytesGenerator(IDigest hash)
+        public HKdfBytesGenerator(IDigest hash)
         {
             this.hMacHash = new HMac(hash);
             this.hashLen = hash.GetDigestSize();
@@ -37,10 +37,10 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public virtual void Init(IDerivationParameters parameters)
         {
-            if (!(parameters is HkdfParameters))
-                throw new ArgumentException("HKDF parameters required for HkdfBytesGenerator", "parameters");
+            if (!(parameters is HKdfParameters))
+                throw new ArgumentException("HKDF parameters required for HKdfBytesGenerator", "parameters");
 
-            HkdfParameters hkdfParameters = (HkdfParameters)parameters;
+            HKdfParameters hkdfParameters = (HKdfParameters)parameters;
             if (hkdfParameters.SkipExtract)
             {
                 // use IKM directly as PRK
