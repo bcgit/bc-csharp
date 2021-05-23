@@ -467,6 +467,17 @@ namespace Org.BouncyCastle.Utilities
             return data == null ? null : (byte[])data.Clone();
         }
 
+        public static short[] Clone(short[] data)
+        {
+            return data == null ? null : (short[])data.Clone();
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static ushort[] Clone(ushort[] data)
+        {
+            return data == null ? null : (ushort[])data.Clone();
+        }
+
         public static int[] Clone(int[] data)
         {
             return data == null ? null : (int[])data.Clone();
@@ -689,6 +700,19 @@ namespace Org.BouncyCastle.Utilities
                 return Clone(a);
 
             byte[] rv = new byte[a.Length + b.Length];
+            Array.Copy(a, 0, rv, 0, a.Length);
+            Array.Copy(b, 0, rv, a.Length, b.Length);
+            return rv;
+        }
+
+        public static ushort[] Concatenate(ushort[] a, ushort[] b)
+        {
+            if (a == null)
+                return Clone(b);
+            if (b == null)
+                return Clone(a);
+
+            ushort[] rv = new ushort[a.Length + b.Length];
             Array.Copy(a, 0, rv, 0, a.Length);
             Array.Copy(b, 0, rv, a.Length, b.Length);
             return rv;

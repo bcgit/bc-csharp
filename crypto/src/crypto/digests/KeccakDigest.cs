@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         protected byte[] dataQueue = new byte[192];
         protected int rate;
         protected int bitsInQueue;
-        protected int fixedOutputLength;
+        protected internal int fixedOutputLength;
         protected bool squeezing;
 
         public KeccakDigest()

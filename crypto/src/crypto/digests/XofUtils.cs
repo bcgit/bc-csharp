@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Digests
 {
     internal class XofUtilities
@@ -46,6 +48,20 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
 
             return b;
+        }
+
+        internal static byte[] Encode(byte X)
+        {
+            return Arrays.Concatenate(LeftEncode(8), new byte[] { X });
+        }
+
+        internal static byte[] Encode(byte[] inBuf, int inOff, int len)
+        {
+            if (inBuf.Length == len)
+            {
+                return Arrays.Concatenate(LeftEncode(len * 8), inBuf);
+            }
+            return Arrays.Concatenate(LeftEncode(len * 8), Arrays.CopyOfRange(inBuf, inOff, inOff + len));
         }
     }
 }

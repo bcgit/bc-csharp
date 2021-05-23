@@ -120,9 +120,9 @@ namespace Org.BouncyCastle.Cms
             algorithms["SHA1WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha1;
             algorithms["ECDSAWITHSHA1"] = X9ObjectIdentifiers.ECDsaWithSha1;
             algorithms["SHA224WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha224;
-            algorithms["SHA256WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha224;
+            algorithms["SHA256WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha256;
             algorithms["SHA384WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha384;
-            algorithms["SHA512WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha256;
+            algorithms["SHA512WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha512;
 
 
             algorithms["GOST3411WITHGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
