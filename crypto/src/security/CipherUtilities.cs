@@ -89,6 +89,10 @@ namespace Org.BouncyCastle.Security
             OAEPWITHSHA_224ANDMGF1PADDING,
             OAEPWITHSHA256ANDMGF1PADDING,
             OAEPWITHSHA_256ANDMGF1PADDING,
+            OAEPWITHSHA256ANDMGF1WITHSHA256PADDING,
+            OAEPWITHSHA_256ANDMGF1WITHSHA_256PADDING,
+            OAEPWITHSHA256ANDMGF1WITHSHA1PADDING,
+            OAEPWITHSHA_256ANDMGF1WITHSHA_1PADDING,
             OAEPWITHSHA384ANDMGF1PADDING,
             OAEPWITHSHA_384ANDMGF1PADDING,
             OAEPWITHSHA512ANDMGF1PADDING,
@@ -571,7 +575,13 @@ namespace Org.BouncyCastle.Security
                         break;
                     case CipherPadding.OAEPWITHSHA256ANDMGF1PADDING:
                     case CipherPadding.OAEPWITHSHA_256ANDMGF1PADDING:
+                    case CipherPadding.OAEPWITHSHA256ANDMGF1WITHSHA256PADDING:
+                    case CipherPadding.OAEPWITHSHA_256ANDMGF1WITHSHA_256PADDING:
                         asymBlockCipher = new OaepEncoding(asymBlockCipher, new Sha256Digest());
+                        break;
+                    case CipherPadding.OAEPWITHSHA256ANDMGF1WITHSHA1PADDING:
+                    case CipherPadding.OAEPWITHSHA_256ANDMGF1WITHSHA_1PADDING:
+                        asymBlockCipher = new OaepEncoding(asymBlockCipher, new Sha256Digest(), new Sha1Digest(), null);
                         break;
                     case CipherPadding.OAEPWITHSHA384ANDMGF1PADDING:
                     case CipherPadding.OAEPWITHSHA_384ANDMGF1PADDING:
