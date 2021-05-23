@@ -75,6 +75,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			lastb = 0;
 		}
 
+		public void InitSign(
+			int sigType,
+			ISignatureWithDigestFactory signer)
+		{
+		}
+
 		public void Update(
             byte b)
         {
