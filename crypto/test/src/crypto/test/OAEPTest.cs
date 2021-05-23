@@ -787,17 +787,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             //
             // OAEP - public encrypt, private decrypt, differing hashes
             //
-            IAsymmetricBlockCipher cipher = new OaepEncoding(new RsaEngine(), new Sha256Digest(), new Sha1Digest(), new byte[10]);
+            IAsymmetricBlockCipher cipher = new OaepEncoding(new RsaEngine(), new Sha256Digest(), new Sha1Digest(), null);
 
             cipher.Init(true, new ParametersWithRandom(pubParam, new SecureRandom()));
 
             byte[] input = new byte[10];
 
-            byte[] output = cipher.ProcessBlock(input, 0, input.Length);
+            byte[] enc = cipher.ProcessBlock(input, 0, input.Length);
 
             cipher.Init(false, privParam);
 
-            output = cipher.ProcessBlock(output, 0, output.Length);
+            byte[] output = cipher.ProcessBlock(enc, 0, enc.Length);
 
             for (int i = 0; i != input.Length; i++)
             {
@@ -806,6 +806,14 @@ namespace Org.BouncyCastle.Crypto.Tests
                     Fail("mixed digest failed decoding");
                 }
             }
+
+            IBufferedCipher cBuf = CipherUtilities.GetCipher("RSA/NONE/OAEPWITHSHA-256ANDMGF1WITHSHA-1PADDING");
+
+            cBuf.Init(false, privParam);
+
+            output = cBuf.DoFinal(enc, 0, enc.Length);
+
+            Assert.AreEqual(input, output);
 
             cipher = new OaepEncoding(new RsaEngine(), new Sha1Digest(), new Sha256Digest(), new byte[10]);
 
