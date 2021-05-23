@@ -298,6 +298,62 @@ namespace Org.BouncyCastle.Tsp.Tests
 		}
 
 		[Test]
+		public void TestNullPolicy()
+		{
+			// null in request and token generator - should fail
+			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(
+				privateKey, cert, TspAlgorithms.Sha1, null);
+
+			tsTokenGen.SetCertificates(certs);
+
+			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+
+			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
+
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed, null);
+
+			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			TimeStampToken tsToken = tsResp.TimeStampToken;
+
+			if (tsToken != null)
+			{
+				Assert.Fail("badPolicy - token not null.");
+			}
+
+			PkiFailureInfo failInfo = tsResp.GetFailInfo();
+
+			if (failInfo == null)
+			{
+				Assert.Fail("badPolicy - failInfo set to null.");
+			}
+
+			if (failInfo.IntValue != PkiFailureInfo.UnacceptedPolicy)
+			{
+				Assert.Fail("badPolicy - wrong failure info returned.");
+			}
+
+			// request specifies policy, token generator doesn't - should work
+			reqGen = new TimeStampRequestGenerator();
+
+			reqGen.SetReqPolicy("1.1");
+
+			request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
+
+			tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed, null);
+
+		    tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(24), DateTime.UtcNow);
+
+			tsResp = new TimeStampResponse(tsResp.GetEncoded());
+
+			tsToken = tsResp.TimeStampToken;
+
+			Assert.AreEqual(tsToken.TimeStampInfo.Policy, "1.1"); // policy should be picked up off request
+		}
+
+		[Test]
 		public void TestCertReq()
 		{
 			TimeStampTokenGenerator tsTokenGen = new TimeStampTokenGenerator(

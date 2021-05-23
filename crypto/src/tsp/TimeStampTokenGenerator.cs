@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Asn1.Oiw;
@@ -31,7 +32,7 @@ namespace Org.BouncyCastle.Tsp
         private int accuracyMicros = -1;
         private bool ordering = false;
         private GeneralName tsa = null;
-        private String tsaPolicyOID;
+        private DerObjectIdentifier tsaPolicyOID;
     
         private IX509Store x509Certs;
         private IX509Store x509Crls;
@@ -68,7 +69,7 @@ namespace Org.BouncyCastle.Tsp
 
             this.signerInfoGenerator = signerInfoGen;
             this.digestCalculator = digestCalculator;
-            this.tsaPolicyOID = tsaPolicy.Id;
+            this.tsaPolicyOID = tsaPolicy;
 
             if (signerInfoGenerator.certificate == null)
             {
@@ -138,12 +139,8 @@ namespace Org.BouncyCastle.Tsp
            Asn1.Cms.AttributeTable unsignedAttr) : this(
                makeInfoGenerator(key, cert, digestOID, signedAttr, unsignedAttr),
                Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1),
-               tsaPolicyOID != null?new DerObjectIdentifier(tsaPolicyOID):null, false)
+               tsaPolicyOID != null ? new DerObjectIdentifier(tsaPolicyOID):null, false)
         {
-
-            this.tsaPolicyOID = tsaPolicyOID;
-
-        
         }
 
 
@@ -261,7 +258,7 @@ namespace Org.BouncyCastle.Tsp
         }
 
 
-            public TimeStampToken Generate(
+        public TimeStampToken Generate(
             TimeStampRequest request,
             BigInteger serialNumber,
             DateTime genTime, X509Extensions additionalExtensions)
@@ -306,13 +303,17 @@ namespace Org.BouncyCastle.Tsp
             {
                 nonce = new DerInteger(request.Nonce);
             }
-
-            DerObjectIdentifier tsaPolicy = new DerObjectIdentifier(tsaPolicyOID);
+ 
+            DerObjectIdentifier tsaPolicy = tsaPolicyOID;
             if (request.ReqPolicy != null)
             {
                 tsaPolicy = new DerObjectIdentifier(request.ReqPolicy);
             }
 
+            if (tsaPolicy == null)
+            { 
+                throw new TspValidationException("request contains no policy", PkiFailureInfo.UnacceptedPolicy);
+            }
 
             X509Extensions respExtensions = request.Extensions;
             if (additionalExtensions != null)
@@ -344,7 +345,8 @@ namespace Org.BouncyCastle.Tsp
             if (resolution != Resolution.R_SECONDS)
             {
                 generalizedTime = new DerGeneralizedTime(createGeneralizedTime(genTime));
-            } else
+            } 
+            else
             {
                 generalizedTime = new DerGeneralizedTime(genTime);
             }
