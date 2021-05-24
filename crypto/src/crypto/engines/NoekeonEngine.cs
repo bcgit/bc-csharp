@@ -60,12 +60,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 				throw new ArgumentException("Invalid parameters passed to Noekeon init - "
                     + Platform.GetTypeName(parameters), "parameters");
 
-			this._forEncryption = forEncryption;
-			this._initialised = true;
-
 			KeyParameter p = (KeyParameter) parameters;
+            byte[] key = p.GetKey();
+            if (key.Length != 16)
+                throw new ArgumentException("Key length not 128 bits.");
 
-			Pack.BE_To_UInt32(p.GetKey(), 0, k, 0, 4);
+            Pack.BE_To_UInt32(key, 0, k, 0, 4);
 
 			if (!forEncryption)
 			{
@@ -73,22 +73,26 @@ namespace Org.BouncyCastle.Crypto.Engines
 				{
 					uint a0 = k[0], a1 = k[1], a2 = k[2], a3 = k[3];
 
-					uint t = a0 ^ a2;
-					t ^= Integers.RotateLeft(t, 8) ^ Integers.RotateLeft(t, 24);
-					a1 ^= t;
-					a3 ^= t;
+					uint t02 = a0 ^ a2;
+					t02 ^= Integers.RotateLeft(t02, 8) ^ Integers.RotateLeft(t02, 24);
 
-					t = a1 ^ a3;
-					t ^= Integers.RotateLeft(t, 8) ^ Integers.RotateLeft(t, 24);
-					a0 ^= t;
-					a2 ^= t;
+					uint t13 = a1 ^ a3;
+					t13 ^= Integers.RotateLeft(t13, 8) ^ Integers.RotateLeft(t13, 24);
 
-					k[0] = a0; k[1] = a1; k[2] = a2; k[3] = a3;
+					a0 ^= t13;
+                    a1 ^= t02;
+                    a2 ^= t13;
+                    a3 ^= t02;
+
+                    k[0] = a0; k[1] = a1; k[2] = a2; k[3] = a3;
 				}
 			}
-		}
 
-		public virtual int ProcessBlock(
+            this._forEncryption = forEncryption;
+            this._initialised = true;
+        }
+
+        public virtual int ProcessBlock(
 			byte[]	input,
 			int		inOff,
 			byte[]	output,
@@ -119,27 +123,27 @@ namespace Org.BouncyCastle.Crypto.Engines
 			uint k0 = k[0], k1 = k[1], k2 = k[2], k3 = k[3];
 
 			int round = 0;
-			uint t;
 			for (;;)
 			{
 				a0 ^= RoundConstants[round];
 
 				// theta(a, k);
 				{
-					t = a0 ^ a2;
-					t ^= Integers.RotateLeft(t, 8) ^ Integers.RotateLeft(t, 24);
-					a1 ^= t;
-					a3 ^= t;
+					uint t02 = a0 ^ a2;
+					t02 ^= Integers.RotateLeft(t02, 8) ^ Integers.RotateLeft(t02, 24);
 
 					a0 ^= k0;
 					a1 ^= k1;
 					a2 ^= k2;
 					a3 ^= k3;
 
-					t = a1 ^ a3;
-					t ^= Integers.RotateLeft(t, 8) ^ Integers.RotateLeft(t, 24);
-					a0 ^= t;
-					a2 ^= t;
+                    uint t13 = a1 ^ a3;
+                    t13 ^= Integers.RotateLeft(t13, 8) ^ Integers.RotateLeft(t13, 24);
+
+                    a0 ^= t13;
+                    a1 ^= t02;
+                    a2 ^= t13;
+                    a3 ^= t02;
 				}
 
 				if (++round > Size)
@@ -154,14 +158,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 				// gamma(a);
 				{
-					a1 ^= ~a3 & ~a2;
-					a0 ^= a2 & a1;
+                    uint t = a3;
+                    a1 ^= a3 | a2;
+                    a3 = a0 ^ (a2 & ~a1);
 
-					t = a3; a3 = a0; a0 = t;
-					a2 ^= a0 ^ a1 ^ a3;
+                    a2 = t ^ ~a1 ^ a2 ^ a3;
 
-					a1 ^= ~a3 & ~a2;
-					a0 ^= a2 & a1;
+                    a1 ^= a3 | a2;
+                    a0 = t ^ (a2 & a1);
 				}
 
 				// pi2(a);
@@ -190,28 +194,28 @@ namespace Org.BouncyCastle.Crypto.Engines
 			uint k0 = k[0], k1 = k[1], k2 = k[2], k3 = k[3];
 
 			int round = Size;
-			uint t;
 			for (;;)
 			{
 				// theta(a, k);
 				{
-					t = a0 ^ a2;
-					t ^= Integers.RotateLeft(t, 8) ^ Integers.RotateLeft(t, 24);
-					a1 ^= t;
-					a3 ^= t;
+                    uint t02 = a0 ^ a2;
+                    t02 ^= Integers.RotateLeft(t02, 8) ^ Integers.RotateLeft(t02, 24);
 
-					a0 ^= k0;
-					a1 ^= k1;
-					a2 ^= k2;
-					a3 ^= k3;
+                    a0 ^= k0;
+                    a1 ^= k1;
+                    a2 ^= k2;
+                    a3 ^= k3;
 
-					t = a1 ^ a3;
-					t ^= Integers.RotateLeft(t, 8) ^ Integers.RotateLeft(t, 24);
-					a0 ^= t;
-					a2 ^= t;
-				}
+                    uint t13 = a1 ^ a3;
+                    t13 ^= Integers.RotateLeft(t13, 8) ^ Integers.RotateLeft(t13, 24);
 
-				a0 ^= RoundConstants[round];
+                    a0 ^= t13;
+                    a1 ^= t02;
+                    a2 ^= t13;
+                    a3 ^= t02;
+                }
+
+                a0 ^= RoundConstants[round];
 
 				if (--round < 0)
 					break;
@@ -225,18 +229,18 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 				// gamma(a);
 				{
-					a1 ^= ~a3 & ~a2;
-					a0 ^= a2 & a1;
+                    uint t = a3;
+                    a1 ^= a3 | a2;
+                    a3 = a0 ^ (a2 & ~a1);
 
-					t = a3; a3 = a0; a0 = t;
-					a2 ^= a0 ^ a1 ^ a3;
+                    a2 = t ^ ~a1 ^ a2 ^ a3;
 
-					a1 ^= ~a3 & ~a2;
-					a0 ^= a2 & a1;
-				}
+                    a1 ^= a3 | a2;
+                    a0 = t ^ (a2 & a1);
+                }
 
-				// pi2(a);
-				{
+                // pi2(a);
+                {
 					a1 = Integers.RotateLeft(a1, 31);
 					a2 = Integers.RotateLeft(a2, 27);
 					a3 = Integers.RotateLeft(a3, 30);
