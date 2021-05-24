@@ -666,6 +666,7 @@
     <Compile Include="src\crypto\CipherKeyGenerator.cs" />
     <Compile Include="src\crypto\CryptoException.cs" />
     <Compile Include="src\crypto\DataLengthException.cs" />
+    <Compile Include="src\crypto\IAlphabetMapper.cs" />
     <Compile Include="src\crypto\IAsymmetricBlockCipher.cs" />
     <Compile Include="src\crypto\IAsymmetricCipherKeyPairGenerator.cs" />
     <Compile Include="src\crypto\IBasicAgreement.cs" />
@@ -754,6 +755,7 @@
     <Compile Include="src\crypto\digests\MD5Digest.cs" />
     <Compile Include="src\crypto\digests\NonMemoableDigest.cs" />
     <Compile Include="src\crypto\digests\NullDigest.cs" />
+    <Compile Include="src\crypto\digests\ParallelHash.cs" />
     <Compile Include="src\crypto\digests\RipeMD128Digest.cs" />
     <Compile Include="src\crypto\digests\RipeMD160Digest.cs" />
     <Compile Include="src\crypto\digests\RipeMD256Digest.cs" />
@@ -771,6 +773,7 @@
     <Compile Include="src\crypto\digests\SkeinDigest.cs" />
     <Compile Include="src\crypto\digests\SkeinEngine.cs" />
     <Compile Include="src\crypto\digests\TigerDigest.cs" />
+    <Compile Include="src\crypto\digests\TupleHash.cs" />
     <Compile Include="src\crypto\digests\WhirlpoolDigest.cs" />
     <Compile Include="src\crypto\digests\XofUtils.cs" />
     <Compile Include="src\crypto\ec\CustomNamedCurves.cs" />
@@ -834,6 +837,10 @@
     <Compile Include="src\crypto\engines\VMPCKSA3Engine.cs" />
     <Compile Include="src\crypto\engines\XSalsa20Engine.cs" />
     <Compile Include="src\crypto\engines\XTEAEngine.cs" />
+    <Compile Include="src\crypto\fpe\FpeEngine.cs" />
+    <Compile Include="src\crypto\fpe\FpeFf1Engine.cs" />
+    <Compile Include="src\crypto\fpe\FpeFf3_1Engine.cs" />
+    <Compile Include="src\crypto\fpe\SP80038G.cs" />
     <Compile Include="src\crypto\generators\BaseKdfBytesGenerator.cs" />
     <Compile Include="src\crypto\generators\BCrypt.cs" />
     <Compile Include="src\crypto\generators\DHBasicKeyPairGenerator.cs" />
@@ -899,6 +906,7 @@
     <Compile Include="src\crypto\modes\CtsBlockCipher.cs" />
     <Compile Include="src\crypto\modes\EAXBlockCipher.cs" />
     <Compile Include="src\crypto\modes\GCMBlockCipher.cs" />
+    <Compile Include="src\crypto\modes\GcmSivBlockCipher.cs" />
     <Compile Include="src\crypto\modes\GOFBBlockCipher.cs" />
     <Compile Include="src\crypto\modes\IAeadBlockCipher.cs" />
     <Compile Include="src\crypto\modes\IAeadCipher.cs" />
@@ -971,6 +979,7 @@
     <Compile Include="src\crypto\parameters\ElGamalParameters.cs" />
     <Compile Include="src\crypto\parameters\ElGamalPrivateKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\ElGamalPublicKeyParameters.cs" />
+    <Compile Include="src\crypto\parameters\FpeParameters.cs" />
     <Compile Include="src\crypto\parameters\GOST3410KeyGenerationParameters.cs" />
     <Compile Include="src\crypto\parameters\GOST3410KeyParameters.cs" />
     <Compile Include="src\crypto\parameters\GOST3410Parameters.cs" />
@@ -1224,6 +1233,7 @@
     <Compile Include="src\crypto\tls\UseSrtpData.cs" />
     <Compile Include="src\crypto\tls\UserMappingType.cs" />
     <Compile Include="src\crypto\util\AlgorithmIdentifierFactory.cs" />
+    <Compile Include="src\crypto\util\BasicAlphabetMapper.cs" />
     <Compile Include="src\crypto\util\CipherFactory.cs" />
     <Compile Include="src\crypto\util\CipherKeyGeneratorFactory.cs" />
     <Compile Include="src\crypto\util\Pack.cs" />
@@ -1558,6 +1568,7 @@
     <Compile Include="src\tsp\TimeStampTokenInfo.cs" />
     <Compile Include="src\util\Arrays.cs" />
     <Compile Include="src\util\BigIntegers.cs" />
+    <Compile Include="src\util\Bytes.cs" />
     <Compile Include="src\util\Enums.cs" />
     <Compile Include="src\util\IMemoable.cs" />
     <Compile Include="src\util\Integers.cs" />

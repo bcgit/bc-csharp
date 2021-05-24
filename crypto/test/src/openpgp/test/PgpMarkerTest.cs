@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -85,8 +84,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			get { return "PgpMarkerTest"; }
         }
 
-		public static void Main(
-            string[] args)
+		public static void Main(string[] args)
         {
             RunTest(new PgpMarkerTest());
         }

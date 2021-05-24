@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -472,7 +471,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 		public override string Name
 		{
-			get { return "PGPDSAElGamalTest"; }
+			get { return "PgpDsaElGamalTest"; }
 		}
 
 		public static void Main(

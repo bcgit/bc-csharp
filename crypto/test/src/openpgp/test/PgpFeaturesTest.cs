@@ -1,15 +1,17 @@
-﻿
-using NUnit.Core;
+﻿using System;
+
 using NUnit.Framework;
+
 using Org.BouncyCastle.Bcpg.Sig;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 {
     [TestFixture]
     public class PgpFeaturesTest
+        : SimpleTest
     {
-        [Test]
-        public void PerformTest()
+        public override void PerformTest()
         {
             Features f = new Features(true, Features.FEATURE_MODIFICATION_DETECTION);
             Assert.IsTrue(f.SupportsFeature(Features.FEATURE_MODIFICATION_DETECTION));
@@ -36,20 +38,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Assert.IsTrue(f.SupportsFeature(Features.FEATURE_VERSION_5_PUBLIC_KEY));
         }
 
-        public static void Main(string[] args)
+        public override string Name
         {
-            Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
+            get { return "PgpFeaturesTest"; }
         }
 
-        [Suite]
-        public static TestSuite Suite
+        public static void Main(string[] args)
         {
-            get
-            {
-                TestSuite suite = new TestSuite("PGP Features Tests");
-                suite.Add(new PgpFeaturesTest());
-                return suite;
-            }
+            RunTest(new PgpFeaturesTest());
+        }
+
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
         }
     }
 }

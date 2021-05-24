@@ -6,8 +6,8 @@ namespace Org.BouncyCastle.Utilities
 {
     public abstract class Longs
     {
-        public static readonly uint BYTES = 8;
-        public static readonly uint SIZE = 64;
+        public const int NumBits = 64;
+        public const int NumBytes = 8;
 
         public static long Reverse(long i)
         {

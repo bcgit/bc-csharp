@@ -1,8 +1,5 @@
 using System;
-using System.Diagnostics;
 
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -685,14 +682,13 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return s;
         }
 
-	private static int Ceil(double v)
-	{
-		int rv = (int)v;
-		if ((double)rv < v)
-                {
-			return rv + 1;
-                }
-                return rv;
-	}
+	    private static int Ceil(double v)
+	    {
+		    int rv = (int)v;
+		    if ((double)rv < v)
+			    return rv + 1;
+
+            return rv;
+	    }
     }
 }

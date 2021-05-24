@@ -246,14 +246,14 @@ namespace Org.BouncyCastle.Security
         {
             byte[] bytes = new byte[4];
             NextBytes(bytes);
-            return (int)Pack.BE_To_UInt32(bytes);
+            return (int)Pack.BE_To_UInt32(bytes, 0);
         }
 
         public virtual long NextLong()
         {
             byte[] bytes = new byte[8];
             NextBytes(bytes);
-            return (long)Pack.BE_To_UInt64(bytes);
+            return (long)Pack.BE_To_UInt64(bytes, 0);
         }
     }
 }

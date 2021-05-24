@@ -201,6 +201,8 @@
     <Compile Include="src\crypto\test\Ed448Test.cs" />
     <Compile Include="src\crypto\test\ElGamalTest.cs" />
     <Compile Include="src\crypto\test\EqualsHashCodeTest.cs" />
+    <Compile Include="src\crypto\test\GcmReorderTest.cs" />
+    <Compile Include="src\crypto\test\GcmSivTest.cs" />
     <Compile Include="src\crypto\test\GCMTest.cs" />
     <Compile Include="src\crypto\test\GMacTest.cs" />
     <Compile Include="src\crypto\test\GOST28147MacTest.cs" />
@@ -209,7 +211,6 @@
     <Compile Include="src\crypto\test\GOST3411DigestTest.cs" />
     <Compile Include="src\crypto\test\GOST3411_2012_256DigestTest.cs" />
     <Compile Include="src\crypto\test\GOST3411_2012_512DigestTest.cs" />
-    <Compile Include="src\crypto\test\GcmReorderTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyTest.cs" />
     <Compile Include="src\crypto\test\HCFamilyVecTest.cs" />
     <Compile Include="src\crypto\test\HKDFGeneratorTest.cs" />
@@ -236,6 +237,7 @@
     <Compile Include="src\crypto\test\OAEPTest.cs" />
     <Compile Include="src\crypto\test\OCBTest.cs" />
     <Compile Include="src\crypto\test\OpenBsdBCryptTest.cs" />
+    <Compile Include="src\crypto\test\ParallelHashTest.cs" />
     <Compile Include="src\crypto\test\PSSBlindTest.cs" />
     <Compile Include="src\crypto\test\PSSTest.cs" />
     <Compile Include="src\crypto\test\PaddingTest.cs" />
@@ -280,6 +282,7 @@
     <Compile Include="src\crypto\test\SM4Test.cs" />
     <Compile Include="src\crypto\test\SkeinDigestTest.cs" />
     <Compile Include="src\crypto\test\SkeinMacTest.cs" />
+    <Compile Include="src\crypto\test\SP80038GTest.cs" />
     <Compile Include="src\crypto\test\StreamCipherResetTest.cs" />
     <Compile Include="src\crypto\test\Threefish1024Test.cs" />
     <Compile Include="src\crypto\test\Threefish256Test.cs" />
@@ -295,6 +298,7 @@
     <Compile Include="src\crypto\test\TEATest.cs" />
     <Compile Include="src\crypto\test\TigerDigestTest.cs" />
     <Compile Include="src\crypto\test\TnepresTest.cs" />
+    <Compile Include="src\crypto\test\TupleHashTest.cs" />
     <Compile Include="src\crypto\test\TwofishTest.cs" />
     <Compile Include="src\crypto\test\VMPCKSA3Test.cs" />
     <Compile Include="src\crypto\test\VMPCMacTest.cs" />
@@ -383,6 +387,7 @@
     <Compile Include="src\openpgp\test\PGPCompressionTest.cs" />
     <Compile Include="src\openpgp\test\PGPDSAElGamalTest.cs" />
     <Compile Include="src\openpgp\test\PGPDSATest.cs" />
+    <Compile Include="src\openpgp\test\PgpFeaturesTest.cs" />
     <Compile Include="src\openpgp\test\PGPNoPrivateKeyTest.cs" />
     <Compile Include="src\openpgp\test\PGPPBETest.cs" />
     <Compile Include="src\openpgp\test\PGPPacketTest.cs" />
