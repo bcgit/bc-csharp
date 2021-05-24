@@ -724,7 +724,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 byte myValue = pValue[i];
                 pValue[i] = (byte)(((myValue >> 1) & ~MASK) | myMask);
-                myMask = (byte)((myValue & 1) == 0 ? 0 : MASK);
+                myMask = (byte)((myValue & 1) == 0 ? (byte)0 : MASK);
             }
 
             /* Xor in addition if last bit was set */
