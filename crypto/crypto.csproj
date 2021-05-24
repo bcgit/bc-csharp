@@ -1504,6 +1504,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\nsri\NsriObjectIdentifiers.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ntt\NTTObjectIdentifiers.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -3775,6 +3780,11 @@
                 />
                 <File
                     RelPath = "src\crypto\engines\AESWrapEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\engines\AriaEngine.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -12177,6 +12187,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\test\AriaTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\test\Blake2bDigestTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -13780,4 +13795,3 @@
         </Files>
     </CSHARP>
 </VisualStudioProject>
-

@@ -162,6 +162,7 @@
     <Compile Include="src\crypto\test\AESTest.cs" />
     <Compile Include="src\crypto\test\AESWrapTest.cs" />
     <Compile Include="src\crypto\test\AllTests.cs" />
+    <Compile Include="src\crypto\test\AriaTest.cs" />
     <Compile Include="src\crypto\test\BCryptTest.cs" />
     <Compile Include="src\crypto\test\Blake2bDigestTest.cs" />
     <Compile Include="src\crypto\test\Blake2sDigestTest.cs" />

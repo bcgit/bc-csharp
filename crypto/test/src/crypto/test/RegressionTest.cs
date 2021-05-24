@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new AesLightTest(),
             new AesFastTest(),
             new AesWrapTest(),
+            new AriaTest(),
             new DesTest(),
             new DesEdeTest(),
             new ModeTest(),

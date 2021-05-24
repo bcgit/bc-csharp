@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Iana;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Nsri;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -14,7 +15,6 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
 {
@@ -38,28 +38,62 @@ namespace Org.BouncyCastle.Security
             AddKgAlgorithm("AES128",
                 "2.16.840.1.101.3.4.2",
                 NistObjectIdentifiers.IdAes128Cbc,
+                NistObjectIdentifiers.IdAes128Ccm,
                 NistObjectIdentifiers.IdAes128Cfb,
                 NistObjectIdentifiers.IdAes128Ecb,
+                NistObjectIdentifiers.IdAes128Gcm,
                 NistObjectIdentifiers.IdAes128Ofb,
                 NistObjectIdentifiers.IdAes128Wrap);
             AddKgAlgorithm("AES192",
                 "2.16.840.1.101.3.4.22",
                 NistObjectIdentifiers.IdAes192Cbc,
+                NistObjectIdentifiers.IdAes192Ccm,
                 NistObjectIdentifiers.IdAes192Cfb,
                 NistObjectIdentifiers.IdAes192Ecb,
+                NistObjectIdentifiers.IdAes192Gcm,
                 NistObjectIdentifiers.IdAes192Ofb,
                 NistObjectIdentifiers.IdAes192Wrap);
             AddKgAlgorithm("AES256",
                 "2.16.840.1.101.3.4.42",
                 NistObjectIdentifiers.IdAes256Cbc,
+                NistObjectIdentifiers.IdAes256Ccm,
                 NistObjectIdentifiers.IdAes256Cfb,
                 NistObjectIdentifiers.IdAes256Ecb,
+                NistObjectIdentifiers.IdAes256Gcm,
                 NistObjectIdentifiers.IdAes256Ofb,
                 NistObjectIdentifiers.IdAes256Wrap);
             AddKgAlgorithm("BLOWFISH",
                 "1.3.6.1.4.1.3029.1.2");
             AddKgAlgorithm("CAMELLIA",
                 "CAMELLIAWRAP");
+            AddKgAlgorithm("ARIA");
+            AddKgAlgorithm("ARIA128",
+                NsriObjectIdentifiers.id_aria128_cbc,
+                NsriObjectIdentifiers.id_aria128_ccm,
+                NsriObjectIdentifiers.id_aria128_cfb,
+                NsriObjectIdentifiers.id_aria128_ctr,
+                NsriObjectIdentifiers.id_aria128_ecb,
+                NsriObjectIdentifiers.id_aria128_gcm,
+                NsriObjectIdentifiers.id_aria128_ocb2,
+                NsriObjectIdentifiers.id_aria128_ofb);
+            AddKgAlgorithm("ARIA192",
+                NsriObjectIdentifiers.id_aria192_cbc,
+                NsriObjectIdentifiers.id_aria192_ccm,
+                NsriObjectIdentifiers.id_aria192_cfb,
+                NsriObjectIdentifiers.id_aria192_ctr,
+                NsriObjectIdentifiers.id_aria192_ecb,
+                NsriObjectIdentifiers.id_aria192_gcm,
+                NsriObjectIdentifiers.id_aria192_ocb2,
+                NsriObjectIdentifiers.id_aria192_ofb);
+            AddKgAlgorithm("ARIA256",
+                NsriObjectIdentifiers.id_aria256_cbc,
+                NsriObjectIdentifiers.id_aria256_ccm,
+                NsriObjectIdentifiers.id_aria256_cfb,
+                NsriObjectIdentifiers.id_aria256_ctr,
+                NsriObjectIdentifiers.id_aria256_ecb,
+                NsriObjectIdentifiers.id_aria256_gcm,
+                NsriObjectIdentifiers.id_aria256_ocb2,
+                NsriObjectIdentifiers.id_aria256_ofb);
             AddKgAlgorithm("CAMELLIA128",
                 NttObjectIdentifiers.IdCamellia128Cbc,
                 NttObjectIdentifiers.IdCamellia128Wrap);
@@ -208,19 +242,20 @@ namespace Org.BouncyCastle.Security
 
             AddDefaultKeySizeEntries(64, "DES");
             AddDefaultKeySizeEntries(80, "SKIPJACK");
-            AddDefaultKeySizeEntries(128, "AES128", "BLOWFISH", "CAMELLIA128", "CAST5", "CHACHA", "DESEDE",
+            AddDefaultKeySizeEntries(128, "AES128", "ARIA128", "BLOWFISH", "CAMELLIA128", "CAST5", "CHACHA", "DESEDE",
                 "HC128", "HMACMD2", "HMACMD4", "HMACMD5", "HMACRIPEMD128", "IDEA", "NOEKEON",
                 "RC2", "RC4", "RC5", "SALSA20", "SEED", "SM4", "TEA", "XTEA", "VMPC", "VMPC-KSA3");
             AddDefaultKeySizeEntries(160, "HMACRIPEMD160", "HMACSHA1");
-            AddDefaultKeySizeEntries(192, "AES", "AES192", "CAMELLIA192", "DESEDE3", "HMACTIGER",
+            AddDefaultKeySizeEntries(192, "AES", "AES192", "ARIA192", "CAMELLIA192", "DESEDE3", "HMACTIGER",
                 "RIJNDAEL", "SERPENT", "TNEPRES");
             AddDefaultKeySizeEntries(224, "HMACSHA3-224", "HMACKECCAK224", "HMACSHA224", "HMACSHA512/224");
-            AddDefaultKeySizeEntries(256, "AES256", "CAMELLIA", "CAMELLIA256", "CAST6", "CHACHA7539", "GOST28147",
-                "HC256", "HMACGOST3411-2012-256", "HMACSHA3-256", "HMACKECCAK256", "HMACSHA256", "HMACSHA512/256",
-                "RC5-64", "RC6", "THREEFISH-256", "TWOFISH");
+            AddDefaultKeySizeEntries(256, "AES256", "ARIA", "ARIA256", "CAMELLIA", "CAMELLIA256", "CAST6",
+                "CHACHA7539", "GOST28147", "HC256", "HMACGOST3411-2012-256", "HMACSHA3-256", "HMACKECCAK256",
+                "HMACSHA256", "HMACSHA512/256", "RC5-64", "RC6", "THREEFISH-256", "TWOFISH");
             AddDefaultKeySizeEntries(288, "HMACKECCAK288");
             AddDefaultKeySizeEntries(384, "HMACSHA3-384", "HMACKECCAK384", "HMACSHA384");
-            AddDefaultKeySizeEntries(512, "HMACGOST3411-2012-512", "HMACSHA3-512", "HMACKECCAK512", "HMACSHA512", "THREEFISH-512");
+            AddDefaultKeySizeEntries(512, "HMACGOST3411-2012-512", "HMACSHA3-512", "HMACKECCAK512", "HMACSHA512",
+                "THREEFISH-512");
             AddDefaultKeySizeEntries(1024, "THREEFISH-1024");
         }
 

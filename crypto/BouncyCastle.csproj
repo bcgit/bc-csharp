@@ -50,7 +50,6 @@
     <Compile Include="bzip2\src\CBZip2InputStream.cs" />
     <Compile Include="bzip2\src\CBZip2OutputStream.cs" />
     <Compile Include="bzip2\src\CRC.cs" />
-    <Compile Include="src\asn1\BERBitString.cs" />
     <Compile Include="src\AssemblyInfo.cs" />
     <Compile Include="src\asn1\ASN1Generator.cs" />
     <Compile Include="src\asn1\ASN1OctetStringParser.cs" />
@@ -71,6 +70,7 @@
     <Compile Include="src\asn1\Asn1Set.cs" />
     <Compile Include="src\asn1\Asn1TaggedObject.cs" />
     <Compile Include="src\asn1\Asn1Tags.cs" />
+    <Compile Include="src\asn1\BERBitString.cs" />
     <Compile Include="src\asn1\BERGenerator.cs" />
     <Compile Include="src\asn1\BEROctetStringGenerator.cs" />
     <Compile Include="src\asn1\BEROctetStringParser.cs" />
@@ -323,6 +323,7 @@
     <Compile Include="src\asn1\nist\KMACwithSHAKE256_params.cs" />
     <Compile Include="src\asn1\nist\NISTNamedCurves.cs" />
     <Compile Include="src\asn1\nist\NISTObjectIdentifiers.cs" />
+    <Compile Include="src\asn1\nsri\NsriObjectIdentifiers.cs" />
     <Compile Include="src\asn1\ntt\NTTObjectIdentifiers.cs" />
     <Compile Include="src\asn1\ocsp\BasicOCSPResponse.cs" />
     <Compile Include="src\asn1\ocsp\CertID.cs" />
@@ -664,12 +665,6 @@
     <Compile Include="src\crypto\CipherKeyGenerator.cs" />
     <Compile Include="src\crypto\CryptoException.cs" />
     <Compile Include="src\crypto\DataLengthException.cs" />
-    <Compile Include="src\crypto\digests\NonMemoableDigest.cs" />
-    <Compile Include="src\crypto\engines\SerpentEngineBase.cs" />
-    <Compile Include="src\crypto\engines\TnepresEngine.cs" />
-    <Compile Include="src\crypto\generators\BCrypt.cs" />
-    <Compile Include="src\crypto\generators\HKDFBytesGenerator.cs" />
-    <Compile Include="src\crypto\generators\OpenBsdBCrypt.cs" />
     <Compile Include="src\crypto\IAsymmetricBlockCipher.cs" />
     <Compile Include="src\crypto\IAsymmetricCipherKeyPairGenerator.cs" />
     <Compile Include="src\crypto\IBasicAgreement.cs" />
@@ -756,6 +751,7 @@
     <Compile Include="src\crypto\digests\MD2Digest.cs" />
     <Compile Include="src\crypto\digests\MD4Digest.cs" />
     <Compile Include="src\crypto\digests\MD5Digest.cs" />
+    <Compile Include="src\crypto\digests\NonMemoableDigest.cs" />
     <Compile Include="src\crypto\digests\NullDigest.cs" />
     <Compile Include="src\crypto\digests\RipeMD128Digest.cs" />
     <Compile Include="src\crypto\digests\RipeMD160Digest.cs" />
@@ -784,6 +780,7 @@
     <Compile Include="src\crypto\engines\AesFastEngine.cs" />
     <Compile Include="src\crypto\engines\AesLightEngine.cs" />
     <Compile Include="src\crypto\engines\AesWrapEngine.cs" />
+    <Compile Include="src\crypto\engines\AriaEngine.cs" />
     <Compile Include="src\crypto\engines\BlowfishEngine.cs" />
     <Compile Include="src\crypto\engines\CamelliaEngine.cs" />
     <Compile Include="src\crypto\engines\CamelliaLightEngine.cs" />
@@ -824,17 +821,20 @@
     <Compile Include="src\crypto\engines\SEEDWrapEngine.cs" />
     <Compile Include="src\crypto\engines\Salsa20Engine.cs" />
     <Compile Include="src\crypto\engines\SerpentEngine.cs" />
+    <Compile Include="src\crypto\engines\SerpentEngineBase.cs" />
     <Compile Include="src\crypto\engines\SkipjackEngine.cs" />
     <Compile Include="src\crypto\engines\SM2Engine.cs" />
     <Compile Include="src\crypto\engines\SM4Engine.cs" />
     <Compile Include="src\crypto\engines\TEAEngine.cs" />
     <Compile Include="src\crypto\engines\ThreefishEngine.cs" />
+    <Compile Include="src\crypto\engines\TnepresEngine.cs" />
     <Compile Include="src\crypto\engines\TwofishEngine.cs" />
     <Compile Include="src\crypto\engines\VMPCEngine.cs" />
     <Compile Include="src\crypto\engines\VMPCKSA3Engine.cs" />
     <Compile Include="src\crypto\engines\XSalsa20Engine.cs" />
     <Compile Include="src\crypto\engines\XTEAEngine.cs" />
     <Compile Include="src\crypto\generators\BaseKdfBytesGenerator.cs" />
+    <Compile Include="src\crypto\generators\BCrypt.cs" />
     <Compile Include="src\crypto\generators\DHBasicKeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\DHKeyGeneratorHelper.cs" />
     <Compile Include="src\crypto\generators\DHKeyPairGenerator.cs" />
@@ -851,6 +851,7 @@
     <Compile Include="src\crypto\generators\ElGamalParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\GOST3410KeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\GOST3410ParametersGenerator.cs" />
+    <Compile Include="src\crypto\generators\HKDFBytesGenerator.cs" />
     <Compile Include="src\crypto\generators\Kdf1BytesGenerator.cs" />
     <Compile Include="src\crypto\generators\Kdf2BytesGenerator.cs" />
     <Compile Include="src\crypto\generators\KDFCounterBytesGenerator.cs" />
@@ -858,6 +859,7 @@
     <Compile Include="src\crypto\generators\KDFFeedbackBytesGenerator.cs" />
     <Compile Include="src\crypto\generators\Mgf1BytesGenerator.cs" />
     <Compile Include="src\crypto\generators\NaccacheSternKeyPairGenerator.cs" />
+    <Compile Include="src\crypto\generators\OpenBsdBCrypt.cs" />
     <Compile Include="src\crypto\generators\OpenSSLPBEParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\Pkcs12ParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\Pkcs5S1ParametersGenerator.cs" />
