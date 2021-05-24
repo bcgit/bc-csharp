@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Crmf.Tests
            
             certificateRequestMessageBuilder.AddControl(
                 new PkiArchiveControlBuilder(privateInfo, new GeneralName(new X509Name("CN=Test")))
-                    .AddRecipientGenerator(new CmsKeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
+                    .AddRecipientGenerator(new KeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
                     .Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build())
             );
 

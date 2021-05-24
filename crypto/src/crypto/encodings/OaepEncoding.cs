@@ -169,7 +169,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             //
             // mask the message block.
             //
-            byte[] mask = maskGeneratorFunction1(seed, 0, seed.Length, block.Length - defHash.Length);
+            byte[] mask = MaskGeneratorFunction(seed, 0, seed.Length, block.Length - defHash.Length);
 
             for (int i = defHash.Length; i != block.Length; i++)
             {
@@ -184,7 +184,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             //
             // mask the seed.
             //
-            mask = maskGeneratorFunction1(
+            mask = MaskGeneratorFunction(
                 block, defHash.Length, block.Length - defHash.Length, defHash.Length);
 
             for (int i = 0; i != defHash.Length; i++)
@@ -227,7 +227,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             //
             // unmask the seed.
             //
-            byte[] mask = maskGeneratorFunction1(
+            byte[] mask = MaskGeneratorFunction(
                 block, defHash.Length, block.Length - defHash.Length, defHash.Length);
 
             for (int i = 0; i != defHash.Length; i++)
@@ -238,7 +238,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             //
             // unmask the message block.
             //
-            mask = maskGeneratorFunction1(block, 0, defHash.Length, block.Length - defHash.Length);
+            mask = MaskGeneratorFunction(block, 0, defHash.Length, block.Length - defHash.Length);
 
             for (int i = defHash.Length; i != block.Length; i++)
             {
@@ -306,10 +306,30 @@ namespace Org.BouncyCastle.Crypto.Encodings
             sp[3] = (byte)((uint)i >> 0);
         }
 
+        private byte[] MaskGeneratorFunction(
+            byte[] Z,
+            int zOff,
+            int zLen,
+            int length)
+        {
+            if (mgf1Hash is IXof)
+            {
+                byte[] mask = new byte[length];
+                mgf1Hash.BlockUpdate(Z, zOff, zLen);
+                ((IXof)mgf1Hash).DoFinal(mask, 0, mask.Length);
+
+                return mask;
+            }
+            else
+            {
+                return MaskGeneratorFunction1(Z, zOff, zLen, length);
+            }
+        }
+
         /**
         * mask generator function, as described in PKCS1v2.
         */
-        private byte[] maskGeneratorFunction1(
+        private byte[] MaskGeneratorFunction1(
             byte[]	Z,
             int		zOff,
             int		zLen,

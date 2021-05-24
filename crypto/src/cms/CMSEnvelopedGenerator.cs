@@ -10,6 +10,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -132,10 +133,9 @@ namespace Org.BouncyCastle.Cms
 		public void AddKeyTransRecipient(
 			X509Certificate cert)
 		{
-			KeyTransRecipientInfoGenerator ktrig = new KeyTransRecipientInfoGenerator();
-			ktrig.RecipientCert = cert;
-
-			recipientInfoGenerators.Add(ktrig);
+			TbsCertificateStructure recipientTbsCert = CmsUtilities.GetTbsCertificateStructure(cert);
+			SubjectPublicKeyInfo info = recipientTbsCert.SubjectPublicKeyInfo;
+			this.AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper(info.AlgorithmID.Algorithm, info.AlgorithmID.Parameters, cert)));
 		}
 
 		/**
@@ -149,11 +149,8 @@ namespace Org.BouncyCastle.Cms
 			AsymmetricKeyParameter	pubKey,
 			byte[]					subKeyId)
 		{
-			KeyTransRecipientInfoGenerator ktrig = new KeyTransRecipientInfoGenerator();
-			ktrig.RecipientPublicKey = pubKey;
-			ktrig.SubjectKeyIdentifier = new DerOctetString(subKeyId);
-
-			recipientInfoGenerators.Add(ktrig);
+			SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
+			this.AddRecipientInfoGenerator(new KeyTransRecipientInfoGenerator(subKeyId, new Asn1KeyWrapper(info.AlgorithmID.Algorithm, info.AlgorithmID.Parameters, pubKey)));
 		}
 
 		/**

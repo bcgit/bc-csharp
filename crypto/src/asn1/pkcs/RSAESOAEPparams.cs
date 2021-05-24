@@ -36,10 +36,15 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		 * The default version
 		 */
 		public RsaesOaepParameters()
+		: this(DefaultHashAlgorithm, DefaultMaskGenFunction, DefaultPSourceAlgorithm)
+		{ 
+		}
+
+		public RsaesOaepParameters(
+			AlgorithmIdentifier hashAlgorithm,
+			AlgorithmIdentifier maskGenAlgorithm)
+		: this(DefaultHashAlgorithm, DefaultMaskGenFunction, DefaultPSourceAlgorithm)
 		{
-			hashAlgorithm = DefaultHashAlgorithm;
-			maskGenAlgorithm = DefaultMaskGenFunction;
-			pSourceAlgorithm = DefaultPSourceAlgorithm;
 		}
 
 		public RsaesOaepParameters(
