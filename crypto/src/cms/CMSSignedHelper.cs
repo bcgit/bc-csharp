@@ -440,7 +440,7 @@ namespace Org.BouncyCastle.Cms
 
 		public IX509Store GetCertificates(Asn1Set certificates)
 		{
-			ArrayList certList = new ArrayList();
+            IList certList = Platform.CreateArrayList();
 			if (certificates != null)
             {				
 				foreach (Asn1Encodable enc in certificates)
