@@ -2261,7 +2261,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         }
 
         [Test]
-        public void GenerateSha1Test()
+        public void GenerateSha256Test()
         {
             char[] passPhrase = "hello".ToCharArray();
 
@@ -2296,11 +2296,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             PgpKeyPair dsaKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.Dsa, dsaKp, DateTime.UtcNow);
             PgpKeyPair elgKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.ElGamalEncrypt, elgKp, DateTime.UtcNow);
+            PgpKeyPair dsaSubKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.Dsa, dsaKpg.GenerateKeyPair(), DateTime.UtcNow);
 
             PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification, dsaKeyPair,
                 "test", SymmetricKeyAlgorithmTag.Aes256, passPhrase, true, null, null, Random);
 
-            keyRingGen.AddSubKey(elgKeyPair);
+            keyRingGen.AddSubKey(elgKeyPair, HashAlgorithmTag.Sha256);
+
+            keyRingGen.AddSubKey(dsaSubKeyPair, HashAlgorithmTag.Sha256, HashAlgorithmTag.Sha256);
 
             PgpSecretKeyRing keyRing = keyRingGen.GenerateSecretKeyRing();
 
@@ -2310,6 +2313,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             PgpPublicKey vKey = null;
             PgpPublicKey sKey = null;
+            PgpPublicKey sdKey = null;
 
             foreach (PgpPublicKey pk in pubRing.GetPublicKeys())
             {
@@ -2319,7 +2323,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 }
                 else
                 {
-                    sKey = pk;
+                    if (pk.IsEncryptionKey)
+                    {
+                        sKey = pk;
+                    }
+                    else
+                    {
+                        sdKey = pk;
+                    }
                 }
             }
 
@@ -2333,6 +2344,29 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                     if (!sig.VerifyCertification(vKey, sKey))
                     {
                         Fail("failed to verify sub-key signature.");
+                    }
+                }
+            }
+
+            foreach (PgpSignature sig in sdKey.GetSignatures())
+            {
+                if (sig.KeyId == vKey.KeyId
+                    && sig.SignatureType == PgpSignature.SubkeyBinding)
+                {
+                    sig.InitVerify(vKey);
+
+                    if (!sig.VerifyCertification(vKey, sdKey))
+                    {
+                        Fail("failed to verify dsa sub-key signature.");
+                    }
+
+                    PgpSignature bindSig = sig.GetHashedSubPackets().GetEmbeddedSignatures()[0];
+
+                    bindSig.InitVerify(sdKey);
+
+                    if (!bindSig.VerifyCertification(vKey, sdKey))
+                    {
+                        Fail("failed to verify dsa sub-key primary binding signature.");
                     }
                 }
             }
@@ -2574,7 +2608,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PerformTest11();
 
             GenerateTest();
-            GenerateSha1Test();
+            GenerateSha256Test();
             RewrapTest();
             PublicKeyRingWithX509Test();
             SecretKeyRingWithPersonalCertificateTest();
@@ -2620,8 +2654,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             get { return "PgpKeyRingTest"; }
         }
 
-        public static void Main(
-            string[] args)
+        public static void Main(string[] args)
         {
             RunTest(new PgpKeyRingTest());
         }

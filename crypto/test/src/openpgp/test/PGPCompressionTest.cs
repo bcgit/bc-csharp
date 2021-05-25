@@ -4,8 +4,6 @@ using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1.Utilities;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -105,11 +103,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 		public override string Name
 		{
-			get { return "PGPCompressionTest"; }
+			get { return "PgpCompressionTest"; }
 		}
 
-		public static void Main(
-			string[] args)
+		public static void Main(string[] args)
 		{
 			RunTest(new PgpCompressionTest());
 		}

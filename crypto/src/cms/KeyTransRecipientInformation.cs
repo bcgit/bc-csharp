@@ -9,6 +9,8 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -42,7 +44,7 @@ namespace Org.BouncyCastle.Cms
                 }
                 else
                 {
-                    IssuerAndSerialNumber iAnds = IssuerAndSerialNumber.GetInstance(r.ID);
+                    Asn1.Cms.IssuerAndSerialNumber iAnds = Asn1.Cms.IssuerAndSerialNumber.GetInstance(r.ID);
 
 					rid.Issuer = iAnds.Name;
                     rid.SerialNumber = iAnds.SerialNumber.Value;
@@ -74,16 +76,27 @@ namespace Org.BouncyCastle.Cms
 		internal KeyParameter UnwrapKey(ICipherParameters key)
 		{
 			byte[] encryptedKey = info.EncryptedKey.GetOctets();
-            string keyExchangeAlgorithm = GetExchangeEncryptionAlgorithmName(keyEncAlg);
+            
 
 			try
 			{
-				IWrapper keyWrapper = WrapperUtilities.GetWrapper(keyExchangeAlgorithm);
-				keyWrapper.Init(false, key);
+				if (keyEncAlg.Algorithm.Equals(PkcsObjectIdentifiers.IdRsaesOaep))
+				{
+					IKeyUnwrapper keyWrapper = new Asn1KeyUnwrapper(keyEncAlg.Algorithm, keyEncAlg.Parameters, key);
 
-				// FIXME Support for MAC algorithm parameters similar to cipher parameters
-				return ParameterUtilities.CreateKeyParameter(
-					GetContentAlgorithmName(), keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length));
+					return ParameterUtilities.CreateKeyParameter(
+							GetContentAlgorithmName(), keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length).Collect());
+				}
+				else
+				{
+					string keyExchangeAlgorithm = GetExchangeEncryptionAlgorithmName(keyEncAlg);
+					IWrapper keyWrapper = WrapperUtilities.GetWrapper(keyExchangeAlgorithm);
+					keyWrapper.Init(false, key);
+
+					// FIXME Support for MAC algorithm parameters similar to cipher parameters
+					return ParameterUtilities.CreateKeyParameter(
+						GetContentAlgorithmName(), keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length));
+				}
 			}
 			catch (SecurityUtilityException e)
 			{

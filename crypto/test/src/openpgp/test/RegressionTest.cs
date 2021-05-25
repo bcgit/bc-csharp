@@ -24,15 +24,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             new PgpECDsaTest(),
             new PgpECMessageTest(),
             new PgpParsingTest(),
+            new PgpFeaturesTest(),
         };
 
-        public static void Main(
-            string[] args)
+        public static void Main(string[] args)
         {
             foreach (ITest test in tests)
             {
-                ITestResult result = test.Perform();
-                Console.WriteLine(result);
+                SimpleTest.RunTest(test);
             }
         }
     }

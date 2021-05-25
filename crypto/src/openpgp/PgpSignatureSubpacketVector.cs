@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-
+using System.IO;
 using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Utilities;
 
@@ -188,6 +188,26 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			return false;
 		}
+
+        public PgpSignatureList GetEmbeddedSignatures()
+        {
+            SignatureSubpacket [] sigs = GetSubpackets(SignatureSubpacketTag.EmbeddedSignature);
+            PgpSignature[] l = new PgpSignature[sigs.Length];
+   
+            for (int i = 0; i < sigs.Length; i++)
+            {
+                try
+                {
+                    l[i] = new PgpSignature(SignaturePacket.FromByteArray(sigs[i].GetData()));
+                }
+                catch (IOException e)
+                {
+                    throw new PgpException("Unable to parse signature packet: " + e.Message, e);
+                }
+            }
+
+            return new PgpSignatureList(l);
+        }
 
 		public SignatureSubpacketTag[] GetCriticalTags()
         {

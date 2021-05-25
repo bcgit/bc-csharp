@@ -15,60 +15,30 @@ namespace Org.BouncyCastle.Cms
     {
         private static readonly CmsEnvelopedHelper Helper = CmsEnvelopedHelper.Instance;
 
-        private TbsCertificateStructure recipientTbsCert;
-        private AsymmetricKeyParameter recipientPublicKey;
         private Asn1OctetString subjectKeyIdentifier;
+        private IKeyWrapper keyWrapper;
 
         // Derived fields
         private SubjectPublicKeyInfo info;
         private IssuerAndSerialNumber issuerAndSerialNumber;
         private SecureRandom random;
+       
 
-        internal KeyTransRecipientInfoGenerator()
+        public KeyTransRecipientInfoGenerator(X509Certificate recipCert, IKeyWrapper keyWrapper)
+            : this(new Asn1.Cms.IssuerAndSerialNumber(recipCert.IssuerDN, new DerInteger(recipCert.SerialNumber)), keyWrapper)
         {
         }
 
-        protected KeyTransRecipientInfoGenerator(IssuerAndSerialNumber issuerAndSerialNumber)
+        public KeyTransRecipientInfoGenerator(IssuerAndSerialNumber issuerAndSerial, IKeyWrapper keyWrapper)
         {
-            this.issuerAndSerialNumber = issuerAndSerialNumber;
+            this.issuerAndSerialNumber = issuerAndSerial;
+            this.keyWrapper = keyWrapper;
         }
 
-        protected KeyTransRecipientInfoGenerator(byte[] subjectKeyIdentifier)
+        public KeyTransRecipientInfoGenerator(byte[] subjectKeyID, IKeyWrapper keyWrapper)
         {
             this.subjectKeyIdentifier = new DerOctetString(subjectKeyIdentifier);
-        }
-
-        internal X509Certificate RecipientCert
-        {
-            set
-            {
-                this.recipientTbsCert = CmsUtilities.GetTbsCertificateStructure(value);
-                this.recipientPublicKey = value.GetPublicKey();
-                this.info = recipientTbsCert.SubjectPublicKeyInfo;
-            }
-        }
-
-        internal AsymmetricKeyParameter RecipientPublicKey
-        {
-            set
-            {
-                this.recipientPublicKey = value;
-
-                try
-                {
-                    info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(
-                        recipientPublicKey);
-                }
-                catch (IOException)
-                {
-                    throw new ArgumentException("can't extract key algorithm from this key");
-                }
-            }
-        }
-
-        internal Asn1OctetString SubjectKeyIdentifier
-        {
-            set { this.subjectKeyIdentifier = value; }
+            this.keyWrapper = keyWrapper;
         }
 
         public RecipientInfo Generate(KeyParameter contentEncryptionKey, SecureRandom random)
@@ -80,11 +50,9 @@ namespace Org.BouncyCastle.Cms
             byte[] encryptedKeyBytes = GenerateWrappedKey(contentEncryptionKey);
 
             RecipientIdentifier recipId;
-            if (recipientTbsCert != null)
+            if (issuerAndSerialNumber != null)
             {
-                IssuerAndSerialNumber issuerAndSerial = new IssuerAndSerialNumber(
-                    recipientTbsCert.Issuer, recipientTbsCert.SerialNumber.Value);
-                recipId = new RecipientIdentifier(issuerAndSerial);
+                recipId = new RecipientIdentifier(issuerAndSerialNumber);
             }
             else
             {
@@ -99,18 +67,17 @@ namespace Org.BouncyCastle.Cms
         {
             get
             {
+                if (this.keyWrapper != null)
+                {
+                    return (AlgorithmIdentifier)keyWrapper.AlgorithmDetails;
+                }
                 return info.AlgorithmID;
             }
         }
 
         protected virtual byte[] GenerateWrappedKey(KeyParameter contentEncryptionKey)
         {
-            byte[] keyBytes = contentEncryptionKey.GetKey();
-            AlgorithmIdentifier keyEncryptionAlgorithm = info.AlgorithmID;
-
-            IWrapper keyWrapper = Helper.CreateWrapper(keyEncryptionAlgorithm.Algorithm.Id);
-            keyWrapper.Init(true, new ParametersWithRandom(recipientPublicKey, random));
-            return keyWrapper.Wrap(keyBytes, 0, keyBytes.Length);
+            return keyWrapper.Wrap(contentEncryptionKey.GetKey()).Collect();
         }
     }
 }

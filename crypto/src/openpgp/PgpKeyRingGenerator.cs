@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -280,47 +279,31 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.AddSubKey(keyPair, this.hashedPacketVector, this.unhashedPacketVector, hashAlgorithm);
         }
 
-		/// <summary>
-		/// Add a subkey with specific hashed and unhashed packets associated with it and
-		/// default certification.
-		/// </summary>
-		/// <param name="keyPair">Public/private key pair.</param>
-		/// <param name="hashedPackets">Hashed packet values to be included in certification.</param>
-		/// <param name="unhashedPackets">Unhashed packets values to be included in certification.</param>
-		/// <exception cref="PgpException"></exception>
-		public void AddSubKey(
+        /// <summary>
+        /// Add a signing subkey to the key ring to be generated with default certification and a primary key binding signature.
+        /// </summary>
+        /// <param name="keyPair">The key pair.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="primaryKeyBindingHashAlgorithm">The primary-key binding hash algorithm.</param>
+        public void AddSubKey(PgpKeyPair keyPair, HashAlgorithmTag hashAlgorithm, HashAlgorithmTag primaryKeyBindingHashAlgorithm)
+        {
+            this.AddSubKey(keyPair, this.hashedPacketVector, this.unhashedPacketVector, hashAlgorithm, primaryKeyBindingHashAlgorithm);
+        }
+
+        /// <summary>
+        /// Add a subkey with specific hashed and unhashed packets associated with it and
+        /// default certification using SHA-1.
+        /// </summary>
+        /// <param name="keyPair">Public/private key pair.</param>
+        /// <param name="hashedPackets">Hashed packet values to be included in certification.</param>
+        /// <param name="unhashedPackets">Unhashed packets values to be included in certification.</param>
+        /// <exception cref="PgpException"></exception>
+        public void AddSubKey(
 			PgpKeyPair					keyPair,
 			PgpSignatureSubpacketVector	hashedPackets,
 			PgpSignatureSubpacketVector	unhashedPackets)
 		{
-			try
-            {
-                PgpSignatureGenerator sGen = new PgpSignatureGenerator(
-					masterKey.PublicKey.Algorithm, HashAlgorithmTag.Sha1);
-
-				//
-                // Generate the certification
-                //
-                sGen.InitSign(PgpSignature.SubkeyBinding, masterKey.PrivateKey);
-
-				sGen.SetHashedSubpackets(hashedPackets);
-                sGen.SetUnhashedSubpackets(unhashedPackets);
-
-				IList subSigs = Platform.CreateArrayList();
-
-				subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
-
-				keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm,
-                    rawPassPhrase, false, useSha1, rand, false));
-			}
-            catch (PgpException e)
-            {
-                throw e;
-            }
-            catch (Exception e)
-            {
-                throw new PgpException("exception adding subkey: ", e);
-            }
+            AddSubKey(keyPair, hashedPackets, unhashedPackets, HashAlgorithmTag.Sha1);
         }
 
         /// <summary>
@@ -367,8 +350,63 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>
+        /// Add a signing subkey with specific hashed and unhashed packets associated with it and
+        /// default certifications, including the primary-key binding signature.
+        /// </summary>
+        /// <param name="keyPair">Public/private key pair.</param>
+        /// <param name="hashedPackets">Hashed packet values to be included in certification.</param>
+        /// <param name="unhashedPackets">Unhashed packets values to be included in certification.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="primaryKeyBindingHashAlgorithm">The primary-key binding hash algorithm.</param>
+        /// <exception cref="Org.BouncyCastle.Bcpg.OpenPgp.PgpException">exception adding subkey: </exception>
+        /// <exception cref="PgpException"></exception>
+        public void AddSubKey(
+            PgpKeyPair keyPair,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            HashAlgorithmTag hashAlgorithm,
+            HashAlgorithmTag primaryKeyBindingHashAlgorithm)
+        {
+            try
+            {
+                PgpSignatureGenerator sGen = new PgpSignatureGenerator(masterKey.PublicKey.Algorithm, hashAlgorithm);
 
-		/// <summary>Return the secret key ring.</summary>
+                //
+                // Generate the certification
+                //
+                sGen.InitSign(PgpSignature.SubkeyBinding, masterKey.PrivateKey);
+
+                // add primary key binding sub packet
+                PgpSignatureGenerator pGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, primaryKeyBindingHashAlgorithm);
+
+                pGen.InitSign(PgpSignature.PrimaryKeyBinding, keyPair.PrivateKey);
+
+                PgpSignatureSubpacketGenerator spGen = new PgpSignatureSubpacketGenerator(hashedPackets);
+
+                spGen.SetEmbeddedSignature(false,
+                        pGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
+                
+                sGen.SetHashedSubpackets(spGen.Generate());
+                sGen.SetUnhashedSubpackets(unhashedPackets);
+
+                IList subSigs = Platform.CreateArrayList();
+                subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
+
+                keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm,
+                    rawPassPhrase, false, useSha1, rand, false));
+            }
+            catch (PgpException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("exception adding subkey: ", e);
+            }
+        }
+
+        /// <summary>Return the secret key ring.</summary>
         public PgpSecretKeyRing GenerateSecretKeyRing()
         {
             return new PgpSecretKeyRing(keys);

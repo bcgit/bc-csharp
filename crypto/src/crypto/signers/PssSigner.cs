@@ -245,7 +245,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 			block[block.Length - sLen - 1 - hLen - 1] = (byte) (0x01);
 			salt.CopyTo(block, block.Length - sLen - hLen - 1);
 
-			byte[] dbMask = MaskGeneratorFunction1(h, 0, h.Length, block.Length - hLen - 1);
+			byte[] dbMask = MaskGeneratorFunction(h, 0, h.Length, block.Length - hLen - 1);
 			for (int i = 0; i != dbMask.Length; i++)
 			{
 				block[i] ^= dbMask[i];
@@ -286,7 +286,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 				return false;
 			}
 
-			byte[] dbMask = MaskGeneratorFunction1(block, block.Length - hLen - 1, hLen, block.Length - hLen - 1);
+			byte[] dbMask = MaskGeneratorFunction(block, block.Length - hLen - 1, hLen, block.Length - hLen - 1);
 
 			for (int i = 0; i != dbMask.Length; i++)
 			{
@@ -347,6 +347,26 @@ namespace Org.BouncyCastle.Crypto.Signers
 			sp[1] = (byte)((uint) i >> 16);
 			sp[2] = (byte)((uint) i >> 8);
 			sp[3] = (byte)((uint) i >> 0);
+		}
+
+		private byte[] MaskGeneratorFunction(
+			byte[] Z,
+			int zOff,
+			int zLen,
+			int length)
+		{
+			if (mgfDigest is IXof)
+			{
+				byte[] mask = new byte[length];
+				mgfDigest.BlockUpdate(Z, zOff, zLen);
+				((IXof)mgfDigest).DoFinal(mask, 0, mask.Length);
+
+				return mask;
+			}
+			else
+			{
+				return MaskGeneratorFunction1(Z, zOff, zLen, length);
+			}
 		}
 
 		/// <summary> mask generator function, as described in Pkcs1v2.</summary>

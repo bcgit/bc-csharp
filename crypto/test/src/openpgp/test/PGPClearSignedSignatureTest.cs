@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 		public override string Name
 		{
-			get { return "PGPClearSignedSignature"; }
+			get { return "PgpClearSignedSignatureTest"; }
 		}
 
 		private void messageTest(
@@ -428,8 +428,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			generateTest(crNlMessage, "\\r\\n");
 		}
 
-		public static void Main(
-			string[] args)
+		public static void Main(string[] args)
 		{
 			RunTest(new PgpClearSignedSignatureTest());
 		}

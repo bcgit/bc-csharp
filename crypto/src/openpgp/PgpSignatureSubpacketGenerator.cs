@@ -11,7 +11,33 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private IList list = Platform.CreateArrayList();
 
-		public void SetRevocable(
+
+        /// <summary>
+        ///Base constructor, creates an empty generator.
+        /// </summary>
+        public PgpSignatureSubpacketGenerator()
+        {
+        }
+
+        ///  <summary>
+        ///  Constructor for pre-initialising the generator from an existing one.
+        ///  </summary>
+        ///  <param name="sigSubV">
+        ///  sigSubV an initial set of subpackets.
+        ///  </param>
+        public PgpSignatureSubpacketGenerator(PgpSignatureSubpacketVector sigSubV)
+        {
+            if (sigSubV != null)
+            {
+                SignatureSubpacket[] subs = sigSubV.ToSubpacketArray();
+                for (int i = 0; i != sigSubV.Count; i++)
+                {
+                    list.Add(subs[i]);
+                }
+            }
+        }
+
+        public void SetRevocable(
             bool	isCritical,
             bool	isRevocable)
         {

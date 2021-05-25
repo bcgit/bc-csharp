@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Tsp
                 byte[] certEnc = assocCert.GetEncoded();
                 stream.Write(certEnc, 0, certEnc.Length);
                 stream.Flush();
-                stream.Close();
+                Platform.Dispose(stream);
 
                 if (((AlgorithmIdentifier)digestCalculator.AlgorithmDetails).Algorithm.Equals(OiwObjectIdentifiers.IdSha1))
                 {

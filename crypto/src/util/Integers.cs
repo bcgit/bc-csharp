@@ -6,8 +6,8 @@ namespace Org.BouncyCastle.Utilities
 {
     public abstract class Integers
     {
-        public static readonly uint BYTES = 4;
-        public static readonly uint SIZE = 32;
+        public const int NumBits = 32;
+        public const int NumBytes = 4;
 
         private static readonly byte[] DeBruijnTZ = {
             0x00, 0x01, 0x02, 0x18, 0x03, 0x13, 0x06, 0x19, 0x16, 0x04, 0x14, 0x0A,

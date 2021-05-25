@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Utilities
 {
     public abstract class Bytes
     {
-        public static readonly uint BYTES = 1;
-        public static readonly uint SIZE = 8;
+        public const int NumBits = 8;
+        public const int NumBytes = 1;
     }
 }

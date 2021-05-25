@@ -151,7 +151,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpObject pgpObject;
             while ((pgpObject = NextPgpObject()) != null)
             {
-                if (type.IsAssignableFrom(pgpObject.GetType()))
+                if (type.IsInstanceOfType(pgpObject))
                 {
                     result.Add(pgpObject);
                 }

@@ -705,6 +705,7 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        [CLSCompliantAttribute(false)]
         public static ushort[] Concatenate(ushort[] a, ushort[] b)
         {
             if (a == null)

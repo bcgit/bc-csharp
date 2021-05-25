@@ -20,11 +20,41 @@ namespace Org.BouncyCastle.Crypto.Utilities
             bs[off + 1] = (byte)(n);
         }
 
-        internal static ushort BE_To_UInt16(byte[] bs)
+        internal static void UInt16_To_BE(ushort[] ns, byte[] bs, int off)
         {
-            uint n = (uint)bs[0] << 8
-                | (uint)bs[1];
-            return (ushort)n;
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                UInt16_To_BE(ns[i], bs, off);
+                off += 2;
+            }
+        }
+
+        internal static void UInt16_To_BE(ushort[] ns, int nsOff, int nsLen, byte[] bs, int bsOff)
+        {
+            for (int i = 0; i < nsLen; ++i)
+            {
+                UInt16_To_BE(ns[nsOff + i], bs, bsOff);
+                bsOff += 2;
+            }
+        }
+
+        internal static byte[] UInt16_To_BE(ushort n)
+        {
+            byte[] bs = new byte[2];
+            UInt16_To_BE(n, bs, 0);
+            return bs;
+        }
+
+        internal static byte[] UInt16_To_BE(ushort[] ns)
+        {
+            return UInt16_To_BE(ns, 0, ns.Length);
+        }
+
+        internal static byte[] UInt16_To_BE(ushort[] ns, int nsOff, int nsLen)
+        {
+            byte[] bs = new byte[2 * nsLen];
+            UInt16_To_BE(ns, nsOff, nsLen, bs, 0);
+            return bs;
         }
 
         internal static ushort BE_To_UInt16(byte[] bs, int off)
@@ -34,11 +64,27 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return (ushort)n;
         }
 
-        internal static byte[] UInt32_To_BE(uint n)
+        internal static void BE_To_UInt16(byte[] bs, int bsOff, ushort[] ns, int nsOff)
         {
-            byte[] bs = new byte[4];
-            UInt32_To_BE(n, bs, 0);
-            return bs;
+            ns[nsOff] = BE_To_UInt16(bs, bsOff);
+        }
+
+        internal static ushort[] BE_To_UInt16(byte[] bs)
+        {
+            return BE_To_UInt16(bs, 0, bs.Length);
+        }
+
+        internal static ushort[] BE_To_UInt16(byte[] bs, int off, int len)
+        {
+            if ((len & 1) != 0)
+                throw new ArgumentException("must be a multiple of 2", "len");
+
+            ushort[] ns = new ushort[len / 2];
+            for (int i = 0; i < len; i += 2)
+            {
+                BE_To_UInt16(bs, off + i, ns, i >> 1);
+            }
+            return ns;
         }
 
         internal static void UInt32_To_BE(uint n, byte[] bs)
@@ -57,13 +103,6 @@ namespace Org.BouncyCastle.Crypto.Utilities
             bs[off + 3] = (byte)(n);
         }
 
-        internal static byte[] UInt32_To_BE(uint[] ns)
-        {
-            byte[] bs = new byte[4 * ns.Length];
-            UInt32_To_BE(ns, bs, 0);
-            return bs;
-        }
-
         internal static void UInt32_To_BE(uint[] ns, byte[] bs, int off)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -73,13 +112,27 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        public static void UInt32_To_BE(uint[] ns, int nsOff, int nsLen, byte[] bs, int bsOff)
+        internal static void UInt32_To_BE(uint[] ns, int nsOff, int nsLen, byte[] bs, int bsOff)
         {
             for (int i = 0; i < nsLen; ++i)
             {
                 UInt32_To_BE(ns[nsOff + i], bs, bsOff);
                 bsOff += 4;
             }
+        }
+
+        internal static byte[] UInt32_To_BE(uint n)
+        {
+            byte[] bs = new byte[4];
+            UInt32_To_BE(n, bs, 0);
+            return bs;
+        }
+
+        internal static byte[] UInt32_To_BE(uint[] ns)
+        {
+            byte[] bs = new byte[4 * ns.Length];
+            UInt32_To_BE(ns, bs, 0);
+            return bs;
         }
 
         internal static uint BE_To_UInt32(byte[] bs)
@@ -107,7 +160,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        public static void BE_To_UInt32(byte[] bs, int bsOff, uint[] ns, int nsOff, int nsLen)
+        internal static void BE_To_UInt32(byte[] bs, int bsOff, uint[] ns, int nsOff, int nsLen)
         {
             for (int i = 0; i < nsLen; ++i)
             {
@@ -151,20 +204,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        public static void UInt64_To_BE(ulong[] ns, int nsOff, int nsLen, byte[] bs, int bsOff)
+        internal static void UInt64_To_BE(ulong[] ns, int nsOff, int nsLen, byte[] bs, int bsOff)
         {
             for (int i = 0; i < nsLen; ++i)
             {
                 UInt64_To_BE(ns[nsOff + i], bs, bsOff);
                 bsOff += 8;
             }
-        }
-
-        internal static ulong BE_To_UInt64(byte[] bs)
-        {
-            uint hi = BE_To_UInt32(bs);
-            uint lo = BE_To_UInt32(bs, 4);
-            return ((ulong)hi << 32) | (ulong)lo;
         }
 
         internal static ulong BE_To_UInt64(byte[] bs, int off)
@@ -183,7 +229,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
-        public static void BE_To_UInt64(byte[] bs, int bsOff, ulong[] ns, int nsOff, int nsLen)
+        internal static void BE_To_UInt64(byte[] bs, int bsOff, ulong[] ns, int nsOff, int nsLen)
         {
             for (int i = 0; i < nsLen; ++i)
             {

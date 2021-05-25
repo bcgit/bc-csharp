@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             new AesLightTest(),
             new AesFastTest(),
             new AesWrapTest(),
+            new AriaTest(),
             new DesTest(),
             new DesEdeTest(),
             new ModeTest(),
@@ -145,7 +146,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             new KdfDoublePipelineTests(), 
             new KdfFeedbackCounterTests(),
             new CShakeTest(),
-            new KMacTest()
+            new KMacTest(),
+            new GcmSivTest(),
+            new ParallelHashTest(),
+            new SP80038GTest(),
+            new TupleHashTest(),
         };
 
         public static void Main(string[] args)

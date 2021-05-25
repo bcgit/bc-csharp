@@ -12,6 +12,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
@@ -786,17 +787,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             //
             // OAEP - public encrypt, private decrypt, differing hashes
             //
-            IAsymmetricBlockCipher cipher = new OaepEncoding(new RsaEngine(), new Sha256Digest(), new Sha1Digest(), new byte[10]);
+            IAsymmetricBlockCipher cipher = new OaepEncoding(new RsaEngine(), new Sha256Digest(), new Sha1Digest(), null);
 
             cipher.Init(true, new ParametersWithRandom(pubParam, new SecureRandom()));
 
             byte[] input = new byte[10];
 
-            byte[] output = cipher.ProcessBlock(input, 0, input.Length);
+            byte[] enc = cipher.ProcessBlock(input, 0, input.Length);
 
             cipher.Init(false, privParam);
 
-            output = cipher.ProcessBlock(output, 0, output.Length);
+            byte[] output = cipher.ProcessBlock(enc, 0, enc.Length);
 
             for (int i = 0; i != input.Length; i++)
             {
@@ -805,6 +806,14 @@ namespace Org.BouncyCastle.Crypto.Tests
                     Fail("mixed digest failed decoding");
                 }
             }
+
+            IBufferedCipher cBuf = CipherUtilities.GetCipher("RSA/NONE/OAEPWITHSHA-256ANDMGF1WITHSHA-1PADDING");
+
+            cBuf.Init(false, privParam);
+
+            output = cBuf.DoFinal(enc, 0, enc.Length);
+
+            Assert.AreEqual(input, output);
 
             cipher = new OaepEncoding(new RsaEngine(), new Sha1Digest(), new Sha256Digest(), new byte[10]);
 
@@ -823,6 +832,28 @@ namespace Org.BouncyCastle.Crypto.Tests
                     Fail("mixed digest failed decoding");
                 }
             }
+
+            // 2048 bit SHA-256 known answer test
+            byte[] encPub2048 = Base64.Decode("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvF6kzNRPSUM3klXHq6R7O6TfI9XOe6oK5Mm/wYLMY5tqnVXItOG2fQagKhULQSi7ihUTYBbiffG72LCQVUd4/m+FSJmFdbfQgIjtEanBCC4oE4G5/uKuGh1SGQSsppMQiaJ4g1q12RAruOYp6L94JMnSy5pq3czVtbMfiEskO/FfD+nVAnpQNlrRShn268FB4+6FUiR68nwEdQXTEs20/i9V2BwoHuMmIQyjPoHo3ArEyBEDxACH02nsezb8Kes/rLwW0unjHEyWpw9EnxqaXxDg9z8CNO2IDUYtesNXBdFB/ggz+IdbsEJf0MbsjGz9R2xl2+lSOALsf6FZQOphgQIDAQAB");
+            byte[] encPri2048 = Base64.Decode("MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC8XqTM1E9JQzeSVcerpHs7pN8j1c57qgrkyb/Bgsxjm2qdVci04bZ9BqAqFQtBKLuKFRNgFuJ98bvYsJBVR3j+b4VImYV1t9CAiO0RqcEILigTgbn+4q4aHVIZBKymkxCJoniDWrXZECu45inov3gkydLLmmrdzNW1sx+ISyQ78V8P6dUCelA2WtFKGfbrwUHj7oVSJHryfAR1BdMSzbT+L1XYHCge4yYhDKM+gejcCsTIEQPEAIfTaex7Nvwp6z+svBbS6eMcTJanD0SfGppfEOD3PwI07YgNRi16w1cF0UH+CDP4h1uwQl/QxuyMbP1HbGXb6VI4Aux/oVlA6mGBAgMBAAECggEAAdjBr9pi/ppgmJgrsXSW2rJWl7DYaeD0Y2LQ9PI108IpzOoS4icWVWpztoXnSte94vAq9PW0ebyddVXhzFw7hO8N9PTAWLOZITF2dYZfBJgDP5G1g5iwUUQ5UlJ36NgnQNotaUhB4SNl8lWbUpNR97Zc0S8t3gfMjo/3fqwR6l6CkLEkzqdmrMb3+LOcdIs+kJCfC1Yb+czXkeUpbQaPogiiJDHxPlpEUMLTPqIwqWnAwJOxPLj34oevI7o7SWTQZQkwBUxj4cZYjEK/jXfQ2GM6XZJIW/7iCc1fZMzcX3PdECiri27iGFNyTdQHTqSfIhb5bctvFj5EE+DHT6ykCwKBgQD93ZbqHnslXuxXaekhSRN2sI+sXWhinVGEVptzu5secFwuUHT8xCPsAwUMMOKsyHGhh20ZYpUS/PadJPneA7oeWRZqeOPeWEli5J71dDBCDrn1UBBOFseEb/gicSbUR/ZaUa9FyJnnPVrFhUpLsXKftMxBJlGkxCNtYC6cBnyFLwKBgQC99BVbuxLCYNZe6bhxKnf16PyWbsvojjdNbAUKMr7G7VhdMFxJUcchARYhh19dtDR2/lJPBX8i9U1j5FXQzRmBz1TEQ4wF5TEYBnReOOnSWxF9kDaANY9jkMoUiAQJfWmKoLMYx5BoNoYhp/4Ri+pRVgTxM/Qp5UnzzzgXsZU4TwKBgQCgfuw/PWALg1SV+x5pbcLBYeSjSzaISf9UVFDZPT1XZB/TJAiiGPrA5jPVvj5AkETOo0jFKL8ojwb22H6j7uVG9HmofJ9LXbOfsvwQIBG2YYsNXT3BsMMYppVQaQrsYEaOWWAfFTC/sdlmUNtkuV3HPE15ztkE+v+O0aUF/U/R/wKBgHCkIFJAMhSgNh8ce6pn47EokzhlxXdHdlXr+2UbyHPQZTkFp4Q3AV159nS1gQDhDseNcqO3f7fsPRNCYP0r0rdeikbEQ3FvgthbY4BIQafjJxENhrQqjrgdMShRrAswmniBaRMFrIWP56RnqUsgbDgFSXL7OwvpExyIQhwSy4kTAoGBAN3x9T7UkwdHSAtpETC+9bGmdcbytHr6JElQKH8jM5sS3FKHR7NSGCGIBmYtbwU3GqU/4JUkDH+ASvsgT2KBLW9kj/zQRV6kW9g0O/2LY3RZ6bOvCs8p4LfPRBm6Zy1bm6h51Em62oXHoViYrI3TSmOfCK9nSeErsxt20sUfsLVW");
+
+            AsymmetricKeyParameter pub2048 = PublicKeyFactory.CreateKey(encPub2048);
+            AsymmetricKeyParameter pri2048 = PrivateKeyFactory.CreateKey(encPri2048);
+
+            input = Strings.ToByteArray("OAEP SHA-256 Test");
+            cipher = new OaepEncoding(new RsaEngine(), new Sha256Digest());
+
+            cipher.Init(true, new ParametersWithRandom(pub2048, new TestRandomData(encPub2048)));
+
+            output = cipher.ProcessBlock(input, 0, input.Length);
+
+            Assert.IsTrue(Arrays.AreEqual(Hex.Decode("8314e8dc39bfe75dcf1ecf770233593fd2f564c8bd2d4a4a66da238f8b3b476cbe4ccf40b2f3efdc74fd1fd015da1b7dd41802d9e61199b59d95714ac54b5479dd639d284038865d5a68790901093a6dac7afc086d26d4855b967eb262394eab9f15c3658ba62f90921d6354ce8d59095df761877b3e5e3278be84bae813f632a95042530eac0e28fa84f2a0202dd76529783ee3826c394476f381978dbabe7c08e76de5944b59aec0145ac6b2b75e1d153411ff8dceb18c14263eec5d9c6fc6cdbbd47006bcc0c905aaaf62d3f6b760dce5eb178635bb3fe02eb5772baa30eaa2cc00282830a9adc813611914e96ac1e3fc5c6319233ac65ff2a3c4468bac99"), output));
+
+            cipher.Init(false, pri2048);
+
+            output = cipher.ProcessBlock(output, 0, output.Length);
+
+            Assert.IsTrue(Arrays.AreEqual(input, output));
         }
 
         private void TestForHighByteError(string label, int keySizeBits)
