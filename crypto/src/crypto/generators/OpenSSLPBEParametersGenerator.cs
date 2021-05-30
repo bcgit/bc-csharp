@@ -6,23 +6,39 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-	/**
-	 * Generator for PBE derived keys and ivs as usd by OpenSSL.
-	 * <p>
-	 * The scheme is a simple extension of PKCS 5 V2.0 Scheme 1 using MD5 with an
-	 * iteration count of 1.
-	 * </p>
-	 */
+	///
+	/// <description>
+	///
+	/// Generator for PBE derived keys and ivs as usd by OpenSSL.
+	/// <p>
+	/// Originally this scheme was a simple extension of PKCS 5 V2.0 Scheme 1 using MD5 with an
+	/// iteration count of 1. The default digest was changed to SHA-256 with OpenSSL 1.1.0. This
+	/// implementation still defaults to MD5, but the digest can now be set.
+	/// </description>
+	///
 	public class OpenSslPbeParametersGenerator
 		: PbeParametersGenerator
 	{
-		private readonly IDigest digest = new MD5Digest();
+		private readonly IDigest digest;
 
-		/**
-		 * Construct a OpenSSL Parameters generator. 
-		 */
-		public OpenSslPbeParametersGenerator()
+		///
+		/// <description>
+		/// Construct a OpenSSL Parameters generator - digest the original MD5.
+		/// </description>
+		///
+		public OpenSslPbeParametersGenerator() : this(new MD5Digest())
 		{
+		}
+
+		///
+		/// <description>
+		/// Construct a OpenSSL Parameters generator - digest as specified.
+		/// </description>
+		/// <param name="digest">the digest to use as the PRF.</param>
+		///
+		public OpenSslPbeParametersGenerator(IDigest digest)
+		{
+			this.digest = digest;
 		}
 
 		public override void Init(
