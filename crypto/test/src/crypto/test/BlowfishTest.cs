@@ -40,6 +40,29 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             string resultText = Perform().ToString();
 
+            BlowfishEngine blowfish = new BlowfishEngine();
+
+            // key range check
+            try
+            {
+                blowfish.Init(true, new KeyParameter(new byte[1]));
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.AreEqual("key length must be in range 32 to 448 bits", e.Message);
+            }
+
+            try
+            {
+                blowfish.Init(true, new KeyParameter(new byte[59]));
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.AreEqual("key length must be in range 32 to 448 bits", e.Message);
+            }
+
             Assert.AreEqual(Name + ": Okay", resultText);
         }
 
