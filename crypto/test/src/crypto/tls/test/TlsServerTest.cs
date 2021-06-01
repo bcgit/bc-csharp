@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !LIB
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -83,3 +84,4 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         }
     }
 }
+#endif

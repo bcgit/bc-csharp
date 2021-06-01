@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Reflection;
 using System.Text;
 
 using NUnit.Framework;
@@ -534,7 +535,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			if (asn1Params != null)
 			{
-				Assert.IsTrue(asn1Params.IsInstanceOfType(ed.EncryptionAlgorithmID.Parameters));
+				Assert.IsTrue(asn1Params.GetTypeInfo().IsInstanceOfType(ed.EncryptionAlgorithmID.Parameters));
 			}
 
 			ArrayList c = new ArrayList(recipients.GetRecipients());

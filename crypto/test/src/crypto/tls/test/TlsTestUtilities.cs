@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             byte[] der = c.GetEncoded();
             byte[] sha1 = Sha256DigestOf(der);
             byte[] hexBytes = Hex.Encode(sha1);
-            string hex = Encoding.ASCII.GetString(hexBytes).ToUpper(CultureInfo.InvariantCulture);
+            string hex = Encoding.ASCII.GetString(hexBytes).ToUpperInvariant();
 
             StringBuilder fp = new StringBuilder();
             int i = 0;

@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Asn1
 #endif
         }
 
-        internal DerUtcTime(
+		internal DerUtcTime(
             byte[] bytes)
         {
             //

@@ -386,7 +386,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             cOut.Write(bytes, 0, bytes.Length);
 
+#if PORTABLE
+            cOut.Dispose();
+#else
             cOut.Close();
+#endif
 
             byte[] encData = bcOut.ToArray();
 
@@ -734,8 +738,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Stream cOut = cPk.Open(new UncloseableStream(cbOut), shortText.Length);
 
             cOut.Write(shortText, 0, shortText.Length);
-
+            
+#if PORTABLE
+            cOut.Dispose();
+#else
             cOut.Close();
+#endif
 
             pgpF = new PgpObjectFactory(cbOut.ToArray());
 
@@ -771,7 +779,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             cOut.Write(text, 0, text.Length);
 
+#if PORTABLE
+            cOut.Dispose();
+#else
             cOut.Close();
+#endif
 
             pgpF = new PgpObjectFactory(cbOut.ToArray());
 
@@ -980,11 +992,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 sGen.Update((byte)ch);
             }
 
+#if PORTABLE
+            lOut.Dispose();
+#else
             lOut.Close();
+#endif
 
             sGen.Generate().Encode(bcOut);
-
+            
+#if PORTABLE
+            bcOut.Dispose();
+#else
             bcOut.Close();
+#endif
 
             //
             // verify generated signature
@@ -1055,12 +1075,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 lOut.WriteByte((byte) ch);
                 sGen.Update((byte)ch);
             }
-
+            
+#if PORTABLE
+            lOut.Dispose();
+#else
             lOut.Close();
+#endif
 
             sGen.Generate().Encode(bcOut);
 
+#if PORTABLE
+            bcOut.Dispose();
+#else
             bcOut.Close();
+#endif
 
             //
             // verify generated signature
@@ -1156,12 +1184,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 lOut.WriteByte((byte)ch);
                 sGen.Update((byte)ch);
             }
-
+            
+#if PORTABLE
+            lOut.Dispose();
+#else
             lOut.Close();
+#endif
 
             sGen.Generate().Encode(bcOut);
 
+#if PORTABLE
+            bcOut.Dispose();
+#else
             bcOut.Close();
+#endif
+
 
             //
             // verify generated signature
@@ -1204,10 +1241,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         private class UncloseableMemoryStream
             : MemoryStream
         {
-            public override void Close()
+#if PORTABLE
+            protected override void Dispose(bool disposing)
             {
-                throw new Exception("Close() called on underlying stream");
+                throw new Exception("Dispose() called on underlying stream");
             }
+#else
+            public override void Close()
+			{
+				throw new Exception("Close() called on underlying stream");
+			}
+#endif
         }
 
         public override string Name

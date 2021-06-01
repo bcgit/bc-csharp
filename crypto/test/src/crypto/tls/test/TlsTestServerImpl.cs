@@ -214,7 +214,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             {
                 output.WriteLine(line);
             }
-            catch (ThreadInterruptedException)
+            catch (Exception)
             {
                 /*
                  * For some reason the NUnit plugin in Visual Studio started throwing these during alert logging

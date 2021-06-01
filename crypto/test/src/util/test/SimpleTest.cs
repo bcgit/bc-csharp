@@ -142,8 +142,8 @@ namespace Org.BouncyCastle.Utilities.Test
 			string name)
 		{
 			string fullName = GetFullName(name);
-
-			return Assembly.GetExecutingAssembly().GetManifestResourceStream(fullName);
+            
+			return typeof(SimpleTest).GetTypeInfo().Assembly.GetManifestResourceStream(fullName);
 		}
 
 		internal static string[] GetTestDataEntries(
@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Utilities.Test
 			string fullPrefix = GetFullName(prefix);
 
 			ArrayList result = new ArrayList();
-			string[] fullNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+			string[] fullNames = typeof(SimpleTest).GetTypeInfo().Assembly.GetManifestResourceNames();
 			foreach (string fullName in fullNames)
 			{
 				if (fullName.StartsWith(fullPrefix))
@@ -167,25 +167,13 @@ namespace Org.BouncyCastle.Utilities.Test
 		private static string GetFullName(
 			string name)
 		{
-#if SEPARATE_UNIT_TESTS
-			return "UnitTests.data." + name;
-#elif PORTABLE
-			return "crypto.tests." + name;
-#else
             return "crypto.test.data." + name;
-#endif
 		}
 
 		private static string GetShortName(
 			string fullName)
 		{
-#if SEPARATE_UNIT_TESTS
-			return fullName.Substring("UnitTests.data.".Length);
-#elif PORTABLE
-			return fullName.Substring("crypto.tests.".Length);
-#else
             return fullName.Substring("crypto.test.data.".Length);
-#endif
 		}
 
 #if NETCF_1_0 || NETCF_2_0

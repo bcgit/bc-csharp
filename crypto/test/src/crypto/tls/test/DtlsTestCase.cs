@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 throw new InvalidOperationException("Non-DTLS version");
         }
 
-        [Test, TestCaseSource(typeof(DtlsTestSuite), "Suite")]
+        [Test, TestCaseSource(typeof(DtlsTestSuite), nameof(DtlsTestSuite.Suite))]
         public void RunTest(TlsTestConfig config)
         {
             CheckDtlsVersion(config.clientMinimumVersion);
@@ -145,8 +145,8 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 if (!isShutdown)
                 {
                     isShutdown = true;
-                    serverThread.Interrupt();
-                    serverThread.Join();
+                    serverThread.Interrupt();                    
+                    serverThread.Join(100);
                 }
             }
         }

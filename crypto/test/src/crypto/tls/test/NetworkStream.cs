@@ -35,9 +35,9 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         }
 
         public override void Close()
-        {
-            lock (this) mClosed = true;
-        }
+		{
+			lock (this) mClosed = true;
+		}
 
         public override void Flush()
         {

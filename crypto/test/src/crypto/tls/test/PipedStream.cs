@@ -42,13 +42,13 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         }
 
         public override void Close()
-        {
-            lock (this)
+		{
+			lock (this)
             {
                 mClosed = true;
                 Monitor.PulseAll(this);
             }
-        }
+		}
 
         public override void Flush()
         {

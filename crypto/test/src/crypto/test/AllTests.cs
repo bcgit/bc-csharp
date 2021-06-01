@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 #endif
 
-        [Test]
+		[Test]
 		public void TestCrypto()
 		{
 			foreach (Org.BouncyCastle.Utilities.Test.ITest test in RegressionTest.tests)

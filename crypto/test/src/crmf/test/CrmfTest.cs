@@ -156,7 +156,7 @@ namespace Org.BouncyCastle.Crmf.Tests
             IsTrue(archiveControl.EnvelopedData);
             RecipientInformationStore recips = archiveControl.GetEnvelopedData().GetRecipientInfos();
 
-            ArrayList collection =  (ArrayList)recips.GetRecipients();
+            IList collection =  (IList)recips.GetRecipients();
 
             IsTrue(collection.Count == 1);
             KeyTransRecipientInformation info = (KeyTransRecipientInformation)collection[0];

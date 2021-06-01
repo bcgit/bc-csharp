@@ -834,7 +834,7 @@ namespace Org.BouncyCastle.Cms
 
                 _eiGen.Close();
 
-				outer._digests.Clear();    // clear the current preserved digest state
+                outer._digests.Clear();    // clear the current preserved digest state
 
 				if (outer._certs.Count > 0)
 				{
@@ -842,8 +842,8 @@ namespace Org.BouncyCastle.Cms
                         ?   CmsUtilities.CreateDerSetFromList(outer._certs)
                         :   CmsUtilities.CreateBerSetFromList(outer._certs);
 
-					WriteToGenerator(_sigGen, new BerTaggedObject(false, 0, certs));
-				}
+                    WriteToGenerator(_sigGen, new BerTaggedObject(false, 0, certs));
+                }
 
 				if (outer._crls.Count > 0)
 				{
@@ -851,48 +851,48 @@ namespace Org.BouncyCastle.Cms
                         ?   CmsUtilities.CreateDerSetFromList(outer._crls)
                         :   CmsUtilities.CreateBerSetFromList(outer._crls);
 
-					WriteToGenerator(_sigGen, new BerTaggedObject(false, 1, crls));
-				}
+                    WriteToGenerator(_sigGen, new BerTaggedObject(false, 1, crls));
+                }
 
-				//
-				// Calculate the digest hashes
-				//
-				foreach (DictionaryEntry de in outer._messageDigests)
-				{
-					outer._messageHashes.Add(de.Key, DigestUtilities.DoFinal((IDigest)de.Value));
-				}
+                //
+                // Calculate the digest hashes
+                //
+                foreach (DictionaryEntry de in outer._messageDigests)
+                {
+                    outer._messageHashes.Add(de.Key, DigestUtilities.DoFinal((IDigest)de.Value));
+                }
 
-				// TODO If the digest OIDs for precalculated signers weren't mixed in with
-				// the others, we could fill in outer._digests here, instead of SignerInfoGenerator.Generate
+                // TODO If the digest OIDs for precalculated signers weren't mixed in with
+                // the others, we could fill in outer._digests here, instead of SignerInfoGenerator.Generate
 
-				//
-				// collect all the SignerInfo objects
-				//
+                //
+                // collect all the SignerInfo objects
+                //
                 Asn1EncodableVector signerInfos = new Asn1EncodableVector();
 
-				//
+                //
                 // add the generated SignerInfo objects
                 //
-				{
-					foreach (DigestAndSignerInfoGeneratorHolder holder in outer._signerInfs)
-					{
-						AlgorithmIdentifier digestAlgorithm = holder.DigestAlgorithm;
+                {
+                    foreach (DigestAndSignerInfoGeneratorHolder holder in outer._signerInfs)
+                    {
+                        AlgorithmIdentifier digestAlgorithm = holder.DigestAlgorithm;
 
-						byte[] calculatedDigest = (byte[])outer._messageHashes[
-							Helper.GetDigestAlgName(holder.digestOID)];
-						outer._digests[holder.digestOID] = calculatedDigest.Clone();
+                        byte[] calculatedDigest = (byte[])outer._messageHashes[
+                            Helper.GetDigestAlgName(holder.digestOID)];
+                        outer._digests[holder.digestOID] = calculatedDigest.Clone();
 
-						signerInfos.Add(holder.signerInf.Generate(_contentOID, digestAlgorithm, calculatedDigest));
-	                }
-				}
+                        signerInfos.Add(holder.signerInf.Generate(_contentOID, digestAlgorithm, calculatedDigest));
+                    }
+                }
 
-				//
+                //
                 // add the precalculated SignerInfo objects.
                 //
-				{
-					foreach (SignerInformation signer in outer._signers)
-					{
-						// TODO Verify the content type and calculated digest match the precalculated SignerInfo
+                {
+                    foreach (SignerInformation signer in outer._signers)
+                    {
+                        // TODO Verify the content type and calculated digest match the precalculated SignerInfo
 //						if (!signer.ContentType.Equals(_contentOID))
 //						{
 //							// TODO The precalculated content type did not match - error?
@@ -911,11 +911,11 @@ namespace Org.BouncyCastle.Cms
 //							}
 //						}
 
-						signerInfos.Add(signer.ToSignerInfo());
-	                }
-				}
+                        signerInfos.Add(signer.ToSignerInfo());
+                    }
+                }
 
-				WriteToGenerator(_sigGen, new DerSet(signerInfos));
+                WriteToGenerator(_sigGen, new DerSet(signerInfos));
 
 				_sigGen.Close();
                 _sGen.Close();

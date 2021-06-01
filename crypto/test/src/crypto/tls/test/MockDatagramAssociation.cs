@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.IO;
-using System.Net;
 using System.Threading;
 
 using Org.BouncyCastle.Utilities;
@@ -68,7 +66,11 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                         {
                             Monitor.Wait(receiveQueue, waitMillis);
                         }
+#if !PORTABLE
                         catch (ThreadInterruptedException)
+#else
+                        catch (Exception)
+#endif
                         {
                             // TODO Keep waiting until full wait expired?
                         }

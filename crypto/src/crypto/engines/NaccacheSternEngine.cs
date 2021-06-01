@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		private IList[] lookup = null;
 
-        public string AlgorithmName
+		public string AlgorithmName
 		{
 			get { return "NaccacheStern"; }
 		}
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			set {}
 		}
 
-        /**
+		/**
 		* Returns the input block size of this algorithm.
 		*
 		* @see org.bouncycastle.crypto.AsymmetricBlockCipher#GetInputBlockSize()
@@ -261,7 +261,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			BigInteger m1m2Crypt = m1Crypt.Multiply(m2Crypt);
 			m1m2Crypt = m1m2Crypt.Mod(key.Modulus);
 
-            //byte[] output = key.Modulus.ToByteArray();
+			//byte[] output = key.Modulus.ToByteArray();
 			//Array.Clear(output, 0, output.Length);
 			byte[] output = new byte[key.Modulus.BitLength / 8 + 1];
 
