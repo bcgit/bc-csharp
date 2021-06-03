@@ -13867,6 +13867,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\util\utiltest\IntegersTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\util\utiltest\LongsTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\x509\test\TestCertificateGen.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
