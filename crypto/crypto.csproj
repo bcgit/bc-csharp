@@ -11608,15 +11608,99 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "test\data\tls\x509-ca.pem"
+                    RelPath = "test\data\tls\ca.tmpl"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "test\data\tls\client_agree.tmpl"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "test\data\tls\client_enc.tmpl"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "test\data\tls\client_sign.tmpl"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "test\data\tls\README.txt"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "test\data\tls\server_agree.tmpl"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "test\data\tls\server_enc.tmpl"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "test\data\tls\server_sign.tmpl"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-dsa.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "test\data\tls\x509-ca-key.pem"
+                    RelPath = "test\data\tls\x509-ca-ecdsa.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "test\data\tls\x509-client.pem"
+                    RelPath = "test\data\tls\x509-ca-ed25519.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-ed448.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-key-dsa.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-key-ecdsa.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-key-ed25519.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-key-ed448.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-key-rsa.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-key-rsa_pss_256.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-key-rsa_pss_384.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-key-rsa_pss_512.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-rsa.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-rsa_pss_256.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-rsa_pss_384.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-ca-rsa_pss_512.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
@@ -11624,11 +11708,19 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\tls\x509-client-ecdh.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\tls\x509-client-ecdsa.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "test\data\tls\x509-client-key.pem"
+                    RelPath = "test\data\tls\x509-client-ed25519.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-ed448.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
@@ -11636,11 +11728,51 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\tls\x509-client-key-ecdh.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\tls\x509-client-key-ecdsa.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "test\data\tls\x509-server.pem"
+                    RelPath = "test\data\tls\x509-client-key-ed25519.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-key-ed448.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-key-rsa.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-key-rsa_pss_256.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-key-rsa_pss_384.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-key-rsa_pss_512.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-rsa.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-rsa_pss_256.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-rsa_pss_384.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-client-rsa_pss_512.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
@@ -11648,11 +11780,19 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\tls\x509-server-ecdh.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\tls\x509-server-ecdsa.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "test\data\tls\x509-server-key.pem"
+                    RelPath = "test\data\tls\x509-server-ed25519.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-ed448.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
@@ -11660,7 +11800,59 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
+                    RelPath = "test\data\tls\x509-server-key-ecdh.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
                     RelPath = "test\data\tls\x509-server-key-ecdsa.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-key-ed25519.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-key-ed448.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-key-rsa-enc.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-key-rsa-sign.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-key-rsa_pss_256.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-key-rsa_pss_384.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-key-rsa_pss_512.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-rsa-enc.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-rsa-sign.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-rsa_pss_256.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-rsa_pss_384.pem"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "test\data\tls\x509-server-rsa_pss_512.pem"
                     BuildAction = "EmbeddedResource"
                 />
                 <File

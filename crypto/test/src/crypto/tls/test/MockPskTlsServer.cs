@@ -76,8 +76,8 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
         protected override TlsEncryptionCredentials GetRsaEncryptionCredentials()
         {
-            return TlsTestUtilities.LoadEncryptionCredentials(mContext, new string[]{"x509-server.pem", "x509-ca.pem"},
-                "x509-server-key.pem");
+            return TlsTestUtilities.LoadEncryptionCredentials(mContext,
+                new string[]{ "x509-server-rsa-enc.pem", "x509-ca-rsa.pem"}, "x509-server-key-rsa-enc.pem");
         }
 
         internal class MyIdentityManager

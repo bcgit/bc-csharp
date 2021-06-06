@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             }
 
             IList certificateAuthorities = new ArrayList();
-            certificateAuthorities.Add(TlsTestUtilities.LoadCertificateResource("x509-ca.pem").Subject);
+            certificateAuthorities.Add(TlsTestUtilities.LoadCertificateResource("x509-ca-rsa.pem").Subject);
 
             return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
         }
@@ -152,9 +152,11 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             X509CertificateStructure[] chain = clientCertificate.GetCertificateList();
 
             // TODO Cache test resources?
-            if (!isEmpty && !(chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-client.pem"))
-                || chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-client-dsa.pem"))
-                || chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-client-ecdsa.pem"))))
+            if (!isEmpty && !(
+                chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-client-dsa.pem")) ||
+                chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-client-ecdsa.pem")) ||
+                chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-client-rsa.pem"))
+            ))
             {
                 throw new TlsFatalAlert(AlertDescription.bad_certificate);
             }
@@ -186,26 +188,29 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
         protected override TlsSignerCredentials GetDsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.dsa,
-                "x509-server-dsa.pem", "x509-server-key-dsa.pem");
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(),
+                SignatureAlgorithm.dsa, new string[]{ "x509-server-dsa.pem", "x509-ca-dsa.pem" },
+                "x509-server-key-dsa.pem");
         }
 
         protected override TlsSignerCredentials GetECDsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.ecdsa,
-                "x509-server-ecdsa.pem", "x509-server-key-ecdsa.pem");
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(),
+                SignatureAlgorithm.ecdsa, new string[]{ "x509-server-ecdsa.pem", "x509-ca-ecdsa.pem" },
+                "x509-server-key-ecdsa.pem");
         }
 
         protected override TlsEncryptionCredentials GetRsaEncryptionCredentials()
         {
-            return TlsTestUtilities.LoadEncryptionCredentials(mContext, new string[]{ "x509-server.pem", "x509-ca.pem" },
-                "x509-server-key.pem");
+            return TlsTestUtilities.LoadEncryptionCredentials(mContext,
+                new string[]{ "x509-server-rsa-enc.pem", "x509-ca-rsa.pem" }, "x509-server-key-rsa-enc.pem");
         }
 
         protected override TlsSignerCredentials GetRsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(), SignatureAlgorithm.rsa,
-                "x509-server.pem", "x509-server-key.pem");
+            return TlsTestUtilities.LoadSignerCredentials(mContext, GetSupportedSignatureAlgorithms(),
+                SignatureAlgorithm.rsa, new string[]{ "x509-server-rsa-sign.pem", "x509-ca-rsa.pem" },
+                "x509-server-key-rsa-sign.pem");
         }
 
         private static void SafeWriteLine(TextWriter output, object line)

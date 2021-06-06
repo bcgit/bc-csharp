@@ -78,14 +78,16 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
 
         protected override TlsSignerCredentials GetDsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.dsa,
-                "x509-server-dsa.pem", "x509-server-key-dsa.pem");
+            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms,
+                SignatureAlgorithm.dsa, new string[] { "x509-server-dsa.pem", "x509-ca-dsa.pem" },
+                "x509-server-key-dsa.pem");
         }
 
         protected override TlsSignerCredentials GetRsaSignerCredentials()
         {
-            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms, SignatureAlgorithm.rsa,
-                "x509-server.pem", "x509-server-key.pem");
+            return TlsTestUtilities.LoadSignerCredentials(mContext, mSupportedSignatureAlgorithms,
+                SignatureAlgorithm.rsa, new string[] { "x509-server-rsa-sign.pem", "x509-ca-rsa.pem" },
+                "x509-server-key-rsa-sign.pem");
         }
 
         internal class MyIdentityManager
