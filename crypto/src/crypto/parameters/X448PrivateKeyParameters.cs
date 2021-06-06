@@ -22,6 +22,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
             X448.GeneratePrivateKey(random, data);
         }
 
+        public X448PrivateKeyParameters(byte[] buf)
+            : this(Validate(buf), 0)
+        {
+        }
+
         public X448PrivateKeyParameters(byte[] buf, int off)
             : base(true)
         {
@@ -58,6 +63,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             publicKey.Encode(encoded, 0);
             if (!X448.CalculateAgreement(data, 0, encoded, 0, buf, off))
                 throw new InvalidOperationException("X448 agreement failed");
+        }
+
+        private static byte[] Validate(byte[] buf)
+        {
+            if (buf.Length != KeySize)
+                throw new ArgumentException("must have length " + KeySize, "buf");
+
+            return buf;
         }
     }
 }
