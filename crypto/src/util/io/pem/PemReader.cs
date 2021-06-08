@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 				int colonPos = line.IndexOf(':');
 				if (colonPos >= 0)
 				{
-                    string hdr = line.Substring(0, colonPos).Trim();
+                    string hdr = line.Substring(0, colonPos);
                     string val = line.Substring(colonPos + 1).Trim();
 
                     headers.Add(new PemHeader(hdr, val));
