@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+#if !PORTABLE || DOTNET
 using System.Net.Sockets;
+#endif
 
 using Org.BouncyCastle.Utilities.Date;
 
@@ -312,24 +314,15 @@ namespace Org.BouncyCastle.Crypto.Tls
 
         private int ReceiveDatagram(byte[] buf, int off, int len, int waitMillis)
         {
-            //try
-            //{
-            //    return mTransport.Receive(buf, off, len, waitMillis);
-            //}
-            //catch (SocketTimeoutException e)
-            //{
-            //    return -1;
-            //}
-            //catch (InterruptedIOException e)
-            //{
-            //    e.bytesTransferred = 0;
-            //    throw e;
-            //}
-
             try
             {
                 return mTransport.Receive(buf, off, len, waitMillis);
             }
+            catch (TlsTimeoutException)
+            {
+                return -1;
+            }
+#if !PORTABLE || DOTNET
             catch (SocketException e)
             {
                 if (TlsUtilities.IsTimeout(e))
@@ -337,6 +330,12 @@ namespace Org.BouncyCastle.Crypto.Tls
 
                 throw e;
             }
+#endif
+            //catch (InterruptedIOException e)
+            //{
+            //    e.bytesTransferred = 0;
+            //    throw e;
+            //}
         }
 
         private int ProcessRecord(int received, byte[] record, byte[] buf, int off)

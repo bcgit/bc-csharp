@@ -1228,6 +1228,7 @@
     <Compile Include="src\crypto\tls\TlsSrtpUtilities.cs" />
     <Compile Include="src\crypto\tls\TlsStream.cs" />
     <Compile Include="src\crypto\tls\TlsStreamCipher.cs" />
+    <Compile Include="src\crypto\tls\TlsTimeoutException.cs" />
     <Compile Include="src\crypto\tls\TlsUtilities.cs" />
     <Compile Include="src\crypto\tls\UrlAndHash.cs" />
     <Compile Include="src\crypto\tls\UseSrtpData.cs" />

@@ -6024,6 +6024,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\TlsTimeoutException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

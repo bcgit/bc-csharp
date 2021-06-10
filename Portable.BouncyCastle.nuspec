@@ -42,6 +42,7 @@
         <dependency id="System.IO.FileSystem" version="4.0.0" />
         <dependency id="System.IO.FileSystem.Primitives" version="4.0.0" />
         <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Net.Primitives" version="4.0.10" />
         <dependency id="System.Reflection" version="4.0.10" />
         <dependency id="System.Reflection.Extensions" version="4.0.0" />
         <dependency id="System.Runtime" version="4.0.20" />
@@ -58,6 +59,7 @@
         <dependency id="System.IO.FileSystem" version="4.0.0" />
         <dependency id="System.IO.FileSystem.Primitives" version="4.0.0" />
         <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Net.Primitives" version="4.0.10" />
         <dependency id="System.Reflection" version="4.0.10" />
         <dependency id="System.Reflection.Extensions" version="4.0.0" />
         <dependency id="System.Runtime" version="4.0.20" />
@@ -74,6 +76,7 @@
         <dependency id="System.IO.FileSystem" version="4.0.0" />
         <dependency id="System.IO.FileSystem.Primitives" version="4.0.0" />
         <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Net.Primitives" version="4.0.10" />
         <dependency id="System.Reflection" version="4.0.10" />
         <dependency id="System.Reflection.Extensions" version="4.0.0" />
         <dependency id="System.Runtime" version="4.0.20" />

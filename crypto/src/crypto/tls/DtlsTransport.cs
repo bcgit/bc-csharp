@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+#if !PORTABLE || DOTNET
 using System.Net.Sockets;
+#endif
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
@@ -44,6 +46,20 @@ namespace Org.BouncyCastle.Crypto.Tls
                 mRecordLayer.Fail(fatalAlert.AlertDescription);
                 throw fatalAlert;
             }
+            catch (TlsTimeoutException e)
+            {
+                throw e;
+            }
+#if !PORTABLE || DOTNET
+            catch (SocketException e)
+            {
+                if (TlsUtilities.IsTimeout(e))
+                    throw e;
+
+                mRecordLayer.Fail(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+#endif
             //catch (InterruptedIOException e)
             //{
             //    throw e;
@@ -52,14 +68,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 mRecordLayer.Fail(AlertDescription.internal_error);
                 throw e;
-            }
-            catch (SocketException e)
-            {
-                if (TlsUtilities.IsTimeout(e))
-                    throw e;
-
-                mRecordLayer.Fail(AlertDescription.internal_error);
-                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             catch (Exception e)
             {
@@ -86,6 +94,20 @@ namespace Org.BouncyCastle.Crypto.Tls
                 mRecordLayer.Fail(fatalAlert.AlertDescription);
                 throw fatalAlert;
             }
+            catch (TlsTimeoutException e)
+            {
+                throw e;
+            }
+#if !PORTABLE || DOTNET
+            catch (SocketException e)
+            {
+                if (TlsUtilities.IsTimeout(e))
+                    throw e;
+
+                mRecordLayer.Fail(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
+#endif
             //catch (InterruptedIOException e)
             //{
             //    throw e;
@@ -94,14 +116,6 @@ namespace Org.BouncyCastle.Crypto.Tls
             {
                 mRecordLayer.Fail(AlertDescription.internal_error);
                 throw e;
-            }
-            catch (SocketException e)
-            {
-                if (TlsUtilities.IsTimeout(e))
-                    throw e;
-
-                mRecordLayer.Fail(AlertDescription.internal_error);
-                throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             catch (Exception e)
             {

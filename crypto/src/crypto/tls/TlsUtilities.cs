@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
+#if !PORTABLE || DOTNET
 using System.Net.Sockets;
+#endif
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
@@ -2347,11 +2348,15 @@ namespace Org.BouncyCastle.Crypto.Tls
             return v;
         }
 
+#if !PORTABLE || DOTNET
         public static bool IsTimeout(SocketException e)
         {
-            // TODO Net 2.0+
-            //return SocketError.TimedOut == e.SocketErrorCode;
+#if NET_1_1
             return 10060 == e.ErrorCode;
+#else
+            return SocketError.TimedOut == e.SocketErrorCode;
+#endif
         }
+#endif
     }
 }

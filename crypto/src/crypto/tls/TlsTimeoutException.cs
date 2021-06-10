@@ -1,22 +1,21 @@
 ﻿using System;
-using System.IO;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-    public class TlsException
-        : IOException
+    public class TlsTimeoutException
+        : TlsException
     {
-        public TlsException()
+        public TlsTimeoutException()
             : base()
         {
         }
 
-        public TlsException(string message)
+        public TlsTimeoutException(string message)
             : base(message)
         {
         }
 
-        public TlsException(string message, Exception cause)
+        public TlsTimeoutException(string message, Exception cause)
             : base(message, cause)
         {
         }
