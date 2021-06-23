@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
-using crypto.openpgp;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.X9;
