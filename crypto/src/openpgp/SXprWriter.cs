@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace crypto.openpgp
+namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
     /**
      * Writer for S-expression keys
