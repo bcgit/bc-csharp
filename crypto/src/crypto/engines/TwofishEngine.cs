@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
@@ -272,7 +273,19 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			this.encrypting = forEncryption;
 			this.workingKey = ((KeyParameter)parameters).GetKey();
-			this.k64Cnt = (this.workingKey.Length / 8); // pre-padded ?
+
+            int keyBits = this.workingKey.Length * 8;
+            switch (keyBits)
+            {
+            case 128:
+            case 192:
+            case 256:
+                break;
+            default:
+                throw new ArgumentException("Key length not 128/192/256 bits.");
+            }
+
+            this.k64Cnt = this.workingKey.Length / 8;
 			SetKey(this.workingKey);
         }
 
@@ -335,28 +348,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             int[] sBoxKeys = new int[MAX_KEY_BITS/64]; // 4
             gSubKeys = new int[TOTAL_SUBKEYS];
 
-            if (k64Cnt < 1)
-            {
-                throw new ArgumentException("Key size less than 64 bits");
-            }
-
-            if (k64Cnt > 4)
-            {
-                throw new ArgumentException("Key size larger than 256 bits");
-            }
-
             /*
-            * k64Cnt is the number of 8 byte blocks (64 chunks)
-            * that are in the input key.  The input key is a
-            * maximum of 32 bytes ( 256 bits ), so the range
-            * for k64Cnt is 1..4
-            */
-            for (int i=0,p=0; i<k64Cnt ; i++)
+             * k64Cnt is the number of 8 byte blocks (64 chunks) that are in the input key.
+             * The input key is 16, 24 or 32 bytes, so the range for k64Cnt is 2..4
+             */
+            for (int i = 0; i < k64Cnt; i++)
             {
-                p = i* 8;
+                int p = i * 8;
 
-                k32e[i] = BytesTo32Bits(key, p);
-                k32o[i] = BytesTo32Bits(key, p+4);
+                k32e[i] = (int)Pack.LE_To_UInt32(key, p);
+                k32o[i] = (int)Pack.LE_To_UInt32(key, p + 4);
 
                 sBoxKeys[k64Cnt-1-i] = RS_MDS_Encode(k32e[i], k32o[i]);
             }
@@ -367,11 +368,11 @@ namespace Org.BouncyCastle.Crypto.Engines
                 q = i*SK_STEP;
                 A = F32(q,         k32e);
                 B = F32(q+SK_BUMP, k32o);
-                B = B << 8 | (int)((uint)B >> 24);
+                B = Integers.RotateLeft(B, 8);
                 A += B;
                 gSubKeys[i*2] = A;
                 A += B;
-                gSubKeys[i*2 + 1] = A << SK_ROTL | (int)((uint)A >> (32-SK_ROTL));
+                gSubKeys[i*2 + 1] = Integers.RotateLeft(A, SK_ROTL);
             }
 
             /*
@@ -437,10 +438,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             byte[] dst,
             int dstIndex)
         {
-            int x0 = BytesTo32Bits(src, srcIndex) ^ gSubKeys[INPUT_WHITEN];
-            int x1 = BytesTo32Bits(src, srcIndex + 4) ^ gSubKeys[INPUT_WHITEN + 1];
-            int x2 = BytesTo32Bits(src, srcIndex + 8) ^ gSubKeys[INPUT_WHITEN + 2];
-            int x3 = BytesTo32Bits(src, srcIndex + 12) ^ gSubKeys[INPUT_WHITEN + 3];
+            int x0 = (int)Pack.LE_To_UInt32(src, srcIndex) ^ gSubKeys[INPUT_WHITEN];
+            int x1 = (int)Pack.LE_To_UInt32(src, srcIndex + 4) ^ gSubKeys[INPUT_WHITEN + 1];
+            int x2 = (int)Pack.LE_To_UInt32(src, srcIndex + 8) ^ gSubKeys[INPUT_WHITEN + 2];
+            int x3 = (int)Pack.LE_To_UInt32(src, srcIndex + 12) ^ gSubKeys[INPUT_WHITEN + 3];
 
             int k = ROUND_SUBKEYS;
             int t0, t1;
@@ -449,20 +450,20 @@ namespace Org.BouncyCastle.Crypto.Engines
                 t0 = Fe32_0(x0);
                 t1 = Fe32_3(x1);
                 x2 ^= t0 + t1 + gSubKeys[k++];
-                x2 = (int)((uint)x2 >>1) | x2 << 31;
-                x3 = (x3 << 1 | (int) ((uint)x3 >> 31)) ^ (t0 + 2*t1 + gSubKeys[k++]);
+                x2 = Integers.RotateRight(x2, 1);
+                x3 = Integers.RotateLeft(x3, 1) ^ (t0 + 2*t1 + gSubKeys[k++]);
 
                 t0 = Fe32_0(x2);
                 t1 = Fe32_3(x3);
                 x0 ^= t0 + t1 + gSubKeys[k++];
-                x0 = (int) ((uint)x0 >>1) | x0 << 31;
-                x1 = (x1 << 1 | (int)((uint)x1 >> 31)) ^ (t0 + 2*t1 + gSubKeys[k++]);
+                x0 = Integers.RotateRight(x0, 1);
+                x1 = Integers.RotateLeft(x1, 1) ^ (t0 + 2*t1 + gSubKeys[k++]);
             }
 
-            Bits32ToBytes(x2 ^ gSubKeys[OUTPUT_WHITEN], dst, dstIndex);
-            Bits32ToBytes(x3 ^ gSubKeys[OUTPUT_WHITEN + 1], dst, dstIndex + 4);
-            Bits32ToBytes(x0 ^ gSubKeys[OUTPUT_WHITEN + 2], dst, dstIndex + 8);
-            Bits32ToBytes(x1 ^ gSubKeys[OUTPUT_WHITEN + 3], dst, dstIndex + 12);
+            Pack.UInt32_To_LE((uint)(x2 ^ gSubKeys[OUTPUT_WHITEN]), dst, dstIndex);
+            Pack.UInt32_To_LE((uint)(x3 ^ gSubKeys[OUTPUT_WHITEN + 1]), dst, dstIndex + 4);
+            Pack.UInt32_To_LE((uint)(x0 ^ gSubKeys[OUTPUT_WHITEN + 2]), dst, dstIndex + 8);
+            Pack.UInt32_To_LE((uint)(x1 ^ gSubKeys[OUTPUT_WHITEN + 3]), dst, dstIndex + 12);
         }
 
         /**
@@ -476,10 +477,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             byte[] dst,
             int dstIndex)
         {
-            int x2 = BytesTo32Bits(src, srcIndex) ^ gSubKeys[OUTPUT_WHITEN];
-            int x3 = BytesTo32Bits(src, srcIndex+4) ^ gSubKeys[OUTPUT_WHITEN + 1];
-            int x0 = BytesTo32Bits(src, srcIndex+8) ^ gSubKeys[OUTPUT_WHITEN + 2];
-            int x1 = BytesTo32Bits(src, srcIndex+12) ^ gSubKeys[OUTPUT_WHITEN + 3];
+            int x2 = (int)Pack.LE_To_UInt32(src, srcIndex) ^ gSubKeys[OUTPUT_WHITEN];
+            int x3 = (int)Pack.LE_To_UInt32(src, srcIndex + 4) ^ gSubKeys[OUTPUT_WHITEN + 1];
+            int x0 = (int)Pack.LE_To_UInt32(src, srcIndex + 8) ^ gSubKeys[OUTPUT_WHITEN + 2];
+            int x1 = (int)Pack.LE_To_UInt32(src, srcIndex + 12) ^ gSubKeys[OUTPUT_WHITEN + 3];
 
             int k = ROUND_SUBKEYS + 2 * ROUNDS -1 ;
             int t0, t1;
@@ -488,20 +489,20 @@ namespace Org.BouncyCastle.Crypto.Engines
                 t0 = Fe32_0(x2);
                 t1 = Fe32_3(x3);
                 x1 ^= t0 + 2*t1 + gSubKeys[k--];
-                x0 = (x0 << 1 | (int)((uint) x0 >> 31)) ^ (t0 + t1 + gSubKeys[k--]);
-                x1 = (int) ((uint)x1 >>1) | x1 << 31;
+                x0 = Integers.RotateLeft(x0, 1) ^ (t0 + t1 + gSubKeys[k--]);
+                x1 = Integers.RotateRight(x1, 1);
 
                 t0 = Fe32_0(x0);
                 t1 = Fe32_3(x1);
                 x3 ^= t0 + 2*t1 + gSubKeys[k--];
-                x2 = (x2 << 1 | (int)((uint)x2 >> 31)) ^ (t0 + t1 + gSubKeys[k--]);
-                x3 = (int)((uint)x3 >>1) | x3 << 31;
+                x2 = Integers.RotateLeft(x2, 1) ^ (t0 + t1 + gSubKeys[k--]);
+                x3 = Integers.RotateRight(x3, 1);
             }
 
-            Bits32ToBytes(x0 ^ gSubKeys[INPUT_WHITEN], dst, dstIndex);
-            Bits32ToBytes(x1 ^ gSubKeys[INPUT_WHITEN + 1], dst, dstIndex + 4);
-            Bits32ToBytes(x2 ^ gSubKeys[INPUT_WHITEN + 2], dst, dstIndex + 8);
-            Bits32ToBytes(x3 ^ gSubKeys[INPUT_WHITEN + 3], dst, dstIndex + 12);
+            Pack.UInt32_To_LE((uint)(x0 ^ gSubKeys[INPUT_WHITEN]), dst, dstIndex);
+            Pack.UInt32_To_LE((uint)(x1 ^ gSubKeys[INPUT_WHITEN + 1]), dst, dstIndex + 4);
+            Pack.UInt32_To_LE((uint)(x2 ^ gSubKeys[INPUT_WHITEN + 2]), dst, dstIndex + 8);
+            Pack.UInt32_To_LE((uint)(x3 ^ gSubKeys[INPUT_WHITEN + 3]), dst, dstIndex + 12);
         }
 
         /*
@@ -654,22 +655,5 @@ namespace Org.BouncyCastle.Crypto.Engines
                 gSBox[ 0x200 + 2*((int)((uint)x >> 8) & 0xff) ] ^
                 gSBox[ 0x201 + 2*((int)((uint)x >> 16) & 0xff) ];
         }
-
-        private  int BytesTo32Bits(byte[] b, int p)
-        {
-            return ((b[p] & 0xff) ) |
-                ((b[p+1] & 0xff) << 8) |
-                ((b[p+2] & 0xff) << 16) |
-                ((b[p+3] & 0xff) << 24);
-        }
-
-        private  void Bits32ToBytes(int inData,  byte[] b, int offset)
-        {
-            b[offset] = (byte)inData;
-            b[offset + 1] = (byte)(inData >> 8);
-            b[offset + 2] = (byte)(inData >> 16);
-            b[offset + 3] = (byte)(inData >> 24);
-        }
     }
-
 }
