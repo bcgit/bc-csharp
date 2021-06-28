@@ -34,5 +34,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly KeyPurposeID IdKPSmartCardLogon = new KeyPurposeID("1.3.6.1.4.1.311.20.2.2");
 
         public static readonly KeyPurposeID IdKPMacAddress = new KeyPurposeID("1.3.6.1.1.1.1.22");
+
+        public static readonly KeyPurposeID IdKPKerberosAuthentication = new KeyPurposeID("1.3.6.1.5.2.3.5");
     }
 }
