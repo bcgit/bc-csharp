@@ -4,7 +4,7 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Utilities
 {
-    public abstract class Integers
+    public static class Integers
     {
         public const int NumBits = 32;
         public const int NumBytes = 4;

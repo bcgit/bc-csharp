@@ -4,7 +4,7 @@ using System.Text;
 namespace Org.BouncyCastle.Utilities
 {
     /// <summary> General string utilities.</summary>
-    public abstract class Strings
+    public static class Strings
     {
 
         public static string ToUpperCase(string original)

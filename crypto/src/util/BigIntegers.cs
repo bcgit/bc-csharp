@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Utilities
     /**
      * BigInteger utilities.
      */
-    public abstract class BigIntegers
+    public static class BigIntegers
     {
         public static readonly BigInteger Zero = BigInteger.Zero;
         public static readonly BigInteger One = BigInteger.One;

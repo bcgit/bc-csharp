@@ -2,7 +2,7 @@
 
 namespace Org.BouncyCastle.Utilities
 {
-    public sealed class Times
+    public static class Times
     {
         private static long NanosecondsPerTick = 100L;
 
