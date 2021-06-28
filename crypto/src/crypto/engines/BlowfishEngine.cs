@@ -308,6 +308,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private byte[] workingKey;
 
+		private bool useLittleEndian = false;
+
         public BlowfishEngine()
         {
             S0 = new uint[SBOX_SK];
@@ -317,7 +319,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             P = new uint[P_SZ];
         }
 
-        /**
+		/**
         * initialise a Blowfish cipher.
         *
         * @param forEncryption whether or not we are for encryption.
@@ -325,7 +327,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public void Init(
+		public void Init(
             bool               forEncryption,
             ICipherParameters  parameters)
         {
@@ -346,6 +348,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 		{
 			get { return false; }
 		}
+
+		public bool UseLittleEndian { get => useLittleEndian; set => useLittleEndian = value; }
 
 		public  int ProcessBlock(
             byte[]	input,
@@ -510,8 +514,18 @@ namespace Org.BouncyCastle.Crypto.Engines
             byte[]  dst,
             int     dstIndex)
         {
-            uint xl = Pack.BE_To_UInt32(src, srcIndex);
-            uint xr = Pack.BE_To_UInt32(src, srcIndex+4);
+			uint xl;
+			uint xr;
+			if (useLittleEndian)
+			{
+				xl = Pack.LE_To_UInt32(src, srcIndex);
+				xr = Pack.LE_To_UInt32(src, srcIndex + 4);
+			}
+			else
+			{
+				xl = Pack.BE_To_UInt32(src, srcIndex);
+				xr = Pack.BE_To_UInt32(src, srcIndex + 4);
+			}
 
             xl ^= P[0];
 
@@ -523,8 +537,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             xr ^= P[ROUNDS + 1];
 
-            Pack.UInt32_To_BE(xr, dst, dstIndex);
-            Pack.UInt32_To_BE(xl, dst, dstIndex + 4);
+			if (useLittleEndian)
+			{
+				Pack.UInt32_To_LE(xr, dst, dstIndex);
+				Pack.UInt32_To_LE(xl, dst, dstIndex + 4);
+			}
+			else
+			{
+				Pack.UInt32_To_BE(xr, dst, dstIndex);
+				Pack.UInt32_To_BE(xl, dst, dstIndex + 4);
+			}
         }
 
         /**
@@ -538,10 +560,21 @@ namespace Org.BouncyCastle.Crypto.Engines
             byte[] dst,
             int dstIndex)
         {
-            uint xl = Pack.BE_To_UInt32(src, srcIndex);
-            uint xr = Pack.BE_To_UInt32(src, srcIndex + 4);
+			uint xl;
+			uint xr;
 
-            xl ^= P[ROUNDS + 1];
+			if (useLittleEndian)
+			{
+				xl = Pack.LE_To_UInt32(src, srcIndex);
+				xr = Pack.LE_To_UInt32(src, srcIndex + 4);
+			}
+			else
+			{
+				xl = Pack.BE_To_UInt32(src, srcIndex);
+				xr = Pack.BE_To_UInt32(src, srcIndex + 4);
+			}
+
+			xl ^= P[ROUNDS + 1];
 
             for (int i = ROUNDS; i > 0 ; i -= 2)
             {
@@ -551,8 +584,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             xr ^= P[0];
 
-            Pack.UInt32_To_BE(xr, dst, dstIndex);
-            Pack.UInt32_To_BE(xl, dst, dstIndex + 4);
-        }
+			if (useLittleEndian)
+			{
+				Pack.UInt32_To_LE(xr, dst, dstIndex);
+				Pack.UInt32_To_LE(xl, dst, dstIndex + 4);
+			}
+			else
+			{
+				Pack.UInt32_To_BE(xr, dst, dstIndex);
+				Pack.UInt32_To_BE(xl, dst, dstIndex + 4);
+			}
+		}
     }
 }
