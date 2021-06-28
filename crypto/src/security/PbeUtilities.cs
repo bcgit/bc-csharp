@@ -456,6 +456,8 @@ namespace Org.BouncyCastle.Security
                     ?	pbeParams.KeyLength.IntValue * 8
                     :	GeneratorUtilities.GetDefaultKeySize(encOid);
 
+                IDigest digest = DigestUtilities.GetDigest(pbeParams.Prf.Algorithm);
+                
                 PbeParametersGenerator gen = MakePbeGenerator(
                     (string)algorithmType[mechanism], digest, keyBytes, salt, iterationCount);
 
