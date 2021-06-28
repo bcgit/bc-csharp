@@ -473,22 +473,27 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.macBlock = new byte[macSize];
             Array.Copy(tag, 0, macBlock, 0, macSize);
 
-            if (forEncryption)
+            try
             {
-                // Append T to the message
-                Array.Copy(macBlock, 0, output, outOff + bufOff, macSize);
-                resultLen += macSize;
+                if (forEncryption)
+                {
+                    // Append T to the message
+                    Array.Copy(macBlock, 0, output, outOff + bufOff, macSize);
+                    resultLen += macSize;
+                }
+                else
+                {
+                    // Retrieve the T value from the message and compare to calculated one
+                    byte[] msgMac = new byte[macSize];
+                    Array.Copy(bufBlock, extra, msgMac, 0, macSize);
+                    if (!Arrays.ConstantTimeAreEqual(this.macBlock, msgMac))
+                        throw new InvalidCipherTextException("mac check in GCM failed");
+                }
             }
-            else
+            finally
             {
-                // Retrieve the T value from the message and compare to calculated one
-                byte[] msgMac = new byte[macSize];
-                Array.Copy(bufBlock, extra, msgMac, 0, macSize);
-                if (!Arrays.ConstantTimeAreEqual(this.macBlock, msgMac))
-                    throw new InvalidCipherTextException("mac check in GCM failed");
+                Reset(false);
             }
-
-            Reset(false);
 
             return resultLen;
         }
