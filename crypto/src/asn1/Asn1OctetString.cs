@@ -10,6 +10,8 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1OctetString
         : Asn1Object, Asn1OctetStringParser
     {
+        internal static readonly byte[] EmptyOctets = new byte[0];
+
         internal byte[] str;
 
 		/**
