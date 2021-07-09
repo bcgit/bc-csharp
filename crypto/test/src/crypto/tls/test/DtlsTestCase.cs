@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         {
             if (TlsTestConfig.DEBUG)
             {
-                Console.Error.WriteLine(e.StackTrace);
+                Console.Error.WriteLine(e);
             }
         }
 
@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 if (!isShutdown)
                 {
                     isShutdown = true;
-                    serverThread.Interrupt();
+                    //serverThread.Interrupt();
                     serverThread.Join();
                 }
             }
