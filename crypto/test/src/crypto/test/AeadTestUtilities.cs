@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 throw new TestFailedException(
                     new SimpleTestResult(false, test + " : tampering of ciphertext not detected."));
             }
-            catch (InvalidCipherTextException e)
+            catch (InvalidCipherTextException)
             {
                 // Expected
             }
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 cipher.DoFinal(output, 0);
                 Fail(test, "tampering of ciphertext not detected.");
             }
-            catch (InvalidCipherTextException e)
+            catch (InvalidCipherTextException)
             {
                 // Expected
             }

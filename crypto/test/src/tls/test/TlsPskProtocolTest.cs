@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Tls.Tests
                     Streams.PipeAll(m_serverProtocol.Stream, m_serverProtocol.Stream);
                     m_serverProtocol.Close();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
             }

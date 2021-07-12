@@ -501,7 +501,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			{
 				TbsCertificateStructure cert = TbsCertificateStructure.GetInstance(bangerCert);
 			}
-			catch (ArgumentException e)
+			catch (ArgumentException)
 			{
 				// expected - anything else is not!
 			}
