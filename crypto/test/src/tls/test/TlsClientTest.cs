@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 // TEST CODE ONLY. This is not a robust way of parsing the result!
                 foreach (string end in ends)
                 {
-                    if (upperLine.Contains(end))
+                    if (upperLine.IndexOf(end) >= 0)
                     {
                         finished = true;
                         break;
