@@ -9,6 +9,12 @@ namespace Org.BouncyCastle.Tls.Crypto
     /// <summary>Interface providing the functional representation of a single X.509 certificate.</summary>
     public interface TlsCertificate
     {
+        /// <summary>Return an encryptor based on the public key in this certificate.</summary>
+        /// <param name="tlsCertificateRole"><see cref="TlsCertificateRole"/></param>
+        /// <returns>a <see cref="TlsEncryptor"/> based on this certificate's public key.</returns>
+        /// <exception cref="IOException"/>
+        TlsEncryptor CreateEncryptor(int tlsCertificateRole);
+
         /// <param name="signatureAlgorithm"><see cref="SignatureAlgorithm"/></param>
         /// <exception cref="IOException"/>
         TlsVerifier CreateVerifier(short signatureAlgorithm);

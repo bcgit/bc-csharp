@@ -1,11 +1,8 @@
 ﻿using System;
-using System.IO;
 
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement.Srp;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Modes;
@@ -138,16 +135,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             default:
                 return new BcTlsECDomain(this, ecConfig);
             }
-        }
-
-        public override TlsEncryptor CreateEncryptor(TlsCertificate certificate)
-        {
-            BcTlsCertificate bcCert = BcTlsCertificate.Convert(this, certificate);
-            bcCert.ValidateKeyUsage(KeyUsage.KeyEncipherment);
-
-            RsaKeyParameters pubKeyRsa = bcCert.GetPubKeyRsa();
-
-            return new BcTlsRsaEncryptor(this, pubKeyRsa);
         }
 
         public override TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial)

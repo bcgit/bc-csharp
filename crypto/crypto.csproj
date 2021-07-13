@@ -8119,11 +8119,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\tls\crypto\impl\TlsEncryptor.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\tls\crypto\impl\TlsImplUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -8220,6 +8215,11 @@
                 />
                 <File
                     RelPath = "src\tls\crypto\TlsEncodeResult.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\tls\crypto\TlsEncryptor.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

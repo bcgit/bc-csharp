@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace Org.BouncyCastle.Tls.Crypto.Impl
+namespace Org.BouncyCastle.Tls.Crypto
 {
-    /// <summary>Base interface for an encryptor based on a public key.</summary>
+    /// <summary>Base interface for an encryptor.</summary>
     public interface TlsEncryptor
     {
         /// <summary>Encrypt data from the passed in input array.</summary>

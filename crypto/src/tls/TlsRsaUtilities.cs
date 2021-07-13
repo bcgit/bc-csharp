@@ -5,7 +5,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
-    /// <summary>RSA Utility methods.</summary>
+    /// <summary>RSA utility methods.</summary>
     public abstract class TlsRsaUtilities
     {
         /// <summary>Generate a pre_master_secret and send it encrypted to the server.</summary>
@@ -15,7 +15,9 @@ namespace Org.BouncyCastle.Tls
         {
             TlsSecret preMasterSecret = context.Crypto.GenerateRsaPreMasterSecret(context.RsaPreMasterSecretVersion);
 
-            byte[] encryptedPreMasterSecret = preMasterSecret.Encrypt(certificate);
+            TlsEncryptor encryptor = certificate.CreateEncryptor(TlsCertificateRole.RsaEncryption);
+
+            byte[] encryptedPreMasterSecret = preMasterSecret.Encrypt(encryptor);
             TlsUtilities.WriteEncryptedPms(context, encryptedPreMasterSecret, output);
 
             return preMasterSecret;

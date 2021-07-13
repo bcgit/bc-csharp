@@ -1647,7 +1647,6 @@
     <Compile Include="src\tls\crypto\impl\TlsAeadCipherImpl.cs" />
     <Compile Include="src\tls\crypto\impl\TlsBlockCipher.cs" />
     <Compile Include="src\tls\crypto\impl\TlsBlockCipherImpl.cs" />
-    <Compile Include="src\tls\crypto\impl\TlsEncryptor.cs" />
     <Compile Include="src\tls\crypto\impl\TlsImplUtilities.cs" />
     <Compile Include="src\tls\crypto\impl\TlsNullCipher.cs" />
     <Compile Include="src\tls\crypto\impl\TlsSuiteHmac.cs" />
@@ -1668,6 +1667,7 @@
     <Compile Include="src\tls\crypto\TlsECConfig.cs" />
     <Compile Include="src\tls\crypto\TlsECDomain.cs" />
     <Compile Include="src\tls\crypto\TlsEncodeResult.cs" />
+    <Compile Include="src\tls\crypto\TlsEncryptor.cs" />
     <Compile Include="src\tls\crypto\TlsHash.cs" />
     <Compile Include="src\tls\crypto\TlsHashSink.cs" />
     <Compile Include="src\tls\crypto\TlsHmac.cs" />

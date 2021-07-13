@@ -80,11 +80,5 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public abstract TlsSrp6VerifierGenerator CreateSrp6VerifierGenerator(TlsSrpConfig srpConfig);
 
         public abstract TlsSecret HkdfInit(int cryptoHashAlgorithm);
-
-        /// <summary>Return an encryptor based on the public key in certificate.</summary>
-        /// <param name="certificate">the certificate carrying the public key.</param>
-        /// <returns>a <see cref="TlsEncryptor"/> based on the certificate's public key.</returns>
-        /// <exception cref="IOException"/>
-        public abstract TlsEncryptor CreateEncryptor(TlsCertificate certificate);
     }
 }

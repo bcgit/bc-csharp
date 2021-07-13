@@ -23,11 +23,10 @@ namespace Org.BouncyCastle.Tls.Crypto
         void Destroy();
 
         /// <summary>Return an encrypted copy of the data this secret is based on.</summary>
-        /// <param name="certificate">the certificate containing the public key to use for protecting the internal
-        /// data.</param>
+        /// <param name="encryptor">the encryptor to use for protecting the internal data.</param>
         /// <returns>an encrypted copy of this secret's internal data.</returns>
         /// <exception cref="IOException"/>
-        byte[] Encrypt(TlsCertificate certificate);
+        byte[] Encrypt(TlsEncryptor encryptor);
 
         /// <summary>Return the internal data from this secret.</summary>
         /// <remarks>

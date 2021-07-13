@@ -42,13 +42,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
         /// <exception cref="IOException"/>
-        public virtual byte[] Encrypt(TlsCertificate certificate)
+        public virtual byte[] Encrypt(TlsEncryptor encryptor)
         {
             lock (this)
             {
                 CheckAlive();
 
-                return Crypto.CreateEncryptor(certificate).Encrypt(m_data, 0, m_data.Length);
+                return encryptor.Encrypt(m_data, 0, m_data.Length);
             }
         }
 

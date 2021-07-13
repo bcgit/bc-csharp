@@ -59,6 +59,29 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         /// <exception cref="IOException"/>
+        public virtual TlsEncryptor CreateEncryptor(int tlsCertificateRole)
+        {
+            ValidateKeyUsage(KeyUsage.KeyEncipherment);
+
+            switch (tlsCertificateRole)
+            {
+            case TlsCertificateRole.RsaEncryption:
+            {
+                this.m_pubKeyRsa = GetPubKeyRsa();
+                return new BcTlsRsaEncryptor(m_crypto, m_pubKeyRsa);
+            }
+            // TODO[gmssl]
+            //case TlsCertificateRole.Sm2Encryption:
+            //{
+            //    this.m_pubKeyEC = GetPubKeyEC();
+            //    return new BcTlsSM2Encryptor(m_crypto, m_pubKeyEC);
+            //}
+            }
+
+            throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+        }
+
+        /// <exception cref="IOException"/>
         public virtual TlsVerifier CreateVerifier(short signatureAlgorithm)
         {
             switch (signatureAlgorithm)
