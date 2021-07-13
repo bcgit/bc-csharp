@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Tls
 
             TlsUtilities.WriteOpaque16(y, digestBuffer);
 
-            TlsUtilities.GenerateServerKeyExchangeSignature(m_context, m_serverCredentials, digestBuffer);
+            TlsUtilities.GenerateServerKeyExchangeSignature(m_context, m_serverCredentials, null, digestBuffer);
 
             return digestBuffer.ToArray();
         }
@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Tls
 
             byte[] y = TlsUtilities.ReadOpaque16(teeIn, 1);
 
-            TlsUtilities.VerifyServerKeyExchangeSignature(m_context, input, m_serverCertificate, digestBuffer);
+            TlsUtilities.VerifyServerKeyExchangeSignature(m_context, input, m_serverCertificate, null, digestBuffer);
 
             this.m_agreement = m_context.Crypto.CreateDHDomain(m_dhConfig).CreateDH();
 

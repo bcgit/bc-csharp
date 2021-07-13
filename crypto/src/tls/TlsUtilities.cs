@@ -594,7 +594,20 @@ namespace Org.BouncyCastle.Tls
 
         public static byte[] EncodeOpaque16(byte[] buf)
         {
-            return Arrays.Concatenate(EncodeUint16(buf.Length), buf);
+            CheckUint16(buf.Length);
+            byte[] r = new byte[2 + buf.Length];
+            WriteUint16(buf.Length, r, 0);
+            Array.Copy(buf, 0, r, 2, buf.Length);
+            return r;
+        }
+
+        public static byte[] EncodeOpaque24(byte[] buf)
+        {
+            CheckUint24(buf.Length);
+            byte[] r = new byte[3 + buf.Length];
+            WriteUint24(buf.Length, r, 0);
+            Array.Copy(buf, 0, r, 3, buf.Length);
+            return r;
         }
 
         public static byte[] EncodeUint8(short u8)
@@ -628,6 +641,15 @@ namespace Org.BouncyCastle.Tls
             byte[] result = new byte[2 + length];
             WriteUint16ArrayWithUint16Length(u16s, result, 0);
             return result;
+        }
+
+        public static byte[] EncodeUint24(int u24)
+        {
+            CheckUint24(u24);
+
+            byte[] encoding = new byte[3];
+            WriteUint24(u24, encoding, 0);
+            return encoding;
         }
 
         public static byte[] EncodeUint32(long u32)
@@ -1953,7 +1975,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static byte[] CalculateSignatureHash(TlsContext context, SignatureAndHashAlgorithm algorithm,
-            DigestInputBuffer buf)
+            byte[] extraSignatureInput, DigestInputBuffer buf)
         {
             TlsCrypto crypto = context.Crypto;
 
@@ -1962,21 +1984,35 @@ namespace Org.BouncyCastle.Tls
                 : CreateHash(crypto, algorithm.Hash);
 
             SecurityParameters sp = context.SecurityParameters;
-            byte[] cr = sp.ClientRandom, sr = sp.ServerRandom;
-            h.Update(cr, 0, cr.Length);
-            h.Update(sr, 0, sr.Length);
+            // NOTE: The implicit copy here is intended (and important)
+            byte[] randoms = Arrays.Concatenate(sp.ClientRandom, sp.ServerRandom);
+            h.Update(randoms, 0, randoms.Length);
+
+            if (null != extraSignatureInput)
+            {
+                h.Update(extraSignatureInput, 0, extraSignatureInput.Length);
+            }
+
             buf.UpdateDigest(h);
 
             return h.CalculateHash();
         }
 
-        internal static void SendSignatureInput(TlsContext context, DigestInputBuffer buf, Stream output)
+        internal static void SendSignatureInput(TlsContext context, byte[] extraSignatureInput, DigestInputBuffer buf,
+            Stream output)
         {
-            SecurityParameters securityParameters = context.SecurityParameters;
+            SecurityParameters sp = context.SecurityParameters;
             // NOTE: The implicit copy here is intended (and important)
-            byte[] randoms = Arrays.Concatenate(securityParameters.ClientRandom, securityParameters.ServerRandom);
+            byte[] randoms = Arrays.Concatenate(sp.ClientRandom, sp.ServerRandom);
             output.Write(randoms, 0, randoms.Length);
+
+            if (null != extraSignatureInput)
+            {
+                output.Write(extraSignatureInput, 0, extraSignatureInput.Length);
+            }
+
             buf.CopyTo(output);
+
             Platform.Dispose(output);
         }
 
@@ -2261,7 +2297,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <exception cref="IOException"/>
         internal static void GenerateServerKeyExchangeSignature(TlsContext context, TlsCredentialedSigner credentials,
-            DigestInputBuffer digestBuffer)
+            byte[] extraSignatureInput, DigestInputBuffer digestBuffer)
         {
             /*
              * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
@@ -2272,12 +2308,12 @@ namespace Org.BouncyCastle.Tls
             byte[] signature;
             if (streamSigner != null)
             {
-                SendSignatureInput(context, digestBuffer, streamSigner.GetOutputStream());
+                SendSignatureInput(context, extraSignatureInput, digestBuffer, streamSigner.GetOutputStream());
                 signature = streamSigner.GetSignature();
             }
             else
             {
-                byte[] hash = CalculateSignatureHash(context, algorithm, digestBuffer);
+                byte[] hash = CalculateSignatureHash(context, algorithm, extraSignatureInput, digestBuffer);
                 signature = credentials.GenerateRawSignature(hash);
             }
 
@@ -2288,7 +2324,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <exception cref="IOException"/>
         internal static void VerifyServerKeyExchangeSignature(TlsContext context, Stream signatureInput,
-            TlsCertificate serverCertificate, DigestInputBuffer digestBuffer)
+            TlsCertificate serverCertificate, byte[] extraSignatureInput, DigestInputBuffer digestBuffer)
         {
             DigitallySigned digitallySigned = DigitallySigned.Parse(context, signatureInput);
 
@@ -2318,12 +2354,12 @@ namespace Org.BouncyCastle.Tls
             bool verified;
             if (streamVerifier != null)
             {
-                SendSignatureInput(context, digestBuffer, streamVerifier.GetOutputStream());
+                SendSignatureInput(context, null, digestBuffer, streamVerifier.GetOutputStream());
                 verified = streamVerifier.IsVerified();
             }
             else
             {
-                byte[] hash = CalculateSignatureHash(context, sigAndHashAlg, digestBuffer);
+                byte[] hash = CalculateSignatureHash(context, sigAndHashAlg, null, digestBuffer);
                 verified = verifier.VerifyRawSignature(digitallySigned, hash);
             }
 

@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Tls
 
             GenerateEphemeral(digestBuffer);
 
-            TlsUtilities.GenerateServerKeyExchangeSignature(m_context, m_serverCredentials, digestBuffer);
+            TlsUtilities.GenerateServerKeyExchangeSignature(m_context, m_serverCredentials, null, digestBuffer);
 
             return digestBuffer.ToArray();
         }
@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Tls
 
             byte[] point = TlsUtilities.ReadOpaque8(teeIn, 1);
 
-            TlsUtilities.VerifyServerKeyExchangeSignature(m_context, input, m_serverCertificate, digestBuffer);
+            TlsUtilities.VerifyServerKeyExchangeSignature(m_context, input, m_serverCertificate, null, digestBuffer);
 
             this.m_agreement = m_context.Crypto.CreateECDomain(m_ecConfig).CreateECDH();
 
