@@ -1803,7 +1803,6 @@
     <Compile Include="src\tls\TlsPskIdentityManager.cs" />
     <Compile Include="src\tls\TlsPskKeyExchange.cs" />
     <Compile Include="src\tls\TlsRsaKeyExchange.cs" />
-    <Compile Include="src\tls\TlsRsaUtilities.cs" />
     <Compile Include="src\tls\TlsServer.cs" />
     <Compile Include="src\tls\TlsServerCertificate.cs" />
     <Compile Include="src\tls\TlsServerCertificateImpl.cs" />

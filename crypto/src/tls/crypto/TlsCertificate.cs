@@ -50,9 +50,8 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <exception cref="IOException"/>
         bool SupportsSignatureAlgorithmCA(short signatureAlgorithm);
 
-        /// <param name="connectionEnd"><see cref="ConnectionEnd"/></param>
         /// <param name="tlsCertificateRole"><see cref="TlsCertificateRole"/></param>
         /// <exception cref="IOException"/>
-        TlsCertificate CheckUsageInRole(int connectionEnd, int tlsCertificateRole);
+        TlsCertificate CheckUsageInRole(int tlsCertificateRole);
     }
 }

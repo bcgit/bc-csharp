@@ -8874,11 +8874,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\tls\TlsRsaUtilities.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\tls\TlsServer.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

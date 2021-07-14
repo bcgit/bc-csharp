@@ -41,8 +41,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
-            this.m_dhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(ConnectionEnd.server,
-                TlsCertificateRole.DH);
+            this.m_dhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
         }
 
         public override short[] GetClientCertificateTypes()
@@ -71,8 +70,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void ProcessClientCertificate(Certificate clientCertificate)
         {
-            this.m_dhPeerCertificate = clientCertificate.GetCertificateAt(0).CheckUsageInRole(ConnectionEnd.client,
-                TlsCertificateRole.DH);
+            this.m_dhPeerCertificate = clientCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
         }
 
         public override void ProcessClientKeyExchange(Stream input)

@@ -5327,6 +5327,18 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Generate a pre_master_secret and send it encrypted to the server.</summary>
+        /// <exception cref="IOException"/>
+        public static TlsSecret GenerateEncryptedPreMasterSecret(TlsContext context, TlsEncryptor encryptor,
+            Stream output)
+        {
+            ProtocolVersion version = context.RsaPreMasterSecretVersion;
+            TlsSecret preMasterSecret = context.Crypto.GenerateRsaPreMasterSecret(version);
+            byte[] encryptedPreMasterSecret = preMasterSecret.Encrypt(encryptor);
+            WriteEncryptedPms(context, encryptedPreMasterSecret, output);
+            return preMasterSecret;
+        }
+
 #if !PORTABLE || DOTNET
         public static bool IsTimeout(SocketException e)
         {

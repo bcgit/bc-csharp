@@ -342,7 +342,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         /// <exception cref="IOException"/>
-        public virtual TlsCertificate CheckUsageInRole(int connectionEnd, int tlsCertificateRole)
+        public virtual TlsCertificate CheckUsageInRole(int tlsCertificateRole)
         {
             switch (tlsCertificateRole)
             {
@@ -358,25 +358,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 this.m_pubKeyEC = GetPubKeyEC();
                 return this;
             }
-            }
-
-            if (connectionEnd == ConnectionEnd.server)
-            {
-                switch (tlsCertificateRole)
-                {
-                case TlsCertificateRole.RsaEncryption:
-                {
-                    ValidateKeyUsage(KeyUsage.KeyEncipherment);
-                    this.m_pubKeyRsa = GetPubKeyRsa();
-                    return this;
-                }
-                case TlsCertificateRole.Sm2Encryption:
-                {
-                    ValidateKeyUsage(KeyUsage.KeyEncipherment);
-                    this.m_pubKeyEC = GetPubKeyEC();
-                    return this;
-                }
-                }
             }
 
             throw new TlsFatalAlert(AlertDescription.certificate_unknown);

@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
-            this.m_ecdhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(ConnectionEnd.server,
+            this.m_ecdhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(
                 TlsCertificateRole.ECDH);
         }
 
@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void ProcessClientCertificate(Certificate clientCertificate)
         {
-            this.m_ecdhPeerCertificate = clientCertificate.GetCertificateAt(0).CheckUsageInRole(ConnectionEnd.client,
+            this.m_ecdhPeerCertificate = clientCertificate.GetCertificateAt(0).CheckUsageInRole(
                 TlsCertificateRole.ECDH);
         }
 

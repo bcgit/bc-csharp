@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         protected TlsCredentialedDecryptor m_serverCredentials = null;
-        protected TlsCertificate m_serverCertificate;
+        protected TlsEncryptor m_serverEncryptor;
         protected TlsSecret m_preMasterSecret;
 
         public TlsRsaKeyExchange(int keyExchange)
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
-            this.m_serverCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(ConnectionEnd.server,
+            this.m_serverEncryptor = serverCertificate.GetCertificateAt(0).CreateEncryptor(
                 TlsCertificateRole.RsaEncryption);
         }
 
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void GenerateClientKeyExchange(Stream output)
         {
-            this.m_preMasterSecret = TlsRsaUtilities.GenerateEncryptedPreMasterSecret(m_context, m_serverCertificate,
+            this.m_preMasterSecret = TlsUtilities.GenerateEncryptedPreMasterSecret(m_context, m_serverEncryptor,
                 output);
         }
 
