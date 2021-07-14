@@ -38,9 +38,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 			signer.BlockUpdate(message, 0, message.Length);
 			byte[] rBytes = r.ToByteArrayUnsigned();
 			byte[] sBytes = s.ToByteArrayUnsigned();
-			byte[] sigBytes = new byte[rBytes.Length + sBytes.Length];
-			Array.Copy(rBytes, sigBytes, rBytes.Length);
-			Array.Copy(sBytes, 0, sigBytes, rBytes.Length, sBytes.Length);
+			byte[] sigBytes = new byte[64];
+			Array.Copy(rBytes, 0, sigBytes, 32 - rBytes.Length, rBytes.Length);
+			Array.Copy(sBytes, 0, sigBytes, 64 - sBytes.Length, sBytes.Length);
 			return signer.VerifySignature(sigBytes);
 		}
 	}
