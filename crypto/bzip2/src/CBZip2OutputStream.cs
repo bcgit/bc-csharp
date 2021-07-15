@@ -423,7 +423,10 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 WriteRun();
             }
             currentChar = -1;
-            EndBlock();
+            if (last >= 0)
+            {
+                EndBlock();
+            }
             EndCompression();
             finished = true;
             Flush();
