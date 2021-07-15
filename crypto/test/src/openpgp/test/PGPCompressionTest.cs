@@ -4,6 +4,7 @@ using System.Text;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -13,6 +14,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 	public class PgpCompressionTest
 		: SimpleTest
 	{
+        private static readonly SecureRandom Random = new SecureRandom();
+
         private static readonly byte[] Data1 = new byte[0];
         private static readonly byte[] Data2 = Encoding.ASCII.GetBytes("hello world! !dlrow olleh");
 
@@ -21,6 +24,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         {
             DoTestCompression(Data1, CompressionAlgorithmTag.BZip2);
             DoTestCompression(Data2, CompressionAlgorithmTag.BZip2);
+            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.BZip2);
         }
 
         [Test]
@@ -28,6 +32,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		{
 			DoTestCompression(Data1, CompressionAlgorithmTag.Uncompressed);
             DoTestCompression(Data2, CompressionAlgorithmTag.Uncompressed);
+            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.Uncompressed);
         }
 
         [Test]
@@ -35,6 +40,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		{
 			DoTestCompression(Data1, CompressionAlgorithmTag.Zip);
             DoTestCompression(Data2, CompressionAlgorithmTag.Zip);
+            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.Zip);
         }
 
         [Test]
@@ -42,6 +48,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		{
 			DoTestCompression(Data1, CompressionAlgorithmTag.ZLib);
             DoTestCompression(Data2, CompressionAlgorithmTag.ZLib);
+            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.ZLib);
         }
 
         public override void PerformTest()
@@ -86,6 +93,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 				Fail("Redundant Close() should be ignored");
 			}
 		}
+
+        private byte[] RandomData(int length)
+        {
+            return SecureRandom.GetNextBytes(Random, length);
+        }
 
 		private void ValidateData(byte[] data, byte[] compressed)
 		{

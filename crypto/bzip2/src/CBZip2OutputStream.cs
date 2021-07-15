@@ -23,6 +23,7 @@
  */
 
 using System;
+using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -41,34 +42,28 @@ namespace Org.BouncyCastle.Apache.Bzip2
     */
     public class CBZip2OutputStream : Stream 
 	{
-        protected const int SETMASK = (1 << 21);
-        protected const int CLEARMASK = (~SETMASK);
+        protected const int SETMASK = 1 << 21;
+        protected const int CLEARMASK = ~SETMASK;
         protected const int GREATER_ICOST = 15;
         protected const int LESSER_ICOST = 0;
         protected const int SMALL_THRESH = 20;
         protected const int DEPTH_THRESH = 10;
 
-        /*
-        If you are ever unlucky/improbable enough
-        to get a stack overflow whilst sorting,
-        increase the following constant and try
-        again.  In practice I have never seen the
-        stack go above 27 elems, so the following
-        limit seems very generous.
-        */
-        protected const int QSORT_STACK_SIZE = 1000;
         private bool finished;
 
-        private static void Panic() {
-            //System.out.Println("panic");
-            //throw new CError();
+        private static void Panic()
+        {
+            throw new InvalidOperationException();
         }
 
-        private void MakeMaps() {
+        private void MakeMaps()
+        {
             int i;
             nInUse = 0;
-            for (i = 0; i < 256; i++) {
-                if (inUse[i]) {
+            for (i = 0; i < 256; i++)
+            {
+                if (inUse[i])
+                {
                     seqToUnseq[nInUse] = (char) i;
                     unseqToSeq[i] = (char) nInUse;
                     nInUse++;
@@ -77,7 +72,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
         }
 
         protected static void HbMakeCodeLengths(char[] len, int[] freq,
-                                                int alphaSize, int maxLen) {
+                                                int alphaSize, int maxLen)
+        {
             /*
             Nodes and heap entries run from 1.  Entry 0
             for both the heap and nodes is a sentinel.
@@ -224,10 +220,9 @@ namespace Org.BouncyCastle.Apache.Bzip2
         }
 
         /*
-        index of the last char in the block, so
-        the block size == last + 1.
-        */
-        int last;
+         * number of characters in the block
+         */
+        int count;
 
         /*
         index in zptr[] of original string after sorting.
@@ -256,10 +251,10 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private char[] selector = new char[BZip2Constants.MAX_SELECTORS];
         private char[] selectorMtf = new char[BZip2Constants.MAX_SELECTORS];
 
-        private char[] block;
-        private int[] quadrant;
+        private byte[] blockBytes;
+        private ushort[] quadrantShorts;
         private int[] zptr;
-        private short[] szptr;
+        private int[] szptr;
         private int[] ftab;
 
         private int nMTF;
@@ -275,18 +270,19 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private int workDone;
         private int workLimit;
         private bool firstAttempt;
-        private int nBlocksRandomised;
 
-        private int currentChar = -1;
+        private int currentByte = -1;
         private int runLength = 0;
 
-        public CBZip2OutputStream(Stream inStream) : this(inStream, 9) {
+        public CBZip2OutputStream(Stream inStream)
+            : this(inStream, 9)
+        {
         }
 
         public CBZip2OutputStream(Stream inStream, int inBlockSize)
-            {
-            block = null;
-            quadrant = null;
+        {
+            blockBytes = null;
+            quadrantShorts = null;
             zptr = null;
             ftab = null;
 
@@ -313,70 +309,68 @@ namespace Org.BouncyCastle.Apache.Bzip2
         * modified by Oliver Merkel, 010128
         *
         */
-        public override void WriteByte(byte bv) {
-            int b = (256 + bv) % 256;
-            if (currentChar != -1) {
-                if (currentChar == b) {
-                    runLength++;
-                    if (runLength > 254) {
-                        WriteRun();
-                        currentChar = -1;
-                        runLength = 0;
-                    }
-                } else {
-                    WriteRun();
-                    runLength = 1;
-                    currentChar = b;
-                }
-            } else {
-                currentChar = b;
+        public override void WriteByte(byte b)
+        {
+            if (currentByte == b)
+            {
                 runLength++;
+                if (runLength > 254)
+                {
+                    WriteRun();
+                    currentByte = -1;
+                    runLength = 0;
+                }
+            }
+            else if (currentByte == -1)
+            {
+                currentByte = b;
+                runLength++;
+            }
+            else
+            {
+                WriteRun();
+                runLength = 1;
+                currentByte = b;
             }
         }
 
-        private void WriteRun() {
-            if (last < allowableBlockSize) {
-                inUse[currentChar] = true;
-                for (int i = 0; i < runLength; i++) {
-                    mCrc.UpdateCRC((char) currentChar);
-                }
-                switch (runLength) {
-                case 1:
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    break;
-                case 2:
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    break;
-                case 3:
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    break;
-                default:
-                    inUse[runLength - 4] = true;
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    last++;
-                    block[last + 1] = (char) currentChar;
-                    last++;
-                    block[last + 1] = (char) (runLength - 4);
-                    break;
-                }
-            } else {
+        private void WriteRun()
+        {
+            if (count > allowableBlockSize)
+            {
                 EndBlock();
                 InitBlock();
-                WriteRun();
+            }
+
+            inUse[currentByte] = true;
+
+            for (int i = 0; i < runLength; i++)
+            {
+                mCrc.UpdateCRC(currentByte);
+            }
+
+            switch (runLength)
+            {
+            case 1:
+                blockBytes[++count] = (byte)currentByte;
+                break;
+            case 2:
+                blockBytes[++count] = (byte)currentByte;
+                blockBytes[++count] = (byte)currentByte;
+                break;
+            case 3:
+                blockBytes[++count] = (byte)currentByte;
+                blockBytes[++count] = (byte)currentByte;
+                blockBytes[++count] = (byte)currentByte;
+                break;
+            default:
+                inUse[runLength - 4] = true;
+                blockBytes[++count] = (byte)currentByte;
+                blockBytes[++count] = (byte)currentByte;
+                blockBytes[++count] = (byte)currentByte;
+                blockBytes[++count] = (byte)currentByte;
+                blockBytes[++count] = (byte)(runLength - 4);
+                break;
             }
         }
 
@@ -422,8 +416,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
             if (runLength > 0) {
                 WriteRun();
             }
-            currentChar = -1;
-            if (last >= 0)
+            currentByte = -1;
+            if (count > 0)
             {
                 EndBlock();
             }
@@ -440,7 +434,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private void Initialize() {
             bytesOut = 0;
-            nBlocksRandomised = 0;
 
             /* Write `magic' bytes h indicating file-format == huffmanised,
             followed by a digit indicating blockSize100k.
@@ -453,13 +446,13 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private int allowableBlockSize;
 
-        private void InitBlock() {
-            //        blockNo++;
+        private void InitBlock()
+        {
             mCrc.InitialiseCRC();
-            last = -1;
-            //        ch = 0;
+            count = 0;
 
-            for (int i = 0; i < 256; i++) {
+            for (int i = 0; i < 256; i++)
+            {
                 inUse[i] = false;
             }
 
@@ -499,12 +492,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
             BsPutint(blockCRC);
 
             /* Now a single bit indicating randomisation. */
-            if (blockRandomised) {
-                BsW(1, 1);
-                nBlocksRandomised++;
-            } else {
-                BsW(1, 0);
-            }
+            BsW(1, blockRandomised ? 1 : 0);
 
             /* Finally, block's contents proper. */
             MoveToFrontCodeAndSend();
@@ -601,7 +589,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private void SendMTFValues() {
             char[][] len = CBZip2InputStream.InitCharArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
 
-            int v, t, i, j, gs, ge, totc, bt, bc, iter;
+            int v, t, i, j, gs, ge, bt, bc, iter;
             int nSelectors = 0, alphaSize, minLen, maxLen, selCtr;
             int nGroups;
 
@@ -682,7 +670,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 }
 
                 nSelectors = 0;
-                totc = 0;
                 gs = 0;
                 while (true) {
 
@@ -707,7 +694,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         short cost0, cost1, cost2, cost3, cost4, cost5;
                         cost0 = cost1 = cost2 = cost3 = cost4 = cost5 = 0;
                         for (i = gs; i <= ge; i++) {
-                            short icv = szptr[i];
+                            int icv = szptr[i];
                             cost0 += (short)len[0][icv];
                             cost1 += (short)len[1][icv];
                             cost2 += (short)len[2][icv];
@@ -723,7 +710,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         cost[5] = cost5;
                     } else {
                         for (i = gs; i <= ge; i++) {
-                            short icv = szptr[i];
+                            int icv = szptr[i];
                             for (t = 0; t < nGroups; t++) {
                                 cost[t] += (short)len[t][icv];
                             }
@@ -742,7 +729,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
                             bt = t;
                         }
                     };
-                    totc += bc;
                     fave[bt]++;
                     selector[nSelectors] = (char) bt;
                     nSelectors++;
@@ -1002,66 +988,72 @@ namespace Org.BouncyCastle.Apache.Bzip2
             }
         }
 
-        private char Med3(char a, char b, char c) {
-            char t;
-            if (a > b) {
-                t = a;
-                a = b;
-                b = t;
+        private int Med3(int a, int b, int c)
+        {
+            if (a > b)
+            {
+                int t = a; a = b; b = t;
             }
-            if (b > c) {
-                t = b;
-                b = c;
-                c = t;
-            }
-            if (a > b) {
-                b = a;
-            }
-            return b;
+
+            return c < a ? a : c > b ? b : c;
         }
 
-        internal class StackElem {
+        internal class StackElem
+        {
             internal int ll;
             internal int hh;
             internal int dd;
         }
 
-        private void QSort3(int loSt, int hiSt, int dSt) {
-            int unLo, unHi, ltLo, gtHi, med, n, m;
-            int sp, lo, hi, d;
-            StackElem[] stack = new StackElem[QSORT_STACK_SIZE];
-            for (int count = 0; count < QSORT_STACK_SIZE; count++) {
-                stack[count] = new StackElem();
+        private static void PushStackElem(IList stack, int stackCount, int ll, int hh, int dd)
+        {
+            StackElem stackElem;
+            if (stackCount < stack.Count)
+            {
+                stackElem = (StackElem)stack[stackCount];
+            }
+            else
+            {
+                stackElem = new StackElem();
+                stack.Add(stackElem);
             }
 
-            sp = 0;
+            stackElem.ll = ll;
+            stackElem.hh = hh;
+            stackElem.dd = dd;
+        }
 
-            stack[sp].ll = loSt;
-            stack[sp].hh = hiSt;
-            stack[sp].dd = dSt;
-            sp++;
+        private void QSort3(int loSt, int hiSt, int dSt)
+        {
+            int unLo, unHi, ltLo, gtHi, n, m;
 
-            while (sp > 0) {
-                if (sp >= QSORT_STACK_SIZE) {
-                    Panic();
-                }
+            IList stack = Platform.CreateArrayList();
+            int stackCount = 0;
+            StackElem stackElem;
 
-                sp--;
-                lo = stack[sp].ll;
-                hi = stack[sp].hh;
-                d = stack[sp].dd;
+            int lo = loSt;
+            int hi = hiSt;
+            int d = dSt;
 
-                if (hi - lo < SMALL_THRESH || d > DEPTH_THRESH) {
+            for (;;)
+            {
+                if (hi - lo < SMALL_THRESH || d > DEPTH_THRESH)
+                {
                     SimpleSort(lo, hi, d);
-                    if (workDone > workLimit && firstAttempt) {
+                    if (stackCount < 1 || (workDone > workLimit && firstAttempt))
+                    {
                         return;
                     }
+                    stackElem = (StackElem)stack[--stackCount];
+                    lo = stackElem.ll;
+                    hi = stackElem.hh;
+                    d = stackElem.dd;
                     continue;
                 }
 
-                med = Med3(block[zptr[lo] + d + 1],
-                        block[zptr[hi            ] + d  + 1],
-                        block[zptr[(lo + hi) >> 1] + d + 1]);
+                int med = Med3(blockBytes[zptr[lo] + d + 1],
+                        blockBytes[zptr[hi] + d  + 1],
+                        blockBytes[zptr[(lo + hi) >> 1] + d + 1]);
 
                 unLo = ltLo = lo;
                 unHi = gtHi = hi;
@@ -1071,7 +1063,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         if (unLo > unHi) {
                             break;
                         }
-                        n = ((int) block[zptr[unLo] + d + 1]) - med;
+                        n = (int)blockBytes[zptr[unLo] + d + 1] - med;
                         if (n == 0) {
                             int temp = 0;
                             temp = zptr[unLo];
@@ -1090,7 +1082,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         if (unLo > unHi) {
                             break;
                         }
-                        n = ((int) block[zptr[unHi] + d + 1]) - med;
+                        n = (int)blockBytes[zptr[unHi] + d + 1] - med;
                         if (n == 0) {
                             int temp = 0;
                             temp = zptr[unHi];
@@ -1115,11 +1107,9 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     unHi--;
                 }
 
-                if (gtHi < ltLo) {
-                    stack[sp].ll = lo;
-                    stack[sp].hh = hi;
-                    stack[sp].dd = d + 1;
-                    sp++;
+                if (gtHi < ltLo)
+                {
+                    ++d;
                     continue;
                 }
 
@@ -1131,30 +1121,20 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 n = lo + unLo - ltLo - 1;
                 m = hi - (gtHi - unHi) + 1;
 
-                stack[sp].ll = lo;
-                stack[sp].hh = n;
-                stack[sp].dd = d;
-                sp++;
+                PushStackElem(stack, stackCount++, lo, n, d);
+                PushStackElem(stack, stackCount++, n + 1, m - 1, d + 1);
 
-                stack[sp].ll = n + 1;
-                stack[sp].hh = m - 1;
-                stack[sp].dd = d + 1;
-                sp++;
-
-                stack[sp].ll = m;
-                stack[sp].hh = hi;
-                stack[sp].dd = d;
-                sp++;
+                lo = m;
             }
         }
 
-        private void MainSort() {
+        private void MainSort()
+        {
             int i, j, ss, sb;
             int[] runningOrder = new int[256];
             int[] copy = new int[256];
             bool[] bigDone = new bool[256];
             int c1, c2;
-            int numQSorted;
 
             /*
             In the various block-sized structures, live data runs
@@ -1163,59 +1143,69 @@ namespace Org.BouncyCastle.Apache.Bzip2
             */
 
             //   if (verbosity >= 4) fprintf ( stderr, "   sort initialise ...\n" );
-            for (i = 0; i < BZip2Constants.NUM_OVERSHOOT_BYTES; i++) {
-                block[last + i + 2] = block[(i % (last + 1)) + 1];
+            for (i = 0; i < BZip2Constants.NUM_OVERSHOOT_BYTES; i++)
+            {
+                blockBytes[count + i + 1] = blockBytes[(i % count) + 1];
             }
-            for (i = 0; i <= last + BZip2Constants.NUM_OVERSHOOT_BYTES; i++) {
-                quadrant[i] = 0;
+            for (i = 0; i <= count + BZip2Constants.NUM_OVERSHOOT_BYTES; i++)
+            {
+                quadrantShorts[i] = 0;
             }
 
-            block[0] = (char) (block[last + 1]);
+            blockBytes[0] = blockBytes[count];
 
-            if (last < 4000) {
+            if (count <= 4000)
+            {
                 /*
                 Use SimpleSort(), since the full sorting mechanism
                 has quite a large constant overhead.
                 */
-                for (i = 0; i <= last; i++) {
+                for (i = 0; i < count; i++)
+                {
                     zptr[i] = i;
                 }
                 firstAttempt = false;
                 workDone = workLimit = 0;
-                SimpleSort(0, last, 0);
-            } else {
-                numQSorted = 0;
-                for (i = 0; i <= 255; i++) {
+                SimpleSort(0, count - 1, 0);
+            }
+            else
+            {
+                for (i = 0; i <= 255; i++)
+                {
                     bigDone[i] = false;
                 }
 
-                for (i = 0; i <= 65536; i++) {
+                for (i = 0; i <= 65536; i++)
+                {
                     ftab[i] = 0;
                 }
 
-                c1 = block[0];
-                for (i = 0; i <= last; i++) {
-                    c2 = block[i + 1];
+                c1 = blockBytes[0];
+                for (i = 0; i < count; i++)
+                {
+                    c2 = blockBytes[i + 1];
                     ftab[(c1 << 8) + c2]++;
                     c1 = c2;
                 }
 
-                for (i = 1; i <= 65536; i++) {
+                for (i = 1; i <= 65536; i++)
+                {
                     ftab[i] += ftab[i - 1];
                 }
 
-                c1 = block[1];
-                for (i = 0; i < last; i++) {
-                    c2 = block[i + 2];
+                c1 = blockBytes[1];
+                for (i = 0; i < (count - 1); i++)
+                {
+                    c2 = blockBytes[i + 2];
                     j = (c1 << 8) + c2;
                     c1 = c2;
                     ftab[j]--;
                     zptr[ftab[j]] = i;
                 }
 
-                j = ((block[last + 1]) << 8) + (block[1]);
+                j = ((int)blockBytes[count] << 8) + blockBytes[1];
                 ftab[j]--;
-                zptr[ftab[j]] = last;
+                zptr[ftab[j]] = count - 1;
 
                 /*
                 Now ftab contains the first loc of every small bucket.
@@ -1223,7 +1213,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 big bucket.
                 */
 
-                for (i = 0; i <= 255; i++) {
+                for (i = 0; i <= 255; i++)
+                {
                     runningOrder[i] = i;
                 }
 
@@ -1277,7 +1268,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
                             int hi = (ftab[sb + 1] & CLEARMASK) - 1;
                             if (hi > lo) {
                                 QSort3(lo, hi, 2);
-                                numQSorted += (hi - lo + 1);
                                 if (workDone > workLimit && firstAttempt) {
                                     return;
                                 }
@@ -1296,25 +1286,30 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     */
                     bigDone[ss] = true;
 
-                    if (i < 255) {
+                    if (i < 255)
+                    {
                         int bbStart  = ftab[ss << 8] & CLEARMASK;
                         int bbSize   = (ftab[(ss + 1) << 8] & CLEARMASK) - bbStart;
                         int shifts   = 0;
 
-                        while ((bbSize >> shifts) > 65534) {
+                        while ((bbSize >> shifts) > 65534)
+                        {
                             shifts++;
                         }
 
-                        for (j = 0; j < bbSize; j++) {
-                            int a2update = zptr[bbStart + j];
-                            int qVal = (j >> shifts);
-                            quadrant[a2update] = qVal;
-                            if (a2update < BZip2Constants.NUM_OVERSHOOT_BYTES) {
-                                quadrant[a2update + last + 1] = qVal;
+                        for (j = 0; j < bbSize; j++)
+                        {
+                            int a2update = zptr[bbStart + j] + 1;
+                            ushort qVal = (ushort)(j >> shifts);
+                            quadrantShorts[a2update] = qVal;
+                            if (a2update <= BZip2Constants.NUM_OVERSHOOT_BYTES)
+                            {
+                                quadrantShorts[a2update + count] = qVal;
                             }
                         }
 
-                        if (!(((bbSize - 1) >> shifts) <= 65535)) {
+                        if (!(((bbSize - 1) >> shifts) <= 65535))
+                        {
                             Panic();
                         }
                     }
@@ -1328,57 +1323,63 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     }
 
                     for (j = ftab[ss << 8] & CLEARMASK;
-                        j < (ftab[(ss + 1) << 8] & CLEARMASK); j++) {
-                        c1 = block[zptr[j]];
-                        if (!bigDone[c1]) {
-                            zptr[copy[c1]] = zptr[j] == 0 ? last : zptr[j] - 1;
+                        j < (ftab[(ss + 1) << 8] & CLEARMASK); j++)
+                    {
+                        c1 = blockBytes[zptr[j]];
+                        if (!bigDone[c1])
+                        {
+                            zptr[copy[c1]] = (zptr[j] == 0 ? count : zptr[j]) - 1;
                             copy[c1]++;
                         }
                     }
 
-                    for (j = 0; j <= 255; j++) {
+                    for (j = 0; j <= 255; j++)
+                    {
                         ftab[(j << 8) + ss] |= SETMASK;
                     }
                 }
             }
         }
 
-        private void RandomiseBlock() {
+        private void RandomiseBlock()
+        {
             int i;
             int rNToGo = 0;
             int rTPos  = 0;
-            for (i = 0; i < 256; i++) {
+            for (i = 0; i < 256; i++)
+            {
                 inUse[i] = false;
             }
 
-            for (i = 0; i <= last; i++) {
-                if (rNToGo == 0) {
+            for (i = 0; i < count; i++)
+            {
+                if (rNToGo == 0)
+                {
                     rNToGo = (char) BZip2Constants.rNums[rTPos];
                     rTPos++;
-                    if (rTPos == 512) {
+                    if (rTPos == 512)
+                    {
                         rTPos = 0;
                     }
                 }
                 rNToGo--;
-                block[i + 1] ^= (char)((rNToGo == 1) ? 1 : 0);
-                // handle 16 bit signed numbers
-                block[i + 1] &= (char)0xFF;
+                blockBytes[i + 1] ^= (byte)((rNToGo == 1) ? 1 : 0);
 
-                inUse[block[i + 1]] = true;
+                inUse[blockBytes[i + 1]] = true;
             }
         }
 
-        private void DoReversibleTransformation() {
-            int i;
-
-            workLimit = workFactor * last;
+        private void DoReversibleTransformation()
+        {
+            workLimit = workFactor * (count - 1);
             workDone = 0;
             blockRandomised = false;
             firstAttempt = true;
 
             MainSort();
 
-            if (workDone > workLimit && firstAttempt) {
+            if (workDone > workLimit && firstAttempt)
+            {
                 RandomiseBlock();
                 workLimit = workDone = 0;
                 blockRandomised = true;
@@ -1387,138 +1388,113 @@ namespace Org.BouncyCastle.Apache.Bzip2
             }
 
             origPtr = -1;
-            for (i = 0; i <= last; i++) {
-                if (zptr[i] == 0) {
+            for (int i = 0; i < count; i++)
+            {
+                if (zptr[i] == 0)
+                {
                     origPtr = i;
                     break;
                 }
             };
 
-            if (origPtr == -1) {
+            if (origPtr == -1)
+            {
                 Panic();
             }
         }
 
-        private bool FullGtU(int i1, int i2) {
-            int k;
-            char c1, c2;
+        private bool FullGtU(int i1, int i2)
+        {
+            int c1, c2;
+
+            c1 = blockBytes[++i1];
+            c2 = blockBytes[++i2];
+            if (c1 != c2)
+                return c1 > c2;
+
+            c1 = blockBytes[++i1];
+            c2 = blockBytes[++i2];
+            if (c1 != c2)
+                return c1 > c2;
+
+            c1 = blockBytes[++i1];
+            c2 = blockBytes[++i2];
+            if (c1 != c2)
+                return c1 > c2;
+
+            c1 = blockBytes[++i1];
+            c2 = blockBytes[++i2];
+            if (c1 != c2)
+                return c1 > c2;
+
+            c1 = blockBytes[++i1];
+            c2 = blockBytes[++i2];
+            if (c1 != c2)
+                return c1 > c2;
+
+            c1 = blockBytes[++i1];
+            c2 = blockBytes[++i2];
+            if (c1 != c2)
+                return c1 > c2;
+
+            int k = count;
             int s1, s2;
 
-            c1 = block[i1 + 1];
-            c2 = block[i2 + 1];
-            if (c1 != c2) {
-                return (c1 > c2);
-            }
-            i1++;
-            i2++;
+            do
+            {
+                c1 = blockBytes[++i1];
+                c2 = blockBytes[++i2];
+                if (c1 != c2)
+                    return c1 > c2;
 
-            c1 = block[i1 + 1];
-            c2 = block[i2 + 1];
-            if (c1 != c2) {
-                return (c1 > c2);
-            }
-            i1++;
-            i2++;
+                s1 = quadrantShorts[i1];
+                s2 = quadrantShorts[i2];
+                if (s1 != s2)
+                    return s1 > s2;
 
-            c1 = block[i1 + 1];
-            c2 = block[i2 + 1];
-            if (c1 != c2) {
-                return (c1 > c2);
-            }
-            i1++;
-            i2++;
+                c1 = blockBytes[++i1];
+                c2 = blockBytes[++i2];
+                if (c1 != c2)
+                    return c1 > c2;
 
-            c1 = block[i1 + 1];
-            c2 = block[i2 + 1];
-            if (c1 != c2) {
-                return (c1 > c2);
-            }
-            i1++;
-            i2++;
+                s1 = quadrantShorts[i1];
+                s2 = quadrantShorts[i2];
+                if (s1 != s2)
+                    return s1 > s2;
 
-            c1 = block[i1 + 1];
-            c2 = block[i2 + 1];
-            if (c1 != c2) {
-                return (c1 > c2);
-            }
-            i1++;
-            i2++;
+                c1 = blockBytes[++i1];
+                c2 = blockBytes[++i2];
+                if (c1 != c2)
+                    return c1 > c2;
 
-            c1 = block[i1 + 1];
-            c2 = block[i2 + 1];
-            if (c1 != c2) {
-                return (c1 > c2);
-            }
-            i1++;
-            i2++;
+                s1 = quadrantShorts[i1];
+                s2 = quadrantShorts[i2];
+                if (s1 != s2)
+                    return s1 > s2;
 
-            k = last + 1;
+                c1 = blockBytes[++i1];
+                c2 = blockBytes[++i2];
+                if (c1 != c2)
+                    return c1 > c2;
 
-            do {
-                c1 = block[i1 + 1];
-                c2 = block[i2 + 1];
-                if (c1 != c2) {
-                    return (c1 > c2);
+                s1 = quadrantShorts[i1];
+                s2 = quadrantShorts[i2];
+                if (s1 != s2)
+                    return s1 > s2;
+
+                if (i1 >= count)
+                {
+                    i1 -= count;
                 }
-                s1 = quadrant[i1];
-                s2 = quadrant[i2];
-                if (s1 != s2) {
-                    return (s1 > s2);
+                if (i2 >= count)
+                {
+                    i2 -= count;
                 }
-                i1++;
-                i2++;
-
-                c1 = block[i1 + 1];
-                c2 = block[i2 + 1];
-                if (c1 != c2) {
-                    return (c1 > c2);
-                }
-                s1 = quadrant[i1];
-                s2 = quadrant[i2];
-                if (s1 != s2) {
-                    return (s1 > s2);
-                }
-                i1++;
-                i2++;
-
-                c1 = block[i1 + 1];
-                c2 = block[i2 + 1];
-                if (c1 != c2) {
-                    return (c1 > c2);
-                }
-                s1 = quadrant[i1];
-                s2 = quadrant[i2];
-                if (s1 != s2) {
-                    return (s1 > s2);
-                }
-                i1++;
-                i2++;
-
-                c1 = block[i1 + 1];
-                c2 = block[i2 + 1];
-                if (c1 != c2) {
-                    return (c1 > c2);
-                }
-                s1 = quadrant[i1];
-                s2 = quadrant[i2];
-                if (s1 != s2) {
-                    return (s1 > s2);
-                }
-                i1++;
-                i2++;
-
-                if (i1 > last) {
-                    i1 -= last;
-                    i1--;
-                };
-                if (i2 > last) {
-                    i2 -= last;
-                    i2--;
-                };
 
                 k -= 4;
                 workDone++;
-            } while (k >= 0);
+            }
+            while (k >= 0);
 
             return false;
         }
@@ -1533,18 +1509,13 @@ namespace Org.BouncyCastle.Apache.Bzip2
                             9841, 29524, 88573, 265720,
                             797161, 2391484 };
 
-        private void AllocateCompressStructures() {
+        private void AllocateCompressStructures()
+        {
             int n = BZip2Constants.baseBlockSize * blockSize100k;
-            block = new char[(n + 1 + BZip2Constants.NUM_OVERSHOOT_BYTES)];
-            quadrant = new int[(n + BZip2Constants.NUM_OVERSHOOT_BYTES)];
+            blockBytes = new byte[(n + 1 + BZip2Constants.NUM_OVERSHOOT_BYTES)];
+            quadrantShorts = new ushort[(n + 1 + BZip2Constants.NUM_OVERSHOOT_BYTES)];
             zptr = new int[n];
             ftab = new int[65537];
-
-            if (block == null || quadrant == null || zptr == null
-                || ftab == null) {
-                //int totalDraw = (n + 1 + NUM_OVERSHOOT_BYTES) + (n + NUM_OVERSHOOT_BYTES) + n + 65537;
-                //compressOutOfMemory ( totalDraw, n );
-            }
 
             /*
             The back end needs a place to store the MTF values
@@ -1556,13 +1527,12 @@ namespace Org.BouncyCastle.Apache.Bzip2
             of the MTF values when calculating coding tables.
             Seems to improve compression speed by about 1%.
             */
-            //    szptr = zptr;
-
-
-            szptr = new short[2 * n];
+            // NOTE: We can't "overlay" in C#, so we just share zptr
+            szptr = zptr;
         }
 
-        private void GenerateMTFValues() {
+        private void GenerateMTFValues()
+        {
             char[] yy = new char[256];
             int  i, j;
             char tmp;
@@ -1574,87 +1544,95 @@ namespace Org.BouncyCastle.Apache.Bzip2
             MakeMaps();
             EOB = nInUse + 1;
 
-            for (i = 0; i <= EOB; i++) {
+            for (i = 0; i <= EOB; i++)
+            {
                 mtfFreq[i] = 0;
             }
 
             wr = 0;
             zPend = 0;
-            for (i = 0; i < nInUse; i++) {
+            for (i = 0; i < nInUse; i++)
+            {
                 yy[i] = (char) i;
             }
 
-
-            for (i = 0; i <= last; i++) {
+            for (i = 0; i < count; i++)
+            {
                 char ll_i;
 
-                ll_i = unseqToSeq[block[zptr[i]]];
+                ll_i = unseqToSeq[blockBytes[zptr[i]]];
 
                 j = 0;
                 tmp = yy[j];
-                while (ll_i != tmp) {
+                while (ll_i != tmp)
+                {
                     j++;
                     tmp2 = tmp;
                     tmp = yy[j];
                     yy[j] = tmp2;
-                };
+                }
                 yy[0] = tmp;
 
-                if (j == 0) {
+                if (j == 0)
+                {
                     zPend++;
-                } else {
-                    if (zPend > 0) {
+                }
+                else
+                {
+                    if (zPend > 0)
+                    {
                         zPend--;
-                        while (true) {
-                            switch (zPend % 2) {
+                        while (true)
+                        {
+                            switch (zPend % 2)
+                            {
                             case 0:
-                                szptr[wr] = (short) BZip2Constants.RUNA;
-                                wr++;
+                                szptr[wr++] = BZip2Constants.RUNA;
                                 mtfFreq[BZip2Constants.RUNA]++;
                                 break;
                             case 1:
-                                szptr[wr] = (short) BZip2Constants.RUNB;
-                                wr++;
+                                szptr[wr++] = BZip2Constants.RUNB;
                                 mtfFreq[BZip2Constants.RUNB]++;
                                 break;
-                            };
-                            if (zPend < 2) {
-                                break;
                             }
+
+                            if (zPend < 2)
+                                break;
+
                             zPend = (zPend - 2) / 2;
-                        };
+                        }
                         zPend = 0;
                     }
-                    szptr[wr] = (short) (j + 1);
-                    wr++;
+                    szptr[wr++] = j + 1;
                     mtfFreq[j + 1]++;
                 }
             }
 
-            if (zPend > 0) {
+            if (zPend > 0)
+            {
                 zPend--;
-                while (true) {
-                    switch (zPend % 2) {
+                while (true)
+                {
+                    switch (zPend % 2)
+                    {
                     case 0:
-                        szptr[wr] = (short) BZip2Constants.RUNA;
-                        wr++;
+                        szptr[wr++] = BZip2Constants.RUNA;
                         mtfFreq[BZip2Constants.RUNA]++;
                         break;
                     case 1:
-                        szptr[wr] = (short) BZip2Constants.RUNB;
-                        wr++;
+                        szptr[wr++] = BZip2Constants.RUNB;
                         mtfFreq[BZip2Constants.RUNB]++;
                         break;
                     }
-                    if (zPend < 2) {
+
+                    if (zPend < 2)
                         break;
-                    }
+
                     zPend = (zPend - 2) / 2;
                 }
             }
 
-            szptr[wr] = (short) EOB;
-            wr++;
+            szptr[wr++] = EOB;
             mtfFreq[EOB]++;
 
             nMTF = wr;
