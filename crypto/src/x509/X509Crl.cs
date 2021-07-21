@@ -429,15 +429,12 @@ namespace Org.BouncyCastle.X509
 
 			if (certs != null)
 			{
-//				BigInteger serial = ((X509Certificate)cert).SerialNumber;
 				BigInteger serial = cert.SerialNumber;
 
 				for (int i = 0; i < certs.Length; i++)
 				{
-					if (certs[i].UserCertificate.Value.Equals(serial))
-					{
+					if (certs[i].UserCertificate.HasValue(serial))
 						return true;
-					}
 				}
 			}
 
