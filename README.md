@@ -8,6 +8,11 @@ Except where otherwise stated, this software is distributed under a license base
 
 **Note**: this source tree is not the FIPS version of the APIs - if you are interested in our FIPS version please contact us directly at  [office@bouncycastle.org](mailto:office@bouncycastle.org).
 
+## Downloads
+
+The library is avaliable via NuGet:
+* [BouncyCastle](https://www.nuget.org/packages/BouncyCastle/)
+
 ## Mailing Lists
 
 For those who are interested, there are 2 mailing lists for participation in this project. To subscribe use the links below and include the word subscribe in the message body. (To unsubscribe, replace **subscribe** with **unsubscribe** in the message body)
