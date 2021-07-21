@@ -3,6 +3,8 @@ using System.Collections;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.GM;
+using Org.BouncyCastle.Asn1.Gnu;
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
@@ -789,7 +791,8 @@ namespace Org.BouncyCastle.Crypto.EC
 
         static CustomNamedCurves()
         {
-            DefineCurve("curve25519", Curve25519Holder.Instance);
+            DefineCurveWithOid("ed25519", GnuObjectIdentifiers.Ed25519, Curve25519Holder.Instance);
+            DefineCurveWithOid("curve25519", MiscObjectIdentifiers.Curve25519, Curve25519Holder.Instance);
 
             //DefineCurveWithOid("secp112r1", SecObjectIdentifiers.SecP112r1, SecP112R1Holder.Instance);
             //DefineCurveWithOid("secp112r2", SecObjectIdentifiers.SecP112r2, SecP112R2Holder.Instance);

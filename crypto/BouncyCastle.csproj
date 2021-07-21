@@ -1051,6 +1051,7 @@
     <Compile Include="src\crypto\signers\Ed25519Signer.cs" />
     <Compile Include="src\crypto\signers\Ed448phSigner.cs" />
     <Compile Include="src\crypto\signers\Ed448Signer.cs" />
+    <Compile Include="src\crypto\signers\EdDsa25519Signer.cs" />
     <Compile Include="src\crypto\signers\GOST3410DigestSigner.cs" />
     <Compile Include="src\crypto\signers\GOST3410Signer.cs" />
     <Compile Include="src\crypto\signers\GenericSigner.cs" />
@@ -1480,7 +1481,8 @@
     <Compile Include="src\openpgp\PgpUtilities.cs" />
     <Compile Include="src\openpgp\PgpV3SignatureGenerator.cs" />
     <Compile Include="src\openpgp\Rfc6637Utilities.cs" />
-    <Compile Include="src\openpgp\SXprUtilities.cs" />
+    <Compile Include="src\openpgp\SXprReader.cs" />
+    <Compile Include="src\openpgp\SXprWriter.cs" />
     <Compile Include="src\openpgp\WrappedGeneratorStream.cs" />
     <Compile Include="src\openssl\EncryptionException.cs" />
     <Compile Include="src\openssl\IPasswordFinder.cs" />

@@ -147,6 +147,7 @@ namespace Org.BouncyCastle.Bcpg
 					signature = new MPInteger[]{ p, g, y };
                     break;
                 case PublicKeyAlgorithmTag.ECDsa:
+                case PublicKeyAlgorithmTag.EdDsa:
                     MPInteger ecR = new MPInteger(bcpgIn);
                     MPInteger ecS = new MPInteger(bcpgIn);
                     signature = new MPInteger[]{ ecR, ecS };
