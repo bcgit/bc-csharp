@@ -259,17 +259,17 @@ namespace Org.BouncyCastle.Tls
             {
                 this.m_closed = true;
 
-                if (user_canceled && !m_appDataReady)
-                {
-                    RaiseAlertWarning(AlertDescription.user_canceled, "User canceled handshake");
-                }
-
-                RaiseAlertWarning(AlertDescription.close_notify, "Connection closed");
-
                 if (!m_appDataReady)
                 {
                     CleanupHandshake();
+
+                    if (user_canceled)
+                    {
+                        RaiseAlertWarning(AlertDescription.user_canceled, "User canceled handshake");
+                    }
                 }
+
+                RaiseAlertWarning(AlertDescription.close_notify, "Connection closed");
 
                 CloseConnection();
             }
