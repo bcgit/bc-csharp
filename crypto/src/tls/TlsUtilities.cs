@@ -1491,14 +1491,10 @@ namespace Org.BouncyCastle.Tls
                     :   securityParameters.BaseKeyClient;
 
                 TlsSecret finishedKey = DeriveSecret(securityParameters, baseKey, "finished", EmptyBytes);
+                int cryptoHashAlgorithm = TlsCryptoUtilities.GetHash(securityParameters.PrfHashAlgorithm);
                 byte[] transcriptHash = GetCurrentPrfHash(handshakeHash);
 
-                TlsCrypto crypto = context.Crypto;
-                byte[] hmacKey = crypto.AdoptSecret(finishedKey).Extract();
-                TlsHmac hmac = crypto.CreateHmacForHash(TlsCryptoUtilities.GetHash(securityParameters.PrfHashAlgorithm));
-                hmac.SetKey(hmacKey, 0, hmacKey.Length);
-                hmac.Update(transcriptHash, 0, transcriptHash.Length);
-                return hmac.CalculateMac();
+                return finishedKey.CalculateHmac(cryptoHashAlgorithm, transcriptHash, 0, transcriptHash.Length);
             }
 
             if (negotiatedVersion.IsSsl)

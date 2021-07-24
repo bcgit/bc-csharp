@@ -7,6 +7,14 @@ namespace Org.BouncyCastle.Tls.Crypto
     /// </summary>
     public interface TlsSecret
     {
+        /// <summary>Calculate an HMAC with this secret's data as the key.</summary>
+        /// <param name="cryptoHashAlgorithm">the hash algorithm to instantiate HMAC with. See
+        /// <see cref="CryptoHashAlgorithm"/> for values.</param>
+        /// <param name="buf">array containing the input data.</param>
+        /// <param name="off">offset into the input array the input starts at.</param>
+        /// <param name="len">the length of the input data.</param>
+        byte[] CalculateHmac(int cryptoHashAlgorithm, byte[] buf, int off, int len);
+
         /// <summary>Return a new secret based on applying a PRF to this one.</summary>
         /// <param name="prfAlgorithm">PRF algorithm to use.</param>
         /// <param name="label">the label details.</param>

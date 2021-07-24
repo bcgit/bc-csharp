@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 byte[] transcriptHash = GetCurrentHash(prfHash);
                 Expect(transcriptHash, "ed b7 72 5f a7 a3 47 3b 03 1e c8 ef 65 a2 48 54 93 90 01 38 a2 b9 12 91 40 7d 79 51 a0 61 10 ed");
 
-                byte[] finished = CalculateHmac(hash, expanded, transcriptHash);
+                byte[] finished = expanded.CalculateHmac(hash, transcriptHash, 0, transcriptHash.Length);
                 Expect(finished, Hex("9b 9b 14 1d 90 63 37 fb d2 cb dc e7 1d f4 de da 4a b4 2c 30 95 72 cb 7f ff ee 54 54 b7 8f 07 18"));
             }
 
@@ -365,7 +365,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 Expect(expanded, "b8 0a d0 10 15 fb 2f 0b d6 5f f7 d4 da 5d 6b f8 3f 84 82 1d 1f 87 fd c7 d3 c7 5b 5a 7b 42 d9 c4");
 
                 // TODO Mention this transcript hash in RFC 8448 data?
-                byte[] finished = CalculateHmac(hash, expanded, serverFinishedTranscriptHash);
+                byte[] finished = expanded.CalculateHmac(hash, serverFinishedTranscriptHash, 0, serverFinishedTranscriptHash.Length);
                 Expect(finished, Hex("a8 ec 43 6d 67 76 34 ae 52 5a c1 fc eb e1 1a 03 9e c1 76 94 fa c6 e9 85 27 b6 42 f2 ed d5 ce 61"));
             }
 
@@ -544,16 +544,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                     ImplTestSignature13(credentialedSigner, signatureScheme);
                 }
             }
-        }
-
-        private byte[] CalculateHmac(int cryptoHashAlgorithm, TlsSecret hmacKey, byte[] hmacInput)
-        {
-            byte[] keyBytes = Extract(hmacKey);
-
-            TlsHmac hmac = m_crypto.CreateHmacForHash(cryptoHashAlgorithm);
-            hmac.SetKey(keyBytes, 0, keyBytes.Length);
-            hmac.Update(hmacInput, 0, hmacInput.Length);
-            return hmac.CalculateMac();
         }
 
         private void Expect(TlsSecret secret, string expectedHex)

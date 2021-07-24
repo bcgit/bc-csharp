@@ -26,6 +26,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         protected abstract AbstractTlsCrypto Crypto { get; }
 
+        public virtual byte[] CalculateHmac(int cryptoHashAlgorithm, byte[] buf, int off, int len)
+        {
+            lock (this)
+            {
+                CheckAlive();
+
+                TlsHmac hmac = Crypto.CreateHmacForHash(cryptoHashAlgorithm);
+                hmac.SetKey(m_data, 0, m_data.Length);
+                hmac.Update(buf, off, len);
+                return hmac.CalculateMac();
+            }
+        }
+
         public abstract TlsSecret DeriveUsingPrf(int prfAlgorithm, string label, byte[] seed, int length);
 
         public virtual void Destroy()
