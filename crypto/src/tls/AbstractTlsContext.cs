@@ -208,7 +208,7 @@ namespace Org.BouncyCastle.Tls
             SecurityParameters sp = SecurityParameters;
 
             return ExportKeyingMaterial13(CheckEarlyExportSecret(sp.EarlyExporterMasterSecret),
-                sp.PrfHashAlgorithm, asciiLabel, context, length);
+                sp.PrfCryptoHashAlgorithm, asciiLabel, context, length);
         }
 
         public virtual byte[] ExportKeyingMaterial(string asciiLabel, byte[] context, int length)
@@ -235,7 +235,7 @@ namespace Org.BouncyCastle.Tls
 
             if (TlsUtilities.IsTlsV13(sp.NegotiatedVersion))
             {
-                return ExportKeyingMaterial13(CheckExportSecret(sp.ExporterMasterSecret), sp.PrfHashAlgorithm,
+                return ExportKeyingMaterial13(CheckExportSecret(sp.ExporterMasterSecret), sp.PrfCryptoHashAlgorithm,
                     asciiLabel, context, length);
             }
 
@@ -244,7 +244,7 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.Prf(sp, CheckExportSecret(sp.MasterSecret), asciiLabel, seed, length).Extract();
         }
 
-        protected virtual byte[] ExportKeyingMaterial13(TlsSecret secret, short hashAlgorithm, string asciiLabel,
+        protected virtual byte[] ExportKeyingMaterial13(TlsSecret secret, int cryptoHashAlgorithm, string asciiLabel,
             byte[] context, int length)
         {
             if (null == context)
@@ -256,7 +256,8 @@ namespace Org.BouncyCastle.Tls
                 throw new ArgumentException("must have length less than 2^16 (or be null)", "context");
             }
 
-            return TlsCryptoUtilities.HkdfExpandLabel(secret, hashAlgorithm, asciiLabel, context, length).Extract();
+            return TlsCryptoUtilities.HkdfExpandLabel(secret, cryptoHashAlgorithm, asciiLabel, context, length)
+                .Extract();
         }
 
         protected virtual TlsSecret CheckEarlyExportSecret(TlsSecret secret)

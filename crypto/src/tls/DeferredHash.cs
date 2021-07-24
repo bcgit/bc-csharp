@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Tls
             }
             default:
             {
-                CheckTrackingHash(securityParameters.PrfHashAlgorithm);
+                CheckTrackingHash(securityParameters.PrfCryptoHashAlgorithm);
                 if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                 {
                     SealHashAlgorithms();
@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Tls
             }
             default:
             {
-                CloneHash(newHashes, securityParameters.PrfHashAlgorithm);
+                CloneHash(newHashes, securityParameters.PrfCryptoHashAlgorithm);
                 break;
             }
             }
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Tls
             }
             default:
             {
-                prfHash = CloneHash(securityParameters.PrfHashAlgorithm);
+                prfHash = CloneHash(securityParameters.PrfCryptoHashAlgorithm);
                 break;
             }
             }

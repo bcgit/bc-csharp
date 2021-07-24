@@ -339,7 +339,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             if (null == secret)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            Setup13Cipher(cipher, nonce, secret, TlsCryptoUtilities.GetHash(securityParameters.PrfHashAlgorithm));
+            Setup13Cipher(cipher, nonce, secret, securityParameters.PrfCryptoHashAlgorithm);
         }
 
         protected virtual void Setup13Cipher(TlsAeadCipherImpl cipher, byte[] nonce, TlsSecret secret,

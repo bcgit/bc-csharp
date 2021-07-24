@@ -127,15 +127,6 @@ namespace Org.BouncyCastle.Tls.Crypto
         }
 
         /// <exception cref="IOException"/>
-        public static TlsSecret HkdfExpandLabel(TlsSecret secret, short hashAlgorithm, string label, byte[] context,
-            int length)
-        {
-            int cryptoHashAlgorithm = GetHash(hashAlgorithm);
-
-            return HkdfExpandLabel(secret, cryptoHashAlgorithm, label, context, length);
-        }
-
-        /// <exception cref="IOException"/>
         public static TlsSecret HkdfExpandLabel(TlsSecret secret, int cryptoHashAlgorithm, string label,
             byte[] context, int length)
         {
