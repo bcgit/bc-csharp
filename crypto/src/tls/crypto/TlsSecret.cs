@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <see cref="CryptoHashAlgorithm"/> for values.</param>
         /// <param name="ikm">input keying material.</param>
         /// <returns>a pseudo-random key (of HashLen octets).</returns>
-        TlsSecret HkdfExtract(int cryptoHashAlgorithm, byte[] ikm);
+        TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm);
 
         bool IsAlive();
     }

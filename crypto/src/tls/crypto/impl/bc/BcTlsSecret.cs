@@ -12,6 +12,21 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsSecret
         : AbstractTlsSecret
     {
+        public static BcTlsSecret Convert(BcTlsCrypto crypto, TlsSecret secret)
+        {
+            if (secret is BcTlsSecret)
+                return (BcTlsSecret)secret;
+
+            if (secret is AbstractTlsSecret)
+            {
+                AbstractTlsSecret abstractTlsSecret = (AbstractTlsSecret)secret;
+
+                return crypto.AdoptLocalSecret(CopyData(abstractTlsSecret));
+            }
+
+            throw new ArgumentException("unrecognized TlsSecret - cannot copy data: " + Platform.GetTypeName(secret));
+        }
+
         // SSL3 magic mix constants ("A", "BB", "CCC", ...)
         private static readonly byte[] Ssl3Const = GenerateSsl3Constants();
 
@@ -105,7 +120,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
-        public override TlsSecret HkdfExtract(int cryptoHashAlgorithm, byte[] ikm)
+        public override TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm)
         {
             lock (this)
             {
@@ -117,7 +132,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 HMac hmac = new HMac(m_crypto.CreateDigest(cryptoHashAlgorithm));
                 hmac.Init(new KeyParameter(salt));
 
-                hmac.BlockUpdate(ikm, 0, ikm.Length);
+                Convert(m_crypto, ikm).UpdateMac(hmac);
 
                 byte[] prk = new byte[hmac.GetMacSize()];
                 hmac.DoFinal(prk, 0);
@@ -237,6 +252,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             byte[] result = new byte[length];
             HmacHash(digest, m_data, 0, m_data.Length, labelSeed, result);
             return result;
+        }
+
+        protected virtual void UpdateMac(IMac mac)
+        {
+            lock (this)
+            {
+                CheckAlive();
+
+                mac.BlockUpdate(m_data, 0, m_data.Length);
+            }
         }
     }
 }

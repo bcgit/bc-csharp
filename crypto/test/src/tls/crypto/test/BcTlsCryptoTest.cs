@@ -236,7 +236,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
 
             // {server}  extract secret "early":
             {
-                byte[] ikm = new byte[32];
+                TlsSecret ikm = m_crypto.HkdfInit(hash);
                 early = init.HkdfExtract(hash, ikm);
                 Expect(early, "33 ad 0a 1c 60 7e c0 3b 09 e6 cd 98 93 68 0c e2 10 ad f3 00 aa 1f 26 60 e1 b2 2e 10 f1 70 f9 2a");
             }
@@ -250,7 +250,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
 
             // {server}  extract secret "handshake":
             {
-                byte[] ikm = Hex("8b d4 05 4f b5 5b 9d 63 fd fb ac f9 f0 4b 9f 0d 35 e6 d6 3f 53 75 63 ef d4 62 72 90 0f 89 49 2d");
+                TlsSecret ikm = m_crypto.CreateSecret(
+                    Hex("8b d4 05 4f b5 5b 9d 63 fd fb ac f9 f0 4b 9f 0d 35 e6 d6 3f 53 75 63 ef d4 62 72 90 0f 89 49 2d"));
                 handshake = handshake.HkdfExtract(hash, ikm);
                 Expect(handshake, "1d c8 26 e9 36 06 aa 6f dc 0a ad c1 2f 74 1b 01 04 6a a6 b9 9f 69 1e d2 21 a9 f0 ca 04 3f be ac");
             }
@@ -284,7 +285,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
 
             // {server}  extract secret "master":
             {
-                byte[] ikm = new byte[32];
+                TlsSecret ikm = m_crypto.HkdfInit(hash);
                 master = master.HkdfExtract(hash, ikm);
                 Expect(master, "18 df 06 84 3d 13 a0 8b f2 a4 49 84 4c 5f 8a 47 80 01 bc 4d 4c 62 79 84 d5 a4 1d a8 d0 40 29 19");
             }
@@ -408,11 +409,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             {
                 int hash = hashes[i];
                 int hashLen = TlsCryptoUtilities.GetHashOutputSize(hash);
-                byte[] zeroes = new byte[hashLen];
+                TlsSecret zeros = m_crypto.HkdfInit(hash);
 
                 int limit = 255 * hashLen;
 
-                TlsSecret secret = m_crypto.HkdfInit(hash).HkdfExtract(hash, zeroes);
+                TlsSecret secret = m_crypto.HkdfInit(hash).HkdfExtract(hash, zeros);
 
                 try
                 {

@@ -9,6 +9,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public abstract class AbstractTlsSecret
         : TlsSecret
     {
+        protected static byte[] CopyData(AbstractTlsSecret other)
+        {
+            return other.CopyData();
+        }
+
         protected byte[] m_data;
 
         /// <summary>Base constructor.</summary>
@@ -79,7 +84,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public abstract TlsSecret HkdfExpand(int cryptoHashAlgorithm, byte[] info, int length);
 
-        public abstract TlsSecret HkdfExtract(int cryptoHashAlgorithm, byte[] ikm);
+        public abstract TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm);
 
         public virtual bool IsAlive()
         {
