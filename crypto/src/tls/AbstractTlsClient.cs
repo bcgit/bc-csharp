@@ -205,6 +205,11 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        public virtual IList GetExternalPsks()
+        {
+            return null;
+        }
+
         public virtual bool IsFallback()
         {
             /*

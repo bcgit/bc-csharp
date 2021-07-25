@@ -1568,6 +1568,7 @@
     <Compile Include="src\tls\AbstractTlsServer.cs" />
     <Compile Include="src\tls\AlertDescription.cs" />
     <Compile Include="src\tls\AlertLevel.cs" />
+    <Compile Include="src\tls\BasicTlsPskExternal.cs" />
     <Compile Include="src\tls\BasicTlsPskIdentity.cs" />
     <Compile Include="src\tls\BasicTlsSrpIdentity.cs" />
     <Compile Include="src\tls\ByteQueue.cs" />
@@ -1799,6 +1800,8 @@
     <Compile Include="src\tls\TlsObjectIdentifiers.cs" />
     <Compile Include="src\tls\TlsPeer.cs" />
     <Compile Include="src\tls\TlsProtocol.cs" />
+    <Compile Include="src\tls\TlsPsk.cs" />
+    <Compile Include="src\tls\TlsPskExternal.cs" />
     <Compile Include="src\tls\TlsPskIdentity.cs" />
     <Compile Include="src\tls\TlsPskIdentityManager.cs" />
     <Compile Include="src\tls\TlsPskKeyExchange.cs" />

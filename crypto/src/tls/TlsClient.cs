@@ -18,6 +18,12 @@ namespace Org.BouncyCastle.Tls
         /// <seealso cref="SessionParameters.PeerCertificate"/>
         TlsSession GetSessionToResume();
 
+        /// <summary>Return the <see cref="TlsPskExternal">external PSKs</see> to offer in the ClientHello.</summary>
+        /// <remarks>This will only be called when TLS 1.3 or higher is amongst the offered protocol versions.</remarks>
+        /// <returns>an <see cref="IList"/> of <see cref="TlsPskExternal"/> instances, or null if none should be
+        /// offered.</returns>
+        IList GetExternalPsks();
+
         bool IsFallback();
 
         /// <returns>(Int32 -> byte[])</returns>

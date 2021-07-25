@@ -37,6 +37,8 @@ namespace Org.BouncyCastle.Tls
 
         int GetMaxHandshakeMessageSize();
 
+        short[] GetPskKeyExchangeModes();
+
         /// <remarks>
         /// This option is provided as a last resort for interoperability with TLS peers that fail to correctly send a
         /// close_notify alert at end of stream. Implementations SHOULD return true; caution is advised if returning

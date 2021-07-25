@@ -81,6 +81,11 @@ namespace Org.BouncyCastle.Tls
             return 32768;
         }
 
+        public virtual short[] GetPskKeyExchangeModes()
+        {
+            return new short[]{ PskKeyExchangeMode.psk_dhe_ke, PskKeyExchangeMode.psk_ke };
+        }
+
         public virtual bool RequiresCloseNotify()
         {
             return true;

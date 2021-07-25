@@ -7699,6 +7699,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\tls\BasicTlsPskExternal.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\tls\BasicTlsPskIdentity.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -8850,6 +8855,16 @@
                 />
                 <File
                     RelPath = "src\tls\TlsProtocol.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\tls\TlsPsk.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\tls\TlsPskExternal.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
