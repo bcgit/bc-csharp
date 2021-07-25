@@ -4647,7 +4647,7 @@ namespace Org.BouncyCastle.Tls
 
         internal static short[] Truncate(short[] a, int n)
         {
-            if (n < a.Length)
+            if (n >= a.Length)
                 return a;
 
             short[] t = new short[n];
