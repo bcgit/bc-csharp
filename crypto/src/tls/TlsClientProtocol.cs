@@ -81,9 +81,6 @@ namespace Org.BouncyCastle.Tls
         {
             base.BeginHandshake();
 
-            EstablishSession(m_tlsClient.GetSessionToResume());
-            m_tlsClient.NotifySessionToResume(m_tlsSession);
-
             SendClientHello();
             this.m_connectionState = CS_CLIENT_HELLO;
         }
@@ -1540,13 +1537,14 @@ namespace Org.BouncyCastle.Tls
         {
             SecurityParameters securityParameters = m_tlsClientContext.SecurityParameters;
 
-            ProtocolVersion client_version;
+            ProtocolVersion[] supportedVersions;
+            ProtocolVersion earliestVersion, latestVersion;
 
             // NOT renegotiating
             {
-                m_tlsClientContext.SetClientSupportedVersions(m_tlsClient.GetProtocolVersions());
+                supportedVersions = m_tlsClient.GetProtocolVersions();
 
-                if (ProtocolVersion.Contains(m_tlsClientContext.ClientSupportedVersions, ProtocolVersion.SSLv3))
+                if (ProtocolVersion.Contains(supportedVersions, ProtocolVersion.SSLv3))
                 {
                     // TODO[tls13] Prevent offering SSLv3 AND TLSv13?
                     m_recordStream.SetWriteVersion(ProtocolVersion.SSLv3);
@@ -1556,15 +1554,22 @@ namespace Org.BouncyCastle.Tls
                     m_recordStream.SetWriteVersion(ProtocolVersion.TLSv10);
                 }
 
-                client_version = ProtocolVersion.GetLatestTls(m_tlsClientContext.ClientSupportedVersions);
+                earliestVersion = ProtocolVersion.GetEarliestTls(supportedVersions);
+                latestVersion = ProtocolVersion.GetLatestTls(supportedVersions);
 
-                if (!ProtocolVersion.IsSupportedTlsVersionClient(client_version))
+                if (!ProtocolVersion.IsSupportedTlsVersionClient(latestVersion))
                     throw new TlsFatalAlert(AlertDescription.internal_error);
 
-                m_tlsClientContext.SetClientVersion(client_version);
+                m_tlsClientContext.SetClientVersion(latestVersion);
             }
 
-            bool offeringTlsV13Plus = ProtocolVersion.TLSv13.IsEqualOrEarlierVersionOf(client_version);
+            m_tlsClientContext.SetClientSupportedVersions(supportedVersions);
+
+            bool offeringTlsV12Minus = ProtocolVersion.TLSv12.IsEqualOrLaterVersionOf(earliestVersion);
+            bool offeringTlsV13Plus = ProtocolVersion.TLSv13.IsEqualOrEarlierVersionOf(latestVersion);
+
+            EstablishSession(offeringTlsV12Minus ? m_tlsClient.GetSessionToResume() : null);
+            m_tlsClient.NotifySessionToResume(m_tlsSession);
 
             /*
              * TODO RFC 5077 3.4. When presenting a ticket, the client MAY generate and include a
@@ -1587,13 +1592,12 @@ namespace Org.BouncyCastle.Tls
             this.m_clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(
                 m_tlsClient.GetClientExtensions());
 
-            ProtocolVersion legacy_version = client_version;
+            ProtocolVersion legacy_version = latestVersion;
             if (offeringTlsV13Plus)
             {
                 legacy_version = ProtocolVersion.TLSv12;
 
-                TlsExtensionsUtilities.AddSupportedVersionsExtensionClient(m_clientExtensions,
-                    m_tlsClientContext.ClientSupportedVersions);
+                TlsExtensionsUtilities.AddSupportedVersionsExtensionClient(m_clientExtensions, supportedVersions);
 
                 /*
                  * RFC 8446 4.2.1. In compatibility mode [..], this field MUST be non-empty, so a client
@@ -1610,7 +1614,7 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_clientServerNames = TlsExtensionsUtilities.GetServerNameExtensionClient(
                 m_clientExtensions);
 
-            if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(client_version))
+            if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(latestVersion))
             {
                 TlsUtilities.EstablishClientSigAlgs(securityParameters, m_clientExtensions);
             }
@@ -1621,7 +1625,7 @@ namespace Org.BouncyCastle.Tls
             this.m_clientAgreements = TlsUtilities.AddEarlyKeySharesToClientHello(m_tlsClientContext, m_tlsClient,
                 m_clientExtensions);
 
-            if (TlsUtilities.IsExtendedMasterSecretOptionalTls(m_tlsClientContext.ClientSupportedVersions)
+            if (TlsUtilities.IsExtendedMasterSecretOptionalTls(supportedVersions)
                 && (m_tlsClient.ShouldUseExtendedMasterSecret() ||
                     (null != m_sessionParameters && m_sessionParameters.IsExtendedMasterSecret)))
             {
