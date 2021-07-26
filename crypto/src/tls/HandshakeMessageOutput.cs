@@ -58,5 +58,50 @@ namespace Org.BouncyCastle.Tls
 
             Platform.Dispose(this);
         }
+
+        internal void PrepareClientHello(TlsHandshakeHash handshakeHash, int totalBindersLength)
+        {
+            TlsUtilities.CheckUint16(totalBindersLength);
+
+            // Patch actual length back in
+            int bodyLength = (int)Length - 4 + totalBindersLength;
+            TlsUtilities.CheckUint24(bodyLength);
+
+            Seek(1L, SeekOrigin.Begin);
+            TlsUtilities.WriteUint24(bodyLength, this);
+
+#if PORTABLE
+            byte[] buf = ToArray();
+            int count = buf.Length;
+#else
+            byte[] buf = GetBuffer();
+            int count = (int)Length;
+#endif
+
+            handshakeHash.Update(buf, 0, count);
+
+            Seek(0L, SeekOrigin.End);
+        }
+
+        internal void SendClientHello(TlsClientProtocol clientProtocol, TlsHandshakeHash handshakeHash,
+            int totalBindersLength)
+        {
+#if PORTABLE
+            byte[] buf = ToArray();
+            int count = buf.Length;
+#else
+            byte[] buf = GetBuffer();
+            int count = (int)Length;
+#endif
+
+            if (totalBindersLength > 0)
+            {
+                handshakeHash.Update(buf, count - totalBindersLength, totalBindersLength);
+            }
+
+            clientProtocol.WriteHandshakeMessage(buf, 0, count);
+
+            Platform.Dispose(this);
+        }
     }
 }
