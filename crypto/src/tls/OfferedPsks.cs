@@ -9,6 +9,20 @@ namespace Org.BouncyCastle.Tls
 {
     public sealed class OfferedPsks
     {
+        internal class Config
+        {
+            internal readonly TlsPsk[] m_psks;
+            internal readonly TlsSecret[] m_earlySecrets;
+            internal int m_bindersSize;
+
+            internal Config(TlsPsk[] psks, TlsSecret[] earlySecrets, int bindersSize)
+            {
+                this.m_psks = psks;
+                this.m_earlySecrets = earlySecrets;
+                this.m_bindersSize = bindersSize;
+            }
+        }
+
         private readonly IList m_identities;
         private readonly IList m_binders;
 
@@ -79,8 +93,12 @@ namespace Org.BouncyCastle.Tls
 
         /// <exception cref="IOException"/>
         internal static void EncodeBinders(Stream output, TlsCrypto crypto, TlsHandshakeHash handshakeHash,
-            TlsPsk[] psks, TlsSecret[] earlySecrets, int expectedLengthOfBindersList)
+            Config config)
         {
+            TlsPsk[] psks = config.m_psks;
+            TlsSecret[] earlySecrets = config.m_earlySecrets;
+            int expectedLengthOfBindersList = config.m_bindersSize - 2;
+
             TlsUtilities.CheckUint16(expectedLengthOfBindersList);
             TlsUtilities.WriteUint16(expectedLengthOfBindersList, output);
 
@@ -111,7 +129,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static int GetLengthOfBindersList(TlsPsk[] psks)
+        internal static int GetBindersSize(TlsPsk[] psks)
         {
             int lengthOfBindersList = 0;
             for (int i = 0; i < psks.Length; ++i)
@@ -124,7 +142,7 @@ namespace Org.BouncyCastle.Tls
                 lengthOfBindersList += 1 + TlsCryptoUtilities.GetHashOutputSize(prfCryptoHashAlgorithm);
             }
             TlsUtilities.CheckUint16(lengthOfBindersList);
-            return lengthOfBindersList;
+            return 2 + lengthOfBindersList;
         }
 
         /// <exception cref="IOException"/>
