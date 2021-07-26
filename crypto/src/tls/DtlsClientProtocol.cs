@@ -513,7 +513,7 @@ namespace Org.BouncyCastle.Tls
 
 
             ClientHello clientHello = new ClientHello(legacy_version, securityParameters.ClientRandom, session_id,
-                TlsUtilities.EmptyBytes, state.offeredCipherSuites, state.clientExtensions);
+                TlsUtilities.EmptyBytes, state.offeredCipherSuites, state.clientExtensions, 0);
 
             MemoryStream buf = new MemoryStream();
             clientHello.Encode(state.clientContext, buf);

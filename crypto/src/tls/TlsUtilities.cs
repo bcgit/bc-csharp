@@ -1504,21 +1504,20 @@ namespace Org.BouncyCastle.Tls
             return Prf(sp, preMasterSecret, asciiLabel, seed, 48);
         }
 
-        internal static byte[] CalculatePskBinder(TlsCrypto crypto, bool isExternalPsk, int pskPRFAlgorithm,
+        internal static byte[] CalculatePskBinder(TlsCrypto crypto, bool isExternalPsk, int pskCryptoHashAlgorithm,
             TlsSecret earlySecret, byte[] transcriptHash)
         {
-            int prfCryptoHashAlgorithm = TlsCryptoUtilities.GetHashForPrf(pskPRFAlgorithm);
-            int prfHashLength = TlsCryptoUtilities.GetHashOutputSize(prfCryptoHashAlgorithm);
+            int prfHashLength = TlsCryptoUtilities.GetHashOutputSize(pskCryptoHashAlgorithm);
 
             string label = isExternalPsk ? "ext binder" : "res binder";
-            byte[] emptyTranscriptHash = crypto.CreateHash(prfCryptoHashAlgorithm).CalculateHash();
+            byte[] emptyTranscriptHash = crypto.CreateHash(pskCryptoHashAlgorithm).CalculateHash();
 
-            TlsSecret binderKey = DeriveSecret(prfCryptoHashAlgorithm, prfHashLength, earlySecret, label,
+            TlsSecret binderKey = DeriveSecret(pskCryptoHashAlgorithm, prfHashLength, earlySecret, label,
                 emptyTranscriptHash);
 
             try
             {
-                return CalculateFinishedHmac(prfCryptoHashAlgorithm, prfHashLength, binderKey, transcriptHash);
+                return CalculateFinishedHmac(pskCryptoHashAlgorithm, prfHashLength, binderKey, transcriptHash);
             }
             finally
             {

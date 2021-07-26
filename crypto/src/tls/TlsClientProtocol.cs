@@ -1474,6 +1474,8 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void Send13ClientHelloRetry()
         {
+            // TODO[tls13-psk] Create a new ClientHello object and handle any changes to the bindersSize
+
             IDictionary clientHelloExtensions = m_clientHello.Extensions;
 
             clientHelloExtensions.Remove(ExtensionType.cookie);
@@ -1679,8 +1681,12 @@ namespace Org.BouncyCastle.Tls
 
 
 
+            // TODO[tls13-psk] Calculate the total length of the binders that will be added.
+            int bindersSize = 0;
+            //int bindersSize = 2 + lengthOfBindersList;
+
             this.m_clientHello = new ClientHello(legacy_version, securityParameters.ClientRandom, legacy_session_id,
-                null, offeredCipherSuites, m_clientExtensions);
+                null, offeredCipherSuites, m_clientExtensions, bindersSize);
 
             SendClientHelloMessage();
         }
@@ -1691,14 +1697,11 @@ namespace Org.BouncyCastle.Tls
             HandshakeMessageOutput message = new HandshakeMessageOutput(HandshakeType.client_hello);
             m_clientHello.Encode(m_tlsClientContext, message);
 
-            // TODO[tls13-psk] Calculate the total length of the binders that will be added.
-            int totalBindersLength = 0;
-
-            message.PrepareClientHello(m_handshakeHash, totalBindersLength);
+            message.PrepareClientHello(m_handshakeHash, m_clientHello.BindersSize);
 
             // TODO[tls13-psk] Calculate any PSK binders and write them to 'message' here. 
 
-            message.SendClientHello(this, m_handshakeHash, totalBindersLength);
+            message.SendClientHello(this, m_handshakeHash, m_clientHello.BindersSize);
         }
 
         /// <exception cref="IOException"/>

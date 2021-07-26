@@ -1827,24 +1827,45 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         internal static void WriteExtensions(Stream output, IDictionary extensions)
         {
+            WriteExtensions(output, extensions, 0);
+        }
+
+        /// <exception cref="IOException"/>
+        internal static void WriteExtensions(Stream output, IDictionary extensions, int bindersSize)
+        {
             if (null == extensions || extensions.Count < 1)
                 return;
 
-            byte[] extBytes = WriteExtensionsData(extensions);
+            byte[] extBytes = WriteExtensionsData(extensions, bindersSize);
 
-            TlsUtilities.WriteOpaque16(extBytes, output);
+            int lengthWithBinders = extBytes.Length + bindersSize;
+            TlsUtilities.CheckUint16(lengthWithBinders);
+            TlsUtilities.WriteUint16(lengthWithBinders, output);
+            output.Write(extBytes, 0, extBytes.Length);
         }
 
         /// <exception cref="IOException"/>
         internal static byte[] WriteExtensionsData(IDictionary extensions)
         {
+            return WriteExtensionsData(extensions, 0);
+        }
+
+        /// <exception cref="IOException"/>
+        internal static byte[] WriteExtensionsData(IDictionary extensions, int bindersSize)
+        {
             MemoryStream buf = new MemoryStream();
-            WriteExtensionsData(extensions, buf);
+            WriteExtensionsData(extensions, buf, bindersSize);
             return buf.ToArray();
         }
 
         /// <exception cref="IOException"/>
         internal static void WriteExtensionsData(IDictionary extensions, MemoryStream buf)
+        {
+            WriteExtensionsData(extensions, buf, 0);
+        }
+
+        /// <exception cref="IOException"/>
+        internal static void WriteExtensionsData(IDictionary extensions, MemoryStream buf, int bindersSize)
         {
             /*
              * NOTE: There are reports of servers that don't accept a zero-length extension as the last
@@ -1852,6 +1873,23 @@ namespace Org.BouncyCastle.Tls
              */
             WriteSelectedExtensions(buf, extensions, true);
             WriteSelectedExtensions(buf, extensions, false);
+            WritePreSharedKeyExtension(buf, extensions, bindersSize);
+        }
+
+        /// <exception cref="IOException"/>
+        internal static void WritePreSharedKeyExtension(MemoryStream buf, IDictionary extensions, int bindersSize)
+        {
+            byte[] extension_data = (byte[])extensions[ExtensionType.pre_shared_key];
+            if (null != extension_data)
+            {
+                TlsUtilities.CheckUint16(ExtensionType.pre_shared_key);
+                TlsUtilities.WriteUint16(ExtensionType.pre_shared_key, buf);
+
+                int lengthWithBinders = extension_data.Length + bindersSize;
+                TlsUtilities.CheckUint16(lengthWithBinders);
+                TlsUtilities.WriteUint16(lengthWithBinders, buf);
+                buf.Write(extension_data, 0, extension_data.Length);
+            }
         }
 
         /// <exception cref="IOException"/>
@@ -1860,6 +1898,11 @@ namespace Org.BouncyCastle.Tls
             foreach (Int32 key in extensions.Keys)
             {
                 int extension_type = key;
+
+                // NOTE: Must be last; handled by 'WritePreSharedKeyExtension'
+                if (ExtensionType.pre_shared_key == extension_type)
+                    continue;
+
                 byte[] extension_data = (byte[])extensions[key];
 
                 if (selectEmpty == (extension_data.Length == 0))

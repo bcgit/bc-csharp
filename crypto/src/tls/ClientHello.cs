@@ -15,9 +15,10 @@ namespace Org.BouncyCastle.Tls
         private readonly byte[] m_cookie;
         private readonly int[] m_cipherSuites;
         private readonly IDictionary m_extensions;
+        private readonly int m_bindersSize;
 
         public ClientHello(ProtocolVersion version, byte[] random, byte[] sessionID, byte[] cookie,
-            int[] cipherSuites, IDictionary extensions)
+            int[] cipherSuites, IDictionary extensions, int bindersSize)
         {
             this.m_version = version;
             this.m_random = random;
@@ -25,6 +26,12 @@ namespace Org.BouncyCastle.Tls
             this.m_cookie = cookie;
             this.m_cipherSuites = cipherSuites;
             this.m_extensions = extensions;
+            this.m_bindersSize = bindersSize;
+        }
+
+        public int BindersSize
+        {
+            get { return m_bindersSize; }
         }
 
         public int[] CipherSuites
@@ -78,7 +85,7 @@ namespace Org.BouncyCastle.Tls
 
             TlsUtilities.WriteUint8ArrayWithUint8Length(new short[]{ CompressionMethod.cls_null }, output);
 
-            TlsProtocol.WriteExtensions(output, m_extensions);
+            TlsProtocol.WriteExtensions(output, m_extensions, m_bindersSize);
         }
 
         /// <summary>Parse a <see cref="ClientHello"/> from a <see cref="MemoryStream"/>.</summary>
@@ -161,7 +168,7 @@ namespace Org.BouncyCastle.Tls
                 extensions = TlsProtocol.ReadExtensionsDataClientHello(extBytes);
             }
 
-            return new ClientHello(clientVersion, random, sessionID, cookie, cipherSuites, extensions);
+            return new ClientHello(clientVersion, random, sessionID, cookie, cipherSuites, extensions, 0);
         }
     }
 }

@@ -21,6 +21,11 @@ namespace Org.BouncyCastle.Tls
             this.m_obfuscatedTicketAge = obfuscatedTicketAge;
         }
 
+        public int GetEncodedLength()
+        {
+            return 6 + m_identity.Length;
+        }
+
         public byte[] Identity
         {
             get { return m_identity; }
