@@ -332,7 +332,11 @@ namespace Org.BouncyCastle.Tls
 
                 agreement.ReceivePeerValue(clientShare.KeyExchange);
                 securityParameters.m_sharedSecret = agreement.CalculateSecret();
-                TlsUtilities.Establish13PhaseSecrets(m_tlsServerContext);
+
+                // TODO[tls13-psk] Use PSK early secret if negotiated
+                TlsSecret pskEarlySecret = null;
+
+                TlsUtilities.Establish13PhaseSecrets(m_tlsServerContext, pskEarlySecret);
             }
 
             this.m_serverExtensions = serverEncryptedExtensions;

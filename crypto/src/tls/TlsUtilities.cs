@@ -1559,7 +1559,7 @@ namespace Org.BouncyCastle.Tls
             return Prf(securityParameters, master_secret, asciiLabel, prfHash, verify_data_length).Extract();
         }
 
-        internal static void Establish13PhaseSecrets(TlsContext context)
+        internal static void Establish13PhaseSecrets(TlsContext context, TlsSecret pskEarlySecret)
         {
             TlsCrypto crypto = context.Crypto;
             SecurityParameters securityParameters = context.SecurityParameters;
@@ -1567,14 +1567,13 @@ namespace Org.BouncyCastle.Tls
             TlsSecret zeros = crypto.HkdfInit(cryptoHashAlgorithm);
             byte[] emptyTranscriptHash = crypto.CreateHash(cryptoHashAlgorithm).CalculateHash();
 
-            TlsSecret preSharedKey = securityParameters.PreSharedKey;
-            if (null == preSharedKey)
+            TlsSecret earlySecret = pskEarlySecret;
+            if (null == earlySecret)
             {
-                preSharedKey = zeros;
+                earlySecret = crypto
+                    .HkdfInit(cryptoHashAlgorithm)
+                    .HkdfExtract(cryptoHashAlgorithm, zeros);
             }
-
-            TlsSecret earlySecret = crypto.HkdfInit(cryptoHashAlgorithm)
-                .HkdfExtract(cryptoHashAlgorithm, preSharedKey);
 
             TlsSecret sharedSecret = securityParameters.SharedSecret;
             if (null == sharedSecret)
@@ -1596,7 +1595,6 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_earlySecret = earlySecret;
             securityParameters.m_handshakeSecret = handshakeSecret;
             securityParameters.m_masterSecret = masterSecret;
-            securityParameters.m_preSharedKey = null;
             securityParameters.m_sharedSecret = null;
         }
 

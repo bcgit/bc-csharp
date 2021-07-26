@@ -954,7 +954,10 @@ namespace Org.BouncyCastle.Tls
                 agreement.ReceivePeerValue(keyShareEntry.KeyExchange);
                 securityParameters.m_sharedSecret = agreement.CalculateSecret();
 
-                TlsUtilities.Establish13PhaseSecrets(m_tlsClientContext);
+                // TODO[tls13-psk] Use PSK early secret if negotiated
+                TlsSecret pskEarlySecret = null;
+
+                TlsUtilities.Establish13PhaseSecrets(m_tlsClientContext, pskEarlySecret);
             }
 
             {

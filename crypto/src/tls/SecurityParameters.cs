@@ -22,7 +22,6 @@ namespace Org.BouncyCastle.Tls
         internal TlsSecret m_exporterMasterSecret = null;
         internal TlsSecret m_handshakeSecret = null;
         internal TlsSecret m_masterSecret = null;
-        internal TlsSecret m_preSharedKey = null;
         internal TlsSecret m_sharedSecret = null;
         internal TlsSecret m_trafficSecretClient = null;
         internal TlsSecret m_trafficSecretServer = null;
@@ -79,7 +78,6 @@ namespace Org.BouncyCastle.Tls
             this.m_exporterMasterSecret = ClearSecret(m_exporterMasterSecret);
             this.m_handshakeSecret = ClearSecret(m_handshakeSecret);
             this.m_masterSecret = ClearSecret(m_masterSecret);
-            this.m_preSharedKey = null;
             this.m_sharedSecret = ClearSecret(m_sharedSecret);
         }
 
@@ -226,11 +224,6 @@ namespace Org.BouncyCastle.Tls
         public byte[] PeerVerifyData
         {
             get { return m_peerVerifyData; }
-        }
-
-        public TlsSecret PreSharedKey
-        {
-            get { return m_preSharedKey; }
         }
 
         public int PrfAlgorithm
