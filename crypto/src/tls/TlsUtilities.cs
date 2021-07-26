@@ -1462,13 +1462,21 @@ namespace Org.BouncyCastle.Tls
         private static byte[] CalculateFinishedHmac(SecurityParameters securityParameters, TlsSecret baseKey,
             byte[] transcriptHash)
         {
-            int cryptoHashAlgorithm = securityParameters.PrfCryptoHashAlgorithm;
-            TlsSecret finishedKey = TlsCryptoUtilities.HkdfExpandLabel(baseKey, cryptoHashAlgorithm, "finished",
-                EmptyBytes, securityParameters.PrfHashLength);
+            int prfCryptoHashAlgorithm = securityParameters.PrfCryptoHashAlgorithm;
+            int prfHashLength = securityParameters.PrfHashLength;
+
+            return CalculateFinishedHmac(prfCryptoHashAlgorithm, prfHashLength, baseKey, transcriptHash);
+        }
+
+        private static byte[] CalculateFinishedHmac(int prfCryptoHashAlgorithm, int prfHashLength, TlsSecret baseKey,
+            byte[] transcriptHash)
+        {
+            TlsSecret finishedKey = TlsCryptoUtilities.HkdfExpandLabel(baseKey, prfCryptoHashAlgorithm, "finished",
+                EmptyBytes, prfHashLength);
 
             try
             {
-                return finishedKey.CalculateHmac(cryptoHashAlgorithm, transcriptHash, 0, transcriptHash.Length);
+                return finishedKey.CalculateHmac(prfCryptoHashAlgorithm, transcriptHash, 0, transcriptHash.Length);
             }
             finally
             {
@@ -1496,21 +1504,21 @@ namespace Org.BouncyCastle.Tls
             return Prf(sp, preMasterSecret, asciiLabel, seed, 48);
         }
 
-        internal static byte[] CalculatePskBinder(TlsContext context, bool isExternalPsk, TlsSecret earlySecret,
-            byte[] transcriptHash)
+        internal static byte[] CalculatePskBinder(TlsCrypto crypto, bool isExternalPsk, int pskPRFAlgorithm,
+            TlsSecret earlySecret, byte[] transcriptHash)
         {
-            TlsCrypto crypto = context.Crypto;
-            SecurityParameters securityParameters = context.SecurityParameters;
-            int cryptoHashAlgorithm = securityParameters.PrfCryptoHashAlgorithm;
+            int prfCryptoHashAlgorithm = TlsCryptoUtilities.GetHashForPrf(pskPRFAlgorithm);
+            int prfHashLength = TlsCryptoUtilities.GetHashOutputSize(prfCryptoHashAlgorithm);
 
             string label = isExternalPsk ? "ext binder" : "res binder";
-            byte[] emptyTranscriptHash = crypto.CreateHash(cryptoHashAlgorithm).CalculateHash();
+            byte[] emptyTranscriptHash = crypto.CreateHash(prfCryptoHashAlgorithm).CalculateHash();
 
-            TlsSecret binderKey = DeriveSecret(securityParameters, earlySecret, label, emptyTranscriptHash);
+            TlsSecret binderKey = DeriveSecret(prfCryptoHashAlgorithm, prfHashLength, earlySecret, label,
+                emptyTranscriptHash);
 
             try
             {
-                return CalculateFinishedHmac(securityParameters, binderKey, transcriptHash);
+                return CalculateFinishedHmac(prfCryptoHashAlgorithm, prfHashLength, binderKey, transcriptHash);
             }
             finally
             {
@@ -1688,27 +1696,6 @@ namespace Org.BouncyCastle.Tls
         {
             return TlsCryptoUtilities.HkdfExpandLabel(secret, securityParameters.PrfCryptoHashAlgorithm, "traffic upd",
                 EmptyBytes, securityParameters.PrfHashLength);
-        }
-
-        public static short GetHashAlgorithmForPrfAlgorithm(int prfAlgorithm)
-        {
-            switch (prfAlgorithm)
-            {
-            case PrfAlgorithm.ssl_prf_legacy:
-            case PrfAlgorithm.tls_prf_legacy:
-                throw new ArgumentException("legacy PRF not a valid algorithm");
-            case PrfAlgorithm.tls_prf_sha256:
-            case PrfAlgorithm.tls13_hkdf_sha256:
-                return HashAlgorithm.sha256;
-            case PrfAlgorithm.tls_prf_sha384:
-            case PrfAlgorithm.tls13_hkdf_sha384:
-                return HashAlgorithm.sha384;
-            // TODO[RFC 8998]
-            //case PrfAlgorithm.tls13_hkdf_sm3:
-            //    return HashAlgorithm.sm3;
-            default:
-                throw new ArgumentException("unknown PrfAlgorithm: " + PrfAlgorithm.GetText(prfAlgorithm));
-            }
         }
 
         public static DerObjectIdentifier GetOidForHashAlgorithm(short hashAlgorithm)
@@ -4826,6 +4813,7 @@ namespace Org.BouncyCastle.Tls
 
             CollectKeyShares(clientContext.Crypto, supportedGroups, keyShareGroups, clientAgreements, clientShares);
 
+            // TODO[tls13-psk] When clientShares empty, consider not adding extension if pre_shared_key in use
             TlsExtensionsUtilities.AddKeyShareClientHello(clientExtensions, clientShares);
 
             return clientAgreements;
@@ -5107,18 +5095,15 @@ namespace Org.BouncyCastle.Tls
             case PrfAlgorithm.tls_prf_legacy:
             {
                 securityParameters.m_prfCryptoHashAlgorithm = -1;
-                securityParameters.m_prfHashAlgorithm = -1;
                 securityParameters.m_prfHashLength = -1;
                 break;
             }
             default:
             {
-                short prfHashAlgorithm = GetHashAlgorithmForPrfAlgorithm(prfAlgorithm);
-                int prfCryptoHashAlgorithm = TlsCryptoUtilities.GetHash(prfHashAlgorithm);
+                int prfCryptoHashAlgorithm = TlsCryptoUtilities.GetHashForPrf(prfAlgorithm);
 
                 securityParameters.m_prfCryptoHashAlgorithm = prfCryptoHashAlgorithm;
-                securityParameters.m_prfHashAlgorithm = prfHashAlgorithm;
-                securityParameters.m_prfHashLength = HashAlgorithm.GetOutputSize(prfHashAlgorithm);
+                securityParameters.m_prfHashLength = TlsCryptoUtilities.GetHashOutputSize(prfCryptoHashAlgorithm);
                 break;
             }
             }
@@ -5212,6 +5197,12 @@ namespace Org.BouncyCastle.Tls
             int prfCryptoHashAlgorithm = securityParameters.PrfCryptoHashAlgorithm;
             int prfHashLength = securityParameters.PrfHashLength;
 
+            return DeriveSecret(prfCryptoHashAlgorithm, prfHashLength, secret, label, transcriptHash);
+        }
+
+        internal static TlsSecret DeriveSecret(int prfCryptoHashAlgorithm, int prfHashLength, TlsSecret secret,
+            string label, byte[] transcriptHash)
+        {
             if (transcriptHash.Length != prfHashLength)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 

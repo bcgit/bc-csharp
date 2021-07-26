@@ -13,7 +13,6 @@ namespace Org.BouncyCastle.Tls
         internal short m_maxFragmentLength = -1;
         internal int m_prfAlgorithm = -1;
         internal int m_prfCryptoHashAlgorithm = -1;
-        internal short m_prfHashAlgorithm = -1;
         internal int m_prfHashLength = -1;
         internal int m_verifyDataLength = -1;
         internal TlsSecret m_baseKeyClient = null;
@@ -242,11 +241,6 @@ namespace Org.BouncyCastle.Tls
         public int PrfCryptoHashAlgorithm
         {
             get { return m_prfCryptoHashAlgorithm; }
-        }
-
-        public short PrfHashAlgorithm
-        {
-            get { return m_prfHashAlgorithm; }
         }
 
         public int PrfHashLength
