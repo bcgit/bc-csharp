@@ -401,7 +401,7 @@ namespace Org.BouncyCastle.Tls
                 AbstractTlsContext context = ContextAdmin;
                 SecurityParameters securityParameters = context.SecurityParameters;
 
-                if (m_appDataReady ||
+                if (!context.IsHandshaking ||
                     null == securityParameters.LocalVerifyData ||
                     null == securityParameters.PeerVerifyData)
                 {
@@ -1557,6 +1557,19 @@ namespace Org.BouncyCastle.Tls
             get { return m_closed; }
         }
 
+        public virtual bool IsConnected
+        {
+            get
+            {
+                if (m_closed)
+                    return false;
+
+                AbstractTlsContext context = ContextAdmin;
+
+                return null != context && context.IsConnected;
+            }
+        }
+
         public virtual bool IsHandshaking
         {
             get
@@ -1566,7 +1579,7 @@ namespace Org.BouncyCastle.Tls
 
                 AbstractTlsContext context = ContextAdmin;
 
-                return null != context && !context.IsConnected;
+                return null != context && context.IsHandshaking;
             }
         }
 

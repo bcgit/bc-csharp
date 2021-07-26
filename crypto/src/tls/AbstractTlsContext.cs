@@ -94,6 +94,11 @@ namespace Org.BouncyCastle.Tls
             get { lock (this) return m_connected; }
         }
 
+        internal bool IsHandshaking
+        {
+            get { lock (this) return !m_connected && null != m_securityParameters; }
+        }
+
         public TlsCrypto Crypto
         {
             get { return m_crypto; }
