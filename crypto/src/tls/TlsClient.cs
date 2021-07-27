@@ -61,6 +61,8 @@ namespace Org.BouncyCastle.Tls
 
         void NotifySelectedCipherSuite(int selectedCipherSuite);
 
+        void NotifySelectedPsk(TlsPsk selectedPsk);
+
         /// <summary>The protocol implementation validates that any server extensions received correspond to client
         /// extensions sent.</summary>
         /// <remarks>

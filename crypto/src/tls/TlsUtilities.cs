@@ -5434,6 +5434,21 @@ namespace Org.BouncyCastle.Tls
 #endif
 
         /// <exception cref="IOException"/>
+        internal static void AddPreSharedKeyToClientExtensions(TlsPsk[] psks, IDictionary clientExtensions)
+        {
+            IList identities = Platform.CreateArrayList(psks.Length);
+            for (int i = 0; i < psks.Length; ++i)
+            {
+                TlsPsk psk = psks[i];
+
+                // TODO[tls13-psk] Handle obfuscated_ticket_age for resumption PSKs
+                identities.Add(new PskIdentity(psk.Identity, 0L));
+            }
+
+            TlsExtensionsUtilities.AddPreSharedKeyClientHello(clientExtensions, new OfferedPsks(identities));
+        }
+
+        /// <exception cref="IOException"/>
         internal static OfferedPsks.BindersConfig AddPreSharedKeyToClientHello(TlsClientContext clientContext,
             TlsClient client, IDictionary clientExtensions, int[] offeredCipherSuites)
         {
@@ -5449,25 +5464,52 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.internal_error,
                     "External PSKs configured but no PskKeyExchangeMode available");
 
-            // Add the pre_shared_key extension
-            {
-                IList identities = Platform.CreateArrayList(pskExternals.Length);
-                for (int i = 0; i < pskExternals.Length; ++i)
-                {
-                    TlsPskExternal pskExternal = pskExternals[i];
-
-                    // TODO[tls13-psk] Handle obfuscated_ticket_age for resumption PSKs
-                    identities.Add(new PskIdentity(pskExternal.Identity, 0L));
-                }
-
-                TlsExtensionsUtilities.AddPreSharedKeyClientHello(clientExtensions, new OfferedPsks(identities));
-            }
-
             TlsSecret[] pskEarlySecrets = GetPskEarlySecrets(clientContext.Crypto, pskExternals);
 
             int bindersSize = OfferedPsks.GetBindersSize(pskExternals);
 
+            AddPreSharedKeyToClientExtensions(pskExternals, clientExtensions);
+
             return new OfferedPsks.BindersConfig(pskExternals, pskKeyExchangeModes, pskEarlySecrets, bindersSize);
+        }
+
+        /// <exception cref="IOException"/>
+        internal static OfferedPsks.BindersConfig AddPreSharedKeyToClientHelloRetry(TlsClientContext clientContext,
+            OfferedPsks.BindersConfig clientBinders, IDictionary clientExtensions)
+        {
+            SecurityParameters securityParameters = clientContext.SecurityParameters;
+
+            int prfAlgorithm = GetPrfAlgorithm13(securityParameters.CipherSuite);
+
+            IList pskIndices = GetPskIndices(clientBinders.m_psks, prfAlgorithm);
+            if (pskIndices.Count < 1)
+                return null;
+
+            OfferedPsks.BindersConfig result = clientBinders;
+
+            int count = pskIndices.Count;
+            if (count < clientBinders.m_psks.Length)
+            {
+                TlsPsk[] psks = new TlsPsk[count];
+                TlsSecret[] earlySecrets = new TlsSecret[count];
+
+                for (int i = 0; i < count; ++i)
+                {
+                    int j = (int)pskIndices[i];
+
+                    psks[i] = clientBinders.m_psks[j];
+                    earlySecrets[i] = clientBinders.m_earlySecrets[j];
+                }
+
+                int bindersSize = OfferedPsks.GetBindersSize(psks);
+
+                result = new OfferedPsks.BindersConfig(psks, clientBinders.m_pskKeyExchangeModes, earlySecrets,
+                    bindersSize);
+            }
+
+            AddPreSharedKeyToClientExtensions(result.m_psks, clientExtensions);
+
+            return result;
         }
 
         internal static TlsSecret GetPskEarlySecret(TlsCrypto crypto, TlsPsk psk)
@@ -5517,6 +5559,19 @@ namespace Org.BouncyCastle.Tls
             }
 
             return result;
+        }
+
+        internal static IList GetPskIndices(TlsPsk[] psks, int prfAlgorithm)
+        {
+            IList v = Platform.CreateArrayList(psks.Length);
+            for (int i = 0; i < psks.Length; ++i)
+            {
+                if (psks[i].PrfAlgorithm == prfAlgorithm)
+                {
+                    v.Add(i);
+                }
+            }
+            return v;
         }
     }
 }

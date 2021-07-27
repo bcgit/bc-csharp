@@ -840,8 +840,9 @@ namespace Org.BouncyCastle.Tls
             {
                 if (!Arrays.Contains(m_clientBinders.m_pskKeyExchangeModes, PskKeyExchangeMode.psk_dhe_ke))
                 {
-                    // TODO[tls13-psk] Notify client that no PSK was selected.
                     this.m_clientBinders = null;
+
+                    m_tlsClient.NotifySelectedPsk(null);
                 }
             }
 
@@ -1511,8 +1512,7 @@ namespace Org.BouncyCastle.Tls
             clientHelloExtensions.Remove(ExtensionType.cookie);
             clientHelloExtensions.Remove(ExtensionType.early_data);
             clientHelloExtensions.Remove(ExtensionType.key_share);
-            // TODO[tls13-psk]
-            //clientHelloExtensions.Remove(ExtensionType.pre_shared_key);
+            clientHelloExtensions.Remove(ExtensionType.pre_shared_key);
 
             /*
              * RFC 4.2.2. When sending the new ClientHello, the client MUST copy the contents of the
@@ -1529,6 +1529,21 @@ namespace Org.BouncyCastle.Tls
             }
 
             /*
+             * - Updating the "pre_shared_key" extension if present by recomputing the "obfuscated_ticket_age"
+             * and binder values and (optionally) removing any PSKs which are incompatible with the server's
+             * indicated cipher suite.
+             */
+            if (null != m_clientBinders)
+            {
+                this.m_clientBinders = TlsUtilities.AddPreSharedKeyToClientHelloRetry(m_tlsClientContext,
+                    m_clientBinders, clientHelloExtensions);
+                if (null == m_clientBinders)
+                {
+                    m_tlsClient.NotifySelectedPsk(null);
+                }
+            }
+
+            /*
              * RFC 8446 4.2.8. [..] when sending the new ClientHello, the client MUST replace the
              * original "key_share" extension with one containing only a new KeyShareEntry for the group
              * indicated in the selected_group field of the triggering HelloRetryRequest.
@@ -1542,18 +1557,6 @@ namespace Org.BouncyCastle.Tls
              */
             this.m_clientAgreements = TlsUtilities.AddKeyShareToClientHelloRetry(m_tlsClientContext,
                 clientHelloExtensions, m_retryGroup);
-
-            /*
-             * - Updating the "pre_shared_key" extension if present by recomputing the "obfuscated_ticket_age"
-             * and binder values and (optionally) removing any PSKs which are incompatible with the server's
-             * indicated cipher suite.
-             */
-            if (null != m_clientBinders)
-            {
-                // TODO[tls13-psk]
-                //this.m_clientBinders = TlsUtilities.AddPreSharedKeyToClientHelloRetry(m_tlsClientContext,
-                //    m_clientBinders, clientHelloExtensions);
-            }
 
             /*
              * TODO[tls13] Optionally adding, removing, or changing the length of the "padding"
@@ -1748,7 +1751,7 @@ namespace Org.BouncyCastle.Tls
 
             if (null != m_clientBinders)
             {
-                OfferedPsks.EncodeBinders(message, Context.Crypto, m_handshakeHash, m_clientBinders);
+                OfferedPsks.EncodeBinders(message, m_tlsClientContext.Crypto, m_handshakeHash, m_clientBinders);
             }
 
             message.SendClientHello(this, m_handshakeHash, m_clientHello.BindersSize);

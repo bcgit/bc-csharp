@@ -373,6 +373,10 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
+        public virtual void NotifySelectedPsk(TlsPsk selectedPsk)
+        {
+        }
+
         /// <exception cref="IOException"/>
         public virtual void ProcessServerExtensions(IDictionary serverExtensions)
         {
