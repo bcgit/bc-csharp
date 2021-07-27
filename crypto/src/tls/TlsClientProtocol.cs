@@ -462,6 +462,7 @@ namespace Org.BouncyCastle.Tls
                         this.m_connectionState = CS_SERVER_HELLO_RETRY_REQUEST;
 
                         Send13ClientHelloRetry();
+                        m_handshakeHash.SealHashAlgorithms();
                         this.m_connectionState = CS_CLIENT_HELLO_RETRY;
                     }
                     else
@@ -473,6 +474,7 @@ namespace Org.BouncyCastle.Tls
 
                         if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                         {
+                            m_handshakeHash.SealHashAlgorithms();
                             Process13ServerHelloCoda(serverHello, false);
                         }
                     }
@@ -1509,7 +1511,8 @@ namespace Org.BouncyCastle.Tls
             clientHelloExtensions.Remove(ExtensionType.cookie);
             clientHelloExtensions.Remove(ExtensionType.early_data);
             clientHelloExtensions.Remove(ExtensionType.key_share);
-            clientHelloExtensions.Remove(ExtensionType.pre_shared_key);
+            // TODO[tls13-psk]
+            //clientHelloExtensions.Remove(ExtensionType.pre_shared_key);
 
             /*
              * RFC 4.2.2. When sending the new ClientHello, the client MUST copy the contents of the

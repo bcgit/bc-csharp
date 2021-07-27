@@ -874,6 +874,8 @@ namespace Org.BouncyCastle.Tls
 
                     if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                     {
+                        m_handshakeHash.SealHashAlgorithms();
+
                         if (serverHello.IsHelloRetryRequest())
                         {
                             TlsUtilities.AdjustTranscriptForRetry(m_handshakeHash);

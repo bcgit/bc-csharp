@@ -74,10 +74,6 @@ namespace Org.BouncyCastle.Tls
             default:
             {
                 CheckTrackingHash(securityParameters.PrfCryptoHashAlgorithm);
-                if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
-                {
-                    SealHashAlgorithms();
-                }
                 break;
             }
             }
