@@ -309,6 +309,11 @@ namespace Org.BouncyCastle.Tls
 
             this.m_expectSessionTicket = false;
 
+            // TODO[tls13-psk] Use PSK early secret if negotiated
+            TlsSecret pskEarlySecret = null;
+
+            TlsSecret sharedSecret = null;
+
             {
                 int namedGroup = clientShare.NamedGroup;
 
@@ -331,13 +336,10 @@ namespace Org.BouncyCastle.Tls
                 TlsExtensionsUtilities.AddKeyShareServerHello(serverHelloExtensions, serverShare);
 
                 agreement.ReceivePeerValue(clientShare.KeyExchange);
-                securityParameters.m_sharedSecret = agreement.CalculateSecret();
-
-                // TODO[tls13-psk] Use PSK early secret if negotiated
-                TlsSecret pskEarlySecret = null;
-
-                TlsUtilities.Establish13PhaseSecrets(m_tlsServerContext, pskEarlySecret);
+                sharedSecret = agreement.CalculateSecret();
             }
+
+            TlsUtilities.Establish13PhaseSecrets(m_tlsServerContext, pskEarlySecret, sharedSecret);
 
             this.m_serverExtensions = serverEncryptedExtensions;
 

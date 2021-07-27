@@ -1559,7 +1559,8 @@ namespace Org.BouncyCastle.Tls
             return Prf(securityParameters, master_secret, asciiLabel, prfHash, verify_data_length).Extract();
         }
 
-        internal static void Establish13PhaseSecrets(TlsContext context, TlsSecret pskEarlySecret)
+        internal static void Establish13PhaseSecrets(TlsContext context, TlsSecret pskEarlySecret,
+            TlsSecret sharedSecret)
         {
             TlsCrypto crypto = context.Crypto;
             SecurityParameters securityParameters = context.SecurityParameters;
@@ -1575,7 +1576,6 @@ namespace Org.BouncyCastle.Tls
                     .HkdfExtract(cryptoHashAlgorithm, zeros);
             }
 
-            TlsSecret sharedSecret = securityParameters.SharedSecret;
             if (null == sharedSecret)
             {
                 sharedSecret = zeros;
@@ -1595,7 +1595,6 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_earlySecret = earlySecret;
             securityParameters.m_handshakeSecret = handshakeSecret;
             securityParameters.m_masterSecret = masterSecret;
-            securityParameters.m_sharedSecret = null;
         }
 
         private static void Establish13TrafficSecrets(TlsContext context, byte[] transcriptHash, TlsSecret phaseSecret,
@@ -4844,7 +4843,7 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
-        internal static IDictionary AddEarlyKeySharesToClientHello(TlsClientContext clientContext, TlsClient client,
+        internal static IDictionary AddKeyShareToClientHello(TlsClientContext clientContext, TlsClient client,
             IDictionary clientExtensions)
         {
             /*
@@ -5435,17 +5434,40 @@ namespace Org.BouncyCastle.Tls
 #endif
 
         /// <exception cref="IOException"/>
-        internal static OfferedPsks.Config GetOfferedPsksConfig(TlsClientContext clientContext, TlsClient client)
+        internal static OfferedPsks.BindersConfig AddPreSharedKeyToClientHello(TlsClientContext clientContext,
+            TlsClient client, IDictionary clientExtensions, int[] offeredCipherSuites)
         {
-            TlsPskExternal[] pskExternals = GetPskExternalsClient(client);
+            if (!IsTlsV13(clientContext.ClientVersion))
+                return null;
+
+            TlsPskExternal[] pskExternals = GetPskExternalsClient(client, offeredCipherSuites);
             if (null == pskExternals)
                 return null;
+
+            short[] pskKeyExchangeModes = client.GetPskKeyExchangeModes();
+            if (IsNullOrEmpty(pskKeyExchangeModes))
+                throw new TlsFatalAlert(AlertDescription.internal_error,
+                    "External PSKs configured but no PskKeyExchangeMode available");
+
+            // Add the pre_shared_key extension
+            {
+                IList identities = Platform.CreateArrayList(pskExternals.Length);
+                for (int i = 0; i < pskExternals.Length; ++i)
+                {
+                    TlsPskExternal pskExternal = pskExternals[i];
+
+                    // TODO[tls13-psk] Handle obfuscated_ticket_age for resumption PSKs
+                    identities.Add(new PskIdentity(pskExternal.Identity, 0L));
+                }
+
+                TlsExtensionsUtilities.AddPreSharedKeyClientHello(clientExtensions, new OfferedPsks(identities));
+            }
 
             TlsSecret[] pskEarlySecrets = GetPskEarlySecrets(clientContext.Crypto, pskExternals);
 
             int bindersSize = OfferedPsks.GetBindersSize(pskExternals);
 
-            return new OfferedPsks.Config(pskExternals, pskEarlySecrets, bindersSize);
+            return new OfferedPsks.BindersConfig(pskExternals, pskKeyExchangeModes, pskEarlySecrets, bindersSize);
         }
 
         internal static TlsSecret GetPskEarlySecret(TlsCrypto crypto, TlsPsk psk)
@@ -5469,24 +5491,29 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static TlsPskExternal[] GetPskExternalsClient(TlsClient client)
+        internal static TlsPskExternal[] GetPskExternalsClient(TlsClient client, int[] offeredCipherSuites)
         {
-            // TODO[tl13-psk] Ensure PSK hash algorithms are supported by cipher suites
-
             IList externalPsks = client.GetExternalPsks();
             if (IsNullOrEmpty(externalPsks))
                 return null;
+
+            int[] prfAlgorithms = GetPrfAlgorithms13(offeredCipherSuites);
 
             int count = externalPsks.Count;
             TlsPskExternal[] result = new TlsPskExternal[count];
 
             for (int i = 0; i < count; ++i)
             {
-                TlsPskExternal element = externalPsks[i] as TlsPskExternal;
-                if (null == element)
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+                TlsPskExternal pskExternal = externalPsks[i] as TlsPskExternal;
+                if (null == pskExternal)
+                    throw new TlsFatalAlert(AlertDescription.internal_error,
+                        "External PSKs element is not a TlsPSKExternal");
 
-                result[i] = element;
+                if (!Arrays.Contains(prfAlgorithms, pskExternal.PrfAlgorithm))
+                    throw new TlsFatalAlert(AlertDescription.internal_error,
+                        "External PSK incompatible with offered cipher suites");
+
+                result[i] = pskExternal;
             }
 
             return result;

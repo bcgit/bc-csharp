@@ -9,15 +9,18 @@ namespace Org.BouncyCastle.Tls
 {
     public sealed class OfferedPsks
     {
-        internal class Config
+        internal class BindersConfig
         {
             internal readonly TlsPsk[] m_psks;
+            internal readonly short[] m_pskKeyExchangeModes;
             internal readonly TlsSecret[] m_earlySecrets;
             internal int m_bindersSize;
 
-            internal Config(TlsPsk[] psks, TlsSecret[] earlySecrets, int bindersSize)
+            internal BindersConfig(TlsPsk[] psks, short[] pskKeyExchangeModes, TlsSecret[] earlySecrets,
+                int bindersSize)
             {
                 this.m_psks = psks;
+                this.m_pskKeyExchangeModes = pskKeyExchangeModes;
                 this.m_earlySecrets = earlySecrets;
                 this.m_bindersSize = bindersSize;
             }
@@ -93,11 +96,11 @@ namespace Org.BouncyCastle.Tls
 
         /// <exception cref="IOException"/>
         internal static void EncodeBinders(Stream output, TlsCrypto crypto, TlsHandshakeHash handshakeHash,
-            Config config)
+            BindersConfig bindersConfig)
         {
-            TlsPsk[] psks = config.m_psks;
-            TlsSecret[] earlySecrets = config.m_earlySecrets;
-            int expectedLengthOfBindersList = config.m_bindersSize - 2;
+            TlsPsk[] psks = bindersConfig.m_psks;
+            TlsSecret[] earlySecrets = bindersConfig.m_earlySecrets;
+            int expectedLengthOfBindersList = bindersConfig.m_bindersSize - 2;
 
             TlsUtilities.CheckUint16(expectedLengthOfBindersList);
             TlsUtilities.WriteUint16(expectedLengthOfBindersList, output);

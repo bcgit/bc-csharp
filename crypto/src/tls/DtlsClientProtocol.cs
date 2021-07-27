@@ -446,7 +446,7 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_clientSupportedGroups = TlsExtensionsUtilities.GetSupportedGroupsExtension(
                 state.clientExtensions);
 
-            state.clientAgreements = TlsUtilities.AddEarlyKeySharesToClientHello(state.clientContext, state.client,
+            state.clientAgreements = TlsUtilities.AddKeyShareToClientHello(state.clientContext, state.client,
                 state.clientExtensions);
 
             if (TlsUtilities.IsExtendedMasterSecretOptionalDtls(context.ClientSupportedVersions)
