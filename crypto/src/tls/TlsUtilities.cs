@@ -5481,6 +5481,7 @@ namespace Org.BouncyCastle.Tls
             int bindersSize = OfferedPsks.GetBindersSize(pskExternals);
 
             AddPreSharedKeyToClientExtensions(pskExternals, clientExtensions);
+            TlsExtensionsUtilities.AddPskKeyExchangeModesExtension(clientExtensions, pskKeyExchangeModes);
 
             return new OfferedPsks.BindersConfig(pskExternals, pskKeyExchangeModes, pskEarlySecrets, bindersSize);
         }
@@ -5520,6 +5521,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             AddPreSharedKeyToClientExtensions(result.m_psks, clientExtensions);
+            // NOTE: psk_key_exchange_modes should already be in 'clientExtensions' from the ClientHello
 
             return result;
         }
