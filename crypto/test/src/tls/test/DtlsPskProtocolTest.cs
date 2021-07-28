@@ -9,7 +9,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Tls.Tests
 {
     [TestFixture]
-    public class DlsPskProtocolTest
+    public class DtlsPskProtocolTest
     {
         [Test]
         public void TestClientServer()
