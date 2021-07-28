@@ -4821,6 +4821,18 @@ namespace Org.BouncyCastle.Tls
             return authentication;
         }
 
+        internal static TlsAuthentication Skip13ServerCertificate(TlsClientContext clientContext)
+        {
+            SecurityParameters securityParameters = clientContext.SecurityParameters;
+            if (null != securityParameters.PeerCertificate)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            securityParameters.m_peerCertificate = null;
+            securityParameters.m_tlsServerEndPoint = null;
+
+            return null;
+        }
+
         public static bool ContainsNonAscii(byte[] bs)
         {
             for (int i = 0; i < bs.Length; ++i)

@@ -118,19 +118,8 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void Handle13HandshakeMessage(short type, HandshakeMessageInput buf)
         {
-            if (!IsTlsV13ConnectionState())
+            if (!IsTlsV13ConnectionState() || m_resumedSession)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
-
-            if (m_resumedSession)
-            {
-                /*
-                 * TODO[tls13] Resumption/PSK
-                 * 
-                 * NOTE: No CertificateRequest, Certificate, CertificateVerify messages, but client
-                 * might now send EndOfEarlyData after receiving server Finished message.
-                 */
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
 
             switch (type)
             {
@@ -146,9 +135,6 @@ namespace Org.BouncyCastle.Tls
                         Skip13CertificateRequest();
                     }
 
-                    /*
-                     * TODO[tls13] For PSK-only key exchange, there's no Certificate message.
-                     */
                     Receive13ServerCertificate(buf);
                     this.m_connectionState = CS_SERVER_CERTIFICATE;
                     break;
@@ -234,6 +220,12 @@ namespace Org.BouncyCastle.Tls
 
                     // See RFC 8446 D.4.
                     m_recordStream.SetIgnoreChangeCipherSpec(false);
+
+                    /*
+                     * TODO[tls13] After receiving the server's Finished message, if the server has accepted early
+                     * data, an EndOfEarlyData message will be sent to indicate the key change. This message will
+                     * be encrypted with the 0-RTT traffic keys.
+                     */
 
                     if (null != m_certificateRequest)
                     {
@@ -968,6 +960,8 @@ namespace Org.BouncyCastle.Tls
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
                     pskEarlySecret = m_clientBinders.m_earlySecrets[selected_identity];
+
+                    this.m_selectedPsk13 = true;
                 }
 
                 m_tlsClient.NotifySelectedPsk(selectedPsk);
@@ -1028,7 +1022,10 @@ namespace Org.BouncyCastle.Tls
             {
                 m_recordStream.SetIgnoreChangeCipherSpec(true);
 
-                // TODO[tls13] If offering early data, the record is placed immediately after the first ClientHello.
+                /*
+                 * TODO[tls13] If offering early_data, the record is placed immediately after the first
+                 * ClientHello.
+                 */
                 /*
                  * TODO[tls13] Ideally wait until just after Server Finished received, but then we'd need to defer
                  * the enabling of the pending write cipher
@@ -1338,22 +1335,21 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void Receive13CertificateRequest(MemoryStream buf, bool postHandshakeAuth)
         {
+            // TODO[tls13] Support for post_handshake_auth
+            if (postHandshakeAuth)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
             /* 
              * RFC 8446 4.3.2. A server which is authenticating with a certificate MAY optionally
              * request a certificate from the client.
              */
 
-            /*
-             * TODO[tls13] Currently all handshakes are certificate-authenticated. When PSK-only becomes an option,
-             * then check here that a certificate message is expected (else fatal unexpected_message alert).
-             */
+            if (m_selectedPsk13)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
             CertificateRequest certificateRequest = CertificateRequest.Parse(m_tlsClientContext, buf);
 
             AssertEmpty(buf);
-
-            if (postHandshakeAuth)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
 
             if (!certificateRequest.HasCertificateRequestContext(TlsUtilities.EmptyBytes))
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
@@ -1459,6 +1455,9 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void Receive13ServerCertificate(MemoryStream buf)
         {
+            if (m_selectedPsk13)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
+
             this.m_authentication = TlsUtilities.Receive13ServerCertificate(m_tlsClientContext, m_tlsClient, buf);
 
             // NOTE: In TLS 1.3 we don't have to wait for a possible CertificateStatus message.
@@ -1584,7 +1583,10 @@ namespace Org.BouncyCastle.Tls
             {
                 m_recordStream.SetIgnoreChangeCipherSpec(true);
 
-                // TODO[tls13] If offering early data, the record is placed immediately after the first ClientHello.
+                /*
+                 * TODO[tls13] If offering early_data, the record is placed immediately after the first
+                 * ClientHello.
+                 */
                 SendChangeCipherSpecMessage();
             }
 
@@ -1791,10 +1793,10 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void Skip13ServerCertificate()
         {
-            this.m_authentication = null;
+            if (!m_selectedPsk13)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-            // TODO[tls13] May be skipped for PSK handshakes?
-            throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            this.m_authentication = TlsUtilities.Skip13ServerCertificate(m_tlsClientContext);
         }
     }
 }

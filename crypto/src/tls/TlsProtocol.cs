@@ -150,6 +150,7 @@ namespace Org.BouncyCastle.Tls
 
         protected short m_connectionState = CS_START;
         protected bool m_resumedSession = false;
+        protected bool m_selectedPsk13 = false;
         protected bool m_receivedChangeCipherSpec = false;
         protected bool m_expectSessionTicket = false;
 
@@ -359,6 +360,8 @@ namespace Org.BouncyCastle.Tls
 
             this.m_handshakeHash = new DeferredHash(context);
             this.m_connectionState = CS_START;
+            this.m_resumedSession = false;
+            this.m_selectedPsk13 = false;
 
             context.HandshakeBeginning(peer);
 
@@ -389,6 +392,7 @@ namespace Org.BouncyCastle.Tls
             this.m_serverExtensions = null;
 
             this.m_resumedSession = false;
+            this.m_selectedPsk13 = false;
             this.m_receivedChangeCipherSpec = false;
             this.m_expectSessionTicket = false;
         }
