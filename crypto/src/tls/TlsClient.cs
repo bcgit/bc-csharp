@@ -61,6 +61,7 @@ namespace Org.BouncyCastle.Tls
 
         void NotifySelectedCipherSuite(int selectedCipherSuite);
 
+        /// <exception cref="IOException"/>
         void NotifySelectedPsk(TlsPsk selectedPsk);
 
         /// <summary>The protocol implementation validates that any server extensions received correspond to client

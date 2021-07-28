@@ -373,6 +373,7 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
+        /// <exception cref="IOException"/>
         public virtual void NotifySelectedPsk(TlsPsk selectedPsk)
         {
         }
