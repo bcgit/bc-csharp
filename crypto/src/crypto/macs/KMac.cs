@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -22,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public KMac(int bitLength, byte[] S)
         {
-            this.cshake = new CShakeDigest(bitLength, Encoding.ASCII.GetBytes("KMAC"), S);
+            this.cshake = new CShakeDigest(bitLength, Strings.ToAsciiByteArray("KMAC"), S);
             this.bitLength = bitLength;
             this.outputLength = bitLength * 2 / 8;
         }

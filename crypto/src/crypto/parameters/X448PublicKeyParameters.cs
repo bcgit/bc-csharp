@@ -14,6 +14,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private readonly byte[] data = new byte[KeySize];
 
+        public X448PublicKeyParameters(byte[] buf)
+            : this(Validate(buf), 0)
+        {
+        }
+
         public X448PublicKeyParameters(byte[] buf, int off)
             : base(false)
         {
@@ -35,6 +40,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public byte[] GetEncoded()
         {
             return Arrays.Clone(data);
+        }
+
+        private static byte[] Validate(byte[] buf)
+        {
+            if (buf.Length != KeySize)
+                throw new ArgumentException("must have length " + KeySize, "buf");
+
+            return buf;
         }
     }
 }

@@ -136,22 +136,14 @@ namespace Org.BouncyCastle.X509
 		}
 
 		public bool Match(
-//			Certificate cert)
 			X509Certificate x509Cert)
 		{
-//			if (!(cert is X509Certificate))
-//			{
-//				return false;
-//			}
-//
-//			X509Certificate x509Cert = (X509Certificate)cert;
-
 			if (form is V2Form)
 			{
 				V2Form issuer = (V2Form) form;
 				if (issuer.BaseCertificateID != null)
 				{
-					return issuer.BaseCertificateID.Serial.Value.Equals(x509Cert.SerialNumber)
+					return issuer.BaseCertificateID.Serial.HasValue(x509Cert.SerialNumber)
 						&& MatchesDN(x509Cert.IssuerDN, issuer.BaseCertificateID.Issuer);
 				}
 

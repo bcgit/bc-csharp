@@ -72,14 +72,13 @@ namespace Org.BouncyCastle.Cms.Tests
 		[Test]
 		public void TestKeyTransDESede()
 		{
-			tryKeyTrans(CmsAuthenticatedDataGenerator.DesEde3Cbc);
-		}
+            tryKeyTrans(Encoding.ASCII.GetBytes("Eric H. Echidna"), CmsEnvelopedGenerator.DesEde3Cbc);
+            // force multiple octet-string
+            tryKeyTrans(new byte[2500], CmsEnvelopedGenerator.DesEde3Cbc);
+        }
 
-		private void tryKeyTrans(
-			string macAlg)
+		private void tryKeyTrans(byte[] data, string macAlg)
 		{
-			byte[] data = Encoding.ASCII.GetBytes("Eric H. Echidna");
-
 			CmsAuthenticatedDataStreamGenerator adGen = new CmsAuthenticatedDataStreamGenerator();
 
 			adGen.AddKeyTransRecipient(ReciCert);

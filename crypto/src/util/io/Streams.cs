@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Utilities.IO
 {
 	public sealed class Streams
 	{
-		private const int BufferSize = 512;
+		private const int BufferSize = 4096;
 
 		private Streams()
 		{
@@ -51,10 +51,24 @@ namespace Org.BouncyCastle.Utilities.IO
 			return totalRead;
 		}
 
-		public static void PipeAll(Stream inStr, Stream outStr)
+        /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
+        /// <param name="inStr">Source stream.</param>
+        /// <param name="outStr">Destination stream.</param>
+        /// <exception cref="IOException">In case of IO failure.</exception>
+        public static void PipeAll(Stream inStr, Stream outStr)
 		{
-			byte[] bs = new byte[BufferSize];
-			int numRead;
+            PipeAll(inStr, outStr, BufferSize);
+        }
+
+        /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
+        /// <param name="inStr">Source stream.</param>
+        /// <param name="outStr">Destination stream.</param>
+        /// <param name="bufferSize">The size of temporary buffer to use.</param>
+        /// <exception cref="IOException">In case of IO failure.</exception>
+        public static void PipeAll(Stream inStr, Stream outStr, int bufferSize)
+        {
+            byte[] bs = new byte[bufferSize];
+            int numRead;
 			while ((numRead = inStr.Read(bs, 0, bs.Length)) > 0)
 			{
 				outStr.Write(bs, 0, numRead);

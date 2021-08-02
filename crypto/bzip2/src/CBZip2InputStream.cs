@@ -57,13 +57,15 @@ namespace Org.BouncyCastle.Apache.Bzip2
             Cadvise();
         }
 
-        private void MakeMaps() {
-            int i;
+        private void MakeMaps()
+        {
             nInUse = 0;
-            for (i = 0; i < 256; i++) {
-                if (inUse[i]) {
-                    seqToUnseq[nInUse] = (char) i;
-                    unseqToSeq[i] = (char) nInUse;
+            for (int i = 0; i < 256; i++)
+            {
+                if (inUse[i])
+                {
+                    seqToUnseq[nInUse] = (char)i;
+                    unseqToSeq[i] = (char)nInUse;
                     nInUse++;
                 }
             }
@@ -150,51 +152,56 @@ namespace Org.BouncyCastle.Apache.Bzip2
             SetupBlock();
         }
 
-        internal static int[][] InitIntArray(int n1, int n2) {
+        internal static int[][] InitIntArray(int n1, int n2)
+        {
             int[][] a = new int[n1][];
-            for (int k = 0; k < n1; ++k) {
+            for (int k = 0; k < n1; ++k)
+            {
                 a[k] = new int[n2];
             }
             return a;
         }
 
-        internal static char[][] InitCharArray(int n1, int n2) {
-            char[][] a = new char[n1][];
-            for (int k = 0; k < n1; ++k) {
-                a[k] = new char[n2];
+        internal static byte[][] InitByteArray(int n1, int n2)
+        {
+            byte[][] a = new byte[n1][];
+            for (int k = 0; k < n1; ++k)
+            {
+                a[k] = new byte[n2];
             }
             return a;
         }
 
-        public override int ReadByte() {
-            if (streamEnd) {
+        public override int ReadByte()
+        {
+            if (streamEnd)
                 return -1;
-            } else {
-                int retChar = currentChar;
-                switch (currentState) {
-                case START_BLOCK_STATE:
-                    break;
-                case RAND_PART_A_STATE:
-                    break;
-                case RAND_PART_B_STATE:
-                    SetupRandPartB();
-                    break;
-                case RAND_PART_C_STATE:
-                    SetupRandPartC();
-                    break;
-                case NO_RAND_PART_A_STATE:
-                    break;
-                case NO_RAND_PART_B_STATE:
-                    SetupNoRandPartB();
-                    break;
-                case NO_RAND_PART_C_STATE:
-                    SetupNoRandPartC();
-                    break;
-                default:
-                    break;
-                }
-                return retChar;
+
+            int retChar = currentChar;
+            switch (currentState)
+            {
+            case START_BLOCK_STATE:
+                break;
+            case RAND_PART_A_STATE:
+                break;
+            case RAND_PART_B_STATE:
+                SetupRandPartB();
+                break;
+            case RAND_PART_C_STATE:
+                SetupRandPartC();
+                break;
+            case NO_RAND_PART_A_STATE:
+                break;
+            case NO_RAND_PART_B_STATE:
+                SetupNoRandPartB();
+                break;
+            case NO_RAND_PART_C_STATE:
+                SetupNoRandPartC();
+                break;
+            default:
+                break;
             }
+            return retChar;
         }
 
         private void Initialize() {
@@ -241,29 +248,24 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
             storedBlockCRC = BsGetInt32();
 
-            if (BsR(1) == 1) {
-                blockRandomised = true;
-            } else {
-                blockRandomised = false;
-            }
+            blockRandomised = BsR(1) == 1;
 
-            //        currBlockNo++;
             GetAndMoveToFrontDecode();
 
             mCrc.InitialiseCRC();
             currentState = START_BLOCK_STATE;
         }
 
-        private void EndBlock() {
+        private void EndBlock()
+        {
             computedBlockCRC = mCrc.GetFinalCRC();
             /* A bad CRC is considered a fatal error. */
-            if (storedBlockCRC != computedBlockCRC) {
+            if (storedBlockCRC != computedBlockCRC)
+            {
                 CrcError();
             }
 
-            computedCombinedCRC = (computedCombinedCRC << 1)
-                | (int)(((uint)computedCombinedCRC) >> 31);
-            computedCombinedCRC ^= computedBlockCRC;
+            computedCombinedCRC = Integers.RotateLeft(computedCombinedCRC, 1) ^ computedBlockCRC;
         }
 
         private void Complete() {
@@ -311,7 +313,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 int zzi;
                 char thech = '\0';
                 try {
-                    thech = (char) bsStream.ReadByte();
+                    thech = (char)bsStream.ReadByte();
                 } catch (IOException) {
                     CompressedStreamEOF();
                 }
@@ -328,33 +330,39 @@ namespace Org.BouncyCastle.Apache.Bzip2
             return v;
         }
 
-        private char BsGetUChar() {
-            return (char) BsR(8);
+        private char BsGetUChar()
+        {
+            return (char)BsR(8);
         }
 
-        private int BsGetint() {
-            int u = 0;
-            u = (u << 8) | BsR(8);
-            u = (u << 8) | BsR(8);
-            u = (u << 8) | BsR(8);
-            u = (u << 8) | BsR(8);
-            return u;
+        private int BsGetint()
+        {
+            //int u = 0;
+            //u = (u << 8) | BsR(8);
+            //u = (u << 8) | BsR(8);
+            //u = (u << 8) | BsR(8);
+            //u = (u << 8) | BsR(8);
+            //return u;
+            int u = BsR(16) << 16;
+            return u | BsR(16);
         }
 
-        private int BsGetIntVS(int numBits) {
-            return (int) BsR(numBits);
+        private int BsGetIntVS(int numBits)
+        {
+            return BsR(numBits);
         }
 
-        private int BsGetInt32() {
-            return (int) BsGetint();
+        private int BsGetInt32()
+        {
+            return BsGetint();
         }
 
-        private void HbCreateDecodeTables(int[] limit, int[] basev,
-                                        int[] perm, char[] length,
-                                        int minLen, int maxLen, int alphaSize) {
-            int pp, i, j, vec;
+        private void HbCreateDecodeTables(int[] limit, int[] basev, int[] perm, byte[] length, int minLen, int maxLen,
+            int alphaSize)
+        {
+            int i, j, vec;
 
-            pp = 0;
+            int pp = 0;
             for (i = minLen; i <= maxLen; i++) {
                 for (j = 0; j < alphaSize; j++) {
                     if (length[j] == i) {
@@ -390,31 +398,34 @@ namespace Org.BouncyCastle.Apache.Bzip2
             }
         }
 
-        private void RecvDecodingTables() {
-            char[][] len = InitCharArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
+        private void RecvDecodingTables()
+        {
+            byte[][] len = InitByteArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
             int i, j, t, nGroups, nSelectors, alphaSize;
             int minLen, maxLen;
             bool[] inUse16 = new bool[16];
 
             /* Receive the mapping table */
-            for (i = 0; i < 16; i++) {
-                if (BsR(1) == 1) {
-                    inUse16[i] = true;
-                } else {
-                    inUse16[i] = false;
+            for (i = 0; i < 16; i++)
+            {
+                inUse16[i] = BsR(1) == 1;
+            }
+
+            for (i = 0; i < 16; i++)
+            {
+                int i16 = i * 16;
+                if (inUse16[i])
+                {
+                    for (j = 0; j < 16; j++)
+                    {
+                        inUse[i16 + j] = BsR(1) == 1;
+                    }
                 }
-            }
-
-            for (i = 0; i < 256; i++) {
-                inUse[i] = false;
-            }
-
-            for (i = 0; i < 16; i++) {
-                if (inUse16[i]) {
-                    for (j = 0; j < 16; j++) {
-                        if (BsR(1) == 1) {
-                            inUse[i * 16 + j] = true;
-                        }
+                else
+                {
+                    for (j = 0; j < 16; j++)
+                    {
+                        inUse[i16 + j] = false;
                     }
                 }
             }
@@ -430,7 +441,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 while (BsR(1) == 1) {
                     j++;
                 }
-                selectorMtf[i] = (char) j;
+                selectorMtf[i] = (char)j;
             }
 
             /* Undo the MTF values for the selectors. */
@@ -454,39 +465,52 @@ namespace Org.BouncyCastle.Apache.Bzip2
             }
 
             /* Now the coding tables */
-            for (t = 0; t < nGroups; t++) {
+            for (t = 0; t < nGroups; t++)
+            {
+                byte[] len_t = len[t];
                 int curr = BsR(5);
-                for (i = 0; i < alphaSize; i++) {
-                    while (BsR(1) == 1) {
-                        if (BsR(1) == 0) {
+                for (i = 0; i < alphaSize; i++)
+                {
+                    while (BsR(1) == 1)
+                    {
+                        if (BsR(1) == 0)
+                        {
                             curr++;
-                        } else {
+                        }
+                        else
+                        {
                             curr--;
                         }
                     }
-                    len[t][i] = (char) curr;
+                    len_t[i] = (byte)curr;
                 }
             }
 
             /* Create the Huffman decoding tables */
-            for (t = 0; t < nGroups; t++) {
+            for (t = 0; t < nGroups; t++)
+            {
                 minLen = 32;
                 maxLen = 0;
-                for (i = 0; i < alphaSize; i++) {
-                    if (len[t][i] > maxLen) {
-                        maxLen = len[t][i];
+                byte[] len_t = len[t];
+                for (i = 0; i < alphaSize; i++)
+                {
+                    int lti = len_t[i];
+                    if (lti > maxLen)
+                    {
+                        maxLen = lti;
                     }
-                    if (len[t][i] < minLen) {
-                        minLen = len[t][i];
+                    if (lti < minLen)
+                    {
+                        minLen = lti;
                     }
                 }
-                HbCreateDecodeTables(limit[t], basev[t], perm[t], len[t], minLen,
-                                    maxLen, alphaSize);
+                HbCreateDecodeTables(limit[t], basev[t], perm[t], len_t, minLen, maxLen, alphaSize);
                 minLens[t] = minLen;
             }
         }
 
-        private void GetAndMoveToFrontDecode() {
+        private void GetAndMoveToFrontDecode()
+        {
             char[] yy = new char[256];
             int i, j, nextSym, limitLast;
             int EOB, groupNo, groupPos;
@@ -505,19 +529,22 @@ namespace Org.BouncyCastle.Apache.Bzip2
             in a separate pass, and so saves a block's worth of
             cache misses.
             */
-            for (i = 0; i <= 255; i++) {
+            for (i = 0; i <= 255; i++)
+            {
                 unzftab[i] = 0;
             }
 
-            for (i = 0; i <= 255; i++) {
-                yy[i] = (char) i;
+            for (i = 0; i <= 255; i++)
+            {
+                yy[i] = (char)i;
             }
 
             last = -1;
 
             {
                 int zt, zn, zvec, zj;
-                if (groupPos == 0) {
+                if (groupPos == 0)
+                {
                     groupNo++;
                     groupPos = BZip2Constants.G_SIZE;
                 }
@@ -525,19 +552,25 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 zt = selector[groupNo];
                 zn = minLens[zt];
                 zvec = BsR(zn);
-                while (zvec > limit[zt][zn]) {
+                while (zvec > limit[zt][zn])
+                {
                     zn++;
                     {
                         {
-                            while (bsLive < 1) {
+                            while (bsLive < 1)
+                            {
                                 int zzi;
                                 char thech = '\0';
-                                try {
-                                    thech = (char) bsStream.ReadByte();
-                                } catch (IOException) {
+                                try
+                                {
+                                    thech = (char)bsStream.ReadByte();
+                                }
+                                catch (IOException)
+                                {
                                     CompressedStreamEOF();
                                 }
-                                if (thech == '\uffff') {
+                                if (thech == '\uffff')
+                                {
                                     CompressedStreamEOF();
                                 }
                                 zzi = thech;
@@ -553,26 +586,28 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 nextSym = perm[zt][zvec - basev[zt][zn]];
             }
 
-            while (true) {
-
-                if (nextSym == EOB) {
-                    break;
-                }
-
-                if (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB) {
+            while (nextSym != EOB)
+            {
+                if (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB)
+                {
                     char ch;
                     int s = -1;
                     int N = 1;
-                    do {
-                        if (nextSym == BZip2Constants.RUNA) {
-                            s = s + (0 + 1) * N;
-                        } else if (nextSym == BZip2Constants.RUNB) {
-                            s = s + (1 + 1) * N;
-                            }
+                    do
+                    {
+                        if (nextSym == BZip2Constants.RUNA)
+                        {
+                            s += (0 + 1) * N;
+                        }
+                        else if (nextSym == BZip2Constants.RUNB)
+                        {
+                            s += (1 + 1) * N;
+                        }
                         N = N * 2;
                         {
                             int zt, zn, zvec, zj;
-                            if (groupPos == 0) {
+                            if (groupPos == 0)
+                            {
                                 groupNo++;
                                 groupPos = BZip2Constants.G_SIZE;
                             }
@@ -580,19 +615,25 @@ namespace Org.BouncyCastle.Apache.Bzip2
                             zt = selector[groupNo];
                             zn = minLens[zt];
                             zvec = BsR(zn);
-                            while (zvec > limit[zt][zn]) {
+                            while (zvec > limit[zt][zn])
+                            {
                                 zn++;
                                 {
                                     {
-                                        while (bsLive < 1) {
+                                        while (bsLive < 1)
+                                        {
                                             int zzi;
                                             char thech = '\0';
-                                            try {
-                                                thech = (char) bsStream.ReadByte();
-                                            } catch (IOException) {
+                                            try
+                                            {
+                                                thech = (char)bsStream.ReadByte();
+                                            }
+                                            catch (IOException)
+                                            {
                                                 CompressedStreamEOF();
                                             }
-                                            if (thech == '\uffff') {
+                                            if (thech == '\uffff')
+                                            {
                                                 CompressedStreamEOF();
                                             }
                                             zzi = thech;
@@ -607,55 +648,60 @@ namespace Org.BouncyCastle.Apache.Bzip2
                             }
                             nextSym = perm[zt][zvec - basev[zt][zn]];
                         }
-                    } while (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB);
+                    }
+                    while (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB);
 
                     s++;
                     ch = seqToUnseq[yy[0]];
                     unzftab[ch] += s;
 
-                    while (s > 0) {
+                    while (s > 0)
+                    {
                         last++;
                         ll8[last] = ch;
                         s--;
                     }
 
-                    if (last >= limitLast) {
+                    if (last >= limitLast)
+                    {
                         BlockOverrun();
                     }
                     continue;
-                } else {
-                    char tmp;
-                    last++;
-                    if (last >= limitLast) {
+                }
+                else
+                {
+                    if (++last >= limitLast)
+                    {
                         BlockOverrun();
                     }
 
-                    tmp = yy[nextSym - 1];
+                    char tmp = yy[nextSym - 1];
                     unzftab[seqToUnseq[tmp]]++;
                     ll8[last] = seqToUnseq[tmp];
 
                     /*
-                    This loop is hammered during decompression,
-                    hence the unrolling.
-
-                    for (j = nextSym-1; j > 0; j--) yy[j] = yy[j-1];
-                    */
-
-                    j = nextSym - 1;
-                    for (; j > 3; j -= 4) {
-                        yy[j]     = yy[j - 1];
-                        yy[j - 1] = yy[j - 2];
-                        yy[j - 2] = yy[j - 3];
-                        yy[j - 3] = yy[j - 4];
+                     * This loop is hammered during decompression, hence avoid
+                     * native method call overhead of Array.Copy for very
+                     * small ranges to copy.
+                     */
+                    if (nextSym <= 16)
+                    {
+                        for (j = nextSym - 1; j > 0; --j)
+                        {
+                            yy[j] = yy[j - 1];
+                        }
                     }
-                    for (; j > 0; j--) {
-                        yy[j] = yy[j - 1];
+                    else
+                    {
+                        Array.Copy(yy, 0, yy, 1, nextSym - 1);
                     }
 
                     yy[0] = tmp;
+
                     {
                         int zt, zn, zvec, zj;
-                        if (groupPos == 0) {
+                        if (groupPos == 0)
+                        {
                             groupNo++;
                             groupPos = BZip2Constants.G_SIZE;
                         }
@@ -663,16 +709,21 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         zt = selector[groupNo];
                         zn = minLens[zt];
                         zvec = BsR(zn);
-                        while (zvec > limit[zt][zn]) {
+                        while (zvec > limit[zt][zn])
+                        {
                             zn++;
                             {
                                 {
-                                    while (bsLive < 1) {
+                                    while (bsLive < 1)
+                                    {
                                         int zzi;
                                         char thech = '\0';
-                                        try {
-                                            thech = (char) bsStream.ReadByte();
-                                        } catch (IOException) {
+                                        try
+                                        {
+                                            thech = (char)bsStream.ReadByte();
+                                        }
+                                        catch (IOException)
+                                        {
                                             CompressedStreamEOF();
                                         }
                                         zzi = thech;
@@ -705,7 +756,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
             }
 
             for (i = 0; i <= last; i++) {
-                ch = (char) ll8[i];
+                ch = ll8[i];
                 tt[cftab[ch]] = i;
                 cftab[ch]++;
             }

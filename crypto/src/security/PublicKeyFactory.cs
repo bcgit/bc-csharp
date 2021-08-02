@@ -217,19 +217,19 @@ namespace Org.BouncyCastle.Security
             }
             else if (algOid.Equals(EdECObjectIdentifiers.id_X25519))
             {
-                return new X25519PublicKeyParameters(GetRawKey(keyInfo, X25519PublicKeyParameters.KeySize), 0);
+                return new X25519PublicKeyParameters(GetRawKey(keyInfo));
             }
             else if (algOid.Equals(EdECObjectIdentifiers.id_X448))
             {
-                return new X448PublicKeyParameters(GetRawKey(keyInfo, X448PublicKeyParameters.KeySize), 0);
+                return new X448PublicKeyParameters(GetRawKey(keyInfo));
             }
             else if (algOid.Equals(EdECObjectIdentifiers.id_Ed25519))
             {
-                return new Ed25519PublicKeyParameters(GetRawKey(keyInfo, Ed25519PublicKeyParameters.KeySize), 0);
+                return new Ed25519PublicKeyParameters(GetRawKey(keyInfo));
             }
             else if (algOid.Equals(EdECObjectIdentifiers.id_Ed448))
             {
-                return new Ed448PublicKeyParameters(GetRawKey(keyInfo, Ed448PublicKeyParameters.KeySize), 0);
+                return new Ed448PublicKeyParameters(GetRawKey(keyInfo));
             }
             else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
                 ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
@@ -282,17 +282,13 @@ namespace Org.BouncyCastle.Security
             }
         }
 
-        private static byte[] GetRawKey(SubjectPublicKeyInfo keyInfo, int expectedSize)
+        private static byte[] GetRawKey(SubjectPublicKeyInfo keyInfo)
         {
             /*
              * TODO[RFC 8422]
              * - Require keyInfo.Algorithm.Parameters == null?
              */
-            byte[] result = keyInfo.PublicKeyData.GetOctets();
-            if (expectedSize != result.Length)
-                throw new SecurityUtilityException("public key encoding has incorrect length");
-
-            return result;
+            return keyInfo.PublicKeyData.GetOctets();
         }
 
         private static bool IsPkcsDHParam(Asn1Sequence seq)

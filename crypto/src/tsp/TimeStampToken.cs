@@ -180,16 +180,12 @@ namespace Org.BouncyCastle.Tsp
 					certID.GetHashAlgorithmName(), cert.GetEncoded());
 
 				if (!Arrays.ConstantTimeAreEqual(certID.GetCertHash(), hash))
-				{
 					throw new TspValidationException("certificate hash does not match certID hash.");
-				}
 
 				if (certID.IssuerSerial != null)
 				{
-					if (!certID.IssuerSerial.Serial.Value.Equals(cert.SerialNumber))
-					{
+					if (!certID.IssuerSerial.Serial.HasValue(cert.SerialNumber))
 						throw new TspValidationException("certificate serial number does not match certID for signature.");
-					}
 
 					GeneralName[] names = certID.IssuerSerial.Issuer.GetNames();
 					X509Name principal = PrincipalUtilities.GetIssuerX509Principal(cert);

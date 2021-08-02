@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 		private DerInteger			version;
 		private IAsn1Convertible	nextObject;
 		private bool				originatorInfoCalled;
-		private EncryptedContentInfoParser authEncryptedContentInfoParser;
+        private bool                isData;
 
 		public AuthEnvelopedDataParser(
 			Asn1SequenceParser	seq)
@@ -87,8 +87,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 			{
 				Asn1SequenceParser o = (Asn1SequenceParser) nextObject;
 				nextObject = null;
-				authEncryptedContentInfoParser = new EncryptedContentInfoParser(o);
-				return authEncryptedContentInfoParser;
+                EncryptedContentInfoParser encryptedContentInfoParser = new EncryptedContentInfoParser(o);
+                isData = CmsObjectIdentifiers.Data.Equals(encryptedContentInfoParser.ContentType);
+                return encryptedContentInfoParser;
 			}
 
 			return null;
@@ -110,7 +111,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			// "The authAttrs MUST be present if the content type carried in
 			// EncryptedContentInfo is not id-data."
-			if (!authEncryptedContentInfoParser.ContentType.Equals(CmsObjectIdentifiers.Data))
+			if (!isData)
 				throw new Asn1ParsingException("authAttrs must be present with non-data content");
 
 			return null;

@@ -33,12 +33,17 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		/// <exception cref="IOException"></exception>
 		public PemObject ReadPemObject()
 		{
-			string line = reader.ReadLine();
+            string line = reader.ReadLine();
 
-            if (line != null && Platform.StartsWith(line, BeginString))
-			{
-				line = line.Substring(BeginString.Length);
-				int index = line.IndexOf('-');
+            while (line != null && !Platform.StartsWith(line, BeginString)) 
+            {
+                line = reader.ReadLine();
+            }
+
+            if (line != null)
+            {
+                line = line.Substring(BeginString.Length);
+                int index = line.IndexOf('-');
 
                 if (index > 0 && Platform.EndsWith(line, "-----") && (line.Length - index) == 5)
                 {
@@ -48,7 +53,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
                 }
             }
 
-			return null;
+            return null;
 		}
 
 		private PemObject LoadObject(string type)
@@ -58,40 +63,26 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 			StringBuilder buf = new StringBuilder();
 
 			string line;
-			while ((line = reader.ReadLine()) != null
-                && Platform.IndexOf(line, endMarker) == -1)
+			while ((line = reader.ReadLine()) != null)
 			{
 				int colonPos = line.IndexOf(':');
-
-				if (colonPos == -1)
+				if (colonPos >= 0)
 				{
-					buf.Append(line.Trim());
+                    string hdr = line.Substring(0, colonPos);
+                    string val = line.Substring(colonPos + 1).Trim();
+
+                    headers.Add(new PemHeader(hdr, val));
+                    continue;
 				}
-				else
-				{
-					// Process field
-					string fieldName = line.Substring(0, colonPos).Trim();
 
-                    if (Platform.StartsWith(fieldName, "X-"))
-                    {
-                        fieldName = fieldName.Substring(2);
-                    }
+                if (Platform.IndexOf(line, endMarker) >= 0)
+                    break;
 
-					string fieldValue = line.Substring(colonPos + 1).Trim();
+                buf.Append(line.Trim());
+            }
 
-					headers.Add(new PemHeader(fieldName, fieldValue));
-				}
-			}
-
-			if (line == null)
-			{
+            if (line == null)
 				throw new IOException(endMarker + " not found");
-			}
-
-			if (buf.Length % 4 != 0)
-			{
-				throw new IOException("base64 data appears to be truncated");
-			}
 
 			return new PemObject(type, headers, Base64.Decode(buf.ToString()));
 		}

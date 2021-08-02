@@ -133,8 +133,9 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 if (certificateTypes == null || !Arrays.Contains(certificateTypes, ClientCertificateType.rsa_sign))
                     return null;
 
-                return TlsTestUtilities.LoadSignerCredentials(mContext, certificateRequest.SupportedSignatureAlgorithms,
-                    SignatureAlgorithm.rsa, "x509-client.pem", "x509-client-key.pem");
+                return TlsTestUtilities.LoadSignerCredentials(mContext,
+                    certificateRequest.SupportedSignatureAlgorithms, SignatureAlgorithm.rsa,
+                    new string[]{ "x509-client-rsa.pem", "x509-ca-rsa.pem" }, "x509-client-key-rsa.pem");
             }
         };
     }

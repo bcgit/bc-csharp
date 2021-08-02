@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Cms
 				eiGen.AddObject(CmsObjectIdentifiers.Data);
 
 				Stream octetOutputStream = CmsUtilities.CreateBerOctetOutputStream(
-					eiGen.GetRawOutputStream(), 0, false, _bufferSize);
+					eiGen.GetRawOutputStream(), 0, true, _bufferSize);
 
                 IMac mac = MacUtilities.GetMac(macAlgId.Algorithm);
 				// TODO Confirm no ParametersWithRandom needed

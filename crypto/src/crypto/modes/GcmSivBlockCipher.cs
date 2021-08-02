@@ -368,7 +368,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 int myDataLen = BUFLEN + encryptPlain(myTag, pOutput, pOffset);
 
                 /* Add the tag to the output */
-                Array.Copy(myTag, 0, pOutput, pOffset + thePlain.Length, BUFLEN);
+                Array.Copy(myTag, 0, pOutput, pOffset + (int)thePlain.Length, BUFLEN);
 
                 /* Reset the streams */
                 ResetStreams();

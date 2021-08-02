@@ -24,6 +24,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
             Ed448.GeneratePrivateKey(random, data);
         }
 
+        public Ed448PrivateKeyParameters(byte[] buf)
+            : this(Validate(buf), 0)
+        {
+        }
+
         public Ed448PrivateKeyParameters(byte[] buf, int off)
             : base(true)
         {
@@ -97,6 +102,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentException("algorithm");
             }
             }
+        }
+
+        private static byte[] Validate(byte[] buf)
+        {
+            if (buf.Length != KeySize)
+                throw new ArgumentException("must have length " + KeySize, "buf");
+
+            return buf;
         }
     }
 }
