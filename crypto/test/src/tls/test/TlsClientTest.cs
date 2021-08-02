@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Tls.Tests
     [TestFixture]
     public class TlsClientTest
     {
-        [Test, Ignore]
+        [Test, Ignore("Fill In Reason")]
         public void TestConnection()
         {
             string host = "localhost";
