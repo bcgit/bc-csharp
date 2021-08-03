@@ -1,7 +1,8 @@
 using System;
 using System.Collections;
 using System.IO;
-
+using Org.BouncyCastle.Asn1.Gnu;
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -10,6 +11,8 @@ using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Math.EC.Rfc7748;
+using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -177,10 +180,34 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     bcpgKey = new ECDsaPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q);
                 }
+                else if (algorithm == PublicKeyAlgorithmTag.EdDsa)
+                {
+                    bcpgKey = new ECDsaPublicBcpgKey(ecK.PublicKeyParamSet, ecK.Q);
+                }
                 else
                 {
                     throw new PgpException("unknown EC algorithm");
                 }
+            }
+            else if (pubKey is Ed25519PublicKeyParameters)
+            {
+                Ed25519PublicKeyParameters ecK = (Ed25519PublicKeyParameters)pubKey;
+                byte[] encodedPoint = new byte[Ed25519.PublicKeySize + 1];
+                encodedPoint[0] = 0x40;
+                ecK.Encode(encodedPoint, 1);
+                bcpgKey = new ECDsaPublicBcpgKey(GnuObjectIdentifiers.Ed25519, new BigInteger(1, encodedPoint));
+            }
+            else if (pubKey is X25519PublicKeyParameters)
+            {
+                X25519PublicKeyParameters ecK = (X25519PublicKeyParameters)pubKey;
+                byte[] encodedPoint = new byte[X25519.PointSize + 1];
+                encodedPoint[0] = 0x40;
+                ecK.Encode(encodedPoint, 1);
+                bcpgKey = new ECDHPublicBcpgKey(
+                    MiscObjectIdentifiers.Curve25519,
+                    new BigInteger(1, encodedPoint),
+                    HashAlgorithmTag.Sha256,
+                    SymmetricKeyAlgorithmTag.Aes128);
             }
             else if (pubKey is ElGamalPublicKeyParameters)
             {
@@ -495,7 +522,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.ECDsa:
                         return GetECKey("ECDSA");
                     case PublicKeyAlgorithmTag.ECDH:
-                        return GetECKey("ECDH");
+                        if (((ECPublicBcpgKey)publicPk.Key).CurveOid.Id.Equals(MiscObjectIdentifiers.Curve25519.Id))
+                        {
+                            byte[] encodedPoint = ((ECPublicBcpgKey)publicPk.Key).EncodedPoint.ToByteArrayUnsigned();
+                            return new X25519PublicKeyParameters(encodedPoint, 1);
+                        }
+                        else
+                            return GetECKey("ECDH");
+                    case PublicKeyAlgorithmTag.EdDsa:
+                        return new Ed25519PublicKeyParameters(((ECPublicBcpgKey)publicPk.Key).EncodedPoint.ToByteArrayUnsigned(), 1);
                     case PublicKeyAlgorithmTag.ElGamalEncrypt:
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
                         ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey)publicPk.Key;

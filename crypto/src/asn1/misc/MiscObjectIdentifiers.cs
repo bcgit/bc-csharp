@@ -74,6 +74,9 @@ namespace Org.BouncyCastle.Asn1.Misc
         public static readonly DerObjectIdentifier cryptlib_algorithm_blowfish_CFB = cryptlib_algorithm.Branch("1.3");
         public static readonly DerObjectIdentifier cryptlib_algorithm_blowfish_OFB = cryptlib_algorithm.Branch("1.4");
 
+        // OpenPGP (draft-ietf-openpgp-rfc4880bis-10)
+        public static readonly DerObjectIdentifier Curve25519 = cryptlib_algorithm.Branch("5.1");
+
         //
         // Blake2b
         //
