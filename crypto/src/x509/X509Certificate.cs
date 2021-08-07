@@ -73,8 +73,12 @@ namespace Org.BouncyCastle.X509
         {
         }
 
-        public X509Certificate(
-            X509CertificateStructure c)
+        public X509Certificate(byte[] certData)
+            : this(X509CertificateStructure.GetInstance(certData))
+        {
+        }
+
+        public X509Certificate(X509CertificateStructure c)
         {
             this.c = c;
 

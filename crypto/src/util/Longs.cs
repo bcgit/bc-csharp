@@ -35,10 +35,7 @@ namespace Org.BouncyCastle.Utilities
 
         public static long Reverse(long i)
         {
-            i = (long)Bits.BitPermuteStepSimple((ulong)i, 0x5555555555555555UL, 1);
-            i = (long)Bits.BitPermuteStepSimple((ulong)i, 0x3333333333333333UL, 2);
-            i = (long)Bits.BitPermuteStepSimple((ulong)i, 0x0F0F0F0F0F0F0F0FUL, 4);
-            return ReverseBytes(i);
+            return (long)Reverse((ulong)i);
         }
 
         [CLSCompliantAttribute(false)]
@@ -52,10 +49,7 @@ namespace Org.BouncyCastle.Utilities
 
         public static long ReverseBytes(long i)
         {
-            return RotateLeft((long)((ulong)i & 0xFF000000FF000000UL),  8) |
-                   RotateLeft((long)((ulong)i & 0x00FF000000FF0000UL), 24) |
-                   RotateLeft((long)((ulong)i & 0x0000FF000000FF00UL), 40) |
-                   RotateLeft((long)((ulong)i & 0x000000FF000000FFUL), 56);
+            return (long)ReverseBytes((ulong)i);
         }
 
         [CLSCompliantAttribute(false)]
