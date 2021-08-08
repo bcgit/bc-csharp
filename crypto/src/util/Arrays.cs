@@ -362,6 +362,24 @@ namespace Org.BouncyCastle.Utilities
             return hc;
         }
 
+        [CLSCompliantAttribute(false)]
+        public static int GetHashCode(ushort[] data)
+        {
+            if (data == null)
+                return 0;
+
+            int i = data.Length;
+            int hc = i + 1;
+
+            while (--i >= 0)
+            {
+                hc *= 257;
+                hc ^= data[i];
+            }
+
+            return hc;
+        }
+
         public static int GetHashCode(int[] data, int off, int len)
         {
             if (data == null)
