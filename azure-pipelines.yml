@@ -21,7 +21,20 @@ stages:
     - task: UseDotNet@2
       inputs:
         version: 5.x
+        packageType: runtime
         performMultiLevelLookup: true
+    
+- task: UseDotNet@2
+      inputs:
+        version: 3.x
+        packageType: runtime
+        performMultiLevelLookup: true
+
+    - task: UseDotNet@2
+      inputs:
+        version: 6.x
+        performMultiLevelLookup: true
+        includePreviewVersions: true
 
     - task: DotNetCoreCLI@2  
       inputs:
