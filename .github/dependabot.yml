@@ -5,7 +5,3 @@ updates:
   schedule:
     interval: daily
   open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: NerdBank.GitVersioning
-    versions:
-    - 3.4.190
