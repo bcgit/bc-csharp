@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 }
                 catch (Exception e)
                 {
-                    Console.Error.WriteLine(e.StackTrace);
+                    Console.Error.WriteLine(e);
                 }
             }
 

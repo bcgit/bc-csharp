@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -22,15 +23,36 @@ namespace Org.BouncyCastle.Asn1
             return new BerOctetString(v);
         }
 
-        private static byte[] ToBytes(Asn1OctetString[] octs)
+        internal static byte[] FlattenOctetStrings(Asn1OctetString[] octetStrings)
         {
-            MemoryStream bOut = new MemoryStream();
-            foreach (Asn1OctetString o in octs)
+            int count = octetStrings.Length;
+            switch (count)
             {
-                byte[] octets = o.GetOctets();
-                bOut.Write(octets, 0, octets.Length);
+            case 0:
+                return EmptyOctets;
+            case 1:
+                return octetStrings[0].str;
+            default:
+            {
+                int totalOctets = 0;
+                for (int i = 0; i < count; ++i)
+                {
+                    totalOctets += octetStrings[i].str.Length;
+                }
+
+                byte[] str = new byte[totalOctets];
+                int pos = 0;
+                for (int i = 0; i < count; ++i)
+                {
+                    byte[] octets = octetStrings[i].str;
+                    Array.Copy(octets, 0, str, pos, octets.Length);
+                    pos += octets.Length;
+                }
+
+                Debug.Assert(pos == totalOctets);
+                return str;
             }
-            return bOut.ToArray();
+            }
         }
 
         private static Asn1OctetString[] ToOctetStringArray(IEnumerable e)
@@ -71,7 +93,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public BerOctetString(Asn1OctetString[] octs, int chunkSize)
-            : this(ToBytes(octs), octs, chunkSize)
+            : this(FlattenOctetStrings(octs), octs, chunkSize)
         {
         }
 

@@ -327,7 +327,7 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
-		public void TestKeyTransSmallAesUsingAoep()
+		public void TestKeyTransSmallAesUsingOaep()
 		{
 			byte[] data = new byte[] { 0, 1, 2, 3 };
 
@@ -357,7 +357,7 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
-		public void TestKeyTransSmallAesUsingAoepMixed()
+		public void TestKeyTransSmallAesUsingOaepMixed()
 		{
 			byte[] data = new byte[] { 0, 1, 2, 3 };
 
@@ -385,44 +385,44 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		[Test]
-		public void TestKeyTransSmallAesUsingAoepMixedParams()
-		{
-			byte[] data = new byte[] { 0, 1, 2, 3 };
+        [Test]
+        public void TestKeyTransSmallAesUsingOaepMixedParams()
+        {
+            byte[] data = new byte[]{ 0, 1, 2, 3 };
 
-			CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+            CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
 
-			edGen.AddRecipientInfoGenerator(
-				new KeyTransRecipientInfoGenerator(
-					ReciCert, 
-					new Asn1KeyWrapper(
-						PkcsObjectIdentifiers.IdRsaesOaep, 
-						new RsaesOaepParameters(
-							new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256, DerNull.Instance),
-							new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, new AlgorithmIdentifier(NistObjectIdentifiers.IdSha224, DerNull.Instance))),
-								ReciCert)));
+            edGen.AddRecipientInfoGenerator(
+                new KeyTransRecipientInfoGenerator(
+                    ReciCert,
+                    new Asn1KeyWrapper(
+                        PkcsObjectIdentifiers.IdRsaesOaep,
+                        new RsaesOaepParameters(
+                            new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256, DerNull.Instance),
+                            new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1,
+                                new AlgorithmIdentifier(NistObjectIdentifiers.IdSha224, DerNull.Instance))),
+                        ReciCert)));
 
-			CmsEnvelopedData ed = edGen.Generate(
-				new CmsProcessableByteArray(data),
-				CmsEnvelopedDataGenerator.Aes128Cbc);
+            CmsEnvelopedData ed = edGen.Generate(
+                new CmsProcessableByteArray(data),
+                CmsEnvelopedGenerator.Aes128Cbc);
 
-			RecipientInformationStore recipients = ed.GetRecipientInfos();
+            RecipientInformationStore recipients = ed.GetRecipientInfos();
 
-			Assert.AreEqual(ed.EncryptionAlgOid,
-				CmsEnvelopedDataGenerator.Aes128Cbc);
+            Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+            ICollection c = recipients.GetRecipients();
 
-			Assert.AreEqual(1, c.Count);
+            Assert.AreEqual(1, c.Count);
 
-			foreach (RecipientInformation recipient in c)
-			{
-				byte[] recData = recipient.GetContent(ReciKP.Private);
-				Assert.IsTrue(Arrays.AreEqual(data, recData));
-			}
-		}
+            foreach (RecipientInformation recipient in c)
+            {
+                byte[] recData = recipient.GetContent(ReciKP.Private);
+                Assert.IsTrue(Arrays.AreEqual(data, recData));
+            }
+        }
 
-		[Test]
+        [Test]
 		public void TestKeyTransSmallAesUsingPkcs1()
 		{
 			byte[] data = new byte[] { 0, 1, 2, 3 };

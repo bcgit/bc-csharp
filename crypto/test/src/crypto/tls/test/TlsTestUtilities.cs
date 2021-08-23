@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
         }
 
         internal static TlsSignerCredentials LoadSignerCredentials(TlsContext context, IList supportedSignatureAlgorithms,
-            byte signatureAlgorithm, string certResource, string keyResource)
+            byte signatureAlgorithm, string[] certResources, string keyResource)
         {
             /*
              * TODO Note that this code fails to provide default value for the client supported
@@ -114,8 +114,7 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                     return null;
             }
 
-            return LoadSignerCredentials(context, new String[]{ certResource, "x509-ca.pem" },
-                keyResource, signatureAndHashAlgorithm);
+            return LoadSignerCredentials(context, certResources, keyResource, signatureAndHashAlgorithm);
         }
 
         internal static Certificate LoadCertificateChain(string[] resources)

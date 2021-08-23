@@ -319,11 +319,16 @@ namespace Org.BouncyCastle.Cms
 		private bool DoVerify(
 			AsymmetricKeyParameter	key)
 		{
-			string digestName = Helper.GetDigestAlgName(this.DigestAlgOid);
-			IDigest digest = Helper.GetDigestInstance(digestName);
-
-            DerObjectIdentifier sigAlgOid = this.encryptionAlgorithm.Algorithm;
+			DerObjectIdentifier sigAlgOid = this.encryptionAlgorithm.Algorithm;
 			Asn1Encodable sigParams = this.encryptionAlgorithm.Parameters;
+			string digestName = Helper.GetDigestAlgName(this.EncryptionAlgOid);
+
+			if (digestName.Equals(sigAlgOid.Id))
+			{
+				digestName = Helper.GetDigestAlgName(this.DigestAlgOid);
+			}
+			
+			IDigest digest = Helper.GetDigestInstance(digestName);
 			ISigner sig;
 
 			if (sigAlgOid.Equals(Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss))
@@ -374,10 +379,10 @@ namespace Org.BouncyCastle.Cms
 			else
 			{
 				// TODO Probably too strong a check at the moment
-//				if (sigParams != null)
-//					throw new CmsException("unrecognised signature parameters provided");
+				//				if (sigParams != null)
+				//					throw new CmsException("unrecognised signature parameters provided");
 
-                string signatureName = digestName + "with" + Helper.GetEncryptionAlgName(this.EncryptionAlgOid);
+				string signatureName = digestName + "with" + Helper.GetEncryptionAlgName(this.EncryptionAlgOid);
 
                 sig = Helper.GetSignatureInstance(signatureName);
 

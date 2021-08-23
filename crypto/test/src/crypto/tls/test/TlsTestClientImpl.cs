@@ -180,9 +180,12 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 X509CertificateStructure[] chain = serverCertificate.GetCertificateList();
 
                 // TODO Cache test resources?
-                if (isEmpty || !(chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-server.pem"))
-                    || chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-server-dsa.pem"))
-                    || chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-server-ecdsa.pem"))))
+                if (isEmpty || !(
+                    chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-server-dsa.pem")) ||
+                    chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-server-ecdsa.pem")) ||
+                    chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-server-rsa-enc.pem")) ||
+                    chain[0].Equals(TlsTestUtilities.LoadCertificateResource("x509-server-rsa-sign.pem"))
+                ))
                 {
                     throw new TlsFatalAlert(AlertDescription.bad_certificate);
                 }
@@ -221,7 +224,8 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
                 }
 
                 TlsSignerCredentials signerCredentials = TlsTestUtilities.LoadSignerCredentials(mContext,
-                    supportedSigAlgs, SignatureAlgorithm.rsa, "x509-client.pem", "x509-client-key.pem");
+                    supportedSigAlgs, SignatureAlgorithm.rsa, new string[]{ "x509-client-rsa.pem", "x509-ca-rsa.pem" },
+                    "x509-client-key-rsa.pem");
 
                 if (mOuter.mConfig.clientAuth == TlsTestConfig.CLIENT_AUTH_VALID)
                 {

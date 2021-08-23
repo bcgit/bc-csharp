@@ -20,7 +20,9 @@ namespace Org.BouncyCastle.Asn1
 
 		public abstract void AddObject(Asn1Encodable obj);
 
-		public abstract Stream GetRawOutputStream();
+        public abstract void AddObject(Asn1Object obj);
+
+        public abstract Stream GetRawOutputStream();
 
 		public abstract void Close();
     }

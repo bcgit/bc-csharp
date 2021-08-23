@@ -133,20 +133,27 @@ namespace Org.BouncyCastle.Asn1
             return CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
         }
 
+        internal virtual Asn1EncodableVector ReadVector()
+        {
+            Asn1Object o = ReadObject();
+            if (null == o)
+                return new Asn1EncodableVector(0);
+
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            do
+            {
+                v.Add(o);
+            }
+            while ((o = ReadObject()) != null);
+            return v;
+        }
+
         internal virtual Asn1EncodableVector ReadVector(DefiniteLengthInputStream dIn)
         {
             if (dIn.Remaining < 1)
                 return new Asn1EncodableVector(0);
 
-            Asn1InputStream subStream = new Asn1InputStream(dIn);
-            Asn1EncodableVector v = new Asn1EncodableVector();
-            Asn1Object o;
-            while ((o = subStream.ReadObject()) != null)
-            {
-                v.Add(o);
-            }
-
-            return v;
+            return new Asn1InputStream(dIn).ReadVector();
         }
 
         internal virtual DerSequence CreateDerSequence(
@@ -405,7 +412,12 @@ namespace Org.BouncyCastle.Asn1
                 case Asn1Tags.Integer:
                     return new DerInteger(bytes, false);
                 case Asn1Tags.Null:
-                    return DerNull.Instance;   // actual content is ignored (enforce 0 length?)
+                {
+                    if (0 != bytes.Length)
+                        throw new InvalidOperationException("malformed NULL encoding encountered");
+
+                    return DerNull.Instance;
+                }
                 case Asn1Tags.NumericString:
                     return new DerNumericString(bytes);
                 case Asn1Tags.OctetString:

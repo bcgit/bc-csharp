@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -293,19 +294,6 @@ namespace Org.BouncyCastle.Crypto.Encodings
             return output;
         }
 
-        /**
-        * int to octet string.
-        */
-        private void ItoOSP(
-            int		i,
-            byte[]	sp)
-        {
-            sp[0] = (byte)((uint)i >> 24);
-            sp[1] = (byte)((uint)i >> 16);
-            sp[2] = (byte)((uint)i >> 8);
-            sp[3] = (byte)((uint)i >> 0);
-        }
-
         private byte[] MaskGeneratorFunction(
             byte[] Z,
             int zOff,
@@ -344,7 +332,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
             while (counter < (length / hashBuf.Length))
             {
-                ItoOSP(counter, C);
+                Pack.UInt32_To_BE((uint)counter, C);
 
                 mgf1Hash.BlockUpdate(Z, zOff, zLen);
                 mgf1Hash.BlockUpdate(C, 0, C.Length);
@@ -357,7 +345,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
             if ((counter * hashBuf.Length) < length)
             {
-                ItoOSP(counter, C);
+                Pack.UInt32_To_BE((uint)counter, C);
 
                 mgf1Hash.BlockUpdate(Z, zOff, zLen);
                 mgf1Hash.BlockUpdate(C, 0, C.Length);

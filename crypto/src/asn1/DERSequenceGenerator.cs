@@ -27,7 +27,13 @@ namespace Org.BouncyCastle.Asn1
 			new DerOutputStream(_bOut).WriteObject(obj);
 		}
 
-		public override Stream GetRawOutputStream()
+        public override void AddObject(
+            Asn1Object obj)
+        {
+            new DerOutputStream(_bOut).WriteObject(obj);
+        }
+
+        public override Stream GetRawOutputStream()
 		{
 			return _bOut;
 		}

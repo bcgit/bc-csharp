@@ -4,7 +4,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-    public class BerGenerator
+    public abstract class BerGenerator
         : Asn1Generator
     {
         private bool      _tagged = false;
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        public BerGenerator(
+        protected BerGenerator(
             Stream outStream,
             int tagNo,
             bool isExplicit)
@@ -34,7 +34,13 @@ namespace Org.BouncyCastle.Asn1
 			new BerOutputStream(Out).WriteObject(obj);
 		}
 
-		public override Stream GetRawOutputStream()
+        public override void AddObject(
+            Asn1Object obj)
+        {
+            new BerOutputStream(Out).WriteObject(obj);
+        }
+
+        public override Stream GetRawOutputStream()
         {
             return Out;
         }

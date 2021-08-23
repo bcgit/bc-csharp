@@ -36,8 +36,8 @@ namespace Org.BouncyCastle.Cms
 
         public virtual void Write(Stream zOut)
 		{
-			Stream inStr = GetInputStream();
-			Streams.PipeAll(inStr, zOut);
+			Stream inStr = _file.OpenRead();
+            Streams.PipeAll(inStr, zOut, _bufSize);
             Platform.Dispose(inStr);
 		}
 

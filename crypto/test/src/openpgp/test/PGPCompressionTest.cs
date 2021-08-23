@@ -4,6 +4,7 @@ using System.Text;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -13,55 +14,63 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 	public class PgpCompressionTest
 		: SimpleTest
 	{
-		private static readonly byte[] Data = Encoding.ASCII.GetBytes("hello world! !dlrow olleh");
+        private static readonly SecureRandom Random = new SecureRandom();
 
-		[Test]
+        private static readonly byte[] Data1 = new byte[0];
+        private static readonly byte[] Data2 = Encoding.ASCII.GetBytes("hello world! !dlrow olleh");
+
+        [Test]
+        public void TestBZip2()
+        {
+            DoTestCompression(Data1, CompressionAlgorithmTag.BZip2);
+            DoTestCompression(Data2, CompressionAlgorithmTag.BZip2);
+            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.BZip2);
+        }
+
+        [Test]
 		public void TestUncompressed()
 		{
-			doTestCompression(CompressionAlgorithmTag.Uncompressed);
-		}
+			DoTestCompression(Data1, CompressionAlgorithmTag.Uncompressed);
+            DoTestCompression(Data2, CompressionAlgorithmTag.Uncompressed);
+            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.Uncompressed);
+        }
 
-		[Test]
+        [Test]
 		public void TestZip()
 		{
-			doTestCompression(CompressionAlgorithmTag.Zip);
-		}
+			DoTestCompression(Data1, CompressionAlgorithmTag.Zip);
+            DoTestCompression(Data2, CompressionAlgorithmTag.Zip);
+            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.Zip);
+        }
 
-		[Test]
+        [Test]
 		public void TestZLib()
 		{
-			doTestCompression(CompressionAlgorithmTag.ZLib);
-		}
+			DoTestCompression(Data1, CompressionAlgorithmTag.ZLib);
+            DoTestCompression(Data2, CompressionAlgorithmTag.ZLib);
+            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.ZLib);
+        }
 
-		[Test]
-		public void TestBZip2()
+        public override void PerformTest()
 		{
-			doTestCompression(CompressionAlgorithmTag.BZip2);
+            TestBZip2();
+            TestUncompressed();
+            TestZip();
+            TestZLib();
 		}
 
-		public override void PerformTest()
+		private void DoTestCompression(byte[] data, CompressionAlgorithmTag type)
 		{
-			doTestCompression(CompressionAlgorithmTag.Uncompressed);
-			doTestCompression(CompressionAlgorithmTag.Zip);
-			doTestCompression(CompressionAlgorithmTag.ZLib);
-			doTestCompression(CompressionAlgorithmTag.BZip2);
+			DoTestCompression(data, type, true);
+			DoTestCompression(data, type, false);
 		}
 
-		private void doTestCompression(
-			CompressionAlgorithmTag type)
-		{
-			doTestCompression(type, true);
-			doTestCompression(type, false);
-		}
-
-		private void doTestCompression(
-			CompressionAlgorithmTag	type,
-			bool					streamClose)
+		private void DoTestCompression(byte[] data, CompressionAlgorithmTag	type, bool streamClose)
 		{
 			MemoryStream bOut = new MemoryStream();
 			PgpCompressedDataGenerator cPacket = new PgpCompressedDataGenerator(type);
-			Stream os = cPacket.Open(new UncloseableStream(bOut), new byte[Data.Length - 1]);
-			os.Write(Data, 0, Data.Length);
+            Stream os = cPacket.Open(new UncloseableStream(bOut));
+			os.Write(data, 0, data.Length);
 
 			if (streamClose)
 			{
@@ -72,7 +81,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 				cPacket.Close();
 			}
 
-			ValidateData(bOut.ToArray());
+			ValidateData(data, bOut.ToArray());
 
 			try
 			{
@@ -85,8 +94,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			}
 		}
 
-		private void ValidateData(
-			byte[] compressed)
+        private byte[] RandomData(int length)
+        {
+            return SecureRandom.GetNextBytes(Random, length);
+        }
+
+		private void ValidateData(byte[] data, byte[] compressed)
 		{
 			PgpObjectFactory pgpFact = new PgpObjectFactory(compressed);
 			PgpCompressedData c1 = (PgpCompressedData) pgpFact.NextPgpObject();
@@ -95,7 +108,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			byte[] bytes = Streams.ReadAll(pIn);
 			pIn.Close();
 
-			if (!AreEqual(bytes, Data))
+			if (!AreEqual(bytes, data))
 			{
 				Fail("compression test failed");
 			}

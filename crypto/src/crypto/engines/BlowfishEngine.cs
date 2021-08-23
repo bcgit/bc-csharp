@@ -421,7 +421,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void SetKey(byte[] key)
         {
-            /*
+			if (key.Length < 4 || key.Length > 56)
+			{
+				throw new ArgumentException("key length must be in range 32 to 448 bits");
+			}
+
+			/*
             * - comments are from _Applied Crypto_, Schneier, p338
             * please be careful comparing the two, AC numbers the
             * arrays from 1, the enclosed code from 0.
@@ -430,7 +435,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             * Initialise the S-boxes and the P-array, with a fixed string
             * This string contains the hexadecimal digits of pi (3.141...)
             */
-            Array.Copy(KS0, 0, S0, 0, SBOX_SK);
+			Array.Copy(KS0, 0, S0, 0, SBOX_SK);
             Array.Copy(KS1, 0, S1, 0, SBOX_SK);
             Array.Copy(KS2, 0, S2, 0, SBOX_SK);
             Array.Copy(KS3, 0, S3, 0, SBOX_SK);
