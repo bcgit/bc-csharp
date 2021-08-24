@@ -24,7 +24,7 @@ stages:
         packageType: runtime
         performMultiLevelLookup: true
     
-- task: UseDotNet@2
+    - task: UseDotNet@2
       inputs:
         version: 3.x
         packageType: runtime
