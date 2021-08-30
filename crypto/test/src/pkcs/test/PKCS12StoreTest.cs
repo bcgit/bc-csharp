@@ -1427,7 +1427,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			store.Load(new MemoryStream(repeatedLocalKeyIdPfx, false), "".ToCharArray());
 
 			IsTrue(store.GetCertificateChain("d4be139f9db456d225a8dcd2969479d960d2514a") == null);
-			IsTrue(store.GetCertificateChain("45cbf1116fb3f38b2984b3c7224cae70a74f7789").length == 1);
+			IsTrue(store.GetCertificateChain("45cbf1116fb3f38b2984b3c7224cae70a74f7789").Length == 1);
 		}
 
 		public override string Name

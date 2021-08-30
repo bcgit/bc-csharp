@@ -365,7 +365,7 @@ namespace Org.BouncyCastle.Pkcs
                                 if (aOid.Equals(PkcsObjectIdentifiers.Pkcs9AtLocalKeyID))
                                 {
                                     String id = Hex.ToHexString(Asn1OctetString.GetInstance(attr).GetOctets());
-                                    if (!(keys.Keys[id] != null || localIds.Keys[id] != null))
+                                    if (!(keys[id] != null || localIds[id] != null))
                                     {
                                         continue; // ignore this one - it's not valid
                                     }
