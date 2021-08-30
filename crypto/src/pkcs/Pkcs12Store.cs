@@ -361,6 +361,16 @@ namespace Org.BouncyCastle.Pkcs
                             // the same OID - currently, differing values give an error
                             if (attributes.Contains(aOid.Id))
                             {
+                                // we've found more than one - one might be incorrect
+                                if (aOid.Equals(PkcsObjectIdentifiers.Pkcs9AtLocalKeyID))
+                                {
+                                    String id = Hex.ToHexString(Asn1OctetString.GetInstance(attr).GetOctets());
+                                    if (!(keys.Keys[id] != null || localIds.Keys[id] != null))
+                                    {
+                                        continue; // ignore this one - it's not valid
+                                    }
+                                }
+
                                 // OK, but the value has to be the same
                                 if (!attributes[aOid.Id].Equals(attr))
                                 {
