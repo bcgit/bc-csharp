@@ -14584,6 +14584,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\tls\test\MockPskTls13Client.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\tls\test\MockPskTlsClient.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -14620,6 +14625,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\PipedStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\tls\test\PskTls13ClientTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
