@@ -482,6 +482,7 @@
     <Compile Include="src\tls\test\MockDtlsServer.cs" />
     <Compile Include="src\tls\test\MockPskDtlsClient.cs" />
     <Compile Include="src\tls\test\MockPskDtlsServer.cs" />
+    <Compile Include="src\tls\test\MockPskTls13Client.cs" />
     <Compile Include="src\tls\test\MockPskTlsClient.cs" />
     <Compile Include="src\tls\test\MockPskTlsServer.cs" />
     <Compile Include="src\tls\test\MockSrpTlsClient.cs" />
@@ -491,6 +492,7 @@
     <Compile Include="src\tls\test\NetworkStream.cs" />
     <Compile Include="src\tls\test\PipedStream.cs" />
     <Compile Include="src\tls\test\PrfTest.cs" />
+    <Compile Include="src\tls\test\PskTls13ClientTest.cs" />
     <Compile Include="src\tls\test\PskTlsClientTest.cs" />
     <Compile Include="src\tls\test\PskTlsServerTest.cs" />
     <Compile Include="src\tls\test\TlsClientTest.cs" />
