@@ -495,10 +495,10 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         /// <summary>
-        /// Returns X509Extensions if the attribute can be found and returns the extensions block.
+        /// Returns X509Extensions if the Extensions Request attribute can be found and returns the extensions block.
         /// </summary>
         /// <returns>X509Extensions block or null if one cannot be found.</returns>
-        public X509Extensions GetX509Extensions()
+        public X509Extensions GetRequestedExtensions()
         {
             if (reqInfo.Attributes != null)
             {
