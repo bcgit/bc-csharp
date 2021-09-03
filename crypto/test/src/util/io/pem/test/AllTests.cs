@@ -66,9 +66,17 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
         [Test]
         public void TestMalformed()
         {
-            PemReader rd = new PemReader(new StringReader("-----BEGIN \n"));
+			try
+			{
+				PemReader rd = new PemReader(new StringReader("-----BEGIN \n"));
+				rd.ReadPemObject();
+				Assert.Fail("must fail on malformed");
+			} catch (IOException ioex)
+            {
+				Assert.AreEqual("ran out of data before consuming type", ioex.Message);
+            }
 
-            Assert.IsNull(rd.ReadPemObject());
+           
         }
 
 		private void lengthTest(string type, IList headers, byte[] data)

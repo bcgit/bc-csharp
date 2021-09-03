@@ -6078,6 +6078,7 @@
     <Compile Include="test\src\crypto\io\test\CipherStreamTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\src\crypto\io\test\PemReaderTest.cs" />
     <Compile Include="test\src\crypto\prng\test\CtrDrbgTest.cs">
       <SubType>Code</SubType>
     </Compile>
