@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             // Disassemble the attributes with the duplicate extensions.
             //
 
-            var extensions = req2.GetX509Extensions();
+            var extensions = req2.GetRequestedExtensions();
 
             X509Extension returnedExtension = extensions.GetExtension(X509Extensions.SubjectAlternativeName);
             Asn1Sequence seq = Asn1Sequence.GetInstance(returnedExtension.GetParsedValue());
