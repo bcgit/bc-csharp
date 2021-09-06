@@ -526,8 +526,6 @@ namespace Org.BouncyCastle.Pkcs
                         {
 
                             Asn1Sequence itemSeq = Asn1Sequence.GetInstance(seqItem);
-                            bool critical = itemSeq.Count == 3 && DerBoolean.GetInstance(itemSeq[1]).IsTrue;
-
                             if (itemSeq.Count == 2)
                             {
                                 generator.AddExtension(DerObjectIdentifier.GetInstance(itemSeq[0]), false, Asn1OctetString.GetInstance(itemSeq[1]).GetOctets());
