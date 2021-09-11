@@ -4,6 +4,7 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Tls.Tests;
@@ -183,7 +184,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             IList groups = new TestTlsDHGroupVerifier().Groups;
             foreach (DHGroup dhGroup in groups)
             {
-                int namedGroup = TlsDHUtilities.GetNamedGroupForDHParameters(dhGroup.P, dhGroup.G);
+                BigInteger p = dhGroup.P, g = dhGroup.G;
+
+                /*
+                 * DefaultTlsDHGroupVerifier default groups are configured from DHStandardGroups, so
+                 * we expect to recover the exact instance here.
+                 */
+                Assert.AreSame(dhGroup, TlsDHUtilities.GetStandardGroupForDHParameters(p, g));
+
+                int namedGroup = TlsDHUtilities.GetNamedGroupForDHParameters(p, g);
 
                 // Already tested the named groups
                 if (NamedGroup.RefersToASpecificFiniteField(namedGroup))
