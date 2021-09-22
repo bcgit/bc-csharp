@@ -13714,6 +13714,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\crypto\io\test\PemReaderTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\crypto\prng\test\CtrDrbgTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -15174,6 +15179,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\test\GcmSivTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\test\GOST28147Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -15220,6 +15230,11 @@
                 />
                 <File
                     RelPath = "test\src\test\NoekeonTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\test\ParallelHashTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -15284,7 +15299,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\test\SP80038GTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\test\TestUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\test\TupleHashTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

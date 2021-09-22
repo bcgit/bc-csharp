@@ -149,6 +149,7 @@
     <Compile Include="src\crypto\agreement\test\JPakeParticipantTest.cs" />
     <Compile Include="src\crypto\agreement\test\JPakePrimeOrderGroupTest.cs" />
     <Compile Include="src\crypto\agreement\test\JPakeUtilitiesTest.cs" />
+    <Compile Include="src\crypto\io\test\PemReaderTest.cs" />
     <Compile Include="src\crypto\prng\test\CtrDrbgTest.cs" />
     <Compile Include="src\crypto\prng\test\DrbgTestVector.cs" />
     <Compile Include="src\crypto\prng\test\HashDrbgTest.cs" />
@@ -438,6 +439,7 @@
     <Compile Include="src\test\ElGamalTest.cs" />
     <Compile Include="src\test\EncryptedPrivateKeyInfoTest.cs" />
     <Compile Include="src\test\FIPSDESTest.cs" />
+    <Compile Include="src\test\GcmSivTest.cs" />
     <Compile Include="src\test\GOST28147Test.cs" />
     <Compile Include="src\test\GOST3410Test.cs" />
     <Compile Include="src\test\HMacTest.cs" />
@@ -448,6 +450,7 @@
     <Compile Include="src\test\NamedCurveTest.cs" />
     <Compile Include="src\test\NistCertPathTest.cs" />
     <Compile Include="src\test\NoekeonTest.cs" />
+    <Compile Include="src\test\ParallelHashTest.cs" />
     <Compile Include="src\test\PBETest.cs" />
     <Compile Include="src\test\PEMData.cs" />
     <Compile Include="src\test\PKCS10CertRequestTest.cs" />
@@ -460,7 +463,9 @@
     <Compile Include="src\test\SEEDTest.cs" />
     <Compile Include="src\test\SigTest.cs" />
     <Compile Include="src\test\SM4Test.cs" />
+    <Compile Include="src\test\SP80038GTest.cs" />
     <Compile Include="src\test\TestUtilities.cs" />
+    <Compile Include="src\test\TupleHashTest.cs" />
     <Compile Include="src\test\WrapTest.cs" />
     <Compile Include="src\test\X509CertificatePairTest.cs" />
     <Compile Include="src\test\X509StoreTest.cs" />
