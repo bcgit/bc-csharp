@@ -63,14 +63,18 @@ namespace Org.BouncyCastle.Utilities.Encoders
         */
         public int Encode(byte[] buf, int off, int len, Stream outStream)
         {
+            if (len < 0)
+                return 0;
+
             byte[] tmp = new byte[72];
-            while (len > 0)
+            int remaining = len;
+            while (remaining > 0)
             {
-                int inLen = System.Math.Min(36, len);
+                int inLen = System.Math.Min(36, remaining);
                 int outLen = Encode(buf, off, inLen, tmp, 0);
                 outStream.Write(tmp, 0, outLen);
                 off += inLen;
-                len -= inLen;
+                remaining -= inLen;
             }
             return len * 2;
         }
@@ -101,9 +105,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
             while (end > off)
             {
                 if (!Ignore((char)data[end - 1]))
-                {
                     break;
-                }
 
                 end--;
             }
@@ -166,9 +168,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
             while (end > 0)
             {
                 if (!Ignore(data[end - 1]))
-                {
                     break;
-                }
 
                 end--;
             }

@@ -803,16 +803,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PointExt d = PointCopy(q);
             PointAdd(q, d);
 
-            int[] table = X25519Field.CreateTable(count * 4);
+            int[] table = F.CreateTable(count * 4);
             int off = 0;
 
             int i = 0;
             for (;;)
             {
-                X25519Field.Copy(q.x, 0, table, off); off += X25519Field.Size;
-                X25519Field.Copy(q.y, 0, table, off); off += X25519Field.Size;
-                X25519Field.Copy(q.z, 0, table, off); off += X25519Field.Size;
-                X25519Field.Copy(q.t, 0, table, off); off += X25519Field.Size;
+                F.Copy(q.x, 0, table, off); off += F.Size;
+                F.Copy(q.y, 0, table, off); off += F.Size;
+                F.Copy(q.z, 0, table, off); off += F.Size;
+                F.Copy(q.t, 0, table, off); off += F.Size;
 
                 if (++i == count)
                     break;

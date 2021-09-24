@@ -51,5 +51,10 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 
 			return s.GetHashCode();
 		}
-	}
+
+        public override string ToString()
+        {
+			return name + ":" + val;
+        }
+    }
 }

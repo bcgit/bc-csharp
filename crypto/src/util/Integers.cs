@@ -37,16 +37,28 @@ namespace Org.BouncyCastle.Utilities
 
         public static int Reverse(int i)
         {
-            i = (int)Bits.BitPermuteStepSimple((uint)i, 0x55555555U, 1);
-            i = (int)Bits.BitPermuteStepSimple((uint)i, 0x33333333U, 2);
-            i = (int)Bits.BitPermuteStepSimple((uint)i, 0x0F0F0F0FU, 4);
+            return (int)Reverse((uint)i);
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static uint Reverse(uint i)
+        {
+            i = Bits.BitPermuteStepSimple(i, 0x55555555U, 1);
+            i = Bits.BitPermuteStepSimple(i, 0x33333333U, 2);
+            i = Bits.BitPermuteStepSimple(i, 0x0F0F0F0FU, 4);
             return ReverseBytes(i);
         }
 
         public static int ReverseBytes(int i)
         {
-            return RotateLeft((int)((uint)i & 0xFF00FF00U),  8) |
-                   RotateLeft((int)((uint)i & 0x00FF00FFU), 24);
+            return (int)ReverseBytes((uint)i);
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static uint ReverseBytes(uint i)
+        {
+            return RotateLeft(i & 0xFF00FF00U,  8) |
+                   RotateLeft(i & 0x00FF00FFU, 24);
         }
 
         public static int RotateLeft(int i, int distance)

@@ -123,10 +123,10 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
         internal static void Multiply(byte[] x, byte[] y)
         {
-            ulong[] t1 = GcmUtilities.AsUlongs(x);
-            ulong[] t2 = GcmUtilities.AsUlongs(y);
-            GcmUtilities.Multiply(t1, t2);
-            GcmUtilities.AsBytes(t1, x);
+            ulong[] t1 = AsUlongs(x);
+            ulong[] t2 = AsUlongs(y);
+            Multiply(t1, t2);
+            AsBytes(t1, x);
         }
 
         internal static void Multiply(uint[] x, uint[] y)
@@ -140,10 +140,10 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
                 for (int j = 0; j < 32; ++j)
                 {
                     uint m1 = (uint)(bits >> 31); bits <<= 1;
-                    z0 ^= (y0 & m1);
-                    z1 ^= (y1 & m1);
-                    z2 ^= (y2 & m1);
-                    z3 ^= (y3 & m1);
+                    z0 ^= y0 & m1;
+                    z1 ^= y1 & m1;
+                    z2 ^= y2 & m1;
+                    z3 ^= y3 & m1;
 
                     uint m2 = (uint)((int)(y3 << 31) >> 8);
                     y3 = (y3 >> 1) | (y2 << 31);
@@ -168,12 +168,12 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             //for (int j = 0; j < 64; ++j)
             //{
             //    ulong m0 = (ulong)((long)x0 >> 63); x0 <<= 1;
-            //    z0 ^= (y0 & m0);
-            //    z1 ^= (y1 & m0);
+            //    z0 ^= y0 & m0;
+            //    z1 ^= y1 & m0;
 
             //    ulong m1 = (ulong)((long)x1 >> 63); x1 <<= 1;
-            //    z1 ^= (y0 & m1);
-            //    z2 ^= (y1 & m1);
+            //    z1 ^= y0 & m1;
+            //    z2 ^= y1 & m1;
 
             //    ulong c = (ulong)((long)(y1 << 63) >> 8);
             //    y1 = (y1 >> 1) | (y0 << 63);

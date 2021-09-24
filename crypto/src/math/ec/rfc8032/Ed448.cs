@@ -713,7 +713,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PointExt d = PointCopy(q);
             PointDouble(d);
 
-            uint[] table = X448Field.CreateTable(count * 3);
+            uint[] table = F.CreateTable(count * 3);
             int off = 0;
 
             int i = 0;

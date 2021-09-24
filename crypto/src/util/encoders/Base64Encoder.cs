@@ -97,22 +97,25 @@ namespace Org.BouncyCastle.Utilities.Encoders
         */
         public int Encode(byte[] buf, int off, int len, Stream outStream) 
         {
+            if (len < 0)
+                return 0;
+
             byte[] tmp = new byte[72];
-            while (len > 0)
+            int remaining = len;
+            while (remaining > 0)
             {
-                int inLen = System.Math.Min(54, len);
+                int inLen = System.Math.Min(54, remaining);
                 int outLen = Encode(buf, off, inLen, tmp, 0);
                 outStream.Write(tmp, 0, outLen);
                 off += inLen;
-                len -= inLen;
+                remaining -= inLen;
             }
-            return ((len + 2) / 3) * 4;
+            return (len + 2) / 3 * 4;
         }
 
-        private bool ignore(
-            char c)
+        private bool Ignore(char c)
         {
-            return (c == '\n' || c =='\r' || c == '\t' || c == ' ');
+            return c == '\n' || c =='\r' || c == '\t' || c == ' ';
         }
 
         /**
@@ -121,11 +124,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         *
         * @return the number of bytes produced.
         */
-        public int Decode(
-            byte[]	data,
-            int		off,
-            int		length,
-            Stream	outStream)
+        public int Decode(byte[] data, int off, int length, Stream outStream)
         {
             byte b1, b2, b3, b4;
             byte[] outBuffer = new byte[54];   // S/MIME standard
@@ -135,10 +134,8 @@ namespace Org.BouncyCastle.Utilities.Encoders
 
             while (end > off)
             {
-                if (!ignore((char)data[end - 1]))
-                {
+                if (!Ignore((char)data[end - 1]))
                     break;
-                }
 
                 end--;
             }
@@ -146,21 +143,21 @@ namespace Org.BouncyCastle.Utilities.Encoders
             int  i = off;
             int  finish = end - 4;
 
-            i = nextI(data, i, finish);
+            i = NextI(data, i, finish);
 
             while (i < finish)
             {
                 b1 = decodingTable[data[i++]];
 
-                i = nextI(data, i, finish);
+                i = NextI(data, i, finish);
 
                 b2 = decodingTable[data[i++]];
 
-                i = nextI(data, i, finish);
+                i = NextI(data, i, finish);
 
                 b3 = decodingTable[data[i++]];
 
-                i = nextI(data, i, finish);
+                i = NextI(data, i, finish);
 
                 b4 = decodingTable[data[i++]];
 
@@ -179,7 +176,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
 
                 outLen += 3;
 
-                i = nextI(data, i, finish);
+                i = NextI(data, i, finish);
             }
 
             if (bufOff > 0)
@@ -187,22 +184,22 @@ namespace Org.BouncyCastle.Utilities.Encoders
                 outStream.Write(outBuffer, 0, bufOff);
             }
 
-            int e0 = nextI(data, i, end);
-            int e1 = nextI(data, e0 + 1, end);
-            int e2 = nextI(data, e1 + 1, end);
-            int e3 = nextI(data, e2 + 1, end);
+            int e0 = NextI(data, i, end);
+            int e1 = NextI(data, e0 + 1, end);
+            int e2 = NextI(data, e1 + 1, end);
+            int e3 = NextI(data, e2 + 1, end);
 
-            outLen += decodeLastBlock(outStream, (char)data[e0], (char)data[e1], (char)data[e2], (char)data[e3]);
+            outLen += DecodeLastBlock(outStream, (char)data[e0], (char)data[e1], (char)data[e2], (char)data[e3]);
 
             return outLen;
         }
 
-        private int nextI(
+        private int NextI(
             byte[]	data,
             int		i,
             int		finish)
         {
-            while ((i < finish) && ignore((char)data[i]))
+            while ((i < finish) && Ignore((char)data[i]))
             {
                 i++;
             }
@@ -215,9 +212,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         *
         * @return the number of bytes produced.
         */
-        public int DecodeString(
-            string	data,
-            Stream	outStream)
+        public int DecodeString(string data, Stream	outStream)
         {
             // Platform Implementation
 //			byte[] bytes = Convert.FromBase64String(data);
@@ -225,17 +220,14 @@ namespace Org.BouncyCastle.Utilities.Encoders
 //			return bytes.Length;
 
             byte b1, b2, b3, b4;
-            byte[] outBuffer = new byte[54];   // S/MIME standard
-            int bufOff = 0;
             int length = 0;
+
             int end = data.Length;
 
             while (end > 0)
             {
-                if (!ignore(data[end - 1]))
-                {
+                if (!Ignore(data[end - 1]))
                     break;
-                }
 
                 end--;
             }
@@ -243,58 +235,42 @@ namespace Org.BouncyCastle.Utilities.Encoders
             int  i = 0;
             int  finish = end - 4;
 
-            i = nextI(data, i, finish);
+            i = NextI(data, i, finish);
 
             while (i < finish)
             {
                 b1 = decodingTable[data[i++]];
 
-                i = nextI(data, i, finish);
+                i = NextI(data, i, finish);
 
                 b2 = decodingTable[data[i++]];
 
-                i = nextI(data, i, finish);
+                i = NextI(data, i, finish);
 
                 b3 = decodingTable[data[i++]];
 
-                i = nextI(data, i, finish);
+                i = NextI(data, i, finish);
 
                 b4 = decodingTable[data[i++]];
 
                 if ((b1 | b2 | b3 | b4) >= 0x80)
                     throw new IOException("invalid characters encountered in base64 data");
 
-                outBuffer[bufOff++] = (byte)((b1 << 2) | (b2 >> 4));
-                outBuffer[bufOff++] = (byte)((b2 << 4) | (b3 >> 2));
-                outBuffer[bufOff++] = (byte)((b3 << 6) | b4);
+                outStream.WriteByte((byte)((b1 << 2) | (b2 >> 4)));
+                outStream.WriteByte((byte)((b2 << 4) | (b3 >> 2)));
+                outStream.WriteByte((byte)((b3 << 6) | b4));
 
                 length += 3;
 
-                if (bufOff == outBuffer.Length)
-                {
-                    outStream.Write(outBuffer, 0, bufOff);
-                    bufOff = 0;
-                }
-
-                i = nextI(data, i, finish);
+                i = NextI(data, i, finish);
             }
 
-            if (bufOff > 0)
-            {
-                outStream.Write(outBuffer, 0, bufOff);
-            }
-
-            int e0 = nextI(data, i, end);
-            int e1 = nextI(data, e0 + 1, end);
-            int e2 = nextI(data, e1 + 1, end);
-            int e3 = nextI(data, e2 + 1, end);
-
-            length += decodeLastBlock(outStream, data[e0], data[e1], data[e2], data[e3]);
+            length += DecodeLastBlock(outStream, data[end - 4], data[end - 3], data[end - 2], data[end - 1]);
 
             return length;
         }
 
-        private int decodeLastBlock(
+        private int DecodeLastBlock(
             Stream	outStream,
             char	c1,
             char	c2,
@@ -349,9 +325,9 @@ namespace Org.BouncyCastle.Utilities.Encoders
             }
         }
 
-        private int nextI(string data, int i, int finish)
+        private int NextI(string data, int i, int finish)
         {
-            while ((i < finish) && ignore(data[i]))
+            while ((i < finish) && Ignore(data[i]))
             {
                 i++;
             }

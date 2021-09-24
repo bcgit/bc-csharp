@@ -71,8 +71,12 @@ namespace Org.BouncyCastle.X509
         private volatile bool hashValueSet;
         private volatile int hashValue;
 
-		public X509Crl(
-			CertificateList c)
+        public X509Crl(byte[] encoding)
+            : this(CertificateList.GetInstance(encoding))
+        {
+        }
+
+        public X509Crl(CertificateList c)
 		{
 			this.c = c;
 
@@ -91,7 +95,12 @@ namespace Org.BouncyCastle.X509
 			}
 		}
 
-		protected override X509Extensions GetX509Extensions()
+        public virtual CertificateList CertificateList
+        {
+            get { return c; }
+        }
+
+        protected override X509Extensions GetX509Extensions()
 		{
 			return c.Version >= 2
 				?	c.TbsCertList.Extensions

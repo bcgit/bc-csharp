@@ -4,6 +4,7 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Tls.Tests;
@@ -169,16 +170,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         public void TestDHDomain()
         {
             if (!m_crypto.HasDHAgreement())
-            {
                 return;
-            }
 
             for (int namedGroup = 256; namedGroup < 512; ++namedGroup)
             {
                 if (!NamedGroup.RefersToASpecificFiniteField(namedGroup) || !m_crypto.HasNamedGroup(namedGroup))
-                {
                     continue;
-                }
 
                 ImplTestDHDomain(new TlsDHConfig(namedGroup, false));
                 ImplTestDHDomain(new TlsDHConfig(namedGroup, true));
@@ -187,12 +184,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             IList groups = new TestTlsDHGroupVerifier().Groups;
             foreach (DHGroup dhGroup in groups)
             {
-                int namedGroup = TlsDHUtilities.GetNamedGroupForDHParameters(dhGroup.P, dhGroup.G);
+                BigInteger p = dhGroup.P, g = dhGroup.G;
+
+                /*
+                 * DefaultTlsDHGroupVerifier default groups are configured from DHStandardGroups, so
+                 * we expect to recover the exact instance here.
+                 */
+                Assert.AreSame(dhGroup, TlsDHUtilities.GetStandardGroupForDHParameters(p, g));
+
+                int namedGroup = TlsDHUtilities.GetNamedGroupForDHParameters(p, g);
+
+                // Already tested the named groups
                 if (NamedGroup.RefersToASpecificFiniteField(namedGroup))
-                {
-                    // Already tested the named groups
                     continue;
-                }
 
                 ImplTestDHDomain(new TlsDHConfig(dhGroup));
             }
@@ -202,16 +206,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         public void TestECDomain()
         {
             if (!m_crypto.HasECDHAgreement())
-            {
                 return;
-            }
 
             for (int namedGroup = 0; namedGroup < 256; ++namedGroup)
             {
                 if (!NamedGroup.RefersToAnECDHCurve(namedGroup) || !m_crypto.HasNamedGroup(namedGroup))
-                {
                     continue;
-                }
 
                 ImplTestECDomain(new TlsECConfig(namedGroup));
             }
