@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			return o1.Equals(o2);
 		}
 
-		public static void Main(
+        public static void Main(
 			string[] args)
 		{
 			RunTest(new IssuingDistributionPointUnitTest());
