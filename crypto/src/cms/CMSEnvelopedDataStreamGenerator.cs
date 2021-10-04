@@ -287,7 +287,7 @@ namespace Org.BouncyCastle.Cms
 
                 // TODO Parent context(s) should really be closed explicitly
 
-				_eiGen.Close();
+                _eiGen.Close();
 
                 if (_outer.unprotectedAttributeGenerator != null)
                 {

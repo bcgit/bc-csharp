@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 			SecureRandom rand = param.Random;
 			int certainty = param.Certainty;
 
-            IList smallPrimes = findFirstPrimes(param.CountSmallPrimes);
+			IList smallPrimes = findFirstPrimes(param.CountSmallPrimes);
 
 			smallPrimes = permuteList(smallPrimes, rand);
 
@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 			long tries = 0;
 
-            BigInteger _2au = a.Multiply(u).ShiftLeft(1);
+			BigInteger _2au = a.Multiply(u).ShiftLeft(1);
 			BigInteger _2bv = b.Multiply(v).ShiftLeft(1);
 
 			for (;;)
@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 			BigInteger g;
 			tries = 0;
 
-            for (;;)
+			for (;;)
 			{
 				// TODO After the first loop, just regenerate one randomly-selected gPart each time?
 				IList gParts = Platform.CreateArrayList();
@@ -205,7 +205,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 				break;
 			}
 
-            return new AsymmetricCipherKeyPair(new NaccacheSternKeyParameters(false, g, n, sigma.BitLength),
+			return new AsymmetricCipherKeyPair(new NaccacheSternKeyParameters(false, g, n, sigma.BitLength),
 				new NaccacheSternPrivateKeyParameters(g, n, sigma.BitLength, smallPrimes, phi_n));
 		}
 
