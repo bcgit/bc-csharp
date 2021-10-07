@@ -1258,7 +1258,22 @@ namespace Org.BouncyCastle.Cms.Tests
 				certEnum.MoveNext();
 				X509Certificate cert = (X509Certificate) certEnum.Current;
 
-				Assert.IsTrue(signer.Verify(cert));
+				Assert.IsTrue(new AsIsSignerInformation(signer).Verify(cert));
+			}
+		}
+
+	    class AsIsSignerInformation : SignerInformation
+		{
+			public AsIsSignerInformation(SignerInformation sInfo): base(sInfo)
+			{
+
+			}
+
+			public override byte[] GetEncodedSignedAttributes()
+			{
+				return signedAttributeSet == null
+					? null
+					: signedAttributeSet.GetEncoded();
 			}
 		}
 

@@ -285,24 +285,6 @@ namespace Org.BouncyCastle.Asn1
 #endif
         }
 
-		public override byte[] GetEncoded(
-			string encoding)
-		{
-			if (encoding.Equals(Der))
-			{
-                this.Sort();
-                
-				MemoryStream bOut = new MemoryStream();
-				DerOutputStream dOut = new DerOutputStream(bOut);
-
-				dOut.WriteObject(this);
-
-				return bOut.ToArray();
-			}
-
-			return GetEncoded();
-		}
-
         public override string ToString()
         {
             return CollectionUtilities.ToString(elements);

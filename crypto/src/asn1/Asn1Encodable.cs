@@ -26,6 +26,11 @@ namespace Org.BouncyCastle.Asn1
 				MemoryStream bOut = new MemoryStream();
 				DerOutputStream dOut = new DerOutputStream(bOut);
 
+				if (this is Asn1Set)
+				{
+					(this as Asn1Set).Sort();
+				}
+
 				dOut.WriteObject(this);
 
 				return bOut.ToArray();

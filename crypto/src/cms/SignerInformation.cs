@@ -23,11 +23,7 @@ namespace Org.BouncyCastle.Cms
 		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
 
 		private SignerID			sid;
-		private SignerInfo			info;
-		private AlgorithmIdentifier	digestAlgorithm;
-		private AlgorithmIdentifier	encryptionAlgorithm;
-		private readonly Asn1Set	signedAttributeSet;
-		private readonly Asn1Set	unsignedAttributeSet;
+
 		private CmsProcessable		content;
 		private byte[]				signature;
 		private DerObjectIdentifier	contentType;
@@ -38,6 +34,12 @@ namespace Org.BouncyCastle.Cms
 		private Asn1.Cms.AttributeTable	signedAttributeTable;
 		private Asn1.Cms.AttributeTable	unsignedAttributeTable;
 		private readonly bool isCounterSignature;
+
+		protected SignerInfo info;
+		protected AlgorithmIdentifier digestAlgorithm;
+		protected AlgorithmIdentifier encryptionAlgorithm;
+		protected readonly Asn1Set signedAttributeSet;
+		protected readonly Asn1Set unsignedAttributeSet;
 
 		internal SignerInformation(
 			SignerInfo			info,
@@ -309,7 +311,7 @@ namespace Org.BouncyCastle.Cms
 		* return the DER encoding of the signed attributes.
 		* @throws IOException if an encoding error occurs.
 		*/
-		public byte[] GetEncodedSignedAttributes()
+		public virtual byte[] GetEncodedSignedAttributes()
 		{
 			return signedAttributeSet == null
 				?	null
