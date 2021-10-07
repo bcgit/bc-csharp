@@ -709,7 +709,7 @@
     <Compile Include="src\crypto\Security.cs" />
     <Compile Include="src\crypto\SimpleBlockResult.cs" />
     <Compile Include="src\crypto\StreamBlockCipher.cs" />
-    <Compile Include="src\crypto\parameters\HKDFParameters.cs" />
+    <Compile Include="src\crypto\parameters\HkdfParameters.cs" />
     <Compile Include="src\crypto\PbeParametersGenerator.cs" />
     <Compile Include="src\crypto\agreement\DHAgreement.cs" />
     <Compile Include="src\crypto\agreement\DHBasicAgreement.cs" />
@@ -858,7 +858,7 @@
     <Compile Include="src\crypto\generators\ElGamalParametersGenerator.cs" />
     <Compile Include="src\crypto\generators\GOST3410KeyPairGenerator.cs" />
     <Compile Include="src\crypto\generators\GOST3410ParametersGenerator.cs" />
-    <Compile Include="src\crypto\generators\HKDFBytesGenerator.cs" />
+    <Compile Include="src\crypto\generators\HkdfBytesGenerator.cs" />
     <Compile Include="src\crypto\generators\Kdf1BytesGenerator.cs" />
     <Compile Include="src\crypto\generators\Kdf2BytesGenerator.cs" />
     <Compile Include="src\crypto\generators\KDFCounterBytesGenerator.cs" />
