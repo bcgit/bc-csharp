@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.Cms
 		private CmsProcessable		content;
 		private byte[]				signature;
 		private DerObjectIdentifier	contentType;
-		private IDigestCalculator	digestCalculator;
-		private byte[]				resultDigest;
+		private byte[]	calculatedDigest;
+		private byte[]	resultDigest;
 
 		// Derived
 		private Asn1.Cms.AttributeTable	signedAttributeTable;
@@ -80,10 +80,10 @@ namespace Org.BouncyCastle.Cms
 			this.signedAttributeSet = info.AuthenticatedAttributes;
 			this.unsignedAttributeSet = info.UnauthenticatedAttributes;
 			this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
-			this.signature = info.EncryptedDigest.GetOctets();
+			this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
 
 			this.content = content;
-			this.digestCalculator = digestCalculator;
+			this.calculatedDigest = (digestCalculator != null) ? digestCalculator.GetDigest() : null;
 		}
 
         /**
@@ -96,16 +96,17 @@ namespace Org.BouncyCastle.Cms
         protected SignerInformation(SignerInformation baseInfo)
         {
             this.info = baseInfo.info;
-            this.contentType = baseInfo.contentType;
+			this.content = baseInfo.content;
+			this.contentType = baseInfo.contentType;
             this.isCounterSignature = baseInfo.IsCounterSignature;
-            this.sid = baseInfo.SignerID;
-            this.digestAlgorithm = info.DigestAlgorithm;
+			this.sid = baseInfo.sid;
+			this.digestAlgorithm = info.DigestAlgorithm;
             this.signedAttributeSet = info.AuthenticatedAttributes;
             this.unsignedAttributeSet = info.UnauthenticatedAttributes;
             this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
-            this.signature = info.EncryptedDigest.GetOctets();
-            this.content = baseInfo.content;
-            this.resultDigest = baseInfo.resultDigest;
+			this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
+			
+			this.calculatedDigest = baseInfo.calculatedDigest;
             this.signedAttributeTable = baseInfo.signedAttributeTable;
             this.unsignedAttributeTable = baseInfo.unsignedAttributeTable;
         }
@@ -364,7 +365,7 @@ namespace Org.BouncyCastle.Cms
 
 					IAsymmetricBlockCipher rsa = new RsaBlindedEngine();
 
-					if (signedAttributeSet == null && digestCalculator != null)
+					if (signedAttributeSet == null && calculatedDigest != null)
 					{
                         sig = PssSigner.CreateRawSigner(rsa, pssDigest, pssDigest, saltLength, PssSigner.TrailerImplicit);
                     }
@@ -394,9 +395,9 @@ namespace Org.BouncyCastle.Cms
 
 			try
 			{
-				if (digestCalculator != null)
+				if (calculatedDigest != null)
 				{
-					resultDigest = digestCalculator.GetDigest();
+					resultDigest = calculatedDigest;
 				}
 				else
 				{
@@ -493,7 +494,7 @@ namespace Org.BouncyCastle.Cms
 
 				if (signedAttributeSet == null)
 				{
-					if (digestCalculator != null)
+					if (calculatedDigest != null)
 					{
 						if (sig is PssSigner)
 						{

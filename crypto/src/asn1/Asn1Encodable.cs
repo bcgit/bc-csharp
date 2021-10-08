@@ -28,10 +28,12 @@ namespace Org.BouncyCastle.Asn1
 
 				if (this is Asn1Set)
 				{
-					(this as Asn1Set).Sort();
+					dOut.WriteObject(new DerSet((this as Asn1Set).elements));
 				}
-
-				dOut.WriteObject(this);
+				else
+				{
+					dOut.WriteObject(this);
+				}
 
 				return bOut.ToArray();
 			}
