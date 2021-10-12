@@ -11,9 +11,13 @@ namespace Org.BouncyCastle.Asn1
     public class DerObjectIdentifier
         : Asn1Object
     {
-        private readonly string identifier;
+        public static DerObjectIdentifier FromContents(byte[] contents)
+        {
+            return CreatePrimitive(contents, true);
+        }
 
-        private byte[] body = null;
+        private readonly string identifier;
+        private byte[] contents;
 
         /**
          * return an Oid from the passed in object
@@ -34,7 +38,7 @@ namespace Org.BouncyCastle.Asn1
             }
 
             if (obj is byte[])
-                return FromOctetString((byte[])obj);
+                return (DerObjectIdentifier)FromByteArray((byte[])obj);
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
@@ -59,7 +63,7 @@ namespace Org.BouncyCastle.Asn1
                 return GetInstance(o);
             }
 
-            return FromOctetString(Asn1OctetString.GetInstance(o).GetOctets());
+            return FromContents(Asn1OctetString.GetInstance(o).GetOctets());
         }
 
         public DerObjectIdentifier(
@@ -103,10 +107,10 @@ namespace Org.BouncyCastle.Asn1
             return id.Length > stemId.Length && id[stemId.Length] == '.' && Platform.StartsWith(id, stemId);
         }
 
-        internal DerObjectIdentifier(byte[] bytes)
+        internal DerObjectIdentifier(byte[] contents, bool clone)
         {
-            this.identifier = MakeOidStringFromBytes(bytes);
-            this.body = Arrays.Clone(bytes);
+            this.identifier = MakeOidStringFromBytes(contents);
+            this.contents = clone ? Arrays.Clone(contents) : contents;
         }
 
         private void WriteField(
@@ -178,25 +182,24 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal byte[] GetBody()
+        private byte[] GetContents()
         {
             lock (this)
             {
-                if (body == null)
+                if (contents == null)
                 {
                     MemoryStream bOut = new MemoryStream();
                     DoOutput(bOut);
-                    body = bOut.ToArray();
+                    contents = bOut.ToArray();
                 }
-            }
 
-            return body;
+                return contents;
+            }
         }
 
-        internal override void Encode(
-            DerOutputStream derOut)
+        internal override void Encode(DerOutputStream derOut)
         {
-            derOut.WriteEncoded(Asn1Tags.ObjectIdentifier, GetBody());
+            derOut.WriteEncoded(Asn1Tags.ObjectIdentifier, GetContents());
         }
 
         protected override int Asn1GetHashCode()
@@ -344,20 +347,20 @@ namespace Org.BouncyCastle.Asn1
 
         private static readonly DerObjectIdentifier[] cache = new DerObjectIdentifier[1024];
 
-        internal static DerObjectIdentifier FromOctetString(byte[] enc)
+        internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)
         {
-            int hashCode = Arrays.GetHashCode(enc);
+            int hashCode = Arrays.GetHashCode(contents);
             int first = hashCode & 1023;
 
             lock (cache)
             {
                 DerObjectIdentifier entry = cache[first];
-                if (entry != null && Arrays.AreEqual(enc, entry.GetBody()))
+                if (entry != null && Arrays.AreEqual(contents, entry.GetContents()))
                 {
                     return entry;
                 }
 
-                return cache[first] = new DerObjectIdentifier(enc);
+                return cache[first] = new DerObjectIdentifier(contents, clone);
             }
         }
     }
