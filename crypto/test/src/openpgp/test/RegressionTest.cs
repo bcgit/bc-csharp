@@ -8,24 +8,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
     {
         public static ITest[] tests =
         {
-            new PgpKeyRingTest(),
-            new PgpRsaTest(),
-            new PgpDsaTest(),
-            new PgpDsaElGamalTest(),
-            new PgpPbeTest(),
-            new PgpMarkerTest(),
-            new PgpPacketTest(),
+            new ArmoredInputStreamTest(),
+            new IgnoreMarkerPacketInCertificatesTest(),
             new PgpArmoredTest(),
-            new PgpSignatureTest(),
             new PgpClearSignedSignatureTest(),
             new PgpCompressionTest(),
-            new PgpNoPrivateKeyTest(),
+            new PgpDsaElGamalTest(),
+            new PgpDsaTest(),
             new PgpECDHTest(),
             new PgpECDsaTest(),
             new PgpECMessageTest(),
-            new PgpParsingTest(),
             new PgpFeaturesTest(),
-            new IgnoreMarkerPacketInCertificatesTest(),
+            new PgpKeyRingTest(),
+            new PgpMarkerTest(),
+            new PgpNoPrivateKeyTest(),
+            new PgpPacketTest(),
+            new PgpParsingTest(),
+            new PgpPbeTest(),
+            new PgpRsaTest(),
+            new PgpSignatureTest(),
         };
 
         public static void Main(string[] args)
