@@ -383,6 +383,7 @@
     <Compile Include="src\openpgp\examples\SignedFileProcessor.cs" />
     <Compile Include="src\openpgp\examples\test\AllTests.cs" />
     <Compile Include="src\openpgp\test\DSA2Test.cs" />
+    <Compile Include="src\openpgp\test\IgnoreMarkerPacketInCertificatesTest.cs" />
     <Compile Include="src\openpgp\test\PGPArmoredTest.cs" />
     <Compile Include="src\openpgp\test\PGPClearSignedSignatureTest.cs" />
     <Compile Include="src\openpgp\test\PGPCompressionTest.cs" />

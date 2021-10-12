@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             BcpgInputStream bcpgInput = BcpgInputStream.Wrap(inputStream);
 
-            PacketTag initialTag = bcpgInput.NextPacketTag();
+            PacketTag initialTag = bcpgInput.SkipMarkerPackets();
             if (initialTag != PacketTag.SecretKey && initialTag != PacketTag.SecretSubkey)
             {
                 throw new IOException("secret key ring doesn't start with secret key tag: "

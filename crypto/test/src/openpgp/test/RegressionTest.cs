@@ -25,6 +25,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             new PgpECMessageTest(),
             new PgpParsingTest(),
             new PgpFeaturesTest(),
+            new IgnoreMarkerPacketInCertificatesTest(),
         };
 
         public static void Main(string[] args)

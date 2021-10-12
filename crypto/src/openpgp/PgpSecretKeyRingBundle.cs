@@ -48,12 +48,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			foreach (object obj in e)
 			{
-				PgpSecretKeyRing pgpSecret = obj as PgpSecretKeyRing;
+                // Marker packets must be ignored
+                if (obj is PgpMarker)
+                    continue;
 
+                PgpSecretKeyRing pgpSecret = obj as PgpSecretKeyRing;
 				if (pgpSecret == null)
-				{
 					throw new PgpException(Platform.GetTypeName(obj) + " found where PgpSecretKeyRing expected");
-				}
 
 				long key = pgpSecret.GetPublicKey().KeyId;
 				secretRings.Add(key, pgpSecret);
