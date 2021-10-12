@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         public override void PerformTest()
         {
             ArmoredInputStream armorIn = new ArmoredInputStream(
-                new MemoryStream(Encoding.UTF8.GetBytes(CERT_WITH_MARKER)));
+                new MemoryStream(Encoding.UTF8.GetBytes(CERT_WITH_MARKER), false));
             PgpObjectFactory objectFactory = new PgpObjectFactory(armorIn);
 
             PgpPublicKeyRing certificate = (PgpPublicKeyRing)objectFactory.NextPgpObject();
@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 		public static void Main(string[] args)
 		{
-			RunTest(new PgpArmoredTest());
+			RunTest(new IgnoreMarkerPacketInCertificatesTest());
 		}
 
 		[Test]
