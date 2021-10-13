@@ -2589,6 +2589,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\bcpg\UnsupportedPacketVersionException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\bcpg\UserAttributePacket.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -14980,6 +14985,11 @@
                 />
                 <File
                     RelPath = "test\src\openpgp\test\PGPRSATest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\openpgp\test\PgpSignatureInvalidVersionIgnoredTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

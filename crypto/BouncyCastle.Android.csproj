@@ -546,6 +546,7 @@
     <Compile Include="src\bcpg\SymmetricKeyAlgorithmTags.cs" />
     <Compile Include="src\bcpg\SymmetricKeyEncSessionPacket.cs" />
     <Compile Include="src\bcpg\TrustPacket.cs" />
+    <Compile Include="src\bcpg\UnsupportedPacketVersionException.cs" />
     <Compile Include="src\bcpg\UserAttributePacket.cs" />
     <Compile Include="src\bcpg\UserAttributeSubpacket.cs" />
     <Compile Include="src\bcpg\UserAttributeSubpacketTags.cs" />

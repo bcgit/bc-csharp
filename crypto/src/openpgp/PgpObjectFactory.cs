@@ -50,6 +50,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         {
                             l.Add(new PgpSignature(bcpgIn));
                         }
+                        catch (UnsupportedPacketVersionException e)
+                        {
+                            // Signatures of unsupported version MUST BE ignored
+                            // see: https://tests.sequoia-pgp.org/#Detached_signatures_with_unknown_packets
+                            continue;
+                        }
                         catch (PgpException e)
                         {
                             throw new IOException("can't create signature object: " + e);
@@ -61,7 +67,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     {
                         sigs[i] = (PgpSignature)l[i];
                     }
-					return new PgpSignatureList(sigs);
+                    return new PgpSignatureList(sigs);
                 }
                 case PacketTag.SecretKey:
                     try

@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             new PgpParsingTest(),
             new PgpPbeTest(),
             new PgpRsaTest(),
+            new PgpSignatureInvalidVersionIgnoredTest(),
             new PgpSignatureTest(),
         };
 

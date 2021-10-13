@@ -395,6 +395,7 @@
     <Compile Include="src\openpgp\test\PGPPBETest.cs" />
     <Compile Include="src\openpgp\test\PGPPacketTest.cs" />
     <Compile Include="src\openpgp\test\PGPRSATest.cs" />
+    <Compile Include="src\openpgp\test\PgpSignatureInvalidVersionIgnoredTest.cs" />
     <Compile Include="src\openpgp\test\PGPSignatureTest.cs" />
     <Compile Include="src\openpgp\test\PgpECDHTest.cs" />
     <Compile Include="src\openpgp\test\PgpECDsaTest.cs" />
