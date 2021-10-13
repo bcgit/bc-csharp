@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
 using Org.BouncyCastle.Asn1.Iana;
@@ -314,6 +315,47 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
+		public IX509Store CreateOtherRevocationInfoStore(
+			DerObjectIdentifier otherRevocationInfoFormatIdentifier,
+			Asn1Set crlSet)
+		{
+			IList otherRevocationInfoList = Platform.CreateArrayList();
+
+			if (crlSet != null)
+			{
+				foreach (Asn1Encodable ae in crlSet)
+				{
+					try
+					{
+						Asn1Object obj = ae.ToAsn1Object();
+
+						if (obj is Asn1TaggedObject)
+						{
+							var tagged = (Asn1TaggedObject)obj;
+
+							if (tagged.TagNo == 1)
+							{
+								var otherRevocationInfoFormat = OtherRevocationInfoFormat.GetInstance(tagged, false);
+
+								if (otherRevocationInfoFormat.InfoFormat.Id.Equals(otherRevocationInfoFormatIdentifier.Id))
+								{
+									otherRevocationInfoList.Add(otherRevocationInfoFormat.Info);
+								}
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						throw new CmsException("can't create otherRevocationInfoStore", ex);
+					}
+				}
+			}
+
+			return X509StoreFactory.Create(
+				"OTHERREVOCATIONINFO/COLLECTION",
+				new X509CollectionStoreParameters(otherRevocationInfoList));
+		}
+
 		private void AddCertsFromSet(
 			IList	certs,
 			Asn1Set	certSet)
@@ -349,8 +391,15 @@ namespace Org.BouncyCastle.Cms
 			{
 				try
 				{
+					// ae could be Crl or OtherRevocationInfoFormat: skip asn1 not crl
+					var crl = cf.ReadCrl(ae.GetEncoded()); 
+
 					// TODO Build CRL directly from ae.ToAsn1Object()?
-					crls.Add(cf.ReadCrl(ae.GetEncoded()));
+					if (crl != null)
+					{
+						crls.Add(crl);
+					}
+
 				}
 				catch (Exception ex)
 				{

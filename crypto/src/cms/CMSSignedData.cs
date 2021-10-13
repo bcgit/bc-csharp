@@ -248,7 +248,20 @@ namespace Org.BouncyCastle.Cms
 
 			return crlStore;
 		}
+		
+		/// <summary>
+		/// Return X509Store containing OtherRevocationInfoFormat.Info Asn1Encodable
+		/// </summary>
+		/// <param name="otherRevocationInfoFormatIdentifier"></param>
+		/// <returns></returns>
+		public IX509Store GetOtherRevocationInfo(
+			DerObjectIdentifier otherRevocationInfoFormatIdentifier)
+		{
+			var otherRevocationInfoStore =  Helper.CreateOtherRevocationInfoStore(otherRevocationInfoFormatIdentifier, signedData.CRLs);
 
+			return otherRevocationInfoStore;
+		}
+		
 		[Obsolete("Use 'SignedContentType' property instead.")]
 		public string SignedContentTypeOid
 		{

@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509.Store
@@ -43,6 +43,10 @@ namespace Org.BouncyCastle.X509.Store
 				case "CRL":
 					checkCorrectType(coll, typeof(X509Crl));
 					break;
+				case "OTHERREVOCATIONINFO":
+					checkCorrectType(coll, typeof(Asn1Encodable));
+					break;
+
 				default:
 					throw new NoSuchStoreException("X.509 store type '" + type + "' not available.");
 			}

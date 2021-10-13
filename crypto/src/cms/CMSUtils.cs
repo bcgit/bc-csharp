@@ -4,7 +4,9 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
@@ -139,6 +141,50 @@ namespace Org.BouncyCastle.Cms
 				throw new CmsException("error processing crls", e);
 			}
 		}
+		
+		
+		public static IList GetOtherRevocationInfoFromStore(DerObjectIdentifier otherRevocationInfoFormatIdentifier, IX509Store otherRevocationInfos)
+		{
+			try
+			{
+				IList others = Platform.CreateArrayList();
+
+				if (otherRevocationInfos != null)
+				{
+					foreach (Asn1Encodable otherEncodable in otherRevocationInfos.GetMatches(null))
+					{
+						var otherRevocationInfoFormat = new OtherRevocationInfoFormat(otherRevocationInfoFormatIdentifier, otherEncodable);
+						
+						ValidateOcspResponseInfoFormat(otherRevocationInfoFormat);
+
+						others.Add(new DerTaggedObject(false, 1, otherRevocationInfoFormat.ToAsn1Object()));
+					}
+				}
+
+				return others;
+			}
+			
+			catch (Exception e)
+			{
+				throw new CmsException("error processing otherRevocationInfos", e);
+			}
+		}
+		
+		internal static void ValidateOcspResponseInfoFormat(OtherRevocationInfoFormat infoFormat)
+		{
+			
+			if (CmsObjectIdentifiers.id_ri_ocsp_response.Id.Equals(infoFormat.InfoFormat.Id))
+			{
+				var otherInfoEncoded = infoFormat.Info.GetEncoded();
+				var  ocspResponseTagged = Asn1Object.FromByteArray(otherInfoEncoded);
+				var ocspResponse = OcspResponse.GetInstance(ocspResponseTagged);
+				
+				if (ocspResponse.ResponseStatus.IntValueExact != OcspResponseStatus.Successful)
+				{
+					throw new InvalidParameterException("cannot add unsuccessful OCSP response to CMS SignedData");
+				}
+			}
+		}
 
 		public static Asn1Set CreateBerSetFromList(
 			IList berObjects)
@@ -182,5 +228,5 @@ namespace Org.BouncyCastle.Cms
 			TbsCertificateStructure tbsCert = GetTbsCertificateStructure(cert);
 			return new IssuerAndSerialNumber(tbsCert.Issuer, tbsCert.SerialNumber.Value);
 		}
-	}
+    }
 }

@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Cms
 		private IX509Store				_attributeStore;
 		private IX509Store				_certificateStore;
 		private IX509Store				_crlStore;
-
+		
 		public CmsSignedDataParser(
 			byte[] sigBlock)
 			: this(new MemoryStream(sigBlock, false))
@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.Cms
 
 			return _certificateStore;
 		}
-
+	
 		/**
 		* return a X509Store containing CRLs, if any, contained
 		* in this message.
@@ -298,6 +298,24 @@ namespace Org.BouncyCastle.Cms
 			}
 
 			return _crlStore;
+		}
+		
+		/// <summary>
+		/// Return X509Store containing OtherRevocationInfoFormat.Info Asn1Encodable
+		/// </summary>
+		/// <param name="otherRevocationInfoFormatIdentifier"></param>
+		/// <returns></returns>
+		public IX509Store GetOtherRevocationInfo(
+			DerObjectIdentifier otherRevocationInfoFormatIdentifier)
+		{
+			if (_crlSet == null)
+			{
+				PopulateCertCrlSets();
+			}
+			
+			var otherRevocationInfoStore =  Helper.CreateOtherRevocationInfoStore(otherRevocationInfoFormatIdentifier, _crlSet);
+
+			return otherRevocationInfoStore;
 		}
 
 		private void PopulateCertCrlSets()

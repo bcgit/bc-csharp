@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.IO;
-
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
 using Org.BouncyCastle.Asn1.Bsi;
@@ -16,8 +14,6 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -572,6 +568,34 @@ namespace Org.BouncyCastle.Cms
             IX509Store crlStore)
         {
             CollectionUtilities.AddRange(_crls, CmsUtilities.GetCrlsFromStore(crlStore));
+        }
+
+        /**
+     * Add a single instance of otherRevocationData to the CRL set to be included with the generated SignedData message.
+     *
+     * @param otherRevocationInfoFormat the OID specifying the format of the otherRevocationInfo data.
+     * @param otherRevocationInfo the otherRevocationInfo ASN.1 structure.
+     */
+        public void AddOtherRevocationInfo(
+            DerObjectIdentifier otherRevocationInfoFormatIdentifier,
+            Asn1Encodable otherRevocationInfo)
+        {
+            var otherRevocationInfoFormat = new OtherRevocationInfoFormat(otherRevocationInfoFormatIdentifier, otherRevocationInfo);
+            CmsUtilities.ValidateOcspResponseInfoFormat(otherRevocationInfoFormat);
+            _crls.Add(Asn1TaggedObject.GetInstance(new DerTaggedObject(false, 1, new OtherRevocationInfoFormat(otherRevocationInfoFormatIdentifier, otherRevocationInfo))));
+        }
+
+        /**
+     * Add a Store of otherRevocationData to the CRL set to be included with the generated SignedData message.
+     *
+     * @param otherRevocationInfoFormat the OID specifying the format of the otherRevocationInfo data.
+     * @param otherRevocationInfos a Store of otherRevocationInfo data to add.
+     */
+        public void AddOtherRevocationInfo(
+            DerObjectIdentifier otherRevocationInfoFormatIdentifier,
+            IX509Store otherRevocationInfos)
+        {
+            CollectionUtilities.AddRange(_crls, CmsUtilities.GetOtherRevocationInfoFromStore(otherRevocationInfoFormatIdentifier, otherRevocationInfos));
         }
 
         /**

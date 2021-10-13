@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Text;
-
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -483,6 +483,16 @@ namespace Org.BouncyCastle.Cms.Tests
             }
 
             return X509StoreFactory.Create("CRL/Collection", new X509CollectionStoreParameters(crlList));
+        }
+
+        internal static IX509Store MakeOtherRevocationInfoStore(byte[] ocspResponseBytes)
+        {
+	        IList OtherRevocationInfoList = new ArrayList(); 
+
+	        // Prepare ocsp response
+	        OtherRevocationInfoList.Add(Asn1Object.FromByteArray(ocspResponseBytes));
+	        
+	        return  X509StoreFactory.Create("OTHERREVOCATIONINFO/COLLECTION", new X509CollectionStoreParameters(OtherRevocationInfoList));
         }
 
         private static AuthorityKeyIdentifier CreateAuthorityKeyId(

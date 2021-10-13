@@ -42,6 +42,40 @@ namespace Org.BouncyCastle.Cms.Tests
 		private static X509Crl signCrl;
 		private static X509Crl origCrl;
 
+		private static byte[] _ocspResponseBytes = Base64.Decode(
+			"MIIFnAoBAKCCBZUwggWRBgkrBgEFBQcwAQEEggWCMIIFfjCCARehgZ8wgZwx"
+			+ "CzAJBgNVBAYTAklOMRcwFQYDVQQIEw5BbmRocmEgcHJhZGVzaDESMBAGA1UE"
+			+ "BxMJSHlkZXJhYmFkMQwwCgYDVQQKEwNUQ1MxDDAKBgNVBAsTA0FUQzEeMBwG"
+			+ "A1UEAxMVVENTLUNBIE9DU1AgUmVzcG9uZGVyMSQwIgYJKoZIhvcNAQkBFhVv"
+			+ "Y3NwQHRjcy1jYS50Y3MuY28uaW4YDzIwMDMwNDAyMTIzNDU4WjBiMGAwOjAJ"
+			+ "BgUrDgMCGgUABBRs07IuoCWNmcEl1oHwIak1BPnX8QQUtGyl/iL9WJ1VxjxF"
+			+ "j0hAwJ/s1AcCAQKhERgPMjAwMjA4MjkwNzA5MjZaGA8yMDAzMDQwMjEyMzQ1"
+			+ "OFowDQYJKoZIhvcNAQEFBQADgYEAfbN0TCRFKdhsmvOdUoiJ+qvygGBzDxD/"
+			+ "VWhXYA+16AphHLIWNABR3CgHB3zWtdy2j7DJmQ/R7qKj7dUhWLSqclAiPgFt"
+			+ "QQ1YvSJAYfEIdyHkxv4NP0LSogxrumANcDyC9yt/W9yHjD2ICPBIqCsZLuLk"
+			+ "OHYi5DlwWe9Zm9VFwCGgggPMMIIDyDCCA8QwggKsoAMCAQICAQYwDQYJKoZI"
+			+ "hvcNAQEFBQAwgZQxFDASBgNVBAMTC1RDUy1DQSBPQ1NQMSYwJAYJKoZIhvcN"
+			+ "AQkBFhd0Y3MtY2FAdGNzLWNhLnRjcy5jby5pbjEMMAoGA1UEChMDVENTMQww"
+			+ "CgYDVQQLEwNBVEMxEjAQBgNVBAcTCUh5ZGVyYWJhZDEXMBUGA1UECBMOQW5k"
+			+ "aHJhIHByYWRlc2gxCzAJBgNVBAYTAklOMB4XDTAyMDgyOTA3MTE0M1oXDTAz"
+			+ "MDgyOTA3MTE0M1owgZwxCzAJBgNVBAYTAklOMRcwFQYDVQQIEw5BbmRocmEg"
+			+ "cHJhZGVzaDESMBAGA1UEBxMJSHlkZXJhYmFkMQwwCgYDVQQKEwNUQ1MxDDAK"
+			+ "BgNVBAsTA0FUQzEeMBwGA1UEAxMVVENTLUNBIE9DU1AgUmVzcG9uZGVyMSQw"
+			+ "IgYJKoZIhvcNAQkBFhVvY3NwQHRjcy1jYS50Y3MuY28uaW4wgZ8wDQYJKoZI"
+			+ "hvcNAQEBBQADgY0AMIGJAoGBAM+XWW4caMRv46D7L6Bv8iwtKgmQu0SAybmF"
+			+ "RJiz12qXzdvTLt8C75OdgmUomxp0+gW/4XlTPUqOMQWv463aZRv9Ust4f8MH"
+			+ "EJh4ekP/NS9+d8vEO3P40ntQkmSMcFmtA9E1koUtQ3MSJlcs441JjbgUaVnm"
+			+ "jDmmniQnZY4bU3tVAgMBAAGjgZowgZcwDAYDVR0TAQH/BAIwADALBgNVHQ8E"
+			+ "BAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwkwNgYIKwYBBQUHAQEEKjAoMCYG"
+			+ "CCsGAQUFBzABhhpodHRwOi8vMTcyLjE5LjQwLjExMDo3NzAwLzAtBgNVHR8E"
+			+ "JjAkMCKgIKAehhxodHRwOi8vMTcyLjE5LjQwLjExMC9jcmwuY3JsMA0GCSqG"
+			+ "SIb3DQEBBQUAA4IBAQB6FovM3B4VDDZ15o12gnADZsIk9fTAczLlcrmXLNN4"
+			+ "PgmqgnwF0Ymj3bD5SavDOXxbA65AZJ7rBNAguLUo+xVkgxmoBH7R2sBxjTCc"
+			+ "r07NEadxM3HQkt0aX5XYEl8eRoifwqYAI9h0ziZfTNes8elNfb3DoPPjqq6V"
+			+ "mMg0f0iMS4W8LjNPorjRB+kIosa1deAGPhq0eJ8yr0/s2QR2/WFD5P4aXc8I"
+			+ "KWleklnIImS3zqiPrq6tl2Bm8DZj7vXlTOwmraSQxUwzCKwYob1yGvNOUQTq"
+			+ "pG6jxn7jgDawHU1+WjWQe4Q34/pWeGLysxTraMa+Ug9kPe+jy/qRX2xwvKBZ");
+		
 		private static AsymmetricCipherKeyPair SignKP
 		{
 			get { return signKP == null ? (signKP = CmsTestUtil.MakeKeyPair()) : signKP; }
@@ -344,8 +378,77 @@ namespace Org.BouncyCastle.Cms.Tests
 			Assert.IsTrue(col.Contains(SignCrl));
 			Assert.IsTrue(col.Contains(OrigCrl));
 		}
-
+		
 		[Test]
+        public void TestCrlAndOtherRevocationInfoFormat()
+        {
+            MemoryStream bOut = new MemoryStream();
+
+            IX509Store x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+            IX509Store x509Crls = CmsTestUtil.MakeCrlStore(SignCrl, OrigCrl);
+            IX509Store x509OtherRevocationInfo = CmsTestUtil.MakeOtherRevocationInfoStore(_ocspResponseBytes);
+            
+            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataStreamGenerator.DigestSha1);
+            gen.AddCertificates(x509Certs);
+            gen.AddCrls(x509Crls);
+            gen.AddOtherRevocationInfo(CmsObjectIdentifiers.id_ri_ocsp_response, x509OtherRevocationInfo);
+
+            Stream sigOut = gen.Open(bOut);
+
+            byte[] testBytes = Encoding.ASCII.GetBytes(TestMessage);
+            sigOut.Write(testBytes, 0, testBytes.Length);
+
+            sigOut.Close();
+
+            CheckSigParseable(bOut.ToArray());
+
+            CmsSignedDataParser sp = new CmsSignedDataParser(
+                new CmsTypedStream(new MemoryStream(testBytes, false)), bOut.ToArray());
+
+            sp.GetSignedContent().Drain();
+
+            // compute expected content digest
+            byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
+
+            VerifySignatures(sp, hash);
+
+            //
+            // try using existing signer
+            //
+            gen = new CmsSignedDataStreamGenerator();
+            gen.AddSigners(sp.GetSignerInfos());
+            gen.AddCertificates(sp.GetCertificates("Collection"));
+            gen.AddCrls(sp.GetCrls("Collection"));
+            var spOtherRevocationInfo = sp.GetOtherRevocationInfo(CmsObjectIdentifiers.id_ri_ocsp_response);
+            gen.AddOtherRevocationInfo(CmsObjectIdentifiers.id_ri_ocsp_response, spOtherRevocationInfo);
+
+            bOut.SetLength(0);
+
+            sigOut = gen.Open(bOut, true);
+            sigOut.Write(testBytes, 0, testBytes.Length);
+            sigOut.Close();
+
+            VerifyEncodedData(bOut);
+
+            //
+            // look for the CRLs
+            //
+            ArrayList crls = new ArrayList(x509Crls.GetMatches(null));
+            
+            Assert.AreEqual(2, crls.Count);
+            Assert.IsTrue(crls.Contains(SignCrl));
+            Assert.IsTrue(crls.Contains(OrigCrl));
+            
+            //
+            // look for OtherRevocationInfo
+            //
+            ArrayList otherRevocationInfos = new ArrayList(x509OtherRevocationInfo.GetMatches(null));
+            Assert.AreEqual(1, otherRevocationInfos.Count);
+            Assert.AreEqual(1, spOtherRevocationInfo.GetMatches(null).Count);
+        }
+
+        [Test]
 		public void TestSha1WithRsaNonData()
 		{
 			MemoryStream bOut = new MemoryStream();
