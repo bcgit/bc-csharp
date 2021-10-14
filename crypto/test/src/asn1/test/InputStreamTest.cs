@@ -38,23 +38,24 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 			catch (IOException e)
 			{
-				if (!e.Message.StartsWith("DER length more than 4 bytes"))
-				{
+                if (!e.Message.Equals("invalid long form definite-length 0xFF"))
+                {
 					Fail("wrong exception: " + e.Message);
 				}
 			}
 
-			aIn = new Asn1InputStream(negativeLength);
+            // NOTE: Not really a "negative" length, but 32 bits
+            aIn = new Asn1InputStream(negativeLength);
 
-			try
-			{
+            try
+            {
 				aIn.ReadObject();
 				Fail("negative length not detected.");
 			}
 			catch (IOException e)
 			{
-				if (!e.Message.Equals("corrupted stream - negative length found"))
-				{
+                if (!e.Message.Equals("long form definite-length more than 31 bits"))
+                {
 					Fail("wrong exception: " + e.Message);
 				}
 			}

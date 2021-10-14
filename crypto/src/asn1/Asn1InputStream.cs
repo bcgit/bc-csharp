@@ -242,9 +242,7 @@ namespace Org.BouncyCastle.Asn1
             get { return limit; }
         }
 
-        internal static int ReadTagNumber(
-            Stream	s,
-            int		tag)
+        internal static int ReadTagNumber(Stream s, int tag)
         {
             int tagNo = tag & 0x1f;
 
@@ -256,23 +254,32 @@ namespace Org.BouncyCastle.Asn1
                 tagNo = 0;
 
                 int b = s.ReadByte();
+                if (b < 31)
+                {
+                    if (b < 0)
+                        throw new EndOfStreamException("EOF found inside tag value.");
+
+                    throw new IOException("corrupted stream - high tag number < 31 found");
+                }
 
                 // X.690-0207 8.1.2.4.2
                 // "c) bits 7 to 1 of the first subsequent octet shall not all be zero."
-                if ((b & 0x7f) == 0) // Note: -1 will pass
+                if ((b & 0x7f) == 0)
                     throw new IOException("corrupted stream - invalid high tag number found");
 
-                while ((b >= 0) && ((b & 0x80) != 0))
+                while ((b & 0x80) != 0)
                 {
-                    tagNo |= (b & 0x7f);
+                    if (((uint)tagNo >> 24) != 0U)
+                        throw new IOException("Tag number more than 31 bits");
+
+                    tagNo |= b & 0x7f;
                     tagNo <<= 7;
                     b = s.ReadByte();
+                    if (b < 0)
+                        throw new EndOfStreamException("EOF found inside tag value.");
                 }
 
-                if (b < 0)
-                    throw new EndOfStreamException("EOF found inside tag value.");
-
-                tagNo |= (b & 0x7f);
+                tagNo |= b & 0x7f;
             }
 
             return tagNo;
@@ -281,37 +288,43 @@ namespace Org.BouncyCastle.Asn1
         internal static int ReadLength(Stream s, int limit, bool isParsing)
         {
             int length = s.ReadByte();
-            if (length < 0)
-                throw new EndOfStreamException("EOF found when length expected");
-
-            if (length == 0x80)
-                return -1;      // indefinite-length encoding
-
-            if (length > 127)
+            if (0U == ((uint)length >> 7))
             {
-                int size = length & 0x7f;
-
-                // Note: The invalid long form "0xff" (see X.690 8.1.3.5c) will be caught here
-                if (size > 4)
-                    throw new IOException("DER length more than 4 bytes: " + size);
-
-                length = 0;
-                for (int i = 0; i < size; i++)
-                {
-                    int next = s.ReadByte();
-
-                    if (next < 0)
-                        throw new EndOfStreamException("EOF found reading length");
-
-                    length = (length << 8) + next;
-                }
-
-                if (length < 0)
-                    throw new IOException("corrupted stream - negative length found");
-
-                if (length >= limit && !isParsing)   // after all we must have read at least 1 byte
-                    throw new IOException("corrupted stream - out of bounds length found: " + length + " >= " + limit);
+                // definite-length short form 
+                return length;
             }
+            if (0x80 == length)
+            {
+                // indefinite-length
+                return -1;
+            }
+            if (length < 0)
+            {
+                throw new EndOfStreamException("EOF found when length expected");
+            }
+            if (0xFF == length)
+            {
+                throw new IOException("invalid long form definite-length 0xFF");
+            }
+
+            int octetsCount = length & 0x7F, octetsPos = 0;
+
+            length = 0;
+            do
+            {
+                int octet = s.ReadByte();
+                if (octet < 0)
+                    throw new EndOfStreamException("EOF found reading length");
+
+                if (((uint)length >> 23) != 0U)
+                    throw new IOException("long form definite-length more than 31 bits");
+
+                length = (length << 8) + octet;
+            }
+            while (++octetsPos < octetsCount);
+
+            if (length >= limit && !isParsing)   // after all we must have read at least 1 byte
+                throw new IOException("corrupted stream - out of bounds length found: " + length + " >= " + limit);
 
             return length;
         }
