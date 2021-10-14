@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Asn1
 			ExternalContent = externalData.ToAsn1Object();
 		}
 
-		internal override void Encode(Asn1OutputStream asn1Out)
+		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
 			MemoryStream ms = new MemoryStream();
 			WriteEncodable(ms, directReference);
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Asn1
 			WriteEncodable(ms, dataValueDescriptor);
 			WriteEncodable(ms, new DerTaggedObject(Asn1Tags.External, externalContent));
 
-			asn1Out.WriteEncoded(Asn1Tags.Constructed, Asn1Tags.External, ms.ToArray());
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.External, ms.ToArray());
 		}
 
 		protected override int Asn1GetHashCode()

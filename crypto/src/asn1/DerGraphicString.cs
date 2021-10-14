@@ -79,9 +79,9 @@ namespace Org.BouncyCastle.Asn1
             return Arrays.Clone(mString);
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            asn1Out.WriteEncoded(Asn1Tags.GraphicString, mString);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.GraphicString, mString);
         }
 
         protected override int Asn1GetHashCode()

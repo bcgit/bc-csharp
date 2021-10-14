@@ -47,12 +47,16 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		internal override void Encode(Asn1OutputStream asn1Out)
+		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
 			if (asn1Out.IsBer)
 			{
-				asn1Out.WriteIdentifier(true, Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo);
-				asn1Out.WriteByte(0x80);
+                if (withID)
+                {
+                    asn1Out.WriteIdentifier(true, Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo);
+                }
+
+                asn1Out.WriteByte(0x80);
 
 				if (!IsEmpty())
 				{
@@ -86,12 +90,12 @@ namespace Org.BouncyCastle.Asn1
 
 						foreach (Asn1Encodable o in eObj)
 						{
-							asn1Out.WritePrimitive(o.ToAsn1Object());
+							asn1Out.WritePrimitive(o.ToAsn1Object(), true);
 						}
 					}
 					else
 					{
-						asn1Out.WritePrimitive(obj.ToAsn1Object());
+						asn1Out.WritePrimitive(obj.ToAsn1Object(), true);
 					}
 				}
 
@@ -100,7 +104,7 @@ namespace Org.BouncyCastle.Asn1
 			}
 			else
 			{
-				base.Encode(asn1Out);
+				base.Encode(asn1Out, withID);
 			}
 		}
 	}

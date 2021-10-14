@@ -70,17 +70,17 @@ namespace Org.BouncyCastle.Asn1
 		 * ASN.1 descriptions given. Rather than just outputing Set,
 		 * we also have to specify Constructed, and the objects length.
 		 */
-        internal override void Encode(Asn1OutputStream asn1Out)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             if (Count < 1)
             {
-                asn1Out.WriteEncoded(Asn1Tags.Set | Asn1Tags.Constructed, Asn1OctetString.EmptyOctets);
+                asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Set, Asn1OctetString.EmptyOctets);
                 return;
             }
 
             // TODO Intermediate buffer could be avoided if we could calculate expected length
             MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Asn1Encodable.Der);
+            Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Der);
             dOut.WriteElements(elements);
             dOut.Flush();
 
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Asn1
             int length = (int)bOut.Position;
 #endif
 
-            asn1Out.WriteEncoded(Asn1Tags.Set | Asn1Tags.Constructed, bytes, 0, length);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Set, bytes, 0, length);
 
             Platform.Dispose(dOut);
         }

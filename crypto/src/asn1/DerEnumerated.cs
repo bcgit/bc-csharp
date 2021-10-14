@@ -119,9 +119,9 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            asn1Out.WriteEncoded(Asn1Tags.Enumerated, bytes);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.Enumerated, bytes);
         }
 
         protected override bool Asn1Equals(Asn1Object asn1Object)

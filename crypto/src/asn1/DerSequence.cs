@@ -53,11 +53,11 @@ namespace Org.BouncyCastle.Asn1
 		 * ASN.1 descriptions given. Rather than just outputing Sequence,
 		 * we also have to specify Constructed, and the objects length.
 		 */
-        internal override void Encode(Asn1OutputStream asn1Out)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             if (Count < 1)
             {
-                asn1Out.WriteEncoded(Asn1Tags.Sequence | Asn1Tags.Constructed, Asn1OctetString.EmptyOctets);
+                asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, Asn1OctetString.EmptyOctets);
                 return;
             }
 
@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Asn1
             int length = (int)bOut.Position;
 #endif
 
-            asn1Out.WriteEncoded(Asn1Tags.Sequence | Asn1Tags.Constructed, bytes, 0, length);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, bytes, 0, length);
 
             Platform.Dispose(dOut);
         }

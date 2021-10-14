@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		internal override void Encode(Asn1OutputStream asn1Out)
+		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
 			if (!IsEmpty())
 			{
@@ -50,21 +50,26 @@ namespace Org.BouncyCastle.Asn1
 
 				if (explicitly)
 				{
-					asn1Out.WriteEncoded(Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo, bytes);
+					asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo, bytes);
 				}
 				else
 				{
 					//
 					// need to mark constructed types... (preserve Constructed tag)
 					//
-					int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.Tagged;
-					asn1Out.WriteIdentifier(true, flags, tagNo);
-					asn1Out.Write(bytes, 1, bytes.Length - 1);
+                    if (withID)
+                    {
+                        int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.Tagged;
+                        asn1Out.WriteIdentifier(true, flags, tagNo);
+                    }
+
+                    asn1Out.Write(bytes, 1, bytes.Length - 1);
 				}
 			}
 			else
 			{
-				asn1Out.WriteEncoded(Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo, new byte[0]);
+				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo,
+                    Asn1OctetString.EmptyOctets);
 			}
 		}
 	}

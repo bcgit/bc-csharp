@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == encodable)
                 throw new IOException("null object detected");
 
-            WritePrimitive(encodable.ToAsn1Object());
+            WritePrimitive(encodable.ToAsn1Object(), true);
             FlushInternal();
         }
 
@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == primitive)
                 throw new IOException("null object detected");
 
-            WritePrimitive(primitive);
+            WritePrimitive(primitive, true);
             FlushInternal();
         }
 
@@ -52,29 +52,145 @@ namespace Org.BouncyCastle.Asn1
             // Placeholder to support future internal buffering
         }
 
-        internal override bool IsBer
+        internal virtual bool IsBer
         {
             get { return true; }
+        }
+
+        internal void WriteDL(int length)
+        {
+            if (length < 128)
+            {
+                WriteByte((byte)length);
+            }
+            else
+            {
+                byte[] stack = new byte[5];
+                int pos = stack.Length;
+
+                do
+                {
+                    stack[--pos] = (byte)length;
+                    length >>= 8;
+                }
+                while (length > 0);
+
+                int count = stack.Length - pos;
+                stack[--pos] = (byte)(0x80 | count);
+
+                Write(stack, pos, count + 1);
+            }
         }
 
         internal virtual void WriteElements(Asn1Encodable[] elements)
         {
             for (int i = 0, count = elements.Length; i < count; ++i)
             {
-                elements[i].ToAsn1Object().Encode(this);
+                elements[i].ToAsn1Object().Encode(this, true);
             }
         }
 
-        internal virtual void WritePrimitive(Asn1Object primitive)
+        internal void WriteEncodingDL(bool withID, int identifier, byte contents)
         {
-            primitive.Encode(this);
+            WriteIdentifier(withID, identifier);
+            WriteDL(1);
+            WriteByte(contents);
+        }
+
+        internal void WriteEncodingDL(bool withID, int identifier, byte[] contents)
+        {
+            WriteIdentifier(withID, identifier);
+            WriteDL(contents.Length);
+            Write(contents, 0, contents.Length);
+        }
+
+        internal void WriteEncodingDL(bool withID, int identifier, byte[] contents, int contentsOff, int contentsLen)
+        {
+            WriteIdentifier(withID, identifier);
+            WriteDL(contentsLen);
+            Write(contents, contentsOff, contentsLen);
+        }
+
+        internal void WriteEncodingDL(bool withID, int identifier, byte contentsPrefix, byte[] contents,
+            int contentsOff, int contentsLen)
+        {
+            WriteIdentifier(withID, identifier);
+            WriteDL(1 + contentsLen);
+            WriteByte(contentsPrefix);
+            Write(contents, contentsOff, contentsLen);
+        }
+
+        internal void WriteEncodingDL(bool withID, int identifier, byte[] contents, int contentsOff, int contentsLen,
+            byte contentsSuffix)
+        {
+            WriteIdentifier(withID, identifier);
+            WriteDL(contentsLen + 1);
+            Write(contents, contentsOff, contentsLen);
+            WriteByte(contentsSuffix);
+        }
+
+        internal void WriteEncodingDL(bool withID, int flags, int tag, byte[] contents)
+        {
+            WriteIdentifier(withID, flags, tag);
+            WriteDL(contents.Length);
+            Write(contents, 0, contents.Length);
+        }
+
+        internal void WriteEncodingIL(bool withID, int identifier, Asn1Encodable[] elements)
+        {
+            WriteIdentifier(withID, identifier);
+            WriteByte(0x80);
+            WriteElements(elements);
+            WriteByte(0x00);
+            WriteByte(0x00);
+        }
+
+        internal void WriteIdentifier(bool withID, int identifier)
+        {
+            if (withID)
+            {
+                WriteByte((byte)identifier);
+            }
+        }
+
+        internal void WriteIdentifier(bool withID, int flags, int tag)
+        {
+            if (!withID)
+            {
+                // Don't write the identifier
+            }
+            else if (tag < 31)
+            {
+                WriteByte((byte)(flags | tag));
+            }
+            else
+            {
+                byte[] stack = new byte[6];
+                int pos = stack.Length;
+
+                stack[--pos] = (byte)(tag & 0x7F);
+                while (tag > 127)
+                {
+                    tag >>= 7;
+                    stack[--pos] = (byte)(tag & 0x7F | 0x80);
+                }
+
+                stack[--pos] = (byte)(flags | 0x1F);
+
+                Write(stack, pos, stack.Length - pos);
+            }
+        }
+
+        internal virtual void WritePrimitive(Asn1Object primitive, bool withID)
+        {
+            primitive.Encode(this, withID);
         }
 
         internal virtual void WritePrimitives(Asn1Object[] primitives)
         {
             for (int i = 0, count = primitives.Length; i < count; ++i)
             {
-                WritePrimitive(primitives[i]);
+                WritePrimitive(primitives[i], true);
             }
         }
     }

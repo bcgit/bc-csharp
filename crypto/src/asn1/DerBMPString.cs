@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Asn1
 			return this.str.Equals(other.str);
         }
 
-		internal override void Encode(Asn1OutputStream asn1Out)
+		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             char[] c = str.ToCharArray();
             byte[] b = new byte[c.Length * 2];
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Asn1
                 b[2 * i + 1] = (byte)c[i];
             }
 
-            asn1Out.WriteEncoded(Asn1Tags.BmpString, b);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.BmpString, b);
         }
     }
 }

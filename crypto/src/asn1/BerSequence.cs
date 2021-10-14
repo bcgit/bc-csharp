@@ -39,21 +39,15 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-        internal override void Encode(Asn1OutputStream asn1Out)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
 			if (asn1Out.IsBer)
-			{
-				asn1Out.WriteByte(Asn1Tags.Sequence | Asn1Tags.Constructed);
-				asn1Out.WriteByte(0x80);
-
-                asn1Out.WriteElements(elements);
-
-				asn1Out.WriteByte(0x00);
-				asn1Out.WriteByte(0x00);
+            {
+                asn1Out.WriteEncodingIL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, elements);
 			}
 			else
 			{
-				base.Encode(asn1Out);
+				base.Encode(asn1Out, withID);
 			}
 		}
 	}

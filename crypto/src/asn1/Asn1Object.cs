@@ -62,9 +62,9 @@ namespace Org.BouncyCastle.Asn1
             return this;
         }
 
-		internal abstract void Encode(Asn1OutputStream asn1Out);
+        internal abstract void Encode(Asn1OutputStream asn1Out, bool withID);
 
-		protected abstract bool Asn1Equals(Asn1Object asn1Object);
+        protected abstract bool Asn1Equals(Asn1Object asn1Object);
 		protected abstract int Asn1GetHashCode();
 
 		internal bool CallAsn1Equals(Asn1Object obj)

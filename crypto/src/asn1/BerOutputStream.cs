@@ -13,9 +13,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override bool IsBer
+        public override void WriteObject(Asn1Encodable encodable)
         {
-            get { return true; }
+            Asn1OutputStream.Create(s).WriteObject(encodable);
+        }
+
+        public override void WriteObject(Asn1Object primitive)
+        {
+            Asn1OutputStream.Create(s).WriteObject(primitive);
         }
     }
 }

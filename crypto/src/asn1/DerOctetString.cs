@@ -22,14 +22,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            asn1Out.WriteEncoded(Asn1Tags.OctetString, str);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, str);
         }
 
-		internal static void Encode(Asn1OutputStream asn1Out, byte[] bytes, int offset, int length)
+		internal static void Encode(Asn1OutputStream asn1Out, bool withID, byte[] buf, int off, int len)
 		{
-			asn1Out.WriteEncoded(Asn1Tags.OctetString, bytes, offset, length);
+			asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, buf, off, len);
 		}
 	}
 }

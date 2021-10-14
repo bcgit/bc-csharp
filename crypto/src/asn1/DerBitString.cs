@@ -191,7 +191,7 @@ namespace Org.BouncyCastle.Asn1
 			}
 		}
 
-        internal override void Encode(Asn1OutputStream asn1Out)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
             if (mPadBits > 0)
             {
@@ -208,12 +208,12 @@ namespace Org.BouncyCastle.Asn1
                      */
                     contents[contents.Length - 1] = (byte)(last ^ unusedBits);
 
-                    asn1Out.WriteEncoded(Asn1Tags.BitString, contents);
+                    asn1Out.WriteEncodingDL(withID, Asn1Tags.BitString, contents);
                     return;
                 }
             }
 
-            asn1Out.WriteEncoded(Asn1Tags.BitString, (byte)mPadBits, mData);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.BitString, (byte)mPadBits, mData, 0, mData.Length);
 		}
 
         protected override int Asn1GetHashCode()

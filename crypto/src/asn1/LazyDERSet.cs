@@ -59,17 +59,17 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             lock (this)
             {
                 if (encoded == null)
                 {
-                    base.Encode(asn1Out);
+                    base.Encode(asn1Out, withID);
                 }
                 else
                 {
-                    asn1Out.WriteEncoded(Asn1Tags.Set | Asn1Tags.Constructed, encoded);
+                    asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Set, encoded);
                 }
             }
         }
