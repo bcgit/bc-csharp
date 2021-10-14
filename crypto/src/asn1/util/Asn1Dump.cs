@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -30,9 +29,14 @@ namespace Org.BouncyCastle.Asn1.Utilities
             Asn1Object		obj,
             StringBuilder	buf)
         {
-            if (obj is Asn1Sequence)
+            if (obj is Asn1Null)
             {
-                string tab = indent + Tab;
+                buf.Append(indent);
+                buf.Append("NULL");
+                buf.Append(NewLine);
+            }
+            else if (obj is Asn1Sequence)
+            {
                 buf.Append(indent);
                 if (obj is BerSequence)
                 {
@@ -46,21 +50,39 @@ namespace Org.BouncyCastle.Asn1.Utilities
                 {
                     buf.Append("Sequence");
                 }
-
                 buf.Append(NewLine);
 
-                foreach (Asn1Encodable o in ((Asn1Sequence)obj))
+                Asn1Sequence sequence = (Asn1Sequence)obj;
+                string elementsIndent = indent + Tab;
+
+                for (int i = 0, count = sequence.Count; i < count; ++i)
                 {
-                    if (o == null || o is Asn1Null)
-                    {
-                        buf.Append(tab);
-                        buf.Append("NULL");
-                        buf.Append(NewLine);
-                    }
-                    else
-                    {
-                        AsString(tab, verbose, o.ToAsn1Object(), buf);
-                    }
+                    AsString(elementsIndent, verbose, sequence[i].ToAsn1Object(), buf);
+                }
+            }
+            else if (obj is Asn1Set)
+            {
+                buf.Append(indent);
+                if (obj is BerSet)
+                {
+                    buf.Append("BER Set");
+                }
+                else if (obj is DerSet)
+                {
+                    buf.Append("DER Set");
+                }
+                else
+                {
+                    buf.Append("Set");
+                }
+                buf.Append(NewLine);
+
+                Asn1Set set = (Asn1Set)obj;
+                string elementsIndent = indent + Tab;
+
+                for (int i = 0, count = set.Count; i < count; ++i)
+                {
+                    AsString(elementsIndent, verbose, set[i].ToAsn1Object(), buf);
                 }
             }
             else if (obj is Asn1TaggedObject)
@@ -78,7 +100,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
 
                 Asn1TaggedObject o = (Asn1TaggedObject)obj;
 
-                buf.Append(((int)o.TagNo).ToString());
+                buf.Append(o.TagNo.ToString());
                 buf.Append(']');
 
                 if (!o.IsExplicit())
@@ -97,50 +119,6 @@ namespace Org.BouncyCastle.Asn1.Utilities
                 else
                 {
                     AsString(tab, verbose, o.GetObject(), buf);
-                }
-            }
-            else if (obj is BerSet)
-            {
-                string tab = indent + Tab;
-
-                buf.Append(indent);
-                buf.Append("BER Set");
-                buf.Append(NewLine);
-
-                foreach (Asn1Encodable o in ((Asn1Set)obj))
-                {
-                    if (o == null)
-                    {
-                        buf.Append(tab);
-                        buf.Append("NULL");
-                        buf.Append(NewLine);
-                    }
-                    else
-                    {
-                        AsString(tab, verbose, o.ToAsn1Object(), buf);
-                    }
-                }
-            }
-            else if (obj is DerSet)
-            {
-                string tab = indent + Tab;
-
-                buf.Append(indent);
-                buf.Append("DER Set");
-                buf.Append(NewLine);
-
-                foreach (Asn1Encodable o in ((Asn1Set)obj))
-                {
-                    if (o == null)
-                    {
-                        buf.Append(tab);
-                        buf.Append("NULL");
-                        buf.Append(NewLine);
-                    }
-                    else
-                    {
-                        AsString(tab, verbose, o.ToAsn1Object(), buf);
-                    }
                 }
             }
             else if (obj is DerObjectIdentifier)
@@ -282,20 +260,6 @@ namespace Org.BouncyCastle.Asn1.Utilities
 
             return indent + type + " ApplicationSpecific[" + app.ApplicationTag + "] ("
                 + Hex.ToHexString(app.GetContents()) + ")" + NewLine;
-        }
-
-        [Obsolete("Use version accepting Asn1Encodable")]
-        public static string DumpAsString(
-            object   obj)
-        {
-            if (obj is Asn1Encodable)
-            {
-                StringBuilder buf = new StringBuilder();
-                AsString("", false, ((Asn1Encodable)obj).ToAsn1Object(), buf);
-                return buf.ToString();
-            }
-
-            return "unknown object type " + obj.ToString();
         }
 
         /**
