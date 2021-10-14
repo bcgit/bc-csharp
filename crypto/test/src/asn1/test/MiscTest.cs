@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             byte[] data = Base64.Decode("MA4ECAECAwQFBgcIAgIAgAMCBSAWBWhlbGxvMAoECAECAwQFBgcIFgtodHRwOi8vdGVzdA==");
 
             MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = new Asn1OutputStream(bOut);
+            Asn1OutputStream aOut = Asn1OutputStream.Create(bOut);
 
             for (int i = 0; i != values.Length; i++)
             {

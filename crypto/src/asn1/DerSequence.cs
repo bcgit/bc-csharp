@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Asn1
 
             // TODO Intermediate buffer could be avoided if we could calculate expected length
             MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Asn1Encodable.Der);
+            Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Der);
 
             foreach (Asn1Encodable obj in this)
             {

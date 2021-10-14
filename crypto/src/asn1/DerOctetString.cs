@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public DerOctetString(Asn1Encodable obj)
-            : base(obj.GetEncoded(Asn1Encodable.Der))
+            : base(obj.GetEncoded(Der))
         {
         }
 

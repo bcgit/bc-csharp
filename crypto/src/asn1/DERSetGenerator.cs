@@ -21,16 +21,14 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		public override void AddObject(
-			Asn1Encodable obj)
+		public override void AddObject(Asn1Encodable obj)
 		{
-            Asn1OutputStream.Create(_bOut, Asn1Encodable.Der).WriteObject(obj);
+            obj.EncodeTo(_bOut, Asn1Encodable.Der);
 		}
 
-        public override void AddObject(
-            Asn1Object obj)
+        public override void AddObject(Asn1Object obj)
         {
-            Asn1OutputStream.Create(_bOut, Asn1Encodable.Der).WriteObject(obj);
+            obj.EncodeTo(_bOut, Asn1Encodable.Der);
         }
 
         public override Stream GetRawOutputStream()

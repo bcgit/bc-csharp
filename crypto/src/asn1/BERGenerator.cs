@@ -28,16 +28,14 @@ namespace Org.BouncyCastle.Asn1
             _tagNo = tagNo;
         }
 
-		public override void AddObject(
-			Asn1Encodable obj)
+		public override void AddObject(Asn1Encodable obj)
 		{
-			new Asn1OutputStream(Out).WriteObject(obj);
+            obj.EncodeTo(Out);
 		}
 
-        public override void AddObject(
-            Asn1Object obj)
+        public override void AddObject(Asn1Object obj)
         {
-            new Asn1OutputStream(Out).WriteObject(obj);
+            obj.EncodeTo(Out);
         }
 
         public override Stream GetRawOutputStream()

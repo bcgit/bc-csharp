@@ -6,6 +6,32 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1Object
 		: Asn1Encodable
     {
+        public override void EncodeTo(Stream output)
+        {
+            Asn1OutputStream.Create(output).WriteObject(this);
+        }
+
+        public override void EncodeTo(Stream output, string encoding)
+        {
+            Asn1OutputStream asn1Out = Asn1OutputStream.Create(output, encoding);
+            Asn1Object asn1Object = this;
+
+            if (Der.Equals(encoding))
+            {
+                Asn1Set asn1Set = asn1Object as Asn1Set;
+                if (null != asn1Set)
+                {
+                    /*
+                     * NOTE: Even a DerSet isn't necessarily already in sorted order (particularly from DerSetParser),
+                     * so all sets have to be converted here.
+                     */
+                    asn1Object = new DerSet(asn1Set.elements);
+                }
+            }
+
+            asn1Out.WriteObject(asn1Object);
+        }
+
         /// <summary>Create a base ASN.1 object from a byte array.</summary>
         /// <param name="data">The byte array to parse.</param>
         /// <returns>The base ASN.1 object represented by the byte array.</returns>

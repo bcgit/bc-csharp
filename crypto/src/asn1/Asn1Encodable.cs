@@ -8,41 +8,28 @@ namespace Org.BouncyCastle.Asn1
 		public const string Der = "DER";
 		public const string Ber = "BER";
 
+        public virtual void EncodeTo(Stream output)
+        {
+            ToAsn1Object().EncodeTo(output);
+        }
+
+        public virtual void EncodeTo(Stream output, string encoding)
+        {
+            ToAsn1Object().EncodeTo(output, encoding);
+        }
+
 		public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = Asn1OutputStream.Create(bOut);
-
-            ToAsn1Object().Encode(aOut);
-
+            EncodeTo(bOut);
             return bOut.ToArray();
         }
 
         public byte[] GetEncoded(string encoding)
         {
-            if (encoding.Equals(Der))
-            {
-                MemoryStream bOut = new MemoryStream();
-                Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Der);
-
-                Asn1Object asn1Object = ToAsn1Object();
-
-                Asn1Set asn1Set = asn1Object as Asn1Set;
-                if (null != asn1Set)
-                {
-                    /*
-                     * NOTE: Even a DerSet isn't necessarily already in sorted order (particularly from DerSetParser),
-                     * so all sets have to be converted here.
-                     */
-                    asn1Object = new DerSet(asn1Set.elements);
-                }
-
-                asn1Object.Encode(dOut);
-
-                return bOut.ToArray();
-            }
-
-            return GetEncoded();
+            MemoryStream bOut = new MemoryStream();
+            EncodeTo(bOut, encoding);
+            return bOut.ToArray();
         }
 
         /**
