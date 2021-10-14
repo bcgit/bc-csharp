@@ -89,10 +89,9 @@ namespace Org.BouncyCastle.Asn1
 			return this.str.Equals(other.str);
         }
 
-		internal override void Encode(
-			DerOutputStream derOut)
+		internal override void Encode(Asn1OutputStream asn1Out)
         {
-            derOut.WriteEncoded(Asn1Tags.Utf8String, Encoding.UTF8.GetBytes(str));
+            asn1Out.WriteEncoded(Asn1Tags.Utf8String, Encoding.UTF8.GetBytes(str));
         }
     }
 }

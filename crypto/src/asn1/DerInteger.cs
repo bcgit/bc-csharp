@@ -169,9 +169,9 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal override void Encode(DerOutputStream derOut)
+        internal override void Encode(Asn1OutputStream asn1Out)
         {
-            derOut.WriteEncoded(Asn1Tags.Integer, bytes);
+            asn1Out.WriteEncoded(Asn1Tags.Integer, bytes);
         }
 
 		protected override int Asn1GetHashCode()

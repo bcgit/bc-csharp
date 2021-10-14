@@ -5,9 +5,11 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    [Obsolete("Use 'Asn1OutputStream' instead")]
     public class DerOutputStream
         : FilterStream
     {
+        [Obsolete("Use 'Asn1OutputStream.Create' instead")]
         public DerOutputStream(Stream os)
             : base(os)
         {
@@ -134,7 +136,7 @@ namespace Org.BouncyCastle.Asn1
 			}
 			else
 			{
-				obj.ToAsn1Object().Encode(this);
+				obj.ToAsn1Object().Encode(new DerOutputStreamNew(s));
 			}
 		}
 
@@ -147,8 +149,22 @@ namespace Org.BouncyCastle.Asn1
 			}
 			else
 			{
-				obj.Encode(this);
+				obj.Encode(new DerOutputStreamNew(s));
 			}
 		}
 	}
+
+    internal class DerOutputStreamNew
+        : Asn1OutputStream
+    {
+        internal DerOutputStreamNew(Stream os)
+            : base(os)
+        {
+        }
+
+        internal override bool IsBer
+        {
+            get { return false; }
+        }
+    }
 }

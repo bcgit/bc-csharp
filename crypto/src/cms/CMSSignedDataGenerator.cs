@@ -165,8 +165,8 @@ namespace Org.BouncyCastle.Cms
 
 					signedAttr = outer.GetAttributeSet(signed);
 
-					// sig must be composed from the DER encoding.
-					new DerOutputStream(sigStr).WriteObject(signedAttr);
+                    // sig must be composed from the DER encoding.
+                    Asn1OutputStream.Create(sigStr, Asn1Encodable.Der).WriteObject(signedAttr);
 				}
                 else if (content != null)
                 {

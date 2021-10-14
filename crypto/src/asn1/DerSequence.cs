@@ -53,17 +53,17 @@ namespace Org.BouncyCastle.Asn1
 		 * ASN.1 descriptions given. Rather than just outputing Sequence,
 		 * we also have to specify Constructed, and the objects length.
 		 */
-        internal override void Encode(DerOutputStream derOut)
+        internal override void Encode(Asn1OutputStream asn1Out)
         {
             if (Count < 1)
             {
-                derOut.WriteEncoded(Asn1Tags.Sequence | Asn1Tags.Constructed, Asn1OctetString.EmptyOctets);
+                asn1Out.WriteEncoded(Asn1Tags.Sequence | Asn1Tags.Constructed, Asn1OctetString.EmptyOctets);
                 return;
             }
 
             // TODO Intermediate buffer could be avoided if we could calculate expected length
             MemoryStream bOut = new MemoryStream();
-            DerOutputStream dOut = new DerOutputStream(bOut);
+            Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Asn1Encodable.Der);
 
             foreach (Asn1Encodable obj in this)
             {
@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Asn1
             int length = (int)bOut.Position;
 #endif
 
-            derOut.WriteEncoded(Asn1Tags.Sequence | Asn1Tags.Constructed, bytes, 0, length);
+            asn1Out.WriteEncoded(Asn1Tags.Sequence | Asn1Tags.Constructed, bytes, 0, length);
 
             Platform.Dispose(dOut);
         }

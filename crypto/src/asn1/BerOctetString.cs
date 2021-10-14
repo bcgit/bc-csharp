@@ -121,29 +121,28 @@ namespace Org.BouncyCastle.Asn1
 			return GetEnumerator();
 		}
 
-        internal override void Encode(
-            DerOutputStream derOut)
+        internal override void Encode(Asn1OutputStream asn1Out)
         {
-            if (derOut.IsBer)
+            if (asn1Out.IsBer)
             {
-                derOut.WriteByte(Asn1Tags.Constructed | Asn1Tags.OctetString);
+                asn1Out.WriteByte(Asn1Tags.Constructed | Asn1Tags.OctetString);
 
-                derOut.WriteByte(0x80);
+                asn1Out.WriteByte(0x80);
 
                 //
                 // write out the octet array
                 //
                 foreach (Asn1OctetString oct in this)
                 {
-                    oct.Encode(derOut);
+                    oct.Encode(asn1Out);
                 }
 
-				derOut.WriteByte(0x00);
-                derOut.WriteByte(0x00);
+				asn1Out.WriteByte(0x00);
+                asn1Out.WriteByte(0x00);
             }
             else
             {
-                base.Encode(derOut);
+                base.Encode(asn1Out);
             }
         }
 

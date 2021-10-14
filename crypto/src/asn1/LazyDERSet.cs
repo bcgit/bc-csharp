@@ -57,18 +57,17 @@ namespace Org.BouncyCastle.Asn1
 			}
 		}
 
-		internal override void Encode(
-			DerOutputStream derOut)
+		internal override void Encode(Asn1OutputStream asn1Out)
 		{
 			lock (this)
 			{
 				if (encoded == null)
 				{
-					base.Encode(derOut);
+					base.Encode(asn1Out);
 				}
 				else
 				{
-					derOut.WriteEncoded(Asn1Tags.Set | Asn1Tags.Constructed, encoded);
+					asn1Out.WriteEncoded(Asn1Tags.Set | Asn1Tags.Constructed, encoded);
 				}
 			}
 		}

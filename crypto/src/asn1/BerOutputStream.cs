@@ -7,6 +7,7 @@ namespace Org.BouncyCastle.Asn1
     public class BerOutputStream
         : DerOutputStream
     {
+        [Obsolete("Use 'Asn1OutputStream.Create' instead")]
         public BerOutputStream(Stream os)
             : base(os)
         {

@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1
 			private byte[] _buf;
 			private int    _off;
 			private readonly BerOctetStringGenerator _gen;
-			private readonly DerOutputStream _derOut;
+			private readonly Asn1OutputStream _derOut;
 
 			internal BufferedBerOctetStream(
 				BerOctetStringGenerator	gen,
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1
 				_gen = gen;
 				_buf = buf;
 				_off = 0;
-				_derOut = new DerOutputStream(_gen.Out);
+				_derOut = Asn1OutputStream.Create(_gen.Out, Asn1Encodable.Der);
 			}
 
 			public override void WriteByte(

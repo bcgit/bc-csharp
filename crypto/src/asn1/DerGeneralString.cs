@@ -61,10 +61,9 @@ namespace Org.BouncyCastle.Asn1
             return Strings.ToAsciiByteArray(str);
         }
 
-		internal override void Encode(
-			DerOutputStream derOut)
+		internal override void Encode(Asn1OutputStream asn1Out)
         {
-            derOut.WriteEncoded(Asn1Tags.GeneralString, GetOctets());
+            asn1Out.WriteEncoded(Asn1Tags.GeneralString, GetOctets());
         }
 
 		protected override bool Asn1Equals(

@@ -1030,15 +1030,8 @@ namespace Org.BouncyCastle.Pkcs
             //
             Pfx pfx = new Pfx(mainInfo, macData);
 
-            DerOutputStream derOut;
-            if (useDerEncoding)
-            {
-                derOut = new DerOutputStream(stream);
-            }
-            else
-            {
-                derOut = new Asn1OutputStream(stream);
-            }
+            Asn1OutputStream derOut = Asn1OutputStream.Create(stream,
+                useDerEncoding ? Asn1Encodable.Der : Asn1Encodable.Ber);
 
             derOut.WriteObject(pfx);
         }

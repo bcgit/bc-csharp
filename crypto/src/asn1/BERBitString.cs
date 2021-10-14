@@ -27,15 +27,15 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-        internal override void Encode(DerOutputStream derOut)
+        internal override void Encode(Asn1OutputStream asn1Out)
         {
-            if (derOut.IsBer)
+            if (asn1Out.IsBer)
             {
-                derOut.WriteEncoded(Asn1Tags.BitString, (byte)mPadBits, mData);
+                asn1Out.WriteEncoded(Asn1Tags.BitString, (byte)mPadBits, mData);
             }
             else
             {
-                base.Encode(derOut);
+                base.Encode(asn1Out);
             }
         }
     }

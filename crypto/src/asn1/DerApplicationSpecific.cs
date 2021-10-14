@@ -163,8 +163,7 @@ namespace Org.BouncyCastle.Asn1
 			return FromByteArray(tmp);
 		}
 
-		internal override void Encode(
-			DerOutputStream derOut)
+		internal override void Encode(Asn1OutputStream asn1Out)
         {
 			int classBits = Asn1Tags.Application;
 			if (isConstructed)
@@ -172,7 +171,7 @@ namespace Org.BouncyCastle.Asn1
 				classBits |= Asn1Tags.Constructed; 
 			}
 
-			derOut.WriteEncoded(classBits, tag, octets);
+			asn1Out.WriteEncoded(classBits, tag, octets);
 		}
 
 		protected override bool Asn1Equals(

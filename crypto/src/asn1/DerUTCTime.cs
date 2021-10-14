@@ -237,10 +237,9 @@ namespace Org.BouncyCastle.Asn1
             return Strings.ToAsciiByteArray(time);
         }
 
-		internal override void Encode(
-            DerOutputStream derOut)
+		internal override void Encode(Asn1OutputStream asn1Out)
         {
-            derOut.WriteEncoded(Asn1Tags.UtcTime, GetOctets());
+            asn1Out.WriteEncoded(Asn1Tags.UtcTime, GetOctets());
         }
 
 		protected override bool Asn1Equals(

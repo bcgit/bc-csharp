@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Asn1
 		public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = new Asn1OutputStream(bOut);
+            Asn1OutputStream aOut = Asn1OutputStream.Create(bOut);
 
             ToAsn1Object().Encode(aOut);
 
@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Asn1
             if (encoding.Equals(Der))
             {
                 MemoryStream bOut = new MemoryStream();
-                DerOutputStream dOut = new DerOutputStream(bOut);
+                Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Der);
 
                 Asn1Object asn1Object = ToAsn1Object();
 

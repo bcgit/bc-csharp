@@ -81,11 +81,10 @@ namespace Org.BouncyCastle.Asn1
             get { return value != 0; }
         }
 
-        internal override void Encode(
-            DerOutputStream derOut)
+        internal override void Encode(Asn1OutputStream asn1Out)
         {
             // TODO Should we make sure the byte value is one of '0' or '0xff' here?
-            derOut.WriteEncoded(Asn1Tags.Boolean, new byte[]{ value });
+            asn1Out.WriteEncoded(Asn1Tags.Boolean, new byte[]{ value });
         }
 
         protected override bool Asn1Equals(
