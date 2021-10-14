@@ -112,6 +112,8 @@ namespace Org.BouncyCastle.Asn1
 					    DerOctetString.Encode(_derOut, _buf, 0, _off);
 				    }
 
+                    _derOut.FlushInternal();
+
 				    _gen.WriteBerEnd();
                 }
                 base.Dispose(disposing);
@@ -124,7 +126,9 @@ namespace Org.BouncyCastle.Asn1
 					DerOctetString.Encode(_derOut, _buf, 0, _off);
 				}
 
-				_gen.WriteBerEnd();
+                _derOut.FlushInternal();
+
+                _gen.WriteBerEnd();
 				base.Close();
 			}
 #endif

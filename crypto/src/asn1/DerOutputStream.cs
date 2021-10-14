@@ -15,43 +15,52 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public virtual void WriteObject(Asn1Encodable encodable)
+        {
+            new DerOutputStreamNew(s).WriteObject(encodable);
+        }
+
+        public virtual void WriteObject(Asn1Object primitive)
+        {
+            new DerOutputStreamNew(s).WriteObject(primitive);
+        }
+
         internal virtual bool IsBer
         {
             get { return false; }
         }
 
-		private void WriteLength(
-			int length)
+		internal void WriteDL(int length)
 		{
-			if (length > 127)
-			{
-				int size = 1;
-				uint val = (uint)length;
+            if (length < 128)
+            {
+                WriteByte((byte)length);
+            }
+            else
+            {
+                byte[] stack = new byte[5];
+                int pos = stack.Length;
 
-				while ((val >>= 8) != 0)
-				{
-					size++;
-				}
+                do
+                {
+                    stack[--pos] = (byte)length;
+                    length >>= 8;
+                }
+                while (length > 0);
 
-				WriteByte((byte)(size | 0x80));
+                int count = stack.Length - pos;
+                stack[--pos] = (byte)(0x80 | count);
 
-				for (int i = (size - 1) * 8; i >= 0; i -= 8)
-				{
-					WriteByte((byte)(length >> i));
-				}
-			}
-			else
-			{
-				WriteByte((byte)length);
-			}
-		}
+                Write(stack, pos, count + 1);
+            }
+        }
 
-		internal void WriteEncoded(
+        internal void WriteEncoded(
 			int		tag,
 			byte[]	bytes)
 		{
 			WriteByte((byte)tag);
-			WriteLength(bytes.Length);
+			WriteDL(bytes.Length);
 			Write(bytes, 0, bytes.Length);
 		}
 
@@ -61,7 +70,7 @@ namespace Org.BouncyCastle.Asn1
             byte[]  bytes)
         {
             WriteByte((byte)tag);
-            WriteLength(bytes.Length + 1);
+            WriteDL(bytes.Length + 1);
             WriteByte(first);
             Write(bytes, 0, bytes.Length);
         }
@@ -73,42 +82,8 @@ namespace Org.BouncyCastle.Asn1
 			int		length)
 		{
 			WriteByte((byte)tag);
-			WriteLength(length);
+            WriteDL(length);
 			Write(bytes, offset, length);
-		}
-
-		internal void WriteTag(
-			int	flags,
-			int	tagNo)
-		{
-			if (tagNo < 31)
-			{
-				WriteByte((byte)(flags | tagNo));
-			}
-			else
-			{
-				WriteByte((byte)(flags | 0x1f));
-				if (tagNo < 128)
-				{
-					WriteByte((byte)tagNo);
-				}
-				else
-				{
-					byte[] stack = new byte[5];
-					int pos = stack.Length;
-
-					stack[--pos] = (byte)(tagNo & 0x7F);
-
-					do
-					{
-						tagNo >>= 7;
-						stack[--pos] = (byte)(tagNo & 0x7F | 0x80);
-					}
-					while (tagNo > 127);
-
-					Write(stack, pos, stack.Length - pos);
-				}
-			}
 		}
 
 		internal void WriteEncoded(
@@ -116,42 +91,46 @@ namespace Org.BouncyCastle.Asn1
 			int		tagNo,
 			byte[]	bytes)
 		{
-			WriteTag(flags, tagNo);
-			WriteLength(bytes.Length);
+			WriteIdentifier(true, flags, tagNo);
+            WriteDL(bytes.Length);
 			Write(bytes, 0, bytes.Length);
 		}
 
-		protected void WriteNull()
-		{
-			WriteByte(Asn1Tags.Null);
-			WriteByte(0x00);
-		}
+        internal void WriteIdentifier(bool withID, int identifier)
+        {
+            if (withID)
+            {
+                WriteByte((byte)identifier);
+            }
+        }
 
-		public virtual void WriteObject(
-			Asn1Encodable obj)
-		{
-			if (obj == null)
-			{
-				WriteNull();
-			}
-			else
-			{
-				obj.ToAsn1Object().Encode(new DerOutputStreamNew(s));
-			}
-		}
+        internal void WriteIdentifier(bool withID, int flags, int tag)
+        {
+            if (!withID)
+            {
+                // Don't write the identifier
+            }
+            else if (tag < 31)
+            {
+                WriteByte((byte)(flags | tag));
+            }
+            else
+            {
+                byte[] stack = new byte[6];
+                int pos = stack.Length;
 
-		public virtual void WriteObject(
-			Asn1Object obj)
-		{
-			if (obj == null)
-			{
-				WriteNull();
-			}
-			else
-			{
-				obj.Encode(new DerOutputStreamNew(s));
-			}
-		}
+                stack[--pos] = (byte)(tag & 0x7F);
+                while (tag > 127)
+                {
+                    tag >>= 7;
+                    stack[--pos] = (byte)(tag & 0x7F | 0x80);
+                }
+
+                stack[--pos] = (byte)(flags | 0x1F);
+
+                Write(stack, pos, stack.Length - pos);
+            }
+        }
 	}
 
     internal class DerOutputStreamNew
@@ -165,6 +144,21 @@ namespace Org.BouncyCastle.Asn1
         internal override bool IsBer
         {
             get { return false; }
+        }
+
+        internal override void WritePrimitive(Asn1Object primitive)
+        {
+            Asn1Set asn1Set = primitive as Asn1Set;
+            if (null != asn1Set)
+            {
+                /*
+                 * NOTE: Even a DerSet isn't necessarily already in sorted order (particularly from DerSetParser),
+                 * so all sets have to be converted here.
+                 */
+                primitive = new DerSet(asn1Set.elements);
+            }
+
+            primitive.Encode(this);
         }
     }
 }

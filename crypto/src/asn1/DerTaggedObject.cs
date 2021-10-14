@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1
 					// need to mark constructed types... (preserve Constructed tag)
 					//
 					int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.Tagged;
-					asn1Out.WriteTag(flags, tagNo);
+					asn1Out.WriteIdentifier(true, flags, tagNo);
 					asn1Out.Write(bytes, 1, bytes.Length - 1);
 				}
 			}

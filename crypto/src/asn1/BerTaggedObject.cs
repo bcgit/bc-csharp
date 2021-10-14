@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1
 		{
 			if (asn1Out.IsBer)
 			{
-				asn1Out.WriteTag(Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo);
+				asn1Out.WriteIdentifier(true, Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo);
 				asn1Out.WriteByte(0x80);
 
 				if (!IsEmpty())
@@ -86,12 +86,12 @@ namespace Org.BouncyCastle.Asn1
 
 						foreach (Asn1Encodable o in eObj)
 						{
-							asn1Out.WriteObject(o);
+							asn1Out.WritePrimitive(o.ToAsn1Object());
 						}
 					}
 					else
 					{
-						asn1Out.WriteObject(obj);
+						asn1Out.WritePrimitive(obj.ToAsn1Object());
 					}
 				}
 

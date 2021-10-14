@@ -29,6 +29,29 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public override void WriteObject(Asn1Encodable encodable)
+        {
+            if (null == encodable)
+                throw new IOException("null object detected");
+
+            WritePrimitive(encodable.ToAsn1Object());
+            FlushInternal();
+        }
+
+        public override void WriteObject(Asn1Object primitive)
+        {
+            if (null == primitive)
+                throw new IOException("null object detected");
+
+            WritePrimitive(primitive);
+            FlushInternal();
+        }
+
+        internal void FlushInternal()
+        {
+            // Placeholder to support future internal buffering
+        }
+
         internal override bool IsBer
         {
             get { return true; }
@@ -42,27 +65,16 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        public override void WriteObject(Asn1Encodable obj)
+        internal virtual void WritePrimitive(Asn1Object primitive)
         {
-            if (obj == null)
-            {
-                WriteNull();
-            }
-            else
-            {
-                obj.ToAsn1Object().Encode(this);
-            }
+            primitive.Encode(this);
         }
 
-        public override void WriteObject(Asn1Object obj)
+        internal virtual void WritePrimitives(Asn1Object[] primitives)
         {
-            if (obj == null)
+            for (int i = 0, count = primitives.Length; i < count; ++i)
             {
-                WriteNull();
-            }
-            else
-            {
-                obj.Encode(this);
+                WritePrimitive(primitives[i]);
             }
         }
     }

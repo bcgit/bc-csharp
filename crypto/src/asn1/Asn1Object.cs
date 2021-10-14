@@ -13,23 +13,7 @@ namespace Org.BouncyCastle.Asn1
 
         public override void EncodeTo(Stream output, string encoding)
         {
-            Asn1OutputStream asn1Out = Asn1OutputStream.Create(output, encoding);
-            Asn1Object asn1Object = this;
-
-            if (Der.Equals(encoding))
-            {
-                Asn1Set asn1Set = asn1Object as Asn1Set;
-                if (null != asn1Set)
-                {
-                    /*
-                     * NOTE: Even a DerSet isn't necessarily already in sorted order (particularly from DerSetParser),
-                     * so all sets have to be converted here.
-                     */
-                    asn1Object = new DerSet(asn1Set.elements);
-                }
-            }
-
-            asn1Out.WriteObject(asn1Object);
+            Asn1OutputStream.Create(output, encoding).WriteObject(this);
         }
 
         /// <summary>Create a base ASN.1 object from a byte array.</summary>
