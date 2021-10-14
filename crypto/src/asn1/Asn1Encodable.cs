@@ -13,9 +13,9 @@ namespace Org.BouncyCastle.Asn1
             MemoryStream bOut = new MemoryStream();
             Asn1OutputStream aOut = new Asn1OutputStream(bOut);
 
-			aOut.WriteObject(this);
+            ToAsn1Object().Encode(aOut);
 
-			return bOut.ToArray();
+            return bOut.ToArray();
         }
 
         public byte[] GetEncoded(string encoding)

@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1
 
 				foreach (Asn1Encodable o in this)
 				{
-					derOut.WriteObject(o);
+                    o.ToAsn1Object().Encode(derOut);
 				}
 
 				derOut.WriteByte(0x00);

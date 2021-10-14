@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Asn1
                 //
                 foreach (Asn1OctetString oct in this)
                 {
-                    derOut.WriteObject(oct);
+                    oct.Encode(derOut);
                 }
 
 				derOut.WriteByte(0x00);
