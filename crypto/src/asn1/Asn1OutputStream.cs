@@ -34,6 +34,14 @@ namespace Org.BouncyCastle.Asn1
             get { return true; }
         }
 
+        internal virtual void WriteElements(Asn1Encodable[] elements)
+        {
+            for (int i = 0, count = elements.Length; i < count; ++i)
+            {
+                elements[i].ToAsn1Object().Encode(this);
+            }
+        }
+
         public override void WriteObject(Asn1Encodable obj)
         {
             if (obj == null)

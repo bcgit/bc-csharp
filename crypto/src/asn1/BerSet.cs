@@ -51,10 +51,7 @@ namespace Org.BouncyCastle.Asn1
                 asn1Out.WriteByte(Asn1Tags.Set | Asn1Tags.Constructed);
                 asn1Out.WriteByte(0x80);
 
-                foreach (Asn1Encodable o in this)
-				{
-                    o.ToAsn1Object().Encode(asn1Out);
-                }
+                asn1Out.WriteElements(elements);
 
                 asn1Out.WriteByte(0x00);
                 asn1Out.WriteByte(0x00);
