@@ -1,24 +1,26 @@
 using System;
 using System.Collections;
-using System.Diagnostics;
 
 namespace Org.BouncyCastle.Asn1
 {
-	internal class LazyDerSequence
-		: DerSequence
-	{
-		private byte[] encoded;
+    internal class LazyDerSequence
+        : DerSequence
+    {
+        private byte[] encoded;
 
-        internal LazyDerSequence(
-			byte[] encoded)
-		{
-			this.encoded = encoded;
-		}
+        internal LazyDerSequence(byte[] encoded)
+            : base()
+        {
+            if (null == encoded)
+                throw new ArgumentNullException("encoded");
 
-		private void Parse()
-		{
-			lock (this)
-			{
+            this.encoded = encoded;
+        }
+
+        private void Parse()
+        {
+            lock (this)
+            {
                 if (null != encoded)
                 {
                     Asn1InputStream e = new LazyAsn1InputStream(encoded);
@@ -28,48 +30,48 @@ namespace Org.BouncyCastle.Asn1
                     this.encoded = null;
                 }
             }
-		}
+        }
 
-		public override Asn1Encodable this[int index]
-		{
-			get
-			{
-				Parse();
+        public override Asn1Encodable this[int index]
+        {
+            get
+            {
+                Parse();
 
-				return base[index];
-			}
-		}
+                return base[index];
+            }
+        }
 
-		public override IEnumerator GetEnumerator()
-		{
-			Parse();
+        public override IEnumerator GetEnumerator()
+        {
+            Parse();
 
-			return base.GetEnumerator();
-		}
+            return base.GetEnumerator();
+        }
 
-		public override int Count
-		{
-			get
-			{
-				Parse();
+        public override int Count
+        {
+            get
+            {
+                Parse();
 
-				return base.Count;
-			}
-		}
+                return base.Count;
+            }
+        }
 
-		internal override void Encode(Asn1OutputStream asn1Out)
-		{
-			lock (this)
-			{
-				if (encoded == null)
-				{
-					base.Encode(asn1Out);
-				}
-				else
-				{
-					asn1Out.WriteEncoded(Asn1Tags.Sequence | Asn1Tags.Constructed, encoded);
-				}
-			}
-		}
-	}
+        internal override void Encode(Asn1OutputStream asn1Out)
+        {
+            lock (this)
+            {
+                if (encoded == null)
+                {
+                    base.Encode(asn1Out);
+                }
+                else
+                {
+                    asn1Out.WriteEncoded(Asn1Tags.Sequence | Asn1Tags.Constructed, encoded);
+                }
+            }
+        }
+    }
 }
