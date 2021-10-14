@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Pkcs
 		public static byte[] ConvertToDefiniteLength(
 			byte[] berPkcs12File)
 		{
-			Pfx pfx = new Pfx(Asn1Sequence.GetInstance(Asn1Object.FromByteArray(berPkcs12File)));
+            Pfx pfx = Pfx.GetInstance(berPkcs12File);
 
 			return pfx.GetEncoded(Asn1Encodable.Der);
 		}
@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Pkcs
 			byte[]	berPkcs12File,
 			char[]	passwd)
 		{
-			Pfx pfx = new Pfx(Asn1Sequence.GetInstance(Asn1Object.FromByteArray(berPkcs12File)));
+            Pfx pfx = Pfx.GetInstance(berPkcs12File);
 
 			ContentInfo info = pfx.AuthSafe;
 

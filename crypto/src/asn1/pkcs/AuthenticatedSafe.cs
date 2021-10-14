@@ -24,9 +24,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly ContentInfo[] info;
         private readonly bool isBer;
 
-        [Obsolete("Use 'GetInstance' instead")]
-		public AuthenticatedSafe(
-            Asn1Sequence seq)
+		private AuthenticatedSafe(Asn1Sequence seq)
         {
             info = new ContentInfo[seq.Count];
 

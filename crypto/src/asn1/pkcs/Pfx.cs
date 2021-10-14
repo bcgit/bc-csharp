@@ -23,9 +23,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly ContentInfo contentInfo;
         private readonly MacData macData;
 
-        [Obsolete("Use 'GetInstance' instead")]
-		public Pfx(
-            Asn1Sequence seq)
+		private Pfx(Asn1Sequence seq)
         {
             DerInteger version = DerInteger.GetInstance(seq[0]);
             if (!version.HasValue(3))
