@@ -5,6 +5,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	/// <remarks>Container for a list of user attribute subpackets.</remarks>
     public class PgpUserAttributeSubpacketVector
     {
+        public static PgpUserAttributeSubpacketVector FromSubpackets(UserAttributeSubpacket[] packets)
+        {
+            if (packets == null)
+            {
+                packets = new UserAttributeSubpacket[0];
+            }
+            return new PgpUserAttributeSubpacketVector(packets);
+        }
+
         private readonly UserAttributeSubpacket[] packets;
 
 		internal PgpUserAttributeSubpacketVector(

@@ -9,6 +9,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	/// <remarks>Container for a list of signature subpackets.</remarks>
     public class PgpSignatureSubpacketVector
     {
+        public static PgpSignatureSubpacketVector FromSubpackets(SignatureSubpacket[] packets)
+        {
+            if (packets == null)
+            {
+                packets = new SignatureSubpacket[0];
+            }
+            return new PgpSignatureSubpacketVector(packets);
+        }
+
         private readonly SignatureSubpacket[] packets;
 
 		internal PgpSignatureSubpacketVector(
