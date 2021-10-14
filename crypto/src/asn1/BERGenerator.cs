@@ -31,13 +31,13 @@ namespace Org.BouncyCastle.Asn1
 		public override void AddObject(
 			Asn1Encodable obj)
 		{
-			new BerOutputStream(Out).WriteObject(obj);
+			new Asn1OutputStream(Out).WriteObject(obj);
 		}
 
         public override void AddObject(
             Asn1Object obj)
         {
-            new BerOutputStream(Out).WriteObject(obj);
+            new Asn1OutputStream(Out).WriteObject(obj);
         }
 
         public override Stream GetRawOutputStream()

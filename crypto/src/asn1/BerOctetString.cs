@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Asn1
         internal override void Encode(
             DerOutputStream derOut)
         {
-            if (derOut is Asn1OutputStream || derOut is BerOutputStream)
+            if (derOut.IsBer)
             {
                 derOut.WriteByte(Asn1Tags.Constructed | Asn1Tags.OctetString);
 

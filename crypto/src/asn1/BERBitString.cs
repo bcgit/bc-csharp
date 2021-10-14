@@ -27,10 +27,9 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-        internal override void Encode(
-            DerOutputStream derOut)
+        internal override void Encode(DerOutputStream derOut)
         {
-            if (derOut is Asn1OutputStream || derOut is BerOutputStream)
+            if (derOut.IsBer)
             {
                 derOut.WriteEncoded(Asn1Tags.BitString, (byte)mPadBits, mData);
             }

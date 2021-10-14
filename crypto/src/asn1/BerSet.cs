@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal override void Encode(DerOutputStream derOut)
         {
-            if (derOut is Asn1OutputStream || derOut is BerOutputStream)
+            if (derOut.IsBer)
             {
                 derOut.WriteByte(Asn1Tags.Set | Asn1Tags.Constructed);
                 derOut.WriteByte(0x80);

@@ -5,13 +5,18 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-	public class DerOutputStream
-		: FilterStream
-	{
-		public DerOutputStream(Stream os)
-			: base(os)
-		{
-		}
+    public class DerOutputStream
+        : FilterStream
+    {
+        public DerOutputStream(Stream os)
+            : base(os)
+        {
+        }
+
+        internal virtual bool IsBer
+        {
+            get { return false; }
+        }
 
 		private void WriteLength(
 			int length)

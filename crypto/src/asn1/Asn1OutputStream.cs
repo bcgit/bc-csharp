@@ -10,5 +10,10 @@ namespace Org.BouncyCastle.Asn1
             : base(os)
         {
         }
+
+        internal override bool IsBer
+        {
+            get { return true; }
+        }
     }
 }

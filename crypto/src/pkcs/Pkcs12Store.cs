@@ -1037,7 +1037,7 @@ namespace Org.BouncyCastle.Pkcs
             }
             else
             {
-                derOut = new BerOutputStream(stream);
+                derOut = new Asn1OutputStream(stream);
             }
 
             derOut.WriteObject(pfx);
