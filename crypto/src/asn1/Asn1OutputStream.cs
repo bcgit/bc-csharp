@@ -193,5 +193,41 @@ namespace Org.BouncyCastle.Asn1
                 WritePrimitive(primitives[i], true);
             }
         }
+
+        internal static int GetLengthOfDL(int dl)
+        {
+            if (dl < 128)
+                return 1;
+
+            int length = 2;
+            while ((dl >>= 8) > 0)
+            {
+                ++length;
+            }
+            return length;
+        }
+
+        internal static int GetLengthOfEncodingDL(bool withID, int contentsLength)
+        {
+            return (withID ? 1 : 0) + GetLengthOfDL(contentsLength) + contentsLength;
+        }
+
+        internal static int GetLengthOfEncodingDL(bool withID, int tag, int contentsLength)
+        {
+            return (withID ? GetLengthOfIdentifier(tag) : 0) + GetLengthOfDL(contentsLength) + contentsLength;
+        }
+
+        internal static int GetLengthOfIdentifier(int tag)
+        {
+            if (tag < 31)
+                return 1;
+
+            int length = 2;
+            while ((tag >>= 7) > 0)
+            {
+                ++length;
+            }
+            return length;
+        }
     }
 }

@@ -1,3 +1,7 @@
+using System;
+
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1
 {
 	/**
@@ -42,7 +46,12 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override int EncodedLength(bool withID)
+        {
+            throw Platform.CreateNotImplementedException("DerTaggedObject.EncodedLength");
+        }
+
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
 			if (!IsEmpty())
 			{

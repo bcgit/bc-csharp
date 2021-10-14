@@ -1,3 +1,7 @@
+using System;
+
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1
 {
     public class BerSet
@@ -42,6 +46,11 @@ namespace Org.BouncyCastle.Asn1
         internal BerSet(Asn1EncodableVector elementVector, bool needsSorting)
             : base(elementVector, needsSorting)
         {
+        }
+
+        internal override int EncodedLength(bool withID)
+        {
+            throw Platform.CreateNotImplementedException("BerSet.EncodedLength");
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)

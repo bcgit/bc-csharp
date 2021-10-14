@@ -89,7 +89,32 @@ namespace Org.BouncyCastle.Asn1
 			ExternalContent = externalData.ToAsn1Object();
 		}
 
-		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override int EncodedLength(bool withID)
+        {
+            int contentsLength = 0;
+            if (directReference != null)
+            {
+                contentsLength += directReference.EncodedLength(true);
+            }
+            if (indirectReference != null)
+            {
+                contentsLength += indirectReference.EncodedLength(true);
+            }
+            if (dataValueDescriptor != null)
+            {
+                // TODO[asn1]
+                //contentsLength += dataValueDescriptor.ToDerObject().EncodedLength(true);
+                contentsLength += dataValueDescriptor.GetDerEncoded().Length;
+            }
+
+            // TODO[asn1]
+            //contentsLength += new DerTaggedObject(true, encoding, externalContent).EncodedLength(true);
+            contentsLength += new DerTaggedObject(Asn1Tags.External, externalContent).EncodedLength(true);
+
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contentsLength);
+        }
+
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
 			MemoryStream ms = new MemoryStream();
 			WriteEncodable(ms, directReference);

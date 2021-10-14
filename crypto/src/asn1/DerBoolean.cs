@@ -81,6 +81,11 @@ namespace Org.BouncyCastle.Asn1
             get { return value != 0; }
         }
 
+        internal override int EncodedLength(bool withID)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, 1);
+        }
+
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             // TODO Should we make sure the byte value is one of '0' or '0xff' here?

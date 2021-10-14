@@ -45,6 +45,11 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
+        internal override int EncodedLength(bool withID)
+        {
+            throw Platform.CreateNotImplementedException("DerSequence.EncodedLength");
+        }
+
         /*
 		 * A note on the implementation:
 		 * <p>

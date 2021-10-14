@@ -1,3 +1,7 @@
+using System;
+
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1
 {
 	public class BerSequence
@@ -38,6 +42,11 @@ namespace Org.BouncyCastle.Asn1
             : base(elementVector)
 		{
 		}
+
+        internal override int EncodedLength(bool withID)
+        {
+            throw Platform.CreateNotImplementedException("BerSequence.EncodedLength");
+        }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{

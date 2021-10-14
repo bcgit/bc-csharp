@@ -62,6 +62,8 @@ namespace Org.BouncyCastle.Asn1
             return this;
         }
 
+        internal abstract int EncodedLength(bool withID);
+
         internal abstract void Encode(Asn1OutputStream asn1Out, bool withID);
 
         protected abstract bool Asn1Equals(Asn1Object asn1Object);

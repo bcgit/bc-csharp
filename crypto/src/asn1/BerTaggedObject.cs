@@ -47,7 +47,12 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override int EncodedLength(bool withID)
+        {
+            throw Platform.CreateNotImplementedException("BerTaggedObject.EncodedLength");
+        }
+
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
 			if (asn1Out.IsBer)
 			{

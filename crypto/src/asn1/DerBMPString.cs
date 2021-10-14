@@ -111,6 +111,11 @@ namespace Org.BouncyCastle.Asn1
 			return this.str.Equals(other.str);
         }
 
+        internal override int EncodedLength(bool withID)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, str.Length * 2);
+        }
+
 		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             char[] c = str.ToCharArray();

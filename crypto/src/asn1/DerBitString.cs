@@ -191,6 +191,11 @@ namespace Org.BouncyCastle.Asn1
 			}
 		}
 
+        internal override int EncodedLength(bool withID)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, 1 + mData.Length);
+        }
+
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
             if (mPadBits > 0)

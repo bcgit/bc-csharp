@@ -163,7 +163,12 @@ namespace Org.BouncyCastle.Asn1
 			return FromByteArray(tmp);
 		}
 
-		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override int EncodedLength(bool withID)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, tag, octets.Length);
+        }
+
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
 			int flags = Asn1Tags.Application;
 			if (isConstructed)

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
-using System.IO;
 
 using Org.BouncyCastle.Utilities;
 
@@ -120,6 +119,11 @@ namespace Org.BouncyCastle.Asn1
         {
 			return GetEnumerator();
 		}
+
+        internal override int EncodedLength(bool withID)
+        {
+            throw Platform.CreateNotImplementedException("BerOctetString.EncodedLength");
+        }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {

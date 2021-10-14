@@ -295,6 +295,11 @@ namespace Org.BouncyCastle.Asn1
             return Strings.ToAsciiByteArray(time);
         }
 
+        internal override int EncodedLength(bool withID)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, time.Length);
+        }
+
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             asn1Out.WriteEncodingDL(withID, Asn1Tags.GeneralizedTime, GetOctets());

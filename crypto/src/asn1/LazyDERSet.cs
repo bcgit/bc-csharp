@@ -59,6 +59,21 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        internal override int EncodedLength(bool withID)
+        {
+            lock (this)
+            {
+                if (encoded == null)
+                {
+                    return base.EncodedLength(withID);
+                }
+                else
+                {
+                    return Asn1OutputStream.GetLengthOfEncodingDL(withID, encoded.Length);
+                }
+            }
+        }
+
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             lock (this)

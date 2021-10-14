@@ -16,7 +16,12 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override int EncodedLength(bool withID)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, 0);
+        }
+
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
             asn1Out.WriteEncodingDL(withID, Asn1Tags.Null, ZeroBytes);
         }
