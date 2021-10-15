@@ -1148,6 +1148,12 @@ namespace Org.BouncyCastle.Tls
 
                     if (m_expectSessionTicket)
                     {
+                        /*
+                         * TODO[new_session_ticket] Check the server-side rules regarding the session ID, since
+                         * the client is going to ignore any session ID it received once it sees the
+                         * new_session_ticket message.
+                         */
+
                         SendNewSessionTicketMessage(m_tlsServer.GetNewSessionTicket());
                         this.m_connectionState = CS_SERVER_SESSION_TICKET;
                     }

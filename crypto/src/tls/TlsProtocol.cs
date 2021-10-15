@@ -450,7 +450,7 @@ namespace Org.BouncyCastle.Tls
                         .SetServerExtensions(m_serverExtensions)
                         .Build();
 
-                    this.m_tlsSession = TlsUtilities.ImportSession(m_tlsSession.SessionID, m_sessionParameters);
+                    this.m_tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, m_sessionParameters);
                 }
                 else
                 {
@@ -590,8 +590,21 @@ namespace Org.BouncyCastle.Tls
                  */
                 case HandshakeType.hello_request:
                 case HandshakeType.key_update:
-                case HandshakeType.new_session_ticket:
                     break;
+
+                /*
+                 * Not included in the transcript for (D)TLS 1.3+
+                 */
+                case HandshakeType.new_session_ticket:
+                {
+                    ProtocolVersion negotiatedVersion = Context.ServerVersion;
+                    if (null != negotiatedVersion && !TlsUtilities.IsTlsV13(negotiatedVersion))
+                    {
+                        buf.UpdateHash(m_handshakeHash);
+                    }
+
+                    break;
+                }
 
                 /*
                  * These message types are deferred to the handler to explicitly update the transcript.
@@ -956,8 +969,21 @@ namespace Org.BouncyCastle.Tls
              */
             case HandshakeType.hello_request:
             case HandshakeType.key_update:
-            case HandshakeType.new_session_ticket:
                 break;
+
+            /*
+             * Not included in the transcript for (D)TLS 1.3+
+             */
+            case HandshakeType.new_session_ticket:
+            {
+                ProtocolVersion negotiatedVersion = Context.ServerVersion;
+                if (null != negotiatedVersion && !TlsUtilities.IsTlsV13(negotiatedVersion))
+                {
+                    m_handshakeHash.Update(buf, off, len);
+                }
+
+                break;
+            }
 
             /*
              * These message types are deferred to the writer to explicitly update the transcript.

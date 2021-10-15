@@ -392,7 +392,8 @@ namespace Org.BouncyCastle.Asn1
                 case Asn1Tags.Enumerated:
                     return DerEnumerated.FromOctetString(GetBuffer(defIn, tmpBuffers));
                 case Asn1Tags.ObjectIdentifier:
-                    return DerObjectIdentifier.FromOctetString(GetBuffer(defIn, tmpBuffers));
+                    // TODO Ideally only clone if we used a buffer
+                    return DerObjectIdentifier.CreatePrimitive(GetBuffer(defIn, tmpBuffers), true);
             }
 
             byte[] bytes = defIn.ToArray();

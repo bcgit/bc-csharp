@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             BcpgInputStream bcpgInput = BcpgInputStream.Wrap(inputStream);
 
-            PacketTag initialTag = bcpgInput.NextPacketTag();
+            PacketTag initialTag = bcpgInput.SkipMarkerPackets();
             if (initialTag != PacketTag.PublicKey && initialTag != PacketTag.PublicSubkey)
             {
                 throw new IOException("public key ring doesn't start with public key tag: "

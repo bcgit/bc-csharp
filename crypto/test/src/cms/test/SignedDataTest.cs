@@ -1257,8 +1257,25 @@ namespace Org.BouncyCastle.Cms.Tests
 
 				certEnum.MoveNext();
 				X509Certificate cert = (X509Certificate) certEnum.Current;
+				SignerInformation sAsIs = new AsIsSignerInformation(signer);
 
-				Assert.IsTrue(signer.Verify(cert));
+				Assert.IsFalse(signer.Verify(cert));
+				Assert.IsTrue(sAsIs.Verify(cert));
+			}
+		}
+
+	    class AsIsSignerInformation : SignerInformation
+		{
+			public AsIsSignerInformation(SignerInformation sInfo): base(sInfo)
+			{
+
+			}
+
+			public override byte[] GetEncodedSignedAttributes()
+			{
+				return signedAttributeSet == null
+					? null
+					: signedAttributeSet.GetEncoded();
 			}
 		}
 
@@ -1571,6 +1588,15 @@ namespace Org.BouncyCastle.Cms.Tests
 				X509Certificate cert = (X509Certificate)certEnum.Current;
 
 				Assert.IsTrue(signer.Verify(cert));
+				Assert.IsTrue(new MySignerInformation(signer).Verify(cert)); // test simple copy works
+			}
+		}
+
+		class MySignerInformation: SignerInformation
+		{
+			public MySignerInformation(SignerInformation sigInf): base(sigInf)
+			{
+
 			}
 		}
     }

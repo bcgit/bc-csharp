@@ -26,7 +26,14 @@ namespace Org.BouncyCastle.Asn1
 				MemoryStream bOut = new MemoryStream();
 				DerOutputStream dOut = new DerOutputStream(bOut);
 
-				dOut.WriteObject(this);
+				if (this is Asn1Set)
+				{
+					dOut.WriteObject(new DerSet((this as Asn1Set).elements));
+				}
+				else
+				{
+					dOut.WriteObject(this);
+				}
 
 				return bOut.ToArray();
 			}

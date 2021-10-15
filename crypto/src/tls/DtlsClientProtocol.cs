@@ -177,10 +177,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             InvalidateSession(state);
-
             state.tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, null);
-            state.sessionParameters = null;
-            state.sessionMasterSecret = null;
 
             serverMessage = handshake.ReceiveMessage();
 
@@ -343,6 +340,14 @@ namespace Org.BouncyCastle.Tls
                 serverMessage = handshake.ReceiveMessage();
                 if (serverMessage.Type == HandshakeType.new_session_ticket)
                 {
+                    /*
+                     * RFC 5077 3.4. If the client receives a session ticket from the server, then it
+                     * discards any Session ID that was sent in the ServerHello.
+                     */
+                    securityParameters.m_sessionID = TlsUtilities.EmptyBytes;
+                    InvalidateSession(state);
+                    state.tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, null);
+
                     ProcessNewSessionTicket(state, serverMessage.Body);
                 }
                 else
@@ -373,7 +378,7 @@ namespace Org.BouncyCastle.Tls
                 .SetServerExtensions(state.serverExtensions)
                 .Build();
 
-            state.tlsSession = TlsUtilities.ImportSession(state.tlsSession.SessionID, state.sessionParameters);
+            state.tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, state.sessionParameters);
 
             securityParameters.m_tlsUnique = securityParameters.LocalVerifyData;
 

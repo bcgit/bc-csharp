@@ -408,9 +408,10 @@ namespace Org.BouncyCastle.Tls
             case HandshakeType.hello_request:
             case HandshakeType.hello_verify_request:
             case HandshakeType.key_update:
-            case HandshakeType.new_session_ticket:
                 break;
 
+            // TODO[dtls13] Not included in the transcript for (D)TLS 1.3+
+            case HandshakeType.new_session_ticket:
             default:
             {
                 byte[] body = message.Body;

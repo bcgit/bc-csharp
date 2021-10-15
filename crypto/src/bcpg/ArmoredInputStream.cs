@@ -9,10 +9,18 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Bcpg
 {
     /**
-    * reader for Base64 armored objects - read the headers and then start returning
-    * bytes when the data is reached. An IOException is thrown if the CRC check
-    * fails.
-    */
+     * reader for Base64 armored objects - read the headers and then start returning
+     * bytes when the data is reached. An IOException is thrown if the CRC check
+     * is detected and fails.
+     * <p>
+     * By default a missing CRC will not cause an exception. To force CRC detection use:
+     * <pre>
+     *     ArmoredInputStream aIn = ...
+     *
+     *     aIn.setDetectMissingCRC(true);
+     * </pre>
+     * </p>
+     */
     public class ArmoredInputStream
         : BaseInputStream
     {
@@ -23,6 +31,7 @@ namespace Org.BouncyCastle.Bcpg
         static ArmoredInputStream()
         {
             decodingTable = new byte[128];
+            Arrays.Fill(decodingTable, 0xff);
             for (int i = 'A'; i <= 'Z'; i++)
             {
                 decodingTable[i] = (byte)(i - 'A');
@@ -44,23 +53,19 @@ namespace Org.BouncyCastle.Bcpg
         *
         * @return the offset the data starts in out.
         */
-        private int Decode(
-            int      in0,
-            int      in1,
-            int      in2,
-            int      in3,
-            int[]    result)
+        private static int Decode(int in0, int in1, int in2, int in3, int[] result)
         {
             if (in3 < 0)
-            {
                 throw new EndOfStreamException("unexpected end of file in armored stream.");
-            }
 
-            int    b1, b2, b3, b4;
+            int b1, b2, b3, b4;
             if (in2 == '=')
             {
-                b1 = decodingTable[in0] &0xff;
-                b2 = decodingTable[in1] & 0xff;
+                b1 = decodingTable[in0];
+                b2 = decodingTable[in1];
+                if ((b1 | b2) >= 128)
+                    throw new IOException("invalid armor");
+
                 result[2] = ((b1 << 2) | (b2 >> 4)) & 0xff;
                 return 2;
             }
@@ -69,6 +74,9 @@ namespace Org.BouncyCastle.Bcpg
                 b1 = decodingTable[in0];
                 b2 = decodingTable[in1];
                 b3 = decodingTable[in2];
+                if ((b1 | b2 | b3) >= 128)
+                    throw new IOException("invalid armor");
+
                 result[1] = ((b1 << 2) | (b2 >> 4)) & 0xff;
                 result[2] = ((b2 << 4) | (b3 >> 2)) & 0xff;
                 return 1;
@@ -79,12 +87,21 @@ namespace Org.BouncyCastle.Bcpg
                 b2 = decodingTable[in1];
                 b3 = decodingTable[in2];
                 b4 = decodingTable[in3];
+                if ((b1 | b2 | b3 | b4) >= 128)
+                    throw new IOException("invalid armor");
+
                 result[0] = ((b1 << 2) | (b2 >> 4)) & 0xff;
                 result[1] = ((b2 << 4) | (b3 >> 2)) & 0xff;
                 result[2] = ((b3 << 6) | b4) & 0xff;
                 return 0;
             }
         }
+
+        /*
+         * Ignore missing CRC checksums.
+         * https://tests.sequoia-pgp.org/#ASCII_Armor suggests that missing CRC sums do not invalidate the message.
+         */
+        private bool detectMissingChecksum = false;
 
         Stream      input;
         bool        start = true;
@@ -97,7 +114,7 @@ namespace Org.BouncyCastle.Bcpg
         bool        newLineFound = false;
         bool        clearText = false;
         bool        restart = false;
-        IList       headerList= Platform.CreateArrayList();
+        IList       headerList = Platform.CreateArrayList();
         int         lastC = 0;
 		bool		isEndOfStream;
 
@@ -107,8 +124,7 @@ namespace Org.BouncyCastle.Bcpg
         *
         * @param input
         */
-        public ArmoredInputStream(
-            Stream input)
+        public ArmoredInputStream(Stream input)
 			: this(input, true)
         {
         }
@@ -121,9 +137,7 @@ namespace Org.BouncyCastle.Bcpg
         * @param input
         * @param hasHeaders true if headers are to be looked for, false otherwise.
         */
-        public ArmoredInputStream(
-            Stream	input,
-            bool	hasHeaders)
+        public ArmoredInputStream(Stream input, bool hasHeaders)
         {
             this.input = input;
             this.hasHeaders = hasHeaders;
@@ -169,13 +183,13 @@ namespace Org.BouncyCastle.Bcpg
 
 			if (headerFound)
             {
-                StringBuilder    Buffer = new StringBuilder("-");
+                StringBuilder    buf = new StringBuilder("-");
                 bool             eolReached = false;
                 bool             crLf = false;
 
 				if (restart)    // we've had to look ahead two '-'
                 {
-                    Buffer.Append('-');
+                    buf.Append('-');
                 }
 
 				while ((c = input.ReadByte()) >= 0)
@@ -194,16 +208,20 @@ namespace Org.BouncyCastle.Bcpg
                     }
                     if (c == '\r' || (last != '\r' && c == '\n'))
                     {
-						string line = Buffer.ToString();
+						string line = buf.ToString();
 						if (line.Trim().Length < 1)
 							break;
+
+                        if (headerList.Count > 0 && line.IndexOf(':') < 0)
+                            throw new IOException("invalid armor header");
+
                         headerList.Add(line);
-                        Buffer.Length = 0;
+                        buf.Length = 0;
                     }
 
                     if (c != '\n' && c != '\r')
                     {
-                        Buffer.Append((char)c);
+                        buf.Append((char)c);
                         eolReached = false;
                     }
                     else
@@ -225,7 +243,7 @@ namespace Org.BouncyCastle.Bcpg
 
 			if (headerList.Count > 0)
             {
-                header = (string) headerList[0];
+                header = (string)headerList[0];
             }
 
 			clearText = "-----BEGIN PGP SIGNED MESSAGE-----".Equals(header);
@@ -267,14 +285,12 @@ namespace Org.BouncyCastle.Bcpg
         public string[] GetArmorHeaders()
         {
             if (headerList.Count <= 1)
-            {
                 return null;
-            }
 
 			string[] hdrs = new string[headerList.Count - 1];
             for (int i = 0; i != hdrs.Length; i++)
             {
-                hdrs[i] = (string) headerList[i + 1];
+                hdrs[i] = (string)headerList[i + 1];
             }
 
 			return hdrs;
@@ -287,157 +303,12 @@ namespace Org.BouncyCastle.Bcpg
             {
                 c = input.ReadByte();
             }
-            while (c == ' ' || c == '\t');
+            while (c == ' ' || c == '\t' || c == '\f' || c == '\u000B') ; // \u000B ~ \v
 
-			return c;
-        }
-
-		private int ReadIgnoreWhitespace()
-        {
-            int c;
-            do
-            {
-                c = input.ReadByte();
-            }
-            while (c == ' ' || c == '\t' || c == '\r' || c == '\n');
+            if (c >= 128)
+                throw new IOException("invalid armor");
 
             return c;
-        }
-
-		private int ReadByteClearText()
-        {
-            int c = input.ReadByte();
-
-            if (c == '\r' || (c == '\n' && lastC != '\r'))
-            {
-                newLineFound = true;
-            }
-            else if (newLineFound && c == '-')
-            {
-                c = input.ReadByte();
-                if (c == '-')            // a header, not dash escaped
-                {
-                    clearText = false;
-                    start = true;
-                    restart = true;
-                }
-                else                   // a space - must be a dash escape
-                {
-                    c = input.ReadByte();
-                }
-                newLineFound = false;
-            }
-            else
-            {
-                if (c != '\n' && lastC != '\r')
-                {
-                    newLineFound = false;
-                }
-            }
-
-            lastC = c;
-
-			if (c < 0)
-			{
-				isEndOfStream = true;
-			}
-
-			return c;
-        }
-
-        private int ReadClearText(byte[] buffer, int offset, int count)
-        {
-            int pos = offset;
-            try
-            {
-                int end = offset + count;
-                while (pos < end)
-                {
-                    int c = ReadByteClearText();
-                    if (c == -1)
-                    {
-                        break;
-                    }
-                    buffer[pos++] = (byte) c;
-                }
-            }
-            catch (IOException ioe)
-            {
-                if (pos == offset) throw ioe;
-            }
-
-			return pos - offset;
-        }
-
-        private int DoReadByte()
-        {
-            if (bufPtr > 2 || crcFound)
-            {
-                int c = ReadIgnoreSpace();
-                if (c == '\n' || c == '\r')
-                {
-                    c = ReadIgnoreWhitespace();
-                    if (c == '=')            // crc reached
-                    {
-                        bufPtr = Decode(ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
-
-                        if (bufPtr != 0)
-                        {
-                            throw new IOException("no crc found in armored message.");
-                        }
-
-                        crcFound = true;
-
-                        int i = ((outBuf[0] & 0xff) << 16)
-                            | ((outBuf[1] & 0xff) << 8)
-                            | (outBuf[2] & 0xff);
-
-                        if (i != crc.Value)
-                        {
-                            throw new IOException("crc check failed in armored message.");
-                        }
-
-						return ReadByte();
-                    }
-
-                    if (c == '-')        // end of record reached
-                    {
-                        while ((c = input.ReadByte()) >= 0)
-                        {
-                            if (c == '\n' || c == '\r')
-                            {
-                                break;
-                            }
-                        }
-
-                        if (!crcFound)
-                        {
-                            throw new IOException("crc check not found.");
-                        }
-
-                        crcFound = false;
-                        start = true;
-                        bufPtr = 3;
-
-						if (c < 0)
-						{
-							isEndOfStream = true;
-						}
-
-						return -1;
-                    }
-                }
-
-                if (c < 0)
-                {
-					isEndOfStream = true;
-					return -1;
-                }
-
-                bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
-            }
-
-            return outBuf[bufPtr++];
         }
 
         public override int ReadByte()
@@ -449,59 +320,193 @@ namespace Org.BouncyCastle.Bcpg
                     ParseHeaders();
                 }
 
-				crc.Reset();
-				start = false;
+                crc.Reset();
+                start = false;
             }
 
-			if (clearText)
+            int c;
+
+            if (clearText)
             {
-                return ReadByteClearText();
+                c = input.ReadByte();
+
+                if (c == '\r' || (c == '\n' && lastC != '\r'))
+                {
+                    newLineFound = true;
+                }
+                else if (newLineFound && c == '-')
+                {
+                    c = input.ReadByte();
+                    if (c == '-')            // a header, not dash escaped
+                    {
+                        clearText = false;
+                        start = true;
+                        restart = true;
+                    }
+                    else                   // a space - must be a dash escape
+                    {
+                        c = input.ReadByte();
+                    }
+                    newLineFound = false;
+                }
+                else
+                {
+                    if (c != '\n' && lastC != '\r')
+                    {
+                        newLineFound = false;
+                    }
+                }
+            
+                lastC = c;
+
+                if (c < 0)
+                {
+                    isEndOfStream = true;
+                }
+            
+                return c;
             }
 
-            int c = DoReadByte();
+            if (bufPtr > 2 || crcFound)
+            {
+                c = ReadIgnoreSpace();
+            
+                if (c == '\r' || c == '\n')
+                {
+                    c = ReadIgnoreSpace();
+                
+                    while (c == '\n' || c == '\r')
+                    {
+                        c = ReadIgnoreSpace();
+                    }
+
+                    if (c < 0)                // EOF
+                    {
+                        isEndOfStream = true;
+                        return -1;
+                    }
+
+                    if (c == '=')            // crc reached
+                    {
+                        bufPtr = Decode(ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
+                        if (bufPtr == 0)
+                        {
+                            int i = ((outBuf[0] & 0xff) << 16)
+                                    | ((outBuf[1] & 0xff) << 8)
+                                    | (outBuf[2] & 0xff);
+
+                            crcFound = true;
+
+                            if (i != crc.Value)
+                            {
+                                throw new IOException("crc check failed in armored message.");
+                            }
+                            return ReadByte();
+                        }
+                        else
+                        {
+                            if (detectMissingChecksum)
+                            {
+                                throw new IOException("no crc found in armored message");
+                            }
+                        }
+                    }
+                    else if (c == '-')        // end of record reached
+                    {
+                        while ((c = input.ReadByte()) >= 0)
+                        {
+                            if (c == '\n' || c == '\r')
+                            {
+                                break;
+                            }
+                        }
+
+                        if (!crcFound && detectMissingChecksum)
+                        {
+                            throw new IOException("crc check not found");
+                        }
+
+                        crcFound = false;
+                        start = true;
+                        bufPtr = 3;
+
+                        if (c < 0)
+                        {
+                            isEndOfStream = true;
+                        }
+
+                        return -1;
+                    }
+                    else                   // data
+                    {
+                        bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
+                    }
+                }
+                else
+                {
+                    if (c >= 0)
+                    {
+                        bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), outBuf);
+                    }
+                    else
+                    {
+                        isEndOfStream = true;
+                        return -1;
+                    }
+                }
+            }
+
+            c = outBuf[bufPtr++];
 
             crc.Update(c);
 
             return c;
         }
 
-        public override int Read(byte[] buffer, int offset, int count)
+        /**
+         * Reads up to <code>len</code> bytes of data from the input stream into
+         * an array of bytes.  An attempt is made to read as many as
+         * <code>len</code> bytes, but a smaller number may be read.
+         * The number of bytes actually read is returned as an integer.
+         *
+         * The first byte read is stored into element <code>b[off]</code>, the
+         * next one into <code>b[off+1]</code>, and so on. The number of bytes read
+         * is, at most, equal to <code>len</code>.
+         *
+         * NOTE: We need to override the custom behavior of Java's {@link InputStream#read(byte[], int, int)},
+         * as the upstream method silently swallows {@link IOException IOExceptions}.
+         * This would cause CRC checksum errors to go unnoticed.
+         *
+         * @see <a href="https://github.com/bcgit/bc-java/issues/998">Related BC bug report</a>
+         * @param b byte array
+         * @param off offset at which we start writing data to the array
+         * @param len number of bytes we write into the array
+         * @return total number of bytes read into the buffer
+         *
+         * @throws IOException if an exception happens AT ANY POINT
+         */
+        public override int Read(byte[] b, int off, int len)
         {
-            if (start && count > 0)
-            {
-                if (hasHeaders)
-                {
-                    ParseHeaders();
-                }
-                start = false;
-            }
+            CheckIndexSize(b.Length, off, len);
 
-            if (clearText)
+            int pos = 0;
+            while (pos < len)
             {
-                return ReadClearText(buffer, offset, count);
-            }
+                int c = ReadByte();
+                if (c < 0)
+                    break;
 
-            int pos = offset;
-            try
-            {
-                int end = offset + count;
-                while (pos < end)
-                {
-                    int c = DoReadByte();
-                    crc.Update(c);
-                    if (c == -1)
-                    {
-                        break;
-                    }
-                    buffer[pos++] = (byte) c;
-                }
+                b[off + pos++] = (byte)c;
             }
-            catch (IOException ioe)
-            {
-                if (pos == offset) throw ioe;
-            }
+            return pos;
+        }
 
-            return pos - offset;
+        private void CheckIndexSize(int size, int off, int len)
+        {
+            if (off < 0 || len < 0)
+                throw new IndexOutOfRangeException("Offset and length cannot be negative.");
+            if (off > size - len)
+                throw new IndexOutOfRangeException("Invalid offset and length.");
         }
 
 #if PORTABLE
@@ -514,11 +519,23 @@ namespace Org.BouncyCastle.Bcpg
             base.Dispose(disposing);
         }
 #else
-		public override void Close()
+        public override void Close()
 		{
             Platform.Dispose(input);
 			base.Close();
 		}
 #endif
+
+        /**
+         * Change how the stream should react if it encounters missing CRC checksum.
+         * The default value is false (ignore missing CRC checksums). If the behavior is set to true,
+         * an {@link IOException} will be thrown if a missing CRC checksum is encountered.
+         *
+         * @param detectMissing ignore missing CRC sums
+         */
+        public virtual void SetDetectMissingCrc(bool detectMissing)
+        {
+            this.detectMissingChecksum = detectMissing;
+        }
     }
 }

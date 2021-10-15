@@ -708,7 +708,9 @@ namespace Org.BouncyCastle.Tls
                      * RFC 5077 3.4. If the client receives a session ticket from the server, then it
                      * discards any Session ID that was sent in the ServerHello.
                      */
+                    securityParameters.m_sessionID = TlsUtilities.EmptyBytes;
                     InvalidateSession();
+                    this.m_tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, null);
 
                     ReceiveNewSessionTicket(buf);
                     break;
@@ -1001,13 +1003,8 @@ namespace Org.BouncyCastle.Tls
 
             TlsUtilities.Establish13PhaseSecrets(m_tlsClientContext, pskEarlySecret, sharedSecret);
 
-            {
-                InvalidateSession();
-
-                this.m_tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, null);
-                this.m_sessionParameters = null;
-                this.m_sessionMasterSecret = null;
-            }
+            InvalidateSession();
+            this.m_tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, null);
         }
 
         /// <exception cref="IOException"/>
@@ -1325,10 +1322,7 @@ namespace Org.BouncyCastle.Tls
             else
             {
                 InvalidateSession();
-
                 this.m_tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, null);
-                this.m_sessionParameters = null;
-                this.m_sessionMasterSecret = null;
             }
         }
 
