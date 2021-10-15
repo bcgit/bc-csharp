@@ -16,16 +16,16 @@ namespace Org.BouncyCastle.Asn1
         internal DefiniteLengthInputStream(Stream inStream, int length, int limit)
             : base(inStream, limit)
         {
-			if (length < 0)
-				throw new ArgumentException("negative lengths not allowed", "length");
+            if (length <= 0)
+            {
+                if (length < 0)
+                    throw new ArgumentException("negative lengths not allowed", "length");
 
-			this._originalLength = length;
+                SetParentEofDetect(true);
+            }
+
+            this._originalLength = length;
 			this._remaining = length;
-
-			if (length == 0)
-			{
-				SetParentEofDetect(true);
-			}
         }
 
         internal int Remaining
