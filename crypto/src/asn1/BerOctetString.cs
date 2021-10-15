@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Asn1
     public class BerOctetString
         : DerOctetString, IEnumerable
     {
-        private static readonly int DefaultChunkSize = 1000;
+        private static readonly int DefaultSegmentLimit = 1000;
 
         public static BerOctetString FromSequence(Asn1Sequence seq)
         {
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1
             Asn1OctetString[] v = new Asn1OctetString[count];
             for (int i = 0; i < count; ++i)
             {
-                v[i] = Asn1OctetString.GetInstance(seq[i]);
+                v[i] = GetInstance(seq[i]);
             }
             return new BerOctetString(v);
         }
@@ -62,13 +62,13 @@ namespace Org.BouncyCastle.Asn1
             Asn1OctetString[] v = new Asn1OctetString[count];
             for (int i = 0; i < count; ++i)
             {
-                v[i] = Asn1OctetString.GetInstance(list[i]);
+                v[i] = GetInstance(list[i]);
             }
             return v;
         }
 
-        private readonly int chunkSize;
-        private readonly Asn1OctetString[] octs;
+        private readonly int segmentLimit;
+        private readonly Asn1OctetString[] elements;
 
         [Obsolete("Will be removed")]
         public BerOctetString(IEnumerable e)
@@ -77,30 +77,30 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public BerOctetString(byte[] str)
-			: this(str, DefaultChunkSize)
+			: this(str, DefaultSegmentLimit)
 		{
 		}
 
-        public BerOctetString(Asn1OctetString[] octs)
-            : this(octs, DefaultChunkSize)
+        public BerOctetString(Asn1OctetString[] elements)
+            : this(elements, DefaultSegmentLimit)
         {
         }
 
-        public BerOctetString(byte[] str, int chunkSize)
-            : this(str, null, chunkSize)
+        public BerOctetString(byte[] str, int segmentLimit)
+            : this(str, null, segmentLimit)
         {
         }
 
-        public BerOctetString(Asn1OctetString[] octs, int chunkSize)
-            : this(FlattenOctetStrings(octs), octs, chunkSize)
+        public BerOctetString(Asn1OctetString[] elements, int segmentLimit)
+            : this(FlattenOctetStrings(elements), elements, segmentLimit)
         {
         }
 
-        private BerOctetString(byte[] str, Asn1OctetString[] octs, int chunkSize)
-            : base(str)
+        private BerOctetString(byte[] octets, Asn1OctetString[] elements, int segmentLimit)
+            : base(octets)
         {
-            this.octs = octs;
-            this.chunkSize = chunkSize;
+            this.elements = elements;
+            this.segmentLimit = segmentLimit;
         }
 
         /**
@@ -108,10 +108,10 @@ namespace Org.BouncyCastle.Asn1
          */
 		public IEnumerator GetEnumerator()
 		{
-			if (octs == null)
-                return new ChunkEnumerator(str, chunkSize);
+			if (elements == null)
+                return new ChunkEnumerator(str, segmentLimit);
 
-			return octs.GetEnumerator();
+			return elements.GetEnumerator();
 		}
 
 		[Obsolete("Use GetEnumerator() instead")]
@@ -120,82 +120,119 @@ namespace Org.BouncyCastle.Asn1
 			return GetEnumerator();
 		}
 
+        private bool IsConstructed
+        {
+            get { return null != elements || str.Length > segmentLimit; }
+        }
+
         internal override int EncodedLength(bool withID)
         {
             throw Platform.CreateNotImplementedException("BerOctetString.EncodedLength");
+
+            // TODO This depends on knowing it's not DER
+            //if (!IsConstructed)
+            //    return EncodedLength(withID, str.Length);
+
+            //int totalLength = withID ? 4 : 3;
+
+            //if (null != elements)
+            //{
+            //    for (int i = 0; i < elements.Length; ++i)
+            //    {
+            //        totalLength += elements[i].EncodedLength(true);
+            //    }
+            //}
+            //else
+            //{
+            //    int fullSegments = str.Length / segmentLimit;
+            //    totalLength += fullSegments * EncodedLength(true, segmentLimit);
+
+            //    int lastSegmentLength = str.Length - (fullSegments * segmentLimit);
+            //    if (lastSegmentLength > 0)
+            //    {
+            //        totalLength += EncodedLength(true, lastSegmentLength);
+            //    }
+            //}
+
+            //return totalLength;
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            if (asn1Out.IsBer)
+            if (!asn1Out.IsBer || !IsConstructed)
             {
-                if (withID)
-                {
-                    asn1Out.WriteByte(Asn1Tags.Constructed | Asn1Tags.OctetString);
-                }
+                base.Encode(asn1Out, withID);
+                return;
+            }
 
-                asn1Out.WriteByte(0x80);
+            asn1Out.WriteIdentifier(withID, Asn1Tags.Constructed | Asn1Tags.OctetString);
+            asn1Out.WriteByte(0x80);
 
-                foreach (Asn1OctetString oct in this)
-                {
-                    oct.Encode(asn1Out, true);
-                }
-
-				asn1Out.WriteByte(0x00);
-                asn1Out.WriteByte(0x00);
+            if (null != elements)
+            {
+                asn1Out.WritePrimitives(elements);
             }
             else
             {
-                base.Encode(asn1Out, withID);
+                int pos = 0;
+                while (pos < str.Length)
+                {
+                    int segmentLength = System.Math.Min(str.Length - pos, segmentLimit);
+                    Encode(asn1Out, true, str, pos, segmentLength);
+                    pos += segmentLength;
+                }
             }
+
+            asn1Out.WriteByte(0x00);
+            asn1Out.WriteByte(0x00);
         }
 
         private class ChunkEnumerator
             : IEnumerator
         {
             private readonly byte[] octets;
-            private readonly int chunkSize;
+            private readonly int segmentLimit;
 
-            private DerOctetString currentChunk = null;
-            private int nextChunkPos = 0;
+            private DerOctetString currentSegment = null;
+            private int nextSegmentPos = 0;
 
-            internal ChunkEnumerator(byte[] octets, int chunkSize)
+            internal ChunkEnumerator(byte[] octets, int segmentLimit)
             {
                 this.octets = octets;
-                this.chunkSize = chunkSize;
+                this.segmentLimit = segmentLimit;
             }
 
             public object Current
             {
                 get
                 {
-                    if (null == currentChunk)
+                    if (null == currentSegment)
                         throw new InvalidOperationException();
 
-                    return currentChunk;
+                    return currentSegment;
                 }
             }
 
             public bool MoveNext()
             {
-                if (nextChunkPos >= octets.Length)
+                if (nextSegmentPos >= octets.Length)
                 {
-                    this.currentChunk = null;
+                    this.currentSegment = null;
                     return false;
                 }
 
-                int length = System.Math.Min(octets.Length - nextChunkPos, chunkSize);
-                byte[] chunk = new byte[length];
-                Array.Copy(octets, nextChunkPos, chunk, 0, length);
-                this.currentChunk = new DerOctetString(chunk);
-                this.nextChunkPos += length;
+                int length = System.Math.Min(octets.Length - nextSegmentPos, segmentLimit);
+                byte[] segment = new byte[length];
+                Array.Copy(octets, nextSegmentPos, segment, 0, length);
+                this.currentSegment = new DerOctetString(segment);
+                this.nextSegmentPos += length;
                 return true;
             }
 
             public void Reset()
             {
-                this.currentChunk = null;
-                this.nextChunkPos = 0;
+                this.currentSegment = null;
+                this.nextSegmentPos = 0;
             }
         }
     }

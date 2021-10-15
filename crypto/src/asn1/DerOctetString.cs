@@ -36,5 +36,10 @@ namespace Org.BouncyCastle.Asn1
 		{
 			asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, buf, off, len);
 		}
-	}
+
+        internal static int EncodedLength(bool withID, int contentsLength)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contentsLength);
+        }
+    }
 }
