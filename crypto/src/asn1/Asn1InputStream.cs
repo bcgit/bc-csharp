@@ -215,13 +215,13 @@ namespace Org.BouncyCastle.Asn1
             switch (tagNo)
             {
             case Asn1Tags.OctetString:
-                return new BerOctetStringParser(sp).ToAsn1Object();
+                return BerOctetStringParser.Parse(sp);
             case Asn1Tags.Sequence:
-                return new BerSequenceParser(sp).ToAsn1Object();
+                return BerSequenceParser.Parse(sp);
             case Asn1Tags.Set:
-                return new BerSetParser(sp).ToAsn1Object();
+                return BerSetParser.Parse(sp);
             case Asn1Tags.External:
-                return new DerExternalParser(sp).ToAsn1Object();
+                return DerExternalParser.Parse(sp);
             default:
                 throw new IOException("unknown BER object encountered");
             }
