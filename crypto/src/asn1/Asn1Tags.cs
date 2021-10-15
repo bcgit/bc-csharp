@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Asn1
 {
     public class Asn1Tags
@@ -8,8 +10,14 @@ namespace Org.BouncyCastle.Asn1
         public const int OctetString = 0x04;
         public const int Null = 0x05;
         public const int ObjectIdentifier = 0x06;
+        public const int ObjectDescriptor = 0x07;
         public const int External = 0x08;
+        public const int Real = 0x09;
         public const int Enumerated = 0x0a;
+        public const int EmbeddedPdv = 0x0b;
+        public const int Utf8String = 0x0c;
+        public const int RelativeOid = 0x0d;
+                                                        // NOTE: 14-15 are reserved.
         public const int Sequence = 0x10;
         public const int SequenceOf = 0x10; // for completeness
         public const int Set = 0x11;
@@ -26,11 +34,16 @@ namespace Org.BouncyCastle.Asn1
         public const int VisibleString = 0x1a;
         public const int GeneralString = 0x1b;
         public const int UniversalString = 0x1c;
+        public const int UnrestrictedString = 0x1d;
         public const int BmpString = 0x1e;
-        public const int Utf8String = 0x0c;
 
         public const int Constructed = 0x20;
+
+        public const int Universal = 0x00;
         public const int Application = 0x40;
+        [Obsolete("Use 'ContextSpecific' instead")]
         public const int Tagged = 0x80;
+        public const int ContextSpecific = 0x80;
+        public const int Private = 0xC0;
     }
 }
