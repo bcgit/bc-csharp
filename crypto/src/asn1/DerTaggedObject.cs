@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1
 
 				if (explicitly)
 				{
-					asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo, bytes);
+					asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo, bytes);
 				}
 				else
 				{
@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1
 					//
                     if (withID)
                     {
-                        int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.Tagged;
+                        int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.ContextSpecific;
                         asn1Out.WriteIdentifier(true, flags, tagNo);
                     }
 
@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Asn1
 			}
 			else
 			{
-				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo,
+				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo,
                     Asn1OctetString.EmptyOctets);
 			}
 		}

@@ -71,11 +71,11 @@ namespace Org.BouncyCastle.Asn1
         {
             if (_tagged)
             {
-                int tagNum = _tagNo | Asn1Tags.Tagged;
+                int tagNum = _tagNo | Asn1Tags.ContextSpecific;
 
                 if (_isExplicit)
                 {
-                    int newTag = _tagNo | Asn1Tags.Constructed | Asn1Tags.Tagged;
+                    int newTag = _tagNo | Asn1Tags.Constructed | Asn1Tags.ContextSpecific;
 					MemoryStream bOut = new MemoryStream();
                     WriteDerEncoded(bOut, tag, bytes);
                     WriteDerEncoded(Out, newTag, bOut.ToArray());

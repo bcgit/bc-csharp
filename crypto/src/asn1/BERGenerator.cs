@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1
         {
             if (_tagged)
             {
-                int tagNum = _tagNo | Asn1Tags.Tagged;
+                int tagNum = _tagNo | Asn1Tags.ContextSpecific;
 
                 if (_isExplicit)
                 {
