@@ -146,32 +146,30 @@ namespace Org.BouncyCastle.Asn1
                 IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(_in, _limit);
                 Asn1StreamParser sp = new Asn1StreamParser(indIn, _limit, tmpBuffers);
 
-                if ((tag & Asn1Tags.Application) != 0)
-				{
-					return new BerApplicationSpecificParser(tagNo, sp);
-				}
+                int tagClass = tag & Asn1Tags.Private;
+                if (0 != tagClass)
+                {
+                    if ((tag & Asn1Tags.Application) != 0)
+                        return new BerApplicationSpecificParser(tagNo, sp);
 
-				if ((tag & Asn1Tags.Tagged) != 0)
-				{
-					return new BerTaggedObjectParser(true, tagNo, sp);
-				}
+                    return new BerTaggedObjectParser(true, tagNo, sp);
+                }
 
-				return sp.ReadIndef(tagNo);
+                return sp.ReadIndef(tagNo);
 			}
 			else
 			{
 				DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(_in, length, _limit);
 
-				if ((tag & Asn1Tags.Application) != 0)
-				{
-					return new DerApplicationSpecific(isConstructed, tagNo, defIn.ToArray());
-				}
+                int tagClass = tag & Asn1Tags.Private;
+                if (0 != tagClass)
+                {
+                    if ((tag & Asn1Tags.Application) != 0)
+                        return new DerApplicationSpecific(isConstructed, tagNo, defIn.ToArray());
 
-				if ((tag & Asn1Tags.Tagged) != 0)
-				{
-					return new BerTaggedObjectParser(isConstructed, tagNo,
+                    return new BerTaggedObjectParser(isConstructed, tagNo,
                         new Asn1StreamParser(defIn, defIn.Remaining, tmpBuffers));
-				}
+                }
 
                 if (!isConstructed)
                 {
