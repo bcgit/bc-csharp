@@ -37,9 +37,19 @@ namespace Org.BouncyCastle.Asn1
             return int.MaxValue;
         }
 
-        public Asn1InputStream(
-            Stream inputStream)
-            : this(inputStream, FindLimit(inputStream))
+        public Asn1InputStream(Stream input)
+            : this(input, FindLimit(input))
+        {
+        }
+
+        /**
+         * Create an ASN1InputStream based on the input byte array. The length of DER objects in
+         * the stream is automatically limited to the length of the input array.
+         *
+         * @param input array containing ASN.1 encoded data.
+         */
+        public Asn1InputStream(byte[] input)
+            : this(new MemoryStream(input, false), input.Length)
         {
         }
 
@@ -49,25 +59,16 @@ namespace Org.BouncyCastle.Asn1
          * @param input stream containing ASN.1 encoded data.
          * @param limit maximum size of a DER encoded object.
          */
-        public Asn1InputStream(
-            Stream	inputStream,
-            int		limit)
-            : base(inputStream)
+        public Asn1InputStream(Stream input, int limit)
+            : this(input, limit, new byte[16][])
         {
-            this.limit = limit;
-            this.tmpBuffers = new byte[16][];
         }
 
-        /**
-         * Create an ASN1InputStream based on the input byte array. The length of DER objects in
-         * the stream is automatically limited to the length of the input array.
-         *
-         * @param input array containing ASN.1 encoded data.
-         */
-        public Asn1InputStream(
-            byte[] input)
-            : this(new MemoryStream(input, false), input.Length)
+        private Asn1InputStream(Stream input, int limit, byte[][] tmpBuffers)
+            : base(input)
         {
+            this.limit = limit;
+            this.tmpBuffers = tmpBuffers;
         }
 
         /**
@@ -89,7 +90,7 @@ namespace Org.BouncyCastle.Asn1
 
             if ((tag & Asn1Tags.Tagged) != 0)
             {
-                return new Asn1StreamParser(defIn).ReadTaggedObject(isConstructed, tagNo);
+                return new Asn1StreamParser(defIn, defIn.Remaining, tmpBuffers).ReadTaggedObject(isConstructed, tagNo);
             }
 
             if (isConstructed)
@@ -148,12 +149,13 @@ namespace Org.BouncyCastle.Asn1
             return v;
         }
 
-        internal virtual Asn1EncodableVector ReadVector(DefiniteLengthInputStream dIn)
+        internal virtual Asn1EncodableVector ReadVector(DefiniteLengthInputStream defIn)
         {
-            if (dIn.Remaining < 1)
+            int remaining = defIn.Remaining;
+            if (remaining < 1)
                 return new Asn1EncodableVector(0);
 
-            return new Asn1InputStream(dIn).ReadVector();
+            return new Asn1InputStream(defIn, remaining, tmpBuffers).ReadVector();
         }
 
         internal virtual DerSequence CreateDerSequence(
@@ -197,7 +199,7 @@ namespace Org.BouncyCastle.Asn1
                     throw new IOException("indefinite-length primitive encoding encountered");
 
                 IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(this.s, limit);
-                Asn1StreamParser sp = new Asn1StreamParser(indIn, limit);
+                Asn1StreamParser sp = new Asn1StreamParser(indIn, limit, tmpBuffers);
 
                 if ((tag & Asn1Tags.Application) != 0)
                 {
