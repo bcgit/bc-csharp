@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1
     {
         private readonly int limit;
 
-        private readonly byte[][] tmpBuffers;
+        internal readonly byte[][] tmpBuffers;
 
         internal static int FindLimit(Stream input)
         {
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        private Asn1InputStream(Stream input, int limit, byte[][] tmpBuffers)
+        internal Asn1InputStream(Stream input, int limit, byte[][] tmpBuffers)
             : base(input)
         {
             this.limit = limit;
