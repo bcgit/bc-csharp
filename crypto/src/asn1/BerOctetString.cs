@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Asn1
     public class BerOctetString
         : DerOctetString, IEnumerable
     {
-        private static readonly int DefaultSegmentLimit = 1000;
+        private const int DefaultSegmentLimit = 1000;
 
         public static BerOctetString FromSequence(Asn1Sequence seq)
         {

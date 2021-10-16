@@ -95,30 +95,18 @@ namespace Org.BouncyCastle.Asn1
             if (!isConstructed)
                 return CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
 
-            // TODO There are other tags that may be constructed (e.g. BitString)
             switch (tagNo)
             {
+            case Asn1Tags.BitString:
+            {
+                return BuildConstructedBitString(ReadVector(defIn));
+            }
             case Asn1Tags.OctetString:
             {
                 //
                 // yes, people actually do this...
                 //
-                Asn1EncodableVector v = ReadVector(defIn);
-                Asn1OctetString[] strings = new Asn1OctetString[v.Count];
-
-                for (int i = 0; i != strings.Length; i++)
-                {
-                    Asn1Encodable asn1Obj = v[i];
-                    if (!(asn1Obj is Asn1OctetString))
-                    {
-                        throw new Asn1Exception("unknown object encountered in constructed OCTET STRING: "
-                            + Platform.GetTypeName(asn1Obj));
-                    }
-
-                    strings[i] = (Asn1OctetString)asn1Obj;
-                }
-
-                return new BerOctetString(strings);
+                return BuildConstructedOctetString(ReadVector(defIn));
             }
             case Asn1Tags.Sequence:
                 return CreateDerSequence(defIn);
@@ -225,6 +213,42 @@ namespace Org.BouncyCastle.Asn1
             default:
                 throw new IOException("unknown BER object encountered");
             }
+        }
+
+        internal virtual DerBitString BuildConstructedBitString(Asn1EncodableVector contentsElements)
+        {
+            DerBitString[] bitStrings = new DerBitString[contentsElements.Count];
+
+            for (int i = 0; i != bitStrings.Length; i++)
+            {
+                DerBitString bitString = contentsElements[i] as DerBitString;
+                if (null == bitString)
+                    throw new Asn1Exception("unknown object encountered in constructed BIT STRING: "
+                        + Platform.GetTypeName(contentsElements[i]));
+
+                bitStrings[i] = bitString;
+            }
+
+            // TODO Probably ought to be DLBitString
+            return new BerBitString(bitStrings);
+        }
+
+        internal virtual Asn1OctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
+        {
+            Asn1OctetString[] octetStrings = new Asn1OctetString[contentsElements.Count];
+
+            for (int i = 0; i != octetStrings.Length; i++)
+            {
+                Asn1OctetString octetString = contentsElements[i] as Asn1OctetString;
+                if (null == octetString)
+                    throw new Asn1Exception("unknown object encountered in constructed OCTET STRING: "
+                        + Platform.GetTypeName(contentsElements[i]));
+
+                octetStrings[i] = octetString;
+            }
+
+            // TODO Probably ought to be DerOctetString (no DLOctetString available)
+            return new BerOctetString(octetStrings);
         }
 
         internal virtual int Limit
@@ -404,7 +428,7 @@ namespace Org.BouncyCastle.Asn1
             switch (tagNo)
             {
                 case Asn1Tags.BitString:
-                    return DerBitString.FromAsn1Octets(bytes);
+                    return DerBitString.CreatePrimitive(bytes);
                 case Asn1Tags.GeneralizedTime:
                     return new DerGeneralizedTime(bytes);
                 case Asn1Tags.GeneralString:
