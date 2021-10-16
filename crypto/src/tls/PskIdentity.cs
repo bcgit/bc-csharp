@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Tls
 {
     public sealed class PskIdentity
@@ -47,6 +49,21 @@ namespace Org.BouncyCastle.Tls
             byte[] identity = TlsUtilities.ReadOpaque16(input, 1);
             long obfuscatedTicketAge = TlsUtilities.ReadUint32(input);
             return new PskIdentity(identity, obfuscatedTicketAge);
+        }
+
+        public override bool Equals(object obj)
+        {
+            PskIdentity that = obj as PskIdentity;
+            if (null == that)
+                return false;
+
+            return this.m_obfuscatedTicketAge == that.m_obfuscatedTicketAge
+                && Arrays.ConstantTimeAreEqual(this.m_identity, that.m_identity);
+        }
+
+        public override int GetHashCode()
+        {
+            return Arrays.GetHashCode(m_identity) ^ m_obfuscatedTicketAge.GetHashCode();
         }
     }
 }

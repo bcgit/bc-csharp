@@ -70,6 +70,9 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public void Encode(TlsContext context, Stream output)
         {
+            if (m_bindersSize < 0)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
             TlsUtilities.WriteVersion(m_version, output);
 
             output.Write(m_random, 0, m_random.Length);
@@ -168,7 +171,7 @@ namespace Org.BouncyCastle.Tls
                 extensions = TlsProtocol.ReadExtensionsDataClientHello(extBytes);
             }
 
-            return new ClientHello(clientVersion, random, sessionID, cookie, cipherSuites, extensions, 0);
+            return new ClientHello(clientVersion, random, sessionID, cookie, cipherSuites, extensions, -1);
         }
     }
 }
