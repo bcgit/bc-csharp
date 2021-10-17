@@ -2,7 +2,7 @@
 <project name="bccrypto-csharp" default="compile-release" basedir=".">
 
   <!-- Source control properties -->
-  <property name="GITURL" value="bcgit@git.bouncycastle.org:bc-csharp" />
+  <property name="GITURL" value="ssh://git@gitlab.cryptoworkshop.com:1022/root/bc-csharp" />
   <property name="GITCMD" value="C:/Program Files/Git/bin/git.exe" />
 
   <property name="api-debugpath" value="./api/bin/debug" />
