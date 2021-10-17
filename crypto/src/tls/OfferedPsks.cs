@@ -26,6 +26,22 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        internal class SelectedConfig
+        {
+            internal readonly int m_index;
+            internal readonly TlsPsk m_psk;
+            internal readonly short[] m_pskKeyExchangeModes;
+            internal readonly TlsSecret m_earlySecret;
+
+            internal SelectedConfig(int index, TlsPsk psk, short[] pskKeyExchangeModes, TlsSecret earlySecret)
+            {
+                this.m_index = index;
+                this.m_psk = psk;
+                this.m_pskKeyExchangeModes = pskKeyExchangeModes;
+                this.m_earlySecret = earlySecret;
+            }
+        }
+
         private readonly IList m_identities;
         private readonly IList m_binders;
         private readonly int m_bindersSize;
@@ -49,16 +65,6 @@ namespace Org.BouncyCastle.Tls
             this.m_bindersSize = bindersSize;
         }
 
-        internal byte[] GetBinderForIdentity(PskIdentity matchIdentity)
-        {
-            for (int i = 0, count = m_identities.Count; i < count; ++i)
-            {
-                if (matchIdentity.Equals(m_identities[i]))
-                    return (byte[])m_binders[i];
-            }
-            return null;
-        }
-
         public IList Binders
         {
             get { return m_binders; }
@@ -72,6 +78,16 @@ namespace Org.BouncyCastle.Tls
         public IList Identities
         {
             get { return m_identities; }
+        }
+
+        public int GetIndexOfIdentity(PskIdentity pskIdentity)
+        {
+            for (int i = 0, count = m_identities.Count; i < count; ++i)
+            {
+                if (pskIdentity.Equals(m_identities[i]))
+                    return i;
+            }
+            return -1;
         }
 
         /// <exception cref="IOException"/>
