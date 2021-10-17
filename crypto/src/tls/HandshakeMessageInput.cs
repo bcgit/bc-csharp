@@ -13,7 +13,11 @@ namespace Org.BouncyCastle.Tls
         private readonly int m_offset;
 
         internal HandshakeMessageInput(byte[] buf, int offset, int length)
+#if PORTABLE
+            : base(buf, offset, length, false)
+#else
             : base(buf, offset, length, false, true)
+#endif
         {
 #if PORTABLE
             this.m_offset = 0;

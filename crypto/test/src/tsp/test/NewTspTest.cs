@@ -17,6 +17,7 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
+using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 
@@ -24,7 +25,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 {
 	public class NewTspTest
 	{
-		private static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0);
+		private static DateTime UnixEpoch = SimpleTest.MakeUtcDateTime(1970, 1, 1, 0, 0, 0);
 
 		[Test]
 		public void TestGeneral()
