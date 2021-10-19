@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 extensionsGenerator.AddExtension(X509Extensions.AuditIdentity, false, new DerSequence(new Asn1EncodableVector(new Asn1Encodable[] { name2 })));
                 Fail("Expected exception, not a white listed duplicate.");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // ok
             }
