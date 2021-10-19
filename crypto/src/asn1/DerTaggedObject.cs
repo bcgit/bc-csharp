@@ -1,3 +1,7 @@
+using System;
+
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1
 {
 	/**
@@ -42,8 +46,12 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		internal override void Encode(
-			DerOutputStream derOut)
+        internal override int EncodedLength(bool withID)
+        {
+            throw Platform.CreateNotImplementedException("DerTaggedObject.EncodedLength");
+        }
+
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
 			if (!IsEmpty())
 			{
@@ -51,21 +59,26 @@ namespace Org.BouncyCastle.Asn1
 
 				if (explicitly)
 				{
-					derOut.WriteEncoded(Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo, bytes);
+					asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo, bytes);
 				}
 				else
 				{
 					//
 					// need to mark constructed types... (preserve Constructed tag)
 					//
-					int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.Tagged;
-					derOut.WriteTag(flags, tagNo);
-					derOut.Write(bytes, 1, bytes.Length - 1);
+                    if (withID)
+                    {
+                        int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.ContextSpecific;
+                        asn1Out.WriteIdentifier(true, flags, tagNo);
+                    }
+
+                    asn1Out.Write(bytes, 1, bytes.Length - 1);
 				}
 			}
 			else
 			{
-				derOut.WriteEncoded(Asn1Tags.Constructed | Asn1Tags.Tagged, tagNo, new byte[0]);
+				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo,
+                    Asn1OctetString.EmptyOctets);
 			}
 		}
 	}

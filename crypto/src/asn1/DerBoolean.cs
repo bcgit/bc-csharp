@@ -81,11 +81,15 @@ namespace Org.BouncyCastle.Asn1
             get { return value != 0; }
         }
 
-        internal override void Encode(
-            DerOutputStream derOut)
+        internal override int EncodedLength(bool withID)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, 1);
+        }
+
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
             // TODO Should we make sure the byte value is one of '0' or '0xff' here?
-            derOut.WriteEncoded(Asn1Tags.Boolean, new byte[]{ value });
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.Boolean, value);
         }
 
         protected override bool Asn1Equals(

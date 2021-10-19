@@ -26,23 +26,43 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        internal class SelectedConfig
+        {
+            internal readonly int m_index;
+            internal readonly TlsPsk m_psk;
+            internal readonly short[] m_pskKeyExchangeModes;
+            internal readonly TlsSecret m_earlySecret;
+
+            internal SelectedConfig(int index, TlsPsk psk, short[] pskKeyExchangeModes, TlsSecret earlySecret)
+            {
+                this.m_index = index;
+                this.m_psk = psk;
+                this.m_pskKeyExchangeModes = pskKeyExchangeModes;
+                this.m_earlySecret = earlySecret;
+            }
+        }
+
         private readonly IList m_identities;
         private readonly IList m_binders;
+        private readonly int m_bindersSize;
 
         public OfferedPsks(IList identities)
-            : this(identities, null)
+            : this(identities, null, -1)
         {
         }
 
-        private OfferedPsks(IList identities, IList binders)
+        private OfferedPsks(IList identities, IList binders, int bindersSize)
         {
             if (null == identities || identities.Count < 1)
                 throw new ArgumentException("cannot be null or empty", "identities");
             if (null != binders && identities.Count != binders.Count)
                 throw new ArgumentException("must be the same length as 'identities' (or null)", "binders");
+            if ((null != binders) != (bindersSize >= 0))
+                throw new ArgumentException("must be >= 0 iff 'binders' are present", "bindersSize");
 
             this.m_identities = identities;
             this.m_binders = binders;
+            this.m_bindersSize = bindersSize;
         }
 
         public IList Binders
@@ -50,9 +70,24 @@ namespace Org.BouncyCastle.Tls
             get { return m_binders; }
         }
 
+        public int BindersSize
+        {
+            get { return m_bindersSize; }
+        }
+
         public IList Identities
         {
             get { return m_identities; }
+        }
+
+        public int GetIndexOfIdentity(PskIdentity pskIdentity)
+        {
+            for (int i = 0, count = m_identities.Count; i < count; ++i)
+            {
+                if (pskIdentity.Equals(m_identities[i]))
+                    return i;
+            }
+            return -1;
         }
 
         /// <exception cref="IOException"/>
@@ -168,8 +203,8 @@ namespace Org.BouncyCastle.Tls
             }
 
             IList binders = Platform.CreateArrayList();
+            int totalLengthBinders = TlsUtilities.ReadUint16(input);
             {
-                int totalLengthBinders = TlsUtilities.ReadUint16(input);
                 if (totalLengthBinders < 33)
                     throw new TlsFatalAlert(AlertDescription.decode_error);
 
@@ -177,13 +212,13 @@ namespace Org.BouncyCastle.Tls
                 MemoryStream buf = new MemoryStream(bindersData, false);
                 do
                 {
-                    byte[] binder = TlsUtilities.ReadOpaque8(input, 32);
+                    byte[] binder = TlsUtilities.ReadOpaque8(buf, 32);
                     binders.Add(binder);
                 }
                 while (buf.Position < buf.Length);
             }
 
-            return new OfferedPsks(identities, binders);
+            return new OfferedPsks(identities, binders, 2 + totalLengthBinders);
         }
     }
 }

@@ -6,6 +6,16 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1Object
 		: Asn1Encodable
     {
+        public override void EncodeTo(Stream output)
+        {
+            Asn1OutputStream.Create(output).WriteObject(this);
+        }
+
+        public override void EncodeTo(Stream output, string encoding)
+        {
+            Asn1OutputStream.Create(output, encoding).WriteObject(this);
+        }
+
         /// <summary>Create a base ASN.1 object from a byte array.</summary>
         /// <param name="data">The byte array to parse.</param>
         /// <returns>The base ASN.1 object represented by the byte array.</returns>
@@ -52,9 +62,11 @@ namespace Org.BouncyCastle.Asn1
             return this;
         }
 
-		internal abstract void Encode(DerOutputStream derOut);
+        internal abstract int EncodedLength(bool withID);
 
-		protected abstract bool Asn1Equals(Asn1Object asn1Object);
+        internal abstract void Encode(Asn1OutputStream asn1Out, bool withID);
+
+        protected abstract bool Asn1Equals(Asn1Object asn1Object);
 		protected abstract int Asn1GetHashCode();
 
 		internal bool CallAsn1Equals(Asn1Object obj)

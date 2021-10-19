@@ -597,12 +597,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             n = new X509Name("C=AU, O=The Legion of the Bouncy Castle, L=Melbourne + OU=Ascot Vale");
 
-            MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = new Asn1OutputStream(bOut);
-
-            aOut.WriteObject(n);
-
-            byte[] enc2 = bOut.ToArray();
+            byte[] enc2 = n.GetEncoded();
 
             if (!Arrays.AreEqual(enc, enc2))
             {

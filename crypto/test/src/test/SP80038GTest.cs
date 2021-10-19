@@ -272,6 +272,9 @@ namespace Org.BouncyCastle.Tests
 
     private void testDisable()
     {
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET) || NET_1_1
+            // Can't SetEnvironmentVariable !
+#else
         Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable", "true");
         try
         {
@@ -307,6 +310,7 @@ namespace Org.BouncyCastle.Tests
 
         testFF3_1();
         Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable_ff1", "false");
+#endif
     }
 
     private void testFF3_1_255()

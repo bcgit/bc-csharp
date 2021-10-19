@@ -559,38 +559,47 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Allows enumeration of any signatures associated with the passed in id.</summary>
         /// <param name="id">The ID to be matched.</param>
         /// <returns>An <c>IEnumerable</c> of <c>PgpSignature</c> objects.</returns>
-        public IEnumerable GetSignaturesForId(
-            string id)
+        public IEnumerable GetSignaturesForId(string id)
         {
             if (id == null)
                 throw new ArgumentNullException("id");
+
+            IList signatures = Platform.CreateArrayList();
+            bool userIdFound = false;
 
             for (int i = 0; i != ids.Count; i++)
             {
                 if (id.Equals(ids[i]))
                 {
-                    return new EnumerableProxy((IList)idSigs[i]);
+                    userIdFound = true;
+                    CollectionUtilities.AddRange(signatures, (IList)idSigs[i]);
                 }
             }
 
-            return null;
+            return userIdFound ? signatures : null;
         }
 
         /// <summary>Allows enumeration of signatures associated with the passed in user attributes.</summary>
         /// <param name="userAttributes">The vector of user attributes to be matched.</param>
         /// <returns>An <c>IEnumerable</c> of <c>PgpSignature</c> objects.</returns>
-        public IEnumerable GetSignaturesForUserAttribute(
-            PgpUserAttributeSubpacketVector userAttributes)
+        public IEnumerable GetSignaturesForUserAttribute(PgpUserAttributeSubpacketVector userAttributes)
         {
+            if (userAttributes == null)
+                throw new ArgumentNullException("userAttributes");
+
+            IList signatures = Platform.CreateArrayList();
+            bool attributeFound = false;
+
             for (int i = 0; i != ids.Count; i++)
             {
                 if (userAttributes.Equals(ids[i]))
                 {
-                    return new EnumerableProxy((IList) idSigs[i]);
+                    attributeFound = true;
+                    CollectionUtilities.AddRange(signatures, (IList)idSigs[i]);
                 }
             }
 
-            return null;
+            return attributeFound ? signatures : null;
         }
 
         /// <summary>Allows enumeration of signatures of the passed in type that are on this key.</summary>

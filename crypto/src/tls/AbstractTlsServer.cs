@@ -250,6 +250,11 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        public virtual TlsPskExternal GetExternalPsk(IList identities)
+        {
+            return null;
+        }
+
         public virtual void NotifySession(TlsSession session)
         {
         }

@@ -73,9 +73,9 @@ namespace Org.BouncyCastle.Cmp.Tests
             rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
             AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
-            doNotBeforeNotAfterTest(rsaKeyPair, new DateTime(1, 1, 1, 0, 0, 1), new DateTime(1, 1, 1, 0, 0, 10));
-            doNotBeforeNotAfterTest(rsaKeyPair, DateTime.MinValue, new DateTime(1, 1, 1, 0, 0, 10));
-            doNotBeforeNotAfterTest(rsaKeyPair, new DateTime(1, 1, 1, 0, 0, 1), DateTime.MinValue);
+            doNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), MakeUtcDateTime(1, 1, 1, 0, 0, 10));
+            doNotBeforeNotAfterTest(rsaKeyPair, DateTime.MinValue, MakeUtcDateTime(1, 1, 1, 0, 0, 10));
+            doNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), DateTime.MinValue);
         }
 
         private void doNotBeforeNotAfterTest(AsymmetricCipherKeyPair kp, DateTime notBefore, DateTime notAfter)

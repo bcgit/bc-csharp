@@ -1,3 +1,7 @@
+using System;
+
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Asn1
 {
 	public class BerSequence
@@ -39,24 +43,20 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-        internal override void Encode(DerOutputStream derOut)
+        internal override int EncodedLength(bool withID)
+        {
+            throw Platform.CreateNotImplementedException("BerSequence.EncodedLength");
+        }
+
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
-			if (derOut is Asn1OutputStream || derOut is BerOutputStream)
-			{
-				derOut.WriteByte(Asn1Tags.Sequence | Asn1Tags.Constructed);
-				derOut.WriteByte(0x80);
-
-				foreach (Asn1Encodable o in this)
-				{
-					derOut.WriteObject(o);
-				}
-
-				derOut.WriteByte(0x00);
-				derOut.WriteByte(0x00);
+			if (asn1Out.IsBer)
+            {
+                asn1Out.WriteEncodingIL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, elements);
 			}
 			else
 			{
-				base.Encode(derOut);
+				base.Encode(asn1Out, withID);
 			}
 		}
 	}

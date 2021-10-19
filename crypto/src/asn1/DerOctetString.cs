@@ -18,23 +18,28 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public DerOctetString(Asn1Encodable obj)
-            : base(obj.GetEncoded(Asn1Encodable.Der))
+            : base(obj.GetEncoded(Der))
         {
         }
 
-        internal override void Encode(
-            DerOutputStream derOut)
+        internal override int EncodedLength(bool withID)
         {
-            derOut.WriteEncoded(Asn1Tags.OctetString, str);
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, str.Length);
         }
 
-		internal static void Encode(
-			DerOutputStream	derOut,
-			byte[]			bytes,
-			int				offset,
-			int				length)
+        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        {
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, str);
+        }
+
+		internal static void Encode(Asn1OutputStream asn1Out, bool withID, byte[] buf, int off, int len)
 		{
-			derOut.WriteEncoded(Asn1Tags.OctetString, bytes, offset, length);
+			asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, buf, off, len);
 		}
-	}
+
+        internal static int EncodedLength(bool withID, int contentsLength)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contentsLength);
+        }
+    }
 }

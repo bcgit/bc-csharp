@@ -5,6 +5,7 @@ using System.IO;
 using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -121,7 +122,9 @@ namespace Org.BouncyCastle.Bcpg
             }
             else
             {
-                throw new Exception("unsupported version: " + version);
+                Streams.Drain(bcpgIn);
+
+                throw new UnsupportedPacketVersionException("unsupported version: " + version);
             }
 
 			fingerprint = new byte[2];

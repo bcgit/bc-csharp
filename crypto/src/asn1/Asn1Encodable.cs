@@ -8,45 +8,36 @@ namespace Org.BouncyCastle.Asn1
 		public const string Der = "DER";
 		public const string Ber = "BER";
 
+        public virtual void EncodeTo(Stream output)
+        {
+            ToAsn1Object().EncodeTo(output);
+        }
+
+        public virtual void EncodeTo(Stream output, string encoding)
+        {
+            ToAsn1Object().EncodeTo(output, encoding);
+        }
+
 		public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = new Asn1OutputStream(bOut);
-
-			aOut.WriteObject(this);
-
-			return bOut.ToArray();
+            EncodeTo(bOut);
+            return bOut.ToArray();
         }
 
-		public byte[] GetEncoded(
-			string encoding)
-		{
-			if (encoding.Equals(Der))
-			{
-				MemoryStream bOut = new MemoryStream();
-				DerOutputStream dOut = new DerOutputStream(bOut);
+        public byte[] GetEncoded(string encoding)
+        {
+            MemoryStream bOut = new MemoryStream();
+            EncodeTo(bOut, encoding);
+            return bOut.ToArray();
+        }
 
-				if (this is Asn1Set)
-				{
-					dOut.WriteObject(new DerSet((this as Asn1Set).elements));
-				}
-				else
-				{
-					dOut.WriteObject(this);
-				}
-
-				return bOut.ToArray();
-			}
-
-			return GetEncoded();
-		}
-
-		/**
+        /**
 		* Return the DER encoding of the object, null if the DER encoding can not be made.
 		*
 		* @return a DER byte array, null otherwise.
 		*/
-		public byte[] GetDerEncoded()
+        public byte[] GetDerEncoded()
 		{
 			try
 			{

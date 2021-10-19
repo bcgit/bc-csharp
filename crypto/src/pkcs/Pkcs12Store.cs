@@ -304,7 +304,7 @@ namespace Org.BouncyCastle.Pkcs
 
                         foreach (Asn1Sequence subSeq in seq)
                         {
-                            SafeBag b = new SafeBag(subSeq);
+                            SafeBag b = SafeBag.GetInstance(subSeq);
 
                             if (b.BagID.Equals(PkcsObjectIdentifiers.CertBag))
                                 {
@@ -334,7 +334,7 @@ namespace Org.BouncyCastle.Pkcs
 
             foreach (SafeBag b in certBags)
             {
-                CertBag certBag = new CertBag((Asn1Sequence)b.BagValue);
+                CertBag certBag = CertBag.GetInstance(b.BagValue);
                 byte[] octets = ((Asn1OctetString)certBag.CertValue).GetOctets();
                 X509Certificate cert = new X509CertificateParser().ReadCertificate(octets);
 
@@ -1030,17 +1030,7 @@ namespace Org.BouncyCastle.Pkcs
             //
             Pfx pfx = new Pfx(mainInfo, macData);
 
-            DerOutputStream derOut;
-            if (useDerEncoding)
-            {
-                derOut = new DerOutputStream(stream);
-            }
-            else
-            {
-                derOut = new BerOutputStream(stream);
-            }
-
-            derOut.WriteObject(pfx);
+            pfx.EncodeTo(stream, useDerEncoding ? Asn1Encodable.Der : Asn1Encodable.Ber);
         }
 
         internal static byte[] CalculatePbeMac(

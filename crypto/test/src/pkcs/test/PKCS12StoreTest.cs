@@ -1343,23 +1343,18 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			//
 			// check algorithm types.
 			//
-			Asn1InputStream aIn = new Asn1InputStream(bOut.ToArray());
-
-			Pfx pfx = new Pfx((Asn1Sequence)aIn.ReadObject());
+			Pfx pfx = Pfx.GetInstance(bOut.ToArray());
 
 			ContentInfo cInfo = pfx.AuthSafe;
 
 			Asn1OctetString auth = (Asn1OctetString)cInfo.Content;
 
-			aIn = new Asn1InputStream(auth.GetOctets());
-			Asn1Sequence s1 = (Asn1Sequence)aIn.ReadObject();
+            Asn1Sequence s1 = Asn1Sequence.GetInstance(auth.GetOctets());
 
 			ContentInfo c1 = ContentInfo.GetInstance(s1[0]);
 			ContentInfo c2 = ContentInfo.GetInstance(s1[1]);
 
-			aIn = new Asn1InputStream(((Asn1OctetString)c1.Content).GetOctets());
-
-			SafeBag sb = new SafeBag((Asn1Sequence)(((Asn1Sequence)aIn.ReadObject())[0]));
+            SafeBag sb = SafeBag.GetInstance(Asn1Sequence.GetInstance(((Asn1OctetString)c1.Content).GetOctets())[0]);
 
 			EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfo.GetInstance(sb.BagValue);
 

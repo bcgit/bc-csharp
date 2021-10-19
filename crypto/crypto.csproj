@@ -2589,6 +2589,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\bcpg\UnsupportedPacketVersionException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\bcpg\UserAttributePacket.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -14589,11 +14594,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "test\src\crypto\tls\test\MockPskTls13Client.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "test\src\crypto\tls\test\MockPskTlsClient.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -14630,11 +14630,6 @@
                 />
                 <File
                     RelPath = "test\src\crypto\tls\test\PipedStream.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "test\src\crypto\tls\test\PskTls13ClientTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -14980,6 +14975,11 @@
                 />
                 <File
                     RelPath = "test\src\openpgp\test\PGPRSATest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\openpgp\test\PgpSignatureInvalidVersionIgnoredTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -15429,6 +15429,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\tls\test\MockPskTls13Client.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\tls\test\MockPskTls13Server.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\tls\test\MockPskTlsClient.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -15474,12 +15484,27 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "test\src\tls\test\PskTls13ClientTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\tls\test\PskTls13ServerTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "test\src\tls\test\PskTlsClientTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
                     RelPath = "test\src\tls\test\PskTlsServerTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\tls\test\Tls13PskProtocolTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

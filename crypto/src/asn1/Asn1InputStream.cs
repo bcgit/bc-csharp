@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1
     {
         private readonly int limit;
 
-        private readonly byte[][] tmpBuffers;
+        internal readonly byte[][] tmpBuffers;
 
         internal static int FindLimit(Stream input)
         {
@@ -37,9 +37,19 @@ namespace Org.BouncyCastle.Asn1
             return int.MaxValue;
         }
 
-        public Asn1InputStream(
-            Stream inputStream)
-            : this(inputStream, FindLimit(inputStream))
+        public Asn1InputStream(Stream input)
+            : this(input, FindLimit(input))
+        {
+        }
+
+        /**
+         * Create an ASN1InputStream based on the input byte array. The length of DER objects in
+         * the stream is automatically limited to the length of the input array.
+         *
+         * @param input array containing ASN.1 encoded data.
+         */
+        public Asn1InputStream(byte[] input)
+            : this(new MemoryStream(input, false), input.Length)
         {
         }
 
@@ -49,25 +59,16 @@ namespace Org.BouncyCastle.Asn1
          * @param input stream containing ASN.1 encoded data.
          * @param limit maximum size of a DER encoded object.
          */
-        public Asn1InputStream(
-            Stream	inputStream,
-            int		limit)
-            : base(inputStream)
+        public Asn1InputStream(Stream input, int limit)
+            : this(input, limit, new byte[16][])
         {
-            this.limit = limit;
-            this.tmpBuffers = new byte[16][];
         }
 
-        /**
-         * Create an ASN1InputStream based on the input byte array. The length of DER objects in
-         * the stream is automatically limited to the length of the input array.
-         *
-         * @param input array containing ASN.1 encoded data.
-         */
-        public Asn1InputStream(
-            byte[] input)
-            : this(new MemoryStream(input, false), input.Length)
+        internal Asn1InputStream(Stream input, int limit, byte[][] tmpBuffers)
+            : base(input)
         {
+            this.limit = limit;
+            this.tmpBuffers = tmpBuffers;
         }
 
         /**
@@ -80,57 +81,42 @@ namespace Org.BouncyCastle.Asn1
         {
             bool isConstructed = (tag & Asn1Tags.Constructed) != 0;
 
-            DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(this.s, length, limit);
+            DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(this, length, limit);
 
-            if ((tag & Asn1Tags.Application) != 0)
+            int tagClass = tag & Asn1Tags.Private;
+            if (0 != tagClass)
             {
-                return new DerApplicationSpecific(isConstructed, tagNo, defIn.ToArray());
+                if ((tag & Asn1Tags.Application) != 0)
+                    return new DerApplicationSpecific(isConstructed, tagNo, defIn.ToArray());
+
+                return new Asn1StreamParser(defIn, defIn.Remaining, tmpBuffers).ReadTaggedObject(isConstructed, tagNo);
             }
 
-            if ((tag & Asn1Tags.Tagged) != 0)
+            if (!isConstructed)
+                return CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
+
+            switch (tagNo)
             {
-                return new Asn1StreamParser(defIn).ReadTaggedObject(isConstructed, tagNo);
-            }
-
-            if (isConstructed)
+            case Asn1Tags.BitString:
             {
-                // TODO There are other tags that may be constructed (e.g. BitString)
-                switch (tagNo)
-                {
-                    case Asn1Tags.OctetString:
-                    {
-                        //
-                        // yes, people actually do this...
-                        //
-                        Asn1EncodableVector v = ReadVector(defIn);
-                        Asn1OctetString[] strings = new Asn1OctetString[v.Count];
-
-                        for (int i = 0; i != strings.Length; i++)
-                        {
-                            Asn1Encodable asn1Obj = v[i];
-                            if (!(asn1Obj is Asn1OctetString))
-                            {
-                                throw new Asn1Exception("unknown object encountered in constructed OCTET STRING: "
-                                    + Platform.GetTypeName(asn1Obj));
-                            }
-
-                            strings[i] = (Asn1OctetString)asn1Obj;
-                        }
-
-                        return new BerOctetString(strings);
-                    }
-                    case Asn1Tags.Sequence:
-                        return CreateDerSequence(defIn);
-                    case Asn1Tags.Set:
-                        return CreateDerSet(defIn);
-                    case Asn1Tags.External:
-                        return new DerExternal(ReadVector(defIn));                
-                    default:
-                        throw new IOException("unknown tag " + tagNo + " encountered");
-                }
+                return BuildConstructedBitString(ReadVector(defIn));
             }
-
-            return CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
+            case Asn1Tags.OctetString:
+            {
+                //
+                // yes, people actually do this...
+                //
+                return BuildConstructedOctetString(ReadVector(defIn));
+            }
+            case Asn1Tags.Sequence:
+                return CreateDerSequence(defIn);
+            case Asn1Tags.Set:
+                return CreateDerSet(defIn);
+            case Asn1Tags.External:
+                return new DerExternal(ReadVector(defIn));                
+            default:
+                throw new IOException("unknown tag " + tagNo + " encountered");
+            }
         }
 
         internal virtual Asn1EncodableVector ReadVector()
@@ -148,12 +134,13 @@ namespace Org.BouncyCastle.Asn1
             return v;
         }
 
-        internal virtual Asn1EncodableVector ReadVector(DefiniteLengthInputStream dIn)
+        internal virtual Asn1EncodableVector ReadVector(DefiniteLengthInputStream defIn)
         {
-            if (dIn.Remaining < 1)
+            int remaining = defIn.Remaining;
+            if (remaining < 1)
                 return new Asn1EncodableVector(0);
 
-            return new Asn1InputStream(dIn).ReadVector();
+            return new Asn1InputStream(defIn, remaining, tmpBuffers).ReadVector();
         }
 
         internal virtual DerSequence CreateDerSequence(
@@ -179,53 +166,12 @@ namespace Org.BouncyCastle.Asn1
                 return null;
             }
 
-            //
-            // calculate tag number
-            //
-            int tagNo = ReadTagNumber(this.s, tag);
+            int tagNo = ReadTagNumber(this, tag);
+            int length = ReadLength(this, limit, false);
 
-            bool isConstructed = (tag & Asn1Tags.Constructed) != 0;
-
-            //
-            // calculate length
-            //
-            int length = ReadLength(this.s, limit, false);
-
-            if (length < 0) // indefinite-length method
+            if (length >= 0)
             {
-                if (!isConstructed)
-                    throw new IOException("indefinite-length primitive encoding encountered");
-
-                IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(this.s, limit);
-                Asn1StreamParser sp = new Asn1StreamParser(indIn, limit);
-
-                if ((tag & Asn1Tags.Application) != 0)
-                {
-                    return new BerApplicationSpecificParser(tagNo, sp).ToAsn1Object();
-                }
-
-                if ((tag & Asn1Tags.Tagged) != 0)
-                {
-                    return new BerTaggedObjectParser(true, tagNo, sp).ToAsn1Object();
-                }
-
-                // TODO There are other tags that may be constructed (e.g. BitString)
-                switch (tagNo)
-                {
-                    case Asn1Tags.OctetString:
-                        return new BerOctetStringParser(sp).ToAsn1Object();
-                    case Asn1Tags.Sequence:
-                        return new BerSequenceParser(sp).ToAsn1Object();
-                    case Asn1Tags.Set:
-                        return new BerSetParser(sp).ToAsn1Object();
-                    case Asn1Tags.External:
-                        return new DerExternalParser(sp).ToAsn1Object();
-                    default:
-                        throw new IOException("unknown BER object encountered");
-                }
-            }
-            else
-            {
+                // definite-length
                 try
                 {
                     return BuildObject(tag, tagNo, length);
@@ -235,6 +181,74 @@ namespace Org.BouncyCastle.Asn1
                     throw new Asn1Exception("corrupted stream detected", e);
                 }
             }
+
+            // indefinite-length
+
+            if (0 == (tag & Asn1Tags.Constructed))
+                throw new IOException("indefinite-length primitive encoding encountered");
+
+            IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(this, limit);
+            Asn1StreamParser sp = new Asn1StreamParser(indIn, limit, tmpBuffers);
+
+            int tagClass = tag & Asn1Tags.Private;
+            if (0 != tagClass)
+            {
+                if ((tag & Asn1Tags.Application) != 0)
+                    return new BerApplicationSpecificParser(tagNo, sp).ToAsn1Object();
+
+                return new BerTaggedObjectParser(true, tagNo, sp).ToAsn1Object();
+            }
+
+            // TODO There are other tags that may be constructed (e.g. BitString)
+            switch (tagNo)
+            {
+            case Asn1Tags.OctetString:
+                return BerOctetStringParser.Parse(sp);
+            case Asn1Tags.Sequence:
+                return BerSequenceParser.Parse(sp);
+            case Asn1Tags.Set:
+                return BerSetParser.Parse(sp);
+            case Asn1Tags.External:
+                return DerExternalParser.Parse(sp);
+            default:
+                throw new IOException("unknown BER object encountered");
+            }
+        }
+
+        internal virtual DerBitString BuildConstructedBitString(Asn1EncodableVector contentsElements)
+        {
+            DerBitString[] bitStrings = new DerBitString[contentsElements.Count];
+
+            for (int i = 0; i != bitStrings.Length; i++)
+            {
+                DerBitString bitString = contentsElements[i] as DerBitString;
+                if (null == bitString)
+                    throw new Asn1Exception("unknown object encountered in constructed BIT STRING: "
+                        + Platform.GetTypeName(contentsElements[i]));
+
+                bitStrings[i] = bitString;
+            }
+
+            // TODO Probably ought to be DLBitString
+            return new BerBitString(bitStrings);
+        }
+
+        internal virtual Asn1OctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
+        {
+            Asn1OctetString[] octetStrings = new Asn1OctetString[contentsElements.Count];
+
+            for (int i = 0; i != octetStrings.Length; i++)
+            {
+                Asn1OctetString octetString = contentsElements[i] as Asn1OctetString;
+                if (null == octetString)
+                    throw new Asn1Exception("unknown object encountered in constructed OCTET STRING: "
+                        + Platform.GetTypeName(contentsElements[i]));
+
+                octetStrings[i] = octetString;
+            }
+
+            // TODO Probably ought to be DerOctetString (no DLOctetString available)
+            return new BerOctetString(octetStrings);
         }
 
         internal virtual int Limit
@@ -242,9 +256,7 @@ namespace Org.BouncyCastle.Asn1
             get { return limit; }
         }
 
-        internal static int ReadTagNumber(
-            Stream	s,
-            int		tag)
+        internal static int ReadTagNumber(Stream s, int tag)
         {
             int tagNo = tag & 0x1f;
 
@@ -256,23 +268,32 @@ namespace Org.BouncyCastle.Asn1
                 tagNo = 0;
 
                 int b = s.ReadByte();
+                if (b < 31)
+                {
+                    if (b < 0)
+                        throw new EndOfStreamException("EOF found inside tag value.");
+
+                    throw new IOException("corrupted stream - high tag number < 31 found");
+                }
 
                 // X.690-0207 8.1.2.4.2
                 // "c) bits 7 to 1 of the first subsequent octet shall not all be zero."
-                if ((b & 0x7f) == 0) // Note: -1 will pass
+                if ((b & 0x7f) == 0)
                     throw new IOException("corrupted stream - invalid high tag number found");
 
-                while ((b >= 0) && ((b & 0x80) != 0))
+                while ((b & 0x80) != 0)
                 {
-                    tagNo |= (b & 0x7f);
+                    if (((uint)tagNo >> 24) != 0U)
+                        throw new IOException("Tag number more than 31 bits");
+
+                    tagNo |= b & 0x7f;
                     tagNo <<= 7;
                     b = s.ReadByte();
+                    if (b < 0)
+                        throw new EndOfStreamException("EOF found inside tag value.");
                 }
 
-                if (b < 0)
-                    throw new EndOfStreamException("EOF found inside tag value.");
-
-                tagNo |= (b & 0x7f);
+                tagNo |= b & 0x7f;
             }
 
             return tagNo;
@@ -281,37 +302,43 @@ namespace Org.BouncyCastle.Asn1
         internal static int ReadLength(Stream s, int limit, bool isParsing)
         {
             int length = s.ReadByte();
-            if (length < 0)
-                throw new EndOfStreamException("EOF found when length expected");
-
-            if (length == 0x80)
-                return -1;      // indefinite-length encoding
-
-            if (length > 127)
+            if (0U == ((uint)length >> 7))
             {
-                int size = length & 0x7f;
-
-                // Note: The invalid long form "0xff" (see X.690 8.1.3.5c) will be caught here
-                if (size > 4)
-                    throw new IOException("DER length more than 4 bytes: " + size);
-
-                length = 0;
-                for (int i = 0; i < size; i++)
-                {
-                    int next = s.ReadByte();
-
-                    if (next < 0)
-                        throw new EndOfStreamException("EOF found reading length");
-
-                    length = (length << 8) + next;
-                }
-
-                if (length < 0)
-                    throw new IOException("corrupted stream - negative length found");
-
-                if (length >= limit && !isParsing)   // after all we must have read at least 1 byte
-                    throw new IOException("corrupted stream - out of bounds length found: " + length + " >= " + limit);
+                // definite-length short form 
+                return length;
             }
+            if (0x80 == length)
+            {
+                // indefinite-length
+                return -1;
+            }
+            if (length < 0)
+            {
+                throw new EndOfStreamException("EOF found when length expected");
+            }
+            if (0xFF == length)
+            {
+                throw new IOException("invalid long form definite-length 0xFF");
+            }
+
+            int octetsCount = length & 0x7F, octetsPos = 0;
+
+            length = 0;
+            do
+            {
+                int octet = s.ReadByte();
+                if (octet < 0)
+                    throw new EndOfStreamException("EOF found reading length");
+
+                if (((uint)length >> 23) != 0U)
+                    throw new IOException("long form definite-length more than 31 bits");
+
+                length = (length << 8) + octet;
+            }
+            while (++octetsPos < octetsCount);
+
+            if (length >= limit && !isParsing)   // after all we must have read at least 1 byte
+                throw new IOException("corrupted stream - out of bounds length found: " + length + " >= " + limit);
 
             return length;
         }
@@ -401,7 +428,7 @@ namespace Org.BouncyCastle.Asn1
             switch (tagNo)
             {
                 case Asn1Tags.BitString:
-                    return DerBitString.FromAsn1Octets(bytes);
+                    return DerBitString.CreatePrimitive(bytes);
                 case Asn1Tags.GeneralizedTime:
                     return new DerGeneralizedTime(bytes);
                 case Asn1Tags.GeneralString:

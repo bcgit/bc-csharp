@@ -113,6 +113,20 @@ namespace Org.BouncyCastle.Asn1.Tests
 			+ "AgFkAAA=");
 
 		public override void PerformTest()
+        {
+            byte[] pfxEncoding1 = ImplTest(pkcs12);
+            byte[] pfxEncoding2 = ImplTest(pfxEncoding1);
+
+            //
+            // comparison test
+            //
+            if (!Arrays.AreEqual(pfxEncoding1, pfxEncoding2))
+            {
+                Fail("failed comparison test");
+            }
+        }
+
+        private byte[] ImplTest(byte[] pkcs12)
 		{
 			Pfx                 bag = Pfx.GetInstance(pkcs12);
 			ContentInfo         info = bag.AuthSafe;
@@ -178,14 +192,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			bag = new Pfx(info, mData);
 
-			//
-			// comparison test
-			//
-            byte[] pfxEncoding = bag.GetEncoded();
-			if (!Arrays.AreEqual(pfxEncoding, pkcs12))
-			{
-				Fail("Failed comparison test");
-			}
+            return bag.GetEncoded();
 		}
 
 		public override string Name

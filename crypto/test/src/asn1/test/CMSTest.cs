@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 		//
 		// compressed data object
 		//
-		private static readonly byte[] compData = Base64.Decode(
+		private static readonly byte[] OrigCompData = Base64.Decode(
 			"MIAGCyqGSIb3DQEJEAEJoIAwgAIBADANBgsqhkiG9w0BCRADCDCABgkqhkiG9w0BBwGggCSABIIC"
 			+ "Hnic7ZRdb9owFIbvK/k/5PqVYPFXGK12YYyboVFASSp1vQtZGiLRACZE49/XHoUW7S/0tXP8Efux"
 			+ "fU5ivWnasml72XFb3gb5druui7ytN803M570nii7C5r8tfwR281hy/p/KSM3+jzH5s3+pbQ90xSb"
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 		//
 		// signed data
 		//
-		private static readonly byte[] signedData = Base64.Decode(
+		private static readonly byte[] OrigSignedData = Base64.Decode(
 			  "MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAaCA"
 			+ "JIAEDEhlbGxvIFdvcmxkIQAAAAAAAKCCBGIwggINMIIBdqADAgECAgEBMA0GCSqG"
 			+ "SIb3DQEBBAUAMCUxFjAUBgNVBAoTDUJvdW5jeSBDYXN0bGUxCzAJBgNVBAYTAkFV"
@@ -114,14 +114,10 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			try
 			{
-				ContentInfo info = ContentInfo.GetInstance(
-					Asn1Object.FromByteArray(compData));
-				CompressedData data = CompressedData.GetInstance(info.Content);
+                byte[] compData1 = ImplCompressionTest(OrigCompData);
+                byte[] compData2 = ImplCompressionTest(compData1);
 
-				data = new CompressedData(data.CompressionAlgorithmIdentifier, data.EncapContentInfo);
-				info = new ContentInfo(CmsObjectIdentifiers.CompressedData, data);
-
-				if (!Arrays.AreEqual(info.GetEncoded(), compData))
+				if (!Arrays.AreEqual(compData1, compData2))
 				{
 					return new SimpleTestResult(false, Name + ": CMS compression failed to re-encode");
 				}
@@ -134,7 +130,16 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		private ITestResult EnvelopedTest()
+        private byte[] ImplCompressionTest(byte[] compData)
+        {
+            ContentInfo info = ContentInfo.GetInstance(Asn1Object.FromByteArray(compData));
+            CompressedData data = CompressedData.GetInstance(info.Content);
+            data = new CompressedData(data.CompressionAlgorithmIdentifier, data.EncapContentInfo);
+            info = new ContentInfo(CmsObjectIdentifiers.CompressedData, data);
+            return info.GetEncoded();
+        }
+
+        private ITestResult EnvelopedTest()
 		{
 			try
 			{
@@ -243,14 +248,10 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			try
 			{
-				ContentInfo info = ContentInfo.GetInstance(
-					Asn1Object.FromByteArray(signedData));
-				SignedData sData = SignedData.GetInstance(info.Content);
+                byte[] signedData1 = ImplSignedTest(OrigSignedData);
+                byte[] signedData2 = ImplSignedTest(signedData1);
 
-				sData = new SignedData(sData.DigestAlgorithms, sData.EncapContentInfo, sData.Certificates, sData.CRLs, sData.SignerInfos);
-				info = new ContentInfo(CmsObjectIdentifiers.SignedData, sData);
-
-				if (!Arrays.AreEqual(info.GetEncoded(), signedData))
+				if (!Arrays.AreEqual(signedData1, signedData2))
 				{
 					return new SimpleTestResult(false, Name + ": CMS signed failed to re-encode");
 				}
@@ -263,7 +264,16 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		public ITestResult Perform()
+        private byte[] ImplSignedTest(byte[] signedData)
+        {
+            ContentInfo info = ContentInfo.GetInstance(Asn1Object.FromByteArray(signedData));
+            SignedData sData = SignedData.GetInstance(info.Content);
+            sData = new SignedData(sData.DigestAlgorithms, sData.EncapContentInfo, sData.Certificates, sData.CRLs, sData.SignerInfos);
+            info = new ContentInfo(CmsObjectIdentifiers.SignedData, sData);
+            return info.GetEncoded();
+        }
+
+        public ITestResult Perform()
 		{
 			ITestResult res = CompressionTest();
 

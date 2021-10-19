@@ -31,6 +31,8 @@
 				<a href="#mozTocId3413">Notes:</a>
 		<ol>
             <li>
+                <a href="#mozTocId85325">Release 1.9.0</a>
+            <li>
                 <a href="#mozTocId85324">Release 1.8.10</a>
             <li>
                 <a href="#mozTocId85323">Release 1.8.9</a>
@@ -307,6 +309,32 @@ We state, where EC MQV has not otherwise been disabled or removed:
 		<br/>
 		<hr style="WIDTH: 100%; HEIGHT: 2px">
 		<h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
+
+        <h4><a class="mozTocH4" name="mozTocId85325"></a>Release 1.9.0, Sunday October 17, 2021</h4>
+
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>Key sizes are now checked strictly in TwofishEngine.</li>
+            <li>Fixed bzip2 compression of empty contents.</li>
+            <li>Handle CRL with no NextUpdate properly during CertPath validation.</li>
+            <li>Skip marker packets when reading various PGP data.</li>
+            <li>Ignore PGP signatures with invalid version.</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>A new TLS API (Org.BouncyCastle.Tls) now replaces the old one (Org.BouncyCastle.Crypto.Tls), which
+            should be considered obsolete. The new API includes support for TLS 1.3.</li>
+            <li>Added support for Format Preserving Encryption.</li>
+            <li>Added support for ParallelHash and TupleHash.</li>
+            <li>Added support for the ARIA cipher.</li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
 
         <h4><a class="mozTocH4" name="mozTocId85324"></a>Release 1.8.10, Tuesday February 16, 2021</h4>
 

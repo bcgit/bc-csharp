@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             };
 
 			MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream aOut = new Asn1OutputStream(bOut);
+            Asn1OutputStream aOut = Asn1OutputStream.Create(bOut);
 
             for (int i = 0; i != values.Length; i++)
             {

@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -8,6 +7,7 @@ namespace Org.BouncyCastle.Asn1
 	{
 		private readonly Asn1StreamParser _parser;
 
+        [Obsolete("Will be removed")]
 		public DerExternalParser(Asn1StreamParser parser)
 		{
 			this._parser = parser;
@@ -20,7 +20,12 @@ namespace Org.BouncyCastle.Asn1
 
 		public override Asn1Object ToAsn1Object()
 		{
-			return new DerExternal(_parser.ReadVector());
+            return Parse(_parser);
 		}
-	}
+
+        internal static DerExternal Parse(Asn1StreamParser sp)
+        {
+            return new DerExternal(sp.ReadVector());
+        }
+    }
 }

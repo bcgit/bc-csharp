@@ -23,6 +23,17 @@ namespace Org.BouncyCastle.Tls
 
         byte[] GetNewSessionID();
 
+        /// <summary>Return the <see cref="TlsPskExternal">external PSK</see> to select from the ClientHello.</summary>
+        /// <remarks>
+        /// WARNING: EXPERIMENTAL FEATURE, UNSTABLE API
+        /// Note that this will only be called when TLS 1.3 or higher is amongst the offered protocol versions, and one
+        /// or more PSKs are actually offered.
+        /// </remarks>
+        /// <param name="identities">an <see cref="IList"/> of <see cref="PskIdentity"/> instances.</param>
+        /// <returns>The <see cref="TlsPskExternal"/> corresponding to the selected identity, or null to not select
+        /// any.</returns>
+        TlsPskExternal GetExternalPsk(IList identities);
+
         void NotifySession(TlsSession session);
 
         /// <exception cref="IOException"/>

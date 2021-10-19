@@ -196,7 +196,12 @@ namespace Org.BouncyCastle.Bcpg
             else
             {
                 PartialInputStream pis = new PartialInputStream(this, partial, bodyLen);
-                objStream = new BcpgInputStream(pis);
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
+                Stream buf = pis;
+#else
+				Stream buf = new BufferedStream(pis);
+#endif
+                objStream = new BcpgInputStream(buf);
             }
 
             switch (tag)

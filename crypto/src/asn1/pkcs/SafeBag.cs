@@ -39,9 +39,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             this.bagAttributes = bagAttributes;
         }
 
-        [Obsolete("Use 'GetInstance' instead")]
-		public SafeBag(
-            Asn1Sequence seq)
+		private SafeBag(Asn1Sequence seq)
         {
             this.bagID = (DerObjectIdentifier)seq[0];
             this.bagValue = ((DerTaggedObject)seq[1]).GetObject();
