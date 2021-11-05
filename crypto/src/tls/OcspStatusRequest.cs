@@ -89,7 +89,9 @@ namespace Org.BouncyCastle.Tls
                     do
                     {
                         byte[] derEncoding = TlsUtilities.ReadOpaque16(buf, 1);
-                        ResponderID responderID = ResponderID.GetInstance(TlsUtilities.ReadDerObject(derEncoding));
+                        Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
+                        ResponderID responderID = ResponderID.GetInstance(asn1);
+                        TlsUtilities.RequireDerEncoding(responderID, derEncoding);
                         responderIDList.Add(responderID);
                     }
                     while (buf.Position < buf.Length);
@@ -101,7 +103,10 @@ namespace Org.BouncyCastle.Tls
                 byte[] derEncoding = TlsUtilities.ReadOpaque16(input);
                 if (derEncoding.Length > 0)
                 {
-                    requestExtensions = X509Extensions.GetInstance(TlsUtilities.ReadDerObject(derEncoding));
+                    Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
+                    X509Extensions extensions = X509Extensions.GetInstance(asn1);
+                    TlsUtilities.RequireDerEncoding(extensions, derEncoding);
+                    requestExtensions = extensions;
                 }
             }
 

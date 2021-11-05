@@ -137,8 +137,7 @@ namespace Org.BouncyCastle.Tls
                 RequireStatusRequestVersion(1, statusRequestVersion);
 
                 byte[] derEncoding = TlsUtilities.ReadOpaque24(input, 1);
-                Asn1Object derObject = TlsUtilities.ReadDerObject(derEncoding);
-                response = OcspResponse.GetInstance(derObject);
+                response = ParseOcspResponse(derEncoding);
                 break;
             }
             case CertificateStatusType.ocsp_multi:
@@ -162,9 +161,7 @@ namespace Org.BouncyCastle.Tls
                     else
                     {
                         byte[] derEncoding = TlsUtilities.ReadFully(length, buf);
-                        Asn1Object derObject = TlsUtilities.ReadDerObject(derEncoding);
-                        OcspResponse ocspResponse = OcspResponse.GetInstance(derObject);
-                        ocspResponseList.Add(ocspResponse);
+                        ocspResponseList.Add(ParseOcspResponse(derEncoding));
                     }
                 }
 
@@ -208,6 +205,15 @@ namespace Org.BouncyCastle.Tls
                     return false;
             }
             return true;
+        }
+
+        /// <exception cref="IOException"/>
+        private static OcspResponse ParseOcspResponse(byte[] derEncoding)
+        {
+            Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
+            OcspResponse ocspResponse = OcspResponse.GetInstance(asn1);
+            TlsUtilities.RequireDerEncoding(ocspResponse, derEncoding);
+            return ocspResponse;
         }
 
         /// <exception cref="IOException"/>
