@@ -38,15 +38,16 @@ namespace Org.BouncyCastle.Utilities
         public static byte[] AsUnsignedByteArray(int length, BigInteger n)
         {
             byte[] bytes = n.ToByteArrayUnsigned();
+            int bytesLength = bytes.Length;
 
-            if (bytes.Length > length)
-                throw new ArgumentException("standard length exceeded", "n");
-
-            if (bytes.Length == length)
+            if (bytesLength == length)
                 return bytes;
 
+            if (bytesLength > length)
+                throw new ArgumentException("standard length exceeded", "n");
+
             byte[] tmp = new byte[length];
-            Array.Copy(bytes, 0, tmp, tmp.Length - bytes.Length, bytes.Length);
+            Array.Copy(bytes, 0, tmp, length - bytesLength, bytesLength);
             return tmp;
         }
 
