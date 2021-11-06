@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Asn1
             if (_remaining >= limit)
                 throw new IOException("corrupted stream - out of bounds length found: " + _remaining + " >= " + limit);
 
-            if ((_remaining -= Streams.ReadFully(_in, buf)) != 0)
+            if ((_remaining -= Streams.ReadFully(_in, buf, 0, buf.Length)) != 0)
                 throw new EndOfStreamException("DEF length " + _originalLength + " object truncated by " + _remaining);
             SetParentEofDetect(true);
         }
@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Asn1
                 throw new IOException("corrupted stream - out of bounds length found: " + _remaining + " >= " + limit);
 
             byte[] bytes = new byte[_remaining];
-			if ((_remaining -= Streams.ReadFully(_in, bytes)) != 0)
+			if ((_remaining -= Streams.ReadFully(_in, bytes, 0, bytes.Length)) != 0)
 				throw new EndOfStreamException("DEF length " + _originalLength + " object truncated by " + _remaining);
 			SetParentEofDetect(true);
 			return bytes;
