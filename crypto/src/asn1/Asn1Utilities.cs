@@ -6,8 +6,7 @@ namespace Org.BouncyCastle.Asn1
     {
         public static string GetTagText(Asn1TaggedObject taggedObject)
         {
-            // TODO[asn1] Implement and use taggedObject.TagClass
-            return GetTagText(Asn1Tags.ContextSpecific, taggedObject.TagNo);
+            return GetTagText(taggedObject.TagClass, taggedObject.TagNo);
         }
 
         public static string GetTagText(int tagClass, int tagNo)

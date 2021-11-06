@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1
 			{
                 if (withID)
                 {
-                    asn1Out.WriteIdentifier(true, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo);
+                    asn1Out.WriteIdentifier(true, Asn1Tags.Constructed | TagClass, TagNo);
                 }
 
                 asn1Out.WriteByte(0x80);

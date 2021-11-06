@@ -57,15 +57,15 @@ namespace Org.BouncyCastle.Asn1
 
 			if (explicitly)
 			{
-				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo, bytes);
+				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | TagClass, TagNo, bytes);
 			}
 			else
 			{
                 if (withID)
                 {
                     // need to mark constructed types... (preserve Constructed tag)
-                    int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.ContextSpecific;
-                    asn1Out.WriteIdentifier(true, flags, tagNo);
+                    int flags = (bytes[0] & Asn1Tags.Constructed) | TagClass;
+                    asn1Out.WriteIdentifier(true, flags, TagNo);
                 }
 
                 asn1Out.Write(bytes, 1, bytes.Length - 1);

@@ -103,6 +103,11 @@ namespace Org.BouncyCastle.Asn1
 			return code;
         }
 
+        public int TagClass
+        {
+            get { return Asn1Tags.ContextSpecific; }
+        }
+
 		public int TagNo
         {
 			get { return tagNo; }
