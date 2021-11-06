@@ -434,7 +434,7 @@ namespace Org.BouncyCastle.Asn1
                 case Asn1Tags.GeneralString:
                     return new DerGeneralString(bytes);
                 case Asn1Tags.GraphicString:
-                    return new DerGraphicString(bytes);
+                    return DerGraphicString.CreatePrimitive(bytes);
                 case Asn1Tags.IA5String:
                     return new DerIA5String(bytes);
                 case Asn1Tags.Integer:
