@@ -179,6 +179,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\Asn1ObjectDescriptor.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ASN1OctetString.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

@@ -69,6 +69,7 @@
     <Compile Include="src\asn1\Asn1InputStream.cs" />
     <Compile Include="src\asn1\Asn1Null.cs" />
     <Compile Include="src\asn1\Asn1Object.cs" />
+    <Compile Include="src\asn1\Asn1ObjectDescriptor.cs" />
     <Compile Include="src\asn1\Asn1OctetString.cs" />
     <Compile Include="src\asn1\Asn1OutputStream.cs" />
     <Compile Include="src\asn1\Asn1ParsingException.cs" />
