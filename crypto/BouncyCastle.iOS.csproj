@@ -72,6 +72,7 @@
     <Compile Include="src\asn1\Asn1Set.cs" />
     <Compile Include="src\asn1\Asn1TaggedObject.cs" />
     <Compile Include="src\asn1\Asn1Tags.cs" />
+    <Compile Include="src\asn1\Asn1Utilities.cs" />
     <Compile Include="src\asn1\BERBitString.cs" />
     <Compile Include="src\asn1\BERGenerator.cs" />
     <Compile Include="src\asn1\BEROctetStringGenerator.cs" />

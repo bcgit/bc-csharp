@@ -244,6 +244,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\Asn1Utilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\BERApplicationSpecific.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
