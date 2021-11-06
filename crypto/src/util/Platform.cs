@@ -165,6 +165,11 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
+        internal static int GetHashCode(object obj)
+        {
+            return null == obj ? 0 : obj.GetHashCode();
+        }
+
         internal static string ToLowerInvariant(string s)
         {
 #if PORTABLE
