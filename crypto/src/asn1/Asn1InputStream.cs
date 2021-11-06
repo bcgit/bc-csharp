@@ -448,6 +448,8 @@ namespace Org.BouncyCastle.Asn1
                 }
                 case Asn1Tags.NumericString:
                     return new DerNumericString(bytes);
+                case Asn1Tags.ObjectDescriptor:
+                    return Asn1ObjectDescriptor.CreatePrimitive(bytes);
                 case Asn1Tags.OctetString:
                     return new DerOctetString(bytes);
                 case Asn1Tags.PrintableString:
