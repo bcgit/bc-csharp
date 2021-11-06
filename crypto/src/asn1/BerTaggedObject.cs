@@ -63,45 +63,42 @@ namespace Org.BouncyCastle.Asn1
 
                 asn1Out.WriteByte(0x80);
 
-				if (!IsEmpty())
+				if (!explicitly)
 				{
-					if (!explicitly)
+					IEnumerable eObj;
+					if (obj is Asn1OctetString)
 					{
-						IEnumerable eObj;
-						if (obj is Asn1OctetString)
+						if (obj is BerOctetString)
 						{
-							if (obj is BerOctetString)
-							{
-								eObj = (BerOctetString) obj;
-							}
-							else
-							{
-								Asn1OctetString octs = (Asn1OctetString)obj;
-								eObj = new BerOctetString(octs.GetOctets());
-							}
-						}
-						else if (obj is Asn1Sequence)
-						{
-							eObj = (Asn1Sequence) obj;
-						}
-						else if (obj is Asn1Set)
-						{
-							eObj = (Asn1Set) obj;
+							eObj = (BerOctetString) obj;
 						}
 						else
 						{
-							throw Platform.CreateNotImplementedException(Platform.GetTypeName(obj));
+							Asn1OctetString octs = (Asn1OctetString)obj;
+							eObj = new BerOctetString(octs.GetOctets());
 						}
-
-						foreach (Asn1Encodable o in eObj)
-						{
-							asn1Out.WritePrimitive(o.ToAsn1Object(), true);
-						}
+					}
+					else if (obj is Asn1Sequence)
+					{
+						eObj = (Asn1Sequence) obj;
+					}
+					else if (obj is Asn1Set)
+					{
+						eObj = (Asn1Set) obj;
 					}
 					else
 					{
-						asn1Out.WritePrimitive(obj.ToAsn1Object(), true);
+						throw Platform.CreateNotImplementedException(Platform.GetTypeName(obj));
 					}
+
+					foreach (Asn1Encodable o in eObj)
+					{
+						asn1Out.WritePrimitive(o.ToAsn1Object(), true);
+					}
+				}
+				else
+				{
+					asn1Out.WritePrimitive(obj.ToAsn1Object(), true);
 				}
 
 				asn1Out.WriteByte(0x00);

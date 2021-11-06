@@ -53,32 +53,22 @@ namespace Org.BouncyCastle.Asn1
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
-			if (!IsEmpty())
+			byte[] bytes = obj.GetDerEncoded();
+
+			if (explicitly)
 			{
-				byte[] bytes = obj.GetDerEncoded();
-
-				if (explicitly)
-				{
-					asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo, bytes);
-				}
-				else
-				{
-					//
-					// need to mark constructed types... (preserve Constructed tag)
-					//
-                    if (withID)
-                    {
-                        int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.ContextSpecific;
-                        asn1Out.WriteIdentifier(true, flags, tagNo);
-                    }
-
-                    asn1Out.Write(bytes, 1, bytes.Length - 1);
-				}
+				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo, bytes);
 			}
 			else
 			{
-				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.ContextSpecific, tagNo,
-                    Asn1OctetString.EmptyOctets);
+                if (withID)
+                {
+                    // need to mark constructed types... (preserve Constructed tag)
+                    int flags = (bytes[0] & Asn1Tags.Constructed) | Asn1Tags.ContextSpecific;
+                    asn1Out.WriteIdentifier(true, flags, tagNo);
+                }
+
+                asn1Out.Write(bytes, 1, bytes.Length - 1);
 			}
 		}
 	}

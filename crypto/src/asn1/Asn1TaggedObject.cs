@@ -22,10 +22,9 @@ namespace Org.BouncyCastle.Asn1
             return IsConstructed(tagged.IsExplicit(), tagged.GetObject());
         }
 
-        internal int            tagNo;
-//        internal bool           empty;
-        internal bool           explicitly = true;
-        internal Asn1Encodable  obj;
+        internal readonly int tagNo;
+        internal readonly bool explicitly;
+        internal readonly Asn1Encodable obj;
 
 		static public Asn1TaggedObject GetInstance(
             Asn1TaggedObject	obj,
@@ -54,13 +53,9 @@ namespace Org.BouncyCastle.Asn1
          * @param tagNo the tag number for this object.
          * @param obj the tagged object.
          */
-        protected Asn1TaggedObject(
-            int             tagNo,
-            Asn1Encodable   obj)
+        protected Asn1TaggedObject(int tagNo, Asn1Encodable obj)
+            : this(true, tagNo, obj)
         {
-            this.explicitly = true;
-            this.tagNo = tagNo;
-            this.obj = obj;
         }
 
 		/**
@@ -68,12 +63,12 @@ namespace Org.BouncyCastle.Asn1
          * @param tagNo the tag number for this object.
          * @param obj the tagged object.
          */
-        protected Asn1TaggedObject(
-            bool            explicitly,
-            int             tagNo,
-            Asn1Encodable   obj)
+        protected Asn1TaggedObject(bool explicitly, int tagNo, Asn1Encodable obj)
         {
-			// IAsn1Choice marker interface 'insists' on explicit tagging
+            if (null == obj)
+                throw new ArgumentNullException("obj");
+
+            // IAsn1Choice marker interface 'insists' on explicit tagging
             this.explicitly = explicitly || (obj is IAsn1Choice);
             this.tagNo = tagNo;
             this.obj = obj;
@@ -87,10 +82,9 @@ namespace Org.BouncyCastle.Asn1
 			if (other == null)
 				return false;
 
-			return this.tagNo == other.tagNo
-//				&& this.empty == other.empty
-				&& this.explicitly == other.explicitly   // TODO Should this be part of equality?
-				&& Platform.Equals(GetObject(), other.GetObject());
+            return this.tagNo == other.tagNo
+                && this.explicitly == other.explicitly   // TODO Should this be part of equality?
+                && this.GetObject().Equals(other.GetObject());
 		}
 
 		protected override int Asn1GetHashCode()
@@ -104,10 +98,7 @@ namespace Org.BouncyCastle.Asn1
 			// compare the encodings...
 //			code ^= explicitly.GetHashCode();
 
-			if (obj != null)
-            {
-                code ^= obj.GetHashCode();
-            }
+            code ^= obj.GetHashCode();
 
 			return code;
         }
@@ -131,9 +122,10 @@ namespace Org.BouncyCastle.Asn1
             return explicitly;
         }
 
+        [Obsolete("Will be removed. Replace with constant return value of 'false'")]
         public bool IsEmpty()
         {
-            return false; //empty;
+            return false;
         }
 
 		/**
@@ -145,12 +137,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public Asn1Object GetObject()
         {
-            if (obj != null)
-            {
-                return obj.ToAsn1Object();
-            }
-
-			return null;
+            return obj.ToAsn1Object();
         }
 
 		/**
@@ -164,12 +151,12 @@ namespace Org.BouncyCastle.Asn1
 		{
 			switch (tag)
 			{
-				case Asn1Tags.Set:
-					return Asn1Set.GetInstance(this, isExplicit).Parser;
-				case Asn1Tags.Sequence:
-					return Asn1Sequence.GetInstance(this, isExplicit).Parser;
-				case Asn1Tags.OctetString:
-					return Asn1OctetString.GetInstance(this, isExplicit).Parser;
+			case Asn1Tags.Set:
+				return Asn1Set.GetInstance(this, isExplicit).Parser;
+			case Asn1Tags.Sequence:
+				return Asn1Sequence.GetInstance(this, isExplicit).Parser;
+			case Asn1Tags.OctetString:
+				return Asn1OctetString.GetInstance(this, isExplicit).Parser;
 			}
 
 			if (isExplicit)

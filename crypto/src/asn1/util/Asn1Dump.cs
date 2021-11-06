@@ -110,16 +110,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
 
                 buf.Append(NewLine);
 
-                if (o.IsEmpty())
-                {
-                    buf.Append(tab);
-                    buf.Append("EMPTY");
-                    buf.Append(NewLine);
-                }
-                else
-                {
-                    AsString(tab, verbose, o.GetObject(), buf);
-                }
+                AsString(tab, verbose, o.GetObject(), buf);
             }
             else if (obj is DerObjectIdentifier)
             {
