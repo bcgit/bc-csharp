@@ -43,6 +43,11 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
+        internal BerSequence(Asn1Encodable[] elements, bool clone)
+            : base(elements, clone)
+        {
+        }
+
         internal override int EncodedLength(bool withID)
         {
             throw Platform.CreateNotImplementedException("BerSequence.EncodedLength");
@@ -59,5 +64,12 @@ namespace Org.BouncyCastle.Asn1
 				base.Encode(asn1Out, withID);
 			}
 		}
-	}
+
+        internal override DerExternal ToAsn1External()
+        {
+            // TODO There is currently no BerExternal class (or ToDLObject/ToDerObject)
+            //return ((Asn1Sequence)ToDLObject()).ToAsn1External();
+            return new DerSequence(elements, false).ToAsn1External();
+        }
+    }
 }

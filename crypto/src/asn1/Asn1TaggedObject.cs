@@ -145,12 +145,26 @@ namespace Org.BouncyCastle.Asn1
             return obj.ToAsn1Object();
         }
 
-		/**
+        /**
+         * Needed for open types, until we have better type-guided parsing support. Use
+         * sparingly for other purposes, and prefer {@link #getExplicitBaseTagged()} or
+         * {@link #getBaseUniversal(boolean, int)} where possible. Before using, check
+         * for matching tag {@link #getTagClass() class} and {@link #getTagNo() number}.
+         */
+        public Asn1Object GetExplicitBaseObject()
+        {
+            if (!IsExplicit())
+                throw new InvalidOperationException("object implicit - explicit expected.");
+
+            return obj.ToAsn1Object();
+        }
+
+        /**
 		* Return the object held in this tagged object as a parser assuming it has
 		* the type of the passed in tag. If the object doesn't have a parser
 		* associated with it, the base object is returned.
 		*/
-		public IAsn1Convertible GetObjectParser(
+        public IAsn1Convertible GetObjectParser(
 			int		tag,
 			bool	isExplicit)
 		{

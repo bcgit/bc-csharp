@@ -45,6 +45,11 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
+        internal DerSequence(Asn1Encodable[] elements, bool clone)
+            : base(elements, clone)
+        {
+        }
+
         internal override int EncodedLength(bool withID)
         {
             throw Platform.CreateNotImplementedException("DerSequence.EncodedLength");
@@ -83,6 +88,11 @@ namespace Org.BouncyCastle.Asn1
             asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, bytes, 0, length);
 
             Platform.Dispose(dOut);
+        }
+
+        internal override DerExternal ToAsn1External()
+        {
+            return new DerExternal(this);
         }
     }
 }

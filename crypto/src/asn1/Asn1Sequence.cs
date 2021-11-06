@@ -128,6 +128,11 @@ namespace Org.BouncyCastle.Asn1
             this.elements = Asn1EncodableVector.CloneElements(elements);
         }
 
+        internal Asn1Sequence(Asn1Encodable[] elements, bool clone)
+        {
+            this.elements = clone ? Asn1EncodableVector.CloneElements(elements) : elements;
+        }
+
         protected internal Asn1Sequence(Asn1EncodableVector elementVector)
         {
             if (null == elementVector)
@@ -248,5 +253,8 @@ namespace Org.BouncyCastle.Asn1
         {
             return CollectionUtilities.ToString(elements);
         }
+
+        // TODO[asn1] Preferably return an Asn1External (doesn't exist yet)
+        internal abstract DerExternal ToAsn1External();
     }
 }
