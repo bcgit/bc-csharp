@@ -278,15 +278,16 @@ namespace Org.BouncyCastle.Asn1
 
         public override string GetString()
 		{
-			StringBuilder buffer = new StringBuilder("#");
-
 			byte[] str = GetDerEncoded();
 
-			for (int i = 0; i != str.Length; i++)
+            StringBuilder buffer = new StringBuilder(1 + str.Length * 2);
+            buffer.Append('#');
+
+            for (int i = 0; i != str.Length; i++)
 			{
-				uint ubyte = str[i];
-				buffer.Append(table[(ubyte >> 4) & 0xf]);
-				buffer.Append(table[str[i] & 0xf]);
+				uint u8 = str[i];
+				buffer.Append(table[u8 >> 4]);
+				buffer.Append(table[u8 & 0xF]);
 			}
 
 			return buffer.ToString();
