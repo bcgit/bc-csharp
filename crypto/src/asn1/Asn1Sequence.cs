@@ -157,6 +157,7 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Sequence outer)
             {
                 this.outer = outer;
+                // NOTE: Call Count here to 'force' a LazyDerSequence
                 this.max = outer.Count;
             }
 
@@ -214,8 +215,8 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode()
         {
-            //return Arrays.GetHashCode(elements);
-            int i = elements.Length;
+            // NOTE: Call Count here to 'force' a LazyDerSequence
+            int i = Count;
             int hc = i + 1;
 
             while (--i >= 0)
@@ -233,6 +234,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == that)
                 return false;
 
+            // NOTE: Call Count here (on both) to 'force' a LazyDerSequence
             int count = this.Count;
             if (that.Count != count)
                 return false;
@@ -259,7 +261,37 @@ namespace Org.BouncyCastle.Asn1
             return CollectionUtilities.ToString(elements);
         }
 
+        // TODO[asn1] Preferably return an Asn1BitString[] (doesn't exist yet)
+        internal DerBitString[] GetConstructedBitStrings()
+        {
+            // NOTE: Call Count here to 'force' a LazyDerSequence
+            int count = Count;
+            DerBitString[] bitStrings = new DerBitString[count];
+            for (int i = 0; i < count; ++i)
+            {
+                bitStrings[i] = DerBitString.GetInstance(elements[i]);
+            }
+            return bitStrings;
+        }
+
+        internal Asn1OctetString[] GetConstructedOctetStrings()
+        {
+            // NOTE: Call Count here to 'force' a LazyDerSequence
+            int count = Count;
+            Asn1OctetString[] octetStrings = new Asn1OctetString[count];
+            for (int i = 0; i < count; ++i)
+            {
+                octetStrings[i] = Asn1OctetString.GetInstance(elements[i]);
+            }
+            return octetStrings;
+        }
+
+        // TODO[asn1] Preferably return an Asn1BitString (doesn't exist yet)
+        internal abstract DerBitString ToAsn1BitString();
+
         // TODO[asn1] Preferably return an Asn1External (doesn't exist yet)
         internal abstract DerExternal ToAsn1External();
+
+        internal abstract Asn1OctetString ToAsn1OctetString();
     }
 }

@@ -192,6 +192,7 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Set outer)
             {
                 this.outer = outer;
+                // NOTE: Call Count here to 'force' a LazyDerSet
                 this.max = outer.Count;
             }
 
@@ -227,8 +228,8 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode()
         {
-            //return Arrays.GetHashCode(elements);
-            int i = elements.Length;
+            // NOTE: Call Count here to 'force' a LazyDerSet
+            int i = Count;
             int hc = i + 1;
 
             while (--i >= 0)
@@ -246,6 +247,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == that)
                 return false;
 
+            // NOTE: Call Count here (on both) to 'force' a LazyDerSet
             int count = this.Count;
             if (that.Count != count)
                 return false;
@@ -264,7 +266,9 @@ namespace Org.BouncyCastle.Asn1
 
         protected internal void Sort()
         {
-            if (elements.Length < 2)
+            // NOTE: Call Count here to 'force' a LazyDerSet
+            int count = Count;
+            if (count < 2)
                 return;
 
 #if PORTABLE
@@ -275,7 +279,6 @@ namespace Org.BouncyCastle.Asn1
                 .Select(t => t.Item)
                 .ToArray();
 #else
-            int count = elements.Length;
             byte[][] keys = new byte[count][];
             for (int i = 0; i < count; ++i)
             {

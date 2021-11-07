@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -90,9 +89,19 @@ namespace Org.BouncyCastle.Asn1
             Platform.Dispose(dOut);
         }
 
+        internal override DerBitString ToAsn1BitString()
+        {
+            return new DerBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
+        }
+
         internal override DerExternal ToAsn1External()
         {
             return new DerExternal(this);
+        }
+
+        internal override Asn1OctetString ToAsn1OctetString()
+        {
+            return new DerOctetString(BerOctetString.FlattenOctetStrings(GetConstructedOctetStrings()));
         }
     }
 }

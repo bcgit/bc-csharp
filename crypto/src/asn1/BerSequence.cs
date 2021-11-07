@@ -65,11 +65,21 @@ namespace Org.BouncyCastle.Asn1
 			}
 		}
 
+        internal override DerBitString ToAsn1BitString()
+        {
+            return new BerBitString(GetConstructedBitStrings());
+        }
+
         internal override DerExternal ToAsn1External()
         {
             // TODO There is currently no BerExternal class (or ToDLObject/ToDerObject)
             //return ((Asn1Sequence)ToDLObject()).ToAsn1External();
             return new DerSequence(elements, false).ToAsn1External();
+        }
+
+        internal override Asn1OctetString ToAsn1OctetString()
+        {
+            return new BerOctetString(GetConstructedOctetStrings());
         }
     }
 }

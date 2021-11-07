@@ -44,6 +44,9 @@ namespace Org.BouncyCastle.Asn1
 
         public override IEnumerator GetEnumerator()
         {
+            // TODO[asn1] Support lazy enumeration
+            // lock (this) if (null != encoded) return new LazyConstructionEnumeration(encoded);
+
             Parse();
 
             return base.GetEnumerator();
@@ -57,6 +60,20 @@ namespace Org.BouncyCastle.Asn1
 
                 return base.Count;
             }
+        }
+
+        public override Asn1Encodable[] ToArray()
+        {
+            Parse();
+
+            return base.ToArray();
+        }
+
+        public override string ToString()
+        {
+            Parse();
+
+            return base.ToString();
         }
 
         internal override int EncodedLength(bool withID)
