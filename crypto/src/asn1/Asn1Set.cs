@@ -34,13 +34,13 @@ namespace Org.BouncyCastle.Asn1
             }
             else if (obj is Asn1SetParser)
             {
-                return Asn1Set.GetInstance(((Asn1SetParser)obj).ToAsn1Object());
+                return GetInstance(((Asn1SetParser)obj).ToAsn1Object());
             }
             else if (obj is byte[])
             {
                 try
                 {
-                    return Asn1Set.GetInstance(FromByteArray((byte[])obj));
+                    return GetInstance(FromByteArray((byte[])obj));
                 }
                 catch (IOException e)
                 {
