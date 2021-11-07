@@ -86,6 +86,11 @@ namespace Org.BouncyCastle.Asn1
             return (byte[]) str.Clone();
         }
 
+        internal override bool EncodeConstructed()
+        {
+            return false;
+        }
+
         internal override int EncodedLength(bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, this.str.Length);
@@ -96,7 +101,7 @@ namespace Org.BouncyCastle.Asn1
             asn1Out.WriteEncodingDL(withID, Asn1Tags.UniversalString, this.str);
         }
 
-		protected override bool Asn1Equals(
+        protected override bool Asn1Equals(
 			Asn1Object asn1Object)
 		{
 			DerUniversalString other = asn1Object as DerUniversalString;

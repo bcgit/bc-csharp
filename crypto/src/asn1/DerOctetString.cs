@@ -22,6 +22,11 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        internal override bool EncodeConstructed()
+        {
+            return false;
+        }
+
         internal override int EncodedLength(bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, str.Length);
@@ -32,7 +37,7 @@ namespace Org.BouncyCastle.Asn1
             asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, str);
         }
 
-		internal static void Encode(Asn1OutputStream asn1Out, bool withID, byte[] buf, int off, int len)
+        internal static void Encode(Asn1OutputStream asn1Out, bool withID, byte[] buf, int off, int len)
 		{
 			asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, buf, off, len);
 		}

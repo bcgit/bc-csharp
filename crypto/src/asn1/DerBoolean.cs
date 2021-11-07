@@ -81,6 +81,11 @@ namespace Org.BouncyCastle.Asn1
             get { return value != 0; }
         }
 
+        internal override bool EncodeConstructed()
+        {
+            return false;
+        }
+
         internal override int EncodedLength(bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, 1);

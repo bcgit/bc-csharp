@@ -113,9 +113,10 @@ namespace Org.BouncyCastle.Asn1
             this.segmentLimit = DefaultSegmentLimit;
         }
 
-        private bool IsConstructed
+        internal override bool EncodeConstructed()
         {
-            get { return null != elements || contents.Length > segmentLimit; }
+            // NOTE: Assumes BER encoding
+            return null != elements || contents.Length > segmentLimit;
         }
 
         internal override int EncodedLength(bool withID)
@@ -123,7 +124,7 @@ namespace Org.BouncyCastle.Asn1
             throw Platform.CreateNotImplementedException("BerBitString.EncodedLength");
 
             // TODO This depends on knowing it's not DER
-            //if (!IsConstructed)
+            //if (!EncodeConstructed())
             //    return EncodedLength(withID, contents.Length);
 
             //int totalLength = withID ? 4 : 3;
@@ -159,7 +160,7 @@ namespace Org.BouncyCastle.Asn1
                 return;
             }
 
-            if (!IsConstructed)
+            if (!EncodeConstructed())
             {
                 Encode(asn1Out, withID, contents, 0, contents.Length);
                 return;

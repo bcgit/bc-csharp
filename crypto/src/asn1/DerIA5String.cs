@@ -100,6 +100,11 @@ namespace Org.BouncyCastle.Asn1
             return Strings.ToAsciiByteArray(str);
         }
 
+        internal override bool EncodeConstructed()
+        {
+            return false;
+        }
+
         internal override int EncodedLength(bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, str.Length);
@@ -110,7 +115,7 @@ namespace Org.BouncyCastle.Asn1
             asn1Out.WriteEncodingDL(withID, Asn1Tags.IA5String, GetOctets());
         }
 
-		protected override int Asn1GetHashCode()
+        protected override int Asn1GetHashCode()
 		{
             return this.str.GetHashCode();
         }

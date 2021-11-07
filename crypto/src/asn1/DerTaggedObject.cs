@@ -46,6 +46,13 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
+        internal override bool EncodeConstructed()
+        {
+            throw Platform.CreateNotImplementedException("DerTaggedObject.EncodeConstructed");
+
+            //return IsExplicit() || obj.ToAsn1Object().ToDerObject().EncodeConstructed();
+        }
+
         internal override int EncodedLength(bool withID)
         {
             throw Platform.CreateNotImplementedException("DerTaggedObject.EncodedLength");
@@ -71,5 +78,5 @@ namespace Org.BouncyCastle.Asn1
                 asn1Out.Write(bytes, 1, bytes.Length - 1);
 			}
 		}
-	}
+    }
 }

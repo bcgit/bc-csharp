@@ -120,9 +120,10 @@ namespace Org.BouncyCastle.Asn1
 			return GetEnumerator();
 		}
 
-        private bool IsConstructed
+        internal override bool EncodeConstructed()
         {
-            get { return null != elements || str.Length > segmentLimit; }
+            // NOTE: Assumes BER encoding
+            return null != elements || str.Length > segmentLimit;
         }
 
         internal override int EncodedLength(bool withID)
@@ -130,7 +131,7 @@ namespace Org.BouncyCastle.Asn1
             throw Platform.CreateNotImplementedException("BerOctetString.EncodedLength");
 
             // TODO This depends on knowing it's not DER
-            //if (!IsConstructed)
+            //if (!EncodeConstructed())
             //    return EncodedLength(withID, str.Length);
 
             //int totalLength = withID ? 4 : 3;
@@ -159,7 +160,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            if (!asn1Out.IsBer || !IsConstructed)
+            if (!asn1Out.IsBer || !EncodeConstructed())
             {
                 base.Encode(asn1Out, withID);
                 return;

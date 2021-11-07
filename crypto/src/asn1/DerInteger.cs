@@ -169,6 +169,11 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        internal override bool EncodeConstructed()
+        {
+            return false;
+        }
+
         internal override int EncodedLength(bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, bytes.Length);
@@ -179,7 +184,7 @@ namespace Org.BouncyCastle.Asn1
             asn1Out.WriteEncodingDL(withID, Asn1Tags.Integer, bytes);
         }
 
-		protected override int Asn1GetHashCode()
+        protected override int Asn1GetHashCode()
 		{
 			return Arrays.GetHashCode(bytes);
         }

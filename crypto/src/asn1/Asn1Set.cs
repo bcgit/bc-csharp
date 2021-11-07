@@ -285,6 +285,11 @@ namespace Org.BouncyCastle.Asn1
 #endif
         }
 
+        internal override bool EncodeConstructed()
+        {
+            return true;
+        }
+
         public override string ToString()
         {
             return CollectionUtilities.ToString(elements);

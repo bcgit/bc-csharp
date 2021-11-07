@@ -77,6 +77,11 @@ namespace Org.BouncyCastle.Asn1
             get { return m_baseGraphicString; }
         }
 
+        internal override bool EncodeConstructed()
+        {
+            return false;
+        }
+
         internal override int EncodedLength(bool withID)
         {
             return m_baseGraphicString.EncodedLength(withID);
