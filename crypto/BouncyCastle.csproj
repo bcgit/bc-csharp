@@ -131,8 +131,9 @@
     <Compile Include="src\asn1\IAsn1String.cs" />
     <Compile Include="src\asn1\IndefiniteLengthInputStream.cs" />
     <Compile Include="src\asn1\LazyASN1InputStream.cs" />
-    <Compile Include="src\asn1\LazyDERSequence.cs" />
-    <Compile Include="src\asn1\LazyDERSet.cs" />
+    <Compile Include="src\asn1\LazyDLEnumerator.cs" />
+    <Compile Include="src\asn1\LazyDLSequence.cs" />
+    <Compile Include="src\asn1\LazyDLSet.cs" />
     <Compile Include="src\asn1\LimitedInputStream.cs" />
     <Compile Include="src\asn1\OidTokenizer.cs" />
     <Compile Include="src\asn1\anssi\ANSSINamedCurves.cs" />

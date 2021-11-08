@@ -109,9 +109,9 @@ namespace Org.BouncyCastle.Asn1
                 return BuildConstructedOctetString(ReadVector(defIn));
             }
             case Asn1Tags.Sequence:
-                return CreateDerSequence(defIn);
+                return CreateDLSequence(defIn);
             case Asn1Tags.Set:
-                return CreateDerSet(defIn);
+                return CreateDLSet(defIn);
             case Asn1Tags.External:
                 return new DerExternal(ReadVector(defIn));                
             default:
@@ -143,14 +143,12 @@ namespace Org.BouncyCastle.Asn1
             return new Asn1InputStream(defIn, remaining, tmpBuffers).ReadVector();
         }
 
-        internal virtual DerSequence CreateDerSequence(
-            DefiniteLengthInputStream dIn)
+        internal virtual DerSequence CreateDLSequence(DefiniteLengthInputStream dIn)
         {
             return DerSequence.FromVector(ReadVector(dIn));
         }
 
-        internal virtual DerSet CreateDerSet(
-            DefiniteLengthInputStream dIn)
+        internal virtual DerSet CreateDLSet(DefiniteLengthInputStream dIn)
         {
             return DerSet.FromVector(ReadVector(dIn), false);
         }

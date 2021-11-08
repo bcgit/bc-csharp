@@ -544,12 +544,17 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\asn1\LazyDERSequence.cs"
+                    RelPath = "src\asn1\LazyDLEnumerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\asn1\LazyDERSet.cs"
+                    RelPath = "src\asn1\LazyDLSequence.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\LazyDLSet.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

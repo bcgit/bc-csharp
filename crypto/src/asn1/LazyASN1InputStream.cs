@@ -6,14 +6,12 @@ namespace Org.BouncyCastle.Asn1
     public class LazyAsn1InputStream
         : Asn1InputStream
     {
-        public LazyAsn1InputStream(
-            byte[] input)
+        public LazyAsn1InputStream(byte[] input)
             : base(input)
         {
         }
 
-        public LazyAsn1InputStream(
-            Stream inputStream)
+        public LazyAsn1InputStream(Stream inputStream)
             : base(inputStream)
         {
         }
@@ -23,16 +21,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override DerSequence CreateDerSequence(
-            DefiniteLengthInputStream dIn)
+        internal override DerSequence CreateDLSequence(DefiniteLengthInputStream dIn)
         {
-            return new LazyDerSequence(dIn.ToArray());
+            return new LazyDLSequence(dIn.ToArray());
         }
 
-        internal override DerSet CreateDerSet(
-            DefiniteLengthInputStream dIn)
+        internal override DerSet CreateDLSet(DefiniteLengthInputStream dIn)
         {
-            return new LazyDerSet(dIn.ToArray());
+            return new LazyDLSet(dIn.ToArray());
         }
 
         internal override Asn1EncodableVector ReadVector(DefiniteLengthInputStream defIn)
