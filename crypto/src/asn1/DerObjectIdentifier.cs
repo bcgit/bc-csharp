@@ -27,18 +27,26 @@ namespace Org.BouncyCastle.Asn1
         public static DerObjectIdentifier GetInstance(object obj)
         {
             if (obj == null || obj is DerObjectIdentifier)
-                return (DerObjectIdentifier) obj;
-
-            if (obj is Asn1Encodable)
             {
-                Asn1Object asn1Obj = ((Asn1Encodable)obj).ToAsn1Object();
-
-                if (asn1Obj is DerObjectIdentifier)
-                    return (DerObjectIdentifier)asn1Obj;
+                return (DerObjectIdentifier)obj;
             }
-
-            if (obj is byte[])
-                return (DerObjectIdentifier)FromByteArray((byte[])obj);
+            else if (obj is IAsn1Convertible)
+            {
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerObjectIdentifier)
+                    return (DerObjectIdentifier)asn1Object;
+            }
+            else if (obj is byte[])
+            {
+                try
+                {
+                    return GetInstance(FromByteArray((byte[])obj));
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct object identifier from byte[]: " + e.Message);
+                }
+            }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }

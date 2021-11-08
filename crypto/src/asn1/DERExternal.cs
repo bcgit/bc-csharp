@@ -17,21 +17,21 @@ namespace Org.BouncyCastle.Asn1
             {
                 return (DerExternal)obj;
             }
-            if (obj is Asn1Encodable)
+            else if (obj is IAsn1Convertible)
             {
-                Asn1Object asn1 = ((Asn1Encodable)obj).ToAsn1Object();
-                if (asn1 is DerExternal)
-                    return (DerExternal)asn1;
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerExternal)
+                    return (DerExternal)asn1Object;
             }
-            if (obj is byte[])
+            else if (obj is byte[])
             {
                 try
                 {
                     return GetInstance(FromByteArray((byte[])obj));
                 }
-                catch (Exception e)
+                catch (IOException e)
                 {
-                    throw new ArgumentException("encoding error in GetInstance: " + e.ToString(), "obj");
+                    throw new ArgumentException("failed to construct external from byte[]: " + e.Message);
                 }
             }
 
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Asn1
                 return GetInstance(baseObject);
             }
 
-            return Asn1Sequence.GetInstance(taggedObject, false).ToAsn1External();
+            return Asn1Sequence.GetInstance(baseObject).ToAsn1External();
         }
 
 		private readonly DerObjectIdentifier directReference;

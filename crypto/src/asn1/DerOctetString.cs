@@ -5,10 +5,9 @@ namespace Org.BouncyCastle.Asn1
     public class DerOctetString
         : Asn1OctetString
     {
-		/// <param name="str">The octets making up the octet string.</param>
-        public DerOctetString(
-			byte[] str)
-			: base(str)
+		/// <param name="contents">The octets making up the octet string.</param>
+        public DerOctetString(byte[] contents)
+			: base(contents)
         {
         }
 
@@ -29,12 +28,12 @@ namespace Org.BouncyCastle.Asn1
 
         internal override int EncodedLength(bool withID)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, str.Length);
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contents.Length);
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, str);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, contents);
         }
 
         internal static void Encode(Asn1OutputStream asn1Out, bool withID, byte[] buf, int off, int len)

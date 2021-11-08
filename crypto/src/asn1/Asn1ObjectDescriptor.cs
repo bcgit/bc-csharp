@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 using Org.BouncyCastle.Utilities;
 
@@ -20,21 +21,21 @@ namespace Org.BouncyCastle.Asn1
             {
                 return (Asn1ObjectDescriptor)obj;
             }
-            else if (obj is Asn1Encodable)
+            else if (obj is IAsn1Convertible)
             {
-                Asn1Object asn1 = ((Asn1Encodable)obj).ToAsn1Object();
-                if (asn1 is Asn1ObjectDescriptor)
-                    return (Asn1ObjectDescriptor)asn1;
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is Asn1ObjectDescriptor)
+                    return (Asn1ObjectDescriptor)asn1Object;
             }
-            if (obj is byte[])
+            else if (obj is byte[])
             {
                 try
                 {
                     return GetInstance(FromByteArray((byte[])obj));
                 }
-                catch (Exception e)
+                catch (IOException e)
                 {
-                    throw new ArgumentException("encoding error in GetInstance: " + e.ToString(), "obj");
+                    throw new ArgumentException("failed to construct object descriptor from byte[]: " + e.Message);
                 }
             }
 

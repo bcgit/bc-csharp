@@ -19,16 +19,18 @@ namespace Org.BouncyCastle.Asn1
          * @param obj the object we want converted.
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static Asn1Sequence GetInstance(
-            object obj)
+        public static Asn1Sequence GetInstance(object obj)
         {
             if (obj == null || obj is Asn1Sequence)
             {
                 return (Asn1Sequence)obj;
             }
-            else if (obj is Asn1SequenceParser)
+            //else if (obj is Asn1SequenceParser)
+            else if (obj is IAsn1Convertible)
             {
-                return GetInstance(((Asn1SequenceParser)obj).ToAsn1Object());
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is Asn1Sequence)
+                    return (Asn1Sequence)asn1Object;
             }
             else if (obj is byte[])
             {
@@ -41,17 +43,8 @@ namespace Org.BouncyCastle.Asn1
                     throw new ArgumentException("failed to construct sequence from byte[]: " + e.Message);
                 }
             }
-            else if (obj is Asn1Encodable)
-            {
-                Asn1Object primitive = ((Asn1Encodable)obj).ToAsn1Object();
-                
-                if (primitive is Asn1Sequence)
-                {
-                    return (Asn1Sequence)primitive;
-                }
-            }
 
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         /**
@@ -104,7 +97,7 @@ namespace Org.BouncyCastle.Asn1
                 return (Asn1Sequence) inner;
             }
 
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         protected internal Asn1Sequence()

@@ -25,16 +25,18 @@ namespace Org.BouncyCastle.Asn1
          * @param obj the object we want converted.
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static Asn1Set GetInstance(
-            object obj)
+        public static Asn1Set GetInstance(object obj)
         {
             if (obj == null || obj is Asn1Set)
             {
                 return (Asn1Set)obj;
             }
-            else if (obj is Asn1SetParser)
+            //else if (obj is Asn1SetParser)
+            else if (obj is IAsn1Convertible)
             {
-                return GetInstance(((Asn1SetParser)obj).ToAsn1Object());
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is Asn1Set)
+                    return (Asn1Set)asn1Object;
             }
             else if (obj is byte[])
             {
@@ -47,17 +49,8 @@ namespace Org.BouncyCastle.Asn1
                     throw new ArgumentException("failed to construct set from byte[]: " + e.Message);
                 }
             }
-            else if (obj is Asn1Encodable)
-            {
-                Asn1Object primitive = ((Asn1Encodable)obj).ToAsn1Object();
 
-                if (primitive is Asn1Set)
-                {
-                    return (Asn1Set)primitive;
-                }
-            }
-
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         /**
@@ -123,7 +116,7 @@ namespace Org.BouncyCastle.Asn1
                 return new DerSet(v, false);
             }
 
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         protected internal Asn1Set()

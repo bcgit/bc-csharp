@@ -30,20 +30,20 @@ namespace Org.BouncyCastle.Asn1
             case 0:
                 return EmptyOctets;
             case 1:
-                return octetStrings[0].str;
+                return octetStrings[0].contents;
             default:
             {
                 int totalOctets = 0;
                 for (int i = 0; i < count; ++i)
                 {
-                    totalOctets += octetStrings[i].str.Length;
+                    totalOctets += octetStrings[i].contents.Length;
                 }
 
                 byte[] str = new byte[totalOctets];
                 int pos = 0;
                 for (int i = 0; i < count; ++i)
                 {
-                    byte[] octets = octetStrings[i].str;
+                    byte[] octets = octetStrings[i].contents;
                     Array.Copy(octets, 0, str, pos, octets.Length);
                     pos += octets.Length;
                 }
@@ -76,8 +76,8 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        public BerOctetString(byte[] str)
-			: this(str, DefaultSegmentLimit)
+        public BerOctetString(byte[] contents)
+			: this(contents, DefaultSegmentLimit)
 		{
 		}
 
@@ -86,8 +86,8 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        public BerOctetString(byte[] str, int segmentLimit)
-            : this(str, null, segmentLimit)
+        public BerOctetString(byte[] contents, int segmentLimit)
+            : this(contents, null, segmentLimit)
         {
         }
 
@@ -96,8 +96,8 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        private BerOctetString(byte[] octets, Asn1OctetString[] elements, int segmentLimit)
-            : base(octets)
+        private BerOctetString(byte[] contents, Asn1OctetString[] elements, int segmentLimit)
+            : base(contents)
         {
             this.elements = elements;
             this.segmentLimit = segmentLimit;
@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Asn1
 		public IEnumerator GetEnumerator()
 		{
 			if (elements == null)
-                return new ChunkEnumerator(str, segmentLimit);
+                return new ChunkEnumerator(contents, segmentLimit);
 
 			return elements.GetEnumerator();
 		}
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Asn1
         internal override bool EncodeConstructed()
         {
             // NOTE: Assumes BER encoding
-            return null != elements || str.Length > segmentLimit;
+            return null != elements || contents.Length > segmentLimit;
         }
 
         internal override int EncodedLength(bool withID)
@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Asn1
 
             // TODO This depends on knowing it's not DER
             //if (!EncodeConstructed())
-            //    return EncodedLength(withID, str.Length);
+            //    return EncodedLength(withID, contents.Length);
 
             //int totalLength = withID ? 4 : 3;
 
@@ -145,10 +145,10 @@ namespace Org.BouncyCastle.Asn1
             //}
             //else
             //{
-            //    int fullSegments = str.Length / segmentLimit;
+            //    int fullSegments = contents.Length / segmentLimit;
             //    totalLength += fullSegments * EncodedLength(true, segmentLimit);
 
-            //    int lastSegmentLength = str.Length - (fullSegments * segmentLimit);
+            //    int lastSegmentLength = contents.Length - (fullSegments * segmentLimit);
             //    if (lastSegmentLength > 0)
             //    {
             //        totalLength += EncodedLength(true, lastSegmentLength);
@@ -176,10 +176,10 @@ namespace Org.BouncyCastle.Asn1
             else
             {
                 int pos = 0;
-                while (pos < str.Length)
+                while (pos < contents.Length)
                 {
-                    int segmentLength = System.Math.Min(str.Length - pos, segmentLimit);
-                    Encode(asn1Out, true, str, pos, segmentLength);
+                    int segmentLength = System.Math.Min(contents.Length - pos, segmentLimit);
+                    Encode(asn1Out, true, contents, pos, segmentLength);
                     pos += segmentLength;
                 }
             }
