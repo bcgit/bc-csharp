@@ -116,6 +116,10 @@ namespace Org.BouncyCastle.Asn1.Utilities
             {
                 buf.Append(indent + "ObjectIdentifier(" + ((DerObjectIdentifier)obj).Id + ")" + NewLine);
             }
+            else if (obj is Asn1RelativeOid)
+            {
+                buf.Append(indent + "RelativeOID(" + ((Asn1RelativeOid)obj).Id + ")" + NewLine);
+            }
             else if (obj is DerBoolean)
             {
                 buf.Append(indent + "Boolean(" + ((DerBoolean)obj).IsTrue + ")" + NewLine);

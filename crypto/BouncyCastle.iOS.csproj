@@ -68,6 +68,7 @@
     <Compile Include="src\asn1\Asn1OctetString.cs" />
     <Compile Include="src\asn1\Asn1OutputStream.cs" />
     <Compile Include="src\asn1\Asn1ParsingException.cs" />
+    <Compile Include="src\asn1\Asn1RelativeOid.cs" />
     <Compile Include="src\asn1\Asn1Sequence.cs" />
     <Compile Include="src\asn1\Asn1Set.cs" />
     <Compile Include="src\asn1\Asn1TaggedObject.cs" />

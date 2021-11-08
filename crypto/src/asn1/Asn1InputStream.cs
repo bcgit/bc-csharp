@@ -452,6 +452,8 @@ namespace Org.BouncyCastle.Asn1
                     return new DerOctetString(bytes);
                 case Asn1Tags.PrintableString:
                     return new DerPrintableString(bytes);
+                case Asn1Tags.RelativeOid:
+                    return Asn1RelativeOid.CreatePrimitive(bytes, false);
                 case Asn1Tags.T61String:
                     return new DerT61String(bytes);
                 case Asn1Tags.UniversalString:

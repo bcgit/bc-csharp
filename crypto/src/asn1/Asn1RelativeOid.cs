@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 
@@ -7,30 +7,25 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
-    public class DerObjectIdentifier
+    public class Asn1RelativeOid
         : Asn1Object
     {
-        public static DerObjectIdentifier FromContents(byte[] contents)
+        public static Asn1RelativeOid FromContents(byte[] contents)
         {
             return CreatePrimitive(contents, true);
         }
 
-        /**
-         * return an Oid from the passed in object
-         *
-         * @exception ArgumentException if the object cannot be converted.
-         */
-        public static DerObjectIdentifier GetInstance(object obj)
+        public static Asn1RelativeOid GetInstance(object obj)
         {
-            if (obj == null || obj is DerObjectIdentifier)
+            if (obj == null || obj is Asn1RelativeOid)
             {
-                return (DerObjectIdentifier)obj;
+                return (Asn1RelativeOid)obj;
             }
             else if (obj is IAsn1Convertible)
             {
                 Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is DerObjectIdentifier)
-                    return (DerObjectIdentifier)asn1Object;
+                if (asn1Object is Asn1RelativeOid)
+                    return (Asn1RelativeOid)asn1Object;
             }
             else if (obj is byte[])
             {
@@ -40,18 +35,18 @@ namespace Org.BouncyCastle.Asn1
                 }
                 catch (IOException e)
                 {
-                    throw new ArgumentException("failed to construct object identifier from byte[]: " + e.Message);
+                    throw new ArgumentException("failed to construct relative OID from byte[]: " + e.Message);
                 }
             }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
-        public static DerObjectIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static Asn1RelativeOid GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             Asn1Object baseObject = taggedObject.GetObject();
 
-            if (declaredExplicit || baseObject is DerObjectIdentifier)
+            if (declaredExplicit || baseObject is Asn1RelativeOid)
             {
                 return GetInstance(baseObject);
             }
@@ -61,54 +56,41 @@ namespace Org.BouncyCastle.Asn1
 
         private const long LongLimit = (Int64.MaxValue >> 7) - 0x7F;
 
-        private static readonly DerObjectIdentifier[] cache = new DerObjectIdentifier[1024];
-
         private readonly string identifier;
         private byte[] contents;
 
-        public DerObjectIdentifier(string identifier)
+        public Asn1RelativeOid(string identifier)
         {
             if (identifier == null)
                 throw new ArgumentNullException("identifier");
-            if (!IsValidIdentifier(identifier))
-                throw new FormatException("string " + identifier + " not an OID");
+            if (!IsValidIdentifier(identifier, 0))
+                throw new FormatException("string " + identifier + " not a relative OID");
 
             this.identifier = identifier;
         }
 
-        private DerObjectIdentifier(DerObjectIdentifier oid, string branchID)
+        private Asn1RelativeOid(Asn1RelativeOid oid, string branchID)
         {
-            if (!Asn1RelativeOid.IsValidIdentifier(branchID, 0))
-                throw new ArgumentException("string " + branchID + " not a valid OID branch", "branchID");
+            if (!IsValidIdentifier(branchID, 0))
+                throw new FormatException("string " + branchID + " not a valid relative OID branch");
 
             this.identifier = oid.Id + "." + branchID;
         }
 
-        private DerObjectIdentifier(byte[] contents, bool clone)
+        private Asn1RelativeOid(byte[] contents, bool clone)
         {
             this.identifier = ParseContents(contents);
             this.contents = clone ? Arrays.Clone(contents) : contents;
         }
 
-        public virtual DerObjectIdentifier Branch(string branchID)
+        public virtual Asn1RelativeOid Branch(string branchID)
         {
-            return new DerObjectIdentifier(this, branchID);
+            return new Asn1RelativeOid(this, branchID);
         }
 
         public string Id
         {
             get { return identifier; }
-        }
-
-        /**
-         * Return  true if this oid is an extension of the passed in branch, stem.
-         * @param stem the arc or branch that is a possible parent.
-         * @return  true if the branch is on the passed in stem, false otherwise.
-         */
-        public virtual bool On(DerObjectIdentifier stem)
-        {
-            string id = Id, stemId = stem.Id;
-            return id.Length > stemId.Length && id[stemId.Length] == '.' && Platform.StartsWith(id, stemId);
         }
 
         public override string ToString()
@@ -118,7 +100,7 @@ namespace Org.BouncyCastle.Asn1
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            DerObjectIdentifier that = asn1Object as DerObjectIdentifier;
+            Asn1RelativeOid that = asn1Object as Asn1RelativeOid;
             return null != that
                 && this.identifier == that.identifier;
         }
@@ -140,36 +122,22 @@ namespace Org.BouncyCastle.Asn1
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.ObjectIdentifier, GetContents());
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.RelativeOid, GetContents());
         }
 
         private void DoOutput(MemoryStream bOut)
         {
             OidTokenizer tok = new OidTokenizer(identifier);
-
-            string token = tok.NextToken();
-            int first = int.Parse(token) * 40;
-
-            token = tok.NextToken();
-            if (token.Length <= 18)
-            {
-                Asn1RelativeOid.WriteField(bOut, first + Int64.Parse(token));
-            }
-            else
-            {
-                Asn1RelativeOid.WriteField(bOut, new BigInteger(token).Add(BigInteger.ValueOf(first)));
-            }
-
             while (tok.HasMoreTokens)
             {
-                token = tok.NextToken();
+                string token = tok.NextToken();
                 if (token.Length <= 18)
                 {
-                    Asn1RelativeOid.WriteField(bOut, Int64.Parse(token));
+                    WriteField(bOut, Int64.Parse(token));
                 }
                 else
                 {
-                    Asn1RelativeOid.WriteField(bOut, new BigInteger(token));
+                    WriteField(bOut, new BigInteger(token));
                 }
             }
         }
@@ -189,33 +157,75 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)
+        internal static Asn1RelativeOid CreatePrimitive(byte[] contents, bool clone)
         {
-            int hashCode = Arrays.GetHashCode(contents);
-            int first = hashCode & 1023;
-
-            lock (cache)
-            {
-                DerObjectIdentifier entry = cache[first];
-                if (entry != null && Arrays.AreEqual(contents, entry.GetContents()))
-                {
-                    return entry;
-                }
-
-                return cache[first] = new DerObjectIdentifier(contents, clone);
-            }
+            return new Asn1RelativeOid(contents, clone);
         }
 
-        private static bool IsValidIdentifier(string identifier)
+        internal static bool IsValidIdentifier(string identifier, int from)
         {
-            if (identifier.Length < 3 || identifier[1] != '.')
+            int digitCount = 0;
+
+            int pos = identifier.Length;
+            while (--pos >= from)
+            {
+                char ch = identifier[pos];
+
+                if (ch == '.')
+                {
+                    if (0 == digitCount || (digitCount > 1 && identifier[pos + 1] == '0'))
+                        return false;
+
+                    digitCount = 0;
+                }
+                else if ('0' <= ch && ch <= '9')
+                {
+                    ++digitCount;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            if (0 == digitCount || (digitCount > 1 && identifier[pos + 1] == '0'))
                 return false;
 
-            char first = identifier[0];
-            if (first < '0' || first > '2')
-                return false;
+            return true;
+        }
 
-            return Asn1RelativeOid.IsValidIdentifier(identifier, 2);
+        internal static void WriteField(Stream outputStream, long fieldValue)
+        {
+            byte[] result = new byte[9];
+            int pos = 8;
+            result[pos] = (byte)((int)fieldValue & 0x7F);
+            while (fieldValue >= (1L << 7))
+            {
+                fieldValue >>= 7;
+                result[--pos] = (byte)((int)fieldValue | 0x80);
+            }
+            outputStream.Write(result, pos, 9 - pos);
+        }
+
+        internal static void WriteField(Stream outputStream, BigInteger fieldValue)
+        {
+            int byteCount = (fieldValue.BitLength + 6) / 7;
+            if (byteCount == 0)
+            {
+                outputStream.WriteByte(0);
+            }
+            else
+            {
+                BigInteger tmpValue = fieldValue;
+                byte[] tmp = new byte[byteCount];
+                for (int i = byteCount - 1; i >= 0; i--)
+                {
+                    tmp[i] = (byte)(tmpValue.IntValue | 0x80);
+                    tmpValue = tmpValue.ShiftRight(7);
+                }
+                tmp[byteCount - 1] &= 0x7F;
+                outputStream.Write(tmp, 0, tmp.Length);
+            }
         }
 
         private static string ParseContents(byte[] contents)
@@ -236,24 +246,13 @@ namespace Org.BouncyCastle.Asn1
                     {
                         if (first)
                         {
-                            if (value < 40)
-                            {
-                                objId.Append('0');
-                            }
-                            else if (value < 80)
-                            {
-                                objId.Append('1');
-                                value -= 40;
-                            }
-                            else
-                            {
-                                objId.Append('2');
-                                value -= 80;
-                            }
                             first = false;
                         }
+                        else
+                        {
+                            objId.Append('.');
+                        }
 
-                        objId.Append('.');
                         objId.Append(value);
                         value = 0;
                     }
@@ -273,12 +272,13 @@ namespace Org.BouncyCastle.Asn1
                     {
                         if (first)
                         {
-                            objId.Append('2');
-                            bigValue = bigValue.Subtract(BigInteger.ValueOf(80));
                             first = false;
                         }
+                        else
+                        {
+                            objId.Append('.');
+                        }
 
-                        objId.Append('.');
                         objId.Append(bigValue);
                         bigValue = null;
                         value = 0;

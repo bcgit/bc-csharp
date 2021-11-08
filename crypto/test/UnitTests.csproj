@@ -111,6 +111,7 @@
     <Compile Include="src\asn1\test\QCStatementUnitTest.cs" />
     <Compile Include="src\asn1\test\ReasonFlagsTest.cs" />
     <Compile Include="src\asn1\test\RegressionTest.cs" />
+    <Compile Include="src\asn1\test\RelativeOidTest.cs" />
     <Compile Include="src\asn1\test\RequestedCertificateUnitTest.cs" />
     <Compile Include="src\asn1\test\RestrictionUnitTest.cs" />
     <Compile Include="src\asn1\test\SMIMETest.cs" />

@@ -204,6 +204,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\Asn1RelativeOid.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ASN1Sequence.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -13540,6 +13545,11 @@
                 />
                 <File
                     RelPath = "test\src\asn1\test\RegressionTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\asn1\test\RelativeOidTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

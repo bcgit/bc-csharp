@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Text;
 
 using NUnit.Framework;
 
@@ -18,17 +16,15 @@ namespace Org.BouncyCastle.Asn1.Tests
 	public class OidTest
 		: SimpleTest
 	{
-		byte[] req1 = Hex.Decode("0603813403");
-		byte[] req2 = Hex.Decode("06082A36FFFFFFDD6311");
+		private static readonly byte[] req1 = Hex.Decode("0603813403");
+        private static readonly byte[] req2 = Hex.Decode("06082A36FFFFFFDD6311");
 
 		public override string Name
 		{
 			get { return "OID"; }
 		}
 
-		private void recodeCheck(
-			string	oid,
-			byte[]	enc)
+		private void RecodeCheck(string oid, byte[] enc)
 		{
 			DerObjectIdentifier o = new DerObjectIdentifier(oid);
 			DerObjectIdentifier encO = (DerObjectIdentifier) Asn1Object.FromByteArray(enc);
@@ -46,11 +42,10 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		private void validOidCheck(
-			string oid)
+		private void CheckValid(string oid)
 		{
 			DerObjectIdentifier o = new DerObjectIdentifier(oid);
-			o = (DerObjectIdentifier) Asn1Object.FromByteArray(o.GetEncoded());
+			o = (DerObjectIdentifier)Asn1Object.FromByteArray(o.GetEncoded());
 
 			if (!o.Id.Equals(oid))
 			{
@@ -58,8 +53,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		private void invalidOidCheck(
-			string oid)
+		private void CheckInvalid(string oid)
 		{
 			try
 			{
@@ -72,7 +66,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		private void branchCheck(string stem, string branch)
+		private void BranchCheck(string stem, string branch)
 		{
 			string expected = stem + "." + branch;
 			string actual = new DerObjectIdentifier(stem).Branch(branch).Id;
@@ -83,7 +77,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		private void onCheck(String stem, String test, bool expected)
+		private void OnCheck(String stem, String test, bool expected)
 		{
 			if (expected != new DerObjectIdentifier(test).On(new DerObjectIdentifier(stem)))
 			{
@@ -93,49 +87,45 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		public override void PerformTest()
 		{
-			recodeCheck("2.100.3", req1);
-			recodeCheck("1.2.54.34359733987.17", req2);
+			RecodeCheck("2.100.3", req1);
+			RecodeCheck("1.2.54.34359733987.17", req2);
 
-			validOidCheck(PkcsObjectIdentifiers.Pkcs9AtContentType.Id);
-			validOidCheck("0.1");
-			validOidCheck("1.1.127.32512.8323072.2130706432.545460846592.139637976727552.35747322042253312.9151314442816847872");
-			validOidCheck("1.2.123.12345678901.1.1.1");
-			validOidCheck("2.25.196556539987194312349856245628873852187.1");
+			CheckValid(PkcsObjectIdentifiers.Pkcs9AtContentType.Id);
+			CheckValid("0.1");
+			CheckValid("1.1.127.32512.8323072.2130706432.545460846592.139637976727552.35747322042253312.9151314442816847872");
+			CheckValid("1.2.123.12345678901.1.1.1");
+			CheckValid("2.25.196556539987194312349856245628873852187.1");
 
-			invalidOidCheck("0");
-			invalidOidCheck("1");
-			invalidOidCheck("2");
-			invalidOidCheck("3.1");
-			invalidOidCheck("..1");
-			invalidOidCheck("192.168.1.1");
-			invalidOidCheck(".123452");
-			invalidOidCheck("1.");
-			invalidOidCheck("1.345.23.34..234");
-			invalidOidCheck("1.345.23.34.234.");
-			invalidOidCheck(".12.345.77.234");
-			invalidOidCheck(".12.345.77.234.");
-			invalidOidCheck("1.2.3.4.A.5");
-			invalidOidCheck("1,2");
+			CheckInvalid("0");
+			CheckInvalid("1");
+			CheckInvalid("2");
+			CheckInvalid("3.1");
+			CheckInvalid("..1");
+			CheckInvalid("192.168.1.1");
+			CheckInvalid(".123452");
+			CheckInvalid("1.");
+			CheckInvalid("1.345.23.34..234");
+			CheckInvalid("1.345.23.34.234.");
+			CheckInvalid(".12.345.77.234");
+			CheckInvalid(".12.345.77.234.");
+			CheckInvalid("1.2.3.4.A.5");
+			CheckInvalid("1,2");
 
-			branchCheck("1.1", "2.2");
+			BranchCheck("1.1", "2.2");
 
-			onCheck("1.1", "1.1", false);
-			onCheck("1.1", "1.2", false);
-			onCheck("1.1", "1.2.1", false);
-			onCheck("1.1", "2.1", false);
-			onCheck("1.1", "1.11", false);
-			onCheck("1.12", "1.1.2", false);
-			onCheck("1.1", "1.1.1", true);
-			onCheck("1.1", "1.1.2", true);
+			OnCheck("1.1", "1.1", false);
+			OnCheck("1.1", "1.2", false);
+			OnCheck("1.1", "1.2.1", false);
+			OnCheck("1.1", "2.1", false);
+			OnCheck("1.1", "1.11", false);
+			OnCheck("1.12", "1.1.2", false);
+			OnCheck("1.1", "1.1.1", true);
+			OnCheck("1.1", "1.1.2", true);
 		}
 
-		public static void Main(
-			string[] args)
+		public static void Main(string[] args)
 		{
-			ITest test = new OidTest();
-			ITestResult	result = test.Perform();
-
-			Console.WriteLine(result);
+            RunTest(new OidTest());
 		}
 
 		[Test]
