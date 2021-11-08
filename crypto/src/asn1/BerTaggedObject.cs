@@ -47,6 +47,11 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
+        internal override string Asn1Encoding
+        {
+            get { return Ber; }
+        }
+
         internal override bool EncodeConstructed()
         {
             throw Platform.CreateNotImplementedException("BerTaggedObject.EncodeConstructed");
@@ -117,5 +122,10 @@ namespace Org.BouncyCastle.Asn1
 				base.Encode(asn1Out, withID);
 			}
 		}
+
+        internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
+        {
+            return new BerSequence(asn1Object);
+        }
     }
 }

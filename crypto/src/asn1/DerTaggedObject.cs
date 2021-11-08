@@ -46,6 +46,11 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
+        internal override string Asn1Encoding
+        {
+            get { return Der; }
+        }
+
         internal override bool EncodeConstructed()
         {
             throw Platform.CreateNotImplementedException("DerTaggedObject.EncodeConstructed");
@@ -78,5 +83,10 @@ namespace Org.BouncyCastle.Asn1
                 asn1Out.Write(bytes, 1, bytes.Length - 1);
 			}
 		}
+
+        internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
+        {
+            return new DerSequence(asn1Object);
+        }
     }
 }
