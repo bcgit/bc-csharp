@@ -151,12 +151,12 @@ namespace Org.BouncyCastle.Asn1
          * {@link #getBaseUniversal(boolean, int)} where possible. Before using, check
          * for matching tag {@link #getTagClass() class} and {@link #getTagNo() number}.
          */
-        public Asn1Object GetExplicitBaseObject()
+        public Asn1Encodable GetExplicitBaseObject()
         {
             if (!IsExplicit())
                 throw new InvalidOperationException("object implicit - explicit expected.");
 
-            return obj.ToAsn1Object();
+            return obj;
         }
 
         /**

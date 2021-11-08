@@ -267,7 +267,7 @@ namespace Org.BouncyCastle.Asn1
             switch (tagNo)
             {
             case 0:
-                return encoding.GetExplicitBaseObject();
+                return encoding.GetExplicitBaseObject().ToAsn1Object();
             case 1:
                 return Asn1OctetString.GetInstance(encoding, false);
             case 2:
