@@ -65,6 +65,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal override int EncodedLength(bool withID)
         {
+            // TODO This depends on knowing it's BER
             byte[] encoded = GetContents();
             if (encoded != null)
             {
@@ -76,11 +77,18 @@ namespace Org.BouncyCastle.Asn1
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            byte[] encoded = GetContents();
-            if (encoded != null)
+            if (asn1Out.IsBer)
             {
-                asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, encoded);
-                return;
+                byte[] encoded = GetContents();
+                if (encoded != null)
+                {
+                    asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, encoded);
+                    return;
+                }
+            }
+            else
+            {
+                Force();
             }
 
             base.Encode(asn1Out, withID);
