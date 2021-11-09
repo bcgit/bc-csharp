@@ -143,14 +143,14 @@ namespace Org.BouncyCastle.Asn1
             return new Asn1InputStream(defIn, remaining, tmpBuffers).ReadVector();
         }
 
-        internal virtual DerSequence CreateDLSequence(DefiniteLengthInputStream dIn)
+        internal virtual Asn1Sequence CreateDLSequence(DefiniteLengthInputStream defIn)
         {
-            return DerSequence.FromVector(ReadVector(dIn));
+            return DerSequence.FromVector(ReadVector(defIn));
         }
 
-        internal virtual DerSet CreateDLSet(DefiniteLengthInputStream dIn)
+        internal virtual Asn1Set CreateDLSet(DefiniteLengthInputStream defIn)
         {
-            return DerSet.FromVector(ReadVector(dIn), false);
+            return DerSet.FromVector(ReadVector(defIn), false);
         }
 
         public Asn1Object ReadObject()

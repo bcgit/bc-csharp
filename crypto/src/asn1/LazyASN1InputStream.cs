@@ -21,14 +21,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override DerSequence CreateDLSequence(DefiniteLengthInputStream dIn)
+        internal override Asn1Sequence CreateDLSequence(DefiniteLengthInputStream defIn)
         {
-            return new LazyDLSequence(dIn.ToArray());
+            return new LazyDLSequence(defIn.ToArray());
         }
 
-        internal override DerSet CreateDLSet(DefiniteLengthInputStream dIn)
+        internal override Asn1Set CreateDLSet(DefiniteLengthInputStream defIn)
         {
-            return new LazyDLSet(dIn.ToArray());
+            return new LazyDLSet(defIn.ToArray());
         }
 
         internal override Asn1EncodableVector ReadVector(DefiniteLengthInputStream defIn)
