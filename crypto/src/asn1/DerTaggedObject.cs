@@ -64,25 +64,33 @@ namespace Org.BouncyCastle.Asn1
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-		{
-			byte[] bytes = obj.GetDerEncoded();
+        {
+            byte[] bytes = obj.GetDerEncoded();
 
-			if (explicitly)
-			{
-				asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | TagClass, TagNo, bytes);
-			}
-			else
-			{
+            if (explicitly)
+            {
+                asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | TagClass, TagNo, bytes);
+            }
+            else
+            {
+                int tagHdr = bytes[0], tagLen = 1;
+                if ((tagHdr & 0x1F) == 0x1F)
+                {
+                    while ((bytes[tagLen++] & 0x80) != 0)
+                    {
+                    }
+                }
+
                 if (withID)
                 {
-                    // need to mark constructed types... (preserve Constructed tag)
-                    int flags = (bytes[0] & Asn1Tags.Constructed) | TagClass;
+                    int flags = (tagHdr & Asn1Tags.Constructed) | TagClass;
+
                     asn1Out.WriteIdentifier(true, flags, TagNo);
                 }
 
-                asn1Out.Write(bytes, 1, bytes.Length - 1);
-			}
-		}
+                asn1Out.Write(bytes, tagLen, bytes.Length - tagLen);
+            }
+        }
 
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
         {
