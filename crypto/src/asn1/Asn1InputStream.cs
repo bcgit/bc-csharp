@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.Set:
                 return CreateDLSet(defIn);
             case Asn1Tags.External:
-                return new DerExternal(ReadVector(defIn));                
+                return DerSequence.FromVector(ReadVector(defIn)).ToAsn1External();
             default:
                 throw new IOException("unknown tag " + tagNo + " encountered");
             }
