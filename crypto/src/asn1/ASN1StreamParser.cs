@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Asn1
 
 			return v.Count == 1
 				?   new DerTaggedObject(true, tag, v[0])
-				:   new DerTaggedObject(false, tag, DerSequence.FromVector(v));
+				:   new DerTaggedObject(false, tag, DLSequence.FromVector(v));
 		}
 
 		public virtual IAsn1Convertible ReadObject()
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Asn1
 			if (tag == -1)
 				return null;
 
-			// turn of looking for "00" while we resolve the tag
+			// turn off looking for "00" while we resolve the tag
 			Set00Check(false);
 
 			//

@@ -10,9 +10,6 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1Sequence
         : Asn1Object, IEnumerable
     {
-        // NOTE: Only non-readonly to support LazyDerSequence
-        internal Asn1Encodable[] elements;
-
         /**
          * return an Asn1Sequence from the given object.
          *
@@ -57,48 +54,42 @@ namespace Org.BouncyCastle.Asn1
          * dealing with implicitly tagged sequences you really <b>should</b>
          * be using this method.
          *
-         * @param obj the tagged object.
-         * @param explicitly true if the object is meant to be explicitly tagged,
+         * @param taggedObject the tagged object.
+         * @param declaredExplicit true if the object is meant to be explicitly tagged,
          *          false otherwise.
          * @exception ArgumentException if the tagged object cannot
          *          be converted.
          */
-        public static Asn1Sequence GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static Asn1Sequence GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object inner = obj.GetObject();
+            Asn1Object baseObject = taggedObject.GetObject();
 
-            if (explicitly)
+            if (declaredExplicit)
             {
-                if (!obj.IsExplicit())
+                if (!taggedObject.IsExplicit())
                     throw new ArgumentException("object implicit - explicit expected.");
 
-                return (Asn1Sequence) inner;
+                return (Asn1Sequence)baseObject;
             }
 
-            //
-            // constructed object which appears to be explicitly tagged
-            // when it should be implicit means we have to add the
-            // surrounding sequence.
-            //
-            if (obj.IsExplicit())
+            // If parsed as explicit though declared implicit, it should have been a sequence of one
+            if (taggedObject.IsExplicit())
             {
-                if (obj is BerTaggedObject)
-                {
-                    return new BerSequence(inner);
-                }
+                if (taggedObject is BerTaggedObject)
+                    return new BerSequence(baseObject);
 
-                return new DerSequence(inner);
+                return new DLSequence(baseObject);
             }
 
-            if (inner is Asn1Sequence)
-            {
-                return (Asn1Sequence) inner;
-            }
+            if (baseObject is Asn1Sequence)
+                return (Asn1Sequence)baseObject;
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(taggedObject),
+                "taggedObject");
         }
+
+        // NOTE: Only non-readonly to support LazyDLSequence
+        internal Asn1Encodable[] elements;
 
         protected internal Asn1Sequence()
         {
@@ -286,5 +277,7 @@ namespace Org.BouncyCastle.Asn1
         internal abstract DerExternal ToAsn1External();
 
         internal abstract Asn1OctetString ToAsn1OctetString();
+
+        internal abstract Asn1Set ToAsn1Set();
     }
 }

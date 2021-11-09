@@ -57,6 +57,11 @@ namespace Org.BouncyCastle.Asn1
             get { return true; }
         }
 
+        internal virtual bool IsDer
+        {
+            get { return false; }
+        }
+
         internal void WriteDL(int length)
         {
             if (length < 128)

@@ -519,6 +519,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\DLSequence.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\DLSet.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\IAsn1ApplicationSpecificParser.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

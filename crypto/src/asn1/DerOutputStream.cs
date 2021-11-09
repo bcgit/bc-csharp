@@ -39,6 +39,11 @@ namespace Org.BouncyCastle.Asn1
             get { return false; }
         }
 
+        internal override bool IsDer
+        {
+            get { return true; }
+        }
+
         internal override void WritePrimitive(Asn1Object primitive, bool withID)
         {
             Asn1Set asn1Set = primitive as Asn1Set;

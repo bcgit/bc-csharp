@@ -5,7 +5,7 @@ using System.IO;
 namespace Org.BouncyCastle.Asn1
 {
     internal class LazyDLSequence
-        : DerSequence
+        : DLSequence
     {
         private byte[] encoded;
 

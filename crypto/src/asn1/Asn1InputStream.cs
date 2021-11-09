@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.Set:
                 return CreateDLSet(defIn);
             case Asn1Tags.External:
-                return DerSequence.FromVector(ReadVector(defIn)).ToAsn1External();
+                return DLSequence.FromVector(ReadVector(defIn)).ToAsn1External();
             default:
                 throw new IOException("unknown tag " + tagNo + " encountered");
             }
@@ -145,12 +145,12 @@ namespace Org.BouncyCastle.Asn1
 
         internal virtual Asn1Sequence CreateDLSequence(DefiniteLengthInputStream defIn)
         {
-            return DerSequence.FromVector(ReadVector(defIn));
+            return DLSequence.FromVector(ReadVector(defIn));
         }
 
         internal virtual Asn1Set CreateDLSet(DefiniteLengthInputStream defIn)
         {
-            return DerSet.FromVector(ReadVector(defIn), false);
+            return DLSet.FromVector(ReadVector(defIn));
         }
 
         public Asn1Object ReadObject()

@@ -5,7 +5,7 @@ using System.IO;
 namespace Org.BouncyCastle.Asn1
 {
     internal class LazyDLSet
-        : DerSet
+        : DLSet
     {
         private byte[] encoded;
 
@@ -106,6 +106,7 @@ namespace Org.BouncyCastle.Asn1
                         Asn1EncodableVector v = input.ReadVector();
 
                         this.elements = v.TakeElements();
+                        this.isSorted = elements.Length < 2;
                         this.encoded = null;
                     }
                     catch (IOException e)

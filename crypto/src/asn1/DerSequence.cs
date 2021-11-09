@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Asn1
             MemoryStream bOut = new MemoryStream();
             Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Der);
             dOut.WriteElements(elements);
-            dOut.Flush();
+            dOut.FlushInternal();
 
 #if PORTABLE
             byte[] bytes = bOut.ToArray();
@@ -102,6 +102,12 @@ namespace Org.BouncyCastle.Asn1
         internal override Asn1OctetString ToAsn1OctetString()
         {
             return new DerOctetString(BerOctetString.FlattenOctetStrings(GetConstructedOctetStrings()));
+        }
+
+        internal override Asn1Set ToAsn1Set()
+        {
+            // NOTE: DLSet is intentional, we don't want sorting
+            return new DLSet(false, elements);
         }
     }
 }

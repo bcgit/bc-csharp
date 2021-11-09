@@ -18,11 +18,6 @@ namespace Org.BouncyCastle.Asn1
             return elementVector.Count < 1 ? Empty : new DerSet(elementVector);
 		}
 
-		internal static DerSet FromVector(Asn1EncodableVector elementVector, bool needsSorting)
-		{
-            return elementVector.Count < 1 ? Empty : new DerSet(elementVector, needsSorting);
-		}
-
 		/**
 		 * create an empty set
 		 */
@@ -39,28 +34,33 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		public DerSet(params Asn1Encodable[] elements)
-			: base(elements)
+        public DerSet(params Asn1Encodable[] elements)
+            : base(elements, true)
+        {
+        }
+
+        internal DerSet(Asn1Encodable[] elements, bool doSort)
+			: base(elements, doSort)
 		{
-			Sort();
 		}
 
 		/**
 		 * @param v - a vector of objects making up the set.
 		 */
 		public DerSet(Asn1EncodableVector elementVector)
-			: this(elementVector, true)
+			: base(elementVector, true)
 		{
 		}
 
-		internal DerSet(Asn1EncodableVector	elementVector, bool needsSorting)
-			: base(elementVector)
+		internal DerSet(Asn1EncodableVector	elementVector, bool doSort)
+			: base(elementVector, doSort)
 		{
-			if (needsSorting)
-			{
-				Sort();
-			}
 		}
+
+        internal DerSet(bool isSorted, Asn1Encodable[] elements)
+            : base(isSorted, elements)
+        {
+        }
 
         internal override int EncodedLength(bool withID)
         {
@@ -83,11 +83,22 @@ namespace Org.BouncyCastle.Asn1
                 return;
             }
 
+            if (!isSorted)
+            {
+                new DerSet(elements, true).ImplEncode(asn1Out, withID);
+                return;
+            }
+
+            ImplEncode(asn1Out, withID);
+        }
+
+        private void ImplEncode(Asn1OutputStream asn1Out, bool withID)
+        {
             // TODO Intermediate buffer could be avoided if we could calculate expected length
             MemoryStream bOut = new MemoryStream();
             Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Der);
             dOut.WriteElements(elements);
-            dOut.Flush();
+            dOut.FlushInternal();
 
 #if PORTABLE
             byte[] bytes = bOut.ToArray();
