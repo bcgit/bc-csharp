@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Asn1
                     Asn1StreamParser sub = new Asn1StreamParser(defIn, defIn.Remaining, tmpBuffers);
 
                     if (Asn1Tags.Application == tagClass)
-                        return (DerApplicationSpecific)sub.ReadTaggedObject(tagClass, tagNo, isConstructed);
+                        return (DLApplicationSpecific)sub.ReadTaggedObject(tagClass, tagNo, isConstructed);
 
                     return new BerTaggedObjectParser(tagClass, tagNo, isConstructed, sub);
                 }
