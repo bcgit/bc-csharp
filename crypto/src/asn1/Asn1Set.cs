@@ -259,7 +259,7 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Object o1 = this.elements[i].ToAsn1Object();
                 Asn1Object o2 = that.elements[i].ToAsn1Object();
 
-                if (o1 != o2 && !o1.CallAsn1Equals(o2))
+                if (!o1.Equals(o2))
                     return false;
             }
 

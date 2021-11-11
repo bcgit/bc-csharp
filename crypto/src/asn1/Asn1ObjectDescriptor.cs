@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Asn1
         {
             Asn1ObjectDescriptor that = asn1Object as Asn1ObjectDescriptor;
             return null != that
-                && this.m_baseGraphicString.CallAsn1Equals(that.m_baseGraphicString);
+                && this.m_baseGraphicString.Equals(that.m_baseGraphicString);
         }
 
         internal static Asn1ObjectDescriptor CreatePrimitive(byte[] contents)

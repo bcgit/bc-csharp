@@ -20,6 +20,11 @@ namespace Org.BouncyCastle.Asn1
             asn1Out.FlushInternal();
         }
 
+        public bool Equals(Asn1Object other)
+        {
+            return this == other || Asn1Equals(other);
+        }
+
         /// <summary>Create a base ASN.1 object from a byte array.</summary>
         /// <param name="data">The byte array to parse.</param>
         /// <returns>The base ASN.1 object represented by the byte array.</returns>
