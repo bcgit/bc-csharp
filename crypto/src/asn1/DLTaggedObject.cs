@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         internal DLTaggedObject(int tagNo)
-            : base(false, tagNo, BerSequence.Empty)
+            : base(false, tagNo, DLSequence.Empty)
         {
         }
 
@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
         {
-            return new BerSequence(asn1Object);
+            return new DLSequence(asn1Object);
         }
 
         private int GetContentsLengthDL(Asn1Object baseObject, bool withBaseID)
