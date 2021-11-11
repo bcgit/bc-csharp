@@ -43,20 +43,5 @@ namespace Org.BouncyCastle.Asn1
         {
             get { return EncodingDer; }
         }
-
-        internal override void WritePrimitive(Asn1Object primitive, bool withID)
-        {
-            Asn1Set asn1Set = primitive as Asn1Set;
-            if (null != asn1Set)
-            {
-                /*
-                 * NOTE: Even a DerSet isn't necessarily already in sorted order (particularly from DerSetParser),
-                 * so all sets have to be converted here.
-                 */
-                primitive = new DerSet(asn1Set.elements);
-            }
-
-            primitive.Encode(this, withID);
-        }
     }
 }
