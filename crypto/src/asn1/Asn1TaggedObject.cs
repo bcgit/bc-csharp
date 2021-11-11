@@ -284,6 +284,38 @@ namespace Org.BouncyCastle.Asn1
 
         internal abstract Asn1Sequence RebuildConstructed(Asn1Object asn1Object);
 
+        internal static Asn1Object CreateConstructed(int tagClass, int tagNo, bool isIL,
+            Asn1EncodableVector contentsElements)
+        {
+            bool maybeExplicit = (contentsElements.Count == 1);
+
+            if (isIL)
+            {
+                if (Asn1Tags.Application == tagClass)
+                    return new BerApplicationSpecific(tagNo, contentsElements);
+
+                return maybeExplicit
+                    ? new BerTaggedObject(true, tagNo, contentsElements[0])
+                    : new BerTaggedObject(false, tagNo, BerSequence.FromVector(contentsElements));
+            }
+
+            if (Asn1Tags.Application == tagClass)
+                return new DerApplicationSpecific(tagNo, contentsElements);
+
+            return maybeExplicit
+                ? new DLTaggedObject(true, tagNo, contentsElements[0])
+                : new DLTaggedObject(false, tagNo, DLSequence.FromVector(contentsElements));
+        }
+
+        internal static Asn1Object CreatePrimitive(int tagClass, int tagNo, byte[] contentsOctets)
+        {
+            // Note: !CONSTRUCTED => IMPLICIT
+            if (Asn1Tags.Application == tagClass)
+                return new DerApplicationSpecific(false, tagNo, contentsOctets);
+
+            return new DLTaggedObject(false, tagNo, new DerOctetString(contentsOctets));
+        }
+
         private static Asn1TaggedObject CheckedCast(Asn1Object asn1Object)
         {
             Asn1TaggedObject taggedObject = asn1Object as Asn1TaggedObject;

@@ -98,33 +98,13 @@ namespace Org.BouncyCastle.Asn1
             if (!constructed)
 			{
                 // Note: !CONSTRUCTED => IMPLICIT
-                DefiniteLengthInputStream defIn = (DefiniteLengthInputStream)_in;
-                byte[] contentsOctets = defIn.ToArray();
-
-                if (Asn1Tags.Application == tagClass)
-                    return new DerApplicationSpecific(false, tagNo, contentsOctets);
-
-                return new DLTaggedObject(false, tagNo, new DerOctetString(contentsOctets));
+                byte[] contentsOctets = ((DefiniteLengthInputStream)_in).ToArray();
+                return Asn1TaggedObject.CreatePrimitive(tagClass, tagNo, contentsOctets);
 			}
 
-			Asn1EncodableVector contentsElements = ReadVector();
-
-			if (_in is IndefiniteLengthInputStream)
-			{
-                if (Asn1Tags.Application == tagClass)
-                    return new BerApplicationSpecific(tagNo, contentsElements);
-
-                return contentsElements.Count == 1
-					?   new BerTaggedObject(true, tagNo, contentsElements[0])
-					:   new BerTaggedObject(false, tagNo, BerSequence.FromVector(contentsElements));
-			}
-
-            if (Asn1Tags.Application == tagClass)
-                return new DerApplicationSpecific(tagNo, contentsElements);
-
-            return contentsElements.Count == 1
-				?   new DLTaggedObject(true, tagNo, contentsElements[0])
-				:   new DLTaggedObject(false, tagNo, DLSequence.FromVector(contentsElements));
+            bool isIL = (_in is IndefiniteLengthInputStream);
+            Asn1EncodableVector contentsElements = ReadVector();
+            return Asn1TaggedObject.CreateConstructed(tagClass, tagNo, isIL, contentsElements);
 		}
 
 		public virtual IAsn1Convertible ReadObject()

@@ -107,23 +107,13 @@ namespace Org.BouncyCastle.Asn1
         {
             if (!constructed)
             {
-                // Note: !CONSTRUCTED => IMPLICIT
                 byte[] contentsOctets = defIn.ToArray();
-
-                if (Asn1Tags.Application == tagClass)
-                    return new DerApplicationSpecific(false, tagNo, contentsOctets);
-
-                return new DLTaggedObject(false, tagNo, new DerOctetString(contentsOctets));
+                return Asn1TaggedObject.CreatePrimitive(tagClass, tagNo, contentsOctets);
             }
 
+            bool isIL = false;
             Asn1EncodableVector contentsElements = ReadVector(defIn);
-
-            if (Asn1Tags.Application == tagClass)
-                return new DerApplicationSpecific(tagNo, contentsElements);
-
-            return contentsElements.Count == 1
-                ? new DLTaggedObject(true, tagNo, contentsElements[0])
-                : new DLTaggedObject(false, tagNo, DLSequence.FromVector(contentsElements));
+            return Asn1TaggedObject.CreateConstructed(tagClass, tagNo, isIL, contentsElements);
         }
 
         internal virtual Asn1EncodableVector ReadVector()
