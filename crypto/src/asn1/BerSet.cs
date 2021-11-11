@@ -48,14 +48,25 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            throw Platform.CreateNotImplementedException("BerSet.EncodedLength");
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodedLength(encoding, withID);
+
+            int totalLength = withID ? 4 : 3;
+
+            for (int i = 0, count = elements.Length; i < count; ++i)
+            {
+                Asn1Object asn1Object = elements[i].ToAsn1Object();
+                totalLength += asn1Object.EncodedLength(encoding, true);
+            }
+
+            return totalLength;
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            if (!asn1Out.IsBer)
+            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
             {
                 base.Encode(asn1Out, withID);
                 return;

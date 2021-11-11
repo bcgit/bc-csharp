@@ -120,49 +120,57 @@ namespace Org.BouncyCastle.Asn1
 			return GetEnumerator();
 		}
 
-        internal override bool EncodeConstructed()
+        internal override bool EncodeConstructed(int encoding)
         {
-            // NOTE: Assumes BER encoding
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodeConstructed(encoding);
+
             return null != elements || contents.Length > segmentLimit;
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            throw Platform.CreateNotImplementedException("BerOctetString.EncodedLength");
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodedLength(encoding, withID);
 
-            // TODO This depends on knowing it's not DER
-            //if (!EncodeConstructed())
-            //    return EncodedLength(withID, contents.Length);
+            if (!EncodeConstructed(encoding))
+                return EncodedLength(withID, contents.Length);
 
-            //int totalLength = withID ? 4 : 3;
+            int totalLength = withID ? 4 : 3;
 
-            //if (null != elements)
-            //{
-            //    for (int i = 0; i < elements.Length; ++i)
-            //    {
-            //        totalLength += elements[i].EncodedLength(true);
-            //    }
-            //}
-            //else
-            //{
-            //    int fullSegments = contents.Length / segmentLimit;
-            //    totalLength += fullSegments * EncodedLength(true, segmentLimit);
+            if (null != elements)
+            {
+                for (int i = 0; i < elements.Length; ++i)
+                {
+                    totalLength += elements[i].EncodedLength(encoding, true);
+                }
+            }
+            else
+            {
+                int fullSegments = contents.Length / segmentLimit;
+                totalLength += fullSegments * EncodedLength(true, segmentLimit);
 
-            //    int lastSegmentLength = contents.Length - (fullSegments * segmentLimit);
-            //    if (lastSegmentLength > 0)
-            //    {
-            //        totalLength += EncodedLength(true, lastSegmentLength);
-            //    }
-            //}
+                int lastSegmentLength = contents.Length - (fullSegments * segmentLimit);
+                if (lastSegmentLength > 0)
+                {
+                    totalLength += EncodedLength(true, lastSegmentLength);
+                }
+            }
 
-            //return totalLength;
+            return totalLength;
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            if (!asn1Out.IsBer || !EncodeConstructed())
+            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
             {
                 base.Encode(asn1Out, withID);
+                return;
+            }
+
+            if (!EncodeConstructed(asn1Out.Encoding))
+            {
+                Encode(asn1Out, withID, contents, 0, contents.Length);
                 return;
             }
 

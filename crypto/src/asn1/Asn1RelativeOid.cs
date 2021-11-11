@@ -110,12 +110,12 @@ namespace Org.BouncyCastle.Asn1
             return identifier.GetHashCode();
         }
 
-        internal override bool EncodeConstructed()
+        internal override bool EncodeConstructed(int encoding)
         {
             return false;
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, GetContents().Length);
         }

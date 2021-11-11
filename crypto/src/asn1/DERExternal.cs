@@ -155,15 +155,15 @@ namespace Org.BouncyCastle.Asn1
             return new DerSequence(v);
         }
 
-        internal override bool EncodeConstructed()
+        internal override bool EncodeConstructed(int encoding)
         {
-            //return BuildSequence().EncodeConstructed();
+            //return BuildSequence().EncodeConstructed(encoding);
             return true;
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            return BuildSequence().EncodedLength(withID);
+            return BuildSequence().EncodedLength(encoding, withID);
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)

@@ -68,15 +68,15 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1Set GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object baseObject = taggedObject.GetObject();
-
             if (declaredExplicit)
             {
                 if (!taggedObject.IsExplicit())
                     throw new ArgumentException("object implicit - explicit expected.");
 
-                return (Asn1Set)baseObject;
+                return GetInstance(taggedObject.GetObject());
             }
+
+            Asn1Object baseObject = taggedObject.GetObject();
 
             // If parsed as explicit though declared implicit, it should have been a set of one
             if (taggedObject.IsExplicit())
@@ -266,7 +266,7 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
-        internal override bool EncodeConstructed()
+        internal override bool EncodeConstructed(int encoding)
         {
             return true;
         }
@@ -276,7 +276,18 @@ namespace Org.BouncyCastle.Asn1
             return CollectionUtilities.ToString(elements);
         }
 
-        private static Asn1Encodable[] Sort(Asn1Encodable[] elements)
+        internal int CalculateContentsLength(int encoding)
+        {
+            int contentsLength = 0;
+            for (int i = 0, count = elements.Length; i < count; ++i)
+            {
+                Asn1Object asn1Object = elements[i].ToAsn1Object();
+                contentsLength += asn1Object.EncodedLength(encoding, true);
+            }
+            return contentsLength;
+        }
+
+        internal static Asn1Encodable[] Sort(Asn1Encodable[] elements)
         {
             int count = elements.Length;
             if (count < 2)

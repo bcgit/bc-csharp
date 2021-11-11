@@ -163,12 +163,12 @@ namespace Org.BouncyCastle.Asn1
 			return FromByteArray(tmp);
 		}
 
-        internal override bool EncodeConstructed()
+        internal override bool EncodeConstructed(int encoding)
         {
-            throw Platform.CreateNotImplementedException("DerApplicationSpecific.EncodeConstructed");
+            return isConstructed;
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, tag, octets.Length);
         }

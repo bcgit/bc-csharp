@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Asn1
     public class Asn1OutputStream
         : DerOutputStream
     {
+        internal const int EncodingBer = 1;
+        internal const int EncodingDer = 2;
+
         public static Asn1OutputStream Create(Stream output)
         {
             return new Asn1OutputStream(output);
@@ -52,14 +55,14 @@ namespace Org.BouncyCastle.Asn1
             // Placeholder to support future internal buffering
         }
 
-        internal virtual bool IsBer
+        internal virtual DerOutputStreamNew GetDerSubStream()
         {
-            get { return true; }
+            return new DerOutputStreamNew(s);
         }
 
-        internal virtual bool IsDer
+        internal virtual int Encoding
         {
-            get { return false; }
+            get { return EncodingBer; }
         }
 
         internal void WriteDL(int length)

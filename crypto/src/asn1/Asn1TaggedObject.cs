@@ -198,17 +198,6 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-         * Return true if the object is marked as constructed, false otherwise.
-         *
-         * @return true if constructed, otherwise false.
-         */
-        // TODO Need this public if/when DerApplicationSpecific extends Asn1TaggedObject
-        internal bool IsConstructed()
-        {
-            return EncodeConstructed();
-        }
-
-        /**
          * return whatever was following the tag.
          * <p>
          * Note: tagged objects are generally context dependent if you're

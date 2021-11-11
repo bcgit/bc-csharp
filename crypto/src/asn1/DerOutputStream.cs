@@ -34,14 +34,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override bool IsBer
+        internal override DerOutputStreamNew GetDerSubStream()
         {
-            get { return false; }
+            return this;
         }
 
-        internal override bool IsDer
+        internal override int Encoding
         {
-            get { return true; }
+            get { return EncodingDer; }
         }
 
         internal override void WritePrimitive(Asn1Object primitive, bool withID)

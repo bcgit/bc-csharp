@@ -1,7 +1,4 @@
 ﻿using System;
-using System.IO;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -14,6 +11,8 @@ namespace Org.BouncyCastle.Asn1
         {
             return elementVector.Count < 1 ? Empty : new DLSequence(elementVector);
         }
+
+        private int m_contentsLengthDL = -1;
 
         /**
 		 * create an empty sequence
@@ -49,48 +48,73 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            throw Platform.CreateNotImplementedException("DLSequence.EncodedLength");
+            if (Asn1OutputStream.EncodingDer == encoding)
+                return base.EncodedLength(encoding, withID);
+
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, GetContentsLengthDL());
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            if (asn1Out.IsDer)
+            if (Asn1OutputStream.EncodingDer == asn1Out.Encoding)
             {
                 base.Encode(asn1Out, withID);
                 return;
             }
 
-            if (Count < 1)
+            // TODO[asn1] Use DL encoding when supported
+            //asn1Out = asn1Out.GetDLSubStream();
+
+            asn1Out.WriteIdentifier(withID, Asn1Tags.Constructed | Asn1Tags.Sequence);
+
+            int count = elements.Length;
+            if (m_contentsLengthDL >= 0 || count > 16)
             {
-                asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, Asn1OctetString.EmptyOctets);
-                return;
+                asn1Out.WriteDL(GetContentsLengthDL());
+
+                for (int i = 0; i < count; ++i)
+                {
+                    Asn1Object asn1Object = elements[i].ToAsn1Object();
+                    asn1Object.Encode(asn1Out, true);
+                }
             }
+            else
+            {
+                int contentsLength = 0;
 
-            // TODO Intermediate buffer could be avoided if we could calculate expected length
-            MemoryStream bOut = new MemoryStream();
-            // TODO Once DLOutputStream exists, this should create one
-            Asn1OutputStream dOut = Asn1OutputStream.Create(bOut);
-            dOut.WriteElements(elements);
-            dOut.FlushInternal();
+                Asn1Object[] asn1Objects = new Asn1Object[count];
+                for (int i = 0; i < count; ++i)
+                {
+                    Asn1Object asn1Object = elements[i].ToAsn1Object();
+                    asn1Objects[i] = asn1Object;
+                    contentsLength += asn1Object.EncodedLength(asn1Out.Encoding, true);
+                }
 
-#if PORTABLE
-            byte[] bytes = bOut.ToArray();
-            int length = bytes.Length;
-#else
-            byte[] bytes = bOut.GetBuffer();
-            int length = (int)bOut.Position;
-#endif
+                this.m_contentsLengthDL = contentsLength;
+                asn1Out.WriteDL(contentsLength);
 
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, bytes, 0, length);
-
-            Platform.Dispose(dOut);
+                for (int i = 0; i < count; ++i)
+                {
+                    asn1Objects[i].Encode(asn1Out, true);
+                }
+            }
         }
 
         internal override Asn1Set ToAsn1Set()
         {
             return new DLSet(false, elements);
+        }
+
+        private int GetContentsLengthDL()
+        {
+            if (m_contentsLengthDL < 0)
+            {
+                // TODO[asn1] Use DL encoding when supported
+                m_contentsLengthDL = CalculateContentsLength(Asn1OutputStream.EncodingBer);
+            }
+            return m_contentsLengthDL;
         }
     }
 }

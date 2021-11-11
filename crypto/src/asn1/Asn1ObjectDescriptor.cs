@@ -78,14 +78,14 @@ namespace Org.BouncyCastle.Asn1
             get { return m_baseGraphicString; }
         }
 
-        internal override bool EncodeConstructed()
+        internal override bool EncodeConstructed(int encoding)
         {
             return false;
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            return m_baseGraphicString.EncodedLength(withID);
+            return m_baseGraphicString.EncodedLength(encoding, withID);
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)

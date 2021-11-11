@@ -58,14 +58,36 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1OctetString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object baseObject = taggedObject.GetObject();
-
-            if (declaredExplicit || baseObject is Asn1OctetString)
+            if (declaredExplicit)
             {
-                return GetInstance(baseObject);
+                if (!taggedObject.IsExplicit())
+                    throw new ArgumentException("object implicit - explicit expected.");
+
+                return GetInstance(taggedObject.GetObject());
             }
 
-            return BerOctetString.FromSequence(Asn1Sequence.GetInstance(baseObject));
+            Asn1Object baseObject = taggedObject.GetObject();
+
+            // If parsed as explicit though declared implicit, it should have been a set of one
+            if (taggedObject.IsExplicit())
+            {
+                Asn1OctetString singleSegment = GetInstance(baseObject);
+
+                if (taggedObject is BerTaggedObject)
+                    return new BerOctetString(new Asn1OctetString[]{ singleSegment });
+
+                return singleSegment;
+            }
+
+            if (baseObject is Asn1OctetString)
+                return (Asn1OctetString)baseObject;
+
+            // Parser assumes implicit constructed encodings are sequences
+            if (baseObject is Asn1Sequence)
+                return ((Asn1Sequence)baseObject).ToAsn1OctetString();
+
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(taggedObject),
+                "taggedObject");
         }
 
         internal readonly byte[] contents;

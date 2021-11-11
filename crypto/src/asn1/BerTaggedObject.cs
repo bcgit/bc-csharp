@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -52,75 +49,67 @@ namespace Org.BouncyCastle.Asn1
             get { return Ber; }
         }
 
-        internal override bool EncodeConstructed()
+        internal override bool EncodeConstructed(int encoding)
         {
-            throw Platform.CreateNotImplementedException("BerTaggedObject.EncodeConstructed");
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodeConstructed(encoding);
 
-            // TODO This depends on knowing it's not DER
-            //return IsExplicit() || obj.ToAsn1Object().EncodeConstructed();
+            return IsExplicit() || GetBaseObject().ToAsn1Object().EncodeConstructed(encoding);
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            throw Platform.CreateNotImplementedException("BerTaggedObject.EncodedLength");
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodedLength(encoding, withID);
+
+            Asn1Object baseObject = GetBaseObject().ToAsn1Object();
+            bool withBaseID = IsExplicit();
+
+            int length = baseObject.EncodedLength(encoding, withBaseID);
+
+            if (withBaseID)
+            {
+                length += 3;
+            }
+
+            length += withID ? Asn1OutputStream.GetLengthOfIdentifier(TagNo) : 0;
+
+            return length;
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
-			if (asn1Out.IsBer)
-			{
-                if (withID)
+            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
+            {
+                base.Encode(asn1Out, withID);
+                return;
+            }
+
+            Asn1Object baseObject = GetBaseObject().ToAsn1Object();
+            bool withBaseID = IsExplicit();
+
+            if (withID)
+            {
+                int flags = TagClass;
+                if (withBaseID || baseObject.EncodeConstructed(asn1Out.Encoding))
                 {
-                    asn1Out.WriteIdentifier(true, Asn1Tags.Constructed | TagClass, TagNo);
+                    flags |= Asn1Tags.Constructed;
                 }
 
+                asn1Out.WriteIdentifier(true, flags, TagNo);
+            }
+
+            if (withBaseID)
+            {
                 asn1Out.WriteByte(0x80);
-
-				if (!explicitly)
-				{
-					IEnumerable eObj;
-					if (obj is Asn1OctetString)
-					{
-						if (obj is BerOctetString)
-						{
-							eObj = (BerOctetString) obj;
-						}
-						else
-						{
-							Asn1OctetString octs = (Asn1OctetString)obj;
-							eObj = new BerOctetString(octs.GetOctets());
-						}
-					}
-					else if (obj is Asn1Sequence)
-					{
-						eObj = (Asn1Sequence) obj;
-					}
-					else if (obj is Asn1Set)
-					{
-						eObj = (Asn1Set) obj;
-					}
-					else
-					{
-						throw Platform.CreateNotImplementedException(Platform.GetTypeName(obj));
-					}
-
-					foreach (Asn1Encodable o in eObj)
-					{
-						asn1Out.WritePrimitive(o.ToAsn1Object(), true);
-					}
-				}
-				else
-				{
-					asn1Out.WritePrimitive(obj.ToAsn1Object(), true);
-				}
-
-				asn1Out.WriteByte(0x00);
-				asn1Out.WriteByte(0x00);
-			}
-			else
-			{
-				base.Encode(asn1Out, withID);
-			}
+                baseObject.Encode(asn1Out, true);
+                asn1Out.WriteByte(0x00);
+                asn1Out.WriteByte(0x00);
+            }
+            else
+            {
+                baseObject.Encode(asn1Out, false);
+            }
 		}
 
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)

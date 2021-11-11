@@ -1,7 +1,4 @@
 using System;
-using System.IO;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -15,10 +12,12 @@ namespace Org.BouncyCastle.Asn1
             return elementVector.Count < 1 ? Empty : new DerSequence(elementVector);
 		}
 
-		/**
+        private int m_contentsLengthDer = -1;
+
+        /**
 		 * create an empty sequence
 		 */
-		public DerSequence()
+        public DerSequence()
 			: base()
 		{
 		}
@@ -49,9 +48,9 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            throw Platform.CreateNotImplementedException("DerSequence.EncodedLength");
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, GetContentsLengthDer());
         }
 
         /*
@@ -64,29 +63,41 @@ namespace Org.BouncyCastle.Asn1
 		 */
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            if (Count < 1)
+            asn1Out = asn1Out.GetDerSubStream();
+
+            asn1Out.WriteIdentifier(withID, Asn1Tags.Constructed | Asn1Tags.Sequence);
+
+            int count = elements.Length;
+            if (m_contentsLengthDer >= 0 || count > 16)
             {
-                asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, Asn1OctetString.EmptyOctets);
-                return;
+                asn1Out.WriteDL(GetContentsLengthDer());
+
+                for (int i = 0; i < count; ++i)
+                {
+                    Asn1Object asn1Object = elements[i].ToAsn1Object();
+                    asn1Object.Encode(asn1Out, true);
+                }
             }
+            else
+            {
+                int contentsLength = 0;
 
-            // TODO Intermediate buffer could be avoided if we could calculate expected length
-            MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Der);
-            dOut.WriteElements(elements);
-            dOut.FlushInternal();
+                Asn1Object[] asn1Objects = new Asn1Object[count];
+                for (int i = 0; i < count; ++i)
+                {
+                    Asn1Object asn1Object = elements[i].ToAsn1Object();
+                    asn1Objects[i] = asn1Object;
+                    contentsLength += asn1Object.EncodedLength(asn1Out.Encoding, true);
+                }
 
-#if PORTABLE
-            byte[] bytes = bOut.ToArray();
-            int length = bytes.Length;
-#else
-            byte[] bytes = bOut.GetBuffer();
-            int length = (int)bOut.Position;
-#endif
+                this.m_contentsLengthDer = contentsLength;
+                asn1Out.WriteDL(contentsLength);
 
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, bytes, 0, length);
-
-            Platform.Dispose(dOut);
+                for (int i = 0; i < count; ++i)
+                {
+                    asn1Objects[i].Encode(asn1Out, true);
+                }
+            }
         }
 
         internal override DerBitString ToAsn1BitString()
@@ -108,6 +119,15 @@ namespace Org.BouncyCastle.Asn1
         {
             // NOTE: DLSet is intentional, we don't want sorting
             return new DLSet(false, elements);
+        }
+
+        private int GetContentsLengthDer()
+        {
+            if (m_contentsLengthDer < 0)
+            {
+                m_contentsLengthDer = CalculateContentsLength(Asn1OutputStream.EncodingDer);
+            }
+            return m_contentsLengthDer;
         }
     }
 }
