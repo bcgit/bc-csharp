@@ -12,13 +12,23 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal DLTaggedObject(bool explicitly, int tagNo, Asn1Encodable obj)
-            : base(explicitly, tagNo, obj)
+        internal DLTaggedObject(int tagClass, int tagNo, Asn1Encodable obj)
+            : base(tagClass, tagNo, obj)
         {
         }
 
-        internal DLTaggedObject(int tagNo)
-            : base(false, tagNo, DLSequence.Empty)
+        internal DLTaggedObject(bool isExplicit, int tagNo, Asn1Encodable obj)
+            : base(isExplicit, tagNo, obj)
+        {
+        }
+
+        internal DLTaggedObject(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
+            : base(isExplicit, tagClass, tagNo, obj)
+        {
+        }
+
+        internal DLTaggedObject(int explicitness, int tagClass, int tagNo, Asn1Encodable obj)
+            : base(explicitness, tagClass, tagNo, obj)
         {
         }
 
@@ -95,6 +105,11 @@ namespace Org.BouncyCastle.Asn1
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
         {
             return new DLSequence(asn1Object);
+        }
+
+        internal override Asn1TaggedObject ReplaceTag(int tagClass, int tagNo)
+        {
+            return new DLTaggedObject(explicitness, tagClass, tagNo, obj);
         }
 
         private int GetContentsLengthDL(Asn1Object baseObject, bool withBaseID)

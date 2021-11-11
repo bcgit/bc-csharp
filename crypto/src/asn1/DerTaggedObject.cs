@@ -13,38 +13,44 @@ namespace Org.BouncyCastle.Asn1
         private int m_contentsLengthDer = -1;
 
         /**
-		 * @param tagNo the tag number for this object.
-		 * @param obj the tagged object.
-		 */
-        public DerTaggedObject(
-			int				tagNo,
-			Asn1Encodable	obj)
-			: base(tagNo, obj)
-		{
-		}
-
-		/**
-		 * @param explicitly true if an explicitly tagged object.
-		 * @param tagNo the tag number for this object.
-		 * @param obj the tagged object.
-		 */
-		public DerTaggedObject(
-			bool			explicitly,
-			int				tagNo,
-			Asn1Encodable	obj)
-			: base(explicitly, tagNo, obj)
-		{
-		}
-
-		/**
 		 * create an implicitly tagged object that contains a zero
 		 * length sequence.
 		 */
-		public DerTaggedObject(
-			int tagNo)
-			: base(false, tagNo, DerSequence.Empty)
+        [Obsolete("Will be removed")]
+        public DerTaggedObject(int tagNo)
+            : base(false, tagNo, DerSequence.Empty)
+        {
+        }
+
+        public DerTaggedObject(int tagNo, Asn1Encodable obj)
+			: base(true, tagNo, obj)
 		{
 		}
+
+        public DerTaggedObject(int tagClass, int tagNo, Asn1Encodable obj)
+            : base(true, tagClass, tagNo, obj)
+        {
+        }
+
+        /**
+		 * @param isExplicit true if an explicitly tagged object.
+		 * @param tagNo the tag number for this object.
+		 * @param obj the tagged object.
+		 */
+        public DerTaggedObject(bool isExplicit, int tagNo, Asn1Encodable obj)
+			: base(isExplicit, tagNo, obj)
+		{
+		}
+
+        public DerTaggedObject(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
+            : base(isExplicit, tagClass, tagNo, obj)
+        {
+        }
+
+        internal DerTaggedObject(int explicitness, int tagClass, int tagNo, Asn1Encodable obj)
+            : base(explicitness, tagClass, tagNo, obj)
+        {
+        }
 
         internal override string Asn1Encoding
         {
@@ -106,6 +112,11 @@ namespace Org.BouncyCastle.Asn1
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
         {
             return new DerSequence(asn1Object);
+        }
+
+        internal override Asn1TaggedObject ReplaceTag(int tagClass, int tagNo)
+        {
+            return new DerTaggedObject(explicitness, tagClass, tagNo, obj);
         }
 
         private int GetContentsLengthDer(Asn1Object baseObject, bool withBaseID)

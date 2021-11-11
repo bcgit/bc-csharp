@@ -10,39 +10,49 @@ namespace Org.BouncyCastle.Asn1
 	public class BerTaggedObject
 		: DerTaggedObject
 	{
-		/**
-		 * @param tagNo the tag number for this object.
-		 * @param obj the tagged object.
-		 */
-		public BerTaggedObject(
-			int				tagNo,
-			Asn1Encodable	obj)
-			: base(tagNo, obj)
-		{
-		}
-
-		/**
-		 * @param explicitly true if an explicitly tagged object.
-		 * @param tagNo the tag number for this object.
-		 * @param obj the tagged object.
-		 */
-		public BerTaggedObject(
-			bool			explicitly,
-			int				tagNo,
-			Asn1Encodable	obj)
-			: base(explicitly, tagNo, obj)
-		{
-		}
-
-		/**
+        /**
 		 * create an implicitly tagged object that contains a zero
 		 * length sequence.
 		 */
-		public BerTaggedObject(
-			int tagNo)
-			: base(false, tagNo, BerSequence.Empty)
+        [Obsolete("Will be removed")]
+        public BerTaggedObject(int tagNo)
+            : base(false, tagNo, BerSequence.Empty)
+        {
+        }
+
+        /**
+		 * @param tagNo the tag number for this object.
+		 * @param obj the tagged object.
+		 */
+        public BerTaggedObject(int tagNo, Asn1Encodable obj)
+			: base(true, tagNo, obj)
 		{
 		}
+
+        public BerTaggedObject(int tagClass, int tagNo, Asn1Encodable obj)
+            : base(true, tagClass, tagNo, obj)
+        {
+        }
+
+        /**
+		 * @param isExplicit true if an explicitly tagged object.
+		 * @param tagNo the tag number for this object.
+		 * @param obj the tagged object.
+		 */
+        public BerTaggedObject(bool isExplicit, int tagNo, Asn1Encodable obj)
+			: base(isExplicit, tagNo, obj)
+		{
+		}
+
+        public BerTaggedObject(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
+            : base(isExplicit, tagClass, tagNo, obj)
+        {
+        }
+
+        internal BerTaggedObject(int explicitness, int tagClass, int tagNo, Asn1Encodable obj)
+            : base(explicitness, tagClass, tagNo, obj)
+        {
+        }
 
         internal override string Asn1Encoding
         {
@@ -115,6 +125,11 @@ namespace Org.BouncyCastle.Asn1
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
         {
             return new BerSequence(asn1Object);
+        }
+
+        internal override Asn1TaggedObject ReplaceTag(int tagClass, int tagNo)
+        {
+            return new BerTaggedObject(explicitness, tagClass, tagNo, obj);
         }
     }
 }

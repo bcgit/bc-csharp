@@ -132,6 +132,7 @@
     <Compile Include="src\asn1\DerUniversalString.cs" />
     <Compile Include="src\asn1\DerVideotexString.cs" />
     <Compile Include="src\asn1\DerVisibleString.cs" />
+    <Compile Include="src\asn1\DLApplicationSpecific.cs" />
     <Compile Include="src\asn1\DLSequence.cs" />
     <Compile Include="src\asn1\DLSet.cs" />
     <Compile Include="src\asn1\DLTaggedObject.cs" />
