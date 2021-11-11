@@ -99,7 +99,7 @@ namespace Org.BouncyCastle.Asn1
 			{
 				// Note: !CONSTRUCTED => IMPLICIT
 				DefiniteLengthInputStream defIn = (DefiniteLengthInputStream)_in;
-				return new DerTaggedObject(false, tag, new DerOctetString(defIn.ToArray()));
+				return new DLTaggedObject(false, tag, new DerOctetString(defIn.ToArray()));
 			}
 
 			Asn1EncodableVector v = ReadVector();
@@ -112,8 +112,8 @@ namespace Org.BouncyCastle.Asn1
 			}
 
 			return v.Count == 1
-				?   new DerTaggedObject(true, tag, v[0])
-				:   new DerTaggedObject(false, tag, DLSequence.FromVector(v));
+				?   new DLTaggedObject(true, tag, v[0])
+				:   new DLTaggedObject(false, tag, DLSequence.FromVector(v));
 		}
 
 		public virtual IAsn1Convertible ReadObject()

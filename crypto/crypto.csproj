@@ -529,6 +529,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\DLTaggedObject.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\IAsn1ApplicationSpecificParser.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

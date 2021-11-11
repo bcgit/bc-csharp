@@ -128,6 +128,7 @@
     <Compile Include="src\asn1\DerVisibleString.cs" />
     <Compile Include="src\asn1\DLSequence.cs" />
     <Compile Include="src\asn1\DLSet.cs" />
+    <Compile Include="src\asn1\DLTaggedObject.cs" />
     <Compile Include="src\asn1\IAsn1ApplicationSpecificParser.cs" />
     <Compile Include="src\asn1\IAsn1Choice.cs" />
     <Compile Include="src\asn1\IAsn1Convertible.cs" />
