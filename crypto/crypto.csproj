@@ -339,6 +339,21 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\ConstructedDLEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\ConstructedILEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\ConstructedLazyDLEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ConstructedOctetStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -554,6 +569,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\IAsn1Encoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\IAsn1String.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -590,6 +610,16 @@
                 />
                 <File
                     RelPath = "src\asn1\OIDTokenizer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\PrimitiveEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\PrimitiveEncodingSuffixed.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

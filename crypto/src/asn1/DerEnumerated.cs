@@ -119,19 +119,14 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Enumerated, bytes);
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, bytes.Length);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.Enumerated, bytes);
+            return new PrimitiveEncoding(tagClass, tagNo, bytes);
         }
 
         protected override bool Asn1Equals(Asn1Object asn1Object)

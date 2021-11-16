@@ -34,11 +34,6 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override DerOutputStreamNew GetDerSubStream()
-        {
-            return this;
-        }
-
         internal override int Encoding
         {
             get { return EncodingDer; }

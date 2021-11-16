@@ -234,16 +234,24 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        /**
-         * Return true if the object is marked as constructed, false otherwise.
-         *
-         * @return true if constructed, otherwise false.
-         */
-        // TODO Need this public if/when DerApplicationSpecific extends Asn1TaggedObject
         internal bool IsConstructed()
         {
-            int encoding = Asn1Encoding == Ber ? Asn1OutputStream.EncodingBer : Asn1OutputStream.EncodingDer;
-            return EncodeConstructed(encoding);
+            switch (explicitness)
+            {
+                case DeclaredImplicit:
+                {
+                    Asn1Object baseObject = obj.ToAsn1Object();
+                    if (baseObject is Asn1Sequence || baseObject is Asn1Set)
+                        return true;
+
+                    Asn1TaggedObject baseTagged = baseObject as Asn1TaggedObject;
+                    return null != baseTagged && baseTagged.IsConstructed();
+                }
+                case ParsedImplicit:
+                    return obj is Asn1Sequence;
+                default:
+                    return true;
+            }
         }
 
         /**

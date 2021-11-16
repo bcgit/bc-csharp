@@ -78,20 +78,14 @@ namespace Org.BouncyCastle.Asn1
             get { return m_baseGraphicString; }
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return m_baseGraphicString.GetEncodingImplicit(encoding, Asn1Tags.Universal, Asn1Tags.ObjectDescriptor);
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return m_baseGraphicString.EncodedLength(encoding, withID);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            asn1Out.WriteIdentifier(withID, Asn1Tags.ObjectDescriptor);
-            m_baseGraphicString.Encode(asn1Out, false);
+            return m_baseGraphicString.GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
         protected override int Asn1GetHashCode()

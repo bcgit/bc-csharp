@@ -216,34 +216,37 @@ namespace Org.BouncyCastle.Asn1
             }
 		}
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
-        }
-
-        internal override int EncodedLength(int encoding, bool withID)
-        {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contents.Length);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-		{
             int padBits = contents[0];
-            int length = contents.Length;
-            int last = length - 1;
-
-            byte lastOctet = contents[last];
-            byte lastOctetDer = (byte)(contents[last] & (0xFF << padBits));
-
-            if (lastOctet == lastOctetDer)
+            if (padBits != 0)
             {
-                asn1Out.WriteEncodingDL(withID, Asn1Tags.BitString, contents);
+                int last = contents.Length - 1;
+                byte lastBer = contents[last];
+                byte lastDer = (byte)(lastBer & (0xFF << padBits));
+
+                if (lastBer != lastDer)
+                    return new PrimitiveEncodingSuffixed(Asn1Tags.Universal, Asn1Tags.BitString, contents, lastDer);
             }
-            else
+
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.BitString, contents);
+        }
+
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
+        {
+            int padBits = contents[0];
+            if (padBits != 0)
             {
-                asn1Out.WriteEncodingDL(withID, Asn1Tags.BitString, contents, 0, last, lastOctetDer);
+                int last = contents.Length - 1;
+                byte lastBer = contents[last];
+                byte lastDer = (byte)(lastBer & (0xFF << padBits));
+
+                if (lastBer != lastDer)
+                    return new PrimitiveEncodingSuffixed(tagClass, tagNo, contents, lastDer);
             }
-		}
+
+            return new PrimitiveEncoding(tagClass, tagNo, contents);
+        }
 
         protected override int Asn1GetHashCode()
 		{
@@ -253,11 +256,11 @@ namespace Org.BouncyCastle.Asn1
             int padBits = contents[0];
             int last = contents.Length - 1;
 
-            byte lastOctetDer = (byte)(contents[last] & (0xFF << padBits));
+            byte lastDer = (byte)(contents[last] & (0xFF << padBits));
 
             int hc = Arrays.GetHashCode(contents, 0, last);
             hc *= 257;
-            hc ^= lastOctetDer;
+            hc ^= lastDer;
             return hc;
         }
 
@@ -283,10 +286,10 @@ namespace Org.BouncyCastle.Asn1
             }
 
             int padBits = thisContents[0];
-            byte thisLastOctetDer = (byte)(thisContents[last] & (0xFF << padBits));
-            byte thatLastOctetDer = (byte)(thatContents[last] & (0xFF << padBits));
+            byte thisLastDer = (byte)(thisContents[last] & (0xFF << padBits));
+            byte thatLastDer = (byte)(thatContents[last] & (0xFF << padBits));
 
-            return thisLastOctetDer == thatLastOctetDer;
+            return thisLastDer == thatLastDer;
         }
 
         public override string GetString()
@@ -305,21 +308,6 @@ namespace Org.BouncyCastle.Asn1
 
 			return buffer.ToString();
 		}
-
-        internal static int EncodedLength(bool withID, int contentsLength)
-        {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contentsLength);
-        }
-
-        internal static void Encode(Asn1OutputStream asn1Out, bool withID, byte[] buf, int off, int len)
-        {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.BitString, buf, off, len);
-        }
-
-        internal static void Encode(Asn1OutputStream asn1Out, bool withID, byte pad, byte[] buf, int off, int len)
-        {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.BitString, pad, buf, off, len);
-        }
 
 		internal static DerBitString CreatePrimitive(byte[] contents)
 		{

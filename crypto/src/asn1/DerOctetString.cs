@@ -21,29 +21,21 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contents.Length);
+            return new PrimitiveEncoding(tagClass, tagNo, contents);
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, contents);
-        }
-
-        internal static void Encode(Asn1OutputStream asn1Out, bool withID, byte[] buf, int off, int len)
+        internal static void Encode(Asn1OutputStream asn1Out, byte[] buf, int off, int len)
 		{
-			asn1Out.WriteEncodingDL(withID, Asn1Tags.OctetString, buf, off, len);
-		}
-
-        internal static int EncodedLength(bool withID, int contentsLength)
-        {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contentsLength);
+            asn1Out.WriteIdentifier(Asn1Tags.Universal, Asn1Tags.OctetString);
+            asn1Out.WriteDL(len);
+            asn1Out.Write(buf, off, len);
         }
     }
 }

@@ -111,90 +111,28 @@ namespace Org.BouncyCastle.Asn1
             this.segmentLimit = DefaultSegmentLimit;
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
             if (Asn1OutputStream.EncodingBer != encoding)
-                return base.EncodeConstructed(encoding);
+                return base.GetEncoding(encoding);
 
-            return null != elements || contents.Length > segmentLimit;
+            if (null == elements)
+                return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.BitString, contents);
+
+            return new ConstructedILEncoding(Asn1Tags.Universal, Asn1Tags.BitString,
+                Asn1OutputStream.GetContentsEncodings(encoding, elements));
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
             if (Asn1OutputStream.EncodingBer != encoding)
-                return base.EncodedLength(encoding, withID);
+                return base.GetEncodingImplicit(encoding, tagClass, tagNo);
 
-            if (!EncodeConstructed(encoding))
-                return EncodedLength(withID, contents.Length);
+            if (null == elements)
+                return new PrimitiveEncoding(tagClass, tagNo, contents);
 
-            int totalLength = withID ? 4 : 3;
-
-            if (null != elements)
-            {
-                for (int i = 0; i < elements.Length; ++i)
-                {
-                    totalLength += elements[i].EncodedLength(encoding, true);
-                }
-            }
-            else if (contents.Length < 2)
-            {
-                // No bits
-            }
-            else
-            {
-                int extraSegments = (contents.Length - 2) / (segmentLimit - 1);
-                totalLength += extraSegments * EncodedLength(true, segmentLimit);
-
-                int lastSegmentLength = contents.Length - (extraSegments * (segmentLimit - 1));
-                totalLength += EncodedLength(true, lastSegmentLength);
-            }
-
-            return totalLength;
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
-            {
-                base.Encode(asn1Out, withID);
-                return;
-            }
-
-            if (!EncodeConstructed(asn1Out.Encoding))
-            {
-                Encode(asn1Out, withID, contents, 0, contents.Length);
-                return;
-            }
-
-            asn1Out.WriteIdentifier(withID, Asn1Tags.Constructed | Asn1Tags.BitString);
-            asn1Out.WriteByte(0x80);
-
-            if (null != elements)
-            {
-                asn1Out.WritePrimitives(elements);
-            }
-            else if (contents.Length < 2)
-            {
-                // No bits
-            }
-            else
-            {
-                byte pad = contents[0];
-                int length = contents.Length;
-                int remaining = length - 1;
-                int segmentLength = segmentLimit - 1;
-
-                while (remaining > segmentLength)
-                {
-                    Encode(asn1Out, true, (byte)0, contents, length - remaining, segmentLength);
-                    remaining -= segmentLength;
-                }
-
-                Encode(asn1Out, true, pad, contents, length - remaining, remaining);
-            }
-
-            asn1Out.WriteByte(0x00);
-            asn1Out.WriteByte(0x00);
+            return new ConstructedILEncoding(tagClass, tagNo,
+                Asn1OutputStream.GetContentsEncodings(encoding, elements));
         }
     }
 }

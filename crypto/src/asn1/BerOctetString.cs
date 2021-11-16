@@ -120,80 +120,28 @@ namespace Org.BouncyCastle.Asn1
 			return GetEnumerator();
 		}
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
             if (Asn1OutputStream.EncodingBer != encoding)
-                return base.EncodeConstructed(encoding);
+                return base.GetEncoding(encoding);
 
-            return null != elements || contents.Length > segmentLimit;
+            if (null == elements)
+                return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);
+
+            return new ConstructedILEncoding(Asn1Tags.Universal, Asn1Tags.OctetString,
+                Asn1OutputStream.GetContentsEncodings(encoding, elements));
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
             if (Asn1OutputStream.EncodingBer != encoding)
-                return base.EncodedLength(encoding, withID);
+                return base.GetEncodingImplicit(encoding, tagClass, tagNo);
 
-            if (!EncodeConstructed(encoding))
-                return EncodedLength(withID, contents.Length);
+            if (null == elements)
+                return new PrimitiveEncoding(tagClass, tagNo, contents);
 
-            int totalLength = withID ? 4 : 3;
-
-            if (null != elements)
-            {
-                for (int i = 0; i < elements.Length; ++i)
-                {
-                    totalLength += elements[i].EncodedLength(encoding, true);
-                }
-            }
-            else
-            {
-                int fullSegments = contents.Length / segmentLimit;
-                totalLength += fullSegments * EncodedLength(true, segmentLimit);
-
-                int lastSegmentLength = contents.Length - (fullSegments * segmentLimit);
-                if (lastSegmentLength > 0)
-                {
-                    totalLength += EncodedLength(true, lastSegmentLength);
-                }
-            }
-
-            return totalLength;
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
-            {
-                base.Encode(asn1Out, withID);
-                return;
-            }
-
-            if (!EncodeConstructed(asn1Out.Encoding))
-            {
-                Encode(asn1Out, withID, contents, 0, contents.Length);
-                return;
-            }
-
-            asn1Out.WriteIdentifier(withID, Asn1Tags.Constructed | Asn1Tags.OctetString);
-            asn1Out.WriteByte(0x80);
-
-            if (null != elements)
-            {
-                asn1Out.WritePrimitives(elements);
-            }
-            else
-            {
-                int pos = 0;
-                while (pos < contents.Length)
-                {
-                    int segmentLength = System.Math.Min(contents.Length - pos, segmentLimit);
-                    Encode(asn1Out, true, contents, pos, segmentLength);
-                    pos += segmentLength;
-                }
-            }
-
-            asn1Out.WriteByte(0x00);
-            asn1Out.WriteByte(0x00);
+            return new ConstructedILEncoding(tagClass, tagNo,
+                Asn1OutputStream.GetContentsEncodings(encoding, elements));
         }
 
         private class ChunkEnumerator

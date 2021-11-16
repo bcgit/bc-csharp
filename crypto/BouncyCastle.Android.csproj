@@ -96,6 +96,9 @@
     <Compile Include="src\asn1\BerSequence.cs" />
     <Compile Include="src\asn1\BerSet.cs" />
     <Compile Include="src\asn1\BerTaggedObject.cs" />
+    <Compile Include="src\asn1\ConstructedDLEncoding.cs" />
+    <Compile Include="src\asn1\ConstructedILEncoding.cs" />
+    <Compile Include="src\asn1\ConstructedLazyDLEncoding.cs" />
     <Compile Include="src\asn1\ConstructedOctetStream.cs" />
     <Compile Include="src\asn1\DERExternal.cs" />
     <Compile Include="src\asn1\DERExternalParser.cs" />
@@ -139,6 +142,7 @@
     <Compile Include="src\asn1\IAsn1ApplicationSpecificParser.cs" />
     <Compile Include="src\asn1\IAsn1Choice.cs" />
     <Compile Include="src\asn1\IAsn1Convertible.cs" />
+    <Compile Include="src\asn1\IAsn1Encoding.cs" />
     <Compile Include="src\asn1\IAsn1String.cs" />
     <Compile Include="src\asn1\IndefiniteLengthInputStream.cs" />
     <Compile Include="src\asn1\LazyASN1InputStream.cs" />
@@ -147,6 +151,8 @@
     <Compile Include="src\asn1\LazyDLSet.cs" />
     <Compile Include="src\asn1\LimitedInputStream.cs" />
     <Compile Include="src\asn1\OidTokenizer.cs" />
+    <Compile Include="src\asn1\PrimitiveEncoding.cs" />
+    <Compile Include="src\asn1\PrimitiveEncodingSuffixed.cs" />
     <Compile Include="src\asn1\anssi\ANSSINamedCurves.cs" />
     <Compile Include="src\asn1\anssi\ANSSIObjectIdentifiers.cs" />
     <Compile Include="src\asn1\bc\BCObjectIdentifiers.cs" />

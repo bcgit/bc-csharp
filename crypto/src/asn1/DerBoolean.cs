@@ -81,25 +81,14 @@ namespace Org.BouncyCastle.Asn1
             get { return value != 0; }
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Boolean, GetContents(encoding));
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, 1);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            byte contents = value;
-            if (Asn1OutputStream.EncodingDer == asn1Out.Encoding && IsTrue)
-            {
-                contents = 0xFF;
-            }
-
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.Boolean, contents);
+            return new PrimitiveEncoding(tagClass, tagNo, GetContents(encoding));
         }
 
         protected override bool Asn1Equals(
@@ -133,6 +122,17 @@ namespace Org.BouncyCastle.Asn1
             byte b = value[0];
 
             return b == 0 ? False : b == 0xFF ? True : new DerBoolean(value);
+        }
+
+        private byte[] GetContents(int encoding)
+        {
+            byte contents = value;
+            if (Asn1OutputStream.EncodingDer == encoding && IsTrue)
+            {
+                contents = 0xFF;
+            }
+
+            return new byte[]{ contents };
         }
     }
 }

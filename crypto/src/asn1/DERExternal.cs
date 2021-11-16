@@ -155,21 +155,14 @@ namespace Org.BouncyCastle.Asn1
             return new DerSequence(v);
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            //return BuildSequence().EncodeConstructed(encoding);
-            return true;
+            return BuildSequence().GetEncodingImplicit(encoding, Asn1Tags.Universal, Asn1Tags.External);
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return BuildSequence().EncodedLength(encoding, withID);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            asn1Out.WriteIdentifier(withID, Asn1Tags.Constructed | Asn1Tags.External);
-            BuildSequence().Encode(asn1Out, false);
+            return BuildSequence().GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
         protected override int Asn1GetHashCode()

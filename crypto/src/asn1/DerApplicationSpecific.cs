@@ -134,6 +134,7 @@ namespace Org.BouncyCastle.Asn1
             return m_taggedObject.HasTag(Asn1Tags.Application, tagNo);
         }
 
+        [Obsolete("Will be removed")]
         public bool IsConstructed()
         {
             return m_taggedObject.IsConstructed();
@@ -175,19 +176,14 @@ namespace Org.BouncyCastle.Asn1
             return m_taggedObject.CallAsn1GetHashCode();
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return m_taggedObject.EncodeConstructed(encoding);
+            return m_taggedObject.GetEncoding(encoding);
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return m_taggedObject.EncodedLength(encoding, withID);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            m_taggedObject.Encode(asn1Out, withID);
+            return m_taggedObject.GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
         private byte[] ReplaceTagNumber(int newTag, byte[] input)

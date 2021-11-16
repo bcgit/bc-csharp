@@ -235,25 +235,9 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
-        internal override bool EncodeConstructed(int encoding)
-        {
-            return true;
-        }
-
         public override string ToString()
         {
             return CollectionUtilities.ToString(elements);
-        }
-
-        internal int CalculateContentsLength(int encoding)
-        {
-            int contentsLength = 0;
-            for (int i = 0, count = elements.Length; i < count; ++i)
-            {
-                Asn1Object asn1Object = elements[i].ToAsn1Object();
-                contentsLength += asn1Object.EncodedLength(encoding, true);
-            }
-            return contentsLength;
         }
 
         // TODO[asn1] Preferably return an Asn1BitString[] (doesn't exist yet)

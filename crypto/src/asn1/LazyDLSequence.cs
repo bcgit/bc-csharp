@@ -63,39 +63,36 @@ namespace Org.BouncyCastle.Asn1
             return base.ToString();
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
             if (Asn1OutputStream.EncodingBer == encoding)
             {
                 byte[] encoded = GetContents();
-                if (null != encoded)
-                    return Asn1OutputStream.GetLengthOfEncodingDL(withID, encoded.Length);
+                if (encoded != null)
+                    return new ConstructedLazyDLEncoding(Asn1Tags.Universal, Asn1Tags.Sequence, encoded);
             }
             else
             {
                 Force();
             }
 
-            return base.EncodedLength(encoding, withID);
+            return base.GetEncoding(encoding);
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            if (Asn1OutputStream.EncodingBer == asn1Out.Encoding)
+            if (Asn1OutputStream.EncodingBer == encoding)
             {
                 byte[] encoded = GetContents();
                 if (encoded != null)
-                {
-                    asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, encoded);
-                    return;
-                }
+                    return new ConstructedLazyDLEncoding(tagClass, tagNo, encoded);
             }
             else
             {
                 Force();
             }
 
-            base.Encode(asn1Out, withID);
+            return base.GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
         private void Force()
