@@ -14,13 +14,8 @@ namespace Org.BouncyCastle.Asn1
             return elementVector.Count < 1 ? Empty : new BerSet(elementVector);
 		}
 
-        internal static new BerSet FromVector(Asn1EncodableVector elementVector, bool needsSorting)
-		{
-            return elementVector.Count < 1 ? Empty : new BerSet(elementVector, needsSorting);
-		}
-
 		/**
-         * create an empty sequence
+         * create an empty set
          */
         public BerSet()
             : base()
@@ -35,6 +30,11 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public BerSet(params Asn1Encodable[] elements)
+            : base(elements, false)
+        {
+        }
+
         /**
          * create a set containing a vector of objects.
          */
@@ -43,26 +43,36 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal BerSet(Asn1EncodableVector elementVector, bool needsSorting)
-            : base(elementVector, needsSorting)
+        internal BerSet(bool isSorted, Asn1Encodable[] elements)
+            : base(isSorted, elements)
         {
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            throw Platform.CreateNotImplementedException("BerSet.EncodedLength");
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodedLength(encoding, withID);
+
+            int totalLength = withID ? 4 : 3;
+
+            for (int i = 0, count = elements.Length; i < count; ++i)
+            {
+                Asn1Object asn1Object = elements[i].ToAsn1Object();
+                totalLength += asn1Object.EncodedLength(encoding, true);
+            }
+
+            return totalLength;
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            if (asn1Out.IsBer)
-            {
-                asn1Out.WriteEncodingIL(withID, Asn1Tags.Constructed | Asn1Tags.Set, elements);
-            }
-            else
+            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
             {
                 base.Encode(asn1Out, withID);
+                return;
             }
+
+            asn1Out.WriteEncodingIL(withID, Asn1Tags.Constructed | Asn1Tags.Set, elements);
         }
     }
 }

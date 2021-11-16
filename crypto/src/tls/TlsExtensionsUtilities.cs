@@ -964,8 +964,10 @@ namespace Org.BouncyCastle.Tls
             while (buf.Position < buf.Length)
             {
                 byte[] derEncoding = TlsUtilities.ReadOpaque16(buf, 1);
-                Asn1Object asn1 = TlsUtilities.ReadDerObject(derEncoding);
-                authorities.Add(X509Name.GetInstance(asn1));
+                Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
+                X509Name ca = X509Name.GetInstance(asn1);
+                TlsUtilities.RequireDerEncoding(ca, derEncoding);
+                authorities.Add(ca);
             }
             return authorities;
         }
@@ -1111,8 +1113,9 @@ namespace Org.BouncyCastle.Tls
             while (buf.Position < buf.Length)
             {
                 byte[] derEncoding = TlsUtilities.ReadOpaque8(buf, 1);
-                Asn1Object asn1 = TlsUtilities.ReadDerObject(derEncoding);
+                Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
                 DerObjectIdentifier certificateExtensionOid = DerObjectIdentifier.GetInstance(asn1);
+                TlsUtilities.RequireDerEncoding(certificateExtensionOid, derEncoding);
 
                 if (filters.Contains(certificateExtensionOid))
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);

@@ -21,14 +21,14 @@ namespace Org.BouncyCastle.Asn1
 		public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
-            EncodeTo(bOut);
+            ToAsn1Object().EncodeTo(bOut);
             return bOut.ToArray();
         }
 
         public byte[] GetEncoded(string encoding)
         {
             MemoryStream bOut = new MemoryStream();
-            EncodeTo(bOut, encoding);
+            ToAsn1Object().EncodeTo(bOut, encoding);
             return bOut.ToArray();
         }
 

@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Asn1
     public class Asn1OutputStream
         : DerOutputStream
     {
+        internal const int EncodingBer = 1;
+        internal const int EncodingDer = 2;
+
         public static Asn1OutputStream Create(Stream output)
         {
             return new Asn1OutputStream(output);
@@ -29,21 +32,21 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        public override void WriteObject(Asn1Encodable encodable)
+        public override void WriteObject(Asn1Encodable asn1Encodable)
         {
-            if (null == encodable)
-                throw new IOException("null object detected");
+            if (null == asn1Encodable)
+                throw new ArgumentNullException("asn1Encodable");
 
-            WritePrimitive(encodable.ToAsn1Object(), true);
+            asn1Encodable.ToAsn1Object().Encode(this, true);
             FlushInternal();
         }
 
-        public override void WriteObject(Asn1Object primitive)
+        public override void WriteObject(Asn1Object asn1Object)
         {
-            if (null == primitive)
-                throw new IOException("null object detected");
+            if (null == asn1Object)
+                throw new ArgumentNullException("asn1Object");
 
-            WritePrimitive(primitive, true);
+            asn1Object.Encode(this, true);
             FlushInternal();
         }
 
@@ -52,9 +55,14 @@ namespace Org.BouncyCastle.Asn1
             // Placeholder to support future internal buffering
         }
 
-        internal virtual bool IsBer
+        internal virtual DerOutputStreamNew GetDerSubStream()
         {
-            get { return true; }
+            return new DerOutputStreamNew(s);
+        }
+
+        internal virtual int Encoding
+        {
+            get { return EncodingBer; }
         }
 
         internal void WriteDL(int length)
@@ -181,16 +189,11 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal virtual void WritePrimitive(Asn1Object primitive, bool withID)
-        {
-            primitive.Encode(this, withID);
-        }
-
-        internal virtual void WritePrimitives(Asn1Object[] primitives)
+        internal void WritePrimitives(Asn1Object[] primitives)
         {
             for (int i = 0, count = primitives.Length; i < count; ++i)
             {
-                WritePrimitive(primitives[i], true);
+                primitives[i].Encode(this, true);
             }
         }
 

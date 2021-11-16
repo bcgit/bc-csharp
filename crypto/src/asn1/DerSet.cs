@@ -1,7 +1,4 @@
 using System;
-using System.IO;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -18,15 +15,12 @@ namespace Org.BouncyCastle.Asn1
             return elementVector.Count < 1 ? Empty : new DerSet(elementVector);
 		}
 
-		internal static DerSet FromVector(Asn1EncodableVector elementVector, bool needsSorting)
-		{
-            return elementVector.Count < 1 ? Empty : new DerSet(elementVector, needsSorting);
-		}
+        private int m_contentsLengthDer = -1;
 
-		/**
+        /**
 		 * create an empty set
 		 */
-		public DerSet()
+        public DerSet()
 			: base()
 		{
 		}
@@ -39,32 +33,48 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		public DerSet(params Asn1Encodable[] elements)
-			: base(elements)
+        public DerSet(params Asn1Encodable[] elements)
+            : base(elements, true)
+        {
+        }
+
+        internal DerSet(Asn1Encodable[] elements, bool doSort)
+			: base(elements, doSort)
 		{
-			Sort();
 		}
 
 		/**
 		 * @param v - a vector of objects making up the set.
 		 */
 		public DerSet(Asn1EncodableVector elementVector)
-			: this(elementVector, true)
+			: base(elementVector, true)
 		{
 		}
 
-		internal DerSet(Asn1EncodableVector	elementVector, bool needsSorting)
-			: base(elementVector)
+		internal DerSet(Asn1EncodableVector	elementVector, bool doSort)
+			: base(elementVector, doSort)
 		{
-			if (needsSorting)
-			{
-				Sort();
-			}
 		}
 
-        internal override int EncodedLength(bool withID)
+        internal DerSet(bool isSorted, Asn1Encodable[] elements)
+            : base(isSorted, elements)
         {
-            throw Platform.CreateNotImplementedException("DerSet.EncodedLength");
+        }
+
+        internal override int EncodedLength(int encoding, bool withID)
+        {
+            encoding = Asn1OutputStream.EncodingDer;
+
+            int count = elements.Length;
+            int contentsLength = 0;
+
+            for (int i = 0; i < count; ++i)
+            {
+                Asn1Object asn1Object = elements[i].ToAsn1Object();
+                contentsLength += asn1Object.EncodedLength(encoding, true);
+            }
+
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, contentsLength);
         }
 
         /*
@@ -83,23 +93,56 @@ namespace Org.BouncyCastle.Asn1
                 return;
             }
 
-            // TODO Intermediate buffer could be avoided if we could calculate expected length
-            MemoryStream bOut = new MemoryStream();
-            Asn1OutputStream dOut = Asn1OutputStream.Create(bOut, Der);
-            dOut.WriteElements(elements);
-            dOut.Flush();
+            Asn1Encodable[] elements = this.elements;
+            if (!isSorted)
+            {
+                elements = Sort((Asn1Encodable[])elements.Clone());
+            }
 
-#if PORTABLE
-            byte[] bytes = bOut.ToArray();
-            int length = bytes.Length;
-#else
-            byte[] bytes = bOut.GetBuffer();
-            int length = (int)bOut.Position;
-#endif
+            asn1Out = asn1Out.GetDerSubStream();
 
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.Constructed | Asn1Tags.Set, bytes, 0, length);
+            asn1Out.WriteIdentifier(withID, Asn1Tags.Constructed | Asn1Tags.Set);
 
-            Platform.Dispose(dOut);
+            int count = elements.Length;
+            if (m_contentsLengthDer >= 0 || count > 16)
+            {
+                asn1Out.WriteDL(GetContentsLengthDer());
+
+                for (int i = 0; i < count; ++i)
+                {
+                    Asn1Object asn1Object = elements[i].ToAsn1Object();
+                    asn1Object.Encode(asn1Out, true);
+                }
+            }
+            else
+            {
+                int contentsLength = 0;
+
+                Asn1Object[] asn1Objects = new Asn1Object[count];
+                for (int i = 0; i < count; ++i)
+                {
+                    Asn1Object asn1Object = elements[i].ToAsn1Object();
+                    asn1Objects[i] = asn1Object;
+                    contentsLength += asn1Object.EncodedLength(asn1Out.Encoding, true);
+                }
+
+                this.m_contentsLengthDer = contentsLength;
+                asn1Out.WriteDL(contentsLength);
+
+                for (int i = 0; i < count; ++i)
+                {
+                    asn1Objects[i].Encode(asn1Out, true);
+                }
+            }
+        }
+
+        private int GetContentsLengthDer()
+        {
+            if (m_contentsLengthDer < 0)
+            {
+                m_contentsLengthDer = CalculateContentsLength(Asn1OutputStream.EncodingDer);
+            }
+            return m_contentsLengthDer;
         }
     }
 }

@@ -79,7 +79,12 @@ namespace Org.BouncyCastle.Asn1
             return Arrays.Clone(mString);
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override bool EncodeConstructed(int encoding)
+        {
+            return false;
+        }
+
+        internal override int EncodedLength(int encoding, bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, mString.Length);
         }

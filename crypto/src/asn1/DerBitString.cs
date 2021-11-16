@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Math;
@@ -22,17 +23,24 @@ namespace Org.BouncyCastle.Asn1
 		{
 			if (obj == null || obj is DerBitString)
 			{
-				return (DerBitString) obj;
+				return (DerBitString)obj;
 			}
-            if (obj is byte[])
+            //else if (obj is Asn1BitStringParser)
+            else if (obj is IAsn1Convertible)
+            {
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerBitString)
+                    return (DerBitString)asn1Object;
+            }
+            else if (obj is byte[])
             {
                 try
                 {
-                    return (DerBitString)FromByteArray((byte[])obj);
+                    return GetInstance(FromByteArray((byte[])obj));
                 }
-                catch (Exception e)
+                catch (IOException e)
                 {
-                    throw new ArgumentException("encoding error in GetInstance: " + e.ToString());
+                    throw new ArgumentException("failed to construct BIT STRING from byte[]: " + e.Message);
                 }
             }
 
@@ -208,7 +216,12 @@ namespace Org.BouncyCastle.Asn1
             }
 		}
 
-        internal override int EncodedLength(bool withID)
+        internal override bool EncodeConstructed(int encoding)
+        {
+            return false;
+        }
+
+        internal override int EncodedLength(int encoding, bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, contents.Length);
         }
@@ -278,15 +291,16 @@ namespace Org.BouncyCastle.Asn1
 
         public override string GetString()
 		{
-			StringBuilder buffer = new StringBuilder("#");
-
 			byte[] str = GetDerEncoded();
 
-			for (int i = 0; i != str.Length; i++)
+            StringBuilder buffer = new StringBuilder(1 + str.Length * 2);
+            buffer.Append('#');
+
+            for (int i = 0; i != str.Length; i++)
 			{
-				uint ubyte = str[i];
-				buffer.Append(table[(ubyte >> 4) & 0xf]);
-				buffer.Append(table[str[i] & 0xf]);
+				uint u8 = str[i];
+				buffer.Append(table[u8 >> 4]);
+				buffer.Append(table[u8 & 0xF]);
 			}
 
 			return buffer.ToString();

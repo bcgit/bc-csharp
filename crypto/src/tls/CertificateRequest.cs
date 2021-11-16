@@ -263,8 +263,10 @@ namespace Org.BouncyCastle.Tls
                     do
                     {
                         byte[] derEncoding = TlsUtilities.ReadOpaque16(bis, 1);
-                        Asn1Object asn1 = TlsUtilities.ReadDerObject(derEncoding);
-                        certificateAuthorities.Add(X509Name.GetInstance(asn1));
+                        Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
+                        X509Name ca = X509Name.GetInstance(asn1);
+                        TlsUtilities.RequireDerEncoding(ca, derEncoding);
+                        certificateAuthorities.Add(ca);
                     }
                     while (bis.Position < bis.Length);
                 }

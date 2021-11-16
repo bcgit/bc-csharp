@@ -107,8 +107,10 @@ namespace Org.BouncyCastle.Tls
             case Tls.IdentifierType.x509_name:
             {
                 byte[] derEncoding = TlsUtilities.ReadOpaque16(input, 1);
-                Asn1Object asn1 = TlsUtilities.ReadDerObject(derEncoding);
-                identifier = X509Name.GetInstance(asn1);
+                Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
+                X509Name x509Name = X509Name.GetInstance(asn1);
+                TlsUtilities.RequireDerEncoding(x509Name, derEncoding);
+                identifier = x509Name;
                 break;
             }
             default:

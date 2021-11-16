@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Security
@@ -223,20 +224,9 @@ namespace Org.BouncyCastle.Security
             return rp;
         }
 
-        // TODO Move functionality to more general class
         private static byte[] ConvertRSAParametersField(BigInteger n, int size)
         {
-            byte[] bs = n.ToByteArrayUnsigned();
-
-            if (bs.Length == size)
-                return bs;
-
-            if (bs.Length > size)
-                throw new ArgumentException("Specified size too small", "size");
-
-            byte[] padded = new byte[size];
-            Array.Copy(bs, 0, padded, size - bs.Length, bs.Length);
-            return padded;
+            return BigIntegers.AsUnsignedByteArray(size, n);
         }
 
         private static RSA CreateRSAProvider(RSAParameters rp)

@@ -10,25 +10,24 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1Sequence
         : Asn1Object, IEnumerable
     {
-        // NOTE: Only non-readonly to support LazyDerSequence
-        internal Asn1Encodable[] elements;
-
         /**
          * return an Asn1Sequence from the given object.
          *
          * @param obj the object we want converted.
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static Asn1Sequence GetInstance(
-            object obj)
+        public static Asn1Sequence GetInstance(object obj)
         {
             if (obj == null || obj is Asn1Sequence)
             {
                 return (Asn1Sequence)obj;
             }
-            else if (obj is Asn1SequenceParser)
+            //else if (obj is Asn1SequenceParser)
+            else if (obj is IAsn1Convertible)
             {
-                return GetInstance(((Asn1SequenceParser)obj).ToAsn1Object());
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is Asn1Sequence)
+                    return (Asn1Sequence)asn1Object;
             }
             else if (obj is byte[])
             {
@@ -41,17 +40,8 @@ namespace Org.BouncyCastle.Asn1
                     throw new ArgumentException("failed to construct sequence from byte[]: " + e.Message);
                 }
             }
-            else if (obj is Asn1Encodable)
-            {
-                Asn1Object primitive = ((Asn1Encodable)obj).ToAsn1Object();
-                
-                if (primitive is Asn1Sequence)
-                {
-                    return (Asn1Sequence)primitive;
-                }
-            }
 
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         /**
@@ -64,48 +54,42 @@ namespace Org.BouncyCastle.Asn1
          * dealing with implicitly tagged sequences you really <b>should</b>
          * be using this method.
          *
-         * @param obj the tagged object.
-         * @param explicitly true if the object is meant to be explicitly tagged,
+         * @param taggedObject the tagged object.
+         * @param declaredExplicit true if the object is meant to be explicitly tagged,
          *          false otherwise.
          * @exception ArgumentException if the tagged object cannot
          *          be converted.
          */
-        public static Asn1Sequence GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static Asn1Sequence GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object inner = obj.GetObject();
-
-            if (explicitly)
+            if (declaredExplicit)
             {
-                if (!obj.IsExplicit())
+                if (!taggedObject.IsExplicit())
                     throw new ArgumentException("object implicit - explicit expected.");
 
-                return (Asn1Sequence) inner;
+                return GetInstance(taggedObject.GetObject());
             }
 
-            //
-            // constructed object which appears to be explicitly tagged
-            // when it should be implicit means we have to add the
-            // surrounding sequence.
-            //
-            if (obj.IsExplicit())
+            Asn1Object baseObject = taggedObject.GetObject();
+
+            // If parsed as explicit though declared implicit, it should have been a sequence of one
+            if (taggedObject.IsExplicit())
             {
-                if (obj is BerTaggedObject)
-                {
-                    return new BerSequence(inner);
-                }
+                if (taggedObject is BerTaggedObject)
+                    return new BerSequence(baseObject);
 
-                return new DerSequence(inner);
+                return new DLSequence(baseObject);
             }
 
-            if (inner is Asn1Sequence)
-            {
-                return (Asn1Sequence) inner;
-            }
+            if (baseObject is Asn1Sequence)
+                return (Asn1Sequence)baseObject;
 
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(taggedObject),
+                "taggedObject");
         }
+
+        // NOTE: Only non-readonly to support LazyDLSequence
+        internal Asn1Encodable[] elements;
 
         protected internal Asn1Sequence()
         {
@@ -126,6 +110,11 @@ namespace Org.BouncyCastle.Asn1
                 throw new NullReferenceException("'elements' cannot be null, or contain null");
 
             this.elements = Asn1EncodableVector.CloneElements(elements);
+        }
+
+        internal Asn1Sequence(Asn1Encodable[] elements, bool clone)
+        {
+            this.elements = clone ? Asn1EncodableVector.CloneElements(elements) : elements;
         }
 
         protected internal Asn1Sequence(Asn1EncodableVector elementVector)
@@ -152,6 +141,7 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Sequence outer)
             {
                 this.outer = outer;
+                // NOTE: Call Count here to 'force' a LazyDerSequence
                 this.max = outer.Count;
             }
 
@@ -209,8 +199,8 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode()
         {
-            //return Arrays.GetHashCode(elements);
-            int i = elements.Length;
+            // NOTE: Call Count here to 'force' a LazyDerSequence
+            int i = Count;
             int hc = i + 1;
 
             while (--i >= 0)
@@ -228,6 +218,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == that)
                 return false;
 
+            // NOTE: Call Count here (on both) to 'force' a LazyDerSequence
             int count = this.Count;
             if (that.Count != count)
                 return false;
@@ -237,10 +228,15 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Object o1 = this.elements[i].ToAsn1Object();
                 Asn1Object o2 = that.elements[i].ToAsn1Object();
 
-                if (o1 != o2 && !o1.CallAsn1Equals(o2))
+                if (!o1.Equals(o2))
                     return false;
             }
 
+            return true;
+        }
+
+        internal override bool EncodeConstructed(int encoding)
+        {
             return true;
         }
 
@@ -248,5 +244,51 @@ namespace Org.BouncyCastle.Asn1
         {
             return CollectionUtilities.ToString(elements);
         }
+
+        internal int CalculateContentsLength(int encoding)
+        {
+            int contentsLength = 0;
+            for (int i = 0, count = elements.Length; i < count; ++i)
+            {
+                Asn1Object asn1Object = elements[i].ToAsn1Object();
+                contentsLength += asn1Object.EncodedLength(encoding, true);
+            }
+            return contentsLength;
+        }
+
+        // TODO[asn1] Preferably return an Asn1BitString[] (doesn't exist yet)
+        internal DerBitString[] GetConstructedBitStrings()
+        {
+            // NOTE: Call Count here to 'force' a LazyDerSequence
+            int count = Count;
+            DerBitString[] bitStrings = new DerBitString[count];
+            for (int i = 0; i < count; ++i)
+            {
+                bitStrings[i] = DerBitString.GetInstance(elements[i]);
+            }
+            return bitStrings;
+        }
+
+        internal Asn1OctetString[] GetConstructedOctetStrings()
+        {
+            // NOTE: Call Count here to 'force' a LazyDerSequence
+            int count = Count;
+            Asn1OctetString[] octetStrings = new Asn1OctetString[count];
+            for (int i = 0; i < count; ++i)
+            {
+                octetStrings[i] = Asn1OctetString.GetInstance(elements[i]);
+            }
+            return octetStrings;
+        }
+
+        // TODO[asn1] Preferably return an Asn1BitString (doesn't exist yet)
+        internal abstract DerBitString ToAsn1BitString();
+
+        // TODO[asn1] Preferably return an Asn1External (doesn't exist yet)
+        internal abstract DerExternal ToAsn1External();
+
+        internal abstract Asn1OctetString ToAsn1OctetString();
+
+        internal abstract Asn1Set ToAsn1Set();
     }
 }

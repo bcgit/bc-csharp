@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1
 {
     public class BerBitString
@@ -113,53 +111,56 @@ namespace Org.BouncyCastle.Asn1
             this.segmentLimit = DefaultSegmentLimit;
         }
 
-        private bool IsConstructed
+        internal override bool EncodeConstructed(int encoding)
         {
-            get { return null != elements || contents.Length > segmentLimit; }
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodeConstructed(encoding);
+
+            return null != elements || contents.Length > segmentLimit;
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override int EncodedLength(int encoding, bool withID)
         {
-            throw Platform.CreateNotImplementedException("BerBitString.EncodedLength");
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodedLength(encoding, withID);
 
-            // TODO This depends on knowing it's not DER
-            //if (!IsConstructed)
-            //    return EncodedLength(withID, contents.Length);
+            if (!EncodeConstructed(encoding))
+                return EncodedLength(withID, contents.Length);
 
-            //int totalLength = withID ? 4 : 3;
+            int totalLength = withID ? 4 : 3;
 
-            //if (null != elements)
-            //{
-            //    for (int i = 0; i < elements.Length; ++i)
-            //    {
-            //        totalLength += elements[i].EncodedLength(true);
-            //    }
-            //}
-            //else if (contents.Length < 2)
-            //{
-            //    // No bits
-            //}
-            //else
-            //{
-            //    int extraSegments = (contents.Length - 2) / (segmentLimit - 1);
-            //    totalLength += extraSegments * EncodedLength(true, segmentLimit);
+            if (null != elements)
+            {
+                for (int i = 0; i < elements.Length; ++i)
+                {
+                    totalLength += elements[i].EncodedLength(encoding, true);
+                }
+            }
+            else if (contents.Length < 2)
+            {
+                // No bits
+            }
+            else
+            {
+                int extraSegments = (contents.Length - 2) / (segmentLimit - 1);
+                totalLength += extraSegments * EncodedLength(true, segmentLimit);
 
-            //    int lastSegmentLength = contents.Length - (extraSegments * (segmentLimit - 1));
-            //    totalLength += EncodedLength(true, lastSegmentLength);
-            //}
+                int lastSegmentLength = contents.Length - (extraSegments * (segmentLimit - 1));
+                totalLength += EncodedLength(true, lastSegmentLength);
+            }
 
-            //return totalLength;
+            return totalLength;
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            if (!asn1Out.IsBer)
+            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
             {
                 base.Encode(asn1Out, withID);
                 return;
             }
 
-            if (!IsConstructed)
+            if (!EncodeConstructed(asn1Out.Encoding))
             {
                 Encode(asn1Out, withID, contents, 0, contents.Length);
                 return;

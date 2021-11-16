@@ -13,51 +13,41 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
-    abstract public class Asn1Set
+    public abstract class Asn1Set
         : Asn1Object, IEnumerable
     {
-        // NOTE: Only non-readonly to support LazyDerSet
-        internal Asn1Encodable[] elements;
-
         /**
          * return an ASN1Set from the given object.
          *
          * @param obj the object we want converted.
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static Asn1Set GetInstance(
-            object obj)
+        public static Asn1Set GetInstance(object obj)
         {
             if (obj == null || obj is Asn1Set)
             {
                 return (Asn1Set)obj;
             }
-            else if (obj is Asn1SetParser)
+            //else if (obj is Asn1SetParser)
+            else if (obj is IAsn1Convertible)
             {
-                return Asn1Set.GetInstance(((Asn1SetParser)obj).ToAsn1Object());
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is Asn1Set)
+                    return (Asn1Set)asn1Object;
             }
             else if (obj is byte[])
             {
                 try
                 {
-                    return Asn1Set.GetInstance(FromByteArray((byte[])obj));
+                    return GetInstance(FromByteArray((byte[])obj));
                 }
                 catch (IOException e)
                 {
                     throw new ArgumentException("failed to construct set from byte[]: " + e.Message);
                 }
             }
-            else if (obj is Asn1Encodable)
-            {
-                Asn1Object primitive = ((Asn1Encodable)obj).ToAsn1Object();
 
-                if (primitive is Asn1Set)
-                {
-                    return (Asn1Set)primitive;
-                }
-            }
-
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         /**
@@ -70,65 +60,52 @@ namespace Org.BouncyCastle.Asn1
          * dealing with implicitly tagged sets you really <b>should</b>
          * be using this method.
          *
-         * @param obj the tagged object.
-         * @param explicitly true if the object is meant to be explicitly tagged
+         * @param taggedObject the tagged object.
+         * @param declaredExplicit true if the object is meant to be explicitly tagged
          *          false otherwise.
          * @exception ArgumentException if the tagged object cannot
          *          be converted.
          */
-        public static Asn1Set GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static Asn1Set GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object inner = obj.GetObject();
-
-            if (explicitly)
+            if (declaredExplicit)
             {
-                if (!obj.IsExplicit())
+                if (!taggedObject.IsExplicit())
                     throw new ArgumentException("object implicit - explicit expected.");
 
-                return (Asn1Set) inner;
+                return GetInstance(taggedObject.GetObject());
             }
 
-            //
-            // constructed object which appears to be explicitly tagged
-            // and it's really implicit means we have to add the
-            // surrounding sequence.
-            //
-            if (obj.IsExplicit())
+            Asn1Object baseObject = taggedObject.GetObject();
+
+            // If parsed as explicit though declared implicit, it should have been a set of one
+            if (taggedObject.IsExplicit())
             {
-                return new DerSet(inner);
+                if (taggedObject is BerTaggedObject)
+                    return new BerSet(baseObject);
+
+                return new DLSet(baseObject);
             }
 
-            if (inner is Asn1Set)
-            {
-                return (Asn1Set) inner;
-            }
+            if (baseObject is Asn1Set)
+                return (Asn1Set)baseObject;
 
-            //
-            // in this case the parser returns a sequence, convert it
-            // into a set.
-            //
-            if (inner is Asn1Sequence)
-            {
-                Asn1EncodableVector v = new Asn1EncodableVector();
-                Asn1Sequence s = (Asn1Sequence) inner;
+            // Parser assumes implicit constructed encodings are sequences
+            if (baseObject is Asn1Sequence)
+                return ((Asn1Sequence)baseObject).ToAsn1Set();
 
-                foreach (Asn1Encodable ae in s)
-                {
-                    v.Add(ae);
-                }
-
-                // TODO Should be able to construct set directly from sequence?
-                return new DerSet(v, false);
-            }
-
-            throw new ArgumentException("Unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(taggedObject),
+                "taggedObject");
         }
+
+        // NOTE: Only non-readonly to support LazyDLSet
+        internal Asn1Encodable[] elements;
+        internal bool isSorted;
 
         protected internal Asn1Set()
         {
             this.elements = Asn1EncodableVector.EmptyElements;
+            this.isSorted = true;
         }
 
         protected internal Asn1Set(Asn1Encodable element)
@@ -137,22 +114,47 @@ namespace Org.BouncyCastle.Asn1
                 throw new ArgumentNullException("element");
 
             this.elements = new Asn1Encodable[]{ element };
+            this.isSorted = true;
         }
 
-        protected internal Asn1Set(params Asn1Encodable[] elements)
+        protected internal Asn1Set(Asn1Encodable[] elements, bool doSort)
         {
             if (Arrays.IsNullOrContainsNull(elements))
                 throw new NullReferenceException("'elements' cannot be null, or contain null");
 
-            this.elements = Asn1EncodableVector.CloneElements(elements);
+            Asn1Encodable[] tmp = Asn1EncodableVector.CloneElements(elements);
+            if (doSort && tmp.Length >= 2)
+            {
+                tmp = Sort(tmp);
+            }
+
+            this.elements = tmp;
+            this.isSorted = doSort || tmp.Length < 2;
         }
 
-        protected internal Asn1Set(Asn1EncodableVector elementVector)
+        protected internal Asn1Set(Asn1EncodableVector elementVector, bool doSort)
         {
             if (null == elementVector)
                 throw new ArgumentNullException("elementVector");
 
-            this.elements = elementVector.TakeElements();
+            Asn1Encodable[] tmp;
+            if (doSort && elementVector.Count >= 2)
+            {
+                tmp = Sort(elementVector.CopyElements());
+            }
+            else
+            {
+                tmp = elementVector.TakeElements();
+            }
+
+            this.elements = tmp;
+            this.isSorted = doSort || tmp.Length < 2;
+        }
+
+        protected internal Asn1Set(bool isSorted, Asn1Encodable[] elements)
+        {
+            this.elements = elements;
+            this.isSorted = isSorted || elements.Length < 2;
         }
 
         public virtual IEnumerator GetEnumerator()
@@ -192,6 +194,7 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Set outer)
             {
                 this.outer = outer;
+                // NOTE: Call Count here to 'force' a LazyDerSet
                 this.max = outer.Count;
             }
 
@@ -227,8 +230,8 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode()
         {
-            //return Arrays.GetHashCode(elements);
-            int i = elements.Length;
+            // NOTE: Call Count here to 'force' a LazyDerSet
+            int i = Count;
             int hc = i + 1;
 
             while (--i >= 0)
@@ -246,6 +249,7 @@ namespace Org.BouncyCastle.Asn1
             if (null == that)
                 return false;
 
+            // NOTE: Call Count here (on both) to 'force' a LazyDerSet
             int count = this.Count;
             if (that.Count != count)
                 return false;
@@ -255,39 +259,56 @@ namespace Org.BouncyCastle.Asn1
                 Asn1Object o1 = this.elements[i].ToAsn1Object();
                 Asn1Object o2 = that.elements[i].ToAsn1Object();
 
-                if (o1 != o2 && !o1.CallAsn1Equals(o2))
+                if (!o1.Equals(o2))
                     return false;
             }
 
             return true;
         }
 
-        protected internal void Sort()
+        internal override bool EncodeConstructed(int encoding)
         {
-            if (elements.Length < 2)
-                return;
+            return true;
+        }
+
+        public override string ToString()
+        {
+            return CollectionUtilities.ToString(elements);
+        }
+
+        internal int CalculateContentsLength(int encoding)
+        {
+            int contentsLength = 0;
+            for (int i = 0, count = elements.Length; i < count; ++i)
+            {
+                Asn1Object asn1Object = elements[i].ToAsn1Object();
+                contentsLength += asn1Object.EncodedLength(encoding, true);
+            }
+            return contentsLength;
+        }
+
+        internal static Asn1Encodable[] Sort(Asn1Encodable[] elements)
+        {
+            int count = elements.Length;
+            if (count < 2)
+                return elements;
 
 #if PORTABLE
-            this.elements = elements
+            return elements
                 .Cast<Asn1Encodable>()
                 .Select(a => new { Item = a, Key = a.GetEncoded(Asn1Encodable.Der) })
                 .OrderBy(t => t.Key, new DerComparer())
                 .Select(t => t.Item)
                 .ToArray();
 #else
-            int count = elements.Length;
             byte[][] keys = new byte[count][];
             for (int i = 0; i < count; ++i)
             {
                 keys[i] = elements[i].GetEncoded(Der);
             }
             Array.Sort(keys, elements, new DerComparer());
+            return elements;
 #endif
-        }
-
-        public override string ToString()
-        {
-            return CollectionUtilities.ToString(elements);
         }
 
 #if PORTABLE

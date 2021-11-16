@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1
 {
 	public class BerSequence
@@ -43,21 +41,58 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-        internal override int EncodedLength(bool withID)
+        internal BerSequence(Asn1Encodable[] elements, bool clone)
+            : base(elements, clone)
         {
-            throw Platform.CreateNotImplementedException("BerSequence.EncodedLength");
+        }
+
+        internal override int EncodedLength(int encoding, bool withID)
+        {
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.EncodedLength(encoding, withID);
+
+            int totalLength = withID ? 4 : 3;
+
+            for (int i = 0, count = elements.Length; i < count; ++i)
+            {
+                Asn1Object asn1Object = elements[i].ToAsn1Object();
+                totalLength += asn1Object.EncodedLength(encoding, true);
+            }
+
+            return totalLength;
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
 		{
-			if (asn1Out.IsBer)
+            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
             {
-                asn1Out.WriteEncodingIL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, elements);
-			}
-			else
-			{
-				base.Encode(asn1Out, withID);
-			}
+                base.Encode(asn1Out, withID);
+                return;
+            }
+
+            asn1Out.WriteEncodingIL(withID, Asn1Tags.Constructed | Asn1Tags.Sequence, elements);
 		}
-	}
+
+        internal override DerBitString ToAsn1BitString()
+        {
+            return new BerBitString(GetConstructedBitStrings());
+        }
+
+        internal override DerExternal ToAsn1External()
+        {
+            // TODO There is currently no BerExternal class (or ToDLObject/ToDerObject)
+            //return ((Asn1Sequence)ToDLObject()).ToAsn1External();
+            return new DLSequence(elements).ToAsn1External();
+        }
+
+        internal override Asn1OctetString ToAsn1OctetString()
+        {
+            return new BerOctetString(GetConstructedOctetStrings());
+        }
+
+        internal override Asn1Set ToAsn1Set()
+        {
+            return new BerSet(false, elements);
+        }
+    }
 }

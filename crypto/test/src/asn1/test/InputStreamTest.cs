@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             // TODO Test data has length issues too; needs to be reworked
             //DoTestWithByteArray(classCast1, "unknown object encountered: Org.BouncyCastle.Asn1.DerApplicationSpecific");
             DoTestWithByteArray(classCast2, "unknown object encountered: Org.BouncyCastle.Asn1.BerTaggedObjectParser");
-            DoTestWithByteArray(classCast3, "unknown object encountered in constructed OCTET STRING: Org.BouncyCastle.Asn1.DerTaggedObject");
+            DoTestWithByteArray(classCast3, "unknown object encountered in constructed OCTET STRING: Org.BouncyCastle.Asn1.DLTaggedObject");
 
             // TODO Error dependent on parser choices; needs to be reworked
             //DoTestWithByteArray(memoryError1, "corrupted stream - out of bounds length found: 2078365180 >= 39");

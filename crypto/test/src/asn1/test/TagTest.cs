@@ -27,6 +27,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 		private static readonly byte[] longAppSpecificTag = Hex.Decode("5F610101");
 
+        private static readonly byte[] taggedInteger = Hex.Decode("BF2203020101");
+
 		public override string Name
 		{
 			get { return "Tag"; }
@@ -100,9 +102,16 @@ namespace Org.BouncyCastle.Asn1.Tests
 					Fail("incorrect tag number read on recode (random test value: " + testTag + ")");
 				}
 			}
-		}
 
-		public static void Main(
+            tagged = new DerTaggedObject(false, 34, new DerTaggedObject(true, 1000, new DerInteger(1)));
+
+            if (!AreEqual(taggedInteger, tagged.GetEncoded()))
+            {
+                Fail("incorrect encoding for implicit explicit tagged integer");
+            }
+        }
+
+        public static void Main(
 			string[] args)
 		{
 			RunTest(new TagTest());

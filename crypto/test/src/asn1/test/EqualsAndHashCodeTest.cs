@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 DerNull.Instance,
                 new DerNumericString("123456"),
                 new DerObjectIdentifier("1.1.1.10000.1"),
+                new Asn1RelativeOid("3.2.0.123456"),
                 new DerOctetString(data),
                 new DerPrintableString("hello world"),
                 new DerSequence(new DerPrintableString("hello world")),

@@ -237,7 +237,12 @@ namespace Org.BouncyCastle.Asn1
             return Strings.ToAsciiByteArray(time);
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override bool EncodeConstructed(int encoding)
+        {
+            return false;
+        }
+
+        internal override int EncodedLength(int encoding, bool withID)
         {
             return Asn1OutputStream.GetLengthOfEncodingDL(withID, time.Length);
         }
@@ -247,7 +252,7 @@ namespace Org.BouncyCastle.Asn1
             asn1Out.WriteEncodingDL(withID, Asn1Tags.UtcTime, GetOctets());
         }
 
-		protected override bool Asn1Equals(
+        protected override bool Asn1Equals(
 			Asn1Object asn1Object)
 		{
 			DerUtcTime other = asn1Object as DerUtcTime;

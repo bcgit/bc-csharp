@@ -8,12 +8,21 @@ namespace Org.BouncyCastle.Asn1
     {
         public override void EncodeTo(Stream output)
         {
-            Asn1OutputStream.Create(output).WriteObject(this);
+            Asn1OutputStream asn1Out = Asn1OutputStream.Create(output);
+            Encode(asn1Out, true);
+            asn1Out.FlushInternal();
         }
 
         public override void EncodeTo(Stream output, string encoding)
         {
-            Asn1OutputStream.Create(output, encoding).WriteObject(this);
+            Asn1OutputStream asn1Out = Asn1OutputStream.Create(output, encoding);
+            Encode(asn1Out, true);
+            asn1Out.FlushInternal();
+        }
+
+        public bool Equals(Asn1Object other)
+        {
+            return this == other || Asn1Equals(other);
         }
 
         /// <summary>Create a base ASN.1 object from a byte array.</summary>
@@ -62,7 +71,9 @@ namespace Org.BouncyCastle.Asn1
             return this;
         }
 
-        internal abstract int EncodedLength(bool withID);
+        internal abstract bool EncodeConstructed(int encoding);
+
+        internal abstract int EncodedLength(int encoding, bool withID);
 
         internal abstract void Encode(Asn1OutputStream asn1Out, bool withID);
 

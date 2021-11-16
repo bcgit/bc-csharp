@@ -34,24 +34,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override bool IsBer
+        internal override DerOutputStreamNew GetDerSubStream()
         {
-            get { return false; }
+            return this;
         }
 
-        internal override void WritePrimitive(Asn1Object primitive, bool withID)
+        internal override int Encoding
         {
-            Asn1Set asn1Set = primitive as Asn1Set;
-            if (null != asn1Set)
-            {
-                /*
-                 * NOTE: Even a DerSet isn't necessarily already in sorted order (particularly from DerSetParser),
-                 * so all sets have to be converted here.
-                 */
-                primitive = new DerSet(asn1Set.elements);
-            }
-
-            primitive.Encode(this, withID);
+            get { return EncodingDer; }
         }
     }
 }

@@ -15,6 +15,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
@@ -901,6 +902,8 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <exception cref="IOException"/>
+        [Obsolete("Will be removed. Use ReadAsn1Object in combination with RequireDerEncoding instead")]
         public static Asn1Object ReadDerObject(byte[] encoding)
         {
             /*
@@ -908,11 +911,20 @@ namespace Org.BouncyCastle.Tls
              * canonical, we can check it by re-encoding the result and comparing to the original.
              */
             Asn1Object result = ReadAsn1Object(encoding);
-            byte[] check = result.GetEncoded(Asn1Encodable.Der);
+            RequireDerEncoding(result, encoding);
+            return result;
+        }
+
+        /// <exception cref="IOException"/>
+        public static void RequireDerEncoding(Asn1Encodable asn1, byte[] encoding)
+        {
+            /*
+             * NOTE: The current ASN.1 parsing code can't enforce DER-only parsing, but since DER is
+             * canonical, we can check it by re-encoding the result and comparing to the original.
+             */
+            byte[] check = asn1.GetEncoded(Asn1Encodable.Der);
             if (!Arrays.AreEqual(check, encoding))
                 throw new TlsFatalAlert(AlertDescription.decode_error);
-
-            return result;
         }
 
         public static void WriteGmtUnixTime(byte[] buf, int offset)
@@ -4479,13 +4491,26 @@ namespace Org.BouncyCastle.Tls
             byte[] tlsFeatures = serverCertificate.GetCertificateAt(0).GetExtension(TlsObjectIdentifiers.id_pe_tlsfeature);
             if (tlsFeatures != null)
             {
-                foreach (DerInteger tlsExtension in Asn1Sequence.GetInstance(ReadDerObject(tlsFeatures)))
+                // TODO[tls] Proper ASN.1 type class for this extension?
+                Asn1Sequence tlsFeaturesSeq = (Asn1Sequence)ReadAsn1Object(tlsFeatures);
+                for (int i = 0; i < tlsFeaturesSeq.Count; ++i)
                 {
-                    int extensionType = tlsExtension.IntValueExact;
-                    CheckUint16(extensionType);
+                    if (!(tlsFeaturesSeq[i] is DerInteger))
+                        throw new TlsFatalAlert(AlertDescription.bad_certificate);
+                }
 
-                    if (clientExtensions.Contains(extensionType) && !serverExtensions.Contains(extensionType))
-                        throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                RequireDerEncoding(tlsFeaturesSeq, tlsFeatures);
+
+                foreach (DerInteger tlsExtensionElement in tlsFeaturesSeq)
+                {
+                    BigInteger tlsExtension = tlsExtensionElement.PositiveValue;
+                    if (tlsExtension.BitLength <= 16)
+                    {
+                        int extensionType = tlsExtension.IntValueExact;
+
+                        if (clientExtensions.Contains(extensionType) && !serverExtensions.Contains(extensionType))
+                            throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                    }
                 }
             }
         }

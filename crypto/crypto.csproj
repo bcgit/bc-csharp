@@ -179,6 +179,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\Asn1ObjectDescriptor.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ASN1OctetString.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -195,6 +200,11 @@
                 />
                 <File
                     RelPath = "src\asn1\Asn1ParsingException.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\Asn1RelativeOid.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -235,6 +245,11 @@
                 />
                 <File
                     RelPath = "src\asn1\ASN1Tags.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\Asn1Utilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -504,6 +519,26 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\DLApplicationSpecific.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\DLSequence.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\DLSet.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\DLTaggedObject.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\IAsn1ApplicationSpecificParser.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -534,12 +569,17 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\asn1\LazyDERSequence.cs"
+                    RelPath = "src\asn1\LazyDLEnumerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\asn1\LazyDERSet.cs"
+                    RelPath = "src\asn1\LazyDLSequence.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\LazyDLSet.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -13525,6 +13565,11 @@
                 />
                 <File
                     RelPath = "test\src\asn1\test\RegressionTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\asn1\test\RelativeOidTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

@@ -1,66 +1,58 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1
 {
 	public class BerTaggedObjectParser
 		: Asn1TaggedObjectParser
 	{
-		private bool				_constructed;
-		private int					_tagNumber;
-		private Asn1StreamParser	_parser;
+        private readonly int m_tagClass;
+        private readonly int m_tagNo;
+        private readonly bool m_constructed;
+        private readonly Asn1StreamParser m_parser;
 
-		[Obsolete]
-		internal BerTaggedObjectParser(
-			int		baseTag,
-			int		tagNumber,
-			Stream	contentStream)
-			: this((baseTag & Asn1Tags.Constructed) != 0, tagNumber, new Asn1StreamParser(contentStream))
+		internal BerTaggedObjectParser(int tagClass, int tagNo, bool constructed, Asn1StreamParser parser)
 		{
-		}
-
-		internal BerTaggedObjectParser(
-			bool				constructed,
-			int					tagNumber,
-			Asn1StreamParser	parser)
-		{
-			_constructed = constructed;
-			_tagNumber = tagNumber;
-			_parser = parser;
+            this.m_tagClass = tagClass;
+            this.m_tagNo = tagNo;
+            this.m_constructed = constructed;
+            this.m_parser = parser;
 		}
 
 		public bool IsConstructed
 		{
-			get { return _constructed; }
+			get { return m_constructed; }
 		}
+
+        public int TagClass
+        {
+            get { return m_tagClass; }
+        }
 
 		public int TagNo
 		{
-			get { return _tagNumber; }
+			get { return m_tagNo; }
 		}
 
-		public IAsn1Convertible GetObjectParser(
-			int		tag,
-			bool	isExplicit)
+		public IAsn1Convertible GetObjectParser(int baseTagNo, bool declaredExplicit)
 		{
-			if (isExplicit)
-			{
-				if (!_constructed)
-					throw new IOException("Explicit tags must be constructed (see X.690 8.14.2)");
+            if (Asn1Tags.ContextSpecific != TagClass)
+                throw new Asn1Exception("this method only valid for CONTEXT_SPECIFIC tags");
 
-				return _parser.ReadObject();
-			}
+            if (!declaredExplicit)
+                return m_parser.ReadImplicit(m_constructed, baseTagNo);
 
-			return _parser.ReadImplicit(_constructed, tag);
+			if (!m_constructed)
+				throw new IOException("Explicit tags must be constructed (see X.690 8.14.2)");
+
+	        return m_parser.ReadObject();
 		}
 
 		public Asn1Object ToAsn1Object()
 		{
 			try
 			{
-				return _parser.ReadTaggedObject(_constructed, _tagNumber);
+				return m_parser.ReadTaggedObject(TagClass, TagNo, IsConstructed);
 			}
 			catch (IOException e)
 			{

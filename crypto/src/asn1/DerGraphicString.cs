@@ -7,8 +7,6 @@ namespace Org.BouncyCastle.Asn1
     public class DerGraphicString
         : DerStringBase
     {
-        private readonly byte[] mString;
-
         /**
          * return a Graphic String from the passed in object
          *
@@ -60,49 +58,61 @@ namespace Org.BouncyCastle.Asn1
             return new DerGraphicString(((Asn1OctetString)o).GetOctets());
         }
 
-        /**
-         * basic constructor - with bytes.
-         * @param string the byte encoding of the characters making up the string.
-         */
-        public DerGraphicString(byte[] encoding)
+        private readonly byte[] m_contents;
+
+        public DerGraphicString(byte[] contents)
+            : this(contents, true)
         {
-            this.mString = Arrays.Clone(encoding);
+        }
+
+        internal DerGraphicString(byte[] contents, bool clone)
+        {
+            if (null == contents)
+                throw new ArgumentNullException("contents");
+
+            this.m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
         public override string GetString()
         {
-            return Strings.FromByteArray(mString);
+            return Strings.FromByteArray(m_contents);
         }
 
         public byte[] GetOctets()
         {
-            return Arrays.Clone(mString);
+            return Arrays.Clone(m_contents);
         }
 
-        internal override int EncodedLength(bool withID)
+        internal override bool EncodeConstructed(int encoding)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, mString.Length);
+            return false;
+        }
+
+        internal override int EncodedLength(int encoding, bool withID)
+        {
+            return Asn1OutputStream.GetLengthOfEncodingDL(withID, m_contents.Length);
         }
 
         internal override void Encode(Asn1OutputStream asn1Out, bool withID)
         {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.GraphicString, mString);
+            asn1Out.WriteEncodingDL(withID, Asn1Tags.GraphicString, m_contents);
         }
 
         protected override int Asn1GetHashCode()
 		{
-            return Arrays.GetHashCode(mString);
+            return Arrays.GetHashCode(m_contents);
         }
 
-		protected override bool Asn1Equals(
-            Asn1Object asn1Object)
+		protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-			DerGraphicString other = asn1Object as DerGraphicString;
+            DerGraphicString that = asn1Object as DerGraphicString;
+            return null != that
+                && Arrays.AreEqual(this.m_contents, that.m_contents);
+        }
 
-            if (other == null)
-				return false;
-
-            return Arrays.AreEqual(mString, other.mString);
+        internal static DerGraphicString CreatePrimitive(byte[] contents)
+        {
+            return new DerGraphicString(contents, false);
         }
     }
 }
