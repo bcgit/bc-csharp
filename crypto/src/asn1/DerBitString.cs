@@ -11,7 +11,24 @@ namespace Org.BouncyCastle.Asn1
 	public class DerBitString
 		: DerStringBase
 	{
-		private static readonly char[] table
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerBitString), Asn1Tags.BitString) { }
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets());
+            }
+
+            internal override Asn1Object FromImplicitConstructed(Asn1Sequence sequence)
+            {
+                return sequence.ToAsn1BitString();
+            }
+        }
+
+        private static readonly char[] table
 			= { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
         /**
@@ -323,9 +340,7 @@ namespace Org.BouncyCastle.Asn1
 
                 byte finalOctet = contents[length - 1];
                 if (finalOctet != (byte)(finalOctet & (0xFF << padBits)))
-                {
                     return new BerBitString(contents, false);
-                }
             }
 
             return new DerBitString(contents, false);

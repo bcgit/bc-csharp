@@ -10,13 +10,25 @@ namespace Org.BouncyCastle.Asn1
     public class DerObjectIdentifier
         : Asn1Object
     {
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerObjectIdentifier), Asn1Tags.ObjectIdentifier) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets(), false);
+            }
+        }
+
         public static DerObjectIdentifier FromContents(byte[] contents)
         {
             return CreatePrimitive(contents, true);
         }
 
         /**
-         * return an Oid from the passed in object
+         * return an OID from the passed in object
          *
          * @exception ArgumentException if the object cannot be converted.
          */
@@ -36,7 +48,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    return GetInstance(FromByteArray((byte[])obj));
+                    return (DerObjectIdentifier)Meta.Instance.FromByteArray((byte[])obj);
                 }
                 catch (IOException e)
                 {
@@ -49,14 +61,19 @@ namespace Org.BouncyCastle.Asn1
 
         public static DerObjectIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object baseObject = taggedObject.GetObject();
-
-            if (declaredExplicit || baseObject is DerObjectIdentifier)
+            /*
+             * TODO[asn1] This block here is for backward compatibility, but should eventually be removed.
+             * 
+             * - see https://github.com/bcgit/bc-java/issues/1015
+             */
+            if (!declaredExplicit && !taggedObject.IsParsed())
             {
-                return GetInstance(baseObject);
+                Asn1Object baseObject = taggedObject.GetObject();
+                if (!(baseObject is DerObjectIdentifier))
+                    return FromContents(Asn1OctetString.GetInstance(baseObject).GetOctets());
             }
 
-            return FromContents(Asn1OctetString.GetInstance(baseObject).GetOctets());
+            return (DerObjectIdentifier)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
         private const long LongLimit = (Int64.MaxValue >> 7) - 0x7F;

@@ -16,6 +16,18 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1Set
         : Asn1Object, IEnumerable
     {
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(Asn1Set), Asn1Tags.Set) {}
+
+            internal override Asn1Object FromImplicitConstructed(Asn1Sequence sequence)
+            {
+                return sequence.ToAsn1Set();
+            }
+        }
+
         /**
          * return an ASN1Set from the given object.
          *
@@ -39,7 +51,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    return GetInstance(FromByteArray((byte[])obj));
+                    return (Asn1Set)Meta.Instance.FromByteArray((byte[])obj);
                 }
                 catch (IOException e)
                 {
@@ -61,41 +73,12 @@ namespace Org.BouncyCastle.Asn1
          * be using this method.
          *
          * @param taggedObject the tagged object.
-         * @param declaredExplicit true if the object is meant to be explicitly tagged
-         *          false otherwise.
-         * @exception ArgumentException if the tagged object cannot
-         *          be converted.
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception ArgumentException if the tagged object cannot be converted.
          */
         public static Asn1Set GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            if (declaredExplicit)
-            {
-                if (!taggedObject.IsExplicit())
-                    throw new ArgumentException("object implicit - explicit expected.");
-
-                return GetInstance(taggedObject.GetObject());
-            }
-
-            Asn1Object baseObject = taggedObject.GetObject();
-
-            // If parsed as explicit though declared implicit, it should have been a set of one
-            if (taggedObject.IsExplicit())
-            {
-                if (taggedObject is BerTaggedObject)
-                    return new BerSet(baseObject);
-
-                return new DLSet(baseObject);
-            }
-
-            if (baseObject is Asn1Set)
-                return (Asn1Set)baseObject;
-
-            // Parser assumes implicit constructed encodings are sequences
-            if (baseObject is Asn1Sequence)
-                return ((Asn1Sequence)baseObject).ToAsn1Set();
-
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(taggedObject),
-                "taggedObject");
+            return (Asn1Set)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
         // NOTE: Only non-readonly to support LazyDLSet

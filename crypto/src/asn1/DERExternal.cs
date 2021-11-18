@@ -11,6 +11,18 @@ namespace Org.BouncyCastle.Asn1
 	public class DerExternal
 		: Asn1Object
 	{
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerExternal), Asn1Tags.External) {}
+
+            internal override Asn1Object FromImplicitConstructed(Asn1Sequence sequence)
+            {
+                return sequence.ToAsn1External();
+            }
+        }
+
         public static DerExternal GetInstance(object obj)
         {
             if (obj == null || obj is DerExternal)
@@ -27,7 +39,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    return GetInstance(FromByteArray((byte[])obj));
+                    return (DerExternal)Meta.Instance.FromByteArray((byte[])obj);
                 }
                 catch (IOException e)
                 {
@@ -38,16 +50,9 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
-        public static DerExternal GetInstance(Asn1TaggedObject taggedObject, bool isExplicit)
+        public static DerExternal GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object baseObject = taggedObject.GetObject();
-
-            if (isExplicit || baseObject is DerExternal)
-            {
-                return GetInstance(baseObject);
-            }
-
-            return Asn1Sequence.GetInstance(baseObject).ToAsn1External();
+            return (DerExternal)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
 		private readonly DerObjectIdentifier directReference;

@@ -238,19 +238,19 @@ namespace Org.BouncyCastle.Asn1
         {
             switch (explicitness)
             {
-                case DeclaredImplicit:
-                {
-                    Asn1Object baseObject = obj.ToAsn1Object();
-                    if (baseObject is Asn1Sequence || baseObject is Asn1Set)
-                        return true;
-
-                    Asn1TaggedObject baseTagged = baseObject as Asn1TaggedObject;
-                    return null != baseTagged && baseTagged.IsConstructed();
-                }
-                case ParsedImplicit:
-                    return obj is Asn1Sequence;
-                default:
+            case DeclaredImplicit:
+            {
+                Asn1Object baseObject = obj.ToAsn1Object();
+                if (baseObject is Asn1Sequence || baseObject is Asn1Set)
                     return true;
+
+                Asn1TaggedObject baseTagged = baseObject as Asn1TaggedObject;
+                return null != baseTagged && baseTagged.IsConstructed();
+            }
+            case ParsedImplicit:
+                return obj is Asn1Sequence;
+            default:
+                return true;
             }
         }
 
@@ -315,18 +315,51 @@ namespace Org.BouncyCastle.Asn1
             case DeclaredImplicit:
             {
                 Asn1TaggedObject declared = CheckedCast(obj.ToAsn1Object());
-                if (!declared.HasTag(baseTagClass, baseTagNo))
-                {
-                    string expected = Asn1Utilities.GetTagText(baseTagClass, baseTagNo);
-                    string found = Asn1Utilities.GetTagText(declared);
-                    throw new InvalidOperationException("Expected " + expected + " tag but found " + found);
-                }
-                return declared;
+                return Asn1Utilities.CheckTag(declared, baseTagClass, baseTagNo);
             }
 
             // Parsed; return a virtual tag (i.e. that couldn't have been present in the encoding)
             default:
                 return ReplaceTag(baseTagClass, baseTagNo);
+            }
+        }
+
+        public Asn1Object GetBaseUniversal(bool declaredExplicit, int tagNo)
+        {
+            Asn1UniversalType universalType = Asn1UniversalTypes.Get(tagNo);
+            if (null == universalType)
+                throw new ArgumentException("unsupported UNIVERSAL tag number: " + tagNo, "tagNo");
+
+            return GetBaseUniversal(declaredExplicit, universalType);
+        }
+
+        internal Asn1Object GetBaseUniversal(bool declaredExplicit, Asn1UniversalType universalType)
+        {
+            if (declaredExplicit)
+            {
+                if (!IsExplicit())
+                    throw new InvalidOperationException("object explicit - implicit expected.");
+
+                return universalType.CheckedCast(obj.ToAsn1Object());
+            }
+
+            if (DeclaredExplicit == explicitness)
+                throw new InvalidOperationException("object explicit - implicit expected.");
+
+            Asn1Object baseObject = obj.ToAsn1Object();
+            switch (explicitness)
+            {
+            case ParsedExplicit:
+                return universalType.FromImplicitConstructed(RebuildConstructed(baseObject));
+            case ParsedImplicit:
+            {
+                if (baseObject is Asn1Sequence)
+                    return universalType.FromImplicitConstructed((Asn1Sequence)baseObject);
+
+                return universalType.FromImplicitPrimitive((DerOctetString)baseObject);
+            }
+            default:
+                return universalType.CheckedCast(baseObject);
             }
         }
 

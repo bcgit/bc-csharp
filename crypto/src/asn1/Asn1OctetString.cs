@@ -9,6 +9,23 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1OctetString
         : Asn1Object, Asn1OctetStringParser
     {
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(Asn1OctetString), Asn1Tags.OctetString) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return octetString;
+            }
+
+            internal override Asn1Object FromImplicitConstructed(Asn1Sequence sequence)
+            {
+                return sequence.ToAsn1OctetString();
+            }
+        }
+
         internal static readonly byte[] EmptyOctets = new byte[0];
 
         /**
@@ -28,15 +45,13 @@ namespace Org.BouncyCastle.Asn1
             {
                 Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
                 if (asn1Object is Asn1OctetString)
-                {
                     return (Asn1OctetString)asn1Object;
-                }
             }
             else if (obj is byte[])
             {
                 try
                 {
-                    return GetInstance(FromByteArray((byte[])obj));
+                    return (Asn1OctetString)Meta.Instance.FromByteArray((byte[])obj);
                 }
                 catch (IOException e)
                 {
@@ -48,46 +63,15 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-         * return an Octet string from a tagged object.
+         * return an octet string from a tagged object.
          *
-         * @param obj the tagged object holding the object we want.
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot
-         *              be converted.
+         * @param taggedObject the tagged object holding the object we want.
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception ArgumentException if the tagged object cannot be converted.
          */
         public static Asn1OctetString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            if (declaredExplicit)
-            {
-                if (!taggedObject.IsExplicit())
-                    throw new ArgumentException("object implicit - explicit expected.");
-
-                return GetInstance(taggedObject.GetObject());
-            }
-
-            Asn1Object baseObject = taggedObject.GetObject();
-
-            // If parsed as explicit though declared implicit, it should have been a set of one
-            if (taggedObject.IsExplicit())
-            {
-                Asn1OctetString singleSegment = GetInstance(baseObject);
-
-                if (taggedObject is BerTaggedObject)
-                    return new BerOctetString(new Asn1OctetString[]{ singleSegment });
-
-                return singleSegment;
-            }
-
-            if (baseObject is Asn1OctetString)
-                return (Asn1OctetString)baseObject;
-
-            // Parser assumes implicit constructed encodings are sequences
-            if (baseObject is Asn1Sequence)
-                return ((Asn1Sequence)baseObject).ToAsn1OctetString();
-
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(taggedObject),
-                "taggedObject");
+            return (Asn1OctetString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
         internal readonly byte[] contents;
@@ -138,5 +122,10 @@ namespace Org.BouncyCastle.Asn1
 		{
 			return "#" + Hex.ToHexString(contents);
 		}
-	}
+
+        internal static Asn1OctetString CreatePrimitive(byte[] contents)
+        {
+            return new DerOctetString(contents);
+        }
+    }
 }

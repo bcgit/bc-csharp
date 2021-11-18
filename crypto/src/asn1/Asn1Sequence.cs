@@ -10,6 +10,18 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1Sequence
         : Asn1Object, IEnumerable
     {
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(Asn1Sequence), Asn1Tags.Sequence) {}
+
+            internal override Asn1Object FromImplicitConstructed(Asn1Sequence sequence)
+            {
+                return sequence;
+            }
+        }
+
         /**
          * return an Asn1Sequence from the given object.
          *
@@ -33,7 +45,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    return GetInstance(FromByteArray((byte[])obj));
+                    return (Asn1Sequence)Meta.Instance.FromByteArray((byte[])obj);
                 }
                 catch (IOException e)
                 {
@@ -55,37 +67,12 @@ namespace Org.BouncyCastle.Asn1
          * be using this method.
          *
          * @param taggedObject the tagged object.
-         * @param declaredExplicit true if the object is meant to be explicitly tagged,
-         *          false otherwise.
-         * @exception ArgumentException if the tagged object cannot
-         *          be converted.
+         * @param declaredExplicit true if the object is meant to be explicitly tagged, false otherwise.
+         * @exception ArgumentException if the tagged object cannot be converted.
          */
         public static Asn1Sequence GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            if (declaredExplicit)
-            {
-                if (!taggedObject.IsExplicit())
-                    throw new ArgumentException("object implicit - explicit expected.");
-
-                return GetInstance(taggedObject.GetObject());
-            }
-
-            Asn1Object baseObject = taggedObject.GetObject();
-
-            // If parsed as explicit though declared implicit, it should have been a sequence of one
-            if (taggedObject.IsExplicit())
-            {
-                if (taggedObject is BerTaggedObject)
-                    return new BerSequence(baseObject);
-
-                return new DLSequence(baseObject);
-            }
-
-            if (baseObject is Asn1Sequence)
-                return (Asn1Sequence)baseObject;
-
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(taggedObject),
-                "taggedObject");
+            return (Asn1Sequence)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
         // NOTE: Only non-readonly to support LazyDLSequence

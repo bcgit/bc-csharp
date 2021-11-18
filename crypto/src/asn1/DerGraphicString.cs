@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 using Org.BouncyCastle.Utilities;
 
@@ -7,6 +8,18 @@ namespace Org.BouncyCastle.Asn1
     public class DerGraphicString
         : DerStringBase
     {
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerGraphicString), Asn1Tags.GraphicString) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets());
+            }
+        }
+
         /**
          * return a Graphic String from the passed in object
          *
@@ -20,16 +33,21 @@ namespace Org.BouncyCastle.Asn1
             {
                 return (DerGraphicString)obj;
             }
-
-            if (obj is byte[])
+            else if (obj is IAsn1Convertible)
+            {
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerGraphicString)
+                    return (DerGraphicString)asn1Object;
+            }
+            else if (obj is byte[])
             {
                 try
                 {
-                    return (DerGraphicString)FromByteArray((byte[])obj);
+                    return (DerGraphicString)Meta.Instance.FromByteArray((byte[])obj);
                 }
-                catch (Exception e)
+                catch (IOException e)
                 {
-                    throw new ArgumentException("encoding error in GetInstance: " + e.ToString(), "obj");
+                    throw new ArgumentException("failed to construct graphic string from byte[]: " + e.Message);
                 }
             }
 
@@ -39,23 +57,14 @@ namespace Org.BouncyCastle.Asn1
         /**
          * return a Graphic String from a tagged object.
          *
-         * @param obj the tagged object holding the object we want
-         * @param explicit true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception IllegalArgumentException if the tagged object cannot
-         *               be converted.
+         * @param taggedObject the tagged object holding the object we want
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception IllegalArgumentException if the tagged object cannot be converted.
          * @return a DerGraphicString instance, or null.
          */
-        public static DerGraphicString GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        public static DerGraphicString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-			Asn1Object o = obj.GetObject();
-
-            if (isExplicit || o is DerGraphicString)
-			{
-				return GetInstance(o);
-			}
-
-            return new DerGraphicString(((Asn1OctetString)o).GetOctets());
+            return (DerGraphicString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
         private readonly byte[] m_contents;

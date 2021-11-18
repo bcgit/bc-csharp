@@ -94,6 +94,7 @@ namespace Org.BouncyCastle.Asn1
             get { return m_taggedObject.TagNo; }
         }
 
+        [Obsolete("Will be removed")]
         public byte[] GetContents()
         {
             return m_taggedObject.GetContents();
@@ -112,21 +113,7 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1Object GetObject(int tagNo)
         {
-            // TODO[asn1] Implement Asn1TaggedObject.GetBaseUniversal
-            //return taggedObject.GetBaseUniversal(false, tagNo);
-
-            if (tagNo >= 0x1F)
-                throw new IOException("unsupported tag number");
-
-            byte[] orig = this.GetEncoded();
-            byte[] tmp = ReplaceTagNumber(tagNo, orig);
-
-            if ((orig[0] & Asn1Tags.Constructed) != 0)
-            {
-                tmp[0] |= Asn1Tags.Constructed;
-            }
-
-            return FromByteArray(tmp);
+            return m_taggedObject.GetBaseUniversal(false, tagNo);
         }
 
         public bool HasApplicationTag(int tagNo)
@@ -184,34 +171,6 @@ namespace Org.BouncyCastle.Asn1
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
             return m_taggedObject.GetEncodingImplicit(encoding, tagClass, tagNo);
-        }
-
-        private byte[] ReplaceTagNumber(int newTag, byte[] input)
-        {
-            int tagNo = input[0] & 0x1f;
-            int index = 1;
-
-            // with tagged object tag number is bottom 5 bits, or stored at the start of the content
-            if (tagNo == 0x1f)
-            {
-                int b = input[index++];
-
-                // X.690-0207 8.1.2.4.2
-                // "c) bits 7 to 1 of the first subsequent octet shall not all be zero."
-                if ((b & 0x7f) == 0) // Note: -1 will pass
-                    throw new IOException("corrupted stream - invalid high tag number found");
-
-                while ((b & 0x80) != 0)
-                {
-                    b = input[index++];
-                }
-            }
-
-            int remaining = input.Length - index;
-            byte[] tmp = new byte[1 + remaining];
-            tmp[0] = (byte)newTag;
-            Array.Copy(input, index, tmp, 1, remaining);
-            return tmp;
         }
 
         private static int CheckTagClass(int tagClass)

@@ -244,7 +244,27 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\ASN1Tag.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ASN1Tags.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\Asn1Type.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\Asn1UniversalType.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\Asn1UniversalTypes.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

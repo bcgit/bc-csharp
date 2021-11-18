@@ -1,5 +1,5 @@
 using System;
-using System.Text;
+using System.IO;
 
 using Org.BouncyCastle.Utilities;
 
@@ -11,92 +11,112 @@ namespace Org.BouncyCastle.Asn1
     public class DerUtf8String
         : DerStringBase
     {
-        private readonly string str;
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerUtf8String), Asn1Tags.Utf8String) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets());
+            }
+        }
 
 		/**
          * return an UTF8 string from the passed in object.
          *
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static DerUtf8String GetInstance(
-            object obj)
+        public static DerUtf8String GetInstance(object obj)
         {
             if (obj == null || obj is DerUtf8String)
             {
                 return (DerUtf8String)obj;
+            }
+            else if (obj is IAsn1Convertible)
+            {
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerUtf8String)
+                    return (DerUtf8String)asn1Object;
+            }
+            else if (obj is byte[])
+            {
+                try
+                {
+                    return (DerUtf8String)Meta.Instance.FromByteArray((byte[])obj);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct UTF8 string from byte[]: " + e.Message);
+                }
             }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
         }
 
         /**
-         * return an UTF8 string from a tagged object.
+         * return a UTF8 string from a tagged object.
          *
-         * @param obj the tagged object holding the object we want
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot
-         *               be converted.
+         * @param taggedObject the tagged object holding the object we want
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception ArgumentException if the tagged object cannot be converted.
          */
-        public static DerUtf8String GetInstance(
-            Asn1TaggedObject	obj,
-            bool				isExplicit)
+        public static DerUtf8String GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-			Asn1Object o = obj.GetObject();
-
-			if (isExplicit || o is DerUtf8String)
-			{
-				return GetInstance(o);
-			}
-
-			return new DerUtf8String(Asn1OctetString.GetInstance(o).GetOctets());
+            return (DerUtf8String)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        /**
-         * basic constructor - byte encoded string.
-         */
-        public DerUtf8String(
-            byte[] str)
-			: this(Encoding.UTF8.GetString(str, 0, str.Length))
+        private readonly byte[] m_contents;
+
+        public DerUtf8String(string str)
+            : this(Strings.ToUtf8ByteArray(str), false)
         {
         }
 
-		/**
-         * basic constructor
-         */
-        public DerUtf8String(
-            string str)
+        public DerUtf8String(byte[] contents)
+            : this(contents, true)
         {
-			if (str == null)
-				throw new ArgumentNullException("str");
-
-			this.str = str;
         }
 
-		public override string GetString()
+        internal DerUtf8String(byte[] contents, bool clone)
         {
-            return str;
+            if (null == contents)
+                throw new ArgumentNullException("contents");
+
+            m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
-		protected override bool Asn1Equals(
-			Asn1Object asn1Object)
+        public override string GetString()
+        {
+            return Strings.FromUtf8ByteArray(m_contents);
+        }
+
+		protected override bool Asn1Equals(Asn1Object asn1Object)
 		{
-			DerUtf8String other = asn1Object as DerUtf8String;
+			DerUtf8String that = asn1Object as DerUtf8String;
+            return null != that
+                && Arrays.AreEqual(this.m_contents, that.m_contents);
+        }
 
-			if (other == null)
-				return false;
-
-			return this.str.Equals(other.str);
+        protected override int Asn1GetHashCode()
+        {
+            return Arrays.GetHashCode(m_contents);
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Utf8String, Encoding.UTF8.GetBytes(str));
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Utf8String, m_contents);
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return new PrimitiveEncoding(tagClass, tagNo, Encoding.UTF8.GetBytes(str));
+            return new PrimitiveEncoding(tagClass, tagNo, m_contents);
+        }
+
+        internal static DerUtf8String CreatePrimitive(byte[] contents)
+        {
+            return new DerUtf8String(contents, false);
         }
     }
 }

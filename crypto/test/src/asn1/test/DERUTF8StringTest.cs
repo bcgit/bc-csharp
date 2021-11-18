@@ -66,8 +66,9 @@ namespace Org.BouncyCastle.Asn1.Tests
 					byte[] b1 = new DerUtf8String(s).GetEncoded();
 					byte[] temp = new byte[b1.Length - 2];
 					Array.Copy(b1, 2, temp, 0, b1.Length - 2);
-					byte[] b2 = new DerUtf8String(new DerOctetString(temp).GetOctets()).GetEncoded();
-					if (!Arrays.AreEqual(b1, b2))
+                    byte[] b2 = new DerUtf8String(Strings.FromUtf8ByteArray(new DerOctetString(temp).GetOctets()))
+                        .GetEncoded();
+                    if (!Arrays.AreEqual(b1, b2))
 					{
 						return new SimpleTestResult(false, Name + ": failed UTF-8 encoding and decoding");
 					}

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -8,6 +9,18 @@ namespace Org.BouncyCastle.Asn1
     public class DerInteger
         : Asn1Object
     {
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerInteger), Asn1Tags.Integer) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets());
+            }
+        }
+
         public const string AllowUnsafeProperty = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
         internal static bool AllowUnsafe()
@@ -27,12 +40,28 @@ namespace Org.BouncyCastle.Asn1
          *
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static DerInteger GetInstance(
-            object obj)
+        public static DerInteger GetInstance(object obj)
         {
             if (obj == null || obj is DerInteger)
             {
                 return (DerInteger)obj;
+            }
+            else if (obj is IAsn1Convertible)
+            {
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerInteger)
+                    return (DerInteger)asn1Object;
+            }
+            else if (obj is byte[])
+            {
+                try
+                {
+                    return (DerInteger)Meta.Instance.FromByteArray((byte[])obj);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct integer from byte[]: " + e.Message);
+                }
             }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
@@ -41,27 +70,13 @@ namespace Org.BouncyCastle.Asn1
         /**
          * return an Integer from a tagged object.
          *
-         * @param obj the tagged object holding the object we want
-         * @param isExplicit true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot
-         *               be converted.
+         * @param taggedObject the tagged object holding the object we want
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception ArgumentException if the tagged object cannot  be converted.
          */
-        public static DerInteger GetInstance(
-            Asn1TaggedObject	obj,
-            bool				isExplicit)
+        public static DerInteger GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            if (obj == null)
-                throw new ArgumentNullException("obj");
-
-			Asn1Object o = obj.GetObject();
-
-			if (isExplicit || o is DerInteger)
-			{
-				return GetInstance(o);
-			}
-
-			return new DerInteger(Asn1OctetString.GetInstance(o).GetOctets());
+            return (DerInteger)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
 		public DerInteger(int value)
@@ -197,6 +212,11 @@ namespace Org.BouncyCastle.Asn1
 		{
 			return Value.ToString();
 		}
+
+        internal static DerInteger CreatePrimitive(byte[] contents)
+        {
+            return new DerInteger(contents, false);
+        }
 
         internal static int IntValue(byte[] bytes, int start, int signExt)
         {

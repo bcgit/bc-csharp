@@ -1,20 +1,30 @@
 using System;
-using System.Text;
+using System.IO;
 
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
     /**
-     * Der VisibleString object.
+     * VisibleString object.
      */
     public class DerVisibleString
         : DerStringBase
     {
-        private readonly string str;
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerVisibleString), Asn1Tags.VisibleString) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets());
+            }
+        }
 
         /**
-         * return a Visible string from the passed in object.
+         * return a visible string from the passed in object.
          *
          * @exception ArgumentException if the object cannot be converted.
          */
@@ -25,91 +35,97 @@ namespace Org.BouncyCastle.Asn1
             {
                 return (DerVisibleString)obj;
             }
-
-            if (obj is Asn1OctetString)
+            else if (obj is IAsn1Convertible)
             {
-                return new DerVisibleString(((Asn1OctetString)obj).GetOctets());
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerVisibleString)
+                    return (DerVisibleString)asn1Object;
             }
-
-            if (obj is Asn1TaggedObject)
+            else if (obj is byte[])
             {
-                return GetInstance(((Asn1TaggedObject)obj).GetObject());
+                try
+                {
+                    return (DerVisibleString)Meta.Instance.FromByteArray((byte[])obj);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct visible string from byte[]: " + e.Message);
+                }
             }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
         }
 
         /**
-         * return a Visible string from a tagged object.
+         * return a visible string from a tagged object.
          *
-         * @param obj the tagged object holding the object we want
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot
-         *               be converted.
+         * @param taggedObject the tagged object holding the object we want
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception ArgumentException if the tagged object cannot be converted.
          */
-        public static DerVisibleString GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static DerVisibleString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(obj.GetObject());
+            return (DerVisibleString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        /**
-         * basic constructor - byte encoded string.
-         */
-        public DerVisibleString(
-            byte[] str)
-			: this(Strings.FromAsciiByteArray(str))
-        {
-        }
+        private readonly byte[] m_contents;
 
-		/**
-         * basic constructor
-         */
-        public DerVisibleString(
-            string str)
+        public DerVisibleString(string str)
         {
 			if (str == null)
 				throw new ArgumentNullException("str");
 
-			this.str = str;
+			m_contents = Strings.ToAsciiByteArray(str);
         }
 
-		public override string GetString()
+        public DerVisibleString(byte[] contents)
+            : this(contents, true)
         {
-            return str;
+        }
+
+        internal DerVisibleString(byte[] contents, bool clone)
+        {
+            if (null == contents)
+                throw new ArgumentNullException("contents");
+
+            m_contents = clone ? Arrays.Clone(contents) : contents;
+        }
+
+        public override string GetString()
+        {
+            return Strings.FromAsciiByteArray(m_contents);
         }
 
 		public byte[] GetOctets()
         {
-            return Strings.ToAsciiByteArray(str);
+            return Arrays.Clone(m_contents);
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.VisibleString, GetOctets());
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.VisibleString, m_contents);
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return new PrimitiveEncoding(tagClass, tagNo, GetOctets());
+            return new PrimitiveEncoding(tagClass, tagNo, m_contents);
         }
 
-        protected override bool Asn1Equals(
-			Asn1Object asn1Object)
-		{
-			DerVisibleString other = asn1Object as DerVisibleString;
-
-			if (other == null)
-				return false;
-
-			return this.str.Equals(other.str);
+        protected override bool Asn1Equals(Asn1Object asn1Object)
+        {
+            DerVisibleString that = asn1Object as DerVisibleString;
+            return null != that
+                && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
-		protected override int Asn1GetHashCode()
-		{
-            return this.str.GetHashCode();
+        protected override int Asn1GetHashCode()
+        {
+            return Arrays.GetHashCode(m_contents);
+        }
+
+        internal static DerVisibleString CreatePrimitive(byte[] contents)
+        {
+            return new DerVisibleString(contents, false);
         }
     }
 }
