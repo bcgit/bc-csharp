@@ -144,6 +144,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\Asn1BitStringParser.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ASN1Encodable.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

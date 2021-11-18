@@ -9,8 +9,8 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Asn1
 {
 	public class DerBitString
-		: DerStringBase
-	{
+		: DerStringBase, Asn1BitStringParser
+    {
         internal class Meta : Asn1UniversalType
         {
             internal static readonly Asn1UniversalType Instance = new Meta();
@@ -307,6 +307,25 @@ namespace Org.BouncyCastle.Asn1
             byte thatLastDer = (byte)(thatContents[last] & (0xFF << padBits));
 
             return thisLastDer == thatLastDer;
+        }
+
+        public Stream GetBitStream()
+        {
+            return new MemoryStream(contents, 1, contents.Length - 1, false);
+        }
+
+        public Stream GetOctetStream()
+        {
+            int padBits = contents[0] & 0xFF;
+            if (0 != padBits)
+                throw new IOException("expected octet-aligned bitstring, but found padBits: " + padBits);
+
+            return GetBitStream();
+        }
+
+        public Asn1BitStringParser Parser
+        {
+            get { return this; }
         }
 
         public override string GetString()

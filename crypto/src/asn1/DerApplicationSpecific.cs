@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Asn1
      * Base class for an application specific object
      */
     public class DerApplicationSpecific
-        : Asn1Object
+        : Asn1Object, IAsn1ApplicationSpecificParser
     {
         public static DerApplicationSpecific GetInstance(object obj)
         {
@@ -116,15 +116,61 @@ namespace Org.BouncyCastle.Asn1
             return m_taggedObject.GetBaseUniversal(false, tagNo);
         }
 
+        public IAsn1Convertible GetObjectParser(int tag, bool isExplicit)
+        {
+            throw new Asn1Exception("this method only valid for CONTEXT_SPECIFIC tags");
+        }
+
+        public IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
+        {
+            return m_taggedObject.ParseBaseUniversal(declaredExplicit, baseTagNo);
+        }
+
+        public Asn1TaggedObjectParser ParseExplicitBaseTagged()
+        {
+            return m_taggedObject.ParseExplicitBaseTagged();
+        }
+
+        public Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
+        {
+            return m_taggedObject.ParseImplicitBaseTagged(baseTagClass, baseTagNo);
+        }
+
         public bool HasApplicationTag(int tagNo)
         {
             return m_taggedObject.HasTag(Asn1Tags.Application, tagNo);
+        }
+
+        public bool HasContextTag(int tagNo)
+        {
+            return false;
+        }
+
+        public bool HasTag(int tagClass, int tagNo)
+        {
+            return m_taggedObject.HasTag(tagClass, tagNo);
         }
 
         [Obsolete("Will be removed")]
         public bool IsConstructed()
         {
             return m_taggedObject.IsConstructed();
+        }
+
+        public IAsn1Convertible ReadObject()
+        {
+            // NOTE: No way to say you're looking for an implicitly-tagged object via IAsn1ApplicationSpecificParser
+            return m_taggedObject.GetBaseObject();
+        }
+
+        public int TagClass
+        {
+            get { return m_taggedObject.TagClass; }
+        }
+
+        public int TagNo
+        {
+            get { return m_taggedObject.TagNo; }
         }
 
         /**

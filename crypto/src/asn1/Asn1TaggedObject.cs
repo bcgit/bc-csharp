@@ -368,28 +368,43 @@ namespace Org.BouncyCastle.Asn1
 		* the type of the passed in tag. If the object doesn't have a parser
 		* associated with it, the base object is returned.
 		*/
+        [Obsolete("Use 'Parse...' methods instead, after checking this parser's TagClass and TagNo")]
         public IAsn1Convertible GetObjectParser(int tag, bool isExplicit)
 		{
             if (Asn1Tags.ContextSpecific != TagClass)
                 throw new InvalidOperationException("this method only valid for CONTEXT_SPECIFIC tags");
 
-            switch (tag)
-			{
-            //case Asn1Tags.BitString:
-            //    return Asn1BitString.GetInstance(this, isExplicit).Parser;
-            case Asn1Tags.OctetString:
-                return Asn1OctetString.GetInstance(this, isExplicit).Parser;
-            case Asn1Tags.Sequence:
-                return Asn1Sequence.GetInstance(this, isExplicit).Parser;
-            case Asn1Tags.Set:
-				return Asn1Set.GetInstance(this, isExplicit).Parser;
-			}
-
-            if (isExplicit)
-                return obj.ToAsn1Object();
-
-			throw Platform.CreateNotImplementedException("implicit tagging for tag: " + tag);
+            return ParseBaseUniversal(isExplicit, tag);
 		}
+
+        public IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
+        {
+            Asn1Object asn1Object = GetBaseUniversal(declaredExplicit, baseTagNo);
+
+            switch (baseTagNo)
+            {
+            case Asn1Tags.BitString:
+                return ((DerBitString)asn1Object).Parser;
+            case Asn1Tags.OctetString:
+                return ((Asn1OctetString)asn1Object).Parser;
+            case Asn1Tags.Sequence:
+                return ((Asn1Sequence)asn1Object).Parser;
+            case Asn1Tags.Set:
+                return ((Asn1Set)asn1Object).Parser;
+            }
+
+            return asn1Object;
+        }
+
+        public Asn1TaggedObjectParser ParseExplicitBaseTagged()
+        {
+            return GetExplicitBaseTagged();
+        }
+
+        public Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
+        {
+            return GetImplicitBaseTagged(baseTagClass, baseTagNo);
+        }
 
 		public override string ToString()
 		{

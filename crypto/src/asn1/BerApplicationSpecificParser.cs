@@ -3,27 +3,17 @@ using System;
 namespace Org.BouncyCastle.Asn1
 {
 	public class BerApplicationSpecificParser
-		: IAsn1ApplicationSpecificParser
+		: BerTaggedObjectParser, IAsn1ApplicationSpecificParser
 	{
-		private readonly int tag;
-		private readonly Asn1StreamParser parser;
-
-		internal BerApplicationSpecificParser(
-			int					tag,
-			Asn1StreamParser	parser)
+		internal BerApplicationSpecificParser(int tagNo, Asn1StreamParser parser)
+            : base(Asn1Tags.Application, tagNo, true, parser)
 		{
-			this.tag = tag;
-			this.parser = parser;
 		}
 
 		public IAsn1Convertible ReadObject()
 		{
-			return parser.ReadObject();
-		}
-
-		public Asn1Object ToAsn1Object()
-		{
-			return new BerApplicationSpecific(tag, parser.ReadVector());
+            // NOTE: No way to say you're looking for an implicitly-tagged object via IAsn1ApplicationSpecificParser
+            return ParseBaseUniversal(true, -1);
 		}
 	}
 }

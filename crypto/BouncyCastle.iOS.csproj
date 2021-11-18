@@ -58,6 +58,7 @@
     <Compile Include="src\asn1\ASN1SetParser.cs" />
     <Compile Include="src\asn1\ASN1StreamParser.cs" />
     <Compile Include="src\asn1\ASN1TaggedObjectParser.cs" />
+    <Compile Include="src\asn1\Asn1BitStringParser.cs" />
     <Compile Include="src\asn1\Asn1Encodable.cs" />
     <Compile Include="src\asn1\Asn1EncodableVector.cs" />
     <Compile Include="src\asn1\Asn1Exception.cs" />

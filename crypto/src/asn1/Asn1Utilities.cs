@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -15,6 +16,18 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject;
         }
 
+        internal static Asn1TaggedObjectParser CheckTag(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+            int tagNo)
+        {
+            if (!taggedObjectParser.HasTag(tagClass, tagNo))
+            {
+                string expected = GetTagText(tagClass, tagNo);
+                string found = GetTagText(taggedObjectParser);
+                throw new InvalidOperationException("Expected " + expected + " tag but found " + found);
+            }
+            return taggedObjectParser;
+        }
+
 
         internal static string GetTagText(Asn1Tag tag)
         {
@@ -24,6 +37,11 @@ namespace Org.BouncyCastle.Asn1
         public static string GetTagText(Asn1TaggedObject taggedObject)
         {
             return GetTagText(taggedObject.TagClass, taggedObject.TagNo);
+        }
+
+        public static string GetTagText(Asn1TaggedObjectParser taggedObjectParser)
+        {
+            return GetTagText(taggedObjectParser.TagClass, taggedObjectParser.TagNo);
         }
 
         public static string GetTagText(int tagClass, int tagNo)
@@ -118,9 +136,7 @@ namespace Org.BouncyCastle.Asn1
             int baseTagClass, int baseTagNo)
         {
             if (!taggedObject.HasTag(tagClass, tagNo))
-            {
                 return null;
-            }
 
             return taggedObject.GetImplicitBaseTagged(baseTagClass, baseTagNo);
         }
@@ -152,9 +168,7 @@ namespace Org.BouncyCastle.Asn1
             bool declaredExplicit, int baseTagNo)
         {
             if (!taggedObject.HasTag(tagClass, tagNo))
-            {
                 return null;
-            }
 
             return taggedObject.GetBaseUniversal(declaredExplicit, baseTagNo);
         }
@@ -163,6 +177,117 @@ namespace Org.BouncyCastle.Asn1
             bool declaredExplicit, int baseTagNo)
         {
             return TryGetBaseUniversal(taggedObject, Asn1Tags.ContextSpecific, tagNo, declaredExplicit, baseTagNo);
+        }
+
+
+        /*
+         * Wrappers for Asn1TaggedObjectParser.ParseExplicitBaseTagged
+         */
+
+        /// <exception cref="IOException"/>
+        public static Asn1TaggedObjectParser ParseExplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
+            int tagClass, int tagNo)
+        {
+            return CheckTag(taggedObjectParser, tagClass, tagNo).ParseExplicitBaseTagged();
+        }
+
+        /// <exception cref="IOException"/>
+        public static Asn1TaggedObjectParser ParseExplicitContextBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
+            int tagNo)
+        {
+            return ParseExplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static Asn1TaggedObjectParser TryParseExplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
+            int tagClass, int tagNo)
+        {
+            if (!taggedObjectParser.HasTag(tagClass, tagNo))
+                return null;
+
+            return taggedObjectParser.ParseExplicitBaseTagged();
+        }
+
+        /// <exception cref="IOException"/>
+        public static Asn1TaggedObjectParser TryParseExplicitContextBaseTagged(
+            Asn1TaggedObjectParser taggedObjectParser, int tagNo)
+        {
+            return TryParseExplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+
+        /*
+         * Wrappers for Asn1TaggedObjectParser.ParseImplicitBaseTagged
+         */
+
+        /// <exception cref="IOException"/>
+        public static Asn1TaggedObjectParser ParseImplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
+            int tagClass, int tagNo, int baseTagClass, int baseTagNo)
+        {
+            return CheckTag(taggedObjectParser, tagClass, tagNo).ParseImplicitBaseTagged(baseTagClass, baseTagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static Asn1TaggedObjectParser ParseImplicitContextBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
+            int tagNo, int baseTagClass, int baseTagNo)
+        {
+            return ParseImplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, baseTagClass,
+                baseTagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static Asn1TaggedObjectParser TryParseImplicitBaseTagged(Asn1TaggedObjectParser taggedObjectParser,
+            int tagClass, int tagNo, int baseTagClass, int baseTagNo)
+        {
+            if (!taggedObjectParser.HasTag(tagClass, tagNo))
+                return null;
+
+            return taggedObjectParser.ParseImplicitBaseTagged(baseTagClass, baseTagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static Asn1TaggedObjectParser TryParseImplicitContextBaseTagged(
+            Asn1TaggedObjectParser taggedObjectParser, int tagNo, int baseTagClass, int baseTagNo)
+        {
+            return TryParseImplicitBaseTagged(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, baseTagClass,
+                baseTagNo);
+        }
+
+
+        /*
+         * Wrappers for Asn1TaggedObjectParser.ParseBaseUniversal
+         */
+
+        /// <exception cref="IOException"/>
+        public static IAsn1Convertible ParseBaseUniversal(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+            int tagNo, bool declaredExplicit, int baseTagNo)
+        {
+            return CheckTag(taggedObjectParser, tagClass, tagNo).ParseBaseUniversal(declaredExplicit, baseTagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static IAsn1Convertible ParseContextBaseUniversal(Asn1TaggedObjectParser taggedObjectParser, int tagNo,
+            bool declaredExplicit, int baseTagNo)
+        {
+            return ParseBaseUniversal(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, declaredExplicit, baseTagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static IAsn1Convertible TryParseBaseUniversal(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+            int tagNo, bool declaredExplicit, int baseTagNo)
+        {
+            if (!taggedObjectParser.HasTag(tagClass, tagNo))
+                return null;
+
+            return taggedObjectParser.ParseBaseUniversal(declaredExplicit, baseTagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static IAsn1Convertible TryParseContextBaseUniversal(Asn1TaggedObjectParser taggedObjectParser,
+            int tagNo, bool declaredExplicit, int baseTagNo)
+        {
+            return TryParseBaseUniversal(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, declaredExplicit,
+                baseTagNo);
         }
     }
 }
