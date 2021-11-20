@@ -3,25 +3,24 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
+    [Obsolete("Will be made non-public. Test for and use only Asn1TaggedObjectParser.")]
 	public class BerTaggedObjectParser
 		: Asn1TaggedObjectParser
 	{
-        private readonly int m_tagClass;
-        private readonly int m_tagNo;
-        private readonly bool m_constructed;
-        private readonly Asn1StreamParser m_parser;
+        internal readonly int m_tagClass;
+        internal readonly int m_tagNo;
+        internal readonly Asn1StreamParser m_parser;
 
-		internal BerTaggedObjectParser(int tagClass, int tagNo, bool constructed, Asn1StreamParser parser)
+		internal BerTaggedObjectParser(int tagClass, int tagNo, Asn1StreamParser parser)
 		{
-            this.m_tagClass = tagClass;
-            this.m_tagNo = tagNo;
-            this.m_constructed = constructed;
-            this.m_parser = parser;
+            m_tagClass = tagClass;
+            m_tagNo = tagNo;
+            m_parser = parser;
 		}
 
-		public bool IsConstructed
+		public virtual bool IsConstructed
 		{
-			get { return m_constructed; }
+			get { return true; }
 		}
 
         public int TagClass
@@ -53,40 +52,39 @@ namespace Org.BouncyCastle.Asn1
             return ParseBaseUniversal(declaredExplicit, baseTagNo);
 		}
 
-        public IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
+        public virtual IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
         {
             if (declaredExplicit)
-            {
-                if (!m_constructed)
-                    throw new IOException("Explicit tags must be constructed (see X.690 8.14.2)");
+                return m_parser.ParseObject(baseTagNo);
 
-                // TODO[asn1] Alternate parser method specific to this case
-                return m_parser.ReadObject();
-            }
-
-            return m_parser.ReadImplicit(m_constructed, baseTagNo);
+            return m_parser.ParseImplicitConstructedIL(baseTagNo);
         }
 
-        public Asn1TaggedObjectParser ParseExplicitBaseTagged()
+        public virtual IAsn1Convertible ParseExplicitBaseObject()
         {
-            if (!m_constructed)
-                throw new IOException("Explicit tags must be constructed (see X.690 8.14.2)");
-
-            // TODO[asn1] Alternate parser method specific to this case
-            return (Asn1TaggedObjectParser)m_parser.ReadObject();
+            return m_parser.ReadObject();
         }
 
-        public Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
+        public virtual Asn1TaggedObjectParser ParseExplicitBaseTagged()
         {
-            return new BerTaggedObjectParser(baseTagClass, baseTagNo, m_constructed, m_parser);
+            return m_parser.ParseTaggedObject();
         }
 
-        public Asn1Object ToAsn1Object()
+        public virtual Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
+        {
+            // TODO[asn1] Special handling can be removed once ASN1ApplicationSpecificParser types removed.
+            if (Asn1Tags.Application == baseTagClass)
+                return new BerApplicationSpecificParser(baseTagNo, m_parser);
+
+            return new BerTaggedObjectParser(baseTagClass, baseTagNo, m_parser);
+        }
+
+        public virtual Asn1Object ToAsn1Object()
 		{
 			try
 			{
-				return m_parser.ReadTaggedObject(TagClass, TagNo, IsConstructed);
-			}
+                return m_parser.LoadTaggedIL(TagClass, TagNo);
+            }
 			catch (IOException e)
 			{
 				throw new Asn1ParsingException(e.Message);

@@ -6,14 +6,14 @@ namespace Org.BouncyCastle.Asn1
 		: BerTaggedObjectParser, IAsn1ApplicationSpecificParser
 	{
 		internal BerApplicationSpecificParser(int tagNo, Asn1StreamParser parser)
-            : base(Asn1Tags.Application, tagNo, true, parser)
+            : base(Asn1Tags.Application, tagNo, parser)
 		{
 		}
 
 		public IAsn1Convertible ReadObject()
 		{
             // NOTE: No way to say you're looking for an implicitly-tagged object via IAsn1ApplicationSpecificParser
-            return ParseBaseUniversal(true, -1);
-		}
+            return ParseExplicitBaseObject();
+        }
 	}
 }

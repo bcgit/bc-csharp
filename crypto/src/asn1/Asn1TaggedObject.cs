@@ -396,6 +396,11 @@ namespace Org.BouncyCastle.Asn1
             return asn1Object;
         }
 
+        public IAsn1Convertible ParseExplicitBaseObject()
+        {
+            return GetExplicitBaseObject();
+        }
+
         public Asn1TaggedObjectParser ParseExplicitBaseTagged()
         {
             return GetExplicitBaseTagged();
@@ -417,38 +422,37 @@ namespace Org.BouncyCastle.Asn1
 
         internal abstract Asn1TaggedObject ReplaceTag(int tagClass, int tagNo);
 
-        internal static Asn1Object CreateConstructed(int tagClass, int tagNo, bool isIL,
-            Asn1EncodableVector contentsElements)
+        internal static Asn1Object CreateConstructedDL(int tagClass, int tagNo, Asn1EncodableVector contentsElements)
         {
             bool maybeExplicit = (contentsElements.Count == 1);
 
-            if (isIL)
-            {
-                Asn1TaggedObject taggedObject = maybeExplicit
-                    ?   new BerTaggedObject(ParsedExplicit, tagClass, tagNo, contentsElements[0])
-                    :   new BerTaggedObject(ParsedImplicit, tagClass, tagNo, BerSequence.FromVector(contentsElements));
+            Asn1TaggedObject taggedObject = maybeExplicit
+                ? new DLTaggedObject(ParsedExplicit, tagClass, tagNo, contentsElements[0])
+                : new DLTaggedObject(ParsedImplicit, tagClass, tagNo, DLSequence.FromVector(contentsElements));
 
-                switch (tagClass)
-                {
-                case Asn1Tags.Application:
-                    return new BerApplicationSpecific(taggedObject);
-                default:
-                    return taggedObject;
-                }
+            switch (tagClass)
+            {
+            case Asn1Tags.Application:
+                return new DLApplicationSpecific(taggedObject);
+            default:
+                return taggedObject;
             }
-            else
-            {
-                Asn1TaggedObject taggedObject = maybeExplicit
-                    ?   new DLTaggedObject(ParsedExplicit, tagClass, tagNo, contentsElements[0])
-                    :   new DLTaggedObject(ParsedImplicit, tagClass, tagNo, DLSequence.FromVector(contentsElements));
+        }
 
-                switch (tagClass)
-                {
-                case Asn1Tags.Application:
-                    return new DLApplicationSpecific(taggedObject);
-                default:
-                    return taggedObject;
-                }
+        internal static Asn1Object CreateConstructedIL(int tagClass, int tagNo, Asn1EncodableVector contentsElements)
+        {
+            bool maybeExplicit = (contentsElements.Count == 1);
+
+            Asn1TaggedObject taggedObject = maybeExplicit
+                ? new BerTaggedObject(ParsedExplicit, tagClass, tagNo, contentsElements[0])
+                : new BerTaggedObject(ParsedImplicit, tagClass, tagNo, BerSequence.FromVector(contentsElements));
+
+            switch (tagClass)
+            {
+            case Asn1Tags.Application:
+                return new BerApplicationSpecific(taggedObject);
+            default:
+                return taggedObject;
             }
         }
 

@@ -289,5 +289,41 @@ namespace Org.BouncyCastle.Asn1
             return TryParseBaseUniversal(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo, declaredExplicit,
                 baseTagNo);
         }
+
+
+        /*
+         * Wrappers for Asn1TaggedObjectParser.ParseExplicitBaseObject
+         */
+
+        /// <exception cref="IOException"/>
+        public static IAsn1Convertible ParseExplicitBaseObject(Asn1TaggedObjectParser taggedObjectParser, int tagClass,
+            int tagNo)
+        {
+            return CheckTag(taggedObjectParser, tagClass, tagNo).ParseExplicitBaseObject();
+        }
+
+        /// <exception cref="IOException"/>
+        public static IAsn1Convertible ParseExplicitContextBaseObject(Asn1TaggedObjectParser taggedObjectParser,
+            int tagNo)
+        {
+            return ParseExplicitBaseObject(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        /// <exception cref="IOException"/>
+        public static IAsn1Convertible TryParseExplicitBaseObject(Asn1TaggedObjectParser taggedObjectParser,
+            int tagClass, int tagNo)
+        {
+            if (!taggedObjectParser.HasTag(tagClass, tagNo))
+                return null;
+
+            return taggedObjectParser.ParseExplicitBaseObject();
+        }
+
+        /// <exception cref="IOException"/>
+        public static IAsn1Convertible TryParseExplicitContextBaseObject(Asn1TaggedObjectParser taggedObjectParser,
+            int tagNo)
+        {
+            return TryParseExplicitBaseObject(taggedObjectParser, Asn1Tags.ContextSpecific, tagNo);
+        }
     }
 }

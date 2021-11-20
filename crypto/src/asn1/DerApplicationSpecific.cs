@@ -126,6 +126,11 @@ namespace Org.BouncyCastle.Asn1
             return m_taggedObject.ParseBaseUniversal(declaredExplicit, baseTagNo);
         }
 
+        public IAsn1Convertible ParseExplicitBaseObject()
+        {
+            return TaggedObject.ParseExplicitBaseObject();
+        }
+
         public Asn1TaggedObjectParser ParseExplicitBaseTagged()
         {
             return m_taggedObject.ParseExplicitBaseTagged();
@@ -160,7 +165,7 @@ namespace Org.BouncyCastle.Asn1
         public IAsn1Convertible ReadObject()
         {
             // NOTE: No way to say you're looking for an implicitly-tagged object via IAsn1ApplicationSpecificParser
-            return m_taggedObject.GetBaseObject();
+            return ParseExplicitBaseObject();
         }
 
         public int TagClass

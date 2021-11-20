@@ -13,28 +13,28 @@ namespace Org.BouncyCastle.Asn1.Cms
 	*/
 	public class ContentInfoParser
 	{
-		private DerObjectIdentifier		contentType;
-		private Asn1TaggedObjectParser	content;
+		private readonly DerObjectIdentifier m_contentType;
+		private readonly Asn1TaggedObjectParser m_content;
 
-		public ContentInfoParser(
-			Asn1SequenceParser seq)
+		public ContentInfoParser(Asn1SequenceParser seq)
 		{
-			contentType = (DerObjectIdentifier)seq.ReadObject();
-			content = (Asn1TaggedObjectParser)seq.ReadObject();
+			m_contentType = (DerObjectIdentifier)seq.ReadObject();
+			m_content = (Asn1TaggedObjectParser)seq.ReadObject();
 		}
 
 		public DerObjectIdentifier ContentType
 		{
-			get { return contentType; }
+			get { return m_contentType; }
 		}
 
-		public IAsn1Convertible GetContent(
-			int tag)
+		public IAsn1Convertible GetContent(int tag)
 		{
-			if (content == null)
+			if (null == m_content)
 				return null;
 
-			return content.GetObjectParser(tag, true);
-		}
+            // TODO[cms] Ideally we could enforce the claimed tag
+            //return Asn1Utilities.ParseContextBaseUniversal(content, 0, true, tag);
+            return Asn1Utilities.ParseExplicitContextBaseObject(m_content, 0);
+        }
 	}
 }

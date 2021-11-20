@@ -75,16 +75,19 @@ namespace Org.BouncyCastle.Asn1
         */
         private Asn1Object BuildObject(int tagHdr, int tagNo, int length)
         {
-            bool isConstructed = (tagHdr & Asn1Tags.Constructed) != 0;
+            // TODO[asn1] Special-case zero length first?
 
             DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(this, length, limit);
 
+            if (0 == (tagHdr & Asn1Tags.Flags))
+                return CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
+
             int tagClass = tagHdr & Asn1Tags.Private;
             if (0 != tagClass)
-                return ReadTaggedObject(tagClass, tagNo, isConstructed, defIn);
-
-            if (!isConstructed)
-                return CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
+            {
+                bool isConstructed = (tagHdr & Asn1Tags.Constructed) != 0;
+                return ReadTaggedObjectDL(tagClass, tagNo, isConstructed, defIn);
+            }
 
             switch (tagNo)
             {
@@ -103,7 +106,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal Asn1Object ReadTaggedObject(int tagClass, int tagNo, bool constructed, DefiniteLengthInputStream defIn)
+        internal Asn1Object ReadTaggedObjectDL(int tagClass, int tagNo, bool constructed, DefiniteLengthInputStream defIn)
         {
             if (!constructed)
             {
@@ -111,9 +114,8 @@ namespace Org.BouncyCastle.Asn1
                 return Asn1TaggedObject.CreatePrimitive(tagClass, tagNo, contentsOctets);
             }
 
-            bool isIL = false;
             Asn1EncodableVector contentsElements = ReadVector(defIn);
-            return Asn1TaggedObject.CreateConstructed(tagClass, tagNo, isIL, contentsElements);
+            return Asn1TaggedObject.CreateConstructedDL(tagClass, tagNo, contentsElements);
         }
 
         internal virtual Asn1EncodableVector ReadVector()
@@ -187,11 +189,13 @@ namespace Org.BouncyCastle.Asn1
 
             int tagClass = tagHdr & Asn1Tags.Private;
             if (0 != tagClass)
-                return sp.ReadTaggedObject(tagClass, tagNo, true);
+                return sp.LoadTaggedIL(tagClass, tagNo);
 
-            // TODO There are other tags that may be constructed (e.g. BitString)
             switch (tagNo)
             {
+            // TODO[asn1] BerBitStringParser
+            //case Asn1Tags.BitString:
+            //    return BerBitStringParser.Parse(sp);
             case Asn1Tags.OctetString:
                 return BerOctetStringParser.Parse(sp);
             case Asn1Tags.Sequence:
@@ -199,6 +203,7 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.Set:
                 return BerSetParser.Parse(sp);
             case Asn1Tags.External:
+                // TODO[asn1] BerExternalParser
                 return DerExternalParser.Parse(sp);
             default:
                 throw new IOException("unknown BER object encountered");
