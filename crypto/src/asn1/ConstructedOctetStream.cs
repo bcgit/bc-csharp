@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Asn1
 
 		public override int Read(byte[] buffer, int offset, int count)
 		{
+            if (count < 1)
+                return 0;
+
 			if (_currentStream == null)
 			{
 				if (!_first)
@@ -66,11 +69,11 @@ namespace Org.BouncyCastle.Asn1
 			if (_currentStream == null)
 			{
 				if (!_first)
-					return 0;
+					return -1;
 
                 Asn1OctetStringParser next = GetNextParser();
                 if (next == null)
-					return 0;
+					return -1;
 
 				_first = false;
 				_currentStream = next.GetOctetStream();
