@@ -62,15 +62,22 @@ namespace Org.BouncyCastle.X509
 
 			try
 			{
-				PushbackStream pis = new PushbackStream(inStream);
-				int tag = pis.ReadByte();
+                int tag = inStream.ReadByte();
+                if (tag < 0)
+                    return null;
 
-				if (tag < 0)
-					return null;
+                if (inStream.CanSeek)
+                {
+                    inStream.Seek(-1L, SeekOrigin.Current);
+                }
+                else
+                {
+                    PushbackStream pis = new PushbackStream(inStream);
+                    pis.Unread(tag);
+                    inStream = pis;
+                }
 
-				pis.Unread(tag);
-
-				return ReadDerCrossCertificatePair(pis);
+                return ReadDerCrossCertificatePair(inStream);
 			}
 			catch (Exception e)
 			{

@@ -140,22 +140,29 @@ namespace Org.BouncyCastle.X509
 					return null;
 				}
 
-				PushbackStream pis = new PushbackStream(inStream);
-				int tag = pis.ReadByte();
+                int tag = inStream.ReadByte();
+                if (tag < 0)
+                    return null;
 
-				if (tag < 0)
-					return null;
+                if (inStream.CanSeek)
+                {
+                    inStream.Seek(-1L, SeekOrigin.Current);
+                }
+                else
+                {
+                    PushbackStream pis = new PushbackStream(inStream);
+                    pis.Unread(tag);
+                    inStream = pis;
+                }
 
-				pis.Unread(tag);
-
-				if (tag != 0x30)	// assume ascii PEM encoded.
+                if (tag != 0x30)	// assume ascii PEM encoded.
 				{
-					return ReadPemCrl(pis);
+					return ReadPemCrl(inStream);
 				}
 
 				Asn1InputStream asn1 = lazyAsn1
-					?	new LazyAsn1InputStream(pis)
-					:	new Asn1InputStream(pis);
+					?	new LazyAsn1InputStream(inStream)
+					:	new Asn1InputStream(inStream);
 
 				return ReadDerCrl(asn1);
 			}
