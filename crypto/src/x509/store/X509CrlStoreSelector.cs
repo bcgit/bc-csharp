@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
-using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509.Store
