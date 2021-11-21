@@ -246,11 +246,9 @@ namespace Org.BouncyCastle.Asn1
             switch (tagNo)
             {
             case 1:
-                //return ASN1OctetString.TYPE.checkedCast(externalContent);
-                return (Asn1OctetString)externalContent;
+                return Asn1OctetString.Meta.Instance.CheckedCast(externalContent);
             case 2:
-                //return ASN1BitString.TYPE.checkedCast(externalContent);
-                return (DerBitString)externalContent;
+                return DerBitString.Meta.Instance.CheckedCast(externalContent);
             default:
                 return externalContent;
             }
