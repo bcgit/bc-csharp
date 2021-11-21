@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Asn1
         {
             // TODO[asn1] Special-case zero length first?
 
-            DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(this, length, limit);
+            DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(s, length, limit);
 
             if (0 == (tagHdr & Asn1Tags.Flags))
                 return CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1Object ReadObject()
         {
-            int tagHdr = ReadByte();
+            int tagHdr = s.ReadByte();
             if (tagHdr <= 0)
             {
                 if (tagHdr == 0)
@@ -184,7 +184,7 @@ namespace Org.BouncyCastle.Asn1
             if (0 == (tagHdr & Asn1Tags.Constructed))
                 throw new IOException("indefinite-length primitive encoding encountered");
 
-            IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(this, limit);
+            IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(s, limit);
             Asn1StreamParser sp = new Asn1StreamParser(indIn, limit, tmpBuffers);
 
             int tagClass = tagHdr & Asn1Tags.Private;
