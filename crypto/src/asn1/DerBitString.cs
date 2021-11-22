@@ -359,7 +359,7 @@ namespace Org.BouncyCastle.Asn1
 
                 byte finalOctet = contents[length - 1];
                 if (finalOctet != (byte)(finalOctet & (0xFF << padBits)))
-                    return new BerBitString(contents, false);
+                    return new DLBitString(contents, false);
             }
 
             return new DerBitString(contents, false);

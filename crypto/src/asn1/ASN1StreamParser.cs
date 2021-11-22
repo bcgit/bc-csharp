@@ -130,9 +130,9 @@ namespace Org.BouncyCastle.Asn1
         {
             switch (univTagNo)
             {
-            // TODO[asn1] DLConstructedBitStringParser
-            //case Asn1Tags.BitString:
-            //    return new BerBitStringParser(this);
+            case Asn1Tags.BitString:
+                // TODO[asn1] DLConstructedBitStringParser
+                return new BerBitStringParser(this);
             case Asn1Tags.External:
                 return new DerExternalParser(this);
             case Asn1Tags.OctetString:
@@ -151,9 +151,8 @@ namespace Org.BouncyCastle.Asn1
         {
             switch (univTagNo)
             {
-            // TODO[asn1] BerBitStringParser
-            //case Asn1Tags.BitString:
-            //    return new BerBitStringParser(this);
+            case Asn1Tags.BitString:
+                return new BerBitStringParser(this);
             case Asn1Tags.External:
                 // TODO[asn1] BERExternalParser
                 return new DerExternalParser(this);
@@ -178,9 +177,8 @@ namespace Org.BouncyCastle.Asn1
             // Some primitive encodings can be handled by parsers too...
             switch (univTagNo)
             {
-            // TODO[asn1] DLBitStringParser
-            //case Asn1Tags.BitString:
-            //    return new DLBitStringParser(defIn);
+            case Asn1Tags.BitString:
+                return new DLBitStringParser(defIn);
             case Asn1Tags.External:
                 throw new Asn1Exception("externals must use constructed encoding (see X.690 8.18)");
             case Asn1Tags.OctetString:

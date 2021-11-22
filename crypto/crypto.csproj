@@ -294,6 +294,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\BerBitStringParser.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\BERGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -360,6 +365,11 @@
                 />
                 <File
                     RelPath = "src\asn1\BERTaggedObjectParser.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\ConstructedBitStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -560,6 +570,16 @@
                 />
                 <File
                     RelPath = "src\asn1\DLApplicationSpecific.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\DLBitString.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\DLBitStringParser.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

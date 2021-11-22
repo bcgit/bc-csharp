@@ -64,6 +64,17 @@ namespace Org.BouncyCastle.Asn1
                 Asn1OutputStream.GetContentsEncodings(encoding, elements));
         }
 
+        internal override DerBitString ToAsn1BitString()
+        {
+            return new DLBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
+        }
+
+        // TODO[asn1] DLExternal
+        //internal override DerExternal ToAsn1External()
+        //{
+        //    return new DLExternal(this);
+        //}
+
         internal override Asn1Set ToAsn1Set()
         {
             return new DLSet(false, elements);

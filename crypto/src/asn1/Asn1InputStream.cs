@@ -193,9 +193,8 @@ namespace Org.BouncyCastle.Asn1
 
             switch (tagNo)
             {
-            // TODO[asn1] BerBitStringParser
-            //case Asn1Tags.BitString:
-            //    return BerBitStringParser.Parse(sp);
+            case Asn1Tags.BitString:
+                return BerBitStringParser.Parse(sp);
             case Asn1Tags.OctetString:
                 return BerOctetStringParser.Parse(sp);
             case Asn1Tags.Sequence:
@@ -224,8 +223,7 @@ namespace Org.BouncyCastle.Asn1
                 bitStrings[i] = bitString;
             }
 
-            // TODO Probably ought to be DLBitString
-            return new BerBitString(bitStrings);
+            return new DLBitString(BerBitString.FlattenBitStrings(bitStrings), false);
         }
 
         internal virtual Asn1OctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
@@ -242,8 +240,8 @@ namespace Org.BouncyCastle.Asn1
                 octetStrings[i] = octetString;
             }
 
-            // TODO Probably ought to be DerOctetString (no DLOctetString available)
-            return new BerOctetString(octetStrings);
+            // Note: No DLOctetString available
+            return new DerOctetString(BerOctetString.FlattenOctetStrings(octetStrings));
         }
 
         internal virtual int Limit
