@@ -163,8 +163,8 @@ namespace Org.BouncyCastle.Asn1
                 return null;
             }
 
-            int tagNo = ReadTagNumber(this, tagHdr);
-            int length = ReadLength(this, limit, false);
+            int tagNo = ReadTagNumber(s, tagHdr);
+            int length = ReadLength(s, limit, false);
 
             if (length >= 0)
             {
