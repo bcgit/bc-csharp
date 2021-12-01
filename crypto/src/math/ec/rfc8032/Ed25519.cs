@@ -66,6 +66,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private const int WnafWidthBase = 7;
 
+        // ScalarMultBase is hard-coded for these values of blocks, teeth, spacing so they can't be freely changed
         private const int PrecompBlocks = 8;
         private const int PrecompTeeth = 4;
         private const int PrecompSpacing = 8;
@@ -691,13 +692,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return r;
         }
 
-        private static void PointCopy(PointAffine p, PointAccum r)
-        {
-            F.Copy(p.x, 0, r.x, 0);
-            F.Copy(p.y, 0, r.y, 0);
-            PointExtendXY(r);
-        }
-
         private static void PointCopy(PointExt p, PointExt r)
         {
             F.Copy(p.x, 0, r.x, 0);
@@ -783,16 +777,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             F.CNegate(sign, r.x);
             F.CNegate(sign, r.t);
-        }
-
-        private static void PointLookup(int[] table, int index, PointExt r)
-        {
-            int off = F.Size * 4 * index;
-
-            F.Copy(table, off, r.x, 0);     off += F.Size;
-            F.Copy(table, off, r.y, 0);     off += F.Size;
-            F.Copy(table, off, r.z, 0);     off += F.Size;
-            F.Copy(table, off, r.t, 0);
         }
 
         private static int[] PointPrecompute(PointAffine p, int count)
@@ -1136,46 +1120,41 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] n = new uint[ScalarUints];
             DecodeScalar(k, 0, n);
 
-            Debug.Assert(0U == (n[0] & 7));
-            Debug.Assert(1U == n[ScalarUints - 1] >> 30);
-
-            Nat.ShiftDownBits(ScalarUints, n, 3, 1U);
-
             // Recode the scalar into signed-digit form
             {
                 uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
-                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 0U);             Debug.Assert(c2 == (1U << 31));
+                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
             }
-
-            Debug.Assert(1U == n[ScalarUints - 1] >> 28);
 
             int[] table = PointPrecompute(p, 8);
             PointExt q = new PointExt();
 
-            // Replace first 4 doublings (2^4 * P) with 1 addition (P + 15 * P)
-            PointCopy(p, r);
-            PointLookup(table, 7, q);
-            PointAdd(q, r);
+            PointSetNeutral(r);
 
-            int w = 62;
+            int w = 63;
             for (;;)
             {
                 PointLookup(n, w, table, q);
                 PointAdd(q, r);
 
-                PointDouble(r);
-                PointDouble(r);
-                PointDouble(r);
-
                 if (--w < 0)
                     break;
 
-                PointDouble(r);
+                for (int i = 0; i < 4; ++i)
+                {
+                    PointDouble(r);
+                }
             }
         }
 
         private static void ScalarMultBase(byte[] k, PointAccum r)
         {
+            // Equivalent (but much slower)
+            //PointAffine p = new PointAffine();
+            //F.Copy(B_x, 0, p.x, 0);
+            //F.Copy(B_y, 0, p.y, 0);
+            //ScalarMult(k, p, r);
+
             Precompute();
 
             uint[] n = new uint[ScalarUints];
