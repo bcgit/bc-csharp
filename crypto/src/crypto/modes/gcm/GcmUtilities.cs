@@ -349,6 +349,14 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             y[yOff + 1] = (x1 >> 8) | (x0 << 56);
         }
 
+        internal static void MultiplyP16(ulong[] x)
+        {
+            ulong x0 = x[0], x1 = x[1];
+            ulong c = x1 << 48;
+            x[0] = (x0 >> 16) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
+            x[1] = (x1 >> 16) | (x0 << 48);
+        }
+
         internal static void Square(ulong[] x, ulong[] z)
         {
             ulong[] t = new ulong[4];
