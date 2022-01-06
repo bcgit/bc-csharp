@@ -8,43 +8,45 @@ namespace Org.BouncyCastle.Asn1
 	internal class ConstructedOctetStream
 		: BaseInputStream
 	{
-		private readonly Asn1StreamParser _parser;
+		private readonly Asn1StreamParser m_parser;
 
-		private bool _first = true;
-		private Stream _currentStream;
+		private bool m_first = true;
+		private Stream m_currentStream;
 
-		internal ConstructedOctetStream(
-			Asn1StreamParser parser)
+		internal ConstructedOctetStream(Asn1StreamParser parser)
 		{
-			_parser = parser;
+			m_parser = parser;
 		}
 
-		public override int Read(byte[] buffer, int offset, int count)
+		public override int Read(byte[] buf, int off, int len)
 		{
-			if (_currentStream == null)
+            if (len < 1)
+                return 0;
+
+			if (m_currentStream == null)
 			{
-				if (!_first)
+				if (!m_first)
 					return 0;
 
                 Asn1OctetStringParser next = GetNextParser();
                 if (next == null)
                     return 0;
 
-				_first = false;
-				_currentStream = next.GetOctetStream();
+				m_first = false;
+				m_currentStream = next.GetOctetStream();
 			}
 
 			int totalRead = 0;
 
 			for (;;)
 			{
-				int numRead = _currentStream.Read(buffer, offset + totalRead, count - totalRead);
+				int numRead = m_currentStream.Read(buf, off + totalRead, len - totalRead);
 
 				if (numRead > 0)
 				{
 					totalRead += numRead;
 
-					if (totalRead == count)
+					if (totalRead == len)
 						return totalRead;
 				}
 				else
@@ -52,33 +54,33 @@ namespace Org.BouncyCastle.Asn1
                     Asn1OctetStringParser next = GetNextParser();
                     if (next == null)
 					{
-						_currentStream = null;
+						m_currentStream = null;
 						return totalRead;
 					}
 
-					_currentStream = next.GetOctetStream();
+					m_currentStream = next.GetOctetStream();
 				}
 			}
 		}
 
 		public override int ReadByte()
 		{
-			if (_currentStream == null)
+			if (m_currentStream == null)
 			{
-				if (!_first)
-					return 0;
+				if (!m_first)
+					return -1;
 
                 Asn1OctetStringParser next = GetNextParser();
                 if (next == null)
-					return 0;
+					return -1;
 
-				_first = false;
-				_currentStream = next.GetOctetStream();
+				m_first = false;
+				m_currentStream = next.GetOctetStream();
 			}
 
 			for (;;)
 			{
-				int b = _currentStream.ReadByte();
+				int b = m_currentStream.ReadByte();
 
 				if (b >= 0)
 					return b;
@@ -86,17 +88,17 @@ namespace Org.BouncyCastle.Asn1
                 Asn1OctetStringParser next = GetNextParser();
                 if (next == null)
 				{
-					_currentStream = null;
+					m_currentStream = null;
 					return -1;
 				}
 
-				_currentStream = next.GetOctetStream();
+				m_currentStream = next.GetOctetStream();
 			}
 		}
 
         private Asn1OctetStringParser GetNextParser()
         {
-            IAsn1Convertible asn1Obj = _parser.ReadObject();
+            IAsn1Convertible asn1Obj = m_parser.ReadObject();
             if (asn1Obj == null)
                 return null;
 

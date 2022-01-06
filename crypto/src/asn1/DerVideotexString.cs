@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 using Org.BouncyCastle.Utilities;
 
@@ -7,10 +8,20 @@ namespace Org.BouncyCastle.Asn1
     public class DerVideotexString
         : DerStringBase
     {
-        private readonly byte[] mString;
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerVideotexString), Asn1Tags.VideotexString) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets());
+            }
+        }
 
         /**
-         * return a Videotex String from the passed in object
+         * return a videotex string from the passed in object
          *
          * @param obj a DERVideotexString or an object that can be converted into one.
          * @exception IllegalArgumentException if the object cannot be converted.
@@ -22,16 +33,21 @@ namespace Org.BouncyCastle.Asn1
             {
                 return (DerVideotexString)obj;
             }
-
-            if (obj is byte[])
+            else if (obj is IAsn1Convertible)
+            {
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerVideotexString)
+                    return (DerVideotexString)asn1Object;
+            }
+            else if (obj is byte[])
             {
                 try
                 {
-                    return (DerVideotexString)FromByteArray((byte[])obj);
+                    return (DerVideotexString)Meta.Instance.FromByteArray((byte[])obj);
                 }
-                catch (Exception e)
+                catch (IOException e)
                 {
-                    throw new ArgumentException("encoding error in GetInstance: " + e.ToString(), "obj");
+                    throw new ArgumentException("failed to construct videotex string from byte[]: " + e.Message);
                 }
             }
 
@@ -39,75 +55,68 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-         * return a Videotex String from a tagged object.
+         * return a videotex string from a tagged object.
          *
-         * @param obj the tagged object holding the object we want
-         * @param explicit true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception IllegalArgumentException if the tagged object cannot
-         *               be converted.
+         * @param taggedObject the tagged object holding the object we want
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception IllegalArgumentException if the tagged object cannot be converted.
          * @return a DERVideotexString instance, or null.
          */
-        public static DerVideotexString GetInstance(Asn1TaggedObject obj, bool isExplicit)
+        public static DerVideotexString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-			Asn1Object o = obj.GetObject();
-
-            if (isExplicit || o is DerVideotexString)
-			{
-				return GetInstance(o);
-			}
-
-            return new DerVideotexString(((Asn1OctetString)o).GetOctets());
+            return (DerVideotexString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        /**
-         * basic constructor - with bytes.
-         * @param string the byte encoding of the characters making up the string.
-         */
-        public DerVideotexString(byte[] encoding)
+        private readonly byte[] m_contents;
+
+        public DerVideotexString(byte[] contents)
+            : this(contents, true)
         {
-            this.mString = Arrays.Clone(encoding);
+        }
+
+        internal DerVideotexString(byte[] contents, bool clone)
+        {
+            if (null == contents)
+                throw new ArgumentNullException("contents");
+
+            m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
         public override string GetString()
         {
-            return Strings.FromByteArray(mString);
+            return Strings.FromByteArray(m_contents);
         }
 
         public byte[] GetOctets()
         {
-            return Arrays.Clone(mString);
+            return Arrays.Clone(m_contents);
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.VideotexString, m_contents);
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, mString.Length);
+            return new PrimitiveEncoding(tagClass, tagNo, m_contents);
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.VideotexString, mString);
+            DerVideotexString that = asn1Object as DerVideotexString;
+            return null != that
+                && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
         protected override int Asn1GetHashCode()
-		{
-            return Arrays.GetHashCode(mString);
+        {
+            return Arrays.GetHashCode(m_contents);
         }
 
-		protected override bool Asn1Equals(
-            Asn1Object asn1Object)
+        internal static DerVideotexString CreatePrimitive(byte[] contents)
         {
-            DerVideotexString other = asn1Object as DerVideotexString;
-
-            if (other == null)
-				return false;
-
-            return Arrays.AreEqual(mString, other.mString);
+            return new DerVideotexString(contents, false);
         }
     }
 }

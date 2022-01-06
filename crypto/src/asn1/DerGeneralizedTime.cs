@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Utilities;
@@ -12,46 +13,63 @@ namespace Org.BouncyCastle.Asn1
     public class DerGeneralizedTime
         : Asn1Object
     {
-        private readonly string time;
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerGeneralizedTime), Asn1Tags.GeneralizedTime) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets());
+            }
+        }
 
         /**
          * return a generalized time from the passed in object
          *
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static DerGeneralizedTime GetInstance(
-            object obj)
+        public static DerGeneralizedTime GetInstance(object obj)
         {
             if (obj == null || obj is DerGeneralizedTime)
             {
                 return (DerGeneralizedTime)obj;
+            }
+            else if (obj is IAsn1Convertible)
+            {
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerGeneralizedTime)
+                    return (DerGeneralizedTime)asn1Object;
+            }
+            else if (obj is byte[])
+            {
+                try
+                {
+                    return (DerGeneralizedTime)Meta.Instance.FromByteArray((byte[])obj);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct generalized time from byte[]: " + e.Message);
+                }
             }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }
 
         /**
-         * return a Generalized Time object from a tagged object.
+         * return a generalized Time object from a tagged object.
          *
-         * @param obj the tagged object holding the object we want
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot
-         *               be converted.
+         * @param taggedObject the tagged object holding the object we want
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception ArgumentException if the tagged object cannot be converted.
          */
-        public static DerGeneralizedTime GetInstance(
-            Asn1TaggedObject	obj,
-            bool				isExplicit)
+        public static DerGeneralizedTime GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object o = obj.GetObject();
-
-            if (isExplicit || o is DerGeneralizedTime)
-            {
-                return GetInstance(o);
-            }
-
-            return new DerGeneralizedTime(((Asn1OctetString)o).GetOctets());
+            return (DerGeneralizedTime)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
+
+        private readonly string time;
 
         /**
          * The correct format for this is YYYYMMDDHHMMSS[.f]Z, or without the Z
@@ -295,35 +313,31 @@ namespace Org.BouncyCastle.Asn1
             return Strings.ToAsciiByteArray(time);
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.GeneralizedTime, GetOctets());
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, time.Length);
+            return new PrimitiveEncoding(tagClass, tagNo, GetOctets());
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.GeneralizedTime, GetOctets());
-        }
-
-        protected override bool Asn1Equals(
-            Asn1Object asn1Object)
-        {
-            DerGeneralizedTime other = asn1Object as DerGeneralizedTime;
-
-            if (other == null)
-                return false;
-
-            return this.time.Equals(other.time);
+            DerGeneralizedTime that = asn1Object as DerGeneralizedTime;
+            return null != that
+                && this.time.Equals(that.time);
         }
 
         protected override int Asn1GetHashCode()
         {
             return time.GetHashCode();
+        }
+
+        internal static DerGeneralizedTime CreatePrimitive(byte[] contents)
+        {
+            return new DerGeneralizedTime(contents);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Asn1
      * Base class for an application specific object
      */
     public class DerApplicationSpecific
-        : Asn1Object
+        : Asn1Object, IAsn1ApplicationSpecificParser
     {
         public static DerApplicationSpecific GetInstance(object obj)
         {
@@ -94,6 +94,7 @@ namespace Org.BouncyCastle.Asn1
             get { return m_taggedObject.TagNo; }
         }
 
+        [Obsolete("Will be removed")]
         public byte[] GetContents()
         {
             return m_taggedObject.GetContents();
@@ -112,21 +113,32 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1Object GetObject(int tagNo)
         {
-            // TODO[asn1] Implement Asn1TaggedObject.GetBaseUniversal
-            //return taggedObject.GetBaseUniversal(false, tagNo);
+            return m_taggedObject.GetBaseUniversal(false, tagNo);
+        }
 
-            if (tagNo >= 0x1F)
-                throw new IOException("unsupported tag number");
+        public IAsn1Convertible GetObjectParser(int tag, bool isExplicit)
+        {
+            throw new Asn1Exception("this method only valid for CONTEXT_SPECIFIC tags");
+        }
 
-            byte[] orig = this.GetEncoded();
-            byte[] tmp = ReplaceTagNumber(tagNo, orig);
+        public IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
+        {
+            return m_taggedObject.ParseBaseUniversal(declaredExplicit, baseTagNo);
+        }
 
-            if ((orig[0] & Asn1Tags.Constructed) != 0)
-            {
-                tmp[0] |= Asn1Tags.Constructed;
-            }
+        public IAsn1Convertible ParseExplicitBaseObject()
+        {
+            return TaggedObject.ParseExplicitBaseObject();
+        }
 
-            return FromByteArray(tmp);
+        public Asn1TaggedObjectParser ParseExplicitBaseTagged()
+        {
+            return m_taggedObject.ParseExplicitBaseTagged();
+        }
+
+        public Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
+        {
+            return m_taggedObject.ParseImplicitBaseTagged(baseTagClass, baseTagNo);
         }
 
         public bool HasApplicationTag(int tagNo)
@@ -134,9 +146,36 @@ namespace Org.BouncyCastle.Asn1
             return m_taggedObject.HasTag(Asn1Tags.Application, tagNo);
         }
 
+        public bool HasContextTag(int tagNo)
+        {
+            return false;
+        }
+
+        public bool HasTag(int tagClass, int tagNo)
+        {
+            return m_taggedObject.HasTag(tagClass, tagNo);
+        }
+
+        [Obsolete("Will be removed")]
         public bool IsConstructed()
         {
             return m_taggedObject.IsConstructed();
+        }
+
+        public IAsn1Convertible ReadObject()
+        {
+            // NOTE: No way to say you're looking for an implicitly-tagged object via IAsn1ApplicationSpecificParser
+            return ParseExplicitBaseObject();
+        }
+
+        public int TagClass
+        {
+            get { return m_taggedObject.TagClass; }
+        }
+
+        public int TagNo
+        {
+            get { return m_taggedObject.TagNo; }
         }
 
         /**
@@ -175,47 +214,14 @@ namespace Org.BouncyCastle.Asn1
             return m_taggedObject.CallAsn1GetHashCode();
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return m_taggedObject.EncodeConstructed(encoding);
+            return m_taggedObject.GetEncoding(encoding);
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return m_taggedObject.EncodedLength(encoding, withID);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            m_taggedObject.Encode(asn1Out, withID);
-        }
-
-        private byte[] ReplaceTagNumber(int newTag, byte[] input)
-        {
-            int tagNo = input[0] & 0x1f;
-            int index = 1;
-
-            // with tagged object tag number is bottom 5 bits, or stored at the start of the content
-            if (tagNo == 0x1f)
-            {
-                int b = input[index++];
-
-                // X.690-0207 8.1.2.4.2
-                // "c) bits 7 to 1 of the first subsequent octet shall not all be zero."
-                if ((b & 0x7f) == 0) // Note: -1 will pass
-                    throw new IOException("corrupted stream - invalid high tag number found");
-
-                while ((b & 0x80) != 0)
-                {
-                    b = input[index++];
-                }
-            }
-
-            int remaining = input.Length - index;
-            byte[] tmp = new byte[1 + remaining];
-            tmp[0] = (byte)newTag;
-            Array.Copy(input, index, tmp, 1, remaining);
-            return tmp;
+            return m_taggedObject.GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
         private static int CheckTagClass(int tagClass)

@@ -12,8 +12,6 @@ namespace Org.BouncyCastle.Asn1
             return elementVector.Count < 1 ? Empty : new DerSequence(elementVector);
 		}
 
-        private int m_contentsLengthDer = -1;
-
         /**
 		 * create an empty sequence
 		 */
@@ -48,56 +46,16 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, GetContentsLengthDer());
+            return new ConstructedDLEncoding(Asn1Tags.Universal, Asn1Tags.Sequence,
+                Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDer, elements));
         }
 
-        /*
-		 * A note on the implementation:
-		 * <p>
-		 * As Der requires the constructed, definite-length model to
-		 * be used for structured types, this varies slightly from the
-		 * ASN.1 descriptions given. Rather than just outputing Sequence,
-		 * we also have to specify Constructed, and the objects length.
-		 */
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            asn1Out = asn1Out.GetDerSubStream();
-
-            asn1Out.WriteIdentifier(withID, Asn1Tags.Constructed | Asn1Tags.Sequence);
-
-            int count = elements.Length;
-            if (m_contentsLengthDer >= 0 || count > 16)
-            {
-                asn1Out.WriteDL(GetContentsLengthDer());
-
-                for (int i = 0; i < count; ++i)
-                {
-                    Asn1Object asn1Object = elements[i].ToAsn1Object();
-                    asn1Object.Encode(asn1Out, true);
-                }
-            }
-            else
-            {
-                int contentsLength = 0;
-
-                Asn1Object[] asn1Objects = new Asn1Object[count];
-                for (int i = 0; i < count; ++i)
-                {
-                    Asn1Object asn1Object = elements[i].ToAsn1Object();
-                    asn1Objects[i] = asn1Object;
-                    contentsLength += asn1Object.EncodedLength(asn1Out.Encoding, true);
-                }
-
-                this.m_contentsLengthDer = contentsLength;
-                asn1Out.WriteDL(contentsLength);
-
-                for (int i = 0; i < count; ++i)
-                {
-                    asn1Objects[i].Encode(asn1Out, true);
-                }
-            }
+            return new ConstructedDLEncoding(tagClass, tagNo,
+                Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDer, elements));
         }
 
         internal override DerBitString ToAsn1BitString()
@@ -119,15 +77,6 @@ namespace Org.BouncyCastle.Asn1
         {
             // NOTE: DLSet is intentional, we don't want sorting
             return new DLSet(false, elements);
-        }
-
-        private int GetContentsLengthDer()
-        {
-            if (m_contentsLengthDer < 0)
-            {
-                m_contentsLengthDer = CalculateContentsLength(Asn1OutputStream.EncodingDer);
-            }
-            return m_contentsLengthDer;
         }
     }
 }

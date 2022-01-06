@@ -69,9 +69,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private const int WnafWidthBase = 7;
 
+        // ScalarMultBase supports varying blocks, teeth, spacing so long as their product is in range [449, 479]
         private const int PrecompBlocks = 5;
         private const int PrecompTeeth = 5;
         private const int PrecompSpacing = 18;
+        private const int PrecompRange = PrecompBlocks * PrecompTeeth * PrecompSpacing; // 448 < range < 480
         private const int PrecompPoints = 1 << (PrecompTeeth - 1);
         private const int PrecompMask = PrecompPoints - 1;
 
@@ -705,6 +707,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.CNegate(sign, r.x);
         }
 
+        private static void PointLookup15(uint[] table, PointExt r)
+        {
+            int off = F.Size * 3 * 7;
+
+            F.Copy(table, off, r.x, 0);     off += F.Size;
+            F.Copy(table, off, r.y, 0);     off += F.Size;
+            F.Copy(table, off, r.z, 0);
+        }
+
         private static uint[] PointPrecompute(PointExt p, int count)
         {
             Debug.Assert(count > 0);
@@ -762,6 +773,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             {
                 if (precompBase != null)
                     return;
+
+                Debug.Assert(PrecompRange > 448);
+                Debug.Assert(PrecompRange < 480);
 
                 PointExt p = new PointExt();
                 F.Copy(B_x, 0, p.x, 0);
@@ -1157,41 +1171,46 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] n = new uint[ScalarUints];
             DecodeScalar(k, 0, n);
 
-            Debug.Assert(0U == (n[0] & 3));
-            Debug.Assert(1U == n[ScalarUints - 1] >> 31);
-
-            Nat.ShiftDownBits(ScalarUints, n, 2, 0U);
-
             // Recode the scalar into signed-digit form
             {
-                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
-                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
+                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);
+                uint c2 = Nat.ShiftDownBit(ScalarUints, n, c1);             Debug.Assert(c2 == (1U << 31));
+
+                // NOTE: Bit 448 is implicitly set after the signed-digit recoding
             }
 
             uint[] table = PointPrecompute(p, 8);
             PointExt q = new PointExt();
 
-            PointLookup(n, 111, table, r);
+            // Replace first 4 doublings (2^4 * P) with 1 addition (P + 15 * P)
+            PointLookup15(table, r);
+            PointAdd(p, r);
 
-            for (int w = 110; w >= 0; --w)
+            int w = 111;
+            for (;;)
             {
+                PointLookup(n, w, table, q);
+                PointAdd(q, r);
+
+                if (--w < 0)
+                    break;
+
                 for (int i = 0; i < 4; ++i)
                 {
                     PointDouble(r);
                 }
-
-                PointLookup(n, w, table, q);
-                PointAdd(q, r);
-            }
-
-            for (int i = 0; i < 2; ++i)
-            {
-                PointDouble(r);
             }
         }
 
         private static void ScalarMultBase(byte[] k, PointExt r)
         {
+            // Equivalent (but much slower)
+            //PointExt p = new PointExt();
+            //F.Copy(B_x, 0, p.x, 0);
+            //F.Copy(B_y, 0, p.y, 0);
+            //PointExtendXY(p);
+            //ScalarMult(k, p, r);
+
             Precompute();
 
             uint[] n = new uint[ScalarUints + 1];
@@ -1199,7 +1218,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             // Recode the scalar into signed-digit form
             {
-                n[ScalarUints] = 4U + Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);
+                n[ScalarUints] = (1U << (PrecompRange - 448))
+                               + Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);
                 uint c = Nat.ShiftDownBit(n.Length, n, 0);
                 Debug.Assert(c == (1U << 31));
             }

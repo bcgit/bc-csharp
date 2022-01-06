@@ -83,29 +83,26 @@ namespace Org.BouncyCastle.Asn1.Tests
         {
             if (Arrays.AreEqual(derData, Asn1Object.FromByteArray(dlData).GetEncoded()))
             {
-                //Fail("failed DL check");
-                Fail("failed BER check");
+                Fail("failed DL check");
             }
-            IAsn1String dl = BerBitString.GetInstance(dlData);
+            DerBitString dl = DerBitString.GetInstance(dlData);
 
-            //IsTrue("DL test failed", dl is DLBitString);
-            IsTrue("BER test failed", dl is BerBitString);
+            IsTrue("DL test failed", dl is DLBitString);
             if (!Arrays.AreEqual(derData, Asn1Object.FromByteArray(dlData).GetDerEncoded()))
             {
                 Fail("failed DER check");
             }
-            // TODO This test isn't applicable until we get the DL variants
-            //try
-            //{
-            //    DerBitString.GetInstance(dlData);
-            //    Fail("no exception");
-            //}
-            //catch (ArgumentException e)
-            //{
-            //    // ignore
-            //}
-            IAsn1String der = DerBitString.GetInstance(derData);
-            IsTrue("DER test failed", der is DerBitString);
+            try
+            {
+                // GetInstance should work for "an object that can be converted into [a DerBitString]".
+                DerBitString.GetInstance(dlData);
+            }
+            catch (ArgumentException)
+            {
+                Fail("failed DL encoding conversion");
+            }
+            DerBitString der = DerBitString.GetInstance(derData);
+            IsTrue("DER test failed", typeof(DerBitString) == der.GetType());
         }
 
         public override void PerformTest()

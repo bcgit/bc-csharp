@@ -9,14 +9,14 @@ namespace Org.BouncyCastle.Asn1
         public override void EncodeTo(Stream output)
         {
             Asn1OutputStream asn1Out = Asn1OutputStream.Create(output);
-            Encode(asn1Out, true);
+            GetEncoding(asn1Out.Encoding).Encode(asn1Out);
             asn1Out.FlushInternal();
         }
 
         public override void EncodeTo(Stream output, string encoding)
         {
             Asn1OutputStream asn1Out = Asn1OutputStream.Create(output, encoding);
-            Encode(asn1Out, true);
+            GetEncoding(asn1Out.Encoding).Encode(asn1Out);
             asn1Out.FlushInternal();
         }
 
@@ -71,11 +71,9 @@ namespace Org.BouncyCastle.Asn1
             return this;
         }
 
-        internal abstract bool EncodeConstructed(int encoding);
+        internal abstract IAsn1Encoding GetEncoding(int encoding);
 
-        internal abstract int EncodedLength(int encoding, bool withID);
-
-        internal abstract void Encode(Asn1OutputStream asn1Out, bool withID);
+        internal abstract IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo);
 
         protected abstract bool Asn1Equals(Asn1Object asn1Object);
 		protected abstract int Asn1GetHashCode();

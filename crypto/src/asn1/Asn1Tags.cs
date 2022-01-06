@@ -45,5 +45,7 @@ namespace Org.BouncyCastle.Asn1
         public const int Tagged = 0x80;
         public const int ContextSpecific = 0x80;
         public const int Private = 0xC0;
+
+        public const int Flags = 0xE0;
     }
 }

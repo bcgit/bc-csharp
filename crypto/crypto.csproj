@@ -144,6 +144,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\Asn1BitStringParser.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ASN1Encodable.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -244,7 +249,27 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\ASN1Tag.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\ASN1Tags.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\Asn1Type.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\Asn1UniversalType.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\Asn1UniversalTypes.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -265,6 +290,11 @@
                 />
                 <File
                     RelPath = "src\asn1\BERBitString.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\BerBitStringParser.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -335,6 +365,26 @@
                 />
                 <File
                     RelPath = "src\asn1\BERTaggedObjectParser.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\ConstructedBitStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\ConstructedDLEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\ConstructedILEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\ConstructedLazyDLEncoding.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -524,6 +574,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\DLBitString.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\DLBitStringParser.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\DLSequence.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -539,6 +599,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\asn1\DLTaggedObjectParser.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\asn1\IAsn1ApplicationSpecificParser.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -550,6 +615,11 @@
                 />
                 <File
                     RelPath = "src\asn1\IAsn1Convertible.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\IAsn1Encoding.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -590,6 +660,16 @@
                 />
                 <File
                     RelPath = "src\asn1\OIDTokenizer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\PrimitiveEncoding.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\asn1\PrimitiveEncodingSuffixed.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

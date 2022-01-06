@@ -10,8 +10,6 @@ namespace Org.BouncyCastle.Asn1
 	public class DerTaggedObject
 		: Asn1TaggedObject
 	{
-        private int m_contentsLengthDer = -1;
-
         /**
 		 * create an implicitly tagged object that contains a zero
 		 * length sequence.
@@ -57,56 +55,28 @@ namespace Org.BouncyCastle.Asn1
             get { return Der; }
         }
 
-        internal override bool EncodeConstructed(int encoding)
-        {
-            encoding = Asn1OutputStream.EncodingDer;
-
-            return IsExplicit() || GetBaseObject().ToAsn1Object().EncodeConstructed(encoding);
-        }
-
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
             encoding = Asn1OutputStream.EncodingDer;
 
             Asn1Object baseObject = GetBaseObject().ToAsn1Object();
-            bool withBaseID = IsExplicit();
 
-            int length = GetContentsLengthDer(baseObject, withBaseID);
+            if (!IsExplicit())
+                return baseObject.GetEncodingImplicit(encoding, TagClass, TagNo);
 
-            if (withBaseID)
-            {
-                length += Asn1OutputStream.GetLengthOfDL(length);
-            }
-
-            length += withID ? Asn1OutputStream.GetLengthOfIdentifier(TagNo) : 0;
-
-            return length;
+            return new ConstructedDLEncoding(TagClass, TagNo, new IAsn1Encoding[]{ baseObject.GetEncoding(encoding) });
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            asn1Out = asn1Out.GetDerSubStream();
+            encoding = Asn1OutputStream.EncodingDer;
 
             Asn1Object baseObject = GetBaseObject().ToAsn1Object();
-            bool withBaseID = IsExplicit();
 
-            if (withID)
-            {
-                int flags = TagClass;
-                if (withBaseID || baseObject.EncodeConstructed(asn1Out.Encoding))
-                {
-                    flags |= Asn1Tags.Constructed;
-                }
+            if (!IsExplicit())
+                return baseObject.GetEncodingImplicit(encoding, tagClass, tagNo);
 
-                asn1Out.WriteIdentifier(true, flags, TagNo);
-            }
-
-            if (withBaseID)
-            {
-                asn1Out.WriteDL(GetContentsLengthDer(baseObject, true));
-            }
-
-            baseObject.Encode(asn1Out, withBaseID);
+            return new ConstructedDLEncoding(tagClass, tagNo, new IAsn1Encoding[]{ baseObject.GetEncoding(encoding) });
         }
 
         internal override Asn1Sequence RebuildConstructed(Asn1Object asn1Object)
@@ -117,15 +87,6 @@ namespace Org.BouncyCastle.Asn1
         internal override Asn1TaggedObject ReplaceTag(int tagClass, int tagNo)
         {
             return new DerTaggedObject(explicitness, tagClass, tagNo, obj);
-        }
-
-        private int GetContentsLengthDer(Asn1Object baseObject, bool withBaseID)
-        {
-            if (m_contentsLengthDer < 0)
-            {
-                m_contentsLengthDer = baseObject.EncodedLength(Asn1OutputStream.EncodingDer, withBaseID);
-            }
-            return m_contentsLengthDer;
         }
     }
 }

@@ -48,31 +48,22 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
             if (Asn1OutputStream.EncodingBer != encoding)
-                return base.EncodedLength(encoding, withID);
+                return base.GetEncoding(encoding);
 
-            int totalLength = withID ? 4 : 3;
-
-            for (int i = 0, count = elements.Length; i < count; ++i)
-            {
-                Asn1Object asn1Object = elements[i].ToAsn1Object();
-                totalLength += asn1Object.EncodedLength(encoding, true);
-            }
-
-            return totalLength;
+            return new ConstructedILEncoding(Asn1Tags.Universal, Asn1Tags.Set,
+                Asn1OutputStream.GetContentsEncodings(encoding, elements));
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            if (Asn1OutputStream.EncodingBer != asn1Out.Encoding)
-            {
-                base.Encode(asn1Out, withID);
-                return;
-            }
+            if (Asn1OutputStream.EncodingBer != encoding)
+                return base.GetEncodingImplicit(encoding, tagClass, tagNo);
 
-            asn1Out.WriteEncodingIL(withID, Asn1Tags.Constructed | Asn1Tags.Set, elements);
+            return new ConstructedILEncoding(tagClass, tagNo,
+                Asn1OutputStream.GetContentsEncodings(encoding, elements));
         }
     }
 }

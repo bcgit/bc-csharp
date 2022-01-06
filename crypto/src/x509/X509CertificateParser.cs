@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.X509
@@ -141,20 +139,27 @@ namespace Org.BouncyCastle.X509
 					return null;
 				}
 
-				PushbackStream pis = new PushbackStream(inStream);
-				int tag = pis.ReadByte();
+                int tag = inStream.ReadByte();
+                if (tag < 0)
+                    return null;
 
-				if (tag < 0)
-					return null;
+                if (inStream.CanSeek)
+                {
+                    inStream.Seek(-1L, SeekOrigin.Current);
+                }
+                else
+                {
+                    PushbackStream pis = new PushbackStream(inStream);
+                    pis.Unread(tag);
+                    inStream = pis;
+                }
 
-				pis.Unread(tag);
-
-				if (tag != 0x30)  // assume ascii PEM encoded.
+                if (tag != 0x30)  // assume ascii PEM encoded.
 				{
-					return ReadPemCertificate(pis);
+					return ReadPemCertificate(inStream);
 				}
 
-				return ReadDerCertificate(new Asn1InputStream(pis));
+				return ReadDerCertificate(new Asn1InputStream(inStream));
 			}
 			catch (Exception e)
 			{

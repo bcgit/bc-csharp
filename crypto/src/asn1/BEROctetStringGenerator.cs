@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Asn1
 
 				if (_off == _buf.Length)
 				{
-					DerOctetString.Encode(_derOut, true, _buf, 0, _off);
+					DerOctetString.Encode(_derOut, _buf, 0, _off);
 					_off = 0;
 				}
 			}
@@ -88,13 +88,13 @@ namespace Org.BouncyCastle.Asn1
                 {
                     Array.Copy(b, off, _buf, _off, available);
                     count += available;
-                    DerOctetString.Encode(_derOut, true, _buf, 0, bufLen);
+                    DerOctetString.Encode(_derOut, _buf, 0, bufLen);
                 }
 
                 int remaining;
                 while ((remaining = len - count) >= bufLen)
                 {
-                    DerOctetString.Encode(_derOut, true, b, off + count, bufLen);
+                    DerOctetString.Encode(_derOut, b, off + count, bufLen);
                     count += bufLen;
                 }
 
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Asn1
 			{
 				if (_off != 0)
 				{
-					DerOctetString.Encode(_derOut, true, _buf, 0, _off);
+					DerOctetString.Encode(_derOut, _buf, 0, _off);
 				}
 
                 _derOut.FlushInternal();

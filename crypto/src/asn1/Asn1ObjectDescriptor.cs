@@ -8,6 +8,25 @@ namespace Org.BouncyCastle.Asn1
     public sealed class Asn1ObjectDescriptor
         : Asn1Object
     {
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(Asn1ObjectDescriptor), Asn1Tags.ObjectDescriptor) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return new Asn1ObjectDescriptor(
+                    (DerGraphicString)DerGraphicString.Meta.Instance.FromImplicitPrimitive(octetString));
+            }
+
+            internal override Asn1Object FromImplicitConstructed(Asn1Sequence sequence)
+            {
+                return new Asn1ObjectDescriptor(
+                    (DerGraphicString)DerGraphicString.Meta.Instance.FromImplicitConstructed(sequence));
+            }
+        }
+
         /**
          * Return an ObjectDescriptor from the passed in object.
          *
@@ -31,7 +50,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    return GetInstance(FromByteArray((byte[])obj));
+                    return (Asn1ObjectDescriptor)Meta.Instance.FromByteArray((byte[])obj);
                 }
                 catch (IOException e)
                 {
@@ -46,21 +65,13 @@ namespace Org.BouncyCastle.Asn1
          * Return an ObjectDescriptor from a tagged object.
          *
          * @param taggedObject the tagged object holding the object we want.
-         * @param explicit     true if the object is meant to be explicitly tagged,
-         *                     false otherwise.
+         * @param declaredExplicit true if the object is meant to be explicitly tagged, false otherwise.
          * @exception IllegalArgumentException if the tagged object cannot be converted.
          * @return an ASN1ObjectDescriptor instance, or null.
          */
-        public static Asn1ObjectDescriptor GetInstance(Asn1TaggedObject taggedObject, bool isExplicit)
+        public static Asn1ObjectDescriptor GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object baseObject = taggedObject.GetObject();
-
-            if (isExplicit || baseObject is Asn1ObjectDescriptor)
-            {
-                return GetInstance(baseObject);
-            }
-
-            return new Asn1ObjectDescriptor(new DerGraphicString(((Asn1OctetString)baseObject).GetOctets()));
+            return (Asn1ObjectDescriptor)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
         private readonly DerGraphicString m_baseGraphicString;
@@ -78,20 +89,14 @@ namespace Org.BouncyCastle.Asn1
             get { return m_baseGraphicString; }
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return m_baseGraphicString.GetEncodingImplicit(encoding, Asn1Tags.Universal, Asn1Tags.ObjectDescriptor);
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return m_baseGraphicString.EncodedLength(encoding, withID);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            asn1Out.WriteIdentifier(withID, Asn1Tags.ObjectDescriptor);
-            m_baseGraphicString.Encode(asn1Out, false);
+            return m_baseGraphicString.GetEncodingImplicit(encoding, tagClass, tagNo);
         }
 
         protected override int Asn1GetHashCode()

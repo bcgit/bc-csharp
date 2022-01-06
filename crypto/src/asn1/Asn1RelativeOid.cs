@@ -10,6 +10,18 @@ namespace Org.BouncyCastle.Asn1
     public class Asn1RelativeOid
         : Asn1Object
     {
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(Asn1RelativeOid), Asn1Tags.RelativeOid) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets(), false);
+            }
+        }
+
         public static Asn1RelativeOid FromContents(byte[] contents)
         {
             return CreatePrimitive(contents, true);
@@ -31,7 +43,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    return GetInstance(FromByteArray((byte[])obj));
+                    return (Asn1RelativeOid)FromByteArray((byte[])obj);
                 }
                 catch (IOException e)
                 {
@@ -44,14 +56,7 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1RelativeOid GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            Asn1Object baseObject = taggedObject.GetObject();
-
-            if (declaredExplicit || baseObject is Asn1RelativeOid)
-            {
-                return GetInstance(baseObject);
-            }
-
-            return FromContents(Asn1OctetString.GetInstance(baseObject).GetOctets());
+            return (Asn1RelativeOid)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
         private const long LongLimit = (Int64.MaxValue >> 7) - 0x7F;
@@ -110,19 +115,14 @@ namespace Org.BouncyCastle.Asn1
             return identifier.GetHashCode();
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.RelativeOid, GetContents());
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, GetContents().Length);
-        }
-
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.RelativeOid, GetContents());
+            return new PrimitiveEncoding(tagClass, tagNo, GetContents());
         }
 
         private void DoOutput(MemoryStream bOut)

@@ -1,6 +1,6 @@
 using System;
 using System.Globalization;
-using System.Text;
+using System.IO;
 
 using Org.BouncyCastle.Utilities;
 
@@ -12,46 +12,63 @@ namespace Org.BouncyCastle.Asn1
     public class DerUtcTime
         : Asn1Object
     {
-        private readonly string time;
+        internal class Meta : Asn1UniversalType
+        {
+            internal static readonly Asn1UniversalType Instance = new Meta();
+
+            private Meta() : base(typeof(DerUtcTime), Asn1Tags.UtcTime) {}
+
+            internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
+            {
+                return CreatePrimitive(octetString.GetOctets());
+            }
+        }
 
 		/**
-         * return an UTC Time from the passed in object.
+         * return a UTC Time from the passed in object.
          *
          * @exception ArgumentException if the object cannot be converted.
          */
-        public static DerUtcTime GetInstance(
-            object obj)
+        public static DerUtcTime GetInstance(object obj)
         {
             if (obj == null || obj is DerUtcTime)
             {
                 return (DerUtcTime)obj;
+            }
+            else if (obj is IAsn1Convertible)
+            {
+                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
+                if (asn1Object is DerUtcTime)
+                    return (DerUtcTime)asn1Object;
+            }
+            else if (obj is byte[])
+            {
+                try
+                {
+                    return (DerUtcTime)Meta.Instance.FromByteArray((byte[])obj);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct UTC time from byte[]: " + e.Message);
+                }
             }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
         }
 
         /**
-         * return an UTC Time from a tagged object.
+         * return a UTC Time from a tagged object.
          *
-         * @param obj the tagged object holding the object we want
-         * @param explicitly true if the object is meant to be explicitly
-         *              tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot
-         *               be converted.
+         * @param taggedObject the tagged object holding the object we want
+         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
+         * @exception ArgumentException if the tagged object cannot be converted.
          */
-        public static DerUtcTime GetInstance(
-            Asn1TaggedObject	obj,
-            bool				isExplicit)
+        public static DerUtcTime GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-			Asn1Object o = obj.GetObject();
-
-			if (isExplicit || o is DerUtcTime)
-			{
-				return GetInstance(o);
-			}
-
-			return new DerUtcTime(((Asn1OctetString)o).GetOctets());
+            return (DerUtcTime)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
+
+        private readonly string time;
 
         /**
          * The correct format for this is YYMMDDHHMMSSZ (it used to be that seconds were
@@ -62,8 +79,7 @@ namespace Org.BouncyCastle.Asn1
          * <p>
          * @param time the time string.</p>
          */
-        public DerUtcTime(
-            string time)
+        public DerUtcTime(string time)
         {
 			if (time == null)
 				throw new ArgumentNullException("time");
@@ -83,8 +99,7 @@ namespace Org.BouncyCastle.Asn1
 		/**
          * base constructor from a DateTime object
          */
-        public DerUtcTime(
-            DateTime time)
+        public DerUtcTime(DateTime time)
         {
 #if PORTABLE
             this.time = time.ToUniversalTime().ToString("yyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
@@ -93,13 +108,12 @@ namespace Org.BouncyCastle.Asn1
 #endif
         }
 
-		internal DerUtcTime(
-            byte[] bytes)
+		internal DerUtcTime(byte[] contents)
         {
             //
             // explicitly convert to characters
             //
-            this.time = Strings.FromAsciiByteArray(bytes);
+            this.time = Strings.FromAsciiByteArray(contents);
         }
 
 //		public DateTime ToDateTime()
@@ -139,9 +153,7 @@ namespace Org.BouncyCastle.Asn1
 			return ParseDateString(AdjustedTimeString, @"yyyyMMddHHmmss'GMT'zzz");
 		}
 
-		private DateTime ParseDateString(
-			string	dateStr,
-			string	formatStr)
+		private DateTime ParseDateString(string dateStr, string formatStr)
 		{
 			DateTime dt = DateTime.ParseExact(
 				dateStr,
@@ -237,30 +249,21 @@ namespace Org.BouncyCastle.Asn1
             return Strings.ToAsciiByteArray(time);
         }
 
-        internal override bool EncodeConstructed(int encoding)
+        internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return false;
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.UtcTime, GetOctets());
         }
 
-        internal override int EncodedLength(int encoding, bool withID)
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return Asn1OutputStream.GetLengthOfEncodingDL(withID, time.Length);
+            return new PrimitiveEncoding(tagClass, tagNo, GetOctets());
         }
 
-        internal override void Encode(Asn1OutputStream asn1Out, bool withID)
-        {
-            asn1Out.WriteEncodingDL(withID, Asn1Tags.UtcTime, GetOctets());
-        }
-
-        protected override bool Asn1Equals(
-			Asn1Object asn1Object)
+        protected override bool Asn1Equals(Asn1Object asn1Object)
 		{
-			DerUtcTime other = asn1Object as DerUtcTime;
-
-			if (other == null)
-				return false;
-
-			return this.time.Equals(other.time);
+			DerUtcTime that = asn1Object as DerUtcTime;
+            return null != that
+                && this.time.Equals(that.time);
         }
 
 		protected override int Asn1GetHashCode()
@@ -272,5 +275,10 @@ namespace Org.BouncyCastle.Asn1
 		{
 			return time;
 		}
-	}
+
+        internal static DerUtcTime CreatePrimitive(byte[] contents)
+        {
+            return new DerUtcTime(contents);
+        }
+    }
 }

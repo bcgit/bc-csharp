@@ -83,7 +83,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			// create an implicitly tagged "set" without sorting
 			Asn1TaggedObject tag = new DerTaggedObject(false, 1, new DerSequence(v));
-			s = Asn1Set.GetInstance(tag, false);
+
+            // Encode/decode to get 'tag' as a parsed instance
+            tag = (Asn1TaggedObject)Asn1Object.FromByteArray(tag.GetEncoded(Asn1Encodable.Der));;
+
+            s = Asn1Set.GetInstance(tag, false);
 
 			if (s[0] is DerBoolean)
 			{
