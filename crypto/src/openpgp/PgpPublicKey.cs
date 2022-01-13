@@ -460,7 +460,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>True, if this could be a master key.</summary>
         public bool IsMasterKey
         {
-            get { return (subSigs == null) && !(this.IsEncryptionKey && publicPk.Algorithm != PublicKeyAlgorithmTag.RsaGeneral); }
+            get
+            {
+                // this might seem a bit excessive, but we're also trying to flag something can't be a master key.
+                return !(publicPk is PublicSubkeyPacket)
+                    && !(this.IsEncryptionKey && publicPk.Algorithm != PublicKeyAlgorithmTag.RsaGeneral);
+            }
         }
 
         /// <summary>The algorithm code associated with the public key.</summary>
