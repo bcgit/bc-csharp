@@ -18,7 +18,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 		private uint[] subkey = new uint[24 * 4];
 		private uint[] kw = new uint[4 * 2]; // for whitening
 		private uint[] ke = new uint[6 * 2]; // for FL and FL^(-1)
-		private uint[] state = new uint[4]; // for encryption and decryption
 
 		private static readonly uint[] SIGMA = new uint[]{
 			0xa09e667f, 0x3bcc908b,
@@ -540,10 +539,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		private int processBlock128(byte[] input, int inOff, byte[] output, int outOff)
 		{
+			uint[] state = new uint[4];
+
 			for (int i = 0; i < 4; i++)
 			{
-				state[i] = bytes2uint(input, inOff + (i * 4));
-				state[i] ^= kw[i];
+				state[i] = bytes2uint(input, inOff + (i * 4)) ^ kw[i];
 			}
 
 			camelliaF2(state, subkey, 0);
@@ -573,10 +573,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		private int processBlock192or256(byte[] input, int inOff, byte[] output, int outOff)
 		{
+			uint[] state = new uint[4];
+
 			for (int i = 0; i < 4; i++)
 			{
-				state[i] = bytes2uint(input, inOff + (i * 4));
-				state[i] ^= kw[i];
+				state[i] = bytes2uint(input, inOff + (i * 4)) ^ kw[i];
 			}
 
 			camelliaF2(state, subkey, 0);
@@ -604,6 +605,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			uint2bytes(state[3], output, outOff + 4);
 			uint2bytes(state[0], output, outOff + 8);
 			uint2bytes(state[1], output, outOff + 12);
+
 			return BLOCK_SIZE;
 		}
 
