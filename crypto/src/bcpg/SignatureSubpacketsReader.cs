@@ -90,33 +90,37 @@ namespace Org.BouncyCastle.Bcpg
 
             switch (type)
 			{
-				case SignatureSubpacketTag.CreationTime:
-					return new SignatureCreationTime(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.KeyExpireTime:
-                    return new KeyExpirationTime(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.ExpireTime:
-                    return new SignatureExpirationTime(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.Revocable:
-                    return new Revocable(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.Exportable:
-                    return new Exportable(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.IssuerKeyId:
-                    return new IssuerKeyId(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.TrustSig:
-                    return new TrustSignature(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.PreferredCompressionAlgorithms:
-				case SignatureSubpacketTag.PreferredHashAlgorithms:
-				case SignatureSubpacketTag.PreferredSymmetricAlgorithms:
-                    return new PreferredAlgorithms(type, isCritical, isLongLength, data);
-				case SignatureSubpacketTag.KeyFlags:
-                    return new KeyFlags(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.PrimaryUserId:
-                    return new PrimaryUserId(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.SignerUserId:
-                    return new SignerUserId(isCritical, isLongLength, data);
-				case SignatureSubpacketTag.NotationData:
-                    return new NotationData(isCritical, isLongLength, data);
-			}
+			case SignatureSubpacketTag.CreationTime:
+				return new SignatureCreationTime(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.KeyExpireTime:
+                return new KeyExpirationTime(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.ExpireTime:
+                return new SignatureExpirationTime(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.Revocable:
+                return new Revocable(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.Exportable:
+                return new Exportable(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.IssuerKeyId:
+                return new IssuerKeyId(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.TrustSig:
+                return new TrustSignature(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.PreferredCompressionAlgorithms:
+			case SignatureSubpacketTag.PreferredHashAlgorithms:
+			case SignatureSubpacketTag.PreferredSymmetricAlgorithms:
+                return new PreferredAlgorithms(type, isCritical, isLongLength, data);
+			case SignatureSubpacketTag.KeyFlags:
+                return new KeyFlags(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.PrimaryUserId:
+                return new PrimaryUserId(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.SignerUserId:
+                return new SignerUserId(isCritical, isLongLength, data);
+			case SignatureSubpacketTag.NotationData:
+                return new NotationData(isCritical, isLongLength, data);
+            case SignatureSubpacketTag.RevocationReason:
+                return new RevocationReason(isCritical, isLongLength, data);
+            case SignatureSubpacketTag.RevocationKey:
+                return new RevocationKey(isCritical, isLongLength, data);
+            }
             return new SignatureSubpacket(type, isCritical, isLongLength, data);
 		}
 
