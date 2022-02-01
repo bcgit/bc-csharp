@@ -74,6 +74,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             hMac.Update((byte)0x00);
             hMac.BlockUpdate(x, 0, x.Length);
             hMac.BlockUpdate(m, 0, m.Length);
+            InitAdditionalInput0(hMac);
 
             hMac.DoFinal(K, 0);
 
@@ -134,6 +135,22 @@ namespace Org.BouncyCastle.Crypto.Signers
 
                 hMac.DoFinal(V, 0);
             }
+        }
+
+        /// <summary>Supports use of additional input.</summary>
+        /// <remarks>
+        /// RFC 6979 3.6. Additional data may be added to the input of HMAC [..]. A use case may be a protocol that
+        /// requires a non-deterministic signature algorithm on a system that does not have access to a high-quality
+        /// random source. It suffices that the additional data[..] is non-repeating(e.g., a signature counter or a
+        /// monotonic clock) to ensure "random-looking" signatures are indistinguishable, in a cryptographic way, from
+        /// plain (EC)DSA signatures.
+        /// <para/>
+        /// By default there is no additional input. Override this method to supply additional input, bearing in mind
+        /// that this calculator may be used for many signatures.
+        /// </remarks>
+        /// <param name="hmac0">The <see cref="HMac"/> to which the additional input should be added.</param>
+        protected virtual void InitAdditionalInput0(HMac hmac0)
+        {
         }
 
         private BigInteger BitsToInt(byte[] t)

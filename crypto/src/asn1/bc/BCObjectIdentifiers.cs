@@ -110,5 +110,26 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier bc_ext = bc.Branch("4");
 
         public static readonly DerObjectIdentifier linkedCertificate = bc_ext.Branch("1");
+
+        /**
+         * KEM(4) algorithms
+         */
+        public static readonly DerObjectIdentifier bc_kem = bc.Branch("5");
+
+        /**
+         * Classic McEliece
+         */
+        public static readonly DerObjectIdentifier pqc_kem_mceliece = bc_kem.Branch("1");
+
+        public static readonly DerObjectIdentifier mceliece348864_r3 = pqc_kem_mceliece.Branch("1");
+        public static readonly DerObjectIdentifier mceliece348864f_r3 = pqc_kem_mceliece.Branch("2");
+        public static readonly DerObjectIdentifier mceliece460896_r3 = pqc_kem_mceliece.Branch("3");
+        public static readonly DerObjectIdentifier mceliece460896f_r3 = pqc_kem_mceliece.Branch("4");
+        public static readonly DerObjectIdentifier mceliece6688128_r3 = pqc_kem_mceliece.Branch("5");
+        public static readonly DerObjectIdentifier mceliece6688128f_r3 = pqc_kem_mceliece.Branch("6");
+        public static readonly DerObjectIdentifier mceliece6960119_r3 = pqc_kem_mceliece.Branch("7");
+        public static readonly DerObjectIdentifier mceliece6960119f_r3 = pqc_kem_mceliece.Branch("8");
+        public static readonly DerObjectIdentifier mceliece8192128_r3 = pqc_kem_mceliece.Branch("9");
+        public static readonly DerObjectIdentifier mceliece8192128f_r3 = pqc_kem_mceliece.Branch("10");
 	}
 }

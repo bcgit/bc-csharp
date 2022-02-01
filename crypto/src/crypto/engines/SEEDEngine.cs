@@ -240,6 +240,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 		private int[] createWorkingKey(
 			byte[] inKey)
 		{
+			if (inKey.Length != 16)
+				throw new ArgumentException("key size must be 128 bits");
+
 			int[] key = new int[32];
 			long lower = bytesToLong(inKey, 0);
 			long upper = bytesToLong(inKey, 8);

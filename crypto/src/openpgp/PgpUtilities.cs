@@ -1,8 +1,12 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -16,6 +20,37 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	/// <remarks>Basic utility class.</remarks>
     public sealed class PgpUtilities
     {
+        private static IDictionary NameToHashID = CreateNameToHashID();
+        private static IDictionary OidToName = CreateOidToName();
+
+        private static IDictionary CreateNameToHashID()
+        {
+            IDictionary d = Platform.CreateHashtable();
+            d.Add("sha1", HashAlgorithmTag.Sha1);
+            d.Add("sha224", HashAlgorithmTag.Sha224);
+            d.Add("sha256", HashAlgorithmTag.Sha256);
+            d.Add("sha384", HashAlgorithmTag.Sha384);
+            d.Add("sha512", HashAlgorithmTag.Sha512);
+            d.Add("ripemd160", HashAlgorithmTag.RipeMD160);
+            d.Add("rmd160", HashAlgorithmTag.RipeMD160);
+            d.Add("md2", HashAlgorithmTag.MD2);
+            d.Add("tiger", HashAlgorithmTag.Tiger192);
+            d.Add("haval", HashAlgorithmTag.Haval5pass160);
+            d.Add("md5", HashAlgorithmTag.MD5);
+            return d;
+        }
+
+        private static IDictionary CreateOidToName()
+        {
+            IDictionary d = Platform.CreateHashtable();
+            d.Add(EdECObjectIdentifiers.id_X25519, "Curve25519");
+            d.Add(EdECObjectIdentifiers.id_Ed25519, "Ed25519");
+            d.Add(SecObjectIdentifiers.SecP256r1, "NIST P-256");
+            d.Add(SecObjectIdentifiers.SecP384r1, "NIST P-384");
+            d.Add(SecObjectIdentifiers.SecP521r1, "NIST P-521");
+            return d;
+        }
+
         private PgpUtilities()
         {
         }
@@ -75,7 +110,32 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			}
         }
 
-		public static string GetSignatureName(
+        public static int GetDigestIDForName(string name)
+        {
+            name = Platform.ToLowerInvariant(name);
+            if (NameToHashID.Contains(name))
+                return (Int32)NameToHashID[name];
+
+            throw new ArgumentException("unable to map " + name + " to a hash id", "name");
+        }
+
+        /**
+         * Return the EC curve name for the passed in OID.
+         *
+         * @param oid the EC curve object identifier in the PGP key
+         * @return  a string representation of the OID.
+         */
+        public static string GetCurveName(DerObjectIdentifier oid)
+        {
+            string name = (string)OidToName[oid];
+            if (name != null)
+                return name;
+
+            // fall back
+            return ECNamedCurveTable.GetName(oid);
+        }
+
+        public static string GetSignatureName(
             PublicKeyAlgorithmTag	keyAlgorithm,
             HashAlgorithmTag		hashAlgorithm)
         {

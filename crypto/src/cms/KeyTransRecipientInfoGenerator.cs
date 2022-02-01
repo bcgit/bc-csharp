@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Cms
 
         public KeyTransRecipientInfoGenerator(byte[] subjectKeyID, IKeyWrapper keyWrapper)
         {
-            this.subjectKeyIdentifier = new DerOctetString(subjectKeyIdentifier);
+            this.subjectKeyIdentifier = new DerOctetString(subjectKeyID);
             this.keyWrapper = keyWrapper;
         }
 
