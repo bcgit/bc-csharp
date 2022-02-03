@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Cms
 		 */
 		public DefaultAuthenticatedAttributeTableGenerator()
 		{
-			table = Platform.CreateHashtable();
+			table =  Platform.CreateHashtable();
 		}
 
 		/**

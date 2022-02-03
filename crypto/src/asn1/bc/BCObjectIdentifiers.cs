@@ -91,6 +91,32 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier xmss_mt_with_SHA512          = xmss_mt.Branch("2");
         public static readonly DerObjectIdentifier xmss_mt_with_SHAKE128        = xmss_mt.Branch("3");
         public static readonly DerObjectIdentifier xmss_mt_with_SHAKE256        = xmss_mt.Branch("4");
+        
+        /**
+         * SPHINCS+
+         */
+        public static readonly DerObjectIdentifier sphincsPlus = bc_sig.Branch("5");
+        public static readonly DerObjectIdentifier sphincsPlus_shake_256 = sphincsPlus.Branch("1");
+        public static readonly DerObjectIdentifier sphincsPlus_sha_256 = sphincsPlus.Branch("2");
+        public static readonly DerObjectIdentifier sphincsPlus_sha_512 = sphincsPlus.Branch("3");
+        
+        /**
+         * Picnic
+         */
+        public static readonly DerObjectIdentifier picnic = bc_sig.Branch("6");
+        public static readonly DerObjectIdentifier picnicl1fs = picnic.Branch("1");
+        public static readonly DerObjectIdentifier picnicl1ur = picnic.Branch("2");
+        public static readonly DerObjectIdentifier picnicl3fs = picnic.Branch("3");
+        public static readonly DerObjectIdentifier picnicl3ur = picnic.Branch("4");
+        public static readonly DerObjectIdentifier picnicl5fs = picnic.Branch("5");
+        public static readonly DerObjectIdentifier picnicl5ur = picnic.Branch("6");
+        public static readonly DerObjectIdentifier picnic3l1 = picnic.Branch("7");
+        public static readonly DerObjectIdentifier picnic3l3 = picnic.Branch("8");
+        public static readonly DerObjectIdentifier picnic3l5 = picnic.Branch("9");
+        public static readonly DerObjectIdentifier picnicl1full = picnic.Branch("10");
+        public static readonly DerObjectIdentifier picnicl3full = picnic.Branch("11");
+        public static readonly DerObjectIdentifier picnicl5full = picnic.Branch("12");
+
 
         /**
          * key_exchange(3) algorithms
@@ -131,5 +157,19 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier mceliece6960119f_r3 = pqc_kem_mceliece.Branch("8");
         public static readonly DerObjectIdentifier mceliece8192128_r3 = pqc_kem_mceliece.Branch("9");
         public static readonly DerObjectIdentifier mceliece8192128f_r3 = pqc_kem_mceliece.Branch("10");
+        
+        /**
+         * SABER
+         */
+        public static readonly DerObjectIdentifier pqc_kem_saber = bc_kem.Branch("3");
+        public static readonly DerObjectIdentifier lightsaberkem128r3 = pqc_kem_saber.Branch("1");
+        public static readonly DerObjectIdentifier saberkem128r3 = pqc_kem_saber.Branch("2");
+        public static readonly DerObjectIdentifier firesaberkem128r3 = pqc_kem_saber.Branch("3");
+        public static readonly DerObjectIdentifier lightsaberkem192r3 = pqc_kem_saber.Branch("4");
+        public static readonly DerObjectIdentifier saberkem192r3 = pqc_kem_saber.Branch("5");
+        public static readonly DerObjectIdentifier firesaberkem192r3 = pqc_kem_saber.Branch("6");
+        public static readonly DerObjectIdentifier lightsaberkem256r3 = pqc_kem_saber.Branch("7");
+        public static readonly DerObjectIdentifier saberkem256r3 = pqc_kem_saber.Branch("8");
+        public static readonly DerObjectIdentifier firesaberkem256r3 = pqc_kem_saber.Branch("9");
 	}
 }

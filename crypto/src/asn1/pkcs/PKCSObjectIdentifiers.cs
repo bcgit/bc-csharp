@@ -167,6 +167,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
          */
         public static readonly DerObjectIdentifier IdAlgAeadChaCha20Poly1305 = IdAlg.Branch("18");
 
+        
+        /**
+     * id-alg-hss-lms-hashsig OBJECT IDENTIFIER ::= { iso(1)
+     *     member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
+     *    smime(16) alg(3) 17 }
+     */
+        public static readonly DerObjectIdentifier IdAlgHssLmsHashsig = IdAlg.Branch("17");
+
         //
         // SMIME capability sub oids.
         //

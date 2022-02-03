@@ -250,6 +250,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
             bs[off + 1] = (byte)(n >> 8);
         }
 
+        internal static byte[] UInt16_To_LE(ushort n)
+        {
+            byte[] bs = new byte[2];
+            UInt16_To_LE(n, bs, 0);
+            return bs;
+        }
+
         internal static ushort LE_To_UInt16(byte[] bs)
         {
             uint n = (uint)bs[0]

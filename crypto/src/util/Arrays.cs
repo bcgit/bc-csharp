@@ -600,6 +600,12 @@ namespace Org.BouncyCastle.Utilities
             Array.Copy(data, 0, tmp, 0, System.Math.Min(newLength, data.Length));
             return tmp;
         }
+        public static uint[] CopyOf(uint[] data, int newLength)
+        {
+            uint[] tmp = new uint[newLength];
+            Array.Copy(data, 0, tmp, 0, System.Math.Min(newLength, data.Length));
+            return tmp;
+        }
 
         public static long[] CopyOf(long[] data, int newLength)
         {
@@ -766,6 +772,19 @@ namespace Org.BouncyCastle.Utilities
                 return Clone(a);
 
             int[] rv = new int[a.Length + b.Length];
+            Array.Copy(a, 0, rv, 0, a.Length);
+            Array.Copy(b, 0, rv, a.Length, b.Length);
+            return rv;
+        }
+        
+        public static uint[] Concatenate(uint[] a, uint[] b)
+        {
+            if (a == null)
+                return Clone(b);
+            if (b == null)
+                return Clone(a);
+
+            uint[] rv = new uint[a.Length + b.Length];
             Array.Copy(a, 0, rv, 0, a.Length);
             Array.Copy(b, 0, rv, a.Length, b.Length);
             return rv;
