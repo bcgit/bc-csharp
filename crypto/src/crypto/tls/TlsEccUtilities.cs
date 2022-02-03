@@ -115,13 +115,9 @@ namespace Org.BouncyCastle.Crypto.Tls
 
             // Parameters are lazily created the first time a particular curve is accessed
 
-            X9ECParameters ecP = CustomNamedCurves.GetByName(curveName);
+            X9ECParameters ecP = ECKeyPairGenerator.FindECCurveByName(curveName);
             if (ecP == null)
-            {
-                ecP = ECNamedCurveTable.GetByName(curveName);
-                if (ecP == null)
-                    return null;
-            }
+                return null;
 
             // It's a bit inefficient to do this conversion every time
             return new ECDomainParameters(ecP.Curve, ecP.G, ecP.N, ecP.H, ecP.GetSeed());

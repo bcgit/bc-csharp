@@ -1,18 +1,14 @@
 using System;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
-using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
@@ -133,16 +129,44 @@ namespace Org.BouncyCastle.Crypto.Generators
             return new FixedPointCombMultiplier();
         }
 
+        internal static X9ECParameters FindECCurveByName(string name)
+        {
+            X9ECParameters ecP = CustomNamedCurves.GetByName(name);
+            if (ecP == null)
+            {
+                ecP = ECNamedCurveTable.GetByName(name);
+            }
+            return ecP;
+        }
+
+        internal static X9ECParametersHolder FindECCurveByNameLazy(string name)
+        {
+            X9ECParametersHolder holder = CustomNamedCurves.GetByNameLazy(name);
+            if (holder == null)
+            {
+                holder = ECNamedCurveTable.GetByNameLazy(name);
+            }
+            return holder;
+        }
+
         internal static X9ECParameters FindECCurveByOid(DerObjectIdentifier oid)
         {
-            // TODO ECGost3410NamedCurves support (returns ECDomainParameters though)
-
             X9ECParameters ecP = CustomNamedCurves.GetByOid(oid);
             if (ecP == null)
             {
                 ecP = ECNamedCurveTable.GetByOid(oid);
             }
             return ecP;
+        }
+
+        internal static X9ECParametersHolder FindECCurveByOidLazy(DerObjectIdentifier oid)
+        {
+            X9ECParametersHolder holder = CustomNamedCurves.GetByOidLazy(oid);
+            if (holder == null)
+            {
+                holder = ECNamedCurveTable.GetByOidLazy(oid);
+            }
+            return holder;
         }
 
         internal static ECPublicKeyParameters GetCorrespondingPublicKey(

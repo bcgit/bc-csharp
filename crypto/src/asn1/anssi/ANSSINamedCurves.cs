@@ -40,23 +40,28 @@ namespace Org.BouncyCastle.Asn1.Anssi
 
             internal static readonly X9ECParametersHolder Instance = new Frp256v1Holder();
 
-            protected override X9ECParameters CreateParameters()
+            protected override ECCurve CreateCurve()
             {
                 BigInteger p = FromHex("F1FD178C0B3AD58F10126DE8CE42435B3961ADBCABC8CA6DE8FCF353D86E9C03");
                 BigInteger a = FromHex("F1FD178C0B3AD58F10126DE8CE42435B3961ADBCABC8CA6DE8FCF353D86E9C00");
                 BigInteger b = FromHex("EE353FCA5428A9300D4ABA754A44C00FDFEC0C9AE4B1A1803075ED967B7BB73F");
-                byte[] S = null;
                 BigInteger n = FromHex("F1FD178C0B3AD58F10126DE8CE42435B53DC67E140D2BF941FFDD459C6D655E1");
                 BigInteger h = BigInteger.One;
 
-                ECCurve curve = ConfigureCurve(new FpCurve(p, a, b, n, h));
+                return ConfigureCurve(new FpCurve(p, a, b, n, h));
+            }
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = null;
+                ECCurve curve = Curve;
+
                 X9ECPoint G = ConfigureBasepoint(curve,
                     "04B6B3D4C356C139EB31183D4749D423958C27D2DCAF98B70164C97A2DD98F5CFF6142E0F7C8B204911F9271F0F3ECEF8C2701C307E8E4C9E183115A1554062CFB");
 
-                return new X9ECParameters(curve, G, n, h, S);
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
             }
-        };
-
+        }
 
         private static readonly IDictionary objIds = Platform.CreateHashtable();
         private static readonly IDictionary curves = Platform.CreateHashtable();
@@ -77,11 +82,16 @@ namespace Org.BouncyCastle.Asn1.Anssi
             DefineCurve("FRP256v1", AnssiObjectIdentifiers.FRP256v1, Frp256v1Holder.Instance);
         }
 
-        public static X9ECParameters GetByName(
-            string name)
+        public static X9ECParameters GetByName(string name)
         {
             DerObjectIdentifier oid = GetOid(name);
             return oid == null ? null : GetByOid(oid);
+        }
+
+        public static X9ECParametersHolder GetByNameLazy(string name)
+        {
+            DerObjectIdentifier oid = GetOid(name);
+            return oid == null ? null : GetByOidLazy(oid);
         }
 
         /**
@@ -90,11 +100,15 @@ namespace Org.BouncyCastle.Asn1.Anssi
          *
          * @param oid an object identifier representing a named curve, if present.
          */
-        public static X9ECParameters GetByOid(
-            DerObjectIdentifier oid)
+        public static X9ECParameters GetByOid(DerObjectIdentifier oid)
         {
-            X9ECParametersHolder holder = (X9ECParametersHolder)curves[oid];
+            X9ECParametersHolder holder = GetByOidLazy(oid);
             return holder == null ? null : holder.Parameters;
+        }
+
+        public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)
+        {
+            return (X9ECParametersHolder)curves[oid];
         }
 
         /**

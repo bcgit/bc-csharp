@@ -54,6 +54,36 @@ namespace Org.BouncyCastle.Asn1.X9
             return ecP;
         }
 
+        public static X9ECParametersHolder GetByNameLazy(string name)
+        {
+            X9ECParametersHolder holder = X962NamedCurves.GetByNameLazy(name);
+            if (null == holder)
+            {
+                holder = SecNamedCurves.GetByNameLazy(name);
+            }
+            if (null == holder)
+            {
+                holder = NistNamedCurves.GetByNameLazy(name);
+            }
+            if (null == holder)
+            {
+                holder = TeleTrusTNamedCurves.GetByNameLazy(name);
+            }
+            if (null == holder)
+            {
+                holder = AnssiNamedCurves.GetByNameLazy(name);
+            }
+            if (null == holder)
+            {
+                holder = ECGost3410NamedCurves.GetByNameLazy(name);
+            }
+            if (null == holder)
+            {
+                holder = GMNamedCurves.GetByNameLazy(name);
+            }
+            return holder;
+        }
+
         public static string GetName(DerObjectIdentifier oid)
         {
             string name = X962NamedCurves.GetName(oid);
@@ -154,6 +184,35 @@ namespace Org.BouncyCastle.Asn1.X9
                 ecP = GMNamedCurves.GetByOid(oid);
             }
             return ecP;
+        }
+
+        public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)
+        {
+            X9ECParametersHolder holder = X962NamedCurves.GetByOidLazy(oid);
+            if (null == holder)
+            {
+                holder = SecNamedCurves.GetByOidLazy(oid);
+            }
+
+            // NOTE: All the NIST curves are currently from SEC, so no point in redundant OID lookup
+
+            if (null == holder)
+            {
+                holder = TeleTrusTNamedCurves.GetByOidLazy(oid);
+            }
+            if (null == holder)
+            {
+                holder = AnssiNamedCurves.GetByOidLazy(oid);
+            }
+            if (null == holder)
+            {
+                holder = ECGost3410NamedCurves.GetByOidLazy(oid);
+            }
+            if (null == holder)
+            {
+                holder = GMNamedCurves.GetByOidLazy(oid);
+            }
+            return holder;
         }
 
         /**

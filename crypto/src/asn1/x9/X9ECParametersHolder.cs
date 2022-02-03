@@ -1,25 +1,49 @@
+using Org.BouncyCastle.Math.EC;
+
 namespace Org.BouncyCastle.Asn1.X9
 {
 	public abstract class X9ECParametersHolder
 	{
-		private X9ECParameters parameters;
+        private ECCurve m_curve;
+        private X9ECParameters m_parameters;
 
-		public X9ECParameters Parameters
+        public ECCurve Curve
+        {
+            get
+            {
+                lock (this)
+                {
+                    if (m_curve == null)
+                    {
+                        m_curve = CreateCurve();
+                    }
+
+                    return m_curve;
+                }
+            }
+        }
+
+        public X9ECParameters Parameters
 		{
 			get
 			{
                 lock (this)
                 {
-                    if (parameters == null)
+                    if (m_parameters == null)
                     {
-                        parameters = CreateParameters();
+                        m_parameters = CreateParameters();
                     }
 
-                    return parameters;
+                    return m_parameters;
                 }
             }
         }
 
-		protected abstract X9ECParameters CreateParameters();
+        protected virtual ECCurve CreateCurve()
+        {
+            return CreateParameters().Curve;
+        }
+
+        protected abstract X9ECParameters CreateParameters();
 	}
 }

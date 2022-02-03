@@ -50,11 +50,16 @@ namespace Org.BouncyCastle.Asn1.Nist
             DefineCurveAlias("P-521", SecObjectIdentifiers.SecP521r1);
         }
 
-        public static X9ECParameters GetByName(
-            string name)
+        public static X9ECParameters GetByName(string name)
         {
             DerObjectIdentifier oid = GetOid(name);
-            return oid == null ? null : GetByOid(oid);
+            return oid == null ? null : SecNamedCurves.GetByOid(oid);
+        }
+
+        public static X9ECParametersHolder GetByNameLazy(string name)
+        {
+            DerObjectIdentifier oid = GetOid(name);
+            return oid == null ? null : SecNamedCurves.GetByOidLazy(oid);
         }
 
         /**
@@ -63,10 +68,14 @@ namespace Org.BouncyCastle.Asn1.Nist
         *
         * @param oid an object identifier representing a named curve, if present.
         */
-        public static X9ECParameters GetByOid(
-            DerObjectIdentifier oid)
+        public static X9ECParameters GetByOid(DerObjectIdentifier oid)
         {
-            return SecNamedCurves.GetByOid(oid);
+            return names.Contains(oid) ? SecNamedCurves.GetByOid(oid) : null;
+        }
+
+        public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)
+        {
+            return names.Contains(oid) ? SecNamedCurves.GetByOidLazy(oid) : null;
         }
 
         /**
