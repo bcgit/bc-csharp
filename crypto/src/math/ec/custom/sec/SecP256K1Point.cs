@@ -75,6 +75,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP256K1FieldElement Z2 = (SecP256K1FieldElement)b.RawZCoords[0];
 
             uint c;
+            uint[] tt0 = Nat256.CreateExt();
             uint[] tt1 = Nat256.CreateExt();
             uint[] t2 = Nat256.Create();
             uint[] t3 = Nat256.Create();
@@ -90,13 +91,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             else
             {
                 S2 = t3;
-                SecP256K1Field.Square(Z1.x, S2);
+                SecP256K1Field.Square(Z1.x, S2, tt0);
 
                 U2 = t2;
-                SecP256K1Field.Multiply(S2, X2.x, U2);
+                SecP256K1Field.Multiply(S2, X2.x, U2, tt0);
 
-                SecP256K1Field.Multiply(S2, Z1.x, S2);
-                SecP256K1Field.Multiply(S2, Y2.x, S2);
+                SecP256K1Field.Multiply(S2, Z1.x, S2, tt0);
+                SecP256K1Field.Multiply(S2, Y2.x, S2, tt0);
             }
 
             bool Z2IsOne = Z2.IsOne;
@@ -109,13 +110,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             else
             {
                 S1 = t4;
-                SecP256K1Field.Square(Z2.x, S1);
+                SecP256K1Field.Square(Z2.x, S1, tt0);
 
                 U1 = tt1;
-                SecP256K1Field.Multiply(S1, X1.x, U1);
+                SecP256K1Field.Multiply(S1, X1.x, U1, tt0);
 
-                SecP256K1Field.Multiply(S1, Z2.x, S1);
-                SecP256K1Field.Multiply(S1, Y1.x, S1);
+                SecP256K1Field.Multiply(S1, Z2.x, S1, tt0);
+                SecP256K1Field.Multiply(S1, Y1.x, S1, tt0);
             }
 
             uint[] H = Nat256.Create();
@@ -138,13 +139,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
 
             uint[] HSquared = t3;
-            SecP256K1Field.Square(H, HSquared);
+            SecP256K1Field.Square(H, HSquared, tt0);
 
             uint[] G = Nat256.Create();
-            SecP256K1Field.Multiply(HSquared, H, G);
+            SecP256K1Field.Multiply(HSquared, H, G, tt0);
 
             uint[] V = t3;
-            SecP256K1Field.Multiply(HSquared, U1, V);
+            SecP256K1Field.Multiply(HSquared, U1, V, tt0);
 
             SecP256K1Field.Negate(G, G);
             Nat256.Mul(S1, G, tt1);
@@ -153,7 +154,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP256K1Field.Reduce32(c, G);
 
             SecP256K1FieldElement X3 = new SecP256K1FieldElement(t4);
-            SecP256K1Field.Square(R, X3.x);
+            SecP256K1Field.Square(R, X3.x, tt0);
             SecP256K1Field.Subtract(X3.x, G, X3.x);
 
             SecP256K1FieldElement Y3 = new SecP256K1FieldElement(G);
@@ -164,11 +165,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP256K1FieldElement Z3 = new SecP256K1FieldElement(H);
             if (!Z1IsOne)
             {
-                SecP256K1Field.Multiply(Z3.x, Z1.x, Z3.x);
+                SecP256K1Field.Multiply(Z3.x, Z1.x, Z3.x, tt0);
             }
             if (!Z2IsOne)
             {
-                SecP256K1Field.Multiply(Z3.x, Z2.x, Z3.x);
+                SecP256K1Field.Multiply(Z3.x, Z2.x, Z3.x, tt0);
             }
 
             ECFieldElement[] zs = new ECFieldElement[] { Z3 };
@@ -190,20 +191,21 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP256K1FieldElement X1 = (SecP256K1FieldElement)this.RawXCoord, Z1 = (SecP256K1FieldElement)this.RawZCoords[0];
 
             uint c;
+            uint[] tt0 = Nat256.CreateExt();
 
             uint[] Y1Squared = Nat256.Create();
-            SecP256K1Field.Square(Y1.x, Y1Squared);
+            SecP256K1Field.Square(Y1.x, Y1Squared, tt0);
 
             uint[] T = Nat256.Create();
-            SecP256K1Field.Square(Y1Squared, T);
+            SecP256K1Field.Square(Y1Squared, T, tt0);
 
             uint[] M = Nat256.Create();
-            SecP256K1Field.Square(X1.x, M);
+            SecP256K1Field.Square(X1.x, M, tt0);
             c = Nat256.AddBothTo(M, M, M);
             SecP256K1Field.Reduce32(c, M);
 
             uint[] S = Y1Squared;
-            SecP256K1Field.Multiply(Y1Squared, X1.x, S);
+            SecP256K1Field.Multiply(Y1Squared, X1.x, S, tt0);
             c = Nat.ShiftUpBits(8, S, 2, 0);
             SecP256K1Field.Reduce32(c, S);
 
@@ -212,20 +214,20 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP256K1Field.Reduce32(c, t1);
 
             SecP256K1FieldElement X3 = new SecP256K1FieldElement(T);
-            SecP256K1Field.Square(M, X3.x);
+            SecP256K1Field.Square(M, X3.x, tt0);
             SecP256K1Field.Subtract(X3.x, S, X3.x);
             SecP256K1Field.Subtract(X3.x, S, X3.x);
 
             SecP256K1FieldElement Y3 = new SecP256K1FieldElement(S);
             SecP256K1Field.Subtract(S, X3.x, Y3.x);
-            SecP256K1Field.Multiply(Y3.x, M, Y3.x);
+            SecP256K1Field.Multiply(Y3.x, M, Y3.x, tt0);
             SecP256K1Field.Subtract(Y3.x, t1, Y3.x);
 
             SecP256K1FieldElement Z3 = new SecP256K1FieldElement(M);
             SecP256K1Field.Twice(Y1.x, Z3.x);
             if (!Z1.IsOne)
             {
-                SecP256K1Field.Multiply(Z3.x, Z1.x, Z3.x);
+                SecP256K1Field.Multiply(Z3.x, Z1.x, Z3.x, tt0);
             }
 
             return new SecP256K1Point(curve, X3, Y3, new ECFieldElement[] { Z3 }, IsCompressed);

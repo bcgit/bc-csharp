@@ -133,54 +133,55 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if (Nat.IsZero(12, x1) || Nat.IsOne(12, x1))
                 return this;
 
+            uint[] tt0 = Nat.Create(24);
             uint[] t1 = Nat.Create(12);
             uint[] t2 = Nat.Create(12);
             uint[] t3 = Nat.Create(12);
             uint[] t4 = Nat.Create(12);
 
-            SecP384R1Field.Square(x1, t1);
-            SecP384R1Field.Multiply(t1, x1, t1);
+            SecP384R1Field.Square(x1, t1, tt0);
+            SecP384R1Field.Multiply(t1, x1, t1, tt0);
 
-            SecP384R1Field.SquareN(t1, 2, t2);
-            SecP384R1Field.Multiply(t2, t1, t2);
+            SecP384R1Field.SquareN(t1, 2, t2, tt0);
+            SecP384R1Field.Multiply(t2, t1, t2, tt0);
 
-            SecP384R1Field.Square(t2, t2);
-            SecP384R1Field.Multiply(t2, x1, t2);
+            SecP384R1Field.Square(t2, t2, tt0);
+            SecP384R1Field.Multiply(t2, x1, t2, tt0);
 
-            SecP384R1Field.SquareN(t2, 5, t3);
-            SecP384R1Field.Multiply(t3, t2, t3);
+            SecP384R1Field.SquareN(t2, 5, t3, tt0);
+            SecP384R1Field.Multiply(t3, t2, t3, tt0);
 
-            SecP384R1Field.SquareN(t3, 5, t4);
-            SecP384R1Field.Multiply(t4, t2, t4);
+            SecP384R1Field.SquareN(t3, 5, t4, tt0);
+            SecP384R1Field.Multiply(t4, t2, t4, tt0);
 
-            SecP384R1Field.SquareN(t4, 15, t2);
-            SecP384R1Field.Multiply(t2, t4, t2);
+            SecP384R1Field.SquareN(t4, 15, t2, tt0);
+            SecP384R1Field.Multiply(t2, t4, t2, tt0);
 
-            SecP384R1Field.SquareN(t2, 2, t3);
-            SecP384R1Field.Multiply(t1, t3, t1);
+            SecP384R1Field.SquareN(t2, 2, t3, tt0);
+            SecP384R1Field.Multiply(t1, t3, t1, tt0);
 
-            SecP384R1Field.SquareN(t3, 28, t3);
-            SecP384R1Field.Multiply(t2, t3, t2);
+            SecP384R1Field.SquareN(t3, 28, t3, tt0);
+            SecP384R1Field.Multiply(t2, t3, t2, tt0);
 
-            SecP384R1Field.SquareN(t2, 60, t3);
-            SecP384R1Field.Multiply(t3, t2, t3);
+            SecP384R1Field.SquareN(t2, 60, t3, tt0);
+            SecP384R1Field.Multiply(t3, t2, t3, tt0);
 
             uint[] r = t2;
 
-            SecP384R1Field.SquareN(t3, 120, r);
-            SecP384R1Field.Multiply(r, t3, r);
+            SecP384R1Field.SquareN(t3, 120, r, tt0);
+            SecP384R1Field.Multiply(r, t3, r, tt0);
 
-            SecP384R1Field.SquareN(r, 15, r);
-            SecP384R1Field.Multiply(r, t4, r);
+            SecP384R1Field.SquareN(r, 15, r, tt0);
+            SecP384R1Field.Multiply(r, t4, r, tt0);
 
-            SecP384R1Field.SquareN(r, 33, r);
-            SecP384R1Field.Multiply(r, t1, r);
+            SecP384R1Field.SquareN(r, 33, r, tt0);
+            SecP384R1Field.Multiply(r, t1, r, tt0);
 
-            SecP384R1Field.SquareN(r, 64, r);
-            SecP384R1Field.Multiply(r, x1, r);
+            SecP384R1Field.SquareN(r, 64, r, tt0);
+            SecP384R1Field.Multiply(r, x1, r, tt0);
 
-            SecP384R1Field.SquareN(r, 30, t1);
-            SecP384R1Field.Square(t1, t2);
+            SecP384R1Field.SquareN(r, 30, t1, tt0);
+            SecP384R1Field.Square(t1, t2, tt0);
 
             return Nat.Eq(12, x1, t2) ? new SecP384R1FieldElement(t1) : null;
         }
