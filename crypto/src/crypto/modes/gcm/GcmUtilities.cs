@@ -16,6 +16,12 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         private const uint E1 = 0xe1000000;
         private const ulong E1UL = (ulong)E1 << 32;
 
+        internal static void One(out FieldElement x)
+        {
+            x.n0 = 1UL << 63;
+            x.n1 = 0UL;
+        }
+
         internal static byte[] OneAsBytes()
         {
             byte[] tmp = new byte[16];
@@ -155,7 +161,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             AsBytes(t1, x);
         }
 
-        internal static void Multiply(byte[] x, ulong[] y)
+        internal static void Multiply(byte[] x, ref FieldElement y)
         {
             /*
              * "Three-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
@@ -166,7 +172,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
             ulong x0 = Pack.BE_To_UInt64(x, 0);
             ulong x1 = Pack.BE_To_UInt64(x, 8);
-            ulong y0 = y[0], y1 = y[1];
+            ulong y0 = y.n0, y1 = y.n1;
             ulong x0r = Longs.Reverse(x0), x1r = Longs.Reverse(x1);
             ulong y0r = Longs.Reverse(y0), y1r = Longs.Reverse(y1);
 
@@ -283,6 +289,43 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
             x[0] = z0;
             x[1] = z1;
+        }
+
+        internal static void Multiply(ref FieldElement x, ref FieldElement y)
+        {
+            /*
+             * "Three-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
+             *
+             * Without access to the high part of a 64x64 product x * y, we use a bit reversal to calculate it:
+             *     rev(x) * rev(y) == rev((x * y) << 1) 
+             */
+
+            ulong x0 = x.n0, x1 = x.n1;
+            ulong y0 = y.n0, y1 = y.n1;
+            ulong x0r = Longs.Reverse(x0), x1r = Longs.Reverse(x1);
+            ulong y0r = Longs.Reverse(y0), y1r = Longs.Reverse(y1);
+
+            ulong h0 = Longs.Reverse(ImplMul64(x0r, y0r));
+            ulong h1 = ImplMul64(x0, y0) << 1;
+            ulong h2 = Longs.Reverse(ImplMul64(x1r, y1r));
+            ulong h3 = ImplMul64(x1, y1) << 1;
+            ulong h4 = Longs.Reverse(ImplMul64(x0r ^ x1r, y0r ^ y1r));
+            ulong h5 = ImplMul64(x0 ^ x1, y0 ^ y1) << 1;
+
+            ulong z0 = h0;
+            ulong z1 = h1 ^ h0 ^ h2 ^ h4;
+            ulong z2 = h2 ^ h1 ^ h3 ^ h5;
+            ulong z3 = h3;
+
+            z1 ^= z3 ^ (z3 >> 1) ^ (z3 >> 2) ^ (z3 >> 7);
+//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
+            z2 ^= (z3 << 62) ^ (z3 << 57);
+
+            z0 ^= z2 ^ (z2 >> 1) ^ (z2 >> 2) ^ (z2 >> 7);
+            z1 ^= (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+
+            x.n0 = z0;
+            x.n1 = z1;
         }
 
         internal static void MultiplyP(uint[] x)
@@ -470,6 +513,25 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
             z[0] = z0;
             z[1] = z1;
+        }
+
+        internal static void Square(ref FieldElement x)
+        {
+            ulong[] t = new ulong[4];
+            Interleave.Expand64To128Rev(x.n0, t, 0);
+            Interleave.Expand64To128Rev(x.n1, t, 2);
+
+            ulong z0 = t[0], z1 = t[1], z2 = t[2], z3 = t[3];
+
+            z1 ^= z3 ^ (z3 >> 1) ^ (z3 >> 2) ^ (z3 >> 7);
+//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
+            z2 ^= (z3 << 62) ^ (z3 << 57);
+
+            z0 ^= z2 ^ (z2 >> 1) ^ (z2 >> 2) ^ (z2 >> 7);
+            z1 ^= (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+
+            x.n0 = z0;
+            x.n1 = z1;
         }
 
         internal static void Xor(byte[] x, byte[] y)
