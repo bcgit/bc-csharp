@@ -14,9 +14,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
         public void MultiplyH(byte[] x)
         {
-            ulong[] t = GcmUtilities.AsUlongs(x);
-            GcmUtilities.Multiply(t, H);
-            GcmUtilities.AsBytes(t, x);
+            GcmUtilities.Multiply(x, H);
         }
     }
 }
