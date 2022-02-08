@@ -8,6 +8,11 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
     internal abstract class GcmUtilities
     {
+        internal struct FieldElement
+        {
+            internal ulong n0, n1;
+        }
+
         private const uint E1 = 0xe1000000;
         private const ulong E1UL = (ulong)E1 << 32;
 
@@ -52,6 +57,18 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         internal static void AsBytes(ulong[] x, byte[] z)
         {
             Pack.UInt64_To_BE(x, z, 0);
+        }
+
+        internal static void AsBytes(ref FieldElement x, byte[] z)
+        {
+            Pack.UInt64_To_BE(x.n0, z, 0);
+            Pack.UInt64_To_BE(x.n1, z, 8);
+        }
+
+        internal static void AsFieldElement(byte[] x, out FieldElement z)
+        {
+            z.n0 = Pack.BE_To_UInt64(x, 0);
+            z.n1 = Pack.BE_To_UInt64(x, 8);
         }
 
         internal static uint[] AsUints(byte[] bs)
@@ -119,6 +136,15 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             x0 ^= (m & E1UL);
             z[zOff + 0] = (x0 << 1) | (x1 >> 63);
             z[zOff + 1] = (x1 << 1) | (ulong)(-(long)m);
+        }
+
+        internal static void DivideP(ref FieldElement x, out FieldElement z)
+        {
+            ulong x0 = x.n0, x1 = x.n1;
+            ulong m = (ulong)((long)x0 >> 63);
+            x0 ^= (m & E1UL);
+            z.n0 = (x0 << 1) | (x1 >> 63);
+            z.n1 = (x1 << 1) | (ulong)(-(long)m);
         }
 
         internal static void Multiply(byte[] x, byte[] y)
@@ -343,6 +369,14 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             z[zOff + 1] = (x1 >> 7) | (x0 << 57);
         }
 
+        internal static void MultiplyP7(ref FieldElement x)
+        {
+            ulong x0 = x.n0, x1 = x.n1;
+            ulong c = x1 << 57;
+            x.n0 = (x0 >> 7) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
+            x.n1 = (x1 >> 7) | (x0 << 57);
+        }
+
         internal static void MultiplyP8(uint[] x)
         {
             uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3];
@@ -387,12 +421,36 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             y[yOff + 1] = (x1 >> 8) | (x0 << 56);
         }
 
+        internal static void MultiplyP8(ref FieldElement x)
+        {
+            ulong x0 = x.n0, x1 = x.n1;
+            ulong c = x1 << 56;
+            x.n0 = (x0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
+            x.n1 = (x1 >> 8) | (x0 << 56);
+        }
+
+        internal static void MultiplyP8(ref FieldElement x, out FieldElement y)
+        {
+            ulong x0 = x.n0, x1 = x.n1;
+            ulong c = x1 << 56;
+            y.n0 = (x0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
+            y.n1 = (x1 >> 8) | (x0 << 56);
+        }
+
         internal static void MultiplyP16(ulong[] x)
         {
             ulong x0 = x[0], x1 = x[1];
             ulong c = x1 << 48;
             x[0] = (x0 >> 16) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
             x[1] = (x1 >> 16) | (x0 << 48);
+        }
+
+        internal static void MultiplyP16(ref FieldElement x)
+        {
+            ulong x0 = x.n0, x1 = x.n1;
+            ulong c = x1 << 48;
+            x.n0 = (x0 >> 16) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
+            x.n1 = (x1 >> 16) | (x0 << 48);
         }
 
         internal static void Square(ulong[] x, ulong[] z)
@@ -520,6 +578,18 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         {
             z[zOff + 0] = x[xOff + 0] ^ y[yOff + 0];
             z[zOff + 1] = x[xOff + 1] ^ y[yOff + 1];
+        }
+
+        internal static void Xor(ref FieldElement x, ref FieldElement y, out FieldElement z)
+        {
+            z.n0 = x.n0 ^ y.n0;
+            z.n1 = x.n1 ^ y.n1;
+        }
+
+        internal static void Xor(ref FieldElement x, ref FieldElement y)
+        {
+            x.n0 ^= y.n0;
+            x.n1 ^= y.n1;
         }
 
         private static ulong ImplMul64(ulong x, ulong y)

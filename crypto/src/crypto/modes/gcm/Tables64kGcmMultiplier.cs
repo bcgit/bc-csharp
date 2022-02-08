@@ -9,13 +9,13 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         : IGcmMultiplier
     {
         private byte[] H;
-        private ulong[][] T;
+        private GcmUtilities.FieldElement[][] T;
 
         public void Init(byte[] H)
         {
             if (T == null)
             {
-                T = new ulong[16][];
+                T = new GcmUtilities.FieldElement[16][];
             }
             else if (Arrays.AreEqual(this.H, H))
             {
@@ -26,52 +26,52 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
             for (int i = 0; i < 16; ++i)
             {
-                ulong[] t = T[i] = new ulong[512];
+                GcmUtilities.FieldElement[] t = T[i] = new GcmUtilities.FieldElement[256];
 
                 // t[0] = 0
 
                 if (i == 0)
                 {
                     // t[1] = H.p^7
-                    GcmUtilities.AsUlongs(this.H, t, 2);
-                    GcmUtilities.MultiplyP7(t, 2, t, 2);
+                    GcmUtilities.AsFieldElement(this.H, out t[1]);
+                    GcmUtilities.MultiplyP7(ref t[1]);
                 }
                 else
                 {
                     // t[1] = T[i-1][1].p^8
-                    GcmUtilities.MultiplyP8(T[i - 1], 2, t, 2);
+                    GcmUtilities.MultiplyP8(ref T[i - 1][1], out t[1]);
                 }
 
-                for (int n = 2; n < 256; n += 2)
+                for (int n = 1; n < 128; ++n)
                 {
                     // t[2.n] = t[n].p^-1
-                    GcmUtilities.DivideP(t, n, t, n << 1);
+                    GcmUtilities.DivideP(ref t[n], out t[n << 1]);
 
                     // t[2.n + 1] = t[2.n] + t[1]
-                    GcmUtilities.Xor(t, n << 1, t, 2, t, (n + 1) << 1);
+                    GcmUtilities.Xor(ref t[n << 1], ref t[1], out t[(n << 1) + 1]);
                 }
             }
         }
 
         public void MultiplyH(byte[] x)
         {
-            //ulong[] z = new ulong[2];
-            //for (int i = 15; i >= 0; --i)
+            //GcmUtilities.FieldElement z = T[15][x[15]];
+            //for (int i = 14; i >= 0; --i)
             //{
-            //    GcmUtilities.Xor(z, 0, T[i], x[i] << 1);
+            //    GcmUtilities.Xor(ref z, ref T[i][x[i]]);
             //}
-            //Pack.UInt64_To_BE(z, x, 0);
+            //GcmUtilities.AsBytes(ref z, x);
 
-            ulong[] t = T[15];
-            int tPos = x[15] << 1;
-            ulong z0 = t[tPos + 0], z1 = t[tPos + 1];
+            GcmUtilities.FieldElement[] t = T[15];
+            int tPos = x[15];
+            ulong z0 = t[tPos].n0, z1 = t[tPos].n1;
 
             for (int i = 14; i >= 0; --i)
             {
                 t = T[i];
-                tPos = x[i] << 1;
-                z0 ^= t[tPos + 0];
-                z1 ^= t[tPos + 1];
+                tPos = x[i];
+                z0 ^= t[tPos].n0;
+                z1 ^= t[tPos].n1;
             }
 
             Pack.UInt64_To_BE(z0, x, 0);
