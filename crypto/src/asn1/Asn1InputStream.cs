@@ -258,8 +258,6 @@ namespace Org.BouncyCastle.Asn1
             //
             if (tagNo == 0x1f)
             {
-                tagNo = 0;
-
                 int b = s.ReadByte();
                 if (b < 31)
                 {
@@ -269,9 +267,11 @@ namespace Org.BouncyCastle.Asn1
                     throw new IOException("corrupted stream - high tag number < 31 found");
                 }
 
+                tagNo = b & 0x7f;
+
                 // X.690-0207 8.1.2.4.2
                 // "c) bits 7 to 1 of the first subsequent octet shall not all be zero."
-                if ((b & 0x7f) == 0)
+                if (0 == tagNo)
                     throw new IOException("corrupted stream - invalid high tag number found");
 
                 while ((b & 0x80) != 0)
@@ -279,14 +279,14 @@ namespace Org.BouncyCastle.Asn1
                     if (((uint)tagNo >> 24) != 0U)
                         throw new IOException("Tag number more than 31 bits");
 
-                    tagNo |= b & 0x7f;
                     tagNo <<= 7;
+
                     b = s.ReadByte();
                     if (b < 0)
                         throw new EndOfStreamException("EOF found inside tag value.");
-                }
 
-                tagNo |= b & 0x7f;
+                    tagNo |= b & 0x7f;
+                }
             }
 
             return tagNo;
