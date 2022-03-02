@@ -7869,6 +7869,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\tls\CertificateCompressionAlgorithm.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\tls\CertificateEntry.cs"
                     SubType = "Code"
                     BuildAction = "Compile"

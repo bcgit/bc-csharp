@@ -44,6 +44,11 @@ namespace Org.BouncyCastle.Tls
         public const short key_update = 24;
         public const short message_hash = 254;
 
+        /*
+         * RFC 8879
+         */
+        public const short compressed_certificate = 25;
+
         public static string GetName(short handshakeType)
         {
             switch (handshakeType)
@@ -88,6 +93,8 @@ namespace Org.BouncyCastle.Tls
                 return "key_update";
             case message_hash:
                 return "message_hash";
+            case compressed_certificate:
+                return "compressed_certificate";
             default:
                 return "UNKNOWN";
             }
@@ -122,6 +129,7 @@ namespace Org.BouncyCastle.Tls
             case encrypted_extensions:
             case key_update:
             case message_hash:
+            case compressed_certificate:
                 return true;
             default:
                 return false;

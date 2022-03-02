@@ -53,6 +53,12 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        public static void AddCompressCertificateExtension(IDictionary extensions, int[] algorithms)
+        {
+            extensions[ExtensionType.compress_certificate] = CreateCompressCertificateExtension(algorithms);
+        }
+
+        /// <exception cref="IOException"/>
         public static void AddCookieExtension(IDictionary extensions, byte[] cookie)
         {
             extensions[ExtensionType.cookie] = CreateCookieExtension(cookie);
@@ -277,6 +283,13 @@ namespace Org.BouncyCastle.Tls
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.client_certificate_type);
             return extensionData == null ? (short)-1 : ReadCertificateTypeExtensionServer(extensionData);
+        }
+
+        /// <exception cref="IOException"/>
+        public static int[] GetCompressCertificateExtension(IDictionary extensions)
+        {
+            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.compress_certificate);
+            return extensionData == null ? null : ReadCompressCertificateExtension(extensionData);
         }
 
         /// <exception cref="IOException"/>
@@ -577,6 +590,15 @@ namespace Org.BouncyCastle.Tls
         public static byte[] CreateClientCertificateUrlExtension()
         {
             return CreateEmptyExtensionData();
+        }
+
+        /// <exception cref="IOException"/>
+        public static byte[] CreateCompressCertificateExtension(int[] algorithms)
+        {
+            if (TlsUtilities.IsNullOrEmpty(algorithms) || algorithms.Length > 127)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return TlsUtilities.EncodeUint16ArrayWithUint8Length(algorithms);
         }
 
         /// <exception cref="IOException"/>
@@ -992,6 +1014,16 @@ namespace Org.BouncyCastle.Tls
         public static bool ReadClientCertificateUrlExtension(byte[] extensionData)
         {
             return ReadEmptyExtensionData(extensionData);
+        }
+
+        /// <exception cref="IOException"/>
+        public static int[] ReadCompressCertificateExtension(byte[] extensionData)
+        {
+            int[] algorithms = TlsUtilities.DecodeUint16ArrayWithUint8Length(extensionData);
+            if (algorithms.Length < 1)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+
+            return algorithms;
         }
 
         /// <exception cref="IOException"/>

@@ -486,6 +486,14 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        public static void WriteUint16ArrayWithUint8Length(int[] u16s, byte[] buf, int offset)
+        {
+            int length = 2 * u16s.Length;
+            CheckUint8(length);
+            WriteUint8(length, buf, offset);
+            WriteUint16Array(u16s, buf, offset + 1);
+        }
+
         public static void WriteUint16ArrayWithUint16Length(int[] u16s, Stream output)
         {
             int length = 2 * u16s.Length;
@@ -577,6 +585,25 @@ namespace Org.BouncyCastle.Tls
             return ReadUint16(buf, 0);
         }
 
+        public static int[] DecodeUint16ArrayWithUint8Length(byte[] buf)
+        {
+            if (buf == null)
+                throw new ArgumentNullException("buf");
+
+            int length = ReadUint8(buf, 0);
+            if (buf.Length != (length + 1) || (length & 1) != 0)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+
+            int count = length / 2, pos = 1;
+            int[] u16s = new int[count];
+            for (int i = 0; i < count; ++i)
+            {
+                u16s[i] = ReadUint16(buf, pos);
+                pos += 2;
+            }
+            return u16s;
+        }
+
         public static long DecodeUint32(byte[] buf)
         {
             if (buf == null)
@@ -634,6 +661,14 @@ namespace Org.BouncyCastle.Tls
             byte[] encoding = new byte[2];
             WriteUint16(u16, encoding, 0);
             return encoding;
+        }
+
+        public static byte[] EncodeUint16ArrayWithUint8Length(int[] u16s)
+        {
+            int length = 2 * u16s.Length;
+            byte[] result = new byte[1 + length];
+            WriteUint16ArrayWithUint8Length(u16s, result, 0);
+            return result;
         }
 
         public static byte[] EncodeUint16ArrayWithUint16Length(int[] u16s)
@@ -5348,6 +5383,7 @@ namespace Org.BouncyCastle.Tls
                 }
             }
             case ExtensionType.signature_algorithms:
+            case ExtensionType.compress_certificate:
             case ExtensionType.certificate_authorities:
             case ExtensionType.signature_algorithms_cert:
             {

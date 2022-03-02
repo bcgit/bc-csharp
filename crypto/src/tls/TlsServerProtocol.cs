@@ -834,6 +834,7 @@ namespace Org.BouncyCastle.Tls
             case HandshakeType.certificate_status:
             case HandshakeType.certificate_url:
             case HandshakeType.client_key_exchange:
+            case HandshakeType.compressed_certificate:
             case HandshakeType.encrypted_extensions:
             case HandshakeType.end_of_early_data:
             case HandshakeType.hello_request:
@@ -1201,6 +1202,7 @@ namespace Org.BouncyCastle.Tls
             case HandshakeType.certificate_request:
             case HandshakeType.certificate_status:
             case HandshakeType.certificate_url:
+            case HandshakeType.compressed_certificate:
             case HandshakeType.encrypted_extensions:
             case HandshakeType.end_of_early_data:
             case HandshakeType.hello_request:
