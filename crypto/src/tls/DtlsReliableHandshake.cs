@@ -200,7 +200,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal Message UpdateHandshakeMessagesDigest(Message message)
+        internal void UpdateHandshakeMessagesDigest(Message message)
         {
             short msg_type = message.Type;
             switch (msg_type)
@@ -226,8 +226,6 @@ namespace Org.BouncyCastle.Tls
                 break;
             }
             }
-
-            return message;
         }
 
         internal void Finish()
@@ -310,7 +308,7 @@ namespace Org.BouncyCastle.Tls
 
             byte[] buf = null;
 
-            for (; ; )
+            for (;;)
             {
                 if (m_recordLayer.IsClosed)
                     throw new TlsFatalAlert(AlertDescription.user_canceled);
