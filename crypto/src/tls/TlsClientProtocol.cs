@@ -609,7 +609,7 @@ namespace Org.BouncyCastle.Tls
                         this.m_connectionState = CS_CLIENT_CERTIFICATE_VERIFY;
                     }
 
-                    this.m_handshakeHash = m_handshakeHash.StopTracking();
+                    m_handshakeHash.StopTracking();
 
                     SendChangeCipherSpec();
                     SendFinishedMessage();

@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Tls
         private readonly TlsContext m_context;
 
         private DigestInputBuffer m_buf;
-        private readonly IDictionary m_hashes;
+        private IDictionary m_hashes;
         private bool m_forceBuffering;
         private bool m_sealed;
 
@@ -29,21 +29,12 @@ namespace Org.BouncyCastle.Tls
             this.m_sealed = false;
         }
 
-        private DeferredHash(TlsContext context, IDictionary hashes)
-        {
-            this.m_context = context;
-            this.m_buf = null;
-            this.m_hashes = hashes;
-            this.m_forceBuffering = false;
-            this.m_sealed = true;
-        }
-
         /// <exception cref="IOException"/>
         public void CopyBufferTo(Stream output)
         {
             if (m_buf == null)
             {
-                // If you see this, you need to call forceBuffering() before SealHashAlgorithms()
+                // If you see this, you need to call ForceBuffering() before SealHashAlgorithms()
                 throw new InvalidOperationException("Not buffering");
             }
 
@@ -96,7 +87,7 @@ namespace Org.BouncyCastle.Tls
             CheckStopBuffering();
         }
 
-        public TlsHandshakeHash StopTracking()
+        public void StopTracking()
         {
             SecurityParameters securityParameters = m_context.SecurityParameters;
 
@@ -116,7 +107,11 @@ namespace Org.BouncyCastle.Tls
                 break;
             }
             }
-            return new DeferredHash(m_context, newHashes);
+
+            this.m_buf = null;
+            this.m_hashes = newHashes;
+            this.m_forceBuffering = false;
+            this.m_sealed = true;
         }
 
         public TlsHash ForkPrfHash()

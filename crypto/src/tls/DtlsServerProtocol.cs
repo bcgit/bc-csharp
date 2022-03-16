@@ -297,12 +297,17 @@ namespace Org.BouncyCastle.Tls
              * parameters).
              */
             {
-                TlsHandshakeHash certificateVerifyHash = handshake.PrepareToFinish();
-
                 if (ExpectCertificateVerifyMessage(state))
                 {
-                    byte[] certificateVerifyBody = handshake.ReceiveMessageBody(HandshakeType.certificate_verify);
-                    ProcessCertificateVerify(state, certificateVerifyBody, certificateVerifyHash);
+                    clientMessage = handshake.ReceiveMessageDelayedDigest(HandshakeType.certificate_verify);
+                    byte[] certificateVerifyBody = clientMessage.Body;
+                    ProcessCertificateVerify(state, certificateVerifyBody, handshake.HandshakeHash);
+                    handshake.PrepareToFinish();
+                    handshake.UpdateHandshakeMessagesDigest(clientMessage);
+                }
+                else
+                {
+                    handshake.PrepareToFinish();
                 }
             }
 

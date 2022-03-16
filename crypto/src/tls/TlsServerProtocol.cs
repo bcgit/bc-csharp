@@ -1322,7 +1322,7 @@ namespace Org.BouncyCastle.Tls
             TlsUtilities.VerifyCertificateVerifyClient(m_tlsServerContext, m_certificateRequest, certificateVerify,
                 m_handshakeHash);
 
-            this.m_handshakeHash = m_handshakeHash.StopTracking();
+            m_handshakeHash.StopTracking();
         }
 
         /// <exception cref="IOException"/>
@@ -1357,7 +1357,7 @@ namespace Org.BouncyCastle.Tls
 
             if (!ExpectCertificateVerifyMessage())
             {
-                this.m_handshakeHash = m_handshakeHash.StopTracking();
+                m_handshakeHash.StopTracking();
             }
         }
 
