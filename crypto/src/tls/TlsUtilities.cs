@@ -2118,7 +2118,7 @@ namespace Org.BouncyCastle.Tls
                 output.Write(extraSignatureInput, 0, extraSignatureInput.Length);
             }
 
-            buf.CopyTo(output);
+            buf.CopyInputTo(output);
 
             Platform.Dispose(output);
         }
