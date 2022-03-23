@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Asn1.GM
                 BigInteger n = FromHex("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFF7203DF6B21C6052B53BBF40939D54123");
                 BigInteger h = BigInteger.One;
 
-                return ConfigureCurve(new FpCurve(p, a, b, n, h));
+                return ConfigureCurve(new FpCurve(p, a, b, n, h, true));
             }
 
             protected override X9ECParameters CreateParameters()
@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Asn1.GM
                 BigInteger n = FromHex("BDB6F4FE3E8B1D9E0DA8C0D40FC962195DFAE76F56564677");
                 BigInteger h = BigInteger.One;
 
-                return ConfigureCurve(new FpCurve(p, a, b, n, h));
+                return ConfigureCurve(new FpCurve(p, a, b, n, h, true));
             }
 
             protected override X9ECParameters CreateParameters()

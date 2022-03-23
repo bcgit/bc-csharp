@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
@@ -23,6 +24,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (!modulus.Gcd(SmallPrimesProduct).Equals(BigInteger.One))
                 throw new ArgumentException("RSA modulus has a small prime factor");
 
+            int maxBitLength = AsInteger("Org.BouncyCastle.Rsa.MaxSize", 15360);
+
+            int modBitLength = modulus.BitLength;
+            if (maxBitLength < modBitLength)
+            {
+                throw new ArgumentException("modulus value out of range");
+            }
+        
             // TODO: add additional primePower/Composite test - expensive!!
 
             return modulus;
@@ -80,6 +89,18 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		public override int GetHashCode()
         {
             return modulus.GetHashCode() ^ exponent.GetHashCode() ^ IsPrivate.GetHashCode();
+        }
+
+        int AsInteger(string envVariable, int defaultValue)
+        {
+            String v = Platform.GetEnvironmentVariable(envVariable);
+
+            if (v == null)
+            {
+                return defaultValue;
+            }
+
+            return Int32.Parse(v);
         }
     }
 }
