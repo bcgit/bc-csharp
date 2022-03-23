@@ -315,6 +315,7 @@ namespace Org.BouncyCastle.Tls
             case HandshakeType.certificate_url:
             case HandshakeType.client_hello:
             case HandshakeType.client_key_exchange:
+            case HandshakeType.compressed_certificate:
             case HandshakeType.end_of_early_data:
             case HandshakeType.hello_request:
             case HandshakeType.hello_verify_request:
@@ -608,7 +609,7 @@ namespace Org.BouncyCastle.Tls
                         this.m_connectionState = CS_CLIENT_CERTIFICATE_VERIFY;
                     }
 
-                    this.m_handshakeHash = m_handshakeHash.StopTracking();
+                    m_handshakeHash.StopTracking();
 
                     SendChangeCipherSpec();
                     SendFinishedMessage();
@@ -743,6 +744,7 @@ namespace Org.BouncyCastle.Tls
             case HandshakeType.certificate_verify:
             case HandshakeType.client_hello:
             case HandshakeType.client_key_exchange:
+            case HandshakeType.compressed_certificate:
             case HandshakeType.encrypted_extensions:
             case HandshakeType.end_of_early_data:
             case HandshakeType.hello_verify_request:

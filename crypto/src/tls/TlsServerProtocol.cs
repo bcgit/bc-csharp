@@ -834,6 +834,7 @@ namespace Org.BouncyCastle.Tls
             case HandshakeType.certificate_status:
             case HandshakeType.certificate_url:
             case HandshakeType.client_key_exchange:
+            case HandshakeType.compressed_certificate:
             case HandshakeType.encrypted_extensions:
             case HandshakeType.end_of_early_data:
             case HandshakeType.hello_request:
@@ -1201,6 +1202,7 @@ namespace Org.BouncyCastle.Tls
             case HandshakeType.certificate_request:
             case HandshakeType.certificate_status:
             case HandshakeType.certificate_url:
+            case HandshakeType.compressed_certificate:
             case HandshakeType.encrypted_extensions:
             case HandshakeType.end_of_early_data:
             case HandshakeType.hello_request:
@@ -1320,7 +1322,7 @@ namespace Org.BouncyCastle.Tls
             TlsUtilities.VerifyCertificateVerifyClient(m_tlsServerContext, m_certificateRequest, certificateVerify,
                 m_handshakeHash);
 
-            this.m_handshakeHash = m_handshakeHash.StopTracking();
+            m_handshakeHash.StopTracking();
         }
 
         /// <exception cref="IOException"/>
@@ -1355,7 +1357,7 @@ namespace Org.BouncyCastle.Tls
 
             if (!ExpectCertificateVerifyMessage())
             {
-                this.m_handshakeHash = m_handshakeHash.StopTracking();
+                m_handshakeHash.StopTracking();
             }
         }
 

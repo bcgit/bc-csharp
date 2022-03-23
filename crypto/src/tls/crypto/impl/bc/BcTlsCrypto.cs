@@ -139,9 +139,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial)
         {
-            IDigest digest = CreateDigest(CryptoHashAlgorithm.sha256);
+            int cryptoHashAlgorithm = CryptoHashAlgorithm.sha256;
+            IDigest digest = CreateDigest(cryptoHashAlgorithm);
 
-            byte[] seed = new byte[digest.GetDigestSize()];
+            byte[] seed = new byte[TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm)];
             SecureRandom.NextBytes(seed);
 
             DigestRandomGenerator randomGenerator = new DigestRandomGenerator(digest);
@@ -187,7 +188,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm)
         {
-            return true;
+            switch (cryptoHashAlgorithm)
+            {
+            case CryptoHashAlgorithm.md5:
+            case CryptoHashAlgorithm.sha1:
+            case CryptoHashAlgorithm.sha224:
+            case CryptoHashAlgorithm.sha256:
+            case CryptoHashAlgorithm.sha384:
+            case CryptoHashAlgorithm.sha512:
+            case CryptoHashAlgorithm.sm3:
+                return true;
+
+            default:
+                return false;
+            }
         }
 
         public override bool HasCryptoSignatureAlgorithm(int cryptoSignatureAlgorithm)

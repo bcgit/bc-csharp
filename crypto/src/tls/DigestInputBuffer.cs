@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal void CopyTo(Stream output)
+        internal void CopyInputTo(Stream output)
         {
             // TODO[tls-port]
             // NOTE: Copy data since the output here may be under control of external code.

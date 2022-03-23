@@ -1602,6 +1602,7 @@
     <Compile Include="src\tls\CachedInformationType.cs" />
     <Compile Include="src\tls\CertChainType.cs" />
     <Compile Include="src\tls\Certificate.cs" />
+    <Compile Include="src\tls\CertificateCompressionAlgorithm.cs" />
     <Compile Include="src\tls\CertificateEntry.cs" />
     <Compile Include="src\tls\CertificateRequest.cs" />
     <Compile Include="src\tls\CertificateStatus.cs" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -20,7 +19,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             this.m_domain = domain;
         }
 
-        /// <exception cref="IOException"/>
         public virtual byte[] GenerateEphemeral()
         {
             this.m_localKeyPair = m_domain.GenerateKeyPair();
@@ -28,13 +26,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return m_domain.EncodePublicKey((DHPublicKeyParameters)m_localKeyPair.Public);
         }
 
-        /// <exception cref="IOException"/>
         public virtual void ReceivePeerValue(byte[] peerValue)
         {
             this.m_peerPublicKey = m_domain.DecodePublicKey(peerValue);
         }
 
-        /// <exception cref="IOException"/>
         public virtual TlsSecret CalculateSecret()
         {
             return m_domain.CalculateDHAgreement((DHPrivateKeyParameters)m_localKeyPair.Private, m_peerPublicKey);
