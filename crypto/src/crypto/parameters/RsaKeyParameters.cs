@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return modulus.GetHashCode() ^ exponent.GetHashCode() ^ IsPrivate.GetHashCode();
         }
 
-        int AsInteger(string envVariable, int defaultValue)
+        internal static int AsInteger(string envVariable, int defaultValue)
         {
             String v = Platform.GetEnvironmentVariable(envVariable);
 

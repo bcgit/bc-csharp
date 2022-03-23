@@ -700,9 +700,12 @@ namespace Org.BouncyCastle.Math.EC
             if (isInternal)
             {
                 this.m_q = q;
-                knownQs.add(q);
+                if (!knownQs.Contains(q))
+                {
+                    knownQs.Add(q, q);
+                }
             }
-            else if (knownQs.contains(q))
+            else if (knownQs.Contains(q))
             {
                 this.m_q = q;
             }
@@ -718,7 +721,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
 
                 if (Primes.HasAnySmallFactors(q) || !Primes.IsMRProbablePrime(
-                    q, random, getNumberOfIterations(qBitLength, certainty)))
+                    q, random, GetNumberOfIterations(qBitLength, certainty)))
                 {
                     throw new ArgumentException("Fp q value not prime");
                 }

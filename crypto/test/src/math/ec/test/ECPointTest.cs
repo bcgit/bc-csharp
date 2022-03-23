@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
          */
         public class Fp
         {
-            internal static readonly BigInteger q = new BigInteger("29");
+            internal static readonly BigInteger q = new BigInteger("1063");
 
             internal static readonly BigInteger a = new BigInteger("4");
 
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             internal static readonly ECPoint infinity = curve.Infinity;
 
-            internal static readonly int[] pointSource = { 5, 22, 16, 27, 13, 6, 14, 6 };
+            internal static readonly int[] pointSource = { 1, 5, 4, 10, 234, 1024, 817, 912 };
 
             internal static ECPoint[] p = new ECPoint[pointSource.Length / 2];
 
