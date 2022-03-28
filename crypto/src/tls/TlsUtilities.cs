@@ -4146,9 +4146,22 @@ namespace Org.BouncyCastle.Tls
 
         public static bool IsSupportedCipherSuite(TlsCrypto crypto, int cipherSuite)
         {
-            return IsSupportedKeyExchange(crypto, GetKeyExchangeAlgorithm(cipherSuite))
-                && crypto.HasEncryptionAlgorithm(GetEncryptionAlgorithm(cipherSuite))
-                && crypto.HasMacAlgorithm(GetMacAlgorithm(cipherSuite));
+            int keyExchangeAlgorithm = GetKeyExchangeAlgorithm(cipherSuite);
+            if (!IsSupportedKeyExchange(crypto, keyExchangeAlgorithm))
+                return false;
+
+            int encryptionAlgorithm = GetEncryptionAlgorithm(cipherSuite);
+            if (encryptionAlgorithm < 0 || !crypto.HasEncryptionAlgorithm(encryptionAlgorithm))
+                return false;
+
+            int macAlgorithm = GetMacAlgorithm(cipherSuite);
+            if (macAlgorithm != MacAlgorithm.cls_null)
+            {
+                if (macAlgorithm < 0 || !crypto.HasMacAlgorithm(macAlgorithm))
+                    return false;
+            }
+
+            return true;
         }
 
         public static bool IsSupportedKeyExchange(TlsCrypto crypto, int keyExchangeAlgorithm)
