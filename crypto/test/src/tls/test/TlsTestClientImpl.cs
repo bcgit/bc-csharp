@@ -47,6 +47,8 @@ namespace Org.BouncyCastle.Tls.Tests
         protected short m_firstFatalAlertDescription = -1;
 
         internal ProtocolVersion m_negotiatedVersion = null;
+        internal byte[] m_tlsKeyingMaterial1 = null;
+        internal byte[] m_tlsKeyingMaterial2 = null;
         internal byte[] m_tlsServerEndPoint = null;
         internal byte[] m_tlsUnique = null;
 
@@ -142,6 +144,13 @@ namespace Org.BouncyCastle.Tls.Tests
         public override void NotifyHandshakeComplete()
         {
             base.NotifyHandshakeComplete();
+
+            SecurityParameters securityParameters = m_context.SecurityParameters;
+            if (securityParameters.IsExtendedMasterSecret)
+            {
+                m_tlsKeyingMaterial1 = m_context.ExportKeyingMaterial("BC_TLS_TESTS_1", null, 16);
+                m_tlsKeyingMaterial2 = m_context.ExportKeyingMaterial("BC_TLS_TESTS_2", new byte[8], 16);
+            }
 
             m_tlsServerEndPoint = m_context.ExportChannelBinding(ChannelBinding.tls_server_end_point);
             m_tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);

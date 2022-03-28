@@ -261,8 +261,21 @@ namespace Org.BouncyCastle.Tls
                 throw new ArgumentException("must have length less than 2^16 (or be null)", "context");
             }
 
-            return TlsCryptoUtilities.HkdfExpandLabel(secret, cryptoHashAlgorithm, asciiLabel, context, length)
-                .Extract();
+            TlsHash exporterHash = Crypto.CreateHash(cryptoHashAlgorithm);
+            byte[] emptyTranscriptHash = exporterHash.CalculateHash();
+
+            TlsSecret exporterSecret = TlsUtilities.DeriveSecret(SecurityParameters, secret, asciiLabel,
+                emptyTranscriptHash);
+
+            byte[] exporterContext = emptyTranscriptHash;
+            if (context.Length > 0)
+            {
+                exporterHash.Update(context, 0, context.Length);
+                exporterContext = exporterHash.CalculateHash();
+            }
+
+            return TlsCryptoUtilities
+                .HkdfExpandLabel(exporterSecret, cryptoHashAlgorithm, "exporter", exporterContext, length).Extract();
         }
 
         protected virtual TlsSecret CheckEarlyExportSecret(TlsSecret secret)
