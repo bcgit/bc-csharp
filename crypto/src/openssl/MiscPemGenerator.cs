@@ -200,7 +200,8 @@ namespace Org.BouncyCastle.OpenSsl
             IList headers = Platform.CreateArrayList(2);
 
             headers.Add(new PemHeader("Proc-Type", "4,ENCRYPTED"));
-            headers.Add(new PemHeader("DEK-Info", dekAlgName + "," + Hex.ToHexString(iv)));
+            headers.Add(new PemHeader("DEK-Info", dekAlgName + ","
+                          + Strings.ToUpperCase(Hex.ToHexString(iv))));
 
             return new PemObject(type, headers, encData);
         }

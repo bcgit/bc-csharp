@@ -1,40 +1,38 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
     public class BasicGcmExponentiator
         : IGcmExponentiator
     {
-        private ulong[] x;
+        private GcmUtilities.FieldElement x;
 
         public void Init(byte[] x)
         {
-            this.x = GcmUtilities.AsUlongs(x);
+            GcmUtilities.AsFieldElement(x, out this.x);
         }
 
         public void ExponentiateX(long pow, byte[] output)
         {
-            // Initial value is little-endian 1
-            ulong[] y = GcmUtilities.OneAsUlongs();
+            GcmUtilities.FieldElement y;
+            GcmUtilities.One(out y);
 
             if (pow > 0)
             {
-                ulong[] powX = Arrays.Clone(x);
+                GcmUtilities.FieldElement powX = x;
                 do
                 {
                     if ((pow & 1L) != 0)
                     {
-                        GcmUtilities.Multiply(y, powX);
+                        GcmUtilities.Multiply(ref y, ref powX);
                     }
-                    GcmUtilities.Square(powX, powX);
+                    GcmUtilities.Square(ref powX);
                     pow >>= 1;
                 }
                 while (pow > 0);
             }
 
-            GcmUtilities.AsBytes(y, output);
+            GcmUtilities.AsBytes(ref y, output);
         }
     }
 }

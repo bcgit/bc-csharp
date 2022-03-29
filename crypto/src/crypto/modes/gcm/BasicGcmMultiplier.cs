@@ -5,18 +5,16 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
     public class BasicGcmMultiplier
         : IGcmMultiplier
     {
-        private ulong[] H;
+        private GcmUtilities.FieldElement H;
 
         public void Init(byte[] H)
         {
-            this.H = GcmUtilities.AsUlongs(H);
+            GcmUtilities.AsFieldElement(H, out this.H);
         }
 
         public void MultiplyH(byte[] x)
         {
-            ulong[] t = GcmUtilities.AsUlongs(x);
-            GcmUtilities.Multiply(t, H);
-            GcmUtilities.AsBytes(t, x);
+            GcmUtilities.Multiply(x, ref H);
         }
     }
 }

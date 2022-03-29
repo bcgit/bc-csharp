@@ -379,22 +379,12 @@ namespace Org.BouncyCastle.OpenSsl
 //			return GetCurveParameters(oid.Id);
 //		}
 
-        //private static ECDomainParameters GetCurveParameters(
-        private static X9ECParameters GetCurveParameters(
-            string name)
+        private static X9ECParameters GetCurveParameters(string name)
         {
-            // TODO ECGost3410NamedCurves support (returns ECDomainParameters though)
-
-            X9ECParameters ecP = CustomNamedCurves.GetByName(name);
-            if (ecP == null)
-            {
-                ecP = ECNamedCurveTable.GetByName(name);
-            }
-
+            X9ECParameters ecP = ECKeyPairGenerator.FindECCurveByName(name);
             if (ecP == null)
                 throw new Exception("unknown curve name: " + name);
 
-            //return new ECDomainParameters(ecP.Curve, ecP.G, ecP.N, ecP.H, ecP.GetSeed());
             return ecP;
         }
     }

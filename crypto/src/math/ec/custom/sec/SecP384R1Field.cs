@@ -98,6 +98,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Reduce(tt, z);
         }
 
+        public static void Multiply(uint[] x, uint[] y, uint[] z, uint[] tt)
+        {
+            Nat384.Mul(x, y, tt);
+            Reduce(tt, z);
+        }
+
         public static void Negate(uint[] x, uint[] z)
         {
             if (0 != IsZero(x))
@@ -234,11 +240,31 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Reduce(tt, z);
         }
 
+        public static void Square(uint[] x, uint[] z, uint[] tt)
+        {
+            Nat384.Square(x, tt);
+            Reduce(tt, z);
+        }
+
         public static void SquareN(uint[] x, int n, uint[] z)
         {
             Debug.Assert(n > 0);
 
             uint[] tt = Nat.Create(24);
+            Nat384.Square(x, tt);
+            Reduce(tt, z);
+
+            while (--n > 0)
+            {
+                Nat384.Square(z, tt);
+                Reduce(tt, z);
+            }
+        }
+
+        public static void SquareN(uint[] x, int n, uint[] z, uint[] tt)
+        {
+            Debug.Assert(n > 0);
+
             Nat384.Square(x, tt);
             Reduce(tt, z);
 

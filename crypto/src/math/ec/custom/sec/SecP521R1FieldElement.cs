@@ -133,11 +133,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if (Nat.IsZero(17, x1) || Nat.IsOne(17, x1))
                 return this;
 
+            uint[] tt0 = Nat.Create(33);
             uint[] t1 = Nat.Create(17);
             uint[] t2 = Nat.Create(17);
 
-            SecP521R1Field.SquareN(x1, 519, t1);
-            SecP521R1Field.Square(t1, t2);
+            SecP521R1Field.SquareN(x1, 519, t1, tt0);
+            SecP521R1Field.Square(t1, t2, tt0);
 
             return Nat.Eq(17, x1, t2) ? new SecP521R1FieldElement(t1) : null;
         }

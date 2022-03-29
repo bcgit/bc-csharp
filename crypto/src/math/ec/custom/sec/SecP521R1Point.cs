@@ -73,6 +73,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP521R1FieldElement Z1 = (SecP521R1FieldElement)this.RawZCoords[0];
             SecP521R1FieldElement Z2 = (SecP521R1FieldElement)b.RawZCoords[0];
 
+            uint[] tt0 = Nat.Create(33);
             uint[] t1 = Nat.Create(17);
             uint[] t2 = Nat.Create(17);
             uint[] t3 = Nat.Create(17);
@@ -88,13 +89,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             else
             {
                 S2 = t3;
-                SecP521R1Field.Square(Z1.x, S2);
+                SecP521R1Field.Square(Z1.x, S2, tt0);
 
                 U2 = t2;
-                SecP521R1Field.Multiply(S2, X2.x, U2);
+                SecP521R1Field.Multiply(S2, X2.x, U2, tt0);
 
-                SecP521R1Field.Multiply(S2, Z1.x, S2);
-                SecP521R1Field.Multiply(S2, Y2.x, S2);
+                SecP521R1Field.Multiply(S2, Z1.x, S2, tt0);
+                SecP521R1Field.Multiply(S2, Y2.x, S2, tt0);
             }
 
             bool Z2IsOne = Z2.IsOne;
@@ -107,13 +108,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             else
             {
                 S1 = t4;
-                SecP521R1Field.Square(Z2.x, S1);
+                SecP521R1Field.Square(Z2.x, S1, tt0);
 
                 U1 = t1;
-                SecP521R1Field.Multiply(S1, X1.x, U1);
+                SecP521R1Field.Multiply(S1, X1.x, U1, tt0);
 
-                SecP521R1Field.Multiply(S1, Z2.x, S1);
-                SecP521R1Field.Multiply(S1, Y1.x, S1);
+                SecP521R1Field.Multiply(S1, Z2.x, S1, tt0);
+                SecP521R1Field.Multiply(S1, Y1.x, S1, tt0);
             }
 
             uint[] H = Nat.Create(17);
@@ -136,35 +137,35 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
 
             uint[] HSquared = t3;
-            SecP521R1Field.Square(H, HSquared);
+            SecP521R1Field.Square(H, HSquared, tt0);
 
             uint[] G = Nat.Create(17);
-            SecP521R1Field.Multiply(HSquared, H, G);
+            SecP521R1Field.Multiply(HSquared, H, G, tt0);
 
             uint[] V = t3;
-            SecP521R1Field.Multiply(HSquared, U1, V);
+            SecP521R1Field.Multiply(HSquared, U1, V, tt0);
 
-            SecP521R1Field.Multiply(S1, G, t1);
+            SecP521R1Field.Multiply(S1, G, t1, tt0);
 
             SecP521R1FieldElement X3 = new SecP521R1FieldElement(t4);
-            SecP521R1Field.Square(R, X3.x);
+            SecP521R1Field.Square(R, X3.x, tt0);
             SecP521R1Field.Add(X3.x, G, X3.x);
             SecP521R1Field.Subtract(X3.x, V, X3.x);
             SecP521R1Field.Subtract(X3.x, V, X3.x);
 
             SecP521R1FieldElement Y3 = new SecP521R1FieldElement(G);
             SecP521R1Field.Subtract(V, X3.x, Y3.x);
-            SecP521R1Field.Multiply(Y3.x, R, t2);
+            SecP521R1Field.Multiply(Y3.x, R, t2, tt0);
             SecP521R1Field.Subtract(t2, t1, Y3.x);
 
             SecP521R1FieldElement Z3 = new SecP521R1FieldElement(H);
             if (!Z1IsOne)
             {
-                SecP521R1Field.Multiply(Z3.x, Z1.x, Z3.x);
+                SecP521R1Field.Multiply(Z3.x, Z1.x, Z3.x, tt0);
             }
             if (!Z2IsOne)
             {
-                SecP521R1Field.Multiply(Z3.x, Z2.x, Z3.x);
+                SecP521R1Field.Multiply(Z3.x, Z2.x, Z3.x, tt0);
             }
 
             ECFieldElement[] zs = new ECFieldElement[] { Z3 };
@@ -185,14 +186,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             SecP521R1FieldElement X1 = (SecP521R1FieldElement)this.RawXCoord, Z1 = (SecP521R1FieldElement)this.RawZCoords[0];
 
+            uint[] tt0 = Nat.Create(33);
             uint[] t1 = Nat.Create(17);
             uint[] t2 = Nat.Create(17);
 
             uint[] Y1Squared = Nat.Create(17);
-            SecP521R1Field.Square(Y1.x, Y1Squared);
+            SecP521R1Field.Square(Y1.x, Y1Squared, tt0);
 
             uint[] T = Nat.Create(17);
-            SecP521R1Field.Square(Y1Squared, T);
+            SecP521R1Field.Square(Y1Squared, T, tt0);
 
             bool Z1IsOne = Z1.IsOne;
 
@@ -200,19 +202,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if (!Z1IsOne)
             {
                 Z1Squared = t2;
-                SecP521R1Field.Square(Z1.x, Z1Squared);
+                SecP521R1Field.Square(Z1.x, Z1Squared, tt0);
             }
 
             SecP521R1Field.Subtract(X1.x, Z1Squared, t1);
 
             uint[] M = t2;
             SecP521R1Field.Add(X1.x, Z1Squared, M);
-            SecP521R1Field.Multiply(M, t1, M);
+            SecP521R1Field.Multiply(M, t1, M, tt0);
             Nat.AddBothTo(17, M, M, M);
             SecP521R1Field.Reduce23(M);
 
             uint[] S = Y1Squared;
-            SecP521R1Field.Multiply(Y1Squared, X1.x, S);
+            SecP521R1Field.Multiply(Y1Squared, X1.x, S, tt0);
             Nat.ShiftUpBits(17, S, 2, 0);
             SecP521R1Field.Reduce23(S);
 
@@ -220,20 +222,20 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             SecP521R1Field.Reduce23(t1);
 
             SecP521R1FieldElement X3 = new SecP521R1FieldElement(T);
-            SecP521R1Field.Square(M, X3.x);
+            SecP521R1Field.Square(M, X3.x, tt0);
             SecP521R1Field.Subtract(X3.x, S, X3.x);
             SecP521R1Field.Subtract(X3.x, S, X3.x);
 
             SecP521R1FieldElement Y3 = new SecP521R1FieldElement(S);
             SecP521R1Field.Subtract(S, X3.x, Y3.x);
-            SecP521R1Field.Multiply(Y3.x, M, Y3.x);
+            SecP521R1Field.Multiply(Y3.x, M, Y3.x, tt0);
             SecP521R1Field.Subtract(Y3.x, t1, Y3.x);
 
             SecP521R1FieldElement Z3 = new SecP521R1FieldElement(M);
             SecP521R1Field.Twice(Y1.x, Z3.x);
             if (!Z1IsOne)
             {
-                SecP521R1Field.Multiply(Z3.x, Z1.x, Z3.x);
+                SecP521R1Field.Multiply(Z3.x, Z1.x, Z3.x, tt0);
             }
 
             return new SecP521R1Point(curve, X3, Y3, new ECFieldElement[] { Z3 }, IsCompressed);

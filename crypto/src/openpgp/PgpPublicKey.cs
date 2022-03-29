@@ -2,11 +2,11 @@ using System;
 using System.Collections;
 using System.IO;
 
-using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Gnu;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -126,7 +126,26 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
                 else if (key is ECPublicBcpgKey)
                 {
-                    this.keyStrength = ECKeyPairGenerator.FindECCurveByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
+                    DerObjectIdentifier curveOid = ((ECPublicBcpgKey)key).CurveOid;
+                    if (GnuObjectIdentifiers.Ed25519.Equals(curveOid)
+                        //|| CryptlibObjectIdentifiers.curvey25519.Equals(curveOid)
+                        )
+                    {
+                        this.keyStrength = 256;
+                    }
+                    else
+                    {
+                        X9ECParametersHolder ecParameters = ECKeyPairGenerator.FindECCurveByOidLazy(curveOid);
+
+                        if (ecParameters != null)
+                        {
+                            this.keyStrength = ecParameters.Curve.FieldSize;
+                        }
+                        else
+                        {
+                            this.keyStrength = -1; // unknown
+                        }
+                    }
                 }
             }
         }

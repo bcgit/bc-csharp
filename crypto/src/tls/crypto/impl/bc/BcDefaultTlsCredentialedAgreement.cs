@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             {
                 BcTlsCertificate bcCert = BcTlsCertificate.Convert(m_crypto, peerCertificate);
                 ECPublicKeyParameters peerPublicKey = bcCert.GetPubKeyEC();
-                return BcTlsECDomain.CalculateBasicAgreement(m_crypto, m_privateKey, peerPublicKey);
+                return BcTlsECDomain.CalculateECDHAgreement(m_crypto, m_privateKey, peerPublicKey);
             }
 
             public Certificate Certificate

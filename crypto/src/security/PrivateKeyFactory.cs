@@ -234,7 +234,7 @@ namespace Org.BouncyCastle.Security
                     if (parameters.IsNamedCurve)
                     {
                         DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(parameters.Parameters);
-                        X9ECParameters ecP = ECNamedCurveTable.GetByOid(oid);
+                        X9ECParameters ecP = ECKeyPairGenerator.FindECCurveByOid(oid);
 
                         ecSpec = new ECGost3410Parameters(new ECNamedDomainParameters(oid, ecP),
                             gostParams.PublicKeyParamSet, gostParams.DigestParamSet,
