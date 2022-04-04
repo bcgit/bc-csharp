@@ -146,9 +146,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             get { return m_crypto; }
         }
 
-        protected virtual void HmacHash(IDigest digest, byte[] secret, int secretOff, int secretLen, byte[] seed,
-            byte[] output)
+        protected virtual void HmacHash(int cryptoHashAlgorithm, byte[] secret, int secretOff, int secretLen,
+            byte[] seed, byte[] output)
         {
+            IDigest digest = m_crypto.CreateDigest(cryptoHashAlgorithm);
             HMac mac = new HMac(digest);
             mac.Init(new KeyParameter(secret, secretOff, secretLen));
 
@@ -231,13 +232,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
             int s_half = (m_data.Length + 1) / 2;
 
-            IDigest md5 = m_crypto.CreateDigest(CryptoHashAlgorithm.md5);
             byte[] b1 = new byte[length];
-            HmacHash(md5, m_data, 0, s_half, labelSeed, b1);
+            HmacHash(CryptoHashAlgorithm.md5, m_data, 0, s_half, labelSeed, b1);
 
-            IDigest sha1 = m_crypto.CreateDigest(CryptoHashAlgorithm.sha1);
             byte[] b2 = new byte[length];
-            HmacHash(sha1, m_data, m_data.Length - s_half, s_half, labelSeed, b2);
+            HmacHash(CryptoHashAlgorithm.sha1, m_data, m_data.Length - s_half, s_half, labelSeed, b2);
 
             for (int i = 0; i < length; i++)
             {
@@ -248,9 +247,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected virtual byte[] Prf_1_2(int prfAlgorithm, byte[] labelSeed, int length)
         {
-            IDigest digest = m_crypto.CreateDigest(TlsCryptoUtilities.GetHashForPrf(prfAlgorithm));
+            int cryptoHashAlgorithm = TlsCryptoUtilities.GetHashForPrf(prfAlgorithm);
             byte[] result = new byte[length];
-            HmacHash(digest, m_data, 0, m_data.Length, labelSeed, result);
+            HmacHash(cryptoHashAlgorithm, m_data, 0, m_data.Length, labelSeed, result);
             return result;
         }
 
