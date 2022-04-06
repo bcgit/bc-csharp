@@ -98,10 +98,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 byte counter = 0x00;
 
                 int pos = 0;
-                for (; ; )
+                for (;;)
                 {
                     hmac.BlockUpdate(info, 0, info.Length);
-                    hmac.Update((byte)++counter);
+                    hmac.Update(++counter);
                     hmac.DoFinal(t, 0);
 
                     int remaining = length - pos;
@@ -150,12 +150,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             byte[] seed, byte[] output)
         {
             IDigest digest = m_crypto.CreateDigest(cryptoHashAlgorithm);
-            HMac mac = new HMac(digest);
-            mac.Init(new KeyParameter(secret, secretOff, secretLen));
+            HMac hmac = new HMac(digest);
+            hmac.Init(new KeyParameter(secret, secretOff, secretLen));
 
             byte[] a = seed;
 
-            int macSize = mac.GetMacSize();
+            int macSize = hmac.GetMacSize();
 
             byte[] b1 = new byte[macSize];
             byte[] b2 = new byte[macSize];
@@ -163,12 +163,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             int pos = 0;
             while (pos < output.Length)
             {
-                mac.BlockUpdate(a, 0, a.Length);
-                mac.DoFinal(b1, 0);
+                hmac.BlockUpdate(a, 0, a.Length);
+                hmac.DoFinal(b1, 0);
                 a = b1;
-                mac.BlockUpdate(a, 0, a.Length);
-                mac.BlockUpdate(seed, 0, seed.Length);
-                mac.DoFinal(b2, 0);
+                hmac.BlockUpdate(a, 0, a.Length);
+                hmac.BlockUpdate(seed, 0, seed.Length);
+                hmac.DoFinal(b2, 0);
                 Array.Copy(b2, 0, output, pos, System.Math.Min(macSize, output.Length - pos));
                 pos += macSize;
             }

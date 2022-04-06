@@ -235,7 +235,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override bool HasMacAlgorithm(int macAlgorithm)
         {
-            return true;
+            switch (macAlgorithm)
+            {
+            case MacAlgorithm.hmac_md5:
+            case MacAlgorithm.hmac_sha1:
+            case MacAlgorithm.hmac_sha256:
+            case MacAlgorithm.hmac_sha384:
+            case MacAlgorithm.hmac_sha512:
+                return true;
+
+            default:
+                return false;
+            }
         }
 
         public override bool HasNamedGroup(int namedGroup)
@@ -284,10 +295,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             switch (sigAndHashAlgorithm.Hash)
             {
-                case HashAlgorithm.md5:
-                    return SignatureAlgorithm.rsa == signature && HasSignatureAlgorithm(signature);
-                default:
-                    return HasSignatureAlgorithm(signature);
+            case HashAlgorithm.md5:
+                return SignatureAlgorithm.rsa == signature && HasSignatureAlgorithm(signature);
+            default:
+                return HasSignatureAlgorithm(signature);
             }
         }
 
@@ -577,7 +588,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override TlsHmac CreateHmac(int macAlgorithm)
         {
-            return CreateHmacForHash(TlsCryptoUtilities.GetHashForHmac(macAlgorithm));
+            switch (macAlgorithm)
+            {
+            case MacAlgorithm.hmac_md5:
+            case MacAlgorithm.hmac_sha1:
+            case MacAlgorithm.hmac_sha256:
+            case MacAlgorithm.hmac_sha384:
+            case MacAlgorithm.hmac_sha512:
+                return CreateHmacForHash(TlsCryptoUtilities.GetHashForHmac(macAlgorithm));
+
+            default:
+                throw new ArgumentException("invalid MacAlgorithm: " + macAlgorithm);
+            }
         }
 
         public override TlsHmac CreateHmacForHash(int cryptoHashAlgorithm)
