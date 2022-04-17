@@ -34,20 +34,32 @@ namespace Org.BouncyCastle.Asn1
         public static Asn1Object FromByteArray(
 			byte[] data)
 		{
-            try
-			{
-                MemoryStream input = new MemoryStream(data, false);
-                Asn1InputStream asn1 = new Asn1InputStream(input, data.Length);
-                Asn1Object result = asn1.ReadObject();
-                if (input.Position != input.Length)
-                    throw new IOException("extra data found after object");
-                return result;
-			}
-			catch (InvalidCastException)
-			{
-				throw new IOException("cannot recognise object in byte array");
-			}
+			return FromByteArray(new ArraySegment<byte>(data, 0, data.Length));
 		}
+
+        /// <summary>Create a base ASN.1 object from a byte array segment.</summary>
+        /// <param name="data">The byte array segment to parse.</param>
+        /// <returns>The base ASN.1 object represented by the byte array.</returns>
+        /// <exception cref="IOException">
+        /// If there is a problem parsing the data, or parsing an object did not exhaust the available data.
+        /// </exception>
+        public static Asn1Object FromByteArray(
+	        ArraySegment<byte> data)
+        {
+	        try
+	        {
+		        MemoryStream input = new MemoryStream(data.Array ?? new byte[0], data.Offset, data.Count, false);
+		        Asn1InputStream asn1 = new Asn1InputStream(input, data.Count);
+		        Asn1Object result = asn1.ReadObject();
+		        if (input.Position != input.Length)
+			        throw new IOException("extra data found after object");
+		        return result;
+	        }
+	        catch (InvalidCastException)
+	        {
+		        throw new IOException("cannot recognise object in byte array");
+	        }
+        }
 
 		/// <summary>Read a base ASN.1 object from a stream.</summary>
 		/// <param name="inStr">The stream to parse.</param>

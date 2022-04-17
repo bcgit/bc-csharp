@@ -40,6 +40,12 @@ namespace Org.BouncyCastle.Asn1
             return CheckedCast(Asn1Object.FromByteArray(bytes));
         }
 
+        /// <exception cref="IOException"/>
+        internal Asn1Object FromByteArray(ArraySegment<byte> bytes)
+        {
+            return CheckedCast(Asn1Object.FromByteArray(bytes));
+        }
+
         internal Asn1Object GetContextInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             if (Asn1Tags.ContextSpecific != taggedObject.TagClass)

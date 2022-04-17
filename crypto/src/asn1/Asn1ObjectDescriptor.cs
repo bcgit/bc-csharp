@@ -57,6 +57,17 @@ namespace Org.BouncyCastle.Asn1
                     throw new ArgumentException("failed to construct object descriptor from byte[]: " + e.Message);
                 }
             }
+            else if (obj is ArraySegment<byte>)
+            {
+                try
+                {
+                    return (Asn1ObjectDescriptor)Meta.Instance.FromByteArray((ArraySegment<byte>)obj);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct object descriptor from ArraySegment<byte>: " + e.Message);
+                }
+            }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
         }

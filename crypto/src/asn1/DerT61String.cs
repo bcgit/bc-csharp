@@ -51,6 +51,17 @@ namespace Org.BouncyCastle.Asn1
                     throw new ArgumentException("failed to construct T61 string from byte[]: " + e.Message);
                 }
             }
+            else if (obj is ArraySegment<byte>)
+            {
+                try
+                {
+                    return (DerT61String)Meta.Instance.FromByteArray((ArraySegment<byte>)obj);
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("failed to construct T61 string from ArraySegment<byte>: " + e.Message);
+                }
+            }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
         }

@@ -204,6 +204,18 @@ namespace Org.BouncyCastle.Asn1.X509
 	            }
 	        }
 
+            if (obj is ArraySegment<byte>)
+            {
+	            try
+	            {
+		            return GetInstance(Asn1Object.FromByteArray((ArraySegment<byte>)obj));
+	            }
+	            catch (IOException)
+	            {
+		            throw new ArgumentException("unable to parse encoded general name");
+	            }
+            }
+
 			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
 		}
 

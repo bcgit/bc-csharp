@@ -213,6 +213,12 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         public Pkcs10CertificationRequest(
+            ArraySegment<byte> encoded)
+            : base((Asn1Sequence)Asn1Object.FromByteArray(encoded))
+        {
+        }
+
+        public Pkcs10CertificationRequest(
             Asn1Sequence seq)
             : base(seq)
         {

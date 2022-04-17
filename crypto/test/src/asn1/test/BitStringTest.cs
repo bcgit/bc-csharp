@@ -78,7 +78,37 @@ namespace Org.BouncyCastle.Asn1.Tests
             EncodingCheck(test, test3);
             EncodingCheck(test, test4);
         }
+        
+        private void DoTestRandomPadArraySegmentBits()
+        {
+            byte[] test = Hex.Decode("030206c0");
 
+            byte[] test1 = Hex.Decode("030206f0");
+            byte[] test2 = Hex.Decode("030206c1");
+            byte[] test3 = Hex.Decode("030206c7");
+            byte[] test4 = Hex.Decode("030206d1");
+
+            EncodingCheck(MakeRandomArraySegment(test), MakeRandomArraySegment(test1));
+            EncodingCheck(MakeRandomArraySegment(test), MakeRandomArraySegment(test2));
+            EncodingCheck(MakeRandomArraySegment(test), MakeRandomArraySegment(test3));
+            EncodingCheck(MakeRandomArraySegment(test), MakeRandomArraySegment(test4));
+        }
+
+        private static ArraySegment<byte> MakeRandomArraySegment(byte[] buffer)
+        {
+            var random = new Random();
+
+            var array = new byte[buffer.Length + random.Next(100)];
+
+            var offset = random.Next(array.Length - buffer.Length);
+
+            random.NextBytes(array);
+
+            buffer.CopyTo(array, offset);
+
+            return new ArraySegment<byte>(array, offset, buffer.Length);
+        }
+        
         private void EncodingCheck(byte[] derData, byte[] dlData)
         {
             if (Arrays.AreEqual(derData, Asn1Object.FromByteArray(dlData).GetEncoded()))
@@ -89,6 +119,36 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             IsTrue("DL test failed", dl is DLBitString);
             if (!Arrays.AreEqual(derData, Asn1Object.FromByteArray(dlData).GetDerEncoded()))
+            {
+                Fail("failed DER check");
+            }
+            try
+            {
+                // GetInstance should work for "an object that can be converted into [a DerBitString]".
+                DerBitString.GetInstance(dlData);
+            }
+            catch (ArgumentException)
+            {
+                Fail("failed DL encoding conversion");
+            }
+            DerBitString der = DerBitString.GetInstance(derData);
+            IsTrue("DER test failed", typeof(DerBitString) == der.GetType());
+        }
+        
+        private void EncodingCheck(ArraySegment<byte> derData, ArraySegment<byte> dlData)
+        {
+            var encodeed = Asn1Object.FromByteArray(dlData).GetEncoded();
+
+            if (Arrays.AreEqual(derData.Array, derData.Offset, derData.Offset + derData.Count, encodeed, 0, encodeed.Length))
+            {
+                Fail("failed DL check");
+            }
+            DerBitString dl = DerBitString.GetInstance(dlData);
+
+            IsTrue("DL test failed", dl is DLBitString);
+
+            encodeed = Asn1Object.FromByteArray(dlData).GetDerEncoded();
+            if (!Arrays.AreEqual(derData.Array, derData.Offset, derData.Offset + derData.Count, encodeed, 0, encodeed.Length))
             {
                 Fail("failed DER check");
             }
@@ -148,6 +208,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 
             DoTestRandomPadBits();
+            DoTestRandomPadArraySegmentBits();
             DoTestZeroLengthStrings();
         }
 

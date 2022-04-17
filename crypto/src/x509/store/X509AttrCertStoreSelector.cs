@@ -362,6 +362,10 @@ namespace Org.BouncyCastle.X509.Store
 					{
 						result.Add(o);
 					}
+					else if (o is ArraySegment<byte>)
+					{
+						result.Add(GeneralName.GetInstance(Asn1Object.FromByteArray((ArraySegment<byte>) o)));
+					}
 					else
 					{
 						result.Add(GeneralName.GetInstance(Asn1Object.FromByteArray((byte[]) o)));

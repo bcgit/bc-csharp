@@ -34,6 +34,18 @@ namespace Org.BouncyCastle.Asn1.X9
 				}
 			}
 
+			if (obj is ArraySegment<byte>)
+			{
+				try
+				{
+					return new X962Parameters(Asn1Object.FromByteArray((ArraySegment<byte>)obj));
+				}
+				catch (Exception e)
+				{
+					throw new ArgumentException("unable to parse encoded data: " + e.Message, e);
+				}
+			}
+
 			throw new ArgumentException("unknown object in getInstance()");
 		}
 
