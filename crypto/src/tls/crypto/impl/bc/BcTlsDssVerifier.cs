@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
-        protected abstract IDsa CreateDsaImpl(int cryptoHashAlgorithm);
+        protected abstract IDsa CreateDsaImpl();
 
         protected abstract short SignatureAlgorithm { get; }
 
@@ -26,11 +26,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             if (algorithm != null && algorithm.Signature != SignatureAlgorithm)
                 throw new InvalidOperationException("Invalid algorithm: " + algorithm);
 
-            int cryptoHashAlgorithm = (null == algorithm)
-                ? CryptoHashAlgorithm.sha1
-                : TlsCryptoUtilities.GetHash(algorithm.Hash);
-
-            ISigner signer = new DsaDigestSigner(CreateDsaImpl(cryptoHashAlgorithm), new NullDigest());
+            ISigner signer = new DsaDigestSigner(CreateDsaImpl(), new NullDigest());
             signer.Init(false, m_publicKey);
             if (algorithm == null)
             {

@@ -29,8 +29,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             if (algorithm == null || SignatureScheme.From(algorithm) != m_signatureScheme)
                 throw new InvalidOperationException("Invalid algorithm: " + algorithm);
 
-            int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(m_signatureScheme);
-            IDsa dsa = new ECDsaSigner(new HMacDsaKCalculator(m_crypto.CreateDigest(cryptoHashAlgorithm)));
+            IDsa dsa = new ECDsaSigner();
 
             ISigner signer = new DsaDigestSigner(dsa, new NullDigest());
             signer.Init(false, m_publicKey);
