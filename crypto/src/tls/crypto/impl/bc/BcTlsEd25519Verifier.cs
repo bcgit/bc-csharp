@@ -13,21 +13,21 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
-        public override bool VerifyRawSignature(DigitallySigned signature, byte[] hash)
+        public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
         {
             throw new NotSupportedException();
         }
 
-        public override TlsStreamVerifier GetStreamVerifier(DigitallySigned signature)
+        public override TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned)
         {
-            SignatureAndHashAlgorithm algorithm = signature.Algorithm;
+            SignatureAndHashAlgorithm algorithm = digitallySigned.Algorithm;
             if (algorithm == null || SignatureScheme.From(algorithm) != SignatureScheme.ed25519)
                 throw new InvalidOperationException("Invalid algorithm: " + algorithm);
 
             Ed25519Signer verifier = new Ed25519Signer();
             verifier.Init(false, m_publicKey);
 
-            return new BcTlsStreamVerifier(verifier, signature.Signature);
+            return new BcTlsStreamVerifier(verifier, digitallySigned.Signature);
         }
     }
 }

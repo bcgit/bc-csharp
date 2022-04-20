@@ -22,14 +22,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             this.m_signatureScheme = signatureScheme;
         }
 
-        public override bool VerifyRawSignature(DigitallySigned signature, byte[] hash)
+        public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
         {
             throw new NotSupportedException();
         }
 
-        public override TlsStreamVerifier GetStreamVerifier(DigitallySigned signature)
+        public override TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned)
         {
-            SignatureAndHashAlgorithm algorithm = signature.Algorithm;
+            SignatureAndHashAlgorithm algorithm = digitallySigned.Algorithm;
             if (algorithm == null || SignatureScheme.From(algorithm) != m_signatureScheme)
                 throw new InvalidOperationException("Invalid algorithm: " + algorithm);
 
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             PssSigner verifier = new PssSigner(new RsaEngine(), digest, digest.GetDigestSize());
             verifier.Init(false, m_publicKey);
 
-            return new BcTlsStreamVerifier(verifier, signature.Signature);
+            return new BcTlsStreamVerifier(verifier, digitallySigned.Signature);
         }
     }
 }

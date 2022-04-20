@@ -20,9 +20,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected abstract short SignatureAlgorithm { get; }
 
-        public override bool VerifyRawSignature(DigitallySigned signedParams, byte[] hash)
+        public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
         {
-            SignatureAndHashAlgorithm algorithm = signedParams.Algorithm;
+            SignatureAndHashAlgorithm algorithm = digitallySigned.Algorithm;
             if (algorithm != null && algorithm.Signature != SignatureAlgorithm)
                 throw new InvalidOperationException("Invalid algorithm: " + algorithm);
 
@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             {
                 signer.BlockUpdate(hash, 0, hash.Length);
             }
-            return signer.VerifySignature(signedParams.Signature);
+            return signer.VerifySignature(digitallySigned.Signature);
         }
     }
 }

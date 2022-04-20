@@ -23,11 +23,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             this.m_publicKey = publicKey;
         }
 
-        public virtual TlsStreamVerifier GetStreamVerifier(DigitallySigned signature)
+        public virtual TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned)
         {
             return null;
         }
 
-        public abstract bool VerifyRawSignature(DigitallySigned signature, byte[] hash);
+        public abstract bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash);
     }
 }

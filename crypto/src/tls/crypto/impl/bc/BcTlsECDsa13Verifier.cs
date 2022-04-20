@@ -23,9 +23,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             this.m_signatureScheme = signatureScheme;
         }
 
-        public override bool VerifyRawSignature(DigitallySigned signature, byte[] hash)
+        public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
         {
-            SignatureAndHashAlgorithm algorithm = signature.Algorithm;
+            SignatureAndHashAlgorithm algorithm = digitallySigned.Algorithm;
             if (algorithm == null || SignatureScheme.From(algorithm) != m_signatureScheme)
                 throw new InvalidOperationException("Invalid algorithm: " + algorithm);
 
@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             ISigner signer = new DsaDigestSigner(dsa, new NullDigest());
             signer.Init(false, m_publicKey);
             signer.BlockUpdate(hash, 0, hash.Length);
-            return signer.VerifySignature(signature.Signature);
+            return signer.VerifySignature(digitallySigned.Signature);
         }
     }
 }
