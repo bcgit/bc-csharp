@@ -408,6 +408,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             for (int i = 0; i < hashes.Length; ++i)
             {
                 int hash = hashes[i];
+                if (!m_crypto.HasHkdfAlgorithm(hash))
+                    continue;
+
                 int hashLen = TlsCryptoUtilities.GetHashOutputSize(hash);
                 TlsSecret zeros = m_crypto.HkdfInit(hash);
 

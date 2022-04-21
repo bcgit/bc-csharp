@@ -14,15 +14,17 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     {
         public abstract bool HasAllRawSignatureAlgorithms();
 
+        public abstract bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm);
+
+        public abstract bool HasCryptoSignatureAlgorithm(int cryptoSignatureAlgorithm);
+
         public abstract bool HasDHAgreement();
 
         public abstract bool HasECDHAgreement();
 
         public abstract bool HasEncryptionAlgorithm(int encryptionAlgorithm);
 
-        public abstract bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm);
-
-        public abstract bool HasCryptoSignatureAlgorithm(int cryptoSignatureAlgorithm);
+        public abstract bool HasHkdfAlgorithm(int cryptoHashAlgorithm);
 
         public abstract bool HasMacAlgorithm(int macAlgorithm);
 

@@ -155,35 +155,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         public override bool HasAllRawSignatureAlgorithms()
         {
             // TODO[RFC 8422] Revisit the need to buffer the handshake for "Intrinsic" hash signatures
-            return !HasSignatureAlgorithm(SignatureAlgorithm.ed25519)
-                && !HasSignatureAlgorithm(SignatureAlgorithm.ed448);
-        }
-
-        public override bool HasDHAgreement()
-        {
-            return true;
-        }
-
-        public override bool HasECDHAgreement()
-        {
-            return true;
-        }
-
-        public override bool HasEncryptionAlgorithm(int encryptionAlgorithm)
-        {
-            switch (encryptionAlgorithm)
-            {
-            case EncryptionAlgorithm.DES40_CBC:
-            case EncryptionAlgorithm.DES_CBC:
-            case EncryptionAlgorithm.IDEA_CBC:
-            case EncryptionAlgorithm.RC2_CBC_40:
-            case EncryptionAlgorithm.RC4_128:
-            case EncryptionAlgorithm.RC4_40:
-                return false;
-
-            default:
-                return true;
-            }
+            return false;
         }
 
         public override bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm)
@@ -227,6 +199,48 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             // TODO[RFC 8998]
             case CryptoSignatureAlgorithm.sm2:
+
+            default:
+                return false;
+            }
+        }
+
+        public override bool HasDHAgreement()
+        {
+            return true;
+        }
+
+        public override bool HasECDHAgreement()
+        {
+            return true;
+        }
+
+        public override bool HasEncryptionAlgorithm(int encryptionAlgorithm)
+        {
+            switch (encryptionAlgorithm)
+            {
+            case EncryptionAlgorithm.DES40_CBC:
+            case EncryptionAlgorithm.DES_CBC:
+            case EncryptionAlgorithm.IDEA_CBC:
+            case EncryptionAlgorithm.RC2_CBC_40:
+            case EncryptionAlgorithm.RC4_128:
+            case EncryptionAlgorithm.RC4_40:
+                return false;
+
+            default:
+                return true;
+            }
+        }
+
+        public override bool HasHkdfAlgorithm(int cryptoHashAlgorithm)
+        {
+            switch (cryptoHashAlgorithm)
+            {
+            case CryptoHashAlgorithm.sha256:
+            case CryptoHashAlgorithm.sha384:
+            case CryptoHashAlgorithm.sha512:
+            case CryptoHashAlgorithm.sm3:
+                return true;
 
             default:
                 return false;
