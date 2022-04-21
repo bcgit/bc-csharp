@@ -28,6 +28,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return null;
         }
 
-        public abstract bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash);
+        public virtual bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

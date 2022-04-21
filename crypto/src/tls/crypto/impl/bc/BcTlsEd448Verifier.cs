@@ -13,11 +13,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
-        public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
-        {
-            throw new NotSupportedException();
-        }
-
         public override TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned)
         {
             SignatureAndHashAlgorithm algorithm = digitallySigned.Algorithm;
