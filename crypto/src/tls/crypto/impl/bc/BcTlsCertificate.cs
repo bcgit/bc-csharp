@@ -173,6 +173,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        public virtual X509CertificateStructure X509CertificateStructure
+        {
+            get { return m_certificate; }
+        }
+
         /// <exception cref="IOException"/>
         public virtual byte[] GetEncoded()
         {
