@@ -2088,7 +2088,7 @@ namespace Org.BouncyCastle.Tls
 
             TlsHash h = algorithm == null
                 ? new CombinedHash(crypto)
-                : CreateHash(crypto, algorithm.Hash);
+                : CreateHash(crypto, algorithm);
 
             SecurityParameters sp = context.SecurityParameters;
             // NOTE: The implicit copy here is intended (and important)
@@ -4251,6 +4251,14 @@ namespace Org.BouncyCastle.Tls
         private static TlsHash CreateHash(TlsCrypto crypto, short hashAlgorithm)
         {
             int cryptoHashAlgorithm = TlsCryptoUtilities.GetHash(hashAlgorithm);
+
+            return crypto.CreateHash(cryptoHashAlgorithm);
+        }
+
+        private static TlsHash CreateHash(TlsCrypto crypto, SignatureAndHashAlgorithm signatureAndHashAlgorithm)
+        {
+            int signatureScheme = SignatureScheme.From(signatureAndHashAlgorithm);
+            int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(signatureScheme);
 
             return crypto.CreateHash(cryptoHashAlgorithm);
         }
