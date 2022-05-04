@@ -585,6 +585,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             return Utilities.Encoders.Hex.Decode(s.Replace(" ", ""));
         }
 
+        private byte[] ImplPrehash(int signatureScheme, byte[] message)
+        {
+            int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(signatureScheme);
+            TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
+            tlsHash.Update(message, 0, message.Length);
+            return tlsHash.CalculateHash();
+        }
+
+        private byte[] ImplPrehash(SignatureAndHashAlgorithm signatureAndHashAlgorithm, byte[] message)
+        {
+            int signatureScheme = SignatureScheme.From(signatureAndHashAlgorithm);
+            return ImplPrehash(signatureScheme, message);
+        }
+
         private void ImplTestAgreement(TlsAgreement aA, TlsAgreement aB)
         {
             byte[] pA = aA.GenerateEphemeral();
@@ -682,8 +696,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         private void ImplTestSignature12(TlsCredentialedSigner credentialedSigner,
             SignatureAndHashAlgorithm signatureAndHashAlgorithm)
         {
-            short hashAlgorithm = signatureAndHashAlgorithm.Hash;
-
             byte[] message = m_crypto.CreateNonceGenerator(TlsUtilities.EmptyBytes).GenerateNonce(100);
 
             byte[] signature;
@@ -696,14 +708,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             }
             else
             {
-                // Currently 1.2 relies on these being handled by stream signers 
-                Assert.IsTrue(HashAlgorithm.Intrinsic != hashAlgorithm);
-
-                int cryptoHashAlgorithm = TlsCryptoUtilities.GetHash(hashAlgorithm);
-
-                TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
-                tlsHash.Update(message, 0, message.Length);
-                byte[] hash = tlsHash.CalculateHash();
+                byte[] hash = ImplPrehash(signatureAndHashAlgorithm, message);
                 signature = credentialedSigner.GenerateRawSignature(hash);
             }
 
@@ -722,14 +727,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             }
             else
             {
-                // Currently 1.2 relies on these being handled by stream verifiers 
-                Assert.IsTrue(HashAlgorithm.Intrinsic != hashAlgorithm);
-
-                int cryptoHashAlgorithm = TlsCryptoUtilities.GetHash(hashAlgorithm);
-
-                TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
-                tlsHash.Update(message, 0, message.Length);
-                byte[] hash = tlsHash.CalculateHash();
+                byte[] hash = ImplPrehash(signatureAndHashAlgorithm, message);
                 verified = tlsVerifier.VerifyRawSignature(digitallySigned, hash);
             }
 
@@ -750,11 +748,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             }
             else
             {
-                int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(signatureScheme);
-
-                TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
-                tlsHash.Update(message, 0, message.Length);
-                byte[] hash = tlsHash.CalculateHash();
+                byte[] hash = ImplPrehash(signatureScheme, message);
                 signature = credentialedSigner.GenerateRawSignature(hash);
             }
 
@@ -774,11 +768,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             }
             else
             {
-                int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(signatureScheme);
-
-                TlsHash tlsHash = m_crypto.CreateHash(cryptoHashAlgorithm);
-                tlsHash.Update(message, 0, message.Length);
-                byte[] hash = tlsHash.CalculateHash();
+                byte[] hash = ImplPrehash(signatureScheme, message);
                 verified = tlsVerifier.VerifyRawSignature(digitallySigned, hash);
             }
 

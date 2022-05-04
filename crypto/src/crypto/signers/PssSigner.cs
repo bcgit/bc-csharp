@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 	public class PssSigner
 		: ISigner
 	{
-		public const byte TrailerImplicit = (byte)0xBC;
+		public const byte TrailerImplicit = 0xBC;
 
 		private readonly IDigest contentDigest1, contentDigest2;
 		private readonly IDigest mgfDigest;
@@ -33,21 +33,21 @@ namespace Org.BouncyCastle.Crypto.Signers
 		private byte[] block;
 		private byte trailer;
 
-		public static PssSigner CreateRawSigner(
-			IAsymmetricBlockCipher	cipher,
-			IDigest					digest)
+		public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest digest)
 		{
 			return new PssSigner(cipher, new NullDigest(), digest, digest, digest.GetDigestSize(), null, TrailerImplicit);
 		}
 
-		public static PssSigner CreateRawSigner(
-			IAsymmetricBlockCipher	cipher,
-			IDigest					contentDigest,
-			IDigest					mgfDigest,
-			int						saltLen,
-			byte					trailer)
+		public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest,
+			int saltLen, byte trailer)
 		{
 			return new PssSigner(cipher, new NullDigest(), contentDigest, mgfDigest, saltLen, null, trailer);
+		}
+
+		public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest,
+			byte[] salt, byte trailer)
+		{
+			return new PssSigner(cipher, new NullDigest(), contentDigest, mgfDigest, salt.Length, salt, trailer);
 		}
 
 		public PssSigner(
@@ -225,6 +225,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 		/// </summary>
 		public virtual byte[] GenerateSignature()
 		{
+			if (contentDigest1.GetDigestSize() != hLen)
+				throw new InvalidOperationException();
+
 			contentDigest1.DoFinal(mDash, mDash.Length - hLen - sLen);
 
 			if (sLen != 0)
@@ -271,7 +274,10 @@ namespace Org.BouncyCastle.Crypto.Signers
 		public virtual bool VerifySignature(
 			byte[] signature)
 		{
-            contentDigest1.DoFinal(mDash, mDash.Length - hLen - sLen);
+			if (contentDigest1.GetDigestSize() != hLen)
+				throw new InvalidOperationException();
+
+			contentDigest1.DoFinal(mDash, mDash.Length - hLen - sLen);
 
             byte[] b = cipher.ProcessBlock(signature, 0, signature.Length);
             Arrays.Fill(block, 0, block.Length - b.Length, 0);

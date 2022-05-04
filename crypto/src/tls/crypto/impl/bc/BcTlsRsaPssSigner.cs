@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             this.m_signatureScheme = signatureScheme;
         }
 
-        public override TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)
+        public override byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash)
         {
             if (algorithm == null || SignatureScheme.From(algorithm) != m_signatureScheme)
                 throw new InvalidOperationException("Invalid algorithm: " + algorithm);
@@ -30,10 +30,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(m_signatureScheme);
             IDigest digest = m_crypto.CreateDigest(cryptoHashAlgorithm);
 
-            PssSigner signer = new PssSigner(new RsaBlindedEngine(), digest, digest.GetDigestSize());
+            PssSigner signer = PssSigner.CreateRawSigner(new RsaBlindedEngine(), digest, digest, digest.GetDigestSize(),
+                PssSigner.TrailerImplicit);
             signer.Init(true, new ParametersWithRandom(m_privateKey, m_crypto.SecureRandom));
-
-            return new BcTlsStreamSigner(signer);
+            signer.BlockUpdate(hash, 0, hash.Length);
+            try
+            {
+                return signer.GenerateSignature();
+            }
+            catch (CryptoException e)
+            {
+                throw new TlsFatalAlert(AlertDescription.internal_error, e);
+            }
         }
     }
 }

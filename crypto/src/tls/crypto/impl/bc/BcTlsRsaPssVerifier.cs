@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             this.m_signatureScheme = signatureScheme;
         }
 
-        public override TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned)
+        public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
         {
             SignatureAndHashAlgorithm algorithm = digitallySigned.Algorithm;
             if (algorithm == null || SignatureScheme.From(algorithm) != m_signatureScheme)
@@ -31,10 +31,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(m_signatureScheme);
             IDigest digest = m_crypto.CreateDigest(cryptoHashAlgorithm);
 
-            PssSigner verifier = new PssSigner(new RsaEngine(), digest, digest.GetDigestSize());
+            PssSigner verifier = PssSigner.CreateRawSigner(new RsaEngine(), digest, digest, digest.GetDigestSize(),
+                PssSigner.TrailerImplicit);
             verifier.Init(false, m_publicKey);
-
-            return new BcTlsStreamVerifier(verifier, digitallySigned.Signature);
+            verifier.BlockUpdate(hash, 0, hash.Length);
+            return verifier.VerifySignature(digitallySigned.Signature);
         }
     }
 }
