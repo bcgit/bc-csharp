@@ -1078,6 +1078,7 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        [Obsolete("Will be removed")]
         public static SignatureAndHashAlgorithm GetSignatureAndHashAlgorithm(TlsContext context,
             TlsCredentialedSigner signerCredentials)
         {
@@ -2131,7 +2132,7 @@ namespace Org.BouncyCastle.Tls
 
             if (IsTlsV13(negotiatedVersion))
             {
-                //  Should be using GenerateCertificateVerify13 instead
+                // Should be using Generate13CertificateVerify instead
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
 
@@ -2370,7 +2371,7 @@ namespace Org.BouncyCastle.Tls
             /*
              * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
              */
-            SignatureAndHashAlgorithm algorithm = GetSignatureAndHashAlgorithm(context, credentials);
+            SignatureAndHashAlgorithm algorithm = GetSignatureAndHashAlgorithm(context.ServerVersion, credentials);
             TlsStreamSigner streamSigner = credentials.GetStreamSigner();
 
             byte[] signature;
