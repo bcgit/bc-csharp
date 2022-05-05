@@ -5,27 +5,27 @@ namespace Org.BouncyCastle.Tls
 {
     public sealed class DigitallySigned
     {
-        private readonly SignatureAndHashAlgorithm algorithm;
-        private readonly byte[] signature;
+        private readonly SignatureAndHashAlgorithm m_algorithm;
+        private readonly byte[] m_signature;
 
         public DigitallySigned(SignatureAndHashAlgorithm algorithm, byte[] signature)
         {
             if (signature == null)
                 throw new ArgumentNullException("signature");
 
-            this.algorithm = algorithm;
-            this.signature = signature;
+            this.m_algorithm = algorithm;
+            this.m_signature = signature;
         }
 
         /// <returns>a <see cref="SignatureAndHashAlgorithm"/> (or null before TLS 1.2).</returns>
         public SignatureAndHashAlgorithm Algorithm
         {
-            get { return algorithm; }
+            get { return m_algorithm; }
         }
 
         public byte[] Signature
         {
-            get { return signature; }
+            get { return m_signature; }
         }
 
         /// <summary>Encode this <see cref="DigitallySigned"/> to a <see cref="Stream"/>.</summary>
@@ -33,11 +33,11 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public void Encode(Stream output)
         {
-            if (algorithm != null)
+            if (m_algorithm != null)
             {
-                algorithm.Encode(output);
+                m_algorithm.Encode(output);
             }
-            TlsUtilities.WriteOpaque16(signature, output);
+            TlsUtilities.WriteOpaque16(m_signature, output);
         }
 
         /// <summary>Parse a <see cref="DigitallySigned"/> from a <see cref="Stream"/>.</summary>
