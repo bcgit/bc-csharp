@@ -2144,7 +2144,7 @@ namespace Org.BouncyCastle.Tls
             byte[] signature;
             if (streamSigner != null)
             {
-                handshakeHash.CopyBufferTo(streamSigner.GetOutputStream());
+                handshakeHash.CopyBufferTo(streamSigner.Stream);
                 signature = streamSigner.GetSignature();
             }
             else
@@ -2195,7 +2195,7 @@ namespace Org.BouncyCastle.Tls
 
             if (null != streamSigner)
             {
-                Stream output = streamSigner.GetOutputStream();
+                Stream output = streamSigner.Stream;
                 output.Write(header, 0, header.Length);
                 output.Write(prfHash, 0, prfHash.Length);
                 return streamSigner.GetSignature();
@@ -2246,7 +2246,7 @@ namespace Org.BouncyCastle.Tls
 
                 if (streamVerifier != null)
                 {
-                    handshakeHash.CopyBufferTo(streamVerifier.GetOutputStream());
+                    handshakeHash.CopyBufferTo(streamVerifier.Stream);
                     verified = streamVerifier.IsVerified();
                 }
                 else
@@ -2364,7 +2364,7 @@ namespace Org.BouncyCastle.Tls
 
             if (null != streamVerifier)
             {
-                Stream output = streamVerifier.GetOutputStream();
+                Stream output = streamVerifier.Stream;
                 output.Write(header, 0, header.Length);
                 output.Write(prfHash, 0, prfHash.Length);
                 return streamVerifier.IsVerified();
@@ -2410,7 +2410,7 @@ namespace Org.BouncyCastle.Tls
             byte[] signature;
             if (streamSigner != null)
             {
-                SendSignatureInput(context, extraSignatureInput, digestBuffer, streamSigner.GetOutputStream());
+                SendSignatureInput(context, extraSignatureInput, digestBuffer, streamSigner.Stream);
                 signature = streamSigner.GetSignature();
             }
             else
@@ -2456,7 +2456,7 @@ namespace Org.BouncyCastle.Tls
             bool verified;
             if (streamVerifier != null)
             {
-                SendSignatureInput(context, null, digestBuffer, streamVerifier.GetOutputStream());
+                SendSignatureInput(context, null, digestBuffer, streamVerifier.Stream);
                 verified = streamVerifier.IsVerified();
             }
             else

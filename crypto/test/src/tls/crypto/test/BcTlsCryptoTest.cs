@@ -657,7 +657,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.GetOutputStream();
+                Stream output = tlsStreamSigner.Stream;
                 output.Write(message, 0, message.Length);
                 signature = tlsStreamSigner.GetSignature();
             }
@@ -678,7 +678,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
             if (null != tlsStreamVerifier)
             {
-                Stream output = tlsStreamVerifier.GetOutputStream();
+                Stream output = tlsStreamVerifier.Stream;
                 output.Write(message, 0, message.Length);
                 verified = tlsStreamVerifier.IsVerified();
             }
@@ -702,7 +702,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.GetOutputStream();
+                Stream output = tlsStreamSigner.Stream;
                 output.Write(message, 0, message.Length);
                 signature = tlsStreamSigner.GetSignature();
             }
@@ -721,7 +721,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
             if (null != tlsStreamVerifier)
             {
-                Stream output = tlsStreamVerifier.GetOutputStream();
+                Stream output = tlsStreamVerifier.Stream;
                 output.Write(message, 0, message.Length);
                 verified = tlsStreamVerifier.IsVerified();
             }
@@ -742,7 +742,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.GetOutputStream();
+                Stream output = tlsStreamSigner.Stream;
                 output.Write(message, 0, message.Length);
                 signature = tlsStreamSigner.GetSignature();
             }
@@ -762,7 +762,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
             if (null != tlsStreamVerifier)
             {
-                Stream output = tlsStreamVerifier.GetOutputStream();
+                Stream output = tlsStreamVerifier.Stream;
                 output.Write(message, 0, message.Length);
                 verified = tlsStreamVerifier.IsVerified();
             }
