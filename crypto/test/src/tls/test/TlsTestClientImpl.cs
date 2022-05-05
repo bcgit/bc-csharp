@@ -372,8 +372,36 @@ namespace Org.BouncyCastle.Tls.Tests
 
             public virtual TlsStreamSigner GetStreamSigner()
             {
-                return null;
+                TlsStreamSigner streamSigner = m_inner.GetStreamSigner();
+
+                if (streamSigner != null && m_outer.m_config.clientAuth == TlsTestConfig.CLIENT_AUTH_INVALID_VERIFY)
+                    return new CorruptingStreamSigner(m_outer, streamSigner);
+
+                return streamSigner;
             }
-        };
+        }
+
+        internal class CorruptingStreamSigner
+            : TlsStreamSigner
+        {
+            private readonly TlsTestClientImpl m_outer;
+            private readonly TlsStreamSigner m_inner;
+
+            internal CorruptingStreamSigner(TlsTestClientImpl outer, TlsStreamSigner inner)
+            {
+                this.m_outer = outer;
+                this.m_inner = inner;
+            }
+
+            public Stream Stream
+            {
+                get { return m_inner.Stream; }
+            }
+
+            public byte[] GetSignature()
+            {
+                return m_outer.CorruptBit(m_inner.GetSignature());
+            }
+        }
     }
 }
