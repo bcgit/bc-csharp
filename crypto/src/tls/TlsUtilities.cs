@@ -2224,22 +2224,17 @@ namespace Org.BouncyCastle.Tls
             {
                 signatureAlgorithm = verifyingCert.GetLegacySignatureAlgorithm();
 
-                short clientCertType = GetLegacyClientCertType(signatureAlgorithm);
-                if (clientCertType < 0 || !Arrays.Contains(certificateRequest.CertificateTypes, clientCertType))
-                    throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                CheckClientCertificateType(certificateRequest, GetLegacyClientCertType(signatureAlgorithm),
+                    AlertDescription.unsupported_certificate);
             }
             else
             {
+                VerifySupportedSignatureAlgorithm(securityParameters.ServerSigAlgs, sigAndHashAlg);
+
                 signatureAlgorithm = sigAndHashAlg.Signature;
 
-                // TODO Is it possible (maybe only pre-1.2 to check this immediately when the Certificate arrives?
-                if (!IsValidSignatureAlgorithmForCertificateVerify(signatureAlgorithm,
-                    certificateRequest.CertificateTypes))
-                {
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-                }
-
-                VerifySupportedSignatureAlgorithm(securityParameters.ServerSigAlgs, sigAndHashAlg);
+                CheckClientCertificateType(certificateRequest,
+                    SignatureAlgorithm.GetClientCertificateType(signatureAlgorithm), AlertDescription.illegal_parameter);
             }
 
             // Verify the CertificateVerify message contains a correct signature.
@@ -3896,14 +3891,6 @@ namespace Org.BouncyCastle.Tls
                 && NamedGroup.CanBeNegotiated(keyShareGroup, negotiatedVersion);
         }
 
-        internal static bool IsValidSignatureAlgorithmForCertificateVerify(short signatureAlgorithm,
-            short[] clientCertificateTypes)
-        {
-            short clientCertificateType = SignatureAlgorithm.GetClientCertificateType(signatureAlgorithm);
-
-            return clientCertificateType >= 0 &&  Arrays.Contains(clientCertificateTypes, clientCertificateType);
-        }
-
         internal static bool IsValidSignatureAlgorithmForServerKeyExchange(short signatureAlgorithm,
             int keyExchangeAlgorithm)
         {
@@ -4799,6 +4786,17 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             return (TlsCredentialedSigner)credentials;
+        }
+
+        /// <exception cref="IOException"/>
+        private static void CheckClientCertificateType(CertificateRequest certificateRequest,
+            short clientCertificateType, short alertDescription)
+        {
+            if (clientCertificateType < 0
+                || !Arrays.Contains(certificateRequest.CertificateTypes, clientCertificateType))
+            {
+                throw new TlsFatalAlert(alertDescription);
+            }
         }
 
         private static void CheckDowngradeMarker(byte[] randomBlock, byte[] downgradeMarker)
