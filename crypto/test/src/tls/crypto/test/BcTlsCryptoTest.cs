@@ -752,25 +752,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 signature = credentialedSigner.GenerateRawSignature(hash);
             }
 
-            DigitallySigned digitallySigned = new DigitallySigned(
-                SignatureScheme.GetSignatureAndHashAlgorithm(signatureScheme), signature);
-
             TlsCertificate tlsCertificate = credentialedSigner.Certificate.GetCertificateAt(0);
-            TlsVerifier tlsVerifier = tlsCertificate.CreateVerifier(signatureScheme);
+            Tls13Verifier tls13Verifier = tlsCertificate.CreateVerifier(signatureScheme);
 
-            bool verified;
-            TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
-            if (null != tlsStreamVerifier)
-            {
-                Stream output = tlsStreamVerifier.Stream;
-                output.Write(message, 0, message.Length);
-                verified = tlsStreamVerifier.IsVerified();
-            }
-            else
-            {
-                byte[] hash = ImplPrehash(signatureScheme, message);
-                verified = tlsVerifier.VerifyRawSignature(digitallySigned, hash);
-            }
+            Stream output13 = tls13Verifier.Stream;
+            output13.Write(message, 0, message.Length);
+            bool verified = tls13Verifier.VerifySignature(signature);
 
             Assert.IsTrue(verified);
         }

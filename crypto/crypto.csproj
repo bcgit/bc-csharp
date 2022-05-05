@@ -7914,6 +7914,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\tls\CertificateVerify.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\tls\ChangeCipherSpec.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -8024,6 +8029,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\tls\crypto\impl\bc\BcTls13Verifier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\tls\crypto\impl\bc\BcTlsAeadCipherImpl.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -8089,11 +8099,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\tls\crypto\impl\bc\BcTlsECDsa13Verifier.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\tls\crypto\impl\bc\BcTlsECDsaSigner.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -8109,17 +8114,7 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\tls\crypto\impl\bc\BcTlsEd25519Verifier.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\tls\crypto\impl\bc\BcTlsEd448Signer.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\tls\crypto\impl\bc\BcTlsEd448Verifier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -8229,6 +8224,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\tls\crypto\impl\LegacyTls13Verifier.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\tls\crypto\impl\RsaUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -8280,6 +8280,11 @@
                 />
                 <File
                     RelPath = "src\tls\crypto\Srp6StandardGroups.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\tls\crypto\Tls13Verifier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

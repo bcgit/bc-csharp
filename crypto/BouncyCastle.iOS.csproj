@@ -1606,6 +1606,7 @@
     <Compile Include="src\tls\CertificateStatusType.cs" />
     <Compile Include="src\tls\CertificateType.cs" />
     <Compile Include="src\tls\CertificateUrl.cs" />
+    <Compile Include="src\tls\CertificateVerify.cs" />
     <Compile Include="src\tls\ChangeCipherSpec.cs" />
     <Compile Include="src\tls\ChannelBinding.cs" />
     <Compile Include="src\tls\CipherSuite.cs" />
@@ -1628,6 +1629,7 @@
     <Compile Include="src\tls\crypto\impl\bc\BcDefaultTlsCredentialedDecryptor.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcDefaultTlsCredentialedSigner.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcSsl3Hmac.cs" />
+    <Compile Include="src\tls\crypto\impl\bc\BcTls13Verifier.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsAeadCipherImpl.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsBlockCipherImpl.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsCertificate.cs" />
@@ -1641,13 +1643,10 @@
     <Compile Include="src\tls\crypto\impl\bc\BcTlsECDH.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsECDomain.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsECDsa13Signer.cs" />
-    <Compile Include="src\tls\crypto\impl\bc\BcTlsECDsa13Verifier.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsECDsaSigner.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsECDsaVerifier.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsEd25519Signer.cs" />
-    <Compile Include="src\tls\crypto\impl\bc\BcTlsEd25519Verifier.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsEd448Signer.cs" />
-    <Compile Include="src\tls\crypto\impl\bc\BcTlsEd448Verifier.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsHash.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsHmac.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcTlsNonceGenerator.cs" />
@@ -1669,6 +1668,7 @@
     <Compile Include="src\tls\crypto\impl\bc\BcX25519Domain.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcX448.cs" />
     <Compile Include="src\tls\crypto\impl\bc\BcX448Domain.cs" />
+    <Compile Include="src\tls\crypto\impl\LegacyTls13Verifier.cs" />
     <Compile Include="src\tls\crypto\impl\RsaUtilities.cs" />
     <Compile Include="src\tls\crypto\impl\TlsAeadCipher.cs" />
     <Compile Include="src\tls\crypto\impl\TlsAeadCipherImpl.cs" />
@@ -1680,6 +1680,7 @@
     <Compile Include="src\tls\crypto\impl\TlsSuiteMac.cs" />
     <Compile Include="src\tls\crypto\Srp6Group.cs" />
     <Compile Include="src\tls\crypto\Srp6StandardGroups.cs" />
+    <Compile Include="src\tls\crypto\Tls13Verifier.cs" />
     <Compile Include="src\tls\crypto\TlsAgreement.cs" />
     <Compile Include="src\tls\crypto\TlsCertificate.cs" />
     <Compile Include="src\tls\crypto\TlsCertificateRole.cs" />

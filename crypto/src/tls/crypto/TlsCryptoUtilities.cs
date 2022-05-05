@@ -1,6 +1,11 @@
 ﻿using System;
 using System.IO;
 
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
+
 namespace Org.BouncyCastle.Tls.Crypto
 {
     public abstract class TlsCryptoUtilities
@@ -103,6 +108,30 @@ namespace Org.BouncyCastle.Tls.Crypto
                 return 48;
             case CryptoHashAlgorithm.sha512:
                 return 64;
+            default:
+                throw new ArgumentException();
+            }
+        }
+
+        public static DerObjectIdentifier GetOidForHash(int cryptoHashAlgorithm)
+        {
+            switch (cryptoHashAlgorithm)
+            {
+            case CryptoHashAlgorithm.md5:
+                return PkcsObjectIdentifiers.MD5;
+            case CryptoHashAlgorithm.sha1:
+                return X509ObjectIdentifiers.IdSha1;
+            case CryptoHashAlgorithm.sha224:
+                return NistObjectIdentifiers.IdSha224;
+            case CryptoHashAlgorithm.sha256:
+                return NistObjectIdentifiers.IdSha256;
+            case CryptoHashAlgorithm.sha384:
+                return NistObjectIdentifiers.IdSha384;
+            case CryptoHashAlgorithm.sha512:
+                return NistObjectIdentifiers.IdSha512;
+            // TODO[RFC 8998]
+            //case CryptoHashAlgorithm.sm3:
+            //    return GMObjectIdentifiers.sm3;
             default:
                 throw new ArgumentException();
             }

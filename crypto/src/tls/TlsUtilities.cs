@@ -2282,62 +2282,54 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <exception cref="IOException"/>
         internal static void Verify13CertificateVerifyClient(TlsServerContext serverContext,
-            CertificateRequest certificateRequest, DigitallySigned certificateVerify, TlsHandshakeHash handshakeHash)
+            TlsHandshakeHash handshakeHash, CertificateVerify certificateVerify)
         {
             SecurityParameters securityParameters = serverContext.SecurityParameters;
-            Certificate clientCertificate = securityParameters.PeerCertificate;
-            TlsCertificate verifyingCert = clientCertificate.GetCertificateAt(0);
 
-            SignatureAndHashAlgorithm sigAndHashAlg = certificateVerify.Algorithm;
-            VerifySupportedSignatureAlgorithm(securityParameters.ServerSigAlgs, sigAndHashAlg);
+            IList supportedAlgorithms = securityParameters.ServerSigAlgs;
+            TlsCertificate certificate = securityParameters.PeerCertificate.GetCertificateAt(0);
 
-            int signatureScheme = SignatureScheme.From(sigAndHashAlg);
-
-            // Verify the CertificateVerify message contains a correct signature.
-            bool verified;
-            try
-            {
-                TlsVerifier verifier = verifyingCert.CreateVerifier(signatureScheme);
-
-                verified = Verify13CertificateVerify(serverContext.Crypto, certificateVerify, verifier,
-                    "TLS 1.3, client CertificateVerify", handshakeHash);
-            }
-            catch (TlsFatalAlert e)
-            {
-                throw e;
-            }
-            catch (Exception e)
-            {
-                throw new TlsFatalAlert(AlertDescription.decrypt_error, e);
-            }
-
-            if (!verified)
-            {
-                throw new TlsFatalAlert(AlertDescription.decrypt_error);
-            }
+            Verify13CertificateVerify(supportedAlgorithms, "TLS 1.3, client CertificateVerify", handshakeHash,
+                certificate, certificateVerify);
         }
 
+        /// <exception cref="IOException"/>
         internal static void Verify13CertificateVerifyServer(TlsClientContext clientContext,
-            DigitallySigned certificateVerify, TlsHandshakeHash handshakeHash)
+            TlsHandshakeHash handshakeHash, CertificateVerify certificateVerify)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
-            Certificate serverCertificate = securityParameters.PeerCertificate;
-            TlsCertificate verifyingCert = serverCertificate.GetCertificateAt(0);
 
-            SignatureAndHashAlgorithm sigAndHashAlg = certificateVerify.Algorithm;
-            VerifySupportedSignatureAlgorithm(securityParameters.ClientSigAlgs, sigAndHashAlg);
+            IList supportedAlgorithms = securityParameters.ClientSigAlgs;
+            TlsCertificate certificate = securityParameters.PeerCertificate.GetCertificateAt(0);
 
-            int signatureScheme = SignatureScheme.From(sigAndHashAlg);
+            Verify13CertificateVerify(supportedAlgorithms, "TLS 1.3, server CertificateVerify", handshakeHash,
+                certificate, certificateVerify);
+        }
 
+        /// <exception cref="IOException"/>
+        private static void Verify13CertificateVerify(IList supportedAlgorithms, string contextString,
+            TlsHandshakeHash handshakeHash, TlsCertificate certificate, CertificateVerify certificateVerify)
+        {
             // Verify the CertificateVerify message contains a correct signature.
             bool verified;
             try
             {
-                TlsVerifier verifier = verifyingCert.CreateVerifier(signatureScheme);
+                int signatureScheme = certificateVerify.Algorithm;
 
-                verified = Verify13CertificateVerify(clientContext.Crypto, certificateVerify, verifier,
-                    "TLS 1.3, server CertificateVerify", handshakeHash);
+                SignatureAndHashAlgorithm algorithm = SignatureScheme.GetSignatureAndHashAlgorithm(signatureScheme);
+                VerifySupportedSignatureAlgorithm(supportedAlgorithms, algorithm);
+
+                Tls13Verifier verifier = certificate.CreateVerifier(signatureScheme);
+
+                byte[] header = GetCertificateVerifyHeader(contextString);
+                byte[] prfHash = GetCurrentPrfHash(handshakeHash);
+
+                Stream output = verifier.Stream;
+                output.Write(header, 0, header.Length);
+                output.Write(prfHash, 0, prfHash.Length);
+                verified = verifier.VerifySignature(certificateVerify.Signature);
             }
             catch (TlsFatalAlert e)
             {
@@ -2352,32 +2344,6 @@ namespace Org.BouncyCastle.Tls
             {
                 throw new TlsFatalAlert(AlertDescription.decrypt_error);
             }
-        }
-
-        private static bool Verify13CertificateVerify(TlsCrypto crypto, DigitallySigned certificateVerify,
-            TlsVerifier verifier, string contextString, TlsHandshakeHash handshakeHash)
-        {
-            TlsStreamVerifier streamVerifier = verifier.GetStreamVerifier(certificateVerify);
-
-            byte[] header = GetCertificateVerifyHeader(contextString);
-            byte[] prfHash = GetCurrentPrfHash(handshakeHash);
-
-            if (null != streamVerifier)
-            {
-                Stream output = streamVerifier.Stream;
-                output.Write(header, 0, header.Length);
-                output.Write(prfHash, 0, prfHash.Length);
-                return streamVerifier.IsVerified();
-            }
-
-            int signatureScheme = SignatureScheme.From(certificateVerify.Algorithm);
-            int cryptoHashAlgorithm = SignatureScheme.GetCryptoHashAlgorithm(signatureScheme);
-
-            TlsHash tlsHash = crypto.CreateHash(cryptoHashAlgorithm);
-            tlsHash.Update(header, 0, header.Length);
-            tlsHash.Update(prfHash, 0, prfHash.Length);
-            byte[] hash = tlsHash.CalculateHash();
-            return verifier.VerifyRawSignature(certificateVerify, hash);
         }
 
         private static byte[] GetCertificateVerifyHeader(string contextString)

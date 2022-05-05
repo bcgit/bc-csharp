@@ -1281,13 +1281,11 @@ namespace Org.BouncyCastle.Tls
             if (null == clientCertificate || clientCertificate.IsEmpty)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            // TODO[tls13] Actual structure is 'CertificateVerify' in RFC 8446, consider adding for clarity
-            DigitallySigned certificateVerify = DigitallySigned.Parse(m_tlsServerContext, buf);
+            CertificateVerify certificateVerify = CertificateVerify.Parse(m_tlsServerContext, buf);
 
             AssertEmpty(buf);
 
-            TlsUtilities.Verify13CertificateVerifyClient(m_tlsServerContext, m_certificateRequest, certificateVerify,
-                m_handshakeHash);
+            TlsUtilities.Verify13CertificateVerifyClient(m_tlsServerContext, m_handshakeHash, certificateVerify);
         }
 
         /// <exception cref="IOException"/>
