@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Tls
                 if (HashAlgorithm.Intrinsic == hashAlgorithm || !HashAlgorithm.IsRecognized(hashAlgorithm))
                     return -1;
 
-                return TlsCryptoUtilities.GetHash(GetHashAlgorithm(signatureScheme));
+                return TlsCryptoUtilities.GetHash(hashAlgorithm);
             }
             }
         }
