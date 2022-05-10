@@ -128,10 +128,9 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
                 c.clientAuth = C.CLIENT_AUTH_VALID;
-                c.clientAuthSigAlg = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.rsa_pss_rsae_sha256);
+                c.clientAuthSigAlg = SignatureAndHashAlgorithm.rsa_pss_rsae_sha256;
                 c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256);
-                c.serverCertReqSigAlgs = TlsUtilities.VectorOfOne(
-                    SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.rsa_pss_rsae_sha256));
+                c.serverCertReqSigAlgs = TlsUtilities.VectorOfOne(SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
                 c.serverCheckSigAlgOfClientCerts = false;
                 c.ExpectServerFatalAlert(AlertDescription.illegal_parameter);
 
@@ -147,11 +146,10 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
                 c.clientAuth = C.CLIENT_AUTH_VALID;
-                c.clientAuthSigAlg = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.rsa_pss_rsae_sha256);
+                c.clientAuthSigAlg = SignatureAndHashAlgorithm.rsa_pss_rsae_sha256;
                 c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256);
                 c.serverCertReqSigAlgs = new ArrayList(2);
-                c.serverCertReqSigAlgs.Add(
-                    SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.rsa_pss_rsae_sha256));
+                c.serverCertReqSigAlgs.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
                 c.serverCertReqSigAlgs.Add(
                     SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256));
                 c.ExpectServerFatalAlert(AlertDescription.bad_certificate);
@@ -215,23 +213,24 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             /*
-             * Server selects MD5/RSA for ServerKeyExchange signature, which is not in the default
-             * supported signature algorithms that the client sent. We expect fatal alert from the
-             * client when it verifies the selected algorithm against the supported algorithms.
+             * Client declares support for SHA256/RSA, server selects SHA384/RSA, so we expect fatal alert from the
+             * client validation of the ServerKeyExchange algorithm.
              */
             if (TlsUtilities.IsTlsV12(version))
             {
                 TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
-                c.serverAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.md5, SignatureAlgorithm.rsa);
+                c.clientCHSigAlgs = TlsUtilities.VectorOfOne(
+                    new SignatureAndHashAlgorithm(HashAlgorithm.sha256, SignatureAlgorithm.rsa));
+                c.serverAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.sha384, SignatureAlgorithm.rsa);
                 c.ExpectClientFatalAlert(AlertDescription.illegal_parameter);
 
                 AddTestCase(testSuite, c, prefix + "BadServerKeyExchangeSigAlg");
             }
 
             /*
-             * Server selects MD5/RSA for ServerKeyExchange signature, which is not the default {sha1,rsa}
-             * implied by the absent signature_algorithms extension. We expect fatal alert from the
-             * client when it verifies the selected algorithm against the implicit default.
+             * Server selects SHA256/RSA for ServerKeyExchange signature, which is not the default {sha1,rsa} implied by
+             * the absent signature_algorithms extension. We expect fatal alert from the client when it verifies the
+             * selected algorithm against the implicit default.
              */
             if (isTlsV12Exactly)
             {
@@ -239,7 +238,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 c.clientCheckSigAlgOfServerCerts = false;
                 c.clientSendSignatureAlgorithms = false;
                 c.clientSendSignatureAlgorithmsCert = false;
-                c.serverAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.md5, SignatureAlgorithm.rsa);
+                c.serverAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.sha256, SignatureAlgorithm.rsa);
                 c.ExpectClientFatalAlert(AlertDescription.illegal_parameter);
 
                 AddTestCase(testSuite, c, prefix + "BadServerKeyExchangeSigAlg2");

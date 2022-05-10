@@ -327,8 +327,7 @@ namespace Org.BouncyCastle.Tls.Tests
                     supportedSigAlgs, SignatureAlgorithm.rsa, "x509-client-rsa.pem", "x509-client-key-rsa.pem");
                 if (signerCredentials == null && supportedSigAlgs != null)
                 {
-                    SignatureAndHashAlgorithm pss = SignatureScheme.GetSignatureAndHashAlgorithm(
-                        SignatureScheme.rsa_pss_rsae_sha256);
+                    SignatureAndHashAlgorithm pss = SignatureAndHashAlgorithm.rsa_pss_rsae_sha256;
                     if (TlsUtilities.ContainsSignatureAlgorithm(supportedSigAlgs, pss))
                     {
                         signerCredentials = TlsTestUtilities.LoadSignerCredentials(m_context,
