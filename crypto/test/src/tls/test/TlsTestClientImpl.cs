@@ -310,14 +310,23 @@ namespace Org.BouncyCastle.Tls.Tests
                 IList supportedSigAlgs = certificateRequest.SupportedSignatureAlgorithms;
                 if (supportedSigAlgs != null && config.clientAuthSigAlg != null)
                 {
-                    supportedSigAlgs = new ArrayList(1);
-                    supportedSigAlgs.Add(config.clientAuthSigAlg);
+                    supportedSigAlgs = TlsUtilities.VectorOfOne(config.clientAuthSigAlg);
                 }
 
                 // TODO[tls13] Check also supportedSigAlgsCert against the chain signature(s)
 
                 TlsCredentialedSigner signerCredentials = TlsTestUtilities.LoadSignerCredentials(m_context,
                     supportedSigAlgs, SignatureAlgorithm.rsa, "x509-client-rsa.pem", "x509-client-key-rsa.pem");
+                if (signerCredentials == null && supportedSigAlgs != null)
+                {
+                    SignatureAndHashAlgorithm pss = SignatureScheme.GetSignatureAndHashAlgorithm(
+                        SignatureScheme.rsa_pss_rsae_sha256);
+                    if (TlsUtilities.ContainsSignatureAlgorithm(supportedSigAlgs, pss))
+                    {
+                        signerCredentials = TlsTestUtilities.LoadSignerCredentials(m_context,
+                            new string[]{ "x509-client-rsa.pem" }, "x509-client-key-rsa.pem", pss);
+                    }
+                }
 
                 if (config.clientAuth == TlsTestConfig.CLIENT_AUTH_VALID)
                     return signerCredentials;

@@ -97,6 +97,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        public static int GetCryptoHashAlgorithm(SignatureAndHashAlgorithm signatureAndHashAlgorithm)
+        {
+            return GetCryptoHashAlgorithm(From(signatureAndHashAlgorithm));
+        }
+
         public static string GetName(int signatureScheme)
         {
             switch (signatureScheme)

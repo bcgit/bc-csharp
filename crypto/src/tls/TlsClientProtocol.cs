@@ -450,24 +450,27 @@ namespace Org.BouncyCastle.Tls
                     {
                         Process13HelloRetryRequest(serverHello);
                         m_handshakeHash.NotifyPrfDetermined();
+                        m_handshakeHash.SealHashAlgorithms();
                         TlsUtilities.AdjustTranscriptForRetry(m_handshakeHash);
                         buf.UpdateHash(m_handshakeHash);
                         this.m_connectionState = CS_SERVER_HELLO_RETRY_REQUEST;
 
                         Send13ClientHelloRetry();
-                        m_handshakeHash.SealHashAlgorithms();
                         this.m_connectionState = CS_CLIENT_HELLO_RETRY;
                     }
                     else
                     {
                         ProcessServerHello(serverHello);
                         m_handshakeHash.NotifyPrfDetermined();
+                        if (!ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
+                        {
+                            m_handshakeHash.SealHashAlgorithms();
+                        }
                         buf.UpdateHash(m_handshakeHash);
                         this.m_connectionState = CS_SERVER_HELLO;
 
                         if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                         {
-                            m_handshakeHash.SealHashAlgorithms();
                             Process13ServerHelloCoda(serverHello, false);
                         }
                     }
@@ -526,6 +529,60 @@ namespace Org.BouncyCastle.Tls
 
                     this.m_connectionState = CS_SERVER_HELLO_DONE;
 
+                    TlsCredentials clientAuthCredentials = null;
+                    TlsCredentialedSigner clientAuthSigner = null;
+                    Certificate clientAuthCertificate = null;
+                    SignatureAndHashAlgorithm clientAuthAlgorithm = null;
+                    TlsStreamSigner clientAuthStreamSigner = null;
+
+                    if (m_certificateRequest != null)
+                    {
+                        clientAuthCredentials = TlsUtilities.EstablishClientCredentials(m_authentication,
+                            m_certificateRequest);
+                        if (clientAuthCredentials != null)
+                        {
+                            clientAuthCertificate = clientAuthCredentials.Certificate;
+
+                            if (clientAuthCredentials is TlsCredentialedSigner)
+                            {
+                                clientAuthSigner = (TlsCredentialedSigner)clientAuthCredentials;
+                                clientAuthAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                                    securityParameters.NegotiatedVersion, clientAuthSigner);
+                                clientAuthStreamSigner = clientAuthSigner.GetStreamSigner();
+
+                                if (ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
+                                {
+                                    TlsUtilities.VerifySupportedSignatureAlgorithm(securityParameters.ServerSigAlgs,
+                                        clientAuthAlgorithm, AlertDescription.internal_error);
+
+                                    if (clientAuthStreamSigner == null)
+                                    {
+                                        TlsUtilities.TrackHashAlgorithmClient(m_handshakeHash, clientAuthAlgorithm);
+                                    }
+                                }
+
+                                if (clientAuthStreamSigner != null)
+                                {
+                                    m_handshakeHash.ForceBuffering();
+                                }
+                            }
+                        }
+                    }
+
+                    if (ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
+                    {
+                        m_handshakeHash.SealHashAlgorithms();
+                    }
+
+                    if (clientAuthCredentials == null)
+                    {
+                        m_keyExchange.SkipClientCredentials();
+                    }
+                    else
+                    {
+                        m_keyExchange.ProcessClientCredentials(clientAuthCredentials);                    
+                    }
+
                     IList clientSupplementalData = m_tlsClient.GetClientSupplementalData();
                     if (clientSupplementalData != null)
                     {
@@ -533,54 +590,12 @@ namespace Org.BouncyCastle.Tls
                         this.m_connectionState = CS_CLIENT_SUPPLEMENTAL_DATA;
                     }
 
-                    TlsCredentialedSigner credentialedSigner = null;
-                    TlsStreamSigner streamSigner = null;
-
-                    if (m_certificateRequest == null)
+                    if (m_certificateRequest != null)
                     {
-                        m_keyExchange.SkipClientCredentials();
-                    }
-                    else
-                    {
-                        Certificate clientCertificate = null;
-
-                        TlsCredentials clientCredentials = TlsUtilities.EstablishClientCredentials(m_authentication,
-                            m_certificateRequest);
-                        if (null == clientCredentials)
-                        {
-                            m_keyExchange.SkipClientCredentials();
-
-                            /*
-                             * RFC 5246 If no suitable certificate is available, the client MUST send a
-                             * certificate message containing no certificates.
-                             * 
-                             * NOTE: In previous RFCs, this was SHOULD instead of MUST.
-                             */
-                        }
-                        else
-                        {
-                            m_keyExchange.ProcessClientCredentials(clientCredentials);
-
-                            clientCertificate = clientCredentials.Certificate;
-
-                            if (clientCredentials is TlsCredentialedSigner)
-                            {
-                                credentialedSigner = (TlsCredentialedSigner)clientCredentials;
-                                streamSigner = credentialedSigner.GetStreamSigner();
-                            }
-                        }
-
-                        SendCertificateMessage(clientCertificate, null);
-                        this.m_connectionState = CS_CLIENT_CERTIFICATE;
+                        SendCertificateMessage(clientAuthCertificate, null);
+                        this.m_connectionState = CS_CLIENT_CERTIFICATE;                    
                     }
 
-                    bool forceBuffering = streamSigner != null;
-                    TlsUtilities.SealHandshakeHash(m_tlsClientContext, m_handshakeHash, forceBuffering);
-
-                    /*
-                     * Send the client key exchange message, depending on the key exchange we are using
-                     * in our CipherSuite.
-                     */
                     SendClientKeyExchange();
                     this.m_connectionState = CS_CLIENT_KEY_EXCHANGE;
 
@@ -601,10 +616,11 @@ namespace Org.BouncyCastle.Tls
 
                     m_recordStream.SetPendingCipher(TlsUtilities.InitCipher(m_tlsClientContext));
 
-                    if (credentialedSigner != null)
+                    if (clientAuthSigner != null)
                     {
                         DigitallySigned certificateVerify = TlsUtilities.GenerateCertificateVerifyClient(
-                            m_tlsClientContext, credentialedSigner, streamSigner, m_handshakeHash);
+                            m_tlsClientContext, clientAuthSigner, clientAuthAlgorithm, clientAuthStreamSigner,
+                            m_handshakeHash);
                         SendCertificateVerifyMessage(certificateVerify);
                         this.m_connectionState = CS_CLIENT_CERTIFICATE_VERIFY;
                     }
@@ -674,13 +690,6 @@ namespace Org.BouncyCastle.Tls
                     ReceiveCertificateRequest(buf);
 
                     TlsUtilities.EstablishServerSigAlgs(securityParameters, m_certificateRequest);
-
-                    /*
-                     * TODO Give the client a chance to immediately select the CertificateVerify hash
-                     * algorithm here to avoid tracking the other hash algorithms unnecessarily?
-                     */
-                    TlsUtilities.TrackHashAlgorithms(m_handshakeHash, securityParameters.ServerSigAlgs);
-
                     break;
                 }
                 default:

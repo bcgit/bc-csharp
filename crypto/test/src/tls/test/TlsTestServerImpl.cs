@@ -258,9 +258,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             if (TlsUtilities.IsTlsV12(m_context) && m_config.serverAuthSigAlg != null)
             {
-                IList signatureAlgorithms = new ArrayList(1);
-                signatureAlgorithms.Add(m_config.serverAuthSigAlg);
-                return signatureAlgorithms;
+                return TlsUtilities.VectorOfOne(m_config.serverAuthSigAlg);
             }
 
             return m_context.SecurityParameters.ClientSigAlgs;

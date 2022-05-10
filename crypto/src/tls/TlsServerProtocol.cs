@@ -899,11 +899,13 @@ namespace Org.BouncyCastle.Tls
 
                     ServerHello serverHello = GenerateServerHello(clientHello, buf);
                     m_handshakeHash.NotifyPrfDetermined();
+                    if (!ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
+                    {
+                        m_handshakeHash.SealHashAlgorithms();
+                    }
 
                     if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                     {
-                        m_handshakeHash.SealHashAlgorithms();
-
                         if (serverHello.IsHelloRetryRequest())
                         {
                             TlsUtilities.AdjustTranscriptForRetry(m_handshakeHash);
@@ -1026,18 +1028,31 @@ namespace Org.BouncyCastle.Tls
 
                             TlsUtilities.EstablishServerSigAlgs(securityParameters, m_certificateRequest);
 
-                            TlsUtilities.TrackHashAlgorithms(m_handshakeHash, securityParameters.ServerSigAlgs);
+                            if (ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
+                            {
+                                TlsUtilities.TrackHashAlgorithms(m_handshakeHash, securityParameters.ServerSigAlgs);
 
-                            SendCertificateRequestMessage(m_certificateRequest);
-                            this.m_connectionState = CS_SERVER_CERTIFICATE_REQUEST;
+                                if (!m_tlsServerContext.Crypto.HasAllRawSignatureAlgorithms())
+                                {
+                                    m_handshakeHash.ForceBuffering();
+                                }
+                            }
                         }
+                    }
+
+                    if (ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
+                    {
+                        m_handshakeHash.SealHashAlgorithms();
+                    }
+
+                    if (null != m_certificateRequest)
+                    {
+                        SendCertificateRequestMessage(m_certificateRequest);
+                        this.m_connectionState = CS_SERVER_CERTIFICATE_REQUEST;
                     }
 
                     SendServerHelloDoneMessage();
                     this.m_connectionState = CS_SERVER_HELLO_DONE;
-
-                    bool forceBuffering = false;
-                    TlsUtilities.SealHandshakeHash(m_tlsServerContext, m_handshakeHash, forceBuffering);
 
                     break;
                 }

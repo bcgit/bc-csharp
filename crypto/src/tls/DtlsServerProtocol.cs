@@ -146,6 +146,10 @@ namespace Org.BouncyCastle.Tls
             }
 
             handshake.HandshakeHash.NotifyPrfDetermined();
+            if (!ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+            {
+                handshake.HandshakeHash.SealHashAlgorithms();
+            }
 
             IList serverSupplementalData = state.server.GetServerSupplementalData();
             if (serverSupplementalData != null)
@@ -225,17 +229,30 @@ namespace Org.BouncyCastle.Tls
 
                     TlsUtilities.EstablishServerSigAlgs(securityParameters, state.certificateRequest);
 
-                    TlsUtilities.TrackHashAlgorithms(handshake.HandshakeHash, securityParameters.ServerSigAlgs);
+                    if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+                    {
+                        TlsUtilities.TrackHashAlgorithms(handshake.HandshakeHash, securityParameters.ServerSigAlgs);
 
-                    byte[] certificateRequestBody = GenerateCertificateRequest(state, state.certificateRequest);
-                    handshake.SendMessage(HandshakeType.certificate_request, certificateRequestBody);
+                        if (!state.serverContext.Crypto.HasAllRawSignatureAlgorithms())
+                        {
+                            handshake.HandshakeHash.ForceBuffering();
+                        }
+                    }
                 }
             }
 
-            handshake.SendMessage(HandshakeType.server_hello_done, TlsUtilities.EmptyBytes);
+            if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+            {
+                handshake.HandshakeHash.SealHashAlgorithms();
+            }
 
-            bool forceBuffering = false;
-            TlsUtilities.SealHandshakeHash(state.serverContext, handshake.HandshakeHash, forceBuffering);
+            if (null != state.certificateRequest)
+            {
+                byte[] certificateRequestBody = GenerateCertificateRequest(state, state.certificateRequest);
+                handshake.SendMessage(HandshakeType.certificate_request, certificateRequestBody);
+            }
+
+            handshake.SendMessage(HandshakeType.server_hello_done, TlsUtilities.EmptyBytes);
 
             clientMessage = handshake.ReceiveMessage();
 

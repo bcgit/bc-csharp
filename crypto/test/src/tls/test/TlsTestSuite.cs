@@ -104,56 +104,59 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             /*
-             * Server only declares support for SHA1/RSA, client selects MD5/RSA. Since the client is
-             * NOT actually tracking MD5 over the handshake, we expect fatal alert from the client.
+             * Server only declares support for SHA256/ECDSA, client selects SHA256/RSA, so we expect fatal alert
+             * from the client validation of the CertificateVerify algorithm.
              */
             if (isTlsV12Exactly)
             {
                 TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
                 c.clientAuth = C.CLIENT_AUTH_VALID;
-                c.clientAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.md5, SignatureAlgorithm.rsa);
-                c.serverCertReqSigAlgs = TlsUtilities.GetDefaultRsaSignatureAlgorithms();
-                c.serverCheckSigAlgOfClientCerts = false;
+                c.clientAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.sha256, SignatureAlgorithm.rsa);
+                c.serverCertReqSigAlgs = TlsUtilities.VectorOfOne(
+                    new SignatureAndHashAlgorithm(HashAlgorithm.sha256, SignatureAlgorithm.ecdsa));
                 c.ExpectClientFatalAlert(AlertDescription.internal_error);
 
-                AddTestCase(testSuite, c, prefix + "BadCertificateVerifyHashAlg");
+                AddTestCase(testSuite, c, prefix + "BadCertVerifySigAlgClient");
             }
 
             /*
-             * Server only declares support for SHA1/ECDSA, client selects SHA1/RSA. Since the client is
-             * actually tracking SHA1 over the handshake, we expect fatal alert to come from the server
-             * when it verifies the selected algorithm against the CertificateRequest supported
-             * algorithms.
+             * Server only declares support for rsa_pss_rsae_sha256, client selects rsa_pss_rsae_sha256 but claims
+             * ecdsa_secp256r1_sha256, so we expect fatal alert from the server validation of the
+             * CertificateVerify algorithm.
              */
             if (isTlsV12)
             {
                 TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
                 c.clientAuth = C.CLIENT_AUTH_VALID;
-                c.clientAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.sha1, SignatureAlgorithm.rsa);
-                c.serverCertReqSigAlgs = TlsUtilities.GetDefaultECDsaSignatureAlgorithms();
+                c.clientAuthSigAlg = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.rsa_pss_rsae_sha256);
+                c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256);
+                c.serverCertReqSigAlgs = TlsUtilities.VectorOfOne(
+                    SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.rsa_pss_rsae_sha256));
                 c.serverCheckSigAlgOfClientCerts = false;
                 c.ExpectServerFatalAlert(AlertDescription.illegal_parameter);
 
-                AddTestCase(testSuite, c, prefix + "BadCertificateVerifySigAlg");
+                AddTestCase(testSuite, c, prefix + "BadCertVerifySigAlgServer1");
             }
 
             /*
-             * Server only declares support for SHA1/ECDSA, client signs with SHA1/RSA, but sends
-             * SHA1/ECDSA in the CertificateVerify. Since the client is actually tracking SHA1 over the
-             * handshake, and the claimed algorithm is in the CertificateRequest supported algorithms,
-             * we expect fatal alert to come from the server when it finds the claimed algorithm
-             * doesn't match the client certificate.
+             * Server declares support for rsa_pss_rsae_sha256 and ecdsa_secp256r1_sha256, client selects
+             * rsa_pss_rsae_sha256 but claims ecdsa_secp256r1_sha256, so we expect fatal alert from the server
+             * validation of the client certificate.
              */
             if (isTlsV12)
             {
                 TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
                 c.clientAuth = C.CLIENT_AUTH_VALID;
-                c.clientAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.sha1, SignatureAlgorithm.rsa);
-                c.clientAuthSigAlgClaimed = new SignatureAndHashAlgorithm(HashAlgorithm.sha1, SignatureAlgorithm.ecdsa);
-                c.serverCertReqSigAlgs = TlsUtilities.GetDefaultECDsaSignatureAlgorithms();
+                c.clientAuthSigAlg = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.rsa_pss_rsae_sha256);
+                c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256);
+                c.serverCertReqSigAlgs = new ArrayList(2);
+                c.serverCertReqSigAlgs.Add(
+                    SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.rsa_pss_rsae_sha256));
+                c.serverCertReqSigAlgs.Add(
+                    SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256));
                 c.ExpectServerFatalAlert(AlertDescription.bad_certificate);
 
-                AddTestCase(testSuite, c, prefix + "BadCertificateVerifySigAlgMismatch");
+                AddTestCase(testSuite, c, prefix + "BadCertVerifySigAlgServer2");
             }
 
             {
@@ -161,7 +164,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 c.clientAuth = C.CLIENT_AUTH_INVALID_VERIFY;
                 c.ExpectServerFatalAlert(AlertDescription.decrypt_error);
 
-                AddTestCase(testSuite, c, prefix + "BadCertificateVerifySignature");
+                AddTestCase(testSuite, c, prefix + "BadCertVerifySignature");
             }
 
             {
