@@ -1068,10 +1068,15 @@ namespace Org.BouncyCastle.Tls
 
         public static IList GetDefaultSupportedSignatureAlgorithms(TlsContext context)
         {
+            return GetSupportedSignatureAlgorithms(context, DefaultSupportedSigAlgs);
+        }
+
+        public static IList GetSupportedSignatureAlgorithms(TlsContext context, IList candidates)
+        {
             TlsCrypto crypto = context.Crypto;
 
             IList result = Platform.CreateArrayList(DefaultSupportedSigAlgs.Count);
-            foreach (SignatureAndHashAlgorithm sigAndHashAlg in DefaultSupportedSigAlgs)
+            foreach (SignatureAndHashAlgorithm sigAndHashAlg in candidates)
             {
                 AddIfSupported(result, crypto, sigAndHashAlg);
             }

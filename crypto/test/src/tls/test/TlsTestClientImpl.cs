@@ -95,6 +95,14 @@ namespace Org.BouncyCastle.Tls.Tests
             return base.GetEarlyKeyShareGroups();
         }
 
+        protected override IList GetSupportedSignatureAlgorithms()
+        {
+            if (m_config.clientCHSigAlgs != null)
+                return TlsUtilities.GetSupportedSignatureAlgorithms(m_context, m_config.clientCHSigAlgs);
+
+            return base.GetSupportedSignatureAlgorithms();
+        }
+
         public override bool IsFallback()
         {
             return m_config.clientFallback;

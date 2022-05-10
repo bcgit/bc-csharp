@@ -45,6 +45,10 @@ namespace Org.BouncyCastle.Tls.Tests
         /// _claimed_ in the CertificateVerify (if one is sent), independently of what was actually used.</summary>
         public SignatureAndHashAlgorithm clientAuthSigAlgClaimed = null;
 
+        /// <summary>If TLS 1.2 or higher is negotiated, configures the set of supported signature algorithms in the
+        /// ClientHello. If null, uses a default set.</summary>
+        public IList clientCHSigAlgs = null;
+
         /// <summary>Control whether the client will call
         /// <see cref="TlsUtilities.CheckPeerSigAlgs(TlsContext, Crypto.TlsCertificate[])"/> to check the server
         /// certificate chain.</summary>
