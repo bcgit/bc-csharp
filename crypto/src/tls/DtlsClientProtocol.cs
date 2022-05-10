@@ -137,10 +137,6 @@ namespace Org.BouncyCastle.Tls
             }
 
             handshake.HandshakeHash.NotifyPrfDetermined();
-            if (!ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
-            {
-                handshake.HandshakeHash.SealHashAlgorithms();
-            }
 
             ApplyMaxFragmentLengthExtension(recordLayer, securityParameters.MaxFragmentLength);
 
@@ -300,10 +296,7 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
-            {
-                handshake.HandshakeHash.SealHashAlgorithms();
-            }
+            handshake.HandshakeHash.SealHashAlgorithms();
 
             if (clientAuthCredentials == null)
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Math;
@@ -10,11 +11,22 @@ namespace Org.BouncyCastle.Tls.Crypto
     /// cryptography in the API.</summary>
     public interface TlsCrypto
     {
-        /// <summary>Return true if this TlsCrypto can perform raw signatures and verifications for all supported
-        /// algorithms.</summary>
-        /// <returns>true if this instance can perform raw signatures and verifications for all supported algorithms,
-        /// false otherwise.</returns>
-        bool HasAllRawSignatureAlgorithms();
+        /// <summary>Return true if this TlsCrypto would use a stream verifier for any of the passed in algorithms.
+        /// </summary>
+        /// <remarks>This method is only relevant to handshakes negotiating (D)TLS 1.2.</remarks>
+        /// <param name="signatureAndHashAlgorithms">A <see cref="IList">list</see> of
+        /// <see cref="SignatureAndHashAlgorithm"/> values.</param>
+        /// <returns>true if this instance would use a stream verifier for any of the passed in algorithms, otherwise
+        /// false.</returns>
+        bool HasAnyStreamVerifiers(IList signatureAndHashAlgorithms);
+
+        /// <summary>Return true if this TlsCrypto would use a stream verifier for any of the passed in algorithms.
+        /// </summary>
+        /// <remarks>This method is only relevant to handshakes negotiating (D)TLS versions older than 1.2.</remarks>
+        /// <param name="clientCertificateTypes">An array of <see cref="ClientCertificateType"/> values.</param>
+        /// <returns>true if this instance would use a stream verifier for any of the passed in algorithms, otherwise
+        /// false.</returns>
+        bool HasAnyStreamVerifiersLegacy(short[] clientCertificateTypes);
 
         /// <summary>Return true if this TlsCrypto can support the passed in hash algorithm.</summary>
         /// <param name="cryptoHashAlgorithm">the algorithm of interest.</param>

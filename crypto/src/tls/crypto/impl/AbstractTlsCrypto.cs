@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Collections;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -12,7 +12,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public abstract class AbstractTlsCrypto
         : TlsCrypto
     {
-        public abstract bool HasAllRawSignatureAlgorithms();
+        public abstract bool HasAnyStreamVerifiers(IList signatureAndHashAlgorithms);
+
+        public abstract bool HasAnyStreamVerifiersLegacy(short[] clientCertificateTypes);
 
         public abstract bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm);
 

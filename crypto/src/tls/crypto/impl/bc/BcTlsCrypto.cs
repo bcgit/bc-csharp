@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement.Srp;
@@ -152,9 +153,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsNonceGenerator(randomGenerator);
         }
 
-        public override bool HasAllRawSignatureAlgorithms()
+        public override bool HasAnyStreamVerifiers(IList signatureAndHashAlgorithms)
         {
-            // TODO[RFC 8422] Revisit the need to buffer the handshake for "Intrinsic" hash signatures
+            foreach (SignatureAndHashAlgorithm algorithm in signatureAndHashAlgorithms)
+            {
+                switch (SignatureScheme.From(algorithm))
+                {
+                case SignatureScheme.ed25519:
+                case SignatureScheme.ed448:
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public override bool HasAnyStreamVerifiersLegacy(short[] clientCertificateTypes)
+        {
             return false;
         }
 

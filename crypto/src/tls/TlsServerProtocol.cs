@@ -899,16 +899,15 @@ namespace Org.BouncyCastle.Tls
 
                     ServerHello serverHello = GenerateServerHello(clientHello, buf);
                     m_handshakeHash.NotifyPrfDetermined();
-                    if (!ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
-                    {
-                        m_handshakeHash.SealHashAlgorithms();
-                    }
 
                     if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                     {
+                        m_handshakeHash.SealHashAlgorithms();
+
                         if (serverHello.IsHelloRetryRequest())
                         {
                             TlsUtilities.AdjustTranscriptForRetry(m_handshakeHash);
+
                             SendServerHelloMessage(serverHello);
                             this.m_connectionState = CS_SERVER_HELLO_RETRY_REQUEST;
 
@@ -1032,7 +1031,14 @@ namespace Org.BouncyCastle.Tls
                             {
                                 TlsUtilities.TrackHashAlgorithms(m_handshakeHash, securityParameters.ServerSigAlgs);
 
-                                if (!m_tlsServerContext.Crypto.HasAllRawSignatureAlgorithms())
+                                if (m_tlsServerContext.Crypto.HasAnyStreamVerifiers(securityParameters.ServerSigAlgs))
+                                {
+                                    m_handshakeHash.ForceBuffering();
+                                }
+                            }
+                            else
+                            {
+                                if (m_tlsServerContext.Crypto.HasAnyStreamVerifiersLegacy(m_certificateRequest.CertificateTypes))
                                 {
                                     m_handshakeHash.ForceBuffering();
                                 }
@@ -1040,10 +1046,7 @@ namespace Org.BouncyCastle.Tls
                         }
                     }
 
-                    if (ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
-                    {
-                        m_handshakeHash.SealHashAlgorithms();
-                    }
+                    m_handshakeHash.SealHashAlgorithms();
 
                     if (null != m_certificateRequest)
                     {

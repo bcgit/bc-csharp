@@ -146,10 +146,6 @@ namespace Org.BouncyCastle.Tls
             }
 
             handshake.HandshakeHash.NotifyPrfDetermined();
-            if (!ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
-            {
-                handshake.HandshakeHash.SealHashAlgorithms();
-            }
 
             IList serverSupplementalData = state.server.GetServerSupplementalData();
             if (serverSupplementalData != null)
@@ -233,7 +229,14 @@ namespace Org.BouncyCastle.Tls
                     {
                         TlsUtilities.TrackHashAlgorithms(handshake.HandshakeHash, securityParameters.ServerSigAlgs);
 
-                        if (!state.serverContext.Crypto.HasAllRawSignatureAlgorithms())
+                        if (state.serverContext.Crypto.HasAnyStreamVerifiers(securityParameters.ServerSigAlgs))
+                        {
+                            handshake.HandshakeHash.ForceBuffering();
+                        }
+                    }
+                    else
+                    {
+                        if (state.serverContext.Crypto.HasAnyStreamVerifiersLegacy(state.certificateRequest.CertificateTypes))
                         {
                             handshake.HandshakeHash.ForceBuffering();
                         }
@@ -241,10 +244,7 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
-            {
-                handshake.HandshakeHash.SealHashAlgorithms();
-            }
+            handshake.HandshakeHash.SealHashAlgorithms();
 
             if (null != state.certificateRequest)
             {

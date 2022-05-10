@@ -462,7 +462,7 @@ namespace Org.BouncyCastle.Tls
                     {
                         ProcessServerHello(serverHello);
                         m_handshakeHash.NotifyPrfDetermined();
-                        if (!ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
+                        if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                         {
                             m_handshakeHash.SealHashAlgorithms();
                         }
@@ -569,10 +569,7 @@ namespace Org.BouncyCastle.Tls
                         }
                     }
 
-                    if (ProtocolVersion.TLSv12.Equals(securityParameters.NegotiatedVersion))
-                    {
-                        m_handshakeHash.SealHashAlgorithms();
-                    }
+                    m_handshakeHash.SealHashAlgorithms();
 
                     if (clientAuthCredentials == null)
                     {
