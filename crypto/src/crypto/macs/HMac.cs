@@ -136,11 +136,15 @@ namespace Org.BouncyCastle.Crypto.Macs
         */
         public virtual void Reset()
         {
-			// Reset underlying digest
-            digest.Reset();
-
-			// Initialise the digest
-            digest.BlockUpdate(inputPad, 0, inputPad.Length);
+            if (ipadState != null)
+            {
+                ((IMemoable)digest).Reset(ipadState);
+            }
+            else
+            {
+                digest.Reset();
+                digest.BlockUpdate(inputPad, 0, inputPad.Length);
+            }
         }
 
         private static void XorPad(byte[] pad, int len, byte n)
