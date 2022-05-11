@@ -225,17 +225,20 @@ namespace Org.BouncyCastle.Tls
         {
             switch (MajorVersion)
             {
-                case 0x03:
-                    return this;
-                case 0xFE:
-                    switch (MinorVersion)
-                    {
-                        case 0xFF: return TLSv11;
-                        case 0xFD: return TLSv12;
-                        default: return null;
-                    }
+            case 0x03:
+                return this;
+            case 0xFE:
+                switch (MinorVersion)
+                {
+                case 0xFF:
+                    return TLSv11;
+                case 0xFD:
+                    return TLSv12;
                 default:
                     return null;
+                }
+            default:
+                return null;
             }
         }
 
@@ -247,15 +250,20 @@ namespace Org.BouncyCastle.Tls
             case 0x03:
                 switch (minor)
                 {
-                    case 0xFF: return null;
-                    default: return Get(major, minor + 1);
+                case 0xFF:
+                    return null;
+                default:
+                    return Get(major, minor + 1);
                 }
             case 0xFE:
                 switch (minor)
                 {
-                    case 0x00: return null;
-                    case 0xFF: return DTLSv12;
-                    default: return Get(major, minor - 1);
+                case 0x00:
+                    return null;
+                case 0xFF:
+                    return DTLSv12;
+                default:
+                    return Get(major, minor - 1);
                 }
             default:
                 return null;
@@ -267,21 +275,26 @@ namespace Org.BouncyCastle.Tls
             int major = MajorVersion, minor = MinorVersion;
             switch (major)
             {
-                case 0x03:
-                    switch (minor)
-                    {
-                        case 0x00: return null;
-                        default: return Get(major, minor - 1);
-                    }
-                case 0xFE:
-                    switch (minor)
-                    {
-                        case 0xFF: return null;
-                        case 0xFD: return DTLSv10;
-                        default: return Get(major, minor + 1);
-                    }
-                default:
+            case 0x03:
+                switch (minor)
+                {
+                case 0x00:
                     return null;
+                default:
+                    return Get(major, minor - 1);
+                }
+            case 0xFE:
+                switch (minor)
+                {
+                case 0xFF:
+                    return null;
+                case 0xFD:
+                    return DTLSv10;
+                default:
+                    return Get(major, minor + 1);
+                }
+            default:
+                return null;
             }
         }
 
