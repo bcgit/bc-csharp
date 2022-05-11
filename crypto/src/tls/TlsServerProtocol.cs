@@ -953,7 +953,12 @@ namespace Org.BouncyCastle.Tls
 
                     this.m_keyExchange = TlsUtilities.InitKeyExchangeServer(m_tlsServerContext, m_tlsServer);
 
-                    TlsCredentials serverCredentials = TlsUtilities.EstablishServerCredentials(m_tlsServer);
+                    TlsCredentials serverCredentials = null;
+
+                    if (!KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm))
+                    {
+                        serverCredentials = TlsUtilities.EstablishServerCredentials(m_tlsServer);
+                    }
 
                     // Server certificate
                     {

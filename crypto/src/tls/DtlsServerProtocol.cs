@@ -155,7 +155,13 @@ namespace Org.BouncyCastle.Tls
             }
 
             state.keyExchange = TlsUtilities.InitKeyExchangeServer(state.serverContext, state.server);
-            state.serverCredentials = TlsUtilities.EstablishServerCredentials(state.server);
+
+            state.serverCredentials = null;
+
+            if (!KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm))
+            {
+                state.serverCredentials = TlsUtilities.EstablishServerCredentials(state.server);
+            }
 
             // Server certificate
             {

@@ -4799,8 +4799,11 @@ namespace Org.BouncyCastle.Tls
             MemoryStream buf)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
-            if (null != securityParameters.PeerCertificate)
+            if (KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm)
+                || null != securityParameters.PeerCertificate)
+            {
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
+            }
 
             MemoryStream endPointHash = new MemoryStream();
 
