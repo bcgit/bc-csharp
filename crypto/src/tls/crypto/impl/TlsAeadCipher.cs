@@ -175,14 +175,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             try
             {
-                m_encryptCipher.Init(nonce, m_macSize, additionalData);
-
                 Array.Copy(plaintext, plaintextOffset, output, outputPos, plaintextLength);
                 if (m_isTlsV13)
                 {
                     output[outputPos + plaintextLength] = (byte)contentType;
                 }
 
+                m_encryptCipher.Init(nonce, m_macSize, additionalData);
                 outputPos += m_encryptCipher.DoFinal(output, outputPos, plaintextLength + extraLength, output,
                     outputPos);
             }
@@ -354,7 +353,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             Array.Copy(iv, 0, nonce, 0, m_fixed_iv_length);
 
             // NOTE: Ensure dummy nonce is not part of the generated sequence(s)
-            iv [0] ^= 0x80;
+            iv[0] ^= 0x80;
             cipher.Init(iv, m_macSize, null);
         }
 
