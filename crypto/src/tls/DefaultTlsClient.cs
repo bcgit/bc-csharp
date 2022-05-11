@@ -10,10 +10,10 @@ namespace Org.BouncyCastle.Tls
         private static readonly int[] DefaultCipherSuites = new int[]
         {
             /*
-             * TODO[tls13] TLS 1.3
+             * TLS 1.3
              */
-            //CipherSuite.TLS_CHACHA20_POLY1305_SHA256,
-            //CipherSuite.TLS_AES_128_GCM_SHA256,
+            CipherSuite.TLS_CHACHA20_POLY1305_SHA256,
+            CipherSuite.TLS_AES_128_GCM_SHA256,
 
             /*
              * pre-TLS 1.3

@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         protected override ProtocolVersion[] GetSupportedVersions()
         {
-            return ProtocolVersion.DTLSv12.DownTo(ProtocolVersion.DTLSv10);
+            return ProtocolVersion.DTLSv12.Only();
         }
 
         internal class MyTlsAuthentication
