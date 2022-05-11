@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Tls
         public static readonly ProtocolVersion TLSv13 = new ProtocolVersion(0x0304, "TLS 1.3");
         public static readonly ProtocolVersion DTLSv10 = new ProtocolVersion(0xFEFF, "DTLS 1.0");
         public static readonly ProtocolVersion DTLSv12 = new ProtocolVersion(0xFEFD, "DTLS 1.2");
+        public static readonly ProtocolVersion DTLSv13 = new ProtocolVersion(0xFEFC, "DTLS 1.3");
 
         internal static readonly ProtocolVersion CLIENT_EARLIEST_SUPPORTED_DTLS = DTLSv10;
         internal static readonly ProtocolVersion CLIENT_EARLIEST_SUPPORTED_TLS = SSLv3;
@@ -234,6 +235,8 @@ namespace Org.BouncyCastle.Tls
                     return TLSv11;
                 case 0xFD:
                     return TLSv12;
+                case 0xFC:
+                    return TLSv13;
                 default:
                     return null;
                 }
@@ -380,6 +383,8 @@ namespace Org.BouncyCastle.Tls
                     throw new ArgumentException("{0xFE, 0xFE} is a reserved protocol version");
                 case 0xFD:
                     return DTLSv12;
+                case 0xFC:
+                    return DTLSv13;
                 }
                 return GetUnknownVersion(major, minor, "DTLS");
             }
