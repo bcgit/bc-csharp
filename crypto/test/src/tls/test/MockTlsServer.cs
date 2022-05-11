@@ -26,6 +26,20 @@ namespace Org.BouncyCastle.Tls.Tests
             return protocolNames;
         }
 
+        public override TlsCredentials GetCredentials()
+        {
+            /*
+             * TODO[tls13] Should really be finding the first client-supported signature scheme that the
+             * server also supports and has credentials for.
+             */
+            if (TlsUtilities.IsTlsV13(m_context))
+            {
+                return GetRsaSignerCredentials();
+            }
+
+            return base.GetCredentials();
+        }
+
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
             Exception cause)
         {
@@ -60,9 +74,6 @@ namespace Org.BouncyCastle.Tls.Tests
 
         public override CertificateRequest GetCertificateRequest()
         {
-            short[] certificateTypes = new short[]{ ClientCertificateType.rsa_sign,
-                ClientCertificateType.dss_sign, ClientCertificateType.ecdsa_sign };
-
             IList serverSigAlgs = null;
             if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(m_context.ServerVersion))
             {
@@ -77,7 +88,24 @@ namespace Org.BouncyCastle.Tls.Tests
             // All the CA certificates are currently configured with this subject
             certificateAuthorities.Add(new X509Name("CN=BouncyCastle TLS Test CA"));
 
-            return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
+            if (TlsUtilities.IsTlsV13(m_context))
+            {
+                // TODO[tls13] Support for non-empty request context
+                byte[] certificateRequestContext = TlsUtilities.EmptyBytes;
+
+                // TODO[tls13] Add TlsTestConfig.serverCertReqSigAlgsCert
+                IList serverSigAlgsCert = null;
+
+                return new CertificateRequest(certificateRequestContext, serverSigAlgs, serverSigAlgsCert,
+                    certificateAuthorities);
+            }
+            else
+            {
+                short[] certificateTypes = new short[]{ ClientCertificateType.rsa_sign,
+                    ClientCertificateType.dss_sign, ClientCertificateType.ecdsa_sign };
+
+                return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
+            }
         }
 
         public override void NotifyClientCertificate(Certificate clientCertificate)
