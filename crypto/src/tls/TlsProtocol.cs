@@ -707,10 +707,17 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException">If something goes wrong during reading data.</exception>
         public virtual int ReadApplicationData(byte[] buf, int off, int len)
         {
-            if (len < 1)
-                return 0;
+            if (buf == null)
+                throw new ArgumentNullException("buf");
+            if (off < 0)
+                throw new ArgumentOutOfRangeException("off");
+            if (len < 0 || len > buf.Length - off)
+                throw new ArgumentOutOfRangeException("len");
 
-            while (m_applicationDataQueue.Available == 0)
+            if (!m_appDataReady)
+                throw new InvalidOperationException("Cannot read application data until initial handshake completed.");
+
+            while (m_applicationDataQueue.Available < 1)
             {
                 if (this.m_closed)
                 {
@@ -719,8 +726,6 @@ namespace Org.BouncyCastle.Tls
 
                     return -1;
                 }
-                if (!m_appDataReady)
-                    throw new InvalidOperationException("Cannot read application data until initial handshake completed.");
 
                 /*
                  * NOTE: Only called more than once when empty records are received, so no special
@@ -729,8 +734,11 @@ namespace Org.BouncyCastle.Tls
                 SafeReadRecord();
             }
 
-            len = System.Math.Min(len, m_applicationDataQueue.Available);
-            m_applicationDataQueue.RemoveData(buf, off, len, 0);
+            if (len > 0)
+            {
+                len = System.Math.Min(len, m_applicationDataQueue.Available);
+                m_applicationDataQueue.RemoveData(buf, off, len, 0);
+            }
             return len;
         }
 
