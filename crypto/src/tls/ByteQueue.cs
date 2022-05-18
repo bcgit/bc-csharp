@@ -59,9 +59,18 @@ namespace Org.BouncyCastle.Tls
             if (m_readOnlyBuf)
                 throw new InvalidOperationException("Cannot add data to read-only buffer");
 
-            if ((m_skipped + m_available + len) > m_databuf.Length)
+            if (m_available == 0)
             {
-                int desiredSize = ByteQueue.NextTwoPow(m_available + len);
+                if (len > m_databuf.Length)
+                {
+                    int desiredSize = NextTwoPow(len | 256);
+                    m_databuf = new byte[desiredSize];
+                }
+                m_skipped = 0;
+            }
+            else if ((m_skipped + m_available + len) > m_databuf.Length)
+            {
+                int desiredSize = NextTwoPow(m_available + len);
                 if (desiredSize > m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];
@@ -181,7 +190,7 @@ namespace Org.BouncyCastle.Tls
             }
             else
             {
-                int desiredSize = ByteQueue.NextTwoPow(m_available);
+                int desiredSize = NextTwoPow(m_available);
                 if (desiredSize < m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];
