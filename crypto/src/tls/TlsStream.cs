@@ -61,9 +61,9 @@ namespace Org.BouncyCastle.Tls
             set { throw new NotSupportedException(); }
         }
 
-        public override int Read(byte[] buf, int off, int len)
+        public override int Read(byte[] buffer, int offset, int count)
         {
-            return m_handler.ReadApplicationData(buf, off, len);
+            return m_handler.ReadApplicationData(buffer, offset, count);
         }
 
         public override int ReadByte()
@@ -83,9 +83,9 @@ namespace Org.BouncyCastle.Tls
             throw new NotSupportedException();
         }
 
-        public override void Write(byte[] buf, int off, int len)
+        public override void Write(byte[] buffer, int offset, int count)
         {
-            m_handler.WriteApplicationData(buf, off, len);
+            m_handler.WriteApplicationData(buffer, offset, count);
         }
 
         public override void WriteByte(byte b)

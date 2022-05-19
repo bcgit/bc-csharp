@@ -4,6 +4,7 @@ using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -700,19 +701,14 @@ namespace Org.BouncyCastle.Tls
         /// The method will return immediately, if there is still some data left in the buffer, or block until some
         /// application data has been read from the network.
         /// </remarks>
-        /// <param name="buf">The buffer where the data will be copied to.</param>
-        /// <param name="off">The position where the data will be placed in the buffer.</param>
-        /// <param name="len">The maximum number of bytes to read.</param>
+        /// <param name="buffer">The buffer where the data will be copied to.</param>
+        /// <param name="offset">The position where the data will be placed in the buffer.</param>
+        /// <param name="count">The maximum number of bytes to read.</param>
         /// <returns>The number of bytes read.</returns>
         /// <exception cref="IOException">If something goes wrong during reading data.</exception>
-        public virtual int ReadApplicationData(byte[] buf, int off, int len)
+        public virtual int ReadApplicationData(byte[] buffer, int offset, int count)
         {
-            if (buf == null)
-                throw new ArgumentNullException("buf");
-            if (off < 0)
-                throw new ArgumentOutOfRangeException("off");
-            if (len < 0 || len > buf.Length - off)
-                throw new ArgumentOutOfRangeException("len");
+            Streams.ValidateBufferArguments(buffer, offset, count);
 
             if (!m_appDataReady)
                 throw new InvalidOperationException("Cannot read application data until initial handshake completed.");
@@ -734,12 +730,12 @@ namespace Org.BouncyCastle.Tls
                 SafeReadRecord();
             }
 
-            if (len > 0)
+            if (count > 0)
             {
-                len = System.Math.Min(len, m_applicationDataQueue.Available);
-                m_applicationDataQueue.RemoveData(buf, off, len, 0);
+                count = System.Math.Min(count, m_applicationDataQueue.Available);
+                m_applicationDataQueue.RemoveData(buffer, offset, count, 0);
             }
-            return len;
+            return count;
         }
 
         /// <exception cref="IOException"/>
@@ -865,22 +861,24 @@ namespace Org.BouncyCastle.Tls
         /// This method must not be called until after the initial handshake is complete. Attempting to call it earlier
         /// will result in an <see cref="InvalidOperationException"/>.
         /// </remarks>
-        /// <param name="buf">The buffer containing application data to send.</param>
-        /// <param name="off">The offset at which the application data begins</param>
-        /// <param name="len">The number of bytes of application data.</param>
+        /// <param name="buffer">The buffer containing application data to send.</param>
+        /// <param name="offset">The offset at which the application data begins</param>
+        /// <param name="count">The number of bytes of application data.</param>
         /// <exception cref="InvalidOperationException">If called before the initial handshake has completed.
         /// </exception>
         /// <exception cref="IOException">If connection is already closed, or for encryption or transport errors.
         /// </exception>
-        public virtual void WriteApplicationData(byte[] buf, int off, int len)
+        public virtual void WriteApplicationData(byte[] buffer, int offset, int count)
         {
+            Streams.ValidateBufferArguments(buffer, offset, count);
+
             if (!m_appDataReady)
                 throw new InvalidOperationException(
                     "Cannot write application data until initial handshake completed.");
 
             lock (m_recordWriteLock)
             {
-                while (len > 0)
+                while (count > 0)
                 {
                     if (m_closed)
                         throw new IOException("Cannot write application data on closed/failed TLS connection");
@@ -914,11 +912,11 @@ namespace Org.BouncyCastle.Tls
                         case ADS_MODE_1_Nsub1:
                         default:
                         {
-                            if (len > 1)
+                            if (count > 1)
                             {
-                                SafeWriteRecord(ContentType.application_data, buf, off, 1);
-                                ++off;
-                                --len;
+                                SafeWriteRecord(ContentType.application_data, buffer, offset, 1);
+                                ++offset;
+                                --count;
                             }
                             break;
                         }
@@ -937,10 +935,10 @@ namespace Org.BouncyCastle.Tls
                     }
 
                     // Fragment data according to the current fragment limit.
-                    int toWrite = System.Math.Min(len, m_recordStream.PlaintextLimit);
-                    SafeWriteRecord(ContentType.application_data, buf, off, toWrite);
-                    off += toWrite;
-                    len -= toWrite;
+                    int toWrite = System.Math.Min(count, m_recordStream.PlaintextLimit);
+                    SafeWriteRecord(ContentType.application_data, buffer, offset, toWrite);
+                    offset += toWrite;
+                    count -= toWrite;
                 }
             }
         }
