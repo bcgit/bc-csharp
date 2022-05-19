@@ -1074,6 +1074,28 @@ namespace Org.BouncyCastle.Tls
             return SafePreviewRecordHeader(recordHeader);
         }
 
+        public virtual int PreviewOutputRecord()
+        {
+            if (m_blocking)
+                throw new InvalidOperationException("Cannot use PreviewOutputRecord() in blocking mode!");
+
+            ByteQueue buffer = m_outputBuffer.Buffer;
+            int available = buffer.Available;
+            if (available < 1)
+                return 0;
+
+            if (available >= RecordFormat.FragmentOffset)
+            {
+                int length = buffer.ReadUint16(RecordFormat.LengthOffset);
+                int recordSize = RecordFormat.FragmentOffset + length;
+
+                if (available >= recordSize)
+                    return recordSize;
+            }
+
+            throw new InvalidOperationException("Can only use PreviewOutputRecord() for record-aligned output.");
+        }
+
         /// <exception cref="IOException"/>
         public virtual RecordPreview PreviewOutputRecord(int applicationDataSize)
         {

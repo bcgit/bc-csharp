@@ -149,6 +149,14 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.ReadInt32(m_databuf, m_skipped);
         }
 
+        public int ReadUint16(int skip)
+        {
+            if (m_available < skip + 2)
+                throw new InvalidOperationException("Not enough data to read");
+
+            return TlsUtilities.ReadUint16(m_databuf, m_skipped + skip);
+        }
+
         /// <summary>Remove some bytes from our data from the beginning.</summary>
         /// <param name="i">How many bytes to remove.</param>
         public void RemoveData(int i)
