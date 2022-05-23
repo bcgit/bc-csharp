@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -43,33 +42,22 @@ namespace Org.BouncyCastle.Bcpg
             return m_in.ReadByte();
         }
 
-        public override int Read(
-			byte[]	buffer,
-			int		offset,
-			int		count)
+        public override int Read(byte[] buffer, int offset, int count)
         {
-			// Strangely, when count == 0, we should still attempt to read a byte
-//			if (count == 0)
-//				return 0;
-
 			if (!next)
 				return m_in.Read(buffer, offset, count);
 
-			// We have next byte waiting, so return it
+            Streams.ValidateBufferArguments(buffer, offset, count);
 
 			if (nextB < 0)
-				return 0; // EndOfStream
+				return 0;
 
-			if (buffer == null)
-				throw new ArgumentNullException("buffer");
-
-			buffer[offset] = (byte) nextB;
-			next = false;
-
-			return 1;
+            buffer[offset] = (byte)nextB;
+            next = false;
+            return 1;
         }
 
-		public byte[] ReadAll()
+        public byte[] ReadAll()
         {
 			return Streams.ReadAll(this);
 		}
@@ -323,6 +311,8 @@ namespace Org.BouncyCastle.Bcpg
 
 			public override int Read(byte[] buffer, int offset, int count)
 			{
+                Streams.ValidateBufferArguments(buffer, offset, count);
+
 				do
 				{
 					if (dataLength != 0)

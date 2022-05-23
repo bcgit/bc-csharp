@@ -19,17 +19,19 @@ namespace Org.BouncyCastle.Crypto.IO
             get { return mDigest; }
         }
 
-        public override void WriteByte(byte b)
+        public override void Write(byte[] buffer, int offset, int count)
         {
-            mDigest.Update(b);
+            Streams.ValidateBufferArguments(buffer, offset, count);
+
+            if (count > 0)
+            {
+                mDigest.BlockUpdate(buffer, offset, count);
+            }
         }
 
-        public override void Write(byte[] buf, int off, int len)
+        public override void WriteByte(byte value)
         {
-            if (len > 0)
-            {
-                mDigest.BlockUpdate(buf, off, len);
-            }
+            mDigest.Update(value);
         }
     }
 }

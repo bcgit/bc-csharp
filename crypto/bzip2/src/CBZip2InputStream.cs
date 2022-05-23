@@ -26,6 +26,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Apache.Bzip2
 {
@@ -38,7 +39,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
     * <b>NB:</b> note this class has been modified to read the leading BZ from the
     * start of the BZIP2 stream to make it compatible with other PGP programs.
     */
-    public class CBZip2InputStream : Stream 
+    public class CBZip2InputStream
+        : BaseInputStream 
 	{
         private static void Cadvise() {
             //System.out.Println("CRC Error");
@@ -170,6 +172,27 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 a[k] = new byte[n2];
             }
             return a;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            Streams.ValidateBufferArguments(buffer, offset, count);
+
+            /*
+             * TODO The base class implementation allows to return partial data if/when ReadByte throws. That would be
+             * be preferable here too (so don't override), but it would require that exceptions cause this instance to
+             * permanently fail, and that needs review.
+             */
+            int pos = 0;
+            while (pos < count)
+            {
+                int b = ReadByte();
+                if (b < 0)
+                    break;
+
+                buffer[offset + pos++] = (byte)b;
+            }
+            return pos;
         }
 
         public override int ReadByte()
@@ -910,63 +933,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
             int n = BZip2Constants.baseBlockSize * newSize100k;
             ll8 = new char[n];
             tt = new int[n];
-        }
-    
-        public override void Flush() {
-        }
-    
-        public override int Read(byte[] buffer, int offset, int count) {
-            int c = -1;
-            int k;
-            for (k = 0; k < count; ++k) {
-                c = ReadByte();
-                if (c == -1)
-                    break;
-                buffer[k + offset] = (byte)c;
-            }
-            return k;
-        }
-    
-        public override long Seek(long offset, SeekOrigin origin) {
-            return 0;
-        }
-    
-        public override void SetLength(long value) {
-        }
-    
-        public override void Write(byte[] buffer, int offset, int count) {
-        }
-    
-        public override bool CanRead {
-            get {
-                return true;
-            }
-        }
-    
-        public override bool CanSeek {
-            get {
-                return false;
-            }
-        }
-    
-        public override bool CanWrite {
-            get {
-                return false;
-            }
-        }
-    
-        public override long Length {
-            get {
-                return 0;
-            }
-        }
-    
-        public override long Position {
-            get {
-                return 0;
-            }
-            set {
-            }
         }
     }
 }

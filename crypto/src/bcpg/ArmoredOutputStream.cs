@@ -239,45 +239,44 @@ namespace Org.BouncyCastle.Bcpg
             clearText = false;
         }
 
-        public override void WriteByte(
-            byte b)
+        public override void WriteByte(byte value)
         {
             if (clearText)
             {
-                outStream.WriteByte(b);
+                outStream.WriteByte(value);
 
                 if (newLine)
                 {
-                    if (!(b == '\n' && lastb == '\r'))
+                    if (!(value == '\n' && lastb == '\r'))
                     {
                         newLine = false;
                     }
-                    if (b == '-')
+                    if (value == '-')
                     {
                         outStream.WriteByte((byte)' ');
                         outStream.WriteByte((byte)'-');      // dash escape
                     }
                 }
-                if (b == '\r' || (b == '\n' && lastb != '\r'))
+                if (value == '\r' || (value == '\n' && lastb != '\r'))
                 {
                     newLine = true;
                 }
-                lastb = b;
+                lastb = value;
                 return;
             }
 
             if (start)
             {
-                bool newPacket = (b & 0x40) != 0;
+                bool newPacket = (value & 0x40) != 0;
 
                 int tag;
                 if (newPacket)
                 {
-                    tag = b & 0x3f;
+                    tag = value & 0x3f;
                 }
                 else
                 {
-                    tag = (b & 0x3f) >> 2;
+                    tag = (value & 0x3f) >> 2;
                 }
 
                 switch ((PacketTag)tag)
@@ -334,8 +333,8 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-            crc.Update(b);
-            buf[bufPtr++] = b & 0xff;
+            crc.Update(value);
+            buf[bufPtr++] = value & 0xff;
         }
 
         /**

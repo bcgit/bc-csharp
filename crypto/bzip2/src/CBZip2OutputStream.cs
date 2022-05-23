@@ -27,6 +27,7 @@ using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Apache.Bzip2
 {
@@ -40,7 +41,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
     * <b>NB:</b> note this class has been modified to add a leading BZ to the
     * start of the BZIP2 stream to make it compatible with other PGP programs.
     */
-    public class CBZip2OutputStream : Stream 
+    public class CBZip2OutputStream
+        : BaseOutputStream 
 	{
         protected const int SETMASK = 1 << 21;
         protected const int CLEARMASK = ~SETMASK;
@@ -314,9 +316,9 @@ namespace Org.BouncyCastle.Apache.Bzip2
         * modified by Oliver Merkel, 010128
         *
         */
-        public override void WriteByte(byte b)
+        public override void WriteByte(byte value)
         {
-            if (currentByte == b)
+            if (currentByte == value)
             {
                 runLength++;
                 if (runLength > 254)
@@ -328,14 +330,14 @@ namespace Org.BouncyCastle.Apache.Bzip2
             }
             else if (currentByte == -1)
             {
-                currentByte = b;
+                currentByte = value;
                 runLength++;
             }
             else
             {
                 WriteRun();
                 runLength = 1;
-                currentByte = b;
+                currentByte = value;
             }
         }
 
@@ -1693,54 +1695,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
             mtfFreq[EOB]++;
 
             nMTF = wr;
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return 0;
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return 0;
-        }
-
-        public override void SetLength(long value)
-        {
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            for (int k = 0; k < count; ++k)
-            {
-                WriteByte(buffer[k + offset]);
-            }
-        }
-
-        public override bool CanRead
-        {
-            get { return false; }
-        }
-
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
-
-        public override bool CanWrite
-        {
-            get { return true; }
-        }
-
-        public override long Length
-        {
-            get { return 0; }
-        }
-
-        public override long Position
-        {
-            get { return 0; }
-            set {}
         }
     }
 }

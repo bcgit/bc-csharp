@@ -10,12 +10,12 @@ namespace Org.BouncyCastle.Tls
 
         internal TlsStream(TlsProtocol handler)
         {
-            this.m_handler = handler;
+            m_handler = handler;
         }
 
         public override bool CanRead
         {
-            get { return !m_handler.IsClosed; }
+            get { return true; }
         }
 
         public override bool CanSeek
@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Tls
 
         public override bool CanWrite
         {
-            get { return !m_handler.IsClosed; }
+            get { return true; }
         }
 
 #if PORTABLE
@@ -88,9 +88,9 @@ namespace Org.BouncyCastle.Tls
             m_handler.WriteApplicationData(buffer, offset, count);
         }
 
-        public override void WriteByte(byte b)
+        public override void WriteByte(byte value)
         {
-            Write(new byte[]{ b }, 0, 1);
+            Write(new byte[]{ value }, 0, 1);
         }
     }
 }

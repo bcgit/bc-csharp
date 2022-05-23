@@ -43,10 +43,10 @@ namespace Org.BouncyCastle.Utilities.IO
 			tee.Write(buffer, offset, count);
 		}
 
-		public override void WriteByte(byte b)
+		public override void WriteByte(byte value)
 		{
-			output.WriteByte(b);
-			tee.WriteByte(b);
+			output.WriteByte(value);
+			tee.WriteByte(value);
 		}
 	}
 }

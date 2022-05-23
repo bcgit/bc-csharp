@@ -238,18 +238,14 @@ namespace Org.BouncyCastle.Cms
 				this.eiGen = eiGen;
 			}
 
-			public override void WriteByte(
-				byte b)
-			{
-				macStream.WriteByte(b);
-			}
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                macStream.Write(buffer, offset, count);
+            }
 
-			public override void Write(
-				byte[]	bytes,
-				int		off,
-				int		len)
+			public override void WriteByte(byte value)
 			{
-				macStream.Write(bytes, off, len);
+				macStream.WriteByte(value);
 			}
 
 #if PORTABLE
@@ -274,7 +270,7 @@ namespace Org.BouncyCastle.Cms
                 base.Dispose(disposing);
             }
 #else
-            public override void Close()
+			public override void Close()
 			{
                 Platform.Dispose(macStream);
 
