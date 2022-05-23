@@ -66,8 +66,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
             {
                 if (inUse[i])
                 {
-                    seqToUnseq[nInUse] = (char) i;
-                    unseqToSeq[i] = (char) nInUse;
+                    seqToUnseq[nInUse] = (byte)i;
+                    unseqToSeq[i] = (byte)nInUse;
                     nInUse++;
                 }
             }
@@ -252,8 +252,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private bool[] inUse = new bool[256];
         private int nInUse;
 
-        private char[] seqToUnseq = new char[256];
-        private char[] unseqToSeq = new char[256];
+        private byte[] seqToUnseq = new byte[256];
+        private byte[] unseqToSeq = new byte[256];
 
         private char[] selector = new char[BZip2Constants.MAX_SELECTORS];
         private char[] selectorMtf = new char[BZip2Constants.MAX_SELECTORS];
@@ -353,7 +353,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
             for (int i = 0; i < runLength; i++)
             {
-                mCrc.UpdateCRC(currentByte);
+                mCrc.UpdateCRC((byte)currentByte);
             }
 
             switch (runLength)
@@ -440,7 +440,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
             bsStream.Flush();
         }
 
-        private int blockCRC, combinedCRC;
+        private int combinedCRC;
 
         private void Initialize()
         {
@@ -469,7 +469,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private void EndBlock()
         {
-            blockCRC = mCrc.GetFinalCRC();
+            int blockCRC = mCrc.GetFinalCRC();
             combinedCRC = Integers.RotateLeft(combinedCRC, 1) ^ blockCRC;
 
             /* sort the block and establish posn of original string */
@@ -1592,10 +1592,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private void GenerateMTFValues()
         {
-            char[] yy = new char[256];
-            int  i, j;
-            char tmp;
-            char tmp2;
+            byte[] yy = new byte[256];
+            int i, j;
             int zPend;
             int wr;
             int EOB;
@@ -1612,59 +1610,51 @@ namespace Org.BouncyCastle.Apache.Bzip2
             zPend = 0;
             for (i = 0; i < nInUse; i++)
             {
-                yy[i] = (char) i;
+                yy[i] = (byte)i;
             }
 
             for (i = 0; i < count; i++)
             {
-                char ll_i;
-
-                ll_i = unseqToSeq[blockBytes[zptr[i]]];
+                byte ll_i = unseqToSeq[blockBytes[zptr[i]]];
 
                 j = 0;
-                tmp = yy[j];
-                while (ll_i != tmp)
                 {
-                    j++;
-                    tmp2 = tmp;
-                    tmp = yy[j];
-                    yy[j] = tmp2;
+                    byte tmp = yy[j];
+                    while (ll_i != tmp)
+                    {
+                        j++;
+                        byte tmp2 = tmp;
+                        tmp = yy[j];
+                        yy[j] = tmp2;
+                    }
+                    yy[0] = tmp;
                 }
-                yy[0] = tmp;
 
                 if (j == 0)
                 {
                     zPend++;
+                    continue;
                 }
-                else
+
+                if (zPend > 0)
                 {
-                    if (zPend > 0)
+                    zPend--;
+                    while (true)
                     {
-                        zPend--;
-                        while (true)
-                        {
-                            switch (zPend % 2)
-                            {
-                            case 0:
-                                szptr[wr++] = BZip2Constants.RUNA;
-                                mtfFreq[BZip2Constants.RUNA]++;
-                                break;
-                            case 1:
-                                szptr[wr++] = BZip2Constants.RUNB;
-                                mtfFreq[BZip2Constants.RUNB]++;
-                                break;
-                            }
+                        // BZip2Constants.RUNA or BZip2Constants.RUNB
+                        int run = zPend & 1;
+                        szptr[wr++] = run;
+                        mtfFreq[run]++;
 
-                            if (zPend < 2)
-                                break;
+                        if (zPend < 2)
+                            break;
 
-                            zPend = (zPend - 2) / 2;
-                        }
-                        zPend = 0;
+                        zPend = (zPend - 2) / 2;
                     }
-                    szptr[wr++] = j + 1;
-                    mtfFreq[j + 1]++;
+                    zPend = 0;
                 }
+                szptr[wr++] = j + 1;
+                mtfFreq[j + 1]++;
             }
 
             if (zPend > 0)
@@ -1672,17 +1662,10 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 zPend--;
                 while (true)
                 {
-                    switch (zPend % 2)
-                    {
-                    case 0:
-                        szptr[wr++] = BZip2Constants.RUNA;
-                        mtfFreq[BZip2Constants.RUNA]++;
-                        break;
-                    case 1:
-                        szptr[wr++] = BZip2Constants.RUNB;
-                        mtfFreq[BZip2Constants.RUNB]++;
-                        break;
-                    }
+                    // BZip2Constants.RUNA or BZip2Constants.RUNB
+                    int run = zPend & 1;
+                    szptr[wr++] = run;
+                    mtfFreq[run]++;
 
                     if (zPend < 2)
                         break;

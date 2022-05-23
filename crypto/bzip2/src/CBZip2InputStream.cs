@@ -42,20 +42,13 @@ namespace Org.BouncyCastle.Apache.Bzip2
     public class CBZip2InputStream
         : BaseInputStream 
 	{
-        private static void Cadvise() {
-            //System.out.Println("CRC Error");
-            //throw new CCoruptionError();
+        private static void Cadvise()
+        {
+            throw new InvalidOperationException();
         }
 
-//        private static void BadBGLengths() {
-//            Cadvise();
-//        }
-//
-//        private static void BitStreamEOF() {
-//            Cadvise();
-//        }
-
-        private static void CompressedStreamEOF() {
+        private static void CompressedStreamEOF()
+        {
             Cadvise();
         }
 
@@ -135,8 +128,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private int currentState = START_BLOCK_STATE;
 
-        private int storedBlockCRC, storedCombinedCRC;
-        private int computedBlockCRC, computedCombinedCRC;
+        private int storedBlockCRC, storedCombinedCRC, computedCombinedCRC;
 
         int i2, count, chPrev, ch2;
         int i, tPos;
@@ -281,7 +273,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private void EndBlock()
         {
-            computedBlockCRC = mCrc.GetFinalCRC();
+            int computedBlockCRC = mCrc.GetFinalCRC();
             /* A bad CRC is considered a fatal error. */
             if (storedBlockCRC != computedBlockCRC)
             {
@@ -813,12 +805,12 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     }
                 }
                 rNToGo--;
-                ch2 ^= (int) ((rNToGo == 1) ? 1 : 0);
+                ch2 ^= (rNToGo == 1) ? 1 : 0;
                 i2++;
 
                 currentChar = ch2;
                 currentState = RAND_PART_B_STATE;
-                mCrc.UpdateCRC(ch2);
+                mCrc.UpdateCRC((byte)ch2);
             } else {
                 EndBlock();
                 InitBlock();
@@ -835,7 +827,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
                 currentChar = ch2;
                 currentState = NO_RAND_PART_B_STATE;
-                mCrc.UpdateCRC(ch2);
+                mCrc.UpdateCRC((byte)ch2);
             } else {
                 EndBlock();
                 InitBlock();
@@ -873,9 +865,9 @@ namespace Org.BouncyCastle.Apache.Bzip2
         }
 
         private void SetupRandPartC() {
-            if (j2 < (int) z) {
+            if (j2 < z) {
                 currentChar = ch2;
-                mCrc.UpdateCRC(ch2);
+                mCrc.UpdateCRC((byte)ch2);
                 j2++;
             } else {
                 currentState = RAND_PART_A_STATE;
@@ -906,9 +898,9 @@ namespace Org.BouncyCastle.Apache.Bzip2
         }
 
         private void SetupNoRandPartC() {
-            if (j2 < (int) z) {
+            if (j2 < z) {
                 currentChar = ch2;
-                mCrc.UpdateCRC(ch2);
+                mCrc.UpdateCRC((byte)ch2);
                 j2++;
             } else {
                 currentState = NO_RAND_PART_A_STATE;
