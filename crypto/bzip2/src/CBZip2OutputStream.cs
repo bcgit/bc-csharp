@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -51,27 +52,33 @@ namespace Org.BouncyCastle.Apache.Bzip2
         protected const int SMALL_THRESH = 20;
         protected const int DEPTH_THRESH = 10;
 
+        internal static readonly ushort[] RNums = {
+            619, 720, 127, 481, 931, 816, 813, 233, 566, 247, 985, 724, 205, 454, 863, 491, 741, 242, 949, 214, 733,
+            859, 335, 708, 621, 574, 73, 654, 730, 472, 419, 436, 278, 496, 867, 210, 399, 680, 480, 51, 878, 465, 811,
+            169, 869, 675, 611, 697, 867, 561, 862, 687, 507, 283, 482, 129, 807, 591, 733, 623, 150, 238, 59, 379, 684,
+            877, 625, 169, 643, 105, 170, 607, 520, 932, 727, 476, 693, 425, 174, 647, 73, 122, 335, 530, 442, 853, 695,
+            249, 445, 515, 909, 545, 703, 919, 874, 474, 882, 500, 594, 612, 641, 801, 220, 162, 819, 984, 589, 513,
+            495, 799, 161, 604, 958, 533, 221, 400, 386, 867, 600, 782, 382, 596, 414, 171, 516, 375, 682, 485, 911,
+            276, 98, 553, 163, 354, 666, 933, 424, 341, 533, 870, 227, 730, 475, 186, 263, 647, 537, 686, 600, 224, 469,
+            68, 770, 919, 190, 373, 294, 822, 808, 206, 184, 943, 795, 384, 383, 461, 404, 758, 839, 887, 715, 67, 618,
+            276, 204, 918, 873, 777, 604, 560, 951, 160, 578, 722, 79, 804, 96, 409, 713, 940, 652, 934, 970, 447, 318,
+            353, 859, 672, 112, 785, 645, 863, 803, 350, 139, 93, 354, 99, 820, 908, 609, 772, 154, 274, 580, 184, 79,
+            626, 630, 742, 653, 282, 762, 623, 680, 81, 927, 626, 789, 125, 411, 521, 938, 300, 821, 78, 343, 175, 128,
+            250, 170, 774, 972, 275, 999, 639, 495, 78, 352, 126, 857, 956, 358, 619, 580, 124, 737, 594, 701, 612, 669,
+            112, 134, 694, 363, 992, 809, 743, 168, 974, 944, 375, 748, 52, 600, 747, 642, 182, 862, 81, 344, 805, 988,
+            739, 511, 655, 814, 334, 249, 515, 897, 955, 664, 981, 649, 113, 974, 459, 893, 228, 433, 837, 553, 268,
+            926, 240, 102, 654, 459, 51, 686, 754, 806, 760, 493, 403, 415, 394, 687, 700, 946, 670, 656, 610, 738, 392,
+            760, 799, 887, 653, 978, 321, 576, 617, 626, 502, 894, 679, 243, 440, 680, 879, 194, 572, 640, 724, 926, 56,
+            204, 700, 707, 151, 457, 449, 797, 195, 791, 558, 945, 679, 297, 59, 87, 824, 713, 663, 412, 693, 342, 606,
+            134, 108, 571, 364, 631, 212, 174, 643, 304, 329, 343, 97, 430, 751, 497, 314, 983, 374, 822, 928, 140, 206,
+            73, 263, 980, 736, 876, 478, 430, 305, 170, 514, 364, 692, 829, 82, 855, 953, 676, 246, 369, 970, 294, 750,
+            807, 827, 150, 790, 288, 923, 804, 378, 215, 828, 592, 281, 565, 555, 710, 82, 896, 831, 547, 261, 524, 462,
+            293, 465, 502, 56, 661, 821, 976, 991, 658, 869, 905, 758, 745, 193, 768, 550, 608, 933, 378, 286, 215, 979,
+            792, 961, 61, 688, 793, 644, 986, 403, 106, 366, 905, 644, 372, 567, 466, 434, 645, 210, 389, 550, 919, 135,
+            780, 773, 635, 389, 707, 100, 626, 958, 165, 504, 920, 176, 193, 713, 857, 265, 203, 50, 668, 108, 645, 990,
+            626, 197, 510, 357, 358, 850, 858, 364, 936, 638 };
+
         private bool finished;
-
-        private static void Panic()
-        {
-            throw new InvalidOperationException();
-        }
-
-        private void MakeMaps()
-        {
-            int i;
-            nInUse = 0;
-            for (i = 0; i < 256; i++)
-            {
-                if (inUse[i])
-                {
-                    seqToUnseq[nInUse] = (byte)i;
-                    unseqToSeq[i] = (byte)nInUse;
-                    nInUse++;
-                }
-            }
-        }
 
         protected static void HbMakeCodeLengths(byte[] len, int[] freq, int alphaSize, int maxLen)
         {
@@ -113,9 +120,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     }
                 }
                 if (!(nHeap < (BZip2Constants.MAX_ALPHA_SIZE + 2)))
-                {
-                    Panic();
-                }
+                    throw new InvalidOperationException();
 
                 while (nHeap > 1)
                 {
@@ -124,7 +129,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     {
                         int zz = 1;
                         int tmp = heap[zz];
-                        while (true) {
+                        while (true) 
+                        {
                             int yy = zz << 1;
                             if (yy > nHeap)
                                 break;
@@ -192,11 +198,10 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     }
                 }
                 if (!(nNodes < (BZip2Constants.MAX_ALPHA_SIZE * 2)))
-                {
-                    Panic();
-                }
+                    throw new InvalidOperationException();
 
-                bool tooLong = false;
+                //bool tooLong = false;
+                int tooLongBits = 0;
                 for (int i = 1; i <= alphaSize; i++)
                 {
                     int j = 0;
@@ -207,16 +212,15 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         j++;
                     }
                     len[i - 1] = (byte)j;
-                    if (j > maxLen)
-                    {
-                        tooLong = true;
-                    }
+                    //tooLong |= j > maxLen;
+                    tooLongBits |= maxLen - j;
                 }
 
-                if (!tooLong)
+                //if (!tooLong)
+                if (tooLongBits >= 0)
                     break;
 
-                for (int i = 1; i < alphaSize; i++)
+                for (int i = 1; i <= alphaSize; i++)
                 {
                     int j = weight[i] >> 8;
                     j = 1 + (j / 2);
@@ -239,24 +243,22 @@ namespace Org.BouncyCastle.Apache.Bzip2
         always: in the range 0 .. 9.
         The current block size is 100000 * this number.
         */
-        readonly int blockSize100k;
-
-        private int allowableBlockSize;
+        private readonly int blockSize100k;
+        private readonly int allowableBlockSize;
 
         bool blockRandomised;
+        IList blocksortStack = Platform.CreateArrayList();
 
         int bsBuff;
-        int bsLive;
-        readonly CRC mCrc = new CRC();
+        int bsLivePos;
+        private readonly CRC m_blockCrc = new CRC();
 
         private bool[] inUse = new bool[256];
         private int nInUse;
 
-        private byte[] seqToUnseq = new byte[256];
         private byte[] unseqToSeq = new byte[256];
 
-        private char[] selector = new char[BZip2Constants.MAX_SELECTORS];
-        private char[] selectorMtf = new char[BZip2Constants.MAX_SELECTORS];
+        private byte[] m_selectors = new byte[BZip2Constants.MAX_SELECTORS];
 
         private byte[] blockBytes;
         private ushort[] quadrantShorts;
@@ -280,6 +282,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private int currentByte = -1;
         private int runLength = 0;
+        private int m_streamCrc;
 
         public CBZip2OutputStream(Stream outStream)
             : this(outStream, 9)
@@ -296,18 +299,49 @@ namespace Org.BouncyCastle.Apache.Bzip2
             outStream.WriteByte((byte)'B');
             outStream.WriteByte((byte)'Z');
 
-            BsSetStream(outStream);
+            bsStream = outStream;
+            bsBuff = 0;
+            bsLivePos = 32;
 
             workFactor = 50;
-            if (blockSize > 9) {
+            if (blockSize > 9)
+            {
                 blockSize = 9;
             }
-            if (blockSize < 1) {
+            else if (blockSize < 1)
+            {
                 blockSize = 1;
             }
             blockSize100k = blockSize;
-            AllocateCompressStructures();
-            Initialize();
+
+            /* 20 is just a paranoia constant */
+            allowableBlockSize = BZip2Constants.baseBlockSize * blockSize100k - 20;
+
+            int n = BZip2Constants.baseBlockSize * blockSize100k;
+            blockBytes = new byte[(n + 1 + BZip2Constants.NUM_OVERSHOOT_BYTES)];
+            quadrantShorts = new ushort[(n + 1 + BZip2Constants.NUM_OVERSHOOT_BYTES)];
+            zptr = new int[n];
+            ftab = new int[65537];
+
+            /*
+            The back end needs a place to store the MTF values
+            whilst it calculates the coding tables.  We could
+            put them in the zptr array.  However, these values
+            will fit in a short, so we overlay szptr at the
+            start of zptr, in the hope of reducing the number
+            of cache misses induced by the multiple traversals
+            of the MTF values when calculating coding tables.
+            Seems to improve compression speed by about 1%.
+            */
+            // NOTE: We can't "overlay" in C#, so we just share zptr
+            szptr = zptr;
+
+            // Write `magic' bytes h indicating file-format == huffmanised, followed by a digit indicating blockSize100k
+            outStream.WriteByte((byte)'h');
+            outStream.WriteByte((byte)('0' + blockSize100k));
+
+            m_streamCrc = 0;
+
             InitBlock();
         }
 
@@ -320,25 +354,22 @@ namespace Org.BouncyCastle.Apache.Bzip2
         {
             if (currentByte == value)
             {
-                runLength++;
-                if (runLength > 254)
+                if (++runLength > 254)
                 {
                     WriteRun();
                     currentByte = -1;
                     runLength = 0;
                 }
+                return;
             }
-            else if (currentByte == -1)
-            {
-                currentByte = value;
-                runLength++;
-            }
-            else
+
+            if (currentByte >= 0)
             {
                 WriteRun();
-                runLength = 1;
-                currentByte = value;
             }
+
+            currentByte = value;
+            runLength = 1;
         }
 
         private void WriteRun()
@@ -351,39 +382,42 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
             inUse[currentByte] = true;
 
-            for (int i = 0; i < runLength; i++)
-            {
-                mCrc.UpdateCRC((byte)currentByte);
-            }
-
             switch (runLength)
             {
             case 1:
                 blockBytes[++count] = (byte)currentByte;
+                m_blockCrc.Update((byte)currentByte);
                 break;
             case 2:
                 blockBytes[++count] = (byte)currentByte;
                 blockBytes[++count] = (byte)currentByte;
+                m_blockCrc.Update((byte)currentByte);
+                m_blockCrc.Update((byte)currentByte);
                 break;
             case 3:
                 blockBytes[++count] = (byte)currentByte;
                 blockBytes[++count] = (byte)currentByte;
                 blockBytes[++count] = (byte)currentByte;
+                m_blockCrc.Update((byte)currentByte);
+                m_blockCrc.Update((byte)currentByte);
+                m_blockCrc.Update((byte)currentByte);
                 break;
             default:
-                inUse[runLength - 4] = true;
                 blockBytes[++count] = (byte)currentByte;
                 blockBytes[++count] = (byte)currentByte;
                 blockBytes[++count] = (byte)currentByte;
                 blockBytes[++count] = (byte)currentByte;
                 blockBytes[++count] = (byte)(runLength - 4);
+                inUse[runLength - 4] = true;
+                m_blockCrc.UpdateRun((byte)currentByte, runLength);
                 break;
             }
         }
 
         bool closed = false;
 
-//        protected void Finalize() {
+//        protected void Finalize()
+//        {
 //            Close();
 //        }
 
@@ -440,37 +474,21 @@ namespace Org.BouncyCastle.Apache.Bzip2
             bsStream.Flush();
         }
 
-        private int combinedCRC;
-
-        private void Initialize()
-        {
-            /* Write `magic' bytes h indicating file-format == huffmanised,
-            followed by a digit indicating blockSize100k.
-            */
-            BsPutUChar('h');
-            BsPutUChar('0' + blockSize100k);
-
-            combinedCRC = 0;
-        }
-
         private void InitBlock()
         {
-            mCrc.InitialiseCRC();
+            m_blockCrc.Initialise();
             count = 0;
 
             for (int i = 0; i < 256; i++)
             {
                 inUse[i] = false;
             }
-
-            /* 20 is just a paranoia constant */
-            allowableBlockSize = BZip2Constants.baseBlockSize * blockSize100k - 20;
         }
 
         private void EndBlock()
         {
-            int blockCRC = mCrc.GetFinalCRC();
-            combinedCRC = Integers.RotateLeft(combinedCRC, 1) ^ blockCRC;
+            int blockFinalCrc = m_blockCrc.GetFinal();
+            m_streamCrc = Integers.RotateLeft(m_streamCrc, 1) ^ blockFinalCrc;
 
             /* sort the block and establish posn of original string */
             DoReversibleTransformation();
@@ -488,24 +506,20 @@ namespace Org.BouncyCastle.Apache.Bzip2
             They are only important when trying to recover blocks from
             damaged files.
             */
-            BsPutUChar(0x31);
-            BsPutUChar(0x41);
-            BsPutUChar(0x59);
-            BsPutUChar(0x26);
-            BsPutUChar(0x53);
-            BsPutUChar(0x59);
+            BsPutLong48(0x314159265359L);
 
             /* Now the block's CRC, so it is in a known place. */
-            BsPutint(blockCRC);
+            BsPutInt32(blockFinalCrc);
 
             /* Now a single bit indicating randomisation. */
-            BsW(1, blockRandomised ? 1 : 0);
+            BsPutBit(blockRandomised ? 1 : 0);
 
             /* Finally, block's contents proper. */
             MoveToFrontCodeAndSend();
         }
 
-        private void EndCompression() {
+        private void EndCompression()
+        {
             /*
             Now another magic 48-bit number, 0x177245385090, to
             indicate the end of the last block.  (Sqrt(pi), if
@@ -513,14 +527,9 @@ namespace Org.BouncyCastle.Apache.Bzip2
             too much repetition -- 27 18 28 18 28 46 -- for me
             to feel statistically comfortable.  Call me paranoid.)
             */
-            BsPutUChar(0x17);
-            BsPutUChar(0x72);
-            BsPutUChar(0x45);
-            BsPutUChar(0x38);
-            BsPutUChar(0x50);
-            BsPutUChar(0x90);
+            BsPutLong48(0x177245385090L);
 
-            BsPutint(combinedCRC);
+            BsPutInt32(m_streamCrc);
 
             BsFinishedWithStream();
         }
@@ -534,72 +543,85 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 {
                     if (length[i] == n)
                     {
-                        code[i] = vec;
-                        vec++;
+                        code[i] = vec++;
                     }
                 }
                 vec <<= 1;
             }
         }
 
-        private void BsSetStream(Stream f)
-        {
-            bsStream = f;
-            bsLive = 0;
-            bsBuff = 0;
-        }
-
         private void BsFinishedWithStream()
         {
-            while (bsLive > 0)
+            if (bsLivePos < 32)
             {
-                bsStream.WriteByte((byte)(bsBuff >> 24)); // write 8-bit
-                bsBuff <<= 8;
-                bsLive -= 8;
+                bsStream.WriteByte((byte)(bsBuff >> 24));
+                bsBuff = 0;
+                bsLivePos = 32;
             }
         }
 
-        private void BsW(int n, int v)
+        private void BsPutBit(int v)
         {
-            while (bsLive >= 8)
+            --bsLivePos;
+            bsBuff |= v << bsLivePos;
+
+            if (bsLivePos <= 24)
             {
-                bsStream.WriteByte((byte)(bsBuff >> 24)); // write 8-bit
+                bsStream.WriteByte((byte)(bsBuff >> 24));
                 bsBuff <<= 8;
-                bsLive -= 8;
+                bsLivePos += 8;
             }
-            bsBuff |= v << (32 - bsLive - n);
-            bsLive += n;
         }
 
-        private void BsPutUChar(int c)
+        private void BsPutBits(int n, int v)
         {
-            BsW(8, c);
+            Debug.Assert(1 <= n && n <= 24);
+
+            bsLivePos -= n;
+            bsBuff |= v << bsLivePos;
+
+            while (bsLivePos <= 24)
+            {
+                bsStream.WriteByte((byte)(bsBuff >> 24));
+                bsBuff <<= 8;
+                bsLivePos += 8;
+            }
         }
 
-        private void BsPutint(int u)
+        private void BsPutBitsSmall(int n, int v)
         {
-            //BsW(8, (u >> 24) & 0xff);
-            //BsW(8, (u >> 16) & 0xff);
-            //BsW(8, (u >>  8) & 0xff);
-            //BsW(8,  u        & 0xff);
-            BsW(16, (u >> 16) & 0xFFFF);
-            BsW(16, u & 0xFFFF);
+            Debug.Assert(1 <= n && n <= 8);
+
+            bsLivePos -= n;
+            bsBuff |= v << bsLivePos;
+
+            if (bsLivePos <= 24)
+            {
+                bsStream.WriteByte((byte)(bsBuff >> 24));
+                bsBuff <<= 8;
+                bsLivePos += 8;
+            }
         }
 
-        private void BsPutIntVS(int numBits, int c)
+        private void BsPutInt32(int u)
         {
-            BsW(numBits, c);
+            BsPutBits(16, (u >> 16) & 0xFFFF);
+            BsPutBits(16, u & 0xFFFF);
         }
 
-        private void SendMTFValues()
+        private void BsPutLong48(long u)
         {
-            byte[][] len = CBZip2InputStream.InitByteArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
+            BsPutBits(24, (int)(u >> 24) & 0xFFFFFF);
+            BsPutBits(24, (int)u & 0xFFFFFF);
+        }
 
-            int v, t, i, j, gs, ge, bt, bc, iter;
-            int nSelectors = 0, alphaSize, minLen, maxLen, selCtr;
-            int nGroups;
+        private void SendMtfValues()
+        {
+            byte[][] len = InitByteArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
 
-            alphaSize = nInUse + 2;
+            int v, t, i, j, bt, bc, iter;
+
+            int alphaSize = nInUse + 2;
             for (t = 0; t < BZip2Constants.N_GROUPS; t++)
             {
                 byte[] len_t = len[t];
@@ -611,10 +633,9 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
             /* Decide how many coding tables to use */
             if (nMTF <= 0)
-            {
-                Panic();
-            }
+                throw new InvalidOperationException();
 
+            int nGroups;
             if (nMTF < 200)
             {
                 nGroups = 2;
@@ -638,16 +659,13 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
             /* Generate an initial set of coding tables */
             {
-                int tFreq, aFreq;
-
                 int nPart = nGroups;
-                int remF  = nMTF;
-                gs = 0;
+                int remF = nMTF;
+                int ge = -1;
                 while (nPart > 0)
                 {
-                    tFreq = remF / nPart;
-                    ge = gs - 1;
-                    aFreq = 0;
+                    int gs = ge + 1;
+                    int aFreq = 0, tFreq = remF / nPart;
                     while (aFreq < tFreq && ge < alphaSize - 1)
                     {
                         aFreq += mtfFreq[++ge];
@@ -673,12 +691,11 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     }
 
                     nPart--;
-                    gs = ge + 1;
                     remF -= aFreq;
                 }
             }
 
-            int[][] rfreq = CBZip2InputStream.InitIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
+            int[][] rfreq = CBZip2InputStream.CreateIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
             int[] fave = new int[BZip2Constants.N_GROUPS];
             short[] cost = new short[BZip2Constants.N_GROUPS];
             byte[] len_0 = len[0];
@@ -688,9 +705,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
             byte[] len_4 = len[4];
             byte[] len_5 = len[5];
 
-            /*
-            Iterate up to N_ITERS times to improve the tables.
-            */
+            // Iterate up to N_ITERS times to improve the tables.
+            int nSelectors = 0;
             for (iter = 0; iter < BZip2Constants.N_ITERS; iter++)
             {
                 for (t = 0; t < nGroups; t++)
@@ -705,7 +721,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 }
 
                 nSelectors = 0;
-                gs = 0;
+                int gs = 0;
                 while (gs < nMTF)
                 {
                     /* Set group start & end marks. */
@@ -714,7 +730,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                      * Calculate the cost of this group as coded by each of the coding tables.
                      */
 
-                    ge = System.Math.Min(gs + BZip2Constants.G_SIZE - 1, nMTF - 1);
+                    int ge = System.Math.Min(gs + BZip2Constants.G_SIZE - 1, nMTF - 1);
 
                     if (nGroups == 6)
                     {
@@ -759,18 +775,19 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     Find the coding table which is best for this group,
                     and record its identity in the selector table.
                     */
-                    bc = 999999999;
-                    bt = -1;
-                    for (t = 0; t < nGroups; t++)
+                    bc = cost[0];
+                    bt = 0;
+                    for (t = 1; t < nGroups; t++)
                     {
-                        if (cost[t] < bc)
+                        short cost_t = cost[t];
+                        if (cost_t < bc)
                         {
-                            bc = cost[t];
+                            bc = cost_t;
                             bt = t;
                         }
                     }
                     fave[bt]++;
-                    selector[nSelectors] = (char) bt;
+                    m_selectors[nSelectors] = (byte)bt;
                     nSelectors++;
 
                     /*
@@ -790,77 +807,32 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 */
                 for (t = 0; t < nGroups; t++)
                 {
-                    HbMakeCodeLengths(len[t], rfreq[t], alphaSize, 20);
+                    HbMakeCodeLengths(len[t], rfreq[t], alphaSize, BZip2Constants.MAX_CODE_LEN_GEN);
                 }
             }
 
-            rfreq = null;
-            fave = null;
-            cost = null;
+            if (nGroups >= 8 || nGroups > BZip2Constants.N_GROUPS)
+                throw new InvalidOperationException();
+            if (nSelectors >= 32768 || nSelectors > BZip2Constants.MAX_SELECTORS)
+                throw new InvalidOperationException();
 
-            if (!(nGroups < 8))
-            {
-                Panic();
-            }
-            if (!(nSelectors < 32768 && nSelectors <= (2 + (900000 / BZip2Constants.G_SIZE))))
-            {
-                Panic();
-            }
-
-            /* Compute MTF values for the selectors. */
-            {
-                char[] pos = new char[BZip2Constants.N_GROUPS];
-                char ll_i, tmp2, tmp;
-                for (i = 0; i < nGroups; i++)
-                {
-                    pos[i] = (char)i;
-                }
-                for (i = 0; i < nSelectors; i++)
-                {
-                    ll_i = selector[i];
-                    j = 0;
-                    tmp = pos[j];
-                    while (ll_i != tmp)
-                    {
-                        j++;
-                        tmp2 = tmp;
-                        tmp = pos[j];
-                        pos[j] = tmp2;
-                    }
-                    pos[0] = tmp;
-                    selectorMtf[i] = (char)j;
-                }
-            }
-
-            int[][] code = CBZip2InputStream.InitIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
+            int[][] code = CBZip2InputStream.CreateIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
 
             /* Assign actual codes for the tables. */
             for (t = 0; t < nGroups; t++)
             {
-                minLen = 32;
-                maxLen = 0;
+                int maxLen = 0, minLen = 32;
                 byte[] len_t = len[t];
                 for (i = 0; i < alphaSize; i++)
                 {
                     int lti = len_t[i];
-                    if (lti > maxLen)
-                    {
-                        maxLen = lti;
-                    }
-                    if (lti < minLen)
-                    {
-                        minLen = lti;
-                    }
+                    maxLen = System.Math.Max(maxLen, lti);
+                    minLen = System.Math.Min(minLen, lti);
                 }
-                if (maxLen > 20)
-                {
-                    Panic();
-                }
-                if (minLen < 1)
-                {
-                    Panic();
-                }
-                HbAssignCodes(code[t], len[t], minLen, maxLen, alphaSize);
+                if (minLen < 1 | maxLen > BZip2Constants.MAX_CODE_LEN_GEN)
+                    throw new InvalidOperationException();
+
+                HbAssignCodes(code[t], len_t, minLen, maxLen, alphaSize);
             }
 
             /* Transmit the mapping table. */
@@ -882,7 +854,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
 				for (i = 0; i < 16; i++)
                 {
-                    BsW(1, inUse16[i] ? 1 : 0);
+                    BsPutBit(inUse16[i] ? 1 : 0);
                 }
 
                 for (i = 0; i < 16; i++)
@@ -892,29 +864,38 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         int i16 = i * 16;
                         for (j = 0; j < 16; j++)
                         {
-                            BsW(1, inUse[i16 + j] ? 1 : 0);
+                            BsPutBit(inUse[i16 + j] ? 1 : 0);
                         }
                     }
                 }
             }
 
             /* Now the selectors. */
-            BsW(3, nGroups);
-            BsW(15, nSelectors);
-            for (i = 0; i < nSelectors; i++)
+            BsPutBitsSmall(3, nGroups);
+            BsPutBits(15, nSelectors);
             {
-                int count = selectorMtf[i];
-                //for (j = 0; j < count; j++)
-                //{
-                //    BsW(1, 1);
-                //}
-                //BsW(1, 0);
-                while (count >= 24)
+                byte[] pos = new byte[BZip2Constants.N_GROUPS];
+                for (i = 0; i < nGroups; i++)
                 {
-                    BsW(24, 0xFFFFFF);
-                    count -= 24;
+                    pos[i] = (byte)i;
                 }
-                BsW(count + 1, (1 << (count + 1)) - 2);
+
+                for (i = 0; i < nSelectors; i++)
+                {
+                    // Compute MTF values for the selector.
+                    byte ll_i = m_selectors[i];
+                    int mtfSelector = 1;
+                    byte tmp = pos[0];
+                    while (ll_i != tmp)
+                    {
+                        byte tmp2 = tmp;
+                        tmp = pos[mtfSelector];
+                        pos[mtfSelector++] = tmp2;
+                    }
+                    pos[0] = tmp;
+
+                    BsPutBitsSmall(mtfSelector, (1 << mtfSelector) - 2);
+                }
             }
 
             /* Now the coding tables. */
@@ -922,55 +903,55 @@ namespace Org.BouncyCastle.Apache.Bzip2
             {
                 byte[] len_t = len[t];
                 int curr = len_t[0];
-                BsW(5, curr);
-                for (i = 0; i < alphaSize; i++)
+                BsPutBitsSmall(6, curr << 1);
+                for (i = 1; i < alphaSize; i++)
                 {
                     int lti = len_t[i];
                     while (curr < lti)
                     {
-                        BsW(2, 2);
+                        BsPutBitsSmall(2, 2);
                         curr++; /* 10 */
                     }
                     while (curr > lti)
                     {
-                        BsW(2, 3);
+                        BsPutBitsSmall(2, 3);
                         curr--; /* 11 */
                     }
-                    BsW(1, 0);
+                    BsPutBit(0);
                 }
             }
 
             /* And finally, the block data proper */
-            selCtr = 0;
-            gs = 0;
-            while (gs < nMTF)
             {
-                ge = System.Math.Min(gs + BZip2Constants.G_SIZE - 1, nMTF - 1);
-
-                int selector_selCtr = selector[selCtr];
-                byte[] len_selCtr = len[selector_selCtr];
-                int[] code_selCtr = code[selector_selCtr];
-
-                for (i = gs; i <= ge; i++)
+                int selCtr = 0;
+                int gs = 0;
+                while (gs < nMTF)
                 {
-                    int sfmap_i = szptr[i];
-                    BsW(len_selCtr[sfmap_i], code_selCtr[sfmap_i]);
-                }
+                    int ge = System.Math.Min(gs + BZip2Constants.G_SIZE - 1, nMTF - 1);
 
-                gs = ge + 1;
-                selCtr++;
-            }
-            if (!(selCtr == nSelectors))
-            {
-                Panic();
+                    int selector_selCtr = m_selectors[selCtr];
+                    byte[] len_selCtr = len[selector_selCtr];
+                    int[] code_selCtr = code[selector_selCtr];
+
+                    for (i = gs; i <= ge; i++)
+                    {
+                        int sfmap_i = szptr[i];
+                        BsPutBits(len_selCtr[sfmap_i], code_selCtr[sfmap_i]);
+                    }
+
+                    gs = ge + 1;
+                    selCtr++;
+                }
+                if (selCtr != nSelectors)
+                    throw new InvalidOperationException();
             }
         }
 
         private void MoveToFrontCodeAndSend()
         {
-            BsPutIntVS(24, origPtr);
-            GenerateMTFValues();
-            SendMTFValues();
+            BsPutBits(24, origPtr);
+            GenerateMtfValues();
+            SendMtfValues();
         }
 
         private Stream bsStream;
@@ -1092,7 +1073,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
         {
             int unLo, unHi, ltLo, gtHi, n, m;
 
-            IList stack = Platform.CreateArrayList();
+            IList stack = blocksortStack;
             int stackCount = 0;
             StackElem stackElem;
 
@@ -1367,9 +1348,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         }
 
                         if (!(((bbSize - 1) >> shifts) <= 65535))
-                        {
-                            Panic();
-                        }
+                            throw new InvalidOperationException();
                     }
 
                     /*
@@ -1408,24 +1387,19 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 inUse[i] = false;
             }
 
-            int rNToGo = 0;
-            int rTPos = 0;
+            int rNToGo = 0, rTPos = 0;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 1; i <= count; i++)
             {
                 if (rNToGo == 0)
                 {
-                    rNToGo = BZip2Constants.rNums[rTPos];
-
-                    if (++rTPos == 512)
-                    {
-                        rTPos = 0;
-                    }
+                    rNToGo = RNums[rTPos++];
+                    rTPos &= 0x1FF;
                 }
                 rNToGo--;
-                blockBytes[i + 1] ^= (byte)((rNToGo == 1) ? 1 : 0);
+                blockBytes[i] ^= (byte)(rNToGo == 1 ? 1 : 0);
 
-                inUse[blockBytes[i + 1]] = true;
+                inUse[blockBytes[i]] = true;
             }
         }
 
@@ -1458,9 +1432,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
             }
 
             if (origPtr == -1)
-            {
-                Panic();
-            }
+                throw new InvalidOperationException();
         }
 
         private bool FullGtU(int i1, int i2)
@@ -1568,29 +1540,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private static readonly int[] incs = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161,
             2391484 };
 
-        private void AllocateCompressStructures()
-        {
-            int n = BZip2Constants.baseBlockSize * blockSize100k;
-            blockBytes = new byte[(n + 1 + BZip2Constants.NUM_OVERSHOOT_BYTES)];
-            quadrantShorts = new ushort[(n + 1 + BZip2Constants.NUM_OVERSHOOT_BYTES)];
-            zptr = new int[n];
-            ftab = new int[65537];
-
-            /*
-            The back end needs a place to store the MTF values
-            whilst it calculates the coding tables.  We could
-            put them in the zptr array.  However, these values
-            will fit in a short, so we overlay szptr at the
-            start of zptr, in the hope of reducing the number
-            of cache misses induced by the multiple traversals
-            of the MTF values when calculating coding tables.
-            Seems to improve compression speed by about 1%.
-            */
-            // NOTE: We can't "overlay" in C#, so we just share zptr
-            szptr = zptr;
-        }
-
-        private void GenerateMTFValues()
+        private void GenerateMtfValues()
         {
             byte[] yy = new byte[256];
             int i, j;
@@ -1598,7 +1548,16 @@ namespace Org.BouncyCastle.Apache.Bzip2
             int wr;
             int EOB;
 
-            MakeMaps();
+            nInUse = 0;
+
+            for (i = 0; i < 256; i++)
+            {
+                if (inUse[i])
+                {
+                    unseqToSeq[i] = (byte)nInUse++;
+                }
+            }
+
             EOB = nInUse + 1;
 
             for (i = 0; i <= EOB; i++)
@@ -1678,6 +1637,16 @@ namespace Org.BouncyCastle.Apache.Bzip2
             mtfFreq[EOB]++;
 
             nMTF = wr;
+        }
+
+        internal static byte[][] InitByteArray(int n1, int n2)
+        {
+            byte[][] a = new byte[n1][];
+            for (int k = 0; k < n1; ++k)
+            {
+                a[k] = new byte[n2];
+            }
+            return a;
         }
     }
 }

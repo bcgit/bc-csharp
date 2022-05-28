@@ -23,6 +23,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -42,30 +43,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
     public class CBZip2InputStream
         : BaseInputStream 
 	{
-        private static void Cadvise()
-        {
-            throw new InvalidOperationException();
-        }
-
-        private static void CompressedStreamEOF()
-        {
-            Cadvise();
-        }
-
-        private void MakeMaps()
-        {
-            nInUse = 0;
-            for (int i = 0; i < 256; i++)
-            {
-                if (inUse[i])
-                {
-                    seqToUnseq[nInUse] = (char)i;
-                    unseqToSeq[i] = (char)nInUse;
-                    nInUse++;
-                }
-            }
-        }
-
         /*
         index of the last char in the block, so
         the block size == last + 1.
@@ -83,23 +60,18 @@ namespace Org.BouncyCastle.Apache.Bzip2
         */
         private int blockSize100k;
 
-        private bool blockRandomised;
-
         private int bsBuff;
         private int bsLive;
-        private CRC mCrc = new CRC();
+        private readonly CRC m_blockCrc = new CRC();
 
-        private bool[] inUse = new bool[256];
         private int nInUse;
 
-        private char[] seqToUnseq = new char[256];
-        private char[] unseqToSeq = new char[256];
+        private byte[] seqToUnseq = new byte[256];
 
-        private char[] selector = new char[BZip2Constants.MAX_SELECTORS];
-        private char[] selectorMtf = new char[BZip2Constants.MAX_SELECTORS];
+        private byte[] m_selectors = new byte[BZip2Constants.MAX_SELECTORS];
 
         private int[] tt;
-        private char[] ll8;
+        private byte[] ll8;
 
         /*
         freq table collected to save a pass over the data
@@ -107,63 +79,60 @@ namespace Org.BouncyCastle.Apache.Bzip2
         */
         private int[] unzftab = new int[256];
 
-        private int[][] limit = InitIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
-        private int[][] basev = InitIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
-        private int[][] perm = InitIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
+        private int[][] limit = CreateIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_CODE_LEN + 1);
+        private int[][] basev = CreateIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_CODE_LEN + 1);
+        private int[][] perm = CreateIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
         private int[] minLens = new int[BZip2Constants.N_GROUPS];
 
         private Stream bsStream;
 
         private bool streamEnd = false;
 
-        private int currentChar = -1;
+        private int currentByte = -1;
 
-        private const int START_BLOCK_STATE = 1;
-        private const int RAND_PART_A_STATE = 2;
-        private const int RAND_PART_B_STATE = 3;
-        private const int RAND_PART_C_STATE = 4;
-        private const int NO_RAND_PART_A_STATE = 5;
-        private const int NO_RAND_PART_B_STATE = 6;
-        private const int NO_RAND_PART_C_STATE = 7;
+        private const int RAND_PART_B_STATE = 1;
+        private const int RAND_PART_C_STATE = 2;
+        private const int NO_RAND_PART_B_STATE = 3;
+        private const int NO_RAND_PART_C_STATE = 4;
 
-        private int currentState = START_BLOCK_STATE;
+        private int currentState = 0;
 
-        private int storedBlockCRC, storedCombinedCRC, computedCombinedCRC;
+        private int m_expectedBlockCrc, m_expectedStreamCrc, m_streamCrc;
 
         int i2, count, chPrev, ch2;
         int i, tPos;
         int rNToGo = 0;
         int rTPos  = 0;
         int j2;
-        char z;
+        int z;
 
-        public CBZip2InputStream(Stream zStream) {
+        public CBZip2InputStream(Stream zStream)
+        {
             ll8 = null;
             tt = null;
-            BsSetStream(zStream);
-            Initialize();
-            InitBlock();
-            SetupBlock();
-        }
+            bsStream = zStream;
+            bsLive = 0;
+            bsBuff = 0;
 
-        internal static int[][] InitIntArray(int n1, int n2)
-        {
-            int[][] a = new int[n1][];
-            for (int k = 0; k < n1; ++k)
-            {
-                a[k] = new int[n2];
-            }
-            return a;
-        }
+            int magic1 = bsStream.ReadByte();
+            int magic2 = bsStream.ReadByte();
+            int version = bsStream.ReadByte();
+            int level = bsStream.ReadByte();
+            if (level < 0)
+                throw new EndOfStreamException();
 
-        internal static byte[][] InitByteArray(int n1, int n2)
-        {
-            byte[][] a = new byte[n1][];
-            for (int k = 0; k < n1; ++k)
-            {
-                a[k] = new byte[n2];
-            }
-            return a;
+            if (magic1 != 'B' | magic2 != 'Z' | version != 'h' | level < '1' | level > '9')
+                throw new IOException("Invalid stream header");
+
+            blockSize100k = level - '0';
+
+            int n = BZip2Constants.baseBlockSize * blockSize100k;
+            ll8 = new byte[n];
+            tt = new int[n];
+
+            m_streamCrc = 0;
+
+            BeginBlock();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -192,20 +161,14 @@ namespace Org.BouncyCastle.Apache.Bzip2
             if (streamEnd)
                 return -1;
 
-            int retChar = currentChar;
+            int result = currentByte;
             switch (currentState)
             {
-            case START_BLOCK_STATE:
-                break;
-            case RAND_PART_A_STATE:
-                break;
             case RAND_PART_B_STATE:
                 SetupRandPartB();
                 break;
             case RAND_PART_C_STATE:
                 SetupRandPartC();
-                break;
-            case NO_RAND_PART_A_STATE:
                 break;
             case NO_RAND_PART_B_STATE:
                 SetupNoRandPartB();
@@ -214,329 +177,307 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 SetupNoRandPartC();
                 break;
             default:
-                break;
+                throw new InvalidOperationException();
             }
-            return retChar;
+            return result;
         }
 
-        private void Initialize() {
-            char magic3, magic4;
-            magic3 = BsGetUChar();
-            magic4 = BsGetUChar();
-            if (magic3 != 'B' && magic4 != 'Z')
+        private void BeginBlock()
+        {
+            long magic48 = BsGetLong48();
+            if (magic48 != 0x314159265359L)
             {
-                throw new IOException("Not a BZIP2 marked stream");
-            }
-            magic3 = BsGetUChar();
-            magic4 = BsGetUChar();
-            if (magic3 != 'h' || magic4 < '1' || magic4 > '9') {
+                if (magic48 != 0x177245385090L)
+                    throw new IOException("Block header error");
+
+                m_expectedStreamCrc = BsGetInt32();
+                if (m_expectedStreamCrc != m_streamCrc)
+                    throw new IOException("Stream CRC error");
+
                 BsFinishedWithStream();
                 streamEnd = true;
                 return;
             }
 
-            SetDecompressStructureSizes(magic4 - '0');
-            computedCombinedCRC = 0;
-        }
+            m_expectedBlockCrc = BsGetInt32();
 
-        private void InitBlock() {
-            char magic1, magic2, magic3, magic4;
-            char magic5, magic6;
-            magic1 = BsGetUChar();
-            magic2 = BsGetUChar();
-            magic3 = BsGetUChar();
-            magic4 = BsGetUChar();
-            magic5 = BsGetUChar();
-            magic6 = BsGetUChar();
-            if (magic1 == 0x17 && magic2 == 0x72 && magic3 == 0x45
-                && magic4 == 0x38 && magic5 == 0x50 && magic6 == 0x90) {
-                Complete();
-                return;
-            }
-
-            if (magic1 != 0x31 || magic2 != 0x41 || magic3 != 0x59
-                || magic4 != 0x26 || magic5 != 0x53 || magic6 != 0x59) {
-                BadBlockHeader();
-                streamEnd = true;
-                return;
-            }
-
-            storedBlockCRC = BsGetInt32();
-
-            blockRandomised = BsR(1) == 1;
+            bool blockRandomised = BsGetBit() == 1;
 
             GetAndMoveToFrontDecode();
 
-            mCrc.InitialiseCRC();
-            currentState = START_BLOCK_STATE;
+            m_blockCrc.Initialise();
+
+            int[] cftab = new int[257];
+            {
+                int accum = 0;
+                cftab[0] = 0;
+                for (i = 0; i < 256; ++i)
+                {
+                    accum += unzftab[i];
+                    cftab[i + 1] = accum;
+                }
+                if (accum != (last + 1))
+                    throw new InvalidOperationException();
+            }
+
+            for (i = 0; i <= last; i++)
+            {
+                byte ch = ll8[i];
+                tt[cftab[ch]++] = i;
+            }
+
+            tPos = tt[origPtr];
+
+            count = 0;
+            i2 = 0;
+            ch2 = 256;   /* not a char and not EOF */
+
+            if (blockRandomised)
+            {
+                rNToGo = 0;
+                rTPos = 0;
+                SetupRandPartA();
+            }
+            else
+            {
+                SetupNoRandPartA();
+            }
         }
 
         private void EndBlock()
         {
-            int computedBlockCRC = mCrc.GetFinalCRC();
-            /* A bad CRC is considered a fatal error. */
-            if (storedBlockCRC != computedBlockCRC)
+            int blockFinalCrc = m_blockCrc.GetFinal();
+            if (m_expectedBlockCrc != blockFinalCrc)
+                throw new IOException("Block CRC error");
+
+            m_streamCrc = Integers.RotateLeft(m_streamCrc, 1) ^ blockFinalCrc;
+        }
+
+        private void BsFinishedWithStream()
+        {
+            try
             {
-                CrcError();
-            }
-
-            computedCombinedCRC = Integers.RotateLeft(computedCombinedCRC, 1) ^ computedBlockCRC;
-        }
-
-        private void Complete() {
-            storedCombinedCRC = BsGetInt32();
-            if (storedCombinedCRC != computedCombinedCRC) {
-                CrcError();
-            }
-
-            BsFinishedWithStream();
-            streamEnd = true;
-        }
-
-        private static void BlockOverrun() {
-            Cadvise();
-        }
-
-        private static void BadBlockHeader() {
-            Cadvise();
-        }
-
-        private static void CrcError() {
-            Cadvise();
-        }
-
-        private void BsFinishedWithStream() {
-            try {
-                if (this.bsStream != null) {
+                if (this.bsStream != null)
+                {
                     Platform.Dispose(this.bsStream);
                     this.bsStream = null;
                 }
-            } catch {
+            }
+            catch
+            {
                 //ignore
             }
         }
 
-		private void BsSetStream(Stream f) {
-            bsStream = f;
-            bsLive = 0;
-            bsBuff = 0;
+        private int BsGetBit()
+        {
+            if (bsLive == 0)
+            {
+                bsBuff = RequireByte();
+                bsLive = 7;
+                return (int)((uint)bsBuff >> 7);
+            }
+
+            --bsLive;
+
+            return (bsBuff >> bsLive) & 1;
         }
 
-        private int BsR(int n) {
-            int v;
-            while (bsLive < n) {
-                int zzi;
-                char thech = '\0';
-                try {
-                    thech = (char)bsStream.ReadByte();
-                } catch (IOException) {
-                    CompressedStreamEOF();
-                }
-                if (thech == '\uffff') {
-                    CompressedStreamEOF();
-                }
-                zzi = thech;
-                bsBuff = (bsBuff << 8) | (zzi & 0xff);
+        private int BsGetBits(int n)
+        {
+            Debug.Assert(1 <= n && n <= 24);
+
+            while (bsLive < n)
+            {
+                bsBuff = (bsBuff << 8) | RequireByte();
                 bsLive += 8;
             }
 
-            v = (bsBuff >> (bsLive - n)) & ((1 << n) - 1);
             bsLive -= n;
-            return v;
+
+            return (bsBuff >> bsLive) & ((1 << n) - 1);
         }
 
-        private char BsGetUChar()
+        private int BsGetBitsSmall(int n)
         {
-            return (char)BsR(8);
-        }
+            Debug.Assert(1 <= n && n <= 8);
 
-        private int BsGetint()
-        {
-            //int u = 0;
-            //u = (u << 8) | BsR(8);
-            //u = (u << 8) | BsR(8);
-            //u = (u << 8) | BsR(8);
-            //u = (u << 8) | BsR(8);
-            //return u;
-            int u = BsR(16) << 16;
-            return u | BsR(16);
-        }
+            if (bsLive < n)
+            {
+                bsBuff = (bsBuff << 8) | RequireByte();
+                bsLive += 8;
+            }
 
-        private int BsGetIntVS(int numBits)
-        {
-            return BsR(numBits);
+            bsLive -= n;
+
+            return (bsBuff >> bsLive) & ((1 << n) - 1);
         }
 
         private int BsGetInt32()
         {
-            return BsGetint();
+            int u = BsGetBits(16) << 16;
+            return u | BsGetBits(16);
+        }
+
+        private long BsGetLong48()
+        {
+            long u = (long)BsGetBits(24) << 24;
+            return u | (long)BsGetBits(24);
         }
 
         private void HbCreateDecodeTables(int[] limit, int[] basev, int[] perm, byte[] length, int minLen, int maxLen,
             int alphaSize)
         {
-            int i, j, vec;
+            Array.Clear(basev, 0, basev.Length);
+            Array.Clear(limit, 0, limit.Length);
 
-            int pp = 0;
-            for (i = minLen; i <= maxLen; i++) {
-                for (j = 0; j < alphaSize; j++) {
-                    if (length[j] == i) {
-                        perm[pp] = j;
-                        pp++;
+            int pp = 0, baseVal = 0;
+            for (int i = minLen; i <= maxLen; i++)
+            {
+                basev[i] = baseVal;
+                for (int j = 0; j < alphaSize; j++)
+                {
+                    if (length[j] == i)
+                    {
+                        perm[pp++] = j;
                     }
                 }
-            }
-
-            for (i = 0; i < BZip2Constants.MAX_CODE_LEN; i++) {
-                basev[i] = 0;
-            }
-            for (i = 0; i < alphaSize; i++) {
-                basev[length[i] + 1]++;
-            }
-
-            for (i = 1; i < BZip2Constants.MAX_CODE_LEN; i++) {
-                basev[i] += basev[i - 1];
-            }
-
-            for (i = 0; i < BZip2Constants.MAX_CODE_LEN; i++) {
-                limit[i] = 0;
-            }
-            vec = 0;
-
-            for (i = minLen; i <= maxLen; i++) {
-                vec += (basev[i + 1] - basev[i]);
-                limit[i] = vec - 1;
-                vec <<= 1;
-            }
-            for (i = minLen + 1; i <= maxLen; i++) {
-                basev[i] = ((limit[i - 1] + 1) << 1) - basev[i];
+                limit[i] = baseVal + pp;
+                baseVal += limit[i];
             }
         }
 
-        private void RecvDecodingTables()
+        private int RecvDecodingTables()
         {
-            byte[][] len = InitByteArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
-            int i, j, t, nGroups, nSelectors, alphaSize;
-            int minLen, maxLen;
-            bool[] inUse16 = new bool[16];
+            int i, j;
+
+            nInUse = 0;
 
             /* Receive the mapping table */
-            for (i = 0; i < 16; i++)
-            {
-                inUse16[i] = BsR(1) == 1;
-            }
+            int inUse16 = BsGetBits(16);
 
-            for (i = 0; i < 16; i++)
+            for (i = 0; i < 16; ++i)
             {
-                int i16 = i * 16;
-                if (inUse16[i])
+                if ((inUse16 & (0x8000 >> i)) != 0)
                 {
-                    for (j = 0; j < 16; j++)
+                    int inUse = BsGetBits(16);
+
+                    int i16 = i * 16;
+                    for (j = 0; j < 16; ++j)
                     {
-                        inUse[i16 + j] = BsR(1) == 1;
-                    }
-                }
-                else
-                {
-                    for (j = 0; j < 16; j++)
-                    {
-                        inUse[i16 + j] = false;
+                        if ((inUse & (0x8000 >> j)) != 0)
+                        {
+                            seqToUnseq[nInUse++] = (byte)(i16 + j);
+                        }
                     }
                 }
             }
 
-            MakeMaps();
-            alphaSize = nInUse + 2;
+            if (nInUse < 1)
+                throw new InvalidOperationException();
+
+            int alphaSize = nInUse + 2;
 
             /* Now the selectors */
-            nGroups = BsR(3);
-            nSelectors = BsR(15);
-            for (i = 0; i < nSelectors; i++) {
-                j = 0;
-                while (BsR(1) == 1) {
-                    j++;
-                }
-                selectorMtf[i] = (char)j;
-            }
+            int nGroups = BsGetBitsSmall(3);
+            if (nGroups < 2 || nGroups > BZip2Constants.N_GROUPS)
+                throw new InvalidOperationException();
 
-            /* Undo the MTF values for the selectors. */
+            int nSelectors = BsGetBits(15);
+            if (nSelectors < 1)
+                throw new InvalidOperationException();
+
+            uint mtfGroups = 0x00543210U;
+            for (i = 0; i < nSelectors; i++)
             {
-                char[] pos = new char[BZip2Constants.N_GROUPS];
-                char tmp, v;
-                for (v = '\0'; v < nGroups; v++) {
-                    pos[v] = v;
+                int mtfSelector = 0;
+                while (BsGetBit() == 1)
+                {
+                    if (++mtfSelector >= nGroups)
+                        throw new InvalidOperationException();
                 }
 
-                for (i = 0; i < nSelectors; i++) {
-                    v = selectorMtf[i];
-                    tmp = pos[v];
-                    while (v > 0) {
-                        pos[v] = pos[v - 1];
-                        v--;
-                    }
-                    pos[0] = tmp;
-                    selector[i] = tmp;
+                // Ignore declared selectors in excess of the maximum usable number
+                if (i >= BZip2Constants.MAX_SELECTORS)
+                    continue;
+
+                // Undo the MTF value for the selector.
+                switch (mtfSelector)
+                {
+                case 0:
+                    break;
+                case 1:
+                    mtfGroups = (mtfGroups >>  4) & 0x00000FU | (mtfGroups << 4) & 0x0000F0U | mtfGroups & 0xFFFF00U;
+                    break;
+                case 2:
+                    mtfGroups = (mtfGroups >>  8) & 0x00000FU | (mtfGroups << 4) & 0x000FF0U | mtfGroups & 0xFFF000U;
+                    break;
+                case 3:
+                    mtfGroups = (mtfGroups >> 12) & 0x00000FU | (mtfGroups << 4) & 0x00FFF0U | mtfGroups & 0xFF0000U;
+                    break;
+                case 4:
+                    mtfGroups = (mtfGroups >> 16) & 0x00000FU | (mtfGroups << 4) & 0x0FFFF0U | mtfGroups & 0xF00000U;
+                    break;
+                case 5:
+                    mtfGroups = (mtfGroups >> 20) & 0x00000FU | (mtfGroups << 4) & 0xFFFFF0U;
+                    break;
+                default:
+                    throw new InvalidOperationException();
                 }
+
+                m_selectors[i] = (byte)(mtfGroups & 0xF);
             }
+
+            byte[] len_t = new byte[alphaSize];
 
             /* Now the coding tables */
-            for (t = 0; t < nGroups; t++)
+            for (int t = 0; t < nGroups; t++)
             {
-                byte[] len_t = len[t];
-                int curr = BsR(5);
-                for (i = 0; i < alphaSize; i++)
-                {
-                    while (BsR(1) == 1)
-                    {
-                        if (BsR(1) == 0)
-                        {
-                            curr++;
-                        }
-                        else
-                        {
-                            curr--;
-                        }
-                    }
-                    len_t[i] = (byte)curr;
-                }
-            }
+                int maxLen = 0, minLen = 32;
+                int curr = BsGetBitsSmall(5);
+                if ((curr < 1) | (curr > BZip2Constants.MAX_CODE_LEN))
+                    throw new InvalidOperationException();
 
-            /* Create the Huffman decoding tables */
-            for (t = 0; t < nGroups; t++)
-            {
-                minLen = 32;
-                maxLen = 0;
-                byte[] len_t = len[t];
                 for (i = 0; i < alphaSize; i++)
                 {
-                    int lti = len_t[i];
-                    if (lti > maxLen)
+                    int markerBit = BsGetBit();
+                    while (markerBit != 0)
                     {
-                        maxLen = lti;
+                        int nextTwoBits = BsGetBitsSmall(2);
+                        curr += 1 - (nextTwoBits & 2);
+                        if ((curr < 1) | (curr > BZip2Constants.MAX_CODE_LEN))
+                            throw new InvalidOperationException();
+                        markerBit = nextTwoBits & 1;
                     }
-                    if (lti < minLen)
-                    {
-                        minLen = lti;
-                    }
+
+                    len_t[i] = (byte)curr;
+                    maxLen = System.Math.Max(maxLen, curr);
+                    minLen = System.Math.Min(minLen, curr);
                 }
+
+                /* Create the Huffman decoding tables */
                 HbCreateDecodeTables(limit[t], basev[t], perm[t], len_t, minLen, maxLen, alphaSize);
                 minLens[t] = minLen;
             }
+
+            return nSelectors;
         }
 
         private void GetAndMoveToFrontDecode()
         {
-            char[] yy = new char[256];
-            int i, j, nextSym, limitLast;
-            int EOB, groupNo, groupPos;
+            byte[] yy = new byte[256];
+            int i, j, nextSym;
 
-            limitLast = BZip2Constants.baseBlockSize * blockSize100k;
-            origPtr = BsGetIntVS(24);
+            int limitLast = BZip2Constants.baseBlockSize * blockSize100k;
 
-            RecvDecodingTables();
-            EOB = nInUse + 1;
-            groupNo = -1;
-            groupPos = 0;
+            origPtr = BsGetBits(24);
+            if (origPtr > 10 + limitLast)
+                throw new InvalidOperationException();
+
+            int nSelectors = RecvDecodingTables();
+
+            int alphaSize = nInUse + 2;
+            int EOB = nInUse + 1;
 
             /*
             Setting up the unzftab entries here is not strictly
@@ -544,153 +485,107 @@ namespace Org.BouncyCastle.Apache.Bzip2
             in a separate pass, and so saves a block's worth of
             cache misses.
             */
-            for (i = 0; i <= 255; i++)
-            {
-                unzftab[i] = 0;
-            }
+            Array.Clear(unzftab, 0, unzftab.Length);
 
             for (i = 0; i <= 255; i++)
             {
-                yy[i] = (char)i;
+                yy[i] = (byte)i;
             }
 
             last = -1;
 
+            int groupNo = 0;
+            int groupPos = BZip2Constants.G_SIZE - 1;
+            int groupSel = m_selectors[groupNo];
+            int groupMinLen = minLens[groupSel];
+            int[] groupLimits = limit[groupSel];
+            int[] groupPerm = perm[groupSel];
+            int[] groupBase = basev[groupSel];
+
             {
-                int zt, zn, zvec, zj;
-                if (groupPos == 0)
+                int zn = groupMinLen;
+                int zvec = BsGetBits(groupMinLen);
+                while (zvec >= groupLimits[zn])
                 {
-                    groupNo++;
-                    groupPos = BZip2Constants.G_SIZE;
+                    if (++zn > BZip2Constants.MAX_CODE_LEN)
+                        throw new InvalidOperationException();
+
+                    zvec = (zvec << 1) | BsGetBit();
                 }
-                groupPos--;
-                zt = selector[groupNo];
-                zn = minLens[zt];
-                zvec = BsR(zn);
-                while (zvec > limit[zt][zn])
-                {
-                    zn++;
-                    {
-                        {
-                            while (bsLive < 1)
-                            {
-                                int zzi;
-                                char thech = '\0';
-                                try
-                                {
-                                    thech = (char)bsStream.ReadByte();
-                                }
-                                catch (IOException)
-                                {
-                                    CompressedStreamEOF();
-                                }
-                                if (thech == '\uffff')
-                                {
-                                    CompressedStreamEOF();
-                                }
-                                zzi = thech;
-                                bsBuff = (bsBuff << 8) | (zzi & 0xff);
-                                bsLive += 8;
-                            }
-                        }
-                        zj = (bsBuff >> (bsLive - 1)) & 1;
-                        bsLive--;
-                    }
-                    zvec = (zvec << 1) | zj;
-                }
-                nextSym = perm[zt][zvec - basev[zt][zn]];
+                int permIndex = zvec - groupBase[zn];
+                if (permIndex >= alphaSize)
+                    throw new InvalidOperationException();
+
+                nextSym = groupPerm[permIndex];
             }
 
             while (nextSym != EOB)
             {
-                if (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB)
+                //if (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB)
+                if (nextSym <= BZip2Constants.RUNB)
                 {
-                    char ch;
-                    int s = -1;
-                    int N = 1;
+                    int n = 1, s = 0;
                     do
                     {
-                        if (nextSym == BZip2Constants.RUNA)
+                        if (n > 1024 * 1024)
+                            throw new InvalidOperationException();
+
+                        s += n << nextSym;
+                        n <<= 1;
+
                         {
-                            s += (0 + 1) * N;
-                        }
-                        else if (nextSym == BZip2Constants.RUNB)
-                        {
-                            s += (1 + 1) * N;
-                        }
-                        N = N * 2;
-                        {
-                            int zt, zn, zvec, zj;
                             if (groupPos == 0)
                             {
-                                groupNo++;
+                                if (++groupNo >= nSelectors)
+                                    throw new InvalidOperationException();
+
                                 groupPos = BZip2Constants.G_SIZE;
+                                groupSel = m_selectors[groupNo];
+                                groupMinLen = minLens[groupSel];
+                                groupLimits = limit[groupSel];
+                                groupPerm = perm[groupSel];
+                                groupBase = basev[groupSel];
                             }
                             groupPos--;
-                            zt = selector[groupNo];
-                            zn = minLens[zt];
-                            zvec = BsR(zn);
-                            while (zvec > limit[zt][zn])
+
+                            int zn = groupMinLen;
+                            int zvec = BsGetBits(groupMinLen);
+                            while (zvec >= groupLimits[zn])
                             {
-                                zn++;
-                                {
-                                    {
-                                        while (bsLive < 1)
-                                        {
-                                            int zzi;
-                                            char thech = '\0';
-                                            try
-                                            {
-                                                thech = (char)bsStream.ReadByte();
-                                            }
-                                            catch (IOException)
-                                            {
-                                                CompressedStreamEOF();
-                                            }
-                                            if (thech == '\uffff')
-                                            {
-                                                CompressedStreamEOF();
-                                            }
-                                            zzi = thech;
-                                            bsBuff = (bsBuff << 8) | (zzi & 0xff);
-                                            bsLive += 8;
-                                        }
-                                    }
-                                    zj = (bsBuff >> (bsLive - 1)) & 1;
-                                    bsLive--;
-                                }
-                                zvec = (zvec << 1) | zj;
+                                if (++zn > BZip2Constants.MAX_CODE_LEN)
+                                    throw new InvalidOperationException();
+
+                                zvec = (zvec << 1) | BsGetBit();
                             }
-                            nextSym = perm[zt][zvec - basev[zt][zn]];
+                            int permIndex = zvec - groupBase[zn];
+                            if (permIndex >= alphaSize)
+                                throw new InvalidOperationException();
+
+                            nextSym = groupPerm[permIndex];
                         }
                     }
-                    while (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB);
+                    //while (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB);
+                    while (nextSym <= BZip2Constants.RUNB);
 
-                    s++;
-                    ch = seqToUnseq[yy[0]];
+                    byte ch = seqToUnseq[yy[0]];
                     unzftab[ch] += s;
 
-                    while (s > 0)
+                    if (last >= limitLast - s)
+                        throw new InvalidOperationException("Block overrun");
+
+                    while (--s >= 0)
                     {
-                        last++;
-                        ll8[last] = ch;
-                        s--;
+                        ll8[++last] = ch;
                     }
 
-                    if (last >= limitLast)
-                    {
-                        BlockOverrun();
-                    }
                     continue;
                 }
                 else
                 {
                     if (++last >= limitLast)
-                    {
-                        BlockOverrun();
-                    }
+                        throw new InvalidOperationException("Block overrun");
 
-                    char tmp = yy[nextSym - 1];
+                    byte tmp = yy[nextSym - 1];
                     unzftab[seqToUnseq[tmp]]++;
                     ll8[last] = seqToUnseq[tmp];
 
@@ -714,217 +609,202 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     yy[0] = tmp;
 
                     {
-                        int zt, zn, zvec, zj;
                         if (groupPos == 0)
                         {
-                            groupNo++;
+                            if (++groupNo >= nSelectors)
+                                throw new InvalidOperationException();
+
                             groupPos = BZip2Constants.G_SIZE;
+                            groupSel = m_selectors[groupNo];
+                            groupMinLen = minLens[groupSel];
+                            groupLimits = limit[groupSel];
+                            groupPerm = perm[groupSel];
+                            groupBase = basev[groupSel];
                         }
                         groupPos--;
-                        zt = selector[groupNo];
-                        zn = minLens[zt];
-                        zvec = BsR(zn);
-                        while (zvec > limit[zt][zn])
+
+                        int zn = groupMinLen;
+                        int zvec = BsGetBits(groupMinLen);
+                        while (zvec >= groupLimits[zn])
                         {
-                            zn++;
-                            {
-                                {
-                                    while (bsLive < 1)
-                                    {
-                                        int zzi;
-                                        char thech = '\0';
-                                        try
-                                        {
-                                            thech = (char)bsStream.ReadByte();
-                                        }
-                                        catch (IOException)
-                                        {
-                                            CompressedStreamEOF();
-                                        }
-                                        zzi = thech;
-                                        bsBuff = (bsBuff << 8) | (zzi & 0xff);
-                                        bsLive += 8;
-                                    }
-                                }
-                                zj = (bsBuff >> (bsLive - 1)) & 1;
-                                bsLive--;
-                            }
-                            zvec = (zvec << 1) | zj;
+                            if (++zn > BZip2Constants.MAX_CODE_LEN)
+                                throw new InvalidOperationException();
+
+                            zvec = (zvec << 1) | BsGetBit();
                         }
-                        nextSym = perm[zt][zvec - basev[zt][zn]];
+                        int permIndex = zvec - groupBase[zn];
+                        if (permIndex >= alphaSize)
+                            throw new InvalidOperationException();
+
+                        nextSym = groupPerm[permIndex];
                     }
                     continue;
                 }
             }
-        }
 
-        private void SetupBlock() {
-            int[] cftab = new int[257];
-            char ch;
+            if (origPtr > last)
+                throw new InvalidOperationException();
 
-            cftab[0] = 0;
-            for (i = 1; i <= 256; i++) {
-                cftab[i] = unzftab[i - 1];
-            }
-            for (i = 1; i <= 256; i++) {
-                cftab[i] += cftab[i - 1];
-            }
+            // Check unzftab entries are in range.
+            {
+                int nblock = last + 1;
+                int check = 0;
 
-            for (i = 0; i <= last; i++) {
-                ch = ll8[i];
-                tt[cftab[ch]] = i;
-                cftab[ch]++;
-            }
-            cftab = null;
-
-            tPos = tt[origPtr];
-
-            count = 0;
-            i2 = 0;
-            ch2 = 256;   /* not a char and not EOF */
-
-            if (blockRandomised) {
-                rNToGo = 0;
-                rTPos = 0;
-                SetupRandPartA();
-            } else {
-                SetupNoRandPartA();
+                for (i = 0; i <= 255; i++)
+                {
+                    int t = unzftab[i];
+                    check |= t;
+                    check |= nblock - t;
+                }
+                if (check < 0)
+                    throw new InvalidOperationException();
             }
         }
 
-        private void SetupRandPartA() {
-            if (i2 <= last) {
+        private int RequireByte()
+        {
+            int b = bsStream.ReadByte();
+            if (b < 0)
+                throw new EndOfStreamException();
+            return b & 0xFF;
+        }
+
+        private void SetupRandPartA()
+        {
+            if (i2 <= last)
+            {
                 chPrev = ch2;
                 ch2 = ll8[tPos];
                 tPos = tt[tPos];
-                if (rNToGo == 0) {
-                    rNToGo = BZip2Constants.rNums[rTPos];
-                    rTPos++;
-                    if (rTPos == 512) {
-                        rTPos = 0;
-                    }
+                if (rNToGo == 0)
+                {
+                    rNToGo = CBZip2OutputStream.RNums[rTPos++];
+                    rTPos &= 0x1FF;
                 }
                 rNToGo--;
-                ch2 ^= (rNToGo == 1) ? 1 : 0;
+                ch2 ^= rNToGo == 1 ? 1 : 0;
                 i2++;
 
-                currentChar = ch2;
+                currentByte = ch2;
                 currentState = RAND_PART_B_STATE;
-                mCrc.UpdateCRC((byte)ch2);
-            } else {
+                m_blockCrc.Update((byte)ch2);
+            }
+            else
+            {
                 EndBlock();
-                InitBlock();
-                SetupBlock();
+                BeginBlock();
             }
         }
 
-        private void SetupNoRandPartA() {
-            if (i2 <= last) {
+        private void SetupNoRandPartA()
+        {
+            if (i2 <= last)
+            {
                 chPrev = ch2;
                 ch2 = ll8[tPos];
                 tPos = tt[tPos];
                 i2++;
 
-                currentChar = ch2;
+                currentByte = ch2;
                 currentState = NO_RAND_PART_B_STATE;
-                mCrc.UpdateCRC((byte)ch2);
-            } else {
+                m_blockCrc.Update((byte)ch2);
+            }
+            else
+            {
                 EndBlock();
-                InitBlock();
-                SetupBlock();
+                BeginBlock();
             }
         }
 
-        private void SetupRandPartB() {
-            if (ch2 != chPrev) {
-                currentState = RAND_PART_A_STATE;
+        private void SetupRandPartB()
+        {
+            if (ch2 != chPrev)
+            {
                 count = 1;
                 SetupRandPartA();
-            } else {
-                count++;
-                if (count >= 4) {
-                    z = ll8[tPos];
-                    tPos = tt[tPos];
-                    if (rNToGo == 0) {
-                        rNToGo = BZip2Constants.rNums[rTPos];
-                        rTPos++;
-                        if (rTPos == 512) {
-                            rTPos = 0;
-                        }
-                    }
-                    rNToGo--;
-                    z ^= (char)((rNToGo == 1) ? 1 : 0);
-                    j2 = 0;
-                    currentState = RAND_PART_C_STATE;
-                    SetupRandPartC();
-                } else {
-                    currentState = RAND_PART_A_STATE;
-                    SetupRandPartA();
+            }
+            else if (++count < 4)
+            {
+                SetupRandPartA();
+            }
+            else
+            {
+                z = ll8[tPos];
+                tPos = tt[tPos];
+                if (rNToGo == 0)
+                {
+                    rNToGo = CBZip2OutputStream.RNums[rTPos++];
+                    rTPos &= 0x1FF;
                 }
+                rNToGo--;
+                z ^= rNToGo == 1 ? 1 : 0;
+                j2 = 0;
+                currentState = RAND_PART_C_STATE;
+                SetupRandPartC();
             }
         }
 
-        private void SetupRandPartC() {
-            if (j2 < z) {
-                currentChar = ch2;
-                mCrc.UpdateCRC((byte)ch2);
+        private void SetupNoRandPartB()
+        {
+            if (ch2 != chPrev)
+            {
+                count = 1;
+                SetupNoRandPartA();
+            }
+            else if (++count < 4)
+            {
+                SetupNoRandPartA();
+            }
+            else
+            {
+                z = ll8[tPos];
+                tPos = tt[tPos];
+                currentState = NO_RAND_PART_C_STATE;
+                j2 = 0;
+                SetupNoRandPartC();
+            }
+        }
+
+        private void SetupRandPartC()
+        {
+            if (j2 < z)
+            {
+                currentByte = ch2;
+                m_blockCrc.Update((byte)ch2);
                 j2++;
-            } else {
-                currentState = RAND_PART_A_STATE;
+            }
+            else
+            {
                 i2++;
                 count = 0;
                 SetupRandPartA();
             }
         }
 
-        private void SetupNoRandPartB() {
-            if (ch2 != chPrev) {
-                currentState = NO_RAND_PART_A_STATE;
-                count = 1;
-                SetupNoRandPartA();
-            } else {
-                count++;
-                if (count >= 4) {
-                    z = ll8[tPos];
-                    tPos = tt[tPos];
-                    currentState = NO_RAND_PART_C_STATE;
-                    j2 = 0;
-                    SetupNoRandPartC();
-                } else {
-                    currentState = NO_RAND_PART_A_STATE;
-                    SetupNoRandPartA();
-                }
-            }
-        }
-
-        private void SetupNoRandPartC() {
-            if (j2 < z) {
-                currentChar = ch2;
-                mCrc.UpdateCRC((byte)ch2);
+        private void SetupNoRandPartC()
+        {
+            if (j2 < z)
+            {
+                currentByte = ch2;
+                m_blockCrc.Update((byte)ch2);
                 j2++;
-            } else {
-                currentState = NO_RAND_PART_A_STATE;
+            }
+            else
+            {
                 i2++;
                 count = 0;
                 SetupNoRandPartA();
             }
         }
 
-        private void SetDecompressStructureSizes(int newSize100k) {
-            if (!(0 <= newSize100k && newSize100k <= 9 && 0 <= blockSize100k
-                && blockSize100k <= 9)) {
-                // throw new IOException("Invalid block size");
+        internal static int[][] CreateIntArray(int n1, int n2)
+        {
+            int[][] a = new int[n1][];
+            for (int k = 0; k < n1; ++k)
+            {
+                a[k] = new int[n2];
             }
-
-            blockSize100k = newSize100k;
-
-            if (newSize100k == 0) {
-                return;
-            }
-
-            int n = BZip2Constants.baseBlockSize * newSize100k;
-            ll8 = new char[n];
-            tt = new int[n];
+            return a;
         }
     }
 }
