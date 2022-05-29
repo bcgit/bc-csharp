@@ -187,6 +187,15 @@ namespace Org.BouncyCastle.Tls
             }
             else
             {
+                {
+                    securityParameters.m_serverRandom = CreateRandomBlock(false, m_tlsServerContext);
+
+                    if (!serverVersion.Equals(ProtocolVersion.GetLatestTls(m_tlsServer.GetProtocolVersions())))
+                    {
+                        TlsUtilities.WriteDowngradeMarker(serverVersion, securityParameters.ServerRandom);
+                    }
+                }
+
                 this.m_clientExtensions = clientHelloExtensions;
 
                 securityParameters.m_secureRenegotiation = false;
@@ -228,15 +237,6 @@ namespace Org.BouncyCastle.Tls
                 m_tlsServer.NotifySession(m_tlsSession);
 
                 TlsUtilities.NegotiatedVersionTlsServer(m_tlsServerContext);
-
-                {
-                    securityParameters.m_serverRandom = CreateRandomBlock(false, m_tlsServerContext);
-
-                    if (!serverVersion.Equals(ProtocolVersion.GetLatestTls(m_tlsServer.GetProtocolVersions())))
-                    {
-                        TlsUtilities.WriteDowngradeMarker(serverVersion, securityParameters.ServerRandom);
-                    }
-                }
 
                 {
                     // TODO[tls13] Constrain selection when PSK selected
@@ -460,6 +460,17 @@ namespace Org.BouncyCastle.Tls
 
             m_recordStream.SetWriteVersion(serverVersion);
 
+            {
+                bool useGmtUnixTime = m_tlsServer.ShouldUseGmtUnixTime();
+
+                securityParameters.m_serverRandom = CreateRandomBlock(useGmtUnixTime, m_tlsServerContext);
+
+                if (!serverVersion.Equals(ProtocolVersion.GetLatestTls(m_tlsServer.GetProtocolVersions())))
+                {
+                    TlsUtilities.WriteDowngradeMarker(serverVersion, securityParameters.ServerRandom);
+                }
+            }
+
             this.m_clientExtensions = clientHello.Extensions;
 
             byte[] clientRenegExtData = TlsUtilities.GetExtensionData(m_clientExtensions, ExtensionType.renegotiation_info);
@@ -555,17 +566,6 @@ namespace Org.BouncyCastle.Tls
             m_tlsServer.NotifySession(m_tlsSession);
 
             TlsUtilities.NegotiatedVersionTlsServer(m_tlsServerContext);
-
-            {
-                bool useGmtUnixTime = m_tlsServer.ShouldUseGmtUnixTime();
-
-                securityParameters.m_serverRandom = CreateRandomBlock(useGmtUnixTime, m_tlsServerContext);
-
-                if (!serverVersion.Equals(ProtocolVersion.GetLatestTls(m_tlsServer.GetProtocolVersions())))
-                {
-                    TlsUtilities.WriteDowngradeMarker(serverVersion, securityParameters.ServerRandom);
-                }
-            }
 
             {
                 int cipherSuite = m_resumedSession

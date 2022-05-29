@@ -418,6 +418,13 @@ namespace Org.BouncyCastle.Tls
 
             context.SetClientVersion(client_version);
 
+            {
+                bool useGmtUnixTime = ProtocolVersion.DTLSv12.IsEqualOrLaterVersionOf(client_version)
+                    && state.client.ShouldUseGmtUnixTime();
+
+                securityParameters.m_clientRandom = TlsProtocol.CreateRandomBlock(useGmtUnixTime, state.clientContext);
+            }
+
             byte[] session_id = TlsUtilities.GetSessionID(state.tlsSession);
 
             bool fallback = state.client.IsFallback();
@@ -469,13 +476,6 @@ namespace Org.BouncyCastle.Tls
                 && state.client.RequiresExtendedMasterSecret())
             {
                 throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
-
-            {
-                bool useGmtUnixTime = ProtocolVersion.DTLSv12.IsEqualOrLaterVersionOf(client_version)
-                    && state.client.ShouldUseGmtUnixTime();
-
-                securityParameters.m_clientRandom = TlsProtocol.CreateRandomBlock(useGmtUnixTime, state.clientContext);
             }
 
             // Cipher Suites (and SCSV)

@@ -70,6 +70,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
         public override IDictionary GetClientExtensions()
         {
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
             IDictionary clientExtensions = base.GetClientExtensions();
             if (clientExtensions != null)
             {
@@ -185,6 +188,14 @@ namespace Org.BouncyCastle.Tls.Tests
         public override TlsAuthentication GetAuthentication()
         {
             return new MyTlsAuthentication(this, m_context);
+        }
+
+        public override void ProcessServerExtensions(IDictionary serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessServerExtensions(serverExtensions);
         }
 
         protected virtual Certificate CorruptCertificate(Certificate cert)

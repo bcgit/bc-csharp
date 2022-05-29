@@ -106,5 +106,21 @@ namespace Org.BouncyCastle.Tls.Tests
                 Console.WriteLine("Client ALPN: " + protocolName.GetUtf8Decoding());
             }
         }
+
+        public override IDictionary GetClientExtensions()
+        {
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return base.GetClientExtensions();
+        }
+
+        public override void ProcessServerExtensions(IDictionary serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessServerExtensions(serverExtensions);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
@@ -70,6 +71,30 @@ namespace Org.BouncyCastle.Tls.Tests
                 string name = Strings.FromUtf8ByteArray(pskIdentity);
                 Console.WriteLine("DTLS-PSK server completed handshake for PSK identity: " + name);
             }
+        }
+
+        public override void ProcessClientExtensions(IDictionary clientExtensions)
+        {
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessClientExtensions(clientExtensions);
+        }
+
+        public override IDictionary GetServerExtensions()
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return base.GetServerExtensions();
+        }
+
+        public override void GetServerExtensionsForConnection(IDictionary serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.GetServerExtensionsForConnection(serverExtensions);
         }
 
         protected override TlsCredentialedDecryptor GetRsaEncryptionCredentials()

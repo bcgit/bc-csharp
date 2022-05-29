@@ -1638,6 +1638,12 @@ namespace Org.BouncyCastle.Tls
             bool offeringTlsV12Minus = ProtocolVersion.TLSv12.IsEqualOrLaterVersionOf(earliestVersion);
             bool offeringTlsV13Plus = ProtocolVersion.TLSv13.IsEqualOrEarlierVersionOf(latestVersion);
 
+            {
+                bool useGmtUnixTime = !offeringTlsV13Plus && m_tlsClient.ShouldUseGmtUnixTime();
+
+                securityParameters.m_clientRandom = CreateRandomBlock(useGmtUnixTime, m_tlsClientContext);
+            }
+
             EstablishSession(offeringTlsV12Minus ? m_tlsClient.GetSessionToResume() : null);
             m_tlsClient.NotifySessionToResume(m_tlsSession);
 
@@ -1708,12 +1714,6 @@ namespace Org.BouncyCastle.Tls
             else if (!offeringTlsV13Plus && m_tlsClient.RequiresExtendedMasterSecret())
             {
                 throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
-
-            {
-                bool useGmtUnixTime = !offeringTlsV13Plus && m_tlsClient.ShouldUseGmtUnixTime();
-
-                securityParameters.m_clientRandom = CreateRandomBlock(useGmtUnixTime, m_tlsClientContext);
             }
 
             // NOT renegotiating
