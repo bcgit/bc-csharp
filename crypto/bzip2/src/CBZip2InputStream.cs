@@ -334,7 +334,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
             int pp = 0, baseVal = 0;
             for (int i = minLen; i <= maxLen; i++)
             {
-                basev[i] = baseVal;
                 for (int j = 0; j < alphaSize; j++)
                 {
                     if (length[j] == i)
@@ -342,8 +341,9 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         perm[pp++] = j;
                     }
                 }
+                basev[i] = baseVal;
                 limit[i] = baseVal + pp;
-                baseVal += limit[i];
+                baseVal += baseVal + pp;
             }
         }
 

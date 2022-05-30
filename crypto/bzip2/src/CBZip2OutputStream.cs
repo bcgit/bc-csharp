@@ -617,19 +617,10 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private void SendMtfValues()
         {
-            byte[][] len = InitByteArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
 
             int v, t, i, j, bt, bc, iter;
 
             int alphaSize = nInUse + 2;
-            for (t = 0; t < BZip2Constants.N_GROUPS; t++)
-            {
-                byte[] len_t = len[t];
-                for (v = 0; v < alphaSize; v++)
-                {
-                    len_t[v] = GREATER_ICOST;
-                }
-            }
 
             /* Decide how many coding tables to use */
             if (nMTF <= 0)
@@ -655,6 +646,12 @@ namespace Org.BouncyCastle.Apache.Bzip2
             else
             {
                 nGroups = 6;
+            }
+
+            byte[][] len = CreateByteArray(nGroups, alphaSize);
+            for (t = 0; t < nGroups; t++)
+            {
+                Arrays.Fill(len[t], GREATER_ICOST);
             }
 
             /* Generate an initial set of coding tables */
@@ -698,12 +695,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
             int[][] rfreq = CBZip2InputStream.CreateIntArray(BZip2Constants.N_GROUPS, BZip2Constants.MAX_ALPHA_SIZE);
             int[] fave = new int[BZip2Constants.N_GROUPS];
             short[] cost = new short[BZip2Constants.N_GROUPS];
-            byte[] len_0 = len[0];
-            byte[] len_1 = len[1];
-            byte[] len_2 = len[2];
-            byte[] len_3 = len[3];
-            byte[] len_4 = len[4];
-            byte[] len_5 = len[5];
 
             // Iterate up to N_ITERS times to improve the tables.
             int nSelectors = 0;
@@ -734,6 +725,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
                     if (nGroups == 6)
                     {
+                        byte[] len_0 = len[0], len_1 = len[1], len_2 = len[2], len_3 = len[3], len_4 = len[4], len_5 = len[5];
                         short cost0 = 0, cost1 = 0, cost2 = 0, cost3 = 0, cost4 = 0, cost5 = 0;
 
                         for (i = gs; i <= ge; i++)
@@ -874,25 +866,20 @@ namespace Org.BouncyCastle.Apache.Bzip2
             BsPutBitsSmall(3, nGroups);
             BsPutBits(15, nSelectors);
             {
-                byte[] pos = new byte[BZip2Constants.N_GROUPS];
-                for (i = 0; i < nGroups; i++)
-                {
-                    pos[i] = (byte)i;
-                }
+                int mtfSelectors = 0x00654321;
 
                 for (i = 0; i < nSelectors; i++)
                 {
-                    // Compute MTF values for the selector.
-                    byte ll_i = m_selectors[i];
-                    int mtfSelector = 1;
-                    byte tmp = pos[0];
-                    while (ll_i != tmp)
+                    // Compute MTF value for the selector.
+                    int ll_i = m_selectors[i];
+                    int bitPos = ll_i << 2;
+                    int mtfSelector = (mtfSelectors >> bitPos) & 0xF;
+
+                    if (mtfSelector != 1)
                     {
-                        byte tmp2 = tmp;
-                        tmp = pos[mtfSelector];
-                        pos[mtfSelector++] = tmp2;
+                        int mtfIncMask = (0x00888888 - mtfSelectors + 0x00111111 * mtfSelector) & 0x00888888;
+                        mtfSelectors = mtfSelectors - (mtfSelector << bitPos) + (mtfIncMask >> 3);
                     }
-                    pos[0] = tmp;
 
                     BsPutBitsSmall(mtfSelector, (1 << mtfSelector) - 2);
                 }
@@ -1543,10 +1530,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private void GenerateMtfValues()
         {
             byte[] yy = new byte[256];
-            int i, j;
-            int zPend;
-            int wr;
-            int EOB;
+            int i;
 
             nInUse = 0;
 
@@ -1558,79 +1542,60 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 }
             }
 
-            EOB = nInUse + 1;
+            int EOB = nInUse + 1;
 
             for (i = 0; i <= EOB; i++)
             {
                 mtfFreq[i] = 0;
             }
 
-            wr = 0;
-            zPend = 0;
             for (i = 0; i < nInUse; i++)
             {
                 yy[i] = (byte)i;
             }
 
+            int j, wr = 0, zPend = 0;
             for (i = 0; i < count; i++)
             {
                 byte ll_i = unseqToSeq[blockBytes[zptr[i]]];
 
-                j = 0;
-                {
-                    byte tmp = yy[j];
-                    while (ll_i != tmp)
-                    {
-                        j++;
-                        byte tmp2 = tmp;
-                        tmp = yy[j];
-                        yy[j] = tmp2;
-                    }
-                    yy[0] = tmp;
-                }
-
-                if (j == 0)
+                byte tmp = yy[0];
+                if (ll_i == tmp)
                 {
                     zPend++;
                     continue;
                 }
 
-                if (zPend > 0)
+                int sym = 1;
+                do
                 {
-                    zPend--;
-                    while (true)
-                    {
-                        // BZip2Constants.RUNA or BZip2Constants.RUNB
-                        int run = zPend & 1;
-                        szptr[wr++] = run;
-                        mtfFreq[run]++;
-
-                        if (zPend < 2)
-                            break;
-
-                        zPend = (zPend - 2) / 2;
-                    }
-                    zPend = 0;
+                    byte tmp2 = tmp;
+                    tmp = yy[sym];
+                    yy[sym++] = tmp2;
                 }
-                szptr[wr++] = j + 1;
-                mtfFreq[j + 1]++;
-            }
+                while (ll_i != tmp);
+                yy[0] = tmp;
 
-            if (zPend > 0)
-            {
-                zPend--;
-                while (true)
+                while (zPend > 0)
                 {
-                    // BZip2Constants.RUNA or BZip2Constants.RUNB
-                    int run = zPend & 1;
+                    // RUNA or RUNB
+                    int run = --zPend & 1;
                     szptr[wr++] = run;
                     mtfFreq[run]++;
-
-                    if (zPend < 2)
-                        break;
-
-                    zPend = (zPend - 2) / 2;
+                    zPend >>= 1;
                 }
+
+                szptr[wr++] = sym;
+                mtfFreq[sym]++;
+            }
+
+            while (zPend > 0)
+            {
+                // RUNA or RUNB
+                int run = --zPend & 1;
+                szptr[wr++] = run;
+                mtfFreq[run]++;
+                zPend >>= 1;
             }
 
             szptr[wr++] = EOB;
@@ -1639,7 +1604,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
             nMTF = wr;
         }
 
-        internal static byte[][] InitByteArray(int n1, int n2)
+        internal static byte[][] CreateByteArray(int n1, int n2)
         {
             byte[][] a = new byte[n1][];
             for (int k = 0; k < n1; ++k)
