@@ -78,6 +78,13 @@ namespace Org.BouncyCastle.Apache.Bzip2
             780, 773, 635, 389, 707, 100, 626, 958, 165, 504, 920, 176, 193, 713, 857, 265, 203, 50, 668, 108, 645, 990,
             626, 197, 510, 357, 358, 850, 858, 364, 936, 638 };
 
+        /*
+         * Knuth's increments seem to work better than Incerpi-Sedgewick here, possibly because the number of elements
+         * to sort is usually small, typically <= 20.
+         */
+        private static readonly int[] Incs = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161,
+            2391484 };
+
         private bool finished;
 
         protected static void HbMakeCodeLengths(byte[] len, int[] freq, int alphaSize, int maxLen)
@@ -247,7 +254,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
         private readonly int allowableBlockSize;
 
         bool blockRandomised;
-        IList blocksortStack = Platform.CreateArrayList();
+        private readonly IList blocksortStack = Platform.CreateArrayList();
 
         int bsBuff;
         int bsLivePos;
@@ -255,8 +262,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private bool[] inUse = new bool[256];
         private int nInUse;
-
-        private byte[] unseqToSeq = new byte[256];
 
         private byte[] m_selectors = new byte[BZip2Constants.MAX_SELECTORS];
 
@@ -952,7 +957,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 return;
 
             int hp = 0;
-            while (incs[hp] < bigN)
+            while (Incs[hp] < bigN)
             {
                 hp++;
             }
@@ -960,7 +965,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
             for (; hp >= 0; hp--)
             {
-                h = incs[hp];
+                h = Incs[hp];
 
                 i = lo + h;
                 while (i <= hi)
@@ -1518,27 +1523,18 @@ namespace Org.BouncyCastle.Apache.Bzip2
             return false;
         }
 
-        /*
-        Knuth's increments seem to work better
-        than Incerpi-Sedgewick here.  Possibly
-        because the number of elems to sort is
-        usually small, typically <= 20.
-        */
-        private static readonly int[] incs = { 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161,
-            2391484 };
-
         private void GenerateMtfValues()
         {
-            byte[] yy = new byte[256];
             int i;
 
             nInUse = 0;
 
+            byte[] yy = new byte[256];
             for (i = 0; i < 256; i++)
             {
                 if (inUse[i])
                 {
-                    unseqToSeq[i] = (byte)nInUse++;
+                    yy[nInUse++] = (byte)i;
                 }
             }
 
@@ -1549,18 +1545,13 @@ namespace Org.BouncyCastle.Apache.Bzip2
                 mtfFreq[i] = 0;
             }
 
-            for (i = 0; i < nInUse; i++)
-            {
-                yy[i] = (byte)i;
-            }
-
             int j, wr = 0, zPend = 0;
             for (i = 0; i < count; i++)
             {
-                byte ll_i = unseqToSeq[blockBytes[zptr[i]]];
+                byte blockByte = blockBytes[zptr[i]];
 
                 byte tmp = yy[0];
-                if (ll_i == tmp)
+                if (blockByte == tmp)
                 {
                     zPend++;
                     continue;
@@ -1573,7 +1564,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     tmp = yy[sym];
                     yy[sym++] = tmp2;
                 }
-                while (ll_i != tmp);
+                while (blockByte != tmp);
                 yy[0] = tmp;
 
                 while (zPend > 0)

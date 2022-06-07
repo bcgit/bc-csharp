@@ -465,7 +465,6 @@ namespace Org.BouncyCastle.Apache.Bzip2
 
         private void GetAndMoveToFrontDecode()
         {
-            byte[] yy = new byte[256];
             int i, j, nextSym;
 
             int limitLast = BZip2Constants.baseBlockSize * blockSize100k;
@@ -487,9 +486,10 @@ namespace Org.BouncyCastle.Apache.Bzip2
             */
             Array.Clear(unzftab, 0, unzftab.Length);
 
-            for (i = 0; i <= 255; i++)
+            byte[] yy = new byte[nInUse];
+            for (i = 0; i < nInUse; ++i)
             {
-                yy[i] = (byte)i;
+                yy[i] = seqToUnseq[i];
             }
 
             last = -1;
@@ -567,7 +567,7 @@ namespace Org.BouncyCastle.Apache.Bzip2
                     //while (nextSym == BZip2Constants.RUNA || nextSym == BZip2Constants.RUNB);
                     while (nextSym <= BZip2Constants.RUNB);
 
-                    byte ch = seqToUnseq[yy[0]];
+                    byte ch = yy[0];
                     unzftab[ch] += s;
 
                     if (last >= limitLast - s)
@@ -586,8 +586,8 @@ namespace Org.BouncyCastle.Apache.Bzip2
                         throw new InvalidOperationException("Block overrun");
 
                     byte tmp = yy[nextSym - 1];
-                    unzftab[seqToUnseq[tmp]]++;
-                    ll8[last] = seqToUnseq[tmp];
+                    unzftab[tmp]++;
+                    ll8[last] = tmp;
 
                     /*
                      * This loop is hammered during decompression, hence avoid
