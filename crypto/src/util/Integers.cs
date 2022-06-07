@@ -13,6 +13,33 @@ namespace Org.BouncyCastle.Utilities
             0x1F, 0x00, 0x1B, 0x01, 0x1C, 0x0D, 0x17, 0x02, 0x1D, 0x15, 0x13, 0x0E, 0x18, 0x10, 0x03, 0x07,
             0x1E, 0x1A, 0x0C, 0x16, 0x14, 0x12, 0x0F, 0x06, 0x19, 0x0B, 0x11, 0x05, 0x0A, 0x04, 0x09, 0x08 };
 
+        public static int HighestOneBit(int i)
+        {
+            return (int)HighestOneBit((uint)i);
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static uint HighestOneBit(uint i)
+        {
+            i |= i >>  1;
+            i |= i >>  2;
+            i |= i >>  4;
+            i |= i >>  8;
+            i |= i >> 16;
+            return i - (i >> 1);
+        }
+
+        public static int LowestOneBit(int i)
+        {
+            return i & -i;
+        }
+
+        [CLSCompliantAttribute(false)]
+        public static uint LowestOneBit(uint i)
+        {
+            return (uint)LowestOneBit((int)i);
+        }
+
         public static int NumberOfLeadingZeros(int i)
         {
             if (i <= 0)
