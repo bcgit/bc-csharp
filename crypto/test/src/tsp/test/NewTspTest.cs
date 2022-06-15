@@ -762,7 +762,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed);
 
-			TimeStampResponse tsResp = tsRespGen.Generate(request, new BigInteger("23"), DateTime.Now);
+			TimeStampResponse tsResp = tsRespGen.Generate(request, new BigInteger("23"), DateTime.UtcNow);
 
 			Assert.AreEqual((int)PkiStatus.Granted, tsResp.Status);
 

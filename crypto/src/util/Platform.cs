@@ -181,10 +181,10 @@ namespace Org.BouncyCastle.Utilities
 
         internal static string ToUpperInvariant(string s)
         {
-#if PORTABLE
-            return s.ToUpperInvariant();
-#else
+#if NET_1_1
             return s.ToUpper(CultureInfo.InvariantCulture);
+#else
+            return s.ToUpperInvariant();
 #endif
         }
 

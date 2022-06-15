@@ -417,6 +417,7 @@
     <Compile Include="src\security\test\TestDigestUtil.cs" />
     <Compile Include="src\security\test\TestDotNetUtil.cs" />
     <Compile Include="src\security\test\TestEncodings.cs" />
+    <Compile Include="src\security\test\TestMacUtil.cs" />
     <Compile Include="src\security\test\TestParameterUtil.cs" />
     <Compile Include="src\security\test\TestSignerUtil.cs" />
     <Compile Include="src\test\AESSICTest.cs" />

@@ -466,7 +466,11 @@ namespace Org.BouncyCastle.Tests
 
             rand = new FixedSecureRandom();
 
+#if NET_1_1
             string[] parts = algorithm.ToUpper(CultureInfo.InvariantCulture).Split('/');
+#else
+            string[] parts = algorithm.ToUpperInvariant().Split('/');
+#endif
             string baseAlgorithm = parts[0];
             string mode = parts.Length > 1 ? parts[1] : null;
 
@@ -498,7 +502,11 @@ namespace Org.BouncyCastle.Tests
                 inCipher = CipherUtilities.GetCipher(algorithm);
                 outCipher = CipherUtilities.GetCipher(algorithm);
 
+#if NET_1_1
                 if (!inCipher.AlgorithmName.ToUpper(CultureInfo.InvariantCulture).StartsWith(baseAlgorithm))
+#else
+                if (!inCipher.AlgorithmName.ToUpperInvariant().StartsWith(baseAlgorithm))
+#endif
                 {
                     Fail("wrong cipher returned!");
                 }
