@@ -2,9 +2,6 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
-using System.Text;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Utilities.Test
 {
@@ -143,7 +140,7 @@ namespace Org.BouncyCastle.Utilities.Test
 		{
 			string fullName = GetFullName(name);
 
-			return Assembly.GetExecutingAssembly().GetManifestResourceStream(fullName);
+			return GetAssembly().GetManifestResourceStream(fullName);
 		}
 
 		internal static string[] GetTestDataEntries(
@@ -152,7 +149,7 @@ namespace Org.BouncyCastle.Utilities.Test
 			string fullPrefix = GetFullName(prefix);
 
 			ArrayList result = new ArrayList();
-			string[] fullNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+			string[] fullNames = GetAssembly().GetManifestResourceNames();
 			foreach (string fullName in fullNames)
 			{
 				if (fullName.StartsWith(fullPrefix))
@@ -161,10 +158,21 @@ namespace Org.BouncyCastle.Utilities.Test
 					result.Add(name);
 				}
 			}
-			return (string[])result.ToArray(typeof(String));
+			return (string[])result.ToArray(typeof(string));
 		}
 
-		private static string GetFullName(
+        private static Assembly GetAssembly()
+        {
+#if !PORTABLE
+            return Assembly.GetExecutingAssembly();
+#elif NEW_REFLECTION
+            return typeof(SimpleTest).GetTypeInfo().Assembly;
+#else
+            return typeof(SimpleTest).Assembly;
+#endif
+        }
+
+        private static string GetFullName(
 			string name)
 		{
 #if SEPARATE_UNIT_TESTS
