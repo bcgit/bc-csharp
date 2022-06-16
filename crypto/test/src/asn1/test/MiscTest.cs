@@ -40,41 +40,56 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void DoDerIntegerTest()
         {
+            SetAllowUnsafeProperty(false);
+
             try
             {
-                new DerInteger(new byte[] { 0, 0, 0, 1});
+                new DerInteger(new byte[]{ 0x00, 0x00, 0x00, 0x01});
+                Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed integer"));
+                IsTrue("wrong exc 1: " + e.Message, e.Message.StartsWith("malformed integer"));
             }
 
             try
             {
-                new DerInteger(new byte[] {(byte)0xff, (byte)0x80, 0, 1});
+                new DerInteger(new byte[]{ 0xFF, 0x80, 0x00, 0x01});
+                Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed integer"));
+                IsTrue("wrong exc 2: " + e.Message, e.Message.StartsWith("malformed integer"));
             }
 
             try
             {
-                new DerEnumerated(new byte[] { 0, 0, 0, 1});
+                new DerEnumerated(new byte[]{ 0x00, 0x00, 0x00, 0x01});
+                Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed enumerated"));
+                IsTrue("wrong exc 3: " + e.Message, e.Message.StartsWith("malformed enumerated"));
             }
 
             try
             {
-                new DerEnumerated(new byte[] {(byte)0xff, (byte)0x80, 0, 1});
+                new DerEnumerated(new byte[]{ 0xFF, 0x80, 0x00, 0x01});
+                Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
             {
-                IsTrue("wrong exc", e.Message.StartsWith("malformed enumerated"));
+                IsTrue("wrong exc 4: " + e.Message, e.Message.StartsWith("malformed enumerated"));
             }
+        }
+
+        private void SetAllowUnsafeProperty(bool allowUnsafe)
+        {
+#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET) || NET_1_1
+            // Can't SetEnvironmentVariable !
+#else
+            Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, allowUnsafe ? "true" : "false");
+#endif
         }
 
         public override void PerformTest()
