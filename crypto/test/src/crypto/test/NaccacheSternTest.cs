@@ -3,10 +3,8 @@ using System.Collections;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -28,11 +26,11 @@ namespace Org.BouncyCastle.Crypto.Tests
 	 *  <li> 1024 bit test analog to 768 bit test </li>
 	 *  </ul>
 	 */
-	[TestFixture, Explicit]
+	[TestFixture]
 	public class NaccacheSternTest
 		: SimpleTest
 	{
-		static bool debug = false;
+		private const bool debug = false;
 
 		static readonly NaccacheSternEngine cryptEng = new NaccacheSternEngine();
 		static readonly NaccacheSternEngine decryptEng = new NaccacheSternEngine();

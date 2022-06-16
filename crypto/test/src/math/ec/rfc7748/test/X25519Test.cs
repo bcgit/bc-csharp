@@ -87,11 +87,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748.Tests
             CheckIterated(1000);
         }
 
-        //[Test, Explicit]
-        //public void TestX25519IteratedFull()
-        //{
-        //    CheckIterated(1000000);
-        //}
+        [Test, Ignore]
+        public void TestX25519IteratedFull()
+        {
+            CheckIterated(1000000);
+        }
 
         [Test]
         public void TestX25519Vector1()

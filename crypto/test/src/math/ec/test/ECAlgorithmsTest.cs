@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             DoTestSumOfMultiplies(x9);
         }
 
-        [Test, Explicit]
+        [Test, Ignore]
         public void TestSumOfMultipliesComplete()
         {
             foreach (X9ECParameters x9 in GetTestCurves())
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             DoTestSumOfTwoMultiplies(x9);
         }
 
-        [Test, Explicit]
+        [Test, Ignore]
         public void TestSumOfTwoMultipliesComplete()
         {
             foreach (X9ECParameters x9 in GetTestCurves())

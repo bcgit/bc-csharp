@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
     * Compares the performance of the the window NAF point multiplication against
     * conventional point multiplication.
     */
-    [TestFixture, Explicit]
+    [TestFixture]
     public class ECPointPerformanceTest
     {
         internal const int MILLIS_PER_ROUND = 200;
