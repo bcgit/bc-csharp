@@ -108,31 +108,29 @@ namespace Org.BouncyCastle.Asn1
             {
                 if (disposing)
                 {
-				    if (_off != 0)
-				    {
-					    DerOctetString.Encode(_derOut, true, _buf, 0, _off);
-				    }
-
-                    _derOut.FlushInternal();
-
-				    _gen.WriteBerEnd();
+                    ImplClose();
                 }
                 base.Dispose(disposing);
             }
 #else
-			public override void Close()
-			{
-				if (_off != 0)
-				{
-					DerOctetString.Encode(_derOut, _buf, 0, _off);
-				}
+            public override void Close()
+            {
+                ImplClose();
+                base.Close();
+            }
+#endif
+
+            private void ImplClose()
+            {
+                if (_off != 0)
+                {
+                    DerOctetString.Encode(_derOut, _buf, 0, _off);
+                }
 
                 _derOut.FlushInternal();
 
                 _gen.WriteBerEnd();
-				base.Close();
-			}
-#endif
-		}
-	}
+            }
+        }
+    }
 }
