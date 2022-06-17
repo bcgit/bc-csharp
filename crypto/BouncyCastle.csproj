@@ -690,6 +690,7 @@
     <Compile Include="src\crypto\CipherKeyGenerator.cs" />
     <Compile Include="src\crypto\CryptoException.cs" />
     <Compile Include="src\crypto\DataLengthException.cs" />
+    <Compile Include="src\crypto\engines\AnubisEngine.cs" />
     <Compile Include="src\crypto\IAlphabetMapper.cs" />
     <Compile Include="src\crypto\IAsymmetricBlockCipher.cs" />
     <Compile Include="src\crypto\IAsymmetricCipherKeyPairGenerator.cs" />
