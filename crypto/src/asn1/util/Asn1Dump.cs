@@ -81,10 +81,6 @@ namespace Org.BouncyCastle.Asn1.Utilities
                     AsString(elementsIndent, verbose, set[i].ToAsn1Object(), buf);
                 }
             }
-            else if (obj is DerApplicationSpecific)
-            {
-                AsString(indent, verbose, ((DerApplicationSpecific)obj).TaggedObject, buf);
-            }
             else if (obj is Asn1TaggedObject)
             {
                 buf.Append(indent);

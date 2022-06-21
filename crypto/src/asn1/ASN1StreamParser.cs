@@ -71,12 +71,7 @@ namespace Org.BouncyCastle.Asn1
 
                 int tagClass = tagHdr & Asn1Tags.Private;
                 if (0 != tagClass)
-                {
-                    if (Asn1Tags.Application == tagClass)
-                        return new BerApplicationSpecificParser(tagNo, sp);
-
                     return new BerTaggedObjectParser(tagClass, tagNo, sp);
-                }
 
                 return sp.ParseImplicitConstructedIL(tagNo);
 			}
@@ -93,13 +88,6 @@ namespace Org.BouncyCastle.Asn1
                 if (0 != tagClass)
                 {
                     bool isConstructed = (tagHdr & Asn1Tags.Constructed) != 0;
-
-                    // TODO[asn1] Special handling can be removed once ASN1ApplicationSpecific types removed.
-                    if (Asn1Tags.Application == tagClass)
-                    {
-                        // This cast is ensuring the current user-expected return type.
-                        return (DLApplicationSpecific)sp.LoadTaggedDL(tagClass, tagNo, isConstructed);
-                    }
 
                     return new DLTaggedObjectParser(tagClass, tagNo, isConstructed, sp);
                 }

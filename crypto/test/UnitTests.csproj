@@ -70,7 +70,6 @@
     <Compile Include="src\asn1\test\CommitmentTypeQualifierUnitTest.cs" />
     <Compile Include="src\asn1\test\ContentHintsUnitTest.cs" />
     <Compile Include="src\asn1\test\CscaMasterListTest.cs" />
-    <Compile Include="src\asn1\test\DERApplicationSpecificTest.cs" />
     <Compile Include="src\asn1\test\DERUTF8StringTest.cs" />
     <Compile Include="src\asn1\test\DataGroupHashUnitTest.cs" />
     <Compile Include="src\asn1\test\DeclarationOfMajorityUnitTest.cs" />

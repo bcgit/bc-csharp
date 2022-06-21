@@ -71,10 +71,6 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
         {
-            // TODO[asn1] Special handling can be removed once ASN1ApplicationSpecificParser types removed.
-            if (Asn1Tags.Application == baseTagClass)
-                return new BerApplicationSpecificParser(baseTagNo, m_parser);
-
             return new BerTaggedObjectParser(baseTagClass, baseTagNo, m_parser);
         }
 

@@ -24,7 +24,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			new CscaMasterListTest(),
 			new DataGroupHashUnitTest(),
 			new DeclarationOfMajorityUnitTest(),
-			new DerApplicationSpecificTest(),
 			new DerUtf8StringTest(),
 			new EncryptedPrivateKeyInfoTest(),
 			new EqualsAndHashCodeTest(),

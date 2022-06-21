@@ -38,54 +38,54 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
             Asn1InputStream aIn = new Asn1InputStream(longTagged);
 
-            DerApplicationSpecific app = (DerApplicationSpecific)aIn.ReadObject();
+			Asn1TaggedObject app = (Asn1TaggedObject)aIn.ReadObject();
+			if (!app.HasTag(Asn1Tags.Application, 5))
+			{
+				Fail("unexpected tag value found - not 5");
+			}
 
-            aIn = new Asn1InputStream(app.GetContents());
+			app = app.GetExplicitBaseTagged();
+			if (!app.HasTag(Asn1Tags.Application, 19))
+			{
+				Fail("unexpected tag value found - not 19");
+			}
 
-            app = (DerApplicationSpecific)aIn.ReadObject();
+			Asn1Sequence seq = (Asn1Sequence)app.GetBaseUniversal(false, Asn1Tags.Sequence);
 
-            aIn = new Asn1InputStream(app.GetContents());
-
-            Asn1TaggedObject tagged = (Asn1TaggedObject)aIn.ReadObject();
-
-			if (tagged.TagNo != 32)
+			Asn1TaggedObject tagged = (Asn1TaggedObject)seq[0];
+			if (!tagged.HasContextTag(32))
 			{
 				Fail("unexpected tag value found - not 32");
 			}
 
-			tagged = (Asn1TaggedObject) Asn1Object.FromByteArray(tagged.GetEncoded());
-
-			if (tagged.TagNo != 32)
+            tagged = (Asn1TaggedObject)Asn1Object.FromByteArray(tagged.GetEncoded());
+			if (!tagged.HasContextTag(32))
 			{
 				Fail("unexpected tag value found on recode - not 32");
 			}
 
-			tagged = (Asn1TaggedObject) aIn.ReadObject();
-
-			if (tagged.TagNo != 33)
+			tagged = (Asn1TaggedObject)seq[1];
+			if (!tagged.HasContextTag(33))
 			{
 				Fail("unexpected tag value found - not 33");
 			}
 
 			tagged = (Asn1TaggedObject) Asn1Object.FromByteArray(tagged.GetEncoded());
-
-			if (tagged.TagNo != 33)
+			if (!tagged.HasContextTag(33))
 			{
 				Fail("unexpected tag value found on recode - not 33");
 			}
 
 			aIn = new Asn1InputStream(longAppSpecificTag);
 
-			app = (DerApplicationSpecific)aIn.ReadObject();
-
-			if (app.ApplicationTag != 97)
+			app = (Asn1TaggedObject)aIn.ReadObject();
+			if (!app.HasTag(Asn1Tags.Application, 97))
 			{
 				Fail("incorrect tag number read");
 			}
 
-			app = (DerApplicationSpecific)Asn1Object.FromByteArray(app.GetEncoded());
-
-			if (app.ApplicationTag != 97)
+			app = (Asn1TaggedObject)Asn1Object.FromByteArray(app.GetEncoded());
+			if (!app.HasTag(Asn1Tags.Application, 97))
 			{
 				Fail("incorrect tag number read on recode");
 			}
@@ -94,17 +94,16 @@ namespace Org.BouncyCastle.Asn1.Tests
 			for (int i = 0; i < 100; ++i)
 			{
 				int testTag = (sr.NextInt() & int.MaxValue) >> sr.Next(26);
-				app = new DerApplicationSpecific(testTag, new byte[]{ 1 });
-				app = (DerApplicationSpecific)Asn1Object.FromByteArray(app.GetEncoded());
+				app = new DerTaggedObject(false, Asn1Tags.Application, testTag, new DerOctetString(new byte[]{ 1 }));
+				app = (Asn1TaggedObject)Asn1Object.FromByteArray(app.GetEncoded());
 
-				if (app.ApplicationTag != testTag)
+				if (!app.HasTag(Asn1Tags.Application, testTag))
 				{
-					Fail("incorrect tag number read on recode (random test value: " + testTag + ")");
-				}
+                    Fail("incorrect tag number read on recode (random test value: " + testTag + ")");
+                }
 			}
 
-            tagged = new DerTaggedObject(false, 34, new DerTaggedObject(true, 1000, new DerInteger(1)));
-
+			tagged = new DerTaggedObject(false, 34, new DerTaggedObject(true, 1000, new DerInteger(1)));
             if (!AreEqual(taggedInteger, tagged.GetEncoded()))
             {
                 Fail("incorrect encoding for implicit explicit tagged integer");

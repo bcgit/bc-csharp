@@ -93,8 +93,6 @@
     <Compile Include="src\asn1\BERSetGenerator.cs" />
     <Compile Include="src\asn1\BERSetParser.cs" />
     <Compile Include="src\asn1\BERTaggedObjectParser.cs" />
-    <Compile Include="src\asn1\BerApplicationSpecific.cs" />
-    <Compile Include="src\asn1\BerApplicationSpecificParser.cs" />
     <Compile Include="src\asn1\BerBitStringParser.cs" />
     <Compile Include="src\asn1\BerOctetString.cs" />
     <Compile Include="src\asn1\BerSequence.cs" />
@@ -114,7 +112,6 @@
     <Compile Include="src\asn1\DERSetGenerator.cs" />
     <Compile Include="src\asn1\DERSetParser.cs" />
     <Compile Include="src\asn1\DefiniteLengthInputStream.cs" />
-    <Compile Include="src\asn1\DerApplicationSpecific.cs" />
     <Compile Include="src\asn1\DerBMPString.cs" />
     <Compile Include="src\asn1\DerBitString.cs" />
     <Compile Include="src\asn1\DerBoolean.cs" />
@@ -140,14 +137,12 @@
     <Compile Include="src\asn1\DerUniversalString.cs" />
     <Compile Include="src\asn1\DerVideotexString.cs" />
     <Compile Include="src\asn1\DerVisibleString.cs" />
-    <Compile Include="src\asn1\DLApplicationSpecific.cs" />
     <Compile Include="src\asn1\DLBitString.cs" />
     <Compile Include="src\asn1\DLBitStringParser.cs" />
     <Compile Include="src\asn1\DLSequence.cs" />
     <Compile Include="src\asn1\DLSet.cs" />
     <Compile Include="src\asn1\DLTaggedObject.cs" />
     <Compile Include="src\asn1\DLTaggedObjectParser.cs" />
-    <Compile Include="src\asn1\IAsn1ApplicationSpecificParser.cs" />
     <Compile Include="src\asn1\IAsn1Choice.cs" />
     <Compile Include="src\asn1\IAsn1Convertible.cs" />
     <Compile Include="src\asn1\IAsn1Encoding.cs" />
