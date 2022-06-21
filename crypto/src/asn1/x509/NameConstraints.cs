@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1.X509
 			}
 		}
 
-#if !(SILVERLIGHT || PORTABLE)
+#if !PORTABLE
         public NameConstraints(
             ArrayList permitted,
             ArrayList excluded)

@@ -1,7 +1,6 @@
 using System;
-using System.Text;
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
+#if PORTABLE
 using System.Collections;
 using System.Reflection;
 #endif
@@ -23,15 +22,7 @@ namespace Org.BouncyCastle.Utilities
                 s = s.Replace('-', '_');
                 s = s.Replace('/', '_');
 
-#if NETCF_1_0
-                FieldInfo field = enumType.GetField(s, BindingFlags.Static | BindingFlags.Public);
-                if (field != null)
-                {
-                    return (Enum)field.GetValue(null);
-                }
-#else
                 return (Enum)Enum.Parse(enumType, s, false);
-#endif		
             }
 
             throw new ArgumentException();
@@ -42,21 +33,7 @@ namespace Org.BouncyCastle.Utilities
             if (!IsEnumType(enumType))
                 throw new ArgumentException("Not an enumeration type", "enumType");
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
-            IList result = Platform.CreateArrayList();
-            FieldInfo[] fields = enumType.GetFields(BindingFlags.Static | BindingFlags.Public);
-            foreach (FieldInfo field in fields)
-            {
-                // Note: Argument to GetValue() ignored since the fields are static,
-                //     but Silverlight for Windows Phone throws exception if we pass null
-                result.Add(field.GetValue(enumType));
-            }
-            object[] arr = new object[result.Count];
-            result.CopyTo(arr, 0);
-            return arr;
-#else
             return Enum.GetValues(enumType);
-#endif
         }
 
         internal static Enum GetArbitraryValue(System.Type enumType)

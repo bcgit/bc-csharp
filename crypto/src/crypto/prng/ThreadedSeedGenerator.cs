@@ -19,14 +19,8 @@ namespace Org.BouncyCastle.Crypto.Prng
     {
         private class SeedGenerator
         {
-#if NETCF_1_0
-			// No volatile keyword, but all fields implicitly volatile anyway
-			private int		counter = 0;
-			private bool	stop = false;
-#else
             private volatile int counter = 0;
             private volatile bool stop = false;
-#endif
 
             private void Run(object ignored)
             {
@@ -40,7 +34,7 @@ namespace Org.BouncyCastle.Crypto.Prng
                 int numBytes,
                 bool fast)
             {
-#if SILVERLIGHT || PORTABLE
+#if PORTABLE
                 return DoGenerateSeed(numBytes, fast);
 #else
                 ThreadPriority originalPriority = Thread.CurrentThread.Priority;

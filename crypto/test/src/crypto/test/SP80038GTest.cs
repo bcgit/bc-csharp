@@ -274,7 +274,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void testDisable()
         {
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET) || NET_1_1
+#if PORTABLE && !DOTNET
             // Can't SetEnvironmentVariable !
 #else
             Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable", "true");

@@ -3,21 +3,19 @@ using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Security.Tests
 {
     [TestFixture]
     public class SecureRandomTest
     {
-#if !(NETCF_1_0 || PORTABLE)
+#if !PORTABLE
         [Test]
         public void TestCryptoApi()
         {

@@ -5454,11 +5454,7 @@ namespace Org.BouncyCastle.Tls
 #if !PORTABLE || DOTNET
         public static bool IsTimeout(SocketException e)
         {
-#if NET_1_1
-            return 10060 == e.ErrorCode;
-#else
             return SocketError.TimedOut == e.SocketErrorCode;
-#endif
         }
 #endif
 

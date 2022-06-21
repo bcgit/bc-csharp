@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 
-#if SILVERLIGHT || PORTABLE
+#if PORTABLE
 using System.Collections.Generic;
 #endif
 
@@ -208,7 +208,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private static readonly bool[] defaultReverse = { false };
 
-#if SILVERLIGHT || PORTABLE
+#if PORTABLE
         /**
         * default look up table translating OID values into their common symbols following
         * the convention in RFC 2253 with a few extras
@@ -1024,7 +1024,7 @@ namespace Org.BouncyCastle.Asn1.X509
             bool		reverse,
             IDictionary oidSymbols)
         {
-#if SILVERLIGHT || PORTABLE
+#if PORTABLE
             List<object> components = new List<object>();
 #else
             ArrayList components = new ArrayList();

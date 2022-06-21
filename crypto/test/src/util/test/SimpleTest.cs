@@ -196,28 +196,10 @@ namespace Org.BouncyCastle.Utilities.Test
 #endif
 		}
 
-#if NETCF_1_0 || NETCF_2_0
-		private static string GetNewLine()
-		{
-			MemoryStream buf = new MemoryStream();
-			StreamWriter w = new StreamWriter(buf, Encoding.ASCII);
-			w.WriteLine();
-			w.Close();
-			byte[] bs = buf.ToArray();
-			return Encoding.ASCII.GetString(bs, 0, bs.Length);
-		}
-
-		internal static string GetEnvironmentVariable(
-			string variable)
-		{
-			return null;
-		}
-#else
 		private static string GetNewLine()
 		{
 			return Environment.NewLine;
 		}
-#endif
 
 		internal static readonly string NewLine = GetNewLine();
 

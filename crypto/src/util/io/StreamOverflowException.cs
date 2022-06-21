@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
+#if !PORTABLE
     [Serializable]
 #endif
     public class StreamOverflowException

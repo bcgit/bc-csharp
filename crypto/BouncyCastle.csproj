@@ -18,7 +18,7 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\lib\net20\</OutputPath>
     <IntermediateOutputPath>obj\Debug\lib\net20\</IntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE;INCLUDE_IDEA;</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -27,7 +27,7 @@
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\lib\net20\</OutputPath>
     <IntermediateOutputPath>obj\Release\lib\net20\</IntermediateOutputPath>
-    <DefineConstants>TRACE;INCLUDE_IDEA;</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <DocumentationFile>doc\BouncyCastle.xml</DocumentationFile>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -1789,7 +1789,6 @@
     <None Include="Contributors.html" />
     <None Include="License.html" />
     <None Include="Readme.html" />
-    <None Include="checklist.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

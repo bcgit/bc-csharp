@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-#if SILVERLIGHT || PORTABLE
+#if PORTABLE
 using System.Collections.Generic;
 #else
 using System.Collections;
@@ -15,22 +15,10 @@ namespace Org.BouncyCastle.Utilities
     {
         private static readonly CompareInfo InvariantCompareInfo = CultureInfo.InvariantCulture.CompareInfo;
 
-#if NETCF_1_0 || NETCF_2_0
-        private static string GetNewLine()
-        {
-            MemoryStream buf = new MemoryStream();
-            StreamWriter w = new StreamWriter(buf, Encoding.UTF8);
-            w.WriteLine();
-            Dispose(w);
-            byte[] bs = buf.ToArray();
-            return Encoding.UTF8.GetString(bs, 0, bs.Length);
-        }
-#else
         private static string GetNewLine()
         {
             return Environment.NewLine;
         }
-#endif
 
         internal static bool EqualsIgnoreCase(string a, string b)
         {
@@ -41,7 +29,7 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET)
+#if PORTABLE && !DOTNET
         internal static string GetEnvironmentVariable(
             string variable)
         {
@@ -64,28 +52,13 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
-#if NETCF_1_0
-        internal static Exception CreateNotImplementedException(
-            string message)
-        {
-            return new Exception("Not implemented: " + message);
-        }
-
-        internal static bool Equals(
-            object	a,
-            object	b)
-        {
-            return a == b || (a != null && b != null && a.Equals(b));
-        }
-#else
         internal static Exception CreateNotImplementedException(
             string message)
         {
             return new NotImplementedException(message);
         }
-#endif
 
-#if SILVERLIGHT || PORTABLE
+#if PORTABLE
         internal static System.Collections.IList CreateArrayList()
         {
             return new List<object>();

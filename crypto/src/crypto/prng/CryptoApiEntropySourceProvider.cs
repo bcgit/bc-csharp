@@ -1,4 +1,4 @@
-﻿#if !(NETCF_1_0 || PORTABLE)
+﻿#if !PORTABLE
 using System;
 using System.Security.Cryptography;
 

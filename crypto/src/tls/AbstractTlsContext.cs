@@ -13,21 +13,10 @@ namespace Org.BouncyCastle.Tls
     {
         private static long counter = Times.NanoTime();
 
-#if NETCF_1_0
-        private static object counterLock = new object();
-        private static long NextCounterValue()
-        {
-            lock (counterLock)
-            {
-                return ++counter;
-            }
-        }
-#else
         private static long NextCounterValue()
         {
             return Interlocked.Increment(ref counter);
         }
-#endif
 
         private static TlsNonceGenerator CreateNonceGenerator(TlsCrypto crypto, int connectionEnd)
         {
