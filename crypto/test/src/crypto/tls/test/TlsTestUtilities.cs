@@ -45,19 +45,21 @@ namespace Org.BouncyCastle.Crypto.Tls.Tests
             byte[] der = c.GetEncoded();
             byte[] sha1 = Sha256DigestOf(der);
             byte[] hexBytes = Hex.Encode(sha1);
-#if NET_1_1
-            string hex = Encoding.ASCII.GetString(hexBytes).ToUpper(CultureInfo.InvariantCulture);
+
+            string hex = Encoding.ASCII.GetString(hexBytes);
+#if PORTABLE
+            string upper = hex.ToUpperInvariant();
 #else
-            string hex = Encoding.ASCII.GetString(hexBytes).ToUpperInvariant();
+            string upper = hex.ToUpper(CultureInfo.InvariantCulture);
 #endif
 
             StringBuilder fp = new StringBuilder();
             int i = 0;
-            fp.Append(hex.Substring(i, 2));
-            while ((i += 2) < hex.Length)
+            fp.Append(upper.Substring(i, 2));
+            while ((i += 2) < upper.Length)
             {
                 fp.Append(':');
-                fp.Append(hex.Substring(i, 2));
+                fp.Append(upper.Substring(i, 2));
             }
             return fp.ToString();
         }

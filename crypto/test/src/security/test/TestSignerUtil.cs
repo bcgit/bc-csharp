@@ -142,10 +142,10 @@ namespace Org.BouncyCastle.Security.Tests
             {
                 ISigner signer = SignerUtilities.GetSigner(algorithm);
 
-#if NET_1_1
-                string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
-#else
+#if PORTABLE
                 string upper = algorithm.ToUpperInvariant();
+#else
+                string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
 #endif
                 int withPos = upper.LastIndexOf("WITH");
 
