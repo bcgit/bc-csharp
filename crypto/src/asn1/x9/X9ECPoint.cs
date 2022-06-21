@@ -15,11 +15,6 @@ namespace Org.BouncyCastle.Asn1.X9
         private ECCurve c;
         private ECPoint p;
 
-        public X9ECPoint(ECPoint p)
-            : this(p, false)
-        {
-        }
-
         public X9ECPoint(ECPoint p, bool compressed)
         {
             this.p = p.Normalize();

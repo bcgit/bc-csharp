@@ -5,32 +5,19 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
     internal class SecT409K1Point
         : AbstractF2mPoint
     {
-        /**
-         * @deprecated Use ECCurve.createPoint to construct points
-         */
-        public SecT409K1Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
-            : this(curve, x, y, false)
+        internal SecT409K1Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
+            : base(curve, x, y)
         {
         }
 
-        /**
-         * @deprecated per-point compression property will be removed, refer {@link #getEncoded(bool)}
-         */
-        public SecT409K1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, bool withCompression)
-            : base(curve, x, y, withCompression)
-        {
-            if ((x == null) != (y == null))
-                throw new ArgumentException("Exactly one of the field elements is null");
-        }
-
-        internal SecT409K1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
-            : base(curve, x, y, zs, withCompression)
+        internal SecT409K1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
+            : base(curve, x, y, zs)
         {
         }
 
         protected override ECPoint Detach()
         {
-            return new SecT409K1Point(null, this.AffineXCoord, this.AffineYCoord); // earlier JDK
+            return new SecT409K1Point(null, this.AffineXCoord, this.AffineYCoord);
         }
 
         public override ECFieldElement YCoord
@@ -134,7 +121,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 X3 = L.Square().Add(L).Add(X1);
                 if (X3.IsZero)
                 {
-                    return new SecT409K1Point(curve, X3, curve.B, IsCompressed);
+                    return new SecT409K1Point(curve, X3, curve.B);
                 }
 
                 ECFieldElement Y3 = L.Multiply(X1.Add(X3)).Add(X3).Add(Y1);
@@ -151,7 +138,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 X3 = AU1.Multiply(AU2);
                 if (X3.IsZero)
                 {
-                    return new SecT409K1Point(curve, X3, curve.B, IsCompressed);
+                    return new SecT409K1Point(curve, X3, curve.B);
                 }
 
                 ECFieldElement ABZ2 = A.Multiply(B);
@@ -169,7 +156,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 }
             }
 
-            return new SecT409K1Point(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
+            return new SecT409K1Point(curve, X3, L3, new ECFieldElement[] { Z3 });
         }
 
         public override ECPoint Twice()
@@ -202,7 +189,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             if (T.IsZero)
             {
-                return new SecT409K1Point(curve, T, curve.B, IsCompressed);
+                return new SecT409K1Point(curve, T, curve.B);
             }
 
             ECFieldElement X3 = T.Square();
@@ -212,7 +199,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ECFieldElement t2 = Z1IsOne ? Z1 : Z1Sq.Square();
             ECFieldElement L3 = t1.Add(T).Add(Z1Sq).Multiply(t1).Add(t2).Add(X3).Add(Z3);
 
-            return new SecT409K1Point(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
+            return new SecT409K1Point(curve, X3, L3, new ECFieldElement[] { Z3 });
         }
 
         public override ECPoint TwicePlus(ECPoint b)
@@ -262,14 +249,14 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             if (A.IsZero)
             {
-                return new SecT409K1Point(curve, A, curve.B, IsCompressed);
+                return new SecT409K1Point(curve, A, curve.B);
             }
 
             ECFieldElement X3 = A.Square().Multiply(X2Z1Sq);
             ECFieldElement Z3 = A.Multiply(B).Multiply(Z1Sq);
             ECFieldElement L3 = A.Add(B).Square().MultiplyPlusProduct(T, L2plus1, Z3);
 
-            return new SecT409K1Point(curve, X3, L3, new ECFieldElement[] { Z3 }, IsCompressed);
+            return new SecT409K1Point(curve, X3, L3, new ECFieldElement[] { Z3 });
         }
 
         public override ECPoint Negate()
@@ -283,7 +270,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             // L is actually Lambda (X + Y/X) here
             ECFieldElement L = this.RawYCoord, Z = this.RawZCoords[0];
-            return new SecT409K1Point(Curve, X, L.Add(Z), new ECFieldElement[] { Z }, IsCompressed);
+            return new SecT409K1Point(Curve, X, L.Add(Z), new ECFieldElement[] { Z });
         }
     }
 }

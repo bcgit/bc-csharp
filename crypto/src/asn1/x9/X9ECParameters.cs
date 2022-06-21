@@ -67,9 +67,9 @@ namespace Org.BouncyCastle.Asn1.X9
         }
 
         public X9ECParameters(
-            ECCurve		curve,
-            ECPoint		g,
-            BigInteger	n)
+            ECCurve curve,
+            X9ECPoint g,
+            BigInteger n)
             : this(curve, g, n, null, null)
         {
         }
@@ -80,25 +80,6 @@ namespace Org.BouncyCastle.Asn1.X9
             BigInteger  n,
             BigInteger  h)
             : this(curve, g, n, h, null)
-        {
-        }
-
-        public X9ECParameters(
-            ECCurve		curve,
-            ECPoint		g,
-            BigInteger	n,
-            BigInteger	h)
-            : this(curve, g, n, h, null)
-        {
-        }
-
-        public X9ECParameters(
-            ECCurve		curve,
-            ECPoint		g,
-            BigInteger	n,
-            BigInteger	h,
-            byte[]		seed)
-            : this(curve, new X9ECPoint(g), n, h, seed)
         {
         }
 

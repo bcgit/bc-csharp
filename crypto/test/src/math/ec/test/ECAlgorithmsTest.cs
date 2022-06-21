@@ -166,7 +166,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 else if (curve.SupportsCoordinateSystem(coord))
                 {
                     ECCurve c = curve.Configure().SetCoordinateSystem(coord).Create();
-                    x9s.Add(new X9ECParameters(c, c.ImportPoint(x9.G), x9.N, x9.H));
+                    x9s.Add(new X9ECParameters(c, new X9ECPoint(c.ImportPoint(x9.G), false), x9.N, x9.H));
                 }
             }
         }

@@ -170,7 +170,8 @@ namespace Org.BouncyCastle.Pkcs
                     X962Parameters x962;
                     if (priv.PublicKeyParamSet == null)
                     {
-                        X9ECParameters ecP = new X9ECParameters(dp.Curve, dp.G, dp.N, dp.H, dp.GetSeed());
+                        X9ECParameters ecP = new X9ECParameters(dp.Curve, new X9ECPoint(dp.G, false), dp.N, dp.H,
+                            dp.GetSeed());
                         x962 = new X962Parameters(ecP);
                     }
                     else

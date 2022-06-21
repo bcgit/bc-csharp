@@ -7,39 +7,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
     internal class Curve25519Point
         : AbstractFpPoint
     {
-        /**
-         * Create a point which encodes with point compression.
-         * 
-         * @param curve the curve to use
-         * @param x affine x co-ordinate
-         * @param y affine y co-ordinate
-         * 
-         * @deprecated Use ECCurve.CreatePoint to construct points
-         */
-        public Curve25519Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
-            : this(curve, x, y, false)
+        internal Curve25519Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
+            : base(curve, x, y)
         {
         }
 
-        /**
-         * Create a point that encodes with or without point compresion.
-         * 
-         * @param curve the curve to use
-         * @param x affine x co-ordinate
-         * @param y affine y co-ordinate
-         * @param withCompression if true encode with point compression
-         * 
-         * @deprecated per-point compression property will be removed, refer {@link #getEncoded(bool)}
-         */
-        public Curve25519Point(ECCurve curve, ECFieldElement x, ECFieldElement y, bool withCompression)
-            : base(curve, x, y, withCompression)
-        {
-            if ((x == null) != (y == null))
-                throw new ArgumentException("Exactly one of the field elements is null");
-        }
-
-        internal Curve25519Point(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
-            : base(curve, x, y, zs, withCompression)
+        internal Curve25519Point(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
+            : base(curve, x, y, zs)
         {
         }
 
@@ -178,7 +152,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
 
             ECFieldElement[] zs = new ECFieldElement[] { Z3, W3 };
 
-            return new Curve25519Point(curve, X3, Y3, zs, IsCompressed);
+            return new Curve25519Point(curve, X3, Y3, zs);
         }
 
         public override ECPoint Twice()
@@ -224,7 +198,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
             if (IsInfinity)
                 return this;
 
-            return new Curve25519Point(Curve, RawXCoord, RawYCoord.Negate(), RawZCoords, IsCompressed);
+            return new Curve25519Point(Curve, RawXCoord, RawYCoord.Negate(), RawZCoords);
         }
 
         protected virtual Curve25519FieldElement CalculateJacobianModifiedW(Curve25519FieldElement Z, uint[] ZSquared)
@@ -307,7 +281,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Djb
                 Curve25519Field.Twice(W3.x, W3.x);
             }
 
-            return new Curve25519Point(this.Curve, X3, Y3, new ECFieldElement[] { Z3, W3 }, IsCompressed);
+            return new Curve25519Point(this.Curve, X3, Y3, new ECFieldElement[] { Z3, W3 });
         }
     }
 }

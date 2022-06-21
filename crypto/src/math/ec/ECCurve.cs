@@ -112,39 +112,21 @@ namespace Org.BouncyCastle.Math.EC
         {
             ECPoint p = CreatePoint(x, y);
             if (!p.IsValid())
-            {
                 throw new ArgumentException("Invalid point coordinates");
-            }
-            return p;
-        }
 
-        [Obsolete("Per-point compression property will be removed")]
-        public virtual ECPoint ValidatePoint(BigInteger x, BigInteger y, bool withCompression)
-        {
-            ECPoint p = CreatePoint(x, y, withCompression);
-            if (!p.IsValid())
-            {
-                throw new ArgumentException("Invalid point coordinates");
-            }
             return p;
         }
 
         public virtual ECPoint CreatePoint(BigInteger x, BigInteger y)
         {
-            return CreatePoint(x, y, false);
-        }
-
-        [Obsolete("Per-point compression property will be removed")]
-        public virtual ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
-        {
-            return CreateRawPoint(FromBigInteger(x), FromBigInteger(y), withCompression);
+            return CreateRawPoint(FromBigInteger(x), FromBigInteger(y));
         }
 
         protected abstract ECCurve CloneCurve();
 
-        protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression);
+        protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y);
 
-        protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression);
+        protected internal abstract ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs);
 
         protected virtual ECMultiplier CreateDefaultMultiplier()
         {
@@ -235,7 +217,7 @@ namespace Org.BouncyCastle.Math.EC
             // TODO Default behaviour could be improved if the two curves have the same coordinate system by copying any Z coordinates.
             p = p.Normalize();
 
-            return CreatePoint(p.XCoord.ToBigInteger(), p.YCoord.ToBigInteger(), p.IsCompressed);
+            return CreatePoint(p.XCoord.ToBigInteger(), p.YCoord.ToBigInteger());
         }
 
         /**
@@ -583,7 +565,7 @@ namespace Org.BouncyCastle.Math.EC
             {
                 ECFieldElement X = m_outer.FromBigInteger(new BigInteger(1, x));
                 ECFieldElement Y = m_outer.FromBigInteger(new BigInteger(1, y));
-                return m_outer.CreateRawPoint(X, Y, false);
+                return m_outer.CreateRawPoint(X, Y);
             }
         }
     }
@@ -643,7 +625,7 @@ namespace Org.BouncyCastle.Math.EC
                 y = y.Negate();
             }
 
-            return CreateRawPoint(x, y, true);
+            return CreateRawPoint(x, y);
         }
 
         private static BigInteger ImplRandomFieldElement(SecureRandom r, BigInteger p)
@@ -730,7 +712,7 @@ namespace Org.BouncyCastle.Math.EC
             }
 
             this.m_r = FpFieldElement.CalculateResidue(q);
-            this.m_infinity = new FpPoint(this, null, null, false);
+            this.m_infinity = new FpPoint(this, null, null);
 
             this.m_a = FromBigInteger(a);
             this.m_b = FromBigInteger(b);
@@ -750,7 +732,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             this.m_q = q;
             this.m_r = r;
-            this.m_infinity = new FpPoint(this, null, null, false);
+            this.m_infinity = new FpPoint(this, null, null);
 
             this.m_a = a;
             this.m_b = b;
@@ -798,14 +780,14 @@ namespace Org.BouncyCastle.Math.EC
             return new FpFieldElement(this.m_q, this.m_r, x);
         }
 
-        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y)
         {
-            return new FpPoint(this, x, y, withCompression);
+            return new FpPoint(this, x, y);
         }
 
-        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
         {
-            return new FpPoint(this, x, y, zs, withCompression);
+            return new FpPoint(this, x, y, zs);
         }
 
         public override ECPoint ImportPoint(ECPoint p)
@@ -820,8 +802,7 @@ namespace Org.BouncyCastle.Math.EC
                         return new FpPoint(this,
                             FromBigInteger(p.RawXCoord.ToBigInteger()),
                             FromBigInteger(p.RawYCoord.ToBigInteger()),
-                            new ECFieldElement[] { FromBigInteger(p.GetZCoord(0).ToBigInteger()) },
-                            p.IsCompressed);
+                            new ECFieldElement[] { FromBigInteger(p.GetZCoord(0).ToBigInteger()) });
                     default:
                         break;
                 }
@@ -925,8 +906,7 @@ namespace Org.BouncyCastle.Math.EC
         {
         }
 
-        [Obsolete("Per-point compression property will be removed")]
-        public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
+        public override ECPoint CreatePoint(BigInteger x, BigInteger y)
         {
             ECFieldElement X = FromBigInteger(x), Y = FromBigInteger(y);
 
@@ -953,7 +933,7 @@ namespace Org.BouncyCastle.Math.EC
                 }
             }
 
-            return CreateRawPoint(X, Y, withCompression);
+            return CreateRawPoint(X, Y);
         }
 
         public override bool IsValidFieldElement(BigInteger x)
@@ -1018,7 +998,7 @@ namespace Org.BouncyCastle.Math.EC
             if (yp == null)
                 throw new ArgumentException("Invalid point compression");
 
-            return CreateRawPoint(xp, yp, true);
+            return CreateRawPoint(xp, yp);
         }
 
         /**
@@ -1290,7 +1270,7 @@ namespace Org.BouncyCastle.Math.EC
             this.k3 = k3;
             this.m_order = order;
             this.m_cofactor = cofactor;
-            this.m_infinity = new F2mPoint(this, null, null, false);
+            this.m_infinity = new F2mPoint(this, null, null);
 
             if (k1 == 0)
                 throw new ArgumentException("k1 must be > 0");
@@ -1324,7 +1304,7 @@ namespace Org.BouncyCastle.Math.EC
             this.m_order = order;
             this.m_cofactor = cofactor;
 
-            this.m_infinity = new F2mPoint(this, null, null, false);
+            this.m_infinity = new F2mPoint(this, null, null);
             this.m_a = a;
             this.m_b = b;
             this.m_coord = F2M_DEFAULT_COORDS;
@@ -1368,14 +1348,14 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(this.m, this.k1, this.k2, this.k3, x);
         }
 
-        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y)
         {
-            return new F2mPoint(this, x, y, withCompression);
+            return new F2mPoint(this, x, y);
         }
 
-        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
+        protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
         {
-            return new F2mPoint(this, x, y, zs, withCompression);
+            return new F2mPoint(this, x, y, zs);
         }
 
         public override ECPoint Infinity
@@ -1494,7 +1474,7 @@ namespace Org.BouncyCastle.Math.EC
 
                 ECFieldElement X = new F2mFieldElement(m, ks, new LongArray(x));
                 ECFieldElement Y = new F2mFieldElement(m, ks, new LongArray(y));
-                return m_outer.CreateRawPoint(X, Y, false);
+                return m_outer.CreateRawPoint(X, Y);
             }
         }
     }

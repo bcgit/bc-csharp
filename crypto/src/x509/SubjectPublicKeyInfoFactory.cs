@@ -168,7 +168,8 @@ namespace Org.BouncyCastle.X509
                     if (_key.PublicKeyParamSet == null)
                     {
                         ECDomainParameters kp = _key.Parameters;
-                        X9ECParameters ecP = new X9ECParameters(kp.Curve, kp.G, kp.N, kp.H, kp.GetSeed());
+                        X9ECParameters ecP = new X9ECParameters(kp.Curve, new X9ECPoint(kp.G, false), kp.N, kp.H,
+                            kp.GetSeed());
 
                         x962 = new X962Parameters(ecP);
                     }
