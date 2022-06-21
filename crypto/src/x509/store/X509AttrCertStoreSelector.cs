@@ -166,13 +166,6 @@ namespace Org.BouncyCastle.X509.Store
 			set { this.attributeCert = value; }
 		}
 
-		[Obsolete("Use AttributeCertificateValid instead")]
-		public DateTimeObject AttribueCertificateValid
-		{
-			get { return attributeCertificateValid; }
-			set { this.attributeCertificateValid = value; }
-		}
-
 		/// <summary>The criteria for validity</summary>
 		/// <remarks>If <c>null</c> is given any will do.</remarks>
 		public DateTimeObject AttributeCertificateValid

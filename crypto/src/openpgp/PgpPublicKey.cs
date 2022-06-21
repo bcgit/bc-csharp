@@ -330,27 +330,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return publicPk.GetTime(); }
         }
 
-        /// <summary>The number of valid days from creation time - zero means no expiry.</summary>
-        /// <remarks>WARNING: This method will return 1 for keys with version > 3 that expire in less than 1 day</remarks>
-        [Obsolete("Use 'GetValidSeconds' instead")]
-        public int ValidDays
-        {
-            get
-            {
-                if (publicPk.Version <= 3)
-                {
-                    return publicPk.ValidDays;
-                }
-
-                long expSecs = GetValidSeconds();
-                if (expSecs <= 0)
-                    return 0;
-
-                int days = (int)(expSecs / (24 * 60 * 60));
-                return System.Math.Max(1, days);
-            }
-        }
-
         /// <summary>Return the trust data associated with the public key, if present.</summary>
         /// <returns>A byte array with trust data, null otherwise.</returns>
         public byte[] GetTrustData()

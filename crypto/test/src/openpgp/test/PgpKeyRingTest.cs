@@ -2091,11 +2091,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             {
                 PgpPublicKey pubKey = secretKey.PublicKey;
 
-                if (pubKey.ValidDays != 28)
-                {
-                    Fail("days wrong on secret key ring");
-                }
-
                 if (pubKey.GetValidSeconds() != 28 * 24 * 60 * 60)
                 {
                     Fail("seconds wrong on secret key ring");
@@ -2106,11 +2101,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             foreach (PgpPublicKey pubKey in publicRing.GetPublicKeys())
             {
-                if (pubKey.ValidDays != 28)
-                {
-                    Fail("days wrong on public key ring");
-                }
-
                 if (pubKey.GetValidSeconds() != 28 * 24 * 60 * 60)
                 {
                     Fail("seconds wrong on public key ring");

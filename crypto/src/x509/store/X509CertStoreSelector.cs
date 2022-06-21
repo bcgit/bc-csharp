@@ -142,12 +142,6 @@ namespace Org.BouncyCastle.X509.Store
 			set { subject = value; }
 		}
 
-        [Obsolete("Avoid working with X509Name objects in string form")]
-        public string SubjectAsString
-		{
-			get { return subject != null ? subject.ToString() : null; }
-		}
-
 		public byte[] SubjectKeyIdentifier
 		{
 			get { return Arrays.Clone(subjectKeyIdentifier); }

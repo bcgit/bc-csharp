@@ -64,26 +64,7 @@ namespace Org.BouncyCastle.Crypto
             get { return mIterationCount; }
         }
 
-        /**
-         * Generate derived parameters for a key of length keySize.
-         *
-         * @param keySize the length, in bits, of the key required.
-         * @return a parameters object representing a key.
-         */
-        [Obsolete("Use version with 'algorithm' parameter")]
-        public abstract ICipherParameters GenerateDerivedParameters(int keySize);
         public abstract ICipherParameters GenerateDerivedParameters(string algorithm, int keySize);
-
-        /**
-         * Generate derived parameters for a key of length keySize, and
-         * an initialisation vector (IV) of length ivSize.
-         *
-         * @param keySize the length, in bits, of the key required.
-         * @param ivSize the length, in bits, of the iv required.
-         * @return a parameters object representing a key and an IV.
-         */
-        [Obsolete("Use version with 'algorithm' parameter")]
-        public abstract ICipherParameters GenerateDerivedParameters(int keySize, int ivSize);
         public abstract ICipherParameters GenerateDerivedParameters(string algorithm, int keySize, int ivSize);
 
         /**

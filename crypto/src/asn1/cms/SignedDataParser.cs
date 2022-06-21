@@ -64,12 +64,14 @@ namespace Org.BouncyCastle.Asn1.Cms
 			_certsCalled = true;
 			_nextObject = _seq.ReadObject();
 
-			if (_nextObject is Asn1TaggedObjectParser && ((Asn1TaggedObjectParser)_nextObject).TagNo == 0)
+			if (_nextObject is Asn1TaggedObjectParser o)
 			{
-				Asn1SetParser certs = (Asn1SetParser)((Asn1TaggedObjectParser)_nextObject).GetObjectParser(Asn1Tags.Set, false);
-				_nextObject = null;
-
-				return certs;
+				if (o.HasContextTag(0))
+				{
+					Asn1SetParser certs = (Asn1SetParser)o.ParseBaseUniversal(false, Asn1Tags.SetOf);
+					_nextObject = null;
+					return certs;
+				}
 			}
 
 			return null;
@@ -87,16 +89,18 @@ namespace Org.BouncyCastle.Asn1.Cms
 				_nextObject = _seq.ReadObject();
 			}
 
-			if (_nextObject is Asn1TaggedObjectParser && ((Asn1TaggedObjectParser)_nextObject).TagNo == 1)
+			if (_nextObject is Asn1TaggedObjectParser o)
 			{
-				Asn1SetParser crls = (Asn1SetParser)((Asn1TaggedObjectParser)_nextObject).GetObjectParser(Asn1Tags.Set, false);
-				_nextObject = null;
-
-				return crls;
+				if (o.HasContextTag(1))
+				{
+					Asn1SetParser crls = (Asn1SetParser)o.ParseBaseUniversal(false, Asn1Tags.SetOf);
+					_nextObject = null;
+					return crls;
+				}
 			}
 
-			return null;
-		}
+            return null;
+        }
 
 		public Asn1SetParser GetSignerInfos()
 		{

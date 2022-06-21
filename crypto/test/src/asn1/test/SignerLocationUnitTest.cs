@@ -143,24 +143,24 @@ namespace Org.BouncyCastle.Asn1.Tests
         {
             if (countryName != null)
             {
-                if (!countryName.Equals(sl.CountryName))
+                if (!countryName.Equals(sl.Country))
                 {
                     Fail("countryNames don't match.");
                 }
             }
-            else if (sl.CountryName != null)
+            else if (sl.Country != null)
             {
                 Fail("countryName found when none expected.");
             }
 
             if (localityName != null)
             {
-                if (!localityName.Equals(sl.LocalityName))
+                if (!localityName.Equals(sl.Locality))
                 {
                     Fail("localityNames don't match.");
                 }
             }
-            else if (sl.LocalityName != null)
+            else if (sl.Locality != null)
             {
                 Fail("localityName found when none expected.");
             }

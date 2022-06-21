@@ -61,13 +61,12 @@ namespace Org.BouncyCastle.Asn1
 		private readonly int encoding;
 		private readonly Asn1Object externalContent;
 
-        [Obsolete("Use constructor taking an Asn1Sequence instead.")]
         public DerExternal(Asn1EncodableVector vector)
             : this(new DerSequence(vector))
         {
         }
 
-        public DerExternal(DerSequence sequence)
+        public DerExternal(Asn1Sequence sequence)
 		{
 			int offset = 0;
 

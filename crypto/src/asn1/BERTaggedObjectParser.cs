@@ -42,15 +42,6 @@ namespace Org.BouncyCastle.Asn1
             return m_tagClass == tagClass && m_tagNo == tagNo;
         }
 
-        [Obsolete("Use 'Parse...' methods instead, after checking this parser's TagClass and TagNo")]
-        public IAsn1Convertible GetObjectParser(int baseTagNo, bool declaredExplicit)
-		{
-            if (Asn1Tags.ContextSpecific != TagClass)
-                throw new Asn1Exception("this method only valid for CONTEXT_SPECIFIC tags");
-
-            return ParseBaseUniversal(declaredExplicit, baseTagNo);
-		}
-
         public virtual IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
         {
             if (declaredExplicit)

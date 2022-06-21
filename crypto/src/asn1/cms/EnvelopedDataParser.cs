@@ -42,12 +42,14 @@ namespace Org.BouncyCastle.Asn1.Cms
 				_nextObject = _seq.ReadObject();
 			}
 
-			if (_nextObject is Asn1TaggedObjectParser && ((Asn1TaggedObjectParser)_nextObject).TagNo == 0)
+			if (_nextObject is Asn1TaggedObjectParser o)
 			{
-				Asn1SequenceParser originatorInfo = (Asn1SequenceParser)
-					((Asn1TaggedObjectParser)_nextObject).GetObjectParser(Asn1Tags.Sequence, false);
-				_nextObject = null;
-				return OriginatorInfo.GetInstance(originatorInfo.ToAsn1Object());
+				if (o.HasContextTag(0))
+				{
+					Asn1SequenceParser originatorInfo = (Asn1SequenceParser)o.ParseBaseUniversal(false, Asn1Tags.Sequence);
+					_nextObject = null;
+					return OriginatorInfo.GetInstance(originatorInfo.ToAsn1Object());
+				}
 			}
 
 			return null;
@@ -96,11 +98,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 			if (_nextObject != null)
 			{
-				IAsn1Convertible o = _nextObject;
+				Asn1TaggedObjectParser o = (Asn1TaggedObjectParser)_nextObject;
 				_nextObject = null;
-				return (Asn1SetParser)((Asn1TaggedObjectParser)o).GetObjectParser(Asn1Tags.Set, false);
+				return (Asn1SetParser)Asn1Utilities.ParseContextBaseUniversal(o, 1, false, Asn1Tags.SetOf);
 			}
-        
+
 			return null;
 		}
 	}

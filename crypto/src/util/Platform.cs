@@ -15,11 +15,6 @@ namespace Org.BouncyCastle.Utilities
     {
         private static readonly CompareInfo InvariantCompareInfo = CultureInfo.InvariantCulture.CompareInfo;
 
-        private static string GetNewLine()
-        {
-            return Environment.NewLine;
-        }
-
         internal static bool EqualsIgnoreCase(string a, string b)
         {
 #if PORTABLE
@@ -161,7 +156,7 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
-        internal static readonly string NewLine = GetNewLine();
+        internal static readonly string NewLine = Environment.NewLine;
 
 #if PORTABLE
         internal static void Dispose(IDisposable d)

@@ -119,16 +119,6 @@ namespace Org.BouncyCastle.Security
         {
         }
 
-        /// <remarks>
-        /// To replicate existing predictable output, replace with GetInstance("SHA1PRNG", false), followed by SetSeed(seed)
-        /// </remarks>
-        [Obsolete("Use GetInstance/SetSeed instead")]
-        public SecureRandom(byte[] seed)
-            : this(CreatePrng("SHA1", false))
-        {
-            SetSeed(seed);
-        }
-
         /// <summary>Use the specified instance of IRandomGenerator as random source.</summary>
         /// <remarks>
         /// This constructor performs no seeding of either the <c>IRandomGenerator</c> or the

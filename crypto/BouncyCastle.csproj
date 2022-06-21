@@ -795,7 +795,6 @@
     <Compile Include="src\crypto\encodings\OaepEncoding.cs" />
     <Compile Include="src\crypto\encodings\Pkcs1Encoding.cs" />
     <Compile Include="src\crypto\engines\AesEngine.cs" />
-    <Compile Include="src\crypto\engines\AesFastEngine.cs" />
     <Compile Include="src\crypto\engines\AesLightEngine.cs" />
     <Compile Include="src\crypto\engines\AesWrapEngine.cs" />
     <Compile Include="src\crypto\engines\AriaEngine.cs" />

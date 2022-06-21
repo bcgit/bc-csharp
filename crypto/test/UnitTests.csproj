@@ -158,7 +158,6 @@
     <Compile Include="src\crypto\prng\test\X931Test.cs" />
     <Compile Include="src\crypto\prng\test\X931TestVector.cs" />
     <Compile Include="src\crypto\test\AeadTestUtilities.cs" />
-    <Compile Include="src\crypto\test\AESFastTest.cs" />
     <Compile Include="src\crypto\test\AESLightTest.cs" />
     <Compile Include="src\crypto\test\AESTest.cs" />
     <Compile Include="src\crypto\test\AESWrapTest.cs" />

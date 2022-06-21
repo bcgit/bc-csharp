@@ -299,20 +299,6 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        /**
-		* Return the object held in this tagged object as a parser assuming it has
-		* the type of the passed in tag. If the object doesn't have a parser
-		* associated with it, the base object is returned.
-		*/
-        [Obsolete("Use 'Parse...' methods instead, after checking this parser's TagClass and TagNo")]
-        public IAsn1Convertible GetObjectParser(int tag, bool isExplicit)
-		{
-            if (Asn1Tags.ContextSpecific != TagClass)
-                throw new InvalidOperationException("this method only valid for CONTEXT_SPECIFIC tags");
-
-            return ParseBaseUniversal(isExplicit, tag);
-		}
-
         public IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
         {
             Asn1Object asn1Object = GetBaseUniversal(declaredExplicit, baseTagNo);

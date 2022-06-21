@@ -113,18 +113,6 @@ namespace Org.BouncyCastle.Asn1.Esf
             return dirStrings;
         }
 
-        [Obsolete("Use 'Country' property instead")]
-		public DerUtf8String CountryName
-		{
-            get { return countryName == null ? null : new DerUtf8String(countryName.GetString()); }
-		}
-
-        [Obsolete("Use 'Locality' property instead")]
-        public DerUtf8String LocalityName
-        {
-            get { return localityName == null ? null : new DerUtf8String(localityName.GetString()); }
-        }
-
 		public Asn1Sequence PostalAddress
 		{
 			get { return postalAddress; }
