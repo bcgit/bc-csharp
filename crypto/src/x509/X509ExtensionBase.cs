@@ -51,20 +51,7 @@ namespace Org.BouncyCastle.X509
 			return GetExtensionOids(true);
 		}
 
-		/// <summary>
-		/// Get the value of a given extension.
-		/// </summary>
-		/// <param name="oid">The object ID of the extension. </param>
-		/// <returns>An Asn1OctetString object if that extension is found or null if not.</returns>
-		[Obsolete("Use version taking a DerObjectIdentifier instead")]
-		public Asn1OctetString GetExtensionValue(
-			string oid)
-		{
-			return GetExtensionValue(new DerObjectIdentifier(oid));
-		}
-
-		public virtual Asn1OctetString GetExtensionValue(
-			DerObjectIdentifier oid)
+		public virtual Asn1OctetString GetExtensionValue(DerObjectIdentifier oid)
 		{
 			X509Extensions exts = GetX509Extensions();
 			if (exts != null)

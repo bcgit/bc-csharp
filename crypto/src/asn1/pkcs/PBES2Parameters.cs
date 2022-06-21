@@ -24,9 +24,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             this.scheme = encScheme;
         }
 
-        [Obsolete("Use GetInstance() instead")]
-        public PbeS2Parameters(
-            Asn1Sequence seq)
+        private PbeS2Parameters(Asn1Sequence seq)
         {
             if (seq.Count != 2)
                 throw new ArgumentException("Wrong number of elements in sequence", "seq");

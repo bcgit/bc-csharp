@@ -223,12 +223,6 @@ namespace Org.BouncyCastle.Asn1
 			}
         }
 
-		[Obsolete("Use 'AdjustedTimeString' property instead")]
-		public string AdjustedTime
-		{
-			get { return AdjustedTimeString; }
-		}
-
 		/// <summary>
 		/// Return a time string as an adjusted date with a 4 digit year.
 		/// This goes in the range of 1950 - 2049.

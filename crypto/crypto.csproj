@@ -304,11 +304,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\asn1\BERNull.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\asn1\BEROctetString.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -320,11 +315,6 @@
                 />
                 <File
                     RelPath = "src\asn1\BEROctetStringParser.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\asn1\BEROutputStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -1434,16 +1424,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\asn1\ess\OtherCertID.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\asn1\ess\OtherSigningCertificate.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\asn1\ess\SigningCertificate.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -1960,11 +1940,6 @@
                 />
                 <File
                     RelPath = "src\asn1\util\Dump.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\asn1\util\FilterStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4729,11 +4704,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\crypto\parameters\CCMParameters.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\crypto\parameters\DESedeParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6879,11 +6849,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\multiplier\DoubleAddMultiplier.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\math\ec\multiplier\ECMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -6914,32 +6879,7 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\multiplier\MixedNafR2LMultiplier.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\math\ec\multiplier\MontgomeryLadderMultiplier.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\math\ec\multiplier\NafL2RMultiplier.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\math\ec\multiplier\NafR2LMultiplier.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\math\ec\multiplier\PreCompInfo.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\math\ec\multiplier\ReferenceMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -6970,16 +6910,6 @@
                 />
                 <File
                     RelPath = "src\math\ec\multiplier\WTauNafPreCompInfo.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\math\ec\multiplier\ZSignedDigitL2RMultiplier.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\math\ec\multiplier\ZSignedDigitR2LMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -7700,11 +7630,6 @@
                 />
                 <File
                     RelPath = "src\security\MacUtilities.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\security\NoSuchAlgorithmException.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -9515,16 +9440,6 @@
                 />
                 <File
                     RelPath = "src\util\zlib\Tree.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\util\zlib\ZDeflaterOutputStream.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "src\util\zlib\ZInflaterInputStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

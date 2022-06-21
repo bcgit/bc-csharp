@@ -249,12 +249,6 @@ namespace Org.BouncyCastle.Cms
 			return crlStore;
 		}
 
-		[Obsolete("Use 'SignedContentType' property instead.")]
-		public string SignedContentTypeOid
-		{
-			get { return signedData.EncapContentInfo.ContentType.Id; }
-		}
-
 		/// <summary>
 		/// Return the <c>DerObjectIdentifier</c> associated with the encapsulated
 		/// content info structure carried in the signed data.

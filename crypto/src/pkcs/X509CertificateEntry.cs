@@ -18,17 +18,6 @@ namespace Org.BouncyCastle.Pkcs
             this.cert = cert;
         }
 
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete]
-        public X509CertificateEntry(
-            X509Certificate	cert,
-            Hashtable		attributes)
-			: base(attributes)
-        {
-            this.cert = cert;
-        }
-#endif
-
         public X509CertificateEntry(
             X509Certificate cert,
             IDictionary     attributes)

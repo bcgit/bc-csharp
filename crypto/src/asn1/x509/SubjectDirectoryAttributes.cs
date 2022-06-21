@@ -78,15 +78,6 @@ namespace Org.BouncyCastle.Asn1.X509
 			}
 		}
 
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete]
-        public SubjectDirectoryAttributes(
-            ArrayList attributes)
-            : this((IList)attributes)
-        {
-        }
-#endif
-
         /**
 		 * Constructor from an ArrayList of attributes.
 		 *

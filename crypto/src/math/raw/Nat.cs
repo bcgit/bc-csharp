@@ -1128,37 +1128,6 @@ namespace Org.BouncyCastle.Math.Raw
             ShiftUpBit(extLen, zz, zzOff, x[xOff] << 31);
         }
 
-        [Obsolete("Use 'SquareWordAddTo' instead")]
-        public static uint SquareWordAdd(uint[] x, int xPos, uint[] z)
-        {
-            ulong c = 0, xVal = (ulong)x[xPos];
-            int i = 0;
-            do
-            {
-                c += xVal * x[i] + z[xPos + i];
-                z[xPos + i] = (uint)c;
-                c >>= 32;
-            }
-            while (++i < xPos);
-            return (uint)c;
-        }
-
-        [Obsolete("Use 'SquareWordAddTo' instead")]
-        public static uint SquareWordAdd(uint[] x, int xOff, int xPos, uint[] z, int zOff)
-        {
-            ulong c = 0, xVal = (ulong)x[xOff + xPos];
-            int i = 0;
-            do
-            {
-                c += xVal * (x[xOff + i] & M) + (z[xPos + zOff] & M);
-                z[xPos + zOff] = (uint)c;
-                c >>= 32;
-                ++zOff;
-            }
-            while (++i < xPos);
-            return (uint)c;
-        }
-
         public static uint SquareWordAddTo(uint[] x, int xPos, uint[] z)
         {
             ulong c = 0, xVal = (ulong)x[xPos];

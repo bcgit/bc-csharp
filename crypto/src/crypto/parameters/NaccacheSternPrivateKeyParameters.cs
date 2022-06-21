@@ -16,21 +16,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		private readonly BigInteger phiN;
 		private readonly IList smallPrimes;
 
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete]
-        public NaccacheSternPrivateKeyParameters(
-            BigInteger g,
-            BigInteger n,
-            int lowerSigmaBound,
-            ArrayList smallPrimes,
-            BigInteger phiN)
-            : base(true, g, n, lowerSigmaBound)
-        {
-            this.smallPrimes = smallPrimes;
-            this.phiN = phiN;
-        }
-#endif
-
 		/**
 		 * Constructs a NaccacheSternPrivateKey
 		 *
@@ -62,14 +47,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		{
 			get { return phiN; }
 		}
-
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete("Use 'SmallPrimesList' instead")]
-        public ArrayList SmallPrimes
-		{
-			get { return new ArrayList(smallPrimes); }
-		}
-#endif
 
         public IList SmallPrimesList
         {

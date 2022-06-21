@@ -70,12 +70,6 @@ namespace Org.BouncyCastle.Asn1
         private readonly int segmentLimit;
         private readonly Asn1OctetString[] elements;
 
-        [Obsolete("Will be removed")]
-        public BerOctetString(IEnumerable e)
-            : this(ToOctetStringArray(e))
-        {
-        }
-
         public BerOctetString(byte[] contents)
 			: this(contents, DefaultSegmentLimit)
 		{
@@ -112,12 +106,6 @@ namespace Org.BouncyCastle.Asn1
                 return new ChunkEnumerator(contents, segmentLimit);
 
 			return elements.GetEnumerator();
-		}
-
-		[Obsolete("Use GetEnumerator() instead")]
-        public IEnumerator GetObjects()
-        {
-			return GetEnumerator();
 		}
 
         internal override IAsn1Encoding GetEncoding(int encoding)

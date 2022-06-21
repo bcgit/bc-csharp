@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -15,15 +14,6 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             this.attributes = Platform.CreateHashtable(attrs);
         }
-
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete]
-        public AttributeTable(
-            Hashtable attrs)
-        {
-            this.attributes = Platform.CreateHashtable(attrs);
-        }
-#endif
 
 		public AttributeTable(
             Asn1EncodableVector v)
@@ -56,14 +46,6 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             return (AttributeX509) attributes[oid];
         }
-
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete("Use 'ToDictionary' instead")]
-		public Hashtable ToHashtable()
-        {
-            return new Hashtable(attributes);
-        }
-#endif
 
         public IDictionary ToDictionary()
         {

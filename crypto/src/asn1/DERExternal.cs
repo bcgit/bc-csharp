@@ -100,13 +100,6 @@ namespace Org.BouncyCastle.Asn1
             this.externalContent = GetExternalContent(obj);
 		}
 
-        [Obsolete("Use constructor with dataValueDescriptor of type Asn1ObjectDescriptor")]
-        public DerExternal(DerObjectIdentifier directReference, DerInteger indirectReference,
-            Asn1Object dataValueDescriptor, DerTaggedObject externalData)
-			: this(directReference, indirectReference, CheckDataValueDescriptor(dataValueDescriptor), externalData)
-		{
-		}
-
         /**
 		* Creates a new instance of DerExternal
 		* See X.690 for more informations about the meaning of these parameters
@@ -124,14 +117,6 @@ namespace Org.BouncyCastle.Asn1
             this.encoding = CheckEncoding(externalData.TagNo);
             this.externalContent = GetExternalContent(externalData);
         }
-
-        [Obsolete("Use constructor with dataValueDescriptor of type Asn1ObjectDescriptor")]
-        public DerExternal(DerObjectIdentifier directReference, DerInteger indirectReference,
-            Asn1Object dataValueDescriptor, int encoding, Asn1Object externalData)
-            : this(directReference, indirectReference, CheckDataValueDescriptor(dataValueDescriptor), encoding,
-                  externalData)
-		{
-		}
 
         /**
 		* Creates a new instance of DerExternal.

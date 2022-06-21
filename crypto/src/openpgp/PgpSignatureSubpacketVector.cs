@@ -96,12 +96,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return vals;
 		}
 
-        [Obsolete("Use 'GetNotationDataOccurrences' instead")]
-        public NotationData[] GetNotationDataOccurences()
-        {
-            return GetNotationDataOccurrences();
-        }
-
 		public long GetIssuerKeyId()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.IssuerKeyId);
@@ -253,12 +247,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             return new Features(p.IsCritical(), p.IsLongLength(), p.GetData());
         }
-
-        [Obsolete("Use 'Count' property instead")]
-		public int Size
-		{
-			get { return packets.Length; }
-		}
 
 		/// <summary>Return the number of packets this vector contains.</summary>
 		public int Count

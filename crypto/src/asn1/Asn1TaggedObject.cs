@@ -159,12 +159,6 @@ namespace Org.BouncyCastle.Asn1
             return this.tagClass == tagClass && this.tagNo == tagNo;
         }
 
-        [Obsolete("Will be removed. Replace with constant return value of 'false'")]
-        public bool IsEmpty()
-        {
-            return false;
-        }
-
         /**
          * return whether or not the object may be explicitly tagged.
          * <p>

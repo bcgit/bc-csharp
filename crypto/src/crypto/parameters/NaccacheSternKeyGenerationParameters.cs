@@ -48,32 +48,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 		/**
-		 * Parameters for a NaccacheStern KeyPair.
-		 *
-		 * @param random
-		 *            The source of randomness
-		 * @param strength
-		 *            The desired strength of the Key in Bits
-		 * @param certainty
-		 *            the probability that the generated primes are not really prime
-		 *            as integer: 2^(-certainty) is then the probability
-		 * @param cntSmallPrimes
-		 *            How many small key factors are desired
-		 * @param debug
-         *            Ignored
-		 */
-        [Obsolete("Use version without 'debug' parameter")]
-		public NaccacheSternKeyGenerationParameters(
-            SecureRandom    random,
-			int             strength,
-			int             certainty,
-			int             countSmallPrimes,
-			bool            debug)
-			: this(random, strength, certainty, countSmallPrimes)
-		{
-		}
-
-		/**
 		 * @return Returns the certainty.
 		 */
 		public int Certainty
@@ -87,12 +61,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
 		public int CountSmallPrimes
 		{
 			get { return countSmallPrimes; }
-		}
-
-        [Obsolete("Remove: always false")]
-        public bool IsDebug
-		{
-			get { return false; }
 		}
 	}
 }

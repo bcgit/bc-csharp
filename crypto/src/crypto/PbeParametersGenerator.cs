@@ -49,31 +49,9 @@ namespace Org.BouncyCastle.Crypto
             get { return Arrays.Clone(mPassword); }
         }
 
-        /**
-         * return the password byte array.
-         *
-         * @return the password byte array.
-         */
-        [Obsolete("Use 'Password' property")]
-        public byte[] GetPassword()
-        {
-            return Password;
-        }
-
         public virtual byte[] Salt
         {
             get { return Arrays.Clone(mSalt); }
-        }
-
-        /**
-         * return the salt byte array.
-         *
-         * @return the salt byte array.
-         */
-        [Obsolete("Use 'Salt' property")]
-        public byte[] GetSalt()
-        {
-            return Salt;
         }
 
         /**
@@ -133,16 +111,6 @@ namespace Org.BouncyCastle.Crypto
             return Strings.ToByteArray(password);
         }
 
-        [Obsolete("Use version taking 'char[]' instead")]
-        public static byte[] Pkcs5PasswordToBytes(
-            string password)
-        {
-            if (password == null)
-                return new byte[0];
-
-            return Strings.ToByteArray(password);
-        }
-
         /**
          * converts a password to a byte array according to the scheme in
          * PKCS5 (UTF-8, no padding)
@@ -152,16 +120,6 @@ namespace Org.BouncyCastle.Crypto
          */
         public static byte[] Pkcs5PasswordToUtf8Bytes(
             char[] password)
-        {
-            if (password == null)
-                return new byte[0];
-
-            return Encoding.UTF8.GetBytes(password);
-        }
-
-        [Obsolete("Use version taking 'char[]' instead")]
-        public static byte[] Pkcs5PasswordToUtf8Bytes(
-            string password)
         {
             if (password == null)
                 return new byte[0];

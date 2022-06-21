@@ -103,12 +103,6 @@ namespace Org.BouncyCastle.Ocsp
             get { return resp.SignatureAlgorithm.Algorithm.Id; }
 		}
 
-		[Obsolete("RespData class is no longer required as all functionality is available on this class")]
-		public RespData GetResponseData()
-		{
-			return new RespData(data);
-		}
-
 		public byte[] GetSignature()
 		{
 			return resp.GetSignatureOctets();

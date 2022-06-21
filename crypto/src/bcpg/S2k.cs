@@ -101,12 +101,6 @@ namespace Org.BouncyCastle.Bcpg
             return Arrays.Clone(iv);
         }
 
-		[Obsolete("Use 'IterationCount' property instead")]
-        public long GetIterationCount()
-        {
-            return IterationCount;
-        }
-
 		/// <summary>The iteration count</summary>
         public virtual long IterationCount
 		{

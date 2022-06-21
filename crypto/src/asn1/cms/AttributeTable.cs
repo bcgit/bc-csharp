@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
@@ -9,15 +8,6 @@ namespace Org.BouncyCastle.Asn1.Cms
     public class AttributeTable
     {
         private readonly IDictionary attributes;
-
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete]
-        public AttributeTable(
-            Hashtable attrs)
-        {
-            this.attributes = Platform.CreateHashtable(attrs);
-        }
-#endif
 
         public AttributeTable(
             IDictionary attrs)
@@ -105,13 +95,6 @@ namespace Org.BouncyCastle.Asn1.Cms
 			}
 		}
 
-		[Obsolete("Use 'object[oid]' syntax instead")]
-        public Attribute Get(
-            DerObjectIdentifier oid)
-        {
-			return this[oid];
-        }
-
 		/**
         * Return all the attributes matching the OBJECT IDENTIFIER oid. The vector will be
         * empty if there are no attributes of the required type present.
@@ -167,14 +150,6 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             return Platform.CreateHashtable(attributes);
         }
-
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete("Use 'ToDictionary' instead")]
-		public Hashtable ToHashtable()
-        {
-            return new Hashtable(attributes);
-        }
-#endif
 
 		public Asn1EncodableVector ToAsn1EncodableVector()
         {

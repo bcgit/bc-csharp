@@ -40,12 +40,5 @@ namespace Org.BouncyCastle.Cms
 		{
 			zOut.Write(bytes, 0, bytes.Length);
 		}
-
-        /// <returns>A clone of the byte array</returns>
-        [Obsolete]
-		public virtual object GetContent()
-		{
-			return bytes.Clone();
-		}
 	}
 }

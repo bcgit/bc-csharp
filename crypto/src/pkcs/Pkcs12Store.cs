@@ -732,12 +732,6 @@ namespace Org.BouncyCastle.Pkcs
             return false;
         }
 
-        [Obsolete("Use 'Count' property instead")]
-        public int Size()
-        {
-            return Count;
-        }
-
         public int Count
         {
             // TODO Seems a little inefficient

@@ -71,17 +71,6 @@ namespace Org.BouncyCastle.Asn1.Smime
             capabilities = seq;
         }
 
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete("Use 'GetCapabilitiesForOid' instead")]
-        public ArrayList GetCapabilities(
-            DerObjectIdentifier capability)
-        {
-            ArrayList list = new ArrayList();
-            DoGetCapabilitiesForOid(capability, list);
-			return list;
-        }
-#endif
-
         /**
          * returns an ArrayList with 0 or more objects of all the capabilities
          * matching the passed in capability Oid. If the Oid passed is null the

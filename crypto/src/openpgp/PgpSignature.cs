@@ -320,12 +320,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return sigPck.KeyId; }
         }
 
-		[Obsolete("Use 'CreationTime' property instead")]
-		public DateTime GetCreationTime()
-		{
-			return CreationTime;
-		}
-
 		/// <summary>The creation time of this signature.</summary>
         public DateTime CreationTime
         {

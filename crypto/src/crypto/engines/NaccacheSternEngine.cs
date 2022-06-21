@@ -72,12 +72,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 		}
 
-        [Obsolete("Remove: no longer used")]
-        public virtual bool Debug
-		{
-			set {}
-		}
-
 		/**
 		* Returns the input block size of this algorithm.
 		*

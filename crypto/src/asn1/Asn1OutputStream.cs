@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities.IO;
+
 namespace Org.BouncyCastle.Asn1
 {
     public class Asn1OutputStream
-        : DerOutputStream
+        : FilterStream
     {
         internal const int EncodingBer = 1;
         internal const int EncodingDer = 2;
@@ -18,7 +20,7 @@ namespace Org.BouncyCastle.Asn1
         {
             if (Asn1Encodable.Der.Equals(encoding))
             {
-                return new DerOutputStreamNew(output);
+                return new DerOutputStream(output);
             }
             else
             {
@@ -26,13 +28,12 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        [Obsolete("Use static Create method(s)")]
-        public Asn1OutputStream(Stream os)
+        internal Asn1OutputStream(Stream os)
             : base(os)
         {
         }
 
-        public override void WriteObject(Asn1Encodable asn1Encodable)
+        public virtual void WriteObject(Asn1Encodable asn1Encodable)
         {
             if (null == asn1Encodable)
                 throw new ArgumentNullException("asn1Encodable");
@@ -41,7 +42,7 @@ namespace Org.BouncyCastle.Asn1
             FlushInternal();
         }
 
-        public override void WriteObject(Asn1Object asn1Object)
+        public virtual void WriteObject(Asn1Object asn1Object)
         {
             if (null == asn1Object)
                 throw new ArgumentNullException("asn1Object");

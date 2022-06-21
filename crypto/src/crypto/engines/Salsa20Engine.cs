@@ -29,11 +29,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             state[stateOffset + 3] = TAU_SIGMA[tsOff + 3];
         }
 
-        [Obsolete]
-        protected readonly static byte[]
-			sigma = Strings.ToAsciiByteArray("expand 32-byte k"),
-			tau = Strings.ToAsciiByteArray("expand 16-byte k");
-
 		protected int rounds;
 
 		/*

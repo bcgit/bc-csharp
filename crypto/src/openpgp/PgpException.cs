@@ -12,11 +12,5 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		public PgpException() : base() {}
 		public PgpException(string message) : base(message) {}
 		public PgpException(string message, Exception exception) : base(message, exception) {}
-
-		[Obsolete("Use InnerException property")]
-		public Exception UnderlyingException
-		{
-			get { return InnerException; }
-		}
 	}
 }

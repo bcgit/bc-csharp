@@ -62,12 +62,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			}
         }
 
-		[Obsolete("Use 'Count' property instead")]
-		public int Size
-		{
-			get { return order.Count; }
-		}
-
 		/// <summary>Return the number of rings in this collection.</summary>
 		public int Count
         {

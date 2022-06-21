@@ -112,12 +112,6 @@ namespace Org.BouncyCastle.Security
             throw new ArgumentException("Unrecognised PRNG algorithm: " + algorithm, "algorithm");
         }
 
-        [Obsolete("Call GenerateSeed() on a SecureRandom instance instead")]
-        public static byte[] GetSeed(int length)
-        {
-            return GetNextBytes(Master, length);
-        }
-
         protected readonly IRandomGenerator generator;
 
         public SecureRandom()

@@ -31,13 +31,6 @@ namespace Org.BouncyCastle.Asn1.X509
             this.algorithm = algorithm;
         }
 
-        [Obsolete("Use version taking a DerObjectIdentifier")]
-        public AlgorithmIdentifier(
-            string algorithm)
-        {
-            this.algorithm = new DerObjectIdentifier(algorithm);
-        }
-
         public AlgorithmIdentifier(
             DerObjectIdentifier algorithm,
             Asn1Encodable		parameters)
@@ -63,12 +56,6 @@ namespace Org.BouncyCastle.Asn1.X509
 		{
 			get { return algorithm; }
 		}
-
-        [Obsolete("Use 'Algorithm' property instead")]
-        public virtual DerObjectIdentifier ObjectID
-        {
-            get { return algorithm; }
-        }
 
         /// <summary>
         /// Return the parameters structure in the Parameters entry of this identifier.

@@ -662,19 +662,6 @@ namespace Org.BouncyCastle.Math.EC
         : AbstractFpPoint
     {
         /**
-         * Create a point which encodes without point compression.
-         *
-         * @param curve the curve to use
-         * @param x affine x co-ordinate
-         * @param y affine y co-ordinate
-         */
-        [Obsolete("Use ECCurve.CreatePoint to construct points")]
-        public FpPoint(ECCurve curve, ECFieldElement x, ECFieldElement y)
-            : this(curve, x, y, false)
-        {
-        }
-
-        /**
          * Create a point that encodes with or without point compression.
          *
          * @param curve the curve to use
@@ -1646,20 +1633,6 @@ namespace Org.BouncyCastle.Math.EC
     public class F2mPoint
         : AbstractF2mPoint
     {
-        /**
-         * @param curve base curve
-         * @param x x point
-         * @param y y point
-         */
-        [Obsolete("Use ECCurve.CreatePoint to construct points")]
-        public F2mPoint(
-            ECCurve			curve,
-            ECFieldElement	x,
-            ECFieldElement	y)
-            :  this(curve, x, y, false)
-        {
-        }
-
         /**
          * @param curve base curve
          * @param x x point

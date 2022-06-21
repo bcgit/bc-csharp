@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Utilities;
 
@@ -52,17 +51,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			strings = new DerSequence(p);
 		}
 
-		/**
-		 * Return the number of string elements present.
-		 *
-		 * @return number of elements present.
-		 */
-		[Obsolete("Use 'Count' property instead")]
-		public int Size
-		{
-			get { return strings.Count; }
-		}
-
 		public int Count
 		{
 			get { return strings.Count; }
@@ -77,13 +65,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		public DerUtf8String this[int index]
 		{
 			get { return (DerUtf8String) strings[index]; }
-		}
-
-		[Obsolete("Use 'object[index]' syntax instead")]
-		public DerUtf8String GetStringAt(
-			int index)
-		{
-			return this[index];
 		}
 
 		/**

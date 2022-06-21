@@ -132,24 +132,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
         /// the historical behaviour of the library (1.7 and earlier).
         /// </remarks>
-        [Obsolete("Use the constructor taking an explicit 'useSha1' parameter instead")]
-        public PgpSecretKey(
-            int							certificationLevel,
-            PgpKeyPair					keyPair,
-            string						id,
-            SymmetricKeyAlgorithmTag	encAlgorithm,
-            char[]						passPhrase,
-            PgpSignatureSubpacketVector	hashedPackets,
-            PgpSignatureSubpacketVector	unhashedPackets,
-            SecureRandom				rand)
-            : this(certificationLevel, keyPair, id, encAlgorithm, passPhrase, false, hashedPackets, unhashedPackets, rand)
-        {
-        }
-
-        /// <remarks>
-        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
-        /// the historical behaviour of the library (1.7 and earlier).
-        /// </remarks>
         public PgpSecretKey(
             int							certificationLevel,
             PgpKeyPair					keyPair,

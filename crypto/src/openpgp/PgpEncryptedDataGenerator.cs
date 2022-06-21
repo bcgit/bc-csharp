@@ -270,19 +270,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.oldFormat = oldFormat;
         }
 
-		/// <summary>
-		/// Add a PBE encryption method to the encrypted object using the default algorithm (S2K_SHA1).
-		/// </summary>
-        /// <remarks>
-        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
-        /// the historical behaviour of the library (1.7 and earlier).
-        /// </remarks>
-        [Obsolete("Use version that takes an explicit s2kDigest parameter")]
-        public void AddMethod(char[] passPhrase)
-		{
-			AddMethod(passPhrase, HashAlgorithmTag.Sha1);
-		}
-
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
         /// <remarks>
         /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is

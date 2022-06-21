@@ -125,12 +125,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             throw new IOException("unknown object in stream " + bcpgIn.NextPacketTag());
         }
 
-		[Obsolete("Use NextPgpObject() instead")]
-		public object NextObject()
-		{
-			return NextPgpObject();
-		}
-
 		/// <summary>
 		/// Return all available objects in a list.
 		/// </summary>

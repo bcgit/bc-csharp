@@ -65,15 +65,6 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete]
-        public ExtendedKeyUsage(
-            ArrayList usages)
-            : this((IEnumerable)usages)
-        {
-        }
-#endif
-
         public ExtendedKeyUsage(
             IEnumerable usages)
         {
@@ -95,14 +86,6 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             return usageTable.Contains(keyPurposeId);
         }
-
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete("Use 'GetAllUsages'")]
-        public ArrayList GetUsages()
-        {
-            return new ArrayList(usageTable.Values);
-        }
-#endif
 
         /**
          * Returns all extended key usages.

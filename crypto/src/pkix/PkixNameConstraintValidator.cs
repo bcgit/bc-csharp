@@ -1692,12 +1692,6 @@ namespace Org.BouncyCastle.Pkix
             return temp;
         }
 
-		[Obsolete("Use GetHashCode instead")]
-		public int HashCode()
-		{
-			return GetHashCode();
-		}
-
 		public override int GetHashCode()
         {
             return HashCollection(excludedSubtreesDN)

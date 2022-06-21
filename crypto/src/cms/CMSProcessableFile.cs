@@ -40,13 +40,6 @@ namespace Org.BouncyCastle.Cms
             Streams.PipeAll(inStr, zOut, _bufSize);
             Platform.Dispose(inStr);
 		}
-
-        /// <returns>The file handle</returns>
-		[Obsolete]
-		public virtual object GetContent()
-		{
-			return _file;
-		}
 	}
 }
 #endif

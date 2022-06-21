@@ -20,25 +20,6 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class X931Signer
         :   ISigner
     {
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_IMPLICIT = 0xBC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_RIPEMD160 = 0x31CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_RIPEMD128 = 0x32CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_SHA1 = 0x33CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_SHA256 = 0x34CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_SHA512 = 0x35CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_SHA384 = 0x36CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_WHIRLPOOL = 0x37CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TRAILER_SHA224 = 0x38CC;
-
         private IDigest                     digest;
         private IAsymmetricBlockCipher      cipher;
         private RsaKeyParameters            kParam;

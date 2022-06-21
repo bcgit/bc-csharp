@@ -129,9 +129,6 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier Pkcs9AtFriendlyName					= new DerObjectIdentifier(Pkcs9 + ".20");
         public static readonly DerObjectIdentifier Pkcs9AtLocalKeyID					= new DerObjectIdentifier(Pkcs9 + ".21");
 
-		[Obsolete("Use X509Certificate instead")]
-        public static readonly DerObjectIdentifier X509CertType = new DerObjectIdentifier(Pkcs9 + ".22.1");
-
 		public const string CertTypes = Pkcs9 + ".22";
 		public static readonly DerObjectIdentifier X509Certificate = new DerObjectIdentifier(CertTypes + ".1");
 		public static readonly DerObjectIdentifier SdsiCertificate = new DerObjectIdentifier(CertTypes + ".2");
@@ -260,15 +257,6 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static readonly DerObjectIdentifier IdAAImplCompressAlgs = IdAAOid.Branch("43");
         /** PKCS#9: 1.2.840.113549.1.9.16.2.40   <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
         public static readonly DerObjectIdentifier IdAACommunityIdentifiers = IdAAOid.Branch("40");
-
-		[Obsolete("Use 'IdAAEtsSigPolicyID' instead")]
-		public static readonly DerObjectIdentifier IdAASigPolicyID = IdAAEtsSigPolicyID;
-		[Obsolete("Use 'IdAAEtsCommitmentType' instead")]
-		public static readonly DerObjectIdentifier IdAACommitmentType = IdAAEtsCommitmentType;
-		[Obsolete("Use 'IdAAEtsSignerLocation' instead")]
-		public static readonly DerObjectIdentifier IdAASignerLocation = IdAAEtsSignerLocation;
-		[Obsolete("Use 'IdAAEtsOtherSigCert' instead")]
-		public static readonly DerObjectIdentifier IdAAOtherSigCert = IdAAEtsOtherSigCert;
 
 		//
 		// id-spq OBJECT IDENTIFIER ::= {iso(1) member-body(2) usa(840)

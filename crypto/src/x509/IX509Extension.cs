@@ -19,9 +19,6 @@ namespace Org.BouncyCastle.X509
 		/// <returns>IDictionary with string (OID) keys and Asn1OctetString values</returns>
 		ISet GetNonCriticalExtensionOids();
 
-		[Obsolete("Use version taking a DerObjectIdentifier instead")]
-		Asn1OctetString GetExtensionValue(string oid);
-
 		Asn1OctetString GetExtensionValue(DerObjectIdentifier oid);
 	}
 }

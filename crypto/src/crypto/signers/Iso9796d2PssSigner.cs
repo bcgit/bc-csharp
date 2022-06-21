@@ -26,23 +26,6 @@ namespace Org.BouncyCastle.Crypto.Signers
             return recoveredMessage;
         }
 
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TrailerImplicit = 0xBC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TrailerRipeMD160 = 0x31CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TrailerRipeMD128 = 0x32CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TrailerSha1 = 0x33CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TrailerSha256 = 0x34CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TrailerSha512 = 0x35CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TrailerSha384 = 0x36CC;
-        [Obsolete("Use 'IsoTrailers' instead")]
-        public const int TrailerWhirlpool = 0x37CC;
-
         private IDigest digest;
         private IAsymmetricBlockCipher cipher;
 

@@ -938,19 +938,6 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        [Obsolete("Will be removed. Use ReadAsn1Object in combination with RequireDerEncoding instead")]
-        public static Asn1Object ReadDerObject(byte[] encoding)
-        {
-            /*
-             * NOTE: The current ASN.1 parsing code can't enforce DER-only parsing, but since DER is
-             * canonical, we can check it by re-encoding the result and comparing to the original.
-             */
-            Asn1Object result = ReadAsn1Object(encoding);
-            RequireDerEncoding(result, encoding);
-            return result;
-        }
-
-        /// <exception cref="IOException"/>
         public static void RequireDerEncoding(Asn1Encodable asn1, byte[] encoding)
         {
             /*
@@ -1081,13 +1068,6 @@ namespace Org.BouncyCastle.Tls
                 AddIfSupported(result, crypto, sigAndHashAlg);
             }
             return result;
-        }
-
-        [Obsolete("Will be removed")]
-        public static SignatureAndHashAlgorithm GetSignatureAndHashAlgorithm(TlsContext context,
-            TlsCredentialedSigner signerCredentials)
-        {
-            return GetSignatureAndHashAlgorithm(context.ServerVersion, signerCredentials);
         }
 
         internal static SignatureAndHashAlgorithm GetSignatureAndHashAlgorithm(ProtocolVersion negotiatedVersion,

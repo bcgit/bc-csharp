@@ -47,18 +47,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			get { return (PgpEncryptedData) list[index]; }
 		}
 
-		[Obsolete("Use 'object[index]' syntax instead")]
-		public object Get(int index)
-        {
-            return this[index];
-        }
-
-		[Obsolete("Use 'Count' property instead")]
-		public int Size
-        {
-			get { return list.Count; }
-        }
-
 		public int Count
 		{
 			get { return list.Count; }

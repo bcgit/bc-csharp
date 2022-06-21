@@ -249,25 +249,6 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
         /// <param name="publicKey">Public Key to be included in cert reqest.</param>
         /// <param name="attributes">ASN1Set of Attributes.</param>
-        /// <param name="signingKey">Ignored.</param>
-        [Obsolete("Use constructor without 'signingKey' parameter (ignored here)")]
-        public Pkcs10CertificationRequest(
-            ISignatureFactory signatureFactory,
-            X509Name subject,
-            AsymmetricKeyParameter publicKey,
-            Asn1Set attributes,
-            AsymmetricKeyParameter signingKey)
-            : this(signatureFactory, subject, publicKey, attributes)
-        {
-        }
-
-        /// <summary>
-        /// Instantiate a Pkcs10CertificationRequest object with the necessary credentials.
-        /// </summary>
-        ///<param name="signatureFactory">The factory for signature calculators to sign the PKCS#10 request with.</param>
-        /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
-        /// <param name="publicKey">Public Key to be included in cert reqest.</param>
-        /// <param name="attributes">ASN1Set of Attributes.</param>
         public Pkcs10CertificationRequest(
             ISignatureFactory signatureFactory,
             X509Name subject,

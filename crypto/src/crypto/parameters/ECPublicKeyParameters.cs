@@ -18,15 +18,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
-        [Obsolete("Use version with explicit 'algorithm' parameter")]
-        public ECPublicKeyParameters(
-            ECPoint				q,
-            DerObjectIdentifier publicKeyParamSet)
-            : base("ECGOST3410", false, publicKeyParamSet)
-        {
-            this.q = ECDomainParameters.ValidatePublicPoint(Parameters.Curve, q);
-        }
-
         public ECPublicKeyParameters(
             string				algorithm,
             ECPoint				q,

@@ -2,7 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1
 {
-	public class BerApplicationSpecificParser
+	internal class BerApplicationSpecificParser
 		: BerTaggedObjectParser, IAsn1ApplicationSpecificParser
 	{
 		internal BerApplicationSpecificParser(int tagNo, Asn1StreamParser parser)

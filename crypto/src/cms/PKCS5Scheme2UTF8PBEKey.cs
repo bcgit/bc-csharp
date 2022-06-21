@@ -14,23 +14,6 @@ namespace Org.BouncyCastle.Cms
 	public class Pkcs5Scheme2Utf8PbeKey
 		: CmsPbeKey
 	{
-		[Obsolete("Use version taking 'char[]' instead")]
-		public Pkcs5Scheme2Utf8PbeKey(
-			string	password,
-			byte[]	salt,
-			int		iterationCount)
-			: this(password.ToCharArray(), salt, iterationCount)
-		{
-		}
-
-		[Obsolete("Use version taking 'char[]' instead")]
-		public Pkcs5Scheme2Utf8PbeKey(
-			string				password,
-			AlgorithmIdentifier keyDerivationAlgorithm)
-			: this(password.ToCharArray(), keyDerivationAlgorithm)
-		{
-		}
-
 		public Pkcs5Scheme2Utf8PbeKey(
 			char[]	password,
 			byte[]	salt,

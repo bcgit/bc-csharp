@@ -18,17 +18,6 @@ namespace Org.BouncyCastle.Pkcs
             this.key = key;
         }
 
-#if !(SILVERLIGHT || PORTABLE)
-        [Obsolete]
-        public AsymmetricKeyEntry(
-            AsymmetricKeyParameter key,
-            Hashtable attributes)
-			: base(attributes)
-        {
-            this.key = key;
-        }
-#endif
-
         public AsymmetricKeyEntry(
             AsymmetricKeyParameter  key,
             IDictionary             attributes)

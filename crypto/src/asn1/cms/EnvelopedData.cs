@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-
-using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
@@ -40,9 +37,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.unprotectedAttrs = Asn1Set.GetInstance(unprotectedAttrs);
         }
 
-        [Obsolete("Use 'GetInstance' instead")]
-        public EnvelopedData(
-            Asn1Sequence seq)
+        private EnvelopedData(Asn1Sequence seq)
         {
             int index = 0;
 

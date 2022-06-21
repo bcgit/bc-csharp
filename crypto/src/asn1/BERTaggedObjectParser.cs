@@ -3,8 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-    [Obsolete("Will be made non-public. Test for and use only Asn1TaggedObjectParser.")]
-	public class BerTaggedObjectParser
+	internal class BerTaggedObjectParser
 		: Asn1TaggedObjectParser
 	{
         internal readonly int m_tagClass;

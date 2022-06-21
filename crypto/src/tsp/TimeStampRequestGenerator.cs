@@ -38,35 +38,6 @@ namespace Org.BouncyCastle.Tsp
 		 * add a given extension field for the standard extensions tag (tag 3)
 		 * @throws IOException
 		 */
-		[Obsolete("Use method taking DerObjectIdentifier")]
-		public void AddExtension(
-			string			oid,
-			bool			critical,
-			Asn1Encodable	value)
-		{
-			this.AddExtension(oid, critical, value.GetEncoded());
-		}
-
-		/**
-		* add a given extension field for the standard extensions tag
-		* The value parameter becomes the contents of the octet string associated
-		* with the extension.
-		*/
-		[Obsolete("Use method taking DerObjectIdentifier")]
-		public void AddExtension(
-			string	oid,
-			bool	critical,
-			byte[]	value)
-		{
-			DerObjectIdentifier derOid = new DerObjectIdentifier(oid);
-			extensions[derOid] = new X509Extension(critical, new DerOctetString(value));
-			extOrdering.Add(derOid);
-		}
-
-		/**
-		 * add a given extension field for the standard extensions tag (tag 3)
-		 * @throws IOException
-		 */
 		public virtual void AddExtension(
 			DerObjectIdentifier	oid,
 			bool				critical,
