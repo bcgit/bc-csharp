@@ -18,7 +18,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("The Legion of the Bouncy Castle Inc.")]
 [assembly: AssemblyProduct("Bouncy Castle for .NET")]
-[assembly: AssemblyCopyright("Copyright (C) 2000-2021")]
+[assembly: AssemblyCopyright("Copyright (C) 2000-2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
