@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
@@ -11,52 +10,45 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    public class KeyTransRecipientInfoGenerator : RecipientInfoGenerator
+    public class KeyTransRecipientInfoGenerator
+        : RecipientInfoGenerator
     {
-        private static readonly CmsEnvelopedHelper Helper = CmsEnvelopedHelper.Instance;
+        private readonly IKeyWrapper m_keyWrapper;
 
-        private Asn1OctetString subjectKeyIdentifier;
-        private IKeyWrapper keyWrapper;
-
-        // Derived fields
-        private SubjectPublicKeyInfo info;
-        private IssuerAndSerialNumber issuerAndSerialNumber;
-        private SecureRandom random;
-       
+        private IssuerAndSerialNumber m_issuerAndSerialNumber;
+        private Asn1OctetString m_subjectKeyIdentifier;
 
         public KeyTransRecipientInfoGenerator(X509Certificate recipCert, IKeyWrapper keyWrapper)
-            : this(new Asn1.Cms.IssuerAndSerialNumber(recipCert.IssuerDN, new DerInteger(recipCert.SerialNumber)), keyWrapper)
+            : this(new IssuerAndSerialNumber(recipCert.IssuerDN, new DerInteger(recipCert.SerialNumber)), keyWrapper)
         {
         }
 
         public KeyTransRecipientInfoGenerator(IssuerAndSerialNumber issuerAndSerial, IKeyWrapper keyWrapper)
         {
-            this.issuerAndSerialNumber = issuerAndSerial;
-            this.keyWrapper = keyWrapper;
+            m_issuerAndSerialNumber = issuerAndSerial;
+            m_keyWrapper = keyWrapper;
         }
 
         public KeyTransRecipientInfoGenerator(byte[] subjectKeyID, IKeyWrapper keyWrapper)
         {
-            this.subjectKeyIdentifier = new DerOctetString(subjectKeyID);
-            this.keyWrapper = keyWrapper;
+            m_subjectKeyIdentifier = new DerOctetString(subjectKeyID);
+            m_keyWrapper = keyWrapper;
         }
 
         public RecipientInfo Generate(KeyParameter contentEncryptionKey, SecureRandom random)
         {
-            AlgorithmIdentifier keyEncryptionAlgorithm = this.AlgorithmDetails;
-
-            this.random = random;
+            AlgorithmIdentifier keyEncryptionAlgorithm = AlgorithmDetails;
 
             byte[] encryptedKeyBytes = GenerateWrappedKey(contentEncryptionKey);
 
             RecipientIdentifier recipId;
-            if (issuerAndSerialNumber != null)
+            if (m_issuerAndSerialNumber != null)
             {
-                recipId = new RecipientIdentifier(issuerAndSerialNumber);
+                recipId = new RecipientIdentifier(m_issuerAndSerialNumber);
             }
             else
             {
-                recipId = new RecipientIdentifier(subjectKeyIdentifier);
+                recipId = new RecipientIdentifier(m_subjectKeyIdentifier);
             }
 
             return new RecipientInfo(new KeyTransRecipientInfo(recipId, keyEncryptionAlgorithm,
@@ -65,19 +57,12 @@ namespace Org.BouncyCastle.Cms
 
         protected virtual AlgorithmIdentifier AlgorithmDetails
         {
-            get
-            {
-                if (this.keyWrapper != null)
-                {
-                    return (AlgorithmIdentifier)keyWrapper.AlgorithmDetails;
-                }
-                return info.AlgorithmID;
-            }
+            get { return (AlgorithmIdentifier)m_keyWrapper.AlgorithmDetails; }
         }
 
         protected virtual byte[] GenerateWrappedKey(KeyParameter contentEncryptionKey)
         {
-            return keyWrapper.Wrap(contentEncryptionKey.GetKey()).Collect();
+            return m_keyWrapper.Wrap(contentEncryptionKey.GetKey()).Collect();
         }
     }
 }

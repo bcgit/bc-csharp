@@ -6,16 +6,11 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-	///
 	/// <description>
-	///
-	/// Generator for PBE derived keys and ivs as usd by OpenSSL.
-	/// <p>
-	/// Originally this scheme was a simple extension of PKCS 5 V2.0 Scheme 1 using MD5 with an
-	/// iteration count of 1. The default digest was changed to SHA-256 with OpenSSL 1.1.0. This
-	/// implementation still defaults to MD5, but the digest can now be set.
+	/// Generator for PBE derived keys and IVs as usd by OpenSSL. Originally this scheme was a simple extension of
+	/// PKCS 5 V2.0 Scheme 1 using MD5 with an iteration count of 1. The default digest was changed to SHA-256 with
+	/// OpenSSL 1.1.0. This implementation still defaults to MD5, but the digest can now be set.
 	/// </description>
-	///
 	public class OpenSslPbeParametersGenerator
 		: PbeParametersGenerator
 	{

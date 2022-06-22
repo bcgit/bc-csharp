@@ -1227,7 +1227,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <summary>Gets the amount of received application data.</summary>
-        /// <remarks>A call to <see cref="readInput(byte[], int, int)"/> is guaranteed to be able to return at least
+        /// <remarks>A call to <see cref="ReadInput(byte[], int, int)"/> is guaranteed to be able to return at least
         /// this much data.<br/><br/>
         /// Only allowed in non-blocking mode.
         /// </remarks>

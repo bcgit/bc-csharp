@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         {
                             l.Add(new PgpSignature(bcpgIn));
                         }
-                        catch (UnsupportedPacketVersionException e)
+                        catch (UnsupportedPacketVersionException)
                         {
                             // Signatures of unsupported version MUST BE ignored
                             // see: https://tests.sequoia-pgp.org/#Detached_signatures_with_unknown_packets

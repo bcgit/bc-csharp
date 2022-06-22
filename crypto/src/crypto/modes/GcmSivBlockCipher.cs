@@ -648,13 +648,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             theMultiplier.MultiplyH(theGHash);
         }
 
-        /**
-        * Byte reverse a buffer.
-        * @param pInput the input buffer
-        * @param pOffset the offset
-        * @param pLength the length of data (<= BUFLEN)
-        * @param pOutput the output buffer
-        */
         private static void fillReverse(byte[] pInput, int pOffset, int pLength, byte[] pOutput)
         {
             /* Loop through the buffer */

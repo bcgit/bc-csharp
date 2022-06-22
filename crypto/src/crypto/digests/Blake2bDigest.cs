@@ -28,14 +28,14 @@ namespace Org.BouncyCastle.Crypto.Digests
      */
 
     /**
-     * Implementation of the cryptographic hash function Blakbe2b.
-     * <p>
+     * Implementation of the cryptographic hash function Blake2b.
+     * <p/>
      * Blake2b offers a built-in keying mechanism to be used directly
      * for authentication ("Prefix-MAC") rather than a HMAC construction.
-     * <p>
+     * <p/>
      * Blake2b offers a built-in support for a salt for randomized hashing
      * and a personal string for defining a unique hash function for each application.
-     * <p>
+     * <p/>
      * BLAKE2b is optimized for 64-bit platforms and produces digests of any size
      * between 1 and 64 bytes.
      */

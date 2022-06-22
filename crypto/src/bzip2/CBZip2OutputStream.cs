@@ -1545,7 +1545,7 @@ namespace Org.BouncyCastle.Bzip2
                 mtfFreq[i] = 0;
             }
 
-            int j, wr = 0, zPend = 0;
+            int wr = 0, zPend = 0;
             for (i = 0; i < count; i++)
             {
                 byte blockByte = blockBytes[zptr[i]];
