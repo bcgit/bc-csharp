@@ -46,10 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="bzip2\src\BZip2Constants.cs" />
-    <Compile Include="bzip2\src\CBZip2InputStream.cs" />
-    <Compile Include="bzip2\src\CBZip2OutputStream.cs" />
-    <Compile Include="bzip2\src\CRC.cs" />
     <Compile Include="src\AssemblyInfo.cs" />
     <Compile Include="src\asn1\ASN1Generator.cs" />
     <Compile Include="src\asn1\ASN1OctetStringParser.cs" />
@@ -579,6 +575,10 @@
     <Compile Include="src\bcpg\sig\SignatureExpirationTime.cs" />
     <Compile Include="src\bcpg\sig\SignerUserId.cs" />
     <Compile Include="src\bcpg\sig\TrustSignature.cs" />
+    <Compile Include="src\bzip2\BZip2Constants.cs" />
+    <Compile Include="src\bzip2\CBZip2InputStream.cs" />
+    <Compile Include="src\bzip2\CBZip2OutputStream.cs" />
+    <Compile Include="src\bzip2\CRC.cs" />
     <Compile Include="src\cmp\CertificateConfirmationContent.cs" />
     <Compile Include="src\cmp\CertificateConfirmationContentBuilder.cs" />
     <Compile Include="src\cmp\CertificateStatus.cs" />
