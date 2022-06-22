@@ -58,7 +58,6 @@
     <Compile Include="src\asn1\test\AdditionalInformationSyntaxUnitTest.cs" />
     <Compile Include="src\asn1\test\AdmissionSyntaxUnitTest.cs" />
     <Compile Include="src\asn1\test\AdmissionsUnitTest.cs" />
-    <Compile Include="src\asn1\test\AllTests.cs" />
     <Compile Include="src\asn1\test\AttributeTableUnitTest.cs" />
     <Compile Include="src\asn1\test\BiometricDataUnitTest.cs" />
     <Compile Include="src\asn1\test\BitStringConstantTester.cs" />
@@ -109,7 +108,6 @@
     <Compile Include="src\asn1\test\ProfessionInfoUnitTest.cs" />
     <Compile Include="src\asn1\test\QCStatementUnitTest.cs" />
     <Compile Include="src\asn1\test\ReasonFlagsTest.cs" />
-    <Compile Include="src\asn1\test\RegressionTest.cs" />
     <Compile Include="src\asn1\test\RelativeOidTest.cs" />
     <Compile Include="src\asn1\test\RequestedCertificateUnitTest.cs" />
     <Compile Include="src\asn1\test\RestrictionUnitTest.cs" />
@@ -128,7 +126,6 @@
     <Compile Include="src\asn1\test\X509NameTest.cs" />
     <Compile Include="src\asn1\test\X9Test.cs" />
     <Compile Include="src\cmp\test\ProtectedMessageTest.cs" />
-    <Compile Include="src\cms\test\AllTests.cs" />
     <Compile Include="src\cms\test\AuthenticatedDataStreamTest.cs" />
     <Compile Include="src\cms\test\AuthenticatedDataTest.cs" />
     <Compile Include="src\cms\test\CMSSampleMessages.cs" />
@@ -143,9 +140,7 @@
     <Compile Include="src\cms\test\SignedDataTest.cs" />
     <Compile Include="src\crmf\test\CrmfTest.cs" />
     <Compile Include="src\crypto\examples\DESExample.cs" />
-    <Compile Include="src\crypto\io\test\AllTests.cs" />
     <Compile Include="src\crypto\io\test\CipherStreamTest.cs" />
-    <Compile Include="src\crypto\agreement\test\AllTests.cs" />
     <Compile Include="src\crypto\agreement\test\JPakeParticipantTest.cs" />
     <Compile Include="src\crypto\agreement\test\JPakePrimeOrderGroupTest.cs" />
     <Compile Include="src\crypto\agreement\test\JPakeUtilitiesTest.cs" />
@@ -161,7 +156,6 @@
     <Compile Include="src\crypto\test\AESLightTest.cs" />
     <Compile Include="src\crypto\test\AESTest.cs" />
     <Compile Include="src\crypto\test\AESWrapTest.cs" />
-    <Compile Include="src\crypto\test\AllTests.cs" />
     <Compile Include="src\crypto\test\AriaTest.cs" />
     <Compile Include="src\crypto\test\BCryptTest.cs" />
     <Compile Include="src\crypto\test\Blake2bDigestTest.cs" />
@@ -251,7 +245,6 @@
     <Compile Include="src\crypto\test\RC6Test.cs" />
     <Compile Include="src\crypto\test\RFC3211WrapTest.cs" />
     <Compile Include="src\crypto\test\RSABlindedTest.cs" />
-    <Compile Include="src\crypto\test\RegressionTest.cs" />
     <Compile Include="src\crypto\test\RijndaelTest.cs" />
     <Compile Include="src\crypto\test\RipeMD128DigestTest.cs" />
     <Compile Include="src\crypto\test\RipeMD128HMacTest.cs" />
@@ -320,16 +313,13 @@
     <Compile Include="src\math\ec\rfc7748\test\X448Test.cs" />
     <Compile Include="src\math\ec\rfc8032\test\Ed25519Test.cs" />
     <Compile Include="src\math\ec\rfc8032\test\Ed448Test.cs" />
-    <Compile Include="src\math\ec\test\AllTests.cs" />
     <Compile Include="src\math\ec\test\ECAlgorithmsTest.cs" />
     <Compile Include="src\math\ec\test\ECPointPerformanceTest.cs" />
     <Compile Include="src\math\ec\test\ECPointTest.cs" />
     <Compile Include="src\math\ec\test\FixedPointTest.cs" />
     <Compile Include="src\math\ec\test\TnafTest.cs" />
-    <Compile Include="src\math\test\AllTests.cs" />
     <Compile Include="src\math\test\BigIntegerTest.cs" />
     <Compile Include="src\math\test\PrimesTest.cs" />
-    <Compile Include="src\ocsp\test\AllTests.cs" />
     <Compile Include="src\ocsp\test\OCSPTest.cs" />
     <Compile Include="src\ocsp\test\OCSPTestUtil.cs" />
     <Compile Include="src\openpgp\examples\ByteArrayHandler.cs" />
@@ -367,7 +357,6 @@
     <Compile Include="src\openpgp\test\PgpMarkerTest.cs" />
     <Compile Include="src\openpgp\test\PgpParsingTest.cs" />
     <Compile Include="src\openpgp\test\PgpUnicodeTest.cs" />
-    <Compile Include="src\openpgp\test\RegressionTest.cs" />
     <Compile Include="src\openssl\test\AllTests.cs" />
     <Compile Include="src\openssl\test\ReaderTest.cs" />
     <Compile Include="src\openssl\test\WriterTest.cs" />
@@ -426,7 +415,6 @@
     <Compile Include="src\test\PkixPolicyMappingTest.cs" />
     <Compile Include="src\test\PkixTest.cs" />
     <Compile Include="src\test\RSATest.cs" />
-    <Compile Include="src\test\RegressionTest.cs" />
     <Compile Include="src\test\SEEDTest.cs" />
     <Compile Include="src\test\SigTest.cs" />
     <Compile Include="src\test\SM4Test.cs" />
@@ -486,7 +474,6 @@
     <Compile Include="src\tls\test\TlsTestUtilities.cs" />
     <Compile Include="src\tls\test\TlsUtilitiesTest.cs" />
     <Compile Include="src\tls\test\UnreliableDatagramTransport.cs" />
-    <Compile Include="src\tsp\test\AllTests.cs" />
     <Compile Include="src\tsp\test\GenTimeAccuracyTest.cs" />
     <Compile Include="src\tsp\test\ParseTest.cs" />
     <Compile Include="src\tsp\test\NewTspTest.cs" />
