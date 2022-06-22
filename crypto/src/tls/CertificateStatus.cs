@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Tls
             return new CertificateStatus(status_type, response);
         }
 
-        private static bool IsCorrectType(short statusType, Object response)
+        private static bool IsCorrectType(short statusType, object response)
         {
             switch (statusType)
             {

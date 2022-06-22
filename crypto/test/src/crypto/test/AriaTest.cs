@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void CheckTestVector_RFC5794(String[] tv)
+        private void CheckTestVector_RFC5794(string[] tv)
         {
             string name = "'" + tv[0] + "'";
 

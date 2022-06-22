@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		private void OnCheck(String stem, String test, bool expected)
+		private void OnCheck(string stem, string test, bool expected)
 		{
 			if (expected != new DerObjectIdentifier(test).On(new DerObjectIdentifier(stem)))
 			{

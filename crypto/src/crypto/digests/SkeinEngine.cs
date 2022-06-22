@@ -226,7 +226,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             /**
              * Point at which position might overflow long, so switch to add with carry logic
              */
-            private const ulong LOW_RANGE = UInt64.MaxValue - UInt32.MaxValue;
+            private const ulong LOW_RANGE = ulong.MaxValue - uint.MaxValue;
 
             /**
              * Bit 127 = final

@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				DeclarationOfMajority.GetInstance(new Object());
+				DeclarationOfMajority.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

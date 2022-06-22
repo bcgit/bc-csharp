@@ -169,7 +169,7 @@ namespace Org.BouncyCastle.Tsp
             TimeStampRequest request,
             BigInteger serialNumber,
             DateTimeObject genTime, 
-            String statusString, 
+            string statusString, 
             X509Extensions additionalExtensions)
         {
             TimeStampResp resp;

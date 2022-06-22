@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				AdditionalInformationSyntax.GetInstance(new Object());
+				AdditionalInformationSyntax.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

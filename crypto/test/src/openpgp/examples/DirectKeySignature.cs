@@ -57,11 +57,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
 				// gather command line arguments
 				PgpSecretKeyRing secRing = new PgpSecretKeyRing(
 					PgpUtilities.GetDecoderStream(secFis));
-				String secretKeyPass = args[1];
+				string secretKeyPass = args[1];
 				PgpPublicKeyRing ring = new PgpPublicKeyRing(
 					PgpUtilities.GetDecoderStream(pubFis));
-				String notationName = args[3];
-				String notationValue = args[4];
+				string notationName = args[3];
+				string notationValue = args[4];
 
 				// create the signed keyRing
 				PgpPublicKeyRing sRing = null;

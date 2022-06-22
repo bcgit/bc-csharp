@@ -1277,7 +1277,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             SXprUtilities.SkipOpenParenthesis(keyIn);
             SXprUtilities.SkipOpenParenthesis(keyIn);
             SXprUtilities.SkipOpenParenthesis(keyIn);
-            String name = SXprUtilities.ReadString(keyIn, keyIn.ReadByte());
+            string name = SXprUtilities.ReadString(keyIn, keyIn.ReadByte());
             return SXprUtilities.ReadBytes(keyIn, keyIn.ReadByte());
         }
     }

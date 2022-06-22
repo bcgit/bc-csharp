@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Asn1.X9
         private BigInteger	h;
         private byte[]		seed;
 
-		public static X9ECParameters GetInstance(Object obj)
+		public static X9ECParameters GetInstance(object obj)
 		{
 			if (obj is X9ECParameters)
 				return (X9ECParameters)obj;

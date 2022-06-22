@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Pkix
 			return new PkixCertPathValidatorResult(this.TrustAnchor, this.PolicyTree, this.SubjectPublicKey);
 		}
 
-		public override String ToString() 
+		public override string ToString() 
 		{
 			StringBuilder sB = new StringBuilder();
 			sB.Append("PKIXCertPathValidatorResult: [ \n");

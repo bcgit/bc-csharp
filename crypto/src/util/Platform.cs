@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Utilities
         internal static bool EqualsIgnoreCase(string a, string b)
         {
 #if PORTABLE
-            return String.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 #else
             return ToUpperInvariant(a) == ToUpperInvariant(b);
 #endif

@@ -95,12 +95,12 @@ namespace Org.BouncyCastle.Utilities.Zlib {
         internal int end;             // one byte after sliding window 
         internal int read;            // window read pointer 
         internal int write;           // window write pointer 
-        internal Object checkfn;      // check function 
+        internal object checkfn;      // check function 
         internal long check;          // check on output 
 
         internal InfTree inftree=new InfTree();
 
-        internal InfBlocks(ZStream z, Object checkfn, int w){
+        internal InfBlocks(ZStream z, object checkfn, int w){
             hufts=new int[MANY*3];
             window=new byte[w];
             end=w;

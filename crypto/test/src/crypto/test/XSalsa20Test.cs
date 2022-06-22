@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			private byte[] plaintext;
 			private byte[] ciphertext;
 
-			public TestCase(String key, string iv, string plaintext, string ciphertext)
+			public TestCase(string key, string iv, string plaintext, string ciphertext)
 			{
 				this.key = Hex.Decode(key);
 				this.iv = Hex.Decode(iv);

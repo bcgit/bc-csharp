@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				CertHash.GetInstance(new Object());
+				CertHash.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

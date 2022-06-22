@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				AdmissionSyntax.GetInstance(new Object());
+				AdmissionSyntax.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

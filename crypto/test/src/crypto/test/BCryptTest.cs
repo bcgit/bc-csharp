@@ -109,7 +109,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void CheckIllegal(String msg, byte[] pass, byte[] salt, int cost)
+        private void CheckIllegal(string msg, byte[] pass, byte[] salt, int cost)
         {
             try
             {

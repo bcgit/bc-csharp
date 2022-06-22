@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		{
 		}
 
-		public PemObject(String type, IList headers, byte[] content)
+		public PemObject(string type, IList headers, byte[] content)
 		{
 			this.type = type;
             this.headers = Platform.CreateArrayList(headers);

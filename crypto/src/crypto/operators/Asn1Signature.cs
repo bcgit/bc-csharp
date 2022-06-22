@@ -319,7 +319,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			this.algID = X509Utilities.GetSigAlgID(sigOid, algorithm);
 		}
 
-		public Object AlgorithmDetails
+		public object AlgorithmDetails
 		{
 			get { return this.algID; }
 		}
@@ -376,7 +376,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			this.algID = algorithm;
 		}
 
-		public Object AlgorithmDetails
+		public object AlgorithmDetails
 		{
 			get { return this.algID; }
 		}
@@ -406,7 +406,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			this.publicKey = publicKey;
 		}
 
-		public IVerifierFactory CreateVerifierFactory(Object algorithmDetails)
+		public IVerifierFactory CreateVerifierFactory(object algorithmDetails)
 		{
             return new Asn1VerifierFactory((AlgorithmIdentifier)algorithmDetails, publicKey);
 		}

@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Crypto.Generators
         ///     <code>2^(128 * r / 8)</code>.</param>
         /// <param name="r">the block size, must be >= 1.</param>
         /// <param name="p">Parallelization parameter. Must be a positive integer less than or equal to
-        ///     <code>Int32.MaxValue / (128 * r * 8)</code>.</param>
+        ///     <code>int.MaxValue / (128 * r * 8)</code>.</param>
         /// <param name="dkLen">the length of the key to generate.</param>
         /// <returns>the generated key.</returns>
         public static byte[] Generate(byte[] P, byte[] S, int N, int r, int p, int dkLen)
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 throw new ArgumentException("Cost parameter N must be > 1 and < 65536.");
             if (r < 1)
                 throw new ArgumentException("Block size r must be >= 1.");
-            int maxParallel = Int32.MaxValue / (128 * r * 8);
+            int maxParallel = int.MaxValue / (128 * r * 8);
             if (p < 1 || p > maxParallel)
             {
                 throw new ArgumentException("Parallelisation parameter p must be >= 1 and <= " + maxParallel

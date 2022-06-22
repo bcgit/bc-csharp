@@ -339,12 +339,12 @@ namespace Org.BouncyCastle.Asn1.Tests
                 CheckArgumentException(e, "malformed integer");
             }
         }
-        private void CheckArgumentException(ArgumentException e, String expectedMessage)
+        private void CheckArgumentException(ArgumentException e, string expectedMessage)
         {
             IsTrue(e.Message.StartsWith(expectedMessage));
         }
 
-        private void CheckArgumentException(String errorText, ArgumentException e, String expectedMessage)
+        private void CheckArgumentException(string errorText, ArgumentException e, string expectedMessage)
         {
             IsTrue(errorText, e.Message.StartsWith(expectedMessage));
         }

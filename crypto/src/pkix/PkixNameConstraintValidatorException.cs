@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Pkix
     public class PkixNameConstraintValidatorException
         : Exception
     {
-        public PkixNameConstraintValidatorException(String msg)
+        public PkixNameConstraintValidatorException(string msg)
             : base(msg)
         {
         }

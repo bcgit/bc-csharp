@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1
             return (Asn1RelativeOid)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        private const long LongLimit = (Int64.MaxValue >> 7) - 0x7F;
+        private const long LongLimit = (long.MaxValue >> 7) - 0x7F;
 
         private readonly string identifier;
         private byte[] contents;
@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.Asn1
                 string token = tok.NextToken();
                 if (token.Length <= 18)
                 {
-                    WriteField(bOut, Int64.Parse(token));
+                    WriteField(bOut, long.Parse(token));
                 }
                 else
                 {

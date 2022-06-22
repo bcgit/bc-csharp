@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Cms
 			internal readonly ISignerInfoGenerator	signerInf;
 			internal readonly string				digestOID;
 
-			internal DigestAndSignerInfoGeneratorHolder(ISignerInfoGenerator signerInf, String digestOID)
+			internal DigestAndSignerInfoGeneratorHolder(ISignerInfoGenerator signerInf, string digestOID)
 			{
 				this.signerInf = signerInf;
 				this.digestOID = digestOID;

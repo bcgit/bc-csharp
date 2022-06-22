@@ -18,6 +18,6 @@ namespace Org.BouncyCastle.Crypto
         /// has been closed.
         /// </summary>
         /// <returns>The result of processing the stream.</returns>
-        Object GetResult();
+        object GetResult();
     }
 }

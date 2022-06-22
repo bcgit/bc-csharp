@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				ProcurationSyntax.GetInstance(new Object());
+				ProfessionInfo.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

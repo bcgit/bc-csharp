@@ -508,7 +508,7 @@ namespace Org.BouncyCastle.Pkix
 		internal static void GetCertStatus(
 			DateTime validDate,
 			X509Crl crl,
-			Object cert,
+			object cert,
 			CertStatus certStatus)
 		{
 			X509Crl bcCRL = null;

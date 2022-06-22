@@ -32,15 +32,12 @@ namespace Org.BouncyCastle.Pkcs.Tests
         [Test]
         public void BrokenRequestWithDuplicateExtension()
         {
-
-            String keyName = "RSA";
+            string keyName = "RSA";
             int keySize = 2048;
 
-            String sigName = "SHA256withRSA";
+            string sigName = "SHA256withRSA";
 
             IAsymmetricCipherKeyPairGenerator kpg = GeneratorUtilities.GetKeyPairGenerator(keyName);
-
-            //			kpg.initialize(keySize);
             kpg.Init(new KeyGenerationParameters(new SecureRandom(), keySize));
 
             AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();

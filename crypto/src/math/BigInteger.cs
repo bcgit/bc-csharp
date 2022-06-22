@@ -188,7 +188,7 @@ namespace Org.BouncyCastle.Math
          * They are calculated according to the expected savings in multiplications.
          * Some squares will also be saved on average, but we offset these against the extra storage costs.
          */
-        private static readonly int[] ExpWindowThresholds = { 7, 25, 81, 241, 673, 1793, 4609, Int32.MaxValue };
+        private static readonly int[] ExpWindowThresholds = { 7, 25, 81, 241, 673, 1793, 4609, int.MaxValue };
 
         private const int BitsPerByte = 8;
         private const int BitsPerInt = 32;
@@ -361,7 +361,7 @@ namespace Org.BouncyCastle.Math
             }
 
             // strip leading zeros from the string str
-            while (index < str.Length && Int32.Parse(str[index].ToString(), style) == 0)
+            while (index < str.Length && int.Parse(str[index].ToString(), style) == 0)
             {
                 index++;
             }
@@ -473,7 +473,7 @@ namespace Org.BouncyCastle.Math
 //            {
 //				char c = value[index];
 //				string s = c.ToString();
-//				int i = Int32.Parse(s, style);
+//				int i = int.Parse(s, style);
 //
 //                b = b.Multiply(r).Add(ValueOf(i));
 //                index++;
@@ -2570,7 +2570,7 @@ namespace Org.BouncyCastle.Math
             if (QuickPow2Check())
             {
                 long powOf2 = (long)exp * (BitLength - 1);
-                if (powOf2 > Int32.MaxValue)
+                if (powOf2 > int.MaxValue)
                 {
                     throw new ArithmeticException("Result too large");
                 }
@@ -2788,7 +2788,7 @@ namespace Org.BouncyCastle.Math
             int excessBits = (numWords << 5) - n;
             if (excessBits > 0)
             {
-                result[0] &= (int)(UInt32.MaxValue >> excessBits);
+                result[0] &= (int)(uint.MaxValue >> excessBits);
             }
 
             return result;

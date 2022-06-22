@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				Restriction.GetInstance(new Object());
+				Restriction.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

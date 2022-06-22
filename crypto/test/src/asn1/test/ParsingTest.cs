@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 				try
 				{
-					Object obj;
+					object obj;
 					while ((obj = aIn.ReadObject()) != null)
 					{
 					}
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 				try
 				{
-					Object obj;
+					object obj;
 					while ((obj = aIn.ReadObject()) != null)
 					{
 					}

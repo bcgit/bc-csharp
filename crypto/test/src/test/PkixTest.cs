@@ -226,7 +226,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-		public override String Name
+		public override string Name
 		{
 			get { return "PkixTest"; }
         }

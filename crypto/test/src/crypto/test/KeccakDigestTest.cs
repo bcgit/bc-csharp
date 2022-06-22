@@ -295,7 +295,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void TestMac(IDigest digest, byte[][] keys, String[] data, String[] expected, byte[] truncExpected)
+        private void TestMac(IDigest digest, byte[][] keys, string[] data, string[] expected, byte[] truncExpected)
         {
             IMac mac = new HMac(digest);
 

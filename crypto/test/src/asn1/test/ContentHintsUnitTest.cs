@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				ContentHints.GetInstance(new Object());
+				ContentHints.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

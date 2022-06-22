@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Tls
             return new ProtocolName(Arrays.Clone(bytes));
         }
 
-        public static ProtocolName AsUtf8Encoding(String name)
+        public static ProtocolName AsUtf8Encoding(string name)
         {
             return new ProtocolName(Strings.ToUtf8ByteArray(name));
         }

@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 			return new SkeinDigest(this);
 		}
 
-		public String AlgorithmName
+		public string AlgorithmName
 		{
 			get { return "Skein-" + (engine.BlockSize * 8) + "-" + (engine.OutputSize * 8); }
 		}

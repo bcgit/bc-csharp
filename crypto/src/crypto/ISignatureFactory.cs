@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto
     public interface ISignatureFactory
 	{
         /// <summary>The algorithm details object for this calculator.</summary>
-        Object AlgorithmDetails { get ; }
+        object AlgorithmDetails { get ; }
 
         /// <summary>
         /// Create a stream calculator for this signature calculator. The stream

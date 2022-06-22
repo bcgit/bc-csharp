@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				OtherCertID.GetInstance(new Object());
+				OtherCertID.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

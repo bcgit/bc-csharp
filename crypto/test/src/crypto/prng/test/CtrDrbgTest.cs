@@ -497,7 +497,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 cipher.Init(forEncryption, parameters);
             }
 
-            public String AlgorithmName
+            public string AlgorithmName
             {
                 get { return cipher.AlgorithmName; }
             }

@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Utilities
 
             if (changed)
             {
-                return new String(chars);
+                return new string(chars);
             }
 
             return original;

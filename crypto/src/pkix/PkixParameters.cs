@@ -833,11 +833,8 @@ namespace Org.BouncyCastle.Pkix
 			{
 				foreach (object obj in prohibitedACAttributes)
 				{
-					if (!(obj is String))
-					{
-						throw new InvalidCastException("All elements of set must be "
-							+ "of type string.");
-					}
+					if (!(obj is string))
+						throw new InvalidCastException("All elements of set must be of type string.");
 				}
 				this.prohibitedACAttributes = new HashSet(prohibitedACAttributes);
 			}

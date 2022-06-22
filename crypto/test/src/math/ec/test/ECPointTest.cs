@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             internal static readonly ECPoint infinity = curve.Infinity;
 
-            internal static readonly String[] pointSource = { "0010", "1111", "1100", "1100",
+            internal static readonly string[] pointSource = { "0010", "1111", "1100", "1100",
                     "0001", "0001", "1011", "0010" };
 
             internal static readonly ECPoint[] p = new ECPoint[pointSource.Length / 2];

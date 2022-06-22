@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             string alg = ReadString(input, input.ReadByte());
             byte[] iv = ReadBytes(input, input.ReadByte());
-            long iterationCount = Int64.Parse(ReadString(input, input.ReadByte()));
+            long iterationCount = long.Parse(ReadString(input, input.ReadByte()));
 
             SkipCloseParenthesis(input);
 

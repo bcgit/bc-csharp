@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1
             return taggedObject;
         }
 
-        public static Asn1TaggedObject GetInstance(Object obj, int tagClass, int tagNo)
+        public static Asn1TaggedObject GetInstance(object obj, int tagClass, int tagNo)
         {
             if (obj == null)
                 throw new ArgumentNullException(nameof(obj));

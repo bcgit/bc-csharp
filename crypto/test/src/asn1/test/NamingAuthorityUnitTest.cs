@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				NamingAuthority.GetInstance(new Object());
+				NamingAuthority.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

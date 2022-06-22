@@ -366,7 +366,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             set { this.subject = value; }
         }
 
-        public TestCertBuilder AddAttribute(DerObjectIdentifier name, Object value)
+        public TestCertBuilder AddAttribute(DerObjectIdentifier name, object value)
         {
             attrs[name] = value;
             ord.Add(name);

@@ -8,11 +8,11 @@ namespace Org.BouncyCastle.Pkcs
     /// </summary>
     public class PkcsIOException: IOException
     {
-        public PkcsIOException(String message) : base(message)
+        public PkcsIOException(string message) : base(message)
         {
         }
 
-        public PkcsIOException(String message, Exception underlying) : base(message, underlying)
+        public PkcsIOException(string message, Exception underlying) : base(message, underlying)
         {
         }
     }

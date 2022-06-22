@@ -1714,7 +1714,7 @@ namespace Org.BouncyCastle.Pkix
                 return 0;
 
             int hash = 0;
-            foreach (Object o in c)
+            foreach (object o in c)
             {
                 if (o is byte[])
                 {
@@ -1728,7 +1728,7 @@ namespace Org.BouncyCastle.Pkix
             return hash;
         }
 
-		public override bool Equals(Object o)
+		public override bool Equals(object o)
 		{
 			if (!(o is PkixNameConstraintValidator))
 				return false;
@@ -1756,10 +1756,10 @@ namespace Org.BouncyCastle.Pkix
             if (coll1 == null || coll2 == null || coll1.Count != coll2.Count)
                 return false;
 
-            foreach (Object a in coll1)
+            foreach (object a in coll1)
             {
                 bool found = false;
-                foreach (Object b in coll2)
+                foreach (object b in coll2)
                 {
                     if (SpecialEquals(a, b))
                     {
@@ -1774,7 +1774,7 @@ namespace Org.BouncyCastle.Pkix
             return true;
         }
 
-        private bool SpecialEquals(Object o1, Object o2)
+        private bool SpecialEquals(object o1, object o2)
         {
             if (o1 == o2)
             {

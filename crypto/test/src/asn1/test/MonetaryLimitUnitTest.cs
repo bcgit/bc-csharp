@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				MonetaryLimit.GetInstance(new Object());
+				MonetaryLimit.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

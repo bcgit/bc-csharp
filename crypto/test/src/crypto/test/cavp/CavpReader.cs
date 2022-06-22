@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
             if (value == null)
                 throw new InvalidOperationException(name + " was null");
 
-            return Int32.Parse(value);
+            return int.Parse(value);
         }
 
         public int ValueAsInt(string name, int def)
@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
             if (value == null)
                 return def;
 
-            return Int32.Parse(value);
+            return int.Parse(value);
         }
     }
 
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
 
             using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.cavp." + name)))
             {
-                String line;
+                string line;
                 while (null != (line = r.ReadLine()))
                 {
                     // Reading a header or waiting to encounter a header

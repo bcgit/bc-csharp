@@ -179,7 +179,7 @@ namespace Org.BouncyCastle.Tsp
 		}
 
 		internal static IDigest CreateDigestInstance(
-			String digestAlgOID)
+			string digestAlgOID)
 		{
 	        string digestName = GetDigestAlgName(digestAlgOID);
 

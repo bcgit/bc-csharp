@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.SHAKETestVectors.txt")))
             {
-                String line;
+                string line;
                 while (null != (line = ReadLine(r)))
                 {
                     if (line.Length != 0)
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private int ParseDecimal(string s)
         {
-            return Int32.Parse(s);
+            return int.Parse(s);
         }
 
         private string ReadBlock(StreamReader r)

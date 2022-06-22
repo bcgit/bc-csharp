@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				PersonalData.GetInstance(new Object());
+				PersonalData.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

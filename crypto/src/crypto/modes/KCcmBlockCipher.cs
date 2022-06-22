@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual String AlgorithmName
+        public virtual string AlgorithmName
         {
             get
             {
@@ -476,7 +476,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     break;
             }
 
-            String binaryNb = Convert.ToString(Nb_ - 1, 2);
+            string binaryNb = Convert.ToString(Nb_ - 1, 2);
             while (binaryNb.Length < 4)
             {
                 binaryNb = new StringBuilder(binaryNb).Insert(0, "0").ToString();

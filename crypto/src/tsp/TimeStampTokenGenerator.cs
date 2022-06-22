@@ -398,7 +398,7 @@ namespace Org.BouncyCastle.Tsp
 
         private string createGeneralizedTime(DateTime genTime)
         {
-            String format = "yyyyMMddHHmmss.fff";
+            string format = "yyyyMMddHHmmss.fff";
            
             StringBuilder sBuild = new StringBuilder(genTime.ToString(format));
             int dotIndex = sBuild.ToString().IndexOf(".");

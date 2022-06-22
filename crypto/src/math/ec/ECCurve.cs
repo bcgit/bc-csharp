@@ -843,14 +843,14 @@ namespace Org.BouncyCastle.Math.EC
 
         int AsInteger(string envVariable, int defaultValue)
         {
-            String v = Platform.GetEnvironmentVariable(envVariable);
+            string v = Platform.GetEnvironmentVariable(envVariable);
 
             if (v == null)
             {
                 return defaultValue;
             }
 
-            return Int32.Parse(v);
+            return int.Parse(v);
         }
     }
 

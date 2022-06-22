@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             int cost = 0;
             try
             {
-                cost = Int32.Parse(bcryptString.Substring(4, 2));
+                cost = int.Parse(bcryptString.Substring(4, 2));
             }
             catch (Exception nfe)
             {

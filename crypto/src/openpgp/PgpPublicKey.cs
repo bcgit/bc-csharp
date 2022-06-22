@@ -966,7 +966,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             else
             {
-                foreach (String id in key.GetUserIds())
+                foreach (string id in key.GetUserIds())
                 {
                     foreach (object sig in key.GetSignaturesForId(id))
                     {

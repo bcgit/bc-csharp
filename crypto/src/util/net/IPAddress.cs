@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Utilities.Net
 					return false;
 
 				string octetStr = temp.Substring(start, pos - start);
-				int octet = Int32.Parse(octetStr);
+				int octet = int.Parse(octetStr);
 
 				if (octet < 0 || octet > 255)
 					return false;
@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Utilities.Net
 			string	component,
 			int		size)
 		{
-			int val = Int32.Parse(component);
+			int val = int.Parse(component);
 			try
 			{
 				return val >= 0 && val <= size;
@@ -173,7 +173,7 @@ namespace Org.BouncyCastle.Utilities.Net
 					else
 					{
 						string octetStr = temp.Substring(start, pos - start);
-						int octet = Int32.Parse(octetStr, NumberStyles.AllowHexSpecifier);
+						int octet = int.Parse(octetStr, NumberStyles.AllowHexSpecifier);
 
 						if (octet < 0 || octet > 0xffff)
 							return false;

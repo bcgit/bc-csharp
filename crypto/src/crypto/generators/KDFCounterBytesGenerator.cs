@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             BigInteger maxSize = Two.Pow(r).Multiply(BigInteger.ValueOf(h));
             this.maxSizeExcl = maxSize.CompareTo(IntegerMax) == 1 ?
-                Int32.MaxValue : maxSize.IntValue;
+                int.MaxValue : maxSize.IntValue;
 
             // --- set operational state ---
 

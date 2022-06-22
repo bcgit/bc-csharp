@@ -292,7 +292,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		/// <param name="value">expected string</param>
 		/// <returns>false if not consumed</returns>
 
-		private bool expect(String value)
+		private bool expect(string value)
         {
 			for (int t=0; t<value.Length; t++)
             {

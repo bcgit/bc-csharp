@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			pWrt.WriteObject(pkcs8);
 			pWrt.Writer.Close();
 
-			String result = sw.ToString();
+			string result = sw.ToString();
 
 			PemReader pRd = new PemReader(new StringReader(result), new Password("hello".ToCharArray()));
 

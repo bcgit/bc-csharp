@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto
         /// </summary>
         /// <param name="algorithmDetails">The details of the signature algorithm verification is required for.</param>
         /// <returns>A new signature verifier.</returns>
-		IVerifierFactory CreateVerifierFactory (Object algorithmDetails);
+		IVerifierFactory CreateVerifierFactory (object algorithmDetails);
 	}
 }
 

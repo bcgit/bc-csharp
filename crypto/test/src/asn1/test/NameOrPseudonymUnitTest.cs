@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				NameOrPseudonym.GetInstance(new Object());
+				NameOrPseudonym.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}

@@ -335,7 +335,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
                 IPasswordFinder pGet = new Password(password.ToCharArray());
                 PemReader pemRd = OpenPemResource("test.pem", pGet);
 
-                Object o;
+                object o;
                 while ((o = pemRd.ReadObject()) != null)
                 {
                 }

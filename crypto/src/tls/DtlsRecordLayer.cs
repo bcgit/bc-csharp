@@ -396,7 +396,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal virtual void Warn(short alertDescription, String message)
+        internal virtual void Warn(short alertDescription, string message)
         {
             RaiseAlert(AlertLevel.warning, alertDescription, message, null);
         }
