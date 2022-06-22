@@ -47,6 +47,30 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
 		}
 
+        public static Asn1TaggedObject GetInstance(object obj, int tagClass)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+
+            Asn1TaggedObject taggedObject = GetInstance(obj);
+            if (tagClass != taggedObject.TagClass)
+                throw new ArgumentException("unexpected tag in GetInstance: " + Asn1Utilities.GetTagText(taggedObject));
+
+            return taggedObject;
+        }
+
+        public static Asn1TaggedObject GetInstance(Object obj, int tagClass, int tagNo)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+
+            Asn1TaggedObject taggedObject = GetInstance(obj);
+            if (!taggedObject.HasTag(tagClass, tagNo))
+                throw new ArgumentException("unexpected tag in GetInstance: " + Asn1Utilities.GetTagText(taggedObject));
+
+            return taggedObject;
+        }
+
         public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             if (Asn1Tags.ContextSpecific != taggedObject.TagClass)
