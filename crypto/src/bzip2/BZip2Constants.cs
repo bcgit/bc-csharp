@@ -24,7 +24,7 @@
 
 using System;
 
-namespace Org.BouncyCastle.Apache.Bzip2
+namespace Org.BouncyCastle.Bzip2
 {
     /**
     * Base class for both the compress and decompress classes.

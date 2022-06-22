@@ -27,7 +27,7 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.Apache.Bzip2
+namespace Org.BouncyCastle.Bzip2
 {
     /**
     * A simple class the hold and calculate the CRC for sanity checking

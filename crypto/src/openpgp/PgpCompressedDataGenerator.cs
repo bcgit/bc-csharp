@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Apache.Bzip2;
+using Org.BouncyCastle.Bzip2;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Zlib;
 
