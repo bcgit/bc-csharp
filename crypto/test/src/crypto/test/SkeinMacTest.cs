@@ -155,12 +155,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new SkeinMacTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

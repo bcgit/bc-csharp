@@ -224,12 +224,6 @@ namespace Org.BouncyCastle.Tests
 				key.Parameters);
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new ECEncodingTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

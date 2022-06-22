@@ -84,11 +84,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             AssertInvalidSignatureVersionIsIgnored(SIG23SIG4);
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new PgpSignatureInvalidVersionIgnoredTest());
-        }
-
         [Test]
         public void TestFunction()
         {

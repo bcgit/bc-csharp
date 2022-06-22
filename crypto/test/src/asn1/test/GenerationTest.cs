@@ -308,12 +308,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "Generation"; }
 		}
 
-        public static void Main(
-            string[] args)
-        {
-			RunTest(new GenerationTest());
-        }
-
 		[Test]
         public void TestFunction()
         {

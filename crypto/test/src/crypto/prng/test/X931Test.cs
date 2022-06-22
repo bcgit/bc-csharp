@@ -23,11 +23,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             get { return "X931"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new X931Test());
-        }
-
         [Test]
         public void TestFunction()
         {

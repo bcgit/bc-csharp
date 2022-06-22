@@ -1084,12 +1084,6 @@ namespace Org.BouncyCastle.Tests
             doTestExceptions();
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new BlockCipherTest());
-        }
-
         [Test]
         public void TestFunction()
         {

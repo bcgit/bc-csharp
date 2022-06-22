@@ -1215,11 +1215,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             get { return "PgpRsaTest"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new PgpRsaTest());
-        }
-
         [Test]
         public void TestFunction()
         {

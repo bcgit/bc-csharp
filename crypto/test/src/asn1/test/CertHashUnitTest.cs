@@ -76,12 +76,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("certificateHash", digest, certHash.CertificateHash);
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new CertHashUnitTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

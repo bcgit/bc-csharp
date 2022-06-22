@@ -136,11 +136,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             IsTrue(Arrays.AreEqual(Hex.Decode("13C4"), res));
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new ParallelHashTest());
-        }
-
         [Test]
         public void TestFunction()
         {

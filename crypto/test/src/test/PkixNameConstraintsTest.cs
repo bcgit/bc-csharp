@@ -459,12 +459,6 @@ namespace Org.BouncyCastle.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PkixNameConstraintsTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

@@ -498,12 +498,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             return value;
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new OcbTest());
-        }
-
         [Test]
         public void TestFunction()
         {

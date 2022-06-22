@@ -318,12 +318,6 @@ namespace Org.BouncyCastle.Tests
 			get { return "IX509Store"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new X509StoreTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

@@ -113,11 +113,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             BranchCheck("1.1", "2.2");
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new RelativeOidTest());
-        }
-
         [Test]
         public void TestFunction()
         {

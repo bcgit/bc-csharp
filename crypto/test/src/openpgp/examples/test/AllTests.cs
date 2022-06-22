@@ -418,11 +418,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests
 			return bRd.ReadLine();
 		}
 
-        public static void Main(string[] args)
-        {
-            Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
-        }
-
         [Suite]
         public static TestSuite Suite
         {

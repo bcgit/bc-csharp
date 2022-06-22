@@ -949,11 +949,5 @@ namespace Org.BouncyCastle.Crypto.Tests
             TestECMqvTestVector2();
             TestECMqvRandom();
         }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new ECTest());
-        }
     }
 }

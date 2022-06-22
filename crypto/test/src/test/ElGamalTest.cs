@@ -324,11 +324,5 @@ namespace Org.BouncyCastle.Tests
 			TestGP1024();
 			TestRandom256();
 		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new ElGamalTest());
-		}
 	}
 }

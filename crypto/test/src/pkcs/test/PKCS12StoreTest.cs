@@ -1438,12 +1438,6 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			DoTestLoadRepeatedLocalKeyID();
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Pkcs12StoreTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

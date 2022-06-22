@@ -445,16 +445,6 @@ namespace Org.BouncyCastle.Tests
             nullPointerTest();
         }
 
-
-
-     
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new Pkcs10CertRequestTest());
-        }
-
         [Test]
         public void TestFunction()
         {

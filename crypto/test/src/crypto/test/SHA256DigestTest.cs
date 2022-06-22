@@ -54,12 +54,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new Sha256Digest((Sha256Digest)digest);
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new Sha256DigestTest());
-        }
-
         [Test]
         public void TestFunction()
         {

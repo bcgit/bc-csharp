@@ -819,12 +819,6 @@ namespace Org.BouncyCastle.Tests
             get { return "DSA/ECDSA"; }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new DsaTest());
-        }
-
         private class DsaTestSecureRandom
             : FixedSecureRandom
         {

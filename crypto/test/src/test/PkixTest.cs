@@ -231,12 +231,6 @@ namespace Org.BouncyCastle.Tests
 			get { return "PkixTest"; }
         }
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PkixTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

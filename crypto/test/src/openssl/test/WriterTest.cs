@@ -168,12 +168,6 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new WriterTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

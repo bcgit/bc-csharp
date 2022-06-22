@@ -174,12 +174,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "GMac"; }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new GMacTest());
-        }
-
         [Test]
         public void TestFunction()
         {

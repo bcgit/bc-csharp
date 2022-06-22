@@ -94,15 +94,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			DerUtf8StringTest test = new DerUtf8StringTest();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-		}
-
 		[Test]
 		public void TestFunction()
 		{

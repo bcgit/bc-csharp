@@ -603,12 +603,6 @@ namespace Org.BouncyCastle.Tests
 			doTestGenerateWithPrincipal();
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new AttrCertTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

@@ -580,11 +580,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			get { return "PgpDsaTest"; }
         }
 
-		public static void Main(string[] args)
-        {
-			RunTest(new PgpDsaTest());
-        }
-
 		[Test]
         public void TestFunction()
         {

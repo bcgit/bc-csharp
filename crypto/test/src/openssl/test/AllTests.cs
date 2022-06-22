@@ -36,11 +36,6 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 		}
 
 #if !LIB
-        public static void Main(string[] args)
-        {
-            Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
-        }
-
         [Suite]
         public static TestSuite Suite
         {

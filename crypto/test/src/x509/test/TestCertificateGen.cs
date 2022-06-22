@@ -718,11 +718,6 @@ namespace Org.BouncyCastle.X509.Tests
 			}
 		}
 
-        public static void Main(string[] args)
-        {
-            RunTest(new TestCertificateGen());
-        }
-
         public override void PerformTest()
         {
             TestCreationRSA();

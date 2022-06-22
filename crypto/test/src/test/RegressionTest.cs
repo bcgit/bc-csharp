@@ -67,16 +67,5 @@ namespace Org.BouncyCastle.Tests
             new SM4Test(),
             new KdfCounterTest()
 		};
-
-		public static void Main(
-            string[] args)
-        {
-            for (int i = 0; i != tests.Length; i++)
-            {
-                ITestResult result = tests[i].Perform();
-
-				Console.WriteLine(result);
-            }
-		}
     }
 }

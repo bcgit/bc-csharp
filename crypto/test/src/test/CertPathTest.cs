@@ -244,12 +244,6 @@ namespace Org.BouncyCastle.Tests
 			get { return "CertPath"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new CertPathTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

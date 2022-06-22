@@ -151,13 +151,5 @@ namespace Org.BouncyCastle.Crypto.Tests
             new SP80038GTest(),
             new TupleHashTest(),
         };
-
-        public static void Main(string[] args)
-        {
-            foreach (ITest test in tests)
-            {
-                SimpleTest.RunTest(test);
-            }
-        }
     }
 }

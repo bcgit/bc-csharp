@@ -357,12 +357,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public static void Main(
-			string[] args)
-		{
-			RunTest(new PssTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

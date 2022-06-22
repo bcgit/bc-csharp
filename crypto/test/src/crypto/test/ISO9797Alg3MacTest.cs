@@ -73,19 +73,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		public override string Name
 		{
-			get
-			{
-				return "ISO9797Alg3Mac";
-			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			ISO9797Alg3MacTest test = new ISO9797Alg3MacTest();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
+			get { return "ISO9797Alg3Mac"; }
 		}
 
 		[Test]

@@ -527,11 +527,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "SP80038GTest"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new SP80038GTest());
-        }
-
         [Test]
         public void TestFunction()
         {

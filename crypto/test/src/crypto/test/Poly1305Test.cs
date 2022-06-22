@@ -499,13 +499,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Fail("rfc7539", Hex.ToHexString(tag), Hex.ToHexString(mac));
             }
-       }
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Poly1305Test());
-		}
+        }
 
 		[Test]
 		public void TestFunction()
@@ -514,6 +508,5 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText);
 		}
-
 	}
 }

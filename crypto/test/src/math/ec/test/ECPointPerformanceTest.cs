@@ -200,10 +200,5 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 RandMult(name);
             }
         }
-
-        public static void Main(string[] args)
-        {
-            new ECPointPerformanceTest().TestMultiply();
-        }
     }
 }

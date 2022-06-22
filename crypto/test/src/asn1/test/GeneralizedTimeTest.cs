@@ -214,12 +214,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             return time.ToString();
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new GeneralizedTimeTest());
-        }
-
         [Test]
         public void TestFunction()
         {

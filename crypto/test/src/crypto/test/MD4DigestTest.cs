@@ -42,12 +42,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new MD4Digest((MD4Digest)digest);
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new MD4DigestTest());
-        }
-
         [Test]
         public void TestFunction()
         {

@@ -84,11 +84,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			get { return "PgpMarkerTest"; }
         }
 
-		public static void Main(string[] args)
-        {
-            RunTest(new PgpMarkerTest());
-        }
-
 		[Test]
         public void TestFunction()
         {

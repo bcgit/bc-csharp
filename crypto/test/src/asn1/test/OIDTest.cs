@@ -123,11 +123,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			OnCheck("1.1", "1.1.2", true);
 		}
 
-		public static void Main(string[] args)
-		{
-            RunTest(new OidTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

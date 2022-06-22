@@ -728,12 +728,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             return value;
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new GcmTest());
-        }
-
         [Test]
         public void TestFunction()
         {

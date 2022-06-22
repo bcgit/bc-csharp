@@ -134,10 +134,5 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             TestCyrillicPassphrase();
             TestUmlautPassphrase();
         }
-
-        public static void Main(string[] args)
-        {
-            RunTest(new PgpUnicodeTest());
-        }
     }
 }

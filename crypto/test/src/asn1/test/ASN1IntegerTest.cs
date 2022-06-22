@@ -376,12 +376,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             IsTrue(i.HasValue(n));
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new Asn1IntegerTest());
-        }
-
         [Test]
         public void TestFunction()
         {

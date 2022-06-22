@@ -86,11 +86,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             IsEquals(1, Count(signatures));
         }
 
-		public static void Main(string[] args)
-		{
-			RunTest(new IgnoreMarkerPacketInCertificatesTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

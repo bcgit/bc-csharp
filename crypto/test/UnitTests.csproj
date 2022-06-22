@@ -324,7 +324,6 @@
     <Compile Include="src\math\ec\test\ECAlgorithmsTest.cs" />
     <Compile Include="src\math\ec\test\ECPointPerformanceTest.cs" />
     <Compile Include="src\math\ec\test\ECPointTest.cs" />
-    <Compile Include="src\math\ec\test\F2mProofer.cs" />
     <Compile Include="src\math\ec\test\FixedPointTest.cs" />
     <Compile Include="src\math\ec\test\TnafTest.cs" />
     <Compile Include="src\math\test\AllTests.cs" />

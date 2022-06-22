@@ -95,12 +95,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return output;
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new VmpcKsa3Test());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

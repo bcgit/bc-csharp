@@ -715,11 +715,5 @@ namespace Org.BouncyCastle.Tests
             TestExceptions();
             TestSubgroupConfinement();
         }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new DHTest());
-        }
     }
 }

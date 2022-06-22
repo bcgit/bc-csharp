@@ -146,12 +146,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             get { return "Misc"; }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new MiscTest());
-        }
-
         [Test]
         public void TestFunction()
         {

@@ -296,15 +296,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "CMS"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			ITest test = new CmsTest();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-		}
-
 		[Test]
 		public void TestFunction()
 		{

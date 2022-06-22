@@ -73,12 +73,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("namingAuthority", auth, admissions.NamingAuthority);
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new AdmissionsUnitTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

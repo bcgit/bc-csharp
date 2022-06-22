@@ -236,12 +236,6 @@ namespace Org.BouncyCastle.Tests
 			get { return "PSS"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PssTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

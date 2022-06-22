@@ -428,11 +428,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			generateTest(crNlMessage, "\\r\\n");
 		}
 
-		public static void Main(string[] args)
-		{
-			RunTest(new PgpClearSignedSignatureTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

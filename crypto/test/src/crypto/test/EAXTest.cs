@@ -335,12 +335,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new EaxTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

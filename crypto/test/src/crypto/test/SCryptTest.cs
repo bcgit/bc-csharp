@@ -133,11 +133,5 @@ namespace Org.BouncyCastle.Crypto.Tests
 		{
 			return int.Parse(arg.Trim());
 		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new SCryptTest());
-		}
 	}
 }

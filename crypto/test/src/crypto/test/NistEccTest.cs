@@ -96,11 +96,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             IsEquals("Unexpected Y Coordinate", expectedY, ecPoint.AffineYCoord.ToBigInteger());
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new NistEccTest());
-        }
-
         [Test]
         public void TestFunction()
         {

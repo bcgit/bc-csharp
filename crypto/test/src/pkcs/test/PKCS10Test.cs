@@ -172,12 +172,6 @@ namespace Org.BouncyCastle.Pkcs.Tests
             }
         }
 
-        public static void Main(
-            string[] args)
-        {
-			RunTest(new Pkcs10Test());
-        }
-
 		[Test]
         public void TestFunction()
         {

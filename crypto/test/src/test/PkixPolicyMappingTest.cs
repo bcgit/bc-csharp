@@ -397,12 +397,6 @@ namespace Org.BouncyCastle.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PkixPolicyMappingTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

@@ -105,11 +105,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             IsTrue("oops!", Arrays.AreEqual(Hex.Decode("0c59b11464f2336c34663ed51b2b950bec743610856f36c28d1d088d8a2446284dd09830a6a178dc752376199fae935d86cfdee5913d4922dfd369b66a53c897"), res));
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new TupleHashTest());
-        }
-
         [Test]
         public void TestFunction()
         {

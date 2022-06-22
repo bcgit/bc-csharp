@@ -75,15 +75,5 @@ namespace Org.BouncyCastle.Asn1.Tests
 			new X9Test(),
 			new KMacParamsTest()
         };
-
-        public static void Main(
-            string[] args)
-        {
-            for (int i = 0; i != tests.Length; i++)
-            {
-                ITestResult  result = tests[i].Perform();
-                Console.WriteLine(result);
-            }
-        }
     }
 }

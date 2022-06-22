@@ -474,12 +474,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			get { return "PgpDsaElGamalTest"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PgpDsaElGamalTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

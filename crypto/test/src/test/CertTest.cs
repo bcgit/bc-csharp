@@ -2597,12 +2597,6 @@ namespace Org.BouncyCastle.Tests
             checkCertificate(18, emptyDNCert);
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new CertTest());
-        }
-
         [Test]
         public void TestFunction()
         {

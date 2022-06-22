@@ -22,11 +22,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             get { return "HMacDRBG"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new HMacDrbgTest());
-        }
-
         [Test]
         public void TestFunction()
         {

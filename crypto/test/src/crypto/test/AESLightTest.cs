@@ -148,15 +148,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			AesLightTest test = new AesLightTest();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-		}
-
 		[Test]
 		public void TestFunction()
 		{

@@ -1,20 +1,11 @@
 using System;
 using System.Collections;
-using System.Collections.Specialized;
 using System.IO;
-using System.Text;
 
 #if !LIB
 using NUnit.Core;
 #endif
 using NUnit.Framework;
-
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
 {
@@ -22,11 +13,6 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
 	public class AllTests
 	{
 #if !LIB
-        public static void Main(string[] args)
-        {
-            Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
-        }
-
         [Suite]
         public static TestSuite Suite
         {

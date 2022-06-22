@@ -132,12 +132,6 @@ namespace Org.BouncyCastle.Tests
 			get { return "X509CertificatePair"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new X509CertificatePairTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

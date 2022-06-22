@@ -442,11 +442,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new GcmSivTest());
-        }
-
         [Test]
         public void TestFunction()
         {
