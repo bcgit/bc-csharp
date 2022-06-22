@@ -4,9 +4,7 @@ using System.Collections;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.X509
@@ -16,10 +14,7 @@ namespace Org.BouncyCastle.X509
 	/// </summary>
 	public class X509V1CertificateGenerator
 	{
-		private V1TbsCertificateGenerator   tbsGen;
-		private DerObjectIdentifier         sigOID;
-		private AlgorithmIdentifier         sigAlgId;
-		private string                      signatureAlgorithm;
+		private V1TbsCertificateGenerator tbsGen;
 
 		/// <summary>
 		/// Default Constructor.
@@ -115,68 +110,17 @@ namespace Org.BouncyCastle.X509
 		}
 
 		/// <summary>
-		/// Set the signature algorithm that will be used to sign this certificate.
-		/// This can be either a name or an OID, names are treated as case insensitive.
-		/// </summary>
-		/// <param name="signatureAlgorithm">string representation of the algorithm name</param>
-		[Obsolete("Not needed if Generate used with an ISignatureFactory")]
-		public void SetSignatureAlgorithm(
-			string signatureAlgorithm)
-		{
-			this.signatureAlgorithm = signatureAlgorithm;
-
-			try
-			{
-				sigOID = X509Utilities.GetAlgorithmOid(signatureAlgorithm);
-			}
-			catch (Exception)
-			{
-				throw new ArgumentException("Unknown signature type requested", "signatureAlgorithm");
-			}
-
-			sigAlgId = X509Utilities.GetSigAlgID(sigOID, signatureAlgorithm);
-
-			tbsGen.SetSignature(sigAlgId);
-		}
-
-		/// <summary>
-		/// Generate a new X509Certificate.
-		/// </summary>
-		/// <param name="privateKey">The private key of the issuer used to sign this certificate.</param>
-		/// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureFactory")]
-		public X509Certificate Generate(
-			AsymmetricKeyParameter privateKey)
-		{
-			return Generate(privateKey, null);
-		}
-
-        /// <summary>
-        /// Generate a new X509Certificate specifying a SecureRandom instance that you would like to use.
-        /// </summary>
-        /// <param name="privateKey">The private key of the issuer used to sign this certificate.</param>
-        /// <param name="random">The Secure Random you want to use.</param>
-        /// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureFactory")]
-		public X509Certificate Generate(
-			AsymmetricKeyParameter	privateKey,
-			SecureRandom			random)
-		{
-			return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
-		}
-
-		/// <summary>
 		/// Generate a new X509Certificate using the passed in SignatureCalculator.
 		/// </summary>
-		/// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
+		/// <param name="signatureFactory">A signature calculator factory with the necessary algorithm details.</param>
 		/// <returns>An X509Certificate.</returns>
-		public X509Certificate Generate(ISignatureFactory signatureCalculatorFactory)
+		public X509Certificate Generate(ISignatureFactory signatureFactory)
 		{
-			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
+			tbsGen.SetSignature((AlgorithmIdentifier)signatureFactory.AlgorithmDetails);
 
 			TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
-            IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
+            IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
 
             byte[] encoded = tbsCert.GetDerEncoded();
 
@@ -184,7 +128,8 @@ namespace Org.BouncyCastle.X509
 
             Platform.Dispose(streamCalculator.Stream);
 
-            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
+            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureFactory.AlgorithmDetails,
+				((IBlockResult)streamCalculator.GetResult()).Collect());
 		}
 
 		private X509Certificate GenerateJcaObject(

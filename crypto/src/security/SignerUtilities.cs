@@ -690,7 +690,7 @@ namespace Org.BouncyCastle.Security
 
         public static ISigner InitSigner(string algorithm, bool forSigning, AsymmetricKeyParameter privateKey, SecureRandom random)
         {
-            ISigner signer = SignerUtilities.GetSigner(algorithm);
+            ISigner signer = GetSigner(algorithm);
             signer.Init(forSigning, ParameterUtilities.WithRandom(privateKey, random));
             return signer;
         }

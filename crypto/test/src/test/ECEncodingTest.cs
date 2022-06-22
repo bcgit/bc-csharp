@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -7,6 +6,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -204,7 +204,6 @@ namespace Org.BouncyCastle.Tests
 				pubECKey = SetPublicUncompressed(pubECKey);
 			}
 
-			certGen.SetSignatureAlgorithm("ECDSAwithSHA1");
 			certGen.SetSerialNumber(BigInteger.One);
 			certGen.SetIssuerDN(new X509Name("CN=Software emul (EC Cert)"));
 			certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
@@ -212,7 +211,7 @@ namespace Org.BouncyCastle.Tests
 			certGen.SetSubjectDN(new X509Name("CN=Software emul (EC Cert)"));
 			certGen.SetPublicKey(pubECKey);
 
-			return certGen.Generate(privECKey);
+			return certGen.Generate(new Asn1SignatureFactory("ECDSAwithSHA1", privECKey, null));
 		}
 
 		private ECPublicKeyParameters SetPublicUncompressed(

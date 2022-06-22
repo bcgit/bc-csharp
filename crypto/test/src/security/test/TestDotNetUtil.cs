@@ -9,6 +9,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -66,11 +67,10 @@ namespace Org.BouncyCastle.Security.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
 			certGen.SetSubjectDN(new X509Name(ord, attrs));
 			certGen.SetPublicKey(dsaPub);
-			certGen.SetSignatureAlgorithm("SHA1WITHDSA");
 
-			X509Certificate cert = certGen.Generate(dsaPriv);
+            X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("SHA1WITHDSA", dsaPriv, null));
 
-			cert.CheckValidity();
+            cert.CheckValidity();
 			cert.Verify(dsaPub);
 
 			SystemX509.X509Certificate dotNetCert = DotNetUtilities.ToX509Certificate(cert);

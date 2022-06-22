@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections;
-using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
@@ -104,12 +104,11 @@ namespace Org.BouncyCastle.X509.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(rsaPublic);
-            certGen.SetSignatureAlgorithm("MD5WithRSAEncryption");
 
-			X509Certificate cert = certGen.Generate(rsaPrivate);
+            X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("MD5WithRSAEncryption", rsaPrivate, null));
 
-//			Assert.IsTrue((cert.IsValidNow && cert.Verify(rsaPublic)),"Certificate failed to be valid (RSA)");
-			cert.CheckValidity();
+            //Assert.IsTrue((cert.IsValidNow && cert.Verify(rsaPublic)),"Certificate failed to be valid (RSA)");
+            cert.CheckValidity();
 			cert.Verify(rsaPublic);
 
 			//Console.WriteLine(ASN1Dump.DumpAsString(cert.ToAsn1Object()));
@@ -181,12 +180,11 @@ namespace Org.BouncyCastle.X509.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(dsaPub);
-            certGen.SetSignatureAlgorithm("SHA1WITHDSA");
 
-            X509Certificate cert = certGen.Generate(dsaPriv);
+            X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("SHA1WITHDSA", dsaPriv, null));
 
-//			Assert.IsTrue((cert.IsValidNow && cert.Verify(dsaPub)), "Certificate failed to be valid (DSA Test)");
-			cert.CheckValidity();
+            //Assert.IsTrue((cert.IsValidNow && cert.Verify(dsaPub)), "Certificate failed to be valid (DSA Test)");
+            cert.CheckValidity();
 			cert.Verify(dsaPub);
 
             //ISet dummySet = cert.GetNonCriticalExtensionOids();
@@ -262,14 +260,13 @@ namespace Org.BouncyCastle.X509.Tests
             certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(ecPub);
-            certGen.SetSignatureAlgorithm("SHA1WITHECDSA");
 
             certGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(false));
 
-            X509Certificate cert = certGen.Generate(ecPriv);
+            X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("SHA1WITHECDSA", ecPriv, null));
 
-//            Assert.IsTrue((cert.IsValidNow && cert.Verify(ecPub)), "Certificate failed to be valid (ECDSA)");
-			cert.CheckValidity();
+            //Assert.IsTrue((cert.IsValidNow && cert.Verify(ecPub)), "Certificate failed to be valid (ECDSA)");
+            cert.CheckValidity();
 			cert.Verify(ecPub);
 
             ISet extOidSet = cert.GetCriticalExtensionOids();

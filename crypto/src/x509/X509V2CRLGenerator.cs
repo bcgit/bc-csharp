@@ -21,10 +21,7 @@ namespace Org.BouncyCastle.X509
 	{
 		private readonly X509ExtensionsGenerator extGenerator = new X509ExtensionsGenerator();
 
-		private V2TbsCertListGenerator	tbsGen;
-		private DerObjectIdentifier		sigOID;
-		private AlgorithmIdentifier		sigAlgId;
-		private string					signatureAlgorithm;
+		private V2TbsCertListGenerator tbsGen;
 
 		public X509V2CrlGenerator()
 		{
@@ -130,30 +127,6 @@ namespace Org.BouncyCastle.X509
 			}
 		}
 
-        /// <summary>
-        /// Set the signature algorithm that will be used to sign this CRL.
-        /// </summary>
-        /// <param name="signatureAlgorithm"/>
-        [Obsolete("Not needed if Generate used with an ISignatureFactory")]
-        public void SetSignatureAlgorithm(
-			string signatureAlgorithm)
-		{
-			this.signatureAlgorithm = signatureAlgorithm;
-
-			try
-			{
-				sigOID = X509Utilities.GetAlgorithmOid(signatureAlgorithm);
-			}
-			catch (Exception e)
-			{
-				throw new ArgumentException("Unknown signature type requested", e);
-			}
-
-			sigAlgId = X509Utilities.GetSigAlgID(sigOID, signatureAlgorithm);
-
-			tbsGen.SetSignature(sigAlgId);
-		}
-
 		/**
 		* add a given extension field for the standard extensions tag (tag 0)
 		*/
@@ -197,32 +170,6 @@ namespace Org.BouncyCastle.X509
 		{
 			extGenerator.AddExtension(oid, critical, new DerOctetString(extensionValue));
 		}
-
-        /// <summary>
-        /// Generate an X.509 CRL, based on the current issuer and subject.
-        /// </summary>
-        /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
-        /// <returns>An X509Crl.</returns>
-        [Obsolete("Use Generate with an ISignatureFactory")]
-        public X509Crl Generate(
-            AsymmetricKeyParameter privateKey)
-        {
-            return Generate(privateKey, null);
-        }
-
-        /// <summary>
-        /// Generate an X.509 CRL, based on the current issuer and subject using the specified secure random.
-        /// </summary>
-        /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
-        /// <param name="random">Your Secure Random instance.</param>
-        /// <returns>An X509Crl.</returns>
-        [Obsolete("Use Generate with an ISignatureFactory")]
-        public X509Crl Generate(
-            AsymmetricKeyParameter privateKey,
-            SecureRandom random)
-        {
-            return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
-        }
 
         /// <summary>
         /// Generate a new X509Crl using the passed in SignatureCalculator.

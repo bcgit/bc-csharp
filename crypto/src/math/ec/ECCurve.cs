@@ -721,13 +721,8 @@ namespace Org.BouncyCastle.Math.EC
             this.m_coord = FP_DEFAULT_COORDS;
         }
 
-        [Obsolete("Use constructor taking order/cofactor")]
-        protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b)
-            : this(q, r, a, b, null, null)
-        {
-        }
-
-        protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b, BigInteger order, BigInteger cofactor)
+        internal FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b, BigInteger order,
+            BigInteger cofactor)
             : base(q)
         {
             this.m_q = q;
@@ -777,6 +772,9 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
+            if (x == null || x.SignValue < 0 || x.CompareTo(m_q) >= 0)
+                throw new ArgumentException("value invalid for Fp field element", "x");
+
             return new FpFieldElement(this.m_q, this.m_r, x);
         }
 
@@ -873,32 +871,11 @@ namespace Org.BouncyCastle.Math.EC
 
         private static IFiniteField BuildField(int m, int k1, int k2, int k3)
         {
-            if (k1 == 0)
-            {
-                throw new ArgumentException("k1 must be > 0");
-            }
+            int[] exponents = (k2 | k3) == 0
+                ? new int[]{ 0, k1, m }
+                : new int[]{ 0, k1, k2, k3, m };
 
-            if (k2 == 0)
-            {
-                if (k3 != 0)
-                {
-                    throw new ArgumentException("k3 must be 0 if k2 == 0");
-                }
-
-                return FiniteFields.GetBinaryExtensionField(new int[]{ 0, k1, m });
-            }
-
-            if (k2 <= k1)
-            {
-                throw new ArgumentException("k2 must be > k1");
-            }
-
-            if (k3 <= k2)
-            {
-                throw new ArgumentException("k3 must be > k2");
-            }
-
-            return FiniteFields.GetBinaryExtensionField(new int[]{ 0, k1, k2, k3, m });
+            return FiniteFields.GetBinaryExtensionField(exponents);
         }
 
         protected AbstractF2mCurve(int m, int k1, int k2, int k3)
@@ -1253,15 +1230,8 @@ namespace Org.BouncyCastle.Math.EC
          * @param cofactor The cofactor of the elliptic curve, i.e.
          * <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
          */
-        public F2mCurve(
-            int			m, 
-            int			k1, 
-            int			k2, 
-            int			k3,
-            BigInteger	a, 
-            BigInteger	b,
-            BigInteger	order,
-            BigInteger	cofactor)
+        public F2mCurve(int m, int k1, int k2, int k3, BigInteger a, BigInteger b, BigInteger order,
+            BigInteger cofactor)
             : base(m, k1, k2, k3)
         {
             this.m = m;
@@ -1271,30 +1241,14 @@ namespace Org.BouncyCastle.Math.EC
             this.m_order = order;
             this.m_cofactor = cofactor;
             this.m_infinity = new F2mPoint(this, null, null);
-
-            if (k1 == 0)
-                throw new ArgumentException("k1 must be > 0");
-
-            if (k2 == 0)
-            {
-                if (k3 != 0)
-                    throw new ArgumentException("k3 must be 0 if k2 == 0");
-            }
-            else
-            {
-                if (k2 <= k1)
-                    throw new ArgumentException("k2 must be > k1");
-
-                if (k3 <= k2)
-                    throw new ArgumentException("k3 must be > k2");
-            }
 
             this.m_a = FromBigInteger(a);
             this.m_b = FromBigInteger(b);
             this.m_coord = F2M_DEFAULT_COORDS;
         }
 
-        protected F2mCurve(int m, int k1, int k2, int k3, ECFieldElement a, ECFieldElement b, BigInteger order, BigInteger cofactor)
+        internal F2mCurve(int m, int k1, int k2, int k3, ECFieldElement a, ECFieldElement b, BigInteger order,
+            BigInteger cofactor)
             : base(m, k1, k2, k3)
         {
             this.m = m;
@@ -1303,8 +1257,8 @@ namespace Org.BouncyCastle.Math.EC
             this.k3 = k3;
             this.m_order = order;
             this.m_cofactor = cofactor;
-
             this.m_infinity = new F2mPoint(this, null, null);
+
             this.m_a = a;
             this.m_b = b;
             this.m_coord = F2M_DEFAULT_COORDS;
@@ -1345,7 +1299,14 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
-            return new F2mFieldElement(this.m, this.k1, this.k2, this.k3, x);
+            if (x == null || x.SignValue < 0 || x.BitLength > m)
+                throw new ArgumentException("value invalid for F2m field element", "x");
+
+            int[] ks = (k2 | k3) == 0
+                ? new int[]{ k1 }
+                : new int[]{ k1, k2, k3 };
+
+            return new F2mFieldElement(m, ks, new LongArray(x));
         }
 
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y)
@@ -1470,7 +1431,9 @@ namespace Org.BouncyCastle.Math.EC
             private ECPoint CreatePoint(long[] x, long[] y)
             {
                 int m = m_outer.m;
-                int[] ks = m_outer.IsTrinomial() ? new int[] { m_outer.k1 } : new int[] { m_outer.k1, m_outer.k2, m_outer.k3 }; 
+                int[] ks = m_outer.IsTrinomial()
+                    ? new int[]{ m_outer.k1 }
+                    : new int[]{ m_outer.k1, m_outer.k2, m_outer.k3 }; 
 
                 ECFieldElement X = new F2mFieldElement(m, ks, new LongArray(x));
                 ECFieldElement Y = new F2mFieldElement(m, ks, new LongArray(y));

@@ -402,9 +402,8 @@ namespace Org.BouncyCastle.Cmp.Tests
             }
 
             certGen.SetPublicKey(PublicKey);
-            certGen.SetSignatureAlgorithm(SignatureAlgorithm);
 
-            return certGen.Generate(privateKey);
+            return certGen.Generate(new Asn1SignatureFactory(SignatureAlgorithm, privateKey, null));
         }
     }
 }

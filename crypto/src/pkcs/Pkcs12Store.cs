@@ -29,7 +29,6 @@ namespace Org.BouncyCastle.Pkcs
         private readonly DerObjectIdentifier    keyAlgorithm;
         private readonly DerObjectIdentifier    keyPrfAlgorithm;
         private readonly DerObjectIdentifier    certAlgorithm;
-        private readonly DerObjectIdentifier    certPrfAlgorithm;
         private readonly bool                   useDerEncoding;
 
         private AsymmetricKeyEntry unmarkedKeyEntry = null;
@@ -85,48 +84,13 @@ namespace Org.BouncyCastle.Pkcs
             }
         }
 
-        internal Pkcs12Store(
-            DerObjectIdentifier keyAlgorithm,
-            DerObjectIdentifier certAlgorithm,
-            bool                useDerEncoding)
-        {
-            this.keyAlgorithm = keyAlgorithm;
-            this.keyPrfAlgorithm = null;
-            this.certAlgorithm = certAlgorithm;
-            this.certPrfAlgorithm = null;
-            this.useDerEncoding = useDerEncoding;
-        }
-
-        internal Pkcs12Store(
-            DerObjectIdentifier keyAlgorithm,
-            DerObjectIdentifier keyPrfAlgorithm,
-            DerObjectIdentifier certAlgorithm,
-            DerObjectIdentifier certPrfAlgorithm,
-            bool useDerEncoding)
+        internal Pkcs12Store(DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm,
+            DerObjectIdentifier certAlgorithm, bool useDerEncoding)
         {
             this.keyAlgorithm = keyAlgorithm;
             this.keyPrfAlgorithm = keyPrfAlgorithm;
             this.certAlgorithm = certAlgorithm;
-            this.certPrfAlgorithm = certPrfAlgorithm;
             this.useDerEncoding = useDerEncoding;
-        }
-
-        // TODO Consider making obsolete
-        //      [Obsolete("Use 'Pkcs12StoreBuilder' instead")]
-        public Pkcs12Store()
-            : this(PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
-                PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc, false)
-        {
-        }
-
-        // TODO Consider making obsolete
-//      [Obsolete("Use 'Pkcs12StoreBuilder' and 'Load' method instead")]
-        public Pkcs12Store(
-            Stream  input,
-            char[]  password)
-            : this()
-        {
-            Load(input, password);
         }
 
         protected virtual void LoadKeyBag(PrivateKeyInfo privKeyInfo, Asn1Set bagAttributes)

@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Date;
@@ -110,7 +111,6 @@ namespace Org.BouncyCastle.Tests
 			gen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			gen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			gen.SetSerialNumber(BigInteger.One);
-			gen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
 			Target targetName = new Target(
 				Target.Choice.Name,
@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.Tests
 			TargetInformation targetInformation = new TargetInformation(targets);
 			gen.AddExtension(X509Extensions.TargetInformation.Id, true, targetInformation);
 
-			return gen.Generate(privKey);
+			return gen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 		}
 
 		[Test]

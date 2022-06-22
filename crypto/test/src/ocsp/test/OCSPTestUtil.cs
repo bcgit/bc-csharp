@@ -1,10 +1,8 @@
 using System;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -98,7 +96,6 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			_v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
 			_v3CertGen.SetSubjectDN(new X509Name(_subDN));
 			_v3CertGen.SetPublicKey(_subPub);
-			_v3CertGen.SetSignatureAlgorithm(algorithm);
 
 			_v3CertGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false,
 				createSubjectKeyId(_subPub));
@@ -109,9 +106,9 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			_v3CertGen.AddExtension(X509Extensions.BasicConstraints, false,
 				new BasicConstraints(_ca));
 
-			X509Certificate _cert = _v3CertGen.Generate(_issPriv);
+            X509Certificate _cert = _v3CertGen.Generate(new Asn1SignatureFactory(algorithm, _issPriv, null));
 
-			_cert.CheckValidity(DateTime.UtcNow);
+            _cert.CheckValidity(DateTime.UtcNow);
 			_cert.Verify(_issPub);
 
 			return _cert;

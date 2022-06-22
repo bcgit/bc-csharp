@@ -8,9 +8,9 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -897,9 +897,10 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddDays(30));
 			certGen.SetSubjectDN(new X509Name(order, subjectAttrs));
 			certGen.SetPublicKey(pubKey);
-			certGen.SetSignatureAlgorithm("MD5WithRSAEncryption");
 
-			return new X509CertificateEntry(certGen.Generate(privKey));
+			ISignatureFactory signatureFactory = new Asn1SignatureFactory("MD5WithRSAEncryption", privKey, null);
+			X509Certificate cert = certGen.Generate(signatureFactory);
+			return new X509CertificateEntry(cert);
 		}
 
         private void DoTestCertsOnly()

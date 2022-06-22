@@ -12,6 +12,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -350,7 +351,6 @@ namespace Org.BouncyCastle.Tsp.Tests
 			_v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
 			_v3CertGen.SetSubjectDN(new X509Name(_subDN));
 			_v3CertGen.SetPublicKey(_subPub);
-			_v3CertGen.SetSignatureAlgorithm("MD5WithRSAEncryption");
 
 			_v3CertGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false,
 					createSubjectKeyId(_subPub));
@@ -369,9 +369,10 @@ namespace Org.BouncyCastle.Tsp.Tests
 					ExtendedKeyUsage.GetInstance(new DerSequence(KeyPurposeID.IdKPTimeStamping)));
 			}
 
-			X509Certificate _cert = _v3CertGen.Generate(_issPriv);
+            X509Certificate _cert = _v3CertGen.Generate(
+				new Asn1SignatureFactory("MD5WithRSAEncryption", _issPriv, null));
 
-			_cert.CheckValidity(DateTime.UtcNow);
+            _cert.CheckValidity(DateTime.UtcNow);
 			_cert.Verify(_issPub);
 
 			return _cert;

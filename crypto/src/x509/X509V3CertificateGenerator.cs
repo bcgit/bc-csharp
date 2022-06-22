@@ -20,10 +20,7 @@ namespace Org.BouncyCastle.X509
     {
 		private readonly X509ExtensionsGenerator extGenerator = new X509ExtensionsGenerator();
 
-		private V3TbsCertificateGenerator	tbsGen;
-        private DerObjectIdentifier			sigOid;
-        private AlgorithmIdentifier			sigAlgId;
-        private string						signatureAlgorithm;
+		private V3TbsCertificateGenerator tbsGen;
 
 		public X509V3CertificateGenerator()
         {
@@ -106,30 +103,6 @@ namespace Org.BouncyCastle.X509
         {
             tbsGen.SetSubjectPublicKeyInfo(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
         }
-
-		/// <summary>
-        /// Set the signature algorithm that will be used to sign this certificate.
-        /// </summary>
-        /// <param name="signatureAlgorithm"/>
-		[Obsolete("Not needed if Generate used with an ISignatureFactory")]
-        public void SetSignatureAlgorithm(
-			string signatureAlgorithm)
-        {
-			this.signatureAlgorithm = signatureAlgorithm;
-
-			try
-			{
-				sigOid = X509Utilities.GetAlgorithmOid(signatureAlgorithm);
-			}
-			catch (Exception)
-			{
-				throw new ArgumentException("Unknown signature type requested: " + signatureAlgorithm);
-			}
-
-			sigAlgId = X509Utilities.GetSigAlgID(sigOid, signatureAlgorithm);
-
-			tbsGen.SetSignature(sigAlgId);
-		}
 
 		/// <summary>
 		/// Set the subject unique ID - note: it is very rare that it is correct to do this.
@@ -269,32 +242,6 @@ namespace Org.BouncyCastle.X509
 			{
 				throw new CertificateParsingException(e.Message, e);
 			}
-		}
-
-		/// <summary>
-        /// Generate an X509Certificate.
-        /// </summary>
-        /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
-        /// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureFactory")]
-		public X509Certificate Generate(
-			AsymmetricKeyParameter privateKey)
-        {
-            return Generate(privateKey, null);
-        }
-
-		/// <summary>
-		/// Generate an X509Certificate using your own SecureRandom.
-		/// </summary>
-		/// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
-		/// <param name="random">You Secure Random instance.</param>
-		/// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureFactory")]
-		public X509Certificate Generate(
-			AsymmetricKeyParameter	privateKey,
-			SecureRandom			random)
-		{
-			return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
 		}
 
 		/// <summary>

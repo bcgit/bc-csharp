@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkix;
@@ -41,9 +42,7 @@ namespace Org.BouncyCastle.Tests
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(30));
 			v3CertGen.SetSubjectDN(new X509Name(subject));
 			v3CertGen.SetPublicKey(pubKey);
-			v3CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
-			X509Certificate cert = v3CertGen.Generate(privKey);
-			return cert;
+			return v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 		}
 
 		/**
@@ -65,12 +64,10 @@ namespace Org.BouncyCastle.Tests
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(30));
 			v3CertGen.SetSubjectDN(new X509Name(subject));
 			v3CertGen.SetPublicKey(pubKey);
-			v3CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 			v3CertGen.AddExtension(X509Extensions.CertificatePolicies, true, new DerSequence(policies));
 			v3CertGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(true));
 			v3CertGen.AddExtension(X509Extensions.PolicyMappings, true, new PolicyMappings(policyMap));
-			X509Certificate cert = v3CertGen.Generate(caPrivKey);
-			return cert;
+			return v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", caPrivKey, null));
 		}
 
 		/**
@@ -91,10 +88,8 @@ namespace Org.BouncyCastle.Tests
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(30));
 			v3CertGen.SetSubjectDN(new X509Name(subject));
 			v3CertGen.SetPublicKey(pubKey);
-			v3CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 			v3CertGen.AddExtension(X509Extensions.CertificatePolicies, true, new DerSequence(policies));
-			X509Certificate cert = v3CertGen.Generate(caPrivKey);
-			return cert;
+			return v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", caPrivKey, null));
 		}
 
 		private string TestPolicies(

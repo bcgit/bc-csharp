@@ -4,9 +4,7 @@ using System.Collections;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 
@@ -17,10 +15,7 @@ namespace Org.BouncyCastle.X509
 	{
 		private readonly X509ExtensionsGenerator extGenerator = new X509ExtensionsGenerator();
 
-		private V2AttributeCertificateInfoGenerator	acInfoGen;
-		private DerObjectIdentifier sigOID;
-		private AlgorithmIdentifier sigAlgId;
-		private string signatureAlgorithm;
+		private V2AttributeCertificateInfoGenerator acInfoGen;
 
 		public X509V2AttributeCertificateGenerator()
 		{
@@ -67,31 +62,6 @@ namespace Org.BouncyCastle.X509
 			acInfoGen.SetEndDate(new DerGeneralizedTime(date));
 		}
 
-        /// <summary>
-        /// Set the signature algorithm. This can be either a name or an OID, names
-        /// are treated as case insensitive.
-        /// </summary>
-        /// <param name="signatureAlgorithm">The algorithm name.</param>
-        [Obsolete("Not needed if Generate used with an ISignatureFactory")]
-        public void SetSignatureAlgorithm(
-			string signatureAlgorithm)
-		{
-			this.signatureAlgorithm = signatureAlgorithm;
-
-			try
-			{
-				sigOID = X509Utilities.GetAlgorithmOid(signatureAlgorithm);
-			}
-			catch (Exception)
-			{
-				throw new ArgumentException("Unknown signature type requested");
-			}
-
-			sigAlgId = X509Utilities.GetSigAlgID(sigOID, signatureAlgorithm);
-
-			acInfoGen.SetSignature(sigAlgId);
-		}
-
 		/// <summary>Add an attribute.</summary>
 		public void AddAttribute(
 			X509Attribute attribute)
@@ -128,28 +98,6 @@ namespace Org.BouncyCastle.X509
 		{
 			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
 		}
-
-        /// <summary>
-        /// Generate an X509 certificate, based on the current issuer and subject.
-        /// </summary>
-        [Obsolete("Use Generate with an ISignatureFactory")]
-        public IX509AttributeCertificate Generate(
-			AsymmetricKeyParameter privateKey)
-		{
-			return Generate(privateKey, null);
-		}
-
-        /// <summary>
-        /// Generate an X509 certificate, based on the current issuer and subject,
-        /// using the supplied source of randomness, if required.
-        /// </summary>
-        [Obsolete("Use Generate with an ISignatureFactory")]
-        public IX509AttributeCertificate Generate(
-			AsymmetricKeyParameter	privateKey,
-			SecureRandom			random)
-        {
-            return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
-        }
 
         /// <summary>
         /// Generate a new X.509 Attribute Certificate using the passed in SignatureCalculator.

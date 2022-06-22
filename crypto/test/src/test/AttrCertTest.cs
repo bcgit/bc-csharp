@@ -6,9 +6,9 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -270,9 +270,9 @@ namespace Org.BouncyCastle.Tests
 			gen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			gen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			gen.SetSerialNumber(BigInteger.One);
-			gen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
-			IX509AttributeCertificate aCert = gen.Generate(privKey);
+			IX509AttributeCertificate aCert = gen.Generate(
+				new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
 			aCert.CheckValidity();
 
@@ -378,9 +378,9 @@ namespace Org.BouncyCastle.Tests
 			gen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			gen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			gen.SetSerialNumber(BigInteger.One);
-			gen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
-			IX509AttributeCertificate aCert = gen.Generate(privKey);
+			IX509AttributeCertificate aCert = gen.Generate(
+				new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
 			aCert.CheckValidity();
 
@@ -499,9 +499,8 @@ namespace Org.BouncyCastle.Tests
 			gen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			gen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			gen.SetSerialNumber(aCert.SerialNumber);
-			gen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
-			aCert = gen.Generate(privKey);
+			aCert = gen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
 			aCert.CheckValidity();
 
@@ -575,7 +574,7 @@ namespace Org.BouncyCastle.Tests
 
 			gen.AddExtension("2.2", false, new DerOctetString(new byte[20]));
 
-			aCert = gen.Generate(privKey);
+			aCert = gen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
 			ISet exts = aCert.GetCriticalExtensionOids();
 
