@@ -5,7 +5,7 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
-    [CLSCompliantAttribute(false)]
+    [CLSCompliant(false)]
     public abstract class X448Field
     {
         public const int Size = 16;

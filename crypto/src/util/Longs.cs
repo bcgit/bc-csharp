@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Utilities
             return (long)HighestOneBit((ulong)i);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong HighestOneBit(ulong i)
         {
             i |= i >>  1;
@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Utilities
             return i & -i;
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong LowestOneBit(ulong i)
         {
             return (ulong)LowestOneBit((long)i);
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Utilities
             return (long)Reverse((ulong)i);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong Reverse(ulong i)
         {
             i = Bits.BitPermuteStepSimple(i, 0x5555555555555555UL, 1);
@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Utilities
             return (long)ReverseBytes((ulong)i);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong ReverseBytes(ulong i)
         {
             return RotateLeft(i & 0xFF000000FF000000UL,  8) |
@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Utilities
             return (i << distance) ^ (long)((ulong)i >> -distance);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong RotateLeft(ulong i, int distance)
         {
             return (i << distance) ^ (i >> -distance);
@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Utilities
             return (long)((ulong)i >> distance) ^ (i << -distance);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static ulong RotateRight(ulong i, int distance)
         {
             return (i >> distance) ^ (i << -distance);

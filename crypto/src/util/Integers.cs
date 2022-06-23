@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Utilities
             return (int)HighestOneBit((uint)i);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static uint HighestOneBit(uint i)
         {
             i |= i >>  1;
@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Utilities
             return i & -i;
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static uint LowestOneBit(uint i)
         {
             return (uint)LowestOneBit((int)i);
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Utilities
             return (int)Reverse((uint)i);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static uint Reverse(uint i)
         {
             i = Bits.BitPermuteStepSimple(i, 0x55555555U, 1);
@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Utilities
             return (int)ReverseBytes((uint)i);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static uint ReverseBytes(uint i)
         {
             return RotateLeft(i & 0xFF00FF00U,  8) |
@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Utilities
             return (i << distance) ^ (int)((uint)i >> -distance);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static uint RotateLeft(uint i, int distance)
         {
             return (i << distance) ^ (i >> -distance);
@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Utilities
             return (int)((uint)i >> distance) ^ (i << -distance);
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static uint RotateRight(uint i, int distance)
         {
             return (i >> distance) ^ (i << -distance);

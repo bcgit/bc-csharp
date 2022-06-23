@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static void Decode(uint[] x, int xOff, int[] z)
         {
             Decode128(x, xOff, z, 0);
@@ -198,7 +198,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             return n;
         }
 
-        [CLSCompliantAttribute(false)]
+        [CLSCompliant(false)]
         public static void Encode(int[] x, uint[] z, int zOff)
         {
             Encode128(x, 0, z, zOff);
