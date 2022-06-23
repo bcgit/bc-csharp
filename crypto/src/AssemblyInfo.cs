@@ -44,7 +44,7 @@ internal class AssemblyInfo
                     version = v.Version;
                 }
 #else
-                version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                version = typeof(AssemblyInfo).Assembly.GetName().Version.ToString();
 #endif
 
                 // if we're still here, then don't try again

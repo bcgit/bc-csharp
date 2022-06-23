@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
+
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -18,10 +18,9 @@ public sealed class LowmcConstants
     private LowmcConstants()
     {
         _matrixToHex = new Dictionary<string, string>(); 
-        Stream input = Assembly.GetExecutingAssembly()
+        Stream input = typeof(LowmcConstants).Assembly
             .GetManifestResourceStream("Org.BouncyCastle.pqc.crypto.picnic.lowmcconstants.properties");
 
-        // string[] testlist = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames();
         using (StreamReader sr = new StreamReader(input))
         {
             // load a properties file
@@ -42,7 +41,6 @@ public sealed class LowmcConstants
 
                 line = sr.ReadLine();
             }
-
         }
         
         linearMatrices_L1 = ReadFromProperty("linearMatrices_L1", 40960);
@@ -102,13 +100,10 @@ public sealed class LowmcConstants
 
     public static LowmcConstants Instance
     {
-        get
-        {
-            return instance;
-        }
+        get { return instance; }
     }
 
-    private static Dictionary<String, String> _matrixToHex;
+    private static Dictionary<string, string> _matrixToHex;
 
     // Parameters for security level L1
     // Block/key size: 128

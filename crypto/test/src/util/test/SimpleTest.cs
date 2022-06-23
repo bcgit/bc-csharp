@@ -163,13 +163,7 @@ namespace Org.BouncyCastle.Utilities.Test
 
         private static Assembly GetAssembly()
         {
-#if !PORTABLE
-            return Assembly.GetExecutingAssembly();
-#elif NEW_REFLECTION
-            return typeof(SimpleTest).GetTypeInfo().Assembly;
-#else
             return typeof(SimpleTest).Assembly;
-#endif
         }
 
         private static string GetFullName(string name)
