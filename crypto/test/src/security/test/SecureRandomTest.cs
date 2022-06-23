@@ -102,15 +102,6 @@ namespace Org.BouncyCastle.Security.Tests
         }
 
         [Test]
-        public void TestThreadedSeed()
-        {
-            SecureRandom random = SecureRandom.GetInstance("SHA1PRNG", false);
-            random.SetSeed(new ThreadedSeedGenerator().GenerateSeed(20, false));
-
-            CheckSecureRandom(random);
-        }
-
-        [Test]
         public void TestVmpcPrng()
         {
             SecureRandom random = new SecureRandom(new VmpcRandomGenerator());

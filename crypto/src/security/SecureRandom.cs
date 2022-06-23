@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -14,40 +13,6 @@ namespace Org.BouncyCastle.Security
     {
         private static long counter = Times.NanoTime();
 
-#if PORTABLE
-        private static object counterLock = new object();
-        private static long NextCounterValue()
-        {
-            lock (counterLock)
-            {
-                return ++counter;
-            }
-        }
-
-        private static readonly SecureRandom[] master = { null };
-        private static SecureRandom Master
-        {
-            get
-            {
-                lock (master)
-                {
-                    if (master[0] == null)
-                    {
-                        SecureRandom sr = master[0] = GetInstance("SHA256PRNG", false);
-
-                        // Even though Ticks has at most 8 or 14 bits of entropy, there's no harm in adding it.
-                        sr.SetSeed(DateTime.Now.Ticks);
-
-                        // 32 will be enough when ThreadedSeedGenerator is fixed.  Until then, ThreadedSeedGenerator returns low
-                        // entropy, and this is not sufficient to be secure. http://www.bouncycastle.org/csharpdevmailarchive/msg00814.html
-                        sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(32, true));
-                    }
-
-                    return master[0];
-                }
-            }
-        }
-#else
         private static long NextCounterValue()
         {
             return Interlocked.Increment(ref counter);
@@ -58,7 +23,6 @@ namespace Org.BouncyCastle.Security
         {
             get { return master; }
         }
-#endif
 
         private static DigestRandomGenerator CreatePrng(string digestName, bool autoSeed)
         {
@@ -155,7 +119,6 @@ namespace Org.BouncyCastle.Security
 
         public override int Next(int maxValue)
         {
-
             if (maxValue < 2)
             {
                 if (maxValue < 0)
