@@ -172,28 +172,14 @@ namespace Org.BouncyCastle.Utilities.Test
 #endif
         }
 
-        private static string GetFullName(
-			string name)
+        private static string GetFullName(string name)
 		{
-#if SEPARATE_UNIT_TESTS
-			return "UnitTests.data." + name;
-#elif PORTABLE
-			return "crypto.tests." + name;
-#else
-            return "crypto.test.data." + name;
-#endif
-		}
+            return "BouncyCastle.Crypto.Tests.data." + name;
+        }
 
-		private static string GetShortName(
-			string fullName)
+        private static string GetShortName(string fullName)
 		{
-#if SEPARATE_UNIT_TESTS
-			return fullName.Substring("UnitTests.data.".Length);
-#elif PORTABLE
-			return fullName.Substring("crypto.tests.".Length);
-#else
-            return fullName.Substring("crypto.test.data.".Length);
-#endif
+            return fullName.Substring("BouncyCastle.Crypto.Tests.data.".Length);
 		}
 
 		private static string GetNewLine()

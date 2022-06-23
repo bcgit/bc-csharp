@@ -273,7 +273,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748.Tests
             CheckIterated(1000);
         }
 
-        [Test, Ignore]
+        [Test, Explicit]
         public void TestX448IteratedFull()
         {
             CheckIterated(1000000);

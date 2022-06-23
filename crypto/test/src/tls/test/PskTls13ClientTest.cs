@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Tls.Tests
     [TestFixture]
     public class PskTls13ClientTest
     {
-        [Test, Ignore]
+        [Test, Explicit]
         public void TestConnection()
         {
             string host = "localhost";

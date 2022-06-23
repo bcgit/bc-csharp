@@ -324,8 +324,6 @@ namespace Org.BouncyCastle.Tests
 
         fpeEngine.Init(true, new FpeParameters(new KeyParameter(key), radix, tweak));
 
-        ulong valueToEncrypt = 0x31009155FFL;
-
         byte[] bytes = Hex.Decode("31009155FF");
         byte[] enc = new byte[bytes.Length];
         //Encrypt

@@ -181,18 +181,7 @@ namespace Org.BouncyCastle.Asn1
             char sign = '+';
             DateTime time = ToDateTime();
 
-#if PORTABLE
-            long offset = time.Ticks - time.ToUniversalTime().Ticks;
-            if (offset < 0)
-            {
-                sign = '-';
-                offset = -offset;
-            }
-            int hours = (int)(offset / TimeSpan.TicksPerHour);
-            int minutes = (int)(offset / TimeSpan.TicksPerMinute) % 60;
-#else
-            // Note: GetUtcOffset incorporates Daylight Savings offset
-            TimeSpan offset =  TimeZone.CurrentTimeZone.GetUtcOffset(time);
+            TimeSpan offset = TimeZoneInfo.Local.GetUtcOffset(time);
             if (offset.CompareTo(TimeSpan.Zero) < 0)
             {
                 sign = '-';
@@ -200,7 +189,6 @@ namespace Org.BouncyCastle.Asn1
             }
             int hours = offset.Hours;
             int minutes = offset.Minutes;
-#endif
 
             return "GMT" + sign + Convert(hours) + ":" + Convert(minutes);
         }

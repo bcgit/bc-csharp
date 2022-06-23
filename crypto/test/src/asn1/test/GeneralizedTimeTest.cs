@@ -186,13 +186,11 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        private string CalculateGmtOffset(
-            DateTime date)
+        private string CalculateGmtOffset(DateTime date)
         {
             char sign = '+';
 
-            // Note: GetUtcOffset incorporates Daylight Savings offset
-            TimeSpan offset =  TimeZone.CurrentTimeZone.GetUtcOffset(date);
+            TimeSpan offset = TimeZoneInfo.Local.GetUtcOffset(date);
             if (offset.CompareTo(TimeSpan.Zero) < 0)
             {
                 sign = '-';

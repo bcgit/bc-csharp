@@ -80,33 +80,33 @@ namespace Org.BouncyCastle.Crypto.Tests
                 this.tweak = tweak;
             }
 
-            public byte[] getCiphertext()
+            public byte[] Ciphertext
             {
-                return ciphertext;
+                get { return ciphertext; }
             }
 
-            public byte[] getKey()
+            public byte[] Key
             {
-                return key;
+                get { return key; }
             }
 
-            public byte[] getPlaintext()
+            public byte[] Plaintext
             {
-                return plaintext;
+                get { return plaintext; }
             }
 
-            public int getRadix()
+            public int Radix
             {
-                return radix;
+                get { return radix; }
             }
 
-            public byte[] getTweak()
+            public byte[] Tweak
             {
-                return tweak;
+                get { return tweak; }
             }
         }
 
-        private static FFSample[] ff1Samples = new FFSample[]
+        private static readonly FFSample[] ff1Samples = new FFSample[]
         {
             // FF1-AES128
             FFSample.From(10, "2B7E151628AED2A6ABF7158809CF4F3C", "0123456789", "2433477484", ""),
@@ -124,17 +124,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             FFSample.From(36, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "0123456789abcdefghi", "xs8a0azh2avyalyzuwd", "3737373770717273373737"),
         };
 
-        private static FFSample[] ff3_1Samples = new FFSample[]
+        private static readonly FFSample[] ff3_1Samples = new FFSample[]
         {
             // FF3-AES128
             FFSample.From(62, "7793833CE891B496381BD5B882F77EA1", "YbpT3hDo0J9xwCQ5qUWt93iv", "dDEYxViK56lGbV1WdZTPTe4w", "C58797C2580174"),
         };
 
-        private void testFF1()
+        private void ImplTestFF1()
         {
             for (int i = 0; i < ff1Samples.Length; ++i)
             {
-                testFF1Sample(ff1Samples[i]);
+                ImplTestFF1Sample(ff1Samples[i]);
             }
 
             byte[] key = Hex.Decode("EF4359D8D580AA4F7F036D6F04FC6A942B7E151628AED2A6");
@@ -166,7 +166,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public void testFF1w()
+        private void ImplTestFF1w()
         {
             byte[] key = Hex.Decode("EF4359D8D580AA4F7F036D6F04FC6A942B7E151628AED2A6");
             byte[] plainText = Hex.Decode("0327035100210215");
@@ -201,11 +201,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public void testFF3_1()
+        private void ImplTestFF3_1()
         {
             for (int i = 0; i < ff3_1Samples.Length; ++i)
             {
-                testFF3_1Sample(ff3_1Samples[i]);
+                ImplTestFF3_1Sample(ff3_1Samples[i]);
             }
 
             byte[] key = Hex.Decode("EF4359D8D580AA4F7F036D6F04FC6A942B7E151628AED2A6");
@@ -238,7 +238,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void testFF3_1w()
+        private void ImplTestFF3_1w()
         {
             byte[] key = Hex.Decode("EF4359D8D580AA4F7F036D6F04FC6A942B7E151628AED2A6");
             byte[] plainText = Hex.Decode("0327035100210215");
@@ -273,7 +273,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void testDisable()
+        private void ImplTestDisable()
         {
 #if PORTABLE && !DOTNET
             // Can't SetEnvironmentVariable !
@@ -281,7 +281,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable", "true");
             try
             {
-                testFF1();
+                ImplTestFF1();
                 Fail("no exception");
             }
             catch (InvalidOperationException e)
@@ -291,7 +291,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                testFF3_1();
+                ImplTestFF3_1();
                 Fail("no exception");
             }
             catch (InvalidOperationException e)
@@ -303,7 +303,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable_ff1", "true");
             try
             {
-                testFF1();
+                ImplTestFF1();
                 Fail("no exception");
             }
             catch (InvalidOperationException e)
@@ -311,12 +311,12 @@ namespace Org.BouncyCastle.Crypto.Tests
                 IsEquals("FF1 encryption disabled", e.Message);
             }
 
-            testFF3_1();
+            ImplTestFF3_1();
             Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable_ff1", "false");
 #endif
         }
 
-        private void testFF3_1_255()
+        private void ImplTestFF3_1_255()
         {
             byte[] key = Hex.Decode("339BB5B1F2D44BAABF87CA1B7380CDC8");
             byte[] tweak = Hex.Decode("3F096DE35BFA31");
@@ -325,8 +325,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             FpeEngine fpeEngine = new FpeFf3_1Engine();
 
             fpeEngine.Init(true, new FpeParameters(new KeyParameter(key), radix, tweak));
-
-            ulong valueToEncrypt = 0x31009155FFL;
 
             byte[] bytes = Hex.Decode("00000031009155FF");
             byte[] enc = new byte[bytes.Length];
@@ -344,47 +342,47 @@ namespace Org.BouncyCastle.Crypto.Tests
             IsTrue(Arrays.AreEqual(bytes, enc));
         }
 
-        private void testFF1Sample(FFSample ff1)
+        private void ImplTestFF1Sample(FFSample ff1)
         {
             FpeEngine fpeEngine = new FpeFf1Engine();
 
-            fpeEngine.Init(true, new FpeParameters(new KeyParameter(ff1.getKey()), ff1.getRadix(), ff1.getTweak()));
+            fpeEngine.Init(true, new FpeParameters(new KeyParameter(ff1.Key), ff1.Radix, ff1.Tweak));
 
-            byte[] plain = ff1.getPlaintext();
+            byte[] plain = ff1.Plaintext;
             byte[] enc = new byte[plain.Length];
 
             fpeEngine.ProcessBlock(plain, 0, plain.Length, enc, 0);
 
-            IsTrue(AreEqual(ff1.getCiphertext(), enc));
+            IsTrue(AreEqual(ff1.Ciphertext, enc));
 
-            fpeEngine.Init(false, new FpeParameters(new KeyParameter(ff1.getKey()), ff1.getRadix(), ff1.getTweak()));
+            fpeEngine.Init(false, new FpeParameters(new KeyParameter(ff1.Key), ff1.Radix, ff1.Tweak));
 
-            fpeEngine.ProcessBlock(ff1.getCiphertext(), 0, ff1.getCiphertext().Length, enc, 0);
+            fpeEngine.ProcessBlock(ff1.Ciphertext, 0, ff1.Ciphertext.Length, enc, 0);
 
-            IsTrue(AreEqual(ff1.getPlaintext(), enc));
+            IsTrue(AreEqual(ff1.Plaintext, enc));
         }
 
-        private void testFF3_1Sample(FFSample ff3_1)
+        private void ImplTestFF3_1Sample(FFSample ff3_1)
         {
             FpeEngine fpeEngine = new FpeFf3_1Engine();
 
-            fpeEngine.Init(true, new FpeParameters(new KeyParameter(ff3_1.getKey()), ff3_1.getRadix(), ff3_1.getTweak()));
+            fpeEngine.Init(true, new FpeParameters(new KeyParameter(ff3_1.Key), ff3_1.Radix, ff3_1.Tweak));
 
-            byte[] plain = ff3_1.getPlaintext();
+            byte[] plain = ff3_1.Plaintext;
             byte[] enc = new byte[plain.Length];
 
             fpeEngine.ProcessBlock(plain, 0, plain.Length, enc, 0);
 
-            IsTrue(AreEqual(ff3_1.getCiphertext(), enc));
+            IsTrue(AreEqual(ff3_1.Ciphertext, enc));
 
-            fpeEngine.Init(false, new FpeParameters(new KeyParameter(ff3_1.getKey()), ff3_1.getRadix(), ff3_1.getTweak()));
+            fpeEngine.Init(false, new FpeParameters(new KeyParameter(ff3_1.Key), ff3_1.Radix, ff3_1.Tweak));
 
-            fpeEngine.ProcessBlock(ff3_1.getCiphertext(), 0, plain.Length, enc, 0);
+            fpeEngine.ProcessBlock(ff3_1.Ciphertext, 0, plain.Length, enc, 0);
 
-            IsTrue(AreEqual(ff3_1.getPlaintext(), enc));
+            IsTrue(AreEqual(ff3_1.Plaintext, enc));
         }
 
-        public void testFF1Bounds()
+        private void ImplTestFF1Bounds()
         {
             byte[] key = Hex.Decode("339BB5B1F2D44BAABF87CA1B7380CDC8");
             byte[] tweak = Hex.Decode("3F096DE35BFA31");
@@ -395,10 +393,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 IAlphabetMapper alphabetMapper = new BasicAlphabetMapper("ABCDEFGHI");
 
-                fpeEngine.Init(true, new FpeParameters(new KeyParameter(key),
-                            alphabetMapper.Radix, tweak));
+                fpeEngine.Init(true, new FpeParameters(new KeyParameter(key), alphabetMapper.Radix, tweak));
 
-                process(fpeEngine, new byte[] { 1, 2, 3 });
+                ImplProcess(fpeEngine, new byte[] { 1, 2, 3 });
                 Fail("no exception");
             }
             catch (ArgumentException e)
@@ -413,7 +410,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 fpeEngine.Init(true, new FpeParameters(new KeyParameter(key),
                             alphabetMapper.Radix, tweak));
 
-                process(fpeEngine, new byte[] { 1, 2, 3 });
+                ImplProcess(fpeEngine, new byte[] { 1, 2, 3 });
                 Fail("no exception");
             }
             catch (ArgumentException e)
@@ -422,18 +419,18 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void testFF3_1Bounds()
+        private void ImplTestFF3_1Bounds()
         {
             string bigAlpha = "+-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
 
             IAlphabetMapper alphabetMapper = new BasicAlphabetMapper(bigAlpha);
 
-            ff3_1Test(alphabetMapper, "467094C27E47978FE616F475215BF4F1", "ECC8AA7B87B41C", "9RwG+t8cKfa9JweBYgHAA6fHUShNZ5tc", "-DXMBhb3AFPq5Xf4oUva4WbB8eagGK2u");
-            ff3_1Test(alphabetMapper, "4DB04B58E97819015A08BA7A39A79C303968A34DB0936FAD", "26B3A632FAADFE", "k5Kop6xYpT0skr1zHHPEt5rPWQ4s4O-3", "JyWzuPL6SNsciOXdEgwnKZJxHiKaTu4Z");
-            ff3_1Test(alphabetMapper, "15567AA6CD8CCA401ADB6A10730655AEEC10E9101FD3969A", "379B9572B687A6", "ZpztPp90Oo5ekoNRzqArsAqAbnmM--W6", "NPxEDufvnYzVX3jxupv+iJOuPVpWRPjD");
+            Impl_ff3_1Test(alphabetMapper, "467094C27E47978FE616F475215BF4F1", "ECC8AA7B87B41C", "9RwG+t8cKfa9JweBYgHAA6fHUShNZ5tc", "-DXMBhb3AFPq5Xf4oUva4WbB8eagGK2u");
+            Impl_ff3_1Test(alphabetMapper, "4DB04B58E97819015A08BA7A39A79C303968A34DB0936FAD", "26B3A632FAADFE", "k5Kop6xYpT0skr1zHHPEt5rPWQ4s4O-3", "JyWzuPL6SNsciOXdEgwnKZJxHiKaTu4Z");
+            Impl_ff3_1Test(alphabetMapper, "15567AA6CD8CCA401ADB6A10730655AEEC10E9101FD3969A", "379B9572B687A6", "ZpztPp90Oo5ekoNRzqArsAqAbnmM--W6", "NPxEDufvnYzVX3jxupv+iJOuPVpWRPjD");
             try
             {
-                ff3_1Test(alphabetMapper, "15567AA6CD8CCA401ADB6A10730655AEEC10E9101FD3969A", "379B9572B687A6", "ZpztPp90Oo5ekoNRzqArsAqAbnmM+-W6ZZ", "L1yx-4YLQG9W1P5yTI7Wp2h0IDcRoBq1kk");
+                Impl_ff3_1Test(alphabetMapper, "15567AA6CD8CCA401ADB6A10730655AEEC10E9101FD3969A", "379B9572B687A6", "ZpztPp90Oo5ekoNRzqArsAqAbnmM+-W6ZZ", "L1yx-4YLQG9W1P5yTI7Wp2h0IDcRoBq1kk");
                 Fail("no exception 1");
             }
             catch (ArgumentException e)
@@ -443,7 +440,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                ff3_1Test(alphabetMapper, "15567AA6CD8CCA401ADB6A10730655AEEC10E9101FD3969A", "379B9572B687A6", "Z", "L");
+                Impl_ff3_1Test(alphabetMapper, "15567AA6CD8CCA401ADB6A10730655AEEC10E9101FD3969A", "379B9572B687A6", "Z", "L");
                 Fail("no exception 2");
             }
             catch (ArgumentException e)
@@ -455,7 +452,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 alphabetMapper = new BasicAlphabetMapper("ABCDEFGHI");
 
-                ff3_1Test(alphabetMapper, "15567AA6CD8CCA401ADB6A10730655AEEC10E9101FD3969A", "379B9572B687A6", "AB", "ZZ");
+                Impl_ff3_1Test(alphabetMapper, "15567AA6CD8CCA401ADB6A10730655AEEC10E9101FD3969A", "379B9572B687A6", "AB", "ZZ");
                 Fail("no exception 3");
             }
             catch (ArgumentException e)
@@ -464,7 +461,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void ff3_1Test(IAlphabetMapper alphabetMapper, string skey, string stweak, string input, string output)
+        private void Impl_ff3_1Test(IAlphabetMapper alphabetMapper, string skey, string stweak, string input, string output)
         {
             FpeEngine fpeEncEngine = new FpeFf3_1Engine();
             FpeEngine fpeDecEngine = new FpeFf3_1Engine();
@@ -478,16 +475,16 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] bytes = alphabetMapper.ConvertToIndexes(input.ToCharArray());
 
-            byte[] encryptedBytes = process(fpeEncEngine, bytes);
+            byte[] encryptedBytes = ImplProcess(fpeEncEngine, bytes);
             IsEquals(output, new string(alphabetMapper.ConvertToChars(encryptedBytes)));
 
-            byte[] decryptedBytes = process(fpeDecEngine, encryptedBytes);
+            byte[] decryptedBytes = ImplProcess(fpeDecEngine, encryptedBytes);
             IsTrue(Arrays.AreEqual(bytes, decryptedBytes));
             char[] chars = alphabetMapper.ConvertToChars(decryptedBytes);
             IsEquals(input, new string(chars));
         }
 
-        private byte[] process(FpeEngine fpeEngine, byte[] bytes)
+        private byte[] ImplProcess(FpeEngine fpeEngine, byte[] bytes)
         {
             byte[] rv = new byte[bytes.Length];
 
@@ -496,7 +493,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return rv;
         }
 
-        public void testUtility()
+        private void ImplTestUtility()
         {
             FpeCharEncryptor fpeEnc = new FpeCharEncryptor(new FpeFf1Engine(), Hex.Decode("2B7E151628AED2A6ABF7158809CF4F3C"), "0123456789".ToCharArray());
 
@@ -511,15 +508,15 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public override void PerformTest()
         {
-            testFF1();
-            testFF1w();
-            testFF1Bounds();
-            testFF3_1();
-            testFF3_1w();
-            testFF3_1_255();
-            testFF3_1Bounds();
-            testDisable();
-            testUtility();
+            ImplTestFF1();
+            ImplTestFF1w();
+            ImplTestFF1Bounds();
+            ImplTestFF3_1();
+            ImplTestFF3_1w();
+            ImplTestFF3_1_255();
+            ImplTestFF3_1Bounds();
+            ImplTestDisable();
+            ImplTestUtility();
         }
 
         public override string Name
@@ -535,17 +532,17 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.AreEqual(Name + ": Okay", resultText);
         }
 
-        public class FpeCharEncryptor
+        internal class FpeCharEncryptor
         {
             private readonly FpeEngine fpeEngine;
-            private IAlphabetMapper alphabetMapper;
+            private readonly IAlphabetMapper alphabetMapper;
 
-            public FpeCharEncryptor(FpeEngine fpeEngine, byte[] key, char[] alphabet): this(fpeEngine, key, new byte[0], alphabet)
+            internal FpeCharEncryptor(FpeEngine fpeEngine, byte[] key, char[] alphabet): this(fpeEngine, key, new byte[0], alphabet)
             {
 
             }
 
-            public FpeCharEncryptor(FpeEngine fpeEngine, byte[] key, byte[] tweak, char[] alphabet)
+            internal FpeCharEncryptor(FpeEngine fpeEngine, byte[] key, byte[] tweak, char[] alphabet)
             {
                 this.fpeEngine = fpeEngine;
 
@@ -554,7 +551,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 fpeEngine.Init(true, new FpeParameters(new KeyParameter(key), alphabetMapper.Radix, tweak));
             }
 
-            public char[] Process(char[] input)
+            internal char[] Process(char[] input)
             {
                 byte[] bytes = alphabetMapper.ConvertToIndexes(input);
 
@@ -564,16 +561,16 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public class FpeCharDecryptor
+        internal class FpeCharDecryptor
         {
             private readonly FpeEngine fpeEngine;
-            private IAlphabetMapper alphabetMapper;
+            private readonly IAlphabetMapper alphabetMapper;
 
-            public FpeCharDecryptor(FpeEngine fpeEngine, byte[] key, char[] alphabet): this(fpeEngine, key, new byte[0], alphabet)
+            internal FpeCharDecryptor(FpeEngine fpeEngine, byte[] key, char[] alphabet): this(fpeEngine, key, new byte[0], alphabet)
             {
             }
 
-            public FpeCharDecryptor(FpeEngine fpeEngine, byte[] key, byte[] tweak, char[] alphabet)
+            internal FpeCharDecryptor(FpeEngine fpeEngine, byte[] key, byte[] tweak, char[] alphabet)
             {
                 this.fpeEngine = fpeEngine;
 
@@ -582,7 +579,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 fpeEngine.Init(false, new FpeParameters(new KeyParameter(key), alphabetMapper.Radix, tweak));
             }
 
-            public char[] Process(char[] input)
+            internal char[] Process(char[] input)
             {
                 byte[] bytes = alphabetMapper.ConvertToIndexes(input);
 
