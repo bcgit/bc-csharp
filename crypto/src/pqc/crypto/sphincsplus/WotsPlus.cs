@@ -24,9 +24,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             for (uint i = 0; i < engine.WOTS_LEN; i++)
             {
                 Adrs adrs = new Adrs(paramAdrs);
+                adrs.SetType(Adrs.WOTS_PRF);
+                adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetChainAddress(i);
                 adrs.SetHashAddress(0);
+                
                 byte[] sk = engine.PRF(pkSeed, skSeed, adrs);
+                adrs.SetType(Adrs.WOTS_HASH);
+                adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
+                adrs.SetChainAddress(i);
+                adrs.SetHashAddress(0);
 
                 tmp[i] = Chain(sk, 0, w - 1, pkSeed, adrs);
             }
@@ -88,9 +95,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             byte[][] sig = new byte[engine.WOTS_LEN][];
             for (uint i = 0; i < engine.WOTS_LEN; i++)
             {
+                adrs.SetType(Adrs.WOTS_PRF);
+                adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetChainAddress(i);
                 adrs.SetHashAddress(0);
                 byte[] sk = engine.PRF(pkSeed, skSeed, adrs);
+                adrs.SetType(Adrs.WOTS_HASH);
+                adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
+                adrs.SetChainAddress(i);
+                adrs.SetHashAddress(0);
+
                 sig[i] = Chain(sk, 0, msg[i], pkSeed, adrs);
             }
 

@@ -86,6 +86,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             adrs.SetKeyPairAddress(idx_leaf);
             SIG_FORS[] sig_fors = fors.Sign(mHash, privKey.sk.seed, privKey.pk.seed, adrs);
             // get FORS public key - spec shows M?
+            adrs = new Adrs();
+            adrs.SetType(Adrs.FORS_TREE);
+            adrs.SetTreeAddress(idx_tree);
+            adrs.SetKeyPairAddress(idx_leaf);
+
             byte[] PK_FORS = fors.PKFromSig(sig_fors, mHash, privKey.pk.seed, adrs);
 
             // sign FORS public key with HT
@@ -129,13 +134,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             uint idx_leaf = idxDigest.idx_leaf;
 
             // compute FORS public key
+            adrs.SetType(Adrs.FORS_TREE);
             adrs.SetLayerAddress(0);
             adrs.SetTreeAddress(idx_tree);
-            adrs.SetType(Adrs.FORS_TREE);
             adrs.SetKeyPairAddress(idx_leaf);
             byte[] PK_FORS = new Fors(engine).PKFromSig(sig_fors, mHash, pubKey.GetSeed(), adrs);
             // verify HT signature
             adrs.SetType(Adrs.TREE);
+            adrs.SetLayerAddress(0);
+            adrs.SetTreeAddress(idx_tree);
+            adrs.SetKeyPairAddress(idx_leaf);
             HT ht = new HT(engine, null, pubKey.GetSeed());
             return ht.Verify(PK_FORS, SIG_HT, pubKey.GetSeed(), idx_tree, idx_leaf, pubKey.GetRoot());
         }

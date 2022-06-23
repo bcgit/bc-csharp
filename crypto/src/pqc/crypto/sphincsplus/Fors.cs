@@ -17,7 +17,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         // Output: n-byte root node - top node on Stack
         byte[] TreeHash(byte[] skSeed, uint s, int z, byte[] pkSeed, Adrs adrsParam)
         {
-            Adrs adrs = new Adrs(adrsParam);
 
             IList stack = Platform.CreateArrayList();
 
@@ -26,16 +25,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return null;
             }
 
+            Adrs adrs = new Adrs(adrsParam);
+
             for (uint idx = 0; idx < (1 << z); idx++)
             {
+                adrs.SetType(Adrs.FORS_PRF);
+                adrs.SetKeyPairAddress(adrsParam.GetKeyPairAddress());
                 adrs.SetTreeHeight(0);
                 adrs.SetTreeIndex(s + idx);
 
                 byte[] sk = engine.PRF(pkSeed, skSeed, adrs);
-                byte[] node = engine.F(pkSeed, adrs, sk);
+                
+                adrs.ChangeType(Adrs.FORS_TREE);
 
+                byte[] node = engine.F(pkSeed, adrs, sk);
+                
                 adrs.SetTreeHeight(1);
-                adrs.SetTreeIndex(s + idx);
 
                 // while ( Top node on Stack has same height as node )
                 while (stack.Count != 0
@@ -56,8 +61,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return ((NodeEntry) stack[0]).nodeValue;
         }
 
-        public SIG_FORS[] Sign(byte[] md, byte[] skSeed, byte[] pkSeed, Adrs adrs)
+        public SIG_FORS[] Sign(byte[] md, byte[] skSeed, byte[] pkSeed, Adrs paramAdrs)
         {
+            Adrs adrs = new Adrs(paramAdrs);
             uint[] idxs = MessageToIdxs(md, engine.K, engine.A);
             SIG_FORS[] sig_fors = new SIG_FORS[engine.K];
             // compute signature elements
@@ -67,10 +73,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 // get next index
                 uint idx = idxs[i];
                 // pick private key element
-
+                
+                adrs.SetType(Adrs.FORS_PRF);
+                adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetTreeHeight(0);
                 adrs.SetTreeIndex((uint) (i * t + idx));
+                
                 byte[] sk = engine.PRF(pkSeed, skSeed, adrs);
+                
+                adrs.ChangeType(Adrs.FORS_TREE);
+                
                 byte[][] authPath = new byte[engine.A][];
                 // compute auth path
                 for (int j = 0; j < engine.A; j++)
@@ -127,7 +139,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 
             Adrs forspkAdrs = new Adrs(adrs); // copy address to create FTS public key address
-            forspkAdrs.SetType(Adrs.FORS_ROOTS);
+            forspkAdrs.SetType(Adrs.FORS_PK);
             forspkAdrs.SetKeyPairAddress(adrs.GetKeyPairAddress());
             return engine.T_l(pkSeed, forspkAdrs, Arrays.ConcatenateAll(root));
         }

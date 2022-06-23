@@ -121,9 +121,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         //    # Input: n-byte message M, secret seed SK.seed, index idx, public seed PK.seed,
         //    address Adrs
         //    # Output: XMSS signature SIG_XMSS = (sig || AUTH)
-        SIG_XMSS xmss_sign(byte[] M, byte[] skSeed, uint idx, byte[] pkSeed, Adrs adrs)
+        SIG_XMSS xmss_sign(byte[] M, byte[] skSeed, uint idx, byte[] pkSeed, Adrs paramAdrs)
         {
             byte[][] AUTH = new byte[engine.H_PRIME][];
+            
+            Adrs adrs = new Adrs(paramAdrs);
+
+            adrs.SetType(Adrs.TREE);
+            adrs.SetLayerAddress(paramAdrs.GetLayerAddress());
+            adrs.SetTreeAddress(paramAdrs.GetTreeAddress());
+
 
             // build authentication path
             for (int j = 0; j < engine.H_PRIME; j++)
@@ -132,8 +139,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 AUTH[j] = TreeHash(skSeed, k * (uint) (1 << j), (uint)j, pkSeed, adrs);
             }
 
-            adrs = new Adrs(adrs);
-            adrs.SetType(Adrs.WOTS_HASH);
+            adrs = new Adrs(paramAdrs);
+            adrs.SetType(Adrs.WOTS_PK);
             adrs.SetKeyPairAddress(idx);
 
             byte[] sig = wots.Sign(M, skSeed, pkSeed, adrs);

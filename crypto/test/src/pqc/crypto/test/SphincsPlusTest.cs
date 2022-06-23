@@ -32,11 +32,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             // bool full = System.GetProperty("test.full","false").equals("true");
             bool full = false;
 
-            string files = "sha256-128f-robust.rsp sha256-192f-robust.rsp sha256-256f-robust.rsp shake256-128f-robust.rsp shake256-192f-robust.rsp" +
-            " shake256-256f-robust.rsp sha256-128f-simple.rsp sha256-192f-simple.rsp sha256-256f-simple.rsp shake256-128f-simple.rsp" +
-            " shake256-192f-simple.rsp shake256-256f-simple.rsp sha256-128s-robust.rsp sha256-192s-robust.rsp sha256-256s-robust.rsp" +
-            " shake256-128s-robust.rsp shake256-192s-robust.rsp shake256-256s-robust.rsp sha256-128s-simple.rsp sha256-192s-simple.rsp" +
-            " sha256-256s-simple.rsp shake256-128s-simple.rsp shake256-192s-simple.rsp shake256-256s-simple.rsp";
+            string files = "sha2-128f-robust.rsp sha2-192f-robust.rsp sha2-256f-robust.rsp shake-128f-robust.rsp shake-192f-robust.rsp" +
+                           " shake-256f-robust.rsp sha2-128f-simple.rsp sha2-192f-simple.rsp sha2-256f-simple.rsp shake-128f-simple.rsp" +
+                           " shake-192f-simple.rsp shake-256f-simple.rsp sha2-128s-robust.rsp sha2-192s-robust.rsp sha2-256s-robust.rsp" +
+                           " shake-128s-robust.rsp shake-192s-robust.rsp shake-256s-robust.rsp sha2-128s-simple.rsp sha2-192s-simple.rsp" +
+                           " sha2-256s-simple.rsp shake-128s-simple.rsp shake-192s-simple.rsp shake-256s-simple.rsp";
 
 
             string[] fileList = splitOn(files, ' ');
@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                                 byte[] pk = Hex.Decode(buf["pk"]);
                                 byte[] msg = Hex.Decode(buf["msg"]);
                                 byte[] sigExpected = Hex.Decode(buf["sm"]);
-                                byte[] oprR = Hex.Decode(buf["optr"]);
+                                byte[] oprR = Hex.Decode(buf["optrand"]);
 
                                 SPHINCSPlusKeyPairGenerator kpGen = new SPHINCSPlusKeyPairGenerator();
 
@@ -79,8 +79,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                                 SPHINCSPlusParameters parameters;
 
                                 string[] nameParts = splitOn(name, '-');
-                                bool sha256 = nameParts[0].Equals("sha256");
-                                bool shake256 = nameParts[0].Equals("shake256");
+                                bool sha2 = nameParts[0].Equals("sha2");
+                                bool shake = nameParts[0].Equals("shake");
                                 int size = Int32.Parse(nameParts[1].Substring(0, 3));
                                 bool fast = nameParts[1].EndsWith("f");
                                 bool slow = nameParts[1].EndsWith("s");
@@ -88,13 +88,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                                 bool robust = nameParts[2].Equals("robust.rsp");
 
                                 StringBuilder b = new StringBuilder();
-                                if (sha256)
+                                if (sha2)
                                 {
-                                    b.Append("sha256");
+                                    b.Append("sha2");
                                 }
-                                else if (shake256)
+                                else if (shake)
                                 {
-                                    b.Append("shake256");
+                                    b.Append("shake");
                                 }
                                 else
                                 {
@@ -186,15 +186,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             
                 FixedSecureRandom random = new FixedSecureRandom(source);
                 
-            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake256_256f));
+            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake_256f));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
             SPHINCSPlusPublicKeyParameters pubParams = (SPHINCSPlusPublicKeyParameters)kp.Public;
             SPHINCSPlusPrivateKeyParameters privParams = (SPHINCSPlusPrivateKeyParameters)kp.Private;
 
-            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.GetParameters().GetEncoded(), Hex.Decode("3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa8edb4e5af38c3478ef9533585e368ab0689227f536cc71d8f0affb01e19751ec")), pubParams.GetEncoded()));
-            Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.GetParameters().GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4792f267aafa3f87ca60d01cb54f29202a3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa8edb4e5af38c3478ef9533585e368ab0689227f536cc71d8f0affb01e19751ec")), privParams.GetEncoded()));
+            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.GetParameters().GetEncoded(), Hex.Decode("3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa6ba9430051e61cb676e8449087b938a79575b3a16736ce68a3655a28001155f5")), pubParams.GetEncoded()));
+            Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.GetParameters().GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4792f267aafa3f87ca60d01cb54f29202a3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa6ba9430051e61cb676e8449087b938a79575b3a16736ce68a3655a28001155f5")), privParams.GetEncoded()));
 
             SubjectPublicKeyInfo pubInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams);
             PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams);
@@ -202,15 +202,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             pubParams = (SPHINCSPlusPublicKeyParameters)PublicKeyFactory.CreateKey(pubInfo.GetEncoded());
             privParams = (SPHINCSPlusPrivateKeyParameters)PrivateKeyFactory.CreateKey(privInfo.GetEncoded());
 
-            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.GetParameters().GetEncoded(), Hex.Decode("3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa8edb4e5af38c3478ef9533585e368ab0689227f536cc71d8f0affb01e19751ec")), pubParams.GetEncoded()));
-            Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.GetParameters().GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4792f267aafa3f87ca60d01cb54f29202a3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa8edb4e5af38c3478ef9533585e368ab0689227f536cc71d8f0affb01e19751ec")), privParams.GetEncoded()));
+            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.GetParameters().GetEncoded(), Hex.Decode("3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa6ba9430051e61cb676e8449087b938a79575b3a16736ce68a3655a28001155f5")), pubParams.GetEncoded()));
+            Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.GetParameters().GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4792f267aafa3f87ca60d01cb54f29202a3e784ccb7ebcdcfd45542b7f6af778742e0f4479175084aa488b3b74340678aa6ba9430051e61cb676e8449087b938a79575b3a16736ce68a3655a28001155f5")), privParams.GetEncoded()));
         }
         
         [Test]
         public void TestBasicKeyImportSimpleSign()
         {
-            SPHINCSPlusPublicKeyParameters pubParams = new SPHINCSPlusPublicKeyParameters(SPHINCSPlusParameters.sha256_128f, Hex.Decode("b505d7cfad1b497499323c8686325e4711e95f8a383854ba16a5dd3e25ff71d3"));
-            SPHINCSPlusPrivateKeyParameters privParams = new SPHINCSPlusPrivateKeyParameters(SPHINCSPlusParameters.sha256_128f, Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4711e95f8a383854ba16a5dd3e25ff71d3"));
+            SPHINCSPlusPublicKeyParameters pubParams = new SPHINCSPlusPublicKeyParameters(SPHINCSPlusParameters.sha2_128f, Hex.Decode("b505d7cfad1b497499323c8686325e4711e95f8a383854ba16a5dd3e25ff71d3"));
+            SPHINCSPlusPrivateKeyParameters privParams = new SPHINCSPlusPrivateKeyParameters(SPHINCSPlusParameters.sha2_128f, Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4711e95f8a383854ba16a5dd3e25ff71d3"));
 
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.GetParameters().GetEncoded(), Hex.Decode("b505d7cfad1b497499323c8686325e4711e95f8a383854ba16a5dd3e25ff71d3")), pubParams.GetEncoded()));
             Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.GetParameters().GetEncoded(), Hex.Decode("7c9935a0b07694aa0c6d10e4db6b1add2fd81a25ccb148032dcd739936737f2db505d7cfad1b497499323c8686325e4711e95f8a383854ba16a5dd3e25ff71d3")), privParams.GetEncoded()));
@@ -245,7 +245,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             
             FixedSecureRandom random = new FixedSecureRandom(source);
 
-            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.sha256_128f));
+            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.sha2_128f));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
@@ -283,7 +283,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             
             FixedSecureRandom random = new FixedSecureRandom(source);
             
-            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.sha256_128f));
+            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.sha2_128f));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
@@ -319,7 +319,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             
             FixedSecureRandom random = new FixedSecureRandom(source);
                 
-            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake256_128f_simple));
+            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake_128f_simple));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
@@ -341,7 +341,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             
                 FixedSecureRandom random = new FixedSecureRandom(source);
 
-            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake256_128f_simple));
+            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake_128f_simple));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
@@ -377,7 +377,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             FixedSecureRandom.Source[] source = {new FixedSecureRandom.Source(Hex.Decode("7C9935A0B07694AA0C6D10E4DB6B1ADD2FD81A25CCB148032DCD739936737F2DB505D7CFAD1B497499323C8686325E47354D75735F16E03DEC94D1F5B00C213D"))};
             FixedSecureRandom random = new FixedSecureRandom(source);
             
-            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake256_128f));
+            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake_128f));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
@@ -397,7 +397,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             FixedSecureRandom random = new FixedSecureRandom(source);
 
 
-            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake256_128f));
+            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, SPHINCSPlusParameters.shake_128f));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 

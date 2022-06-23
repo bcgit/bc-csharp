@@ -12,7 +12,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         public static uint WOTS_PK = 1;
         public static uint TREE = 2;
         public static uint FORS_TREE = 3;
-        public static uint FORS_ROOTS = 4;
+        public static uint FORS_PK = 4;
+        public static uint WOTS_PRF = 5;
+        public static uint FORS_PRF = 6;
 
         internal static int OFFSET_LAYER = 0;
         internal static int OFFSET_TREE = 4;
@@ -82,7 +84,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             Arrays.Fill(value, 20, value.Length, (byte) 0);
         }
-
+        
+        public void ChangeType(uint type)
+        {
+            Pack.UInt32_To_BE(type, value, OFFSET_TYPE);
+        }
+        
         public uint GetType()
         {
             return Pack.BE_To_UInt32(value, OFFSET_TYPE);
