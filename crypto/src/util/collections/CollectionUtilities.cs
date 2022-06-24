@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Org.BouncyCastle.Utilities.Collections
@@ -14,14 +15,14 @@ namespace Org.BouncyCastle.Utilities.Collections
             }
         }
 
-        public static bool CheckElementsAreOfType(IEnumerable e, Type t)
+        public static IEnumerable Proxy(IEnumerable e)
         {
-            foreach (object o in e)
-            {
-                if (!t.IsInstanceOfType(o))
-                    return false;
-            }
-            return true;
+            return new EnumerableProxy(e);
+        }
+
+        public static IEnumerable<T> Proxy<T>(IEnumerable<T> e)
+        {
+            return new EnumerableProxy<T>(e);
         }
 
         public static IDictionary ReadOnly(IDictionary d)

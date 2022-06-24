@@ -1,14 +1,30 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Security.Certificates
 {
-#if !PORTABLE
     [Serializable]
-#endif
-    public class CrlException : GeneralSecurityException
+    public class CrlException
+		: GeneralSecurityException
 	{
-		public CrlException() : base() { }
-		public CrlException(string msg) : base(msg) {}
-		public CrlException(string msg, Exception e) : base(msg, e) {}
+		public CrlException()
+			: base()
+		{
+		}
+
+		public CrlException(string message)
+			: base(message)
+		{
+		}
+
+		public CrlException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected CrlException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
 	}
 }

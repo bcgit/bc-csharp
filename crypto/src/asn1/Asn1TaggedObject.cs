@@ -26,17 +26,17 @@ namespace Org.BouncyCastle.Asn1
                 return (Asn1TaggedObject)obj;
             }
             //else if (obj is Asn1TaggedObjectParser)
-            else if (obj is IAsn1Convertible)
+            else if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1TaggedObject)
-                    return (Asn1TaggedObject)asn1Object;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1TaggedObject taggedObject)
+                    return taggedObject;
             }
-            else if (obj is byte[])
+            else if (obj is byte[] byteArray)
             {
                 try
                 {
-                    return CheckedCast(FromByteArray((byte[])obj));
+                    return CheckedCast(FromByteArray(byteArray));
                 }
                 catch (IOException e)
                 {
@@ -313,8 +313,8 @@ namespace Org.BouncyCastle.Asn1
                 return universalType.FromImplicitConstructed(RebuildConstructed(baseObject));
             case ParsedImplicit:
             {
-                if (baseObject is Asn1Sequence)
-                    return universalType.FromImplicitConstructed((Asn1Sequence)baseObject);
+                if (baseObject is Asn1Sequence asn1Sequence)
+                    return universalType.FromImplicitConstructed(asn1Sequence);
 
                 return universalType.FromImplicitPrimitive((DerOctetString)baseObject);
             }

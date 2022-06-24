@@ -21,17 +21,14 @@ namespace Org.BouncyCastle.Asn1
 
         internal static int FindLimit(Stream input)
         {
-            if (input is LimitedInputStream)
-                return ((LimitedInputStream)input).Limit;
+            if (input is LimitedInputStream limited)
+                return limited.Limit;
 
-            if (input is Asn1InputStream)
-                return ((Asn1InputStream)input).Limit;
+            if (input is Asn1InputStream asn1)
+                return asn1.Limit;
 
-            if (input is MemoryStream)
-            {
-                MemoryStream mem = (MemoryStream)input;
-                return (int)(mem.Length - mem.Position);
-            }
+            if (input is MemoryStream memory)
+                return (int)(memory.Length - memory.Position);
 
             return int.MaxValue;
         }

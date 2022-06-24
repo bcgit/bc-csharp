@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
                 DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
 
-                X9ECParameters ecP = ECGost3410NamedCurves.GetByOidX9(publicKeyParamSet);
+                X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(publicKeyParamSet);
                 if (ecP == null)
                     return null;
 
@@ -238,7 +238,7 @@ namespace Org.BouncyCastle.Security
                 DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
 
                 ECGost3410Parameters ecDomainParameters =new ECGost3410Parameters(
-                    new ECNamedDomainParameters(publicKeyParamSet, ECGost3410NamedCurves.GetByOidX9(publicKeyParamSet)),
+                    new ECNamedDomainParameters(publicKeyParamSet, ECGost3410NamedCurves.GetByOid(publicKeyParamSet)),
                     publicKeyParamSet,
                     gostParams.DigestParamSet,
                     gostParams.EncryptionParamSet);

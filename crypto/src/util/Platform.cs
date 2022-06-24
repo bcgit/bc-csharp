@@ -1,7 +1,5 @@
 using System;
 using System.Globalization;
-using System.IO;
-using System.Text;
 
 #if PORTABLE
 using System.Collections.Generic;
@@ -17,22 +15,10 @@ namespace Org.BouncyCastle.Utilities
 
         internal static bool EqualsIgnoreCase(string a, string b)
         {
-#if PORTABLE
             return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
-#else
-            return ToUpperInvariant(a) == ToUpperInvariant(b);
-#endif
         }
 
-#if PORTABLE && !DOTNET
-        internal static string GetEnvironmentVariable(
-            string variable)
-        {
-            return null;
-        }
-#else
-        internal static string GetEnvironmentVariable(
-            string variable)
+        internal static string GetEnvironmentVariable(string variable)
         {
             try
             {
@@ -45,7 +31,6 @@ namespace Org.BouncyCastle.Utilities
                 return null;
             }
         }
-#endif
 
         internal static Exception CreateNotImplementedException(
             string message)
@@ -140,39 +125,20 @@ namespace Org.BouncyCastle.Utilities
 
         internal static string ToLowerInvariant(string s)
         {
-#if PORTABLE
             return s.ToLowerInvariant();
-#else
-            return s.ToLower(CultureInfo.InvariantCulture);
-#endif
         }
 
         internal static string ToUpperInvariant(string s)
         {
-#if PORTABLE
             return s.ToUpperInvariant();
-#else
-            return s.ToUpper(CultureInfo.InvariantCulture);
-#endif
         }
 
         internal static readonly string NewLine = Environment.NewLine;
 
-#if PORTABLE
         internal static void Dispose(IDisposable d)
         {
             d.Dispose();
         }
-#else
-        internal static void Dispose(Stream s)
-        {
-            s.Close();
-        }
-        internal static void Dispose(TextWriter t)
-        {
-            t.Close();
-        }
-#endif
 
         internal static int IndexOf(string source, string value)
         {

@@ -2,23 +2,20 @@ using System;
 
 namespace Org.BouncyCastle.Utilities.Test
 {
-#if !PORTABLE
-    [Serializable]
-#endif
     public class TestFailedException
         : Exception
     {
-        private ITestResult _result;
+        private readonly ITestResult m_result;
 
-        public TestFailedException(
-            ITestResult result)
+        public TestFailedException(ITestResult result)
+            : base()
         {
-            _result = result;
+            m_result = result;
         }
 
-        public ITestResult GetResult()
+        public ITestResult Result
         {
-            return _result;
+            get { return m_result; }
         }
     }
 }

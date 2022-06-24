@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Pkix
             int n = certs.Count;
 
             if (certs.Count == 0)
-                throw new PkixCertPathValidatorException("Certification path is empty.", null, certPath, 0);
+                throw new PkixCertPathValidatorException("Certification path is empty.", null, 0);
 
 			//
             // (b)
@@ -84,13 +84,13 @@ namespace Org.BouncyCastle.Pkix
 					paramsPkix.GetTrustAnchors());
 
                 if (trust == null)
-                    throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, certPath, -1);
+                    throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, -1);
 
                 CheckCertificate(trust.TrustedCert);
             }
             catch (Exception e)
             {
-                throw new PkixCertPathValidatorException(e.Message, e.InnerException, certPath, certs.Count - 1);
+                throw new PkixCertPathValidatorException(e.Message, e.InnerException, certs.Count - 1);
             }
 
             //
@@ -192,8 +192,7 @@ namespace Org.BouncyCastle.Pkix
             }
             catch (ArgumentException ex)
             {
-                throw new PkixCertPathValidatorException("Subject of trust anchor could not be (re)encoded.", ex, certPath,
-                        -1);
+                throw new PkixCertPathValidatorException("Subject of trust anchor could not be (re)encoded.", ex, -1);
             }
 
             AlgorithmIdentifier workingAlgId = null;
@@ -204,7 +203,7 @@ namespace Org.BouncyCastle.Pkix
             catch (PkixCertPathValidatorException e)
             {
                 throw new PkixCertPathValidatorException(
-                        "Algorithm identifier of public key of trust anchor could not be read.", e, certPath, -1);
+                        "Algorithm identifier of public key of trust anchor could not be read.", e, -1);
             }
 
 //			DerObjectIdentifier workingPublicKeyAlgorithm = workingAlgId.Algorithm;
@@ -223,7 +222,7 @@ namespace Org.BouncyCastle.Pkix
             if (certConstraints != null && !certConstraints.Match((X509Certificate)certs[0]))
             {
                 throw new PkixCertPathValidatorException(
-					"Target certificate in certification path does not match targetConstraints.", null, certPath, 0);
+					"Target certificate in certification path does not match targetConstraints.", null, 0);
             }
 
             //
@@ -262,7 +261,7 @@ namespace Org.BouncyCastle.Pkix
                 }
                 catch (Exception e)
                 {
-                    throw new PkixCertPathValidatorException(e.Message, e.InnerException, certPath, index);
+                    throw new PkixCertPathValidatorException(e.Message, e.InnerException, index);
                 }
 
                 //
@@ -294,7 +293,7 @@ namespace Org.BouncyCastle.Pkix
                             continue;
 
                         throw new PkixCertPathValidatorException(
-							"Version 1 certificates can't be used as CA ones.", null, certPath, index);
+							"Version 1 certificates can't be used as CA ones.", null, index);
                     }
 
                     Rfc3280CertPathUtilities.PrepareNextCertA(certPath, index);
@@ -369,7 +368,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                     catch (PkixCertPathValidatorException e)
                     {
-                        throw new PkixCertPathValidatorException("Next working key could not be retrieved.", e, certPath, index);
+                        throw new PkixCertPathValidatorException("Next working key could not be retrieved.", e, index);
                     }
 
                     workingAlgId = PkixCertPathValidatorUtilities.GetAlgorithmIdentifier(workingPublicKey);
@@ -430,7 +429,7 @@ namespace Org.BouncyCastle.Pkix
 				return new PkixCertPathValidatorResult(trust, intersection, cert.GetPublicKey());
 			}
 
-			throw new PkixCertPathValidatorException("Path processing failed on policy.", null, certPath, index);
+			throw new PkixCertPathValidatorException("Path processing failed on policy.", null, index);
         }
 
         internal static void CheckCertificate(X509Certificate cert)

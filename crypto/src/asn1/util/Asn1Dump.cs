@@ -243,6 +243,17 @@ namespace Org.BouncyCastle.Asn1.Utilities
             }
         }
 
+        /// <summary>Parse ASN.1 objects from input <see cref="Stream"/>, and write them to the output.</summary>
+        public static void Dump(Stream input, TextWriter output)
+        {
+            Asn1InputStream asn1InputStream = new Asn1InputStream(input);
+            Asn1Object asn1Object;
+            while ((asn1Object = asn1InputStream.ReadObject()) != null)
+            {
+                output.Write(DumpAsString(asn1Object));
+            }
+        }
+
         /**
          * dump out a DER object as a formatted string, in non-verbose mode
          *

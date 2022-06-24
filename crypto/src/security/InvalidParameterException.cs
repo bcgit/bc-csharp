@@ -1,14 +1,30 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Security
 {
-#if !PORTABLE
     [Serializable]
-#endif
-    public class InvalidParameterException : KeyException
+    public class InvalidParameterException
+		: KeyException
 	{
-		public InvalidParameterException() : base() { }
-		public InvalidParameterException(string message) : base(message) { }
-		public InvalidParameterException(string message, Exception exception) : base(message, exception) { }
+		public InvalidParameterException()
+			: base()
+		{
+		}
+
+		public InvalidParameterException(string message)
+			: base(message)
+		{
+		}
+
+		public InvalidParameterException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected InvalidParameterException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
 	}
 }

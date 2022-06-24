@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -23,9 +23,9 @@ namespace Org.BouncyCastle.Math.EC.Tests
         {
             FixedPointCombMultiplier M = new FixedPointCombMultiplier();
 
-            ArrayList names = new ArrayList();
-            CollectionUtilities.AddRange(names, ECNamedCurveTable.Names);
-            CollectionUtilities.AddRange(names, CustomNamedCurves.Names);
+            var names = new List<string>();
+            names.AddRange(ECNamedCurveTable.Names);
+            names.AddRange(CustomNamedCurves.Names);
 
             ISet uniqNames = new HashSet(names);
 
@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 X9ECParameters x9A = ECNamedCurveTable.GetByName(name);
                 X9ECParameters x9B = CustomNamedCurves.GetByName(name);
 
-                X9ECParameters x9 = x9B != null ? x9B : x9A;
+                X9ECParameters x9 = x9B ?? x9A;
 
                 for (int i = 0; i < TestsPerCurve; ++i)
                 {

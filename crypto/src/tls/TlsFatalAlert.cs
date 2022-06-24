@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Tls
 {
+    [Serializable]
     public class TlsFatalAlert
         : TlsException
     {
@@ -36,6 +38,11 @@ namespace Org.BouncyCastle.Tls
             : base(GetMessage(alertDescription, detailMessage), alertCause)
         {
             this.m_alertDescription = alertDescription;
+        }
+
+        protected TlsFatalAlert(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
         }
 
         public virtual short AlertDescription
