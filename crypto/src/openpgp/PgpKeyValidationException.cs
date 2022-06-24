@@ -1,18 +1,31 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>
-	/// Thrown if the key checksum is invalid.
-	/// </remarks>
-#if !PORTABLE
+	/// <summary>Thrown if the key checksum is invalid.</summary>
     [Serializable]
-#endif
     public class PgpKeyValidationException
 		: PgpException
 	{
-		public PgpKeyValidationException() : base() {}
-		public PgpKeyValidationException(string message) : base(message) {}
-		public PgpKeyValidationException(string message, Exception exception) : base(message, exception) {}
+		public PgpKeyValidationException()
+			: base()
+		{
+		}
+
+		public PgpKeyValidationException(string message)
+			: base(message)
+		{
+		}
+
+		public PgpKeyValidationException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected PgpKeyValidationException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
 	}
 }

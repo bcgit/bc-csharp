@@ -1,24 +1,31 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Tls
 {
-    public class TlsTimeoutException
+	[Serializable]
+	public class TlsTimeoutException
         : IOException
     {
-        public TlsTimeoutException()
-            : base()
-        {
-        }
+		public TlsTimeoutException()
+			: base()
+		{
+		}
 
-        public TlsTimeoutException(string message)
-            : base(message)
-        {
-        }
+		public TlsTimeoutException(string message)
+			: base(message)
+		{
+		}
 
-        public TlsTimeoutException(string message, Exception cause)
-            : base(message, cause)
-        {
-        }
-    }
+		public TlsTimeoutException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected TlsTimeoutException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
+	}
 }

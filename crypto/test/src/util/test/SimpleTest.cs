@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Utilities.Test
             }
             catch (TestFailedException e)
             {
-                return e.GetResult();
+                return e.Result;
             }
             catch (Exception e)
             {

@@ -1,29 +1,31 @@
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Cms
 {
-#if !PORTABLE
     [Serializable]
-#endif
     public class CmsStreamException
         : IOException
     {
 		public CmsStreamException()
+			: base()
 		{
 		}
 
-		public CmsStreamException(
-			string name)
-			: base(name)
-        {
-        }
+		public CmsStreamException(string message)
+			: base(message)
+		{
+		}
 
-		public CmsStreamException(
-			string		name,
-			Exception	e)
-			: base(name, e)
-        {
-        }
-    }
+		public CmsStreamException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected CmsStreamException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
+	}
 }

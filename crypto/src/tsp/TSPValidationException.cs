@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Tsp
 {
@@ -8,34 +9,30 @@ namespace Org.BouncyCastle.Tsp
 	 * If a failure code is associated with the exception it can be retrieved using
 	 * the getFailureCode() method.</p>
 	 */
-#if !PORTABLE
     [Serializable]
-#endif
     public class TspValidationException
 		: TspException
 	{
 		private int failureCode;
 
-		public TspValidationException(
-			string message)
+		public TspValidationException(string message)
 			: base(message)
 		{
 			this.failureCode = -1;
 		}
 
-		public TspValidationException(
-			string	message,
-			int		failureCode)
+		public TspValidationException(string message, int failureCode)
 			: base(message)
 		{
 			this.failureCode = failureCode;
 		}
 
-		/**
-		 * Return the failure code associated with this exception - if one is set.
-		 *
-		 * @return the failure code if set, -1 otherwise.
-		 */
+		protected TspValidationException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
+
+		/// <returns>The failure code associated with this exception, if one is set.</returns>
 		public int FailureCode
 		{
 			get { return failureCode; }

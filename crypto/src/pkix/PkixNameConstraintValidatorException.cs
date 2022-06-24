@@ -1,16 +1,30 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Pkix
 {
-#if !PORTABLE
     [Serializable]
-#endif
     public class PkixNameConstraintValidatorException
         : Exception
     {
-        public PkixNameConstraintValidatorException(string msg)
-            : base(msg)
-        {
-        }
+		public PkixNameConstraintValidatorException()
+			: base()
+		{
+		}
+
+		public PkixNameConstraintValidatorException(string message)
+			: base(message)
+		{
+		}
+
+		public PkixNameConstraintValidatorException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected PkixNameConstraintValidatorException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
     }
 }

@@ -45,8 +45,8 @@ namespace Org.BouncyCastle.Pkix
 		{
 		}
 
-		public PkixCertPathValidatorException(string message, Exception exception)
-			: base(message, exception)
+		public PkixCertPathValidatorException(string message, Exception innerException)
+			: base(message, innerException)
 		{
 		}
 
@@ -55,10 +55,10 @@ namespace Org.BouncyCastle.Pkix
 		/// detail message, cause, certification path, and index.
 		/// </summary>
 		/// <param name="message">the detail message (or <code>null</code> if none)</param>
-		/// <param name="exception">the cause (or <code>null</code> if none)</param>
+		/// <param name="innerException">the cause (or <code>null</code> if none)</param>
 		/// <param name="index">the index of the certificate in the certification path that</param>																																																																																   * 
-		public PkixCertPathValidatorException(string message, Exception exception, int index)
-			: base(message, exception)
+		public PkixCertPathValidatorException(string message, Exception innerException, int index)
+			: base(message, innerException)
 		{
 			if (index < -1)
 				throw new ArgumentException("cannot be < -1", nameof(index));

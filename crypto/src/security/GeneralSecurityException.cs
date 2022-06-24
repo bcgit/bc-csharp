@@ -17,8 +17,8 @@ namespace Org.BouncyCastle.Security
 		{
 		}
 
-		public GeneralSecurityException(string message, Exception exception)
-			: base(message, exception)
+		public GeneralSecurityException(string message, Exception innerException)
+			: base(message, innerException)
 		{
 		}
 
