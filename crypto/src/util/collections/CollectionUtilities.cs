@@ -14,16 +14,6 @@ namespace Org.BouncyCastle.Utilities.Collections
             }
         }
 
-        public static bool CheckElementsAreOfType(IEnumerable e, Type t)
-        {
-            foreach (object o in e)
-            {
-                if (!t.IsInstanceOfType(o))
-                    return false;
-            }
-            return true;
-        }
-
         public static IDictionary ReadOnly(IDictionary d)
         {
             return new UnmodifiableDictionaryProxy(d);

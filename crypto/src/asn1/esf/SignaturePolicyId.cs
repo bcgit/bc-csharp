@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
@@ -85,9 +84,9 @@ namespace Org.BouncyCastle.Asn1.Esf
 		}
 
 		public SignaturePolicyId(
-			DerObjectIdentifier		sigPolicyIdentifier,
-			OtherHashAlgAndValue	sigPolicyHash,
-			IEnumerable				sigPolicyQualifiers)
+			DerObjectIdentifier sigPolicyIdentifier,
+			OtherHashAlgAndValue sigPolicyHash,
+			IEnumerable<SigPolicyQualifierInfo> sigPolicyQualifiers)
 		{
 			if (sigPolicyIdentifier == null)
 				throw new ArgumentNullException("sigPolicyIdentifier");
@@ -99,9 +98,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 
 			if (sigPolicyQualifiers != null)
 			{
-				if (!CollectionUtilities.CheckElementsAreOfType(sigPolicyQualifiers, typeof(SigPolicyQualifierInfo)))
-					throw new ArgumentException("Must contain only 'SigPolicyQualifierInfo' objects", "sigPolicyQualifiers");
-
 				this.sigPolicyQualifiers = new DerSequence(
 					Asn1EncodableVector.FromEnumerable(sigPolicyQualifiers));
 			}

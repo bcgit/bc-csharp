@@ -1,9 +1,8 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
@@ -74,28 +73,23 @@ namespace Org.BouncyCastle.Asn1.Esf
 		}
 
 		public OtherSigningCertificate(
-			IEnumerable certs)
+			IEnumerable<OtherCertID> certs)
 			: this(certs, null)
 		{
 		}
 
 		public OtherSigningCertificate(
-			IEnumerable	certs,
-			IEnumerable	policies)
+			IEnumerable<OtherCertID> certs,
+			IEnumerable<PolicyInformation> policies)
 		{
 			if (certs == null)
 				throw new ArgumentNullException("certs");
-			if (!CollectionUtilities.CheckElementsAreOfType(certs, typeof(OtherCertID)))
-				throw new ArgumentException("Must contain only 'OtherCertID' objects", "certs");
 
 			this.certs = new DerSequence(
 				Asn1EncodableVector.FromEnumerable(certs));
 
 			if (policies != null)
 			{
-				if (!CollectionUtilities.CheckElementsAreOfType(policies, typeof(PolicyInformation)))
-					throw new ArgumentException("Must contain only 'PolicyInformation' objects", "policies");
-
 				this.policies = new DerSequence(
 					Asn1EncodableVector.FromEnumerable(policies));
 			}

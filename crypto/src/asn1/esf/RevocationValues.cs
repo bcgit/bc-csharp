@@ -1,9 +1,8 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
@@ -90,24 +89,18 @@ namespace Org.BouncyCastle.Asn1.Esf
 		}
 
 		public RevocationValues(
-			IEnumerable			crlVals,
-			IEnumerable			ocspVals,
-			OtherRevVals		otherRevVals)
+			IEnumerable<CertificateList> crlVals,
+			IEnumerable<BasicOcspResponse> ocspVals,
+			OtherRevVals otherRevVals)
 		{
 			if (crlVals != null)
 			{
-				if (!CollectionUtilities.CheckElementsAreOfType(crlVals, typeof(CertificateList)))
-					throw new ArgumentException("Must contain only 'CertificateList' objects", "crlVals");
-
 				this.crlVals = new DerSequence(
 					Asn1EncodableVector.FromEnumerable(crlVals));
 			}
 
 			if (ocspVals != null)
 			{
-				if (!CollectionUtilities.CheckElementsAreOfType(ocspVals, typeof(BasicOcspResponse)))
-					throw new ArgumentException("Must contain only 'BasicOcspResponse' objects", "ocspVals");
-
 				this.ocspVals = new DerSequence(
 					Asn1EncodableVector.FromEnumerable(ocspVals));
 			}

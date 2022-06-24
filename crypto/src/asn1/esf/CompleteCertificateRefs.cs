@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
@@ -56,12 +55,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 		}
 
 		public CompleteCertificateRefs(
-			IEnumerable otherCertIDs)
+			IEnumerable<OtherCertID> otherCertIDs)
 		{
 			if (otherCertIDs == null)
 				throw new ArgumentNullException("otherCertIDs");
-			if (!CollectionUtilities.CheckElementsAreOfType(otherCertIDs, typeof(OtherCertID)))
-				throw new ArgumentException("Must contain only 'OtherCertID' objects", "otherCertIDs");
 
 			this.otherCertIDs = new DerSequence(
 				Asn1EncodableVector.FromEnumerable(otherCertIDs));
