@@ -235,9 +235,9 @@ namespace Org.BouncyCastle.Asn1
 
 		private void Set00Check(bool enabled)
 		{
-			if (_in is IndefiniteLengthInputStream)
+			if (_in is IndefiniteLengthInputStream indef)
 			{
-				((IndefiniteLengthInputStream)_in).SetEofOn00(enabled);
+				indef.SetEofOn00(enabled);
 			}
 		}
 	}
