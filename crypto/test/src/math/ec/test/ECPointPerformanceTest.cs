@@ -1,17 +1,13 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 
@@ -98,6 +94,8 @@ namespace Org.BouncyCastle.Math.EC.Tests
                     Console.WriteLine(sb.ToString());
                 }
             }
+
+            Console.Out.Flush();
         }
 
         private double RandMult(SecureRandom random, ECPoint g, BigInteger n)
@@ -175,12 +173,12 @@ namespace Org.BouncyCastle.Math.EC.Tests
         [Test, Explicit]
         public void TestMultiply()
         {
-            ArrayList nameList = new ArrayList();
-            CollectionUtilities.AddRange(nameList, ECNamedCurveTable.Names);
-            CollectionUtilities.AddRange(nameList, CustomNamedCurves.Names);
+            var names = new List<string>();
+            names.AddRange(ECNamedCurveTable.Names);
+            names.AddRange(CustomNamedCurves.Names);
 
-            string[] names = (string[])nameList.ToArray(typeof(string));
-            Array.Sort(names);
+            names.Sort();
+
             ISet oids = new HashSet();
             foreach (string name in names)
             {

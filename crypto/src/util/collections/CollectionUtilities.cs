@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Org.BouncyCastle.Utilities.Collections
@@ -12,6 +13,16 @@ namespace Org.BouncyCastle.Utilities.Collections
             {
                 to.Add(o);
             }
+        }
+
+        public static IEnumerable Proxy(IEnumerable e)
+        {
+            return new EnumerableProxy(e);
+        }
+
+        public static IEnumerable<T> Proxy<T>(IEnumerable<T> e)
+        {
+            return new EnumerableProxy<T>(e);
         }
 
         public static IDictionary ReadOnly(IDictionary d)

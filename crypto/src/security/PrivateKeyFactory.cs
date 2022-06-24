@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Security
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(
                     algID.Parameters.ToAsn1Object());
 
-                X9ECParameters ecP = ECGost3410NamedCurves.GetByOidX9(gostParams.PublicKeyParamSet);
+                X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
 
                 if (ecP == null)
                     throw new ArgumentException("Unrecognized curve OID for GostR3410x2001 private key");
@@ -198,7 +198,7 @@ namespace Org.BouncyCastle.Security
                 if (p is Asn1Sequence && (Asn1Sequence.GetInstance(p).Count == 2 || Asn1Sequence.GetInstance(p).Count == 3))
                 {
 
-                    X9ECParameters ecP = ECGost3410NamedCurves.GetByOidX9(gostParams.PublicKeyParamSet);
+                    X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
 
                     ecSpec = new ECGost3410Parameters(
                         new ECNamedDomainParameters(

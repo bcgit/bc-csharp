@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Utilities.Collections
 {
@@ -20,6 +21,30 @@ namespace Org.BouncyCastle.Utilities.Collections
 		public IEnumerator GetEnumerator()
 		{
 			return inner.GetEnumerator();
+		}
+	}
+
+	internal sealed class EnumerableProxy<T>
+		: IEnumerable<T>
+	{
+		private readonly IEnumerable<T> m_inner;
+
+		internal EnumerableProxy(IEnumerable<T> inner)
+		{
+			if (inner == null)
+				throw new ArgumentNullException("inner");
+
+			m_inner = inner;
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return m_inner.GetEnumerator();
+		}
+
+		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		{
+			return m_inner.GetEnumerator();
 		}
 	}
 }

@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.GM;
@@ -11,18 +11,14 @@ using Org.BouncyCastle.Math.EC.Custom.GM;
 using Org.BouncyCastle.Math.EC.Custom.Sec;
 using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Math.EC.Multiplier;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.EC
 {
-    public sealed class CustomNamedCurves
+    /// <summary>Elliptic curve registry for various customized curve implementations.</summary>
+    public static class CustomNamedCurves
     {
-        private CustomNamedCurves()
-        {
-        }
-
         private static X9ECPoint ConfigureBasepoint(ECCurve curve, string encoding)
         {
             X9ECPoint G = new X9ECPoint(curve, Hex.DecodeStrict(encoding));
@@ -40,9 +36,6 @@ namespace Org.BouncyCastle.Crypto.EC
             return c.Configure().SetEndomorphism(new GlvTypeBEndomorphism(c, p)).Create();
         }
 
-        /*
-         * secp128r1
-         */
         internal class SecP128R1Holder
             : X9ECParametersHolder
         {
@@ -65,9 +58,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * secp160k1
-         */
         internal class SecP160K1Holder
             : X9ECParametersHolder
         {
@@ -103,9 +93,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * secp160r1
-         */
         internal class SecP160R1Holder
             : X9ECParametersHolder
         {
@@ -128,9 +115,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * secp160r2
-         */
         internal class SecP160R2Holder
             : X9ECParametersHolder
         {
@@ -153,9 +137,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * secp192k1
-         */
         internal class SecP192K1Holder
             : X9ECParametersHolder
         {
@@ -191,9 +172,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        /*
-         * secp192r1
-         */
         internal class SecP192R1Holder
             : X9ECParametersHolder
         {
@@ -216,9 +194,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        /*
-         * secp224k1
-         */
         internal class SecP224K1Holder
             : X9ECParametersHolder
         {
@@ -254,9 +229,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        /*
-         * secp224r1
-         */
         internal class SecP224R1Holder
             : X9ECParametersHolder
         {
@@ -279,9 +251,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        /*
-         * secp256k1
-         */
         internal class SecP256K1Holder
             : X9ECParametersHolder
         {
@@ -317,9 +286,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        /*
-         * secp256r1
-         */
         internal class SecP256R1Holder
             : X9ECParametersHolder
         {
@@ -342,9 +308,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        /*
-         * secp384r1
-         */
         internal class SecP384R1Holder
             : X9ECParametersHolder
         {
@@ -368,9 +331,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        /*
-         * secp521r1
-         */
         internal class SecP521R1Holder
             : X9ECParametersHolder
         {
@@ -394,9 +354,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-        /*
-         * sect113r1
-         */
         internal class SecT113R1Holder
             : X9ECParametersHolder
         {
@@ -419,9 +376,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect113r2
-         */
         internal class SecT113R2Holder
             : X9ECParametersHolder
         {
@@ -444,9 +398,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect131r1
-         */
         internal class SecT131R1Holder
             : X9ECParametersHolder
         {
@@ -469,9 +420,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect131r2
-         */
         internal class SecT131R2Holder
             : X9ECParametersHolder
         {
@@ -494,9 +442,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect163k1
-         */
         internal class SecT163K1Holder
             : X9ECParametersHolder
         {
@@ -519,9 +464,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect163r1
-         */
         internal class SecT163R1Holder
             : X9ECParametersHolder
         {
@@ -544,9 +486,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect163r2
-         */
         internal class SecT163R2Holder
             : X9ECParametersHolder
         {
@@ -569,9 +508,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect193r1
-         */
         internal class SecT193R1Holder
             : X9ECParametersHolder
         {
@@ -594,9 +530,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect193r2
-         */
         internal class SecT193R2Holder
             : X9ECParametersHolder
         {
@@ -619,9 +552,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect233k1
-         */
         internal class SecT233K1Holder
             : X9ECParametersHolder
         {
@@ -644,9 +574,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect233r1
-         */
         internal class SecT233R1Holder
             : X9ECParametersHolder
         {
@@ -669,9 +596,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect239k1
-         */
         internal class SecT239K1Holder
             : X9ECParametersHolder
         {
@@ -694,9 +618,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect283k1
-         */
         internal class SecT283K1Holder
             : X9ECParametersHolder
         {
@@ -720,9 +641,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect283r1
-         */
         internal class SecT283R1Holder
             : X9ECParametersHolder
         {
@@ -746,9 +664,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect409k1
-         */
         internal class SecT409K1Holder
             : X9ECParametersHolder
         {
@@ -772,9 +687,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect409r1
-         */
         internal class SecT409R1Holder
             : X9ECParametersHolder
         {
@@ -798,9 +710,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect571k1
-         */
         internal class SecT571K1Holder
             : X9ECParametersHolder
         {
@@ -824,9 +733,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sect571r1
-         */
         internal class SecT571R1Holder
             : X9ECParametersHolder
         {
@@ -850,9 +756,6 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         };
 
-        /*
-         * sm2p256v1
-         */
         internal class SM2P256V1Holder
             : X9ECParametersHolder
         {
@@ -875,32 +778,26 @@ namespace Org.BouncyCastle.Crypto.EC
             }
         }
 
-
-        private static readonly IDictionary nameToCurve = Platform.CreateHashtable();
-        private static readonly IDictionary nameToOid = Platform.CreateHashtable();
-        private static readonly IDictionary oidToCurve = Platform.CreateHashtable();
-        private static readonly IDictionary oidToName = Platform.CreateHashtable();
-        private static readonly IList names = Platform.CreateArrayList();
+        private static readonly Dictionary<string, DerObjectIdentifier> objIds =
+            new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<DerObjectIdentifier, X9ECParametersHolder> curves =
+            new Dictionary<DerObjectIdentifier, X9ECParametersHolder>();
+        private static readonly Dictionary<DerObjectIdentifier, string> names =
+            new Dictionary<DerObjectIdentifier, string>();
 
         private static void DefineCurve(string name, DerObjectIdentifier oid, X9ECParametersHolder holder)
         {
-            names.Add(name);
-            oidToName.Add(oid, name);
-            oidToCurve.Add(oid, holder);
-            name = Platform.ToUpperInvariant(name);
-            nameToOid.Add(name, oid);
-            nameToCurve.Add(name, holder);
+            objIds.Add(name, oid);
+            names.Add(oid, name);
+            curves.Add(oid, holder);
         }
 
         private static void DefineCurveAlias(string name, DerObjectIdentifier oid)
         {
-            object curve = oidToCurve[oid];
-            if (curve == null)
+            if (!curves.ContainsKey(oid))
                 throw new InvalidOperationException();
 
-            name = Platform.ToUpperInvariant(name);
-            nameToOid.Add(name, oid);
-            nameToCurve.Add(name, curve);
+            objIds.Add(name, oid);
         }
 
         static CustomNamedCurves()
@@ -961,60 +858,64 @@ namespace Org.BouncyCastle.Crypto.EC
             DefineCurveAlias("P-521", SecObjectIdentifiers.SecP521r1);
         }
 
+        /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given name.</summary>
+        /// <param name="name">The name of the curve.</param>
         public static X9ECParameters GetByName(string name)
         {
-            X9ECParametersHolder holder = GetByNameLazy(name);
-            return holder == null ? null : holder.Parameters;
+            DerObjectIdentifier oid = GetOid(name);
+            return oid == null ? null : GetByOid(oid);
         }
 
+        /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given name.</summary>
+        /// <remarks>
+        /// Allows accessing the <see cref="ECCurve">curve</see> without necessarily triggering the creation of the
+        /// full <see cref="X9ECParameters"/>.
+        /// </remarks>
+        /// <param name="name">The name of the curve.</param>
         public static X9ECParametersHolder GetByNameLazy(string name)
         {
-            return (X9ECParametersHolder)nameToCurve[Platform.ToUpperInvariant(name)];
+            DerObjectIdentifier oid = GetOid(name);
+            return oid == null ? null : GetByOidLazy(oid);
         }
 
-        /**
-         * return the X9ECParameters object for the named curve represented by
-         * the passed in object identifier. Null if the curve isn't present.
-         *
-         * @param oid an object identifier representing a named curve, if present.
-         */
+        /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given
+        /// <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static X9ECParameters GetByOid(DerObjectIdentifier oid)
         {
-            X9ECParametersHolder holder = GetByOidLazy(oid);
-            return holder == null ? null : holder.Parameters;
+            return GetByOidLazy(oid)?.Parameters;
         }
 
+        /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given
+        /// <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <remarks>
+        /// Allows accessing the <see cref="ECCurve">curve</see> without necessarily triggering the creation of the
+        /// full <see cref="X9ECParameters"/>.
+        /// </remarks>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)
         {
-            return (X9ECParametersHolder)oidToCurve[oid];
+            return curves.TryGetValue(oid, out var holder) ? holder : null;
         }
 
-        /**
-         * return the object identifier signified by the passed in name. Null
-         * if there is no object identifier associated with name.
-         *
-         * @return the object identifier associated with name, if present.
-         */
-        public static DerObjectIdentifier GetOid(string name)
-        {
-            return (DerObjectIdentifier)nameToOid[Platform.ToUpperInvariant(name)];
-        }
-
-        /**
-         * return the named curve name represented by the given object identifier.
-         */
+        /// <summary>Look up the name of the curve with the given <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static string GetName(DerObjectIdentifier oid)
         {
-            return (string)oidToName[oid];
+            return names.TryGetValue(oid, out var name) ? name : null;
         }
 
-        /**
-         * returns an enumeration containing the name strings for curves
-         * contained in this structure.
-         */
-        public static IEnumerable Names
+        /// <summary>Look up the <see cref="DerObjectIdentifier">OID</see> of the curve with the given name.</summary>
+        /// <param name="name">The name of the curve.</param>
+        public static DerObjectIdentifier GetOid(string name)
         {
-            get { return new EnumerableProxy(names); }
+            return objIds.TryGetValue(name, out var oid) ? oid : null;
+        }
+
+        /// <summary>Enumerate the available curve names in this registry.</summary>
+        public static IEnumerable<string> Names
+        {
+            get { return CollectionUtilities.Proxy(objIds.Keys); }
         }
     }
 }
