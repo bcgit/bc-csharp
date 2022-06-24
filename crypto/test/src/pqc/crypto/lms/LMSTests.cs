@@ -158,20 +158,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 ctx.Update((byte)1);
                 Assert.Fail("Digest reuse after signature taken.");
             }
-            catch (NullReferenceException npe)
+            catch (NullReferenceException)
             {
-                Assert.True(true);
+                // Expected
             }
-
         }
-            
-        public void Main(string[] args)
-        {
-            TestCoefFunc();
-            TestPrivateKeyRound();
-            TestLMS();
-            TestContextSingleUse();
-        }
-
     }
 }

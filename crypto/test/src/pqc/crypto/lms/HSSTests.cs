@@ -470,7 +470,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 byte[] hssPubEnc = null;
                 MemoryStream fixedESBuffer = new MemoryStream();
                 IList sigVectors = new ArrayList();
-                int d = 0, j = 0;
+                int d = 0;
 
                 string line;
                 while ((line = sr.ReadLine()) != null)
