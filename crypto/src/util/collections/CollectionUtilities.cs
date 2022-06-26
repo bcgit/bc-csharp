@@ -15,6 +15,36 @@ namespace Org.BouncyCastle.Utilities.Collections
             }
         }
 
+        public static void CollectMatches<T>(ICollection<T> matches, ISelector<T> selector, params IStore<T>[] stores)
+        {
+            CollectMatches(matches, selector, stores);
+        }
+
+        public static void CollectMatches<T>(ICollection<T> matches, ISelector<T> selector,
+            IEnumerable<IStore<T>> stores)
+        {
+            if (matches == null)
+                throw new ArgumentNullException(nameof(matches));
+            if (stores == null)
+                return;
+
+            foreach (var store in stores)
+            {
+                if (store == null)
+                    continue;
+
+                foreach (T match in store.EnumerateMatches(selector))
+                {
+                    matches.Add(match);
+                }
+            }
+        }
+
+        public static IStore<T> CreateStore<T>(IEnumerable<T> contents)
+        {
+            return new StoreImpl<T>(contents);
+        }
+
         public static IEnumerable Proxy(IEnumerable e)
         {
             return new EnumerableProxy(e);
@@ -48,18 +78,18 @@ namespace Org.BouncyCastle.Utilities.Collections
             return e.Current;
         }
 
-        public static string ToString(IEnumerable c)
+        public static string ToString<T>(IEnumerable<T> c)
         {
-            IEnumerator e = c.GetEnumerator();
+            IEnumerator<T> e = c.GetEnumerator();
             if (!e.MoveNext())
                 return "[]";
 
             StringBuilder sb = new StringBuilder("[");
-            sb.Append(e.Current.ToString());
+            sb.Append(e.Current);
             while (e.MoveNext())
             {
                 sb.Append(", ");
-                sb.Append(e.Current.ToString());
+                sb.Append(e.Current);
             }
             sb.Append(']');
             return sb.ToString();
