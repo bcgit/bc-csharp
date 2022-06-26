@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -25,159 +24,51 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class SphincsPlusTest
     {
-        [Test]
-        public void TestVectors()
+        private static readonly string[] TestVectorFilesRobust =
         {
+            "sha2-128f-robust.rsp",
+            "sha2-192f-robust.rsp",
+            "sha2-256f-robust.rsp",
+            "shake-128f-robust.rsp",
+            "shake-192f-robust.rsp",
+            "shake-256f-robust.rsp",
+            "sha2-128s-robust.rsp",
+            "sha2-192s-robust.rsp",
+            "sha2-256s-robust.rsp",
+            "shake-128s-robust.rsp",
+            "shake-192s-robust.rsp",
+            "shake-256s-robust.rsp",
+        };
+        private static readonly string[] TestVectorFilesSimple =
+        {
+            "sha2-128f-simple.rsp",
+            "sha2-192f-simple.rsp",
+            "sha2-256f-simple.rsp",
+            "shake-128f-simple.rsp",
+            "shake-192f-simple.rsp",
+            "shake-256f-simple.rsp",
+            "sha2-128s-simple.rsp",
+            "sha2-192s-simple.rsp",
+            "sha2-256s-simple.rsp",
+            "shake-128s-simple.rsp",
+            "shake-192s-simple.rsp",
+            "shake-256s-simple.rsp",
+        };
 
-            // bool full = System.GetProperty("test.full","false").equals("true");
-            bool full = false;
-
-            string files = "sha2-128f-robust.rsp sha2-192f-robust.rsp sha2-256f-robust.rsp shake-128f-robust.rsp shake-192f-robust.rsp" +
-                           " shake-256f-robust.rsp sha2-128f-simple.rsp sha2-192f-simple.rsp sha2-256f-simple.rsp shake-128f-simple.rsp" +
-                           " shake-192f-simple.rsp shake-256f-simple.rsp sha2-128s-robust.rsp sha2-192s-robust.rsp sha2-256s-robust.rsp" +
-                           " shake-128s-robust.rsp shake-192s-robust.rsp shake-256s-robust.rsp sha2-128s-simple.rsp sha2-192s-simple.rsp" +
-                           " sha2-256s-simple.rsp shake-128s-simple.rsp shake-192s-simple.rsp shake-256s-simple.rsp";
-
-
-            string[] fileList = splitOn(files, ' ');
-            for (int i = 0; i != fileList.Length; i++)
-            {
-                string name = fileList[i];
-                if ( full || name.Contains("-128s-") || name.Contains("-128f-"))
-                {
-                    StreamReader src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.sphincsplus.subset_" + name));
-                    
-                    // BufferedReader bin = new BufferedReader(new InputStreamReader(src));
-
-                    string line = null;
-                    Dictionary<string, string> buf = new Dictionary<string, string>();
-                    while ((line = src.ReadLine()) != null)
-                    {
-
-                        line = line.Trim();
-
-                        if (line.StartsWith("#"))
-                        {
-                            continue;
-                        }
-                        if (line.Length == 0)
-                        {
-                            if (buf.Count > 0)
-                            {
-                                string count = buf["count"];
-                                byte[] sk = Hex.Decode(buf["sk"]);
-                                byte[] pk = Hex.Decode(buf["pk"]);
-                                byte[] msg = Hex.Decode(buf["msg"]);
-                                byte[] sigExpected = Hex.Decode(buf["sm"]);
-                                byte[] oprR = Hex.Decode(buf["optrand"]);
-
-                                SPHINCSPlusKeyPairGenerator kpGen = new SPHINCSPlusKeyPairGenerator();
-
-                                FixedSecureRandom.Source[] source = {new FixedSecureRandom.Source(sk)};
-                                SecureRandom random = new FixedSecureRandom(source);
-
-                                SPHINCSPlusParameters parameters;
-
-                                string[] nameParts = splitOn(name, '-');
-                                bool sha2 = nameParts[0].Equals("sha2");
-                                bool shake = nameParts[0].Equals("shake");
-                                int size = Int32.Parse(nameParts[1].Substring(0, 3));
-                                bool fast = nameParts[1].EndsWith("f");
-                                bool slow = nameParts[1].EndsWith("s");
-                                bool simple = nameParts[2].Equals("simple.rsp");
-                                bool robust = nameParts[2].Equals("robust.rsp");
-
-                                StringBuilder b = new StringBuilder();
-                                if (sha2)
-                                {
-                                    b.Append("sha2");
-                                }
-                                else if (shake)
-                                {
-                                    b.Append("shake");
-                                }
-                                else
-                                {
-                                    throw new ArgumentException("unknown digest");
-                                }
-
-                                b.Append("_");
-                                b.Append(size);
-
-                                if (fast)
-                                {
-                                    b.Append("f");
-                                }
-                                else if (slow)
-                                {
-                                    b.Append("s");
-                                }
-                                else
-                                {
-                                    throw new ArgumentException("unknown speed");
-                                }
-
-                                if (robust)
-                                {
-                                    // nothing.
-                                }
-                                else if (simple)
-                                {
-                                    b.Append("_simple");
-                                }
-                                else
-                                {
-                                    throw new ArgumentException("unknown complexity");
-                                }
-
-                                parameters = (SPHINCSPlusParameters)typeof(SPHINCSPlusParameters).GetField(b.ToString()).GetValue(null);//todo unsure
-
-                                //
-                                // Generate keys and test.
-                                //
-                                kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, parameters));
-                                AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
-
-                                SPHINCSPlusPublicKeyParameters pubParams = (SPHINCSPlusPublicKeyParameters)kp.Public;
-                                SPHINCSPlusPrivateKeyParameters privParams = (SPHINCSPlusPrivateKeyParameters)kp.Private;
-
-                                Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.GetParameters().GetEncoded(), pk), pubParams.GetEncoded()), name + " " + count + ": public key");
-                                Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.GetParameters().GetEncoded(), sk), privParams.GetEncoded()), name + " " + count + ": secret key");
-
-                                //
-                                // Signature test
-                                //
-
-                                SPHINCSPlusSigner signer = new SPHINCSPlusSigner();
-
-                                FixedSecureRandom.Source[] s1 = {new FixedSecureRandom.Source(oprR)};
-                                signer.Init(true, new ParametersWithRandom(privParams, new FixedSecureRandom(s1)));
-
-                                byte[] sigGenerated = signer.GenerateSignature(msg);
-                                byte[] attachedSig = Arrays.Concatenate(sigGenerated, msg);
-
-
-                                signer.Init(false, pubParams);
-
-                                Assert.True(signer.VerifySignature(msg, sigGenerated), name + " " + count + ": signature verify");
-                                Assert.True(Arrays.AreEqual(sigExpected, attachedSig), name + " " + count + ": signature gen match");
-                            }
-                            buf.Clear();
-
-                            continue;
-                        }
-
-                        int a = line.IndexOf("=");
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                    }
-                    src.Close();
-                }
-            }
+        [Explicit, TestCaseSource(nameof(TestVectorFilesRobust))]
+        [Parallelizable(ParallelScope.All)]
+        public void TestVectorsRobust(string testVectorFile)
+        {
+            RunTestVectorFile(testVectorFile);
         }
-        
+
+        [TestCaseSource(nameof(TestVectorFilesSimple))]
+        [Parallelizable(ParallelScope.All)]
+        public void TestVectorsSimple(string testVectorFile)
+        {
+            RunTestVectorFile(testVectorFile);
+        }
+
         [Test]
         public void TestBasicKeyGeneration()
         {
@@ -425,10 +316,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.True(signer.VerifySignature(msg, sig));
         }
 
-        private static string[] splitOn(string input, char c)
+        private static string[] SplitOn(string input, char c)
         {
             string s = input.Trim();
-            ArrayList l = new ArrayList();
+            var l = new List<string>();
 
             int idx = s.IndexOf(c);
             while (idx > 0)
@@ -442,8 +333,146 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             {
                 l.Add(s);
             }
-              
-            return l.ToArray(typeof(string)) as string[];
+
+            return l.ToArray();
+        }
+
+        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        {
+            string count = buf["count"];
+            byte[] sk = Hex.Decode(buf["sk"]);
+            byte[] pk = Hex.Decode(buf["pk"]);
+            byte[] msg = Hex.Decode(buf["msg"]);
+            byte[] sigExpected = Hex.Decode(buf["sm"]);
+            byte[] oprR = Hex.Decode(buf["optrand"]);
+
+            SPHINCSPlusKeyPairGenerator kpGen = new SPHINCSPlusKeyPairGenerator();
+
+            FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(sk) };
+            SecureRandom random = new FixedSecureRandom(source);
+
+            SPHINCSPlusParameters parameters;
+
+            string[] nameParts = SplitOn(name, '-');
+            bool sha2 = nameParts[0].Equals("sha2");
+            bool shake = nameParts[0].Equals("shake");
+            int size = Int32.Parse(nameParts[1].Substring(0, 3));
+            bool fast = nameParts[1].EndsWith("f");
+            bool slow = nameParts[1].EndsWith("s");
+            bool simple = nameParts[2].Equals("simple.rsp");
+            bool robust = nameParts[2].Equals("robust.rsp");
+
+            StringBuilder b = new StringBuilder();
+            if (sha2)
+            {
+                b.Append("sha2");
+            }
+            else if (shake)
+            {
+                b.Append("shake");
+            }
+            else
+            {
+                throw new ArgumentException("unknown digest");
+            }
+
+            b.Append("_");
+            b.Append(size);
+
+            if (fast)
+            {
+                b.Append("f");
+            }
+            else if (slow)
+            {
+                b.Append("s");
+            }
+            else
+            {
+                throw new ArgumentException("unknown speed");
+            }
+
+            if (robust)
+            {
+                // nothing.
+            }
+            else if (simple)
+            {
+                b.Append("_simple");
+            }
+            else
+            {
+                throw new ArgumentException("unknown complexity");
+            }
+
+            parameters = (SPHINCSPlusParameters)typeof(SPHINCSPlusParameters).GetField(b.ToString()).GetValue(null);//todo unsure
+
+            //
+            // Generate keys and test.
+            //
+            kpGen.Init(new SPHINCSPlusKeyGenerationParameters(random, parameters));
+            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+
+            SPHINCSPlusPublicKeyParameters pubParams = (SPHINCSPlusPublicKeyParameters)kp.Public;
+            SPHINCSPlusPrivateKeyParameters privParams = (SPHINCSPlusPrivateKeyParameters)kp.Private;
+
+            Assert.True(Arrays.AreEqual(Arrays.Concatenate(pubParams.GetParameters().GetEncoded(), pk), pubParams.GetEncoded()), name + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(Arrays.Concatenate(privParams.GetParameters().GetEncoded(), sk), privParams.GetEncoded()), name + " " + count + ": secret key");
+
+            //
+            // Signature test
+            //
+
+            SPHINCSPlusSigner signer = new SPHINCSPlusSigner();
+
+            FixedSecureRandom.Source[] s1 = { new FixedSecureRandom.Source(oprR) };
+            signer.Init(true, new ParametersWithRandom(privParams, new FixedSecureRandom(s1)));
+
+            byte[] sigGenerated = signer.GenerateSignature(msg);
+            byte[] attachedSig = Arrays.Concatenate(sigGenerated, msg);
+
+
+            signer.Init(false, pubParams);
+
+            Assert.True(signer.VerifySignature(msg, sigGenerated), name + " " + count + ": signature verify");
+            Assert.True(Arrays.AreEqual(sigExpected, attachedSig), name + " " + count + ": signature gen match");
+        }
+
+        private static void RunTestVectorFile(string name)
+        {
+            var buf = new Dictionary<string, string>();
+
+            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.sphincsplus.subset_" + name)))
+            {
+                string line;
+                while ((line = src.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    if (line.StartsWith("#"))
+                        continue;
+
+                    if (line.Length > 0)
+                    {
+                        int a = line.IndexOf("=");
+                        if (a > -1)
+                        {
+                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
+                        }
+                        continue;
+                    }
+
+                    if (buf.Count > 0)
+                    {
+                        RunTestVector(name, buf);
+                        buf.Clear();
+                    }
+                }
+
+                if (buf.Count > 0)
+                {
+                    RunTestVector(name, buf);
+                }
+            }
         }
     }
 }
