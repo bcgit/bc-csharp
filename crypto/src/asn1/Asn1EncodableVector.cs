@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -7,7 +8,7 @@ namespace Org.BouncyCastle.Asn1
      * Mutable class for building ASN.1 constructed objects such as SETs or SEQUENCEs.
      */
     public class Asn1EncodableVector
-        : IEnumerable
+        : IEnumerable<Asn1Encodable>
     {
         internal static readonly Asn1Encodable[] EmptyElements = new Asn1Encodable[0];
 
@@ -17,7 +18,7 @@ namespace Org.BouncyCastle.Asn1
         private int elementCount;
         private bool copyOnWrite;
 
-        public static Asn1EncodableVector FromEnumerable(IEnumerable e)
+        public static Asn1EncodableVector FromEnumerable(IEnumerable<Asn1Encodable> e)
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
             foreach (Asn1Encodable obj in e)
@@ -140,9 +141,15 @@ namespace Org.BouncyCastle.Asn1
             get { return elementCount; }
         }
 
-        public IEnumerator GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            return CopyElements().GetEnumerator();
+            return GetEnumerator();
+        }
+
+        public IEnumerator<Asn1Encodable> GetEnumerator()
+        {
+            IEnumerable<Asn1Encodable> e = CopyElements();
+            return e.GetEnumerator();
         }
 
         internal Asn1Encodable[] CopyElements()

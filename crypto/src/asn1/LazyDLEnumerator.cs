@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
     internal class LazyDLEnumerator
-        : IEnumerator
+        : IEnumerator<Asn1Encodable>
     {
         private readonly byte[] m_contents;
 
@@ -19,7 +20,12 @@ namespace Org.BouncyCastle.Asn1
             Reset();
         }
 
-        public object Current
+        object IEnumerator.Current
+        {
+            get { return Current; }
+        }
+
+        public Asn1Encodable Current
         {
             get
             {
@@ -28,6 +34,10 @@ namespace Org.BouncyCastle.Asn1
 
                 return m_current;
             }
+        }
+
+        public virtual void Dispose()
+        {
         }
 
         public bool MoveNext()

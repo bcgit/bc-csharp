@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -8,7 +9,7 @@ using Org.BouncyCastle.Utilities.Collections;
 namespace Org.BouncyCastle.Asn1
 {
     public abstract class Asn1Sequence
-        : Asn1Object, IEnumerable
+        : Asn1Object, IEnumerable<Asn1Encodable>
     {
         internal class Meta : Asn1UniversalType
         {
@@ -112,9 +113,15 @@ namespace Org.BouncyCastle.Asn1
             this.elements = elementVector.TakeElements();
         }
 
-        public virtual IEnumerator GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            return elements.GetEnumerator();
+            return GetEnumerator();
+        }
+
+        public virtual IEnumerator<Asn1Encodable> GetEnumerator()
+        {
+            IEnumerable<Asn1Encodable> e = elements;
+            return e.GetEnumerator();
         }
 
         private class Asn1SequenceParserImpl

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.IO;
 
 namespace Org.BouncyCastle.Asn1
