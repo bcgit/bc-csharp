@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Pkix
             //
             // (c)
             //
-            ISet userInitialPolicySet = paramsPkix.GetInitialPolicies();
+            var userInitialPolicySet = paramsPkix.GetInitialPolicies();
 
             //
             // (d)
@@ -113,12 +113,12 @@ namespace Org.BouncyCastle.Pkix
                 policyNodes[j] = new List<PkixPolicyNode>();
             }
 
-            ISet policySet = new HashSet();
+            var policySet = new HashSet<string>();
 
             policySet.Add(Rfc3280CertPathUtilities.ANY_POLICY);
 
-            var validPolicyTree = new PkixPolicyNode(new List<PkixPolicyNode>(), 0, policySet, null, new HashSet(),
-                Rfc3280CertPathUtilities.ANY_POLICY, false);
+            var validPolicyTree = new PkixPolicyNode(new List<PkixPolicyNode>(), 0, policySet, null,
+                new HashSet<PolicyQualifierInfo>(), Rfc3280CertPathUtilities.ANY_POLICY, false);
 
             policyNodes[0].Add(validPolicyTree);
 
@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Pkix
             // (d)
             //
             int explicitPolicy;
-            ISet acceptablePolicies = new HashSet();
+            var acceptablePolicies = new HashSet<string>();
 
             if (paramsPkix.IsExplicitPolicyRequired)
             {
@@ -326,11 +326,11 @@ namespace Org.BouncyCastle.Pkix
                     // (n)
                     Rfc3280CertPathUtilities.PrepareNextCertN(certPath, index);
 
-					ISet criticalExtensions1 = cert.GetCriticalExtensionOids();
+					var criticalExtensions1 = cert.GetCriticalExtensionOids();
 
 					if (criticalExtensions1 != null)
 					{
-						criticalExtensions1 = new HashSet(criticalExtensions1);
+						criticalExtensions1 = new HashSet<string>(criticalExtensions1);
 
 						// these extensions are handled by the algorithm
 						criticalExtensions1.Remove(X509Extensions.KeyUsage.Id);
@@ -346,7 +346,7 @@ namespace Org.BouncyCastle.Pkix
 					}
 					else
 					{
-						criticalExtensions1 = new HashSet();
+						criticalExtensions1 = new HashSet<string>();
 					}
 
 					// (o)
@@ -391,11 +391,11 @@ namespace Org.BouncyCastle.Pkix
             //
             // (f)
             //
-            ISet criticalExtensions = cert.GetCriticalExtensionOids();
+            var criticalExtensions = cert.GetCriticalExtensionOids();
 
             if (criticalExtensions != null)
             {
-                criticalExtensions = new HashSet(criticalExtensions);
+                criticalExtensions = new HashSet<string>(criticalExtensions);
 
                 // Requires .Id
                 // these extensions are handled by the algorithm
@@ -413,13 +413,13 @@ namespace Org.BouncyCastle.Pkix
             }
             else
             {
-                criticalExtensions = new HashSet();
+                criticalExtensions = new HashSet<string>();
             }
 
             Rfc3280CertPathUtilities.WrapupCertF(certPath, index + 1, certPathCheckers, criticalExtensions);
 
-            PkixPolicyNode intersection = Rfc3280CertPathUtilities.WrapupCertG(certPath, paramsPkix, userInitialPolicySet,
-                    index + 1, policyNodes, validPolicyTree, acceptablePolicies);
+            PkixPolicyNode intersection = Rfc3280CertPathUtilities.WrapupCertG(certPath, paramsPkix,
+                userInitialPolicySet, index + 1, policyNodes, validPolicyTree, acceptablePolicies);
 
             if ((explicitPolicy > 0) || (intersection != null))
             {

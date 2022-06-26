@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -15,9 +16,9 @@ namespace Org.BouncyCastle.Pkix
 	{
 		protected IList<PkixPolicyNode> mChildren;
 		protected int				mDepth;
-		protected ISet				mExpectedPolicies;
+		protected ISet<string>		mExpectedPolicies;
 		protected PkixPolicyNode	mParent;
-		protected ISet				mPolicyQualifiers;
+		protected ISet<PolicyQualifierInfo> mPolicyQualifiers;
 		protected string			mValidPolicy;
 		protected bool				mCritical;
 
@@ -37,9 +38,9 @@ namespace Org.BouncyCastle.Pkix
 			set { this.mCritical = value; }
 		}
 
-		public virtual ISet PolicyQualifiers
+		public virtual ISet<PolicyQualifierInfo> PolicyQualifiers
 		{
-			get { return new HashSet(this.mPolicyQualifiers); }
+			get { return new HashSet<PolicyQualifierInfo>(this.mPolicyQualifiers); }
 		}
 
 		public virtual string ValidPolicy
@@ -52,10 +53,10 @@ namespace Org.BouncyCastle.Pkix
 			get { return mChildren.Count != 0; }
 		}
 
-		public virtual ISet ExpectedPolicies
+		public virtual ISet<string> ExpectedPolicies
 		{
-			get { return new HashSet(this.mExpectedPolicies); }
-			set { this.mExpectedPolicies = new HashSet(value); }
+			get { return new HashSet<string>(this.mExpectedPolicies); }
+			set { this.mExpectedPolicies = new HashSet<string>(value); }
 		}
 
 		public virtual PkixPolicyNode Parent
@@ -68,9 +69,9 @@ namespace Org.BouncyCastle.Pkix
 		public PkixPolicyNode(
 			IEnumerable<PkixPolicyNode> children,
 			int				depth,
-			ISet			expectedPolicies,
+			ISet<string>	expectedPolicies,
 			PkixPolicyNode	parent,
-			ISet			policyQualifiers,
+			ISet<PolicyQualifierInfo> policyQualifiers,
 			string			validPolicy,
 			bool			critical)
 		{
@@ -139,9 +140,9 @@ namespace Org.BouncyCastle.Pkix
 			PkixPolicyNode node = new PkixPolicyNode(
 				new List<PkixPolicyNode>(),
 				mDepth,
-				new HashSet(mExpectedPolicies),
+				new HashSet<string>(mExpectedPolicies),
 				null,
-				new HashSet(mPolicyQualifiers),
+				new HashSet<PolicyQualifierInfo>(mPolicyQualifiers),
 				mValidPolicy,
 				mCritical);
 

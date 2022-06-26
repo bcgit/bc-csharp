@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using NUnit.Framework;
@@ -566,7 +565,7 @@ namespace Org.BouncyCastle.Tests
 
 			aCert = gen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
-			ISet exts = aCert.GetCriticalExtensionOids();
+			var exts = aCert.GetCriticalExtensionOids();
 
 			if (exts.Count != 1 || !exts.Contains("1.1"))
 			{

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 using NUnit.Framework;
@@ -35,30 +34,30 @@ namespace Org.BouncyCastle.Tests
 		private const string TEST_POLICY_4 = "2.16.840.1.101.3.1.48.4";
 		private const string TEST_POLICY_5 = "2.16.840.1.101.3.1.48.5";
 
-		private static ISet ANY;
-		private static ISet TP1;
-		private static ISet TP2;
-		private static ISet TP3;
-		private static ISet TP4;
-		private static ISet TP1_TP2;
+		private static ISet<string> ANY;
+		private static ISet<string> TP1;
+		private static ISet<string> TP2;
+		private static ISet<string> TP3;
+		private static ISet<string> TP4;
+		private static ISet<string> TP1_TP2;
 
 		static NistCertPathTest()
 		{
-			ANY = new HashSet();
+			ANY = new HashSet<string>();
 
-			TP1 = new HashSet();
+			TP1 = new HashSet<string>();
 			TP1.Add(TEST_POLICY_1);
 
-			TP2 = new HashSet();
+			TP2 = new HashSet<string>();
 			TP2.Add(TEST_POLICY_2);
 
-			TP3 = new HashSet();
+			TP3 = new HashSet<string>();
 			TP3.Add(TEST_POLICY_3);
 
-			TP4 = new HashSet();
+			TP4 = new HashSet<string>();
 			TP4.Add(TEST_POLICY_4);
 
-			TP1_TP2 = new HashSet();
+			TP1_TP2 = new HashSet<string>();
 			TP1_TP2.Add(TEST_POLICY_1);
 			TP1_TP2.Add(TEST_POLICY_2);
 		}
@@ -71,7 +70,7 @@ namespace Org.BouncyCastle.Tests
 
 		private X509Certificate trustedCert;
 		private X509Crl trustedCRL;
-		private ISet trustedSet;
+		private ISet<TrustAnchor> trustedSet;
 		private int testCount;
 		private IList testFail;
 		private StringBuilder resultBuf;
@@ -258,7 +257,7 @@ namespace Org.BouncyCastle.Tests
 			{
 				trustedCert = certParser.ReadCertificate(Base64.Decode(Trust_Anchor_CP_01_01_crt));
 				trustedCRL = crlParser.ReadCrl(Base64.Decode(Trust_Anchor_CRL_CP_01_01_crl));
-				trustedSet = new HashSet();
+				trustedSet = new HashSet<TrustAnchor>();
 
 				byte[] _ncBytes = null;
 				Asn1OctetString _oct = trustedCert.GetExtensionValue(X509Extensions.NameConstraints);
@@ -335,7 +334,7 @@ namespace Org.BouncyCastle.Tests
 			Test(_name, _data, null, _explicit, _accept, _debug);
 		}
 
-		private void Test(string _name, string[] _data, ISet _ipolset,
+		private void Test(string _name, string[] _data, ISet<string> _ipolset,
 			bool _explicit, bool _accept, bool _debug)
 		{
 			testCount++;

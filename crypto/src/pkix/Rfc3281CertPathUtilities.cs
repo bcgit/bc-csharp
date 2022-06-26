@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Pkix
 			// AA Controls
 			// Attribute encryption
 			// Proxy
-			ISet critExtOids = attrCert.GetCriticalExtensionOids();
+			var critExtOids = attrCert.GetCriticalExtensionOids();
 
 			// 7.1
 			// process extensions
@@ -47,11 +47,10 @@ namespace Org.BouncyCastle.Pkix
 			{
 				checker.Check(attrCert, certPath, holderCertPath, critExtOids);
 			}
-			if (!critExtOids.IsEmpty)
+			if (critExtOids.Count > 0)
 			{
 				throw new PkixCertPathValidatorException(
-					"Attribute certificate contains unsupported critical extensions: "
-						+ critExtOids);
+					"Attribute certificate contains unsupported critical extensions: " + critExtOids);
 			}
 		}
 
@@ -276,7 +275,7 @@ namespace Org.BouncyCastle.Pkix
 			X509Certificate	acIssuerCert,
 			PkixParameters	pkixParams)
 		{
-			ISet set = pkixParams.GetTrustedACIssuers();
+			var set = pkixParams.GetTrustedACIssuers();
 			bool trusted = false;
 			foreach (TrustAnchor anchor in set)
 			{
@@ -352,7 +351,7 @@ namespace Org.BouncyCastle.Pkix
 		{
 			PkixCertPathBuilderResult result = null;
 			// find holder PKCs
-			ISet holderPKCs = new HashSet();
+			var holderPKCs = new HashSet<X509Certificate>();
 			if (attrCert.Holder.GetIssuer() != null)
 			{
 				X509CertStoreSelector selector = new X509CertStoreSelector();
@@ -360,14 +359,12 @@ namespace Org.BouncyCastle.Pkix
 				X509Name[] principals = attrCert.Holder.GetIssuer();
 				for (int i = 0; i < principals.Length; i++)
 				{
+					// TODO Replace loop with a single multiprincipal selector (or don't even use selector)
 					try
 					{
-//						if (principals[i] is X500Principal)
-						{
-							selector.Issuer = principals[i];
-						}
-						holderPKCs.AddAll(
-							PkixCertPathValidatorUtilities.FindCertificates(selector, pkixParams.GetStoresCert()));
+						selector.Issuer = principals[i];
+
+						CollectionUtilities.CollectMatches(holderPKCs, selector, pkixParams.GetStoresCert());
 					}
 					catch (Exception e)
 					{
@@ -376,7 +373,7 @@ namespace Org.BouncyCastle.Pkix
 							e);
 					}
 				}
-				if (holderPKCs.IsEmpty)
+				if (holderPKCs.Count < 1)
 				{
 					throw new PkixCertPathValidatorException(
 						"Public key certificate specified in base certificate ID for attribute certificate cannot be found.");
@@ -388,14 +385,12 @@ namespace Org.BouncyCastle.Pkix
 				X509Name[] principals = attrCert.Holder.GetEntityNames();
 				for (int i = 0; i < principals.Length; i++)
 				{
+					// TODO Replace loop with a single multiprincipal selector (or don't even use selector)
 					try
 					{
-//						if (principals[i] is X500Principal)
-						{
-							selector.Issuer = principals[i];
-						}
-						holderPKCs.AddAll(
-							PkixCertPathValidatorUtilities.FindCertificates(selector, pkixParams.GetStoresCert()));
+						selector.Issuer = principals[i];
+
+						CollectionUtilities.CollectMatches(holderPKCs, selector, pkixParams.GetStoresCert());
 					}
 					catch (Exception e)
 					{
@@ -404,7 +399,7 @@ namespace Org.BouncyCastle.Pkix
 							e);
 					}
 				}
-				if (holderPKCs.IsEmpty)
+				if (holderPKCs.Count < 1)
 				{
 					throw new PkixCertPathValidatorException(
 						"Public key certificate specified in entity name for attribute certificate cannot be found.");
@@ -523,7 +518,7 @@ namespace Org.BouncyCastle.Pkix
 					}
 
 					// (f)
-					ISet keys = Rfc3280CertPathUtilities.ProcessCrlF(crl, attrCert,
+					var keys = Rfc3280CertPathUtilities.ProcessCrlF(crl, attrCert,
 						null, null, paramsPKIX, certPathCerts);
 					// (g)
 					AsymmetricKeyParameter pubKey = Rfc3280CertPathUtilities.ProcessCrlG(crl, keys);

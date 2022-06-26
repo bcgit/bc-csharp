@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -21,7 +22,7 @@ namespace Org.BouncyCastle.X509
 	{
         private static readonly IDictionary algorithms = Platform.CreateHashtable();
         private static readonly IDictionary exParams = Platform.CreateHashtable();
-		private static readonly ISet        noParams = new HashSet();
+		private static readonly HashSet<DerObjectIdentifier> noParams = new HashSet<DerObjectIdentifier>();
 
 		static X509Utilities()
 		{

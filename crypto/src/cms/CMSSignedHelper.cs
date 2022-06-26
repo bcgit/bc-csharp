@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Cms
         private static readonly IDictionary digestAlgs = Platform.CreateHashtable();
         private static readonly IDictionary digestAliases = Platform.CreateHashtable();
 
-        private static readonly ISet noParams = new HashSet();
+        private static readonly HashSet<string> noParams = new HashSet<string>();
         private static readonly IDictionary ecAlgorithms = Platform.CreateHashtable();
 
         private static void AddEntries(DerObjectIdentifier oid, string digest, string encryption)

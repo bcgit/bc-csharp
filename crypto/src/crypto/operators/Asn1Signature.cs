@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -10,9 +10,6 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto.IO;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -21,11 +18,9 @@ namespace Org.BouncyCastle.Crypto.Operators
 {
 	internal class X509Utilities
 	{
-        private static readonly Asn1Null derNull = DerNull.Instance;
-
         private static readonly IDictionary algorithms = Platform.CreateHashtable();
 		private static readonly IDictionary exParams = Platform.CreateHashtable();
-		private static readonly ISet        noParams = new HashSet();
+		private static readonly HashSet<DerObjectIdentifier> noParams = new HashSet<DerObjectIdentifier>();
 
 		static X509Utilities()
 		{
@@ -204,7 +199,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         {
             Asn1Encodable parameters = sigAlgId.Parameters;
 
-            if (parameters != null && !derNull.Equals(parameters))
+            if (parameters != null && !DerNull.Instance.Equals(parameters))
             {
                 if (sigAlgId.Algorithm.Equals(PkcsObjectIdentifiers.IdRsassaPss))
                 {

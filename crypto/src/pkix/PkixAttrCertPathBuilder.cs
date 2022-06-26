@@ -56,15 +56,15 @@ namespace Org.BouncyCastle.Pkix
 			{
 				X509CertStoreSelector certSelector = new X509CertStoreSelector();
 				X509Name[] principals = target.Issuer.GetPrincipals();
-				ISet issuers = new HashSet();
+				var issuers = new HashSet<X509Certificate>();
 				for (int i = 0; i < principals.Length; i++)
 				{
+					// TODO Replace loop with a single multiprincipal selector (or don't even use selector)
 					try
 					{
 						certSelector.Subject = principals[i];
 
-						issuers.AddAll(PkixCertPathValidatorUtilities.FindCertificates(certSelector,
-							pkixParams.GetStoresCert()));
+						CollectionUtilities.CollectMatches(issuers, certSelector, pkixParams.GetStoresCert());
 					}
 					catch (Exception e)
 					{
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Pkix
 					}
 				}
 
-				if (issuers.IsEmpty)
+				if (issuers.Count < 1)
 					throw new PkixCertPathBuilderException("Public key certificate for attribute certificate cannot be found.");
 
                 IList certPathList = Platform.CreateArrayList();

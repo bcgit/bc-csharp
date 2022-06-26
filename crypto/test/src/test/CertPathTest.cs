@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Tests
 			X509CertStoreSelector select = new X509CertStoreSelector();
 			select.Subject = ((X509Certificate)certCol[0]).SubjectDN;
 
-			ISet trustanchors = new HashSet();
+			var trustanchors = new HashSet<TrustAnchor>();
 			trustanchors.Add(new TrustAnchor(cf.ReadCertificate(rootCertBin), null));
 
 //			CertStore certStore = CertStore.getInstance("Collection", new CollectionCertStoreParameters(certCol));

@@ -334,15 +334,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (tCache)
             {
-                byte[] t = tCache.TryGetValue(key, out t) ? t : null;
-
-                if (t != null)
+                byte[] t;
+                if (!tCache.TryGetValue(key, out t))
                 {
-                    return t;
+                    t = CalcT(key.index);
+                    tCache[key] = t;
                 }
-
-                t = CalcT(key.index);
-                tCache[key] = t;
 
                 return t;
             }

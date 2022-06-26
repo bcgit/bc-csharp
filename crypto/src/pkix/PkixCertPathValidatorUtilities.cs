@@ -61,11 +61,9 @@ namespace Org.BouncyCastle.Pkix
 		/// <code>null</code> if not.
 		/// </returns>
 		/// @exception
-		internal static TrustAnchor FindTrustAnchor(
-			X509Certificate	cert,
-			ISet			trustAnchors)
+		internal static TrustAnchor FindTrustAnchor(X509Certificate	cert, ISet<TrustAnchor> trustAnchors)
 		{
-			IEnumerator iter = trustAnchors.GetEnumerator();
+			var iter = trustAnchors.GetEnumerator();
 			TrustAnchor trust = null;
 			AsymmetricKeyParameter trustPublicKey = null;
 			Exception invalidKeyEx = null;
@@ -83,7 +81,7 @@ namespace Org.BouncyCastle.Pkix
 
 			while (iter.MoveNext() && trust == null)
 			{
-				trust = (TrustAnchor) iter.Current;
+				trust = iter.Current;
 				if (trust.TrustedCert != null)
 				{
 					if (certSelectX509.Match(trust.TrustedCert))
@@ -143,9 +141,7 @@ namespace Org.BouncyCastle.Pkix
 			return trust;
 		}
 
-        internal static bool IsIssuerTrustAnchor(
-            X509Certificate cert,
-            ISet trustAnchors)
+        internal static bool IsIssuerTrustAnchor(X509Certificate cert, ISet<TrustAnchor> trustAnchors)
         {
             try
             {
@@ -236,10 +232,9 @@ namespace Org.BouncyCastle.Pkix
 			}
 		}
 
-		internal static bool IsAnyPolicy(
-			ISet policySet)
+		internal static bool IsAnyPolicy(ISet<string> policySet)
 		{
-			return policySet == null || policySet.Contains(ANY_POLICY) || policySet.Count == 0;
+			return policySet == null || policySet.Count < 1 || policySet.Contains(ANY_POLICY);
 		}
 
 		internal static void AddAdditionalStoreFromLocation(
@@ -310,23 +305,22 @@ namespace Org.BouncyCastle.Pkix
 		// policy checking
 		//
 
-		internal static ISet GetQualifierSet(Asn1Sequence qualifiers)
+		internal static ISet<PolicyQualifierInfo> GetQualifierSet(Asn1Sequence qualifiers)
 		{
-			ISet pq = new HashSet();
+			var pq = new HashSet<PolicyQualifierInfo>();
 
-			if (qualifiers == null)
-				return pq;
-
-			foreach (Asn1Encodable ae in qualifiers)
-			{
-				try
+			if (qualifiers != null)
+            {
+				foreach (Asn1Encodable ae in qualifiers)
 				{
-					pq.Add(PolicyQualifierInfo.GetInstance(Asn1Object.FromByteArray(ae.GetEncoded())));
-					//pq.Add(PolicyQualifierInfo.GetInstance(ae.ToAsn1Object()));
-				}
-				catch (IOException ex)
-				{
-					throw new PkixCertPathValidatorException("Policy qualifier info cannot be decoded.", ex);
+					try
+					{
+                        pq.Add(PolicyQualifierInfo.GetInstance(ae.ToAsn1Object()));
+                    }
+					catch (IOException ex)
+					{
+						throw new PkixCertPathValidatorException("Policy qualifier info cannot be decoded.", ex);
+					}
 				}
 			}
 
@@ -374,90 +368,78 @@ namespace Org.BouncyCastle.Pkix
 			}
 		}
 
-		internal static void PrepareNextCertB1(
-			int i,
-			IList[] policyNodes,
-			string id_p,
-			IDictionary m_idp,
-			X509Certificate cert)
+		internal static void PrepareNextCertB1(int i, IList<PkixPolicyNode>[] policyNodes, string id_p,
+			IDictionary<string, ISet<string>> m_idp, X509Certificate cert)
 		{
-			bool idp_found = false;
-			IEnumerator nodes_i = policyNodes[i].GetEnumerator();
-			while (nodes_i.MoveNext())
+			foreach (var node in policyNodes[i])
 			{
-				PkixPolicyNode node = (PkixPolicyNode)nodes_i.Current;
 				if (node.ValidPolicy.Equals(id_p))
 				{
-					idp_found = true;
-					node.ExpectedPolicies = (ISet)m_idp[id_p];
-					break;
+					node.ExpectedPolicies = CollectionUtilities.GetValueOrNull(m_idp, id_p);
+					return;
 				}
 			}
 
-			if (!idp_found)
+			foreach (var node in policyNodes[i])
 			{
-				nodes_i = policyNodes[i].GetEnumerator();
-				while (nodes_i.MoveNext())
+				if (ANY_POLICY.Equals(node.ValidPolicy))
 				{
-					PkixPolicyNode node = (PkixPolicyNode)nodes_i.Current;
-					if (ANY_POLICY.Equals(node.ValidPolicy))
+					Asn1Sequence policies;
+					try
 					{
-						ISet pq = null;
-						Asn1Sequence policies = null;
+						policies = Asn1Sequence.GetInstance(
+							GetExtensionValue(cert, X509Extensions.CertificatePolicies));
+					}
+					catch (Exception e)
+					{
+						throw new Exception("Certificate policies cannot be decoded.", e);
+					}
+
+					ISet<PolicyQualifierInfo> pq = null;
+
+					foreach (var policy in policies)
+					{
+						PolicyInformation pinfo;
 						try
 						{
-							policies = DerSequence.GetInstance(GetExtensionValue(cert, X509Extensions.CertificatePolicies));
+							pinfo = PolicyInformation.GetInstance(policy);
 						}
-						catch (Exception e)
+						catch (Exception ex)
 						{
-							throw new Exception("Certificate policies cannot be decoded.", e);
+							throw new Exception("Policy information cannot be decoded.", ex);
 						}
 
-						IEnumerator enm = policies.GetEnumerator();
-						while (enm.MoveNext())
+						if (ANY_POLICY.Equals(pinfo.PolicyIdentifier.Id))
 						{
-							PolicyInformation pinfo = null;
-
 							try
 							{
-								pinfo = PolicyInformation.GetInstance(enm.Current);
+								pq = GetQualifierSet(pinfo.PolicyQualifiers);
 							}
-							catch (Exception ex)
+							catch (PkixCertPathValidatorException ex)
 							{
-								throw new Exception("Policy information cannot be decoded.", ex);
+								throw new PkixCertPathValidatorException(
+									"Policy qualifier info set could not be built.", ex);
 							}
-
-							if (ANY_POLICY.Equals(pinfo.PolicyIdentifier.Id))
-							{
-								try
-								{
-									pq = GetQualifierSet(pinfo.PolicyQualifiers);
-								}
-								catch (PkixCertPathValidatorException ex)
-								{
-									throw new PkixCertPathValidatorException(
-										"Policy qualifier info set could not be built.", ex);
-								}
-								break;
-							}
+							break;
 						}
-						bool ci = false;
-						ISet critExtOids = cert.GetCriticalExtensionOids();
-						if (critExtOids != null)
-						{
-							ci = critExtOids.Contains(X509Extensions.CertificatePolicies.Id);
-						}
-
-						PkixPolicyNode p_node = node.Parent;
-						if (ANY_POLICY.Equals(p_node.ValidPolicy))
-						{
-							PkixPolicyNode c_node = new PkixPolicyNode(new List<PkixPolicyNode>(), i, (ISet)m_idp[id_p],
-								p_node, pq, id_p, ci);
-							p_node.AddChild(c_node);
-							policyNodes[i].Add(c_node);
-						}
-						break;
 					}
+
+					bool ci = false;
+					var critExtOids = cert.GetCriticalExtensionOids();
+					if (critExtOids != null)
+					{
+						ci = critExtOids.Contains(X509Extensions.CertificatePolicies.Id);
+					}
+
+					PkixPolicyNode p_node = node.Parent;
+					if (ANY_POLICY.Equals(p_node.ValidPolicy))
+					{
+						PkixPolicyNode c_node = new PkixPolicyNode(new List<PkixPolicyNode>(), i,
+							CollectionUtilities.GetValueOrNull(m_idp, id_p), p_node, pq, id_p, ci);
+						p_node.AddChild(c_node);
+						policyNodes[i].Add(c_node);
+					}
+					break;
 				}
 			}
 		}
@@ -687,25 +669,6 @@ namespace Org.BouncyCastle.Pkix
 			return ((X509Certificate)certPath.Certificates[index - 1]).NotBefore;
 		}
 
-		/// <summary>
-		/// Return a Collection of all certificates found
-		/// in the stores that are matching the certSelector criteria.
-		/// </summary>
-		/// <param name="certSelector">an <see cref="ISelector{T}"/> object that will be used to select
-		/// the certificates.</param>
-		/// <param name="certStores">a List containing only IStore objects. These
-		/// are used to search for certificates.</param>
-		/// <returns>a Collection of all found <see cref="X509Certificate"/> objects.
-		/// May be empty but never <code>null</code>.</returns>
-		/// <exception cref="Exception"></exception>
-		internal static List<X509Certificate> FindCertificates(ISelector<X509Certificate> certSelector,
-			IList<IStore<X509Certificate>> certStores)
-		{
-			var result = new List<X509Certificate>();
-			CollectionUtilities.CollectMatches(result, certSelector, certStores);
-			return result;
-		}
-
 		/**
 		* Add the CRL issuers from the cRLIssuer field of the distribution point or
 		* from the certificate if not given to the issuer criterion of the
@@ -728,7 +691,7 @@ namespace Org.BouncyCastle.Pkix
 		*/
 		internal static void GetCrlIssuersFromDistributionPoint(
 			DistributionPoint		dp,
-			ICollection				issuerPrincipals,
+			ICollection<X509Name>	issuerPrincipals,
 			X509CrlStoreSelector	selector,
 			PkixParameters			pkixParams)
 		{
@@ -843,7 +806,7 @@ namespace Org.BouncyCastle.Pkix
 			X509CrlStoreSelector crlselect = new X509CrlStoreSelector();
 			try
 			{
-				ISet issuers = new HashSet();
+				var issuers = new HashSet<X509Name>();
 				issuers.Add(certObjIssuer);
 
 				GetCrlIssuersFromDistributionPoint(dp, issuers, crlselect, paramsPKIX);
@@ -954,7 +917,7 @@ namespace Org.BouncyCastle.Pkix
 
 			foreach (X509Crl crl in temp)
 			{
-				if (isDeltaCrl(crl))
+				if (IsDeltaCrl(crl))
 				{
 					result.Add(crl);
 				}
@@ -963,10 +926,9 @@ namespace Org.BouncyCastle.Pkix
 			return result;
 		}
 
-		private static bool isDeltaCrl(
-			X509Crl crl)
+		private static bool IsDeltaCrl(X509Crl crl)
 		{
-			ISet critical = crl.GetCriticalExtensionOids();
+			var critical = crl.GetCriticalExtensionOids();
 
 			return critical.Contains(X509Extensions.DeltaCrlIndicator.Id);
 		}
@@ -1013,13 +975,13 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		internal static bool ProcessCertD1i(int index, IList<PkixPolicyNode>[] policyNodes, DerObjectIdentifier	pOid,
-			ISet pq)
+			ISet<PolicyQualifierInfo> pq)
 		{
 			foreach (var node in policyNodes[index - 1])
 			{
 				if (node.ExpectedPolicies.Contains(pOid.Id))
 				{
-					var childExpectedPolicies = new HashSet();
+					var childExpectedPolicies = new HashSet<string>();
 					childExpectedPolicies.Add(pOid.Id);
 
                     var child = new PkixPolicyNode(new List<PkixPolicyNode>(), index, childExpectedPolicies, node, pq,
@@ -1035,13 +997,13 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		internal static void ProcessCertD1ii(int index, IList<PkixPolicyNode>[] policyNodes,
-			DerObjectIdentifier _poid, ISet _pq)
+			DerObjectIdentifier _poid, ISet<PolicyQualifierInfo> _pq)
 		{
 			foreach (var _node in policyNodes[index - 1])
 			{
 				if (ANY_POLICY.Equals(_node.ValidPolicy))
 				{
-					ISet _childExpectedPolicies = new HashSet();
+					var _childExpectedPolicies = new HashSet<string>();
 					_childExpectedPolicies.Add(_poid.Id);
 
                     var _child = new PkixPolicyNode(new List<PkixPolicyNode>(), index, _childExpectedPolicies, _node,

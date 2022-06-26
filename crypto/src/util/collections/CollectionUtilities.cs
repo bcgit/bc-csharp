@@ -45,9 +45,10 @@ namespace Org.BouncyCastle.Utilities.Collections
             return new StoreImpl<T>(contents);
         }
 
-        public static IEnumerable Proxy(IEnumerable e)
+        public static V GetValueOrNull<K, V>(IDictionary<K, V> d, K k)
+            where V : class
         {
-            return new EnumerableProxy(e);
+            return d.TryGetValue(k, out var v) ? v : null;
         }
 
         public static IEnumerable<T> Proxy<T>(IEnumerable<T> e)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -62,7 +63,7 @@ namespace Org.BouncyCastle.Cms
 		private DerObjectIdentifier		_signedContentType;
 		private CmsTypedStream          _signedContent;
 		private IDictionary				_digests;
-		private ISet					_digestOids;
+		private HashSet<string>			_digestOids;
 
 		private SignerInformationStore  _signerInfoStore;
 		private Asn1Set                 _certSet, _crlSet;
@@ -106,7 +107,7 @@ namespace Org.BouncyCastle.Cms
 				this._signedContent = signedContent;
 				this._signedData = SignedDataParser.GetInstance(this.contentInfo.GetContent(Asn1Tags.Sequence));
 				this._digests = Platform.CreateHashtable();
-				this._digestOids = new HashSet();
+				this._digestOids = new HashSet<string>();
 
 				Asn1SetParser digAlgs = _signedData.GetDigestAlgorithms();
 				IAsn1Convertible o;
@@ -177,9 +178,9 @@ namespace Org.BouncyCastle.Cms
 			get { return _signedData.Version.IntValueExact; }
 		}
 
-		public ISet DigestOids
+		public ISet<string> DigestOids
 		{
-			get { return new HashSet(_digestOids); }
+			get { return new HashSet<string>(_digestOids); }
 		}
 
 		/**

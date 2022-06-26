@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Tests
             DateTime validDate = new DateTime(2008, 9, 4, 5, 49, 10);
 
             //Searching for rootCert by subjectDN without CRL
-            ISet trust = new HashSet();
+            var trust = new HashSet<TrustAnchor>();
             trust.Add(new TrustAnchor(rootCert, null));
 
             PkixCertPathBuilder cpb = new PkixCertPathBuilder();
@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Tests
             IStore<X509Certificate> x509CertStore = CollectionUtilities.CreateStore(certList);
             IStore<X509Crl> x509CrlStore = CollectionUtilities.CreateStore(crlList);
 
-            ISet trust = new HashSet();
+            var trust = new HashSet<TrustAnchor>();
             trust.Add(new TrustAnchor(rootCert, null));
 
             // build the path

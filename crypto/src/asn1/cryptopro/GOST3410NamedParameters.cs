@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the parameter set.</param>
         public static Gost3410ParamSetParameters GetByOid(DerObjectIdentifier oid)
         {
-            return parameters.TryGetValue(oid, out var parameterSet) ? parameterSet : null;
+            return CollectionUtilities.GetValueOrNull(parameters, oid);
         }
 
         /// <summary>Look up the <see cref="DerObjectIdentifier">OID</see> of the parameter set with the given name.
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         /// <param name="name">The name of the parameter set.</param>
         public static DerObjectIdentifier GetOid(string name)
         {
-            return objIds.TryGetValue(name, out var oid) ? oid : null;
+            return CollectionUtilities.GetValueOrNull(objIds, name);
         }
 
         /// <summary>Enumerate the available parameter set names in this registry.</summary>

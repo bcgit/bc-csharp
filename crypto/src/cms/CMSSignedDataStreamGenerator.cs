@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -10,9 +10,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
 
@@ -43,12 +41,12 @@ namespace Org.BouncyCastle.Cms
     {
 		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
 
-		private readonly IList      _signerInfs = Platform.CreateArrayList();
-		private readonly ISet		_messageDigestOids = new HashSet();
+		private readonly IList _signerInfs = Platform.CreateArrayList();
+		private readonly HashSet<string> _messageDigestOids = new HashSet<string>();
         private readonly IDictionary _messageDigests = Platform.CreateHashtable();
         private readonly IDictionary _messageHashes = Platform.CreateHashtable();
-		private bool				_messageDigestsLocked;
-        private int					_bufferSize;
+		private bool _messageDigestsLocked;
+        private int _bufferSize;
 
 		private class DigestAndSignerInfoGeneratorHolder
 		{

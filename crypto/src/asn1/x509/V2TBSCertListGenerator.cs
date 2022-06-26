@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.X509
         private X509Name			issuer;
         private Time				thisUpdate, nextUpdate;
         private X509Extensions		extensions;
-        private IList			    crlEntries;
+        private List<Asn1Sequence>  crlEntries;
 
 		public V2TbsCertListGenerator()
         {
@@ -80,12 +80,11 @@ namespace Org.BouncyCastle.Asn1.X509
             this.nextUpdate = nextUpdate;
         }
 
-		public void AddCrlEntry(
-			Asn1Sequence crlEntry)
+		public void AddCrlEntry(Asn1Sequence crlEntry)
 		{
 			if (crlEntries == null)
 			{
-				crlEntries = Platform.CreateArrayList();
+                crlEntries = new List<Asn1Sequence>();
 			}
 
 			crlEntries.Add(crlEntry);
@@ -104,8 +103,8 @@ namespace Org.BouncyCastle.Asn1.X509
 		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason,
 			DerGeneralizedTime invalidityDate)
 		{
-            IList extOids = Platform.CreateArrayList();
-            IList extValues = Platform.CreateArrayList();
+            var extOids = new List<DerObjectIdentifier>();
+            var extValues = new List<X509Extension>();
 
 			if (reason != 0)
 			{
@@ -147,8 +146,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, X509Extensions extensions)
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				userCertificate, revocationDate);
+			Asn1EncodableVector v = new Asn1EncodableVector(userCertificate, revocationDate);
 
 			if (extensions != null)
 			{
@@ -182,12 +180,7 @@ namespace Org.BouncyCastle.Asn1.X509
 			// Add CRLEntries if they exist
             if (crlEntries != null)
             {
-                Asn1Sequence[] certs = new Asn1Sequence[crlEntries.Count];
-                for (int i = 0; i < crlEntries.Count; ++i)
-                {
-                    certs[i] = (Asn1Sequence)crlEntries[i];
-                }
-				v.Add(new DerSequence(certs));
+				v.Add(new DerSequence(crlEntries.ToArray()));
             }
 
 			if (extensions != null)

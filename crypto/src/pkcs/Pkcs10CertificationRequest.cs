@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -13,10 +14,8 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Asn1.Utilities;
 
 namespace Org.BouncyCastle.Pkcs
 {
@@ -52,7 +51,7 @@ namespace Org.BouncyCastle.Pkcs
         protected static readonly IDictionary exParams = Platform.CreateHashtable();
         protected static readonly IDictionary keyAlgorithms = Platform.CreateHashtable();
         protected static readonly IDictionary oids = Platform.CreateHashtable();
-        protected static readonly ISet noParams = new HashSet();
+        protected static readonly HashSet<DerObjectIdentifier> noParams = new HashSet<DerObjectIdentifier>();
 
         static Pkcs10CertificationRequest()
         {

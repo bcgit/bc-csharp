@@ -527,21 +527,21 @@ namespace Org.BouncyCastle.Asn1.TeleTrust
         /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)
         {
-            return curves.TryGetValue(oid, out var holder) ? holder : null;
+            return CollectionUtilities.GetValueOrNull(curves, oid);
         }
 
         /// <summary>Look up the name of the curve with the given <see cref="DerObjectIdentifier">OID</see>.</summary>
         /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static string GetName(DerObjectIdentifier oid)
         {
-            return names.TryGetValue(oid, out var name) ? name : null;
+            return CollectionUtilities.GetValueOrNull(names, oid);
         }
 
         /// <summary>Look up the <see cref="DerObjectIdentifier">OID</see> of the curve with the given name.</summary>
         /// <param name="name">The name of the curve.</param>
         public static DerObjectIdentifier GetOid(string name)
         {
-            return objIds.TryGetValue(name, out var oid) ? oid : null;
+            return CollectionUtilities.GetValueOrNull(objIds, name);
         }
 
         /// <summary>Enumerate the available curve names in this registry.</summary>

@@ -38,12 +38,12 @@ namespace Org.BouncyCastle.Tests.Nist
 		private static readonly IDictionary certs = new Hashtable();
         private static readonly IDictionary crls = new Hashtable();
 
-        private static readonly ISet noPolicies = new HashSet();
-        private static readonly ISet anyPolicy = new HashSet();
-        private static readonly ISet nistTestPolicy1 = new HashSet();
-        private static readonly ISet nistTestPolicy2 = new HashSet();
-        private static readonly ISet nistTestPolicy3 = new HashSet();
-        private static readonly ISet nistTestPolicy1And2 = new HashSet();
+        private static readonly HashSet<string> noPolicies = new HashSet<string>();
+        private static readonly HashSet<string> anyPolicy = new HashSet<string>();
+        private static readonly HashSet<string> nistTestPolicy1 = new HashSet<string>();
+        private static readonly HashSet<string> nistTestPolicy2 = new HashSet<string>();
+        private static readonly HashSet<string> nistTestPolicy3 = new HashSet<string>();
+        private static readonly HashSet<string> nistTestPolicy1And2 = new HashSet<string>();
 
 		static NistCertPathTest()
 		{
@@ -592,7 +592,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			string		trustAnchor,
 			string[]	certs,
 			string[]	crls,
-			ISet		policies,
+			ISet<string> policies,
 			int			index,
 			string		message)
 		{
@@ -643,9 +643,9 @@ namespace Org.BouncyCastle.Tests.Nist
 			string trustAnchor,
 			string[] certs,
 			string[] crls,
-			ISet policies)
+			ISet<string> policies)
 		{
-			ISet trustedSet = new HashSet();
+			var trustedSet = new HashSet<TrustAnchor>();
 			trustedSet.Add(GetTrustAnchor(trustAnchor));
 
 			var x509Certs = new List<X509Certificate>();
@@ -692,11 +692,11 @@ namespace Org.BouncyCastle.Tests.Nist
 			string		trustAnchor,
 			string[]	certs,
 			string[]	crls,
-			ISet		initialPolicies,
+			ISet<string> initialPolicies,
 			bool		policyMappingInhibited,
 			bool		anyPolicyInhibited)
 		{
-			ISet trustedSet = new HashSet();
+			var trustedSet = new HashSet<TrustAnchor>();
 			trustedSet.Add(GetTrustAnchor(trustAnchor));
 
 			var x509Certs = new List<X509Certificate>();

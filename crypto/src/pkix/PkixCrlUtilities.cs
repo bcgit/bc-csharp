@@ -52,21 +52,17 @@ namespace Org.BouncyCastle.Pkix
 			return finalSet;
 		}
 
-		public virtual ISet FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix)
+		public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix)
 		{
-			ISet completeSet = new HashSet();
-
 			// get complete CRL(s)
 			try
 			{
-				completeSet.AddAll(FindCrls(crlSelector, paramsPkix.GetStoresCrl()));
+				return FindCrls(crlSelector, paramsPkix.GetStoresCrl());
 			}
 			catch (Exception e)
 			{
 				throw new Exception("Exception obtaining complete CRLs.", e);
 			}
-
-			return completeSet;
 		}
 
 		/// <summary>

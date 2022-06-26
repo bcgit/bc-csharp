@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -161,7 +160,7 @@ namespace Org.BouncyCastle.Tests
 
 //			CertPath cp = CertificateFactory.GetInstance("X.509").GenerateCertPath(certchain);
             PkixCertPath cp = new PkixCertPath(certchain);
-            ISet trust = new HashSet();
+            var trust = new HashSet<TrustAnchor>();
             trust.Add(new TrustAnchor(rootCert, null));
 
 //			CertPathValidator cpv = CertPathValidator.GetInstance("PKIX");
@@ -237,7 +236,7 @@ namespace Org.BouncyCastle.Tests
 
 //				cp = CertificateFactory.GetInstance("X.509").GenerateCertPath(certchain);
                 cp = new PkixCertPath(certchain);
-                trust = new HashSet();
+                trust = new HashSet<TrustAnchor>();
                 trust.Add(new TrustAnchor(rootCert, null));
 
 //				cpv = CertPathValidator.GetInstance("PKIX");
@@ -291,12 +290,12 @@ namespace Org.BouncyCastle.Tests
                 return true;
             }
 
-            public override ISet GetSupportedExtensions()
+            public override ISet<string> GetSupportedExtensions()
             {
                 return null;
             }
 
-            public override void Check(X509Certificate cert, ISet unresolvedCritExts)
+            public override void Check(X509Certificate cert, ISet<string> unresolvedCritExts)
             {
                 count++;
             }

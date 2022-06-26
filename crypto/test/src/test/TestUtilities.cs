@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -7,7 +8,6 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 
@@ -216,15 +216,12 @@ namespace Org.BouncyCastle.Tests
 			public override byte[] GetEncoded()
 			{
 				if (_exceptionOnEncode)
-				{
 					throw new CertificateEncodingException();
-				}
 
 				return new byte[0];
 			}
 
-			public override void Verify(
-				AsymmetricKeyParameter key)
+			public override void Verify(AsymmetricKeyParameter key)
 			{
 				throw new CertificateException();
 			}
@@ -239,18 +236,17 @@ namespace Org.BouncyCastle.Tests
 				return null;
 			}
 
-			public override ISet GetCriticalExtensionOids()
+			public override ISet<string> GetCriticalExtensionOids()
 			{
 				return null;
 			}
 
-			public override ISet GetNonCriticalExtensionOids()
+			public override ISet<string> GetNonCriticalExtensionOids()
 			{
 				return null;
 			}
 
-			public override Asn1OctetString GetExtensionValue(
-				DerObjectIdentifier oid)
+			public override Asn1OctetString GetExtensionValue(DerObjectIdentifier oid)
 			{
 				return null;
 			}

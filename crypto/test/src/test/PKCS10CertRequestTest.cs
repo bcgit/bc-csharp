@@ -1,12 +1,11 @@
 using System;
 using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -16,9 +15,7 @@ using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.Utilities.Test;
-using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Tests
@@ -335,8 +332,8 @@ namespace Org.BouncyCastle.Tests
 
             AsymmetricCipherKeyPair pair = keyGen.GenerateKeyPair();
 
-            IList oids = new ArrayList();
-            IList values = new ArrayList();
+            var oids = new List<DerObjectIdentifier>();
+            var values = new List<X509Extension>();
             oids.Add(X509Extensions.BasicConstraints);
             values.Add(new X509Extension(true, new DerOctetString(new BasicConstraints(true))));
             oids.Add(X509Extensions.KeyUsage);

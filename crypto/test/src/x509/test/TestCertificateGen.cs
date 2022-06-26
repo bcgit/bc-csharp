@@ -11,7 +11,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -269,7 +268,7 @@ namespace Org.BouncyCastle.X509.Tests
             cert.CheckValidity();
 			cert.Verify(ecPub);
 
-            ISet extOidSet = cert.GetCriticalExtensionOids();
+            var extOidSet = cert.GetCriticalExtensionOids();
 
             if (extOidSet.Count != 1)
             {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 using Org.BouncyCastle.Security;
@@ -16,7 +17,7 @@ namespace Org.BouncyCastle.Pkix
 	{
 		private int maxPathLength = 5;
 
-		private ISet excludedCerts = new HashSet();
+		private ISet<X509Certificate> excludedCerts = new HashSet<X509Certificate>();
 
 		/**
 		* Returns an instance of <code>PkixBuilderParameters</code>.
@@ -40,12 +41,12 @@ namespace Org.BouncyCastle.Pkix
 			return parameters;
 		}
 
-		public PkixBuilderParameters(ISet trustAnchors, ISelector<X509Certificate> targetConstraintsCert)
+		public PkixBuilderParameters(ISet<TrustAnchor> trustAnchors, ISelector<X509Certificate> targetConstraintsCert)
 			: this(trustAnchors, targetConstraintsCert, null)
 		{
 		}
 
-		public PkixBuilderParameters(ISet trustAnchors, ISelector<X509Certificate> targetConstraintsCert,
+		public PkixBuilderParameters(ISet<TrustAnchor> trustAnchors, ISelector<X509Certificate> targetConstraintsCert,
 			ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
 			: base(trustAnchors)
 		{
@@ -71,9 +72,9 @@ namespace Org.BouncyCastle.Pkix
 		/// Excluded certificates are not used for building a certification path.
 		/// </summary>
 		/// <returns>the excluded certificates.</returns>
-		public virtual ISet GetExcludedCerts()
+		public virtual ISet<X509Certificate> GetExcludedCerts()
 		{
-			return new HashSet(excludedCerts);
+			return new HashSet<X509Certificate>(excludedCerts);
 		}
 
 		/// <summary>
@@ -85,16 +86,15 @@ namespace Org.BouncyCastle.Pkix
 		/// The given set is cloned to protect it against subsequent modifications.
 		/// </remarks>
 		/// <param name="excludedCerts">The excluded certificates to set.</param>
-		public virtual void SetExcludedCerts(
-			ISet excludedCerts)
+		public virtual void SetExcludedCerts(ISet<X509Certificate> excludedCerts)
 		{
 			if (excludedCerts == null)
 			{
-				this.excludedCerts = new HashSet();
+				this.excludedCerts = new HashSet<X509Certificate>();
 			}
 			else
 			{
-				this.excludedCerts = new HashSet(excludedCerts);
+				this.excludedCerts = new HashSet<X509Certificate>(excludedCerts);
 			}
 		}
 
@@ -105,15 +105,13 @@ namespace Org.BouncyCastle.Pkix
 		* @param params Parameters to set.
 		* @see org.bouncycastle.x509.ExtendedPKIXParameters#setParams(java.security.cert.PKIXParameters)
 		*/
-		protected override void SetParams(
-			PkixParameters parameters)
+		protected override void SetParams(PkixParameters parameters)
 		{
 			base.SetParams(parameters);
-			if (parameters is PkixBuilderParameters)
+			if (parameters is PkixBuilderParameters _params)
 			{
-				PkixBuilderParameters _params = (PkixBuilderParameters) parameters;
 				maxPathLength = _params.maxPathLength;
-				excludedCerts = new HashSet(_params.excludedCerts);
+				excludedCerts = new HashSet<X509Certificate>(_params.excludedCerts);
 			}
 		}
 

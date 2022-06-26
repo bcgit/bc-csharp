@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -1172,7 +1173,7 @@ namespace Org.BouncyCastle.Tests
 
             cert.Verify(pubKey);
 
-            ISet dummySet = cert.GetNonCriticalExtensionOids();
+            var dummySet = cert.GetNonCriticalExtensionOids();
             if (dummySet != null)
             {
                 Fail("non-critical oid set should be null");
@@ -1737,8 +1738,8 @@ namespace Org.BouncyCastle.Tests
             crlGen.SetThisUpdate(now);
             crlGen.SetNextUpdate(now.AddSeconds(100));
 
-            IList extOids = new ArrayList();
-            IList extValues = new ArrayList();
+            var extOids = new List<DerObjectIdentifier>();
+            var extValues = new List<X509Extension>();
 
             CrlReason crlReason = new CrlReason(CrlReason.PrivilegeWithdrawn);
 
@@ -1824,8 +1825,8 @@ namespace Org.BouncyCastle.Tests
             crlGen.SetThisUpdate(now);
             crlGen.SetNextUpdate(now.AddSeconds(100));
 
-            IList extOids = new ArrayList();
-            IList extValues = new ArrayList();
+            var extOids = new List<DerObjectIdentifier>();
+            var extValues = new List<X509Extension>();
 
             CrlReason crlReason = new CrlReason(CrlReason.PrivilegeWithdrawn);
 

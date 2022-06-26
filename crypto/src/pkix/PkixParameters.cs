@@ -41,11 +41,11 @@ namespace Org.BouncyCastle.Pkix
 		*/
 		public const int ChainValidityModel = 1;
 
-		private ISet trustAnchors;
+		private HashSet<TrustAnchor> trustAnchors;
 		private DateTimeObject date;
 		private IList certPathCheckers;
 		private bool revocationEnabled = true;
-		private ISet initialPolicies;
+		private HashSet<string> initialPolicies;
 		//private bool checkOnlyEECertificateCrl = false;
 		private bool explicitPolicyRequired = false;
 		private bool anyPolicyInhibited = false;
@@ -85,12 +85,11 @@ namespace Org.BouncyCastle.Pkix
 		 *                if any of the elements in the Set are not of type
 		 *                <code>java.security.cert.TrustAnchor</code>
 		 */
-		public PkixParameters(
-			ISet trustAnchors)
+		public PkixParameters(ISet<TrustAnchor> trustAnchors)
 		{
 			SetTrustAnchors(trustAnchors);
 
-			this.initialPolicies = new HashSet();
+			this.initialPolicies = new HashSet<string>();
 			this.certPathCheckers = Platform.CreateArrayList();
 			this.m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
 			this.m_storesCert = new List<IStore<X509Certificate>>();
@@ -186,23 +185,22 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		// Returns a Set of the most-trusted CAs.
-		public virtual ISet GetTrustAnchors()
+		public virtual ISet<TrustAnchor> GetTrustAnchors()
 		{
-			return new HashSet(this.trustAnchors);
+			return new HashSet<TrustAnchor>(this.trustAnchors);
 		}
 
 		// Sets the set of most-trusted CAs.
 		// Set is copied to protect against subsequent modifications.
-		public virtual void SetTrustAnchors(
-			ISet tas)
+		public virtual void SetTrustAnchors(ISet<TrustAnchor> tas)
 		{
 			if (tas == null)
 				throw new ArgumentNullException("value");
-			if (tas.IsEmpty)
+			if (tas.Count < 1)
 				throw new ArgumentException("non-empty set required", "value");
 
 			// Explicit copy to enforce type-safety
-			this.trustAnchors = new HashSet();
+			this.trustAnchors = new HashSet<TrustAnchor>();
 			foreach (TrustAnchor ta in tas)
 			{
 				if (ta != null)
@@ -311,17 +309,13 @@ namespace Org.BouncyCastle.Pkix
 		*
 		* @see #setInitialPolicies(java.util.Set)
 		*/
-		public virtual ISet GetInitialPolicies()
+		public virtual ISet<string> GetInitialPolicies()
 		{
-			ISet returnSet = initialPolicies;
-
 			// TODO Can it really be null?
 			if (initialPolicies == null)
-			{
-				returnSet = new HashSet();
-			}
+				return new HashSet<string>();
 
-			return new HashSet(returnSet);
+			return new HashSet<string>(initialPolicies);
 		}
 
 		/**
@@ -345,10 +339,9 @@ namespace Org.BouncyCastle.Pkix
 		*
 		* @see #getInitialPolicies()
 		*/
-		public virtual void SetInitialPolicies(
-			ISet initialPolicies)
+		public virtual void SetInitialPolicies(ISet<string> initialPolicies)
 		{
-			this.initialPolicies = new HashSet();
+			this.initialPolicies = new HashSet<string>();
 			if (initialPolicies != null)
 			{
 				foreach (string obj in initialPolicies)
