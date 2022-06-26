@@ -1,44 +1,47 @@
+using System;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.Cmce;
 
-public class CmceKemExtractor
-    : IEncapsulatedSecretExtractor
+namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-    private CmceEngine engine;
-
-    private CmceKeyParameters key;
-
-    public CmceKemExtractor(CmcePrivateKeyParameters privParams)
+    public class CmceKemExtractor
+        : IEncapsulatedSecretExtractor
     {
-        this.key = privParams;
-        InitCipher(key.Parameters);
-    }
-    
-    private void InitCipher(CmceParameters param)
-    {
-        engine = param.Engine;
-        CmcePrivateKeyParameters privateParams = (CmcePrivateKeyParameters)key;
-        if(privateParams.PrivateKey.Length < engine.PrivateKeySize)
+        private CmceEngine engine;
+
+        private CmceKeyParameters key;
+
+        public CmceKemExtractor(CmcePrivateKeyParameters privParams)
         {
-            key = new CmcePrivateKeyParameters(privateParams.Parameters, engine.decompress_private_key(privateParams.PrivateKey));
+            this.key = privParams;
+            InitCipher(key.Parameters);
         }
-    }
 
-    public byte[] ExtractSecret(byte[] encapsulation)
-    {
-        return ExtractSecret(encapsulation, engine.DefaultSessionKeySize);
-    }
+        private void InitCipher(CmceParameters param)
+        {
+            engine = param.Engine;
+            CmcePrivateKeyParameters privateParams = (CmcePrivateKeyParameters)key;
+            if (privateParams.PrivateKey.Length < engine.PrivateKeySize)
+            {
+                key = new CmcePrivateKeyParameters(privateParams.Parameters, engine.decompress_private_key(privateParams.PrivateKey));
+            }
+        }
 
-    public byte[] ExtractSecret(byte[] encapsulation, int sessionKeySizeInBits)
-    {
-        byte[] session_key = new byte[sessionKeySizeInBits / 8];
-        engine.kem_dec(session_key, encapsulation, ((CmcePrivateKeyParameters)key).PrivateKey);
-        return session_key;
-    }
+        public byte[] ExtractSecret(byte[] encapsulation)
+        {
+            return ExtractSecret(encapsulation, engine.DefaultSessionKeySize);
+        }
 
-    public int GetInputSize()
-    {
-        return engine.CipherTextSize;
+        public byte[] ExtractSecret(byte[] encapsulation, int sessionKeySizeInBits)
+        {
+            byte[] session_key = new byte[sessionKeySizeInBits / 8];
+            engine.kem_dec(session_key, encapsulation, ((CmcePrivateKeyParameters)key).PrivateKey);
+            return session_key;
+        }
+
+        public int GetInputSize()
+        {
+            return engine.CipherTextSize;
+        }
     }
 }

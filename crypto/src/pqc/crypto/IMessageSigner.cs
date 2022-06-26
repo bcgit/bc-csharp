@@ -1,6 +1,6 @@
 using Org.BouncyCastle.Crypto;
 
-namespace Org.BouncyCastle.pqc.crypto
+namespace Org.BouncyCastle.Pqc.Crypto
 {
     /**
      * Base interface for a PQC signing algorithm.

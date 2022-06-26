@@ -1,14 +1,13 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Security;
 
-namespace Org.BouncyCastle.Pqc.Crypto
+namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
-
     public class CmceKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-
         private CmceKeyGenerationParameters CmceParams;
 
         private int m;

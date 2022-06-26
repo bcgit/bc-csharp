@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce

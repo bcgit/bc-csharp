@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
     abstract class GF
@@ -32,8 +34,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         internal abstract protected ushort GFInv(ushort input);
 
     }
-    
-    
+
     class GF12
         : GF
     {
@@ -128,7 +129,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
         }
 
     }
-    
+
     class GF13
         : GF
     {

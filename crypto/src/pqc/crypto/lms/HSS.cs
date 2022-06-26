@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /**
          * Increments an HSS private key without doing any work on it.
          * HSS private keys are automatically incremented when when used to create signatures.
-         * <p>
+         * <p/>
          * The HSS private key is ranged tested before this incrementation is applied.
          * LMS keys will be replaced as required.
          *

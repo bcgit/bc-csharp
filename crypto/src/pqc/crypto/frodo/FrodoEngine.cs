@@ -562,7 +562,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             // 4. mu' = Frodo.Decode(M)
             byte[] muprime = Decode(M);
 
-            /// 5. Parse pk = seedA || b  (done above)
+            // 5. Parse pk = seedA || b  (done above)
 
             // 6. seedSE' || k' = SHAKE(pkh || mu', len_seedSE + len_k) (length in bits)
             byte[] seedSEprime_kprime = new byte[len_seedSE_bytes + len_k_bytes];

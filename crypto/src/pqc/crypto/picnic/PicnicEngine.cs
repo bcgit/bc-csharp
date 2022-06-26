@@ -51,13 +51,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         private static uint PICNIC_MAX_LOWMC_BLOCK_SIZE = 32;
         private static uint PICNIC_MAX_PUBLICKEY_SIZE = (2 * PICNIC_MAX_LOWMC_BLOCK_SIZE + 1);
 
-        /**< Largest serialized public key size, in bytes */
+        /** Largest serialized public key size, in bytes */
         private static uint PICNIC_MAX_PRIVATEKEY_SIZE = (3 * PICNIC_MAX_LOWMC_BLOCK_SIZE + 2);
 
-        /**< Largest serialized private key size, in bytes */
+        /** Largest serialized private key size, in bytes */
         private static uint PICNIC_MAX_SIGNATURE_SIZE = 209522;
 
-        /**< Largest signature size, in bytes */
+        /** Largest signature size, in bytes */
 
         private static uint TRANSFORM_FS = 0;
 
