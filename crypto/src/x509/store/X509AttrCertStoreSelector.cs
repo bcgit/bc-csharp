@@ -18,11 +18,11 @@ namespace Org.BouncyCastle.X509.Store
 	* @see org.bouncycastle.x509.X509Store
 	*/
 	public class X509AttrCertStoreSelector
-		: IX509Selector
+		: ISelector<X509V2AttributeCertificate>
 	{
 		// TODO: name constraints???
 
-		private IX509AttributeCertificate attributeCert;
+		private X509V2AttributeCertificate attributeCert;
 		private DateTimeObject attributeCertificateValid;
 		private AttributeCertificateHolder holder;
 		private AttributeCertificateIssuer issuer;
@@ -49,16 +49,10 @@ namespace Org.BouncyCastle.X509.Store
 		/// <summary>
 		/// Decides if the given attribute certificate should be selected.
 		/// </summary>
-		/// <param name="obj">The attribute certificate to be checked.</param>
+		/// <param name="attrCert">The attribute certificate to be checked.</param>
 		/// <returns><code>true</code> if the object matches this selector.</returns>
-		public bool Match(
-			object obj)
+		public bool Match(X509V2AttributeCertificate attrCert)
 		{
-			if (obj == null)
-				throw new ArgumentNullException("obj");
-
-			IX509AttributeCertificate attrCert = obj as IX509AttributeCertificate;
-
 			if (attrCert == null)
 				return false;
 
@@ -160,7 +154,7 @@ namespace Org.BouncyCastle.X509.Store
 
 		/// <summary>The attribute certificate which must be matched.</summary>
 		/// <remarks>If <c>null</c> is given, any will do.</remarks>
-		public IX509AttributeCertificate AttributeCert
+		public X509V2AttributeCertificate AttributeCert
 		{
 			get { return attributeCert; }
 			set { this.attributeCert = value; }

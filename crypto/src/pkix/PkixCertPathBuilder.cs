@@ -36,20 +36,13 @@ namespace Org.BouncyCastle.Pkix
 		{
 			// search target certificates
 
-			IX509Selector certSelect = pkixParams.GetTargetCertConstraints();
-			if (!(certSelect is X509CertStoreSelector))
-			{
-				throw new PkixCertPathBuilderException(
-					"TargetConstraints must be an instance of "
-					+ typeof(X509CertStoreSelector).FullName + " for "
-					+ Platform.GetTypeName(this) + " class.");
-			}
+			var certSelector = pkixParams.GetTargetConstraintsCert();
 
 			ISet targets = new HashSet();
 			try
 			{
-				targets.AddAll(PkixCertPathValidatorUtilities.FindCertificates((X509CertStoreSelector)certSelect, pkixParams.GetStores()));
-				// TODO Should this include an entry for pkixParams.GetAdditionalStores() too?
+				targets.AddAll(
+					PkixCertPathValidatorUtilities.FindCertificates(certSelector, pkixParams.GetStoresCert()));
 			}
 			catch (Exception e)
 			{
@@ -122,23 +115,20 @@ namespace Org.BouncyCastle.Pkix
 				{
 					// exception message from possibly later tried certification
 					// chains
-					PkixCertPath certPath = null;
+					PkixCertPath certPath;
 					try
 					{
 						certPath = new PkixCertPath(tbvPath);
 					}
 					catch (Exception e)
 					{
-						throw new Exception(
-							"Certification path could not be constructed from certificate list.",
-							e);
+						throw new Exception("Certification path could not be constructed from certificate list.", e);
 					}
 
-					PkixCertPathValidatorResult result = null;
+					PkixCertPathValidatorResult result;
 					try
 					{
-						result = (PkixCertPathValidatorResult)validator.Validate(
-							certPath, pkixParams);
+						result = validator.Validate(certPath, pkixParams);
 					}
 					catch (Exception e)
 					{

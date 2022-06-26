@@ -1,13 +1,13 @@
 using System;
 using System.Collections;
-using Org.BouncyCastle.Asn1;
+using System.Collections.Generic;
+
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
 {
@@ -96,7 +96,6 @@ namespace Org.BouncyCastle.Pkix
             //
             // (e), (f), (g) are part of the paramsPkix object.
             //
-            IEnumerator certIter;
             int index = 0;
             int i;
             // Certificate for each interation of the validation loop
@@ -108,18 +107,18 @@ namespace Org.BouncyCastle.Pkix
             //
             // (a)
             //
-            IList[] policyNodes = new IList[n + 1];
+            var policyNodes = new List<PkixPolicyNode>[n + 1];
             for (int j = 0; j < policyNodes.Length; j++)
             {
-                policyNodes[j] = Platform.CreateArrayList();
+                policyNodes[j] = new List<PkixPolicyNode>();
             }
 
             ISet policySet = new HashSet();
 
             policySet.Add(Rfc3280CertPathUtilities.ANY_POLICY);
 
-            PkixPolicyNode validPolicyTree = new PkixPolicyNode(Platform.CreateArrayList(), 0, policySet, null, new HashSet(),
-                    Rfc3280CertPathUtilities.ANY_POLICY, false);
+            var validPolicyTree = new PkixPolicyNode(new List<PkixPolicyNode>(), 0, policySet, null, new HashSet(),
+                Rfc3280CertPathUtilities.ANY_POLICY, false);
 
             policyNodes[0].Add(validPolicyTree);
 
@@ -218,8 +217,8 @@ namespace Org.BouncyCastle.Pkix
             // 6.1.3
             //
 
-			X509CertStoreSelector certConstraints = paramsPkix.GetTargetCertConstraints();
-            if (certConstraints != null && !certConstraints.Match((X509Certificate)certs[0]))
+			var targetConstraints = paramsPkix.GetTargetConstraintsCert();
+            if (targetConstraints != null && !targetConstraints.Match((X509Certificate)certs[0]))
             {
                 throw new PkixCertPathValidatorException(
 					"Target certificate in certification path does not match targetConstraints.", null, 0);
@@ -228,12 +227,10 @@ namespace Org.BouncyCastle.Pkix
             //
             // initialize CertPathChecker's
             //
-            IList pathCheckers = paramsPkix.GetCertPathCheckers();
-            certIter = pathCheckers.GetEnumerator();
-
-            while (certIter.MoveNext())
+            IList certPathCheckers = paramsPkix.GetCertPathCheckers();
+            foreach (PkixCertPathChecker certPathChecker in certPathCheckers)
             {
-                ((PkixCertPathChecker)certIter.Current).Init(false);
+                certPathChecker.Init(false);
             }
 
             X509Certificate cert = null;
@@ -353,7 +350,7 @@ namespace Org.BouncyCastle.Pkix
 					}
 
 					// (o)
-					Rfc3280CertPathUtilities.PrepareNextCertO(certPath, index, criticalExtensions1, pathCheckers);
+					Rfc3280CertPathUtilities.PrepareNextCertO(certPath, index, criticalExtensions1, certPathCheckers);
 
 					// set signing certificate for next round
                     sign = cert;
@@ -419,7 +416,7 @@ namespace Org.BouncyCastle.Pkix
                 criticalExtensions = new HashSet();
             }
 
-            Rfc3280CertPathUtilities.WrapupCertF(certPath, index + 1, pathCheckers, criticalExtensions);
+            Rfc3280CertPathUtilities.WrapupCertF(certPath, index + 1, certPathCheckers, criticalExtensions);
 
             PkixPolicyNode intersection = Rfc3280CertPathUtilities.WrapupCertG(certPath, paramsPkix, userInitialPolicySet,
                     index + 1, policyNodes, validPolicyTree, acceptablePolicies);

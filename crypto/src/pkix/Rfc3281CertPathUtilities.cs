@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
-using System.Globalization;
-using System.IO;
+using System.Collections.Generic;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security.Certificates;
@@ -13,10 +11,10 @@ using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
 {
-	internal class Rfc3281CertPathUtilities
+	internal static class Rfc3281CertPathUtilities
 	{
 		internal static void ProcessAttrCert7(
-			IX509AttributeCertificate	attrCert,
+			X509V2AttributeCertificate	attrCert,
 			PkixCertPath				certPath,
 			PkixCertPath				holderCertPath,
 			PkixParameters				pkixParams)
@@ -73,7 +71,7 @@ namespace Org.BouncyCastle.Pkix
 		*             status cannot be checked or some error occurs.
 		*/
 		internal static void CheckCrls(
-			IX509AttributeCertificate	attrCert,
+			X509V2AttributeCertificate  attrCert,
 			PkixParameters				paramsPKIX,
 			X509Certificate				issuerCert,
 			DateTime					validDate,
@@ -230,7 +228,7 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		internal static void AdditionalChecks(
-			IX509AttributeCertificate	attrCert,
+			X509V2AttributeCertificate  attrCert,
 			PkixParameters				pkixParams)
 		{
 			// 1
@@ -255,7 +253,7 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		internal static void ProcessAttrCert5(
-			IX509AttributeCertificate	attrCert,
+			X509V2AttributeCertificate  attrCert,
 			PkixParameters				pkixParams)
 		{
 			try
@@ -349,7 +347,7 @@ namespace Org.BouncyCastle.Pkix
 		*             </ul>
 		*/
 		internal static PkixCertPath ProcessAttrCert1(
-			IX509AttributeCertificate	attrCert,
+			X509V2AttributeCertificate  attrCert,
 			PkixParameters				pkixParams)
 		{
 			PkixCertPathBuilderResult result = null;
@@ -368,8 +366,8 @@ namespace Org.BouncyCastle.Pkix
 						{
 							selector.Issuer = principals[i];
 						}
-						holderPKCs.AddAll(PkixCertPathValidatorUtilities
-							.FindCertificates(selector, pkixParams.GetStores()));
+						holderPKCs.AddAll(
+							PkixCertPathValidatorUtilities.FindCertificates(selector, pkixParams.GetStoresCert()));
 					}
 					catch (Exception e)
 					{
@@ -396,8 +394,8 @@ namespace Org.BouncyCastle.Pkix
 						{
 							selector.Issuer = principals[i];
 						}
-						holderPKCs.AddAll(PkixCertPathValidatorUtilities
-							.FindCertificates(selector, pkixParams.GetStores()));
+						holderPKCs.AddAll(
+							PkixCertPathValidatorUtilities.FindCertificates(selector, pkixParams.GetStoresCert()));
 					}
 					catch (Exception e)
 					{
@@ -414,21 +412,21 @@ namespace Org.BouncyCastle.Pkix
 			}
 
 			// verify cert paths for PKCs
-			PkixBuilderParameters parameters = (PkixBuilderParameters)
-				PkixBuilderParameters.GetInstance(pkixParams);
+			PkixBuilderParameters parameters = PkixBuilderParameters.GetInstance(pkixParams);
 
 			PkixCertPathValidatorException lastException = null;
 			foreach (X509Certificate cert in holderPKCs)
 			{
-				X509CertStoreSelector selector = new X509CertStoreSelector();
-				selector.Certificate = cert;
-				parameters.SetTargetConstraints(selector);
+				X509CertStoreSelector certSelector = new X509CertStoreSelector();
+				certSelector.Certificate = cert;
+
+				parameters.SetTargetConstraintsCert(certSelector);
 
 				PkixCertPathBuilder builder = new PkixCertPathBuilder();
 
 				try
 				{
-					result = builder.Build(PkixBuilderParameters.GetInstance(parameters));
+					result = builder.Build(parameters);
 				}
 				catch (PkixCertPathBuilderException e)
 				{
@@ -463,7 +461,7 @@ namespace Org.BouncyCastle.Pkix
 		*/
 		private static void CheckCrl(
 			DistributionPoint			dp,
-			IX509AttributeCertificate	attrCert,
+			X509V2AttributeCertificate  attrCert,
 			PkixParameters				paramsPKIX,
 			DateTime					validDate,
 			X509Certificate				issuerCert,
@@ -496,8 +494,7 @@ namespace Org.BouncyCastle.Pkix
 			* CRLs must be enabled in the ExtendedPkixParameters and are in
 			* getAdditionalStore()
 			*/
-			ISet crls = PkixCertPathValidatorUtilities.GetCompleteCrls(dp, attrCert,
-				currentDate, paramsPKIX);
+			ISet<X509Crl> crls = PkixCertPathValidatorUtilities.GetCompleteCrls(dp, attrCert, currentDate, paramsPKIX);
 			bool validCrlFound = false;
 			Exception lastException = null;
 
@@ -536,7 +533,7 @@ namespace Org.BouncyCastle.Pkix
 					if (paramsPKIX.IsUseDeltasEnabled)
 					{
 						// get delta CRLs
-						ISet deltaCRLs = PkixCertPathValidatorUtilities.GetDeltaCrls(
+						ISet<X509Crl> deltaCRLs = PkixCertPathValidatorUtilities.GetDeltaCrls(
 							currentDate, paramsPKIX, crl);
 						// we only want one valid delta CRL
 						// (h)

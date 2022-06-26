@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -102,18 +103,16 @@ namespace Org.BouncyCastle.Tests
 		{
 			ISet trust = new HashSet();
 			trust.Add(new TrustAnchor(trustCert, null));
-			X509CertStoreSelector targetConstraints = new X509CertStoreSelector();
-			targetConstraints.Subject = endCert.SubjectDN;
-			PkixBuilderParameters pbParams = new PkixBuilderParameters(trust, targetConstraints);
+			X509CertStoreSelector targetConstraintsCert = new X509CertStoreSelector();
+			targetConstraintsCert.Subject = endCert.SubjectDN;
+			PkixBuilderParameters pbParams = new PkixBuilderParameters(trust, targetConstraintsCert);
 
-			ISet certs = new HashSet();
+			var certs = new HashSet<X509Certificate>();
 			certs.Add(intCert);
 			certs.Add(endCert);
 
-			IX509Store store = X509StoreFactory.Create(
-				"CERTIFICATE/COLLECTION",
-				new X509CollectionStoreParameters(certs));
-			pbParams.AddStore(store);
+			var store = CollectionUtilities.CreateStore(certs);
+			pbParams.AddStoreCert(store);
 
 			pbParams.IsRevocationEnabled = false;
 			if (requirePolicies != null)
@@ -122,13 +121,12 @@ namespace Org.BouncyCastle.Tests
 				pbParams.SetInitialPolicies(requirePolicies);
 			}
 
-//			CertPathBuilder cpb = CertPathBuilder.GetInstance("PKIX");
 			PkixCertPathBuilder cpb = new PkixCertPathBuilder();
-			PkixCertPathBuilderResult result = null;
+			PkixCertPathBuilderResult result;
 
 			try
 			{
-				result = (PkixCertPathBuilderResult)cpb.Build(pbParams);
+				result = cpb.Build(pbParams);
 
 				if (!okay)
 				{

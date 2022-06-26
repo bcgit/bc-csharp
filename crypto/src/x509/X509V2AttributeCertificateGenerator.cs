@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.X509
         /// </summary>
         /// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
         /// <returns>An IX509AttributeCertificate.</returns>
-        public IX509AttributeCertificate Generate(ISignatureFactory signatureCalculatorFactory)
+        public X509V2AttributeCertificate Generate(ISignatureFactory signatureCalculatorFactory)
         {
             if (!extGenerator.IsEmpty)
 			{

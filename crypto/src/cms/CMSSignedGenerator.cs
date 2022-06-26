@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
@@ -16,13 +16,10 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -514,8 +511,8 @@ namespace Org.BouncyCastle.Cms
         public static readonly string EncryptionGost3410 = CryptoProObjectIdentifiers.GostR3410x94.Id;
         public static readonly string EncryptionECGost3410 = CryptoProObjectIdentifiers.GostR3410x2001.Id;
 
-        internal IList _certs = Platform.CreateArrayList();
-        internal IList _crls = Platform.CreateArrayList();
+        internal List<Asn1Encodable> _certs = new List<Asn1Encodable>();
+        internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
         internal IList _signers = Platform.CreateArrayList();
         internal IDictionary _digests = Platform.CreateHashtable();
         internal bool _useDerForCerts = false;
@@ -562,40 +559,34 @@ namespace Org.BouncyCastle.Cms
                 : new DerSet(attr.ToAsn1EncodableVector());
         }
 
-        public void AddCertificates(
-            IX509Store certStore)
+        public void AddAttributeCertificate(X509V2AttributeCertificate attrCert)
         {
-            CollectionUtilities.AddRange(_certs, CmsUtilities.GetCertificatesFromStore(certStore));
+            _certs.Add(new DerTaggedObject(false, 2, attrCert.AttributeCertificate));
         }
 
-        public void AddCrls(
-            IX509Store crlStore)
+        public void AddAttributeCertificates(IStore<X509V2AttributeCertificate> attrCertStore)
         {
-            CollectionUtilities.AddRange(_crls, CmsUtilities.GetCrlsFromStore(crlStore));
+            _certs.AddRange(CmsUtilities.GetAttributeCertificatesFromStore(attrCertStore));
         }
 
-        /**
-		* Add the attribute certificates contained in the passed in store to the
-		* generator.
-		*
-		* @param store a store of Version 2 attribute certificates
-		* @throws CmsException if an error occurse processing the store.
-		*/
-        public void AddAttributeCertificates(
-            IX509Store store)
+        public void AddCertificate(X509Certificate cert)
         {
-            try
-            {
-                foreach (IX509AttributeCertificate attrCert in store.GetMatches(null))
-                {
-                    _certs.Add(new DerTaggedObject(false, 2,
-                        AttributeCertificate.GetInstance(Asn1Object.FromByteArray(attrCert.GetEncoded()))));
-                }
-            }
-            catch (Exception e)
-            {
-                throw new CmsException("error processing attribute certs", e);
-            }
+            _certs.Add(cert.CertificateStructure);
+        }
+
+        public void AddCertificates(IStore<X509Certificate> certStore)
+        {
+            _certs.AddRange(CmsUtilities.GetCertificatesFromStore(certStore));
+        }
+
+        public void AddCrl(X509Crl crl)
+        {
+            _crls.Add(crl.CertificateList);
+        }
+
+        public void AddCrls(IStore<X509Crl> crlStore)
+        {
+            _crls.AddRange(CmsUtilities.GetCrlsFromStore(crlStore));
         }
 
         /**
@@ -603,8 +594,7 @@ namespace Org.BouncyCastle.Cms
 		 *
 		 * @param signerStore store of signers
 		 */
-        public void AddSigners(
-            SignerInformationStore signerStore)
+        public void AddSigners(SignerInformationStore signerStore)
         {
             foreach (SignerInformation o in signerStore.GetSigners())
             {

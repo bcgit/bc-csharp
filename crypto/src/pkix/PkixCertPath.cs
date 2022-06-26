@@ -94,11 +94,7 @@ namespace Org.BouncyCastle.Pkix
 
         private readonly IList certificates;
 
-		/**
-		 * @param certs
-		 */
-		private static IList SortCerts(
-			IList certs)
+		private static IList SortCerts(IList certs)
 		{
 			if (certs.Count < 2)
 				return certs;

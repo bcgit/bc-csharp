@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
+using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
@@ -49,11 +51,15 @@ namespace Org.BouncyCastle.Pkix
 		private bool anyPolicyInhibited = false;
 		private bool policyMappingInhibited = false;
 		private bool policyQualifiersRejected = true;
-		private IX509Selector certSelector;
-		private IList stores;
-		private IX509Selector selector;
+
+		private List<IStore<X509V2AttributeCertificate>> m_storesAttrCert;
+		private List<IStore<X509Certificate>> m_storesCert;
+		private List<IStore<X509Crl>> m_storesCrl;
+
+		private ISelector<X509V2AttributeCertificate> m_targetConstraintsAttrCert;
+		private ISelector<X509Certificate> m_targetConstraintsCert;
+
 		private bool additionalLocationsEnabled;
-		private IList additionalStores;
 		private ISet trustedACIssuers;
 		private ISet necessaryACAttributes;
 		private ISet prohibitedACAttributes;
@@ -86,8 +92,9 @@ namespace Org.BouncyCastle.Pkix
 
 			this.initialPolicies = new HashSet();
 			this.certPathCheckers = Platform.CreateArrayList();
-            this.stores = Platform.CreateArrayList();
-			this.additionalStores = Platform.CreateArrayList();
+			this.m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
+			this.m_storesCert = new List<IStore<X509Certificate>>();
+			this.m_storesCrl = new List<IStore<X509Crl>>();
 			this.trustedACIssuers = new HashSet();
 			this.necessaryACAttributes = new HashSet();
 			this.prohibitedACAttributes = new HashSet();
@@ -206,6 +213,55 @@ namespace Org.BouncyCastle.Pkix
 		}
 
 		/**
+		* Returns the required constraints on the target certificate or attribute
+		* certificate. The constraints are returned as an instance of
+		* <code>IX509Selector</code>. If <code>null</code>, no constraints are
+		* defined.
+		*
+		* <p>
+		* The target certificate in a PKIX path may be a certificate or an
+		* attribute certificate.
+		* </p><p>
+		* Note that the <code>IX509Selector</code> returned is cloned to protect
+		* against subsequent modifications.
+		* </p>
+		* @return a <code>IX509Selector</code> specifying the constraints on the
+		*         target certificate or attribute certificate (or <code>null</code>)
+		* @see #setTargetConstraints
+		* @see X509CertStoreSelector
+		* @see X509AttributeCertStoreSelector
+		*/
+		public virtual ISelector<X509V2AttributeCertificate> GetTargetConstraintsAttrCert()
+		{
+			return (ISelector<X509V2AttributeCertificate>)m_targetConstraintsAttrCert?.Clone();
+		}
+
+		/**
+		* Sets the required constraints on the target certificate or attribute
+		* certificate. The constraints are specified as an instance of
+		* <code>IX509Selector</code>. If <code>null</code>, no constraints are
+		* defined.
+		* <p>
+		* The target certificate in a PKIX path may be a certificate or an
+		* attribute certificate.
+		* </p><p>
+		* Note that the <code>IX509Selector</code> specified is cloned to protect
+		* against subsequent modifications.
+		* </p>
+		*
+		* @param selector a <code>IX509Selector</code> specifying the constraints on
+		*            the target certificate or attribute certificate (or
+		*            <code>null</code>)
+		* @see #getTargetConstraints
+		* @see X509CertStoreSelector
+		* @see X509AttributeCertStoreSelector
+		*/
+		public virtual void SetTargetConstraintsAttrCert(ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
+		{
+			this.m_targetConstraintsAttrCert = (ISelector<X509V2AttributeCertificate>)targetConstraintsAttrCert?.Clone();
+		}
+
+		/**
 		* Returns the required constraints on the target certificate. The
 		* constraints are returned as an instance of CertSelector. If
 		* <code>null</code>, no constraints are defined.<br />
@@ -218,14 +274,9 @@ namespace Org.BouncyCastle.Pkix
 		*
 		* @see #setTargetCertConstraints(CertSelector)
 		*/
-		public virtual X509CertStoreSelector GetTargetCertConstraints()
+		public virtual ISelector<X509Certificate> GetTargetConstraintsCert()
 		{
-			if (certSelector == null)
-			{
-				return null;
-			}
-
-			return (X509CertStoreSelector)certSelector.Clone();
+			return (ISelector<X509Certificate>)m_targetConstraintsCert?.Clone();
 		}
 
 		/**
@@ -242,17 +293,9 @@ namespace Org.BouncyCastle.Pkix
 		 *
 		 * @see #getTargetCertConstraints()
 		 */
-		public virtual void SetTargetCertConstraints(
-			IX509Selector selector)
+		public virtual void SetTargetConstraintsCert(ISelector<X509Certificate> targetConstraintsCert)
 		{
-			if (selector == null)
-			{
-				certSelector = null;
-			}
-			else
-			{
-				certSelector = (IX509Selector)selector.Clone();
-			}
+			m_targetConstraintsCert = (ISelector<X509Certificate>)targetConstraintsCert?.Clone();
 		}
 
 		/**
@@ -447,8 +490,7 @@ namespace Org.BouncyCastle.Pkix
 		* @param params Parameters to set. If this are
 		*            <code>ExtendedPkixParameters</code> they are copied to.
 		*/
-		protected virtual void SetParams(
-			PkixParameters parameters)
+		protected virtual void SetParams(PkixParameters parameters)
 		{
 			Date = parameters.Date;
 			SetCertPathCheckers(parameters.GetCertPathCheckers());
@@ -458,16 +500,18 @@ namespace Org.BouncyCastle.Pkix
 			IsRevocationEnabled = parameters.IsRevocationEnabled;
 			SetInitialPolicies(parameters.GetInitialPolicies());
 			IsPolicyQualifiersRejected = parameters.IsPolicyQualifiersRejected;
-			SetTargetCertConstraints(parameters.GetTargetCertConstraints());
 			SetTrustAnchors(parameters.GetTrustAnchors());
+
+			m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>(parameters.m_storesAttrCert);
+			m_storesCert = new List<IStore<X509Certificate>>(parameters.m_storesCert);
+			m_storesCrl = new List<IStore<X509Crl>>(parameters.m_storesCrl);
+
+			SetTargetConstraintsAttrCert(parameters.GetTargetConstraintsAttrCert());
+			SetTargetConstraintsCert(parameters.GetTargetConstraintsCert());
 
 			validityModel = parameters.validityModel;
 			useDeltas = parameters.useDeltas;
 			additionalLocationsEnabled = parameters.additionalLocationsEnabled;
-			selector = parameters.selector == null ? null
-				: (IX509Selector) parameters.selector.Clone();
-			stores = Platform.CreateArrayList(parameters.stores);
-            additionalStores = Platform.CreateArrayList(parameters.additionalStores);
 			trustedACIssuers = new HashSet(parameters.trustedACIssuers);
 			prohibitedACAttributes = new HashSet(parameters.prohibitedACAttributes);
 			necessaryACAttributes = new HashSet(parameters.necessaryACAttributes);
@@ -495,115 +539,79 @@ namespace Org.BouncyCastle.Pkix
 			set { validityModel = value; }
 		}
 
-		/**
-		* Sets the Bouncy Castle Stores for finding CRLs, certificates, attribute
-		* certificates or cross certificates.
-		* <p>
-		* The <code>IList</code> is cloned.
-		* </p>
-		*
-		* @param stores A list of stores to use.
-		* @see #getStores
-		* @throws ClassCastException if an element of <code>stores</code> is not
-		*             a {@link Store}.
-		*/
-		public virtual void SetStores(
-			IList stores)
+		public virtual IList<IStore<X509V2AttributeCertificate>> GetStoresAttrCert()
 		{
-			if (stores == null)
+			return new List<IStore<X509V2AttributeCertificate>>(m_storesAttrCert);
+		}
+
+		public virtual IList<IStore<X509Certificate>> GetStoresCert()
+		{
+			return new List<IStore<X509Certificate>>(m_storesCert);
+		}
+
+		public virtual IList<IStore<X509Crl>> GetStoresCrl()
+		{
+			return new List<IStore<X509Crl>>(m_storesCrl);
+		}
+
+		public virtual void SetAttrStoresCert(IList<IStore<X509V2AttributeCertificate>> storesAttrCert)
+		{
+			if (storesAttrCert == null)
 			{
-                this.stores = Platform.CreateArrayList();
+				m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
 			}
 			else
 			{
-				foreach (object obj in stores)
-				{
-					if (!(obj is IX509Store))
-					{
-						throw new InvalidCastException(
-							"All elements of list must be of type " + typeof(IX509Store).FullName);
-					}
-				}
-                this.stores = Platform.CreateArrayList(stores);
+				m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>(storesAttrCert);
 			}
 		}
 
-		/**
-		* Adds a Bouncy Castle {@link Store} to find CRLs, certificates, attribute
-		* certificates or cross certificates.
-		* <p>
-		* This method should be used to add local stores, like collection based
-		* X.509 stores, if available. Local stores should be considered first,
-		* before trying to use additional (remote) locations, because they do not
-		* need possible additional network traffic.
-		* </p><p>
-		* If <code>store</code> is <code>null</code> it is ignored.
-		* </p>
-		*
-		* @param store The store to add.
-		* @see #getStores
-		*/
-		public virtual void AddStore(
-			IX509Store store)
+		public virtual void SetStoresCert(IList<IStore<X509Certificate>> storesCert)
 		{
-			if (store != null)
+			if (storesCert == null)
 			{
-				stores.Add(store);
+				m_storesCert = new List<IStore<X509Certificate>>();
 			}
-		}
-
-		/**
-		* Adds an additional Bouncy Castle {@link Store} to find CRLs, certificates,
-		* attribute certificates or cross certificates.
-		* <p>
-		* You should not use this method. This method is used for adding additional
-		* X.509 stores, which are used to add (remote) locations, e.g. LDAP, found
-		* during X.509 object processing, e.g. in certificates or CRLs. This method
-		* is used in PKIX certification path processing.
-		* </p><p>
-		* If <code>store</code> is <code>null</code> it is ignored.
-		* </p>
-		*
-		* @param store The store to add.
-		* @see #getStores()
-		*/
-		public virtual void AddAdditionalStore(
-			IX509Store store)
-		{
-			if (store != null)
+			else
 			{
-				additionalStores.Add(store);
+				m_storesCert = new List<IStore<X509Certificate>>(storesCert);
 			}
 		}
 
-		/**
-		* Returns an <code>IList</code> of additional Bouncy Castle
-		* <code>Store</code>s used for finding CRLs, certificates, attribute
-		* certificates or cross certificates.
-		*
-		* @return an immutable <code>IList</code> of additional Bouncy Castle
-		*         <code>Store</code>s. Never <code>null</code>.
-		*
-		* @see #addAddionalStore(Store)
-		*/
-		public virtual IList GetAdditionalStores()
+		public virtual void SetStoresCrl(IList<IStore<X509Crl>> storesCrl)
 		{
-            return Platform.CreateArrayList(additionalStores);
+			if (storesCrl == null)
+			{
+				m_storesCrl = new List<IStore<X509Crl>>();
+			}
+			else
+			{
+				m_storesCrl = new List<IStore<X509Crl>>(storesCrl);
+			}
 		}
 
-		/**
-		* Returns an <code>IList</code> of Bouncy Castle
-		* <code>Store</code>s used for finding CRLs, certificates, attribute
-		* certificates or cross certificates.
-		*
-		* @return an immutable <code>IList</code> of Bouncy Castle
-		*         <code>Store</code>s. Never <code>null</code>.
-		*
-		* @see #setStores(IList)
-		*/
-		public virtual IList GetStores()
+		public virtual void AddStoreAttrCert(IStore<X509V2AttributeCertificate> storeAttrCert)
 		{
-            return Platform.CreateArrayList(stores);
+			if (storeAttrCert != null)
+			{
+				m_storesAttrCert.Add(storeAttrCert);
+			}
+		}
+
+		public virtual void AddStoreCert(IStore<X509Certificate> storeCert)
+		{
+			if (storeCert != null)
+			{
+				m_storesCert.Add(storeCert);
+			}
+		}
+
+		public virtual void AddStoreCrl(IStore<X509Crl> storeCrl)
+		{
+			if (storeCrl != null)
+			{
+				m_storesCrl.Add(storeCrl);
+			}
 		}
 
 		/**
@@ -627,69 +635,6 @@ namespace Org.BouncyCastle.Pkix
 			bool enabled)
 		{
 			additionalLocationsEnabled = enabled;
-		}
-
-		/**
-		* Returns the required constraints on the target certificate or attribute
-		* certificate. The constraints are returned as an instance of
-		* <code>IX509Selector</code>. If <code>null</code>, no constraints are
-		* defined.
-		*
-		* <p>
-		* The target certificate in a PKIX path may be a certificate or an
-		* attribute certificate.
-		* </p><p>
-		* Note that the <code>IX509Selector</code> returned is cloned to protect
-		* against subsequent modifications.
-		* </p>
-		* @return a <code>IX509Selector</code> specifying the constraints on the
-		*         target certificate or attribute certificate (or <code>null</code>)
-		* @see #setTargetConstraints
-		* @see X509CertStoreSelector
-		* @see X509AttributeCertStoreSelector
-		*/
-		public virtual IX509Selector GetTargetConstraints()
-		{
-			if (selector != null)
-			{
-				return (IX509Selector) selector.Clone();
-			}
-			else
-			{
-				return null;
-			}
-		}
-
-		/**
-		* Sets the required constraints on the target certificate or attribute
-		* certificate. The constraints are specified as an instance of
-		* <code>IX509Selector</code>. If <code>null</code>, no constraints are
-		* defined.
-		* <p>
-		* The target certificate in a PKIX path may be a certificate or an
-		* attribute certificate.
-		* </p><p>
-		* Note that the <code>IX509Selector</code> specified is cloned to protect
-		* against subsequent modifications.
-		* </p>
-		*
-		* @param selector a <code>IX509Selector</code> specifying the constraints on
-		*            the target certificate or attribute certificate (or
-		*            <code>null</code>)
-		* @see #getTargetConstraints
-		* @see X509CertStoreSelector
-		* @see X509AttributeCertStoreSelector
-		*/
-		public virtual void SetTargetConstraints(IX509Selector selector)
-		{
-			if (selector != null)
-			{
-				this.selector = (IX509Selector) selector.Clone();
-			}
-			else
-			{
-				this.selector = null;
-			}
 		}
 
 		/**

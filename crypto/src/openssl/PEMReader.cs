@@ -199,7 +199,7 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the X509 Attribute Certificate
         * @throws IOException if an I/O error occured
         */
-        private IX509AttributeCertificate ReadAttributeCertificate(PemObject pemObject)
+        private X509V2AttributeCertificate ReadAttributeCertificate(PemObject pemObject)
         {
             return new X509V2AttributeCertificate(pemObject.Content);
         }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 
 using NUnit.Framework;
 
@@ -315,8 +315,8 @@ namespace Org.BouncyCastle.Tests.Nist
 			ISet trustedSet = new HashSet();
 			trustedSet.Add(GetTrustAnchor(trustAnchor));
 
-			IList x509Certs = new ArrayList();
-			IList x509Crls = new ArrayList();
+			var x509Certs = new List<X509Certificate>();
+			var x509Crls = new List<X509Crl>();
 			X509Certificate endCert = LoadCert(certs[certs.Length - 1]);
 
 			for (int i = 0; i != certs.Length - 1; i++)
@@ -333,18 +333,14 @@ namespace Org.BouncyCastle.Tests.Nist
 				x509Crls.Add(LoadCrl(crls[i]));
 			}
 
-			IX509Store x509CertStore = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(x509Certs));
-			IX509Store x509CrlStore = X509StoreFactory.Create(
-				"CRL/Collection",
-				new X509CollectionStoreParameters(x509Crls));
+            var x509CertStore = CollectionUtilities.CreateStore(x509Certs);
+			var x509CrlStore = CollectionUtilities.CreateStore(x509Crls);
 
             PkixCertPathValidator validator = new PkixCertPathValidator();
 			PkixParameters parameters = new PkixParameters(trustedSet);
 
-			parameters.AddStore(x509CertStore);
-			parameters.AddStore(x509CrlStore);
+			parameters.AddStoreCert(x509CertStore);
+			parameters.AddStoreCrl(x509CrlStore);
 			parameters.IsRevocationEnabled = true;
 
 			if (policies != null)
@@ -370,8 +366,8 @@ namespace Org.BouncyCastle.Tests.Nist
             ISet trustedSet = new HashSet();
             trustedSet.Add(GetTrustAnchor(trustAnchor));
 
-            IList x509Certs = new ArrayList();
-            IList x509Crls = new ArrayList();
+            var x509Certs = new List<X509Certificate>();
+            var x509Crls = new List<X509Crl>();
             X509Certificate endCert = LoadCert(certs[certs.Length - 1]);
 
             for (int i = 0; i != certs.Length - 1; i++)
@@ -386,12 +382,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 x509Crls.Add(LoadCrl(crls[i]));
             }
 
-            IX509Store x509CertStore = X509StoreFactory.Create(
-                "Certificate/Collection",
-                new X509CollectionStoreParameters(x509Certs));
-            IX509Store x509CrlStore = X509StoreFactory.Create(
-                "CRL/Collection",
-                new X509CollectionStoreParameters(x509Crls));
+            var x509CertStore = CollectionUtilities.CreateStore(x509Certs);
+            var x509CrlStore = CollectionUtilities.CreateStore(x509Crls);
 
             PkixCertPathBuilder builder = new PkixCertPathBuilder();
 
@@ -415,8 +407,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 builderParams.IsAnyPolicyInhibited = anyPolicyInhibited;
             }
 
-            builderParams.AddStore(x509CertStore);
-            builderParams.AddStore(x509CrlStore);
+            builderParams.AddStoreCert(x509CertStore);
+            builderParams.AddStoreCrl(x509CrlStore);
 
             // Perform validation as of this date since test certs expired
             builderParams.Date = new DateTimeObject(DateTime.Parse("1/1/2011"));

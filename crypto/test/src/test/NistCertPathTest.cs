@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -9,7 +10,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
@@ -288,10 +288,10 @@ namespace Org.BouncyCastle.Tests
 			return crlParser.ReadCrl(Base64.Decode(_str));
 		}
 
-		private void MakeCertStore(string[] _strs, out IX509Store certStore, out IX509Store crlStore)
+		private void MakeCertStore(string[] _strs, out IStore<X509Certificate> certStore, out IStore<X509Crl> crlStore)
 		{
-			ArrayList certs = new ArrayList();
-			ArrayList crls = new ArrayList();
+			var certs = new List<X509Certificate>();
+			var crls = new List<X509Crl>();
 			crls.Add(trustedCRL);
 
 			for (int i = 0; i < _strs.Length; i++)
@@ -319,10 +319,8 @@ namespace Org.BouncyCastle.Tests
 			certs.Reverse();
 			crls.Reverse();
 
-			certStore = X509StoreFactory.Create("Certificate/Collection",
-				new X509CollectionStoreParameters(certs));
-			crlStore = X509StoreFactory.Create("CRL/Collection",
-				new X509CollectionStoreParameters(crls));
+			certStore = CollectionUtilities.CreateStore(certs);
+			crlStore = CollectionUtilities.CreateStore(crls);
 		}
 
 		private void Test(string _name, string[] _data, bool _accept,
@@ -352,14 +350,14 @@ namespace Org.BouncyCastle.Tests
 				X509CertStoreSelector _select = new X509CertStoreSelector();
 				_select.Subject = _ee.SubjectDN;
 
-				IX509Store certStore, crlStore;
+				IStore<X509Certificate> certStore;
+				IStore<X509Crl> crlStore;
 				MakeCertStore(_data, out certStore, out crlStore);
 
-				PkixBuilderParameters _param = new PkixBuilderParameters(
-					trustedSet, _select);
+				PkixBuilderParameters _param = new PkixBuilderParameters(trustedSet, _select);
 				_param.IsExplicitPolicyRequired = _explicit;
-				_param.AddStore(certStore);
-				_param.AddStore(crlStore);
+				_param.AddStoreCert(certStore);
+				_param.AddStoreCrl(crlStore);
 				_param.IsRevocationEnabled = true;
 
 				if (_ipolset != null)

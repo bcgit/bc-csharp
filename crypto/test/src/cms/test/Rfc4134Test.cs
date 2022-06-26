@@ -14,7 +14,6 @@ using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
@@ -249,18 +248,17 @@ namespace Org.BouncyCastle.Cms.Tests
 
 		private void VerifySignatures(CmsSignedData s, byte[] contentDigest)
 		{
-			IX509Store x509Certs = s.GetCertificates("Collection");
-			IX509Store x509Crls = s.GetCrls("Collection");
+			var x509Certs = s.GetCertificates();
 			SignerInformationStore signers = s.GetSignerInfos();
 
 			foreach (SignerInformation signer in signers.GetSigners())
 			{
-				ICollection certCollection = x509Certs.GetMatches(signer.SignerID);
+				var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
 
-				IEnumerator certEnum = certCollection.GetEnumerator();
+				var certEnum = certCollection.GetEnumerator();
 
 				certEnum.MoveNext();
-				X509Certificate cert = (X509Certificate) certEnum.Current;
+				X509Certificate cert = certEnum.Current;
 
 				VerifySigner(signer, cert);
 
@@ -269,12 +267,6 @@ namespace Org.BouncyCastle.Cms.Tests
 					Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
 				}
 			}
-
-			ICollection certColl = x509Certs.GetMatches(null);
-			ICollection crlColl = x509Crls.GetMatches(null);
-
-			Assert.AreEqual(certColl.Count, s.GetCertificates("Collection").GetMatches(null).Count);
-			Assert.AreEqual(crlColl.Count, s.GetCrls("Collection").GetMatches(null).Count);
 		}
 
 		private void VerifySignatures(CmsSignedData s)
@@ -289,17 +281,17 @@ namespace Org.BouncyCastle.Cms.Tests
 	        {
 	            sc.Drain();
 	        }
-			
-			IX509Store x509Certs = sp.GetCertificates("Collection");
+
+			var x509Certs = sp.GetCertificates();
 			SignerInformationStore signers = sp.GetSignerInfos();
 
 			foreach (SignerInformation signer in signers.GetSigners())
 			{
-				ICollection certCollection = x509Certs.GetMatches(signer.SignerID);
+				var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
 
-				IEnumerator certEnum = certCollection.GetEnumerator();
+				var certEnum = certCollection.GetEnumerator();
 				certEnum.MoveNext();
-				X509Certificate cert = (X509Certificate)certEnum.Current;
+				X509Certificate cert = certEnum.Current;
 
 				VerifySigner(signer, cert);
 			}

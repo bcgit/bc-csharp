@@ -8,12 +8,10 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -69,9 +67,6 @@ namespace Org.BouncyCastle.Cms
 		private SignerInformationStore  _signerInfoStore;
 		private Asn1Set                 _certSet, _crlSet;
 		private bool					_isCertCrlParsed;
-		private IX509Store				_attributeStore;
-		private IX509Store				_certificateStore;
-		private IX509Store				_crlStore;
 
 		public CmsSignedDataParser(
 			byte[] sigBlock)
@@ -243,17 +238,11 @@ namespace Org.BouncyCastle.Cms
 		 * @exception org.bouncycastle.x509.NoSuchStoreException if the store type isn't available.
 		 * @exception CmsException if a general exception prevents creation of the X509Store
 		 */
-		public IX509Store GetAttributeCertificates(
-			string type)
+		public IStore<X509V2AttributeCertificate> GetAttributeCertificates()
 		{
-			if (_attributeStore == null)
-			{
-				PopulateCertCrlSets();
+			PopulateCertCrlSets();
 
-				_attributeStore = Helper.CreateAttributeStore(type, _certSet);
-			}
-
-			return _attributeStore;
+			return Helper.GetAttributeCertificates(_certSet);
 		}
 
 		/**
@@ -265,17 +254,11 @@ namespace Org.BouncyCastle.Cms
 		* @exception NoSuchStoreException if the store type isn't available.
 		* @exception CmsException if a general exception prevents creation of the X509Store
 		*/
-		public IX509Store GetCertificates(
-			string type)
+		public IStore<X509Certificate> GetCertificates()
 		{
-			if (_certificateStore == null)
-			{
-				PopulateCertCrlSets();
+			PopulateCertCrlSets();
 
-				_certificateStore = Helper.CreateCertificateStore(type, _certSet);
-			}
-
-			return _certificateStore;
+			return Helper.GetCertificates(_certSet);
 		}
 
 		/**
@@ -287,17 +270,11 @@ namespace Org.BouncyCastle.Cms
 		* @exception NoSuchStoreException if the store type isn't available.
 		* @exception CmsException if a general exception prevents creation of the X509Store
 		*/
-		public IX509Store GetCrls(
-			string type)
+		public IStore<X509Crl> GetCrls()
 		{
-			if (_crlStore == null)
-			{
-				PopulateCertCrlSets();
+			PopulateCertCrlSets();
 
-				_crlStore = Helper.CreateCrlStore(type, _crlSet);
-			}
-
-			return _crlStore;
+			return Helper.GetCrls(_crlSet);
 		}
 
 		private void PopulateCertCrlSets()
@@ -378,9 +355,9 @@ namespace Org.BouncyCastle.Cms
 				Streams.PipeAll(signedContent.ContentStream, contentOut);
 			}
 
-			gen.AddAttributeCertificates(parser.GetAttributeCertificates("Collection"));
-			gen.AddCertificates(parser.GetCertificates("Collection"));
-			gen.AddCrls(parser.GetCrls("Collection"));
+			gen.AddAttributeCertificates(parser.GetAttributeCertificates());
+			gen.AddCertificates(parser.GetCertificates());
+			gen.AddCrls(parser.GetCrls());
 
 //			gen.AddSigners(parser.GetSignerInfos());
 
@@ -401,12 +378,8 @@ namespace Org.BouncyCastle.Cms
 		 * @return out.
 		 * @exception CmsException if there is an error processing the CertStore
 		 */
-		public static Stream ReplaceCertificatesAndCrls(
-			Stream			original,
-			IX509Store		x509Certs,
-			IX509Store		x509Crls,
-			IX509Store		x509AttrCerts,
-			Stream			outStr)
+		public static Stream ReplaceCertificatesAndCrls(Stream original, IStore<X509Certificate> x509Certs,
+			IStore<X509Crl> x509Crls, IStore<X509V2AttributeCertificate> x509AttrCerts, Stream outStr)
 		{
 			// NB: SecureRandom would be ignored since using existing signatures only
 			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
@@ -422,15 +395,18 @@ namespace Org.BouncyCastle.Cms
 				Streams.PipeAll(signedContent.ContentStream, contentOut);
 			}
 
-//			gen.AddAttributeCertificates(parser.GetAttributeCertificates("Collection"));
-//			gen.AddCertificates(parser.GetCertificates("Collection"));
-//			gen.AddCrls(parser.GetCrls("Collection"));
 			if (x509AttrCerts != null)
+            {
 				gen.AddAttributeCertificates(x509AttrCerts);
+			}
 			if (x509Certs != null)
+            {
 				gen.AddCertificates(x509Certs);
+			}
 			if (x509Crls != null)
+            {
 				gen.AddCrls(x509Crls);
+			}
 
 			gen.AddSigners(parser.GetSignerInfos());
 

@@ -12,7 +12,7 @@ using Org.BouncyCastle.X509.Extension;
 namespace Org.BouncyCastle.X509.Store
 {
 	public class X509CertStoreSelector
-		: IX509Selector
+		: ISelector<X509Certificate>
 	{
 		// TODO Missing criteria?
 
@@ -160,11 +160,8 @@ namespace Org.BouncyCastle.X509.Store
 			set { subjectPublicKeyAlgID = value; }
 		}
 
-		public virtual bool Match(
-			object obj)
+		public virtual bool Match(X509Certificate c)
 		{
-			X509Certificate c = obj as X509Certificate;
-
 			if (c == null)
 				return false;
 

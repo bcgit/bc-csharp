@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.X509
 {
 	/// <summary>An implementation of a version 2 X.509 Attribute Certificate.</summary>
 	public class X509V2AttributeCertificate
-		: X509ExtensionBase, IX509AttributeCertificate
+		: X509ExtensionBase
 	{
 		private readonly AttributeCertificate cert;
 		private readonly DateTime notBefore;
@@ -49,8 +49,7 @@ namespace Org.BouncyCastle.X509
 		{
 		}
 
-		internal X509V2AttributeCertificate(
-			AttributeCertificate cert)
+		public X509V2AttributeCertificate(AttributeCertificate cert)
 		{
 			this.cert = cert;
 
@@ -63,6 +62,11 @@ namespace Org.BouncyCastle.X509
 			{
 				throw new IOException("invalid data structure in certificate!", e);
 			}
+		}
+
+		public virtual AttributeCertificate AttributeCertificate
+		{
+			get { return cert; }
 		}
 
 		public virtual int Version

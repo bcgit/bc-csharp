@@ -5,13 +5,14 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509.Store
 {
 	public class X509CrlStoreSelector
-		: IX509Selector
+		: ISelector<X509Crl>
 	{
 		// TODO Missing criteria?
 
@@ -21,7 +22,7 @@ namespace Org.BouncyCastle.X509.Store
 		private BigInteger maxCrlNumber;
 		private BigInteger minCrlNumber;
 
-		private IX509AttributeCertificate attrCertChecking;
+		private X509V2AttributeCertificate attrCertChecking;
 		private bool completeCrlEnabled;
 		private bool deltaCrlIndicatorEnabled;
 		private byte[] issuingDistributionPoint;
@@ -98,7 +99,7 @@ namespace Org.BouncyCastle.X509.Store
 		 *             <code>null</code>)
 		 * @see #getAttrCertificateChecking()
 		 */
-		public IX509AttributeCertificate AttrCertChecking
+		public X509V2AttributeCertificate AttrCertChecking
 		{
 			get { return attrCertChecking; }
 			set { this.attrCertChecking = value; }
@@ -180,11 +181,8 @@ namespace Org.BouncyCastle.X509.Store
 			set { this.maxBaseCrlNumber = value; }
 		}
 
-		public virtual bool Match(
-			object obj)
+		public virtual bool Match(X509Crl c)
 		{
-			X509Crl c = obj as X509Crl;
-
 			if (c == null)
 				return false;
 

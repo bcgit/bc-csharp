@@ -1,14 +1,13 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -43,9 +42,6 @@ namespace Org.BouncyCastle.Cms
 		private SignedData				signedData;
 		private ContentInfo				contentInfo;
 		private SignerInformationStore	signerInfoStore;
-		private IX509Store				attrCertStore;
-		private IX509Store				certificateStore;
-		private IX509Store				crlStore;
 		private IDictionary				hashes;
 
 		private CmsSignedData(
@@ -150,11 +146,6 @@ namespace Org.BouncyCastle.Cms
 			get { return signedData.Version.IntValueExact; }
 		}
 
-        internal IX509Store GetCertificates()
-        {
-            return Helper.GetCertificates(signedData.Certificates);
-		}
-
         /**
 		* return the collection of signers that are associated with the
 		* signatures for the message.
@@ -198,55 +189,33 @@ namespace Org.BouncyCastle.Cms
 		 * @exception NoSuchStoreException if the store type isn't available.
 		 * @exception CmsException if a general exception prevents creation of the X509Store
 		 */
-		public IX509Store GetAttributeCertificates(
-			string type)
+		public IStore<X509V2AttributeCertificate> GetAttributeCertificates()
 		{
-			if (attrCertStore == null)
-			{
-				attrCertStore = Helper.CreateAttributeStore(type, signedData.Certificates);
-			}
-
-			return attrCertStore;
+			return Helper.GetAttributeCertificates(signedData.Certificates);
 		}
 
 		/**
-		 * return a X509Store containing the public key certificates, if any, contained
-		 * in this message.
+		 * return a X509Store containing the public key certificates, if any, contained in this message.
 		 *
-		 * @param type type of store to create
 		 * @return a store of public key certificates
 		 * @exception NoSuchStoreException if the store type isn't available.
 		 * @exception CmsException if a general exception prevents creation of the X509Store
 		 */
-		public IX509Store GetCertificates(
-			string type)
+		public IStore<X509Certificate> GetCertificates()
 		{
-			if (certificateStore == null)
-			{				
-				certificateStore = Helper.CreateCertificateStore(type, signedData.Certificates);
-			}
-
-			return certificateStore;
+			return Helper.GetCertificates(signedData.Certificates);
 		}
 
 		/**
-		* return a X509Store containing CRLs, if any, contained
-		* in this message.
+		* return a X509Store containing CRLs, if any, contained in this message.
 		*
-		* @param type type of store to create
 		* @return a store of CRLs
 		* @exception NoSuchStoreException if the store type isn't available.
 		* @exception CmsException if a general exception prevents creation of the X509Store
 		*/
-		public IX509Store GetCrls(
-			string type)
+		public IStore<X509Crl> GetCrls()
 		{
-			if (crlStore == null)
-			{
-				crlStore = Helper.CreateCrlStore(type, signedData.CRLs);
-			}
-
-			return crlStore;
+			return Helper.GetCrls(signedData.CRLs);
 		}
 
 		/// <summary>
@@ -363,15 +332,9 @@ namespace Org.BouncyCastle.Cms
 		* @return a new signed data object.
 		* @exception CmsException if there is an error processing the stores
 		*/
-		public static CmsSignedData ReplaceCertificatesAndCrls(
-			CmsSignedData	signedData,
-			IX509Store		x509Certs,
-			IX509Store		x509Crls,
-			IX509Store		x509AttrCerts)
+		public static CmsSignedData ReplaceCertificatesAndCrls(CmsSignedData signedData, IStore<X509Certificate> x509Certs,
+			IStore<X509Crl> x509Crls, IStore<X509V2AttributeCertificate> x509AttrCerts)
 		{
-			if (x509AttrCerts != null)
-				throw Platform.CreateNotImplementedException("Currently can't replace attribute certificates");
-
 			//
 			// copy
 			//
@@ -380,36 +343,38 @@ namespace Org.BouncyCastle.Cms
 			//
 			// replace the certs and crls in the SignedData object
 			//
-			Asn1Set certs = null;
-			try
-			{
-				Asn1Set asn1Set = CmsUtilities.CreateBerSetFromList(
-					CmsUtilities.GetCertificatesFromStore(x509Certs));
+			Asn1Set certSet = null;
+			Asn1Set crlSet = null;
 
-				if (asn1Set.Count != 0)
+			if (x509Certs != null || x509AttrCerts != null)
+			{
+				var certs = new List<Asn1Encodable>();
+
+				if (x509Certs != null)
 				{
-					certs = asn1Set;
+					certs.AddRange(CmsUtilities.GetCertificatesFromStore(x509Certs));
+				}
+				if (x509AttrCerts != null)
+				{
+					certs.AddRange(CmsUtilities.GetAttributeCertificatesFromStore(x509AttrCerts));
+				}
+
+				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(certs);
+				if (berSet.Count > 0)
+				{
+					certSet = berSet;
 				}
 			}
-			catch (X509StoreException e)
-			{
-				throw new CmsException("error getting certificates from store", e);
-			}
 
-			Asn1Set crls = null;
-			try
+			if (x509Crls != null)
 			{
-				Asn1Set asn1Set = CmsUtilities.CreateBerSetFromList(
-					CmsUtilities.GetCrlsFromStore(x509Crls));
+				var crls = CmsUtilities.GetCrlsFromStore(x509Crls);
 
-				if (asn1Set.Count != 0)
+				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(crls);
+				if (berSet.Count > 0)
 				{
-					crls = asn1Set;
+					crlSet = berSet;
 				}
-			}
-			catch (X509StoreException e)
-			{
-				throw new CmsException("error getting CRLs from store", e);
 			}
 
 			//
@@ -419,8 +384,8 @@ namespace Org.BouncyCastle.Cms
 			cms.signedData = new SignedData(
 				old.DigestAlgorithms,
 				old.EncapContentInfo,
-				certs,
-				crls,
+				certSet,
+				crlSet,
 				old.SignerInfos);
 
 			//

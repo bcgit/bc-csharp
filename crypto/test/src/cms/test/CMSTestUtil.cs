@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -10,11 +11,11 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
@@ -219,12 +220,8 @@ namespace Org.BouncyCastle.Cms.Tests
 			return buf.ToString();
 		}
 
-		public static IX509AttributeCertificate GetAttributeCertificate()
+		public static X509V2AttributeCertificate GetAttributeCertificate()
 		{
-//			X509StreamParser parser = X509StreamParser.GetInstance("AttributeCertificate");
-//			parser.Init(CmsTestUtil.attrCert);
-//			return (X509AttributeCertificate) parser.Read();
-
 			return new X509AttrCertParser().ReadAttrCert(attrCert);
 		}
 
@@ -425,37 +422,38 @@ namespace Org.BouncyCastle.Cms.Tests
             return "GOST3411WithGOST3410";
         }
 
-        internal static IX509Store MakeAttrCertStore(params IX509AttributeCertificate[] attrCerts)
+        internal static IStore<X509V2AttributeCertificate> MakeAttrCertStore(
+			params X509V2AttributeCertificate[] attrCerts)
         {
-            IList attrCertList = new ArrayList();
-            foreach (IX509AttributeCertificate attrCert in attrCerts)
+			var attrCertList = new List<X509V2AttributeCertificate>();
+			foreach (var attrCert in attrCerts)
             {
                 attrCertList.Add(attrCert);
             }
 
-            return X509StoreFactory.Create("AttributeCertificate/Collection", new X509CollectionStoreParameters(attrCertList));
+			return CollectionUtilities.CreateStore(attrCertList);
         }
 
-        internal static IX509Store MakeCertStore(params X509Certificate[] certs)
+        internal static IStore<X509Certificate> MakeCertStore(params X509Certificate[] certs)
         {
-            IList certList = new ArrayList();
-            foreach (X509Certificate cert in certs)
+            var certList = new List<X509Certificate>();
+            foreach (var cert in certs)
             {
                 certList.Add(cert);
             }
 
-            return X509StoreFactory.Create("Certificate/Collection", new X509CollectionStoreParameters(certList));
+			return CollectionUtilities.CreateStore(certList);
         }
 
-        internal static IX509Store MakeCrlStore(params X509Crl[] crls)
+        internal static IStore<X509Crl> MakeCrlStore(params X509Crl[] crls)
         {
-            IList crlList = new ArrayList();
-            foreach (X509Crl crl in crls)
+            var crlList = new List<X509Crl>();
+            foreach (var crl in crls)
             {
                 crlList.Add(crl);
             }
 
-            return X509StoreFactory.Create("CRL/Collection", new X509CollectionStoreParameters(crlList));
+			return CollectionUtilities.CreateStore(crlList);
         }
 
         private static AuthorityKeyIdentifier CreateAuthorityKeyId(

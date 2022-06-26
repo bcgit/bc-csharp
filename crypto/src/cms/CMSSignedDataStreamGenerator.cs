@@ -566,14 +566,10 @@ namespace Org.BouncyCastle.Cms
 
 			foreach (string digestOid in _messageDigestOids)
             {
-				digestAlgs.Add(
-            		new AlgorithmIdentifier(new DerObjectIdentifier(digestOid), DerNull.Instance));
+				digestAlgs.Add(new AlgorithmIdentifier(new DerObjectIdentifier(digestOid), DerNull.Instance));
             }
 
-            {
-				byte[] tmp = new DerSet(digestAlgs).GetEncoded();
-				sigGen.GetRawOutputStream().Write(tmp, 0, tmp.Length);
-			}
+            new DerSet(digestAlgs).EncodeTo(sigGen.GetRawOutputStream());
 
 			BerSequenceGenerator eiGen = new BerSequenceGenerator(sigGen.GetRawOutputStream());
             eiGen.AddObject(contentTypeOid);
@@ -917,12 +913,9 @@ namespace Org.BouncyCastle.Cms
                 _sGen.Close();
             }
 
-			private static void WriteToGenerator(
-				Asn1Generator	ag,
-				Asn1Encodable	ae)
+			private static void WriteToGenerator(Asn1Generator ag, Asn1Encodable ae)
 			{
-				byte[] encoded = ae.GetEncoded();
-				ag.GetRawOutputStream().Write(encoded, 0, encoded.Length);
+				ae.EncodeTo(ag.GetRawOutputStream());
 			}
 		}
     }

@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using Org.BouncyCastle.Utilities;
@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Pkix
 	public class PkixPolicyNode
 //		: IPolicyNode
 	{
-		protected IList				mChildren;
+		protected IList<PkixPolicyNode> mChildren;
 		protected int				mDepth;
 		protected ISet				mExpectedPolicies;
 		protected PkixPolicyNode	mParent;
@@ -26,9 +26,9 @@ namespace Org.BouncyCastle.Pkix
 			get { return this.mDepth; }
 		}
 
-		public virtual IEnumerable Children
+		public virtual IEnumerable<PkixPolicyNode> Children
 		{
-			get { return new EnumerableProxy(mChildren); }
+			get { return CollectionUtilities.Proxy(mChildren); }
 		}
 
 		public virtual bool IsCritical
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Pkix
 
 		/// Constructors
 		public PkixPolicyNode(
-			IList			children,
+			IEnumerable<PkixPolicyNode> children,
 			int				depth,
 			ISet			expectedPolicies,
 			PkixPolicyNode	parent,
@@ -76,11 +76,11 @@ namespace Org.BouncyCastle.Pkix
 		{
             if (children == null)
             {
-                this.mChildren = Platform.CreateArrayList();
+				this.mChildren = new List<PkixPolicyNode>();
             }
             else
             {
-                this.mChildren = Platform.CreateArrayList(children);
+				this.mChildren = new List<PkixPolicyNode>(children);
             }
 
             this.mDepth = depth;
@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Pkix
 		public virtual PkixPolicyNode Copy()
 		{
 			PkixPolicyNode node = new PkixPolicyNode(
-                Platform.CreateArrayList(),
+				new List<PkixPolicyNode>(),
 				mDepth,
 				new HashSet(mExpectedPolicies),
 				null,

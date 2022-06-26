@@ -1,11 +1,10 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities.Collections;
@@ -132,7 +131,7 @@ namespace Org.BouncyCastle.Tests
 
 //			CertificateFactory cf = CertificateFactory.GetInstance("X.509");
 			X509CertificateParser cf = new X509CertificateParser();
-			IList certCol = new ArrayList();
+			var certCol = new List<X509Certificate>();
 
 			certCol.Add(cf.ReadCertificate(certA));
 			certCol.Add(cf.ReadCertificate(certB));
@@ -148,12 +147,10 @@ namespace Org.BouncyCastle.Tests
 			trustanchors.Add(new TrustAnchor(cf.ReadCertificate(rootCertBin), null));
 
 //			CertStore certStore = CertStore.getInstance("Collection", new CollectionCertStoreParameters(certCol));
-			IX509Store x509CertStore = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(certCol));
+			var x509CertStore = CollectionUtilities.CreateStore(certCol);
 
 			PkixBuilderParameters parameters = new PkixBuilderParameters(trustanchors, select);
-			parameters.AddStore(x509CertStore);
+			parameters.AddStoreCert(x509CertStore);
 
 			try
 			{

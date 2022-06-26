@@ -7,7 +7,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.X509.Store;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.X509
 {
@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.X509
 	/// </remarks>
 	public class AttributeCertificateHolder
 		//: CertSelector, Selector
-		: IX509Selector
+		: ISelector<X509Certificate>
 	{
 		internal readonly Holder holder;
 
@@ -325,9 +325,11 @@ namespace Org.BouncyCastle.X509
 			return new AttributeCertificateHolder((Asn1Sequence)holder.ToAsn1Object());
 		}
 
-		public bool Match(
-			X509Certificate x509Cert)
+		public bool Match(X509Certificate x509Cert)
 		{
+			if (x509Cert == null)
+				return false;
+
 			try
 			{
 				if (holder.BaseCertificateID != null)
@@ -416,18 +418,6 @@ namespace Org.BouncyCastle.X509
 		public override int GetHashCode()
 		{
 			return this.holder.GetHashCode();
-		}
-
-		public bool Match(
-			object obj)
-		{
-			if (!(obj is X509Certificate))
-			{
-				return false;
-			}
-
-//			return Match((Certificate)obj);
-			return Match((X509Certificate)obj);
 		}
 	}
 }

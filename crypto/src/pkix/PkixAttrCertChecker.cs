@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Pkix
 		* @throws CertPathValidatorException if the specified attribute certificate
 		*             does not pass the check.
 		*/
-		public abstract void Check(IX509AttributeCertificate attrCert, PkixCertPath certPath,
+		public abstract void Check(X509V2AttributeCertificate attrCert, PkixCertPath certPath,
 			PkixCertPath holderCertPath, ICollection unresolvedCritExts);
 
 		/**

@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic
+	;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Security.Certificates;
@@ -18,13 +20,11 @@ namespace Org.BouncyCastle.Pkix
 		* @param params PKIXBuilderParameters object containing all information to
 		*            build the CertPath
 		*/
-		public virtual PkixCertPathBuilderResult Build(
-			PkixBuilderParameters pkixParams)
+		public virtual PkixCertPathBuilderResult Build(PkixBuilderParameters pkixParams)
 		{
 			// search target certificates
 
-			IX509Selector certSelect = pkixParams.GetTargetConstraints();
-			if (!(certSelect is X509AttrCertStoreSelector))
+			if (!(pkixParams.GetTargetConstraintsAttrCert() is X509AttrCertStoreSelector attrCertSelector))
 			{
 				throw new PkixCertPathBuilderException(
 					"TargetConstraints must be an instance of "
@@ -33,11 +33,10 @@ namespace Org.BouncyCastle.Pkix
 					+ typeof(PkixAttrCertPathBuilder).FullName + " class.");
 			}
 
-			ICollection targets;
+			HashSet<X509V2AttributeCertificate> targets;
 			try
 			{
-				targets = PkixCertPathValidatorUtilities.FindCertificates(
-					(X509AttrCertStoreSelector)certSelect, pkixParams.GetStores());
+				targets = FindAttributeCertificates(attrCertSelector, pkixParams.GetStoresAttrCert());
 			}
 			catch (Exception e)
 			{
@@ -53,18 +52,19 @@ namespace Org.BouncyCastle.Pkix
 			PkixCertPathBuilderResult result = null;
 
 			// check all potential target certificates
-			foreach (IX509AttributeCertificate cert in targets)
+			foreach (var target in targets)
 			{
-				X509CertStoreSelector selector = new X509CertStoreSelector();
-				X509Name[] principals = cert.Issuer.GetPrincipals();
+				X509CertStoreSelector certSelector = new X509CertStoreSelector();
+				X509Name[] principals = target.Issuer.GetPrincipals();
 				ISet issuers = new HashSet();
 				for (int i = 0; i < principals.Length; i++)
 				{
 					try
 					{
-						selector.Subject = principals[i];
+						certSelector.Subject = principals[i];
 
-						issuers.AddAll(PkixCertPathValidatorUtilities.FindCertificates(selector, pkixParams.GetStores()));
+						issuers.AddAll(PkixCertPathValidatorUtilities.FindCertificates(certSelector,
+							pkixParams.GetStoresCert()));
 					}
 					catch (Exception e)
 					{
@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Pkix
 
 				foreach (X509Certificate issuer in issuers)
 				{
-					result = Build(cert, issuer, pkixParams, certPathList);
+					result = Build(target, issuer, pkixParams, certPathList);
 
 					if (result != null)
 						break;
@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Pkix
 		private Exception certPathException;
 
 		private PkixCertPathBuilderResult Build(
-			IX509AttributeCertificate	attrCert,
+			X509V2AttributeCertificate  attrCert,
 			X509Certificate				tbvCert,
 			PkixBuilderParameters		pkixParams,
 			IList						tbvPath)
@@ -210,6 +210,27 @@ namespace Org.BouncyCastle.Pkix
 			}
 
 			return builderResult;
+		}
+
+		internal static HashSet<X509V2AttributeCertificate> FindAttributeCertificates(
+			ISelector<X509V2AttributeCertificate> attrCertSelector,
+			IList<IStore<X509V2AttributeCertificate>> attrCertStores)
+		{
+			var attrCerts = new HashSet<X509V2AttributeCertificate>();
+
+			foreach (var attrCertStore in attrCertStores)
+			{
+				try
+				{
+					attrCerts.UnionWith(attrCertStore.EnumerateMatches(attrCertSelector));
+				}
+				catch (Exception e)
+				{
+					throw new Exception("Problem while picking certificates from X.509 store.", e);
+				}
+			}
+
+			return attrCerts;
 		}
 	}
 }

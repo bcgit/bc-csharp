@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Tests
 			get { return "AttrCertSelector"; }
 		}
 
-		private IX509AttributeCertificate CreateAttrCert()
+		private X509V2AttributeCertificate CreateAttrCert()
 		{
 //			CertificateFactory fact = CertificateFactory.getInstance("X.509", "BC");
 //			X509Certificate iCert = (X509Certificate) fact
@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Tests
 		[Test]
 		public void TestSelector()
 		{
-			IX509AttributeCertificate aCert = CreateAttrCert();
+			X509V2AttributeCertificate aCert = CreateAttrCert();
 			X509AttrCertStoreSelector sel = new X509AttrCertStoreSelector();
 			sel.AttributeCert = aCert;
 			bool match = sel.Match(aCert);

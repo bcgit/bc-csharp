@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -7,10 +8,8 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Ocsp
 {
@@ -156,29 +155,25 @@ namespace Org.BouncyCastle.Ocsp
 			return req.OptionalSignature.GetSignatureOctets();
 		}
 
-        private IList GetCertList()
+        private List<X509Certificate> GetCertList()
 		{
 			// load the certificates if we have any
 
-			IList certs = Platform.CreateArrayList();
-			Asn1Sequence s = req.OptionalSignature.Certs;
+			var result = new List<X509Certificate>();
 
-			if (s != null)
+			Asn1Sequence certs = req.OptionalSignature.Certs;
+			if (certs != null)
 			{
-				foreach (Asn1Encodable ae in s)
+				foreach (Asn1Encodable ae in certs)
 				{
-					try
-					{
-						certs.Add(new X509CertificateParser().ReadCertificate(ae.GetEncoded()));
-					}
-					catch (Exception e)
-					{
-						throw new OcspException("can't re-encode certificate!", e);
-					}
-				}
+                    if (ae != null && ae.ToAsn1Object() is Asn1Sequence s)
+                    {
+                        result.Add(new X509Certificate(X509CertificateStructure.GetInstance(s)));
+                    }
+                }
 			}
 
-			return certs;
+			return result;
 		}
 
 		public X509Certificate[] GetCerts()
@@ -186,13 +181,7 @@ namespace Org.BouncyCastle.Ocsp
 			if (!this.IsSigned)
 				return null;
 
-			IList certs = this.GetCertList();
-            X509Certificate[] result = new X509Certificate[certs.Count];
-            for (int i = 0; i < certs.Count; ++i)
-            {
-                result[i] = (X509Certificate)certs[i];
-            }
-            return result;
+			return this.GetCertList().ToArray();
 		}
 
 		/**
@@ -202,22 +191,12 @@ namespace Org.BouncyCastle.Ocsp
 		 * @return null if not signed, a CertStore otherwise
 		 * @throws OcspException
 		 */
-		public IX509Store GetCertificates(
-			string type)
+		public IStore<X509Certificate> GetCertificates()
 		{
 			if (!this.IsSigned)
 				return null;
 
-			try
-			{
-				return X509StoreFactory.Create(
-					"Certificate/" + type,
-					new X509CollectionStoreParameters(this.GetCertList()));
-			}
-			catch (Exception e)
-			{
-				throw new OcspException("can't setup the CertStore", e);
-			}
+			return CollectionUtilities.CreateStore(this.GetCertList());
 		}
 
 		/**

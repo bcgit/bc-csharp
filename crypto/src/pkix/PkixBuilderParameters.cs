@@ -2,7 +2,7 @@ using System;
 using System.Text;
 
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.X509.Store;
+using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -34,17 +34,23 @@ namespace Org.BouncyCastle.Pkix
 		{
 			PkixBuilderParameters parameters = new PkixBuilderParameters(
 				pkixParams.GetTrustAnchors(),
-				new X509CertStoreSelector(pkixParams.GetTargetCertConstraints()));
+				pkixParams.GetTargetConstraintsCert(),
+				pkixParams.GetTargetConstraintsAttrCert());
 			parameters.SetParams(pkixParams);
 			return parameters;
 		}
 
-		public PkixBuilderParameters(
-			ISet			trustAnchors,
-			IX509Selector	targetConstraints)
+		public PkixBuilderParameters(ISet trustAnchors, ISelector<X509Certificate> targetConstraintsCert)
+			: this(trustAnchors, targetConstraintsCert, null)
+		{
+		}
+
+		public PkixBuilderParameters(ISet trustAnchors, ISelector<X509Certificate> targetConstraintsCert,
+			ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
 			: base(trustAnchors)
 		{
-			SetTargetCertConstraints(targetConstraints);
+			SetTargetConstraintsCert(targetConstraintsCert);
+			SetTargetConstraintsAttrCert(targetConstraintsAttrCert);
 		}
 
 		public virtual int MaxPathLength
@@ -120,7 +126,9 @@ namespace Org.BouncyCastle.Pkix
 		public override object Clone()
 		{
 			PkixBuilderParameters parameters = new PkixBuilderParameters(
-				GetTrustAnchors(), GetTargetCertConstraints());
+				GetTrustAnchors(),
+				GetTargetConstraintsCert(),
+				GetTargetConstraintsAttrCert());
 			parameters.SetParams(this);
 			return parameters;
 		}

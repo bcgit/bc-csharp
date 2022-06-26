@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -16,7 +17,6 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -219,142 +219,6 @@ namespace Org.BouncyCastle.Cms
 			return SignerUtilities.GetSigner(algorithm);
 		}
 
-		internal IX509Store CreateAttributeStore(
-			string	type,
-			Asn1Set	certSet)
-		{
-			IList certs = Platform.CreateArrayList();
-
-			if (certSet != null)
-			{
-				foreach (Asn1Encodable ae in certSet)
-				{
-					try
-					{
-						Asn1Object obj = ae.ToAsn1Object();
-
-						if (obj is Asn1TaggedObject)
-						{
-							Asn1TaggedObject tagged = (Asn1TaggedObject)obj;
-
-							if (tagged.TagNo == 2)
-							{
-								certs.Add(
-									new X509V2AttributeCertificate(
-										Asn1Sequence.GetInstance(tagged, false).GetEncoded()));
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						throw new CmsException("can't re-encode attribute certificate!", ex);
-					}
-				}
-			}
-
-			try
-			{
-				return X509StoreFactory.Create(
-					"AttributeCertificate/" + type,
-					new X509CollectionStoreParameters(certs));
-			}
-			catch (ArgumentException e)
-			{
-				throw new CmsException("can't setup the X509Store", e);
-			}
-		}
-
-		internal IX509Store CreateCertificateStore(
-			string	type,
-			Asn1Set	certSet)
-		{
-			IList certs = Platform.CreateArrayList();
-
-			if (certSet != null)
-			{
-				AddCertsFromSet(certs, certSet);
-			}
-
-			try
-			{
-				return X509StoreFactory.Create(
-					"Certificate/" + type,
-					new X509CollectionStoreParameters(certs));
-			}
-			catch (ArgumentException e)
-			{
-				throw new CmsException("can't setup the X509Store", e);
-			}
-		}
-
-		internal IX509Store CreateCrlStore(
-			string	type,
-			Asn1Set	crlSet)
-		{
-			IList crls = Platform.CreateArrayList();
-
-			if (crlSet != null)
-			{
-				AddCrlsFromSet(crls, crlSet);
-			}
-
-			try
-			{
-				return X509StoreFactory.Create(
-					"CRL/" + type,
-					new X509CollectionStoreParameters(crls));
-			}
-			catch (ArgumentException e)
-			{
-				throw new CmsException("can't setup the X509Store", e);
-			}
-		}
-
-		private void AddCertsFromSet(
-			IList	certs,
-			Asn1Set	certSet)
-		{
-			X509CertificateParser cf = new X509CertificateParser();
-
-			foreach (Asn1Encodable ae in certSet)
-			{
-				try
-				{
-					Asn1Object obj = ae.ToAsn1Object();
-
-					if (obj is Asn1Sequence)
-					{
-						// TODO Build certificate directly from sequence?
-						certs.Add(cf.ReadCertificate(obj.GetEncoded()));
-					}
-				}
-				catch (Exception ex)
-				{
-					throw new CmsException("can't re-encode certificate!", ex);
-				}
-			}
-		}
-
-		private void AddCrlsFromSet(
-			IList	crls,
-			Asn1Set	crlSet)
-		{
-			X509CrlParser cf = new X509CrlParser();
-
-			foreach (Asn1Encodable ae in crlSet)
-			{
-				try
-				{
-					// TODO Build CRL directly from ae.ToAsn1Object()?
-					crls.Add(cf.ReadCrl(ae.GetEncoded()));
-				}
-				catch (Exception ex)
-				{
-					throw new CmsException("can't re-encode CRL!", ex);
-				}
-			}
-		}
-
 		internal AlgorithmIdentifier FixAlgID(
 			AlgorithmIdentifier algId)
 		{
@@ -434,17 +298,57 @@ namespace Org.BouncyCastle.Cms
             return encOID;
         }
 
-		public IX509Store GetCertificates(Asn1Set certificates)
+		internal IStore<X509V2AttributeCertificate> GetAttributeCertificates(Asn1Set attrCertSet)
 		{
-            IList certList = Platform.CreateArrayList();
-			if (certificates != null)
-            {				
-				foreach (Asn1Encodable enc in certificates)
-                {
-					certList.Add(X509CertificateStructure.GetInstance(enc));
-                }				
+			var contents = new List<X509V2AttributeCertificate>();
+			if (attrCertSet != null)
+			{
+				foreach (Asn1Encodable ae in attrCertSet)
+				{
+					if (ae != null && ae.ToAsn1Object() is Asn1TaggedObject t)
+					{
+						if (t.HasContextTag(2))
+						{
+							Asn1Sequence s = Asn1Sequence.GetInstance(t, false);
+
+							contents.Add(new X509V2AttributeCertificate(AttributeCertificate.GetInstance(s)));
+						}
+					}
+				}
 			}
-			return new X509CollectionStore(certList);
+			return CollectionUtilities.CreateStore(contents);
 		}
-	}
+
+		internal IStore<X509Certificate> GetCertificates(Asn1Set certSet)
+		{
+			var contents = new List<X509Certificate>();
+			if (certSet != null)
+            {
+				foreach (Asn1Encodable ae in certSet)
+				{
+					if (ae != null && ae.ToAsn1Object() is Asn1Sequence s)
+					{
+						contents.Add(new X509Certificate(X509CertificateStructure.GetInstance(s)));
+					}
+				}
+			}
+			return CollectionUtilities.CreateStore(contents);
+		}
+
+		internal IStore<X509Crl> GetCrls(Asn1Set crlSet)
+		{
+			var contents = new List<X509Crl>();
+			if (crlSet != null)
+			{
+				foreach (Asn1Encodable ae in crlSet)
+				{
+					if (ae != null && ae.ToAsn1Object() is Asn1Sequence s)
+					{
+						contents.Add(new X509Crl(CertificateList.GetInstance(s)));
+					}
+				}
+			}
+			return CollectionUtilities.CreateStore(contents);
+		}
+    }
 }

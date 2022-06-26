@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
-using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -15,8 +14,8 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tsp
 {
@@ -34,8 +33,11 @@ namespace Org.BouncyCastle.Tsp
         private GeneralName tsa = null;
         private DerObjectIdentifier tsaPolicyOID;
     
-        private IX509Store x509Certs;
-        private IX509Store x509Crls;
+        private IStore<X509Certificate> x509Certs;
+        private IStore<X509Crl> x509Crls;
+        private IStore<X509V2AttributeCertificate> x509AttrCerts;
+        // TODO Port changes from bc-java
+        //private IDictionary otherRevoc = Platform.CreateHashtable();
         private SignerInfoGenerator signerInfoGenerator;
         IDigestFactory digestCalculator;
 
@@ -204,15 +206,17 @@ namespace Org.BouncyCastle.Tsp
                 .Build(sigfact, cert);
         }
 
+        public void SetAttributeCertificates(IStore<X509V2AttributeCertificate> attributeCertificates)
+        {
+            this.x509AttrCerts = attributeCertificates;
+        }
 
-        public void SetCertificates(
-        IX509Store certificates)
+        public void SetCertificates(IStore<X509Certificate> certificates)
         {
             this.x509Certs = certificates;
         }
 
-        public void SetCrls(
-            IX509Store crls)
+        public void SetCrls(IStore<X509Crl> crls)
         {
             this.x509Crls = crls;
         }
@@ -365,6 +369,7 @@ namespace Org.BouncyCastle.Tsp
                 if (request.CertReq)
                 {
                     signedDataGenerator.AddCertificates(x509Certs);
+                    signedDataGenerator.AddAttributeCertificates(x509AttrCerts);
                 }
 
                 signedDataGenerator.AddCrls(x509Crls);
@@ -385,10 +390,6 @@ namespace Org.BouncyCastle.Tsp
             catch (IOException e)
             {
                 throw new TspException("Exception encoding info", e);
-            }
-            catch (X509StoreException e)
-            {
-                throw new TspException("Exception handling CertStore", e);
             }
             //			catch (InvalidAlgorithmParameterException e)
             //			{
