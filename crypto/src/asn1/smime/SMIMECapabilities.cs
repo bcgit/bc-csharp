@@ -1,7 +1,6 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
@@ -76,35 +75,22 @@ namespace Org.BouncyCastle.Asn1.Smime
          * matching the passed in capability Oid. If the Oid passed is null the
          * entire set is returned.
          */
-        public IList GetCapabilitiesForOid(
-            DerObjectIdentifier capability)
+        public IList<SmimeCapability> GetCapabilitiesForOid(DerObjectIdentifier capability)
         {
-            IList list = Platform.CreateArrayList();
+            var list = new List<SmimeCapability>();
             DoGetCapabilitiesForOid(capability, list);
 			return list;
         }
 
-        private void DoGetCapabilitiesForOid(DerObjectIdentifier capability, IList list)
+        private void DoGetCapabilitiesForOid(DerObjectIdentifier capability, IList<SmimeCapability> list)
         {
-			if (capability == null)
+            foreach (object o in capabilities)
             {
-				foreach (object o in capabilities)
-				{
-                    SmimeCapability cap = SmimeCapability.GetInstance(o);
+                SmimeCapability cap = SmimeCapability.GetInstance(o);
 
-					list.Add(cap);
-                }
-            }
-            else
-            {
-				foreach (object o in capabilities)
-				{
-                    SmimeCapability cap = SmimeCapability.GetInstance(o);
-
-					if (capability.Equals(cap.CapabilityID))
-                    {
-                        list.Add(cap);
-                    }
+                if (capability == null || capability.Equals(cap.CapabilityID))
+                {
+                    list.Add(cap);
                 }
             }
         }

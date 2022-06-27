@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Tsp
 {
@@ -30,10 +27,9 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new TstInfo(Asn1Sequence.GetInstance(obj));
 		}
 
-		private TstInfo(
-			Asn1Sequence seq)
+		private TstInfo(Asn1Sequence seq)
 		{
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 
 			// version
 			e.MoveNext();

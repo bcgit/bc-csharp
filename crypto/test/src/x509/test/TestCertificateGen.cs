@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Digests;
@@ -73,21 +75,21 @@ namespace Org.BouncyCastle.X509.Tests
             RsaKeyParameters rsaPublic = new RsaKeyParameters(false, rsaPubMod, rsaPubExp);
 			RsaPrivateCrtKeyParameters rsaPrivate = new RsaPrivateCrtKeyParameters(rsaPrivMod, rsaPubExp, rsaPrivExp, rsaPrivP, rsaPrivQ, rsaPrivDP, rsaPrivDQ, rsaPrivQinv);
 
-			IDictionary attrs = new Hashtable();
+			var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs[X509Name.C] = "AU";
             attrs[X509Name.O] = "The Legion of the Bouncy Castle";
             attrs[X509Name.L] = "Melbourne";
             attrs[X509Name.ST] = "Victoria";
             attrs[X509Name.E] = "feedback-crypto@bouncycastle.org";
 
-            IList ord = new ArrayList();
+            var ord = new List<DerObjectIdentifier>();
             ord.Add(X509Name.C);
             ord.Add(X509Name.O);
             ord.Add(X509Name.L);
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-			IList values = new ArrayList();
+			var values = new List<string>();
 			values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
@@ -149,21 +151,21 @@ namespace Org.BouncyCastle.X509.Tests
             DsaPrivateKeyParameters dsaPriv = new DsaPrivateKeyParameters(DsaPrivateX, para);
             DsaPublicKeyParameters dsaPub = new DsaPublicKeyParameters(DSAPublicY, para);
 
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs[X509Name.C] = "AU";
             attrs[X509Name.O] = "The Legion of the Bouncy Castle";
             attrs[X509Name.L] = "Melbourne";
             attrs[X509Name.ST] = "Victoria";
             attrs[X509Name.E] = "feedback-crypto@bouncycastle.org";
 
-            IList ord = new ArrayList();
+            var ord = new List<DerObjectIdentifier>();
             ord.Add(X509Name.C);
             ord.Add(X509Name.O);
             ord.Add(X509Name.L);
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-            IList values = new ArrayList();
+            var values = new List<string>();
 			values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
@@ -229,21 +231,21 @@ namespace Org.BouncyCastle.X509.Tests
                 curve.ValidatePoint(ECPubQX, ECPubQY), ecDomain);
             ECPrivateKeyParameters ecPriv = new ECPrivateKeyParameters("ECDSA", ECPrivD, ecDomain);
 
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
 			attrs[X509Name.C] = "AU";
             attrs[X509Name.O] = "The Legion of the Bouncy Castle";
             attrs[X509Name.L] = "Melbourne";
             attrs[X509Name.ST] = "Victoria";
             attrs[X509Name.E] = "feedback-crypto@bouncycastle.org";
 
-            IList ord = new ArrayList();
+            var ord = new List<DerObjectIdentifier>();
             ord.Add(X509Name.C);
             ord.Add(X509Name.O);
             ord.Add(X509Name.L);
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-			IList values = new ArrayList();
+			var values = new List<string>();
 			values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");

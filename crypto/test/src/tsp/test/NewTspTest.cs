@@ -869,14 +869,14 @@ namespace Org.BouncyCastle.Tsp.Tests
 			//
 			// Add the ESSCertID attribute
 			//
-			IDictionary signedAttrs;
+			IDictionary<DerObjectIdentifier, object> signedAttrs;
 			if (signedAttr != null)
 			{
 				signedAttrs = signedAttr.ToDictionary();
 			}
 			else
 			{
-				signedAttrs = new Hashtable();
+				signedAttrs = new Dictionary<DerObjectIdentifier, object>();
 			}
 
             string digestName = TspTestUtil.GetDigestAlgName(digestOID);

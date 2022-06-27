@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Utilities.Collections
 
 		public abstract int Count { get; }
 
-		IEnumerator IEnumerable.GetEnumerator()
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}

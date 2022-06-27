@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -321,8 +322,8 @@ namespace Org.BouncyCastle.Cmp.Tests
 
     public class TestCertBuilder
     {
-        IDictionary attrs = new Hashtable();
-        IList ord = new ArrayList();
+        IDictionary<DerObjectIdentifier, string> attrs = new Dictionary<DerObjectIdentifier, string>();
+        IList<DerObjectIdentifier> ord = new List<DerObjectIdentifier>();
         IList values = new ArrayList();
 
         private DateTime notBefore, notAfter;
@@ -366,7 +367,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             set { this.subject = value; }
         }
 
-        public TestCertBuilder AddAttribute(DerObjectIdentifier name, object value)
+        public TestCertBuilder AddAttribute(DerObjectIdentifier name, string value)
         {
             attrs[name] = value;
             ord.Add(name);

@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("wrong vector size for single.");
             }
 
-            IDictionary t = table.ToDictionary();
+            var t = table.ToDictionary();
 
 			if (t.Count != 2)
             {

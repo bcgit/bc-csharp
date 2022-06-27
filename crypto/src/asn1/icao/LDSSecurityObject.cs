@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
@@ -31,8 +30,7 @@ namespace Org.BouncyCastle.Asn1.Icao
 		private DataGroupHash[] datagroupHash;
 		private LdsVersionInfo versionInfo;
 
-		public static LdsSecurityObject GetInstance(
-			object obj)
+		public static LdsSecurityObject GetInstance(object obj)
 		{
 			if (obj is LdsSecurityObject)
 				return (LdsSecurityObject)obj;
@@ -43,13 +41,12 @@ namespace Org.BouncyCastle.Asn1.Icao
 			return null;
 		}
 
-		private LdsSecurityObject(
-			Asn1Sequence seq)
+		private LdsSecurityObject(Asn1Sequence seq)
 		{
 			if (seq == null || seq.Count == 0)
 				throw new ArgumentException("null or empty sequence passed.");
 
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 
 			// version
 			e.MoveNext();

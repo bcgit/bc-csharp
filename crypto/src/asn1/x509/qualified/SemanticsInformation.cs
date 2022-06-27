@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509.Qualified
@@ -42,33 +40,30 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
 		}
 
-		public SemanticsInformation(
-			Asn1Sequence seq)
+		public SemanticsInformation(Asn1Sequence seq)
         {
             if (seq.Count < 1)
-            {
                 throw new ArgumentException("no objects in SemanticsInformation");
-            }
 
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 			e.MoveNext();
-            object obj = e.Current;
-            if (obj is DerObjectIdentifier)
+            var obj = e.Current;
+            if (obj is DerObjectIdentifier oid)
             {
-                semanticsIdentifier = DerObjectIdentifier.GetInstance(obj);
+                semanticsIdentifier = oid;
                 if (e.MoveNext())
                 {
-                    obj  = e.Current;
+                    obj = e.Current;
                 }
                 else
                 {
-                    obj  = null;
+                    obj = null;
                 }
             }
 
-			if (obj  != null)
+			if (obj != null)
             {
-                Asn1Sequence generalNameSeq = Asn1Sequence.GetInstance(obj );
+                Asn1Sequence generalNameSeq = Asn1Sequence.GetInstance(obj);
                 nameRegistrationAuthorities = new GeneralName[generalNameSeq.Count];
                 for (int i= 0; i < generalNameSeq.Count; i++)
                 {
@@ -97,7 +92,10 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             this.nameRegistrationAuthorities = generalNames;
         }
 
-		public DerObjectIdentifier SemanticsIdentifier { get { return semanticsIdentifier; } }
+		public DerObjectIdentifier SemanticsIdentifier 
+        {
+            get { return semanticsIdentifier; }
+        }
 
 		public GeneralName[] GetNameRegistrationAuthorities()
         {

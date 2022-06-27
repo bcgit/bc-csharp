@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Utilities;
@@ -145,18 +144,13 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		private readonly string				registrationNumber;
 		private readonly Asn1OctetString	addProfessionInfo;
 
-		public static ProfessionInfo GetInstance(
-			object obj)
+		public static ProfessionInfo GetInstance(object obj)
 		{
 			if (obj == null || obj is ProfessionInfo)
-			{
 				return (ProfessionInfo) obj;
-			}
 
-			if (obj is Asn1Sequence)
-			{
-				return new ProfessionInfo((Asn1Sequence) obj);
-			}
+			if (obj is Asn1Sequence seq)
+				return new ProfessionInfo(seq);
 
             throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
@@ -178,61 +172,42 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		*
 		* @param seq The ASN.1 sequence.
 		*/
-		private ProfessionInfo(
-			Asn1Sequence seq)
+		private ProfessionInfo(Asn1Sequence seq)
 		{
 			if (seq.Count > 5)
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
 
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 
 			e.MoveNext();
-			Asn1Encodable o = (Asn1Encodable) e.Current;
+			Asn1Encodable o = e.Current;
 
-			if (o is Asn1TaggedObject)
+			if (o is Asn1TaggedObject ato)
 			{
-				Asn1TaggedObject ato = (Asn1TaggedObject) o;
 				if (ato.TagNo != 0)
 					throw new ArgumentException("Bad tag number: " + ato.TagNo);
 
 				namingAuthority = NamingAuthority.GetInstance(ato, true);
 				e.MoveNext();
-				o = (Asn1Encodable) e.Current;
+				o = e.Current;
 			}
 
 			professionItems = Asn1Sequence.GetInstance(o);
 
 			if (e.MoveNext())
 			{
-				o = (Asn1Encodable) e.Current;
-				if (o is Asn1Sequence)
+				o = e.Current;
+				if (o is Asn1Sequence sequence)
 				{
-					professionOids = Asn1Sequence.GetInstance(o);
+					professionOids = sequence;
 				}
-				else if (o is DerPrintableString)
+				else if (o is DerPrintableString printable)
 				{
-					registrationNumber = DerPrintableString.GetInstance(o).GetString();
+					registrationNumber = printable.GetString();
 				}
-				else if (o is Asn1OctetString)
+				else if (o is Asn1OctetString octets)
 				{
-					addProfessionInfo = Asn1OctetString.GetInstance(o);
-				}
-				else
-				{
-                    throw new ArgumentException("Bad object encountered: " + Platform.GetTypeName(o));
-				}
-			}
-
-			if (e.MoveNext())
-			{
-				o = (Asn1Encodable) e.Current;
-				if (o is DerPrintableString)
-				{
-					registrationNumber = DerPrintableString.GetInstance(o).GetString();
-				}
-				else if (o is DerOctetString)
-				{
-					addProfessionInfo = (DerOctetString) o;
+					addProfessionInfo = octets;
 				}
 				else
 				{
@@ -242,10 +217,27 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 
 			if (e.MoveNext())
 			{
-				o = (Asn1Encodable) e.Current;
-				if (o is DerOctetString)
+				o = e.Current;
+				if (o is DerPrintableString printable)
 				{
-					addProfessionInfo = (DerOctetString) o;
+					registrationNumber = printable.GetString();
+				}
+				else if (o is Asn1OctetString octets)
+				{
+					addProfessionInfo = octets;
+				}
+				else
+				{
+                    throw new ArgumentException("Bad object encountered: " + Platform.GetTypeName(o));
+				}
+			}
+
+			if (e.MoveNext())
+			{
+				o = e.Current;
+				if (o is Asn1OctetString octets)
+				{
+					addProfessionInfo = octets;
 				}
 				else
 				{

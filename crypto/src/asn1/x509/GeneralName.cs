@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -367,7 +367,8 @@ namespace Org.BouncyCastle.Asn1.X509
 				ip = ip.Substring(0, ip.Length - 1);
 			}
 
-			IEnumerator sEnum = ip.Split(':').GetEnumerator();
+			IEnumerable<string> split = ip.Split(':');
+			var sEnum = split.GetEnumerator();
 
 			int index = 0;
 			int[] val = new int[8];
@@ -376,7 +377,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 			while (sEnum.MoveNext())
 			{
-				string e = (string) sEnum.Current;
+				string e = sEnum.Current;
 
 				if (e.Length == 0)
 				{

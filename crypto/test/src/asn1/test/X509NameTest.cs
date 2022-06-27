@@ -41,10 +41,10 @@ namespace Org.BouncyCastle.Asn1.Tests
             DerObjectIdentifier	oid,
             string				value)
         {
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(oid, value);
 
-            IList ord = new ArrayList();
+            var ord = new List<DerObjectIdentifier>();
             ord.Add(oid);
 
             X509Name name = new X509Name(ord, attrs);
@@ -60,10 +60,10 @@ namespace Org.BouncyCastle.Asn1.Tests
             DerObjectIdentifier	oid,
             string				val)
         {
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(oid, val);
 
-            IList ord = new ArrayList(attrs.Keys);
+            var ord = new List<DerObjectIdentifier>(attrs.Keys);
 
             X509Name name = new X509Name(new X509Name(ord, attrs).ToString());
 
@@ -127,14 +127,14 @@ namespace Org.BouncyCastle.Asn1.Tests
             //
             // composite
             //
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(X509Name.C, "AU");
             attrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
             attrs.Add(X509Name.L, "Melbourne");
             attrs.Add(X509Name.ST, "Victoria");
             attrs.Add(X509Name.E, "feedback-crypto@bouncycastle.org");
 
-            IList order = new ArrayList();
+            var order = new List<DerObjectIdentifier>();
             order.Add(X509Name.C);
             order.Add(X509Name.O);
             order.Add(X509Name.L);
@@ -583,7 +583,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("Failed composite to string test got: " + n.ToString());
             }
 
-            IDictionary symbols = X509Name.DefaultSymbols;
+            var symbols = X509Name.DefaultSymbols;
             if (!n.ToString(true, symbols).Equals("L=Melbourne+OU=Ascot Vale,O=The Legion of the Bouncy Castle,C=AU"))
             {
                 Fail("Failed composite to string test got: " + n.ToString(true, symbols));

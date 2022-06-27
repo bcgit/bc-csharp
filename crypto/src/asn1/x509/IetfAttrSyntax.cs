@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-
-using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Asn1.X509
 {

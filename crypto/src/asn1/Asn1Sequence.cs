@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -113,7 +112,7 @@ namespace Org.BouncyCastle.Asn1
             this.elements = elementVector.TakeElements();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }

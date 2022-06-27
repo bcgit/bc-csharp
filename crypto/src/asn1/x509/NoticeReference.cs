@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Math;
 
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly DisplayText organization;
         private readonly Asn1Sequence noticeNumbers;
 
-        private static Asn1EncodableVector ConvertVector(IList numbers)
+        private static Asn1EncodableVector ConvertVector(IList<object> numbers)
         {
             Asn1EncodableVector av = new Asn1EncodableVector();
 
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * @param organization a <code>String</code> value
          * @param numbers a <code>Vector</code> value
          */
-        public NoticeReference(string organization, IList numbers)
+        public NoticeReference(string organization, IList<object> numbers)
             : this(organization, ConvertVector(numbers))
         {
         }

@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Text;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509

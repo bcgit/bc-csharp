@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
@@ -10,9 +9,8 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         private readonly DerInteger			crlNum;
         private readonly DerGeneralizedTime	crlTime;
 
-		// TODO Add GetInstance method(s) and amke this private?
-		public CrlID(
-            Asn1Sequence seq)
+		// TODO Add GetInstance method(s) and make this private?
+		public CrlID(Asn1Sequence seq)
         {
 			foreach (Asn1TaggedObject o in seq)
 			{

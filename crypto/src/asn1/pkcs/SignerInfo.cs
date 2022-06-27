@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
@@ -57,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public SignerInfo(
             Asn1Sequence seq)
         {
-            IEnumerator e = seq.GetEnumerator();
+            var e = seq.GetEnumerator();
 
 			e.MoveNext();
             version = (DerInteger) e.Current;
@@ -69,11 +68,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             digAlgorithm = AlgorithmIdentifier.GetInstance(e.Current);
 
 			e.MoveNext();
-            object obj = e.Current;
+            var obj = e.Current;
 
-			if (obj is Asn1TaggedObject)
+			if (obj is Asn1TaggedObject tagged)
             {
-                authenticatedAttributes = Asn1Set.GetInstance((Asn1TaggedObject) obj, false);
+                authenticatedAttributes = Asn1Set.GetInstance(tagged, false);
 
 				e.MoveNext();
                 digEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(e.Current);

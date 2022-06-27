@@ -649,21 +649,21 @@ namespace Org.BouncyCastle.Tsp.Tests
 		}
 
         internal static SignerInfoGenerator MakeInfoGenerator(AsymmetricKeyParameter key, X509Certificate cert,
-			string digestOID, Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
+			string digestOID, AttributeTable signedAttr, AttributeTable unsignedAttr)
         {
             TspUtil.ValidateCertificate(cert);
 
 			//
 			// Add the ESSCertID attribute
 			//
-			IDictionary signedAttrs;
+			IDictionary<DerObjectIdentifier, object> signedAttrs;
 			if (signedAttr != null)
 			{
 				signedAttrs = signedAttr.ToDictionary();
 			}
 			else
 			{
-				signedAttrs = new Hashtable();
+				signedAttrs = new Dictionary<DerObjectIdentifier, object>();
 			}
 
 			string digestName = TspTestUtil.GetDigestAlgName(digestOID);
@@ -672,11 +672,10 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			Asn1SignatureFactory sigfact = new Asn1SignatureFactory(signatureName, key);
 			return new SignerInfoGeneratorBuilder()
-			 .WithSignedAttributeGenerator(
-				new DefaultSignedAttributeTableGenerator(
-					new Asn1.Cms.AttributeTable(signedAttrs)))
-			  .WithUnsignedAttributeGenerator(
-				new SimpleAttributeTableGenerator(unsignedAttr))
+				.WithSignedAttributeGenerator(
+					new DefaultSignedAttributeTableGenerator(new AttributeTable(signedAttrs)))
+				.WithUnsignedAttributeGenerator(
+					new SimpleAttributeTableGenerator(unsignedAttr))
 				.Build(sigfact, cert);
 		}
 	}

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Utilities.Collections
@@ -13,7 +12,7 @@ namespace Org.BouncyCastle.Utilities.Collections
             set { throw new NotSupportedException(); }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }

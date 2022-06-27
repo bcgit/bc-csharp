@@ -37,12 +37,12 @@ namespace Org.BouncyCastle.Utilities.Collections
 			m_inner = inner;
 		}
 
-		IEnumerator IEnumerable.GetEnumerator()
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return m_inner.GetEnumerator();
 		}
 
-		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		public IEnumerator<T> GetEnumerator()
 		{
 			return m_inner.GetEnumerator();
 		}

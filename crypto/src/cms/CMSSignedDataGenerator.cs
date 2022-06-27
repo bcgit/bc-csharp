@@ -136,12 +136,7 @@ namespace Org.BouncyCastle.Cms
                 }
 
                 IStreamCalculator calculator = sigCalc.CreateCalculator();
-
-#if PORTABLE
-				Stream sigStr = calculator.Stream;
-#else
 				Stream sigStr = new BufferedStream(calculator.Stream);
-#endif
 
 				Asn1Set signedAttr = null;
 				if (sAttr != null)
@@ -155,9 +150,7 @@ namespace Org.BouncyCastle.Cms
                     {
                         if (signed != null && signed[CmsAttributes.ContentType] != null)
                         {
-                            IDictionary tmpSigned = signed.ToDictionary();
-                            tmpSigned.Remove(CmsAttributes.ContentType);
-                            signed = new Asn1.Cms.AttributeTable(tmpSigned);
+							signed = signed.Remove(CmsAttributes.ContentType);
                         }
                     }
 

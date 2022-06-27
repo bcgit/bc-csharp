@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1
@@ -141,7 +140,7 @@ namespace Org.BouncyCastle.Asn1
             get { return elementCount; }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }

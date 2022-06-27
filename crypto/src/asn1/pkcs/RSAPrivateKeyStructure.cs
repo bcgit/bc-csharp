@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Pkcs

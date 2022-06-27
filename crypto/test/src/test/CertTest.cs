@@ -1144,7 +1144,7 @@ namespace Org.BouncyCastle.Tests
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-            IList values = new ArrayList();
+            var values = new List<string>();
             values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
@@ -1298,7 +1298,7 @@ namespace Org.BouncyCastle.Tests
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-            IList values = new ArrayList();
+            var values = new List<string>();
             values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
@@ -1423,8 +1423,8 @@ namespace Org.BouncyCastle.Tests
             //
             // distinguished name table.
             //
-            IDictionary attrs = new Hashtable();
-            IList order = new ArrayList();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
+            var order = new List<DerObjectIdentifier>();
 
             attrs.Add(X509Name.C, "AU");
             attrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
@@ -1552,8 +1552,8 @@ namespace Org.BouncyCastle.Tests
             //
             // distinguished name table.
             //
-            IDictionary attrs = new Hashtable();
-            IList order = new ArrayList();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
+            var order = new List<DerObjectIdentifier>();
 
             attrs.Add(X509Name.C, "AU");
             attrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
@@ -2001,14 +2001,14 @@ namespace Org.BouncyCastle.Tests
             //
             // distinguished name table.
             //
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(X509Name.C, "AU");
             attrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
             attrs.Add(X509Name.L, "Melbourne");
             attrs.Add(X509Name.ST, "Victoria");
             attrs.Add(X509Name.E, "feedback-crypto@bouncycastle.org");
 
-            IList order = new ArrayList();
+            var order = new List<DerObjectIdentifier>();
             order.Add(X509Name.C);
             order.Add(X509Name.O);
             order.Add(X509Name.L);
@@ -2095,7 +2095,7 @@ namespace Org.BouncyCastle.Tests
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-            IList values = new ArrayList();
+            var values = new List<string>();
             values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
@@ -2355,7 +2355,7 @@ namespace Org.BouncyCastle.Tests
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-            IList values = new ArrayList();
+            var values = new List<string>();
             values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");

@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Tests
 			AsymmetricKeyParameter caPrivKey,
 			AsymmetricKeyParameter caPubKey,
 			Asn1EncodableVector policies,
-			Hashtable policyMap)
+			IDictionary<string, string> policyMap)
 		{
 			string issuer = "C=JP, O=policyMappingAdditionalTest, OU=trustAnchor";
 			string subject = "C=JP, O=policyMappingAdditionalTest, OU=intmedCA";
@@ -232,7 +232,7 @@ namespace Org.BouncyCastle.Tests
 
 			X509Certificate trustCert = CreateTrustCert(caPubKey, caPrivKeySpec);
 			Asn1EncodableVector intPolicies = null;
-			Hashtable map = null;
+			IDictionary<string, string> map = null;
 			Asn1EncodableVector policies = null;
 			ISet<string> requirePolicies = null;
 			X509Certificate intCert = null;
@@ -241,7 +241,7 @@ namespace Org.BouncyCastle.Tests
 			// valid test_00
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -256,7 +256,7 @@ namespace Org.BouncyCastle.Tests
 			// test_01
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -272,7 +272,7 @@ namespace Org.BouncyCastle.Tests
 			// test_02
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -289,7 +289,7 @@ namespace Org.BouncyCastle.Tests
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -306,7 +306,7 @@ namespace Org.BouncyCastle.Tests
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -322,7 +322,7 @@ namespace Org.BouncyCastle.Tests
 			// test_05
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -338,7 +338,7 @@ namespace Org.BouncyCastle.Tests
 			// test_06
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -354,7 +354,7 @@ namespace Org.BouncyCastle.Tests
 			// test_07
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -370,7 +370,7 @@ namespace Org.BouncyCastle.Tests
 			// test_08
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 

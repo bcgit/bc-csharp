@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 			Asn1StreamParser aIn = new Asn1StreamParser(longTagged);
 			Asn1TaggedObjectParser tagged = (Asn1TaggedObjectParser)aIn.ReadObject();
 
-			Assert.AreEqual(31, tagged.TagNo);
+            Assert.IsTrue(tagged.HasContextTag(31));
 		}
 
 		private void ParseEnveloped(

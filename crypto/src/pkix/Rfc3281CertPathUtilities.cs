@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.Pkix
 			bool trusted = false;
 			foreach (TrustAnchor anchor in set)
 			{
-                IDictionary symbols = X509Name.RFC2253Symbols;
+                var symbols = X509Name.RFC2253Symbols;
                 if (acIssuerCert.SubjectDN.ToString(false, symbols).Equals(anchor.CAName)
 					|| acIssuerCert.Equals(anchor.TrustedCert))
 				{

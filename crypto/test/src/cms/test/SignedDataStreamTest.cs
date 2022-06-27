@@ -576,10 +576,9 @@ namespace Org.BouncyCastle.Cms.Tests
 		private class SignedGenAttributeTableGenerator
 			: DefaultSignedAttributeTableGenerator
 		{
-			public override AttributeTable GetAttributes(
-				IDictionary parameters)
+			public override AttributeTable GetAttributes(IDictionary parameters)
 			{
-				IDictionary table = createStandardAttributeTable(parameters);
+				var table = CreateStandardAttributeTable(parameters);
 
 				DerOctetString val = new DerOctetString((byte[])parameters[CmsAttributeTableParameter.Digest]);
 				Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(dummyOid1, new DerSet(val));

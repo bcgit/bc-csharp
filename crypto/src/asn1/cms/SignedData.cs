@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
@@ -140,8 +137,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             return Version1;
         }
 
-        private bool CheckForVersion3(
-            Asn1Set signerInfs)
+        private bool CheckForVersion3(Asn1Set signerInfs)
         {
             foreach (object obj in signerInfs)
             {
@@ -156,45 +152,42 @@ namespace Org.BouncyCastle.Asn1.Cms
             return false;
         }
 
-        private SignedData(
-            Asn1Sequence seq)
+        private SignedData(Asn1Sequence seq)
         {
-            IEnumerator e = seq.GetEnumerator();
+            var e = seq.GetEnumerator();
 
             e.MoveNext();
             version = (DerInteger)e.Current;
 
             e.MoveNext();
-            digestAlgorithms = ((Asn1Set)e.Current);
+            digestAlgorithms = (Asn1Set)e.Current.ToAsn1Object();
 
             e.MoveNext();
-            contentInfo = ContentInfo.GetInstance(e.Current);
+            contentInfo = ContentInfo.GetInstance(e.Current.ToAsn1Object());
 
             while (e.MoveNext())
             {
-                Asn1Object o = (Asn1Object)e.Current;
+                Asn1Object o = e.Current.ToAsn1Object();
 
                 //
                 // an interesting feature of SignedData is that there appear
                 // to be varying implementations...
                 // for the moment we ignore anything which doesn't fit.
                 //
-                if (o is Asn1TaggedObject)
+                if (o is Asn1TaggedObject tagged)
                 {
-                    Asn1TaggedObject tagged = (Asn1TaggedObject)o;
-
                     switch (tagged.TagNo)
                     {
-                        case 0:
-                            certsBer = tagged is BerTaggedObject;
-                            certificates = Asn1Set.GetInstance(tagged, false);
-                            break;
-                        case 1:
-                            crlsBer = tagged is BerTaggedObject;
-                            crls = Asn1Set.GetInstance(tagged, false);
-                            break;
-                        default:
-                            throw new ArgumentException("unknown tag value " + tagged.TagNo);
+                    case 0:
+                        certsBer = tagged is BerTaggedObject;
+                        certificates = Asn1Set.GetInstance(tagged, false);
+                        break;
+                    case 1:
+                        crlsBer = tagged is BerTaggedObject;
+                        crls = Asn1Set.GetInstance(tagged, false);
+                        break;
+                    default:
+                        throw new ArgumentException("unknown tag value " + tagged.TagNo);
                     }
                 }
                 else

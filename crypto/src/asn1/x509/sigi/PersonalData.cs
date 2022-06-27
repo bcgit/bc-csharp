@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Math;
@@ -69,13 +68,12 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 		*
 		* @param seq The ASN.1 sequence.
 		*/
-		private PersonalData(
-			Asn1Sequence seq)
+		private PersonalData(Asn1Sequence seq)
 		{
 			if (seq.Count < 1)
 				throw new ArgumentException("Bad sequence size: " + seq.Count);
 
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 			e.MoveNext();
 
 			nameOrPseudonym = NameOrPseudonym.GetInstance(e.Current);
@@ -86,23 +84,23 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 				int tag = o.TagNo;
 				switch (tag)
 				{
-					case 0:
-						nameDistinguisher = DerInteger.GetInstance(o, false).Value;
-						break;
-					case 1:
-						dateOfBirth = DerGeneralizedTime.GetInstance(o, false);
-						break;
-					case 2:
-						placeOfBirth = DirectoryString.GetInstance(o, true);
-						break;
-					case 3:
-						gender = DerPrintableString.GetInstance(o, false).GetString();
-						break;
-					case 4:
-						postalAddress = DirectoryString.GetInstance(o, true);
-						break;
-					default:
-						throw new ArgumentException("Bad tag number: " + o.TagNo);
+				case 0:
+					nameDistinguisher = DerInteger.GetInstance(o, false).Value;
+					break;
+				case 1:
+					dateOfBirth = DerGeneralizedTime.GetInstance(o, false);
+					break;
+				case 2:
+					placeOfBirth = DirectoryString.GetInstance(o, true);
+					break;
+				case 3:
+					gender = DerPrintableString.GetInstance(o, false).GetString();
+					break;
+				case 4:
+					postalAddress = DirectoryString.GetInstance(o, true);
+					break;
+				default:
+					throw new ArgumentException("Bad tag number: " + o.TagNo);
 				}
 			}
 		}

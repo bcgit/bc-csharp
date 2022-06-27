@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Ess;
@@ -161,14 +163,14 @@ namespace Org.BouncyCastle.Tsp
             //
             // Add the ESSCertID attribute
             //
-            IDictionary signedAttrs;
+            IDictionary<DerObjectIdentifier, object> signedAttrs;
             if (signedAttr != null)
             {
                 signedAttrs = signedAttr.ToDictionary();
             }
             else
             {
-                signedAttrs = Platform.CreateHashtable();
+                signedAttrs = new Dictionary<DerObjectIdentifier, object>();
             }
 
             //try

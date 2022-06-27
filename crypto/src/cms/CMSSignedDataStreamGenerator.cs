@@ -174,9 +174,7 @@ namespace Org.BouncyCastle.Cms
                         {
                             if (signed != null && signed[CmsAttributes.ContentType] != null)
                             {
-                                IDictionary tmpSigned = signed.ToDictionary();
-                                tmpSigned.Remove(CmsAttributes.ContentType);
-                                signed = new Asn1.Cms.AttributeTable(tmpSigned);
+								signed = signed.Remove(CmsAttributes.ContentType);
                             }
                         }
 

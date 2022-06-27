@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -13,15 +10,13 @@ namespace Org.BouncyCastle.Asn1.X509
             new Dictionary<DerObjectIdentifier, X509Extension>();
         private List<DerObjectIdentifier> m_ordering = new List<DerObjectIdentifier>();
 
-        private static readonly IDictionary dupsAllowed = Platform.CreateHashtable();
-
-        static X509ExtensionsGenerator()
+        private static readonly ISet<DerObjectIdentifier> m_dupsAllowed = new HashSet<DerObjectIdentifier>()
         {
-            dupsAllowed.Add(X509Extensions.SubjectAlternativeName, true);
-            dupsAllowed.Add(X509Extensions.IssuerAlternativeName, true);
-            dupsAllowed.Add(X509Extensions.SubjectDirectoryAttributes, true);
-            dupsAllowed.Add(X509Extensions.CertificateIssuer, true);
-        }
+            X509Extensions.SubjectAlternativeName,
+            X509Extensions.IssuerAlternativeName,
+            X509Extensions.SubjectDirectoryAttributes,
+            X509Extensions.CertificateIssuer
+        };
 
         /// <summary>Reset the generator</summary>
         public void Reset()
@@ -63,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             if (m_extensions.TryGetValue(oid, out X509Extension existingExtension))
             {
-                if (!dupsAllowed.Contains(oid))
+                if (!m_dupsAllowed.Contains(oid))
                     throw new ArgumentException("extension " + oid + " already added");
 
                 Asn1Sequence seq1 = Asn1Sequence.GetInstance(

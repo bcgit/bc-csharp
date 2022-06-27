@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X500;
 
@@ -24,27 +23,26 @@ namespace Org.BouncyCastle.Asn1.Esf
         private DirectoryString localityName;
         private Asn1Sequence postalAddress;
 
-		public SignerLocation(
-			Asn1Sequence seq)
+		public SignerLocation(Asn1Sequence seq)
 		{
 			foreach (Asn1TaggedObject obj in seq)
 			{
 				switch (obj.TagNo)
 				{
-					case 0:
-						this.countryName = DirectoryString.GetInstance(obj, true);
-						break;
-					case 1:
-                        this.localityName = DirectoryString.GetInstance(obj, true);
-						break;
-					case 2:
-						bool isExplicit = obj.IsExplicit();	// handle erroneous implicitly tagged sequences
-						this.postalAddress = Asn1Sequence.GetInstance(obj, isExplicit);
-						if (postalAddress != null && postalAddress.Count > 6)
-							throw new ArgumentException("postal address must contain less than 6 strings");
-						break;
-					default:
-						throw new ArgumentException("illegal tag");
+				case 0:
+					this.countryName = DirectoryString.GetInstance(obj, true);
+					break;
+				case 1:
+                    this.localityName = DirectoryString.GetInstance(obj, true);
+					break;
+				case 2:
+					bool isExplicit = obj.IsExplicit();	// handle erroneous implicitly tagged sequences
+					this.postalAddress = Asn1Sequence.GetInstance(obj, isExplicit);
+					if (postalAddress != null && postalAddress.Count > 6)
+						throw new ArgumentException("postal address must contain less than 6 strings");
+					break;
+				default:
+					throw new ArgumentException("illegal tag");
 				}
 			}
 		}
@@ -78,13 +76,10 @@ namespace Org.BouncyCastle.Asn1.Esf
         {
         }
 
-        public static SignerLocation GetInstance(
-			object obj)
+        public static SignerLocation GetInstance(object obj)
 		{
 			if (obj == null || obj is SignerLocation)
-			{
 				return (SignerLocation) obj;
-			}
 
 			return new SignerLocation(Asn1Sequence.GetInstance(obj));
 		}

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;

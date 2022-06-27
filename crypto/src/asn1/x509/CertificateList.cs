@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
-
-using Org.BouncyCastle.Asn1;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -65,7 +63,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return tbsCertList.GetRevokedCertificates();
         }
 
-		public IEnumerable GetRevokedCertificateEnumeration()
+		public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration()
 		{
 			return tbsCertList.GetRevokedCertificateEnumeration();
 		}

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -20,7 +19,7 @@ namespace Org.BouncyCastle.Asn1
             Reset();
         }
 
-        object IEnumerator.Current
+        object System.Collections.IEnumerator.Current
         {
             get { return Current; }
         }

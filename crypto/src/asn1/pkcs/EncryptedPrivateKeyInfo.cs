@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
@@ -12,8 +11,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly AlgorithmIdentifier algId;
         private readonly Asn1OctetString data;
 
-		private EncryptedPrivateKeyInfo(
-            Asn1Sequence seq)
+		private EncryptedPrivateKeyInfo(Asn1Sequence seq)
         {
 			if (seq.Count != 2)
 				throw new ArgumentException("Wrong number of elements in sequence", "seq");
@@ -38,10 +36,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 				return (EncryptedPrivateKeyInfo) obj;
 			}
 
-			if (obj is Asn1Sequence)
-			{
-				return new EncryptedPrivateKeyInfo((Asn1Sequence) obj);
-			}
+			if (obj is Asn1Sequence seq)
+				return new EncryptedPrivateKeyInfo(seq);
 
 			throw new ArgumentException("Unknown object in factory: " + Platform.GetTypeName(obj), "obj");
 		}
