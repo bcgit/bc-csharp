@@ -1,7 +1,6 @@
-using System;
-using System.Collections;
+using System.Collections.Generic;
 
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkcs
@@ -11,16 +10,13 @@ namespace Org.BouncyCastle.Pkcs
     {
         private readonly X509Certificate cert;
 
-		public X509CertificateEntry(
-            X509Certificate cert)
-			: base(Platform.CreateHashtable())
+		public X509CertificateEntry(X509Certificate cert)
+			: base(new Dictionary<DerObjectIdentifier, Asn1Encodable>())
         {
             this.cert = cert;
         }
 
-        public X509CertificateEntry(
-            X509Certificate cert,
-            IDictionary     attributes)
+        public X509CertificateEntry(X509Certificate cert, IDictionary<DerObjectIdentifier, Asn1Encodable> attributes)
 			: base(attributes)
         {
             this.cert = cert;

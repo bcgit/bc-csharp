@@ -71,6 +71,15 @@ namespace Org.BouncyCastle.Utilities.Collections
             return new UnmodifiableSetProxy(s);
         }
 
+        public static bool Remove<K, V>(IDictionary<K, V> d, K k, out V v)
+        {
+            if (!d.TryGetValue(k, out v))
+                return false;
+
+            d.Remove(k);
+            return true;
+        }
+
         public static object RequireNext(IEnumerator e)
         {
             if (!e.MoveNext())

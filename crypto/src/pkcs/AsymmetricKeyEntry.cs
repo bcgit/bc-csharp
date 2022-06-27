@@ -1,8 +1,7 @@
-using System;
-using System.Collections;
+using System.Collections.Generic;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkcs
 {
@@ -11,16 +10,14 @@ namespace Org.BouncyCastle.Pkcs
     {
         private readonly AsymmetricKeyParameter key;
 
-		public AsymmetricKeyEntry(
-            AsymmetricKeyParameter key)
-			: base(Platform.CreateHashtable())
+		public AsymmetricKeyEntry(AsymmetricKeyParameter key)
+			: base(new Dictionary<DerObjectIdentifier, Asn1Encodable>())
         {
             this.key = key;
         }
 
-        public AsymmetricKeyEntry(
-            AsymmetricKeyParameter  key,
-            IDictionary             attributes)
+        public AsymmetricKeyEntry(AsymmetricKeyParameter key,
+			IDictionary<DerObjectIdentifier, Asn1Encodable> attributes)
 			: base(attributes)
         {
             this.key = key;
