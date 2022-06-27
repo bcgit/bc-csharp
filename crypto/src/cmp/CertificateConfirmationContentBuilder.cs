@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
-using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
@@ -18,8 +16,8 @@ namespace Org.BouncyCastle.Cmp
         private static readonly DefaultSignatureAlgorithmIdentifierFinder sigAlgFinder = new DefaultSignatureAlgorithmIdentifierFinder();
 
         private readonly DefaultDigestAlgorithmIdentifierFinder digestAlgFinder;
-        private readonly IList acceptedCerts = Platform.CreateArrayList();
-        private readonly IList acceptedReqIds = Platform.CreateArrayList();
+        private readonly IList<X509Certificate> acceptedCerts = new List<X509Certificate>();
+        private readonly IList<BigInteger> acceptedReqIds = new List<BigInteger>();
 
         public CertificateConfirmationContentBuilder()
             : this(new DefaultDigestAlgorithmIdentifierFinder())
@@ -44,8 +42,8 @@ namespace Org.BouncyCastle.Cmp
             Asn1EncodableVector v = new Asn1EncodableVector();
             for (int i = 0; i != acceptedCerts.Count; i++)
             {
-                X509Certificate cert = (X509Certificate)acceptedCerts[i];
-                BigInteger reqId = (BigInteger)acceptedReqIds[i];
+                X509Certificate cert = acceptedCerts[i];
+                BigInteger reqId = acceptedReqIds[i];
 
 
                 AlgorithmIdentifier algorithmIdentifier = sigAlgFinder.Find(cert.SigAlgName);

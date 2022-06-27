@@ -23,7 +23,7 @@
  */
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -254,7 +254,7 @@ namespace Org.BouncyCastle.Bzip2
         private readonly int allowableBlockSize;
 
         bool blockRandomised;
-        private readonly IList blocksortStack = Platform.CreateArrayList();
+        private readonly IList<StackElem> blocksortStack = new List<StackElem>();
 
         int bsBuff;
         int bsLivePos;
@@ -1043,12 +1043,12 @@ namespace Org.BouncyCastle.Bzip2
             internal int dd;
         }
 
-        private static void PushStackElem(IList stack, int stackCount, int ll, int hh, int dd)
+        private static void PushStackElem(IList<StackElem> stack, int stackCount, int ll, int hh, int dd)
         {
             StackElem stackElem;
             if (stackCount < stack.Count)
             {
-                stackElem = (StackElem)stack[stackCount];
+                stackElem = stack[stackCount];
             }
             else
             {
@@ -1065,7 +1065,7 @@ namespace Org.BouncyCastle.Bzip2
         {
             int unLo, unHi, ltLo, gtHi, n, m;
 
-            IList stack = blocksortStack;
+            var stack = blocksortStack;
             int stackCount = 0;
             StackElem stackElem;
 
@@ -1081,7 +1081,7 @@ namespace Org.BouncyCastle.Bzip2
                     if (stackCount < 1 || (workDone > workLimit && firstAttempt))
                         return;
 
-                    stackElem = (StackElem)stack[--stackCount];
+                    stackElem = stack[--stackCount];
                     lo = stackElem.ll;
                     hi = stackElem.hh;
                     d = stackElem.dd;

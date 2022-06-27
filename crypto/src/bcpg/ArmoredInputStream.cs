@@ -1,5 +1,4 @@
-using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -114,7 +113,7 @@ namespace Org.BouncyCastle.Bcpg
         bool        newLineFound = false;
         bool        clearText = false;
         bool        restart = false;
-        IList       headerList = Platform.CreateArrayList();
+        IList<string> headerList = new List<string>();
         int         lastC = 0;
 		bool		isEndOfStream;
 
@@ -158,7 +157,7 @@ namespace Org.BouncyCastle.Bcpg
             int		last = 0;
             bool	headerFound = false;
 
-            headerList = Platform.CreateArrayList();
+            headerList = new List<string>();
 
 			//
             // if restart we already have a header

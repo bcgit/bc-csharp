@@ -1,9 +1,8 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Bcpg.Sig;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -68,29 +67,26 @@ namespace Org.BouncyCastle.Bcpg
                 SignatureSubpacketsParser sIn = new SignatureSubpacketsParser(
                     new MemoryStream(hashed, false));
 
-				IList v = Platform.CreateArrayList();
+                var v = new List<SignatureSubpacket>();
+
 				SignatureSubpacket sub;
 				while ((sub = sIn.ReadPacket()) != null)
                 {
                     v.Add(sub);
                 }
 
-				hashedData = new SignatureSubpacket[v.Count];
+                hashedData = v.ToArray();
 
-				for (int i = 0; i != hashedData.Length; i++)
+				foreach (var p in hashedData)
                 {
-                    SignatureSubpacket p = (SignatureSubpacket)v[i];
-                    if (p is IssuerKeyId)
+                    if (p is IssuerKeyId issuerKeyId)
                     {
-                        keyId = ((IssuerKeyId)p).KeyId;
+                        keyId = issuerKeyId.KeyId;
                     }
-                    else if (p is SignatureCreationTime)
+                    else if (p is SignatureCreationTime sigCreationTime)
                     {
-                        creationTime = DateTimeUtilities.DateTimeToUnixMs(
-							((SignatureCreationTime)p).GetTime());
+                        creationTime = DateTimeUtilities.DateTimeToUnixMs(sigCreationTime.GetTime());
                     }
-
-					hashedData[i] = p;
                 }
 
 				int unhashedLength = (bcpgIn.ReadByte() << 8) | bcpgIn.ReadByte();
@@ -107,17 +103,14 @@ namespace Org.BouncyCastle.Bcpg
                     v.Add(sub);
                 }
 
-				unhashedData = new SignatureSubpacket[v.Count];
+                unhashedData = v.ToArray();
 
-				for (int i = 0; i != unhashedData.Length; i++)
+				foreach (var p in unhashedData)
                 {
-                    SignatureSubpacket p = (SignatureSubpacket)v[i];
-                    if (p is IssuerKeyId)
+                    if (p is IssuerKeyId issuerKeyId)
                     {
-                        keyId = ((IssuerKeyId)p).KeyId;
+                        keyId = issuerKeyId.KeyId;
                     }
-
-					unhashedData[i] = p;
                 }
             }
             else
