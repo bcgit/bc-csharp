@@ -192,7 +192,7 @@ namespace Org.BouncyCastle.X509.Store
 
 			if (extendedKeyUsage != null)
 			{
-				IList eku = c.GetExtendedKeyUsage();
+				var eku = c.GetExtendedKeyUsage();
 
 				// Note: if no extended key usage set, all key purposes are implicitly allowed
 
@@ -200,7 +200,7 @@ namespace Org.BouncyCastle.X509.Store
 				{
 					foreach (DerObjectIdentifier oid in extendedKeyUsage)
 					{
-						if (!eku.Contains(oid.Id))
+						if (!eku.Contains(oid))
 							return false;
 					}
 				}

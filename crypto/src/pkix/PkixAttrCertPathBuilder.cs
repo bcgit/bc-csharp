@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic
-	;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
@@ -44,10 +41,7 @@ namespace Org.BouncyCastle.Pkix
 			}
 
 			if (targets.Count == 0)
-			{
-				throw new PkixCertPathBuilderException(
-					"No attribute certificate found matching targetConstraints.");
-			}
+				throw new PkixCertPathBuilderException("No attribute certificate found matching targetConstraints.");
 
 			PkixCertPathBuilderResult result = null;
 
@@ -77,7 +71,7 @@ namespace Org.BouncyCastle.Pkix
 				if (issuers.Count < 1)
 					throw new PkixCertPathBuilderException("Public key certificate for attribute certificate cannot be found.");
 
-                IList certPathList = Platform.CreateArrayList();
+                var certPathList = new List<X509Certificate>();
 
 				foreach (X509Certificate issuer in issuers)
 				{
@@ -92,17 +86,11 @@ namespace Org.BouncyCastle.Pkix
 			}
 
 			if (result == null && certPathException != null)
-			{
-				throw new PkixCertPathBuilderException(
-					"Possible certificate chain could not be validated.",
+				throw new PkixCertPathBuilderException("Possible certificate chain could not be validated.",
 					certPathException);
-			}
 
 			if (result == null && certPathException == null)
-			{
-				throw new PkixCertPathBuilderException(
-					"Unable to find certificate chain.");
-			}
+				throw new PkixCertPathBuilderException("Unable to find certificate chain.");
 
 			return result;
 		}
@@ -113,7 +101,7 @@ namespace Org.BouncyCastle.Pkix
 			X509V2AttributeCertificate  attrCert,
 			X509Certificate				tbvCert,
 			PkixBuilderParameters		pkixParams,
-			IList						tbvPath)
+			IList<X509Certificate>      tbvPath)
 		{
 			// If tbvCert is readily present in tbvPath, it indicates having run
 			// into a cycle in the

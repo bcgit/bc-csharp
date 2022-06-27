@@ -173,9 +173,8 @@ namespace Org.BouncyCastle.Tests
 			X509Certificate finalCert = cf.ReadCertificate(finalCertBin);
 
 			//Testing CertPath generation from List
-			IList list = new ArrayList();
+			var list = new List<X509Certificate>();
 			list.Add(interCert);
-//			CertPath certPath1 = cf.generateCertPath(list);
 			PkixCertPath certPath1 = new PkixCertPath(list);
 
 			//Testing CertPath encoding as PkiPath
@@ -183,7 +182,6 @@ namespace Org.BouncyCastle.Tests
 
 			//Testing CertPath generation from InputStream
 			MemoryStream inStream = new MemoryStream(encoded, false);
-//			CertPath certPath2 = cf.generateCertPath(inStream, "PkiPath");
 			PkixCertPath certPath2 = new PkixCertPath(inStream, "PkiPath");
 
 			//Comparing both CertPathes
@@ -221,9 +219,8 @@ namespace Org.BouncyCastle.Tests
 			//
 			// empty list test
 			//
-			list = new ArrayList();
+			list = new List<X509Certificate>();
 
-//			CertPath certPath = CertificateFactory.GetInstance("X.509","BC").generateCertPath(list);
 			PkixCertPath certPath = new PkixCertPath(list);
 			if (certPath.Certificates.Count != 0)
 			{

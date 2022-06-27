@@ -66,6 +66,11 @@ namespace Org.BouncyCastle.Utilities.Collections
             return new UnmodifiableListProxy(l);
         }
 
+        public static IList<T> ReadOnly<T>(IList<T> l)
+        {
+            return new ReadOnlyListProxy<T>(l);
+        }
+
         public static ISet ReadOnly(ISet s)
         {
             return new UnmodifiableSetProxy(s);

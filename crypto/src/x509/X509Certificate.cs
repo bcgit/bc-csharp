@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -96,12 +97,10 @@ namespace Org.BouncyCastle.X509
 
             try
             {
-                Asn1OctetString str = this.GetExtensionValue(new DerObjectIdentifier("2.5.29.19"));
-
+                Asn1OctetString str = GetExtensionValue(X509Extensions.BasicConstraints);
                 if (str != null)
                 {
-                    basicConstraints = BasicConstraints.GetInstance(
-                        X509ExtensionUtilities.FromExtensionValue(str));
+                    basicConstraints = BasicConstraints.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
                 }
             }
             catch (Exception e)
@@ -111,12 +110,10 @@ namespace Org.BouncyCastle.X509
 
             try
             {
-                Asn1OctetString str = this.GetExtensionValue(new DerObjectIdentifier("2.5.29.15"));
-
+                Asn1OctetString str = GetExtensionValue(X509Extensions.KeyUsage);
                 if (str != null)
                 {
-                    DerBitString bits = DerBitString.GetInstance(
-                        X509ExtensionUtilities.FromExtensionValue(str));
+                    DerBitString bits = DerBitString.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
 
                     byte[] bytes = bits.GetBytes();
                     int length = (bytes.Length * 8) - bits.PadBits;
@@ -343,26 +340,23 @@ namespace Org.BouncyCastle.X509
         }
 
         // TODO Replace with something that returns a list of DerObjectIdentifier
-        public virtual IList GetExtendedKeyUsage()
+        public virtual IList<DerObjectIdentifier> GetExtendedKeyUsage()
         {
-            Asn1OctetString str = this.GetExtensionValue(new DerObjectIdentifier("2.5.29.37"));
+            Asn1OctetString str = GetExtensionValue(X509Extensions.ExtendedKeyUsage);
 
             if (str == null)
                 return null;
 
             try
             {
-                Asn1Sequence seq = Asn1Sequence.GetInstance(
-                    X509ExtensionUtilities.FromExtensionValue(str));
+                Asn1Sequence seq = Asn1Sequence.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
 
-                IList list = Platform.CreateArrayList();
-
+                var result = new List<DerObjectIdentifier>();
                 foreach (DerObjectIdentifier oid in seq)
                 {
-                    list.Add(oid.Id);
+                    result.Add(oid);
                 }
-
-                return list;
+                return result;
             }
             catch (Exception e)
             {
@@ -387,19 +381,17 @@ namespace Org.BouncyCastle.X509
 
         public virtual ICollection GetSubjectAlternativeNames()
         {
-            return GetAlternativeNames("2.5.29.17");
+            return GetAlternativeNames(X509Extensions.SubjectAlternativeName);
         }
 
         public virtual ICollection GetIssuerAlternativeNames()
         {
-            return GetAlternativeNames("2.5.29.18");
+            return GetAlternativeNames(X509Extensions.IssuerAlternativeName);
         }
 
-        protected virtual ICollection GetAlternativeNames(
-            string oid)
+        protected virtual ICollection GetAlternativeNames(DerObjectIdentifier oid)
         {
-            Asn1OctetString altNames = GetExtensionValue(new DerObjectIdentifier(oid));
-
+            Asn1OctetString altNames = GetExtensionValue(oid);
             if (altNames == null)
                 return null;
 
@@ -549,7 +541,7 @@ namespace Org.BouncyCastle.X509
 
             if (extensions != null)
             {
-                IEnumerator e = extensions.ExtensionOids.GetEnumerator();
+                var e = extensions.ExtensionOids.GetEnumerator();
 
                 if (e.MoveNext())
                 {
@@ -558,7 +550,7 @@ namespace Org.BouncyCastle.X509
 
                 do
                 {
-                    DerObjectIdentifier oid = (DerObjectIdentifier)e.Current;
+                    DerObjectIdentifier oid = e.Current;
                     X509Extension ext = extensions.GetExtension(oid);
 
                     if (ext.Value != null)

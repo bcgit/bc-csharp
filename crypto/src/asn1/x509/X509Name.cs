@@ -1,11 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
-#if PORTABLE
-using System.Collections.Generic;
-#endif
 
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Utilities;
@@ -340,7 +337,7 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookup.Add("telephonenumber", TelephoneNumber);
         }
 
-        private readonly IList ordering = Platform.CreateArrayList();
+        private readonly List<DerObjectIdentifier> ordering = new List<DerObjectIdentifier>();
         private readonly X509NameEntryConverter converter;
 
         private IList		    values = Platform.CreateArrayList();
@@ -469,9 +466,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /**
         * Takes two vectors one of the oids and the other of the values.
         */
-        public X509Name(
-            IList   oids,
-            IList   values)
+        public X509Name(IList<DerObjectIdentifier> oids, IList values)
             : this(oids, values, new X509DefaultEntryConverter())
         {
         }
@@ -482,10 +477,7 @@ namespace Org.BouncyCastle.Asn1.X509
         * The passed in converter will be used to convert the strings into their
         * ASN.1 counterparts.</p>
         */
-        public X509Name(
-            IList			    	oids,
-            IList		    		values,
-            X509NameEntryConverter	converter)
+        public X509Name(IList<DerObjectIdentifier> oids, IList values, X509NameEntryConverter converter)
         {
             this.converter = converter;
 
@@ -506,8 +498,7 @@ namespace Org.BouncyCastle.Asn1.X509
         * Takes an X509 dir name as a string of the format "C=AU, ST=Victoria", or
         * some such, converting it into an ordered set of name attributes.
         */
-        public X509Name(
-            string dirName)
+        public X509Name(string dirName)
             : this(DefaultReverse, (IDictionary)DefaultLookup, dirName)
         {
         }
@@ -666,7 +657,7 @@ namespace Org.BouncyCastle.Asn1.X509
 //				this.ordering.Reverse();
 //				this.values.Reverse();
 //				this.added.Reverse();
-                IList o = Platform.CreateArrayList();
+                var o = new List<DerObjectIdentifier>();
                 IList v = Platform.CreateArrayList();
                 IList a = Platform.CreateArrayList();
                 int count = 1;
@@ -694,16 +685,16 @@ namespace Org.BouncyCastle.Asn1.X509
         /**
         * return an IList of the oids in the name, in the order they were found.
         */
-        public IList GetOidList()
+        public IList<DerObjectIdentifier> GetOidList()
         {
-            return Platform.CreateArrayList(ordering);
+            return new List<DerObjectIdentifier>(ordering);
         }
 
         /**
         * return an IList of the values found in the name, in the order they
         * were found.
         */
-        public IList GetValueList()
+        public IList<string> GetValueList()
         {
             return GetValueList(null);
         }
@@ -712,9 +703,9 @@ namespace Org.BouncyCastle.Asn1.X509
          * return an IList of the values found in the name, in the order they
          * were found, with the DN label corresponding to passed in oid.
          */
-        public IList GetValueList(DerObjectIdentifier oid)
+        public IList<string> GetValueList(DerObjectIdentifier oid)
         {
-            IList v = Platform.CreateArrayList();
+            var v = new List<string>();
             for (int i = 0; i != values.Count; i++)
             {
                 if (null == oid || oid.Equals(ordering[i]))

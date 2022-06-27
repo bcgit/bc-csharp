@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509.Extension;
@@ -226,11 +225,8 @@ namespace Org.BouncyCastle.X509
 			X509Certificate		cert)
 		{
 			Asn1OctetString extValue = cert.GetExtensionValue(oid);
-
 			if (extValue == null)
-			{
 				throw new CertificateParsingException("extension " + oid + " not present");
-			}
 
 			try
 			{
@@ -251,7 +247,9 @@ namespace Org.BouncyCastle.X509
 		/// <returns>An X509Certificate.</returns>
 		public X509Certificate Generate(ISignatureFactory signatureCalculatorFactory)
 		{
-			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
+			var sigAlgID = (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails;
+
+			tbsGen.SetSignature(sigAlgID);
 
             if (!extGenerator.IsEmpty)
             {
@@ -261,29 +259,20 @@ namespace Org.BouncyCastle.X509
             TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
 			IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
+			using (Stream sigStream = streamCalculator.Stream)
+            {
+				tbsCert.EncodeTo(sigStream, Asn1Encodable.Der);
+			}
 
-			byte[] encoded = tbsCert.GetDerEncoded();
+			var signature = ((IBlockResult)streamCalculator.GetResult()).Collect();
 
-			streamCalculator.Stream.Write(encoded, 0, encoded.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
-		}
-
-		private X509Certificate GenerateJcaObject(
-			TbsCertificateStructure	tbsCert,
-			AlgorithmIdentifier     sigAlg,
-			byte[]					signature)
-		{
-			return new X509Certificate(
-				new X509CertificateStructure(tbsCert, sigAlg, new DerBitString(signature)));
+			return new X509Certificate(new X509CertificateStructure(tbsCert, sigAlgID, new DerBitString(signature)));
 		}
 
 		/// <summary>
 		/// Allows enumeration of the signature names supported by the generator.
 		/// </summary>
-		public IEnumerable SignatureAlgNames
+		public IEnumerable<string> SignatureAlgNames
 		{
 			get { return X509Utilities.GetAlgNames(); }
 		}

@@ -154,16 +154,14 @@ namespace Org.BouncyCastle.Tests
             DateTime validDate = new DateTime(2008, 9, 4, 5, 49, 10);
 
             //validating path
-            IList certchain = new ArrayList();
+            var certchain = new List<X509Certificate>();
             certchain.Add(finalCert);
             certchain.Add(interCert);
 
-//			CertPath cp = CertificateFactory.GetInstance("X.509").GenerateCertPath(certchain);
             PkixCertPath cp = new PkixCertPath(certchain);
             var trust = new HashSet<TrustAnchor>();
             trust.Add(new TrustAnchor(rootCert, null));
 
-//			CertPathValidator cpv = CertPathValidator.GetInstance("PKIX");
             PkixCertPathValidator cpv = new PkixCertPathValidator();
             PkixParameters param = new PkixParameters(trust);
             param.AddStoreCert(x509CertStore);
@@ -172,7 +170,7 @@ namespace Org.BouncyCastle.Tests
             MyChecker checker = new MyChecker();
             param.AddCertPathChecker(checker);
 
-            PkixCertPathValidatorResult result = (PkixCertPathValidatorResult)cpv.Validate(cp, param);
+            PkixCertPathValidatorResult result = cpv.Validate(cp, param);
             PkixPolicyNode policyTree = result.PolicyTree;
             AsymmetricKeyParameter subjectPublicKey = result.SubjectPublicKey;
 
@@ -230,23 +228,21 @@ namespace Org.BouncyCastle.Tests
                 validDate = new DateTime(2004, 3, 20, 19, 21, 10);
 
                 //validating path
-                certchain = new ArrayList();
+                certchain = new List<X509Certificate>();
                 certchain.Add(finalCert);
                 certchain.Add(interCert);
 
-//				cp = CertificateFactory.GetInstance("X.509").GenerateCertPath(certchain);
                 cp = new PkixCertPath(certchain);
                 trust = new HashSet<TrustAnchor>();
                 trust.Add(new TrustAnchor(rootCert, null));
 
-//				cpv = CertPathValidator.GetInstance("PKIX");
                 cpv = new PkixCertPathValidator();
                 param = new PkixParameters(trust);
                 param.AddStoreCert(x509CertStore);
                 param.IsRevocationEnabled = false;
                 param.Date = new DateTimeObject(validDate);
 
-                result =(PkixCertPathValidatorResult) cpv.Validate(cp, param);
+                result = cpv.Validate(cp, param);
                 policyTree = result.PolicyTree;
                 subjectPublicKey = result.SubjectPublicKey;
 

@@ -153,25 +153,20 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-		internal static void AddAdditionalStoresFromAltNames(
-			X509Certificate	cert,
-			PkixParameters	pkixParams)
+		internal static void AddAdditionalStoresFromAltNames(X509Certificate cert, PkixParameters pkixParams)
 		{
 			// if in the IssuerAltName extension an URI
 			// is given, add an additinal X.509 store
-			if (cert.GetIssuerAlternativeNames() != null)
+			var issuerAltNames = cert.GetIssuerAlternativeNames();
+			if (issuerAltNames != null)
 			{
-				IEnumerator it = cert.GetIssuerAlternativeNames().GetEnumerator();
-				while (it.MoveNext())
+				foreach (IList list in issuerAltNames)
 				{
 					// look for URI
-					IList list = (IList)it.Current;
-					//if (list[0].Equals(new Integer(GeneralName.UniformResourceIdentifier)))
-					if (list[0].Equals(GeneralName.UniformResourceIdentifier))
+					if (list.Count >= 2 && list[0].Equals(GeneralName.UniformResourceIdentifier))
 					{
-						// found
-						string temp = (string)list[1];
-						AddAdditionalStoreFromLocation(temp, pkixParams);
+						string location = (string)list[1];
+						AddAdditionalStoreFromLocation(location, pkixParams);
 					}
 				}
 			}
@@ -571,12 +566,9 @@ namespace Org.BouncyCastle.Pkix
 		*         <code>index</code> extended with DSA parameters if applicable.
 		* @throws Exception if DSA parameters cannot be inherited.
 		*/
-		internal static AsymmetricKeyParameter GetNextWorkingKey(
-			IList	certs,
-			int		index)
+		internal static AsymmetricKeyParameter GetNextWorkingKey(IList<X509Certificate> certs, int index)
 		{
-			//Only X509Certificate
-			X509Certificate cert = (X509Certificate)certs[index];
+			X509Certificate cert = certs[index];
 
 			AsymmetricKeyParameter pubKey = cert.GetPublicKey();
 
@@ -590,7 +582,7 @@ namespace Org.BouncyCastle.Pkix
 
 			for (int i = index + 1; i < certs.Count; i++)
 			{
-				X509Certificate parentCert = (X509Certificate)certs[i];
+				X509Certificate parentCert = certs[i];
 				pubKey = parentCert.GetPublicKey();
 
 				if (!(pubKey is DsaPublicKeyParameters))
@@ -636,14 +628,14 @@ namespace Org.BouncyCastle.Pkix
 				// else use time when previous cert was created
 			}
 
+			var cert = certPath.Certificates[index - 1];
+
 			if (index - 1 == 0)
 			{
-				DerGeneralizedTime dateOfCertgen = null;
+				DerGeneralizedTime dateOfCertgen;
 				try
 				{
-					X509Certificate cert = (X509Certificate)certPath.Certificates[index - 1];
-					Asn1OctetString extVal = cert.GetExtensionValue(
-						IsisMttObjectIdentifiers.IdIsisMttATDateOfCertGen);
+					Asn1OctetString extVal = cert.GetExtensionValue(IsisMttObjectIdentifiers.IdIsisMttATDateOfCertGen);
 					dateOfCertgen = DerGeneralizedTime.GetInstance(extVal);
 				}
 				catch (ArgumentException)
@@ -666,7 +658,7 @@ namespace Org.BouncyCastle.Pkix
 				}
 			}
 
-			return ((X509Certificate)certPath.Certificates[index - 1]).NotBefore;
+			return cert.NotBefore;
 		}
 
 		/**
@@ -695,7 +687,7 @@ namespace Org.BouncyCastle.Pkix
 			X509CrlStoreSelector	selector,
 			PkixParameters			pkixParams)
 		{
-            IList issuers = Platform.CreateArrayList();
+            var issuers = new List<X509Name>();
 			// indirect CRL
 			if (dp.CrlIssuer != null)
 			{
@@ -711,9 +703,7 @@ namespace Org.BouncyCastle.Pkix
 						}
 						catch (IOException e)
 						{
-							throw new Exception(
-								"CRL issuer information from distribution point cannot be decoded.",
-								e);
+							throw new Exception("CRL issuer information from distribution point cannot be decoded.", e);
 						}
 					}
 				}
@@ -856,7 +846,7 @@ namespace Org.BouncyCastle.Pkix
 			// 5.2.4 (a)
 			try
 			{
-                IList deltaSelectIssuer = Platform.CreateArrayList();
+				var deltaSelectIssuer = new List<X509Name>();
 				deltaSelectIssuer.Add(completeCRL.IssuerDN);
 				deltaSelect.Issuers = deltaSelectIssuer;
 			}

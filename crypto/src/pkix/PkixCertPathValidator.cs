@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
@@ -39,15 +36,13 @@ namespace Org.BouncyCastle.Pkix
     /// </summary>
     public class PkixCertPathValidator
     {
-        public virtual PkixCertPathValidatorResult Validate(
-			PkixCertPath	certPath,
-			PkixParameters	paramsPkix)
+        public virtual PkixCertPathValidatorResult Validate(PkixCertPath certPath, PkixParameters paramsPkix)
         {
 			if (paramsPkix.GetTrustAnchors() == null)
             {
                 throw new ArgumentException(
 					"trustAnchors is null, this is not allowed for certification path validation.",
-					"parameters");
+                    nameof(paramsPkix));
             }
 
             //
@@ -57,10 +52,10 @@ namespace Org.BouncyCastle.Pkix
             //
             // (a)
             //
-            IList certs = certPath.Certificates;
+            var certs = certPath.Certificates;
             int n = certs.Count;
 
-            if (certs.Count == 0)
+            if (n == 0)
                 throw new PkixCertPathValidatorException("Certification path is empty.", null, 0);
 
 			//
@@ -79,9 +74,8 @@ namespace Org.BouncyCastle.Pkix
             TrustAnchor trust;
             try
             {
-                trust = PkixCertPathValidatorUtilities.FindTrustAnchor(
-					(X509Certificate)certs[certs.Count - 1],
-					paramsPkix.GetTrustAnchors());
+                trust = PkixCertPathValidatorUtilities.FindTrustAnchor(certs[certs.Count - 1],
+                    paramsPkix.GetTrustAnchors());
 
                 if (trust == null)
                     throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, -1);
@@ -227,7 +221,7 @@ namespace Org.BouncyCastle.Pkix
             //
             // initialize CertPathChecker's
             //
-            IList certPathCheckers = paramsPkix.GetCertPathCheckers();
+            var certPathCheckers = paramsPkix.GetCertPathCheckers();
             foreach (PkixCertPathChecker certPathChecker in certPathCheckers)
             {
                 certPathChecker.Init(false);

@@ -74,12 +74,10 @@ namespace Org.BouncyCastle.Pkix
 			PkixParameters				paramsPKIX,
 			X509Certificate				issuerCert,
 			DateTime					validDate,
-			IList						certPathCerts)
+			IList<X509Certificate>		certPathCerts)
 		{
 			if (!paramsPKIX.IsRevocationEnabled)
-            {
                 return;
-            }
 
             // check if revocation is available
             if (attrCert.GetExtensionValue(X509Extensions.NoRevAvail) != null)
@@ -462,7 +460,7 @@ namespace Org.BouncyCastle.Pkix
 			X509Certificate				issuerCert,
 			CertStatus					certStatus,
 			ReasonsMask					reasonMask,
-			IList						certPathCerts)
+			IList<X509Certificate>		certPathCerts)
 		{
 			/*
 			* 4.3.6 No Revocation Available
@@ -472,9 +470,7 @@ namespace Org.BouncyCastle.Pkix
 			* available for this AC.
 			*/
 			if (attrCert.GetExtensionValue(X509Extensions.NoRevAvail) != null)
-			{
 				return;
-			}
 
 			DateTime currentDate = DateTime.UtcNow;
 			if (validDate.CompareTo(currentDate) > 0)

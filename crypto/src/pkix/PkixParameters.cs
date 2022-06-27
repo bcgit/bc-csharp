@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
 {
@@ -14,7 +11,6 @@ namespace Org.BouncyCastle.Pkix
 	/// Summary description for PkixParameters.
 	/// </summary>
 	public class PkixParameters
-//		: ICertPathParameters
 	{
 		/**
 		* This is the default PKIX validity model. Actually there are two variants
@@ -43,7 +39,7 @@ namespace Org.BouncyCastle.Pkix
 
 		private HashSet<TrustAnchor> trustAnchors;
 		private DateTimeObject date;
-		private IList certPathCheckers;
+		private List<PkixCertPathChecker> m_checkers;
 		private bool revocationEnabled = true;
 		private HashSet<string> initialPolicies;
 		//private bool checkOnlyEECertificateCrl = false;
@@ -90,7 +86,7 @@ namespace Org.BouncyCastle.Pkix
 			SetTrustAnchors(trustAnchors);
 
 			this.initialPolicies = new HashSet<string>();
-			this.certPathCheckers = Platform.CreateArrayList();
+			this.m_checkers = new List<PkixCertPathChecker>();
 			this.m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
 			this.m_storesCert = new List<IStore<X509Certificate>>();
 			this.m_storesCrl = new List<IStore<X509Crl>>();
@@ -389,14 +385,15 @@ namespace Org.BouncyCastle.Pkix
 		*                <code>java.security.cert.PKIXCertPathChecker</code>
 		* @see #getCertPathCheckers()
 		*/
-		public virtual void SetCertPathCheckers(IList checkers)
+		public virtual void SetCertPathCheckers(IList<PkixCertPathChecker> checkers)
 		{
-            certPathCheckers = Platform.CreateArrayList();
+			m_checkers = new List<PkixCertPathChecker>();
+
 			if (checkers != null)
 			{
-				foreach (PkixCertPathChecker obj in checkers)
+				foreach (var checker in checkers)
 				{
-					certPathCheckers.Add(obj.Clone());
+					m_checkers.Add((PkixCertPathChecker)checker.Clone());
 				}
 			}
 		}
@@ -410,14 +407,14 @@ namespace Org.BouncyCastle.Pkix
 		 *
 		 * @see #setCertPathCheckers(java.util.List)
 		 */
-		public virtual IList GetCertPathCheckers()
+		public virtual IList<PkixCertPathChecker> GetCertPathCheckers()
 		{
-			IList checkers = Platform.CreateArrayList();
-			foreach (PkixCertPathChecker obj in certPathCheckers)
-			{
-				checkers.Add(obj.Clone());
+			var result = new List<PkixCertPathChecker>(m_checkers.Count);
+			foreach (var checker in m_checkers)
+            {
+				result.Add((PkixCertPathChecker)checker.Clone());
 			}
-			return checkers;
+			return result;
 		}
 
 		/**
@@ -431,12 +428,11 @@ namespace Org.BouncyCastle.Pkix
 		 * @param checker a <code>PKIXCertPathChecker</code> to add to the list of
 		 * checks. If <code>null</code>, the checker is ignored (not added to list).
 		 */
-		public virtual void AddCertPathChecker(
-			PkixCertPathChecker checker)
+		public virtual void AddCertPathChecker(PkixCertPathChecker checker)
 		{
 			if (checker != null)
 			{
-				certPathCheckers.Add(checker.Clone());
+				m_checkers.Add((PkixCertPathChecker)checker.Clone());
 			}
 		}
 
