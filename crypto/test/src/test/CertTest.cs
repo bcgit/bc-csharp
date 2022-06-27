@@ -1221,7 +1221,7 @@ namespace Org.BouncyCastle.Tests
                 Fail("failed extended key usage test");
             }
 
-            foreach (IList gn in cert.GetSubjectAlternativeNames())
+            foreach (var gn in cert.GetSubjectAlternativeNames())
             {
                 if (!gn[1].Equals("test@test.test"))
                 {

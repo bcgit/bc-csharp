@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -160,7 +159,7 @@ namespace Org.BouncyCastle.Pkix
 			var issuerAltNames = cert.GetIssuerAlternativeNames();
 			if (issuerAltNames != null)
 			{
-				foreach (IList list in issuerAltNames)
+				foreach (var list in issuerAltNames)
 				{
 					// look for URI
 					if (list.Count >= 2 && list[0].Equals(GeneralName.UniformResourceIdentifier))
@@ -721,10 +720,7 @@ namespace Org.BouncyCastle.Pkix
 				}
 
 				// add and check issuer principals
-				for (IEnumerator it = issuerPrincipals.GetEnumerator(); it.MoveNext(); )
-				{
-					issuers.Add((X509Name)it.Current);
-				}
+				issuers.AddRange(issuerPrincipals);
 			}
 			// TODO: is not found although this should correctly add the rel name. selector of Sun is buggy here or PKI test case is invalid
 			// distributionPoint

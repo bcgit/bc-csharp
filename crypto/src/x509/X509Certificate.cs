@@ -1,7 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
@@ -379,17 +379,17 @@ namespace Org.BouncyCastle.X509
             return -1;
         }
 
-        public virtual ICollection GetSubjectAlternativeNames()
+        public virtual IList<IList<object>> GetSubjectAlternativeNames()
         {
             return GetAlternativeNames(X509Extensions.SubjectAlternativeName);
         }
 
-        public virtual ICollection GetIssuerAlternativeNames()
+        public virtual IList<IList<object>> GetIssuerAlternativeNames()
         {
             return GetAlternativeNames(X509Extensions.IssuerAlternativeName);
         }
 
-        protected virtual ICollection GetAlternativeNames(DerObjectIdentifier oid)
+        protected virtual IList<IList<object>> GetAlternativeNames(DerObjectIdentifier oid)
         {
             Asn1OctetString altNames = GetExtensionValue(oid);
             if (altNames == null)
@@ -397,14 +397,44 @@ namespace Org.BouncyCastle.X509
 
             Asn1Object asn1Object = X509ExtensionUtilities.FromExtensionValue(altNames);
 
-            GeneralNames gns = GeneralNames.GetInstance(asn1Object);
+            var generalNames = GeneralNames.GetInstance(asn1Object);
+            var gns = generalNames.GetNames();
 
-            IList result = Platform.CreateArrayList();
-            foreach (GeneralName gn in gns.GetNames())
+            var result = new List<IList<object>>(gns.Length);
+            foreach (GeneralName gn in gns)
             {
-                IList entry = Platform.CreateArrayList();
+                var entry = new List<object>(2);
                 entry.Add(gn.TagNo);
-                entry.Add(gn.Name.ToString());
+
+                switch (gn.TagNo)
+                {
+                case GeneralName.EdiPartyName:
+                case GeneralName.X400Address:
+                case GeneralName.OtherName:
+                    entry.Add(gn.GetEncoded());
+                    break;
+                case GeneralName.DirectoryName:
+                    // TODO Styles
+                    //entry.Add(X509Name.GetInstance(Rfc4519Style.Instance, gn.Name).ToString());
+                    entry.Add(X509Name.GetInstance(gn.Name).ToString());
+                    break;
+                case GeneralName.DnsName:
+                case GeneralName.Rfc822Name:
+                case GeneralName.UniformResourceIdentifier:
+                    entry.Add(((IAsn1String)gn.Name).GetString());
+                    break;
+                case GeneralName.RegisteredID:
+                    entry.Add(DerObjectIdentifier.GetInstance(gn.Name).Id);
+                    break;
+                case GeneralName.IPAddress:
+                    byte[] addrBytes = Asn1OctetString.GetInstance(gn.Name).GetOctets();
+                    IPAddress ipAddress = new IPAddress(addrBytes);
+                    entry.Add(ipAddress.ToString());
+                    break;
+                default:
+                    throw new IOException("Bad tag number: " + gn.TagNo);
+                }
+
                 result.Add(entry);
             }
             return result;
