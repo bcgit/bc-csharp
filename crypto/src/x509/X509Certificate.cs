@@ -413,6 +413,9 @@ namespace Org.BouncyCastle.X509
         protected virtual IList<IList<object>> GetAlternativeNames(DerObjectIdentifier oid)
         {
             var generalNames = GetAlternativeNameExtension(oid);
+            if (generalNames == null)
+                return null;
+
             var gns = generalNames.GetNames();
 
             var result = new List<IList<object>>(gns.Length);
