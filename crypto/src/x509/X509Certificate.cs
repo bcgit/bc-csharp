@@ -379,9 +379,14 @@ namespace Org.BouncyCastle.X509
             return -1;
         }
 
-        public virtual IList<IList<object>> GetSubjectAlternativeNames()
+        public virtual GeneralNames GetIssuerAlternativeNameExtension()
         {
-            return GetAlternativeNames(X509Extensions.SubjectAlternativeName);
+            return GetAlternativeNameExtension(X509Extensions.IssuerAlternativeName);
+        }
+
+        public virtual GeneralNames GetSubjectAlternativeNameExtension()
+        {
+            return GetAlternativeNameExtension(X509Extensions.SubjectAlternativeName);
         }
 
         public virtual IList<IList<object>> GetIssuerAlternativeNames()
@@ -389,7 +394,12 @@ namespace Org.BouncyCastle.X509
             return GetAlternativeNames(X509Extensions.IssuerAlternativeName);
         }
 
-        protected virtual IList<IList<object>> GetAlternativeNames(DerObjectIdentifier oid)
+        public virtual IList<IList<object>> GetSubjectAlternativeNames()
+        {
+            return GetAlternativeNames(X509Extensions.SubjectAlternativeName);
+        }
+
+        protected virtual GeneralNames GetAlternativeNameExtension(DerObjectIdentifier oid)
         {
             Asn1OctetString altNames = GetExtensionValue(oid);
             if (altNames == null)
@@ -397,7 +407,12 @@ namespace Org.BouncyCastle.X509
 
             Asn1Object asn1Object = X509ExtensionUtilities.FromExtensionValue(altNames);
 
-            var generalNames = GeneralNames.GetInstance(asn1Object);
+            return GeneralNames.GetInstance(asn1Object);
+        }
+
+        protected virtual IList<IList<object>> GetAlternativeNames(DerObjectIdentifier oid)
+        {
+            var generalNames = GetAlternativeNameExtension(oid);
             var gns = generalNames.GetNames();
 
             var result = new List<IList<object>>(gns.Length);

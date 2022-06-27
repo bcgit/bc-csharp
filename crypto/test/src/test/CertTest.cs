@@ -1221,9 +1221,19 @@ namespace Org.BouncyCastle.Tests
                 Fail("failed extended key usage test");
             }
 
+            foreach (var gn in cert.GetSubjectAlternativeNameExtension().GetNames())
+            {
+                if (gn.TagNo != GeneralName.Rfc822Name ||
+                    !((IAsn1String)gn.Name).GetString().Equals("test@test.test"))
+                {
+                    Fail("failed subject alternative name extension test");
+                }
+            }
+
             foreach (var gn in cert.GetSubjectAlternativeNames())
             {
-                if (!gn[1].Equals("test@test.test"))
+                if (!gn[0].Equals(GeneralName.Rfc822Name) ||
+                    !gn[1].Equals("test@test.test"))
                 {
                     Fail("failed subject alternative names test");
                 }
