@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Math.EC.Abc;
 using Org.BouncyCastle.Math.EC.Endo;
@@ -148,7 +148,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             CheckPoint(point);
 
-            IDictionary table;
+            IDictionary<string, PreCompInfo> table;
             lock (point)
             {
                 table = point.m_preCompTable;
@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Math.EC
 
             lock (table)
             {
-                return (PreCompInfo)table[name];
+                return table.TryGetValue(name, out var preCompInfo) ? preCompInfo : null;
             }
         }
 
@@ -179,19 +179,19 @@ namespace Org.BouncyCastle.Math.EC
         {
             CheckPoint(point);
 
-            IDictionary table;
+            IDictionary<string, PreCompInfo> table;
             lock (point)
             {
                 table = point.m_preCompTable;
                 if (null == table)
                 {
-                    point.m_preCompTable = table = Platform.CreateHashtable(4);
+                    point.m_preCompTable = table = new Dictionary<string, PreCompInfo>();
                 }
             }
 
             lock (table)
             {
-                PreCompInfo existing = (PreCompInfo)table[name];
+                PreCompInfo existing = table.TryGetValue(name, out var preCompInfo) ? preCompInfo : null;
                 PreCompInfo result = callback.Precompute(existing);
 
                 if (result != existing)
@@ -659,7 +659,7 @@ namespace Org.BouncyCastle.Math.EC
     {
         private const int FP_DEFAULT_COORDS = COORD_JACOBIAN_MODIFIED;
 
-        private static readonly IDictionary knownQs = Platform.CreateHashtable();
+        private static readonly HashSet<BigInteger> KnownQs = new HashSet<BigInteger>();
         private static readonly SecureRandom random = new SecureRandom();
 
         protected readonly BigInteger m_q, m_r;
@@ -679,37 +679,30 @@ namespace Org.BouncyCastle.Math.EC
         internal FpCurve(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor, bool isInternal)
             : base(q)
         {
-            if (isInternal)
+            if (!isInternal)
             {
-                this.m_q = q;
-                if (!knownQs.Contains(q))
+                bool unknownQ;
+                lock (KnownQs) unknownQ = !KnownQs.Contains(q);
+
+                if (unknownQ)
                 {
-                    knownQs.Add(q, q);
+                    int maxBitLength = AsInteger("Org.BouncyCastle.EC.Fp_MaxSize", 1042); // 2 * 521
+                    int certainty = AsInteger("Org.BouncyCastle.EC.Fp_Certainty", 100);
+
+                    int qBitLength = q.BitLength;
+                    if (maxBitLength < qBitLength)
+                        throw new ArgumentException("Fp q value out of range");
+
+                    if (Primes.HasAnySmallFactors(q) ||
+                        !Primes.IsMRProbablePrime(q, random, GetNumberOfIterations(qBitLength, certainty)))
+                    {
+                        throw new ArgumentException("Fp q value not prime");
+                    }
                 }
             }
-            else if (knownQs.Contains(q))
-            {
-                this.m_q = q;
-            }
-            else
-            {
-                int maxBitLength = AsInteger("Org.BouncyCastle.EC.Fp_MaxSize", 1042); // 2 * 521
-                int certainty = AsInteger("Org.BouncyCastle.EC.Fp_Certainty", 100);
 
-                int qBitLength = q.BitLength;
-                if (maxBitLength < qBitLength)
-                {
-                    throw new ArgumentException("Fp q value out of range");
-                }
-
-                if (Primes.HasAnySmallFactors(q) || !Primes.IsMRProbablePrime(
-                    q, random, GetNumberOfIterations(qBitLength, certainty)))
-                {
-                    throw new ArgumentException("Fp q value not prime");
-                }
-
-                this.m_q = q;
-            }
+            lock (KnownQs) KnownQs.Add(q);
+            this.m_q = q;
 
             this.m_r = FpFieldElement.CalculateResidue(q);
             this.m_infinity = new FpPoint(this, null, null);

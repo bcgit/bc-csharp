@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
 
@@ -16,17 +16,18 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 		private readonly static long RESEED_MAX = 1L << (48 - 1);
 		private readonly static int MAX_BITS_REQUEST = 1 << (19 - 1);
 
-		private static readonly IDictionary seedlens = Platform.CreateHashtable();
+		private static readonly IDictionary<string, int> SeedLens =
+			new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
 		static HashSP800Drbg()
 	    {
-            seedlens.Add("SHA-1", 440);
-            seedlens.Add("SHA-224", 440);
-            seedlens.Add("SHA-256", 440);
-            seedlens.Add("SHA-512/256", 440);
-            seedlens.Add("SHA-512/224", 440);
-            seedlens.Add("SHA-384", 888);
-            seedlens.Add("SHA-512", 888);
+			SeedLens.Add("SHA-1", 440);
+			SeedLens.Add("SHA-224", 440);
+			SeedLens.Add("SHA-256", 440);
+			SeedLens.Add("SHA-512/256", 440);
+			SeedLens.Add("SHA-512/224", 440);
+			SeedLens.Add("SHA-384", 888);
+			SeedLens.Add("SHA-512", 888);
 	    }
 
         private readonly IDigest        mDigest;
@@ -59,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
             mDigest = digest;
 	        mEntropySource = entropySource;
 	        mSecurityStrength = securityStrength;
-            mSeedLength = (int)seedlens[digest.AlgorithmName];
+            mSeedLength = SeedLens[digest.AlgorithmName];
 
             // 1. seed_material = entropy_input || nonce || personalization_string.
 	        // 2. seed = Hash_df (seed_material, seedlen).

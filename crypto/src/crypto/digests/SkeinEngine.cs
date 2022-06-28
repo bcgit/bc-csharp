@@ -1,9 +1,10 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
@@ -131,7 +132,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          * Precalculated UBI(CFG) states for common state/output combinations without key or other
          * pre-message params.
          */
-        private static readonly IDictionary INITIAL_STATES = Platform.CreateHashtable();
+        private static readonly IDictionary<int, ulong[]> InitialStates = new Dictionary<int, ulong[]>();
 
         static SkeinEngine()
         {
@@ -213,7 +214,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private static void InitialState(int blockSize, int outputSize, ulong[] state)
         {
-            INITIAL_STATES.Add(VariantIdentifier(blockSize / 8, outputSize / 8), state);
+            InitialStates.Add(VariantIdentifier(blockSize / 8, outputSize / 8), state);
         }
 
         private static int VariantIdentifier(int blockSizeBytes, int outputSizeBytes)
@@ -617,16 +618,17 @@ namespace Org.BouncyCastle.Crypto.Digests
             UbiInit(PARAM_TYPE_MESSAGE);
         }
 
-        private void InitParams(IDictionary parameters)
+        private void InitParams(IDictionary<int, byte[]> parameters)
         {
-            IEnumerator keys = parameters.Keys.GetEnumerator();
-            IList pre = Platform.CreateArrayList();
-            IList post = Platform.CreateArrayList();
+            //IEnumerator keys = parameters.Keys.GetEnumerator();
+            var pre = new List<Parameter>();
+            var post = new List<Parameter>();
 
-            while (keys.MoveNext())
+            //while (keys.MoveNext())
+            foreach (var parameter in parameters)
             {
-                int type = (int)keys.Current;
-                byte[] value = (byte[])parameters[type];
+                int type = parameter.Key;
+                byte[] value = parameter.Value;
 
                 if (type == PARAM_TYPE_KEY)
                 {
@@ -655,7 +657,7 @@ namespace Org.BouncyCastle.Crypto.Digests
          */
         private void CreateInitialState()
         {
-            ulong[] precalc = (ulong[])INITIAL_STATES[VariantIdentifier(BlockSize, OutputSize)];
+            var precalc = CollectionUtilities.GetValueOrNull(InitialStates, VariantIdentifier(BlockSize, OutputSize));
             if ((key == null) && (precalc != null))
             {
                 // Precalculated UBI(CFG)

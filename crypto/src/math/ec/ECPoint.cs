@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using Org.BouncyCastle.Math.EC.Multiplier;
@@ -51,8 +51,7 @@ namespace Org.BouncyCastle.Math.EC
         protected internal readonly ECFieldElement m_x, m_y;
         protected internal readonly ECFieldElement[] m_zs;
 
-        // Dictionary is (string -> PreCompInfo)
-        protected internal IDictionary m_preCompTable = null;
+        protected internal IDictionary<string, PreCompInfo> m_preCompTable = null;
 
         protected ECPoint(ECCurve curve, ECFieldElement	x, ECFieldElement y)
             : this(curve, x, y, GetInitialZCoords(curve))

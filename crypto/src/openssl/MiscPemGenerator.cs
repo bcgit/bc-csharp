@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -195,11 +195,9 @@ namespace Org.BouncyCastle.OpenSsl
 
             byte[] encData = PemUtilities.Crypt(true, keyData, password, dekAlgName, iv);
 
-            IList headers = Platform.CreateArrayList(2);
-
+            var headers = new List<PemHeader>(2);
             headers.Add(new PemHeader("Proc-Type", "4,ENCRYPTED"));
-            headers.Add(new PemHeader("DEK-Info", dekAlgName + ","
-                          + Strings.ToUpperCase(Hex.ToHexString(iv))));
+            headers.Add(new PemHeader("DEK-Info", dekAlgName + "," + Hex.ToHexString(iv).ToUpperInvariant()));
 
             return new PemObject(type, headers, encData);
         }
