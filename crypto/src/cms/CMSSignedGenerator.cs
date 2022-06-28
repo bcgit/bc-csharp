@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
@@ -17,7 +16,6 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
@@ -25,11 +23,14 @@ namespace Org.BouncyCastle.Cms
 {
     public class DefaultSignatureAlgorithmIdentifierFinder
     {
-        private static readonly IDictionary algorithms = Platform.CreateHashtable();
+        private static readonly IDictionary<string, DerObjectIdentifier> m_algorithms =
+            new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<DerObjectIdentifier> noParams = new HashSet<DerObjectIdentifier>();
-        private static readonly IDictionary _params = Platform.CreateHashtable();
+        private static readonly IDictionary<string, Asn1Encodable> m_params =
+            new Dictionary<string, Asn1Encodable>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<DerObjectIdentifier> pkcs15RsaEncryption = new HashSet<DerObjectIdentifier>();
-        private static readonly IDictionary digestOids = Platform.CreateHashtable();
+        private static readonly IDictionary<DerObjectIdentifier, DerObjectIdentifier> m_digestOids =
+            new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
 
         //private static readonly DerObjectIdentifier ENCRYPTION_RSA = PkcsObjectIdentifiers.RsaEncryption;
         //private static readonly DerObjectIdentifier ENCRYPTION_DSA = X9ObjectIdentifiers.IdDsaWithSha1;
@@ -42,123 +43,123 @@ namespace Org.BouncyCastle.Cms
 
         static DefaultSignatureAlgorithmIdentifierFinder()
         {
-            algorithms["MD2WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.MD2WithRsaEncryption;
-            algorithms["MD2WITHRSA"] = PkcsObjectIdentifiers.MD2WithRsaEncryption;
-            algorithms["MD5WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.MD5WithRsaEncryption;
-            algorithms["MD5WITHRSA"] = PkcsObjectIdentifiers.MD5WithRsaEncryption;
-            algorithms["SHA1WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha1WithRsaEncryption;
-            algorithms["SHA-1WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha1WithRsaEncryption;
-            algorithms["SHA1WITHRSA"] = PkcsObjectIdentifiers.Sha1WithRsaEncryption;
-            algorithms["SHA-1WITHRSA"] = PkcsObjectIdentifiers.Sha1WithRsaEncryption;
-            algorithms["SHA224WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha224WithRsaEncryption;
-            algorithms["SHA-224WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha224WithRsaEncryption;
-            algorithms["SHA224WITHRSA"] = PkcsObjectIdentifiers.Sha224WithRsaEncryption;
-            algorithms["SHA-224WITHRSA"] = PkcsObjectIdentifiers.Sha224WithRsaEncryption;
-            algorithms["SHA256WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
-            algorithms["SHA-256WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
-            algorithms["SHA256WITHRSA"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
-            algorithms["SHA-256WITHRSA"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
-            algorithms["SHA384WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
-            algorithms["SHA-384WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
-            algorithms["SHA384WITHRSA"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
-            algorithms["SHA-384WITHRSA"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
-            algorithms["SHA512WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
-            algorithms["SHA-512WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
-            algorithms["SHA512WITHRSA"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
-            algorithms["SHA-512WITHRSA"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
-            algorithms["SHA512(224)WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
-            algorithms["SHA-512(224)WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
-            algorithms["SHA512(224)WITHRSA"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
-            algorithms["SHA-512(224)WITHRSA"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
-            algorithms["SHA512(256)WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
-            algorithms["SHA-512(256)WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
-            algorithms["SHA512(256)WITHRSA"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
-            algorithms["SHA-512(256)WITHRSA"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
-            algorithms["SHA1WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["SHA224WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["SHA256WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["SHA384WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["SHA512WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["SHA3-224WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["SHA3-256WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["SHA3-384WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["SHA3-512WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
-            algorithms["RIPEMD160WITHRSAENCRYPTION"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160;
-            algorithms["RIPEMD160WITHRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160;
-            algorithms["RIPEMD128WITHRSAENCRYPTION"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128;
-            algorithms["RIPEMD128WITHRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128;
-            algorithms["RIPEMD256WITHRSAENCRYPTION"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256;
-            algorithms["RIPEMD256WITHRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256;
-            algorithms["SHA1WITHDSA"] = X9ObjectIdentifiers.IdDsaWithSha1;
-            algorithms["SHA-1WITHDSA"] = X9ObjectIdentifiers.IdDsaWithSha1;
-            algorithms["DSAWITHSHA1"] = X9ObjectIdentifiers.IdDsaWithSha1;
-            algorithms["SHA224WITHDSA"] = NistObjectIdentifiers.DsaWithSha224;
-            algorithms["SHA256WITHDSA"] = NistObjectIdentifiers.DsaWithSha256;
-            algorithms["SHA384WITHDSA"] = NistObjectIdentifiers.DsaWithSha384;
-            algorithms["SHA512WITHDSA"] = NistObjectIdentifiers.DsaWithSha512;
-            algorithms["SHA3-224WITHDSA"] = NistObjectIdentifiers.IdDsaWithSha3_224;
-            algorithms["SHA3-256WITHDSA"] = NistObjectIdentifiers.IdDsaWithSha3_256;
-            algorithms["SHA3-384WITHDSA"] = NistObjectIdentifiers.IdDsaWithSha3_384;
-            algorithms["SHA3-512WITHDSA"] = NistObjectIdentifiers.IdDsaWithSha3_512;
-            algorithms["SHA3-224WITHECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_224;
-            algorithms["SHA3-256WITHECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_256;
-            algorithms["SHA3-384WITHECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_384;
-            algorithms["SHA3-512WITHECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_512;
-            algorithms["SHA3-224WITHRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224;
-            algorithms["SHA3-256WITHRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256;
-            algorithms["SHA3-384WITHRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384;
-            algorithms["SHA3-512WITHRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512;
-            algorithms["SHA3-224WITHRSAENCRYPTION"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224;
-            algorithms["SHA3-256WITHRSAENCRYPTION"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256;
-            algorithms["SHA3-384WITHRSAENCRYPTION"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384;
-            algorithms["SHA3-512WITHRSAENCRYPTION"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512;
-            algorithms["SHA1WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha1;
-            algorithms["ECDSAWITHSHA1"] = X9ObjectIdentifiers.ECDsaWithSha1;
-            algorithms["SHA224WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha224;
-            algorithms["SHA256WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha256;
-            algorithms["SHA384WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha384;
-            algorithms["SHA512WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha512;
+            m_algorithms["MD2WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.MD2WithRsaEncryption;
+            m_algorithms["MD2WITHRSA"] = PkcsObjectIdentifiers.MD2WithRsaEncryption;
+            m_algorithms["MD5WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.MD5WithRsaEncryption;
+            m_algorithms["MD5WITHRSA"] = PkcsObjectIdentifiers.MD5WithRsaEncryption;
+            m_algorithms["SHA1WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha1WithRsaEncryption;
+            m_algorithms["SHA-1WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha1WithRsaEncryption;
+            m_algorithms["SHA1WITHRSA"] = PkcsObjectIdentifiers.Sha1WithRsaEncryption;
+            m_algorithms["SHA-1WITHRSA"] = PkcsObjectIdentifiers.Sha1WithRsaEncryption;
+            m_algorithms["SHA224WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha224WithRsaEncryption;
+            m_algorithms["SHA-224WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha224WithRsaEncryption;
+            m_algorithms["SHA224WITHRSA"] = PkcsObjectIdentifiers.Sha224WithRsaEncryption;
+            m_algorithms["SHA-224WITHRSA"] = PkcsObjectIdentifiers.Sha224WithRsaEncryption;
+            m_algorithms["SHA256WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
+            m_algorithms["SHA-256WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
+            m_algorithms["SHA256WITHRSA"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
+            m_algorithms["SHA-256WITHRSA"] = PkcsObjectIdentifiers.Sha256WithRsaEncryption;
+            m_algorithms["SHA384WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
+            m_algorithms["SHA-384WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
+            m_algorithms["SHA384WITHRSA"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
+            m_algorithms["SHA-384WITHRSA"] = PkcsObjectIdentifiers.Sha384WithRsaEncryption;
+            m_algorithms["SHA512WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
+            m_algorithms["SHA-512WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
+            m_algorithms["SHA512WITHRSA"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
+            m_algorithms["SHA-512WITHRSA"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
+            m_algorithms["SHA512(224)WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
+            m_algorithms["SHA-512(224)WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
+            m_algorithms["SHA512(224)WITHRSA"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
+            m_algorithms["SHA-512(224)WITHRSA"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
+            m_algorithms["SHA512(256)WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
+            m_algorithms["SHA-512(256)WITHRSAENCRYPTION"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
+            m_algorithms["SHA512(256)WITHRSA"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
+            m_algorithms["SHA-512(256)WITHRSA"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
+            m_algorithms["SHA1WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["SHA224WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["SHA256WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["SHA384WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["SHA512WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["SHA3-224WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["SHA3-256WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["SHA3-384WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["SHA3-512WITHRSAANDMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            m_algorithms["RIPEMD160WITHRSAENCRYPTION"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160;
+            m_algorithms["RIPEMD160WITHRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160;
+            m_algorithms["RIPEMD128WITHRSAENCRYPTION"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128;
+            m_algorithms["RIPEMD128WITHRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128;
+            m_algorithms["RIPEMD256WITHRSAENCRYPTION"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256;
+            m_algorithms["RIPEMD256WITHRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256;
+            m_algorithms["SHA1WITHDSA"] = X9ObjectIdentifiers.IdDsaWithSha1;
+            m_algorithms["SHA-1WITHDSA"] = X9ObjectIdentifiers.IdDsaWithSha1;
+            m_algorithms["DSAWITHSHA1"] = X9ObjectIdentifiers.IdDsaWithSha1;
+            m_algorithms["SHA224WITHDSA"] = NistObjectIdentifiers.DsaWithSha224;
+            m_algorithms["SHA256WITHDSA"] = NistObjectIdentifiers.DsaWithSha256;
+            m_algorithms["SHA384WITHDSA"] = NistObjectIdentifiers.DsaWithSha384;
+            m_algorithms["SHA512WITHDSA"] = NistObjectIdentifiers.DsaWithSha512;
+            m_algorithms["SHA3-224WITHDSA"] = NistObjectIdentifiers.IdDsaWithSha3_224;
+            m_algorithms["SHA3-256WITHDSA"] = NistObjectIdentifiers.IdDsaWithSha3_256;
+            m_algorithms["SHA3-384WITHDSA"] = NistObjectIdentifiers.IdDsaWithSha3_384;
+            m_algorithms["SHA3-512WITHDSA"] = NistObjectIdentifiers.IdDsaWithSha3_512;
+            m_algorithms["SHA3-224WITHECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_224;
+            m_algorithms["SHA3-256WITHECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_256;
+            m_algorithms["SHA3-384WITHECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_384;
+            m_algorithms["SHA3-512WITHECDSA"] = NistObjectIdentifiers.IdEcdsaWithSha3_512;
+            m_algorithms["SHA3-224WITHRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224;
+            m_algorithms["SHA3-256WITHRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256;
+            m_algorithms["SHA3-384WITHRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384;
+            m_algorithms["SHA3-512WITHRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512;
+            m_algorithms["SHA3-224WITHRSAENCRYPTION"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224;
+            m_algorithms["SHA3-256WITHRSAENCRYPTION"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256;
+            m_algorithms["SHA3-384WITHRSAENCRYPTION"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384;
+            m_algorithms["SHA3-512WITHRSAENCRYPTION"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512;
+            m_algorithms["SHA1WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha1;
+            m_algorithms["ECDSAWITHSHA1"] = X9ObjectIdentifiers.ECDsaWithSha1;
+            m_algorithms["SHA224WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha224;
+            m_algorithms["SHA256WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha256;
+            m_algorithms["SHA384WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha384;
+            m_algorithms["SHA512WITHECDSA"] = X9ObjectIdentifiers.ECDsaWithSha512;
 
 
-            algorithms["GOST3411WITHGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
-            algorithms["GOST3411WITHGOST3410-94"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
-            algorithms["GOST3411WITHECGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
-            algorithms["GOST3411WITHECGOST3410-2001"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
-            algorithms["GOST3411WITHGOST3410-2001"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
-            algorithms["GOST3411WITHECGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
-            algorithms["GOST3411WITHECGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
-            algorithms["GOST3411WITHGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
-            algorithms["GOST3411WITHGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
-            algorithms["GOST3411-2012-256WITHECGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
-            algorithms["GOST3411-2012-512WITHECGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
-            algorithms["GOST3411-2012-256WITHGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
-            algorithms["GOST3411-2012-512WITHGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
-            algorithms["SHA1WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA1;
-            algorithms["SHA224WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA224;
-            algorithms["SHA256WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA256;
-            algorithms["SHA384WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA384;
-            algorithms["SHA512WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA512;
-            algorithms["RIPEMD160WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_RIPEMD160;
-            algorithms["SHA1WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_1;
-            algorithms["SHA224WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_224;
-            algorithms["SHA256WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_256;
-            algorithms["SHA384WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_384;
-            algorithms["SHA512WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_512;
-            algorithms["SHA3-512WITHSPHINCS256"] = BCObjectIdentifiers.sphincs256_with_SHA3_512;
-            algorithms["SHA512WITHSPHINCS256"] = BCObjectIdentifiers.sphincs256_with_SHA512;
+            m_algorithms["GOST3411WITHGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
+            m_algorithms["GOST3411WITHGOST3410-94"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
+            m_algorithms["GOST3411WITHECGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
+            m_algorithms["GOST3411WITHECGOST3410-2001"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
+            m_algorithms["GOST3411WITHGOST3410-2001"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
+            m_algorithms["GOST3411WITHECGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
+            m_algorithms["GOST3411WITHECGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
+            m_algorithms["GOST3411WITHGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
+            m_algorithms["GOST3411WITHGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
+            m_algorithms["GOST3411-2012-256WITHECGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
+            m_algorithms["GOST3411-2012-512WITHECGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
+            m_algorithms["GOST3411-2012-256WITHGOST3410-2012-256"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256;
+            m_algorithms["GOST3411-2012-512WITHGOST3410-2012-512"] = RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512;
+            m_algorithms["SHA1WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA1;
+            m_algorithms["SHA224WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA224;
+            m_algorithms["SHA256WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA256;
+            m_algorithms["SHA384WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA384;
+            m_algorithms["SHA512WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_SHA512;
+            m_algorithms["RIPEMD160WITHPLAIN-ECDSA"] = BsiObjectIdentifiers.ecdsa_plain_RIPEMD160;
+            m_algorithms["SHA1WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_1;
+            m_algorithms["SHA224WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_224;
+            m_algorithms["SHA256WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_256;
+            m_algorithms["SHA384WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_384;
+            m_algorithms["SHA512WITHCVC-ECDSA"] = EacObjectIdentifiers.id_TA_ECDSA_SHA_512;
+            m_algorithms["SHA3-512WITHSPHINCS256"] = BCObjectIdentifiers.sphincs256_with_SHA3_512;
+            m_algorithms["SHA512WITHSPHINCS256"] = BCObjectIdentifiers.sphincs256_with_SHA512;
 
-            algorithms["SHA256WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha256;
-            algorithms["SM3WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sm3;
+            m_algorithms["SHA256WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sha256;
+            m_algorithms["SM3WITHSM2"] = GMObjectIdentifiers.sm2sign_with_sm3;
 
-            algorithms["SHA256WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHA256;
-            algorithms["SHA512WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHA512;
-            algorithms["SHAKE128WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHAKE128;
-            algorithms["SHAKE256WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHAKE256;
+            m_algorithms["SHA256WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHA256;
+            m_algorithms["SHA512WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHA512;
+            m_algorithms["SHAKE128WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHAKE128;
+            m_algorithms["SHAKE256WITHXMSS"] = BCObjectIdentifiers.xmss_with_SHAKE256;
 
-            algorithms["SHA256WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHA256;
-            algorithms["SHA512WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHA512;
-            algorithms["SHAKE128WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHAKE128;
-            algorithms["SHAKE256WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHAKE256;
+            m_algorithms["SHA256WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHA256;
+            m_algorithms["SHA512WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHA512;
+            m_algorithms["SHAKE128WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHAKE128;
+            m_algorithms["SHAKE256WITHXMSSMT"] = BCObjectIdentifiers.xmss_mt_with_SHAKE256;
 
 
             //
@@ -239,117 +240,113 @@ namespace Org.BouncyCastle.Cms
             // explicit params
             //
             AlgorithmIdentifier sha1AlgId = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
-            _params["SHA1WITHRSAANDMGF1"] = CreatePssParams(sha1AlgId, 20);
+            m_params["SHA1WITHRSAANDMGF1"] = CreatePssParams(sha1AlgId, 20);
 
             AlgorithmIdentifier sha224AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha224, DerNull.Instance);
-            _params["SHA224WITHRSAANDMGF1"] = CreatePssParams(sha224AlgId, 28);
+            m_params["SHA224WITHRSAANDMGF1"] = CreatePssParams(sha224AlgId, 28);
 
             AlgorithmIdentifier sha256AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256, DerNull.Instance);
-            _params["SHA256WITHRSAANDMGF1"] = CreatePssParams(sha256AlgId, 32);
+            m_params["SHA256WITHRSAANDMGF1"] = CreatePssParams(sha256AlgId, 32);
 
             AlgorithmIdentifier sha384AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha384, DerNull.Instance);
-            _params["SHA384WITHRSAANDMGF1"] = CreatePssParams(sha384AlgId, 48);
+            m_params["SHA384WITHRSAANDMGF1"] = CreatePssParams(sha384AlgId, 48);
 
             AlgorithmIdentifier sha512AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, DerNull.Instance);
-            _params["SHA512WITHRSAANDMGF1"] = CreatePssParams(sha512AlgId, 64);
+            m_params["SHA512WITHRSAANDMGF1"] = CreatePssParams(sha512AlgId, 64);
 
             AlgorithmIdentifier sha3_224AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha3_224, DerNull.Instance);
-            _params["SHA3-224WITHRSAANDMGF1"] = CreatePssParams(sha3_224AlgId, 28);
+            m_params["SHA3-224WITHRSAANDMGF1"] = CreatePssParams(sha3_224AlgId, 28);
 
             AlgorithmIdentifier sha3_256AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha3_256, DerNull.Instance);
-            _params["SHA3-256WITHRSAANDMGF1"] = CreatePssParams(sha3_256AlgId, 32);
+            m_params["SHA3-256WITHRSAANDMGF1"] = CreatePssParams(sha3_256AlgId, 32);
 
             AlgorithmIdentifier sha3_384AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha3_384, DerNull.Instance);
-            _params["SHA3-384WITHRSAANDMGF1"] = CreatePssParams(sha3_384AlgId, 48);
+            m_params["SHA3-384WITHRSAANDMGF1"] = CreatePssParams(sha3_384AlgId, 48);
 
             AlgorithmIdentifier sha3_512AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha3_512, DerNull.Instance);
-            _params["SHA3-512WITHRSAANDMGF1"] = CreatePssParams(sha3_512AlgId, 64);
+            m_params["SHA3-512WITHRSAANDMGF1"] = CreatePssParams(sha3_512AlgId, 64);
 
             //
             // digests
             //
-            digestOids[PkcsObjectIdentifiers.Sha224WithRsaEncryption] = NistObjectIdentifiers.IdSha224;
-            digestOids[PkcsObjectIdentifiers.Sha256WithRsaEncryption] = NistObjectIdentifiers.IdSha256;
-            digestOids[PkcsObjectIdentifiers.Sha384WithRsaEncryption] = NistObjectIdentifiers.IdSha384;
-            digestOids[PkcsObjectIdentifiers.Sha512WithRsaEncryption] = NistObjectIdentifiers.IdSha512;
-            digestOids[PkcsObjectIdentifiers.Sha512_224WithRSAEncryption] = NistObjectIdentifiers.IdSha512_224;
-            digestOids[PkcsObjectIdentifiers.Sha512_256WithRSAEncryption] = NistObjectIdentifiers.IdSha512_256;
-            digestOids[NistObjectIdentifiers.DsaWithSha224] = NistObjectIdentifiers.IdSha224;
-            digestOids[NistObjectIdentifiers.DsaWithSha256] = NistObjectIdentifiers.IdSha256;
-            digestOids[NistObjectIdentifiers.DsaWithSha384] = NistObjectIdentifiers.IdSha384;
-            digestOids[NistObjectIdentifiers.DsaWithSha512] = NistObjectIdentifiers.IdSha512;
-            digestOids[NistObjectIdentifiers.IdDsaWithSha3_224] = NistObjectIdentifiers.IdSha3_224;
-            digestOids[NistObjectIdentifiers.IdDsaWithSha3_256] = NistObjectIdentifiers.IdSha3_256;
-            digestOids[NistObjectIdentifiers.IdDsaWithSha3_384] = NistObjectIdentifiers.IdSha3_384;
-            digestOids[NistObjectIdentifiers.IdDsaWithSha3_512] = NistObjectIdentifiers.IdSha3_512;
-            digestOids[NistObjectIdentifiers.IdEcdsaWithSha3_224] = NistObjectIdentifiers.IdSha3_224;
-            digestOids[NistObjectIdentifiers.IdEcdsaWithSha3_256] = NistObjectIdentifiers.IdSha3_256;
-            digestOids[NistObjectIdentifiers.IdEcdsaWithSha3_384] = NistObjectIdentifiers.IdSha3_384;
-            digestOids[NistObjectIdentifiers.IdEcdsaWithSha3_512] = NistObjectIdentifiers.IdSha3_512;
-            digestOids[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224] = NistObjectIdentifiers.IdSha3_224;
-            digestOids[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256] = NistObjectIdentifiers.IdSha3_256;
-            digestOids[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384] = NistObjectIdentifiers.IdSha3_384;
-            digestOids[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512] = NistObjectIdentifiers.IdSha3_512;
+            m_digestOids[PkcsObjectIdentifiers.Sha224WithRsaEncryption] = NistObjectIdentifiers.IdSha224;
+            m_digestOids[PkcsObjectIdentifiers.Sha256WithRsaEncryption] = NistObjectIdentifiers.IdSha256;
+            m_digestOids[PkcsObjectIdentifiers.Sha384WithRsaEncryption] = NistObjectIdentifiers.IdSha384;
+            m_digestOids[PkcsObjectIdentifiers.Sha512WithRsaEncryption] = NistObjectIdentifiers.IdSha512;
+            m_digestOids[PkcsObjectIdentifiers.Sha512_224WithRSAEncryption] = NistObjectIdentifiers.IdSha512_224;
+            m_digestOids[PkcsObjectIdentifiers.Sha512_256WithRSAEncryption] = NistObjectIdentifiers.IdSha512_256;
+            m_digestOids[NistObjectIdentifiers.DsaWithSha224] = NistObjectIdentifiers.IdSha224;
+            m_digestOids[NistObjectIdentifiers.DsaWithSha256] = NistObjectIdentifiers.IdSha256;
+            m_digestOids[NistObjectIdentifiers.DsaWithSha384] = NistObjectIdentifiers.IdSha384;
+            m_digestOids[NistObjectIdentifiers.DsaWithSha512] = NistObjectIdentifiers.IdSha512;
+            m_digestOids[NistObjectIdentifiers.IdDsaWithSha3_224] = NistObjectIdentifiers.IdSha3_224;
+            m_digestOids[NistObjectIdentifiers.IdDsaWithSha3_256] = NistObjectIdentifiers.IdSha3_256;
+            m_digestOids[NistObjectIdentifiers.IdDsaWithSha3_384] = NistObjectIdentifiers.IdSha3_384;
+            m_digestOids[NistObjectIdentifiers.IdDsaWithSha3_512] = NistObjectIdentifiers.IdSha3_512;
+            m_digestOids[NistObjectIdentifiers.IdEcdsaWithSha3_224] = NistObjectIdentifiers.IdSha3_224;
+            m_digestOids[NistObjectIdentifiers.IdEcdsaWithSha3_256] = NistObjectIdentifiers.IdSha3_256;
+            m_digestOids[NistObjectIdentifiers.IdEcdsaWithSha3_384] = NistObjectIdentifiers.IdSha3_384;
+            m_digestOids[NistObjectIdentifiers.IdEcdsaWithSha3_512] = NistObjectIdentifiers.IdSha3_512;
+            m_digestOids[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224] = NistObjectIdentifiers.IdSha3_224;
+            m_digestOids[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256] = NistObjectIdentifiers.IdSha3_256;
+            m_digestOids[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384] = NistObjectIdentifiers.IdSha3_384;
+            m_digestOids[NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512] = NistObjectIdentifiers.IdSha3_512;
 
-            digestOids[PkcsObjectIdentifiers.MD2WithRsaEncryption] = PkcsObjectIdentifiers.MD2;
-            digestOids[PkcsObjectIdentifiers.MD4WithRsaEncryption] = PkcsObjectIdentifiers.MD4;
-            digestOids[PkcsObjectIdentifiers.MD5WithRsaEncryption] = PkcsObjectIdentifiers.MD5;
-            digestOids[PkcsObjectIdentifiers.Sha1WithRsaEncryption] = OiwObjectIdentifiers.IdSha1;
-            digestOids[TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128] = TeleTrusTObjectIdentifiers.RipeMD128;
-            digestOids[TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160] = TeleTrusTObjectIdentifiers.RipeMD160;
-            digestOids[TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256] = TeleTrusTObjectIdentifiers.RipeMD256;
-            digestOids[CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94] = CryptoProObjectIdentifiers.GostR3411;
-            digestOids[CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001] = CryptoProObjectIdentifiers.GostR3411;
-            digestOids[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
-            digestOids[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512;
+            m_digestOids[PkcsObjectIdentifiers.MD2WithRsaEncryption] = PkcsObjectIdentifiers.MD2;
+            m_digestOids[PkcsObjectIdentifiers.MD4WithRsaEncryption] = PkcsObjectIdentifiers.MD4;
+            m_digestOids[PkcsObjectIdentifiers.MD5WithRsaEncryption] = PkcsObjectIdentifiers.MD5;
+            m_digestOids[PkcsObjectIdentifiers.Sha1WithRsaEncryption] = OiwObjectIdentifiers.IdSha1;
+            m_digestOids[TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128] = TeleTrusTObjectIdentifiers.RipeMD128;
+            m_digestOids[TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160] = TeleTrusTObjectIdentifiers.RipeMD160;
+            m_digestOids[TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256] = TeleTrusTObjectIdentifiers.RipeMD256;
+            m_digestOids[CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94] = CryptoProObjectIdentifiers.GostR3411;
+            m_digestOids[CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001] = CryptoProObjectIdentifiers.GostR3411;
+            m_digestOids[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
+            m_digestOids[RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512;
 
-            digestOids[GMObjectIdentifiers.sm2sign_with_sha256] = NistObjectIdentifiers.IdSha256;
-            digestOids[GMObjectIdentifiers.sm2sign_with_sm3] = GMObjectIdentifiers.sm3;
+            m_digestOids[GMObjectIdentifiers.sm2sign_with_sha256] = NistObjectIdentifiers.IdSha256;
+            m_digestOids[GMObjectIdentifiers.sm2sign_with_sm3] = GMObjectIdentifiers.sm3;
         }
 
         private static AlgorithmIdentifier Generate(string signatureAlgorithm)
         {
             AlgorithmIdentifier sigAlgId;
-            AlgorithmIdentifier encAlgId;
-            AlgorithmIdentifier digAlgId;
+            //AlgorithmIdentifier encAlgId;
+            //AlgorithmIdentifier digAlgId;
 
-            string algorithmName = Strings.ToUpperCase(signatureAlgorithm);
-            DerObjectIdentifier sigOID = (DerObjectIdentifier)algorithms[algorithmName];
-            if (sigOID == null)
-            {
-                throw new ArgumentException("Unknown signature type requested: " + algorithmName);
-            }
+            if (!m_algorithms.TryGetValue(signatureAlgorithm, out var sigOid))
+                throw new ArgumentException("Unknown signature type requested: " + signatureAlgorithm);
 
-            if (noParams.Contains(sigOID))
+            if (noParams.Contains(sigOid))
             {
-                sigAlgId = new AlgorithmIdentifier(sigOID);
+                sigAlgId = new AlgorithmIdentifier(sigOid);
             }
-            else if (_params.Contains(algorithmName))
+            else if (m_params.TryGetValue(signatureAlgorithm, out var explicitParameters))
             {
-                sigAlgId = new AlgorithmIdentifier(sigOID, (Asn1Encodable)_params[algorithmName]);
+                sigAlgId = new AlgorithmIdentifier(sigOid, explicitParameters);
             }
             else
             {
-                sigAlgId = new AlgorithmIdentifier(sigOID, DerNull.Instance);
+                sigAlgId = new AlgorithmIdentifier(sigOid, DerNull.Instance);
             }
 
-            if (pkcs15RsaEncryption.Contains(sigOID))
-            {
-                encAlgId = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
-            }
-            else
-            {
-                encAlgId = sigAlgId;
-            }
+            //if (pkcs15RsaEncryption.Contains(sigOid))
+            //{
+            //    encAlgId = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
+            //}
+            //else
+            //{
+            //    encAlgId = sigAlgId;
+            //}
 
-            if (sigAlgId.Algorithm.Equals(PkcsObjectIdentifiers.IdRsassaPss))
-            {
-                digAlgId = ((RsassaPssParameters)sigAlgId.Parameters).HashAlgorithm;
-            }
-            else
-            {
-                digAlgId = new AlgorithmIdentifier((DerObjectIdentifier)digestOids[sigOID], DerNull.Instance);
-            }
+            //if (sigAlgId.Algorithm.Equals(PkcsObjectIdentifiers.IdRsassaPss))
+            //{
+            //    digAlgId = ((RsassaPssParameters)sigAlgId.Parameters).HashAlgorithm;
+            //}
+            //else
+            //{
+            //    digAlgId = new AlgorithmIdentifier(m_digestOids[sigOid], DerNull.Instance);
+            //}
 
             return sigAlgId;
         }
@@ -371,96 +368,98 @@ namespace Org.BouncyCastle.Cms
 
     public class DefaultDigestAlgorithmIdentifierFinder
     {
-        private static readonly IDictionary digestOids = Platform.CreateHashtable();
-        private static readonly IDictionary digestNameToOids = Platform.CreateHashtable();
+        private static readonly IDictionary<DerObjectIdentifier, DerObjectIdentifier> m_digestOids =
+            new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+        private static readonly IDictionary<string, DerObjectIdentifier> m_digestNameToOids =
+            new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
 
         static DefaultDigestAlgorithmIdentifierFinder()
         {
             //
             // digests
             //
-            digestOids.Add(OiwObjectIdentifiers.MD4WithRsaEncryption, PkcsObjectIdentifiers.MD4);
-            digestOids.Add(OiwObjectIdentifiers.MD4WithRsa, PkcsObjectIdentifiers.MD4);
-            digestOids.Add(OiwObjectIdentifiers.MD5WithRsa, PkcsObjectIdentifiers.MD5);
-            digestOids.Add(OiwObjectIdentifiers.Sha1WithRsa, OiwObjectIdentifiers.IdSha1);
-            digestOids.Add(OiwObjectIdentifiers.DsaWithSha1, OiwObjectIdentifiers.IdSha1);
+            m_digestOids.Add(OiwObjectIdentifiers.MD4WithRsaEncryption, PkcsObjectIdentifiers.MD4);
+            m_digestOids.Add(OiwObjectIdentifiers.MD4WithRsa, PkcsObjectIdentifiers.MD4);
+            m_digestOids.Add(OiwObjectIdentifiers.MD5WithRsa, PkcsObjectIdentifiers.MD5);
+            m_digestOids.Add(OiwObjectIdentifiers.Sha1WithRsa, OiwObjectIdentifiers.IdSha1);
+            m_digestOids.Add(OiwObjectIdentifiers.DsaWithSha1, OiwObjectIdentifiers.IdSha1);
 
-            digestOids.Add(PkcsObjectIdentifiers.Sha224WithRsaEncryption, NistObjectIdentifiers.IdSha224);
-            digestOids.Add(PkcsObjectIdentifiers.Sha256WithRsaEncryption, NistObjectIdentifiers.IdSha256);
-            digestOids.Add(PkcsObjectIdentifiers.Sha384WithRsaEncryption, NistObjectIdentifiers.IdSha384);
-            digestOids.Add(PkcsObjectIdentifiers.Sha512WithRsaEncryption, NistObjectIdentifiers.IdSha512);
-            digestOids.Add(PkcsObjectIdentifiers.Sha512_224WithRSAEncryption, NistObjectIdentifiers.IdSha512_224);
-            digestOids.Add(PkcsObjectIdentifiers.Sha512_256WithRSAEncryption, NistObjectIdentifiers.IdSha512_256);
+            m_digestOids.Add(PkcsObjectIdentifiers.Sha224WithRsaEncryption, NistObjectIdentifiers.IdSha224);
+            m_digestOids.Add(PkcsObjectIdentifiers.Sha256WithRsaEncryption, NistObjectIdentifiers.IdSha256);
+            m_digestOids.Add(PkcsObjectIdentifiers.Sha384WithRsaEncryption, NistObjectIdentifiers.IdSha384);
+            m_digestOids.Add(PkcsObjectIdentifiers.Sha512WithRsaEncryption, NistObjectIdentifiers.IdSha512);
+            m_digestOids.Add(PkcsObjectIdentifiers.Sha512_224WithRSAEncryption, NistObjectIdentifiers.IdSha512_224);
+            m_digestOids.Add(PkcsObjectIdentifiers.Sha512_256WithRSAEncryption, NistObjectIdentifiers.IdSha512_256);
 
-            digestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224, NistObjectIdentifiers.IdSha3_224);
-            digestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256, NistObjectIdentifiers.IdSha3_256);
-            digestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384, NistObjectIdentifiers.IdSha3_384);
-            digestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512, NistObjectIdentifiers.IdSha3_512);
+            m_digestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224, NistObjectIdentifiers.IdSha3_224);
+            m_digestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256, NistObjectIdentifiers.IdSha3_256);
+            m_digestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384, NistObjectIdentifiers.IdSha3_384);
+            m_digestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512, NistObjectIdentifiers.IdSha3_512);
 
-            digestOids.Add(PkcsObjectIdentifiers.MD2WithRsaEncryption, PkcsObjectIdentifiers.MD2);
-            digestOids.Add(PkcsObjectIdentifiers.MD4WithRsaEncryption, PkcsObjectIdentifiers.MD4);
-            digestOids.Add(PkcsObjectIdentifiers.MD5WithRsaEncryption, PkcsObjectIdentifiers.MD5);
-            digestOids.Add(PkcsObjectIdentifiers.Sha1WithRsaEncryption, OiwObjectIdentifiers.IdSha1);
+            m_digestOids.Add(PkcsObjectIdentifiers.MD2WithRsaEncryption, PkcsObjectIdentifiers.MD2);
+            m_digestOids.Add(PkcsObjectIdentifiers.MD4WithRsaEncryption, PkcsObjectIdentifiers.MD4);
+            m_digestOids.Add(PkcsObjectIdentifiers.MD5WithRsaEncryption, PkcsObjectIdentifiers.MD5);
+            m_digestOids.Add(PkcsObjectIdentifiers.Sha1WithRsaEncryption, OiwObjectIdentifiers.IdSha1);
 
-            digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha1, OiwObjectIdentifiers.IdSha1);
-            digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha224, NistObjectIdentifiers.IdSha224);
-            digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha256, NistObjectIdentifiers.IdSha256);
-            digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha384, NistObjectIdentifiers.IdSha384);
-            digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha512, NistObjectIdentifiers.IdSha512);
-            digestOids.Add(X9ObjectIdentifiers.IdDsaWithSha1, OiwObjectIdentifiers.IdSha1);
+            m_digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha1, OiwObjectIdentifiers.IdSha1);
+            m_digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha224, NistObjectIdentifiers.IdSha224);
+            m_digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha256, NistObjectIdentifiers.IdSha256);
+            m_digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha384, NistObjectIdentifiers.IdSha384);
+            m_digestOids.Add(X9ObjectIdentifiers.ECDsaWithSha512, NistObjectIdentifiers.IdSha512);
+            m_digestOids.Add(X9ObjectIdentifiers.IdDsaWithSha1, OiwObjectIdentifiers.IdSha1);
 
-            digestOids.Add(NistObjectIdentifiers.DsaWithSha224, NistObjectIdentifiers.IdSha224);
-            digestOids.Add(NistObjectIdentifiers.DsaWithSha256, NistObjectIdentifiers.IdSha256);
-            digestOids.Add(NistObjectIdentifiers.DsaWithSha384, NistObjectIdentifiers.IdSha384);
-            digestOids.Add(NistObjectIdentifiers.DsaWithSha512, NistObjectIdentifiers.IdSha512);
+            m_digestOids.Add(NistObjectIdentifiers.DsaWithSha224, NistObjectIdentifiers.IdSha224);
+            m_digestOids.Add(NistObjectIdentifiers.DsaWithSha256, NistObjectIdentifiers.IdSha256);
+            m_digestOids.Add(NistObjectIdentifiers.DsaWithSha384, NistObjectIdentifiers.IdSha384);
+            m_digestOids.Add(NistObjectIdentifiers.DsaWithSha512, NistObjectIdentifiers.IdSha512);
 
-            digestOids.Add(TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128, TeleTrusTObjectIdentifiers.RipeMD128);
-            digestOids.Add(TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160, TeleTrusTObjectIdentifiers.RipeMD160);
-            digestOids.Add(TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256, TeleTrusTObjectIdentifiers.RipeMD256);
+            m_digestOids.Add(TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128, TeleTrusTObjectIdentifiers.RipeMD128);
+            m_digestOids.Add(TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160, TeleTrusTObjectIdentifiers.RipeMD160);
+            m_digestOids.Add(TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256, TeleTrusTObjectIdentifiers.RipeMD256);
 
-            digestOids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94, CryptoProObjectIdentifiers.GostR3411);
-            digestOids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001, CryptoProObjectIdentifiers.GostR3411);
+            m_digestOids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94, CryptoProObjectIdentifiers.GostR3411);
+            m_digestOids.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001, CryptoProObjectIdentifiers.GostR3411);
 
-            digestNameToOids.Add("SHA-1", OiwObjectIdentifiers.IdSha1);
-            digestNameToOids.Add("SHA-224", NistObjectIdentifiers.IdSha224);
-            digestNameToOids.Add("SHA-256", NistObjectIdentifiers.IdSha256);
-            digestNameToOids.Add("SHA-384", NistObjectIdentifiers.IdSha384);
-            digestNameToOids.Add("SHA-512", NistObjectIdentifiers.IdSha512);
-            digestNameToOids.Add("SHA-512/224", NistObjectIdentifiers.IdSha512_224);
-            digestNameToOids.Add("SHA-512(224)", NistObjectIdentifiers.IdSha512_224);
-            digestNameToOids.Add("SHA-512/256", NistObjectIdentifiers.IdSha512_256);
-            digestNameToOids.Add("SHA-512(256)", NistObjectIdentifiers.IdSha512_256);
+            m_digestNameToOids.Add("SHA-1", OiwObjectIdentifiers.IdSha1);
+            m_digestNameToOids.Add("SHA-224", NistObjectIdentifiers.IdSha224);
+            m_digestNameToOids.Add("SHA-256", NistObjectIdentifiers.IdSha256);
+            m_digestNameToOids.Add("SHA-384", NistObjectIdentifiers.IdSha384);
+            m_digestNameToOids.Add("SHA-512", NistObjectIdentifiers.IdSha512);
+            m_digestNameToOids.Add("SHA-512/224", NistObjectIdentifiers.IdSha512_224);
+            m_digestNameToOids.Add("SHA-512(224)", NistObjectIdentifiers.IdSha512_224);
+            m_digestNameToOids.Add("SHA-512/256", NistObjectIdentifiers.IdSha512_256);
+            m_digestNameToOids.Add("SHA-512(256)", NistObjectIdentifiers.IdSha512_256);
 
-            digestNameToOids.Add("SHA1", OiwObjectIdentifiers.IdSha1);
-            digestNameToOids.Add("SHA224", NistObjectIdentifiers.IdSha224);
-            digestNameToOids.Add("SHA256", NistObjectIdentifiers.IdSha256);
-            digestNameToOids.Add("SHA384", NistObjectIdentifiers.IdSha384);
-            digestNameToOids.Add("SHA512", NistObjectIdentifiers.IdSha512);
-            digestNameToOids.Add("SHA512/224", NistObjectIdentifiers.IdSha512_224);
-            digestNameToOids.Add("SHA512(224)", NistObjectIdentifiers.IdSha512_224);
-            digestNameToOids.Add("SHA512/256", NistObjectIdentifiers.IdSha512_256);
-            digestNameToOids.Add("SHA512(256)", NistObjectIdentifiers.IdSha512_256);
+            m_digestNameToOids.Add("SHA1", OiwObjectIdentifiers.IdSha1);
+            m_digestNameToOids.Add("SHA224", NistObjectIdentifiers.IdSha224);
+            m_digestNameToOids.Add("SHA256", NistObjectIdentifiers.IdSha256);
+            m_digestNameToOids.Add("SHA384", NistObjectIdentifiers.IdSha384);
+            m_digestNameToOids.Add("SHA512", NistObjectIdentifiers.IdSha512);
+            m_digestNameToOids.Add("SHA512/224", NistObjectIdentifiers.IdSha512_224);
+            m_digestNameToOids.Add("SHA512(224)", NistObjectIdentifiers.IdSha512_224);
+            m_digestNameToOids.Add("SHA512/256", NistObjectIdentifiers.IdSha512_256);
+            m_digestNameToOids.Add("SHA512(256)", NistObjectIdentifiers.IdSha512_256);
 
-            digestNameToOids.Add("SHA3-224", NistObjectIdentifiers.IdSha3_224);
-            digestNameToOids.Add("SHA3-256", NistObjectIdentifiers.IdSha3_256);
-            digestNameToOids.Add("SHA3-384", NistObjectIdentifiers.IdSha3_384);
-            digestNameToOids.Add("SHA3-512", NistObjectIdentifiers.IdSha3_512);
+            m_digestNameToOids.Add("SHA3-224", NistObjectIdentifiers.IdSha3_224);
+            m_digestNameToOids.Add("SHA3-256", NistObjectIdentifiers.IdSha3_256);
+            m_digestNameToOids.Add("SHA3-384", NistObjectIdentifiers.IdSha3_384);
+            m_digestNameToOids.Add("SHA3-512", NistObjectIdentifiers.IdSha3_512);
 
-            digestNameToOids.Add("SHAKE-128", NistObjectIdentifiers.IdShake128);
-            digestNameToOids.Add("SHAKE-256", NistObjectIdentifiers.IdShake256);
+            m_digestNameToOids.Add("SHAKE-128", NistObjectIdentifiers.IdShake128);
+            m_digestNameToOids.Add("SHAKE-256", NistObjectIdentifiers.IdShake256);
 
-            digestNameToOids.Add("GOST3411", CryptoProObjectIdentifiers.GostR3411);
+            m_digestNameToOids.Add("GOST3411", CryptoProObjectIdentifiers.GostR3411);
 
-            digestNameToOids.Add("MD2", PkcsObjectIdentifiers.MD2);
-            digestNameToOids.Add("MD4", PkcsObjectIdentifiers.MD4);
-            digestNameToOids.Add("MD5", PkcsObjectIdentifiers.MD5);
+            m_digestNameToOids.Add("MD2", PkcsObjectIdentifiers.MD2);
+            m_digestNameToOids.Add("MD4", PkcsObjectIdentifiers.MD4);
+            m_digestNameToOids.Add("MD5", PkcsObjectIdentifiers.MD5);
 
-            digestNameToOids.Add("RIPEMD128", TeleTrusTObjectIdentifiers.RipeMD128);
-            digestNameToOids.Add("RIPEMD160", TeleTrusTObjectIdentifiers.RipeMD160);
-            digestNameToOids.Add("RIPEMD256", TeleTrusTObjectIdentifiers.RipeMD256);
+            m_digestNameToOids.Add("RIPEMD128", TeleTrusTObjectIdentifiers.RipeMD128);
+            m_digestNameToOids.Add("RIPEMD160", TeleTrusTObjectIdentifiers.RipeMD160);
+            m_digestNameToOids.Add("RIPEMD256", TeleTrusTObjectIdentifiers.RipeMD256);
         }
 
-        public AlgorithmIdentifier find(AlgorithmIdentifier sigAlgId)
+        public AlgorithmIdentifier Find(AlgorithmIdentifier sigAlgId)
         {
             AlgorithmIdentifier digAlgId;
 
@@ -470,15 +469,15 @@ namespace Org.BouncyCastle.Cms
             }
             else
             {
-                digAlgId = new AlgorithmIdentifier((DerObjectIdentifier)digestOids[sigAlgId.Algorithm], DerNull.Instance);
+                digAlgId = new AlgorithmIdentifier(m_digestOids[sigAlgId.Algorithm], DerNull.Instance);
             }
 
             return digAlgId;
         }
 
-        public AlgorithmIdentifier find(string digAlgName)
+        public AlgorithmIdentifier Find(string digAlgName)
         {
-            return new AlgorithmIdentifier((DerObjectIdentifier)digestNameToOids[digAlgName], DerNull.Instance);
+            return new AlgorithmIdentifier(m_digestNameToOids[digAlgName], DerNull.Instance);
         }
     }
 
@@ -511,8 +510,9 @@ namespace Org.BouncyCastle.Cms
 
         internal List<Asn1Encodable> _certs = new List<Asn1Encodable>();
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
-        internal IList _signers = Platform.CreateArrayList();
-        internal IDictionary _digests = Platform.CreateHashtable();
+        internal IList<SignerInformation> _signers = new List<SignerInformation>();
+        internal IDictionary<string, byte[]> m_digests =
+            new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
@@ -531,12 +531,10 @@ namespace Org.BouncyCastle.Cms
             this.rand = rand;
         }
 
-        internal protected virtual IDictionary GetBaseParameters(
-            DerObjectIdentifier contentType,
-            AlgorithmIdentifier digAlgId,
-            byte[] hash)
+        internal protected virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
+            DerObjectIdentifier contentType, AlgorithmIdentifier digAlgId, byte[] hash)
         {
-            IDictionary param = Platform.CreateHashtable();
+            var param = new Dictionary<CmsAttributeTableParameter, object>();
 
             if (contentType != null)
             {
@@ -607,9 +605,9 @@ namespace Org.BouncyCastle.Cms
 		 *
 		 * @return a map of oids (as string objects) and byte[] representing digests.
 		 */
-        public IDictionary GetGeneratedDigests()
+        public IDictionary<string, byte[]> GetGeneratedDigests()
         {
-            return Platform.CreateHashtable(_digests);
+            return new Dictionary<string, byte[]>(m_digests, StringComparer.OrdinalIgnoreCase);
         }
 
         public bool UseDerForCerts

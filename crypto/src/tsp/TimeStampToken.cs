@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Tsp
 				throw new TspValidationException("ContentInfo object not for a time stamp.");
 			}
 
-			ICollection signers = tsToken.GetSignerInfos().GetSigners();
+			var signers = tsToken.GetSignerInfos().GetSigners();
 
 			if (signers.Count != 1)
 			{

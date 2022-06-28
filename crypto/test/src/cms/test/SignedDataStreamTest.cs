@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -541,7 +540,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             byte[] contentDigest = (byte[])gen.GetGeneratedDigests()[CmsSignedGenerator.DigestSha1];
 
-            ArrayList signers = new ArrayList(sp.GetSignerInfos().GetSigners());
+            var signers = sp.GetSignerInfos().GetSigners();
 
 			AttributeTable table = ((SignerInformation) signers[0]).SignedAttributes;
 			Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
@@ -576,7 +575,7 @@ namespace Org.BouncyCastle.Cms.Tests
 		private class SignedGenAttributeTableGenerator
 			: DefaultSignedAttributeTableGenerator
 		{
-			public override AttributeTable GetAttributes(IDictionary parameters)
+			public override AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
 			{
 				var table = CreateStandardAttributeTable(parameters);
 
@@ -592,8 +591,7 @@ namespace Org.BouncyCastle.Cms.Tests
 		private class UnsignedGenAttributeTableGenerator
 			: CmsAttributeTableGenerator
 		{
-			public AttributeTable GetAttributes(
-				IDictionary parameters)
+			public AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
 			{
 				DerOctetString val = new DerOctetString((byte[])parameters[CmsAttributeTableParameter.Signature]);
 				Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(dummyOid2, new DerSet(val));
@@ -629,7 +627,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			byte[] contentDigest = (byte[])gen.GetGeneratedDigests()[CmsSignedGenerator.DigestSha1];
 
-			ArrayList signers = new ArrayList(sp.GetSignerInfos().GetSigners());
+			var signers = sp.GetSignerInfos().GetSigners();
 
 			AttributeTable table = ((SignerInformation) signers[0]).SignedAttributes;
 			Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
@@ -787,9 +785,9 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			sd = new CmsSignedData(new CmsProcessableByteArray(data), newOut.ToArray());
 
-			IEnumerator signerEnum = sd.GetSignerInfos().GetSigners().GetEnumerator();
+			var signerEnum = sd.GetSignerInfos().GetSigners().GetEnumerator();
 			signerEnum.MoveNext();
-			SignerInformation signer = (SignerInformation)signerEnum.Current;
+			SignerInformation signer = signerEnum.Current;
 
 			Assert.AreEqual(signer.DigestAlgOid, CmsSignedDataStreamGenerator.DigestSha224);
 
@@ -844,9 +842,9 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			sd = new CmsSignedData(newOut.ToArray());
 
-			IEnumerator signerEnum = sd.GetSignerInfos().GetSigners().GetEnumerator();
+			var signerEnum = sd.GetSignerInfos().GetSigners().GetEnumerator();
 			signerEnum.MoveNext();
-			SignerInformation signer = (SignerInformation) signerEnum.Current;
+			SignerInformation signer = signerEnum.Current;
 
 			Assert.AreEqual(signer.DigestAlgOid, CmsSignedDataStreamGenerator.DigestSha224);
 

@@ -1,12 +1,11 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Cms.Ecc;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -14,7 +13,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -28,7 +26,7 @@ namespace Org.BouncyCastle.Cms
         private KeyAgreeRecipientInfo info;
         private Asn1OctetString       encryptedKey;
 
-        internal static void ReadRecipientInfo(IList infos, KeyAgreeRecipientInfo info,
+        internal static void ReadRecipientInfo(IList<RecipientInformation> infos, KeyAgreeRecipientInfo info,
             CmsSecureReadable secureReadable)
         {
             try

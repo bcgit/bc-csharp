@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -51,18 +49,20 @@ namespace Org.BouncyCastle.Cms
 		 *
 		 * @return a filled in Hashtable of attributes.
 		 */
-		protected virtual IDictionary<DerObjectIdentifier, object> CreateStandardAttributeTable(IDictionary parameters)
+		protected virtual IDictionary<DerObjectIdentifier, object> CreateStandardAttributeTable(
+			IDictionary<CmsAttributeTableParameter, object> parameters)
 		{
             var std = new Dictionary<DerObjectIdentifier, object>(m_table);
             DoCreateStandardAttributeTable(parameters, std);
 			return std;
 		}
 
-        private void DoCreateStandardAttributeTable(IDictionary parameters,
+        private void DoCreateStandardAttributeTable(IDictionary<CmsAttributeTableParameter, object> parameters,
 			IDictionary<DerObjectIdentifier, object> std)
         {
             // contentType will be absent if we're trying to generate a counter signature.
-            if (parameters.Contains(CmsAttributeTableParameter.ContentType))
+
+            if (parameters.ContainsKey(CmsAttributeTableParameter.ContentType))
             {
                 if (!std.ContainsKey(CmsAttributes.ContentType))
                 {
@@ -94,8 +94,7 @@ namespace Org.BouncyCastle.Cms
 		 * @param parameters source parameters
 		 * @return the populated attribute table
 		 */
-		public virtual AttributeTable GetAttributes(
-			IDictionary parameters)
+		public virtual AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
 		{
             var table = CreateStandardAttributeTable(parameters);
 			return new AttributeTable(table);

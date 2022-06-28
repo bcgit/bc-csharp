@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
@@ -52,7 +51,7 @@ namespace Org.BouncyCastle.Cms
 		 * @return a filled in IDictionary of attributes.
 		 */
 		protected virtual IDictionary<DerObjectIdentifier, object> CreateStandardAttributeTable(
-			IDictionary parameters)
+			IDictionary<CmsAttributeTableParameter, object> parameters)
 		{
             var std = new Dictionary<DerObjectIdentifier, object>(m_table);
 
@@ -80,7 +79,7 @@ namespace Org.BouncyCastle.Cms
 		 * @param parameters source parameters
 		 * @return the populated attribute table
 		 */
-		public virtual AttributeTable GetAttributes(IDictionary parameters)
+		public virtual AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
 		{
             var table = CreateStandardAttributeTable(parameters);
 			return new AttributeTable(table);

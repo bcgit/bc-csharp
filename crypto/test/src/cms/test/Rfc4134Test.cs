@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using NUnit.Framework;
 
@@ -158,15 +157,15 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(envelopedData.EncryptionAlgOid, symAlgorithmOID);
 
-			ArrayList c = new ArrayList(recipients.GetRecipients());
+			var c = recipients.GetRecipients();
 			Assert.LessOrEqual(1, c.Count);
 			Assert.GreaterOrEqual(2, c.Count);
 
-			VerifyRecipient((RecipientInformation)c[0], privKey);
+			VerifyRecipient(c[0], privKey);
 
 			if (c.Count == 2)
 			{
-				RecipientInformation recInfo = (RecipientInformation)c[1];
+				RecipientInformation recInfo = c[1];
 
 				Assert.AreEqual(PkcsObjectIdentifiers.IdAlgCmsRC2Wrap.Id, recInfo.KeyEncryptionAlgOid);
 			}
@@ -183,7 +182,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(envelopedParser.EncryptionAlgOid, symAlgorithmOID);
 
-			ArrayList c = new ArrayList(recipients.GetRecipients());
+			var c = recipients.GetRecipients();
 			Assert.LessOrEqual(1, c.Count);
 			Assert.GreaterOrEqual(2, c.Count);
 
@@ -217,9 +216,9 @@ namespace Org.BouncyCastle.Cms.Tests
 
 		private SignerInformation GetFirstSignerInfo(SignerInformationStore store)
 		{
-			IEnumerator e = store.GetSigners().GetEnumerator();
+			var e = store.GetSigners().GetEnumerator();
 			e.MoveNext();
-			return (SignerInformation)e.Current;
+			return e.Current;
 		}
 
 		private void VerifyCounterSignature(SignerInformation signInfo, byte[] certificate)

@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
@@ -42,10 +40,9 @@ namespace Org.BouncyCastle.Cms
 		private SignedData				signedData;
 		private ContentInfo				contentInfo;
 		private SignerInformationStore	signerInfoStore;
-		private IDictionary				hashes;
+		private IDictionary<string, byte[]> m_hashes;
 
-		private CmsSignedData(
-			CmsSignedData c)
+		private CmsSignedData(CmsSignedData c)
 		{
 			this.signedData = c.signedData;
 			this.contentInfo = c.contentInfo;
@@ -53,15 +50,12 @@ namespace Org.BouncyCastle.Cms
 			this.signerInfoStore = c.signerInfoStore;
 		}
 
-		public CmsSignedData(
-			byte[] sigBlock)
+		public CmsSignedData(byte[] sigBlock)
 			: this(CmsUtilities.ReadContentInfo(new MemoryStream(sigBlock, false)))
 		{
 		}
 
-		public CmsSignedData(
-			CmsProcessable	signedContent,
-			byte[]			sigBlock)
+		public CmsSignedData(CmsProcessable signedContent, byte[] sigBlock)
 			: this(signedContent, CmsUtilities.ReadContentInfo(new MemoryStream(sigBlock, false)))
 		{
 		}
@@ -72,9 +66,7 @@ namespace Org.BouncyCastle.Cms
 		 * @param hashes a map of precomputed digests for content indexed by name of hash.
 		 * @param sigBlock the signature object.
 		 */
-		public CmsSignedData(
-			IDictionary	hashes,
-			byte[]		sigBlock)
+		public CmsSignedData(IDictionary<string, byte[]> hashes, byte[] sigBlock)
 			: this(hashes, CmsUtilities.ReadContentInfo(sigBlock))
 		{
 		}
@@ -85,9 +77,7 @@ namespace Org.BouncyCastle.Cms
 		* @param signedContent the content that was signed.
 		* @param sigData the signature object.
 		*/
-		public CmsSignedData(
-			CmsProcessable	signedContent,
-			Stream			sigData)
+		public CmsSignedData(CmsProcessable signedContent, Stream sigData)
 			: this(signedContent, CmsUtilities.ReadContentInfo(sigData))
 		{
 		}
@@ -95,32 +85,26 @@ namespace Org.BouncyCastle.Cms
 		/**
 		* base constructor - with encapsulated content
 		*/
-		public CmsSignedData(
-			Stream sigData)
+		public CmsSignedData(Stream sigData)
 			: this(CmsUtilities.ReadContentInfo(sigData))
 		{
 		}
 
-		public CmsSignedData(
-			CmsProcessable  signedContent,
-			ContentInfo     sigData)
+		public CmsSignedData(CmsProcessable signedContent, ContentInfo sigData)
 		{
 			this.signedContent = signedContent;
 			this.contentInfo = sigData;
 			this.signedData = SignedData.GetInstance(contentInfo.Content);
 		}
 
-		public CmsSignedData(
-			IDictionary	hashes,
-			ContentInfo	sigData)
+		public CmsSignedData(IDictionary<string, byte[]> hashes, ContentInfo sigData)
 		{
-			this.hashes = hashes;
+			this.m_hashes = hashes;
 			this.contentInfo = sigData;
 			this.signedData = SignedData.GetInstance(contentInfo.Content);
 		}
 
-		public CmsSignedData(
-			ContentInfo sigData)
+		public CmsSignedData(ContentInfo sigData)
 		{
 			this.contentInfo = sigData;
 			this.signedData = SignedData.GetInstance(contentInfo.Content);
@@ -154,7 +138,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			if (signerInfoStore == null)
 			{
-                IList signerInfos = Platform.CreateArrayList();
+				var signerInfos = new List<SignerInformation>();
 				Asn1Set s = signedData.SignerInfos;
 
 				foreach (object obj in s)
@@ -162,16 +146,18 @@ namespace Org.BouncyCastle.Cms
 					SignerInfo info = SignerInfo.GetInstance(obj);
 					DerObjectIdentifier contentType = signedData.EncapContentInfo.ContentType;
 
-					if (hashes == null)
+					if (m_hashes == null)
 					{
 						signerInfos.Add(new SignerInformation(info, contentType, signedContent, null));
 					}
-					else
+					else if (m_hashes.TryGetValue(info.DigestAlgorithm.Algorithm.Id, out var hash))
 					{
-                        byte[] hash = (byte[])hashes[info.DigestAlgorithm.Algorithm.Id];
-
 						signerInfos.Add(new SignerInformation(info, contentType, null, new BaseDigestCalculator(hash)));
 					}
+					else
+                    {
+						throw new InvalidOperationException();
+                    }
 				}
 
 				signerInfoStore = new SignerInformationStore(signerInfos);

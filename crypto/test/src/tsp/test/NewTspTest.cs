@@ -893,7 +893,8 @@ namespace Org.BouncyCastle.Tsp.Tests
 				.Build(sigfact, cert);
 		}
 
-        private class TestAttrGen : CmsAttributeTableGenerator
+        private class TestAttrGen
+			: CmsAttributeTableGenerator
 		{
             private readonly EssCertID mEssCertID;
             private readonly EssCertIDv2 mEssCertIDv2;
@@ -914,15 +915,17 @@ namespace Org.BouncyCastle.Tsp.Tests
                 get { return mEssCertIDv2; }
             }
 
-            public Asn1.Cms.AttributeTable GetAttributes(IDictionary parameters)
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
 			{
 				CmsAttributeTableGenerator attrGen = new DefaultSignedAttributeTableGenerator();
 
                 Asn1.Cms.AttributeTable table = attrGen.GetAttributes(parameters);
-				table = table.Add(PkcsObjectIdentifiers.IdAASigningCertificate, new SigningCertificate(EssCertID));
-				table = table.Add(PkcsObjectIdentifiers.IdAASigningCertificateV2, new SigningCertificateV2(new EssCertIDv2[] { EssCertIDv2 }));
 
-                return table;
+				return table.Add(
+					new Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAASigningCertificate,
+						new DerSet(new SigningCertificate(EssCertID))),
+					new Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAASigningCertificateV2,
+						new DerSet(new SigningCertificateV2(new EssCertIDv2[]{ EssCertIDv2 }))));
 			}
 		}
 	}

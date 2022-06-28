@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -62,7 +61,7 @@ namespace Org.BouncyCastle.Cms
 		private SignedDataParser        _signedData;
 		private DerObjectIdentifier		_signedContentType;
 		private CmsTypedStream          _signedContent;
-		private IDictionary				_digests;
+		private IDictionary<string, IDigest> m_digests;
 		private HashSet<string>			_digestOids;
 
 		private SignerInformationStore  _signerInfoStore;
@@ -106,7 +105,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				this._signedContent = signedContent;
 				this._signedData = SignedDataParser.GetInstance(this.contentInfo.GetContent(Asn1Tags.Sequence));
-				this._digests = Platform.CreateHashtable();
+				this.m_digests = new Dictionary<string, IDigest>(StringComparer.OrdinalIgnoreCase);
 				this._digestOids = new HashSet<string>();
 
 				Asn1SetParser digAlgs = _signedData.GetDigestAlgorithms();
@@ -121,9 +120,9 @@ namespace Org.BouncyCastle.Cms
                         string digestOid = id.Algorithm.Id;
 						string digestName = Helper.GetDigestAlgName(digestOid);
 
-						if (!this._digests.Contains(digestName))
+						if (!this.m_digests.ContainsKey(digestName))
 						{
-							this._digests[digestName] = Helper.GetDigestInstance(digestName);
+							this.m_digests[digestName] = Helper.GetDigestInstance(digestName);
 							this._digestOids.Add(digestOid);
 						}
 					}
@@ -194,13 +193,12 @@ namespace Org.BouncyCastle.Cms
 			{
 				PopulateCertCrlSets();
 
-                IList signerInfos = Platform.CreateArrayList();
-                IDictionary hashes = Platform.CreateHashtable();
+				var signerInfos = new List<SignerInformation>();
+                var hashes = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 
-				foreach (object digestKey in _digests.Keys)
+				foreach (var digest in m_digests)
 				{
-					hashes[digestKey] = DigestUtilities.DoFinal(
-						(IDigest)_digests[digestKey]);
+					hashes[digest.Key] = DigestUtilities.DoFinal(digest.Value);
 				}
 
 				try
@@ -211,10 +209,9 @@ namespace Org.BouncyCastle.Cms
 					while ((o = s.ReadObject()) != null)
 					{
 						SignerInfo info = SignerInfo.GetInstance(o.ToAsn1Object());
-						string digestName = Helper.GetDigestAlgName(
-                            info.DigestAlgorithm.Algorithm.Id);
+						string digestName = Helper.GetDigestAlgName(info.DigestAlgorithm.Algorithm.Id);
 
-						byte[] hash = (byte[]) hashes[digestName];
+						byte[] hash = hashes[digestName];
 
 						signerInfos.Add(new SignerInformation(info, _signedContentType, null, new BaseDigestCalculator(hash)));
 					}
@@ -315,7 +312,7 @@ namespace Org.BouncyCastle.Cms
 
 			Stream digStream = _signedContent.ContentStream;
 
-			foreach (IDigest digest in _digests.Values)
+			foreach (var digest in m_digests.Values)
 			{
 				digStream = new DigestStream(digStream, digest, null);
 			}

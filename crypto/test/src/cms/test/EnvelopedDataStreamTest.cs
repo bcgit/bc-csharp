@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -7,14 +6,12 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
-using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms.Tests
@@ -109,7 +106,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ep.EncryptionAlgOid, CmsEnvelopedDataGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 //            PKCS8EncodedKeySpec	keySpec = new PKCS8EncodedKeySpec(keyData);
 //            KeyFactory			keyFact = KeyFactory.GetInstance("RSA");
@@ -138,7 +135,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ep.EncryptionAlgOid, expectedOid);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			foreach (RecipientInformation recipient in c)
 			{
@@ -319,15 +316,14 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			outStream.Close();
 
-			CmsEnvelopedDataParser		ep = new CmsEnvelopedDataParser(bOut.ToArray());
-			RecipientInformationStore	recipients = ep.GetRecipientInfos();
-			ICollection					c = recipients.GetRecipients();
-
-			IEnumerator e = c.GetEnumerator();
+			CmsEnvelopedDataParser ep = new CmsEnvelopedDataParser(bOut.ToArray());
+			RecipientInformationStore recipients = ep.GetRecipientInfos();
+			var c = recipients.GetRecipients();
+			var e = c.GetEnumerator();
 
 			if (e.MoveNext())
 			{
-				RecipientInformation recipient = (RecipientInformation) e.Current;
+				RecipientInformation recipient = e.Current;
 
 				Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
 
@@ -382,7 +378,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ep.EncryptionAlgOid, CmsEnvelopedDataGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			foreach (RecipientInformation recipient in c)
 			{
@@ -423,7 +419,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ep.EncryptionAlgOid, CmsEnvelopedDataGenerator.DesEde3Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			foreach (RecipientInformation recipient in c)
 			{

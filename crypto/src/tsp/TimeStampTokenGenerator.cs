@@ -450,7 +450,8 @@ namespace Org.BouncyCastle.Tsp
             return sBuild.ToString();
         }
 
-        private class TableGen : CmsAttributeTableGenerator
+        private class TableGen
+            : CmsAttributeTableGenerator
         {
             private readonly SignerInfoGenerator infoGen;
             private readonly EssCertID essCertID;
@@ -462,7 +463,7 @@ namespace Org.BouncyCastle.Tsp
                 this.essCertID = essCertID;
             }
 
-            public Asn1.Cms.AttributeTable GetAttributes(IDictionary parameters)
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
             {
                 Asn1.Cms.AttributeTable tab = infoGen.signedGen.GetAttributes(parameters);
                 if (tab[PkcsObjectIdentifiers.IdAASigningCertificate] == null)
@@ -473,7 +474,8 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-        private class TableGen2 : CmsAttributeTableGenerator
+        private class TableGen2
+            : CmsAttributeTableGenerator
         {
             private readonly SignerInfoGenerator infoGen;
             private readonly EssCertIDv2 essCertID;
@@ -485,7 +487,7 @@ namespace Org.BouncyCastle.Tsp
                 this.essCertID = essCertID;
             }
 
-            public Asn1.Cms.AttributeTable GetAttributes(IDictionary parameters)
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
             {
                 Asn1.Cms.AttributeTable tab = infoGen.signedGen.GetAttributes(parameters);
                 if (tab[PkcsObjectIdentifiers.IdAASigningCertificateV2] == null)

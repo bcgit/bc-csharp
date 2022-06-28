@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Cmp
 
                 AlgorithmIdentifier algorithmIdentifier = sigAlgFinder.Find(cert.SigAlgName);
 
-                AlgorithmIdentifier digAlg = digestAlgFinder.find(algorithmIdentifier);
+                AlgorithmIdentifier digAlg = digestAlgFinder.Find(algorithmIdentifier);
                 if (null == digAlg)
                     throw new CmpException("cannot find algorithm for digest from signature");
 

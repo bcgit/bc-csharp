@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
@@ -19,29 +15,32 @@ namespace Org.BouncyCastle.Cms
 {
     internal class EnvelopedDataHelper
     {
-        private static readonly IDictionary BaseCipherNames = Platform.CreateHashtable();
-        private static readonly IDictionary MacAlgNames = Platform.CreateHashtable();
-        //private static readonly IDictionary PrfDigests = Platform.CreateHashtable();
+        //private static readonly IDictionary<DerObjectIdentifier, string> BaseCipherNames =
+        //    new Dictionary<DerObjectIdentifier, string>();
+        //private static readonly IDictionary<DerObjectIdentifier, string> MacAlgNames =
+        //    new Dictionary<DerObjectIdentifier, string>();
+        //private static readonly IDictionary<DerObjectIdentifier, string> PrfDigests =
+        //    new Dictionary<DerObjectIdentifier, string>();
 
-        static EnvelopedDataHelper()
-        {
-            //PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha1, "SHA-1");
-            //PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha224, "SHA-224");
-            //PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha256, "SHA-256");
-            //PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha384, "SHA-384");
-            //PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha512, "SHA-512");
+        //static EnvelopedDataHelper()
+        //{
+        //    PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha1, "SHA-1");
+        //    PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha224, "SHA-224");
+        //    PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha256, "SHA-256");
+        //    PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha384, "SHA-384");
+        //    PrfDigests.Add(PkcsObjectIdentifiers.IdHmacWithSha512, "SHA-512");
 
-            BaseCipherNames.Add(PkcsObjectIdentifiers.DesEde3Cbc, "DESEDE");
-            BaseCipherNames.Add(NistObjectIdentifiers.IdAes128Cbc, "AES");
-            BaseCipherNames.Add(NistObjectIdentifiers.IdAes192Cbc, "AES");
-            BaseCipherNames.Add(NistObjectIdentifiers.IdAes256Cbc, "AES");
+        //    BaseCipherNames.Add(PkcsObjectIdentifiers.DesEde3Cbc, "DESEDE");
+        //    BaseCipherNames.Add(NistObjectIdentifiers.IdAes128Cbc, "AES");
+        //    BaseCipherNames.Add(NistObjectIdentifiers.IdAes192Cbc, "AES");
+        //    BaseCipherNames.Add(NistObjectIdentifiers.IdAes256Cbc, "AES");
 
-            MacAlgNames.Add(PkcsObjectIdentifiers.DesEde3Cbc, "DESEDEMac");
-            MacAlgNames.Add(NistObjectIdentifiers.IdAes128Cbc, "AESMac");
-            MacAlgNames.Add(NistObjectIdentifiers.IdAes192Cbc, "AESMac");
-            MacAlgNames.Add(NistObjectIdentifiers.IdAes256Cbc, "AESMac");
-            MacAlgNames.Add(PkcsObjectIdentifiers.RC2Cbc, "RC2Mac");
-        }
+        //    MacAlgNames.Add(PkcsObjectIdentifiers.DesEde3Cbc, "DESEDEMac");
+        //    MacAlgNames.Add(NistObjectIdentifiers.IdAes128Cbc, "AESMac");
+        //    MacAlgNames.Add(NistObjectIdentifiers.IdAes192Cbc, "AESMac");
+        //    MacAlgNames.Add(NistObjectIdentifiers.IdAes256Cbc, "AESMac");
+        //    MacAlgNames.Add(PkcsObjectIdentifiers.RC2Cbc, "RC2Mac");
+        //}
 
         //internal static IDigest GetPrf(AlgorithmIdentifier algID)
         //{
@@ -82,7 +81,8 @@ namespace Org.BouncyCastle.Cms
             return CipherFactory.CreateContentCipher(forEncryption, encKey, encryptionAlgID);
         }
 
-        public AlgorithmIdentifier GenerateEncryptionAlgID(DerObjectIdentifier encryptionOID, KeyParameter encKey, SecureRandom random)
+        public AlgorithmIdentifier GenerateEncryptionAlgID(DerObjectIdentifier encryptionOID, KeyParameter encKey,
+            SecureRandom random)
         {
             return AlgorithmIdentifierFactory.GenerateEncryptionAlgID(encryptionOID, encKey.GetKey().Length * 8, random);
         }

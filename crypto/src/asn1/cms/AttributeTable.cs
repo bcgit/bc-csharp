@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class AttributeTable
@@ -180,14 +178,28 @@ namespace Org.BouncyCastle.Asn1.Cms
 			return new Attributes(ToAsn1EncodableVector());
 		}
 
-		/**
+        public AttributeTable Add(params Attribute[] attributes)
+        {
+            if (attributes == null || attributes.Length < 1)
+                return this;
+
+            var newTable = new AttributeTable(m_attributes);
+            foreach (Attribute attribute in attributes)
+            {
+                newTable.AddAttribute(attribute);
+            }
+
+            return newTable;
+        }
+
+        /**
 		 * Return a new table with the passed in attribute added.
 		 *
 		 * @param attrType
 		 * @param attrValue
 		 * @return
 		 */
-		public AttributeTable Add(DerObjectIdentifier attrType, Asn1Encodable attrValue)
+        public AttributeTable Add(DerObjectIdentifier attrType, Asn1Encodable attrValue)
 		{
 			AttributeTable newTable = new AttributeTable(m_attributes);
 

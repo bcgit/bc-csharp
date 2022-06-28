@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -256,10 +256,10 @@ namespace Org.BouncyCastle.Cms
 			Asn1.Cms.AttributeTable unsignedAttributeTable = UnsignedAttributes;
 			if (unsignedAttributeTable == null)
 			{
-                return new SignerInformationStore(Platform.CreateArrayList(0));
+                return new SignerInformationStore(new List<SignerInformation>(0));
 			}
 
-            IList counterSignatures = Platform.CreateArrayList();
+            var counterSignatures = new List<SignerInformation>();
 
 			/*
 			The UnsignedAttributes syntax is defined as a SET OF Attributes.  The

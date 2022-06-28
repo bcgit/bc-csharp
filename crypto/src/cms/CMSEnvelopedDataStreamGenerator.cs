@@ -1,21 +1,16 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
-using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -287,7 +282,8 @@ namespace Org.BouncyCastle.Cms
 
                 if (_outer.unprotectedAttributeGenerator != null)
                 {
-                    Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(Platform.CreateHashtable());
+					Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(
+						new Dictionary<CmsAttributeTableParameter, object>());
 
                     Asn1Set unprotectedAttrs = new BerSet(attrTable.ToAsn1EncodableVector());
 
