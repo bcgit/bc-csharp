@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -82,9 +82,9 @@ namespace Org.BouncyCastle.Tls
 
         private TlsHandshakeHash m_handshakeHash;
 
-        private IDictionary m_currentInboundFlight = Platform.CreateHashtable();
-        private IDictionary m_previousInboundFlight = null;
-        private IList m_outboundFlight = Platform.CreateArrayList();
+        private IDictionary<int, DtlsReassembler> m_currentInboundFlight = new Dictionary<int, DtlsReassembler>();
+        private IDictionary<int, DtlsReassembler> m_previousInboundFlight = null;
+        private IList<Message> m_outboundFlight = new List<Message>();
 
         private int m_resendMillis = -1;
         private Timeout m_resendTimeout = null;
@@ -124,9 +124,9 @@ namespace Org.BouncyCastle.Tls
 
         internal void ResetAfterHelloVerifyRequestClient()
         {
-            this.m_currentInboundFlight = Platform.CreateHashtable();
+            this.m_currentInboundFlight = new Dictionary<int, DtlsReassembler>();
             this.m_previousInboundFlight = null;
-            this.m_outboundFlight = Platform.CreateArrayList();
+            this.m_outboundFlight = new List<Message>();
 
             this.m_resendMillis = -1;
             this.m_resendTimeout = null;
@@ -280,8 +280,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         private Message GetPendingMessage()
         {
-            DtlsReassembler next = (DtlsReassembler)m_currentInboundFlight[m_next_receive_seq];
-            if (next != null)
+            if (m_currentInboundFlight.TryGetValue(m_next_receive_seq, out var next))
             {
                 byte[] body = next.GetBodyIfComplete();
                 if (body != null)
@@ -303,7 +302,7 @@ namespace Org.BouncyCastle.Tls
                 m_resendMillis = INITIAL_RESEND_MILLIS;
                 m_resendTimeout = new Timeout(m_resendMillis, currentTimeMillis);
 
-                PrepareInboundFlight(Platform.CreateHashtable());
+                PrepareInboundFlight(new Dictionary<int, DtlsReassembler>());
             }
 
             byte[] buf = null;
@@ -349,7 +348,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        private void PrepareInboundFlight(IDictionary nextFlight)
+        private void PrepareInboundFlight(IDictionary<int, DtlsReassembler> nextFlight)
         {
             ResetAll(m_currentInboundFlight);
             m_previousInboundFlight = m_currentInboundFlight;
@@ -395,8 +394,7 @@ namespace Org.BouncyCastle.Tls
                 }
                 else if (message_seq >= m_next_receive_seq)
                 {
-                    DtlsReassembler reassembler = (DtlsReassembler)m_currentInboundFlight[message_seq];
-                    if (reassembler == null)
+                    if (!m_currentInboundFlight.TryGetValue(message_seq, out var reassembler))
                     {
                         reassembler = new DtlsReassembler(msg_type, length);
                         m_currentInboundFlight[message_seq] = reassembler;
@@ -412,8 +410,7 @@ namespace Org.BouncyCastle.Tls
                      * retransmit our last flight
                      */
 
-                    DtlsReassembler reassembler = (DtlsReassembler)m_previousInboundFlight[message_seq];
-                    if (reassembler != null)
+                    if (m_previousInboundFlight.TryGetValue(message_seq, out var reassembler))
                     {
                         reassembler.ContributeFragment(msg_type, length, buf, off + MESSAGE_HEADER_LENGTH,
                             fragment_offset, fragment_length);
@@ -485,7 +482,7 @@ namespace Org.BouncyCastle.Tls
             fragment.SendToRecordLayer(m_recordLayer);
         }
 
-        private static bool CheckAll(IDictionary inboundFlight)
+        private static bool CheckAll(IDictionary<int, DtlsReassembler> inboundFlight)
         {
             foreach (DtlsReassembler r in inboundFlight.Values)
             {
@@ -495,7 +492,7 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
-        private static void ResetAll(IDictionary inboundFlight)
+        private static void ResetAll(IDictionary<int, DtlsReassembler> inboundFlight)
         {
             foreach (DtlsReassembler r in inboundFlight.Values)
             {

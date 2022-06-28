@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -68,12 +68,12 @@ namespace Org.BouncyCastle.Tls.Tests
             get { return m_firstFatalAlertDescription; }
         }
 
-        public override IDictionary GetClientExtensions()
+        public override IDictionary<int, byte[]> GetClientExtensions()
         {
             if (m_context.SecurityParameters.ClientRandom == null)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            IDictionary clientExtensions = base.GetClientExtensions();
+            var clientExtensions = base.GetClientExtensions();
             if (clientExtensions != null)
             {
                 if (!m_config.clientSendSignatureAlgorithms)
@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Tls.Tests
             return clientExtensions;
         }
 
-        public override IList GetEarlyKeyShareGroups()
+        public override IList<int> GetEarlyKeyShareGroups()
         {
             if (m_config.clientEmptyKeyShare)
                 return null;
@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Tls.Tests
             return base.GetEarlyKeyShareGroups();
         }
 
-        protected override IList GetSupportedSignatureAlgorithms()
+        protected override IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()
         {
             if (m_config.clientCHSigAlgs != null)
                 return TlsUtilities.GetSupportedSignatureAlgorithms(m_context, m_config.clientCHSigAlgs);
@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Tls.Tests
             return new MyTlsAuthentication(this, m_context);
         }
 
-        public override void ProcessServerExtensions(IDictionary serverExtensions)
+        public override void ProcessServerExtensions(IDictionary<int, byte[]> serverExtensions)
         {
             if (m_context.SecurityParameters.ServerRandom == null)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -326,7 +326,7 @@ namespace Org.BouncyCastle.Tls.Tests
                         return null;
                 }
 
-                IList supportedSigAlgs = certificateRequest.SupportedSignatureAlgorithms;
+                var supportedSigAlgs = certificateRequest.SupportedSignatureAlgorithms;
                 if (supportedSigAlgs != null && config.clientAuthSigAlg != null)
                 {
                     supportedSigAlgs = TlsUtilities.VectorOfOne(config.clientAuthSigAlg);

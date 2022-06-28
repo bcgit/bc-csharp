@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -44,14 +44,14 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <summary>an <see cref="IList"/> of (possibly null) <see cref="Asn1.Ocsp.OcspResponse"/>.</summary>
-        public IList OcspResponseList
+        public IList<OcspResponse> OcspResponseList
         {
             get
             {
                 if (!IsCorrectType(CertificateStatusType.ocsp_multi, m_response))
                     throw new InvalidOperationException("'response' is not an OCSPResponseList");
 
-                return (IList)m_response;
+                return (IList<OcspResponse>)m_response;
             }
         }
 
@@ -73,10 +73,10 @@ namespace Org.BouncyCastle.Tls
             }
             case CertificateStatusType.ocsp_multi:
             {
-                IList ocspResponseList = (IList)m_response;
+                var ocspResponseList = (IList<OcspResponse>)m_response;
                 int count = ocspResponseList.Count;
 
-                IList derEncodings = Platform.CreateArrayList(count);
+                var derEncodings = new List<byte[]>(count);
                 long totalLength = 0;
                 foreach (OcspResponse ocspResponse in ocspResponseList)
                 {
@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Tls
                 byte[] ocsp_response_list = TlsUtilities.ReadOpaque24(input, 1);
                 MemoryStream buf = new MemoryStream(ocsp_response_list, false);
 
-                IList ocspResponseList = Platform.CreateArrayList();
+                var ocspResponseList = new List<OcspResponse>();
                 while (buf.Position < buf.Length)
                 {
                     if (ocspResponseList.Count >= certificateCount)
@@ -191,20 +191,7 @@ namespace Org.BouncyCastle.Tls
 
         private static bool IsOcspResponseList(object response)
         {
-            if (!(response is IList))
-                return false;
-
-            IList v = (IList)response;
-            int count = v.Count;
-            if (count < 1)
-                return false;
-
-            foreach (object e in v)
-            {
-                if (null != e && !(e is OcspResponse))
-                    return false;
-            }
-            return true;
+            return response is IList<OcspResponse> v && v.Count > 0;
         }
 
         /// <exception cref="IOException"/>

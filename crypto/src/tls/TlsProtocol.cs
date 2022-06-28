@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -146,8 +146,8 @@ namespace Org.BouncyCastle.Tls
 
         protected byte[] m_retryCookie = null;
         protected int m_retryGroup = -1;
-        protected IDictionary m_clientExtensions = null;
-        protected IDictionary m_serverExtensions = null;
+        protected IDictionary<int, byte[]> m_clientExtensions = null;
+        protected IDictionary<int, byte[]> m_serverExtensions = null;
 
         protected short m_connectionState = CS_START;
         protected bool m_resumedSession = false;
@@ -1601,7 +1601,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        protected virtual void SendSupplementalDataMessage(IList supplementalData)
+        protected virtual void SendSupplementalDataMessage(IList<SupplementalDataEntry> supplementalData)
         {
             HandshakeMessageOutput message = new HandshakeMessageOutput(HandshakeType.supplemental_data);
             WriteSupplementalData(message, supplementalData);
@@ -1654,8 +1654,8 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        protected virtual short ProcessMaxFragmentLengthExtension(IDictionary clientExtensions,
-            IDictionary serverExtensions, short alertDescription)
+        protected virtual short ProcessMaxFragmentLengthExtension(IDictionary<int, byte[]> clientExtensions,
+            IDictionary<int, byte[]> serverExtensions, short alertDescription)
         {
             short maxFragmentLength = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(serverExtensions);
             if (maxFragmentLength >= 0)
@@ -1732,7 +1732,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static IDictionary ReadExtensions(MemoryStream input)
+        internal static IDictionary<int, byte[]> ReadExtensions(MemoryStream input)
         {
             if (input.Position >= input.Length)
                 return null;
@@ -1745,10 +1745,10 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static IDictionary ReadExtensionsData(byte[] extBytes)
+        internal static IDictionary<int, byte[]> ReadExtensionsData(byte[] extBytes)
         {
             // Int32 -> byte[]
-            IDictionary extensions = Platform.CreateHashtable();
+            var extensions = new Dictionary<int, byte[]>();
 
             if (extBytes.Length > 0)
             {
@@ -1762,12 +1762,11 @@ namespace Org.BouncyCastle.Tls
                     /*
                      * RFC 3546 2.3 There MUST NOT be more than one extension of the same type.
                      */
-                    Int32 key = extension_type;
-                    if (extensions.Contains(key))
+                    if (extensions.ContainsKey(extension_type))
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter,
                             "Repeated extension: " + ExtensionType.GetText(extension_type));
 
-                    extensions.Add(key, extension_data);
+                    extensions.Add(extension_type, extension_data);
                 }
                 while (buf.Position < buf.Length);
             }
@@ -1776,10 +1775,10 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static IDictionary ReadExtensionsData13(int handshakeType, byte[] extBytes)
+        internal static IDictionary<int, byte[]> ReadExtensionsData13(int handshakeType, byte[] extBytes)
         {
             // Int32 -> byte[]
-            IDictionary extensions = Platform.CreateHashtable();
+            var extensions = new Dictionary<int, byte[]>();
 
             if (extBytes.Length > 0)
             {
@@ -1800,12 +1799,11 @@ namespace Org.BouncyCastle.Tls
                     /*
                      * RFC 3546 2.3 There MUST NOT be more than one extension of the same type.
                      */
-                    Int32 key = extension_type;
-                    if (extensions.Contains(key))
+                    if (extensions.ContainsKey(extension_type))
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter,
                             "Repeated extension: " + ExtensionType.GetText(extension_type));
 
-                    extensions.Add(key, extension_data);
+                    extensions.Add(extension_type, extension_data);
                 }
                 while (buf.Position < buf.Length);
             }
@@ -1814,7 +1812,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static IDictionary ReadExtensionsDataClientHello(byte[] extBytes)
+        internal static IDictionary<int, byte[]> ReadExtensionsDataClientHello(byte[] extBytes)
         {
             /*
              * TODO[tls13] We are currently allowing any extensions to appear in ClientHello. It is
@@ -1824,7 +1822,7 @@ namespace Org.BouncyCastle.Tls
              */
 
             // Int32 -> byte[]
-            IDictionary extensions = Platform.CreateHashtable();
+            var extensions = new Dictionary<int, byte[]>();
 
             if (extBytes.Length > 0)
             {
@@ -1841,12 +1839,11 @@ namespace Org.BouncyCastle.Tls
                     /*
                      * RFC 3546 2.3 There MUST NOT be more than one extension of the same type.
                      */
-                    Int32 key = extension_type;
-                    if (extensions.Contains(key))
+                    if (extensions.ContainsKey(extension_type))
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter,
                             "Repeated extension: " + ExtensionType.GetText(extension_type));
 
-                    extensions.Add(key, extension_data);
+                    extensions.Add(extension_type, extension_data);
 
                     pre_shared_key_found |= (ExtensionType.pre_shared_key == extension_type);
                 }
@@ -1861,7 +1858,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static IList ReadSupplementalDataMessage(MemoryStream input)
+        internal static IList<SupplementalDataEntry> ReadSupplementalDataMessage(MemoryStream input)
         {
             byte[] supp_data = TlsUtilities.ReadOpaque24(input, 1);
 
@@ -1869,7 +1866,7 @@ namespace Org.BouncyCastle.Tls
 
             MemoryStream buf = new MemoryStream(supp_data, false);
 
-            IList supplementalData = Platform.CreateArrayList();
+            var supplementalData = new List<SupplementalDataEntry>();
 
             while (buf.Position < buf.Length)
             {
@@ -1883,13 +1880,13 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static void WriteExtensions(Stream output, IDictionary extensions)
+        internal static void WriteExtensions(Stream output, IDictionary<int, byte[]> extensions)
         {
             WriteExtensions(output, extensions, 0);
         }
 
         /// <exception cref="IOException"/>
-        internal static void WriteExtensions(Stream output, IDictionary extensions, int bindersSize)
+        internal static void WriteExtensions(Stream output, IDictionary<int, byte[]> extensions, int bindersSize)
         {
             if (null == extensions || extensions.Count < 1)
                 return;
@@ -1903,13 +1900,13 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static byte[] WriteExtensionsData(IDictionary extensions)
+        internal static byte[] WriteExtensionsData(IDictionary<int, byte[]> extensions)
         {
             return WriteExtensionsData(extensions, 0);
         }
 
         /// <exception cref="IOException"/>
-        internal static byte[] WriteExtensionsData(IDictionary extensions, int bindersSize)
+        internal static byte[] WriteExtensionsData(IDictionary<int, byte[]> extensions, int bindersSize)
         {
             MemoryStream buf = new MemoryStream();
             WriteExtensionsData(extensions, buf, bindersSize);
@@ -1917,13 +1914,13 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static void WriteExtensionsData(IDictionary extensions, MemoryStream buf)
+        internal static void WriteExtensionsData(IDictionary<int, byte[]> extensions, MemoryStream buf)
         {
             WriteExtensionsData(extensions, buf, 0);
         }
 
         /// <exception cref="IOException"/>
-        internal static void WriteExtensionsData(IDictionary extensions, MemoryStream buf, int bindersSize)
+        internal static void WriteExtensionsData(IDictionary<int, byte[]> extensions, MemoryStream buf, int bindersSize)
         {
             /*
              * NOTE: There are reports of servers that don't accept a zero-length extension as the last
@@ -1935,10 +1932,10 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static void WritePreSharedKeyExtension(MemoryStream buf, IDictionary extensions, int bindersSize)
+        internal static void WritePreSharedKeyExtension(MemoryStream buf, IDictionary<int, byte[]> extensions,
+            int bindersSize)
         {
-            byte[] extension_data = (byte[])extensions[ExtensionType.pre_shared_key];
-            if (null != extension_data)
+            if (extensions.TryGetValue(ExtensionType.pre_shared_key, out var extension_data))
             {
                 TlsUtilities.CheckUint16(ExtensionType.pre_shared_key);
                 TlsUtilities.WriteUint16(ExtensionType.pre_shared_key, buf);
@@ -1951,17 +1948,18 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static void WriteSelectedExtensions(Stream output, IDictionary extensions, bool selectEmpty)
+        internal static void WriteSelectedExtensions(Stream output, IDictionary<int, byte[]> extensions,
+            bool selectEmpty)
         {
-            foreach (Int32 key in extensions.Keys)
+            foreach (var extension in extensions)
             {
-                int extension_type = key;
+                int extension_type = extension.Key;
 
                 // NOTE: Must be last; handled by 'WritePreSharedKeyExtension'
                 if (ExtensionType.pre_shared_key == extension_type)
                     continue;
 
-                byte[] extension_data = (byte[])extensions[key];
+                byte[] extension_data = extension.Value;
 
                 if (selectEmpty == (extension_data.Length == 0))
                 {
@@ -1973,7 +1971,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static void WriteSupplementalData(Stream output, IList supplementalData)
+        internal static void WriteSupplementalData(Stream output, IList<SupplementalDataEntry> supplementalData)
         {
             MemoryStream buf = new MemoryStream();
 

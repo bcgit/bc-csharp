@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Tls.Crypto;
 
@@ -39,12 +39,12 @@ namespace Org.BouncyCastle.Tls
         internal ProtocolName m_applicationProtocol = null;
         internal bool m_applicationProtocolSet = false;
         internal short[] m_clientCertTypes = null;
-        internal IList m_clientServerNames = null;
-        internal IList m_clientSigAlgs = null;
-        internal IList m_clientSigAlgsCert = null;
+        internal IList<ServerName> m_clientServerNames = null;
+        internal IList<SignatureAndHashAlgorithm> m_clientSigAlgs = null;
+        internal IList<SignatureAndHashAlgorithm> m_clientSigAlgsCert = null;
         internal int[] m_clientSupportedGroups = null;
-        internal IList m_serverSigAlgs = null;
-        internal IList m_serverSigAlgsCert = null;
+        internal IList<SignatureAndHashAlgorithm> m_serverSigAlgs = null;
+        internal IList<SignatureAndHashAlgorithm> m_serverSigAlgsCert = null;
         internal int[] m_serverSupportedGroups = null;
         internal int m_keyExchangeAlgorithm = -1;
         internal Certificate m_localCertificate = null;
@@ -109,17 +109,17 @@ namespace Org.BouncyCastle.Tls
             get { return m_clientRandom; }
         }
 
-        public IList ClientServerNames
+        public IList<ServerName> ClientServerNames
         {
             get { return m_clientServerNames; }
         }
 
-        public IList ClientSigAlgs
+        public IList<SignatureAndHashAlgorithm> ClientSigAlgs
         {
             get { return m_clientSigAlgs; }
         }
 
-        public IList ClientSigAlgsCert
+        public IList<SignatureAndHashAlgorithm> ClientSigAlgsCert
         {
             get { return m_clientSigAlgsCert; }
         }
@@ -249,12 +249,12 @@ namespace Org.BouncyCastle.Tls
             get { return m_serverRandom; }
         }
 
-        public IList ServerSigAlgs
+        public IList<SignatureAndHashAlgorithm> ServerSigAlgs
         {
             get { return m_serverSigAlgs; }
         }
 
-        public IList ServerSigAlgsCert
+        public IList<SignatureAndHashAlgorithm> ServerSigAlgsCert
         {
             get { return m_serverSigAlgsCert; }
         }

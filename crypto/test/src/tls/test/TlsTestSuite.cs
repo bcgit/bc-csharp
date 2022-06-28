@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -30,14 +30,14 @@ namespace Org.BouncyCastle.Tls.Tests
         {
         }
 
-        public static IEnumerable Suite()
+        public static IEnumerable<TestCaseData> Suite()
         {
-            IList testSuite = new ArrayList();
+            var testSuite = new List<TestCaseData>();
             AddAllTests(testSuite, TlsTestConfig.CRYPTO_BC, TlsTestConfig.CRYPTO_BC);
             return testSuite;
         }
 
-        private static void AddAllTests(IList testSuite, int clientCrypto, int serverCrypto)
+        private static void AddAllTests(IList<TestCaseData> testSuite, int clientCrypto, int serverCrypto)
         {
             AddFallbackTests(testSuite, clientCrypto, serverCrypto);
             AddVersionTests(testSuite, ProtocolVersion.SSLv3, clientCrypto, serverCrypto);
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Tls.Tests
             AddVersionTests(testSuite, ProtocolVersion.TLSv13, clientCrypto, serverCrypto);
         }
 
-        private static void AddFallbackTests(IList testSuite, int clientCrypto, int serverCrypto)
+        private static void AddFallbackTests(IList<TestCaseData> testSuite, int clientCrypto, int serverCrypto)
         {
             string prefix = GetCryptoName(clientCrypto) + "_" + GetCryptoName(serverCrypto) + "_";
 
@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        private static void AddVersionTests(IList testSuite, ProtocolVersion version, int clientCrypto,
+        private static void AddVersionTests(IList<TestCaseData> testSuite, ProtocolVersion version, int clientCrypto,
             int serverCrypto)
         {
             string prefix = GetCryptoName(clientCrypto) + "_" + GetCryptoName(serverCrypto) + "_"
@@ -148,7 +148,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 c.clientAuth = C.CLIENT_AUTH_VALID;
                 c.clientAuthSigAlg = SignatureAndHashAlgorithm.rsa_pss_rsae_sha256;
                 c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256);
-                c.serverCertReqSigAlgs = new ArrayList(2);
+                c.serverCertReqSigAlgs = new List<SignatureAndHashAlgorithm>(2);
                 c.serverCertReqSigAlgs.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
                 c.serverCertReqSigAlgs.Add(
                     SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256));
@@ -273,7 +273,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        private static void AddTestCase(IList testSuite, TlsTestConfig config, string name)
+        private static void AddTestCase(IList<TestCaseData> testSuite, TlsTestConfig config, string name)
         {
             testSuite.Add(new TestCaseData(config).SetName(name));
         }

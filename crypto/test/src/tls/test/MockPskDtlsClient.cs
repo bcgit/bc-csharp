@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        public override IDictionary GetClientExtensions()
+        public override IDictionary<int, byte[]> GetClientExtensions()
         {
             if (m_context.SecurityParameters.ClientRandom == null)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Tls.Tests
             return base.GetClientExtensions();
         }
 
-        public override void ProcessServerExtensions(IDictionary serverExtensions)
+        public override void ProcessServerExtensions(IDictionary<int, byte[]> serverExtensions)
         {
             if (m_context.SecurityParameters.ServerRandom == null)
                 throw new TlsFatalAlert(AlertDescription.internal_error);

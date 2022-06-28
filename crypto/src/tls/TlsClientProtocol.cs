@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Tls
         protected TlsClient m_tlsClient = null;
         internal TlsClientContextImpl m_tlsClientContext = null;
 
-        protected IDictionary m_clientAgreements = null;
+        protected IDictionary<int, TlsAgreement> m_clientAgreements = null;
         internal OfferedPsks.BindersConfig m_clientBinders = null;
         protected ClientHello m_clientHello = null;
         protected TlsKeyExchange m_keyExchange = null;
@@ -580,7 +580,7 @@ namespace Org.BouncyCastle.Tls
                         m_keyExchange.ProcessClientCredentials(clientAuthCredentials);                    
                     }
 
-                    IList clientSupplementalData = m_tlsClient.GetClientSupplementalData();
+                    var clientSupplementalData = m_tlsClient.GetClientSupplementalData();
                     if (clientSupplementalData != null)
                     {
                         SendSupplementalDataMessage(clientSupplementalData);
@@ -769,7 +769,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        protected virtual void HandleSupplementalData(IList serverSupplementalData)
+        protected virtual void HandleSupplementalData(IList<SupplementalDataEntry> serverSupplementalData)
         {
             m_tlsClient.ProcessServerSupplementalData(serverSupplementalData);
             this.m_connectionState = CS_SERVER_SUPPLEMENTAL_DATA;
@@ -803,7 +803,7 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
 
-            IDictionary extensions = helloRetryRequest.Extensions;
+            var extensions = helloRetryRequest.Extensions;
             if (null == extensions)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
@@ -899,7 +899,7 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
 
-            IDictionary extensions = serverHello.Extensions;
+            var extensions = serverHello.Extensions;
             if (null == extensions)
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
@@ -953,7 +953,8 @@ namespace Org.BouncyCastle.Tls
              * 
              * OCSP information is carried in an extension for a CertificateEntry.
              */
-            securityParameters.m_statusRequestVersion = m_clientExtensions.Contains(ExtensionType.status_request) ? 1 : 0;
+            securityParameters.m_statusRequestVersion =
+                m_clientExtensions.ContainsKey(ExtensionType.status_request) ? 1 : 0;
 
             TlsSecret pskEarlySecret = null;
             {
@@ -1045,7 +1046,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void ProcessServerHello(ServerHello serverHello)
         {
-            IDictionary serverHelloExtensions = serverHello.Extensions;
+            var serverHelloExtensions = serverHello.Extensions;
 
             ProtocolVersion legacy_version = serverHello.Version;
             ProtocolVersion supported_version = TlsExtensionsUtilities.GetSupportedVersionsExtensionServer(
@@ -1256,7 +1257,8 @@ namespace Org.BouncyCastle.Tls
                 m_serverExtensions);
             securityParameters.m_applicationProtocolSet = true;
 
-            IDictionary sessionClientExtensions = m_clientExtensions, sessionServerExtensions = m_serverExtensions;
+            var sessionClientExtensions = m_clientExtensions;
+            var sessionServerExtensions = m_serverExtensions;
             if (m_resumedSession)
             {
                 if (securityParameters.CipherSuite != m_sessionParameters.CipherSuite
@@ -1393,7 +1395,8 @@ namespace Org.BouncyCastle.Tls
                 m_serverExtensions);
             securityParameters.m_applicationProtocolSet = true;
 
-            IDictionary sessionClientExtensions = m_clientExtensions, sessionServerExtensions = m_serverExtensions;
+            var sessionClientExtensions = m_clientExtensions;
+            var sessionServerExtensions = m_serverExtensions;
             if (m_resumedSession)
             {
                 if (securityParameters.CipherSuite != m_sessionParameters.CipherSuite
@@ -1417,8 +1420,8 @@ namespace Org.BouncyCastle.Tls
              * 
              * OCSP information is carried in an extension for a CertificateEntry.
              */
-            securityParameters.m_statusRequestVersion = m_clientExtensions.Contains(ExtensionType.status_request)
-                ? 1 : 0;
+            securityParameters.m_statusRequestVersion =
+                m_clientExtensions.ContainsKey(ExtensionType.status_request) ? 1 : 0;
 
             this.m_expectSessionTicket = false;
 
@@ -1524,7 +1527,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void Send13ClientHelloRetry()
         {
-            IDictionary clientHelloExtensions = m_clientHello.Extensions;
+            var clientHelloExtensions = m_clientHello.Extensions;
 
             clientHelloExtensions.Remove(ExtensionType.cookie);
             clientHelloExtensions.Remove(ExtensionType.early_data);

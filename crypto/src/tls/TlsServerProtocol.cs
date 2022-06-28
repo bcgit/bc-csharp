@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Tls
             SecurityParameters securityParameters = m_tlsServerContext.SecurityParameters;
             ProtocolVersion serverVersion = securityParameters.NegotiatedVersion;
 
-            IDictionary serverHelloExtensions = Platform.CreateHashtable();
+            var serverHelloExtensions = new Dictionary<int, byte[]>();
             TlsExtensionsUtilities.AddSupportedVersionsExtensionServer(serverHelloExtensions, serverVersion);
             if (m_retryGroup >= 0)
             {
@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Tls
 
             byte[] legacy_session_id = clientHello.SessionID;
 
-            IDictionary clientHelloExtensions = clientHello.Extensions;
+            var clientHelloExtensions = clientHello.Extensions;
             if (null == clientHelloExtensions)
                 throw new TlsFatalAlert(AlertDescription.missing_extension);
 
@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Tls
             OfferedPsks.SelectedConfig selectedPsk = TlsUtilities.SelectPreSharedKey(m_tlsServerContext, m_tlsServer,
                 clientHelloExtensions, clientHelloMessage, m_handshakeHash, afterHelloRetryRequest);
 
-            IList clientShares = TlsExtensionsUtilities.GetKeyShareClientHello(clientHelloExtensions);
+            var clientShares = TlsExtensionsUtilities.GetKeyShareClientHello(clientHelloExtensions);
             KeyShareEntry clientShare = null;
 
             if (afterHelloRetryRequest)
@@ -287,8 +287,8 @@ namespace Org.BouncyCastle.Tls
             }
 
 
-            IDictionary serverHelloExtensions = Platform.CreateHashtable();
-            IDictionary serverEncryptedExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(
+            var serverHelloExtensions = new Dictionary<int, byte[]>();
+            var serverEncryptedExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(
                 m_tlsServer.GetServerExtensions());
 
             m_tlsServer.GetServerExtensionsForConnection(serverEncryptedExtensions);
@@ -326,8 +326,8 @@ namespace Org.BouncyCastle.Tls
              * 
              * OCSP information is carried in an extension for a CertificateEntry.
              */
-            securityParameters.m_statusRequestVersion = clientHelloExtensions.Contains(ExtensionType.status_request)
-                ? 1 : 0;
+            securityParameters.m_statusRequestVersion =
+                clientHelloExtensions.ContainsKey(ExtensionType.status_request) ? 1 : 0;
 
             this.m_expectSessionTicket = false;
 
@@ -584,7 +584,7 @@ namespace Org.BouncyCastle.Tls
             m_tlsServerContext.SetRsaPreMasterSecretVersion(clientLegacyVersion);
 
             {
-                IDictionary sessionServerExtensions = m_resumedSession
+                var sessionServerExtensions = m_resumedSession
                     ?   m_sessionParameters.ReadServerExtensions()
                     :   m_tlsServer.GetServerExtensions();
 
@@ -944,7 +944,7 @@ namespace Org.BouncyCastle.Tls
                         break;
                     }
 
-                    IList serverSupplementalData = m_tlsServer.GetServerSupplementalData();
+                    var serverSupplementalData = m_tlsServer.GetServerSupplementalData();
                     if (serverSupplementalData != null)
                     {
                         SendSupplementalDataMessage(serverSupplementalData);
@@ -1383,7 +1383,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        protected virtual void Send13EncryptedExtensionsMessage(IDictionary serverExtensions)
+        protected virtual void Send13EncryptedExtensionsMessage(IDictionary<int, byte[]> serverExtensions)
         {
             // TODO[tls13] Avoid extra copy; use placeholder to write opaque-16 data directly to message buffer
 

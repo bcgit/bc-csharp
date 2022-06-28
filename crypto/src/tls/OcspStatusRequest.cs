@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
@@ -13,7 +12,7 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 3546 3.6</summary>
     public sealed class OcspStatusRequest
     {
-        private readonly IList m_responderIDList;
+        private readonly IList<ResponderID> m_responderIDList;
         private readonly X509Extensions m_requestExtensions;
 
         /// <param name="responderIDList">an <see cref="IList"/> of <see cref="ResponderID"/>, specifying the list of
@@ -21,14 +20,14 @@ namespace Org.BouncyCastle.Tls
         /// the server - e.g., by prior arrangement.</param>
         /// <param name="requestExtensions">OCSP request extensions. A null value means that there are no extensions.
         /// </param>
-        public OcspStatusRequest(IList responderIDList, X509Extensions requestExtensions)
+        public OcspStatusRequest(IList<ResponderID> responderIDList, X509Extensions requestExtensions)
         {
             this.m_responderIDList = responderIDList;
             this.m_requestExtensions = requestExtensions;
         }
 
         /// <returns>an <see cref="IList"/> of <see cref="ResponderID"/>.</returns>
-        public IList ResponderIDList
+        public IList<ResponderID> ResponderIDList
         {
             get { return m_responderIDList; }
         }
@@ -80,7 +79,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public static OcspStatusRequest Parse(Stream input)
         {
-            IList responderIDList = Platform.CreateArrayList();
+            var responderIDList = new List<ResponderID>();
             {
                 byte[] data = TlsUtilities.ReadOpaque16(input);
                 if (data.Length > 0)

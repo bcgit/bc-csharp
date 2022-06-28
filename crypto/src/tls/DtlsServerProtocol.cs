@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Tls
 
             handshake.HandshakeHash.NotifyPrfDetermined();
 
-            IList serverSupplementalData = state.server.GetServerSupplementalData();
+            var serverSupplementalData = state.server.GetServerSupplementalData();
             if (serverSupplementalData != null)
             {
                 byte[] supplementalDataBody = GenerateSupplementalData(serverSupplementalData);
@@ -829,7 +829,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessClientSupplementalData(ServerHandshakeState state, byte[] body)
         {
             MemoryStream buf = new MemoryStream(body, false);
-            IList clientSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
+            var clientSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
             state.server.ProcessClientSupplementalData(clientSupplementalData);
         }
 
@@ -853,8 +853,8 @@ namespace Org.BouncyCastle.Tls
             internal TlsSecret sessionMasterSecret = null;
             internal SessionParameters.Builder sessionParametersBuilder = null;
             internal int[] offeredCipherSuites = null;
-            internal IDictionary clientExtensions = null;
-            internal IDictionary serverExtensions = null;
+            internal IDictionary<int, byte[]> clientExtensions = null;
+            internal IDictionary<int, byte[]> serverExtensions = null;
             internal bool offeredExtendedMasterSecret = false;
             internal bool resumedSession = false;
             internal bool expectSessionTicket = false;

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -11,11 +11,11 @@ namespace Org.BouncyCastle.Tls
     public sealed class CertificateUrl
     {
         private readonly short m_type;
-        private readonly IList m_urlAndHashList;
+        private readonly IList<UrlAndHash> m_urlAndHashList;
 
         /// <param name="type">see <see cref="CertChainType"/> for valid constants.</param>
         /// <param name="urlAndHashList">an <see cref="IList"/> of <see cref="UrlAndHash"/>.</param>
-        public CertificateUrl(short type, IList urlAndHashList)
+        public CertificateUrl(short type, IList<UrlAndHash> urlAndHashList)
         {
             if (!CertChainType.IsValid(type))
                 throw new ArgumentException("not a valid CertChainType value", "type");
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <returns>an <see cref="IList"/> of <see cref="UrlAndHash"/>.</returns>
-        public IList UrlAndHashList
+        public IList<UrlAndHash> UrlAndHashList
         {
             get { return m_urlAndHashList; }
         }
@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Tls
 
             MemoryStream buf = new MemoryStream(urlAndHashListData, false);
 
-            IList url_and_hash_list = Platform.CreateArrayList();
+            var url_and_hash_list = new List<UrlAndHash>();
             while (buf.Position < buf.Length)
             {
                 UrlAndHash url_and_hash = UrlAndHash.Parse(context, buf);

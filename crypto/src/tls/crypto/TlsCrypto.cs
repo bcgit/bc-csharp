@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Math;
@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <see cref="SignatureAndHashAlgorithm"/> values.</param>
         /// <returns>true if this instance would use a stream verifier for any of the passed in algorithms, otherwise
         /// false.</returns>
-        bool HasAnyStreamVerifiers(IList signatureAndHashAlgorithms);
+        bool HasAnyStreamVerifiers(IList<SignatureAndHashAlgorithm> signatureAndHashAlgorithms);
 
         /// <summary>Return true if this TlsCrypto would use a stream verifier for any of the passed in algorithms.
         /// </summary>

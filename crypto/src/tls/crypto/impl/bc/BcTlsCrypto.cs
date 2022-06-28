@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement.Srp;
@@ -153,7 +153,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsNonceGenerator(randomGenerator);
         }
 
-        public override bool HasAnyStreamVerifiers(IList signatureAndHashAlgorithms)
+        public override bool HasAnyStreamVerifiers(IList<SignatureAndHashAlgorithm> signatureAndHashAlgorithms)
         {
             foreach (SignatureAndHashAlgorithm algorithm in signatureAndHashAlgorithms)
             {

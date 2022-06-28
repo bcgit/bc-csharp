@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -307,7 +307,7 @@ namespace Org.BouncyCastle.Tls
                 state.keyExchange.ProcessClientCredentials(clientAuthCredentials);                    
             }
 
-            IList clientSupplementalData = state.client.GetClientSupplementalData();
+            var clientSupplementalData = state.client.GetClientSupplementalData();
             if (clientSupplementalData != null)
             {
                 byte[] supplementalDataBody = GenerateSupplementalData(clientSupplementalData);
@@ -838,8 +838,8 @@ namespace Org.BouncyCastle.Tls
 
 
 
-            IDictionary sessionClientExtensions = state.clientExtensions,
-                sessionServerExtensions = state.serverExtensions;
+            var sessionClientExtensions = state.clientExtensions;
+            var sessionServerExtensions = state.serverExtensions;
 
             if (state.resumedSession)
             {
@@ -914,7 +914,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessServerSupplementalData(ClientHandshakeState state, byte[] body)
         {
             MemoryStream buf = new MemoryStream(body, false);
-            IList serverSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
+            var serverSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
             state.client.ProcessServerSupplementalData(serverSupplementalData);
         }
 
@@ -970,11 +970,11 @@ namespace Org.BouncyCastle.Tls
             internal TlsSecret sessionMasterSecret = null;
             internal SessionParameters.Builder sessionParametersBuilder = null;
             internal int[] offeredCipherSuites = null;
-            internal IDictionary clientExtensions = null;
-            internal IDictionary serverExtensions = null;
+            internal IDictionary<int, byte[]> clientExtensions = null;
+            internal IDictionary<int, byte[]> serverExtensions = null;
             internal bool resumedSession = false;
             internal bool expectSessionTicket = false;
-            internal IDictionary clientAgreements = null;
+            internal IDictionary<int, TlsAgreement> clientAgreements = null;
             internal TlsKeyExchange keyExchange = null;
             internal TlsAuthentication authentication = null;
             internal CertificateStatus certificateStatus = null;

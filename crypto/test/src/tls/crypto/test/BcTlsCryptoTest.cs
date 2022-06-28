@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
@@ -181,7 +181,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 ImplTestDHDomain(new TlsDHConfig(namedGroup, true));
             }
 
-            IList groups = new TestTlsDHGroupVerifier().Groups;
+            var groups = new TestTlsDHGroupVerifier().Groups;
             foreach (DHGroup dhGroup in groups)
             {
                 BigInteger p = dhGroup.P, g = dhGroup.G;
@@ -782,7 +782,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         private class TestTlsDHGroupVerifier
             : DefaultTlsDHGroupVerifier
         {
-            internal IList Groups
+            internal IList<DHGroup> Groups
             {
                 get { return m_groups; }
             }

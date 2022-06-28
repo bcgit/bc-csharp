@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Tls.Tests
             int keyExchangeAlgorithm = KeyExchangeAlgorithm.ECDHE_RSA;
             short signatureAlgorithm = TlsUtilities.GetLegacySignatureAlgorithmServer(keyExchangeAlgorithm);
 
-            IList supportedSignatureAlgorithms = GetSignatureAlgorithms(false);
+            var supportedSignatureAlgorithms = GetSignatureAlgorithms(false);
             SignatureAndHashAlgorithm sigAlg = TlsUtilities.ChooseSignatureAndHashAlgorithm(ProtocolVersion.TLSv12,
                 supportedSignatureAlgorithms, signatureAlgorithm);
             Assert.AreEqual(HashAlgorithm.sha256, sigAlg.Hash);
@@ -28,14 +28,14 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        private static IList GetSignatureAlgorithms(bool randomise)
+        private static IList<SignatureAndHashAlgorithm> GetSignatureAlgorithms(bool randomise)
         {
             short[] hashAlgorithms = new short[]{ HashAlgorithm.sha1, HashAlgorithm.sha224, HashAlgorithm.sha256,
                 HashAlgorithm.sha384, HashAlgorithm.sha512, HashAlgorithm.md5 };
             short[] signatureAlgorithms = new short[]{ SignatureAlgorithm.rsa, SignatureAlgorithm.dsa,
                 SignatureAlgorithm.ecdsa };
 
-            IList result = new ArrayList();
+            var result = new List<SignatureAndHashAlgorithm>();
             for (int i = 0; i < signatureAlgorithms.Length; ++i)
             {
                 for (int j = 0; j < hashAlgorithms.Length; ++j)
@@ -53,7 +53,8 @@ namespace Org.BouncyCastle.Tls.Tests
                     int dst = r.Next(count);
                     if (src != dst)
                     {
-                        object a = result[src], b = result[dst];
+                        var a = result[src];
+                        var b = result[dst];
                         result[dst] = a;
                         result[src] = b;
                     }
