@@ -1,10 +1,9 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -463,14 +462,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         /// <summary>Allows enumeration of any user IDs associated with the key.</summary>
         /// <returns>An <c>IEnumerable</c> of <c>string</c> objects.</returns>
-        public IEnumerable UserIds
+        public IEnumerable<string> UserIds
         {
             get { return pub.GetUserIds(); }
         }
 
         /// <summary>Allows enumeration of any user attribute vectors associated with the key.</summary>
         /// <returns>An <c>IEnumerable</c> of <c>string</c> objects.</returns>
-        public IEnumerable UserAttributes
+        public IEnumerable<PgpUserAttributeSubpacketVector> UserAttributes
         {
             get { return pub.GetUserAttributes(); }
         }
@@ -729,8 +728,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
-        public void Encode(
-            Stream outStr)
+        public void Encode(Stream outStr)
         {
             BcpgOutputStream bcpgOut = BcpgOutputStream.Wrap(outStr);
 
@@ -750,23 +748,26 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 for (int i = 0; i != pub.ids.Count; i++)
                 {
                     object pubID = pub.ids[i];
-                    if (pubID is string)
+                    if (pubID is string id)
                     {
-                        string id = (string) pubID;
                         bcpgOut.WritePacket(new UserIdPacket(id));
+                    }
+                    else if (pubID is PgpUserAttributeSubpacketVector v)
+                    {
+                        bcpgOut.WritePacket(new UserAttributePacket(v.ToSubpacketArray()));
                     }
                     else
                     {
-                        PgpUserAttributeSubpacketVector v = (PgpUserAttributeSubpacketVector) pubID;
-                        bcpgOut.WritePacket(new UserAttributePacket(v.ToSubpacketArray()));
+                        throw new InvalidOperationException();
                     }
 
-                    if (pub.idTrusts[i] != null)
+                    var trustPacket = pub.idTrusts[i];
+                    if (trustPacket != null)
                     {
-                        bcpgOut.WritePacket((ContainedPacket)pub.idTrusts[i]);
+                        bcpgOut.WritePacket(trustPacket);
                     }
 
-                    foreach (PgpSignature sig in (IList) pub.idSigs[i])
+                    foreach (PgpSignature sig in pub.idSigs[i])
                     {
                         sig.Encode(bcpgOut);
                     }

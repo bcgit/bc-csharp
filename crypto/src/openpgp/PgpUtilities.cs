@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -13,19 +13,18 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
 	/// <remarks>Basic utility class.</remarks>
     public sealed class PgpUtilities
     {
-        private static IDictionary NameToHashID = CreateNameToHashID();
-        private static IDictionary OidToName = CreateOidToName();
+        private static readonly IDictionary<string, HashAlgorithmTag> NameToHashID = CreateNameToHashID();
+        private static readonly IDictionary<DerObjectIdentifier, string> OidToName = CreateOidToName();
 
-        private static IDictionary CreateNameToHashID()
+        private static IDictionary<string, HashAlgorithmTag> CreateNameToHashID()
         {
-            IDictionary d = Platform.CreateHashtable();
+            var d = new Dictionary<string, HashAlgorithmTag>(StringComparer.OrdinalIgnoreCase);
             d.Add("sha1", HashAlgorithmTag.Sha1);
             d.Add("sha224", HashAlgorithmTag.Sha224);
             d.Add("sha256", HashAlgorithmTag.Sha256);
@@ -40,9 +39,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return d;
         }
 
-        private static IDictionary CreateOidToName()
+        private static IDictionary<DerObjectIdentifier, string> CreateOidToName()
         {
-            IDictionary d = Platform.CreateHashtable();
+            var d = new Dictionary<DerObjectIdentifier, string>();
             d.Add(EdECObjectIdentifiers.id_X25519, "Curve25519");
             d.Add(EdECObjectIdentifiers.id_Ed25519, "Ed25519");
             d.Add(SecObjectIdentifiers.SecP256r1, "NIST P-256");
@@ -112,9 +111,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public static int GetDigestIDForName(string name)
         {
-            name = Platform.ToLowerInvariant(name);
-            if (NameToHashID.Contains(name))
-                return (Int32)NameToHashID[name];
+            if (NameToHashID.TryGetValue(name, out var hashAlgorithmTag))
+                return (int)hashAlgorithmTag;
 
             throw new ArgumentException("unable to map " + name + " to a hash id", "name");
         }
@@ -127,8 +125,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
          */
         public static string GetCurveName(DerObjectIdentifier oid)
         {
-            string name = (string)OidToName[oid];
-            if (name != null)
+            if (OidToName.TryGetValue(oid, out var name))
                 return name;
 
             // fall back

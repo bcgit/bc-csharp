@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
 using System.IO;
+
 using Org.BouncyCastle.Bcpg.Sig;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {

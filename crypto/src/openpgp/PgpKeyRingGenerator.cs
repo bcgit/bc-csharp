@@ -1,5 +1,6 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
+
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -11,7 +12,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	/// </remarks>
     public class PgpKeyRingGenerator
     {
-        private IList					    keys = Platform.CreateArrayList();
+        private IList<PgpSecretKey>         keys = new List<PgpSecretKey>();
         private string                      id;
         private SymmetricKeyAlgorithmTag	encAlgorithm;
         private HashAlgorithmTag            hashAlgorithm;
@@ -304,7 +305,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 sGen.SetHashedSubpackets(hashedPackets);
                 sGen.SetUnhashedSubpackets(unhashedPackets);
 
-                IList subSigs = Platform.CreateArrayList();
+                var subSigs = new List<PgpSignature>();
                 subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
 
                 keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm,
@@ -360,7 +361,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 sGen.SetHashedSubpackets(spGen.Generate());
                 sGen.SetUnhashedSubpackets(unhashedPackets);
 
-                IList subSigs = Platform.CreateArrayList();
+                var subSigs = new List<PgpSignature>();
                 subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
 
                 keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm,
@@ -385,21 +386,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>Return the public key ring that corresponds to the secret key ring.</summary>
         public PgpPublicKeyRing GeneratePublicKeyRing()
         {
-            IList pubKeys = Platform.CreateArrayList();
+            var pubKeys = new List<PgpPublicKey>();
 
-            IEnumerator enumerator = keys.GetEnumerator();
+            var enumerator = keys.GetEnumerator();
             enumerator.MoveNext();
 
-			PgpSecretKey pgpSecretKey = (PgpSecretKey) enumerator.Current;
+			PgpSecretKey pgpSecretKey = enumerator.Current;
 			pubKeys.Add(pgpSecretKey.PublicKey);
 
 			while (enumerator.MoveNext())
             {
-                pgpSecretKey = (PgpSecretKey) enumerator.Current;
+                pgpSecretKey = enumerator.Current;
 
 				PgpPublicKey k = new PgpPublicKey(pgpSecretKey.PublicKey);
-				k.publicPk = new PublicSubkeyPacket(
-					k.Algorithm, k.CreationTime, k.publicPk.Key);
+				k.publicPk = new PublicSubkeyPacket(k.Algorithm, k.CreationTime, k.publicPk.Key);
 
 				pubKeys.Add(k);
 			}
