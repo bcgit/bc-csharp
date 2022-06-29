@@ -131,39 +131,40 @@ namespace Org.BouncyCastle.Cms
                     outer.m_digests.Add(digestOID, (byte[])hash.Clone());
                 }
 
-                IStreamCalculator calculator = sigCalc.CreateCalculator();
-				Stream sigStr = new BufferedStream(calculator.Stream);
-
 				Asn1Set signedAttr = null;
-				if (sAttr != null)
-				{
-					var parameters = outer.GetBaseParameters(contentType, digAlgId, hash);
 
-//					Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(Collections.unmodifiableMap(parameters));
-					Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(parameters);
-
-                    if (contentType == null) //counter signature
-                    {
-                        if (signed != null && signed[CmsAttributes.ContentType] != null)
-                        {
-							signed = signed.Remove(CmsAttributes.ContentType);
-                        }
-                    }
-
-					// TODO Validate proposed signed attributes
-
-					signedAttr = outer.GetAttributeSet(signed);
-
-                    // sig must be composed from the DER encoding.
-                    signedAttr.EncodeTo(sigStr, Asn1Encodable.Der);
-				}
-                else if (content != null)
+				IStreamCalculator calculator = sigCalc.CreateCalculator();
+				using (Stream sigStr = calculator.Stream)
                 {
-					// TODO Use raw signature of the hash value instead
-					content.Write(sigStr);
-                }
+					if (sAttr != null)
+					{
+						var parameters = outer.GetBaseParameters(contentType, digAlgId, hash);
 
-                Platform.Dispose(sigStr);
+                        //Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(Collections.unmodifiableMap(parameters));
+                        Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(parameters);
+
+						if (contentType == null) //counter signature
+						{
+							if (signed != null && signed[CmsAttributes.ContentType] != null)
+							{
+								signed = signed.Remove(CmsAttributes.ContentType);
+							}
+						}
+
+						// TODO Validate proposed signed attributes
+
+						signedAttr = outer.GetAttributeSet(signed);
+
+						// sig must be composed from the DER encoding.
+						signedAttr.EncodeTo(sigStr, Asn1Encodable.Der);
+					}
+					else if (content != null)
+					{
+						// TODO Use raw signature of the hash value instead
+						content.Write(sigStr);
+					}
+				}
+
                 byte[] sigBytes = ((IBlockResult)calculator.GetResult()).Collect();
 
 				Asn1Set unsignedAttr = null;

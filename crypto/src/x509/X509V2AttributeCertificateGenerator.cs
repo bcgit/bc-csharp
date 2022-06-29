@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -99,44 +100,35 @@ namespace Org.BouncyCastle.X509
 			extGenerator.AddExtension(new DerObjectIdentifier(oid), critical, extensionValue);
 		}
 
-        /// <summary>
-        /// Generate a new X.509 Attribute Certificate using the passed in SignatureCalculator.
-        /// </summary>
-        /// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
-        /// <returns>An IX509AttributeCertificate.</returns>
-        public X509V2AttributeCertificate Generate(ISignatureFactory signatureCalculatorFactory)
+		/// <summary>
+		/// Generate a new <see cref="X509V2AttributeCertificate"/> using the provided <see cref="ISignatureFactory"/>.
+		/// </summary>
+		/// <param name="signatureFactory">A <see cref="ISignatureFactory">signature factory</see> with the necessary
+		/// algorithm details.</param>
+		/// <returns>An <see cref="X509V2AttributeCertificate"/>.</returns>
+		public X509V2AttributeCertificate Generate(ISignatureFactory signatureFactory)
         {
-            if (!extGenerator.IsEmpty)
+			var sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
+
+			acInfoGen.SetSignature(sigAlgID);
+
+			if (!extGenerator.IsEmpty)
 			{
 				acInfoGen.SetExtensions(extGenerator.Generate());
 			}
 
-            AlgorithmIdentifier sigAlgID = (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails;
-
-            acInfoGen.SetSignature(sigAlgID);
-
             AttributeCertificateInfo acInfo = acInfoGen.GenerateAttributeCertificateInfo();
 
-            byte[] encoded = acInfo.GetDerEncoded();
-
-            IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
-
-            streamCalculator.Stream.Write(encoded, 0, encoded.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            try
+			IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
+			using (Stream sigStream = streamCalculator.Stream)
 			{
-                DerBitString signatureValue = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
+				acInfo.EncodeTo(sigStream, Asn1Encodable.Der);
+			}
 
-                return new X509V2AttributeCertificate(new AttributeCertificate(acInfo, sigAlgID, signatureValue));
-			}
-			catch (Exception e)
-			{
-				// TODO
-//				throw new ExtCertificateEncodingException("constructed invalid certificate", e);
-				throw new CertificateEncodingException("constructed invalid certificate", e);
-			}
+			var signature = ((IBlockResult)streamCalculator.GetResult()).Collect();
+
+			return new X509V2AttributeCertificate(
+				new AttributeCertificate(acInfo, sigAlgID, new DerBitString(signature)));
 		}
 
 		/// <summary>

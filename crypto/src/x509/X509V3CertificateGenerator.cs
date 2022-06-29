@@ -241,13 +241,14 @@ namespace Org.BouncyCastle.X509
 		}
 
 		/// <summary>
-		/// Generate a new X509Certificate using the passed in SignatureCalculator.
+		/// Generate a new <see cref="X509Certificate"/> using the provided <see cref="ISignatureFactory"/>.
 		/// </summary>
-		/// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
-		/// <returns>An X509Certificate.</returns>
-		public X509Certificate Generate(ISignatureFactory signatureCalculatorFactory)
+		/// <param name="signatureFactory">A <see cref="ISignatureFactory">signature factory</see> with the necessary
+		/// algorithm details.</param>
+		/// <returns>An <see cref="X509Certificate"/>.</returns>
+		public X509Certificate Generate(ISignatureFactory signatureFactory)
 		{
-			var sigAlgID = (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails;
+			var sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
 
 			tbsGen.SetSignature(sigAlgID);
 
@@ -258,7 +259,7 @@ namespace Org.BouncyCastle.X509
 
             TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
-			IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
+			IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
 			using (Stream sigStream = streamCalculator.Stream)
             {
 				tbsCert.EncodeTo(sigStream, Asn1Encodable.Der);

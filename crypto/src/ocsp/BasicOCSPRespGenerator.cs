@@ -206,20 +206,19 @@ namespace Org.BouncyCastle.Ocsp
 				}
 			}
 
-			ResponseData tbsResp = new ResponseData(responderID.ToAsn1Object(), new DerGeneralizedTime(producedAt), new DerSequence(responses), responseExtensions);
-			DerBitString bitSig = null;
+			ResponseData tbsResp = new ResponseData(responderID.ToAsn1Object(), new DerGeneralizedTime(producedAt),
+				new DerSequence(responses), responseExtensions);
+			DerBitString bitSig;
 
 			try
 			{
                 IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+				using (Stream sigStream = streamCalculator.Stream)
+				{
+					tbsResp.EncodeTo(sigStream, Asn1Encodable.Der);
+				}
 
-				byte[] encoded = tbsResp.GetDerEncoded();
-
-                streamCalculator.Stream.Write(encoded, 0, encoded.Length);
-
-                Platform.Dispose(streamCalculator.Stream);
-
-                bitSig = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
+				bitSig = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
 			}
 			catch (Exception e)
 			{
@@ -236,9 +235,7 @@ namespace Org.BouncyCastle.Ocsp
 				{
 					for (int i = 0; i != chain.Length; i++)
 					{
-						v.Add(
-							X509CertificateStructure.GetInstance(
-								Asn1Object.FromByteArray(chain[i].GetEncoded())));
+						v.Add(chain[i].CertificateStructure);
 					}
 				}
 				catch (IOException e)

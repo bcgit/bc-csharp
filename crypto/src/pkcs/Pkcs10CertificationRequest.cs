@@ -282,12 +282,10 @@ namespace Org.BouncyCastle.Pkcs
             this.reqInfo = new CertificationRequestInfo(subject, pubInfo, attributes);
 
             IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
-
-            byte[] reqInfoData = reqInfo.GetDerEncoded();
-
-            streamCalculator.Stream.Write(reqInfoData, 0, reqInfoData.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
+            using (Stream sigStream = streamCalculator.Stream)
+            {
+                reqInfo.EncodeTo(sigStream, Der);
+            }
 
             // Generate Signature.
             sigBits = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());

@@ -167,46 +167,35 @@ namespace Org.BouncyCastle.X509
 			extGenerator.AddExtension(oid, critical, new DerOctetString(extensionValue));
 		}
 
-        /// <summary>
-        /// Generate a new X509Crl using the passed in SignatureCalculator.
-        /// </summary>
-		/// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
-        /// <returns>An X509Crl.</returns>
-        public X509Crl Generate(ISignatureFactory signatureCalculatorFactory)
+		/// <summary>
+		/// Generate a new <see cref="X509Crl"/> using the provided <see cref="ISignatureFactory"/>.
+		/// </summary>
+		/// <param name="signatureFactory">A <see cref="ISignatureFactory">signature factory</see> with the necessary
+		/// algorithm details.</param>
+		/// <returns>An <see cref="X509Crl"/>.</returns>
+		public X509Crl Generate(ISignatureFactory signatureFactory)
         {
-            tbsGen.SetSignature((AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
+			var sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
 
-            TbsCertificateList tbsCertList = GenerateCertList();
+			tbsGen.SetSignature(sigAlgID);
 
-            IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
-
-            byte[] encoded = tbsCertList.GetDerEncoded();
-
-            streamCalculator.Stream.Write(encoded, 0, encoded.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            return GenerateJcaObject(tbsCertList, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
-        }
-
-        private TbsCertificateList GenerateCertList()
-		{
 			if (!extGenerator.IsEmpty)
 			{
 				tbsGen.SetExtensions(extGenerator.Generate());
 			}
 
-			return tbsGen.GenerateTbsCertList();
-		}
+			TbsCertificateList tbsCertList = tbsGen.GenerateTbsCertList();
 
-		private X509Crl GenerateJcaObject(
-			TbsCertificateList	tbsCrl,
-            AlgorithmIdentifier algId,
-			byte[]				signature)
-		{
+            IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
+			using (Stream sigStream = streamCalculator.Stream)
+			{
+				tbsCertList.EncodeTo(sigStream, Asn1Encodable.Der);
+			}
+
+			var signature = ((IBlockResult)streamCalculator.GetResult()).Collect();
+
 			return new X509Crl(
-				CertificateList.GetInstance(
-					new DerSequence(tbsCrl, algId, new DerBitString(signature))));
+				CertificateList.GetInstance(new DerSequence(tbsCertList, sigAlgID, new DerBitString(signature))));
 		}
 
 		/// <summary>

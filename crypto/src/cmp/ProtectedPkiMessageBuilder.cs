@@ -145,11 +145,7 @@ namespace Org.BouncyCastle.Cmp
 
         private byte[] CalculateSignature(IStreamCalculator signer, PkiHeader header, PkiBody body)
         {
-            Asn1EncodableVector avec = new Asn1EncodableVector(2);
-            avec.Add(header);
-            avec.Add(body);
-
-            new DerSequence(avec).EncodeTo(signer.Stream);
+            new DerSequence(header, body).EncodeTo(signer.Stream);
             object result = signer.GetResult();
 
             if (result is DefaultSignatureResult sigResult)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -110,35 +111,29 @@ namespace Org.BouncyCastle.X509
 		}
 
 		/// <summary>
-		/// Generate a new X509Certificate using the passed in SignatureCalculator.
+		/// Generate a new <see cref="X509Certificate"/> using the provided <see cref="ISignatureFactory"/>.
 		/// </summary>
-		/// <param name="signatureFactory">A signature calculator factory with the necessary algorithm details.</param>
-		/// <returns>An X509Certificate.</returns>
+		/// <param name="signatureFactory">A <see cref="ISignatureFactory">signature factory</see> with the necessary
+		/// algorithm details.</param>
+		/// <returns>An <see cref="X509Certificate"/>.</returns>
 		public X509Certificate Generate(ISignatureFactory signatureFactory)
 		{
-			tbsGen.SetSignature((AlgorithmIdentifier)signatureFactory.AlgorithmDetails);
+			var sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
+
+			tbsGen.SetSignature(sigAlgID);
 
 			TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
-            IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
+			IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
+			using (Stream sigStream = streamCalculator.Stream)
+			{
+				tbsCert.EncodeTo(sigStream, Asn1Encodable.Der);
+			}
 
-            byte[] encoded = tbsCert.GetDerEncoded();
+			var signature = ((IBlockResult)streamCalculator.GetResult()).Collect();
 
-            streamCalculator.Stream.Write(encoded, 0, encoded.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureFactory.AlgorithmDetails,
-				((IBlockResult)streamCalculator.GetResult()).Collect());
-		}
-
-		private X509Certificate GenerateJcaObject(
-			TbsCertificateStructure	tbsCert,
-			AlgorithmIdentifier     sigAlg,
-			byte[]					signature)
-		{
 			return new X509Certificate(
-				new X509CertificateStructure(tbsCert, sigAlg, new DerBitString(signature)));
+				new X509CertificateStructure(tbsCert, sigAlgID, new DerBitString(signature)));
 		}
 
 		/// <summary>

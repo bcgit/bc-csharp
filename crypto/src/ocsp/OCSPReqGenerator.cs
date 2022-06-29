@@ -165,9 +165,7 @@ namespace Org.BouncyCastle.Ocsp
 					{
 						for (int i = 0; i != chain.Length; i++)
 						{
-							v.Add(
-								X509CertificateStructure.GetInstance(
-									Asn1Object.FromByteArray(chain[i].GetEncoded())));
+							v.Add(chain[i].CertificateStructure);
 						}
 					}
 					catch (IOException e)
