@@ -26,11 +26,6 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
-        internal static int GetHashCode(object obj)
-        {
-            return null == obj ? 0 : obj.GetHashCode();
-        }
-
         internal static void Dispose(IDisposable d)
         {
             d.Dispose();

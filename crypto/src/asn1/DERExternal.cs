@@ -156,9 +156,9 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode()
 		{
-            return Platform.GetHashCode(this.directReference)
-                ^  Platform.GetHashCode(this.indirectReference)
-                ^  Platform.GetHashCode(this.dataValueDescriptor)
+            return Objects.GetHashCode(this.directReference)
+                ^  Objects.GetHashCode(this.indirectReference)
+                ^  Objects.GetHashCode(this.dataValueDescriptor)
                 ^  this.encoding
                 ^  this.externalContent.GetHashCode();
 		}
@@ -167,9 +167,9 @@ namespace Org.BouncyCastle.Asn1
 		{
 			DerExternal that = asn1Object as DerExternal;
             return null != that
-                && Platform.Equals(this.directReference, that.directReference)
-                && Platform.Equals(this.indirectReference, that.indirectReference)
-                && Platform.Equals(this.dataValueDescriptor, that.dataValueDescriptor)
+                && Equals(this.directReference, that.directReference)
+                && Equals(this.indirectReference, that.indirectReference)
+                && Equals(this.dataValueDescriptor, that.dataValueDescriptor)
                 && this.encoding == that.encoding
 				&& this.externalContent.Equals(that.externalContent);
 		}
