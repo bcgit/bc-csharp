@@ -248,7 +248,8 @@ namespace Org.BouncyCastle.Asn1.Utilities
             else
             {
                 buf.Append(indent);
-                buf.AppendLine(obj.ToString());
+                buf.Append(obj);
+                buf.AppendLine();
             }
         }
 

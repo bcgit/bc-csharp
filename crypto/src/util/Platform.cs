@@ -31,8 +31,6 @@ namespace Org.BouncyCastle.Utilities
             return null == obj ? 0 : obj.GetHashCode();
         }
 
-        internal static readonly string NewLine = Environment.NewLine;
-
         internal static void Dispose(IDisposable d)
         {
             d.Dispose();

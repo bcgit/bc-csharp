@@ -110,14 +110,12 @@ namespace Org.BouncyCastle.Pkix
 			return ToString("");
 		}
 
-		public virtual string ToString(
-			string indent)
+		public virtual string ToString(string indent)
 		{
 			StringBuilder buf = new StringBuilder();
 			buf.Append(indent);
 			buf.Append(mValidPolicy);
-			buf.Append(" {");
-			buf.Append(Platform.NewLine);
+			buf.AppendLine(" {");
 
 			foreach (PkixPolicyNode child in mChildren)
 			{
@@ -125,8 +123,7 @@ namespace Org.BouncyCastle.Pkix
 			}
 
 			buf.Append(indent);
-			buf.Append("}");
-			buf.Append(Platform.NewLine);
+			buf.AppendLine("}");
 			return buf.ToString();
 		}
 

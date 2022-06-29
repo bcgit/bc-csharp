@@ -1849,7 +1849,8 @@ namespace Org.BouncyCastle.Pkix
         {
             sb.Append(name);
             sb.AppendLine(":");
-            sb.AppendLine(value.ToString());
+            sb.Append(value);
+            sb.AppendLine();
         }
     }
 }

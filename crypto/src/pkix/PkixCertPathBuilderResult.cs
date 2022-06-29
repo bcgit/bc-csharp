@@ -36,9 +36,9 @@ namespace Org.BouncyCastle.Pkix
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.AppendLine("SimplePKIXCertPathBuilderResult: [");
-			sb.Append("  Certification Path: ").AppendLine(CertPath.ToString());
-			sb.Append("  Trust Anchor: ").AppendLine(TrustAnchor.TrustedCert.IssuerDN.ToString());
-			sb.Append("  Subject Public Key: ").AppendLine(SubjectPublicKey.ToString());
+			sb.Append("  Certification Path: ").Append(CertPath).AppendLine();
+			sb.Append("  Trust Anchor: ").Append(TrustAnchor.TrustedCert.IssuerDN).AppendLine();
+			sb.Append("  Subject Public Key: ").Append(SubjectPublicKey).AppendLine();
 			return sb.ToString();
 		}
 	}

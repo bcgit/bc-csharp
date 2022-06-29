@@ -133,13 +133,13 @@ namespace Org.BouncyCastle.Pkix
 
 		public override string ToString()
 		{
-			string nl = Platform.NewLine;
 			StringBuilder s = new StringBuilder();
-			s.Append("PkixBuilderParameters [" + nl);
+			s.AppendLine("PkixBuilderParameters [");
 			s.Append(base.ToString());
 			s.Append("  Maximum Path Length: ");
 			s.Append(MaxPathLength);
-			s.Append(nl + "]" + nl);
+			s.AppendLine();
+			s.AppendLine("]");
 			return s.ToString();
 		}
 	}

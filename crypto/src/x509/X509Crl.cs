@@ -312,24 +312,23 @@ namespace Org.BouncyCastle.X509
 		public override string ToString()
 		{
 			StringBuilder buf = new StringBuilder();
-			string nl = Platform.NewLine;
 
-			buf.Append("              Version: ").Append(this.Version).Append(nl);
-			buf.Append("             IssuerDN: ").Append(this.IssuerDN).Append(nl);
-			buf.Append("          This update: ").Append(this.ThisUpdate).Append(nl);
-			buf.Append("          Next update: ").Append(this.NextUpdate).Append(nl);
-			buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).Append(nl);
+			buf.Append("              Version: ").Append(this.Version).AppendLine();
+			buf.Append("             IssuerDN: ").Append(this.IssuerDN).AppendLine();
+			buf.Append("          This update: ").Append(this.ThisUpdate).AppendLine();
+			buf.Append("          Next update: ").Append(this.NextUpdate).AppendLine();
+			buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).AppendLine();
 
 			byte[] sig = this.GetSignature();
 
 			buf.Append("            Signature: ");
-			buf.Append(Hex.ToHexString(sig, 0, 20)).Append(nl);
+			buf.Append(Hex.ToHexString(sig, 0, 20)).AppendLine();
 
 			for (int i = 20; i < sig.Length; i += 20)
 			{
 				int count = System.Math.Min(20, sig.Length - i);
 				buf.Append("                       ");
-				buf.Append(Hex.ToHexString(sig, i, count)).Append(nl);
+				buf.Append(Hex.ToHexString(sig, i, count)).AppendLine();
 			}
 
 			X509Extensions extensions = c.TbsCertList.Extensions;
@@ -340,7 +339,7 @@ namespace Org.BouncyCastle.X509
 
 				if (e.MoveNext())
 				{
-					buf.Append("           Extensions: ").Append(nl);
+					buf.Append("           Extensions: ").AppendLine();
 				}
 
 				do
@@ -357,7 +356,7 @@ namespace Org.BouncyCastle.X509
 						{
 							if (oid.Equals(X509Extensions.CrlNumber))
 							{
-								buf.Append(new CrlNumber(DerInteger.GetInstance(asn1Value).PositiveValue)).Append(nl);
+								buf.Append(new CrlNumber(DerInteger.GetInstance(asn1Value).PositiveValue)).AppendLine();
 							}
 							else if (oid.Equals(X509Extensions.DeltaCrlIndicator))
 							{
@@ -365,37 +364,37 @@ namespace Org.BouncyCastle.X509
 									"Base CRL: "
 									+ new CrlNumber(DerInteger.GetInstance(
 									asn1Value).PositiveValue))
-									.Append(nl);
+									.AppendLine();
 							}
 							else if (oid.Equals(X509Extensions.IssuingDistributionPoint))
 							{
-								buf.Append(IssuingDistributionPoint.GetInstance((Asn1Sequence) asn1Value)).Append(nl);
+								buf.Append(IssuingDistributionPoint.GetInstance((Asn1Sequence) asn1Value)).AppendLine();
 							}
 							else if (oid.Equals(X509Extensions.CrlDistributionPoints))
 							{
-								buf.Append(CrlDistPoint.GetInstance((Asn1Sequence) asn1Value)).Append(nl);
+								buf.Append(CrlDistPoint.GetInstance((Asn1Sequence) asn1Value)).AppendLine();
 							}
 							else if (oid.Equals(X509Extensions.FreshestCrl))
 							{
-								buf.Append(CrlDistPoint.GetInstance((Asn1Sequence) asn1Value)).Append(nl);
+								buf.Append(CrlDistPoint.GetInstance((Asn1Sequence) asn1Value)).AppendLine();
 							}
 							else
 							{
 								buf.Append(oid.Id);
 								buf.Append(" value = ").Append(
 									Asn1Dump.DumpAsString(asn1Value))
-									.Append(nl);
+									.AppendLine();
 							}
 						}
 						catch (Exception)
 						{
 							buf.Append(oid.Id);
-							buf.Append(" value = ").Append("*****").Append(nl);
+							buf.Append(" value = ").Append("*****").AppendLine();
 						}
 					}
 					else
 					{
-						buf.Append(nl);
+						buf.AppendLine();
 					}
 				}
 				while (e.MoveNext());
@@ -407,7 +406,7 @@ namespace Org.BouncyCastle.X509
 				foreach (X509CrlEntry entry in certSet)
 				{
 					buf.Append(entry);
-					buf.Append(nl);
+					buf.AppendLine();
 				}
 			}
 

@@ -72,16 +72,12 @@ namespace Org.BouncyCastle.Asn1.X509
 		public override string ToString()
 		{
 			StringBuilder buf = new StringBuilder();
-			string sep = Platform.NewLine;
-
-			buf.Append("CRLDistPoint:");
-			buf.Append(sep);
-			DistributionPoint[] dp = GetDistributionPoints();
-			for (int i = 0; i != dp.Length; i++)
+			buf.AppendLine("CRLDistPoint:");
+            foreach (DistributionPoint dp in GetDistributionPoints())
 			{
-				buf.Append("    ");
-				buf.Append(dp[i]);
-				buf.Append(sep);
+				buf.Append("    ")
+				   .Append(dp)
+                   .AppendLine();
 			}
 			return buf.ToString();
 		}
