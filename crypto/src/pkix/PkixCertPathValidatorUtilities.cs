@@ -259,7 +259,7 @@ namespace Org.BouncyCastle.Pkix
 //							baseDN = nsull;
 						}
 
-						throw Platform.CreateNotImplementedException("LDAP cert/CRL stores");
+						throw new NotImplementedException("LDAP cert/CRL stores");
 
 						// use all purpose parameters
 						//X509LDAPCertStoreParameters ldapParams = new X509LDAPCertStoreParameters.Builder(

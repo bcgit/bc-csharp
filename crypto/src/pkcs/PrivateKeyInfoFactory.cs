@@ -158,7 +158,7 @@ namespace Org.BouncyCastle.Pkcs
                 if (priv.AlgorithmName == "ECGOST3410")
                 {
                     if (priv.PublicKeyParamSet == null)
-                        throw Platform.CreateNotImplementedException("Not a CryptoPro parameter set");
+                        throw new NotImplementedException("Not a CryptoPro parameter set");
 
                     Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
                         priv.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
@@ -195,7 +195,7 @@ namespace Org.BouncyCastle.Pkcs
                 Gost3410PrivateKeyParameters _key = (Gost3410PrivateKeyParameters)privateKey;
 
                 if (_key.PublicKeyParamSet == null)
-                    throw Platform.CreateNotImplementedException("Not a CryptoPro parameter set");
+                    throw new NotImplementedException("Not a CryptoPro parameter set");
 
                 byte[] keyEnc = _key.X.ToByteArrayUnsigned();
                 byte[] keyBytes = new byte[keyEnc.Length];

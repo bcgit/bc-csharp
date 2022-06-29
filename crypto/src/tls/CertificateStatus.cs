@@ -4,7 +4,6 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -165,8 +164,7 @@ namespace Org.BouncyCastle.Tls
                     }
                 }
 
-                // Match IList capacity to actual size
-                response = Platform.CreateArrayList(ocspResponseList);
+                response = ocspResponseList;
                 break;
             }
             default:

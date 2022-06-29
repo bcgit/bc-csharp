@@ -263,11 +263,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration()
 		{
 			if (revokedCertificates == null)
-			{
-				// TODO
-				//return EmptyEnumerable.Instance;
 				return new List<CrlEntry>(0);
-			}
 
 			return new RevokedCertificatesEnumeration(revokedCertificates);
 		}

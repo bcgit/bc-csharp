@@ -389,7 +389,7 @@ namespace Org.BouncyCastle.Pkcs
 
                 if (Platform.EndsWith(signature.AlgorithmName, "MGF1"))
                 {
-                    throw Platform.CreateNotImplementedException("signature algorithm with MGF1");
+                    throw new NotImplementedException("signature algorithm with MGF1");
 
                     //					try
                     //					{

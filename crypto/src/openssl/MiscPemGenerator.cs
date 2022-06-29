@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.OpenSsl
             }
 
 
-            string dekAlgName = Platform.ToUpperInvariant(algorithm);
+            string dekAlgName = algorithm.ToUpperInvariant();
 
             // Note: For backward compatibility
             if (dekAlgName == "DESEDE")

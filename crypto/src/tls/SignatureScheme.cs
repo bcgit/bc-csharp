@@ -199,7 +199,7 @@ namespace Org.BouncyCastle.Tls
 
         public static string GetText(int signatureScheme)
         {
-            string hex = Platform.ToUpperInvariant(Convert.ToString(signatureScheme, 16));
+            string hex = Convert.ToString(signatureScheme, 16).ToUpperInvariant();
             return GetName(signatureScheme) + "(0x" + hex + ")";
         }
 

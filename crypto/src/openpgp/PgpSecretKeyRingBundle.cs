@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -90,43 +91,27 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <param name="matchPartial">If true, userId need only be a substring of an actual ID string to match.</param>
 		/// <param name="ignoreCase">If true, case is ignored in user ID comparisons.</param>
 		/// <returns>An <c>IEnumerable</c> of key rings which matched (possibly none).</returns>
-		public IEnumerable<PgpSecretKeyRing> GetKeyRings(string userId, bool matchPartial, bool ignoreCase)
+		public IEnumerable<PgpSecretKeyRing> GetKeyRings(string userID, bool matchPartial, bool ignoreCase)
 		{
-			var rings = new List<PgpSecretKeyRing>();
-
-			if (ignoreCase)
-			{
-                userId = Platform.ToUpperInvariant(userId);
-            }
+			var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+			var compareOptions = ignoreCase ? CompareOptions.OrdinalIgnoreCase : CompareOptions.Ordinal;
 
 			foreach (PgpSecretKeyRing secRing in GetKeyRings())
 			{
 				foreach (string nextUserID in secRing.GetSecretKey().UserIds)
 				{
-					string next = nextUserID;
-					if (ignoreCase)
-					{
-                        next = Platform.ToUpperInvariant(next);
-                    }
-
 					if (matchPartial)
 					{
-                        if (Platform.IndexOf(next, userId) > -1)
-						{
-							rings.Add(secRing);
-						}
+						if (compareInfo.IndexOf(nextUserID, userID, compareOptions) >= 0)
+							yield return secRing;
 					}
 					else
 					{
-						if (next.Equals(userId))
-						{
-							rings.Add(secRing);
-						}
+						if (compareInfo.Compare(nextUserID, userID, compareOptions) == 0)
+							yield return secRing;
 					}
 				}
 			}
-
-			return CollectionUtilities.Proxy(rings);
 		}
 
 		/// <summary>Return the PGP secret key associated with the given key id.</summary>

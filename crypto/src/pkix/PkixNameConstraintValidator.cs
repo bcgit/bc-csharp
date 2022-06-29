@@ -495,18 +495,14 @@ namespace Org.BouncyCastle.Pkix
             // a particular mailbox
             if (constraint.IndexOf('@') != -1)
             {
-                if (Platform.ToUpperInvariant(email).Equals(Platform.ToUpperInvariant(constraint)))
-                {
+                if (string.Equals(email, constraint, StringComparison.OrdinalIgnoreCase))
                     return true;
-                }
             }
             // on particular host
-            else if (!(constraint[0].Equals('.')))
+            else if (constraint[0] != '.')
             {
-                if (Platform.ToUpperInvariant(sub).Equals(Platform.ToUpperInvariant(constraint)))
-                {
+                if (string.Equals(sub, constraint, StringComparison.OrdinalIgnoreCase))
                     return true;
-                }
             }
             // address in sub domain
             else if (WithinDomain(sub, constraint))
@@ -1852,9 +1848,8 @@ namespace Org.BouncyCastle.Pkix
         private static void Append(StringBuilder sb, string name, object value)
         {
             sb.Append(name);
-            sb.Append(":\n");
-            sb.Append(value);
-            sb.Append('\n');
+            sb.AppendLine(":");
+            sb.AppendLine(value.ToString());
         }
     }
 }

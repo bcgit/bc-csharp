@@ -412,7 +412,7 @@ namespace Org.BouncyCastle.Tls
             CheckUint8(minor);
 
             int v = (major << 8) | minor;
-            string hex = Platform.ToUpperInvariant(Convert.ToString(0x10000 | v, 16).Substring(1));
+            string hex = Convert.ToString(0x10000 | v, 16).Substring(1).ToUpperInvariant();
             return new ProtocolVersion(v, prefix + " 0x" + hex);
         }
     }

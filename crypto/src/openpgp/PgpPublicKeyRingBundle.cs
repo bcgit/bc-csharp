@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -86,47 +87,31 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
 		/// <summary>Allow enumeration of the key rings associated with the passed in userId.</summary>
-		/// <param name="userId">The user ID to be matched.</param>
+		/// <param name="userID">The user ID to be matched.</param>
 		/// <param name="matchPartial">If true, userId need only be a substring of an actual ID string to match.</param>
 		/// <param name="ignoreCase">If true, case is ignored in user ID comparisons.</param>
 		/// <returns>An <c>IEnumerable</c> of key rings which matched (possibly none).</returns>
-		public IEnumerable<PgpPublicKeyRing> GetKeyRings(string userId, bool matchPartial, bool ignoreCase)
+		public IEnumerable<PgpPublicKeyRing> GetKeyRings(string userID, bool matchPartial, bool ignoreCase)
 		{
-			var rings = new List<PgpPublicKeyRing>();
-
-			if (ignoreCase)
-			{
-                userId = Platform.ToUpperInvariant(userId);
-			}
+			var compareInfo = CultureInfo.InvariantCulture.CompareInfo;
+			var compareOptions = ignoreCase ? CompareOptions.OrdinalIgnoreCase : CompareOptions.Ordinal;
 
 			foreach (PgpPublicKeyRing pubRing in GetKeyRings())
 			{
 				foreach (string nextUserID in pubRing.GetPublicKey().GetUserIds())
 				{
-					string next = nextUserID;
-					if (ignoreCase)
-					{
-                        next = Platform.ToUpperInvariant(next);
-                    }
-
 					if (matchPartial)
 					{
-                        if (Platform.IndexOf(next, userId) > -1)
-						{
-							rings.Add(pubRing);
-						}
+						if (compareInfo.IndexOf(nextUserID, userID, compareOptions) >= 0)
+							yield return pubRing;
 					}
 					else
 					{
-						if (next.Equals(userId))
-						{
-							rings.Add(pubRing);
-						}
+						if (compareInfo.Compare(nextUserID, userID, compareOptions) == 0)
+							yield return pubRing;
 					}
 				}
 			}
-
-			return CollectionUtilities.Proxy(rings);
 		}
 
 		/// <summary>Return the PGP public key associated with the given key id.</summary>

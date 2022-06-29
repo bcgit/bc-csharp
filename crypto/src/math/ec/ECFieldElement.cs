@@ -262,7 +262,7 @@ namespace Org.BouncyCastle.Math.EC
                 return this;
 
             if (!q.TestBit(0))
-                throw Platform.CreateNotImplementedException("even value of q");
+                throw new NotImplementedException("even value of q");
 
             if (q.TestBit(1)) // q == 4m + 3
             {
