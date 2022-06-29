@@ -384,54 +384,43 @@ namespace Org.BouncyCastle.Bcpg
             get { return creationTime; }
         }
 
-		public override void Encode(
-            BcpgOutputStream bcpgOut)
+		public override void Encode(BcpgOutputStream bcpgOut)
         {
             MemoryStream bOut = new MemoryStream();
-            BcpgOutputStream pOut = new BcpgOutputStream(bOut);
-
-			pOut.WriteByte((byte) version);
-
-			if (version == 3 || version == 2)
+            using (var pOut = new BcpgOutputStream(bOut))
             {
-				pOut.Write(
-					5, // the length of the next block
-					(byte) signatureType);
+                pOut.WriteByte((byte)version);
 
-				pOut.WriteInt((int)(creationTime / 1000L));
+                if (version == 3 || version == 2)
+                {
+                    byte nextBlockLength = 5;
+                    pOut.Write(nextBlockLength, (byte)signatureType);
+                    pOut.WriteInt((int)(creationTime / 1000L));
+                    pOut.WriteLong(keyId);
+                    pOut.Write((byte)keyAlgorithm, (byte)hashAlgorithm);
+                }
+                else if (version == 4)
+                {
+                    pOut.Write((byte)signatureType, (byte)keyAlgorithm, (byte)hashAlgorithm);
+                    EncodeLengthAndData(pOut, GetEncodedSubpackets(hashedData));
+                    EncodeLengthAndData(pOut, GetEncodedSubpackets(unhashedData));
+                }
+                else
+                {
+                    throw new IOException("unknown version: " + version);
+                }
 
-				pOut.WriteLong(keyId);
+                pOut.Write(fingerprint);
 
-				pOut.Write(
-					(byte) keyAlgorithm,
-					(byte) hashAlgorithm);
+                if (signature != null)
+                {
+                    pOut.WriteObjects(signature);
+                }
+                else
+                {
+                    pOut.Write(signatureEncoding);
+                }
             }
-            else if (version == 4)
-            {
-                pOut.Write(
-					(byte) signatureType,
-					(byte) keyAlgorithm,
-					(byte) hashAlgorithm);
-
-				EncodeLengthAndData(pOut, GetEncodedSubpackets(hashedData));
-
-				EncodeLengthAndData(pOut, GetEncodedSubpackets(unhashedData));
-            }
-            else
-            {
-                throw new IOException("unknown version: " + version);
-            }
-
-			pOut.Write(fingerprint);
-
-			if (signature != null)
-			{
-				pOut.WriteObjects(signature);
-			}
-			else
-			{
-				pOut.Write(signatureEncoding);
-			}
 
 			bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray(), true);
         }
