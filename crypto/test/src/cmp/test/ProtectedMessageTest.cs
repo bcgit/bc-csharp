@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using NUnit.Framework;
@@ -324,7 +323,7 @@ namespace Org.BouncyCastle.Cmp.Tests
     {
         IDictionary<DerObjectIdentifier, string> attrs = new Dictionary<DerObjectIdentifier, string>();
         IList<DerObjectIdentifier> ord = new List<DerObjectIdentifier>();
-        IList values = new ArrayList();
+        IList<string> values = new List<string>();
 
         private DateTime notBefore, notAfter;
         private AsymmetricKeyParameter publicKey;

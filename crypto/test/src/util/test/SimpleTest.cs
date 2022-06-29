@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
@@ -148,7 +148,7 @@ namespace Org.BouncyCastle.Utilities.Test
 		{
 			string fullPrefix = GetFullName(prefix);
 
-			ArrayList result = new ArrayList();
+			var result = new List<string>();
 			string[] fullNames = GetAssembly().GetManifestResourceNames();
 			foreach (string fullName in fullNames)
 			{
@@ -158,7 +158,7 @@ namespace Org.BouncyCastle.Utilities.Test
 					result.Add(name);
 				}
 			}
-			return (string[])result.ToArray(typeof(string));
+            return result.ToArray();
 		}
 
         private static Assembly GetAssembly()

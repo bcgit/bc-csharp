@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -9,7 +7,6 @@ using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
-using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -18,7 +15,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Security
 {

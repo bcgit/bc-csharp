@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -26,11 +26,11 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
         public override void PerformTest()
         {
             string file = "KDFCTR_gen.rsp";
-            ArrayList vectors = CavpReader.ReadVectorFile(file);
+            var vectors = CavpReader.ReadVectorFile(file);
             ProcessVectors(file, vectors);
         }
 
-        private void ProcessVectors(string name, ArrayList vectors)
+        private void ProcessVectors(string name, IList<Vector> vectors)
         {
             foreach (Vector vector in vectors)
             {

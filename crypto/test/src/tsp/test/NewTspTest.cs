@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -125,19 +124,19 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			try
 			{
-				request.Validate(new ArrayList(), new ArrayList(), new ArrayList());
+				request.Validate(new List<string>(), new List<string>(), new List<string>());
 				Assert.Fail("expected exception");
 			} catch(Exception ex)
             {
 				Assert.True("request contains unknown algorithm" == ex.Message);
             }
 
-			ArrayList algorithms = new ArrayList();
+			var algorithms = new List<string>();
 			algorithms.Add(TspAlgorithms.Sha1);
 
 			try
 			{
-				request.Validate(algorithms, new ArrayList(), new ArrayList());
+				request.Validate(algorithms, new List<string>(), new List<string>());
 				Assert.Fail("no exception");
 			}
 			catch (Exception e)
@@ -145,14 +144,14 @@ namespace Org.BouncyCastle.Tsp.Tests
 				Assert.IsTrue(e.Message == "request contains unknown policy");
 			}
 
-			ArrayList policies = new ArrayList();
+			var policies = new List<string>();
 
 			// Testing only do not use in real world.
 			policies.Add("2.5.29.56");
 
 			try
 			{
-				request.Validate(algorithms, policies, new ArrayList());
+				request.Validate(algorithms, policies, new List<string>());
 				Assert.Fail("no exception");
 			}
 			catch (Exception e)
@@ -160,7 +159,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 				Assert.IsTrue(e.Message == "request contains unknown extension");
 			}
 
-			ArrayList extensions = new ArrayList();
+			var extensions = new List<string>();
 
 			// Testing only do not use in real world/
 			extensions.Add("1.3.6.1.5.5.7.1.2");
@@ -197,10 +196,10 @@ namespace Org.BouncyCastle.Tsp.Tests
 			TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
 			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
 
-			ArrayList algorithms = new ArrayList();
+			var algorithms = new List<string>();
 			algorithms.Add(TspAlgorithms.Sha1);
 
-			request.Validate(algorithms, new ArrayList(), new ArrayList());
+			request.Validate(algorithms, new List<string>(), new List<string>());
 
 			Assert.False(request.CertReq);
 
@@ -423,7 +422,8 @@ namespace Org.BouncyCastle.Tsp.Tests
 			reqGen.SetReqPolicy("1.1");
 			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
 
-			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed, new ArrayList());
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed,
+				new List<string>());
 
 			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
 

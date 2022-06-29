@@ -22,8 +22,10 @@ namespace Org.BouncyCastle.Tests
     public class NamedCurveTest
         : SimpleTest
     {
-//		private static readonly Hashtable CurveNames = new Hashtable();
-//		private static readonly Hashtable CurveAliases = new Hashtable();
+//		private static readonly Dictionary<string, sring> CurveNames =
+//		    new Dictionary<string, sring>(StringComparer.OrdinalIgnoreCase);
+//		private static readonly Dictionary<string, sring> CurveAliases =
+//		    new Dictionary<string, sring>(StringComparer.OrdinalIgnoreCase);
 //
 //		static NamedCurveTest()
 //		{

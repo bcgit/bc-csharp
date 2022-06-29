@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             names.AddRange(ECNamedCurveTable.Names);
             names.AddRange(CustomNamedCurves.Names);
 
-            ISet uniqNames = new HashSet(names);
+            var uniqNames = new HashSet<string>(names);
 
             foreach (string name in uniqNames)
             {

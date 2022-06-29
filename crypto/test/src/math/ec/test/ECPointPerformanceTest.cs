@@ -179,7 +179,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             names.Sort();
 
-            ISet oids = new HashSet();
+            var oids = new HashSet<DerObjectIdentifier>();
             foreach (string name in names)
             {
                 DerObjectIdentifier oid = ECNamedCurveTable.GetOid(name);

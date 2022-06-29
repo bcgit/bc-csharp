@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Math.EC.Tests
 {
@@ -128,12 +127,12 @@ namespace Org.BouncyCastle.Math.EC.Tests
             return new BigInteger(x9.N.BitLength, Random);
         }
 
-        private IList GetTestCurves()
+        private IList<X9ECParameters> GetTestCurves()
         {
-            ArrayList x9s = new ArrayList();
-            ISet names = new HashSet(ECNamedCurveTable.Names);
-            names.AddAll(CustomNamedCurves.Names);
+            var names = new HashSet<string>(ECNamedCurveTable.Names);
+            names.UnionWith(CustomNamedCurves.Names);
 
+            var x9s = new List<X9ECParameters>();
             foreach (string name in names)
             {
                 X9ECParameters x9 = ECNamedCurveTable.GetByName(name);
@@ -151,7 +150,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             return x9s;
         }
 
-        private void AddTestCurves(IList x9s, X9ECParameters x9)
+        private void AddTestCurves(IList<X9ECParameters> x9s, X9ECParameters x9)
         {
             ECCurve curve = x9.Curve;
 

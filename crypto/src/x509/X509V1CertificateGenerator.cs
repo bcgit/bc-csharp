@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -144,7 +144,7 @@ namespace Org.BouncyCastle.X509
 		/// <summary>
 		/// Allows enumeration of the signature names supported by the generator.
 		/// </summary>
-		public IEnumerable SignatureAlgNames
+		public IEnumerable<string> SignatureAlgNames
 		{
 			get { return X509Utilities.GetAlgNames(); }
 		}

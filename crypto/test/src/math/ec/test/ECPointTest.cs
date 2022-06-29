@@ -7,7 +7,6 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Tests
@@ -538,7 +537,7 @@ namespace Org.BouncyCastle.Math.EC.Tests
             names.AddRange(ECNamedCurveTable.Names);
             names.AddRange(CustomNamedCurves.Names);
 
-            ISet uniqNames = new HashSet(names);
+            var uniqNames = new HashSet<string>(names);
 
             foreach (string name in uniqNames)
             {

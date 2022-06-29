@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1;
 using Asn1Cms = Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Utilities.Test;
 

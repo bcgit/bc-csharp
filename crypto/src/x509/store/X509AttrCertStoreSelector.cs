@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.X509.Store
 		private AttributeCertificateHolder holder;
 		private AttributeCertificateIssuer issuer;
 		private BigInteger serialNumber;
-		private ISet targetNames = new HashSet();
-		private ISet targetGroups = new HashSet();
+		private ISet<GeneralName> targetNames = new HashSet<GeneralName>();
+		private ISet<GeneralName> targetGroups = new HashSet<GeneralName>();
 
 		public X509AttrCertStoreSelector()
 		{
@@ -42,8 +42,8 @@ namespace Org.BouncyCastle.X509.Store
 			this.holder = o.holder;
 			this.issuer = o.issuer;
 			this.serialNumber = o.serialNumber;
-			this.targetGroups = new HashSet(o.targetGroups);
-			this.targetNames = new HashSet(o.targetNames);
+			this.targetGroups = new HashSet<GeneralName>(o.targetGroups);
+			this.targetNames = new HashSet<GeneralName>(o.targetNames);
 		}
 
 		/// <summary>
@@ -225,8 +225,7 @@ namespace Org.BouncyCastle.X509.Store
 		* @param name a byte array containing the name in ASN.1 DER encoded form of a GeneralName
 		* @throws IOException if a parsing error occurs.
 		*/
-		public void AddTargetName(
-			byte[] name)
+		public void AddTargetName(byte[] name)
 		{
 			AddTargetName(GeneralName.GetInstance(Asn1Object.FromByteArray(name)));
 		}
@@ -244,8 +243,7 @@ namespace Org.BouncyCastle.X509.Store
 		* @see #AddTargetName(byte[])
 		* @see #AddTargetName(GeneralName)
 		*/
-		public void SetTargetNames(
-			IEnumerable names)
+		public void SetTargetNames(IEnumerable<object> names)
 		{
 			targetNames = ExtractGeneralNames(names);
 		}
@@ -259,9 +257,9 @@ namespace Org.BouncyCastle.X509.Store
 		* @return The collection of target names
 		* @see #setTargetNames(Collection)
 		*/
-		public IEnumerable GetTargetNames()
+		public IEnumerable<GeneralName> GetTargetNames()
 		{
-			return new EnumerableProxy(targetNames);
+			return CollectionUtilities.Proxy(targetNames);
 		}
 
 		/**
@@ -277,8 +275,7 @@ namespace Org.BouncyCastle.X509.Store
 		*
 		* @param group The group as GeneralName form (not <code>null</code>)
 		*/
-		public void AddTargetGroup(
-			GeneralName group)
+		public void AddTargetGroup(GeneralName group)
 		{
 			targetGroups.Add(group);
 		}
@@ -297,8 +294,7 @@ namespace Org.BouncyCastle.X509.Store
 		* @param name a byte array containing the group in ASN.1 DER encoded form of a GeneralName
 		* @throws IOException if a parsing error occurs.
 		*/
-		public void AddTargetGroup(
-			byte[] name)
+		public void AddTargetGroup(byte[] name)
 		{
 			AddTargetGroup(GeneralName.GetInstance(Asn1Object.FromByteArray(name)));
 		}
@@ -316,8 +312,7 @@ namespace Org.BouncyCastle.X509.Store
 		* @see #AddTargetGroup(byte[])
 		* @see #AddTargetGroup(GeneralName)
 		*/
-		public void SetTargetGroups(
-			IEnumerable names)
+		public void SetTargetGroups(IEnumerable<object> names)
 		{
 			targetGroups = ExtractGeneralNames(names);
 		}
@@ -331,28 +326,31 @@ namespace Org.BouncyCastle.X509.Store
 		* @return The collection of target groups.
 		* @see #setTargetGroups(Collection)
 		*/
-		public IEnumerable GetTargetGroups()
+		public IEnumerable<GeneralName> GetTargetGroups()
 		{
-			return new EnumerableProxy(targetGroups);
+			return CollectionUtilities.Proxy(targetGroups);
 		}
 
-		private ISet ExtractGeneralNames(
-			IEnumerable names)
+		private ISet<GeneralName> ExtractGeneralNames(IEnumerable<object> names)
 		{
-			ISet result = new HashSet();
+			var result = new HashSet<GeneralName>();
 
 			if (names != null)
 			{
 				foreach (object o in names)
 				{
-					if (o is GeneralName)
+					if (o is GeneralName gn)
 					{
-						result.Add(o);
+						result.Add(gn);
+					}
+					else if (o is byte[] bs)
+					{
+						result.Add(GeneralName.GetInstance(Asn1Object.FromByteArray(bs)));
 					}
 					else
-					{
-						result.Add(GeneralName.GetInstance(Asn1Object.FromByteArray((byte[]) o)));
-					}
+                    {
+						throw new InvalidOperationException();
+                    }
 				}
 			}
 

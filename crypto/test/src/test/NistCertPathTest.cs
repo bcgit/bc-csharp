@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -72,7 +71,7 @@ namespace Org.BouncyCastle.Tests
 		private X509Crl trustedCRL;
 		private ISet<TrustAnchor> trustedSet;
 		private int testCount;
-		private IList testFail;
+		private IList<string> testFail;
 		private StringBuilder resultBuf;
 
 		public override string Name
@@ -268,7 +267,7 @@ namespace Org.BouncyCastle.Tests
 
 				trustedSet.Add(new TrustAnchor(trustedCert, _ncBytes));
 				testCount = 0;
-				testFail = new ArrayList();
+				testFail = new List<string>();
 				resultBuf = new StringBuilder("\n");
 			}
 			catch (Exception ex)

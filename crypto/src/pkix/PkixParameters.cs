@@ -56,10 +56,10 @@ namespace Org.BouncyCastle.Pkix
 		private ISelector<X509Certificate> m_targetConstraintsCert;
 
 		private bool additionalLocationsEnabled;
-		private ISet trustedACIssuers;
-		private ISet necessaryACAttributes;
-		private ISet prohibitedACAttributes;
-		private ISet attrCertCheckers;
+		private ISet<TrustAnchor> trustedACIssuers;
+		private ISet<string> necessaryACAttributes;
+		private ISet<string> prohibitedACAttributes;
+		private ISet<PkixAttrCertChecker> attrCertCheckers;
 		private int validityModel = PkixValidityModel;
 		private bool useDeltas = false;
 
@@ -90,10 +90,10 @@ namespace Org.BouncyCastle.Pkix
 			this.m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
 			this.m_storesCert = new List<IStore<X509Certificate>>();
 			this.m_storesCrl = new List<IStore<X509Crl>>();
-			this.trustedACIssuers = new HashSet();
-			this.necessaryACAttributes = new HashSet();
-			this.prohibitedACAttributes = new HashSet();
-			this.attrCertCheckers = new HashSet();
+			this.trustedACIssuers = new HashSet<TrustAnchor>();
+			this.necessaryACAttributes = new HashSet<string>();
+			this.prohibitedACAttributes = new HashSet<string>();
+			this.attrCertCheckers = new HashSet<PkixAttrCertChecker>();
 		}
 
 //		// TODO implement for other keystores (see Java build)?
@@ -501,10 +501,10 @@ namespace Org.BouncyCastle.Pkix
 			validityModel = parameters.validityModel;
 			useDeltas = parameters.useDeltas;
 			additionalLocationsEnabled = parameters.additionalLocationsEnabled;
-			trustedACIssuers = new HashSet(parameters.trustedACIssuers);
-			prohibitedACAttributes = new HashSet(parameters.prohibitedACAttributes);
-			necessaryACAttributes = new HashSet(parameters.necessaryACAttributes);
-			attrCertCheckers = new HashSet(parameters.attrCertCheckers);
+			trustedACIssuers = new HashSet<TrustAnchor>(parameters.trustedACIssuers);
+			prohibitedACAttributes = new HashSet<string>(parameters.prohibitedACAttributes);
+			necessaryACAttributes = new HashSet<string>(parameters.necessaryACAttributes);
+			attrCertCheckers = new HashSet<PkixAttrCertChecker>(parameters.attrCertCheckers);
 		}
 
 		/**
@@ -637,9 +637,9 @@ namespace Org.BouncyCastle.Pkix
 		*
 		* @return Returns an immutable set of the trusted AC issuers.
 		*/
-		public virtual ISet GetTrustedACIssuers()
+		public virtual ISet<TrustAnchor> GetTrustedACIssuers()
 		{
-			return new HashSet(trustedACIssuers);
+			return new HashSet<TrustAnchor>(trustedACIssuers);
 		}
 
 		/**
@@ -657,24 +657,15 @@ namespace Org.BouncyCastle.Pkix
 		* @throws ClassCastException if an element of <code>stores</code> is not
 		*             a <code>TrustAnchor</code>.
 		*/
-		public virtual void SetTrustedACIssuers(
-			ISet trustedACIssuers)
+		public virtual void SetTrustedACIssuers(ISet<TrustAnchor> trustedACIssuers)
 		{
 			if (trustedACIssuers == null)
 			{
-				this.trustedACIssuers = new HashSet();
+				this.trustedACIssuers = new HashSet<TrustAnchor>();
 			}
 			else
 			{
-				foreach (object obj in trustedACIssuers)
-				{
-					if (!(obj is TrustAnchor))
-					{
-						throw new InvalidCastException("All elements of set must be "
-							+ "of type " + typeof(TrustAnchor).FullName + ".");
-					}
-				}
-				this.trustedACIssuers = new HashSet(trustedACIssuers);
+				this.trustedACIssuers = new HashSet<TrustAnchor>(trustedACIssuers);
 			}
 		}
 
@@ -688,9 +679,9 @@ namespace Org.BouncyCastle.Pkix
 		*
 		* @return Returns the necessary AC attributes.
 		*/
-		public virtual ISet GetNecessaryACAttributes()
+		public virtual ISet<string> GetNecessaryACAttributes()
 		{
-			return new HashSet(necessaryACAttributes);
+			return new HashSet<string>(necessaryACAttributes);
 		}
 
 		/**
@@ -707,24 +698,15 @@ namespace Org.BouncyCastle.Pkix
 		*             <code>necessaryACAttributes</code> is not a
 		*             <code>String</code>.
 		*/
-		public virtual void SetNecessaryACAttributes(
-			ISet necessaryACAttributes)
+		public virtual void SetNecessaryACAttributes(ISet<string> necessaryACAttributes)
 		{
 			if (necessaryACAttributes == null)
 			{
-				this.necessaryACAttributes = new HashSet();
+				this.necessaryACAttributes = new HashSet<string>();
 			}
 			else
 			{
-				foreach (object obj in necessaryACAttributes)
-				{
-					if (!(obj is string))
-					{
-						throw new InvalidCastException("All elements of set must be "
-							+ "of type string.");
-					}
-				}
-				this.necessaryACAttributes = new HashSet(necessaryACAttributes);
+				this.necessaryACAttributes = new HashSet<string>(necessaryACAttributes);
 			}
 		}
 
@@ -737,9 +719,9 @@ namespace Org.BouncyCastle.Pkix
 		*
 		* @return Returns the prohibited AC attributes. Is never <code>null</code>.
 		*/
-		public virtual ISet GetProhibitedACAttributes()
+		public virtual ISet<string> GetProhibitedACAttributes()
 		{
-			return new HashSet(prohibitedACAttributes);
+			return new HashSet<string>(prohibitedACAttributes);
 		}
 
 		/**
@@ -756,21 +738,15 @@ namespace Org.BouncyCastle.Pkix
 		*             <code>prohibitedACAttributes</code> is not a
 		*             <code>String</code>.
 		*/
-		public virtual void SetProhibitedACAttributes(
-			ISet prohibitedACAttributes)
+		public virtual void SetProhibitedACAttributes(ISet<string> prohibitedACAttributes)
 		{
 			if (prohibitedACAttributes == null)
 			{
-				this.prohibitedACAttributes = new HashSet();
+				this.prohibitedACAttributes = new HashSet<string>();
 			}
 			else
 			{
-				foreach (object obj in prohibitedACAttributes)
-				{
-					if (!(obj is string))
-						throw new InvalidCastException("All elements of set must be of type string.");
-				}
-				this.prohibitedACAttributes = new HashSet(prohibitedACAttributes);
+				this.prohibitedACAttributes = new HashSet<string>(prohibitedACAttributes);
 			}
 		}
 
@@ -781,9 +757,9 @@ namespace Org.BouncyCastle.Pkix
 		* @return Returns the attribute certificate checker. Is never
 		*         <code>null</code>.
 		*/
-		public virtual ISet GetAttrCertCheckers()
+		public virtual ISet<PkixAttrCertChecker> GetAttrCertCheckers()
 		{
-			return new HashSet(attrCertCheckers);
+			return new HashSet<PkixAttrCertChecker>(attrCertCheckers);
 		}
 
 		/**
@@ -800,24 +776,15 @@ namespace Org.BouncyCastle.Pkix
 		* @throws ClassCastException if an element of <code>attrCertCheckers</code>
 		*             is not a <code>PKIXAttrCertChecker</code>.
 		*/
-		public virtual void SetAttrCertCheckers(
-			ISet attrCertCheckers)
+		public virtual void SetAttrCertCheckers(ISet<PkixAttrCertChecker> attrCertCheckers)
 		{
 			if (attrCertCheckers == null)
 			{
-				this.attrCertCheckers = new HashSet();
+				this.attrCertCheckers = new HashSet<PkixAttrCertChecker>();
 			}
 			else
 			{
-				foreach (object obj in attrCertCheckers)
-				{
-					if (!(obj is PkixAttrCertChecker))
-					{
-						throw new InvalidCastException("All elements of set must be "
-							+ "of type " + typeof(PkixAttrCertChecker).FullName + ".");
-					}
-				}
-				this.attrCertCheckers = new HashSet(attrCertCheckers);
+				this.attrCertCheckers = new HashSet<PkixAttrCertChecker>(attrCertCheckers);
 			}
 		}
 	}

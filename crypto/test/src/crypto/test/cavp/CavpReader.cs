@@ -1,29 +1,21 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
-using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests.Cavp
 {
-    internal class Vector : Hashtable
+    internal class Vector : Dictionary<string, object>
     {
-        private Hashtable mHeader = null;
+        private IDictionary<string, string> mHeader = null;
 
-        public Vector(Hashtable header)
+        public Vector(IDictionary<string, string> header)
         {
             this.mHeader = header;
-        }
-
-        public Hashtable Header
-        {
-            get { return mHeader; }
-            set { this.mHeader = value; }
         }
 
         public string ValueAsString(string name)
@@ -33,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
 
         public string HeaderAsString(string name)
         {
-            return Header[name] as string;
+            return CollectionUtilities.GetValueOrNull(mHeader, name);
         }
 
         public byte[] ValueAsBytes(string name)
@@ -49,13 +41,8 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
 
         public byte[] HeaderAsBytes(string name)
         {
-            string value = Header[name] as string;
-            if (value != null)
-            {
-                return Hex.Decode(value);
-            }
-
-            return null;
+            string value = HeaderAsString(name);
+            return value == null ? null : Hex.Decode(value);
         }
 
         public int ValueAsInt(string name)
@@ -79,10 +66,10 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
 
     internal class CavpReader
     {
-        public static ArrayList ReadVectorFile(string name)
+        public static IList<Vector> ReadVectorFile(string name)
         {
-            ArrayList vectors = new ArrayList();
-            Hashtable header = null;
+            var vectors = new List<Vector>();
+            IDictionary<string, string> header = null;
             Vector currentVector = null;
 
             int headerState = 0;
@@ -148,7 +135,7 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
                     //
                     if (headerState == 0 && line.StartsWith("[") && line.EndsWith("]"))
                     {
-                        header = new Hashtable();
+                        header = new Dictionary<string, string>();
                         headerState = 1;
                     }
 

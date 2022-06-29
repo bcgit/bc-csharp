@@ -131,17 +131,17 @@ namespace Org.BouncyCastle.Pkix
 					}
 
 					// try to get the issuer certificate from one of the stores
-					HashSet issuers = new HashSet();
+					ISet<X509Certificate> issuers;
 					try
 					{
-						issuers.AddAll(PkixCertPathValidatorUtilities.FindIssuerCerts(tbvCert, pkixParams));
+						issuers = PkixCertPathValidatorUtilities.FindIssuerCerts(tbvCert, pkixParams);
 					}
 					catch (Exception e)
 					{
 						throw new Exception("Cannot find issuer certificate for certificate in certification path.", e);
 					}
 
-					if (issuers.IsEmpty)
+					if (issuers.Count < 1)
 						throw new Exception("No issuer certificate for certificate in certification path found.");
 
 					foreach (X509Certificate issuer in issuers)

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -71,12 +71,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             PgpPublicKeyRing certificate = (PgpPublicKeyRing)objectFactory.NextPgpObject();
             IsEquals("Bob Babbage <bob@openpgp.example>", First(certificate.GetPublicKey().GetUserIds()));
-            IEnumerable publicKeys = certificate.GetPublicKeys();
-            IEnumerator publicKeyEnum = publicKeys.GetEnumerator();
+            var publicKeys = certificate.GetPublicKeys();
+            var publicKeyEnum = publicKeys.GetEnumerator();
             IsTrue(publicKeyEnum.MoveNext());
             PgpPublicKey primaryKey = (PgpPublicKey)publicKeyEnum.Current;
             IsEquals(new BigInteger("FBFCC82A015E7330", 16).LongValue, primaryKey.KeyId);
-            IEnumerable signatures = primaryKey.GetSignatures();
+            var signatures = primaryKey.GetSignatures();
             IsEquals(1, Count(signatures));
 
             IsTrue(publicKeyEnum.MoveNext());
@@ -94,19 +94,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			Assert.AreEqual(Name + ": Okay", resultText);
 		}
 
-        private int Count(IEnumerable e)
+        private int Count<T>(IEnumerable<T> e)
         {
             int count = 0;
-            foreach (object o in e)
+            foreach (T t in e)
             {
                 ++count;
             }
             return count;
         }
 
-        private object First(IEnumerable e)
+        private T First<T>(IEnumerable<T> e)
         {
-            IEnumerator enumerator = e.GetEnumerator();
+            var enumerator = e.GetEnumerator();
             IsTrue(enumerator.MoveNext());
             return enumerator.Current;
         }

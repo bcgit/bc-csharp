@@ -1,17 +1,27 @@
 using System;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public abstract class ECKeyParameters
         : AsymmetricKeyParameter
     {
-        private static readonly string[] algorithms = { "EC", "ECDSA", "ECDH", "ECDHC", "ECGOST3410", "ECMQV" };
+        // NB: Use a Dictionary so we can lookup the upper case version
+        private static readonly Dictionary<string, string> Algorithms =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "EC", "EC" },
+            { "ECDSA", "ECDSA" },
+            { "ECDH", "ECDH" },
+            { "ECDHC", "ECDHC" },
+            { "ECGOST3410", "ECGOST3410" },
+            { "ECMQV", "ECMQV" },
+        };
 
         private readonly string algorithm;
         private readonly ECDomainParameters parameters;
@@ -101,9 +111,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal static string VerifyAlgorithmName(string algorithm)
         {
-            string upper = Platform.ToUpperInvariant(algorithm);
-            if (Array.IndexOf(algorithms, algorithm, 0, algorithms.Length) < 0)
-                throw new ArgumentException("unrecognised algorithm: " + algorithm, "algorithm");
+            if (!Algorithms.TryGetValue(algorithm, out var upper))
+                throw new ArgumentException("unrecognised algorithm: " + algorithm, nameof(algorithm));
+
             return upper;
         }
 

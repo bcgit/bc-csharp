@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
@@ -82,8 +81,8 @@ namespace Org.BouncyCastle.Pkix
             // check if revocation is available
             if (attrCert.GetExtensionValue(X509Extensions.NoRevAvail) != null)
             {
-                if (attrCert.GetExtensionValue(X509Extensions.CrlDistributionPoints) != null
-                    || attrCert.GetExtensionValue(X509Extensions.AuthorityInfoAccess) != null)
+                if (attrCert.GetExtensionValue(X509Extensions.CrlDistributionPoints) != null ||
+                    attrCert.GetExtensionValue(X509Extensions.AuthorityInfoAccess) != null)
                 {
                     throw new PkixCertPathValidatorException(
                         "No rev avail extension is set, but also an AC revocation pointer.");
@@ -92,22 +91,20 @@ namespace Org.BouncyCastle.Pkix
                 return;
             }
 
-            CrlDistPoint crldp = null;
+            CrlDistPoint crldp;
 			try
 			{
 				crldp = CrlDistPoint.GetInstance(
-					PkixCertPathValidatorUtilities.GetExtensionValue(
-						attrCert, X509Extensions.CrlDistributionPoints));
+					PkixCertPathValidatorUtilities.GetExtensionValue(attrCert, X509Extensions.CrlDistributionPoints));
 			}
 			catch (Exception e)
 			{
-				throw new PkixCertPathValidatorException(
-					"CRL distribution point extension could not be read.", e);
+				throw new PkixCertPathValidatorException("CRL distribution point extension could not be read.", e);
 			}
+
 			try
 			{
-				PkixCertPathValidatorUtilities
-					.AddAdditionalStoresFromCrlDistributionPoint(crldp, paramsPKIX);
+				PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crldp, paramsPKIX);
 			}
 			catch (Exception e)
 			{
@@ -123,34 +120,30 @@ namespace Org.BouncyCastle.Pkix
 			// for each distribution point
 			if (crldp != null)
 			{
-				DistributionPoint[] dps = null;
+				DistributionPoint[] dps;
 				try
 				{
 					dps = crldp.GetDistributionPoints();
 				}
 				catch (Exception e)
 				{
-					throw new PkixCertPathValidatorException(
-						"Distribution points could not be read.", e);
+					throw new PkixCertPathValidatorException("Distribution points could not be read.", e);
 				}
 				try
 				{
-					for (int i = 0; i < dps.Length
-						&& certStatus.Status == CertStatus.Unrevoked
-						&& !reasonsMask.IsAllReasons; i++)
+					for (int i = 0;
+						i < dps.Length && certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons;
+						i++)
 					{
-						PkixParameters paramsPKIXClone = (PkixParameters) paramsPKIX
-							.Clone();
-						CheckCrl(dps[i], attrCert, paramsPKIXClone,
-							validDate, issuerCert, certStatus, reasonsMask,
+						PkixParameters paramsPKIXClone = (PkixParameters)paramsPKIX.Clone();
+						CheckCrl(dps[i], attrCert, paramsPKIXClone,validDate, issuerCert, certStatus, reasonsMask,
 							certPathCerts);
 						validCrlFound = true;
 					}
 				}
 				catch (Exception e)
 				{
-					lastException = new Exception(
-						"No valid CRL for distribution point found.", e);
+					lastException = new Exception("No valid CRL for distribution point found.", e);
 				}
 			}
 
@@ -160,8 +153,7 @@ namespace Org.BouncyCastle.Pkix
 			* distribution point but issued by the certificate issuer.
 			*/
 
-			if (certStatus.Status == CertStatus.Unrevoked
-				&& !reasonsMask.IsAllReasons)
+			if (certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons)
 			{
 				try
 				{
@@ -177,9 +169,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                     catch (Exception e)
 					{
-						throw new Exception(
-							"Issuer from certificate for CRL could not be reencoded.",
-							e);
+						throw new Exception("Issuer from certificate for CRL could not be reencoded.", e);
 					}
 					DistributionPoint dp = new DistributionPoint(
 						new DistributionPointName(0, new GeneralNames(
@@ -191,24 +181,18 @@ namespace Org.BouncyCastle.Pkix
 				}
 				catch (Exception e)
 				{
-					lastException = new Exception(
-						"No valid CRL for distribution point found.", e);
+					lastException = new Exception("No valid CRL for distribution point found.", e);
 				}
 			}
 
 			if (!validCrlFound)
-			{
-				throw new PkixCertPathValidatorException(
-					"No valid CRL found.", lastException);
-			}
+				throw new PkixCertPathValidatorException("No valid CRL found.", lastException);
+
 			if (certStatus.Status != CertStatus.Unrevoked)
 			{
                 // This format is enforced by the NistCertPath tests
-                string formattedDate = certStatus.RevocationDate.Value.ToString(
-                    "ddd MMM dd HH:mm:ss K yyyy");
-                string message = "Attribute certificate revocation after "
-					+ formattedDate;
-				message += ", reason: "
+                string formattedDate = certStatus.RevocationDate.Value.ToString("ddd MMM dd HH:mm:ss K yyyy");
+                string message = "Attribute certificate revocation after " + formattedDate + ", reason: "
 					+ Rfc3280CertPathUtilities.CrlReasons[certStatus.Status];
 				throw new PkixCertPathValidatorException(message);
 			}
@@ -474,9 +458,7 @@ namespace Org.BouncyCastle.Pkix
 
 			DateTime currentDate = DateTime.UtcNow;
 			if (validDate.CompareTo(currentDate) > 0)
-			{
 				throw new Exception("Validation time is in future.");
-			}
 
 			// (a)
 			/*
@@ -485,11 +467,11 @@ namespace Org.BouncyCastle.Pkix
 			* CRLs must be enabled in the ExtendedPkixParameters and are in
 			* getAdditionalStore()
 			*/
-			ISet<X509Crl> crls = PkixCertPathValidatorUtilities.GetCompleteCrls(dp, attrCert, currentDate, paramsPKIX);
+			var crls = PkixCertPathValidatorUtilities.GetCompleteCrls(dp, attrCert, currentDate, paramsPKIX);
 			bool validCrlFound = false;
 			Exception lastException = null;
 
-			IEnumerator crl_iter = crls.GetEnumerator();
+			var crl_iter = crls.GetEnumerator();
 
 			while (crl_iter.MoveNext()
 				&& certStatus.Status == CertStatus.Unrevoked
@@ -497,7 +479,7 @@ namespace Org.BouncyCastle.Pkix
 			{
 				try
 				{
-					X509Crl crl = (X509Crl) crl_iter.Current;
+					X509Crl crl = crl_iter.Current;
 
 					// (d)
 					ReasonsMask interimReasonsMask = Rfc3280CertPathUtilities.ProcessCrlD(crl, dp);
@@ -509,13 +491,12 @@ namespace Org.BouncyCastle.Pkix
 					* must be ignored.
 					*/
 					if (!interimReasonsMask.HasNewReasons(reasonMask))
-					{
 						continue;
-					}
 
 					// (f)
-					var keys = Rfc3280CertPathUtilities.ProcessCrlF(crl, attrCert,
-						null, null, paramsPKIX, certPathCerts);
+					var keys = Rfc3280CertPathUtilities.ProcessCrlF(crl, attrCert,null, null, paramsPKIX,
+						certPathCerts);
+
 					// (g)
 					AsymmetricKeyParameter pubKey = Rfc3280CertPathUtilities.ProcessCrlG(crl, keys);
 
@@ -524,8 +505,8 @@ namespace Org.BouncyCastle.Pkix
 					if (paramsPKIX.IsUseDeltasEnabled)
 					{
 						// get delta CRLs
-						ISet<X509Crl> deltaCRLs = PkixCertPathValidatorUtilities.GetDeltaCrls(
-							currentDate, paramsPKIX, crl);
+						var deltaCRLs = PkixCertPathValidatorUtilities.GetDeltaCrls(currentDate, paramsPKIX, crl);
+
 						// we only want one valid delta CRL
 						// (h)
 						deltaCRL = Rfc3280CertPathUtilities.ProcessCrlH(deltaCRLs, pubKey);
@@ -551,10 +532,7 @@ namespace Org.BouncyCastle.Pkix
 						* first check is not done
 						*/
 						if (attrCert.NotAfter.CompareTo(crl.ThisUpdate) < 0)
-						{
-							throw new Exception(
-								"No valid CRL for current time found.");
-						}
+							throw new Exception("No valid CRL for current time found.");
 					}
 
 					Rfc3280CertPathUtilities.ProcessCrlB1(dp, attrCert, crl);
@@ -588,10 +566,9 @@ namespace Org.BouncyCastle.Pkix
 					lastException = e;
 				}
 			}
+
 			if (!validCrlFound)
-			{
 				throw lastException;
-			}
 		}
 	}
 }

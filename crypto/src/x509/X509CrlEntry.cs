@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
@@ -176,14 +175,14 @@ namespace Org.BouncyCastle.X509
 
 			if (extensions != null)
 			{
-				IEnumerator e = extensions.ExtensionOids.GetEnumerator();
+				var e = extensions.ExtensionOids.GetEnumerator();
 				if (e.MoveNext())
 				{
 					buf.Append("   crlEntryExtensions:").Append(nl);
 
 					do
 					{
-						DerObjectIdentifier oid = (DerObjectIdentifier)e.Current;
+						DerObjectIdentifier oid = e.Current;
 						X509Extension ext = extensions.GetExtension(oid);
 
 						if (ext.Value != null)

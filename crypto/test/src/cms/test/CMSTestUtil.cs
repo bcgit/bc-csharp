@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Cms.Tests
 				{
 					buf.Append(Encoding.ASCII.GetString(data, i, data.Length - i));
 				}
-				buf.Append('\n');
+				buf.AppendLine();
 			}
 
 			return buf.ToString();

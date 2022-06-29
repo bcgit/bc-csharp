@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -2485,7 +2484,7 @@ namespace Org.BouncyCastle.Tests
 
             MemoryStream input = new MemoryStream(Streams.ReadAll(GetTestDataAsStream("cert_chain.data")), false);
 
-            ISet certs2 = new HashSet();
+            var certs2 = new HashSet<X509Certificate>();
             while (input.Position < input.Length)
             {
                 X509Certificate c = fact.ReadCertificate(input);
@@ -2499,7 +2498,7 @@ namespace Org.BouncyCastle.Tests
             }
             IsTrue("certs size <cr><nl>", certs1.Count == certs2.Count);
 
-            certs2.RemoveAll(certs1);
+            certs2.ExceptWith(certs1);
             IsTrue("collection not empty", certs2.Count == 0);
         }
 
@@ -2523,7 +2522,7 @@ namespace Org.BouncyCastle.Tests
 
             MemoryStream input = new MemoryStream(Streams.ReadAll(GetTestDataAsStream("cert_chain_nl.data")), false);
 
-            ISet certs2 = new HashSet();
+            var certs2 = new HashSet<X509Certificate>();
             while (input.Position < input.Length)
             {
                 X509Certificate c = fact.ReadCertificate(input);
@@ -2537,7 +2536,7 @@ namespace Org.BouncyCastle.Tests
             }
             IsTrue("certs size <nl>", certs1.Count == certs2.Count);
 
-            certs2.RemoveAll(certs1);
+            certs2.ExceptWith(certs1);
             IsTrue("collection not empty", certs2.Count == 0);
         }
 

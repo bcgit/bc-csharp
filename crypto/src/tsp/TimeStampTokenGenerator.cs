@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -39,7 +38,7 @@ namespace Org.BouncyCastle.Tsp
         private IStore<X509Crl> x509Crls;
         private IStore<X509V2AttributeCertificate> x509AttrCerts;
         // TODO Port changes from bc-java
-        //private IDictionary otherRevoc = Platform.CreateHashtable();
+        //private Dictionary<> otherRevoc = new Dictionary<>();
         private SignerInfoGenerator signerInfoGenerator;
         IDigestFactory digestCalculator;
 
@@ -63,22 +62,18 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
-
         public TimeStampTokenGenerator(
             SignerInfoGenerator signerInfoGen,
             IDigestFactory digestCalculator,
             DerObjectIdentifier tsaPolicy,
             bool isIssuerSerialIncluded)
         {
-
             this.signerInfoGenerator = signerInfoGen;
             this.digestCalculator = digestCalculator;
             this.tsaPolicyOID = tsaPolicy;
 
             if (signerInfoGenerator.certificate == null)
-            {
                 throw new ArgumentException("SignerInfoGenerator must have an associated certificate");
-            }
 
             X509Certificate assocCert = signerInfoGenerator.certificate;
             TspUtil.ValidateCertificate(assocCert);
@@ -123,7 +118,6 @@ namespace Org.BouncyCastle.Tsp
                         .WithSignedAttributeGenerator(new TableGen2(signerInfoGen, essCertID))
                         .Build(signerInfoGen.contentSigner, signerInfoGen.certificate);
                 }
-
             }
             catch (Exception ex)
             {
@@ -147,17 +141,13 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
-
         internal static SignerInfoGenerator makeInfoGenerator(
           AsymmetricKeyParameter key,
           X509Certificate cert,
           string digestOID,
-
           Asn1.Cms.AttributeTable signedAttr,
           Asn1.Cms.AttributeTable unsignedAttr)
         {
-
-
             TspUtil.ValidateCertificate(cert);
 
             //
@@ -193,7 +183,6 @@ namespace Org.BouncyCastle.Tsp
             //{
             //    throw new TspException("Can't find a SHA-1 implementation.", e);
             //}
-
 
             string digestName = CmsSignedHelper.Instance.GetDigestAlgName(digestOID);
             string signatureName = digestName + "with" + CmsSignedHelper.Instance.GetEncryptionAlgName(CmsSignedHelper.Instance.GetEncOid(key, digestOID));

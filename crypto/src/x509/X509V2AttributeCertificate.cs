@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -235,7 +235,7 @@ namespace Org.BouncyCastle.X509
 			string oid)
 		{
 			Asn1Sequence seq = cert.ACInfo.Attributes;
-			IList list = Platform.CreateArrayList();
+			var list = new List<X509Attribute>();
 
 			for (int i = 0; i != seq.Count; i++)
 			{
@@ -251,16 +251,10 @@ namespace Org.BouncyCastle.X509
 				return null;
 			}
 
-            X509Attribute[] result = new X509Attribute[list.Count];
-            for (int i = 0; i < list.Count; ++i)
-            {
-                result[i] = (X509Attribute)list[i];
-            }
-            return result;
+			return list.ToArray();
 		}
 
-		public override bool Equals(
-			object obj)
+		public override bool Equals(object obj)
 		{
 			if (obj == this)
 				return true;

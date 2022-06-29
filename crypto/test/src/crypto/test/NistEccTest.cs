@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -33,9 +33,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public IEnumerable CollectTestVectors()
+        public IEnumerable<object[]> CollectTestVectors()
         {
-            ArrayList testVectors = new ArrayList();
+            var testVectors = new List<object[]>();
             string curve = null;
             BigInteger k = null;
             BigInteger x = null;
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                     if (null != curve && null != k && null != x && null != y)
                     {
-                        testVectors.Add(new object[] {curve, k, x, y});
+                        testVectors.Add(new object[]{curve, k, x, y});
                         k = null;
                         x = null;
                         y = null;

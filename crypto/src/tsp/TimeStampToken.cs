@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -52,10 +51,10 @@ namespace Org.BouncyCastle.Tsp
 			}
 
 
-			IEnumerator signerEnum = signers.GetEnumerator();
+			var signerEnum = signers.GetEnumerator();
 
 			signerEnum.MoveNext();
-			tsaSignerInfo = (SignerInformation) signerEnum.Current;
+			tsaSignerInfo = signerEnum.Current;
 
 			try
 			{

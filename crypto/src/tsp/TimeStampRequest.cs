@@ -1,14 +1,12 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
@@ -124,10 +122,7 @@ namespace Org.BouncyCastle.Tsp
 		* @param extensions if non-null a set of extensions we are willing to accept.
 		* @throws TspException if the request is invalid, or processing fails.
 		*/
-		public void Validate(
-			IList algorithms,
-			IList policies,
-			IList extensions)
+		public void Validate(IList<string> algorithms, IList<string> policies, IList<string> extensions)
 		{
 			if (!algorithms.Contains(this.MessageImprintAlgOid))
 				throw new TspValidationException("request contains unknown algorithm", PkiFailureInfo.BadAlg);
@@ -173,7 +168,7 @@ namespace Org.BouncyCastle.Tsp
 			return extensions == null ? null : extensions.GetExtension(oid);
 		}
 
-		public virtual IList GetExtensionOids()
+		public virtual IList<DerObjectIdentifier> GetExtensionOids()
 		{
 			return TspUtil.GetExtensionOids(extensions);
 		}

@@ -17,12 +17,8 @@ namespace Org.BouncyCastle.Security
     /// <summary>
     /// A class containing methods to interface the BouncyCastle world to the .NET Crypto world.
     /// </summary>
-    public sealed class DotNetUtilities
+    public static class DotNetUtilities
     {
-        private DotNetUtilities()
-        {
-        }
-
         /// <summary>
         /// Create an System.Security.Cryptography.X509Certificate from an X509Certificate Structure.
         /// </summary>

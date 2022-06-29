@@ -1,16 +1,13 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.X509
 {
@@ -101,13 +98,12 @@ namespace Org.BouncyCastle.X509
 		*
 		* @param other the X509Crl to source the other entries from.
 		*/
-		public void AddCrl(
-			X509Crl other)
+		public void AddCrl(X509Crl other)
 		{
 			if (other == null)
 				throw new ArgumentNullException("other");
 
-			ISet revocations = other.GetRevokedCertificates();
+			var revocations = other.GetRevokedCertificates();
 
 			if (revocations != null)
 			{
@@ -216,7 +212,7 @@ namespace Org.BouncyCastle.X509
 		/// <summary>
 		/// Allows enumeration of the signature names supported by the generator.
 		/// </summary>
-		public IEnumerable SignatureAlgNames
+		public IEnumerable<string> SignatureAlgNames
 		{
 			get { return X509Utilities.GetAlgNames(); }
 		}

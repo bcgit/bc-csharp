@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 
 using NUnit.Framework;
@@ -2511,7 +2510,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             foreach (PgpSecretKeyRing ring in secCol.GetKeyRings())
             {
-                IEnumerator e = ring.GetExtraPublicKeys().GetEnumerator();
+                var e = ring.GetExtraPublicKeys().GetEnumerator();
                 while (e.MoveNext())
                 {
                     ++count;
@@ -2528,13 +2527,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             byte[] keyRing)
         {
             PgpPublicKeyRing pubRing = new PgpPublicKeyRing(keyRing);
-            IEnumerator en = pubRing.GetPublicKeys().GetEnumerator();
+            var en = pubRing.GetPublicKeys().GetEnumerator();
 
             if (en.MoveNext())
             {
                 PgpPublicKey key = (PgpPublicKey) en.Current;
 
-                IEnumerator sEn = key.GetSignatures().GetEnumerator();
+                var sEn = key.GetSignatures().GetEnumerator();
 
                 if (sEn.MoveNext())
                 {

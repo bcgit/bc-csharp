@@ -56,8 +56,8 @@ namespace Org.BouncyCastle.X509
         }
 
         private readonly X509CertificateStructure c;
-        //private Hashtable pkcs12Attributes = Platform.CreateHashtable();
-        //private ArrayList pkcs12Ordering = Platform.CreateArrayList();
+        //private Dictionary<> pkcs12Attributes = new Dictionary<>();
+        //private List<> pkcs12Ordering = new List<>();
         private readonly string sigAlgName;
         private readonly byte[] sigAlgParams;
         private readonly BasicConstraints basicConstraints;

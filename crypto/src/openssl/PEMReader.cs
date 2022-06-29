@@ -1,23 +1,20 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
-using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.X509;
@@ -34,25 +31,25 @@ namespace Org.BouncyCastle.OpenSsl
     public class PemReader
         : Org.BouncyCastle.Utilities.IO.Pem.PemReader
     {
-//		private static readonly IDictionary parsers = new Hashtable();
+        //private static readonly Dictionary<string, PemObjectParser> Parsers = new Dictionary<string, PemObjectParser>();
 
         static PemReader()
         {
-//			parsers.Add("CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
-//			parsers.Add("NEW CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
-//			parsers.Add("CERTIFICATE", new X509CertificateParser(provider));
-//			parsers.Add("X509 CERTIFICATE", new X509CertificateParser(provider));
-//			parsers.Add("X509 CRL", new X509CRLParser(provider));
-//			parsers.Add("PKCS7", new PKCS7Parser());
-//			parsers.Add("ATTRIBUTE CERTIFICATE", new X509AttributeCertificateParser());
-//			parsers.Add("EC PARAMETERS", new ECNamedCurveSpecParser());
-//			parsers.Add("PUBLIC KEY", new PublicKeyParser(provider));
-//			parsers.Add("RSA PUBLIC KEY", new RSAPublicKeyParser(provider));
-//			parsers.Add("RSA PRIVATE KEY", new RSAKeyPairParser(provider));
-//			parsers.Add("DSA PRIVATE KEY", new DSAKeyPairParser(provider));
-//			parsers.Add("EC PRIVATE KEY", new ECDSAKeyPairParser(provider));
-//			parsers.Add("ENCRYPTED PRIVATE KEY", new EncryptedPrivateKeyParser(provider));
-//			parsers.Add("PRIVATE KEY", new PrivateKeyParser(provider));
+//			Parsers.Add("CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
+//			Parsers.Add("NEW CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
+//			Parsers.Add("CERTIFICATE", new X509CertificateParser(provider));
+//			Parsers.Add("X509 CERTIFICATE", new X509CertificateParser(provider));
+//			Parsers.Add("X509 CRL", new X509CRLParser(provider));
+//			Parsers.Add("PKCS7", new PKCS7Parser());
+//			Parsers.Add("ATTRIBUTE CERTIFICATE", new X509AttributeCertificateParser());
+//			Parsers.Add("EC PARAMETERS", new ECNamedCurveSpecParser());
+//			Parsers.Add("PUBLIC KEY", new PublicKeyParser(provider));
+//			Parsers.Add("RSA PUBLIC KEY", new RSAPublicKeyParser(provider));
+//			Parsers.Add("RSA PRIVATE KEY", new RSAKeyPairParser(provider));
+//			Parsers.Add("DSA PRIVATE KEY", new DSAKeyPairParser(provider));
+//			Parsers.Add("EC PRIVATE KEY", new ECDSAKeyPairParser(provider));
+//			Parsers.Add("ENCRYPTED PRIVATE KEY", new EncryptedPrivateKeyParser(provider));
+//			Parsers.Add("PRIVATE KEY", new PrivateKeyParser(provider));
         }
 
         private readonly IPasswordFinder pFinder;
@@ -238,13 +235,13 @@ namespace Org.BouncyCastle.OpenSsl
             string type = pemObject.Type.Substring(0, pemObject.Type.Length - "PRIVATE KEY".Length).Trim();
             byte[] keyBytes = pemObject.Content;
 
-            IDictionary fields = Platform.CreateHashtable();
+            var fields = new Dictionary<string, string>();
             foreach (PemHeader header in pemObject.Headers)
             {
                 fields[header.Name] = header.Value;
             }
 
-            string procType = (string) fields["Proc-Type"];
+            string procType = CollectionUtilities.GetValueOrNull(fields, "Proc-Type");
 
             if (procType == "4,ENCRYPTED")
             {
@@ -252,11 +249,12 @@ namespace Org.BouncyCastle.OpenSsl
                     throw new PasswordException("No password finder specified, but a password is required");
 
                 char[] password = pFinder.GetPassword();
-
                 if (password == null)
                     throw new PasswordException("Password is null, but a password is required");
 
-                string dekInfo = (string) fields["DEK-Info"];
+                if (!fields.TryGetValue("DEK-Info", out var dekInfo))
+                    throw new PemException("missing DEK-info");
+
                 string[] tknz = dekInfo.Split(',');
 
                 string dekAlgName = tknz[0].Trim();

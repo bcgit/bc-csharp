@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
@@ -14,20 +14,20 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
 		{
 			for (int i = 1; i != 60; i++)
 			{
-				LengthTest("CERTIFICATE", new ArrayList(), new byte[i]);
+				LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[i]);
 			}
 
-			LengthTest("CERTIFICATE", new ArrayList(), new byte[100]);
-			LengthTest("CERTIFICATE", new ArrayList(), new byte[101]);
-			LengthTest("CERTIFICATE", new ArrayList(), new byte[102]);
-			LengthTest("CERTIFICATE", new ArrayList(), new byte[103]);
+			LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[100]);
+			LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[101]);
+			LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[102]);
+			LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[103]);
 
-			LengthTest("CERTIFICATE", new ArrayList(), new byte[1000]);
-			LengthTest("CERTIFICATE", new ArrayList(), new byte[1001]);
-			LengthTest("CERTIFICATE", new ArrayList(), new byte[1002]);
-			LengthTest("CERTIFICATE", new ArrayList(), new byte[1003]);
+			LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[1000]);
+			LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[1001]);
+			LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[1002]);
+			LengthTest("CERTIFICATE", new List<PemHeader>(), new byte[1003]);
 
-			IList headers = new ArrayList();
+			var headers = new List<PemHeader>();
 			headers.Add(new PemHeader("Proc-Type", "4,ENCRYPTED"));
 			headers.Add(new PemHeader("DEK-Info", "DES3,0001020304050607"));
 			LengthTest("RSA PRIVATE KEY", headers, new byte[103]);
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
             }
         }
 
-		private void LengthTest(string type, IList headers, byte[] data)
+		private void LengthTest(string type, IList<PemHeader> headers, byte[] data)
 		{
 			StringWriter sw = new StringWriter();
 			PemWriter pWrt = new PemWriter(sw);

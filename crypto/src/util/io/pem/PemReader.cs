@@ -1,7 +1,6 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-
 
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -13,10 +12,8 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		private readonly TextReader reader;
 		private readonly MemoryStream buffer;
 		private readonly StreamWriter textBuffer;
-		private readonly IList pushback = Platform.CreateArrayList();
+		private readonly List<int> pushback = new List<int>();
 		int c = 0;
-
-		
 
 		public PemReader(TextReader reader)
 		{
@@ -47,7 +44,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 			// Look for BEGIN
 			//
 
-			for (; ; )
+			for (;;)
 			{
 
 				// Seek a leading dash, ignore anything up to that point.
@@ -107,7 +104,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 			// Look for a colon for up to 64 characters, as an indication there might be a header.
 			//
 
-			IList headers = Platform.CreateArrayList();
+			var headers = new List<PemHeader>();
 
 			while (seekColon(64))
             {
@@ -227,7 +224,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 		{
 			c = 0;
 			bool colonFound = false;
-			IList read = Platform.CreateArrayList();
+			var read = new List<int>();
 
 			for (; upTo>=0 && c >=0; upTo--)
             {
@@ -308,7 +305,6 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 
 			return true;
         }
-		
 
 		/// <summary>
 		/// Consume until dash.
@@ -338,8 +334,6 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 			return c > -1;
 		}
 
-
-
 		private void PushBack(int value)
         {
 			if (pushback.Count == 0)
@@ -351,21 +345,16 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
             }
         }
 
-
 		private int Read()
         {
-			if (pushback.Count>0)
+			if (pushback.Count > 0)
             {
-				int i = (int)pushback[0];
+				int i = pushback[0];
 				pushback.RemoveAt(0);
 				return i;
             }
 
 			return reader.Read();
         }
-
-
-
-
 	}
 }

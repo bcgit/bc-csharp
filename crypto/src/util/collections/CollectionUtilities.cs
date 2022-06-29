@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,19 +6,6 @@ namespace Org.BouncyCastle.Utilities.Collections
 {
     public abstract class CollectionUtilities
     {
-        public static void AddRange(IList to, IEnumerable range)
-        {
-            foreach (object o in range)
-            {
-                to.Add(o);
-            }
-        }
-
-        public static void CollectMatches<T>(ICollection<T> matches, ISelector<T> selector, params IStore<T>[] stores)
-        {
-            CollectMatches(matches, selector, stores);
-        }
-
         public static void CollectMatches<T>(ICollection<T> matches, ISelector<T> selector,
             IEnumerable<IStore<T>> stores)
         {
@@ -45,6 +31,12 @@ namespace Org.BouncyCastle.Utilities.Collections
             return new StoreImpl<T>(contents);
         }
 
+        public static T GetValueOrKey<T>(IDictionary<T, T> d, T k)
+            where T : class
+        {
+            return d.TryGetValue(k, out var v) ? v : k;
+        }
+
         public static V GetValueOrNull<K, V>(IDictionary<K, V> d, K k)
             where V : class
         {
@@ -56,14 +48,14 @@ namespace Org.BouncyCastle.Utilities.Collections
             return new EnumerableProxy<T>(e);
         }
 
-        public static IDictionary ReadOnly(IDictionary d)
+        public static ICollection<T> ReadOnly<T>(ICollection<T> c)
         {
-            return new UnmodifiableDictionaryProxy(d);
+            return new ReadOnlyCollectionProxy<T>(c);
         }
 
-        public static IList ReadOnly(IList l)
+        public static IDictionary<K, V> ReadOnly<K, V>(IDictionary<K, V> d)
         {
-            return new UnmodifiableListProxy(l);
+            return new ReadOnlyDictionaryProxy<K, V>(d);
         }
 
         public static IList<T> ReadOnly<T>(IList<T> l)
@@ -71,9 +63,9 @@ namespace Org.BouncyCastle.Utilities.Collections
             return new ReadOnlyListProxy<T>(l);
         }
 
-        public static ISet ReadOnly(ISet s)
+        public static ISet<T> ReadOnly<T>(ISet<T> s)
         {
-            return new UnmodifiableSetProxy(s);
+            return new ReadOnlySetProxy<T>(s);
         }
 
         public static bool Remove<K, V>(IDictionary<K, V> d, K k, out V v)
@@ -85,7 +77,7 @@ namespace Org.BouncyCastle.Utilities.Collections
             return true;
         }
 
-        public static object RequireNext(IEnumerator e)
+        public static T RequireNext<T>(IEnumerator<T> e)
         {
             if (!e.MoveNext())
                 throw new InvalidOperationException();

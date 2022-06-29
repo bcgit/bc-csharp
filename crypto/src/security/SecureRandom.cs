@@ -62,15 +62,16 @@ namespace Org.BouncyCastle.Security
         /// <param name="autoSeed">If true, the instance will be auto-seeded.</param>
         public static SecureRandom GetInstance(string algorithm, bool autoSeed)
         {
-            string upper = Platform.ToUpperInvariant(algorithm);
-            if (Platform.EndsWith(upper, "PRNG"))
+            if (algorithm == null)
+                throw new ArgumentNullException(nameof(algorithm));
+
+            if (algorithm.EndsWith("PRNG", StringComparison.OrdinalIgnoreCase))
             {
-                string digestName = upper.Substring(0, upper.Length - "PRNG".Length);
+                string digestName = algorithm.Substring(0, algorithm.Length - "PRNG".Length);
+
                 DigestRandomGenerator prng = CreatePrng(digestName, autoSeed);
                 if (prng != null)
-                {
                     return new SecureRandom(prng);
-                }
             }
 
             throw new ArgumentException("Unrecognised PRNG algorithm: " + algorithm, "algorithm");

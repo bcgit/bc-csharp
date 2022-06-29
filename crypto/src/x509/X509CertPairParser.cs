@@ -1,11 +1,10 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.X509
@@ -27,8 +26,7 @@ namespace Org.BouncyCastle.X509
 		/// Create loading data from byte array.
 		/// </summary>
 		/// <param name="input"></param>
-		public X509CertificatePair ReadCertPair(
-			byte[] input)
+		public X509CertificatePair ReadCertPair(byte[] input)
 		{
 			return ReadCertPair(new MemoryStream(input, false));
 		}
@@ -37,14 +35,12 @@ namespace Org.BouncyCastle.X509
 		/// Create loading data from byte array.
 		/// </summary>
 		/// <param name="input"></param>
-		public ICollection ReadCertPairs(
-			byte[] input)
+		public IList<X509CertificatePair> ReadCertPairs(byte[] input)
 		{
 			return ReadCertPairs(new MemoryStream(input, false));
 		}
 
-		public X509CertificatePair ReadCertPair(
-			Stream inStream)
+		public X509CertificatePair ReadCertPair(Stream inStream)
 		{
 			if (inStream == null)
 				throw new ArgumentNullException("inStream");
@@ -85,12 +81,11 @@ namespace Org.BouncyCastle.X509
 			}
 		}
 
-		public ICollection ReadCertPairs(
-			Stream inStream)
+		public IList<X509CertificatePair> ReadCertPairs(Stream inStream)
 		{
-			X509CertificatePair certPair;
-			IList certPairs = Platform.CreateArrayList();
+			var certPairs = new List<X509CertificatePair>();
 
+			X509CertificatePair certPair;
 			while ((certPair = ReadCertPair(inStream)) != null)
 			{
 				certPairs.Add(certPair);

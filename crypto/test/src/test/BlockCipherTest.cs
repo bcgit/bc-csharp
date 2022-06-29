@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -9,8 +10,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -24,8 +23,8 @@ namespace Org.BouncyCastle.Tests
     public class BlockCipherTest
         : SimpleTest
     {
-        private static readonly ISet validModes = CollectionUtilities.ReadOnly(
-            new HashSet(new string[]{ "CBC", "CCM", "CFB", "CTR", "CTS", "EAX", "ECB", "GCM", "OCB", "OFB" }));
+        private static readonly ISet<string> ValidModes =
+            new HashSet<string>(){ "CBC", "CCM", "CFB", "CTR", "CTS", "EAX", "ECB", "GCM", "OCB", "OFB" };
 
         private static readonly string[] cipherTests1 =
         {
@@ -436,7 +435,7 @@ namespace Org.BouncyCastle.Tests
             int pos = mode.IndexOfAny(new char[]{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' });
             string baseMode = pos < 0 ? mode : mode.Substring(0, pos);
 
-            if (!validModes.Contains(baseMode))
+            if (!ValidModes.Contains(baseMode))
                 throw new Exception("Unhandled mode: " + mode);
 
             if (baseMode == "CCM")

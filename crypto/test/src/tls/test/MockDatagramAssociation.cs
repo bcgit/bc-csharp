@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 using Org.BouncyCastle.Utilities;
@@ -15,8 +15,8 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             this.m_mtu = mtu;
 
-            IList clientQueue = new ArrayList();
-            IList serverQueue = new ArrayList();
+            var clientQueue = new List<byte[]>();
+            var serverQueue = new List<byte[]>();
 
             this.m_client = new MockDatagramTransport(this, clientQueue, serverQueue);
             this.m_server = new MockDatagramTransport(this, serverQueue, clientQueue);
@@ -36,9 +36,10 @@ namespace Org.BouncyCastle.Tls.Tests
             : DatagramTransport
         {
             private readonly MockDatagramAssociation m_outer;
-            private IList m_receiveQueue, m_sendQueue;
+            private IList<byte[]> m_receiveQueue, m_sendQueue;
 
-            internal MockDatagramTransport(MockDatagramAssociation outer, IList receiveQueue, IList sendQueue)
+            internal MockDatagramTransport(MockDatagramAssociation outer, IList<byte[]> receiveQueue,
+                IList<byte[]> sendQueue)
             {
                 this.m_outer = outer;
                 this.m_receiveQueue = receiveQueue;
@@ -74,7 +75,7 @@ namespace Org.BouncyCastle.Tls.Tests
                             return -1;
                     }
 
-                    byte[] packet = (byte[])m_receiveQueue[0];
+                    byte[] packet = m_receiveQueue[0];
                     m_receiveQueue.RemoveAt(0);
                     int copyLength = System.Math.Min(len, packet.Length);
                     Array.Copy(packet, 0, buf, off, copyLength);

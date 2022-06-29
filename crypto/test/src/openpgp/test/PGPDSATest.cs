@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -289,9 +288,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             PgpSignatureSubpacketGenerator spGen = new PgpSignatureSubpacketGenerator();
 
-            IEnumerator enumerator = sKey.GetSecretKey().PublicKey.GetUserIds().GetEnumerator();
+            var enumerator = sKey.GetSecretKey().PublicKey.GetUserIds().GetEnumerator();
             enumerator.MoveNext();
-            string primaryUserId = (string) enumerator.Current;
+            string primaryUserId = enumerator.Current;
 
             spGen.SetSignerUserId(true, primaryUserId);
 

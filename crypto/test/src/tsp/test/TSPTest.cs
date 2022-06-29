@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using NUnit.Framework;
@@ -267,7 +266,8 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			TimeStampRequest request = reqGen.Generate(TspAlgorithms.Sha1, new byte[20]);
 
-			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed, new ArrayList());
+			TimeStampResponseGenerator tsRespGen = new TimeStampResponseGenerator(tsTokenGen, TspAlgorithms.Allowed,
+				new List<string>());
 
 			TimeStampResponse tsResp = tsRespGen.Generate(request, BigInteger.ValueOf(23), DateTime.UtcNow);
 

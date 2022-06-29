@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -35,8 +34,8 @@ namespace Org.BouncyCastle.Tests.Nist
 		private static readonly string NIST_TEST_POLICY_2 = "2.16.840.1.101.3.2.1.48.2";
 		private static readonly string NIST_TEST_POLICY_3 = "2.16.840.1.101.3.2.1.48.3";
 
-		private static readonly IDictionary certs = new Hashtable();
-        private static readonly IDictionary crls = new Hashtable();
+		private static readonly Dictionary<string, X509Certificate> Certs = new Dictionary<string, X509Certificate>();
+		private static readonly Dictionary<string, X509Crl> Crls = new Dictionary<string, X509Crl>();
 
         private static readonly HashSet<string> noPolicies = new HashSet<string>();
         private static readonly HashSet<string> anyPolicy = new HashSet<string>();
@@ -758,52 +757,28 @@ namespace Org.BouncyCastle.Tests.Nist
 
         private X509Certificate LoadCert(string certName)
         {
-            X509Certificate cert = (X509Certificate)certs[certName];
-            if (null != cert)
-                return cert;
+			if (Certs.TryGetValue(certName, out var cachedCert))
+				return cachedCert;
 
-            Stream fs = null;
-
-            try
+			using (Stream fs = SimpleTest.GetTestDataAsStream("PKITS.certs." + certName + ".crt"))
             {
-                fs = SimpleTest.GetTestDataAsStream("PKITS.certs." + certName + ".crt");
-                cert = new X509CertificateParser().ReadCertificate(fs);
-                certs[certName] = cert;
-                return cert;
-            }
-            catch (Exception e)
-            {
-                throw new InvalidOperationException("exception loading certificate " + certName + ": " + e);
-            }
-            finally
-            {
-                fs.Close();
-            }
+				var cert = new X509CertificateParser().ReadCertificate(fs);
+				Certs[certName] = cert;
+				return cert;
+			}
         }
 
         private X509Crl LoadCrl(string crlName)
         {
-            X509Crl crl = (X509Crl)crls[crlName];
-            if (null != crl)
-                return crl;
+			if (Crls.TryGetValue(crlName, out var cachedCrl))
+				return cachedCrl;
 
-            Stream fs = null;
-
-            try
-            {
-                fs = SimpleTest.GetTestDataAsStream("PKITS.crls." + crlName + ".crl");
-                crl = new X509CrlParser().ReadCrl(fs);
-                crls[crlName] = crl;
-                return crl;
-            }
-            catch (Exception)
-            {
-                throw new InvalidOperationException("exception loading CRL: " + crlName);
-            }
-            finally
-            {
-                fs.Close();
-            }
+			using (Stream fs = SimpleTest.GetTestDataAsStream("PKITS.crls." + crlName + ".crl"))
+			{
+				var crl = new X509CrlParser().ReadCrl(fs);
+				Crls[crlName] = crl;
+				return crl;
+			}
         }
 
 		private TrustAnchor GetTrustAnchor(string trustAnchorName)
