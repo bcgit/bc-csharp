@@ -1,6 +1,6 @@
-
-using System.Collections;
+using System;
 using System.Collections.Generic;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
             Adrs adrs = new Adrs(adrsParam);
 
-            IList stack = Platform.CreateArrayList();
+            var stack = new List<NodeEntry>();
 
             if (s % (1 << (int)z) != 0)
             {

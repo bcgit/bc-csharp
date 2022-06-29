@@ -1,37 +1,34 @@
-
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
-using Org.BouncyCastle.Utilities.Collections;
 
 // using static Org.BouncyCastle.Pqc.Crypto.Lms.HSS.rangeTestKeys;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    
     public class HSSPrivateKeyParameters
         : LMSKeyParameters, ILMSContextBasedSigner
     {
         private int l;
         private bool isShard;
-        private IList keys; //LMSPrivateKeyParameters
-        private IList sig; //LMSSignature
+        private IList<LMSPrivateKeyParameters> keys;
+        private IList<LMSSignature> sig;
         private long indexLimit;
         private long index = 0;
 
         private HSSPublicKeyParameters publicKey;
 
-        public HSSPrivateKeyParameters(int l, IList keys, IList sig, long index, long indexLimit)
+        public HSSPrivateKeyParameters(int l, IList<LMSPrivateKeyParameters> keys, IList<LMSSignature> sig, long index,
+            long indexLimit)
     	    :base(true)
         {
-
             this.l = l;
-            this.keys = Platform.CreateArrayList(keys);
-            this.sig =  Platform.CreateArrayList(sig);
+            this.keys = new List<LMSPrivateKeyParameters>(keys);
+            this.sig = new List<LMSSignature>(sig);
             this.index = index;
             this.indexLimit = indexLimit;
             this.isShard = false;
@@ -42,15 +39,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             ResetKeyToIndex();
         }
 
-        private HSSPrivateKeyParameters(int l, IList keys, IList sig, long index, long indexLimit, bool isShard)
+        private HSSPrivateKeyParameters(int l, IList<LMSPrivateKeyParameters> keys, IList<LMSSignature> sig, long index,
+            long indexLimit, bool isShard)
     	    :base(true)
         {
 
             this.l = l;
             // this.keys =  new UnmodifiableListProxy(keys);
             // this.sig =  new UnmodifiableListProxy(sig);
-            this.keys =  Platform.CreateArrayList(keys);
-            this.sig =  Platform.CreateArrayList(sig);
+            this.keys = new List<LMSPrivateKeyParameters>(keys);
+            this.sig = new List<LMSSignature>(sig);
             this.index = index;
             this.indexLimit = indexLimit;
             this.isShard = isShard;
@@ -97,8 +95,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 bool limited =  BitConverter.ToBoolean(data, 0);
                 
 
-                ArrayList keys = new ArrayList();
-                ArrayList signatures = new ArrayList();
+                var keys = new List<LMSPrivateKeyParameters>();
+                var signatures = new List<LMSSignature>();
 
                 for (int t = 0; t < d; t++)
                 {
@@ -183,12 +181,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        protected void UpdateHierarchy(IList newKeys, IList newSig)
+        protected void UpdateHierarchy(IList<LMSPrivateKeyParameters> newKeys, IList<LMSSignature> newSig)
         {
             lock (this)
             {
-                keys = Platform.CreateArrayList(newKeys);
-                sig =  Platform.CreateArrayList(newSig);
+                keys = new List<LMSPrivateKeyParameters>(newKeys);
+                sig = new List<LMSSignature>(newSig);
             }
         }
 
@@ -222,11 +220,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
-
                 if (GetUsagesRemaining() < usageCount)
-                {
                     throw new ArgumentException("usageCount exceeds usages remaining in current leaf");
-                }
 
                 long maxIndexForShard = index + usageCount;
                 long shardStartIndex = index;
@@ -236,10 +231,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 //
                 index += usageCount;
 
-                IList keys = new ArrayList(this.GetKeys());
-                IList sig = new ArrayList(this.GetSig());
+                var keys = new List<LMSPrivateKeyParameters>(this.GetKeys());
+                var sig = new List<LMSSignature>(this.GetSig());
 
-                HSSPrivateKeyParameters shard = MakeCopy(new HSSPrivateKeyParameters(l, keys, sig, shardStartIndex, maxIndexForShard, true));
+                HSSPrivateKeyParameters shard = MakeCopy(new HSSPrivateKeyParameters(l, keys, sig, shardStartIndex,
+                    maxIndexForShard, true));
 
                 ResetKeyToIndex();
 
@@ -248,7 +244,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
 
-        public IList GetKeys()
+        public IList<LMSPrivateKeyParameters> GetKeys()
         {
             lock (this)
             {
@@ -256,7 +252,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        internal IList GetSig()
+        internal IList<LMSSignature>GetSig()
         {
             lock (this)
             {
@@ -273,7 +269,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         void ResetKeyToIndex()
         {
             // Extract the original keys
-            IList originalKeys = GetKeys();
+            var originalKeys = GetKeys();
 
 
             long[] qTreePath = new long[originalKeys.Count];
@@ -404,7 +400,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] childI = new byte[16];
             Array.Copy(postImage, 0, childI, 0, childI.Length);
 
-            IList newKeys = Platform.CreateArrayList(keys);
+            var newKeys = new List<LMSPrivateKeyParameters>(keys);
 
             //
             // We need the parameters from the LMS key we are replacing.
@@ -414,15 +410,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             newKeys[d] = LMS.GenerateKeys(oldPk.GetSigParameters(), oldPk.GetOtsParameters(), 0, childI, childRootSeed);
 
-            IList newSig = Platform.CreateArrayList(sig);
+            var newSig = new List<LMSSignature>(sig);
 
             newSig[d - 1] = LMS.GenerateSign(newKeys[d - 1] as LMSPrivateKeyParameters,
                 (newKeys[d] as LMSPrivateKeyParameters).GetPublicKey().ToByteArray());
 
-
-            this.keys = Platform.CreateArrayList(newKeys);
-            this.sig = Platform.CreateArrayList(newSig);
-
+            this.keys = new List<LMSPrivateKeyParameters>(newKeys);
+            this.sig = new List<LMSSignature>(newSig);
         }
 
         public override bool Equals(Object o)
@@ -454,14 +448,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 return false;
             }
-            if (!CompareArrayLists(keys, that.keys))
+            if (!CompareLists(keys, that.keys))
             {
                 return false;
             }
-            return CompareArrayLists(sig, that.sig);
+            return CompareLists(sig, that.sig);
         }
 
-        private bool CompareArrayLists(IList arr1, IList arr2)
+        private bool CompareLists<T>(IList<T> arr1, IList<T> arr2)
         {
             for (int i=0; i<arr1.Count && i<arr2.Count; i++)
             {
@@ -529,8 +523,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 HSS.RangeTestKeys(this);
 
-                IList keys = this.GetKeys();
-                IList sig = this.GetSig();
+                var keys = this.GetKeys();
+                var sig = this.GetSig();
 
                 nextKey = this.GetKeys()[(L - 1)] as LMSPrivateKeyParameters;
 

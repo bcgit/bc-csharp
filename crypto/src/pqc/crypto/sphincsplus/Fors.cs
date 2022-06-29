@@ -1,5 +1,6 @@
+using System;
+using System.Collections.Generic;
 
-using System.Collections;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
@@ -17,8 +18,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         // Output: n-byte root node - top node on Stack
         byte[] TreeHash(byte[] skSeed, uint s, int z, byte[] pkSeed, Adrs adrsParam)
         {
-
-            IList stack = Platform.CreateArrayList();
+            var stack = new List<NodeEntry>();
 
             if (s % (1 << z) != 0)
             {

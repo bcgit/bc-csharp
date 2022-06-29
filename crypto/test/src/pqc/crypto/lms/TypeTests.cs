@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+
 using NUnit.Framework;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {

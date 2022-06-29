@@ -1,6 +1,5 @@
 using System;
-using System.Collections;
-using Org.BouncyCastle.Utilities;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -63,8 +62,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             return new HSSPrivateKeyParameters(
                 parameters.GetDepth(),
-                Platform.CreateArrayList(keys),
-                Platform.CreateArrayList(sig),
+                new List<LMSPrivateKeyParameters>(keys),
+                new List<LMSSignature>(sig),
                 0, hssKeyMaxIndex);
         }
 
@@ -103,7 +102,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 int L = keyPair.L;
                 int d = L;
-                IList prv = keyPair.GetKeys();
+                var prv = keyPair.GetKeys();
                 while ((prv[d - 1] as LMSPrivateKeyParameters).GetIndex() == 1 << ((prv[(d - 1)] as LMSPrivateKeyParameters ).GetSigParameters().GetH()))
                 {
                     d = d - 1;
@@ -136,8 +135,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 RangeTestKeys(keyPair);
                 
-                IList keys = keyPair.GetKeys();
-                IList sig = keyPair.GetSig();
+                var keys = keyPair.GetKeys();
+                var sig = keyPair.GetSig();
 
                 nextKey = keyPair.GetKeys()[L - 1] as LMSPrivateKeyParameters;
 

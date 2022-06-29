@@ -1,17 +1,14 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+
 using NUnit.Framework;
-using Org.BouncyCastle.Bcpg;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
+
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
-
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -76,7 +73,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         [Test]
         public void TestHSSVector_1()
         {
-            IList blocks = LoadVector("pqc.lms.testcase_1.txt");
+            var blocks = LoadVector("pqc.lms.testcase_1.txt");
 
             HSSPublicKeyParameters publicKey = HSSPublicKeyParameters.GetInstance(blocks[0]);
             byte[] message = (byte[]) blocks[1];
@@ -93,7 +90,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         [Test]
         public void TestHSSVector_2()
         {
-            IList blocks = LoadVector("pqc.lms.testcase_2.txt");
+            var blocks = LoadVector("pqc.lms.testcase_2.txt");
 
             HSSPublicKeyParameters publicKey = HSSPublicKeyParameters.GetInstance(blocks[0]);
             byte[] message = blocks[1] as byte[];
@@ -107,10 +104,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Assert.True(LMS.VerifySignature(lmsPub, lmsSignature, message), "Test Case 2 Signature 2");
         }
 
-        private IList LoadVector(string vector)
+        private IList<byte[]> LoadVector(string vector)
         {
             StreamReader bin = new StreamReader(SimpleTest.GetTestDataAsStream(vector));
-            IList blocks = new ArrayList();
+            var blocks = new List<byte[]>();
             StringBuilder sw = new StringBuilder();
 
             string line;
@@ -326,8 +323,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             StreamReader sr = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.lms.depth_1.txt"));
 
-            IList lmsParameters = new ArrayList();
-            IList lmOtsParameters = new ArrayList();
+            var lmsParameters = new List<LMSigParameters>();
+            var lmOtsParameters = new List<LMOtsParameters>();
             byte[] message = null;
             byte[] hssPubEnc = null;
             MemoryStream fixedESBuffer = new MemoryStream();
@@ -384,7 +381,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     // Deserialize pub key from reference impl.
                     //
                     HSSPublicKeyParameters vectorSourcedPubKey = HSSPublicKeyParameters.GetInstance(hssPubEnc);
-                    IList lmsParams = new ArrayList();
+                    var lmsParams = new List<LMSParameters>();
 
                     for (int i = 0; i != lmsParameters.Count; i++)
                     {
@@ -464,12 +461,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             using (StreamReader sr = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.lms.expansion.txt")))
             {
-                IList lmsParameters = new ArrayList();
-                IList lmOtsParameters = new ArrayList();
+                var lmsParameters = new List<LMSigParameters>();
+                var lmOtsParameters = new List<LMOtsParameters>();
                 byte[] message = null;
                 byte[] hssPubEnc = null;
                 MemoryStream fixedESBuffer = new MemoryStream();
-                IList sigVectors = new ArrayList();
+                var sigVectors = new List<byte[]>();
                 int d = 0;
 
                 string line;
@@ -518,7 +515,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 FixedSecureRandom.Source[] source = {new FixedSecureRandom.Source(fixedESBuffer.ToArray())};
                 FixedSecureRandom fixRnd = new FixedSecureRandom(source);
                 fixedESBuffer.SetLength(0);
-                IList lmsParams = new ArrayList();
+                var lmsParams = new List<LMSParameters>();
 
                 for (int i = 0; i != lmsParameters.Count; i++)
                 {
