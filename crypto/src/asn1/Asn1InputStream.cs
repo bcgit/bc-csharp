@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1
     {
         private readonly int limit;
 
-        internal readonly byte[][] tmpBuffers;
+        internal byte[][] tmpBuffers;
 
         internal static int FindLimit(Stream input)
         {
@@ -65,6 +65,13 @@ namespace Org.BouncyCastle.Asn1
         {
             this.limit = limit;
             this.tmpBuffers = tmpBuffers;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            tmpBuffers = null;
+
+            base.Dispose(disposing);
         }
 
         /**
