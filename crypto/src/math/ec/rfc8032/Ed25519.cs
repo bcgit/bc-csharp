@@ -10,7 +10,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
-    public abstract class Ed25519
+    public static class Ed25519
     {
         // -x^2 + y^2 == 1 + 0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3 * x^2 * y^2
 
@@ -75,37 +75,27 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static readonly object precompLock = new object();
         // TODO[ed25519] Convert to PointPrecomp
-        private static PointExt[] precompBaseTable = null;
+        private static PointExtended[] precompBaseTable = null;
         private static int[] precompBase = null;
 
-        private class PointAccum
+        private ref struct PointAccum
         {
-            internal int[] x = F.Create();
-            internal int[] y = F.Create();
-            internal int[] z = F.Create();
-            internal int[] u = F.Create();
-            internal int[] v = F.Create();
+            internal int[] x, y, z, u, v;
         }
 
-        private class PointAffine
+        private ref struct PointAffine
         {
-            internal int[] x = F.Create();
-            internal int[] y = F.Create();
+            internal int[] x, y;
         }
 
-        private class PointExt
+        private struct PointExtended
         {
-            internal int[] x = F.Create();
-            internal int[] y = F.Create();
-            internal int[] z = F.Create();
-            internal int[] t = F.Create();
+            internal int[] x, y, z, t;
         }
 
-        private class PointPrecomp
+        private ref struct PointPrecomp
         {
-            internal int[] ypx_h = F.Create();
-            internal int[] ymx_h = F.Create();
-            internal int[] xyd = F.Create();
+            internal int[] ypx_h, ymx_h, xyd;
         }
 
         private static byte[] CalculateS(byte[] r, byte[] k, byte[] s)
@@ -226,7 +216,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
         }
 
-        private static bool DecodePointVar(byte[] p, int pOff, bool negate, PointAffine r)
+        private static bool DecodePointVar(byte[] p, int pOff, bool negate, ref PointAffine r)
         {
             byte[] py = Copy(p, pOff, PointBytes);
             if (!CheckPointVar(py))
@@ -301,7 +291,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Encode24((uint)(n >> 32), bs, off + 4);
         }
 
-        private static int EncodePoint(PointAccum p, byte[] r, int rOff)
+        private static int EncodePoint(ref PointAccum p, byte[] r, int rOff)
         {
             int[] x = F.Create();
             int[] y = F.Create();
@@ -476,8 +466,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!CheckScalarVar(S, nS))
                 return false;
 
-            PointAffine pA = new PointAffine();
-            if (!DecodePointVar(pk, pkOff, true, pA))
+            PointAffine pA; InitAffine(out pA);
+            if (!DecodePointVar(pk, pkOff, true, ref pA))
                 return false;
 
             IDigest d = CreateDigest();
@@ -494,11 +484,41 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] nA = new uint[ScalarUints];
             DecodeScalar(k, 0, nA);
 
-            PointAccum pR = new PointAccum();
-            ScalarMultStrausVar(nS, nA, pA, pR);
+            PointAccum pR; InitAccum(out pR);
+            ScalarMultStrausVar(nS, nA, ref pA, ref pR);
 
             byte[] check = new byte[PointBytes];
-            return 0 != EncodePoint(pR, check, 0) && Arrays.AreEqual(check, R);
+            return 0 != EncodePoint(ref pR, check, 0) && Arrays.AreEqual(check, R);
+        }
+
+        private static void InitAccum(out PointAccum r)
+        {
+            r.x = F.Create();
+            r.y = F.Create();
+            r.z = F.Create();
+            r.u = F.Create();
+            r.v = F.Create();
+        }
+
+        private static void InitAffine(out PointAffine r)
+        {
+            r.x = F.Create();
+            r.y = F.Create();
+        }
+
+        private static void InitExtended(out PointExtended r)
+        {
+            r.x = F.Create();
+            r.y = F.Create();
+            r.z = F.Create();
+            r.t = F.Create();
+        }
+
+        private static void InitPrecomp(out PointPrecomp r)
+        {
+            r.ypx_h = F.Create();
+            r.ymx_h = F.Create();
+            r.xyd = F.Create();
         }
 
         private static bool IsNeutralElementVar(int[] x, int[] y)
@@ -511,7 +531,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return F.IsZeroVar(x) && F.AreEqualVar(y, z);
         }
 
-        private static void PointAdd(PointExt p, PointAccum r)
+        private static void PointAdd(ref PointExtended p, ref PointAccum r)
         {
             int[] a = F.Create();
             int[] b = F.Create();
@@ -539,7 +559,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(f, g, r.z);
         }
 
-        private static void PointAdd(PointExt p, PointExt r)
+        private static void PointAdd(ref PointExtended p, ref PointExtended r)
         {
             int[] a = F.Create();
             int[] b = F.Create();
@@ -567,7 +587,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(e, h, r.t);
         }
 
-        private static void PointAddVar(bool negate, PointExt p, PointAccum r)
+        private static void PointAddVar(bool negate, ref PointExtended p, ref PointAccum r)
         {
             int[] a = F.Create();
             int[] b = F.Create();
@@ -605,7 +625,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(f, g, r.z);
         }
 
-        private static void PointAddVar(bool negate, PointExt p, PointExt q, PointExt r)
+        private static void PointAddVar(bool negate, ref PointExtended p, ref PointExtended q, ref PointExtended r)
         {
             int[] a = F.Create();
             int[] b = F.Create();
@@ -643,7 +663,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(e, h, r.t);
         }
 
-        private static void PointAddPrecomp(PointPrecomp p, PointAccum r)
+        private static void PointAddPrecomp(ref PointPrecomp p, ref PointAccum r)
         {
             int[] a = F.Create();
             int[] b = F.Create();
@@ -666,33 +686,22 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(f, g, r.z);
         }
 
-        private static PointExt PointCopy(PointAccum p)
+        private static void PointCopy(ref PointAccum p, ref PointExtended r)
         {
-            PointExt r = new PointExt();
             F.Copy(p.x, 0, r.x, 0);
             F.Copy(p.y, 0, r.y, 0);
             F.Copy(p.z, 0, r.z, 0);
             F.Mul(p.u, p.v, r.t);
-            return r;
         }
 
-        private static PointExt PointCopy(PointAffine p)
+        private static void PointCopy(ref PointAffine p, ref PointExtended r)
         {
-            PointExt r = new PointExt();
             F.Copy(p.x, 0, r.x, 0);
             F.Copy(p.y, 0, r.y, 0);
-            PointExtendXY(r);
-            return r;
+            PointExtendXY(ref r);
         }
 
-        private static PointExt PointCopy(PointExt p)
-        {
-            PointExt r = new PointExt();
-            PointCopy(p, r);
-            return r;
-        }
-
-        private static void PointCopy(PointExt p, PointExt r)
+        private static void PointCopy(ref PointExtended p, ref PointExtended r)
         {
             F.Copy(p.x, 0, r.x, 0);
             F.Copy(p.y, 0, r.y, 0);
@@ -700,7 +709,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(p.t, 0, r.t, 0);
         }
 
-        private static void PointDouble(PointAccum r)
+        private static void PointDouble(ref PointAccum r)
         {
             int[] a = F.Create();
             int[] b = F.Create();
@@ -725,20 +734,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Mul(f, g, r.z);
         }
 
-        private static void PointExtendXY(PointAccum p)
+        private static void PointExtendXY(ref PointAccum p)
         {
             F.One(p.z);
             F.Copy(p.x, 0, p.u, 0);
             F.Copy(p.y, 0, p.v, 0);
         }
 
-        private static void PointExtendXY(PointExt p)
+        private static void PointExtendXY(ref PointExtended p)
         {
             F.One(p.z);
             F.Mul(p.x, p.y, p.t);
         }
 
-        private static void PointLookup(int block, int index, PointPrecomp p)
+        private static void PointLookup(int block, int index, ref PointPrecomp p)
         {
             Debug.Assert(0 <= block && block < PrecompBlocks);
             Debug.Assert(0 <= index && index < PrecompPoints);
@@ -754,7 +763,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
         }
 
-        private static void PointLookup(uint[] x, int n, int[] table, PointExt r)
+        private static void PointLookup(uint[] x, int n, int[] table, ref PointExtended r)
         {
             // TODO This method is currently hardcoded to 4-bit windows and 8 precomputed points
 
@@ -779,13 +788,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.CNegate(sign, r.t);
         }
 
-        private static int[] PointPrecompute(PointAffine p, int count)
+        private static int[] PointPrecompute(ref PointAffine p, int count)
         {
             Debug.Assert(count > 0);
 
-            PointExt q = PointCopy(p);
-            PointExt d = PointCopy(q);
-            PointAdd(q, d);
+            PointExtended q; InitExtended(out q);
+            PointCopy(ref p, ref q);
+
+            PointExtended d; InitExtended(out d);
+            PointCopy(ref q, ref d);
+            PointAdd(ref q, ref d);
 
             int[] table = F.CreateTable(count * 4);
             int off = 0;
@@ -801,29 +813,31 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (++i == count)
                     break;
 
-                PointAdd(d, q);
+                PointAdd(ref d, ref q);
             }
 
             return table;
         }
 
-        private static PointExt[] PointPrecomputeVar(PointExt p, int count)
+        private static PointExtended[] PointPrecomputeVar(ref PointExtended p, int count)
         {
             Debug.Assert(count > 0);
 
-            PointExt d = new PointExt();
-            PointAddVar(false, p, p, d);
+            PointExtended d; InitExtended(out d);
+            PointAddVar(false, ref p, ref p, ref d);
 
-            PointExt[] table = new PointExt[count];
-            table[0] = PointCopy(p);
+            PointExtended[] table = new PointExtended[count];
+            InitExtended(out table[0]);
+            PointCopy(ref p, ref table[0]);
             for (int i = 1; i < count; ++i)
             {
-                PointAddVar(false, table[i - 1], d, table[i] = new PointExt());
+                InitExtended(out table[i]);
+                PointAddVar(false, ref table[i - 1], ref d, ref table[i]);
             }
             return table;
         }
 
-        private static void PointSetNeutral(PointAccum p)
+        private static void PointSetNeutral(ref PointAccum p)
         {
             F.Zero(p.x);
             F.One(p.y);
@@ -832,7 +846,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.One(p.v);
         }
 
-        private static void PointSetNeutral(PointExt p)
+        private static void PointSetNeutral(ref PointExtended p)
         {
             F.Zero(p.x);
             F.One(p.y);
@@ -849,47 +863,49 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                 // Precomputed table for the base point in verification ladder
                 {
-                    PointExt b = new PointExt();
+                    PointExtended b; InitExtended(out b);
                     F.Copy(B_x, 0, b.x, 0);
                     F.Copy(B_y, 0, b.y, 0);
-                    PointExtendXY(b);
+                    PointExtendXY(ref b);
 
-                    precompBaseTable = PointPrecomputeVar(b, 1 << (WnafWidthBase - 2));
+                    precompBaseTable = PointPrecomputeVar(ref b, 1 << (WnafWidthBase - 2));
                 }
 
-                PointAccum p = new PointAccum();
+                PointAccum p; InitAccum(out p);
                 F.Copy(B_x, 0, p.x, 0);
                 F.Copy(B_y, 0, p.y, 0);
-                PointExtendXY(p);
+                PointExtendXY(ref p);
 
                 precompBase = F.CreateTable(PrecompBlocks * PrecompPoints * 3);
 
                 int off = 0;
                 for (int b = 0; b < PrecompBlocks; ++b)
                 {
-                    PointExt[] ds = new PointExt[PrecompTeeth];
+                    PointExtended[] ds = new PointExtended[PrecompTeeth];
 
-                    PointExt sum = new PointExt();
-                    PointSetNeutral(sum);
+                    PointExtended sum; InitExtended(out sum);
+                    PointSetNeutral(ref sum);
 
                     for (int t = 0; t < PrecompTeeth; ++t)
                     {
-                        PointExt q = PointCopy(p);
-                        PointAddVar(true, sum, q, sum);
-                        PointDouble(p);
+                        PointExtended q; InitExtended(out q);
+                        PointCopy(ref p, ref q);
+                        PointAddVar(true, ref sum, ref q, ref sum);
+                        PointDouble(ref p);
 
-                        ds[t] = PointCopy(p);
+                        InitExtended(out ds[t]);
+                        PointCopy(ref p, ref ds[t]);
 
                         if (b + t != PrecompBlocks + PrecompTeeth - 2)
                         {
                             for (int s = 1; s < PrecompSpacing; ++s)
                             {
-                                PointDouble(p);
+                                PointDouble(ref p);
                             }
                         }
                     }
 
-                    PointExt[] points = new PointExt[PrecompPoints];
+                    PointExtended[] points = new PointExtended[PrecompPoints];
                     int k = 0;
                     points[k++] = sum;
 
@@ -898,7 +914,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                         int size = 1 << t;
                         for (int j = 0; j < size; ++j, ++k)
                         {
-                            PointAddVar(false, points[k - size], ds[t], points[k] = new PointExt());
+                            InitExtended(out points[k]);
+                            PointAddVar(false, ref points[k - size], ref ds[t], ref points[k]);
                         }
                     }
 
@@ -939,7 +956,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                     for (int i = 0; i < PrecompPoints; ++i)
                     {
-                        PointExt q = points[i];
+                        ref PointExtended q = ref points[i];
 
                         int[] x = F.Create();
                         int[] y = F.Create();
@@ -951,7 +968,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                         F.Mul(q.x, y, x);
                         F.Mul(q.y, y, y);
 
-                        PointPrecomp r = new PointPrecomp();
+                        PointPrecomp r; InitPrecomp(out r);
                         F.Apm(y, x, r.ypx_h, r.ymx_h);
                         F.Mul(x, y, r.xyd);
                         F.Mul(r.xyd, C_d4, r.xyd);
@@ -962,7 +979,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                         F.Copy(r.ypx_h, 0, precompBase, off);       off += F.Size;
                         F.Copy(r.ymx_h, 0, precompBase, off);       off += F.Size;
-                        F.Copy(r.xyd, 0, precompBase, off);         off += F.Size;
+                        F.Copy(r.xyd,   0, precompBase, off);       off += F.Size;
                     }
                 }
 
@@ -1115,7 +1132,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return r;
         }
 
-        private static void ScalarMult(byte[] k, PointAffine p, PointAccum r)
+        private static void ScalarMult(byte[] k, ref PointAffine p, ref PointAccum r)
         {
             uint[] n = new uint[ScalarUints];
             DecodeScalar(k, 0, n);
@@ -1126,34 +1143,34 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
             }
 
-            int[] table = PointPrecompute(p, 8);
-            PointExt q = new PointExt();
+            int[] table = PointPrecompute(ref p, 8);
+            PointExtended q; InitExtended(out q);
 
-            PointSetNeutral(r);
+            PointSetNeutral(ref r);
 
             int w = 63;
             for (;;)
             {
-                PointLookup(n, w, table, q);
-                PointAdd(q, r);
+                PointLookup(n, w, table, ref q);
+                PointAdd(ref q, ref r);
 
                 if (--w < 0)
                     break;
 
                 for (int i = 0; i < 4; ++i)
                 {
-                    PointDouble(r);
+                    PointDouble(ref r);
                 }
             }
         }
 
-        private static void ScalarMultBase(byte[] k, PointAccum r)
+        private static void ScalarMultBase(byte[] k, ref PointAccum r)
         {
             // Equivalent (but much slower)
-            //PointAffine p = new PointAffine();
+            //PointAffine p; InitAffine(out p);
             //F.Copy(B_x, 0, p.x, 0);
             //F.Copy(B_y, 0, p.y, 0);
-            //ScalarMult(k, p, r);
+            //ScalarMult(k, ref p, ref r);
 
             Precompute();
 
@@ -1171,9 +1188,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            PointPrecomp p = new PointPrecomp();
+            PointPrecomp p; InitPrecomp(out p);
 
-            PointSetNeutral(r);
+            PointSetNeutral(ref r);
 
             int cOff = (PrecompSpacing - 1) * PrecompTeeth;
             for (;;)
@@ -1187,26 +1204,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     Debug.Assert(sign == 0 || sign == 1);
                     Debug.Assert(0 <= abs && abs < PrecompPoints);
 
-                    PointLookup(b, abs, p);
+                    PointLookup(b, abs, ref p);
 
                     F.CSwap(sign, p.ypx_h, p.ymx_h);
                     F.CNegate(sign, p.xyd);
 
-                    PointAddPrecomp(p, r);
+                    PointAddPrecomp(ref p, ref r);
                 }
 
                 if ((cOff -= PrecompTeeth) < 0)
                     break;
 
-                PointDouble(r);
+                PointDouble(ref r);
             }
         }
 
         private static void ScalarMultBaseEncoded(byte[] k, byte[] r, int rOff)
         {
-            PointAccum p = new PointAccum();
-            ScalarMultBase(k, p);
-            if (0 == EncodePoint(p, r, rOff))
+            PointAccum p; InitAccum(out p);
+            ScalarMultBase(k, ref p);
+            if (0 == EncodePoint(ref p, r, rOff))
                 throw new InvalidOperationException();
         }
 
@@ -1215,8 +1232,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] n = new byte[ScalarBytes];
             PruneScalar(k, kOff, n);
 
-            PointAccum p = new PointAccum();
-            ScalarMultBase(n, p);
+            PointAccum p; InitAccum(out p);
+            ScalarMultBase(n, ref p);
 
             if (0 == CheckPoint(p.x, p.y, p.z))
                 throw new InvalidOperationException();
@@ -1225,17 +1242,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(p.z, 0, z, 0);
         }
 
-        private static void ScalarMultOrderVar(PointAffine p, PointAccum r)
+        private static void ScalarMultOrderVar(ref PointAffine p, ref PointAccum r)
         {
             int width = 5;
 
             sbyte[] ws_p = GetWnafVar(L, width);
 
-            PointExt[] tp = PointPrecomputeVar(PointCopy(p), 1 << (width - 2));
+            PointExtended q; InitExtended(out q);
+            PointCopy(ref p, ref q);
 
-            PointSetNeutral(r);
+            PointExtended[] tp = PointPrecomputeVar(ref q, 1 << (width - 2));
 
-            for (int bit = 252; ;)
+            PointSetNeutral(ref r);
+
+            for (int bit = 252;;)
             {
                 int wp = ws_p[bit];
                 if (wp != 0)
@@ -1243,17 +1263,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     int sign = wp >> 31;
                     int index = (wp ^ sign) >> 1;
 
-                    PointAddVar((sign != 0), tp[index], r);
+                    PointAddVar(sign != 0, ref tp[index], ref r);
                 }
 
                 if (--bit < 0)
                     break;
 
-                PointDouble(r);
+                PointDouble(ref r);
             }
         }
 
-        private static void ScalarMultStrausVar(uint[] nb, uint[] np, PointAffine p, PointAccum r)
+        private static void ScalarMultStrausVar(uint[] nb, uint[] np, ref PointAffine p, ref PointAccum r)
         {
             Precompute();
 
@@ -1262,9 +1282,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             sbyte[] ws_b = GetWnafVar(nb, WnafWidthBase);
             sbyte[] ws_p = GetWnafVar(np, width);
 
-            PointExt[] tp = PointPrecomputeVar(PointCopy(p), 1 << (width - 2));
+            PointExtended q; InitExtended(out q);
+            PointCopy(ref p, ref q);
 
-            PointSetNeutral(r);
+            PointExtended[] tp = PointPrecomputeVar(ref q, 1 << (width - 2));
+
+            PointSetNeutral(ref r);
 
             for (int bit = 252;;)
             {
@@ -1274,7 +1297,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     int sign = wb >> 31;
                     int index = (wb ^ sign) >> 1;
 
-                    PointAddVar((sign != 0), precompBaseTable[index], r);
+                    PointAddVar(sign != 0, ref precompBaseTable[index], ref r);
                 }
 
                 int wp = ws_p[bit];
@@ -1283,13 +1306,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     int sign = wp >> 31;
                     int index = (wp ^ sign) >> 1;
 
-                    PointAddVar((sign != 0), tp[index], r);
+                    PointAddVar((sign != 0), ref tp[index], ref r);
                 }
 
                 if (--bit < 0)
                     break;
 
-                PointDouble(r);
+                PointDouble(ref r);
             }
         }
 
@@ -1361,8 +1384,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
-            PointAffine p = new PointAffine();
-            if (!DecodePointVar(pk, pkOff, false, p))
+            PointAffine p; InitAffine(out p);
+            if (!DecodePointVar(pk, pkOff, false, ref p))
                 return false;
 
             F.Normalize(p.x);
@@ -1371,8 +1394,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (IsNeutralElementVar(p.x, p.y))
                 return false;
 
-            PointAccum r = new PointAccum();
-            ScalarMultOrderVar(p, r);
+            PointAccum r; InitAccum(out r);
+            ScalarMultOrderVar(ref p, ref r);
 
             F.Normalize(r.x);
             F.Normalize(r.y);
@@ -1383,8 +1406,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
         {
-            PointAffine p = new PointAffine();
-            return DecodePointVar(pk, pkOff, false, p);
+            PointAffine p; InitAffine(out p);
+            return DecodePointVar(pk, pkOff, false, ref p);
         }
 
         public static bool Verify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen)
