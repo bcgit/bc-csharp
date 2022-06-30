@@ -167,18 +167,14 @@ namespace Org.BouncyCastle.Crypto.Generators
             if (!AllowedVersions.Contains(version))
                 throw new ArgumentException("Bcrypt version '" + version + "' is not supported by this implementation", "bcryptString");
 
-            int cost = 0;
+            int cost;
             try
             {
                 cost = int.Parse(bcryptString.Substring(4, 2));
             }
             catch (Exception nfe)
             {
-#if PORTABLE
-                throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2), "bcryptString");
-#else
                 throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2), "bcryptString", nfe);
-#endif
             }
             if (cost < 4 || cost > 31)
                 throw new ArgumentException("Invalid cost factor: " + cost + ", 4 < cost < 31 expected.");

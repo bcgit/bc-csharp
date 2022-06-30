@@ -1,5 +1,4 @@
-﻿#if !PORTABLE
-using System;
+﻿using System;
 using System.Security.Cryptography;
 
 namespace Org.BouncyCastle.Crypto.Prng
@@ -66,5 +65,3 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
     }
 }
-
-#endif

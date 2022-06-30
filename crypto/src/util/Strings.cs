@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Utilities
 
         public static string FromAsciiByteArray(byte[] bytes)
         {
-            return Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+            return Encoding.ASCII.GetString(bytes);
         }
 
         public static byte[] ToAsciiByteArray(char[] cs)
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Utilities
 
         public static string FromUtf8ByteArray(byte[] bytes)
         {
-            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+            return Encoding.UTF8.GetString(bytes);
         }
 
         public static byte[] ToUtf8ByteArray(char[] cs)

@@ -1,12 +1,28 @@
+using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-    public class FilterStream : Stream
+    public class FilterStream
+        : Stream
     {
+        protected readonly Stream s;
+
         public FilterStream(Stream s)
         {
+            if (s == null)
+                throw new ArgumentNullException(nameof(s));
+
             this.s = s;
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                s.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
         public override bool CanRead
         {
@@ -29,22 +45,6 @@ namespace Org.BouncyCastle.Utilities.IO
             get { return s.Position; }
             set { s.Position = value; }
         }
-#if PORTABLE
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                Platform.Dispose(s);
-            }
-            base.Dispose(disposing);
-        }
-#else
-        public override void Close()
-        {
-            Platform.Dispose(s);
-            base.Close();
-        }
-#endif
         public override void Flush()
         {
             s.Flush();
@@ -73,6 +73,5 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             s.WriteByte(value);
         }
-        protected readonly Stream s;
     }
 }

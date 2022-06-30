@@ -101,11 +101,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public DerUtcTime(DateTime time)
         {
-#if PORTABLE
             this.time = time.ToUniversalTime().ToString("yyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
-#else
-            this.time = time.ToString("yyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
-#endif
         }
 
 		internal DerUtcTime(byte[] contents)
