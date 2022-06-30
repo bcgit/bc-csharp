@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Tls.Tests
             lock (m_other)
             {
                 WaitForData();
-                int len = (int)System.Math.Min(count, m_other.m_buf.Position - m_readPos);
+                int len = System.Math.Min(count, Convert.ToInt32(m_other.m_buf.Position - m_readPos));
                 Array.Copy(m_other.m_buf.GetBuffer(), m_readPos, buffer, offset, len);
                 m_readPos += len;
                 return len;
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Tls.Tests
             lock (m_other)
             {
                 WaitForData();
-                bool eof = (m_readPos >= m_other.m_buf.Position);
+                bool eof = m_readPos >= m_other.m_buf.Position;
                 return eof ? -1 : m_other.m_buf.GetBuffer()[m_readPos++];
             }
         }

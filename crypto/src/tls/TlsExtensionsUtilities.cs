@@ -1433,7 +1433,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         private static byte[] PatchOpaque16(MemoryStream buf)
         {
-            int length = (int)buf.Length - 2;
+            int length = Convert.ToInt32(buf.Length) - 2;
             TlsUtilities.CheckUint16(length);
             byte[] extensionData = buf.ToArray();
             TlsUtilities.WriteUint16(length, extensionData, 0);

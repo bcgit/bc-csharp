@@ -539,16 +539,11 @@ namespace Org.BouncyCastle.Tls
 
             internal void SendToRecordLayer(DtlsRecordLayer recordLayer)
             {
-#if PORTABLE
-                byte[] buf = ToArray();
-                int bufLen = buf.Length;
-#else
                 byte[] buf = GetBuffer();
-                int bufLen = (int)Length;
-#endif
+                int bufLen = Convert.ToInt32(Length);
 
                 recordLayer.Send(buf, 0, bufLen);
-                Platform.Dispose(this);
+                Dispose();
             }
         }
 

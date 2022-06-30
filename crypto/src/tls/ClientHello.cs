@@ -142,7 +142,7 @@ namespace Org.BouncyCastle.Tls
 
             int cipher_suites_length = TlsUtilities.ReadUint16(input);
             if (cipher_suites_length < 2 || (cipher_suites_length & 1) != 0
-                || (int)(messageInput.Length - messageInput.Position) < cipher_suites_length)
+                || Convert.ToInt32(messageInput.Length - messageInput.Position) < cipher_suites_length)
             {
                 throw new TlsFatalAlert(AlertDescription.decode_error);
             }

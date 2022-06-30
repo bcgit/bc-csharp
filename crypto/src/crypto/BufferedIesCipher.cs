@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Crypto
 			if (engine == null)
 				throw new InvalidOperationException("cipher not initialised");
 
-			int baseLen = inputLen + (int) buffer.Length;
+			int baseLen = inputLen + Convert.ToInt32(buffer.Length);
 			return forEncryption
 				?	baseLen + 20
 				:	baseLen - 20;

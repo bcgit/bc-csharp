@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Asn1
                 return asn1.Limit;
 
             if (input is MemoryStream memory)
-                return (int)(memory.Length - memory.Position);
+                return Convert.ToInt32(memory.Length - memory.Position);
 
             return int.MaxValue;
         }

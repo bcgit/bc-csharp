@@ -56,8 +56,8 @@ namespace Org.BouncyCastle.Tls
                     TlsUtilities.WriteOpaque16(derEncoding, buf);
                 }
                 TlsUtilities.CheckUint16(buf.Length);
-                TlsUtilities.WriteUint16((int)buf.Length, output);
-                Streams.WriteBufTo(buf, output);
+                TlsUtilities.WriteUint16(Convert.ToInt32(buf.Length), output);
+                buf.WriteTo(output);
             }
 
             if (m_requestExtensions == null)

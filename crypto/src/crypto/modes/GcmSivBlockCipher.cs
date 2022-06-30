@@ -367,7 +367,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 int myDataLen = BUFLEN + encryptPlain(myTag, pOutput, pOffset);
 
                 /* Add the tag to the output */
-                Array.Copy(myTag, 0, pOutput, pOffset + (int)thePlain.Length, BUFLEN);
+                Array.Copy(myTag, 0, pOutput, pOffset + Convert.ToInt32(thePlain.Length), BUFLEN);
 
                 /* Reset the streams */
                 ResetStreams();
@@ -403,9 +403,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             if (forEncryption)
             {
-                return (int)(pLen + thePlain.Length + BUFLEN);
+                return pLen + Convert.ToInt32(thePlain.Length) + BUFLEN;
             }
-            int myCurr = (int)(pLen + theEncData.Length);
+            int myCurr = pLen + Convert.ToInt32(theEncData.Length);
             return myCurr > BUFLEN ? myCurr - BUFLEN : 0;
         }
 
@@ -422,8 +422,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             /* Clear the plainText buffer */
             if (thePlain != null)
             {
-                thePlain.Position = 0L;
-                Streams.WriteZeroes(thePlain, thePlain.Capacity);
+                int count = Convert.ToInt32(thePlain.Length);
+                Array.Clear(thePlain.GetBuffer(), 0, count);
+                thePlain.SetLength(0);
             }
 
             /* Reset hashers */
@@ -485,14 +486,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         private int encryptPlain(byte[] pCounter, byte[] pTarget, int pOffset)
         {
-            /* Access buffer and length */
-#if PORTABLE
-            byte[] thePlainBuf = thePlain.ToArray();
-            int thePlainLen = thePlainBuf.Length;
-#else
             byte[] thePlainBuf = thePlain.GetBuffer();
-            int thePlainLen = (int)thePlain.Length;
-#endif
+            int thePlainLen = Convert.ToInt32(thePlain.Length);
 
             byte[] mySrc = thePlainBuf;
             byte[] myCounter = Arrays.Clone(pCounter);
@@ -530,14 +525,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         private void decryptPlain()
         {
-            /* Access buffer and length */
-#if PORTABLE
-            byte[] theEncDataBuf = theEncData.ToArray();
-            int theEncDataLen = theEncDataBuf.Length;
-#else
             byte[] theEncDataBuf = theEncData.GetBuffer();
-            int theEncDataLen = (int)theEncData.Length;
-#endif
+            int theEncDataLen = Convert.ToInt32(theEncData.Length);
 
             byte[] mySrc = theEncDataBuf;
             int myRemaining = theEncDataLen - BUFLEN;

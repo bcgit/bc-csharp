@@ -43,10 +43,10 @@ namespace Org.BouncyCastle.Tls
                 entry.Encode(buf);
             }
 
-            int length = (int)buf.Length;
+            int length = Convert.ToInt32(buf.Length);
             TlsUtilities.CheckUint16(length);
             TlsUtilities.WriteUint16(length, output);
-            Streams.WriteBufTo(buf, output);
+            buf.WriteTo(output);
         }
 
         /// <summary>Parse a <see cref="ServerNameList"/> from a <see cref="Stream"/>.</summary>

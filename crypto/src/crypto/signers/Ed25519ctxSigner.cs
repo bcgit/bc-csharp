@@ -4,7 +4,6 @@ using System.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC.Rfc8032;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -83,13 +82,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 lock (this)
                 {
-#if PORTABLE
-                    byte[] buf = ToArray();
-                    int count = buf.Length;
-#else
                     byte[] buf = GetBuffer();
-                    int count = (int)Position;
-#endif
+                    int count = Convert.ToInt32(Length);
+
                     byte[] signature = new byte[Ed25519PrivateKeyParameters.SignatureSize];
                     privateKey.Sign(Ed25519.Algorithm.Ed25519ctx, ctx, buf, 0, count, signature, 0);
                     Reset();
@@ -107,13 +102,9 @@ namespace Org.BouncyCastle.Crypto.Signers
 
                 lock (this)
                 {
-#if PORTABLE
-                    byte[] buf = ToArray();
-                    int count = buf.Length;
-#else
                     byte[] buf = GetBuffer();
-                    int count = (int)Position;
-#endif
+                    int count = Convert.ToInt32(Length);
+
                     byte[] pk = publicKey.GetEncoded();
                     bool result = Ed25519.Verify(signature, 0, pk, 0, ctx, buf, 0, count);
                     Reset();
@@ -125,14 +116,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 lock (this)
                 {
-                    long count = Position;
-#if PORTABLE
-                    this.Position = 0L;
-                    Streams.WriteZeroes(this, count);
-#else
-                    Array.Clear(GetBuffer(), 0, (int)count);
-#endif
-                    this.Position = 0L;
+                    int count = Convert.ToInt32(Length);
+                    Array.Clear(GetBuffer(), 0, count);
+                    SetLength(0);
                 }
             }
         }

@@ -117,29 +117,12 @@ namespace Org.BouncyCastle.Utilities.IO
 				throw new ArgumentOutOfRangeException("count");
 		}
 
-		/// <exception cref="IOException"></exception>
-		public static void WriteBufTo(MemoryStream buf, Stream output)
-        {
-            buf.WriteTo(output);
-        }
-
         /// <exception cref="IOException"></exception>
         public static int WriteBufTo(MemoryStream buf, byte[] output, int offset)
         {
-            int size = (int)buf.Length;
-            WriteBufTo(buf, new MemoryStream(output, offset, size));
+			int size = Convert.ToInt32(buf.Length);
+            buf.WriteTo(new MemoryStream(output, offset, size));
             return size;
-        }
-
-        public static void WriteZeroes(Stream outStr, long count)
-        {
-            byte[] zeroes = new byte[BufferSize];
-            while (count > BufferSize)
-            {
-                outStr.Write(zeroes, 0, BufferSize);
-                count -= BufferSize;
-            }
-            outStr.Write(zeroes, 0, (int)count);
         }
     }
 }

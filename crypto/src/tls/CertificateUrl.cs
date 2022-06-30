@@ -101,13 +101,13 @@ namespace Org.BouncyCastle.Tls
             internal void EncodeTo(Stream output)
             {
                 // Patch actual length back in
-                int length = (int)Length - 2;
+                int length = Convert.ToInt32(Length) - 2;
                 TlsUtilities.CheckUint16(length);
 
                 Seek(0L, SeekOrigin.Begin);
                 TlsUtilities.WriteUint16(length, this);
 
-                Streams.WriteBufTo(this, output);
+                WriteTo(output);
 
                 Platform.Dispose(this);
             }
