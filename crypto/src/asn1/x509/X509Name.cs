@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -194,11 +195,10 @@ namespace Org.BouncyCastle.Asn1.X509
         * determines whether or not strings should be processed and printed
         * from back to front.
         */
-//        public static bool DefaultReverse = false;
         public static bool DefaultReverse
         {
-            get { return defaultReverse[0]; }
-            set { defaultReverse[0] = value; }
+            get { lock (defaultReverse) return defaultReverse[0]; }
+            set { lock (defaultReverse) defaultReverse[0] = value; }
         }
 
         private static readonly bool[] defaultReverse = { false };
@@ -207,112 +207,120 @@ namespace Org.BouncyCastle.Asn1.X509
         * default look up table translating OID values into their common symbols following
         * the convention in RFC 2253 with a few extras
         */
-        public static readonly IDictionary<DerObjectIdentifier, string> DefaultSymbols =
+        private static readonly IDictionary<DerObjectIdentifier, string> DefaultSymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        public static readonly IDictionary<DerObjectIdentifier, string> DefaultSymbols =
+            CollectionUtilities.ReadOnly(DefaultSymbolsInternal);
 
         /**
          * look up table translating OID values into their common symbols following the convention in RFC 2253
          */
-        public static readonly IDictionary<DerObjectIdentifier, string> RFC2253Symbols =
+        private static readonly IDictionary<DerObjectIdentifier, string> RFC2253SymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        public static readonly IDictionary<DerObjectIdentifier, string> RFC2253Symbols =
+            CollectionUtilities.ReadOnly(RFC2253SymbolsInternal);
 
         /**
          * look up table translating OID values into their common symbols following the convention in RFC 1779
          *
          */
-        public static readonly IDictionary<DerObjectIdentifier, string> RFC1779Symbols =
+        private static readonly IDictionary<DerObjectIdentifier, string> RFC1779SymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        public static readonly IDictionary<DerObjectIdentifier, string> RFC1779Symbols =
+            CollectionUtilities.ReadOnly(RFC1779SymbolsInternal);
 
         /**
         * look up table translating common symbols into their OIDS.
         */
-        public static readonly IDictionary<string, DerObjectIdentifier> DefaultLookup =
+        private static readonly IDictionary<string, DerObjectIdentifier> DefaultLookupInternal =
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
+        public static readonly IDictionary<string, DerObjectIdentifier> DefaultLookup =
+            CollectionUtilities.ReadOnly(DefaultLookupInternal);
 
         static X509Name()
         {
-            DefaultSymbols.Add(C, "C");
-            DefaultSymbols.Add(O, "O");
-            DefaultSymbols.Add(T, "T");
-            DefaultSymbols.Add(OU, "OU");
-            DefaultSymbols.Add(CN, "CN");
-            DefaultSymbols.Add(L, "L");
-            DefaultSymbols.Add(ST, "ST");
-            DefaultSymbols.Add(SerialNumber, "SERIALNUMBER");
-            DefaultSymbols.Add(EmailAddress, "E");
-            DefaultSymbols.Add(DC, "DC");
-            DefaultSymbols.Add(UID, "UID");
-            DefaultSymbols.Add(Street, "STREET");
-            DefaultSymbols.Add(Surname, "SURNAME");
-            DefaultSymbols.Add(GivenName, "GIVENNAME");
-            DefaultSymbols.Add(Initials, "INITIALS");
-            DefaultSymbols.Add(Generation, "GENERATION");
-            DefaultSymbols.Add(UnstructuredAddress, "unstructuredAddress");
-            DefaultSymbols.Add(UnstructuredName, "unstructuredName");
-            DefaultSymbols.Add(UniqueIdentifier, "UniqueIdentifier");
-            DefaultSymbols.Add(DnQualifier, "DN");
-            DefaultSymbols.Add(Pseudonym, "Pseudonym");
-            DefaultSymbols.Add(PostalAddress, "PostalAddress");
-            DefaultSymbols.Add(NameAtBirth, "NameAtBirth");
-            DefaultSymbols.Add(CountryOfCitizenship, "CountryOfCitizenship");
-            DefaultSymbols.Add(CountryOfResidence, "CountryOfResidence");
-            DefaultSymbols.Add(Gender, "Gender");
-            DefaultSymbols.Add(PlaceOfBirth, "PlaceOfBirth");
-            DefaultSymbols.Add(DateOfBirth, "DateOfBirth");
-            DefaultSymbols.Add(PostalCode, "PostalCode");
-            DefaultSymbols.Add(BusinessCategory, "BusinessCategory");
-            DefaultSymbols.Add(TelephoneNumber, "TelephoneNumber");
+            DefaultSymbolsInternal.Add(C, "C");
+            DefaultSymbolsInternal.Add(O, "O");
+            DefaultSymbolsInternal.Add(T, "T");
+            DefaultSymbolsInternal.Add(OU, "OU");
+            DefaultSymbolsInternal.Add(CN, "CN");
+            DefaultSymbolsInternal.Add(L, "L");
+            DefaultSymbolsInternal.Add(ST, "ST");
+            DefaultSymbolsInternal.Add(SerialNumber, "SERIALNUMBER");
+            DefaultSymbolsInternal.Add(EmailAddress, "E");
+            DefaultSymbolsInternal.Add(DC, "DC");
+            DefaultSymbolsInternal.Add(UID, "UID");
+            DefaultSymbolsInternal.Add(Street, "STREET");
+            DefaultSymbolsInternal.Add(Surname, "SURNAME");
+            DefaultSymbolsInternal.Add(GivenName, "GIVENNAME");
+            DefaultSymbolsInternal.Add(Initials, "INITIALS");
+            DefaultSymbolsInternal.Add(Generation, "GENERATION");
+            DefaultSymbolsInternal.Add(UnstructuredAddress, "unstructuredAddress");
+            DefaultSymbolsInternal.Add(UnstructuredName, "unstructuredName");
+            DefaultSymbolsInternal.Add(UniqueIdentifier, "UniqueIdentifier");
+            DefaultSymbolsInternal.Add(DnQualifier, "DN");
+            DefaultSymbolsInternal.Add(Pseudonym, "Pseudonym");
+            DefaultSymbolsInternal.Add(PostalAddress, "PostalAddress");
+            DefaultSymbolsInternal.Add(NameAtBirth, "NameAtBirth");
+            DefaultSymbolsInternal.Add(CountryOfCitizenship, "CountryOfCitizenship");
+            DefaultSymbolsInternal.Add(CountryOfResidence, "CountryOfResidence");
+            DefaultSymbolsInternal.Add(Gender, "Gender");
+            DefaultSymbolsInternal.Add(PlaceOfBirth, "PlaceOfBirth");
+            DefaultSymbolsInternal.Add(DateOfBirth, "DateOfBirth");
+            DefaultSymbolsInternal.Add(PostalCode, "PostalCode");
+            DefaultSymbolsInternal.Add(BusinessCategory, "BusinessCategory");
+            DefaultSymbolsInternal.Add(TelephoneNumber, "TelephoneNumber");
 
-            RFC2253Symbols.Add(C, "C");
-            RFC2253Symbols.Add(O, "O");
-            RFC2253Symbols.Add(OU, "OU");
-            RFC2253Symbols.Add(CN, "CN");
-            RFC2253Symbols.Add(L, "L");
-            RFC2253Symbols.Add(ST, "ST");
-            RFC2253Symbols.Add(Street, "STREET");
-            RFC2253Symbols.Add(DC, "DC");
-            RFC2253Symbols.Add(UID, "UID");
+            RFC2253SymbolsInternal.Add(C, "C");
+            RFC2253SymbolsInternal.Add(O, "O");
+            RFC2253SymbolsInternal.Add(OU, "OU");
+            RFC2253SymbolsInternal.Add(CN, "CN");
+            RFC2253SymbolsInternal.Add(L, "L");
+            RFC2253SymbolsInternal.Add(ST, "ST");
+            RFC2253SymbolsInternal.Add(Street, "STREET");
+            RFC2253SymbolsInternal.Add(DC, "DC");
+            RFC2253SymbolsInternal.Add(UID, "UID");
 
-            RFC1779Symbols.Add(C, "C");
-            RFC1779Symbols.Add(O, "O");
-            RFC1779Symbols.Add(OU, "OU");
-            RFC1779Symbols.Add(CN, "CN");
-            RFC1779Symbols.Add(L, "L");
-            RFC1779Symbols.Add(ST, "ST");
-            RFC1779Symbols.Add(Street, "STREET");
+            RFC1779SymbolsInternal.Add(C, "C");
+            RFC1779SymbolsInternal.Add(O, "O");
+            RFC1779SymbolsInternal.Add(OU, "OU");
+            RFC1779SymbolsInternal.Add(CN, "CN");
+            RFC1779SymbolsInternal.Add(L, "L");
+            RFC1779SymbolsInternal.Add(ST, "ST");
+            RFC1779SymbolsInternal.Add(Street, "STREET");
 
-            DefaultLookup.Add("c", C);
-            DefaultLookup.Add("o", O);
-            DefaultLookup.Add("t", T);
-            DefaultLookup.Add("ou", OU);
-            DefaultLookup.Add("cn", CN);
-            DefaultLookup.Add("l", L);
-            DefaultLookup.Add("st", ST);
-            DefaultLookup.Add("serialnumber", SerialNumber);
-            DefaultLookup.Add("street", Street);
-            DefaultLookup.Add("emailaddress", E);
-            DefaultLookup.Add("dc", DC);
-            DefaultLookup.Add("e", E);
-            DefaultLookup.Add("uid", UID);
-            DefaultLookup.Add("surname", Surname);
-            DefaultLookup.Add("givenname", GivenName);
-            DefaultLookup.Add("initials", Initials);
-            DefaultLookup.Add("generation", Generation);
-            DefaultLookup.Add("unstructuredaddress", UnstructuredAddress);
-            DefaultLookup.Add("unstructuredname", UnstructuredName);
-            DefaultLookup.Add("uniqueidentifier", UniqueIdentifier);
-            DefaultLookup.Add("dn", DnQualifier);
-            DefaultLookup.Add("pseudonym", Pseudonym);
-            DefaultLookup.Add("postaladdress", PostalAddress);
-            DefaultLookup.Add("nameofbirth", NameAtBirth);
-            DefaultLookup.Add("countryofcitizenship", CountryOfCitizenship);
-            DefaultLookup.Add("countryofresidence", CountryOfResidence);
-            DefaultLookup.Add("gender", Gender);
-            DefaultLookup.Add("placeofbirth", PlaceOfBirth);
-            DefaultLookup.Add("dateofbirth", DateOfBirth);
-            DefaultLookup.Add("postalcode", PostalCode);
-            DefaultLookup.Add("businesscategory", BusinessCategory);
-            DefaultLookup.Add("telephonenumber", TelephoneNumber);
+            DefaultLookupInternal.Add("c", C);
+            DefaultLookupInternal.Add("o", O);
+            DefaultLookupInternal.Add("t", T);
+            DefaultLookupInternal.Add("ou", OU);
+            DefaultLookupInternal.Add("cn", CN);
+            DefaultLookupInternal.Add("l", L);
+            DefaultLookupInternal.Add("st", ST);
+            DefaultLookupInternal.Add("serialnumber", SerialNumber);
+            DefaultLookupInternal.Add("street", Street);
+            DefaultLookupInternal.Add("emailaddress", E);
+            DefaultLookupInternal.Add("dc", DC);
+            DefaultLookupInternal.Add("e", E);
+            DefaultLookupInternal.Add("uid", UID);
+            DefaultLookupInternal.Add("surname", Surname);
+            DefaultLookupInternal.Add("givenname", GivenName);
+            DefaultLookupInternal.Add("initials", Initials);
+            DefaultLookupInternal.Add("generation", Generation);
+            DefaultLookupInternal.Add("unstructuredaddress", UnstructuredAddress);
+            DefaultLookupInternal.Add("unstructuredname", UnstructuredName);
+            DefaultLookupInternal.Add("uniqueidentifier", UniqueIdentifier);
+            DefaultLookupInternal.Add("dn", DnQualifier);
+            DefaultLookupInternal.Add("pseudonym", Pseudonym);
+            DefaultLookupInternal.Add("postaladdress", PostalAddress);
+            DefaultLookupInternal.Add("nameofbirth", NameAtBirth);
+            DefaultLookupInternal.Add("countryofcitizenship", CountryOfCitizenship);
+            DefaultLookupInternal.Add("countryofresidence", CountryOfResidence);
+            DefaultLookupInternal.Add("gender", Gender);
+            DefaultLookupInternal.Add("placeofbirth", PlaceOfBirth);
+            DefaultLookupInternal.Add("dateofbirth", DateOfBirth);
+            DefaultLookupInternal.Add("postalcode", PostalCode);
+            DefaultLookupInternal.Add("businesscategory", BusinessCategory);
+            DefaultLookupInternal.Add("telephonenumber", TelephoneNumber);
         }
 
         private readonly List<DerObjectIdentifier> ordering = new List<DerObjectIdentifier>();
