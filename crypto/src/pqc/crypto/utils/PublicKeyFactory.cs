@@ -12,6 +12,7 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
+using Org.Bouncycastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -64,6 +65,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             converters[BCObjectIdentifiers.picnicl3full] = new PicnicConverter();
             converters[BCObjectIdentifiers.picnicl5full] = new PicnicConverter();
             
+            converters[BCObjectIdentifiers.sikep434] = new SikeConverter();
+            converters[BCObjectIdentifiers.sikep503] = new SikeConverter();
+            converters[BCObjectIdentifiers.sikep610] = new SikeConverter();
+            converters[BCObjectIdentifiers.sikep751] = new SikeConverter();
+            converters[BCObjectIdentifiers.sikep434_compressed] = new SikeConverter();
+            converters[BCObjectIdentifiers.sikep503_compressed] = new SikeConverter();
+            converters[BCObjectIdentifiers.sikep610_compressed] = new SikeConverter();
+            converters[BCObjectIdentifiers.sikep751_compressed] = new SikeConverter();
         }
         
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
@@ -167,6 +176,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 PicnicParameters picnicParams = PqcUtilities.PicnicParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
                 return new PicnicPublicKeyParameters(picnicParams, keyEnc);
+            }
+        }
+        private class SikeConverter
+            : SubjectPublicKeyInfoConverter
+        {
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            {
+                byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
+
+                SIKEParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
+
+                return new SIKEPublicKeyParameters(sikeParams, keyEnc);
             }
         }
     }

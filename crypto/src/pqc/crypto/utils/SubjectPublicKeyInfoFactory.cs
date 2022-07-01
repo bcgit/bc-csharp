@@ -8,6 +8,7 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
+using Org.Bouncycastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -75,6 +76,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] encoding = parameters.GetEncoded();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.PicnicOidLookup(parameters.GetParameters()));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+            }
+            if (publicKey is SIKEPublicKeyParameters)
+            {
+                SIKEPublicKeyParameters parameters = (SIKEPublicKeyParameters)publicKey;
+
+                byte[] encoding = parameters.GetEncoded();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.SikeOidLookup(parameters.GetParameters()));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
             

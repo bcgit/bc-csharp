@@ -571,6 +571,17 @@ namespace Org.BouncyCastle.Utilities
                 buf[--i] = b;
             }
         }
+        
+        public static void Fill(
+            ulong[]	buf,
+            ulong	b)
+        {
+            int i = buf.Length;
+            while (i > 0)
+            {
+                buf[--i] = b;
+            }
+        }
 
         public static void Fill(byte[] buf, int from, int to, byte b)
         {
