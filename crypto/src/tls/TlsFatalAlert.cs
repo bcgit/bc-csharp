@@ -17,10 +17,10 @@ namespace Org.BouncyCastle.Tls
             return msg;
         }
 
-        protected readonly short m_alertDescription;
+        protected readonly byte m_alertDescription;
 
         public TlsFatalAlert(short alertDescription)
-            : this(alertDescription, (string)null)
+            : this(alertDescription, null, null)
         {
         }
 
@@ -37,12 +37,22 @@ namespace Org.BouncyCastle.Tls
         public TlsFatalAlert(short alertDescription, string detailMessage, Exception alertCause)
             : base(GetMessage(alertDescription, detailMessage), alertCause)
         {
-            this.m_alertDescription = alertDescription;
+            if (!TlsUtilities.IsValidUint8(alertDescription))
+                throw new ArgumentOutOfRangeException(nameof(alertDescription));
+
+            m_alertDescription = (byte)alertDescription;
         }
 
         protected TlsFatalAlert(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
+            m_alertDescription = info.GetByte("alertDescription");
+        }
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("alertDescription", m_alertDescription);
         }
 
         public virtual short AlertDescription

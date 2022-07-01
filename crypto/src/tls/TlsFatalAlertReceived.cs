@@ -7,17 +7,27 @@ namespace Org.BouncyCastle.Tls
     public class TlsFatalAlertReceived
         : TlsException
     {
-        protected readonly short m_alertDescription;
+        protected readonly byte m_alertDescription;
 
         public TlsFatalAlertReceived(short alertDescription)
             : base(Tls.AlertDescription.GetText(alertDescription))
         {
-            this.m_alertDescription = alertDescription;
+            if (!TlsUtilities.IsValidUint8(alertDescription))
+                throw new ArgumentOutOfRangeException(nameof(alertDescription));
+
+            m_alertDescription = (byte)alertDescription;
         }
 
         protected TlsFatalAlertReceived(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
+            m_alertDescription = info.GetByte("alertDescription");
+        }
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("alertDescription", m_alertDescription);
         }
 
         public virtual short AlertDescription

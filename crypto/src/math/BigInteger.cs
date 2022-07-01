@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.Serialization;
 using System.Text;
 
 using Org.BouncyCastle.Security;
@@ -9,9 +10,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math
 {
-#if !PORTABLE
     [Serializable]
-#endif
     public class BigInteger
     {
         // The first few odd primes
@@ -239,9 +238,21 @@ namespace Org.BouncyCastle.Math
 
         private int[] magnitude; // array of ints with [0] being the most significant
         private int sign; // -1 means -ve; +1 means +ve; 0 means 0;
+
+        [NonSerialized]
         private int nBits = -1; // cache BitCount() value
+        [NonSerialized]
         private int nBitLength = -1; // cache BitLength() value
+        [NonSerialized]
         private int mQuote = 0; // -m^(-1) mod b, b = 2^32 (see Montgomery mult.), 0 when uninitialised
+
+        [OnDeserialized]
+        private void OnDeserialized(StreamingContext context)
+        {
+            this.nBits = -1;
+            this.nBitLength = -1;
+            this.mQuote = 0;
+        }
 
         private static int GetByteLength(
             int nBits)

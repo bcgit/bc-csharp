@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Pkix
     public class PkixCertPathValidatorException
         : GeneralSecurityException
 	{
-		private readonly int m_index = -1;
+		protected readonly int m_index = -1;
 
 		public PkixCertPathValidatorException()
 			: base()
@@ -69,6 +69,13 @@ namespace Org.BouncyCastle.Pkix
 		protected PkixCertPathValidatorException(SerializationInfo info, StreamingContext context)
 			: base(info, context)
 		{
+			m_index = info.GetInt32("index");
+		}
+
+		public override void GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			base.GetObjectData(info, context);
+			info.AddValue("index", m_index);
 		}
 
 		/// <summary> eturns the index of the certificate in the certification path that caused the exception to be
