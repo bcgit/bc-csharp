@@ -576,9 +576,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             //F.Apm(b, e, f, g);
             F.Add(b, e, f);
             F.Sub(b, e, g);
-            F.Add(p.x, p.y, b);
-            F.Add(r.x, r.y, e);
-            F.Mul(b, e, h);
+            F.Add(p.y, p.x, h);
+            F.Add(r.y, r.x, e);
+            F.Mul(h, e, h);
             //F.Apm(d, c, b, e);
             F.Add(d, c, b);
             F.Sub(d, c, e);
@@ -611,9 +611,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             //F.Apm(b, e, f, g);
             F.Add(b, e, f);
             F.Sub(b, e, g);
-            F.Add(p.x, p.y, b);
-            F.Add(r.x, r.y, e);
-            F.Mul(b, e, h);
+            F.Add(p.y, p.x, h);
+            F.Add(r.y, r.x, e);
+            F.Mul(h, e, h);
             //F.Apm(d, c, b, e);
             F.Add(d, c, b);
             F.Sub(d, c, e);
@@ -636,31 +636,32 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] g = F.Create();
             uint[] h = F.Create();
 
-            uint[] px = F.Create();
+            uint[] nb, ne, nf, ng;
             if (negate)
             {
-                F.Negate(p.x, px);
+                nb = e; ne = b; nf = g; ng = f;
+                F.Sub(p.y, p.x, h);
             }
             else
             {
-                F.Copy(p.x, 0, px, 0);
+                nb = b; ne = e; nf = f; ng = g;
+                F.Add(p.y, p.x, h);
             }
 
             F.Sqr(r.z, b);
-            F.Mul(px, r.x, c);
+            F.Mul(p.x, r.x, c);
             F.Mul(p.y, r.y, d);
             F.Mul(c, d, e);
             F.Mul(e, -C_d, e);
-            //F.Apm(b, e, f, g);
-            F.Add(b, e, f);
-            F.Sub(b, e, g);
-            F.Add(px, p.y, b);
-            F.Add(r.x, r.y, e);
-            F.Mul(b, e, h);
-            //F.Apm(d, c, b, e);
-            F.Add(d, c, b);
-            F.Sub(d, c, e);
-            F.Carry(b);
+            //F.Apm(b, e, nf, ng);
+            F.Add(b, e, nf);
+            F.Sub(b, e, ng);
+            F.Add(r.y, r.x, e);
+            F.Mul(h, e, h);
+            //F.Apm(d, c, nb, ne);
+            F.Add(d, c, nb);
+            F.Sub(d, c, ne);
+            F.Carry(nb);
             F.Sub(h, b, h);
             F.Mul(h, r.z, h);
             F.Mul(e, r.z, e);
@@ -680,32 +681,33 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] g = F.Create();
             uint[] h = F.Create();
 
-            uint[] px = F.Create();
+            uint[] nb, ne, nf, ng;
             if (negate)
             {
-                F.Negate(p.x, px);
+                nb = e; ne = b; nf = g; ng = f;
+                F.Sub(p.y, p.x, h);
             }
             else
             {
-                F.Copy(p.x, 0, px, 0);
+                nb = b; ne = e; nf = f; ng = g;
+                F.Add(p.y, p.x, h);
             }
 
             F.Mul(p.z, r.z, a);
             F.Sqr(a, b);
-            F.Mul(px, r.x, c);
+            F.Mul(p.x, r.x, c);
             F.Mul(p.y, r.y, d);
             F.Mul(c, d, e);
             F.Mul(e, -C_d, e);
-            //F.Apm(b, e, f, g);
-            F.Add(b, e, f);
-            F.Sub(b, e, g);
-            F.Add(px, p.y, b);
-            F.Add(r.x, r.y, e);
-            F.Mul(b, e, h);
-            //F.Apm(d, c, b, e);
-            F.Add(d, c, b);
-            F.Sub(d, c, e);
-            F.Carry(b);
+            //F.Apm(b, e, nf, ng);
+            F.Add(b, e, nf);
+            F.Sub(b, e, ng);
+            F.Add(r.y, r.x, e);
+            F.Mul(h, e, h);
+            //F.Apm(d, c, nb, ne);
+            F.Add(d, c, nb);
+            F.Sub(d, c, ne);
+            F.Carry(nb);
             F.Sub(h, b, h);
             F.Mul(h, a, h);
             F.Mul(e, a, e);
@@ -838,7 +840,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             {
                 Init(out points[i]);
                 PointCopy(ref points[i - 1], ref points[i]);
-                PointAddVar(false, ref d, ref points[i]);
+                PointAdd(ref d, ref points[i]);
             }
         }
 
