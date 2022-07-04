@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
     /// Mike Hamburg, "Fast and compact elliptic-curve cryptography"</a>, notably the "signed multi-comb" algorithm (for
     /// scalar multiplication by a fixed point), the "half Niels coordinates" (for precomputed points), and the
     /// "extensible coordinates" (for accumulators). Standard
-    /// <a href="http://hyperelliptic.org/EFD/g1p/auto-twisted-extended.html">extended coordinates</a> are used during
+    /// <a href="https://hyperelliptic.org/EFD/g1p/auto-twisted-extended.html">extended coordinates</a> are used during
     /// precomputations, needing only a single extra point addition formula.
     /// </remarks>
     public static class Ed25519
@@ -941,9 +941,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 PointExtended[] points = new PointExtended[totalPoints];
                 PointTemp t; Init(out t);
 
-                PointAffine b;
-                b.x = B_x;
-                b.y = B_y;
+                PointAffine b; Init(out b);
+                F.Copy(B_x, 0, b.x, 0);
+                F.Copy(B_y, 0, b.y, 0);
 
                 PointPrecompute(ref b, points, wnafPoints, ref t);
 
