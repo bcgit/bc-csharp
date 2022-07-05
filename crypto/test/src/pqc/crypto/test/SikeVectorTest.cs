@@ -27,18 +27,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "PQCkemKAT_602.rsp" , SIKEParameters.sikep751_compressed }
         };
 
-        private static readonly string[] TestVectorFilesAll =
-        {
-            "PQCkemKAT_374.rsp",
-            "PQCkemKAT_434.rsp",
-            "PQCkemKAT_524.rsp",
-            "PQCkemKAT_644.rsp",
-            "PQCkemKAT_350.rsp",
-            "PQCkemKAT_407.rsp",
-            "PQCkemKAT_491.rsp",
-            "PQCkemKAT_602.rsp",
-        };
-
         private static readonly string[] TestVectorFilesBasic =
         {
             "PQCkemKAT_374.rsp",
@@ -54,28 +42,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             "PQCkemKAT_491.rsp",
             "PQCkemKAT_602.rsp",
         };
-        
+
         [TestCaseSource(nameof(TestVectorFilesBasic))]
-        //[Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All)]
         public void TestVectorsBasic(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
-        
+
         [TestCaseSource(nameof(TestVectorFilesCompressed))]
-        //[Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All)]
         public void TestVectorCompressed(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
-        
-        [TestCaseSource(nameof(TestVectorFilesAll))]
-        //[Parallelizable(ParallelScope.All)]
-        public void TestVectorAll(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
-        
+
         private static void RunTestVector(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
