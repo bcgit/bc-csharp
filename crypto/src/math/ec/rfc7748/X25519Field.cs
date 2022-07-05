@@ -5,7 +5,7 @@ using Org.BouncyCastle.Math.Raw;
 
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
-    public abstract class X25519Field
+    public static class X25519Field
     {
         public const int Size = 10;
 
@@ -17,8 +17,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0x7FFFFFFFU };
         private static readonly int[] RootNegOne = { 0x020EA0B0, 0x0386C9D2, 0x00478C4E, 0x0035697F, 0x005E8630,
             0x01FBD7A7, 0x0340264F, 0x01F0B2B4, 0x00027E0E, 0x00570649 };
-
-        protected X25519Field() {}
 
         public static void Add(int[] x, int[] y, int[] z)
         {

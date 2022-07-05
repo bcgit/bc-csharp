@@ -3,13 +3,14 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
+    using F = Rfc7748.X25519Field;
+
     /// <summary>
     /// A low-level implementation of the Ed25519, Ed25519ctx, and Ed25519ph instantiations of the Edwards-Curve Digital
     /// Signature Algorithm specified in <a href="https://www.rfc-editor.org/rfc/rfc8032">RFC 8032</a>.
@@ -32,8 +33,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Ed25519ctx = 1,
             Ed25519ph = 2,
         }
-
-        private class F : X25519Field {};
 
         private const long M08L = 0x000000FFL;
         private const long M28L = 0x0FFFFFFFL;

@@ -7,12 +7,12 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
-    public abstract class X448
+    using F = X448Field;
+
+    public static class X448
     {
         public const int PointSize = 56;
         public const int ScalarSize = 56;
-
-        private class F : X448Field {};
 
         private const uint C_A = 156326;
         private const uint C_A24 = (C_A + 2)/4;

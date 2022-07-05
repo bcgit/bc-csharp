@@ -6,7 +6,7 @@ using Org.BouncyCastle.Math.Raw;
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     [CLSCompliant(false)]
-    public abstract class X448Field
+    public static class X448Field
     {
         public const int Size = 16;
 
@@ -15,8 +15,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         private static readonly uint[] P32 = new uint[]{ 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
             0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFEU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
             0xFFFFFFFFU, 0xFFFFFFFFU };
-
-        protected X448Field() {}
 
         public static void Add(uint[] x, uint[] y, uint[] z)
         {

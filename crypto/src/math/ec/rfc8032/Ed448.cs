@@ -3,13 +3,14 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
+    using F = Rfc7748.X448Field;
+
     /// <summary>
     /// A low-level implementation of the Ed448 and Ed448ph instantiations of the Edwards-Curve Digital Signature
     /// Algorithm specified in <a href="https://www.rfc-editor.org/rfc/rfc8032">RFC 8032</a>.
@@ -29,8 +30,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Ed448 = 0,
             Ed448ph = 1,
         }
-
-        private class F : X448Field {};
 
         private const ulong M26UL = 0x03FFFFFFUL;
         private const ulong M28UL = 0x0FFFFFFFUL;
