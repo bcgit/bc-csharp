@@ -86,9 +86,19 @@ namespace Org.BouncyCastle.Asn1
         protected internal Asn1Sequence(Asn1Encodable element)
         {
             if (null == element)
-                throw new ArgumentNullException("element");
+                throw new ArgumentNullException(nameof(element));
 
             this.elements = new Asn1Encodable[]{ element };
+        }
+
+        protected internal Asn1Sequence(Asn1Encodable element1, Asn1Encodable element2)
+        {
+            if (null == element1)
+                throw new ArgumentNullException(nameof(element1));
+            if (null == element2)
+                throw new ArgumentNullException(nameof(element2));
+
+            this.elements = new Asn1Encodable[]{ element1, element2 };
         }
 
         protected internal Asn1Sequence(params Asn1Encodable[] elements)

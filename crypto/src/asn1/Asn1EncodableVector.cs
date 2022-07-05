@@ -42,6 +42,19 @@ namespace Org.BouncyCastle.Asn1
             this.copyOnWrite = false;
         }
 
+        public Asn1EncodableVector(Asn1Encodable element)
+            : this()
+        {
+            Add(element);
+        }
+
+        public Asn1EncodableVector(Asn1Encodable element1, Asn1Encodable element2)
+            : this()
+        {
+            Add(element1);
+            Add(element2);
+        }
+
         public Asn1EncodableVector(params Asn1Encodable[] v)
             : this()
         {
@@ -64,6 +77,12 @@ namespace Org.BouncyCastle.Asn1
             this.elementCount = minCapacity;
         }
 
+        public void Add(Asn1Encodable element1, Asn1Encodable element2)
+        {
+            Add(element1);
+            Add(element2);
+        }
+
         public void Add(params Asn1Encodable[] objs)
         {
             foreach (Asn1Encodable obj in objs)
@@ -72,15 +91,35 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        public void AddOptional(params Asn1Encodable[] objs)
+        public void AddOptional(Asn1Encodable element)
         {
-            if (objs != null)
+            if (element != null)
             {
-                foreach (Asn1Encodable obj in objs)
+                Add(element);
+            }
+        }
+
+        public void AddOptional(Asn1Encodable element1, Asn1Encodable element2)
+        {
+            if (element1 != null)
+            {
+                Add(element1);
+            }
+            if (element2 != null)
+            {
+                Add(element2);
+            }
+        }
+
+        public void AddOptional(params Asn1Encodable[] elements)
+        {
+            if (elements != null)
+            {
+                foreach (var element in elements)
                 {
-                    if (obj != null)
+                    if (element != null)
                     {
-                        Add(obj);
+                        Add(element);
                     }
                 }
             }
