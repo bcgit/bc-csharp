@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Tls
     public sealed class SecurityParameters
     {
         internal int m_entity = -1;
+        internal bool m_resumedSession = false;
         internal bool m_secureRenegotiation = false;
         internal int m_cipherSuite = Tls.CipherSuite.TLS_NULL_WITH_NULL_NULL;
         internal short m_maxFragmentLength = -1;
@@ -172,6 +173,11 @@ namespace Org.BouncyCastle.Tls
         public bool IsExtendedPadding
         {
             get { return m_extendedPadding; }
+        }
+
+        public bool IsResumedSession
+        {
+            get { return m_resumedSession; }
         }
 
         public bool IsSecureRenegotiation

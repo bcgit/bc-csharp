@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void Handle13HandshakeMessage(short type, HandshakeMessageInput buf)
         {
-            if (!IsTlsV13ConnectionState() || m_resumedSession)
+            if (!IsTlsV13ConnectionState())
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             switch (type)
@@ -335,6 +335,9 @@ namespace Org.BouncyCastle.Tls
             if (m_connectionState > CS_CLIENT_HELLO
                 && TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
             {
+                if (securityParameters.IsResumedSession)
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+
                 Handle13HandshakeMessage(type, buf);
                 return;
             }
@@ -342,7 +345,7 @@ namespace Org.BouncyCastle.Tls
             if (!IsLegacyConnectionState())
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            if (m_resumedSession)
+            if (securityParameters.IsResumedSession)
             {
                 if (type != HandshakeType.finished || m_connectionState != CS_SERVER_HELLO)
                     throw new TlsFatalAlert(AlertDescription.unexpected_message);
@@ -871,7 +874,7 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_negotiatedVersion = server_version;
             TlsUtilities.NegotiatedVersionTlsClient(m_tlsClientContext, m_tlsClient);
 
-            this.m_resumedSession = false;
+            securityParameters.m_resumedSession = false;
             securityParameters.m_sessionID = TlsUtilities.EmptyBytes;
             m_tlsClient.NotifySessionID(TlsUtilities.EmptyBytes);
 
@@ -926,7 +929,7 @@ namespace Org.BouncyCastle.Tls
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                 }
 
-                this.m_resumedSession = false;
+                securityParameters.m_resumedSession = false;
                 securityParameters.m_sessionID = TlsUtilities.EmptyBytes;
                 m_tlsClient.NotifySessionID(TlsUtilities.EmptyBytes);
 
@@ -1108,7 +1111,7 @@ namespace Org.BouncyCastle.Tls
                 byte[] selectedSessionID = serverHello.SessionID;
                 securityParameters.m_sessionID = selectedSessionID;
                 m_tlsClient.NotifySessionID(selectedSessionID);
-                this.m_resumedSession = selectedSessionID.Length > 0 && m_tlsSession != null
+                securityParameters.m_resumedSession = selectedSessionID.Length > 0 && m_tlsSession != null
                     && Arrays.AreEqual(selectedSessionID, m_tlsSession.SessionID);
             }
 
@@ -1166,7 +1169,7 @@ namespace Org.BouncyCastle.Tls
                      * extensions appearing in the client hello, and send a server hello containing no
                      * extensions[.]
                      */
-                    if (m_resumedSession)
+                    if (securityParameters.IsResumedSession)
                     {
                         // TODO[compat-gnutls] GnuTLS test server sends server extensions e.g. ec_point_formats
                         // TODO[compat-openssl] OpenSSL test server sends server extensions e.g. ec_point_formats
@@ -1227,11 +1230,12 @@ namespace Org.BouncyCastle.Tls
             {
                 bool acceptedExtendedMasterSecret = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(
                     m_serverExtensions);
+                bool resumedSession = securityParameters.IsResumedSession;
 
                 if (acceptedExtendedMasterSecret)
                 {
                     if (server_version.IsSsl
-                        || (!m_resumedSession && !m_tlsClient.ShouldUseExtendedMasterSecret()))
+                        || (!resumedSession && !m_tlsClient.ShouldUseExtendedMasterSecret()))
                     {
                         throw new TlsFatalAlert(AlertDescription.handshake_failure);
                     }
@@ -1239,7 +1243,7 @@ namespace Org.BouncyCastle.Tls
                 else
                 {
                     if (m_tlsClient.RequiresExtendedMasterSecret()
-                        || (m_resumedSession && !m_tlsClient.AllowLegacyResumption()))
+                        || (resumedSession && !m_tlsClient.AllowLegacyResumption()))
                     {
                         throw new TlsFatalAlert(AlertDescription.handshake_failure);
                     }
@@ -1259,7 +1263,7 @@ namespace Org.BouncyCastle.Tls
 
             var sessionClientExtensions = m_clientExtensions;
             var sessionServerExtensions = m_serverExtensions;
-            if (m_resumedSession)
+            if (securityParameters.IsResumedSession)
             {
                 if (securityParameters.CipherSuite != m_sessionParameters.CipherSuite
                     || !server_version.Equals(m_sessionParameters.NegotiatedVersion))
@@ -1298,7 +1302,7 @@ namespace Org.BouncyCastle.Tls
                  * TODO It's surprising that there's no provision to allow a 'fresh' CertificateStatus to be sent in
                  * a session resumption handshake.
                  */
-                if (!m_resumedSession)
+                if (!securityParameters.IsResumedSession)
                 {
                     // TODO[tls13] See RFC 8446 4.4.2.1
                     if (TlsUtilities.HasExpectedEmptyExtensionData(sessionServerExtensions,
@@ -1324,7 +1328,7 @@ namespace Org.BouncyCastle.Tls
 
             ApplyMaxFragmentLengthExtension(securityParameters.MaxFragmentLength);
 
-            if (m_resumedSession)
+            if (securityParameters.IsResumedSession)
             {
                 securityParameters.m_masterSecret = m_sessionMasterSecret;
                 m_recordStream.SetPendingCipher(TlsUtilities.InitCipher(m_tlsClientContext));
@@ -1397,7 +1401,7 @@ namespace Org.BouncyCastle.Tls
 
             var sessionClientExtensions = m_clientExtensions;
             var sessionServerExtensions = m_serverExtensions;
-            if (m_resumedSession)
+            if (securityParameters.IsResumedSession)
             {
                 if (securityParameters.CipherSuite != m_sessionParameters.CipherSuite
                     || !negotiatedVersion.Equals(m_sessionParameters.NegotiatedVersion))

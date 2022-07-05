@@ -150,7 +150,6 @@ namespace Org.BouncyCastle.Tls
         protected IDictionary<int, byte[]> m_serverExtensions = null;
 
         protected short m_connectionState = CS_START;
-        protected bool m_resumedSession = false;
         protected bool m_selectedPsk13 = false;
         protected bool m_receivedChangeCipherSpec = false;
         protected bool m_expectSessionTicket = false;
@@ -361,7 +360,6 @@ namespace Org.BouncyCastle.Tls
 
             this.m_handshakeHash = new DeferredHash(context);
             this.m_connectionState = CS_START;
-            this.m_resumedSession = false;
             this.m_selectedPsk13 = false;
 
             context.HandshakeBeginning(peer);
@@ -392,7 +390,6 @@ namespace Org.BouncyCastle.Tls
             this.m_clientExtensions = null;
             this.m_serverExtensions = null;
 
-            this.m_resumedSession = false;
             this.m_selectedPsk13 = false;
             this.m_receivedChangeCipherSpec = false;
             this.m_expectSessionTicket = false;
@@ -1320,9 +1317,8 @@ namespace Org.BouncyCastle.Tls
                     return false;
 
                 /*
-                 * NOTE: For session resumption without extended_master_secret, renegotiation MUST be
-                 * disabled (see RFC 7627 5.4). We currently do not implement renegotiation and it is
-                 * unlikely we ever would since it was removed in TLS 1.3.
+                 * NOTE: For session resumption without extended_master_secret, renegotiation MUST be disabled
+                 * (see RFC 7627 5.4).
                  */
             }
 
@@ -1385,7 +1381,7 @@ namespace Org.BouncyCastle.Tls
 
             securityParameters.m_peerVerifyData = expected_verify_data;
 
-            if (!m_resumedSession || securityParameters.IsExtendedMasterSecret)
+            if (!securityParameters.IsResumedSession || securityParameters.IsExtendedMasterSecret)
             {
                 if (null == securityParameters.LocalVerifyData)
                 {
@@ -1553,7 +1549,7 @@ namespace Org.BouncyCastle.Tls
 
             securityParameters.m_localVerifyData = verify_data;
 
-            if (!m_resumedSession || securityParameters.IsExtendedMasterSecret)
+            if (!securityParameters.IsResumedSession || securityParameters.IsExtendedMasterSecret)
             {
                 if (null == securityParameters.PeerVerifyData)
                 {
@@ -1660,9 +1656,9 @@ namespace Org.BouncyCastle.Tls
             short maxFragmentLength = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(serverExtensions);
             if (maxFragmentLength >= 0)
             {
-                if (!MaxFragmentLength.IsValid(maxFragmentLength)
-                    || (!m_resumedSession &&
-                        maxFragmentLength != TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions)))
+                if (!MaxFragmentLength.IsValid(maxFragmentLength) ||
+                (clientExtensions != null &&
+                    maxFragmentLength != TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions)))
                 {
                     throw new TlsFatalAlert(alertDescription);
                 }

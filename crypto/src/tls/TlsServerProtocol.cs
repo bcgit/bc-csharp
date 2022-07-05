@@ -226,6 +226,7 @@ namespace Org.BouncyCastle.Tls
                  */
                 {
                     // TODO[tls13] Resumption/PSK
+                    securityParameters.m_resumedSession = false;
 
                     this.m_tlsSession = TlsUtilities.ImportSession(TlsUtilities.EmptyBytes, null);
                     this.m_sessionParameters = null;
@@ -314,8 +315,9 @@ namespace Org.BouncyCastle.Tls
 
             if (serverEncryptedExtensions.Count > 0)
             {
-                securityParameters.m_maxFragmentLength = ProcessMaxFragmentLengthExtension(clientHelloExtensions,
-                    serverEncryptedExtensions, AlertDescription.internal_error);
+                securityParameters.m_maxFragmentLength = ProcessMaxFragmentLengthExtension(
+                    securityParameters.IsResumedSession ? null : clientHelloExtensions, serverEncryptedExtensions,
+                    AlertDescription.internal_error);
             }
 
             securityParameters.m_encryptThenMac = false;
@@ -546,9 +548,10 @@ namespace Org.BouncyCastle.Tls
                 m_tlsServer.ProcessClientExtensions(m_clientExtensions);
             }
 
-            this.m_resumedSession = EstablishSession(m_tlsServer.GetSessionToResume(clientHello.SessionID));
+            bool resumedSession = EstablishSession(m_tlsServer.GetSessionToResume(clientHello.SessionID));
+            securityParameters.m_resumedSession = resumedSession;
 
-            if (!m_resumedSession)
+            if (!resumedSession)
             {
                 byte[] newSessionID = m_tlsServer.GetNewSessionID();
                 if (null == newSessionID)
@@ -568,7 +571,7 @@ namespace Org.BouncyCastle.Tls
             TlsUtilities.NegotiatedVersionTlsServer(m_tlsServerContext);
 
             {
-                int cipherSuite = m_resumedSession
+                int cipherSuite = resumedSession
                     ?   m_sessionParameters.CipherSuite
                     :   m_tlsServer.GetSelectedCipherSuite();
 
@@ -584,7 +587,7 @@ namespace Org.BouncyCastle.Tls
             m_tlsServerContext.SetRsaPreMasterSecretVersion(clientLegacyVersion);
 
             {
-                var sessionServerExtensions = m_resumedSession
+                var sessionServerExtensions = resumedSession
                     ?   m_sessionParameters.ReadServerExtensions()
                     :   m_tlsServer.GetServerExtensions();
 
@@ -628,7 +631,7 @@ namespace Org.BouncyCastle.Tls
              * RFC 7627 4. Clients and servers SHOULD NOT accept handshakes that do not use the extended
              * master secret [..]. (and see 5.2, 5.3)
              */
-            if (m_resumedSession)
+            if (resumedSession)
             {
                 if (!m_sessionParameters.IsExtendedMasterSecret)
                 {
@@ -669,13 +672,13 @@ namespace Org.BouncyCastle.Tls
                 securityParameters.m_encryptThenMac = TlsExtensionsUtilities.HasEncryptThenMacExtension(
                     m_serverExtensions);
 
-                securityParameters.m_maxFragmentLength = ProcessMaxFragmentLengthExtension(m_clientExtensions,
-                    m_serverExtensions, AlertDescription.internal_error);
+                securityParameters.m_maxFragmentLength = ProcessMaxFragmentLengthExtension(
+                    resumedSession ? null : m_clientExtensions, m_serverExtensions, AlertDescription.internal_error);
 
                 securityParameters.m_truncatedHmac = TlsExtensionsUtilities.HasTruncatedHmacExtension(
                     m_serverExtensions);
 
-                if (!m_resumedSession)
+                if (!resumedSession)
                 {
                     if (TlsUtilities.HasExpectedEmptyExtensionData(m_serverExtensions, ExtensionType.status_request_v2,
                         AlertDescription.internal_error))
@@ -720,16 +723,12 @@ namespace Org.BouncyCastle.Tls
             if (!IsTlsV13ConnectionState())
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            if (m_resumedSession)
-            {
-                /*
-                 * TODO[tls13] Abbreviated handshakes (PSK resumption)
-                 * 
-                 * NOTE: No CertificateRequest, Certificate, CertificateVerify messages, but client
-                 * might now send EndOfEarlyData after receiving server Finished message.
-                 */
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
+            /*
+             * TODO[tls13] Abbreviated handshakes (PSK resumption)
+             * 
+             * NOTE: No CertificateRequest, Certificate, CertificateVerify messages, but client
+             * might now send EndOfEarlyData after receiving server Finished message.
+             */
 
             switch (type)
             {
@@ -857,6 +856,9 @@ namespace Org.BouncyCastle.Tls
             if (m_connectionState > CS_CLIENT_HELLO
                 && TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
             {
+                if (securityParameters.IsResumedSession)
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+
                 Handle13HandshakeMessage(type, buf);
                 return;
             }
@@ -864,7 +866,7 @@ namespace Org.BouncyCastle.Tls
             if (!IsLegacyConnectionState())
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            if (m_resumedSession)
+            if (securityParameters.IsResumedSession)
             {
                 if (type != HandshakeType.finished || m_connectionState != CS_SERVER_FINISHED)
                     throw new TlsFatalAlert(AlertDescription.unexpected_message);
@@ -933,7 +935,7 @@ namespace Org.BouncyCastle.Tls
                     SendServerHelloMessage(serverHello);
                     this.m_connectionState = CS_SERVER_HELLO;
 
-                    if (m_resumedSession)
+                    if (securityParameters.IsResumedSession)
                     {
                         securityParameters.m_masterSecret = m_sessionMasterSecret;
                         m_recordStream.SetPendingCipher(TlsUtilities.InitCipher(m_tlsServerContext));
