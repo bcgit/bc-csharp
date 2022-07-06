@@ -6,7 +6,7 @@ using Org.BouncyCastle.Asn1.BC;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.Bouncycastle.Pqc.Crypto.Sike;
+using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities

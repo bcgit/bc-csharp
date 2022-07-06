@@ -1,7 +1,5 @@
-namespace Org.Bouncycastle.Pqc.Crypto.Sike
+namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-
-
 public class PointProjFull
 {
     internal PointProjFull(uint nwords_field)
@@ -14,5 +12,4 @@ public class PointProjFull
     public ulong[][] Y;
     public ulong[][] Z;
 }
-
 }

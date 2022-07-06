@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Org.Bouncycastle.Pqc.Crypto.Sike
+namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
     
 public class P503

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using NUnit.Framework;
+
 using Org.BouncyCastle.Crypto;
-using Org.Bouncycastle.Pqc.Crypto.Sike;
-using Org.BouncyCastle.Pqc.Crypto.Utilities;
+using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;

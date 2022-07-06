@@ -1,6 +1,6 @@
 using Org.BouncyCastle.Crypto;
 
-namespace Org.Bouncycastle.Pqc.Crypto.Sike
+namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
     public class SIKEKEMExtractor
         : IEncapsulatedSecretExtractor

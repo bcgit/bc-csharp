@@ -1,9 +1,8 @@
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
-namespace Org.Bouncycastle.Pqc.Crypto.Sike
+namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    
 public class SIKEKeyGenerationParameters
     : KeyGenerationParameters
 {

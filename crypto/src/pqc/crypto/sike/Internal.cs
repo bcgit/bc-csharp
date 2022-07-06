@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace Org.Bouncycastle.Pqc.Crypto.Sike
+namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
                 
         public abstract class Internal

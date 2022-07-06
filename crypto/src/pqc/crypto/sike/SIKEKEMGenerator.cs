@@ -2,10 +2,8 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 
-namespace Org.Bouncycastle.Pqc.Crypto.Sike
+namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-
-
 public class SIKEKEMGenerator
     : IEncapsulatedSecretGenerator
 {

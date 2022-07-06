@@ -1,8 +1,7 @@
 using Org.BouncyCastle.Utilities;
 
-namespace Org.Bouncycastle.Pqc.Crypto.Sike
+namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-
 public class SIKEPublicKeyParameters
     : SIKEKeyParameters
 {

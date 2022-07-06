@@ -1,11 +1,7 @@
-namespace Org.Bouncycastle.Pqc.Crypto.Sike
+namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-
-
-
 public class SIDH
 {
-
     private SIKEEngine engine;
 
     public SIDH(SIKEEngine engine)
