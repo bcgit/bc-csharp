@@ -102,11 +102,10 @@ public class SIKEEngine
             // todo/org: SIDH.random_mod_order_B(sk, random);
             byte[] random_digits = new byte[param.SECRETKEY_B_BYTES];
             random.NextBytes(random_digits);
-            random_digits[param.SECRETKEY_B_BYTES-1] &= (byte) param.MASK_BOB;
+            random_digits[param.SECRETKEY_B_BYTES-1] &= (byte)param.MASK_BOB;
 
             System.Array.Copy(s, 0, sk, 0, param.MSG_BYTES);
             System.Array.Copy(random_digits, 0, sk, param.MSG_BYTES, param.SECRETKEY_B_BYTES);
-            ///
 
             sidh.EphemeralKeyGeneration_B(sk, pk);
             System.Array.Copy(pk, 0, sk, param.MSG_BYTES + param.SECRETKEY_B_BYTES, param.CRYPTO_PUBLICKEYBYTES);

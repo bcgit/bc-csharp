@@ -89,8 +89,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
             Pack.UInt32_To_BE(type, value, OFFSET_TYPE);
         }
-        
-        public uint GetType()
+
+        public new uint GetType()
         {
             return Pack.BE_To_UInt32(value, OFFSET_TYPE);
         }

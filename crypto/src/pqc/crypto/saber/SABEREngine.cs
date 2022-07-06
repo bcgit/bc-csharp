@@ -441,15 +441,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         /* returns 0 for equal strings, 1 for non-equal strings */
         static int verify(byte[] a, byte[] b, int len)
         {
-            long r;
-            int i;
-            r = 0;
-
-            for (i = 0; i < len; i++)
+            int r = 0;
+            for (int i = 0; i < len; i++)
+            {
                 r |= a[i] ^ b[i];
-
-            r = (-r) >> 63;
-            return (int) r;
+            }
+            return (int)((uint)-r >> 31);
         }
 
         /* b = 1 means mov, b = 0 means don't mov*/

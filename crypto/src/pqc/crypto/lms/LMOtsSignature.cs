@@ -76,8 +76,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             return y;
         }
-        
-        public bool Equals(Object o)
+
+        public override bool Equals(object o)
         {
             if (this == o)
             {

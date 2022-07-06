@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
 		/// <summary>Allow enumeration of the key rings associated with the passed in userId.</summary>
-		/// <param name="userId">The user ID to be matched.</param>
+		/// <param name="userID">The user ID to be matched.</param>
 		/// <param name="matchPartial">If true, userId need only be a substring of an actual ID string to match.</param>
 		/// <param name="ignoreCase">If true, case is ignored in user ID comparisons.</param>
 		/// <returns>An <c>IEnumerable</c> of key rings which matched (possibly none).</returns>
