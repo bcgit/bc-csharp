@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         public SPHINCSPlusPrivateKeyParameters(SPHINCSPlusParameters parameters, byte[] skpkEncoded)
             : base(true, parameters)
         {
-            int n = parameters.Engine.N;
+            int n = parameters.N;
             if (skpkEncoded.Length != 4 * n)
             {
                 throw new ArgumentException("private key encoding does not match parameters");
