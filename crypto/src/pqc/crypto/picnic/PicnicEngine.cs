@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         protected internal int numMPCParties; // N
         protected internal int seedSizeBytes;
         protected internal int digestSizeBytes;
-        static int pqSecurityLevel;
+        protected internal int pqSecurityLevel;
 
 
 
@@ -1403,7 +1403,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
                 if (!SubarrayEquals(temp, pubKey, stateSizeWords))
                 {
-                    Console.Error.Write("Simulation failed; output does not match public key (round = %d)\n", k);
+                    Console.Error.WriteLine("Simulation failed; output does not match public key (round = " + k + ")");
                     return -1;
                 }
 
