@@ -22,9 +22,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private String name;
         private int param;
-
-        //todo make private
-        public PicnicParameters(String name, int param)
+        private PicnicParameters(String name, int param)
         {
             this.name = name;
             this.param = param;
