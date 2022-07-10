@@ -92,5 +92,7 @@ namespace Org.BouncyCastle.Asn1.Misc
         //
         // Scrypt
         public static readonly DerObjectIdentifier id_scrypt = new DerObjectIdentifier("1.3.6.1.4.1.11591.4.11");
+
+        public static readonly DerObjectIdentifier id_oracle_pkcs12_trusted_key_usage = new DerObjectIdentifier("2.16.840.1.113894.746875.1.1");
     }
 }
