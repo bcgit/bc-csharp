@@ -9,6 +9,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     public class PicnicEngine
     {
+        // same for all parameter sets
+        protected internal static readonly int saltSizeBytes = 32;
+        private static readonly uint MAX_DIGEST_SIZE = 64;
+
+        private static readonly int WORD_SIZE_BITS = 32; // the word size for the implementation. Not a LowMC parameter
+        private static readonly uint LOWMC_MAX_STATE_SIZE = 64;
+        protected internal static readonly uint LOWMC_MAX_WORDS = (LOWMC_MAX_STATE_SIZE / 4);
+        protected internal static readonly uint LOWMC_MAX_KEY_BITS = 256;
+        protected internal static readonly uint LOWMC_MAX_AND_GATES = (3 * 38 * 10 + 4); /* Rounded to nearest byte */
+        private static readonly uint MAX_AUX_BYTES = ((LOWMC_MAX_AND_GATES + LOWMC_MAX_KEY_BITS) / 8 + 1);
+
+        /* Maximum lengths in bytes */
+        private static readonly uint PICNIC_MAX_LOWMC_BLOCK_SIZE = 32;
+        private static readonly uint PICNIC_MAX_PUBLICKEY_SIZE = (2 * PICNIC_MAX_LOWMC_BLOCK_SIZE + 1);
+
+        /** Largest serialized public key size, in bytes */
+        private static readonly uint PICNIC_MAX_PRIVATEKEY_SIZE = (3 * PICNIC_MAX_LOWMC_BLOCK_SIZE + 2);
+
+        /** Largest serialized private key size, in bytes */
+        private static readonly uint PICNIC_MAX_SIGNATURE_SIZE = 209522;
+
+        /** Largest signature size, in bytes */
+
+        private static readonly uint TRANSFORM_FS = 0;
+
+        private static readonly uint TRANSFORM_UR = 1;
+        private static readonly uint TRANSFORM_INVALID = 255;
 
         /// parameters
         private int CRYPTO_SECRETKEYBYTES;
@@ -33,36 +60,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         protected internal int seedSizeBytes;
         protected internal int digestSizeBytes;
         protected internal int pqSecurityLevel;
-
-
-
-        // same for all parameter sets
-        protected internal static int saltSizeBytes = 32;
-        private static uint MAX_DIGEST_SIZE = 64;
-
-        private static int WORD_SIZE_BITS = 32; // the word size for the implementation. Not a LowMC parameter
-        private static uint LOWMC_MAX_STATE_SIZE = 64;
-        protected internal static uint LOWMC_MAX_WORDS = (LOWMC_MAX_STATE_SIZE / 4);
-        protected internal static uint LOWMC_MAX_KEY_BITS = 256;
-        protected internal static uint LOWMC_MAX_AND_GATES = (3 * 38 * 10 + 4); /* Rounded to nearest byte */
-        private static  uint MAX_AUX_BYTES = ((LOWMC_MAX_AND_GATES + LOWMC_MAX_KEY_BITS) / 8 + 1);
-
-        /* Maximum lengths in bytes */
-        private static uint PICNIC_MAX_LOWMC_BLOCK_SIZE = 32;
-        private static uint PICNIC_MAX_PUBLICKEY_SIZE = (2 * PICNIC_MAX_LOWMC_BLOCK_SIZE + 1);
-
-        /** Largest serialized public key size, in bytes */
-        private static uint PICNIC_MAX_PRIVATEKEY_SIZE = (3 * PICNIC_MAX_LOWMC_BLOCK_SIZE + 2);
-
-        /** Largest serialized private key size, in bytes */
-        private static uint PICNIC_MAX_SIGNATURE_SIZE = 209522;
-
-        /** Largest signature size, in bytes */
-
-        private static uint TRANSFORM_FS = 0;
-
-        private static uint TRANSFORM_UR = 1;
-        private static uint TRANSFORM_INVALID = 255;
 
         ///
         private uint transform;
