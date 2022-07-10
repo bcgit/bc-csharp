@@ -828,12 +828,33 @@ namespace Org.BouncyCastle.Pkcs
                             new DerSet(new DerBmpString(certId))));
                 }
 
+                // the Oracle PKCS12 parser looks for a trusted key usage for named certificates as well
                 if (cert[MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage] == null)
                 {
-                    fName.Add(
-                        new DerSequence(
-                            MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage,
-                            new DerSet(KeyPurposeID.AnyExtendedKeyUsage)));
+                    Asn1OctetString ext = cert.Certificate.GetExtensionValue(X509Extensions.ExtendedKeyUsage);
+          
+                    if (ext != null)
+                    {
+                        ExtendedKeyUsage usage = ExtendedKeyUsage.GetInstance(ext.GetOctets());
+                        Asn1EncodableVector v = new Asn1EncodableVector();
+                        IList<DerObjectIdentifier> usages = usage.GetAllUsages();
+                        for (int i = 0; i != usages.Count; i++)
+                        {
+                            v.Add(usages[i]);
+                        }
+                       
+                        fName.Add(
+                            new DerSequence(
+                                MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage,
+                                new DerSet(v)));
+                    }
+                    else
+                    {
+                        fName.Add(
+                            new DerSequence(
+                                MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage,
+                                new DerSet(KeyPurposeID.AnyExtendedKeyUsage)));
+                    }
                 }
 
                 certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), new DerSet(fName)));
