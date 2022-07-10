@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             // # Output: SPHINCS+ signature SIG
             // init
 
-            SPHINCSPlusEngine engine = privKey.GetParameters().Engine;
+            SPHINCSPlusEngine engine = privKey.GetParameters().GetEngine();
 
             // generate randomizer
             byte[] optRand = new byte[engine.N];
@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             //# Output: bool
 
             // init
-            SPHINCSPlusEngine engine = pubKey.GetParameters().Engine;
+            SPHINCSPlusEngine engine = pubKey.GetParameters().GetEngine();
 
             Adrs adrs = new Adrs();
             SIG sig = new SIG(engine.N, engine.K, engine.A, engine.D, engine.H_PRIME, engine.WOTS_LEN, signature);

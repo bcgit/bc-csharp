@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            SPHINCSPlusEngine engine = parameters.Engine;
+            SPHINCSPlusEngine engine = parameters.GetEngine();
 
             SK sk = new SK(SecRand(engine.N), SecRand(engine.N));
             byte[] pkSeed = SecRand(engine.N);

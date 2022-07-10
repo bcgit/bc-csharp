@@ -21,13 +21,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         public static PicnicParameters picnicl5full = new PicnicParameters("picnicl5full", 12);
 
         private String name;
-        private PicnicEngine engine;
-
-        //todo make private
-        public PicnicParameters(String name, int param)
+        private int param;
+        private PicnicParameters(String name, int param)
         {
             this.name = name;
-            this.engine = new PicnicEngine(param);
+            this.param = param;
         }
 
         public String GetName()
@@ -35,9 +33,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return name;
         }
 
-        public PicnicEngine GetEngine()
+        internal PicnicEngine GetEngine()
         {
-            return engine;
+            return new PicnicEngine(param);
         }
     }
 }

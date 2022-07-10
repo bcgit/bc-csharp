@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         public SPHINCSPlusPublicKeyParameters(SPHINCSPlusParameters parameters, byte[] pkEncoded)
             : base(false, parameters)
         {
-            int n = parameters.Engine.N;
+            int n = parameters.N;
             if (pkEncoded.Length != 2 * n)
             {
                 throw new ArgumentException("public key encoding does not match parameters");
