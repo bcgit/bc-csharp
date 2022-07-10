@@ -827,6 +827,14 @@ namespace Org.BouncyCastle.Pkcs
                             new DerSet(new DerBmpString(certId))));
                 }
 
+                if (cert[MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage] == null)
+                {
+                    fName.Add(
+                        new DerSequence(
+                            MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage,
+                            new DerSet(KeyPurposeID.AnyExtendedKeyUsage)));
+                }
+
                 certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), new DerSet(fName)));
 
                 doneCerts.Add(cert.Certificate);
