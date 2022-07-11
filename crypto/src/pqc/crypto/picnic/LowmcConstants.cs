@@ -207,15 +207,16 @@ public sealed class LowmcConstants
     // Functions to return individual matricies and round constants
 
     /* Return a pointer to the r-th matrix. The caller must know the dimensions */
-    private KMatrices GET_MAT(KMatrices m, int r)
+    private KMatricesWithPointer GET_MAT(KMatrices m, int r)
     {
-        m.SetMatrixPointer(r*m.GetSize());
-        return m;
+        KMatricesWithPointer mwp = new KMatricesWithPointer(m);
+        mwp.SetMatrixPointer(r*mwp.GetSize());
+        return mwp;
     }
 
 
     /* Return the LowMC linear matrix for this round */
-    internal KMatrices LMatrix(PicnicEngine engine, int round)
+    internal KMatricesWithPointer LMatrix(PicnicEngine engine, int round)
     {
 
         if(engine.stateSizeBits == 128)
@@ -252,7 +253,7 @@ public sealed class LowmcConstants
     }
 
     /* Return the LowMC inverse linear layer matrix for this round */
-    internal KMatrices LMatrixInv(PicnicEngine engine, int round)
+    internal KMatricesWithPointer LMatrixInv(PicnicEngine engine, int round)
     {
         if(engine.stateSizeBits == 129)
         {
@@ -273,7 +274,7 @@ public sealed class LowmcConstants
     }
 
     /* Return the LowMC key matrix for this round */
-    internal KMatrices KMatrix(PicnicEngine engine, int round)
+    internal KMatricesWithPointer KMatrix(PicnicEngine engine, int round)
     {
         if(engine.stateSizeBits == 128)
         {
@@ -309,7 +310,7 @@ public sealed class LowmcConstants
     }
 
     /* Return the LowMC inverse key matrix for this round */
-    internal KMatrices KMatrixInv(PicnicEngine engine, int round)
+    internal KMatricesWithPointer KMatrixInv(PicnicEngine engine, int round)
     {
         if(engine.stateSizeBits == 129)
         {
@@ -331,7 +332,7 @@ public sealed class LowmcConstants
 
 
     /* Return the LowMC round constant for this round */
-    internal KMatrices RConstant(PicnicEngine engine, int round)
+    internal KMatricesWithPointer RConstant(PicnicEngine engine, int round)
     {
         if(engine.stateSizeBits == 128)
         {

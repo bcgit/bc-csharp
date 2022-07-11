@@ -57,7 +57,7 @@ public class Tape
 //        {System.out.printf("%08x ", key0[i]);}System.out.Println();
 
         // key = key0 x KMatrix[0]^(-1)
-        KMatrices current = LowmcConstants.Instance.KMatrixInv(engine, 0);
+        KMatricesWithPointer current = LowmcConstants.Instance.KMatrixInv(engine, 0);
         engine.matrix_mul(key, key0, current.GetData(), current.GetMatrixPointer());
 
 //        System.out.print("key: ");

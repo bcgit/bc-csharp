@@ -53,14 +53,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         };
 
         [TestCaseSource(nameof(TestVectorFilesBasic))]
-        //[Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All)]
         public void TestVectorsBasic(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);
         }
 
         [Explicit, TestCaseSource(nameof(TestVectorFilesExtra))]
-        //[Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All)]
         public void TestVectorsExtra(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile);

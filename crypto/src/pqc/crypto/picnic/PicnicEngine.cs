@@ -556,7 +556,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             mpc_xor_constant_verify(tmp, plaintext, 0, stateSizeWords, challenge);
 
-            KMatrices current = LowmcConstants.Instance.KMatrix(this, 0);
+            KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
             matrix_mul_offset(tmp, 0,
                 view1.inputShare, 0,
                 current.GetData(), current.GetMatrixPointer());
@@ -1617,7 +1617,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             mpc_xor_constant(slab, 3 * stateSizeWords, plaintext, 0, stateSizeWords);
 
-            KMatrices current = LowmcConstants.Instance.KMatrix(this, 0);
+            KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
             for (int player = 0; player < 3; player++)
             {
                 matrix_mul_offset(slab, player * stateSizeWords, views[player].inputShare, 0,
@@ -2146,7 +2146,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint[] roundKey = new uint[LOWMC_MAX_WORDS];
             uint[] state = new uint[LOWMC_MAX_WORDS];
 
-            KMatrices current = LowmcConstants.Instance.KMatrix(this, 0);
+            KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
             matrix_mul(roundKey, maskedKey, current.GetData(),
                 current.GetMatrixPointer()); // roundKey = maskedKey * KMatrix[0]
             xor_array(state, roundKey, plaintext, 0, stateSizeWords); // state = plaintext + roundKey
@@ -2493,7 +2493,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 System.Array.Copy(plaintext, 0, output, 0, stateSizeWords);
             }
 
-            KMatrices current = LowmcConstants.Instance.KMatrix(this, 0);
+            KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
             matrix_mul(roundKey, key, current.GetData(), current.GetMatrixPointer());
 
             xor_array(output, output, roundKey, 0, stateSizeWords);
