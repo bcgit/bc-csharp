@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
+using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -80,11 +81,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
             // todo
-            // SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
-            // SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
+            SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)PublicKeyFactory.CreateKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
+            SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
 
-            SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)kp.Public;
-            SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)kp.Private;
+            // SIKEPublicKeyParameters pubParams = (SIKEPublicKeyParameters)kp.Public;
+            // SIKEPrivateKeyParameters privParams = (SIKEPrivateKeyParameters)kp.Private;
 
             // Console.WriteLine(Hex.ToHexString(pk));
             // Console.WriteLine(Hex.ToHexString(pubParams.GetEncoded()));

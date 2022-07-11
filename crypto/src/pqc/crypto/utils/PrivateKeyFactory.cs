@@ -13,6 +13,7 @@ using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
+using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -96,6 +97,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 PicnicParameters picnicParams = PqcUtilities.PicnicParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
 
                 return new PicnicPrivateKeyParameters(picnicParams, keyEnc);
+            }
+            if (algOID.On(BCObjectIdentifiers.pqc_kem_sike))
+            {
+                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
+                SIKEParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
+
+                return new SIKEPrivateKeyParameters(sikeParams, keyEnc);
             }
             
             
