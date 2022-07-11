@@ -103,11 +103,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             signer.Init(true, privParams);
             byte[] sigGenerated = signer.GenerateSignature(msg);
-            Assert.True(smlen == sigGenerated.Length, name + " " + count + ": signature length");
+            byte[] attachedSig = Arrays.ConcatenateAll(UInt32_To_LE((uint)sigGenerated.Length), msg, sigGenerated);
+            
+            Assert.True(smlen == attachedSig.Length, name + " " + count + ": signature length");
 
             signer.Init(false, pubParams);
-            Assert.True(signer.VerifySignature(msg, sigGenerated), (name + " " + count + ": signature verify"));
-            Assert.True(Arrays.AreEqual(sigExpected, sigGenerated), name + " " + count + ": signature gen match");
+            Assert.True(signer.VerifySignature(msg, attachedSig), (name + " " + count + ": signature verify"));
+            Assert.True(Arrays.AreEqual(sigExpected, attachedSig), name + " " + count + ": signature gen match");
+        }
+
+        private static byte[] UInt32_To_LE(uint n)
+        {
+            byte[] bs = new byte[4];
+            bs[0] = (byte)(n);
+            bs[1] = (byte)(n >> 8);
+            bs[2] = (byte)(n >> 16);
+            bs[3] = (byte)(n >> 24);
+            return bs;
         }
 
         private static void RunTestVectorFile(string name)

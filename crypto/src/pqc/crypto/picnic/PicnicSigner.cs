@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             byte[] sig = new byte[engine.GetSignatureSize(message.Length)];
             engine.crypto_sign(sig, message, privKey.GetEncoded());
 
-            return Arrays.CopyOfRange(sig, 0, message.Length + engine.GetTrueSignatureSize());
+            return Arrays.CopyOfRange(sig, message.Length + 4,  engine.GetTrueSignatureSize() + message.Length);
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)
