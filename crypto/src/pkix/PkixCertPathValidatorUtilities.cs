@@ -1042,23 +1042,9 @@ namespace Org.BouncyCastle.Pkix
 			return certs;
 		}
 
-		/// <summary>
-		/// Extract the value of the given extension, if it exists.
-		/// </summary>
-		/// <param name="ext">The extension object.</param>
-		/// <param name="oid">The object identifier to obtain.</param>
-		/// <returns>Asn1Object</returns>
-		/// <exception cref="Exception">if the extension cannot be read.</exception>
-		internal static Asn1Object GetExtensionValue(
-			IX509Extension		ext,
-			DerObjectIdentifier	oid)
+		internal static Asn1Object GetExtensionValue(IX509Extension extensions, DerObjectIdentifier oid)
 		{
-			Asn1OctetString bytes = ext.GetExtensionValue(oid);
-
-			if (bytes == null)
-				return null;
-
-			return X509ExtensionUtilities.FromExtensionValue(bytes);
+			return X509ExtensionUtilities.FromExtensionValue(extensions, oid);
 		}
 	}
 }
