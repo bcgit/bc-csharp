@@ -402,18 +402,21 @@ namespace Org.BouncyCastle.Tests
                     (byte)0xc2, (byte)0xf0, (byte)0x6c, (byte)0xb5, (byte)0x8f
             };
 
-            public override void NextBytes(
-                byte[] bytes)
+            public override void NextBytes(byte[] buf)
             {
-                int offset = 0;
+                NextBytes(buf, 0, buf.Length);
+            }
 
-                while ((offset + seed.Length) < bytes.Length)
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                int pos = 0;
+                while ((pos + seed.Length) < len)
                 {
-                    Array.Copy(seed, 0, bytes, offset, seed.Length);
-                    offset += seed.Length;
+                    Array.Copy(seed, 0, buf, off + pos, seed.Length);
+                    pos += seed.Length;
                 }
 
-                Array.Copy(seed, 0, bytes, offset, bytes.Length- offset);
+                Array.Copy(seed, 0, buf, off + pos, len - pos);
             }
         }
 

@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     *
 	     * @return number of bits generated, -1 if a reseed required.
 	     */
-	    int Generate(byte[] output, byte[] additionalInput, bool predictionResistant);
+	    int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput, bool predictionResistant);
 
 	    /**
 	     * Reseed the DRBG.

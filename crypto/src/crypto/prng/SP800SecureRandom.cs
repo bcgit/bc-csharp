@@ -49,6 +49,11 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         public override void NextBytes(byte[] bytes)
         {
+            NextBytes(bytes, 0, bytes.Length);
+        }
+
+        public override void NextBytes(byte[] buf, int off, int len)
+        {
             lock (this)
             {
                 if (mDrbg == null)
@@ -57,19 +62,12 @@ namespace Org.BouncyCastle.Crypto.Prng
                 }
 
                 // check if a reseed is required...
-                if (mDrbg.Generate(bytes, null, mPredictionResistant) < 0)
+                if (mDrbg.Generate(buf, off, len, null, mPredictionResistant) < 0)
                 {
                     mDrbg.Reseed(null);
-                    mDrbg.Generate(bytes, null, mPredictionResistant);
+                    mDrbg.Generate(buf, off, len, null, mPredictionResistant);
                 }
             }
-        }
-
-        public override void NextBytes(byte[] buf, int off, int len)
-        {
-            byte[] bytes = new byte[len];
-            NextBytes(bytes);
-            Array.Copy(bytes, 0, buf, off, len);
         }
 
         public override byte[] GenerateSeed(int numBytes)

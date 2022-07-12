@@ -731,15 +731,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         class HSSSecureRandom
             : SecureRandom
         {
-            public override void NextBytes(byte[] bytes)
+            public override void NextBytes(byte[] buf)
             {
-                for (int t = 0; t < bytes.Length; t++)
+                NextBytes(buf, 0, buf.Length);
+            }
+
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                for (int t = 0; t < len; t++)
                 {
-                    bytes[t] = 1;
+                    buf[off + t] = 1;
                 }
             }
         }
-        
+
         [Test]
         public void TestSignUnitExhaustion()
         {

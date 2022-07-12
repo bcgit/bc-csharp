@@ -95,10 +95,5 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
             return temp;
 	    }
-
-        internal static bool IsTooLarge(byte[] bytes, int maxBytes)
-	    {
-	        return bytes != null && bytes.Length > maxBytes;
-	    }
 	}
 }

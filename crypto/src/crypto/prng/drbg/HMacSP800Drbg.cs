@@ -104,9 +104,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     *
 	     * @return number of bits generated, -1 if a reseed required.
 	     */
-	    public int Generate(byte[] output, byte[] additionalInput, bool predictionResistant)
+	    public int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput,
+			bool predictionResistant)
 	    {
-	        int numberOfBits = output.Length * 8;
+	        int numberOfBits = outputLen * 8;
 
             if (numberOfBits > MAX_BITS_REQUEST)
 	            throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
@@ -129,9 +130,9 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        }
 
             // 3.
-	        byte[] rv = new byte[output.Length];
+	        byte[] rv = new byte[outputLen];
 
-            int m = output.Length / mV.Length;
+            int m = outputLen / mV.Length;
 
             mHMac.Init(new KeyParameter(mK));
 
@@ -155,7 +156,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
 	        mReseedCounter++;
 
-	        Array.Copy(rv, 0, output, 0, output.Length);
+	        Array.Copy(rv, 0, output, outputOff, outputLen);
 
             return numberOfBits;
 	    }
