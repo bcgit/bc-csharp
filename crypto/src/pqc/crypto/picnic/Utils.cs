@@ -1,20 +1,20 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
-    public class Utils
+    internal static class Utils
     {
-        protected internal static void Fill(uint[] buf, int from, int to, uint b)
+        internal static void Fill(uint[] buf, int from, int to, uint b)
         {
             for (int i = from; i < to; ++i)
             {
                 buf[i] = b;
             }
         }
-        protected internal static int NumBytes(int numBits)
+        internal static int NumBytes(int numBits)
         {
-            return (numBits == 0) ? 0 : ((numBits - 1) / 8 + 1);
+            return (numBits + 7) >> 3;
         }
 
-        protected internal static uint ceil_log2(uint x)
+        internal static uint ceil_log2(uint x)
         {
             if (x == 0)
             {
@@ -59,8 +59,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return n;
         }
 
-
-        protected static int Parity(byte[] data, int len)
+        internal static int Parity(byte[] data, int len)
         {
             byte x = data[0];
 
@@ -81,7 +80,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return y & 1;
         }
 
-        protected internal static uint Parity16(uint x)
+        internal static uint Parity16(uint x)
         {
             uint y = x ^ (x >> 1);
 
@@ -91,7 +90,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return y & 1;
         }
 
-        protected internal static uint Parity32(uint x)
+        internal static uint Parity32(uint x)
         {
             /* Compute parity of x using code from Section 5-2 of
              * H.S. Warren, *Hacker's Delight*, Pearson Education, 2003.
@@ -107,32 +106,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
 
         /* Set a specific bit in a byte array to a given value */
-        protected internal static void SetBitInWordArray(uint[] array, int bitNumber, uint val)
+        internal static void SetBitInWordArray(uint[] array, int bitNumber, uint val)
         {
-            SetBit(array, bitNumber, (int)val);
+            SetBit(array, bitNumber, val);
         }
 
         /* Get one bit from a 32-bit int array */
-        protected internal static uint GetBitFromWordArray(uint[] array, int bitNumber)
+        internal static uint GetBitFromWordArray(uint[] array, int bitNumber)
         {
             return GetBit(array, bitNumber);
         }
 
         /* Get one bit from a byte array */
-        internal protected static byte GetBit(byte[] array, int bitNumber)
+        internal static byte GetBit(byte[] array, int bitNumber)
         {
             int arrayPos = bitNumber >> 3, bitPos = (bitNumber & 7) ^ 7;
             return (byte)((array[arrayPos] >> bitPos) & 1);
         }
 
         /* Get one bit from a byte array */
-        internal protected static uint GetBit(uint[] array, int bitNumber)
+        internal static uint GetBit(uint[] array, int bitNumber)
         {
             int arrayPos = bitNumber >> 5, bitPos = (bitNumber & 31) ^ 7;
             return (array[arrayPos] >> bitPos) & 1;
         }
 
-        internal protected static void SetBit(byte[] array, int bitNumber, byte val)
+        internal static void SetBit(byte[] array, int bitNumber, byte val)
         {
             int arrayPos = bitNumber >> 3, bitPos = (bitNumber & 7) ^ 7;
             uint t = array[arrayPos];
@@ -142,13 +141,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         }
 
         /* Set a specific bit in a int array to a given value */
-        internal protected static void SetBit(uint[] array, int bitNumber, int val)
+        internal static void SetBit(uint[] array, int bitNumber, uint val)
         {
             int arrayPos = bitNumber >> 5, bitPos = (bitNumber & 31) ^ 7;
             uint t = array[arrayPos];
             t &= ~(1U << bitPos);
-            t |= (uint)val << bitPos;
+            t |= val << bitPos;
             array[arrayPos] = t;
+        }
+
+        internal static void ZeroTrailingBits(byte[] data, int bitLength)
+        {
+            int partial = bitLength & 7;
+            if (partial != 0)
+            {
+                data[bitLength >> 3] &= (byte)(0xFF00 >> partial);
+            }
         }
     }
 }
