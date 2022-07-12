@@ -1,6 +1,3 @@
-
-using Org.BouncyCastle.Crypto.Utilities;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
     public class Utils
@@ -124,30 +121,34 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         /* Get one bit from a byte array */
         internal protected static byte GetBit(byte[] array, int bitNumber)
         {
-            return (byte) ((array[bitNumber / 8] >> (7 - (bitNumber % 8))) & 0x01);
+            int arrayPos = bitNumber >> 3, bitPos = (bitNumber & 7) ^ 7;
+            return (byte)((array[arrayPos] >> bitPos) & 1);
         }
 
         /* Get one bit from a byte array */
         internal protected static uint GetBit(uint[] array, int bitNumber)
         {
-            uint temp = Pack.LE_To_UInt32(Pack.UInt32_To_BE(array[bitNumber / 32]), 0);
-            return ((temp >> (31 - (bitNumber % 32))) & 0x01);
+            int arrayPos = bitNumber >> 5, bitPos = (bitNumber & 31) ^ 7;
+            return (array[arrayPos] >> bitPos) & 1;
+        }
+
+        internal protected static void SetBit(byte[] array, int bitNumber, byte val)
+        {
+            int arrayPos = bitNumber >> 3, bitPos = (bitNumber & 7) ^ 7;
+            uint t = array[arrayPos];
+            t &= ~(1U << bitPos);
+            t |= (uint)val << bitPos;
+            array[arrayPos] = (byte)t;
         }
 
         /* Set a specific bit in a int array to a given value */
-        internal protected static void SetBit(uint[] bytes, int bitNumber, int val)
+        internal protected static void SetBit(uint[] array, int bitNumber, int val)
         {
-            uint temp = Pack.LE_To_UInt32(Pack.UInt32_To_BE(bytes[bitNumber / 32]), 0);
-            int x = (((int)temp & ~(1 << (31 - (bitNumber % 32)))) | (val << (31 - (bitNumber % 32))));
-            bytes[bitNumber / 32] = Pack.LE_To_UInt32(Pack.UInt32_To_BE((uint)x), 0);
-//        bytes[bitNumber / 32]  = ((bytes[bitNumber/4 >> 3]
-//                        & ~(1 << (31 - (bitNumber % 32)))) | (val << (31 - (bitNumber % 32))));
-        }
-
-        internal protected static void SetBit(byte[] bytes, int bitNumber, byte val)
-        {
-            bytes[bitNumber / 8] = (byte) ((bytes[bitNumber >> 3]
-                                            & ~(1 << (7 - (bitNumber % 8)))) | (val << (7 - (bitNumber % 8))));
+            int arrayPos = bitNumber >> 5, bitPos = (bitNumber & 31) ^ 7;
+            uint t = array[arrayPos];
+            t &= ~(1U << bitPos);
+            t |= (uint)val << bitPos;
+            array[arrayPos] = t;
         }
     }
 }
