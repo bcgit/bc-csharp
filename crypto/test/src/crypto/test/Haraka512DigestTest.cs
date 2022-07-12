@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
-namespace BouncyCastle.Crypto.Tests
+namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
     public class Haraka512DigestTest : SimpleTest
