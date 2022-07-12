@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <param name="extensions">(Int32 -> byte[])</param>
-        /// <param name="protocolNameList">an <see cref="IList"/> of <see cref="ProtocolName"/>.</param>
+        /// <param name="protocolNameList">an <see cref="IList{T}"/> of <see cref="ProtocolName"/>.</param>
         /// <exception cref="IOException"/>
         public static void AddAlpnExtensionClient(IDictionary<int, byte[]> extensions,
             IList<ProtocolName> protocolNameList)
@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Tls
             extensions[ExtensionType.trusted_ca_keys] = CreateTrustedCAKeysExtensionServer();
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="ProtocolName"/>.</returns>
+        /// <returns>an <see cref="IList{T}"/> of <see cref="ProtocolName"/>.</returns>
         /// <exception cref="IOException"/>
         public static IList<ProtocolName> GetAlpnExtensionClient(IDictionary<int, byte[]> extensions)
         {
@@ -550,7 +550,7 @@ namespace Org.BouncyCastle.Tls
             return extensionData == null ? false : ReadTrustedCAKeysExtensionServer(extensionData);
         }
 
-        /// <param name="protocolNameList">an <see cref="IList"/> of <see cref="ProtocolName"/>.</param>
+        /// <param name="protocolNameList">an <see cref="IList{T}"/> of <see cref="ProtocolName"/>.</param>
         /// <exception cref="IOException"/>
         public static byte[] CreateAlpnExtensionClient(IList<ProtocolName> protocolNameList)
         {
@@ -966,7 +966,7 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="ProtocolName"/>.</returns>
+        /// <returns>an <see cref="IList{T}"/> of <see cref="ProtocolName"/>.</returns>
         /// <exception cref="IOException"/>
         public static IList<ProtocolName> ReadAlpnExtensionClient(byte[] extensionData)
         {

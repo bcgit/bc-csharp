@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        /// <summary>an <see cref="IList"/> of (possibly null) <see cref="Asn1.Ocsp.OcspResponse"/>.</summary>
+        /// <summary>an <see cref="IList{T}"/> of (possibly null) <see cref="Asn1.Ocsp.OcspResponse"/>.</summary>
         public IList<OcspResponse> OcspResponseList
         {
             get

@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Tls
         private readonly IList<UrlAndHash> m_urlAndHashList;
 
         /// <param name="type">see <see cref="CertChainType"/> for valid constants.</param>
-        /// <param name="urlAndHashList">an <see cref="IList"/> of <see cref="UrlAndHash"/>.</param>
+        /// <param name="urlAndHashList">an <see cref="IList{T}"/> of <see cref="UrlAndHash"/>.</param>
         public CertificateUrl(short type, IList<UrlAndHash> urlAndHashList)
         {
             if (!CertChainType.IsValid(type))
@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_type; }
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="UrlAndHash"/>.</returns>
+        /// <returns>an <see cref="IList{T}"/> of <see cref="UrlAndHash"/>.</returns>
         public IList<UrlAndHash> UrlAndHashList
         {
             get { return m_urlAndHashList; }

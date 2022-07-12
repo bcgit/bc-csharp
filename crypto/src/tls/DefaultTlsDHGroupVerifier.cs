@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <summary>Accept named groups and a custom set of group parameters, subject to a minimum bitlength for 'P'.
         /// </summary>
-        /// <param name="groups">a <see cref="IList">list</see> of acceptable <see cref="DHGroup"/>s.</param>
+        /// <param name="groups">a <see cref="IList{T}">list</see> of acceptable <see cref="DHGroup"/>s.</param>
         /// <param name="minimumPrimeBits">the minimum bitlength of 'P'.</param>
         public DefaultTlsDHGroupVerifier(IList<DHGroup> groups, int minimumPrimeBits)
         {

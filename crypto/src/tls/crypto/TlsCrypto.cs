@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <summary>Return true if this TlsCrypto would use a stream verifier for any of the passed in algorithms.
         /// </summary>
         /// <remarks>This method is only relevant to handshakes negotiating (D)TLS 1.2.</remarks>
-        /// <param name="signatureAndHashAlgorithms">A <see cref="IList">list</see> of
+        /// <param name="signatureAndHashAlgorithms">A <see cref="IList{T}">list</see> of
         /// <see cref="SignatureAndHashAlgorithm"/> values.</param>
         /// <returns>true if this instance would use a stream verifier for any of the passed in algorithms, otherwise
         /// false.</returns>

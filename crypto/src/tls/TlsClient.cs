@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <summary>Return the <see cref="TlsPskExternal">external PSKs</see> to offer in the ClientHello.</summary>
         /// <remarks>This will only be called when TLS 1.3 or higher is amongst the offered protocol versions.</remarks>
-        /// <returns>an <see cref="IList"/> of <see cref="TlsPskExternal"/> instances, or null if none should be
+        /// <returns>an <see cref="IList{T}"/> of <see cref="TlsPskExternal"/> instances, or null if none should be
         /// offered.</returns>
         IList<TlsPskExternal> GetExternalPsks();
 
@@ -36,7 +36,8 @@ namespace Org.BouncyCastle.Tls
         /// Groups that were not included in the supported_groups extension (by <see cref="GetClientExtensions"/> will
         /// be ignored. The protocol will then add a suitable key_share extension to the ClientHello extensions.
         /// </remarks>
-        /// <returns>an <see cref="IList"/> of <see cref="NamedGroup">named group</see> values, possibly empty or null.
+        /// <returns>an <see cref="IList{T}"/> of <see cref="NamedGroup">named group</see> values, possibly empty or
+        /// null.
         /// </returns>
         IList<int> GetEarlyKeyShareGroups();
 
