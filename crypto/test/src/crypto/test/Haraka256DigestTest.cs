@@ -8,6 +8,7 @@ using Org.BouncyCastle.Utilities.Test;
 
 namespace BouncyCastle.Crypto.Tests
 {
+    [TestFixture]
     public class Haraka256DigestTest : SimpleTest
     {
         public override string Name
@@ -186,11 +187,12 @@ namespace BouncyCastle.Crypto.Tests
             TestMonty();
         }
 
-        //public static void Main()
-        //{
-        //    //runTest(new Haraka256DigestTest());
-        //    var t = new Haraka256DigestTest();
-        //    t.PerformTest();
-        //}
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
+        }
     }
 }
