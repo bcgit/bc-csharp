@@ -46,14 +46,14 @@ namespace Org.BouncyCastle.Crypto.Prng
          *
          * @return number of bits generated, -1 if a reseed required.
          */
-        internal int Generate(byte[] output, bool predictionResistant)
+        internal int Generate(byte[] output, int outputOff, int outputLen,  bool predictionResistant)
         {
             if (mR.Length == 8) // 64 bit block size
             {
                 if (mReseedCounter > BLOCK64_RESEED_MAX)
                     return -1;
 
-                if (IsTooLarge(output, BLOCK64_MAX_BITS_REQUEST / 8))
+                if (outputLen > BLOCK64_MAX_BITS_REQUEST / 8)
                     throw new ArgumentException("Number of bits per request limited to " + BLOCK64_MAX_BITS_REQUEST, "output");
             }
             else
@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Prng
                 if (mReseedCounter > BLOCK128_RESEED_MAX)
                     return -1;
 
-                if (IsTooLarge(output, BLOCK128_MAX_BITS_REQUEST / 8))
+                if (outputLen > BLOCK128_MAX_BITS_REQUEST / 8)
                     throw new ArgumentException("Number of bits per request limited to " + BLOCK128_MAX_BITS_REQUEST, "output");
             }
 
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Crypto.Prng
                     throw new InvalidOperationException("Insufficient entropy returned");
             }
 
-            int m = output.Length / mR.Length;
+            int m = outputLen / mR.Length;
 
             for (int i = 0; i < m; i++)
             {
@@ -80,12 +80,12 @@ namespace Org.BouncyCastle.Crypto.Prng
                 Process(mR, mI, mV);
                 Process(mV, mR, mI);
 
-                Array.Copy(mR, 0, output, i * mR.Length, mR.Length);
+                Array.Copy(mR, 0, output, outputOff + i * mR.Length, mR.Length);
 
                 Increment(mDT);
             }
 
-            int bytesToCopy = (output.Length - m * mR.Length);
+            int bytesToCopy = (outputLen - m * mR.Length);
 
             if (bytesToCopy > 0)
             {
@@ -93,14 +93,14 @@ namespace Org.BouncyCastle.Crypto.Prng
                 Process(mR, mI, mV);
                 Process(mV, mR, mI);
 
-                Array.Copy(mR, 0, output, m * mR.Length, bytesToCopy);
+                Array.Copy(mR, 0, output, outputOff + m * mR.Length, bytesToCopy);
 
                 Increment(mDT);
             }
 
             mReseedCounter++;
 
-            return output.Length;
+            return outputLen * 8;
         }
 
         /**
@@ -136,11 +136,6 @@ namespace Org.BouncyCastle.Crypto.Prng
                 if (++val[i] != 0)
                     break;
             }
-        }
-
-        private static bool IsTooLarge(byte[] bytes, int maxBytes)
-        {
-            return bytes != null && bytes.Length > maxBytes;
         }
     }
 }

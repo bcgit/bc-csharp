@@ -331,14 +331,15 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     *
 	     * @return number of bits generated, -1 if a reseed required.
 	     */
-	    public int Generate(byte[] output, byte[] additionalInput, bool predictionResistant)
+	    public int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput,
+			bool predictionResistant)
 	    {
 	        if (mIsTdea)
 	        {
 	            if (mReseedCounter > TDEA_RESEED_MAX)
 	                return -1;
 
-                if (DrbgUtilities.IsTooLarge(output, TDEA_MAX_BITS_REQUEST / 8))
+                if (outputLen > TDEA_MAX_BITS_REQUEST / 8)
 	                throw new ArgumentException("Number of bits per request limited to " + TDEA_MAX_BITS_REQUEST, "output");
 	        }
 	        else
@@ -346,7 +347,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	            if (mReseedCounter > AES_RESEED_MAX)
 	                return -1;
 
-                if (DrbgUtilities.IsTooLarge(output, AES_MAX_BITS_REQUEST / 8))
+                if (outputLen > AES_MAX_BITS_REQUEST / 8)
 	                throw new ArgumentException("Number of bits per request limited to " + AES_MAX_BITS_REQUEST, "output");
 	        }
 
@@ -370,11 +371,9 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
             mEngine.Init(true, new KeyParameter(ExpandKey(mKey)));
 
-            for (int i = 0; i <= output.Length / tmp.Length; i++)
+            for (int i = 0, limit = outputLen / tmp.Length; i <= limit; i++)
 	        {
-				int bytesToCopy = ((output.Length - i * tmp.Length) > tmp.Length)
-					? tmp.Length
-	                : (output.Length - i * mV.Length);
+				int bytesToCopy = System.Math.Min(tmp.Length, outputLen - i * tmp.Length);
 
                 if (bytesToCopy != 0)
 	            {
@@ -382,7 +381,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
                     mEngine.ProcessBlock(mV, 0, tmp, 0);
 
-                    Array.Copy(tmp, 0, output, i * tmp.Length, bytesToCopy);
+                    Array.Copy(tmp, 0, output, outputOff + i * tmp.Length, bytesToCopy);
 	            }
 	        }
 
@@ -390,7 +389,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 
             mReseedCounter++;
 
-            return output.Length * 8;
+            return outputLen * 8;
 	    }
 
 	    /**

@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Tls
         /// Note that this will only be called when TLS 1.3 or higher is amongst the offered protocol versions, and one
         /// or more PSKs are actually offered.
         /// </remarks>
-        /// <param name="identities">an <see cref="IList"/> of <see cref="PskIdentity"/> instances.</param>
+        /// <param name="identities">an <see cref="IList{T}"/> of <see cref="PskIdentity"/> instances.</param>
         /// <returns>The <see cref="TlsPskExternal"/> corresponding to the selected identity, or null to not select
         /// any.</returns>
         TlsPskExternal GetExternalPsk(IList<PskIdentity> identities);

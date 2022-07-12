@@ -592,16 +592,16 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
             }
 
-            public override void NextBytes(byte[] bytes)
+            public override void NextBytes(byte[] buf, int off, int len)
             {
                 if (first)
                 {
-                    base.NextBytes(bytes);
+                    base.NextBytes(buf, off, len);
                     first = false;
                 }
                 else
                 {
-                    bytes[bytes.Length - 1] = 2;
+                    buf[off + len - 1] = 2;
                 }
             }
         }

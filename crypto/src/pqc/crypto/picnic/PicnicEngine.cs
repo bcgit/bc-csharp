@@ -1,4 +1,5 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -270,31 +271,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             seedSizeBytes = Utils.NumBytes(2 * pqSecurityLevel);
             stateSizeWords = (stateSizeBits + WORD_SIZE_BITS - 1) / WORD_SIZE_BITS;
 
-
-
             switch (parameters)
             {
-                case 1:
-                case 3:
-                case 5:
-                case 7:
-                case 8:
-                case 9:
-                case 10:
-                case 11:
-                case 12:
-                    transform = TRANSFORM_FS;
-                    break;
-                case 2:
-                case 4:
-                case 6:
-                    transform = TRANSFORM_UR;
-                    break;
-                default:
-                    transform = TRANSFORM_INVALID;
-                    break;
+            case 1:
+            case 3:
+            case 5:
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+                transform = TRANSFORM_FS;
+                break;
+            case 2:
+            case 4:
+            case 6:
+                transform = TRANSFORM_UR;
+                break;
+            default:
+                transform = TRANSFORM_INVALID;
+                break;
             }
-
 
             if (transform == 1)
             {
@@ -302,14 +300,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 UnruhGWithInputBytes = UnruhGWithoutInputBytes + stateSizeBytes;
             }
 
-            if (stateSizeBits == 128 || stateSizeBits == 129)
-            {
-                digest = new ShakeDigest(128);
-            }
-            else
-            {
-                digest = new ShakeDigest(256);
-            }
+            int shakeSize = (stateSizeBits == 128 || stateSizeBits == 129) ? 128 : 256;
+            digest = new ShakeDigest(shakeSize);
         }
 
         public bool crypto_sign_open(byte[] m, byte[] sm, byte[] pk)
@@ -317,7 +309,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint sigLen = Pack.LE_To_UInt32(sm, 0);
             byte[] m_from_sm = Arrays.CopyOfRange(sm, 4, 4 + m.Length);
             int ret = picnic_verify(pk, m_from_sm, sm, sigLen);
-            System.Array.Copy(sm, 4, m, 0, m.Length);
+            Array.Copy(sm, 4, m, 0, m.Length);
             return ret != -1;
         }
 
@@ -336,7 +328,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             {
                 Signature2 sig = new Signature2(this);
                 DeserializeSignature2(sig, signature, sigLen, message.Length + 4);
-
 
                 return verify_picnic3(sig, ciphertext, plaintext, message);
             }
@@ -410,24 +401,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 // create ordered array of commitments with order computed based on the challenge
                 // check commitments of the two opened views
                 int challenge = GetChallenge(received_challengebits, i);
-                Commit(proofs[i].seed1, 0, view1s[i],  AS[i]
-                [challenge])
-
-                ;
-                Commit(proofs[i].seed2, 0, view2s[i],  AS[i]
-                [ (challenge
-
-                +1) % 3]);
-                System.Array.Copy(proofs[i].view3Commitment, 0,  AS[i]
-                [ (challenge
-
-                +2) % 3], 0, digestSizeBytes);
+                Commit(proofs[i].seed1, 0, view1s[i],  AS[i][challenge]);
+                Commit(proofs[i].seed2, 0, view2s[i],  AS[i][(challenge + 1) % 3]);
+                Array.Copy(proofs[i].view3Commitment, 0,  AS[i][(challenge + 2) % 3], 0, digestSizeBytes);
                 if (transform == TRANSFORM_UR)
                 {
                     G(challenge, proofs[i].seed1, 0, view1s[i], gs[i][challenge]);
                     G((challenge + 1) % 3, proofs[i].seed2, 0, view2s[i], gs[i][(challenge + 1) % 3]);
                     int view3UnruhLength = (challenge == 0) ? UnruhGWithInputBytes : UnruhGWithoutInputBytes;
-                    System.Array.Copy(proofs[i].view3UnruhG, 0, gs[i][(challenge + 2) % 3], 0, view3UnruhLength);
+                    Array.Copy(proofs[i].view3UnruhG, 0, gs[i][(challenge + 2) % 3], 0, view3UnruhLength);
                 }
 
                 viewOutputs[i][challenge] = view1s[i].outputShare;
@@ -439,9 +421,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             computed_challengebits = new byte[Utils.NumBytes(2 * numMPCRounds)];
 
-            H3(pubKey, plaintext, viewOutputs, 
-                AS, computed_challengebits, sig.salt,
-            message, gs);
+            H3(pubKey, plaintext, viewOutputs, AS, computed_challengebits, sig.salt, message, gs);
 
             if (!SubarrayEquals(received_challengebits, computed_challengebits, Utils.NumBytes(2 * numMPCRounds)))
             {
@@ -455,7 +435,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         void VerifyProof(Signature.Proof proof, View view1, View view2, int challenge, byte[] salt, 
             uint roundNumber, byte[] tmp, uint[] plaintext, Tape tape)
         {
-            System.Array.Copy(proof.communicatedBits, 0, view2.communicatedBits, 0, andSizeBytes);
+            Array.Copy(proof.communicatedBits, 0, view2.communicatedBits, 0, andSizeBytes);
             tape.pos = 0;
 
 //        Console.Error.Write("tmp: " + Hex.toHexString(tmp));
@@ -463,66 +443,71 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             bool status = false;
             switch (challenge)
             {
-                case 0:
-                    // in this case, both views' inputs are derivable from the input share
-                    status = CreateRandomTape(proof.seed1, 0, salt, roundNumber,
-                        0, tmp, stateSizeBytes + andSizeBytes);
+            case 0:
+            {
+                // in this case, both views' inputs are derivable from the input share
+                status = CreateRandomTape(proof.seed1, 0, salt, roundNumber,
+                    0, tmp, stateSizeBytes + andSizeBytes);
 
-                    Pack.LE_To_UInt32(tmp, 0, view1.inputShare); //todo check
-                    System.Array.Copy(tmp, stateSizeBytes, tape.tapes[0], 0, andSizeBytes);
+                Pack.LE_To_UInt32(tmp, 0, view1.inputShare); //todo check
+                Array.Copy(tmp, stateSizeBytes, tape.tapes[0], 0, andSizeBytes);
 
-                    status = status && CreateRandomTape(proof.seed2, 0, salt, roundNumber,
-                        1, tmp, stateSizeBytes + andSizeBytes);
+                status = status && CreateRandomTape(proof.seed2, 0, salt, roundNumber,
+                    1, tmp, stateSizeBytes + andSizeBytes);
 
-                    if (!status)
-                    {
-                        break;
-                    }
-
-                    Pack.LE_To_UInt32(tmp, 0, view2.inputShare); //todo check
-                    System.Array.Copy(tmp, stateSizeBytes, tape.tapes[1], 0, andSizeBytes);
-
+                if (!status)
+                {
                     break;
+                }
 
-                case 1:
-                    // in this case view2's input share was already given to us explicitly as
-                    // it is not computable from the seed. We just need to compute view1's input from
-                    // its seed
-                    status = CreateRandomTape(proof.seed1, 0, salt, roundNumber,
-                        1, tmp, stateSizeBytes + andSizeBytes);
+                Pack.LE_To_UInt32(tmp, 0, view2.inputShare); //todo check
+                Array.Copy(tmp, stateSizeBytes, tape.tapes[1], 0, andSizeBytes);
 
-                    Pack.LE_To_UInt32(tmp, 0, view1.inputShare); //todo check
-                    System.Array.Copy(tmp, stateSizeBytes, tape.tapes[0], 0, andSizeBytes);
-                    status = status && CreateRandomTape(proof.seed2, 0, salt, roundNumber,
-                        2, tape.tapes[1], andSizeBytes);
-                    if (!status)
-                    {
-                        break;
-                    }
+                break;
+            }
+            case 1:
+            {
+                // in this case view2's input share was already given to us explicitly as
+                // it is not computable from the seed. We just need to compute view1's input from
+                // its seed
+                status = CreateRandomTape(proof.seed1, 0, salt, roundNumber,
+                    1, tmp, stateSizeBytes + andSizeBytes);
 
-                    System.Array.Copy(proof.inputShare, 0, view2.inputShare, 0, stateSizeBytes);
+                Pack.LE_To_UInt32(tmp, 0, view1.inputShare); //todo check
+                Array.Copy(tmp, stateSizeBytes, tape.tapes[0], 0, andSizeBytes);
+                status = status && CreateRandomTape(proof.seed2, 0, salt, roundNumber,
+                    2, tape.tapes[1], andSizeBytes);
+                if (!status)
+                {
                     break;
+                }
 
-                case 2:
-                    // in this case view1's input share was already given to us explicitly as
-                    // it is not computable from the seed. We just need to compute view2's input from
-                    // its seed
-                    status = CreateRandomTape(proof.seed1, 0, salt, roundNumber, 2, tape.tapes[0], andSizeBytes);
-                    System.Array.Copy(proof.inputShare, 0, view1.inputShare, 0, stateSizeBytes);
-                    status = status && CreateRandomTape(proof.seed2, 0, salt, roundNumber, 0, tmp,
-                        (stateSizeBytes + andSizeBytes));
-                    if (!status)
-                    {
-                        break;
-                    }
-
-                    Pack.LE_To_UInt32(tmp, 0, view2.inputShare); //todo check
-                    System.Array.Copy(tmp, stateSizeBytes, tape.tapes[1], 0, andSizeBytes);
+                Array.Copy(proof.inputShare, 0, view2.inputShare, 0, stateSizeBytes);
+                break;
+            }
+            case 2:
+            {
+                // in this case view1's input share was already given to us explicitly as
+                // it is not computable from the seed. We just need to compute view2's input from
+                // its seed
+                status = CreateRandomTape(proof.seed1, 0, salt, roundNumber, 2, tape.tapes[0], andSizeBytes);
+                Array.Copy(proof.inputShare, 0, view1.inputShare, 0, stateSizeBytes);
+                status = status && CreateRandomTape(proof.seed2, 0, salt, roundNumber, 0, tmp,
+                    (stateSizeBytes + andSizeBytes));
+                if (!status)
+                {
                     break;
+                }
 
-                default:
-                    Console.Error.Write("Invalid Challenge!");
-                    break;
+                Pack.LE_To_UInt32(tmp, 0, view2.inputShare); //todo check
+                Array.Copy(tmp, stateSizeBytes, tape.tapes[1], 0, andSizeBytes);
+                break;
+            }
+            default:
+            {
+                Console.Error.Write("Invalid Challenge!");
+                break;
+            }
             }
 
             if (!status)
@@ -536,12 +521,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             Pack.UInt32_To_LE(view1.inputShare, view_bytes, 0);
             Arrays.Fill(view_bytes, stateSizeBytes, view_bytes.Length,
                 (byte) 0); //todo have correct size: reduce view.inputshare by /4
-            ZeroTrailingBits(view_bytes, stateSizeBits);
+            Utils.ZeroTrailingBits(view_bytes, stateSizeBits);
             Pack.LE_To_UInt32(view_bytes, 0, view1.inputShare);
 
             Pack.UInt32_To_LE(view2.inputShare, view_bytes, 0);
             Arrays.Fill(view_bytes, stateSizeBytes, view_bytes.Length, (byte) 0);
-            ZeroTrailingBits(view_bytes, stateSizeBits);
+            Utils.ZeroTrailingBits(view_bytes, stateSizeBits);
 
             Pack.LE_To_UInt32(view_bytes, 0, view2.inputShare);
 
@@ -551,7 +536,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         void mpc_LowMC_verify(View view1, View view2, Tape tapes, uint[] tmp, uint[] plaintext,  int challenge)
         {
-
             Utils.Fill(tmp, 0, tmp.Length, 0);
 
             mpc_xor_constant_verify(tmp, plaintext, 0, stateSizeWords, challenge);
@@ -588,13 +572,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 mpc_xor(tmp, tmp, stateSizeWords, 2);
             }
 
-            System.Array.Copy(tmp, 2 * stateSizeWords, view1.outputShare, 0, stateSizeWords);
-            System.Array.Copy(tmp, 3 * stateSizeWords, view2.outputShare, 0, stateSizeWords);
+            Array.Copy(tmp, 2 * stateSizeWords, view1.outputShare, 0, stateSizeWords);
+            Array.Copy(tmp, 3 * stateSizeWords, view2.outputShare, 0, stateSizeWords);
         }
 
         void mpc_substitution_verify(uint[] state, Tape rand, View view1, View view2)
         {
-
             uint[] a = new uint[2];
             uint[] b = new uint[2];
             uint[] c = new uint[2];
@@ -606,7 +589,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             int stateOffset;
             for (int i = 0; i < numSboxes * 3; i += 3)
             {
-
                 for (int j = 0; j < 2; j++)
                 {
                     stateOffset = ((2 + j) * stateSizeWords) * 32;
@@ -691,7 +673,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 return -1;
             }
 
-            System.Array.Copy(sigBytes, sigBytesOffset, challengeBits, 0, Utils.NumBytes(2 * numMPCRounds));
+            Array.Copy(sigBytes, sigBytesOffset, challengeBits, 0, Utils.NumBytes(2 * numMPCRounds));
             sigBytesOffset += Utils.NumBytes(2 * numMPCRounds);
 
             if (!IsChallengeValid(challengeBits))
@@ -699,32 +681,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 return -1;
             }
 
-            System.Array.Copy(sigBytes, sigBytesOffset, sig.salt, 0, saltSizeBytes);
+            Array.Copy(sigBytes, sigBytesOffset, sig.salt, 0, saltSizeBytes);
             sigBytesOffset += saltSizeBytes;
 
             for (int i = 0; i < numMPCRounds; i++)
             {
-
                 int challenge = GetChallenge(challengeBits, i);
 
-                System.Array.Copy(sigBytes, sigBytesOffset, proofs[i].view3Commitment, 0, digestSizeBytes);
+                Array.Copy(sigBytes, sigBytesOffset, proofs[i].view3Commitment, 0, digestSizeBytes);
 
                 sigBytesOffset += digestSizeBytes;
 
                 if (transform == TRANSFORM_UR)
                 {
                     int view3UnruhLength = (challenge == 0) ? UnruhGWithInputBytes : UnruhGWithoutInputBytes;
-                    System.Array.Copy(sigBytes, sigBytesOffset, proofs[i].view3UnruhG, 0, view3UnruhLength);
+                    Array.Copy(sigBytes, sigBytesOffset, proofs[i].view3UnruhG, 0, view3UnruhLength);
                     sigBytesOffset += view3UnruhLength;
                 }
 
-                System.Array.Copy(sigBytes, sigBytesOffset, proofs[i].communicatedBits, 0, andSizeBytes);
+                Array.Copy(sigBytes, sigBytesOffset, proofs[i].communicatedBits, 0, andSizeBytes);
                 sigBytesOffset += andSizeBytes;
 
-                System.Array.Copy(sigBytes, sigBytesOffset, proofs[i].seed1, 0, seedSizeBytes);
+                Array.Copy(sigBytes, sigBytesOffset, proofs[i].seed1, 0, seedSizeBytes);
                 sigBytesOffset += seedSizeBytes;
 
-                System.Array.Copy(sigBytes, sigBytesOffset, proofs[i].seed2, 0, seedSizeBytes);
+                Array.Copy(sigBytes, sigBytesOffset, proofs[i].seed2, 0, seedSizeBytes);
                 sigBytesOffset += seedSizeBytes;
 
                 if (challenge == 1 || challenge == 2)
@@ -783,8 +764,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private  uint picnic_read_public_key(byte[] ciphertext, byte[] plaintext, byte[] pk)
         {
-            System.Array.Copy(pk, 1, ciphertext, 0, stateSizeBytes);
-            System.Array.Copy(pk, 1 + stateSizeBytes, plaintext, 0, stateSizeBytes);
+            Array.Copy(pk, 1, ciphertext, 0, stateSizeBytes);
+            Array.Copy(pk, 1 + stateSizeBytes, plaintext, 0, stateSizeBytes);
             return 0;
         }
 
@@ -866,8 +847,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                  * random tape. */
                 CreateRandomTapes(tapes[t], seeds[t].GetLeaves(), seeds[t].GetLeavesOffset(), sig.salt, t);
 
-
-
                 if (!Contains(sig.challengeC, numOpenedRounds, t))
                 {
                     /* We're given iSeed, have expanded the seeds, compute aux from scratch so we can comnpte Com[t] */
@@ -884,8 +863,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 {
                     /* We're given all seeds and aux bits, except for the unopened
                      * party, we get their commitment */
-                     uint unopened = sig.challengeP[IndexOf(sig.challengeC, numOpenedRounds, t)];
-
+                    uint unopened = sig.challengeP[IndexOf(sig.challengeC, numOpenedRounds, t)];
 
                     for (uint j = 0; j < last; j++)
                     {
@@ -900,9 +878,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                         commit(C[t][last], seeds[t].GetLeaf(last), sig.proofs[t].aux, sig.salt, t, last);
                     }
 
-                    System.Array.Copy(sig.proofs[t].C, 0, C[t][unopened], 0, digestSizeBytes);
+                    Array.Copy(sig.proofs[t].C, 0, C[t][unopened], 0, digestSizeBytes);
                 }
-
             }
 
             /* Commit to the commitments */
@@ -919,7 +896,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 if (Contains(sig.challengeC, numOpenedRounds, (uint)t))
                 {
                     /* 2. When t is in C, we have everything we need to re-compute the view, as an honest signer would.
-                     * We simulate the MPC with one fewer party; the unopned party's values are all set to zero. */
+                     * We simulate the MPC with one fewer party; the unopened party's values are all set to zero. */
                     uint unopened = sig.challengeP[IndexOf(sig.challengeC, numOpenedRounds, t)];
 
                     int tapeLengthBytes = 2 * andSizeBytes;
@@ -929,13 +906,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                         tapes[t].SetAuxBits(sig.proofs[t].aux);
                     }
                     
-                    System.Array.Copy(sig.proofs[t].msgs, 0, msgs[t].msgs[unopened], 0, andSizeBytes);
+                    Array.Copy(sig.proofs[t].msgs, 0, msgs[t].msgs[unopened], 0, andSizeBytes);
 
                     Arrays.Fill(tapes[t].tapes[unopened], (byte) 0);
                     msgs[t].unopened =  (int) unopened;
 
                     byte[] input_bytes = new byte[stateSizeWords * 4];
-                    System.Array.Copy(sig.proofs[t].input, 0, input_bytes, 0, sig.proofs[t].input.Length);
+                    Array.Copy(sig.proofs[t].input, 0, input_bytes, 0, sig.proofs[t].input.Length);
 
                     uint[] temp = new uint[stateSizeWords];
                     Pack.LE_To_UInt32(input_bytes, 0, temp, 0, stateSizeWords);
@@ -992,10 +969,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 return -1;
             }
 
-            System.Array.Copy(sigBytes, sigBytesOffset, sig.challengeHash, 0, digestSizeBytes);
+            Array.Copy(sigBytes, sigBytesOffset, sig.challengeHash, 0, digestSizeBytes);
             sigBytesOffset += digestSizeBytes;
 
-            System.Array.Copy(sigBytes, sigBytesOffset, sig.salt, 0, saltSizeBytes);
+            Array.Copy(sigBytes, sigBytesOffset, sig.salt, 0, saltSizeBytes);
             sigBytesOffset += saltSizeBytes;
 
             ExpandChallengeHash(sig.challengeHash, sig.challengeC, sig.challengeP);
@@ -1042,12 +1019,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
 
             sig.iSeedInfo = new byte[sig.iSeedInfoLen];
-            System.Array.Copy(sigBytes, sigBytesOffset, sig.iSeedInfo, 0, sig.iSeedInfoLen);
+            Array.Copy(sigBytes, sigBytesOffset, sig.iSeedInfo, 0, sig.iSeedInfoLen);
             sigBytesOffset += sig.iSeedInfoLen;
 //        Console.Error.Write("iSeedInfo: " + Hex.toHexString(sig.iSeedInfo));
 
             sig.cvInfo = new byte[sig.cvInfoLen];
-            System.Array.Copy(sigBytes, sigBytesOffset, sig.cvInfo, 0, sig.cvInfoLen);
+            Array.Copy(sigBytes, sigBytesOffset, sig.cvInfo, 0, sig.cvInfoLen);
             sigBytesOffset += sig.cvInfoLen;
 
             /* Read the proofs */
@@ -1058,13 +1035,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                     sig.proofs[t] = new Signature2.Proof2(this);
                     sig.proofs[t].seedInfoLen = seedInfoLen;
                     sig.proofs[t].seedInfo = new byte[sig.proofs[t].seedInfoLen];
-                    System.Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].seedInfo, 0, sig.proofs[t].seedInfoLen);
+                    Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].seedInfo, 0, sig.proofs[t].seedInfoLen);
                     sigBytesOffset += sig.proofs[t].seedInfoLen;
 
                     uint P_t = sig.challengeP[IndexOf(sig.challengeC, numOpenedRounds, t)];
                     if (P_t != (numMPCParties - 1))
                     {
-                        System.Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].aux, 0, andSizeBytes);
+                        Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].aux, 0, andSizeBytes);
                         sigBytesOffset += andSizeBytes;
                         if (!ArePaddingBitsZero(sig.proofs[t].aux, 3 * numRounds * numSboxes))
                         {
@@ -1073,11 +1050,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                         }
                     }
 
-                    System.Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].input, 0, stateSizeBytes);
+                    Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].input, 0, stateSizeBytes);
                     sigBytesOffset += stateSizeBytes;
 
                     int msgsByteLength = andSizeBytes;
-                    System.Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].msgs, 0, msgsByteLength);
+                    Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].msgs, 0, msgsByteLength);
                     sigBytesOffset += msgsByteLength;
                     int msgsBitLength = 3 * numRounds * numSboxes;
                     if (!ArePaddingBitsZero(sig.proofs[t].msgs, msgsBitLength))
@@ -1086,7 +1063,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                         return -1;
                     }
 
-                    System.Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].C, 0, digestSizeBytes);
+                    Array.Copy(sigBytes, sigBytesOffset, sig.proofs[t].C, 0, digestSizeBytes);
                     sigBytesOffset += digestSizeBytes;
                 }
             }
@@ -1112,7 +1089,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         public void crypto_sign(byte[] sm, byte[] m, byte[] sk)
         {
             picnic_sign(sk, m, sm);
-            System.Array.Copy(m, 0, sm, 4, m.Length);
+            Array.Copy(m, 0, sm, 4, m.Length);
             sm = Arrays.CopyOfRange(sm, 0, signatureLength);
         }
 
@@ -1121,11 +1098,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             //todo unify conversion
 
             byte[] data_bytes = new byte[PICNIC_MAX_LOWMC_BLOCK_SIZE];
-            System.Array.Copy(sk, 1, data_bytes, 0, stateSizeBytes);
+            Array.Copy(sk, 1, data_bytes, 0, stateSizeBytes);
             byte[] ciphertext_bytes = new byte[PICNIC_MAX_LOWMC_BLOCK_SIZE];
-            System.Array.Copy(sk, 1 + stateSizeBytes, ciphertext_bytes, 0, stateSizeBytes);
+            Array.Copy(sk, 1 + stateSizeBytes, ciphertext_bytes, 0, stateSizeBytes);
             byte[] plaintext_bytes = new byte[PICNIC_MAX_LOWMC_BLOCK_SIZE];
-            System.Array.Copy(sk, 1 + 2 * stateSizeBytes, plaintext_bytes, 0, stateSizeBytes);
+            Array.Copy(sk, 1 + 2 * stateSizeBytes, plaintext_bytes, 0, stateSizeBytes);
             uint[] data = new uint[stateSizeWords];
             uint[] ciphertext = new uint[stateSizeWords];
             uint[] plaintext = new uint[stateSizeWords];
@@ -1133,7 +1110,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             Pack.LE_To_UInt32(data_bytes, 0, data);
             Pack.LE_To_UInt32(plaintext_bytes, 0, plaintext);
             Pack.LE_To_UInt32(ciphertext_bytes, 0, ciphertext);
-
 
             if (!is_picnic3(parameters))
             {
@@ -1187,10 +1163,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             int sigByteIndex = sigOffset;
 
-            System.Array.Copy(challengeBits, 0, sigBytes, sigByteIndex, Utils.NumBytes(2 * numMPCRounds));
+            Array.Copy(challengeBits, 0, sigBytes, sigByteIndex, Utils.NumBytes(2 * numMPCRounds));
             sigByteIndex += Utils.NumBytes(2 * numMPCRounds);
 
-            System.Array.Copy(sig.salt, 0, sigBytes, sigByteIndex, saltSizeBytes);
+            Array.Copy(sig.salt, 0, sigBytes, sigByteIndex, saltSizeBytes);
 
             sigByteIndex += saltSizeBytes;
 
@@ -1198,23 +1174,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             {
                 int challenge = GetChallenge(challengeBits, i);
 
-                System.Array.Copy(proofs[i].view3Commitment, 0, sigBytes, sigByteIndex, digestSizeBytes);
+                Array.Copy(proofs[i].view3Commitment, 0, sigBytes, sigByteIndex, digestSizeBytes);
                 sigByteIndex += digestSizeBytes;
 
                 if (transform == TRANSFORM_UR)
                 {
                     int view3UnruhLength = (challenge == 0) ? UnruhGWithInputBytes : UnruhGWithoutInputBytes;
-                    System.Array.Copy(proofs[i].view3UnruhG, 0, sigBytes, sigByteIndex, view3UnruhLength);
+                    Array.Copy(proofs[i].view3UnruhG, 0, sigBytes, sigByteIndex, view3UnruhLength);
                     sigByteIndex += view3UnruhLength;
                 }
 
-                System.Array.Copy(proofs[i].communicatedBits, 0, sigBytes, sigByteIndex, andSizeBytes);
+                Array.Copy(proofs[i].communicatedBits, 0, sigBytes, sigByteIndex, andSizeBytes);
                 sigByteIndex += andSizeBytes;
 
-                System.Array.Copy(proofs[i].seed1, 0, sigBytes, sigByteIndex, seedSizeBytes);
+                Array.Copy(proofs[i].seed1, 0, sigBytes, sigByteIndex, seedSizeBytes);
                 sigByteIndex += seedSizeBytes;
 
-                System.Array.Copy(proofs[i].seed2, 0, sigBytes, sigByteIndex, seedSizeBytes);
+                Array.Copy(proofs[i].seed2, 0, sigBytes, sigByteIndex, seedSizeBytes);
                 sigByteIndex += seedSizeBytes;
 
                 if (challenge == 1 || challenge == 2)
@@ -1235,7 +1211,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private int SerializeSignature2(Signature2 sig, byte[] sigBytes, int sigOffset)
         {
-
             /* Compute the number of bytes required for the signature */
             int bytesRequired = digestSizeBytes + saltSizeBytes; /* challenge and salt */
 
@@ -1266,16 +1241,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
 
             int sigByteIndex = sigOffset;
-            System.Array.Copy(sig.challengeHash, 0, sigBytes, sigByteIndex, digestSizeBytes);
+            Array.Copy(sig.challengeHash, 0, sigBytes, sigByteIndex, digestSizeBytes);
             sigByteIndex += digestSizeBytes;
 
-            System.Array.Copy(sig.salt, 0, sigBytes, sigByteIndex, saltSizeBytes);
+            Array.Copy(sig.salt, 0, sigBytes, sigByteIndex, saltSizeBytes);
             sigByteIndex += saltSizeBytes;
 
-            System.Array.Copy(sig.iSeedInfo, 0, sigBytes, sigByteIndex, sig.iSeedInfoLen);
+            Array.Copy(sig.iSeedInfo, 0, sigBytes, sigByteIndex, sig.iSeedInfoLen);
             sigByteIndex += sig.iSeedInfoLen;
 
-            System.Array.Copy(sig.cvInfo, 0, sigBytes, sigByteIndex, sig.cvInfoLen);
+            Array.Copy(sig.cvInfo, 0, sigBytes, sigByteIndex, sig.cvInfoLen);
             sigByteIndex += sig.cvInfoLen;
 
             /* Write the proofs */
@@ -1283,24 +1258,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             {
                 if (Contains(sig.challengeC, numOpenedRounds, t))
                 {
-                    System.Array.Copy(sig.proofs[t].seedInfo, 0, sigBytes, sigByteIndex, sig.proofs[t].seedInfoLen);
+                    Array.Copy(sig.proofs[t].seedInfo, 0, sigBytes, sigByteIndex, sig.proofs[t].seedInfoLen);
                     sigByteIndex += sig.proofs[t].seedInfoLen;
 
-                     uint P_t = sig.challengeP[IndexOf(sig.challengeC, numOpenedRounds, t)];
+                    uint P_t = sig.challengeP[IndexOf(sig.challengeC, numOpenedRounds, t)];
 
                     if (P_t != (numMPCParties - 1))
                     {
-                        System.Array.Copy(sig.proofs[t].aux, 0, sigBytes, sigByteIndex, andSizeBytes);
+                        Array.Copy(sig.proofs[t].aux, 0, sigBytes, sigByteIndex, andSizeBytes);
                         sigByteIndex += andSizeBytes;
                     }
 
-                    System.Array.Copy(sig.proofs[t].input, 0, sigBytes, sigByteIndex, stateSizeBytes);
+                    Array.Copy(sig.proofs[t].input, 0, sigBytes, sigByteIndex, stateSizeBytes);
                     sigByteIndex += stateSizeBytes;
 
-                    System.Array.Copy(sig.proofs[t].msgs, 0, sigBytes, sigByteIndex, andSizeBytes);
+                    Array.Copy(sig.proofs[t].msgs, 0, sigBytes, sigByteIndex, andSizeBytes);
                     sigByteIndex += andSizeBytes;
 
-                    System.Array.Copy(sig.proofs[t].C, 0, sigBytes, sigByteIndex, digestSizeBytes);
+                    Array.Copy(sig.proofs[t].C, 0, sigBytes, sigByteIndex, digestSizeBytes);
                     sigByteIndex += digestSizeBytes;
                 }
             }
@@ -1318,7 +1293,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             {
                 views[i] = new View[3];
             }
-            
+
             byte[][][] AS = new byte[numMPCRounds][][]; // numMPCRounds, numMPCParties, digestSizeBytes
             for (int i = 0; i < numMPCRounds; i++)
             {
@@ -1328,7 +1303,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                     AS[i][j] = new byte[digestSizeBytes];
                 }
             }
-            
+
             byte[][][] gs = new byte[numMPCRounds][][]; // numMPCRounds, 3, UnruhGWithInputBytes
             for (int i = 0; i < numMPCRounds; i++)
             {
@@ -1338,13 +1313,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                     gs[i][j] = new byte[UnruhGWithInputBytes];
                 }
             }
-            
-            
+
+
             /* Compute seeds for all parallel iterations */
             byte[] seeds = ComputeSeeds(privateKey, pubKey, plaintext, message);
             int seedLen = numMPCParties * seedSizeBytes;
 
-            System.Array.Copy(seeds, (seedLen) * (numMPCRounds), sig.salt, 0, saltSizeBytes);
+            Array.Copy(seeds, (seedLen) * (numMPCRounds), sig.salt, 0, saltSizeBytes);
 
             //Allocate a random tape (re-used per parallel iteration), and a temporary buffer
             Tape tape = new Tape(this);
@@ -1368,10 +1343,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                         return -1;
                     }
 
-                    System.Array.Copy(tmp, 0, view_byte, 0, stateSizeBytes);
-                    ZeroTrailingBits(view_byte, stateSizeBits);
+                    Array.Copy(tmp, 0, view_byte, 0, stateSizeBytes);
+                    Utils.ZeroTrailingBits(view_byte, stateSizeBits);
                     Pack.LE_To_UInt32(view_byte, 0, views[k][j].inputShare);
-                    System.Array.Copy(tmp, stateSizeBytes, tape.tapes[j], 0, andSizeBytes);
+                    Array.Copy(tmp, stateSizeBytes, tape.tapes[j], 0, andSizeBytes);
                 }
 
                 // Now set third party's wires. The random bits are from the seed, the input is
@@ -1439,7 +1414,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 (transform != TRANSFORM_UR) ? null : gs[i]); //todo check if
             }
 
-
             return 0;
         }
 
@@ -1449,18 +1423,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         {
             if (challenge == 0)
             {
-                System.Array.Copy(seeds, seedsOffset + 0 * seedSizeBytes, proof.seed1, 0, seedSizeBytes);
-                System.Array.Copy(seeds, seedsOffset + 1 * seedSizeBytes, proof.seed2, 0, seedSizeBytes);
+                Array.Copy(seeds, seedsOffset + 0 * seedSizeBytes, proof.seed1, 0, seedSizeBytes);
+                Array.Copy(seeds, seedsOffset + 1 * seedSizeBytes, proof.seed2, 0, seedSizeBytes);
             }
             else if (challenge == 1)
             {
-                System.Array.Copy(seeds, seedsOffset + 1 * seedSizeBytes, proof.seed1, 0, seedSizeBytes);
-                System.Array.Copy(seeds, seedsOffset + 2 * seedSizeBytes, proof.seed2, 0, seedSizeBytes);
+                Array.Copy(seeds, seedsOffset + 1 * seedSizeBytes, proof.seed1, 0, seedSizeBytes);
+                Array.Copy(seeds, seedsOffset + 2 * seedSizeBytes, proof.seed2, 0, seedSizeBytes);
             }
             else if (challenge == 2)
             {
-                System.Array.Copy(seeds, seedsOffset + 2 * seedSizeBytes, proof.seed1, 0, seedSizeBytes);
-                System.Array.Copy(seeds, seedsOffset + 0 * seedSizeBytes, proof.seed2, 0, seedSizeBytes);
+                Array.Copy(seeds, seedsOffset + 2 * seedSizeBytes, proof.seed1, 0, seedSizeBytes);
+                Array.Copy(seeds, seedsOffset + 0 * seedSizeBytes, proof.seed2, 0, seedSizeBytes);
             }
             else
             {
@@ -1469,16 +1443,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             if (challenge == 1 || challenge == 2)
             {
-                System.Array.Copy(views[2].inputShare, 0, proof.inputShare, 0, stateSizeBytes);
+                Array.Copy(views[2].inputShare, 0, proof.inputShare, 0, stateSizeBytes);
             }
 
-            System.Array.Copy(views[(challenge + 1) % 3].communicatedBits, 0, proof.communicatedBits, 0, andSizeBytes);
+            Array.Copy(views[(challenge + 1) % 3].communicatedBits, 0, proof.communicatedBits, 0, andSizeBytes);
 
-            System.Array.Copy(commitments[(challenge + 2) % 3], 0, proof.view3Commitment, 0, digestSizeBytes);
+            Array.Copy(commitments[(challenge + 2) % 3], 0, proof.view3Commitment, 0, digestSizeBytes);
             if (transform == TRANSFORM_UR)
             {
                 int view3UnruhLength = (challenge == 0) ? UnruhGWithInputBytes : UnruhGWithoutInputBytes;
-                System.Array.Copy(gs[(challenge + 2) % 3], 0, proof.view3UnruhG, 0, view3UnruhLength);
+                Array.Copy(gs[(challenge + 2) % 3], 0, proof.view3UnruhG, 0, view3UnruhLength);
             }
         }
 
@@ -1652,7 +1626,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             for (int i = 0; i < 3; i++)
             {
-                System.Array.Copy(slab, (3 + i) * stateSizeWords, views[i].outputShare, 0, stateSizeWords);
+                Array.Copy(slab, (3 + i) * stateSizeWords, views[i].outputShare, 0, stateSizeWords);
             }
         }
 
@@ -1730,7 +1704,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             rand.pos++;
         }
 
-
         private void mpc_xor(uint[] state, uint[] input, int len, int players)
         {
             for (int player = 0; player < players; player++)
@@ -1742,7 +1715,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 }
             }
         }
-
 
         private void mpc_matrix_mul(uint[] output, int outputOffset, uint[] state, int stateOffset,
             uint[] matrix, int matrixOffset, int players)
@@ -1763,7 +1735,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 state[i + stateOffset] = state[i + stateOffset] ^ input[i+inOffset];
             }
         }
-
 
         private bool CreateRandomTape(byte[] seed, int seedOffset, byte[] salt,  uint roundNumber, uint playerNumber,
             byte[] tape, int tapeLen)
@@ -1806,9 +1777,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
             return allSeeds;
         }
-
-
-
 
         private void sign_picnic3(uint[] privateKey, uint[] pubKey, uint[] plaintext, byte[] message, Signature2 sig)
         {
@@ -1924,7 +1892,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             sig.cvInfo = treeCv.OpenMerkleTree(missingLeaves, (uint)missingLeavesSize, cvInfoLen);
             sig.cvInfoLen = cvInfoLen[0];
 
-            /* Reveal iSeeds for unopned rounds, those in {0..T-1} \ ChallengeC. */
+            /* Reveal iSeeds for unopened rounds, those in {0..T-1} \ ChallengeC. */
             sig.iSeedInfo = new byte[numMPCRounds * seedSizeBytes];
             sig.iSeedInfoLen = iSeedsTree.RevealSeeds(sig.challengeC, (uint)numOpenedRounds,
                 sig.iSeedInfo, numMPCRounds * seedSizeBytes);
@@ -1934,7 +1902,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             sig.proofs = new Signature2.Proof2[numMPCRounds];
             for (uint t = 0; t < numMPCRounds; t++)
             {
-                if (Contains(sig.challengeC, numOpenedRounds, (uint)t))
+                if (Contains(sig.challengeC, numOpenedRounds, t))
                 {
                     sig.proofs[t] = new Signature2.Proof2(this);
                     int P_index = IndexOf(sig.challengeC, numOpenedRounds, t);
@@ -1951,34 +1919,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                         GetAuxBits(sig.proofs[t].aux, tapes[t]);
                     }
 
-                    System.Array.Copy(inputs[t], 0, sig.proofs[t].input, 0, stateSizeBytes);
-                    System.Array.Copy(msgs[t].msgs[sig.challengeP[P_index]], 0, sig.proofs[t].msgs, 0, andSizeBytes);
-                    System.Array.Copy(C[t][sig.challengeP[P_index]], 0, sig.proofs[t].C, 0, digestSizeBytes);
+                    Array.Copy(inputs[t], 0, sig.proofs[t].input, 0, stateSizeBytes);
+                    Array.Copy(msgs[t].msgs[sig.challengeP[P_index]], 0, sig.proofs[t].msgs, 0, andSizeBytes);
+                    Array.Copy(C[t][sig.challengeP[P_index]], 0, sig.proofs[t].C, 0, digestSizeBytes);
                 }
             }
-
         }
 
-        static int IndexOf(uint[] list, int len, uint value)
+        private static int IndexOf(uint[] list, int len, uint value)
         {
-            for (int i = 0; i < len; i++)
-            {
-                if (list[i] == value)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
+            return Array.IndexOf(list, value, 0, len);
         }
-
-
 
         private uint[] GetMissingLeavesList(uint[] challengeC)
         {
             uint missingLeavesSize = (uint)(numMPCRounds - numOpenedRounds);
             uint[] missingLeaves = new uint[missingLeavesSize];
-             uint pos = 0;
+            uint pos = 0;
 
             for (int i = 0; i < numMPCRounds; i++)
             {
@@ -2055,8 +2012,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             return position + 1;
         }
 
-
-
         private void ExpandChallengeHash(byte[] challengeHash, uint[] challengeC, uint[] challengeP)
         {
             // Populate C
@@ -2065,7 +2020,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint[] chunks = new uint[digestSizeBytes * 8 / System.Math.Min(bitsPerChunkC, bitsPerChunkP)];
             byte[] h = new byte[MAX_DIGEST_SIZE];
 
-            System.Array.Copy(challengeHash, 0, h, 0, digestSizeBytes);
+            Array.Copy(challengeHash, 0, h, 0, digestSizeBytes);
 
             uint countC = 0;
             while (countC < numOpenedRounds)
@@ -2137,8 +2092,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             digest.DoFinal(digest_arr, 0, digestSizeBytes);
         }
 
-
-
         private int SimulateOnline(uint[] maskedKey, Tape tape, uint[] tmp_shares,
             Msg msg, uint[] plaintext, uint[] pubKey)
         {
@@ -2169,7 +2122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 xor_array(state, roundKey, state, 0, stateSizeWords); // state += roundKey
             }
 
-            if (!(SubarrayEquals(state, pubKey, stateSizeWords)))
+            if (!SubarrayEquals(state, pubKey, stateSizeWords))
             {
                 ret = -1;
             }
@@ -2335,15 +2288,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         private void GetAuxBits(byte[] output, Tape tape)
         {
-            int last = numMPCParties - 1;
-            int pos = 0;
-            int n = stateSizeBits;
+            var lastTape = tape.tapes[numMPCParties - 1];
+            int n = stateSizeBits, pos = 0, tapePos = 0;
 
             for (int j = 0; j < numRounds; j++)
             {
+                tapePos += n;
+
                 for (int i = 0; i < n; i++)
                 {
-                    Utils.SetBit(output, pos++, Utils.GetBit(tape.tapes[last], n + n * 2 * j + i));
+                    Utils.SetBit(output, pos++, Utils.GetBit(lastTape, tapePos++));
                 }
             }
         }
@@ -2389,13 +2343,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         static bool is_picnic3(int parameters)
         {
-            if (parameters == 7 /*Picnic3_L1*/ ||
-                parameters == 8 /*Picnic3_L3*/ ||
-                parameters == 9 /*Picnic3_L5*/ )
-            {
-                return true;
-            }
-            return false;
+            return parameters == 7 /*Picnic3_L1*/ ||
+                   parameters == 8 /*Picnic3_L3*/ ||
+                   parameters == 9 /*Picnic3_L5*/ ;
         }
 
         //todo return int;
@@ -2421,9 +2371,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
 
             buf[0] = (byte) parameters;
-            System.Array.Copy(data, 0, buf, 1, stateSizeBytes);
-            System.Array.Copy(ciphertext, 0, buf, 1 + stateSizeBytes, stateSizeBytes);
-            System.Array.Copy(plaintext, 0, buf, 1 + 2 * stateSizeBytes, stateSizeBytes);
+            Array.Copy(data, 0, buf, 1, stateSizeBytes);
+            Array.Copy(ciphertext, 0, buf, 1 + stateSizeBytes, stateSizeBytes);
+            Array.Copy(plaintext, 0, buf, 1 + 2 * stateSizeBytes, stateSizeBytes);
             return bytesRequired;
         }
 
@@ -2437,8 +2387,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             }
 
             buf[0] = (byte) parameters;
-            System.Array.Copy(ciphertext, 0, buf, 1, stateSizeBytes);
-            System.Array.Copy(plaintext, 0, buf, 1 + stateSizeBytes, stateSizeBytes);
+            Array.Copy(ciphertext, 0, buf, 1, stateSizeBytes);
+            Array.Copy(plaintext, 0, buf, 1 + stateSizeBytes, stateSizeBytes);
             return bytesRequired;
 
         }
@@ -2450,30 +2400,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             uint[] data = new uint[data_bytes.Length / 4];
             uint[] plaintext = new uint[plaintext_bytes.Length / 4];
             uint[] ciphertext = new uint[ciphertext_bytes.Length / 4];
-            byte[] temp = new byte[stateSizeBytes];
 
             // generate a private key
-            random.NextBytes(temp);
-            ZeroTrailingBits(temp, stateSizeBits);
-            System.Array.Copy(temp, 0, data_bytes, 0, temp.Length);
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                data[i] = Pack.LE_To_UInt32(data_bytes, i * 4);
-            }
-
+            random.NextBytes(data_bytes, 0, stateSizeBytes);
+            Utils.ZeroTrailingBits(data_bytes, stateSizeBits);
+            Pack.LE_To_UInt32(data_bytes, 0, data);
 
             // generate a plaintext block
-            random.NextBytes(temp);
-            ZeroTrailingBits(temp, stateSizeBits);
-            System.Array.Copy(temp, 0, plaintext_bytes, 0, temp.Length);
+            random.NextBytes(plaintext_bytes, 0, stateSizeBytes);
+            Utils.ZeroTrailingBits(plaintext_bytes, stateSizeBits);
+            Pack.LE_To_UInt32(plaintext_bytes, 0, plaintext);
 
-            for (int i = 0; i < plaintext.Length; i++)
-            {
-                plaintext[i] = Pack.LE_To_UInt32(plaintext_bytes, i * 4);
-            }
-
-            // computer ciphertext
+            // compute ciphertext
             LowMCEnc(plaintext, ciphertext, data);
 
             //copy back to byte array
@@ -2482,15 +2420,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             Pack.UInt32_To_LE(ciphertext, ciphertext_bytes, 0);
         }
 
-
         private void LowMCEnc(uint[] plaintext, uint[] output, uint[] key)
         {
             uint[] roundKey = new uint[LOWMC_MAX_WORDS];
 
-            if (plaintext != (output))
+            if (plaintext != output)
             {
                 /* output will hold the intermediate state */
-                System.Array.Copy(plaintext, 0, output, 0, stateSizeWords);
+                Array.Copy(plaintext, 0, output, 0, stateSizeWords);
             }
 
             KMatricesWithPointer current = LowmcConstants.Instance.KMatrix(this, 0);
@@ -2513,7 +2450,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
                 xor_array(output, output, roundKey, 0, stateSizeWords);
             }
         }
-
 
         private void Substitution(uint[] state)
         {
@@ -2551,47 +2487,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             matrix_mul_offset(output, 0, state, 0, matrix, matrixOffset);
         }
 
-        protected void matrix_mul_offset(uint[] output, int outputOffset,
-            uint[] state, int stateOffset,
-            uint[] matrix, int matrixOffset)
+        protected void matrix_mul_offset(uint[] output, int outputOffset, uint[] state, int stateOffset, uint[] matrix,
+            int matrixOffset)
         {
             // Use temp to correctly handle the case when state = output
-            uint prod;
             uint[] temp = new uint[LOWMC_MAX_WORDS];
             temp[stateSizeWords - 1] = 0;
             int wholeWords = stateSizeBits / WORD_SIZE_BITS;
 
             for (int i = 0; i < stateSizeBits; i++)
             {
-                prod = 0;
+                uint prod = 0;
                 for (int j = 0; j < wholeWords; j++)
                 {
                     int index = i * stateSizeWords + j;
-                    prod ^= (state[j + stateOffset] & matrix[matrixOffset + index]);
+                    prod ^= state[j + stateOffset] & matrix[matrixOffset + index];
                 }
 
                 for (int j = wholeWords * WORD_SIZE_BITS; j < stateSizeBits; j++)
                 {
                     int index = i * stateSizeWords * WORD_SIZE_BITS + j;
-                    uint bit = (Utils.GetBitFromWordArray(state, j + stateOffset * 32) &
-                               Utils.GetBitFromWordArray(matrix, matrixOffset * 32 + index));
+                    uint bit = Utils.GetBitFromWordArray(state, stateOffset * 32 + j)
+                             & Utils.GetBitFromWordArray(matrix, matrixOffset * 32 + index);
                     prod ^= bit;
                 }
 
-                Utils.SetBit(temp, i, (int)Utils.Parity32(prod));
-
+                Utils.SetBit(temp, i, Utils.Parity32(prod));
             }
 
-            System.Array.Copy(temp, 0, output, outputOffset, stateSizeWords);
-        }
-
-        private void ZeroTrailingBits(byte[] data, int bitLength)
-        {
-            int byteLength = Utils.NumBytes(bitLength);
-            for (int i = bitLength; i < byteLength * 8; i++)
-            {
-                Utils.SetBit(data, i, (byte) 0);
-            }
+            Array.Copy(temp, 0, output, outputOffset, stateSizeWords);
         }
     }
 }

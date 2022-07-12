@@ -47,8 +47,8 @@ namespace Org.BouncyCastle.Asn1.X9
 
         /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given name.</summary>
         /// <remarks>
-        /// Allows accessing the <see cref="ECCurve">curve</see> without necessarily triggering the creation of the
-        /// full <see cref="X9ECParameters"/>.
+        /// Allows accessing the <see cref="Math.EC.ECCurve">curve</see> without necessarily triggering the creation of
+        /// the full <see cref="X9ECParameters"/>.
         /// </remarks>
         /// <param name="name">The name of the curve.</param>
         public static X9ECParametersHolder GetByNameLazy(string name)
@@ -116,8 +116,8 @@ namespace Org.BouncyCastle.Asn1.X9
         /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given
         /// <see cref="DerObjectIdentifier">OID</see>.</summary>
         /// <remarks>
-        /// Allows accessing the <see cref="ECCurve">curve</see> without necessarily triggering the creation of the
-        /// full <see cref="X9ECParameters"/>.
+        /// Allows accessing the <see cref="Math.EC.ECCurve">curve</see> without necessarily triggering the creation of
+        /// the full <see cref="X9ECParameters"/>.
         /// </remarks>
         /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)

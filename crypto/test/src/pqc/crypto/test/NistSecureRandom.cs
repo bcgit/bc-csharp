@@ -69,14 +69,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             reseed_counuter = 1;
         }
 
-        public override void NextBytes(byte[] x)
+        public override void NextBytes(byte[] buf)
+        {
+            NextBytes(buf, 0, buf.Length);
+        }
+
+        public override void NextBytes(byte[] buf, int off, int len)
         {
             byte[] block = new byte[16];
             int i = 0;
 
-            int xlen = x.Length;
-
-            while (xlen > 0)
+            while (len > 0)
             {
                 for (int j = 15; j >= 0; j--)
                 {
@@ -93,16 +96,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                 AES256_ECB(key, v, block, 0);
 
-                if (xlen > 15)
+                if (len > 15)
                 {
-                    Array.Copy(block, 0, x, i, block.Length);
+                    Array.Copy(block, 0, buf, off + i, block.Length);
                     i += 16;
-                    xlen -= 16;
+                    len -= 16;
                 }
                 else
                 {
-                    Array.Copy(block, 0, x, i, xlen);
-                    xlen = 0;
+                    Array.Copy(block, 0, buf, off + i, len);
+                    len = 0;
                 }
             }
 

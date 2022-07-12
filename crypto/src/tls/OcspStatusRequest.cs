@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Tls
         private readonly IList<ResponderID> m_responderIDList;
         private readonly X509Extensions m_requestExtensions;
 
-        /// <param name="responderIDList">an <see cref="IList"/> of <see cref="ResponderID"/>, specifying the list of
+        /// <param name="responderIDList">an <see cref="IList{T}"/> of <see cref="ResponderID"/>, specifying the list of
         /// trusted OCSP responders. An empty list has the special meaning that the responders are implicitly known to
         /// the server - e.g., by prior arrangement.</param>
         /// <param name="requestExtensions">OCSP request extensions. A null value means that there are no extensions.
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Tls
             this.m_requestExtensions = requestExtensions;
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="ResponderID"/>.</returns>
+        /// <returns>an <see cref="IList{T}"/> of <see cref="ResponderID"/>.</returns>
         public IList<ResponderID> ResponderIDList
         {
             get { return m_responderIDList; }

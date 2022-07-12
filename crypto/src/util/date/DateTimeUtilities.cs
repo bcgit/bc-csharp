@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Utilities.Date
 {
 	public class DateTimeUtilities
 	{
-		public static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1);
+		public static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
 		private DateTimeUtilities()
 		{
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Utilities.Date
 		public static DateTime UnixMsToDateTime(
 			long unixMs)
 		{
-			return new DateTime(unixMs * TimeSpan.TicksPerMillisecond + UnixEpoch.Ticks);
+			return new DateTime(unixMs * TimeSpan.TicksPerMillisecond + UnixEpoch.Ticks, DateTimeKind.Utc);
 		}
 
 		/// <summary>

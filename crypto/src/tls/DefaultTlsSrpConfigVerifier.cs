@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <summary>Specify a custom set of acceptable group parameters.</summary>
-        /// <param name="groups">an <see cref="IList"/> of acceptable <see cref="Srp6Group"/>.</param>
+        /// <param name="groups">an <see cref="IList{T}"/> of acceptable <see cref="Srp6Group"/>.</param>
         public DefaultTlsSrpConfigVerifier(IList<Srp6Group> groups)
         {
             this.m_groups = new List<Srp6Group>(groups);

@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Tls
     {
         private readonly IList<ServerName> m_serverNameList;
 
-        /// <param name="serverNameList">an <see cref="IList"/> of <see cref="ServerName"/>.</param>
+        /// <param name="serverNameList">an <see cref="IList{T}"/> of <see cref="ServerName"/>.</param>
         public ServerNameList(IList<ServerName> serverNameList)
         {
             if (null == serverNameList)
@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Tls
             this.m_serverNameList = serverNameList;
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="ServerName"/>.</returns>
+        /// <returns>an <see cref="IList{T}"/> of <see cref="ServerName"/>.</returns>
         public IList<ServerName> ServerNames
         {
             get { return m_serverNameList; }

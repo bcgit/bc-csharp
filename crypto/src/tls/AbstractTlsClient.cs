@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Tls
             return new CertificateStatusRequest(CertificateStatusType.ocsp, new OcspStatusRequest(null, null));
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="CertificateStatusRequestItemV2"/> (or null).</returns>
+        /// <returns>an <see cref="IList{T}"/> of <see cref="CertificateStatusRequestItemV2"/> (or null).</returns>
         protected virtual IList<CertificateStatusRequestItemV2> GetMultiCertStatusRequest()
         {
             return null;
@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Tls
         /// <param name="namedGroupRoles">The <see cref="NamedGroupRole">named group roles</see> for which there should
         /// be at least one supported group. By default this is inferred from the offered cipher suites and signature
         /// algorithms.</param>
-        /// <returns>an <see cref="IList"/> of <see cref="Int32"/>. See <see cref="NamedGroup"/> for group constants.
+        /// <returns>an <see cref="IList{T}"/> of <see cref="Int32"/>. See <see cref="NamedGroup"/> for group constants.
         /// </returns>
         protected virtual IList<int> GetSupportedGroups(IList<int> namedGroupRoles)
         {

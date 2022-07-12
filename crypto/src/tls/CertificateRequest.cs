@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <param name="certificateTypes">see <see cref="ClientCertificateType"/> for valid constants.</param>
         /// <param name="supportedSignatureAlgorithms"></param>
-        /// <param name="certificateAuthorities">an <see cref="IList"/> of <see cref="X509Name"/>.</param>
+        /// <param name="certificateAuthorities">an <see cref="IList{T}"/> of <see cref="X509Name"/>.</param>
         public CertificateRequest(short[] certificateTypes,
             IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms, IList<X509Name> certificateAuthorities)
             : this(null, certificateTypes, supportedSignatureAlgorithms, null, certificateAuthorities)
@@ -108,21 +108,21 @@ namespace Org.BouncyCastle.Tls
             get { return m_certificateTypes; }
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="SignatureAndHashAlgorithm"/> (or null before TLS 1.2).
+        /// <returns>an <see cref="IList{T}"/> of <see cref="SignatureAndHashAlgorithm"/> (or null before TLS 1.2).
         /// </returns>
         public IList<SignatureAndHashAlgorithm> SupportedSignatureAlgorithms
         {
             get { return m_supportedSignatureAlgorithms; }
         }
 
-        /// <returns>an optional <see cref="IList"/> of <see cref="SignatureAndHashAlgorithm"/>. May be non-null from
+        /// <returns>an optional <see cref="IList{T}"/> of <see cref="SignatureAndHashAlgorithm"/>. May be non-null from
         /// TLS 1.3 onwards.</returns>
         public IList<SignatureAndHashAlgorithm> SupportedSignatureAlgorithmsCert
         {
             get { return m_supportedSignatureAlgorithmsCert; }
         }
 
-        /// <returns>an <see cref="IList"/> of <see cref="X509Name"/>.</returns>
+        /// <returns>an <see cref="IList{T}"/> of <see cref="X509Name"/>.</returns>
         public IList<X509Name> CertificateAuthorities
         {
             get { return m_certificateAuthorities; }
