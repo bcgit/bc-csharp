@@ -72,46 +72,37 @@ public class SIKEEngine
     //          public key pk (CRYPTO_PUBLICKEYBYTES bytes)
     public int crypto_kem_keypair(byte[] pk, byte[] sk, SecureRandom random)
     {
-        byte[] s = new byte[param.MSG_BYTES];
-        random.NextBytes(s);
-
-
+        random.NextBytes(sk, 0, (int)param.MSG_BYTES);
 
         if (isCompressed)
         {
             // Generation of Alice's secret key
             // Outputs random value in [0, 2^eA - 1]
 
-            byte[] random_digits = new byte[param.SECRETKEY_A_BYTES];
-            random.NextBytes(random_digits);
-            random_digits[0] &= 0xFE;                            // Make private scalar even
-            random_digits[param.SECRETKEY_A_BYTES-1] &= (byte) param.MASK_ALICE;    // Masking last byte
-
-            System.Array.Copy(s, 0, sk, 0, param.MSG_BYTES);
-            System.Array.Copy(random_digits, 0, sk, param.MSG_BYTES, param.SECRETKEY_A_BYTES);
-            //
+            random.NextBytes(sk, (int)param.MSG_BYTES, (int)param.SECRETKEY_A_BYTES);
+            sk[param.MSG_BYTES] &= 0xFE;                                                    // Make private scalar even
+            sk[param.MSG_BYTES + param.SECRETKEY_A_BYTES - 1] &= (byte)param.MASK_ALICE;    // Masking last
 
             sidhCompressed.EphemeralKeyGeneration_A_extended(sk, pk);
-            System.Array.Copy(pk, 0, sk, param.MSG_BYTES + param.SECRETKEY_A_BYTES, param.CRYPTO_PUBLICKEYBYTES);
 
+            // Append public key pk to secret key sk
+            System.Array.Copy(pk, 0, sk, param.MSG_BYTES + param.SECRETKEY_A_BYTES, param.CRYPTO_PUBLICKEYBYTES);
         }
         else
         {
             // Generation of Bob's secret key
             // Outputs random value in [0, 2^Floor(Log(2, oB)) - 1]
             // todo/org: SIDH.random_mod_order_B(sk, random);
-            byte[] random_digits = new byte[param.SECRETKEY_B_BYTES];
-            random.NextBytes(random_digits);
-            random_digits[param.SECRETKEY_B_BYTES-1] &= (byte)param.MASK_BOB;
 
-            System.Array.Copy(s, 0, sk, 0, param.MSG_BYTES);
-            System.Array.Copy(random_digits, 0, sk, param.MSG_BYTES, param.SECRETKEY_B_BYTES);
+            random.NextBytes(sk, (int)param.MSG_BYTES, (int)param.SECRETKEY_B_BYTES);
+            sk[param.MSG_BYTES + param.SECRETKEY_B_BYTES - 1] &= (byte)param.MASK_BOB;
 
             sidh.EphemeralKeyGeneration_B(sk, pk);
+
+            // Append public key pk to secret key sk
             System.Array.Copy(pk, 0, sk, param.MSG_BYTES + param.SECRETKEY_B_BYTES, param.CRYPTO_PUBLICKEYBYTES);
 
         }
-        // Append public key pk to secret key sk
 
         return 0;
     }
@@ -130,9 +121,7 @@ public class SIKEEngine
             byte[] temp = new byte[param.CRYPTO_CIPHERTEXTBYTES + param.MSG_BYTES];
 
             // Generate ephemeralsk <- G(m||pk) mod oB
-            byte[] tmp = new byte[param.MSG_BYTES];
-            random.NextBytes(tmp);
-            System.Array.Copy(tmp, 0, temp, 0, param.MSG_BYTES);
+            random.NextBytes(temp, 0, (int)param.MSG_BYTES);
             System.Array.Copy(pk, 0, temp, param.MSG_BYTES, param.CRYPTO_PUBLICKEYBYTES);
 
             IXof digest = new ShakeDigest(256);
@@ -180,9 +169,7 @@ public class SIKEEngine
             byte[] temp = new byte[param.CRYPTO_CIPHERTEXTBYTES + param.MSG_BYTES];
 
             // Generate ephemeralsk <- G(m||pk) mod oA
-            byte[] tmp = new byte[param.MSG_BYTES]; // todo: is there a simplier way to do this?
-            random.NextBytes(tmp);
-            System.Array.Copy(tmp, 0, temp, 0, param.MSG_BYTES);
+            random.NextBytes(temp, 0, (int)param.MSG_BYTES);
             System.Array.Copy(pk, 0, temp, param.MSG_BYTES, param.CRYPTO_PUBLICKEYBYTES);
 
             IXof digest = new ShakeDigest(256);
