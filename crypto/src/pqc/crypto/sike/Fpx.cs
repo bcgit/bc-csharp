@@ -1,5 +1,9 @@
-
 using System;
+using System.Diagnostics;
+#if NETSTANDARD1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
+
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
@@ -67,8 +71,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Copy a field element, c = a.
         protected internal void fpcopy(ulong[] a, long aOffset, ulong[] c)
         {
-            uint i;
-            for (i = 0; i < engine.param.NWORDS_FIELD; i++)
+            for (uint i = 0; i < engine.param.NWORDS_FIELD; i++)
             {
                 c[i] = a[i + aOffset];
             }
@@ -91,9 +94,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Multiprecision addition, c = a+b, where lng(a) = lng(b) = nwords. Returns the carry bit.
         protected internal ulong mp_add(ulong[] a, ulong[] b, ulong[] c, uint nwords)
         {
-            ulong i, carry = 0;
+            ulong carry = 0;
 
-            for (i = 0; i < nwords; i++)
+            for (uint i = 0; i < nwords; i++)
             {
                 //ADDC
                 ulong tempReg = a[i] + carry;
@@ -134,17 +137,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Is x < y?
+#if NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private ulong is_digit_lessthan_ct(ulong x, ulong y)
         {
             return ((x ^ ((x ^ y) | ((x - y) ^ y))) >> (int)(Internal.RADIX -1));
         }
 
         // Is x != 0?
+#if NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private ulong is_digit_nonzero_ct(ulong x)
         {
             return ((x | (0-x)) >> (int)(Internal.RADIX -1));
         }
         // Is x = 0?
+#if NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private ulong is_digit_zero_ct(ulong x)
         {
             return (1 ^ is_digit_nonzero_ct(x));
@@ -160,9 +172,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // SECURITY NOTE: This function does not run in constant-time.
         protected internal bool is_felm_zero(ulong[] x)
         {
-            uint i;
-
-            for (i = 0; i < engine.param.NWORDS_FIELD; i++)
+            for (uint i = 0; i < engine.param.NWORDS_FIELD; i++)
             {
                 if (x[i] != 0)
                     return false;
@@ -201,7 +211,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Is x even? return 1 (TRUE) if condition is true, 0 (FALSE) otherwise.
         private static bool is_felm_even(ulong[] x)
         {
-            return ((x[0] & 1) ^ 1) == 1;
+            return (x[0] & 1UL) == 0UL;
         }
 
         // Test if a is a square in GF(p^2) and return 1 if true, 0 otherwise
@@ -463,7 +473,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
         // todo/org : move to fp_generic
         // Digit multiplication, digit * digit -> 2-digit result
-        private void digit_x_digit(ulong a, ulong b, ulong[] c)
+#if NET5_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ulong digit_x_digit(ulong a, ulong b, out ulong low)
+        {
+            return System.Math.BigMul(a, b, out low);
+        }
+#else
+        private ulong digit_x_digit(ulong a, ulong b, out ulong low)
         {
             ulong al, ah, bl, bh, temp;
             ulong albl, albh, ahbl, ahbh, res1, res2, res3, carry;
@@ -478,23 +495,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             albh = al*bh;
             ahbl = ah*bl;
             ahbh = ah*bh;
-            c[0] = albl & mask_low;             // C00
+            low = albl & mask_low;             // C00
 
             res1 = albl >> (8 * 4);
             res2 = ahbl & mask_low;
             res3 = albh & mask_low;
             temp = res1 + res2 + res3;
             carry = temp >> (8 * 4);
-            c[0] ^= temp << (8 * 4);            // C01
+            low ^= temp << (8 * 4);            // C01
 
             res1 = ahbl >> (8 * 4);
             res2 = albh >> (8 * 4);
             res3 = ahbh & mask_low;
             temp = res1 + res2 + res3 + carry;
-            c[1] = temp & mask_low;             // C10
+            ulong high = temp & mask_low;             // C10
             carry = temp & mask_high;
-            c[1] ^= (ahbh & mask_high) + carry; // C11
+            high ^= (ahbh & mask_high) + carry; // C11
+            return high;
         }
+#endif
 
         // todo/org : move to fp_generic
         // Efficient Montgomery reduction using comba and exploiting the special form of the prime PRIME.
@@ -505,14 +524,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         {
             ulong i, j, carry, count = engine.param.PRIME_ZERO_WORDS;
             ulong t = 0, u = 0, v = 0;
-            ulong[] UV = new ulong[2];
+            ulong U, V;
 
             for (i = 0; i < engine.param.NWORDS_FIELD; i++)
             {
                 mc[i] = 0;
             }
 
-            ulong tempReg;
             for (i = 0; i < engine.param.NWORDS_FIELD; i++)
             {
                 for (j = 0; j < i; j++)
@@ -520,31 +538,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                     if (j < (i-engine.param.PRIME_ZERO_WORDS+1))
                     {
                         //MUL
-                        digit_x_digit(mc[j], engine.param.PRIMEp1[i-j], UV);
+                        U = digit_x_digit(mc[j], engine.param.PRIMEp1[i - j], out V);
 
                         //ADDC
-                        tempReg = (UV[0]) + (0);
-                        v = (v) + tempReg;
-                        carry = (is_digit_lessthan_ct(tempReg, (0)) | is_digit_lessthan_ct((v), tempReg));
+                        v += V;
+                        U += is_digit_lessthan_ct(v, V); // No overflow possible; high part of product < ulong.MaxValue
 
                         //ADDC
-                        tempReg = (UV[1]) + (carry);
-                        u = (u) + tempReg;
-                        carry = (is_digit_lessthan_ct(tempReg, (carry)) | is_digit_lessthan_ct((u), tempReg));
-
-                        t += carry;
+                        u += U;
+                        t += is_digit_lessthan_ct(u, U);
                     }
                 }
 
                 //ADDC
-                tempReg = (v) + (0);
-                v = (ma[i]) + tempReg;
-                carry = (is_digit_lessthan_ct(tempReg, (0)) | is_digit_lessthan_ct((v), tempReg));
+                carry = ma[i];
+                v += carry;
+                carry = is_digit_lessthan_ct(v, carry);
 
                 //ADDC
-                tempReg = (u) + (carry);
-                u = (0) + tempReg;
-                carry = (is_digit_lessthan_ct(tempReg, (carry)) | is_digit_lessthan_ct((u), tempReg));
+                u += carry;
+                carry &= is_digit_zero_ct(u);
 
                 t += carry;
                 mc[i] = v;
@@ -564,45 +577,43 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                     if (j < (engine.param.NWORDS_FIELD-count))
                     {
                         //MUL
-                        digit_x_digit(mc[j], engine.param.PRIMEp1[i-j], UV);
+                        U = digit_x_digit(mc[j], engine.param.PRIMEp1[i - j], out V);
 
                         //ADDC
-                        tempReg = (UV[0]) + (0);
-                        v = (v) + tempReg;
-                        carry = (is_digit_lessthan_ct(tempReg, (0)) | is_digit_lessthan_ct((v), tempReg));
+                        v += V;
+                        U += is_digit_lessthan_ct(v, V); // No overflow possible; high part of product < ulong.MaxValue
 
                         //ADDC
-                        tempReg = (UV[1]) + (carry);
-                        u = (u) + tempReg;
-                        carry = (is_digit_lessthan_ct(tempReg, (carry)) | is_digit_lessthan_ct((u), tempReg));
-
-                        t += carry;
+                        u += U;
+                        t += is_digit_lessthan_ct(u, U);
                     }
                 }
 
                 //ADDC
-                tempReg = (v) + (0);
-                v = (ma[i]) + tempReg;
-                carry = (is_digit_lessthan_ct(tempReg, (0)) | is_digit_lessthan_ct((v), tempReg));
+                carry = ma[i];
+                v += carry;
+                carry = is_digit_lessthan_ct(v, carry);
 
                 //ADDC
-                tempReg = (u) + (carry);
-                u = (0) + tempReg;
-                carry = (is_digit_lessthan_ct(tempReg, (carry)) | is_digit_lessthan_ct((u), tempReg));
+                u += carry;
+                carry &= is_digit_zero_ct(u);
 
                 t += carry;
-                mc[i-engine.param.NWORDS_FIELD] = v;
+                mc[i - engine.param.NWORDS_FIELD] = v;
                 v = u;
                 u = t;
                 t = 0;
             }
 
             //ADDC
-            tempReg = (v) + (0);
-            v = (ma[2*engine.param.NWORDS_FIELD-1]) + tempReg;
-            carry = (is_digit_lessthan_ct(tempReg, (0)) | is_digit_lessthan_ct((v), tempReg));
+            carry = ma[2 * engine.param.NWORDS_FIELD - 1];
+            v += carry;
+            carry = is_digit_lessthan_ct(v, carry);
+            Debug.Assert(carry == 0);
 
-            mc[engine.param.NWORDS_FIELD-1] = v;
+            mc[engine.param.NWORDS_FIELD - 1] = v;
+            Debug.Assert(u == 0);
+            Debug.Assert(t == 0);
         }
 
         protected internal static bool subarrayEquals(ulong[] a, ulong[] b, uint length)
@@ -1000,28 +1011,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // NOTE: a and c CANNOT be the same variable!
         protected internal void multiply(ulong[] a, ulong[] b, ulong[] c, uint nwords)
         {
-            ulong i, j, carry = 0;
+            ulong i, j;
             ulong t = 0, u = 0, v = 0;
-            ulong[] UV = new ulong[2];
+            ulong U, V;
 
             for (i = 0; i < nwords; i++)
             {
                 for (j = 0; j <= i; j++)
                 {
                     //MUL
-                    digit_x_digit(a[j], b[i-j], UV);
+                    U = digit_x_digit(a[j], b[i - j], out V);
 
                     //ADDC
-                    ulong tempReg = UV[0] + 0;
-                    v = (v) + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, 0) | is_digit_lessthan_ct(v, tempReg));
+                    v += V;
+                    U += is_digit_lessthan_ct(v, V); // No overflow possible; high part of product < ulong.MaxValue
 
                     //ADDC
-                    tempReg = UV[1] + carry;
-                    u = (u) + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, carry) | is_digit_lessthan_ct(u, tempReg));
-
-                    t += carry;
+                    u += U;
+                    t += is_digit_lessthan_ct(u, U);
                 }
                 c[i] = v;
                 v = u;
@@ -1033,26 +1040,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                 for (j = i-nwords+1; j < nwords; j++)
                 {
                     //MUL
-                    digit_x_digit(a[j], b[i-j], UV);
+                    U = digit_x_digit(a[j], b[i - j], out V);
 
                     //ADDC
-                    ulong tempReg = UV[0] + 0;
-                    v = (v) + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, 0) | is_digit_lessthan_ct(v, tempReg));
+                    v += V;
+                    U += is_digit_lessthan_ct(v, V); // No overflow possible; high part of product < ulong.MaxValue
 
                     //ADDC
-                    tempReg = UV[1] + carry;
-                    u = (u) + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, carry) | is_digit_lessthan_ct(u, tempReg));
-
-                    t += carry;
+                    u += U;
+                    t += is_digit_lessthan_ct(u, U);
                 }
                 c[i] = v;
                 v = u;
                 u = t;
                 t = 0;
             }
-            c[2*nwords-1] = v;
+            c[2 * nwords - 1] = v;
+            Debug.Assert(u == 0);
+            Debug.Assert(t == 0);
         }
 
         // Is x = 0? return 1 (TRUE) if condition is true, 0 (FALSE) otherwise
@@ -1427,27 +1432,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         {
             ulong i, j;
             ulong t = 0, u = 0, v = 0;
-            ulong[] UV = new ulong[2];
-            ulong carry = 0;
+            ulong U, V;
 
             for (i = 0; i < nwords; i++)
             {
                 for (j = 0; j <= i; j++)
                 {
                     //MUL
-                    digit_x_digit(a[j], b[i-j], UV);
+                    U = digit_x_digit(a[j], b[i - j], out V);
 
                     //ADDC
-                    ulong tempReg = UV[0] + 0;
-                    v = v + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, 0) | is_digit_lessthan_ct(v, tempReg));
+                    v += V;
+                    U += is_digit_lessthan_ct(v, V); // No overflow possible; high part of product < ulong.MaxValue
 
                     //ADDC
-                    tempReg = UV[1] + carry;
-                    u = u + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, carry) | is_digit_lessthan_ct(u, tempReg));
-
-                    t += carry;
+                    u += U;
+                    t += is_digit_lessthan_ct(u, U);
                 }
                 c[i] = v;
                 v = u;
@@ -1460,26 +1460,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                 for (j = i-nwords+1; j < nwords; j++)
                 {
                     //MUL
-                    digit_x_digit(a[j], b[i-j], UV);
+                    U = digit_x_digit(a[j], b[i - j], out V);
 
                     //ADDC
-                    ulong tempReg = UV[0] + 0;
-                    v = v + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, 0) | is_digit_lessthan_ct(v, tempReg));
+                    v += V;
+                    U += is_digit_lessthan_ct(v, V); // No overflow possible; high part of product < ulong.MaxValue
 
                     //ADDC
-                    tempReg = UV[1] + carry;
-                    u = u + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, carry) | is_digit_lessthan_ct(u, tempReg));
-
-                    t += carry;
+                    u += U;
+                    t += is_digit_lessthan_ct(u, U);
                 }
                 c[i] = v;
                 v = u;
                 u = t;
                 t = 0;
             }
-            c[2*nwords-1] = v;
+            c[2 * nwords - 1] = v;
+            Debug.Assert(u == 0);
+            Debug.Assert(t == 0);
         }
 
         // Multiprecision comba multiply, c = a*b, where lng(a) = lng(b) = nwords.
@@ -1487,27 +1485,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         {
             ulong i, j;
             ulong t = 0, u = 0, v = 0;
-            ulong[] UV = new ulong[2];
-            ulong carry = 0;
+            ulong U, V;
 
             for (i = 0; i < nwords; i++)
             {
                 for (j = 0; j <= i; j++)
                 {
                     //MUL
-                    digit_x_digit(a[j + aOffset], b[i-j], UV);
+                    U = digit_x_digit(a[j + aOffset], b[i-j], out V);
 
                     //ADDC
-                    ulong tempReg = UV[0] + 0;
-                    v = v + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, 0) | is_digit_lessthan_ct(v, tempReg));
+                    v += V;
+                    U += is_digit_lessthan_ct(v, V); // No overflow possible; high part of product < ulong.MaxValue
 
                     //ADDC
-                    tempReg = UV[1] + carry;
-                    u = u + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, carry) | is_digit_lessthan_ct(u, tempReg));
-
-                    t += carry;
+                    u += U;
+                    t += is_digit_lessthan_ct(u, U);
                 }
                 c[i] = v;
                 v = u;
@@ -1520,26 +1513,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                 for (j = i-nwords+1; j < nwords; j++)
                 {
                     //MUL
-                    digit_x_digit(a[j + aOffset], b[i-j], UV);
+                    U = digit_x_digit(a[j + aOffset], b[i-j], out V);
 
                     //ADDC
-                    ulong tempReg = UV[0] + 0;
-                    v = v + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, 0) | is_digit_lessthan_ct(v, tempReg));
+                    v += V;
+                    U += is_digit_lessthan_ct(v, V); // No overflow possible; high part of product < ulong.MaxValue
 
                     //ADDC
-                    tempReg = UV[1] + carry;
-                    u = u + tempReg;
-                    carry = (is_digit_lessthan_ct(tempReg, carry) | is_digit_lessthan_ct(u, tempReg));
-
-                    t += carry;
+                    u += U;
+                    t += is_digit_lessthan_ct(u, U);
                 }
                 c[i] = v;
                 v = u;
                 u = t;
                 t = 0;
             }
-            c[2*nwords-1] = v;
+            c[2 * nwords - 1] = v;
+            Debug.Assert(u == 0);
+            Debug.Assert(t == 0);
         }
 
         // GF(p^2) multiplication using Montgomery arithmetic, c = a*b in GF(p^2).
