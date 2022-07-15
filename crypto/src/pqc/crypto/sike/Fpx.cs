@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics;
-#if NETSTANDARD1_0_OR_GREATER
+#if NETSTANDARD1_0_OR_GREATER || NET5_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
 
@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Is x < y?
-#if NETSTANDARD1_0_OR_GREATER
+#if NETSTANDARD1_0_OR_GREATER || NET5_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
         private ulong is_digit_lessthan_ct(ulong x, ulong y)
@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Is x != 0?
-#if NETSTANDARD1_0_OR_GREATER
+#if NETSTANDARD1_0_OR_GREATER || NET5_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
         private ulong is_digit_nonzero_ct(ulong x)
@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return ((x | (0-x)) >> (int)(Internal.RADIX -1));
         }
         // Is x = 0?
-#if NETSTANDARD1_0_OR_GREATER
+#if NETSTANDARD1_0_OR_GREATER || NET5_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
         private ulong is_digit_zero_ct(ulong x)
@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         {
             for (int i = (int)engine.param.NWORDS_FIELD-1; i >= 0; i--)
             {
-                if (x[i]  < y[i] )
+                if (x[i] < y[i] )
                 {
                     return true;
                 }
@@ -194,16 +194,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                 {
                     return false;
                 }
-
-    //            //todo : find lt for unsigned ulongs
-    //            if (x[i] < y[i])
-    //            {
-    //                return true;
-    //            }
-    //            else if (x[i] > y[i])
-    //            {
-    //                return false;
-    //            }
             }
             return false;
         }
@@ -250,24 +240,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Partial Montgomery inversion via the binary GCD algorithm.
-        private void fpinv_mont_bingcd_partial(ulong[] a, ulong[] x1, uint[] k)
+        private uint fpinv_mont_bingcd_partial(ulong[] a, ulong[] x1)
         {
+            // TODO Use faster (and optionally constant-time) inversion in Org.BouncyCastle.Math.Raw.Mod
+
             ulong[] u = new ulong[engine.param.NWORDS_FIELD],
                    v = new ulong[engine.param.NWORDS_FIELD],
                    x2 = new ulong[engine.param.NWORDS_FIELD];
-
-            uint cwords;  // Number of words necessary for x1, x2
 
             fpcopy(a, 0, u);
             fpcopy(engine.param.PRIME, 0, v);
             fpzero(x1); x1[0] = 1;
             fpzero(x2);
-            k[0] = 0;
+            uint k = 0;
 
             while (!is_felm_zero(v))
             {
-                cwords = ((k[0] + 1) / Internal.RADIX) + 1;
-                if ((cwords < engine.param.NWORDS_FIELD))
+                // Number of words necessary for x1, x2
+                uint cwords = (++k / Internal.RADIX) + 1;
+                if (cwords < engine.param.NWORDS_FIELD)
                 {
                     if (is_felm_even(v))
                     {
@@ -321,13 +312,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                         mp_shiftl1(x2, engine.param.NWORDS_FIELD);
                     }
                 }
-                k[0] += 1;
             }
 
             if (is_felm_lt(engine.param.PRIME, x1))
             {
                 mp_sub(x1, engine.param.PRIME, x1, engine.param.NWORDS_FIELD);
             }
+
+            return k;
         }
 
         // Set up the value 2^mark.
@@ -355,21 +347,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         //                operations not involving any secret data.
         private void fpinv_mont_bingcd(ulong[] a)
         {
-            ulong[] x = new ulong[engine.param.NWORDS_FIELD],
-                   t = new ulong[engine.param.NWORDS_FIELD];
-            uint[] k = new uint[1];
-
             if (is_felm_zero(a))
                 return;
 
-            fpinv_mont_bingcd_partial(a, x, k);
-            if (k[0] <= engine.param.MAXBITS_FIELD)
+            ulong[] x = new ulong[engine.param.NWORDS_FIELD],
+                   t = new ulong[engine.param.NWORDS_FIELD];
+
+            uint k = fpinv_mont_bingcd_partial(a, x);
+            if (k <= engine.param.MAXBITS_FIELD)
             {
                 fpmul_mont(x, engine.param.Montgomery_R2, x);
-                k[0] += engine.param.MAXBITS_FIELD;
+                k += engine.param.MAXBITS_FIELD;
             }
             fpmul_mont(x, engine.param.Montgomery_R2, x);
-            power2_setup(t, 2*(int)engine.param.MAXBITS_FIELD - (int)k[0], engine.param.NWORDS_FIELD);
+            power2_setup(t, 2*(int)engine.param.MAXBITS_FIELD - (int)k, engine.param.NWORDS_FIELD);
             fpmul_mont(x, t, a);
         }
 
@@ -1078,7 +1069,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // Is x even? return 1 (TRUE) if condition is true, 0 (FALSE) otherwise.
         private bool is_even_mod_order(ulong[] x)
         {
-            return ((x[0] & 1) ^ 1) == 1;
+            return (x[0] & 1UL) == 0UL;
         }
 
         // Is x < y? return 1 (TRUE) if condition is true, 0 (FALSE) otherwise.
@@ -1117,7 +1108,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
 
         // Partial Montgomery inversion modulo order.
-        private void Montgomery_inversion_mod_order_bingcd_partial(ulong[] a, ulong[] x1, uint[] k, ulong[] order)
+        private uint Montgomery_inversion_mod_order_bingcd_partial(ulong[] a, ulong[] x1, ulong[] order)
         {
             ulong[] u = new ulong[engine.param.NWORDS_ORDER],
                    v = new ulong[engine.param.NWORDS_ORDER],
@@ -1128,11 +1119,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             copy_words(order, v, engine.param.NWORDS_ORDER);
             copy_words(x2, x1, engine.param.NWORDS_ORDER);
             x1[0] = 1;
-            k[0] = 0;
-        
+            uint k = 0;
+
             while (!is_zero_mod_order(v))
             {
-                cwords = ((k[0] + 1) / Internal.RADIX) + 1;
+                cwords = (++k / Internal.RADIX) + 1;
                 if ((cwords < engine.param.NWORDS_ORDER))
                 {
                     if (is_even_mod_order(v))
@@ -1186,13 +1177,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                         mp_shiftl1(x2, engine.param.NWORDS_ORDER);
                     }
                 }
-                k[0] += 1;
             }
-        
+
             if (is_lt_mod_order(order, x1))
             {
                 mp_sub(x1, order, x1, engine.param.NWORDS_ORDER);
             }
+
+            return k;
         }
 
         // Montgomery inversion modulo order, c = a^(-1)*R mod order.
@@ -1200,7 +1192,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         {
             ulong[] x = new ulong[engine.param.NWORDS_ORDER],
                    t = new ulong[engine.param.NWORDS_ORDER];
-            uint[] k = new uint[1];
 
             if (is_zero(a, engine.param.NWORDS_ORDER))
             {
@@ -1208,15 +1199,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                 return;
             }
 
-            Montgomery_inversion_mod_order_bingcd_partial(a, x, k, order);
-            if (k[0] <= engine.param.NBITS_ORDER)
+            uint k = Montgomery_inversion_mod_order_bingcd_partial(a, x, order);
+            if (k <= engine.param.NBITS_ORDER)
             {
                 Montgomery_multiply_mod_order(x, Montgomery_Rprime, x, order, Montgomery_rprime);
-                k[0] += engine.param.NBITS_ORDER;
+                k += engine.param.NBITS_ORDER;
             }
 
             Montgomery_multiply_mod_order(x, Montgomery_Rprime, x, order, Montgomery_rprime);
-            power2_setup(t, 2*(int)engine.param.NBITS_ORDER - (int)k[0], engine.param.NWORDS_ORDER);
+            power2_setup(t, 2*(int)engine.param.NBITS_ORDER - (int)k, engine.param.NWORDS_ORDER);
             Montgomery_multiply_mod_order(x, t, c, order, Montgomery_rprime);
         }
 
@@ -1233,24 +1224,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // The input is assumed to be NWORDS_ORDER ulong
         protected internal uint mod3(ulong[] a)
         {
-            ulong temp;
-            uint r = 0;
-            uint[] val = Pack.LE_To_UInt32(Pack.UInt64_To_LE(a), 0, a.Length*2);
-
-            for (int i = (2*(int)engine.param.NWORDS_ORDER-1); i >= 0; i--)
+            ulong result = 0;
+            for (int i = 0; i < engine.param.NWORDS_ORDER; ++i)
             {
-    //            System.out.pruintln("i: " + i);
-    //            System.out.pruintf("val: %016x\n", val[i]);
-    //            System.out.pruintf("val: %016x\n", a[i/2]);
-    //            System.out.pruintf("r<<: %016x\n", ( ((ulong)r << (4*8))));
-                temp = ((ulong)r << (4*8)) | ((ulong)val[i]) & 0x00000000ffffffffL;
-    //            System.out.pruintf("temp: %016x\n", temp);
-                r = (uint)(temp % 3);
-    //            System.out.pruintf("r: %d\n", r);
+                result += a[i] >> 32;
+                result += a[i] & 0xFFFFFFFFUL;
             }
-
-        return r;
-    }
+            return (uint)(result % 3);
+        }
 
         // Conversion of a GF(p^2) element to Montgomery representation,
         // mc_i = a_i*R^2*R^(-1) = a_i*R in GF(p^2).
@@ -1628,26 +1609,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         // SECURITY NOTE: This function does not run in constant-time.
         protected internal bool is_orderelm_lt(ulong[] x, ulong[] y)
         {
-
             for (int i = (int)engine.param.NWORDS_ORDER-1; i >= 0; i--)
             {
-
-                if (x[i]  < y[i] )
+                if (x[i] < y[i] )
                 {
                     return true;
                 }
-                else if (x[i]  > y[i] )
+                else if (x[i] > y[i] )
                 {
                     return false;
                 }
-    //            if (x[i] < y[i])
-    //            {
-    //                return true;
-    //            }
-    //            else if (x[i] > y[i])
-    //            {
-    //                return false;
-    //            }
             }
             return false;
         }
