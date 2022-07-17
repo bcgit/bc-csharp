@@ -14,7 +14,10 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
         public void MultiplyH(byte[] x)
         {
-            GcmUtilities.Multiply(x, ref H);
+            GcmUtilities.FieldElement T;
+            GcmUtilities.AsFieldElement(x, out T);
+            GcmUtilities.Multiply(ref T, ref H);
+            GcmUtilities.AsBytes(ref T, x);
         }
     }
 }
