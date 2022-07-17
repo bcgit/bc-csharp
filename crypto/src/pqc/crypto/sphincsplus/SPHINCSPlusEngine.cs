@@ -1,6 +1,5 @@
-
 using System;
-using System.Security.Cryptography;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
@@ -118,7 +117,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             : SPHINCSPlusEngine
         {
             private byte[] padding = new byte[128];
-            private IDigest treeDigest;
             private HMac treeHMac;
             private Mgf1BytesGenerator mgf1;
             private byte[] hmacBuf;
@@ -133,8 +131,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             {
                 sha256 = new Sha256Digest();
                 sha256Buf = new byte[sha256.GetDigestSize()];
-                
-                this.treeDigest = new Sha256Digest();
+
                 if (n == 16)
                 {
                     this.msgDigest = new Sha256Digest();
@@ -152,7 +149,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 this.hmacBuf = new byte[treeHMac.GetMacSize()];
                 this.msgDigestBuf = new byte[msgDigest.GetDigestSize()];
-
             }
 
             public override byte[] F(byte[] pkSeed, Adrs adrs, byte[] m1)
