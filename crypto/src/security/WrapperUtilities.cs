@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Security
                 case WrapAlgorithm.RC2WRAP:				return new RC2WrapEngine();
                 case WrapAlgorithm.SEEDWRAP:			return new SeedWrapEngine();
                 case WrapAlgorithm.DESEDERFC3211WRAP:	return new Rfc3211WrapEngine(new DesEdeEngine());
-                case WrapAlgorithm.AESRFC3211WRAP:		return new Rfc3211WrapEngine(new AesEngine());
+                case WrapAlgorithm.AESRFC3211WRAP:		return new Rfc3211WrapEngine(AesUtilities.CreateEngine());
                 case WrapAlgorithm.CAMELLIARFC3211WRAP:	return new Rfc3211WrapEngine(new CamelliaEngine());
                 }
             }

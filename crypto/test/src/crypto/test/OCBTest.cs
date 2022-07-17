@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private IBlockCipher CreateUnderlyingCipher()
         {
-            return new AesEngine();
+            return AesUtilities.CreateEngine();
         }
 
         private IAeadBlockCipher CreateOcbCipher()

@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * Constructor.
         */
         public GcmSivBlockCipher()
-            : this(new AesEngine())
+            : this(AesUtilities.CreateEngine())
         {
         }
 

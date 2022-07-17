@@ -2,7 +2,6 @@ using System;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -57,7 +56,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public override void PerformTest()
         {
-            IBlockCipher cipher = new AesEngine();
+            IBlockCipher cipher = AesUtilities.CreateEngine();
             IMac mac = new CMac(cipher, 128);
 
             //128 bytes key
@@ -270,7 +269,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             try 
             {
-                CMac mac = new CMac(new AesEngine());
+                CMac mac = new CMac(AesUtilities.CreateEngine());
                 mac.Init(new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
                 Fail("CMac does not accept IV");
             }

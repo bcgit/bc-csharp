@@ -3,6 +3,7 @@ using System.Text;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
@@ -80,7 +81,7 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestSP800Ctr()
         {
-            SecureRandom random = new SP800SecureRandomBuilder().BuildCtr(new AesEngine(), 256, new byte[32], false);
+            SecureRandom random = new SP800SecureRandomBuilder().BuildCtr(AesUtilities.CreateEngine(), 256, new byte[32], false);
 
             CheckSecureRandom(random);
         }
@@ -113,7 +114,7 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestX931()
         {
-            SecureRandom random = new X931SecureRandomBuilder().Build(new AesEngine(), new KeyParameter(new byte[16]), false);
+            SecureRandom random = new X931SecureRandomBuilder().Build(AesUtilities.CreateEngine(), new KeyParameter(new byte[16]), false);
 
             CheckSecureRandom(random);
         }

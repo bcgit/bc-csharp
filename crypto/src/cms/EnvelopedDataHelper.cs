@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -55,7 +50,7 @@ namespace Org.BouncyCastle.Cms
         //        || NistObjectIdentifiers.IdAes192Cbc.Equals(algorithm)
         //        || NistObjectIdentifiers.IdAes256Cbc.Equals(algorithm))
         //    {
-        //        return new Rfc3211WrapEngine(new AesEngine());
+        //        return new Rfc3211WrapEngine(AesUtilities.CreateEngine());
         //    }
         //    else if (PkcsObjectIdentifiers.DesEde3Cbc.Equals(algorithm))
         //    {

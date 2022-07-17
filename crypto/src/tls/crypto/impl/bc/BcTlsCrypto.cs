@@ -568,7 +568,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected virtual IBlockCipher CreateAesEngine()
         {
-            return new AesEngine();
+            return AesUtilities.CreateEngine();
         }
 
         protected virtual IBlockCipher CreateAriaEngine()

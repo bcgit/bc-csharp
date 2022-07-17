@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Security
 
             if (mechanism == "AESCMAC")
             {
-                return new CMac(new AesEngine());
+                return new CMac(AesUtilities.CreateEngine());
             }
             if (mechanism == "DESMAC")
             {

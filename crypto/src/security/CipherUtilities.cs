@@ -339,7 +339,7 @@ namespace Org.BouncyCastle.Security
                         "PBEWITHMD5AND256BITAES-CBC-OPENSSL"))
                     {
                         return new PaddedBufferedBlockCipher(
-                            new CbcBlockCipher(new AesEngine()));
+                            new CbcBlockCipher(AesUtilities.CreateEngine()));
                     }
                 }
             }
@@ -368,7 +368,7 @@ namespace Org.BouncyCastle.Security
             switch (cipherAlgorithm)
             {
             case CipherAlgorithm.AES:
-                blockCipher = new AesEngine();
+                blockCipher = AesUtilities.CreateEngine();
                 break;
             case CipherAlgorithm.ARC4:
                 streamCipher = new RC4Engine();
@@ -759,7 +759,7 @@ namespace Org.BouncyCastle.Security
         {
             switch (cipherAlgorithm)
             {
-            case CipherAlgorithm.AES: return new AesEngine();
+            case CipherAlgorithm.AES: return AesUtilities.CreateEngine();
             case CipherAlgorithm.ARIA: return new AriaEngine();
             case CipherAlgorithm.BLOWFISH: return new BlowfishEngine();
             case CipherAlgorithm.CAMELLIA: return new CamelliaEngine();

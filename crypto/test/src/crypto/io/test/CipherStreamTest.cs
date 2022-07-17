@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		{
 //			IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CFB/NoPadding");
 
-			IBlockCipher blockCipher = new AesEngine();
+			IBlockCipher blockCipher = AesUtilities.CreateEngine();
 			int bits = 8 * blockCipher.GetBlockSize(); // TODO Is this right?
 			blockCipher = new CfbBlockCipher(blockCipher, bits);
 			IBufferedCipher cipher = new BufferedBlockCipher(blockCipher);
