@@ -571,7 +571,8 @@ namespace Org.BouncyCastle.Utilities
                 buf[--i] = b;
             }
         }
-        
+
+        [CLSCompliant(false)]
         public static void Fill(
             ulong[]	buf,
             ulong	b)
@@ -611,6 +612,8 @@ namespace Org.BouncyCastle.Utilities
             Array.Copy(data, 0, tmp, 0, System.Math.Min(newLength, data.Length));
             return tmp;
         }
+
+        [CLSCompliant(false)]
         public static uint[] CopyOf(uint[] data, int newLength)
         {
             uint[] tmp = new uint[newLength];
@@ -787,7 +790,8 @@ namespace Org.BouncyCastle.Utilities
             Array.Copy(b, 0, rv, a.Length, b.Length);
             return rv;
         }
-        
+
+        [CLSCompliant(false)]
         public static uint[] Concatenate(uint[] a, uint[] b)
         {
             if (a == null)
