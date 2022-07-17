@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+#if NET5_0_OR_GREATER
+using System.Runtime.Versioning;
+#endif
 using System.Security.Cryptography;
 using SystemX509 = System.Security.Cryptography.X509Certificates;
 
@@ -17,7 +20,10 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Security.Tests
 {
 	[TestFixture]
-	public class TestDotNetUtilities
+#if NET5_0_OR_GREATER
+    [SupportedOSPlatform("windows")]
+#endif
+    public class TestDotNetUtilities
 	{
 		[Test]
 		public void TestRsaInterop()
