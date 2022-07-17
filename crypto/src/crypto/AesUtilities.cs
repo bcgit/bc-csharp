@@ -6,6 +6,11 @@ namespace Org.BouncyCastle.Crypto
     {
         public static IBlockCipher CreateEngine()
         {
+#if NET5_0_OR_GREATER
+            if (AesX86Engine.IsSupported)
+                return new AesX86Engine();
+#endif
+
             return new AesEngine();
         }
     }
