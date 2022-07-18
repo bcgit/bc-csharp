@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+#if NET5_0_OR_GREATER
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Math.Raw;
 
@@ -399,6 +403,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
         {
+#if NET5_0_OR_GREATER
+            if (Pclmulqdq.IsSupported)
+            {
+                var X = Vector128.CreateScalar(x);
+                var Y = Vector128.CreateScalar(y);
+                var Z = Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
+                z[zOff    ] ^= Z.GetElement(0);
+                z[zOff + 1] ^= Z.GetElement(1);
+                return;
+            }
+#endif
+
             //u[0] = 0;
             u[1] = y;
             for (int i = 2; i < 16; i += 2)

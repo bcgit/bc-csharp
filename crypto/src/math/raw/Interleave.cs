@@ -1,4 +1,7 @@
 ﻿using System;
+#if NET5_0_OR_GREATER
+using System.Runtime.Intrinsics.X86;
+#endif
 
 namespace Org.BouncyCastle.Math.Raw
 {
@@ -29,6 +32,14 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static ulong Expand32to64(uint x)
         {
+#if NET5_0_OR_GREATER
+            if (Bmi2.IsSupported)
+            {
+                return (ulong)Bmi2.ParallelBitDeposit(x >> 16, 0x55555555U) << 32
+                    |         Bmi2.ParallelBitDeposit(x      , 0x55555555U);
+            }
+#endif
+
             // "shuffle" low half to even bits and high half to odd bits
             x = Bits.BitPermuteStep(x, 0x0000FF00U, 8);
             x = Bits.BitPermuteStep(x, 0x00F000F0U, 4);
@@ -40,6 +51,15 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static void Expand64To128(ulong x, ulong[] z, int zOff)
         {
+#if NET5_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                z[zOff    ] = Bmi2.X64.ParallelBitDeposit(x      , 0x5555555555555555UL);
+                z[zOff + 1] = Bmi2.X64.ParallelBitDeposit(x >> 32, 0x5555555555555555UL);
+                return;
+            }
+#endif
+
             // "shuffle" low half to even bits and high half to odd bits
             x = Bits.BitPermuteStep(x, 0x00000000FFFF0000UL, 16);
             x = Bits.BitPermuteStep(x, 0x0000FF000000FF00UL, 8);
@@ -72,6 +92,15 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static void Expand64To128Rev(ulong x, ulong[] z, int zOff)
         {
+#if NET5_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                z[zOff    ] = Bmi2.X64.ParallelBitDeposit(x >> 32, 0xAAAAAAAAAAAAAAAAUL);
+                z[zOff + 1] = Bmi2.X64.ParallelBitDeposit(x      , 0xAAAAAAAAAAAAAAAAUL);
+                return;
+            }
+#endif
+
             // "shuffle" low half to even bits and high half to odd bits
             x = Bits.BitPermuteStep(x, 0x00000000FFFF0000UL, 16);
             x = Bits.BitPermuteStep(x, 0x0000FF000000FF00UL, 8);
@@ -126,6 +155,14 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static ulong Unshuffle(ulong x)
         {
+#if NET5_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                return Bmi2.X64.ParallelBitExtract(x, 0xAAAAAAAAAAAAAAAAUL) << 32
+                    |  Bmi2.X64.ParallelBitExtract(x, 0x5555555555555555UL);
+            }
+#endif
+
             // "unshuffle" even bits to low half and odd bits to high half
             x = Bits.BitPermuteStep(x, 0x2222222222222222UL, 1);
             x = Bits.BitPermuteStep(x, 0x0C0C0C0C0C0C0C0CUL, 2);
@@ -137,6 +174,14 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static ulong Unshuffle(ulong x, out ulong even)
         {
+#if NET5_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                even = Bmi2.X64.ParallelBitExtract(x, 0x5555555555555555UL);
+                return Bmi2.X64.ParallelBitExtract(x, 0xAAAAAAAAAAAAAAAAUL);
+            }
+#endif
+
             ulong u0 = Unshuffle(x);
             even = u0 & 0x00000000FFFFFFFFUL;
             return u0 >> 32;
@@ -144,6 +189,16 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static ulong Unshuffle(ulong x0, ulong x1, out ulong even)
         {
+#if NET5_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
+            {
+                even = Bmi2.X64.ParallelBitExtract(x0, 0x5555555555555555UL)
+                    |  Bmi2.X64.ParallelBitExtract(x1, 0x5555555555555555UL) << 32;
+                return Bmi2.X64.ParallelBitExtract(x0, 0xAAAAAAAAAAAAAAAAUL)
+                    |  Bmi2.X64.ParallelBitExtract(x1, 0xAAAAAAAAAAAAAAAAUL) << 32;
+            }
+#endif
+
             ulong u0 = Unshuffle(x0);
             ulong u1 = Unshuffle(x1);
             even = (u1 << 32) | (u0 & 0x00000000FFFFFFFFUL);

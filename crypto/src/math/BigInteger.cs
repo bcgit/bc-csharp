@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+#if NET5_0_OR_GREATER
+using System.Runtime.Intrinsics.X86;
+#endif
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -135,26 +138,6 @@ namespace Org.BouncyCastle.Math
         public static readonly BigInteger Three;
         public static readonly BigInteger Four;
         public static readonly BigInteger Ten;
-
-        //private readonly static byte[] BitCountTable =
-        //{
-        //    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
-        //    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        //    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        //    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        //    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        //    4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
-        //};
 
         private readonly static byte[] BitLengthTable =
         {
@@ -911,6 +894,13 @@ namespace Org.BouncyCastle.Math
 
         public static int BitCnt(int i)
         {
+#if NET5_0_OR_GREATER
+            if (Popcnt.IsSupported)
+            {
+                return (int)Popcnt.PopCount((uint)i);
+            }
+#endif
+
             uint u = (uint)i;
             u = u - ((u >> 1) & 0x55555555);
             u = (u & 0x33333333) + ((u >> 2) & 0x33333333);
@@ -976,8 +966,15 @@ namespace Org.BouncyCastle.Math
         //
         // BitLen(value) is the number of bits in value.
         //
-        internal static int BitLen(int w)
+        private static int BitLen(int w)
         {
+#if NET5_0_OR_GREATER
+            if (Lzcnt.IsSupported)
+            {
+                return 32 - (int)Lzcnt.LeadingZeroCount((uint)w);
+            }
+#endif
+
             uint v = (uint)w;
             uint t = v >> 24;
             if (t != 0)

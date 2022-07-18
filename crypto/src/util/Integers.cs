@@ -1,4 +1,7 @@
 ﻿using System;
+#if NET5_0_OR_GREATER
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Math.Raw;
 
@@ -42,6 +45,13 @@ namespace Org.BouncyCastle.Utilities
 
         public static int NumberOfLeadingZeros(int i)
         {
+#if NET5_0_OR_GREATER
+            if (Lzcnt.IsSupported)
+            {
+                return (int)Lzcnt.LeadingZeroCount((uint)i);
+            }
+#endif
+
             if (i <= 0)
                 return (~i >> (31 - 5)) & (1 << 5);
 
@@ -57,6 +67,13 @@ namespace Org.BouncyCastle.Utilities
 
         public static int NumberOfTrailingZeros(int i)
         {
+#if NET5_0_OR_GREATER
+            if (Bmi1.IsSupported)
+            {
+                return (int)Bmi1.TrailingZeroCount((uint)i);
+            }
+#endif
+
             int n = DeBruijnTZ[(uint)((i & -i) * 0x0EF96A62) >> 27];
             int m = (((i & 0xFFFF) | (int)((uint)i >> 16)) - 1) >> 31;
             return n - m;
