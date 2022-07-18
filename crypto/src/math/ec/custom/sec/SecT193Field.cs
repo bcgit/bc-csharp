@@ -155,14 +155,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Sqrt(ulong[] x, ulong[] z)
         {
-            ulong u0, u1;
-            u0 = Interleave.Unshuffle(x[0]); u1 = Interleave.Unshuffle(x[1]);
-            ulong e0 = (u0 & 0x00000000FFFFFFFFUL) | (u1 << 32);
-            ulong c0 = (u0 >> 32) | (u1 & 0xFFFFFFFF00000000UL);
-
-            u0 = Interleave.Unshuffle(x[2]);
-            ulong e1 = (u0 & 0x00000000FFFFFFFFUL) ^ (x[3] << 32);
-            ulong c1 = (u0 >> 32);
+            ulong c0 = Interleave.Unshuffle(x[0], x[1], out ulong e0);
+            ulong c1 = Interleave.Unshuffle(x[2]      , out ulong e1);
+            e1 ^= x[3] << 32;
 
             z[0] = e0 ^ (c0 << 8);
             z[1] = e1 ^ (c1 << 8) ^ (c0 >> 56) ^ (c0 << 33);

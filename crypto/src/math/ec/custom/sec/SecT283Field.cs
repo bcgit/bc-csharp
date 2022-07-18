@@ -158,18 +158,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             ulong[] odd = Nat320.Create64();
 
-            ulong u0, u1;
-            u0 = Interleave.Unshuffle(x[0]); u1 = Interleave.Unshuffle(x[1]);
-            ulong e0 = (u0 & 0x00000000FFFFFFFFUL) | (u1 << 32);
-            odd[0]   = (u0 >> 32) | (u1 & 0xFFFFFFFF00000000UL);
-
-            u0 = Interleave.Unshuffle(x[2]); u1 = Interleave.Unshuffle(x[3]);
-            ulong e1 = (u0 & 0x00000000FFFFFFFFUL) | (u1 << 32);
-            odd[1]   = (u0 >> 32) | (u1 & 0xFFFFFFFF00000000UL);
-
-            u0 = Interleave.Unshuffle(x[4]);
-            ulong e2 = (u0 & 0x00000000FFFFFFFFUL);
-            odd[2]   = (u0 >> 32);
+            odd[0] = Interleave.Unshuffle(x[0], x[1], out ulong e0);
+            odd[1] = Interleave.Unshuffle(x[2], x[3], out ulong e1);
+            odd[2] = Interleave.Unshuffle(x[4]      , out ulong e2);
 
             Multiply(odd, ROOT_Z, z);
 

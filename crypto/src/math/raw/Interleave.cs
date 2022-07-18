@@ -135,6 +135,21 @@ namespace Org.BouncyCastle.Math.Raw
             return x;
         }
 
+        internal static ulong Unshuffle(ulong x, out ulong even)
+        {
+            ulong u0 = Unshuffle(x);
+            even = u0 & 0x00000000FFFFFFFFUL;
+            return u0 >> 32;
+        }
+
+        internal static ulong Unshuffle(ulong x0, ulong x1, out ulong even)
+        {
+            ulong u0 = Unshuffle(x0);
+            ulong u1 = Unshuffle(x1);
+            even = (u1 << 32) | (u0 & 0x00000000FFFFFFFFUL);
+            return (u0 >> 32) | (u1 & 0xFFFFFFFF00000000UL);
+        }
+
         internal static uint Unshuffle2(uint x)
         {
             // "unshuffle" (twice) even bits to low half and odd bits to high half
