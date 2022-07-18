@@ -1,4 +1,8 @@
 using System;
+#if NET5_0_OR_GREATER
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
@@ -155,129 +159,65 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
         internal static void Multiply(byte[] x, byte[] y)
         {
-            ulong[] t1 = AsUlongs(x);
-            ulong[] t2 = AsUlongs(y);
-            Multiply(t1, t2);
-            AsBytes(t1, x);
-        }
-
-        internal static void Multiply(uint[] x, uint[] y)
-        {
-            uint y0 = y[0], y1 = y[1], y2 = y[2], y3 = y[3];
-            uint z0 = 0, z1 = 0, z2 = 0, z3 = 0;
-
-            for (int i = 0; i < 4; ++i)
-            {
-                int bits = (int)x[i];
-                for (int j = 0; j < 32; ++j)
-                {
-                    uint m1 = (uint)(bits >> 31); bits <<= 1;
-                    z0 ^= y0 & m1;
-                    z1 ^= y1 & m1;
-                    z2 ^= y2 & m1;
-                    z3 ^= y3 & m1;
-
-                    uint m2 = (uint)((int)(y3 << 31) >> 8);
-                    y3 = (y3 >> 1) | (y2 << 31);
-                    y2 = (y2 >> 1) | (y1 << 31);
-                    y1 = (y1 >> 1) | (y0 << 31);
-                    y0 = (y0 >> 1) ^ (m2 & E1);
-                }
-            }
-
-            x[0] = z0;
-            x[1] = z1;
-            x[2] = z2;
-            x[3] = z3;
-        }
-
-        internal static void Multiply(ulong[] x, ulong[] y)
-        {
-            //ulong x0 = x[0], x1 = x[1];
-            //ulong y0 = y[0], y1 = y[1];
-            //ulong z0 = 0, z1 = 0, z2 = 0;
-
-            //for (int j = 0; j < 64; ++j)
-            //{
-            //    ulong m0 = (ulong)((long)x0 >> 63); x0 <<= 1;
-            //    z0 ^= y0 & m0;
-            //    z1 ^= y1 & m0;
-
-            //    ulong m1 = (ulong)((long)x1 >> 63); x1 <<= 1;
-            //    z1 ^= y0 & m1;
-            //    z2 ^= y1 & m1;
-
-            //    ulong c = (ulong)((long)(y1 << 63) >> 8);
-            //    y1 = (y1 >> 1) | (y0 << 63);
-            //    y0 = (y0 >> 1) ^ (c & E1UL);
-            //}
-
-            //z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
-            //z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
-
-            //x[0] = z0;
-            //x[1] = z1;
-
-            /*
-             * "Three-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
-             *
-             * Without access to the high part of a 64x64 product x * y, we use a bit reversal to calculate it:
-             *     rev(x) * rev(y) == rev((x * y) << 1) 
-             */
-
-            ulong x0 = x[0], x1 = x[1];
-            ulong y0 = y[0], y1 = y[1];
-            ulong x0r = Longs.Reverse(x0), x1r = Longs.Reverse(x1);
-            ulong y0r = Longs.Reverse(y0), y1r = Longs.Reverse(y1);
-
-            ulong h0 = Longs.Reverse(ImplMul64(x0r, y0r));
-            ulong h1 = ImplMul64(x0, y0) << 1;
-            ulong h2 = Longs.Reverse(ImplMul64(x1r, y1r));
-            ulong h3 = ImplMul64(x1, y1) << 1;
-            ulong h4 = Longs.Reverse(ImplMul64(x0r ^ x1r, y0r ^ y1r));
-            ulong h5 = ImplMul64(x0 ^ x1, y0 ^ y1) << 1;
-
-            ulong z0 = h0;
-            ulong z1 = h1 ^ h0 ^ h2 ^ h4;
-            ulong z2 = h2 ^ h1 ^ h3 ^ h5;
-            ulong z3 = h3;
-
-            z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
-//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
-            z2 ^=                   (z3 << 62) ^ (z3 << 57);
-
-            z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
-            z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
-
-            x[0] = z0;
-            x[1] = z1;
+            AsFieldElement(x, out FieldElement X);
+            AsFieldElement(y, out FieldElement Y);
+            Multiply(ref X, ref Y);
+            AsBytes(ref X, x);
         }
 
         internal static void Multiply(ref FieldElement x, ref FieldElement y)
         {
-            /*
-             * "Three-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
-             *
-             * Without access to the high part of a 64x64 product x * y, we use a bit reversal to calculate it:
-             *     rev(x) * rev(y) == rev((x * y) << 1) 
-             */
+            ulong z0, z1, z2, z3;
 
-            ulong x0 = x.n0, x1 = x.n1;
-            ulong y0 = y.n0, y1 = y.n1;
-            ulong x0r = Longs.Reverse(x0), x1r = Longs.Reverse(x1);
-            ulong y0r = Longs.Reverse(y0), y1r = Longs.Reverse(y1);
+#if NET5_0_OR_GREATER
+            if (Pclmulqdq.IsSupported)
+            {
+                var X = Vector128.Create(x.n1, x.n0);
+                var Y = Vector128.Create(y.n1, y.n0);
 
-            ulong h0 = Longs.Reverse(ImplMul64(x0r, y0r));
-            ulong h1 = ImplMul64(x0, y0) << 1;
-            ulong h2 = Longs.Reverse(ImplMul64(x1r, y1r));
-            ulong h3 = ImplMul64(x1, y1) << 1;
-            ulong h4 = Longs.Reverse(ImplMul64(x0r ^ x1r, y0r ^ y1r));
-            ulong h5 = ImplMul64(x0 ^ x1, y0 ^ y1) << 1;
+                var Z0 = Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
+                var Z1 = Sse2.Xor(
+                    Pclmulqdq.CarrylessMultiply(X, Y, 0x01),
+                    Pclmulqdq.CarrylessMultiply(X, Y, 0x10));
+                var Z2 = Pclmulqdq.CarrylessMultiply(X, Y, 0x11);
 
-            ulong z0 = h0;
-            ulong z1 = h1 ^ h0 ^ h2 ^ h4;
-            ulong z2 = h2 ^ h1 ^ h3 ^ h5;
-            ulong z3 = h3;
+                ulong t3 = Z0.GetElement(0);
+                ulong t2 = Z0.GetElement(1) ^ Z1.GetElement(0);
+                ulong t1 = Z2.GetElement(0) ^ Z1.GetElement(1);
+                ulong t0 = Z2.GetElement(1);
+
+                z0 = (t0 << 1) | (t1 >> 63);
+                z1 = (t1 << 1) | (t2 >> 63);
+                z2 = (t2 << 1) | (t3 >> 63);
+                z3 = (t3 << 1);
+            }
+            else
+#endif
+            {
+                /*
+                 * "Three-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
+                 *
+                 * Without access to the high part of a 64x64 product x * y, we use a bit reversal to calculate it:
+                 *     rev(x) * rev(y) == rev((x * y) << 1) 
+                 */
+
+                ulong x0 = x.n0, x1 = x.n1;
+                ulong y0 = y.n0, y1 = y.n1;
+                ulong x0r = Longs.Reverse(x0), x1r = Longs.Reverse(x1);
+                ulong y0r = Longs.Reverse(y0), y1r = Longs.Reverse(y1);
+
+                ulong h0 = Longs.Reverse(ImplMul64(x0r, y0r));
+                ulong h1 = ImplMul64(x0, y0) << 1;
+                ulong h2 = Longs.Reverse(ImplMul64(x1r, y1r));
+                ulong h3 = ImplMul64(x1, y1) << 1;
+                ulong h4 = Longs.Reverse(ImplMul64(x0r ^ x1r, y0r ^ y1r));
+                ulong h5 = ImplMul64(x0 ^ x1, y0 ^ y1) << 1;
+
+                z0 = h0;
+                z1 = h1 ^ h0 ^ h2 ^ h4;
+                z2 = h2 ^ h1 ^ h3 ^ h5;
+                z3 = h3;
+            }
 
             z1 ^= z3 ^ (z3 >> 1) ^ (z3 >> 2) ^ (z3 >> 7);
 //          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);

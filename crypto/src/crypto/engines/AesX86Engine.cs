@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class AesX86Engine
         : IBlockCipher
     {
-        public static bool IsSupported => Aes.IsSupported && Sse2.IsSupported;
+        public static bool IsSupported => Aes.IsSupported;
 
         private static Vector128<byte>[] CreateRoundKeys(byte[] key, bool forEncryption)
         {

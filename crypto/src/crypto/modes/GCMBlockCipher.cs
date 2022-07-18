@@ -15,6 +15,18 @@ namespace Org.BouncyCastle.Crypto.Modes
     public class GcmBlockCipher
         : IAeadBlockCipher
     {
+        private static IGcmMultiplier CreateGcmMultiplier()
+        {
+#if NET5_0_OR_GREATER
+            if (System.Runtime.Intrinsics.X86.Pclmulqdq.IsSupported)
+            {
+                return new BasicGcmMultiplier();
+            }
+#endif
+
+            return new Tables4kGcmMultiplier();
+        }
+
         private const int BlockSize = 16;
 
         private readonly IBlockCipher	cipher;
@@ -59,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (m == null)
             {
-                m = new Tables4kGcmMultiplier();
+                m = CreateGcmMultiplier();
             }
 
             this.cipher = c;
