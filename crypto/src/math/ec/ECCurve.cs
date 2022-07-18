@@ -1351,7 +1351,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             int FE_LONGS = (m + 63) / 64;
 
-            long[] table = new long[len * FE_LONGS * 2];
+            ulong[] table = new ulong[len * FE_LONGS * 2];
             {
                 int pos = 0;
                 for (int i = 0; i < len; ++i)
@@ -1369,10 +1369,10 @@ namespace Org.BouncyCastle.Math.EC
             : AbstractECLookupTable
         {
             private readonly F2mCurve m_outer;
-            private readonly long[] m_table;
+            private readonly ulong[] m_table;
             private readonly int m_size;
 
-            internal DefaultF2mLookupTable(F2mCurve outer, long[] table, int size)
+            internal DefaultF2mLookupTable(F2mCurve outer, ulong[] table, int size)
             {
                 this.m_outer = outer;
                 this.m_table = table;
@@ -1387,12 +1387,12 @@ namespace Org.BouncyCastle.Math.EC
             public override ECPoint Lookup(int index)
             {
                 int FE_LONGS = (m_outer.m + 63) / 64;
-                long[] x = new long[FE_LONGS], y = new long[FE_LONGS];
+                ulong[] x = new ulong[FE_LONGS], y = new ulong[FE_LONGS];
                 int pos = 0;
 
                 for (int i = 0; i < m_size; ++i)
                 {
-                    long MASK =((i ^ index) - 1) >> 31;
+                    ulong MASK = (ulong)(long)(((i ^ index) - 1) >> 31);
 
                     for (int j = 0; j < FE_LONGS; ++j)
                     {
@@ -1409,7 +1409,7 @@ namespace Org.BouncyCastle.Math.EC
             public override ECPoint LookupVar(int index)
             {
                 int FE_LONGS = (m_outer.m + 63) / 64;
-                long[] x = new long[FE_LONGS], y = new long[FE_LONGS];
+                ulong[] x = new ulong[FE_LONGS], y = new ulong[FE_LONGS];
                 int pos = index * FE_LONGS * 2;
 
                 for (int j = 0; j < FE_LONGS; ++j)
@@ -1421,7 +1421,7 @@ namespace Org.BouncyCastle.Math.EC
                 return CreatePoint(x, y);
             }
 
-            private ECPoint CreatePoint(long[] x, long[] y)
+            private ECPoint CreatePoint(ulong[] x, ulong[] y)
             {
                 int m = m_outer.m;
                 int[] ks = m_outer.IsTrinomial()
