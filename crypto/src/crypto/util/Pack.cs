@@ -439,5 +439,36 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 bsOff += 8;
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static uint LE_To_UInt32(Span<byte> s)
+        {
+            return s[0]
+                | (uint)s[1] << 8
+                | (uint)s[2] << 16
+                | (uint)s[3] << 24;
+        }
+
+        internal static ulong LE_To_UInt64(Span<byte> s)
+        {
+            uint lo = LE_To_UInt32(s);
+            uint hi = LE_To_UInt32(s.Slice(4));
+            return (ulong)hi << 32 | lo;
+        }
+
+        internal static void UInt32_To_LE(uint n, Span<byte> s)
+        {
+            s[0] = (byte)n;
+            s[1] = (byte)(n >> 8);
+            s[2] = (byte)(n >> 16);
+            s[3] = (byte)(n >> 24);
+        }
+
+        internal static void UInt64_To_LE(ulong n, Span<byte> s)
+        {
+            UInt32_To_LE((uint)n, s);
+            UInt32_To_LE((uint)(n >> 32), s.Slice(4));
+        }
+#endif
     }
 }

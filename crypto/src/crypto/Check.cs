@@ -21,5 +21,19 @@ namespace Org.BouncyCastle.Crypto
             if (off > (buf.Length - len))
                 throw new OutputLengthException(msg);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void DataLength(Span<byte> input, int len, string msg)
+        {
+            if (input.Length < len)
+                throw new DataLengthException(msg);
+        }
+
+        internal static void OutputLength(Span<byte> output, int len, string msg)
+        {
+            if (output.Length < len)
+                throw new OutputLengthException(msg);
+        }
+#endif
     }
 }
