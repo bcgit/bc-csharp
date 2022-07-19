@@ -1,4 +1,4 @@
-﻿#if NET5_0_OR_GREATER
+﻿#if NETCOREAPP3_0_OR_GREATER
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Engines;

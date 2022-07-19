@@ -12,7 +12,7 @@ net60-job:
   script:
     - "dotnet test --framework net6.0 -v:normal -l \"console;verbosity=detailed\" crypto\\test\\BouncyCastle.Crypto.Tests.csproj"
 
-netcoreapp311-job:
-  stage: test    # It only starts when the job in the build stage completes successfully.
+netcoreapp21-job:
+  stage: test
   script:
-    - "dotnet test --framework netcoreapp3 -v:normal -l \"console;verbosity=detailed\" crypto\\test\\BouncyCastle.Crypto.Tests.csproj"
+    - "dotnet test --framework netcoreapp2.1 -v:normal -l \"console;verbosity=detailed\" crypto\\test\\BouncyCastle.Crypto.Tests.csproj"
