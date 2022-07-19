@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -219,12 +220,14 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
                 z3 = h3;
             }
 
-            z1 ^= z3 ^ (z3 >> 1) ^ (z3 >> 2) ^ (z3 >> 7);
-//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
-            z2 ^= (z3 << 62) ^ (z3 << 57);
+            Debug.Assert(z3 << 63 == 0);
 
-            z0 ^= z2 ^ (z2 >> 1) ^ (z2 >> 2) ^ (z2 >> 7);
-            z1 ^= (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+            z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
+//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
+            z2 ^=                   (z3 << 62) ^ (z3 << 57);
+
+            z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
+            z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
 
             x.n0 = z0;
             x.n1 = z1;
@@ -398,39 +401,22 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             x.n1 = (x1 >> 16) | (x0 << 48);
         }
 
-        internal static void Square(ulong[] x, ulong[] z)
+        internal static void Square(ref FieldElement x)
         {
-            ulong[] t = new ulong[4];
-            Interleave.Expand64To128Rev(x[0], t, 0);
-            Interleave.Expand64To128Rev(x[1], t, 2);
+            ulong z1 = Interleave.Expand64To128Rev(x.n0, out ulong z0);
+            ulong z3 = Interleave.Expand64To128Rev(x.n1, out ulong z2);
 
-            ulong z0 = t[0], z1 = t[1], z2 = t[2], z3 = t[3];
+            Debug.Assert(z3 << 63 == 0);
 
             z1 ^= z3 ^ (z3 >>  1) ^ (z3 >>  2) ^ (z3 >>  7);
 //          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
             z2 ^=                   (z3 << 62) ^ (z3 << 57);
 
+            Debug.Assert(z2 << 63 == 0);
+
             z0 ^= z2 ^ (z2 >>  1) ^ (z2 >>  2) ^ (z2 >>  7);
-            z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
-
-            z[0] = z0;
-            z[1] = z1;
-        }
-
-        internal static void Square(ref FieldElement x)
-        {
-            ulong[] t = new ulong[4];
-            Interleave.Expand64To128Rev(x.n0, t, 0);
-            Interleave.Expand64To128Rev(x.n1, t, 2);
-
-            ulong z0 = t[0], z1 = t[1], z2 = t[2], z3 = t[3];
-
-            z1 ^= z3 ^ (z3 >> 1) ^ (z3 >> 2) ^ (z3 >> 7);
-//          z2 ^=      (z3 << 63) ^ (z3 << 62) ^ (z3 << 57);
-            z2 ^= (z3 << 62) ^ (z3 << 57);
-
-            z0 ^= z2 ^ (z2 >> 1) ^ (z2 >> 2) ^ (z2 >> 7);
-            z1 ^= (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+//          z1 ^=      (z2 << 63) ^ (z2 << 62) ^ (z2 << 57);
+            z1 ^=                   (z2 << 62) ^ (z2 << 57);
 
             x.n0 = z0;
             x.n1 = z1;

@@ -90,14 +90,13 @@ namespace Org.BouncyCastle.Math.Raw
             }
         }
 
-        internal static void Expand64To128Rev(ulong x, ulong[] z, int zOff)
+        internal static ulong Expand64To128Rev(ulong x, out ulong low)
         {
 #if NETCOREAPP3_0_OR_GREATER
             if (Bmi2.X64.IsSupported)
             {
-                z[zOff    ] = Bmi2.X64.ParallelBitDeposit(x >> 32, 0xAAAAAAAAAAAAAAAAUL);
-                z[zOff + 1] = Bmi2.X64.ParallelBitDeposit(x      , 0xAAAAAAAAAAAAAAAAUL);
-                return;
+                low  = Bmi2.X64.ParallelBitDeposit(x >> 32, 0xAAAAAAAAAAAAAAAAUL);
+                return Bmi2.X64.ParallelBitDeposit(x, 0xAAAAAAAAAAAAAAAAUL);
             }
 #endif
 
@@ -108,8 +107,8 @@ namespace Org.BouncyCastle.Math.Raw
             x = Bits.BitPermuteStep(x, 0x0C0C0C0C0C0C0C0CUL, 2);
             x = Bits.BitPermuteStep(x, 0x2222222222222222UL, 1);
 
-            z[zOff    ] = (x     ) & M64R;
-            z[zOff + 1] = (x << 1) & M64R;
+            low  = (x     ) & M64R;
+            return (x << 1) & M64R;
         }
 
         internal static uint Shuffle(uint x)
