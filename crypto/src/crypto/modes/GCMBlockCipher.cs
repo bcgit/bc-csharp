@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -17,7 +16,8 @@ namespace Org.BouncyCastle.Crypto.Modes
     {
         private static IGcmMultiplier CreateGcmMultiplier()
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
+            // TODO Prefer more tightly coupled test
             if (System.Runtime.Intrinsics.X86.Pclmulqdq.IsSupported)
             {
                 return new BasicGcmMultiplier();

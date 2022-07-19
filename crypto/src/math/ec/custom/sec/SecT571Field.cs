@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -403,7 +403,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Pclmulqdq.IsSupported)
             {
                 var X = Vector128.CreateScalar(x);

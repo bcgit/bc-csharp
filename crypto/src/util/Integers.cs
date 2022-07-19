@@ -1,5 +1,5 @@
 ﻿using System;
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 #endif
 
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Utilities
 
         public static int NumberOfLeadingZeros(int i)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Lzcnt.IsSupported)
             {
                 return (int)Lzcnt.LeadingZeroCount((uint)i);
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Utilities
 
         public static int NumberOfTrailingZeros(int i)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Bmi1.IsSupported)
             {
                 return (int)Bmi1.TrailingZeroCount((uint)i);

@@ -1,5 +1,5 @@
 ﻿using System;
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 #endif
 
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static ulong Expand32to64(uint x)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Bmi2.IsSupported)
             {
                 return (ulong)Bmi2.ParallelBitDeposit(x >> 16, 0x55555555U) << 32
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static void Expand64To128(ulong x, ulong[] z, int zOff)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Bmi2.X64.IsSupported)
             {
                 z[zOff    ] = Bmi2.X64.ParallelBitDeposit(x      , 0x5555555555555555UL);
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static void Expand64To128Rev(ulong x, ulong[] z, int zOff)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Bmi2.X64.IsSupported)
             {
                 z[zOff    ] = Bmi2.X64.ParallelBitDeposit(x >> 32, 0xAAAAAAAAAAAAAAAAUL);
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static ulong Unshuffle(ulong x)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Bmi2.X64.IsSupported)
             {
                 return Bmi2.X64.ParallelBitExtract(x, 0xAAAAAAAAAAAAAAAAUL) << 32
@@ -174,7 +174,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static ulong Unshuffle(ulong x, out ulong even)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Bmi2.X64.IsSupported)
             {
                 even = Bmi2.X64.ParallelBitExtract(x, 0x5555555555555555UL);
@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Math.Raw
 
         internal static ulong Unshuffle(ulong x0, ulong x1, out ulong even)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Bmi2.X64.IsSupported)
             {
                 even = Bmi2.X64.ParallelBitExtract(x0, 0x5555555555555555UL)

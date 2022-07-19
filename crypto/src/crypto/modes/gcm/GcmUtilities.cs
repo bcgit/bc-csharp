@@ -1,5 +1,5 @@
 using System;
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -169,7 +169,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         {
             ulong z0, z1, z2, z3;
 
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Pclmulqdq.IsSupported)
             {
                 var X = Vector128.Create(x.n1, x.n0);

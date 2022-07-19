@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 #endif
 using System.Runtime.Serialization;
@@ -894,7 +894,7 @@ namespace Org.BouncyCastle.Math
 
         public static int BitCnt(int i)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Popcnt.IsSupported)
             {
                 return (int)Popcnt.PopCount((uint)i);
@@ -968,7 +968,7 @@ namespace Org.BouncyCastle.Math
         //
         private static int BitLen(int w)
         {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
             if (Lzcnt.IsSupported)
             {
                 return 32 - (int)Lzcnt.LeadingZeroCount((uint)w);
