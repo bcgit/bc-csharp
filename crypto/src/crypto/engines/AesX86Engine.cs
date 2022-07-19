@@ -332,7 +332,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private static Vector128<byte> Load128(Span<byte> t)
         {
 #if NET7_0_OR_GREATER
-            return Vector128.Create(t);
+            return Vector128.Create<byte>(t);
 #else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
                 return Unsafe.ReadUnaligned<Vector128<byte>>(ref t[0]);
@@ -346,7 +346,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private static Vector64<byte> Load64(Span<byte> t)
         {
 #if NET7_0_OR_GREATER
-            return Vector64.Create(t);
+            return Vector64.Create<byte>(t);
 #else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector64<byte>>() == 8)
                 return Unsafe.ReadUnaligned<Vector64<byte>>(ref t[0]);
