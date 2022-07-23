@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.pqc.crypto.NtruP
         
         public int Q => q;
 
-        public NtruPEngine PEngine => _pEngine;
+        internal NtruPEngine PEngine => _pEngine;
 
     }
 }
