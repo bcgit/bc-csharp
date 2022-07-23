@@ -35,11 +35,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 		 * variables to hold the state of the engine
 		 * during encryption and decryption
 		 */
-		private int		 index = 0;
+		internal int index = 0;
 		internal uint[] engineState = new uint[StateSize]; // state
 		internal uint[] x = new uint[StateSize]; // internal buffer
-		private byte[]	 keyStream = new byte[StateSize * 4]; // expanded state, 64 bytes
-		private bool	 initialised = false;
+		internal byte[] keyStream = new byte[StateSize * 4]; // expanded state, 64 bytes
+		internal bool initialised = false;
 
 		/*
 		 * internal counter
@@ -302,14 +302,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 			x[15] = x15 + input[15];
 		}
 
-		private void ResetLimitCounter()
+		internal void ResetLimitCounter()
 		{
 			cW0 = 0;
 			cW1 = 0;
 			cW2 = 0;
 		}
 
-		private bool LimitExceeded()
+		internal bool LimitExceeded()
 		{
 			if (++cW0 == 0)
 			{
@@ -325,7 +325,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		/*
 		 * this relies on the fact len will always be positive.
 		 */
-		private bool LimitExceeded(
+		internal bool LimitExceeded(
 			uint len)
 		{
 			uint old = cW0;
