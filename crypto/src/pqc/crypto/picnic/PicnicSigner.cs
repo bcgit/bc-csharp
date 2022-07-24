@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         public byte[] GenerateSignature(byte[] message)
         {
-            PicnicEngine engine = privKey.GetParameters().GetEngine();
+            PicnicEngine engine = privKey.Parameters.GetEngine();
             byte[] sig = new byte[engine.GetSignatureSize(message.Length)];
             engine.crypto_sign(sig, message, privKey.GetEncoded());
 
@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         public bool VerifySignature(byte[] message, byte[] signature)
         {
-            PicnicEngine engine = pubKey.GetParameters().GetEngine();
+            PicnicEngine engine = pubKey.Parameters.GetEngine();
             byte[] verify_message = new byte[message.Length];
             bool verify = engine.crypto_sign_open(verify_message, signature, pubKey.GetEncoded());
             if (!Arrays.AreEqual(message, verify_message))

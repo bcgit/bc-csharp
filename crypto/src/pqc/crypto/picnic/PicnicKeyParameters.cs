@@ -7,17 +7,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
         : AsymmetricKeyParameter
     {
 
-    PicnicParameters parameters;
+        PicnicParameters parameters;
 
-    public PicnicKeyParameters(bool isPrivate, PicnicParameters parameters)
-        : base(isPrivate)
-    {
-        this.parameters = parameters;
-    }
+        public PicnicKeyParameters(bool isPrivate, PicnicParameters parameters)
+            : base(isPrivate)
+        {
+            this.parameters = parameters;
+        }
 
-    public PicnicParameters GetParameters()
-    {
-        return parameters;
-    }
+        public PicnicParameters Parameters => parameters;
     }
 }

@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 byte[] encoding = parameters.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.PicnicOidLookup(parameters.GetParameters()));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.PicnicOidLookup(parameters.Parameters));
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
             if (privateKey is SIKEPrivateKeyParameters)
