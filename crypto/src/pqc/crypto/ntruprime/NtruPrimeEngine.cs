@@ -8,9 +8,9 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 
-namespace Org.BouncyCastle.pqc.crypto.NtruP
+namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
-    internal class NtruPEngine
+    internal class NtruPrimeEngine
     {
         // Key Sizes
         private readonly int _skBytes; // [KEM] Size of secret key
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.pqc.crypto.NtruP
         public int CipherTextSize => _ctBytes;
         public int SessionKeySize => SessionKeyBytes;
         
-        public NtruPEngine(int p, int q, bool lpr, int w, int tau0,
+        public NtruPrimeEngine(int p, int q, bool lpr, int w, int tau0,
             int tau1, int tau2, int tau3, int skBytes, int pkBytes, int ctBytes, int roundedBytes, int rqBytes)
         {
             this._p = p;

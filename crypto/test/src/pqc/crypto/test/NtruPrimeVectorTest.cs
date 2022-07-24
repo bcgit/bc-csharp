@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.Frodo;
-using Org.BouncyCastle.pqc.crypto.NtruP;
+using Org.BouncyCastle.Pqc.Crypto.NtruPrime;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -12,15 +11,15 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
     [TestFixture]
-    public class NtruPVectorTest
+    public class NtruPrimeVectorTest
     {
         [Test]
         public void TestParameters()
         {
             // Console.WriteLine("Testing");
-            // Console.WriteLine(NtruPParameters.ntrulpr653.P);
-            // Console.WriteLine(NtruPParameters.ntrulpr653.Q);
-            // Console.WriteLine(NtruPParameters.ntrulpr653.lpr);
+            // Console.WriteLine(NtruPrimeParameters.ntrulpr653.P);
+            // Console.WriteLine(NtruPrimeParameters.ntrulpr653.Q);
+            // Console.WriteLine(NtruPrimeParameters.ntrulpr653.lpr);
         }
 
         [Test]
@@ -42,28 +41,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 "kat_kem_sntrup_1277.rsp",
             };
 
-            NtruPParameters[] parameters =
+            NtruPrimeParameters[] parameters =
             {
-                NtruPParameters.ntrulpr653,
-                NtruPParameters.ntrulpr761,
-                NtruPParameters.ntrulpr857,
-                NtruPParameters.ntrulpr953,
-                NtruPParameters.ntrulpr1013,
-                NtruPParameters.ntrulpr1277,
-                NtruPParameters.sntrup653, 
-                NtruPParameters.sntrup761,
-                NtruPParameters.sntrup857,
-                NtruPParameters.sntrup953,
-                NtruPParameters.sntrup1013,
-                NtruPParameters.sntrup1277,
+                NtruPrimeParameters.ntrulpr653,
+                NtruPrimeParameters.ntrulpr761,
+                NtruPrimeParameters.ntrulpr857,
+                NtruPrimeParameters.ntrulpr953,
+                NtruPrimeParameters.ntrulpr1013,
+                NtruPrimeParameters.ntrulpr1277,
+                NtruPrimeParameters.sntrup653, 
+                NtruPrimeParameters.sntrup761,
+                NtruPrimeParameters.sntrup857,
+                NtruPrimeParameters.sntrup953,
+                NtruPrimeParameters.sntrup1013,
+                NtruPrimeParameters.sntrup1277,
             };
 
             for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
             {
                 String name = files[fileIndex];
                 Console.Write("Testing " + name + "...");
-                Console.WriteLine("pqc.ntru."+ name);
-                StreamReader src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.ntru." + name));
+                Console.WriteLine("pqc.ntruprime."+ name);
+                StreamReader src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.ntruprime." + name));
                 String line = null;
                 Dictionary<String, String> buf = new Dictionary<string, string>();
                 
@@ -94,7 +93,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                             
                             NistSecureRandom random = new NistSecureRandom(seed, null);
-                            NtruPParameters ntruPParameters = parameters[fileIndex];
+                            NtruPrimeParameters ntruPParameters = parameters[fileIndex];
                             
                             NtruKeyPairGenerator kpGen = new NtruKeyPairGenerator();
                             NtruKeyGenerationParameters genParams = new NtruKeyGenerationParameters(random,ntruPParameters);
@@ -103,15 +102,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             kpGen.Init(genParams);
                             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
                             
-                            NtruPPublicKeyParameters pubParams = (NtruPPublicKeyParameters) kp.Public;
-                            NtruPPrivateKeyParameters privParams = (NtruPPrivateKeyParameters) kp.Private;
+                            NtruPrimePublicKeyParameters pubParams = (NtruPrimePublicKeyParameters) kp.Public;
+                            NtruPrimePrivateKeyParameters privParams = (NtruPrimePrivateKeyParameters) kp.Private;
                             
                             // Check public and private key
-                            Assert.True(Arrays.AreEqual(pk,pubParams.PublicKey), $"{name} {count} : public key");
-                            Assert.True(Arrays.AreEqual(sk,privParams.PrivateKey), $"{name} {count} : private key");
+                            Assert.True(Arrays.AreEqual(pk,pubParams.GetEncoded()), $"{name} {count} : public key");
+                            Assert.True(Arrays.AreEqual(sk,privParams.GetEncoded()), $"{name} {count} : private key");
                             
                             // Encapsulation
-                            NtruPKemGenerator ntruPEncCipher = new NtruPKemGenerator(random);
+                            NtruPrimeKemGenerator ntruPEncCipher = new NtruPrimeKemGenerator(random);
                             ISecretWithEncapsulation secWenc = ntruPEncCipher.GenerateEncapsulated(pubParams);
                             byte[] generatedCT = secWenc.GetEncapsulation();
                             
@@ -123,7 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc secret");
                             
                             // Decapsulation
-                            NtruPKEMExtractor ntruDecCipher = new NtruPKEMExtractor(privParams);
+                            NtruPrimeKEMExtractor ntruDecCipher = new NtruPrimeKEMExtractor(privParams);
                             byte[] dec_key = ntruDecCipher.ExtractSecret(generatedCT);
                             
                             // Check decapsulation secret

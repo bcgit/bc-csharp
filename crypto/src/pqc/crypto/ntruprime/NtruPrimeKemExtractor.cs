@@ -1,20 +1,20 @@
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 
-namespace Org.BouncyCastle.pqc.crypto.NtruP
+namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
-    public class NtruPKEMExtractor : IEncapsulatedSecretExtractor
+    public class NtruPrimeKEMExtractor : IEncapsulatedSecretExtractor
     {
-        private NtruPEngine _pEngine;
-        private NtruPKeyParameters _pKey;
+        private NtruPrimeEngine _pEngine;
+        private NtruPrimeKeyParameters _pKey;
 
-        public NtruPKEMExtractor(NtruPKeyParameters privParams)
+        public NtruPrimeKEMExtractor(NtruPrimeKeyParameters privParams)
         {
             this._pKey = privParams;
-            InitCipher(_pKey.PParameters);
+            InitCipher(_pKey.Parameters);
         }
 
-        private void InitCipher(NtruPParameters param)
+        private void InitCipher(NtruPrimeParameters param)
         {
             _pEngine = param.PEngine;
         }
@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.pqc.crypto.NtruP
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] session_key = new byte[_pEngine.SessionKeySize];
-            _pEngine.kem_dec(session_key, encapsulation, ((NtruPPrivateKeyParameters)_pKey).PrivateKey);
+            _pEngine.kem_dec(session_key, encapsulation, ((NtruPrimePrivateKeyParameters)_pKey).privKey);
             return session_key;
         }
 

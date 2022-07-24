@@ -3,25 +3,25 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.pqc.crypto.NtruP
+namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
-    public class NtruPKemGenerator : IEncapsulatedSecretGenerator
+    public class NtruPrimeKemGenerator : IEncapsulatedSecretGenerator
     {
         private SecureRandom sr;
         
-        public NtruPKemGenerator(SecureRandom sr)
+        public NtruPrimeKemGenerator(SecureRandom sr)
         {
             this.sr = sr;
         }
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
-            NtruPPublicKeyParameters key = (NtruPPublicKeyParameters)recipientKey;
-            NtruPEngine pEngine = key.PParameters.PEngine;
+            NtruPrimePublicKeyParameters key = (NtruPrimePublicKeyParameters)recipientKey;
+            NtruPrimeEngine pEngine = key.Parameters.PEngine;
             byte[] cipherText = new byte[pEngine.CipherTextSize];
             byte[] sessionKey = new byte[pEngine.SessionKeySize];
-            pEngine.kem_enc(cipherText, sessionKey,key.PublicKey, sr);
-            return new NtruPKemGenerator.SecretWithEncapsulationImpl(sessionKey, cipherText);
+            pEngine.kem_enc(cipherText, sessionKey,key.pubKey, sr);
+            return new NtruPrimeKemGenerator.SecretWithEncapsulationImpl(sessionKey, cipherText);
         }
 
         public class SecretWithEncapsulationImpl : ISecretWithEncapsulation

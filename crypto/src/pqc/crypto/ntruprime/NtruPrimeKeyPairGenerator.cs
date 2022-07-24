@@ -1,7 +1,7 @@
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
-namespace Org.BouncyCastle.pqc.crypto.NtruP
+namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
     public class NtruKeyPairGenerator
     {
@@ -26,13 +26,13 @@ namespace Org.BouncyCastle.pqc.crypto.NtruP
 
         private AsymmetricCipherKeyPair GenKeyPair()
         {
-            NtruPEngine pEngine = ntruParams.PParameters.PEngine;
+            NtruPrimeEngine pEngine = ntruParams.PParameters.PEngine;
             byte[] sk = new byte[pEngine.PrivateKeySize];
             byte[] pk = new byte[pEngine.PublicKeySize];
             pEngine.kem_keypair( pk,sk,random);
 
-            NtruPPublicKeyParameters pubKey = new NtruPPublicKeyParameters(ntruParams.PParameters, pk);
-            NtruPPrivateKeyParameters privKey = new NtruPPrivateKeyParameters(ntruParams.PParameters, sk);
+            NtruPrimePublicKeyParameters pubKey = new NtruPrimePublicKeyParameters(ntruParams.PParameters, pk);
+            NtruPrimePrivateKeyParameters privKey = new NtruPrimePrivateKeyParameters(ntruParams.PParameters, sk);
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
         
