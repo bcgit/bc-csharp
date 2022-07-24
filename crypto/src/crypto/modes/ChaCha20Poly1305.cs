@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (++mBufPos == mBuf.Length)
                 {
                     mPoly1305.BlockUpdate(mBuf, 0, BufSize);
-                    ProcessData(mBuf, 0, BufSize, outBytes, outOff);
+                    ProcessBlock(mBuf, 0, outBytes, outOff);
                     Array.Copy(mBuf, BufSize, mBuf, 0, MacSize);
                     this.mBufPos = MacSize;
                     return BufSize;
@@ -234,7 +234,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 mBuf[mBufPos] = input;
                 if (++mBufPos == BufSize)
                 {
-                    ProcessData(mBuf, 0, BufSize, outBytes, outOff);
+                    ProcessBlock(mBuf, 0, outBytes, outOff);
                     mPoly1305.BlockUpdate(outBytes, outOff, BufSize);
                     this.mBufPos = 0;
                     return BufSize;
@@ -275,53 +275,99 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
             case State.DecData:
             {
-                for (int i = 0; i < len; ++i)
+                int available = mBuf.Length - mBufPos;
+                if (len < available)
                 {
-                    mBuf[mBufPos] = inBytes[inOff + i];
-                    if (++mBufPos == mBuf.Length)
+                    Array.Copy(inBytes, inOff, mBuf, mBufPos, len);
+                    mBufPos += len;
+                    break;
+                }
+
+                if (mBufPos >= BufSize)
+                {
+                    mPoly1305.BlockUpdate(mBuf, 0, BufSize);
+                    ProcessBlock(mBuf, 0, outBytes, outOff);
+                    Array.Copy(mBuf, BufSize, mBuf, 0, mBufPos -= BufSize);
+                    resultLen = BufSize;
+
+                    available += BufSize;
+                    if (len < available)
                     {
-                        mPoly1305.BlockUpdate(mBuf, 0, BufSize);
-                        ProcessData(mBuf, 0, BufSize, outBytes, outOff + resultLen);
-                        Array.Copy(mBuf, BufSize, mBuf, 0, MacSize);
-                        this.mBufPos = MacSize;
-                        resultLen += BufSize;
+                        Array.Copy(inBytes, inOff, mBuf, mBufPos, len);
+                        mBufPos += len;
+                        break;
                     }
                 }
+
+                int inLimit1 = inOff + len - mBuf.Length;
+                int inLimit2 = inLimit1 - BufSize;
+
+                available = BufSize - mBufPos;
+                Array.Copy(inBytes, inOff, mBuf, mBufPos, available);
+                mPoly1305.BlockUpdate(mBuf, 0, BufSize);
+                ProcessBlock(mBuf, 0, outBytes, outOff + resultLen);
+                inOff += available;
+                resultLen += BufSize;
+
+                while (inOff <= inLimit2)
+                {
+                    mPoly1305.BlockUpdate(inBytes, inOff, BufSize * 2);
+                    ProcessBlocks2(inBytes, inOff, outBytes, outOff + resultLen);
+                    inOff += BufSize * 2;
+                    resultLen += BufSize * 2;
+                }
+
+                if (inOff <= inLimit1)
+                {
+                    mPoly1305.BlockUpdate(inBytes, inOff, BufSize);
+                    ProcessBlock(inBytes, inOff, outBytes, outOff + resultLen);
+                    inOff += BufSize;
+                    resultLen += BufSize;
+                }
+
+                mBufPos = mBuf.Length + inLimit1 - inOff;
+                Array.Copy(inBytes, inOff, mBuf, 0, mBufPos);
                 break;
             }
             case State.EncData:
             {
-                if (mBufPos != 0)
+                int available = BufSize - mBufPos;
+                if (len < available)
                 {
-                    while (len > 0)
-                    {
-                        --len;
-                        mBuf[mBufPos] = inBytes[inOff++];
-                        if (++mBufPos == BufSize)
-                        {
-                            ProcessData(mBuf, 0, BufSize, outBytes, outOff);
-                            mPoly1305.BlockUpdate(outBytes, outOff, BufSize);
-                            this.mBufPos = 0;
-                            resultLen = BufSize;
-                            break;
-                        }
-                    }
+                    Array.Copy(inBytes, inOff, mBuf, mBufPos, len);
+                    mBufPos += len;
+                    break;
                 }
 
-                while (len >= BufSize)
+                int inLimit1 = inOff + len - BufSize;
+                int inLimit2 = inLimit1 - BufSize;
+
+                if (mBufPos > 0)
                 {
-                    ProcessData(inBytes, inOff, BufSize, outBytes, outOff + resultLen);
-                    mPoly1305.BlockUpdate(outBytes, outOff + resultLen, BufSize);
+                    Array.Copy(inBytes, inOff, mBuf, mBufPos, available);
+                    ProcessBlock(mBuf, 0, outBytes, outOff);
+                    inOff += available;
+                    resultLen = BufSize;
+                }
+
+                while (inOff <= inLimit2)
+                {
+                    ProcessBlocks2(inBytes, inOff, outBytes, outOff + resultLen);
+                    inOff += BufSize * 2;
+                    resultLen += BufSize * 2;
+                }
+
+                if (inOff <= inLimit1)
+                {
+                    ProcessBlock(inBytes, inOff, outBytes, outOff + resultLen);
                     inOff += BufSize;
-                    len -= BufSize;
                     resultLen += BufSize;
                 }
 
-                if (len > 0)
-                {
-                    Array.Copy(inBytes, inOff, mBuf, 0, len);
-                    this.mBufPos = len;
-                }
+                mPoly1305.BlockUpdate(outBytes, outOff, resultLen);
+
+                mBufPos = BufSize + inLimit1 - inOff;
+                Array.Copy(inBytes, inOff, mBuf, 0, mBufPos);
                 break;
             }
             default:
@@ -498,6 +544,24 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 mPoly1305.BlockUpdate(Zeroes, 0, MacSize - partial);
             }
+        }
+
+        private void ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
+        {
+            Check.OutputLength(outBytes, outOff, 64, "output buffer too short");
+
+            mChacha20.ProcessBlock(inBytes, inOff, outBytes, outOff);
+
+            this.mDataCount = IncrementCount(mDataCount, 64U, DataLimit);
+        }
+
+        private void ProcessBlocks2(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
+        {
+            Check.OutputLength(outBytes, outOff, 128, "output buffer too short");
+
+            mChacha20.ProcessBlocks2(inBytes, inOff, outBytes, outOff);
+
+            this.mDataCount = IncrementCount(mDataCount, 128U, DataLimit);
         }
 
         private void ProcessData(byte[] inBytes, int inOff, int inLen, byte[] outBytes, int outOff)
