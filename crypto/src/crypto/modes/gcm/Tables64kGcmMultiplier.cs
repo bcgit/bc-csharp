@@ -74,8 +74,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
                 z1 ^= t[tPos].n1;
             }
 
-            Pack.UInt64_To_BE(z0, x, 0);
-            Pack.UInt64_To_BE(z1, x, 8);
+            GcmUtilities.AsBytes(z0, z1, x);
         }
     }
 }

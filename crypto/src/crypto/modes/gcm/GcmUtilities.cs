@@ -1,5 +1,8 @@
 using System;
 using System.Diagnostics;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -13,6 +16,12 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 {
     internal abstract class GcmUtilities
     {
+#if NETCOREAPP3_0_OR_GREATER
+        private static readonly Vector128<byte> EndianMask = Vector128.Create(
+            (byte)0x07, (byte)0x06, (byte)0x05, (byte)0x04, (byte)0x03, (byte)0x02, (byte)0x01, (byte)0x00,
+            (byte)0x0F, (byte)0x0E, (byte)0x0D, (byte)0x0C, (byte)0x0B, (byte)0x0A, (byte)0x09, (byte)0x08);
+#endif
+
         internal struct FieldElement
         {
             internal ulong n0, n1;
@@ -27,126 +36,51 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             x.n1 = 0UL;
         }
 
-        internal static byte[] OneAsBytes()
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        internal static void AsBytes(ulong x0, ulong x1, byte[] z)
         {
-            byte[] tmp = new byte[16];
-            tmp[0] = 0x80;
-            return tmp;
+#if NETCOREAPP3_0_OR_GREATER
+            if (Ssse3.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            {
+                var X = Vector128.Create(x0, x1).AsByte();
+                var Z = Ssse3.Shuffle(X, EndianMask);
+                Unsafe.WriteUnaligned(ref z[0], Z);
+                return;
+            }
+#endif
+
+            Pack.UInt64_To_BE(x0, z, 0);
+            Pack.UInt64_To_BE(x1, z, 8);
         }
 
-        internal static uint[] OneAsUints()
-        {
-            uint[] tmp = new uint[4];
-            tmp[0] = 0x80000000;
-            return tmp;
-        }
-
-        internal static ulong[] OneAsUlongs()
-        {
-            ulong[] tmp = new ulong[2];
-            tmp[0] = 1UL << 63;
-            return tmp;
-        }
-
-        internal static byte[] AsBytes(uint[] x)
-        {
-            return Pack.UInt32_To_BE(x);
-        }
-
-        internal static void AsBytes(uint[] x, byte[] z)
-        {
-            Pack.UInt32_To_BE(x, z, 0);
-        }
-
-        internal static byte[] AsBytes(ulong[] x)
-        {
-            byte[] z = new byte[16];
-            Pack.UInt64_To_BE(x, z, 0);
-            return z;
-        }
-
-        internal static void AsBytes(ulong[] x, byte[] z)
-        {
-            Pack.UInt64_To_BE(x, z, 0);
-        }
-
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void AsBytes(ref FieldElement x, byte[] z)
         {
-            Pack.UInt64_To_BE(x.n0, z, 0);
-            Pack.UInt64_To_BE(x.n1, z, 8);
+            AsBytes(x.n0, x.n1, z);
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void AsFieldElement(byte[] x, out FieldElement z)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Ssse3.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
+            {
+                var X = Unsafe.ReadUnaligned<Vector128<byte>>(ref x[0]);
+                var Z = Ssse3.Shuffle(X, EndianMask).AsUInt64();
+                z.n0 = Z.GetElement(0);
+                z.n1 = Z.GetElement(1);
+                return;
+            }
+#endif
+
             z.n0 = Pack.BE_To_UInt64(x, 0);
             z.n1 = Pack.BE_To_UInt64(x, 8);
-        }
-
-        internal static uint[] AsUints(byte[] bs)
-        {
-            uint[] output = new uint[4];
-            Pack.BE_To_UInt32(bs, 0, output);
-            return output;
-        }
-
-        internal static void AsUints(byte[] bs, uint[] output)
-        {
-            Pack.BE_To_UInt32(bs, 0, output);
-        }
-
-        internal static ulong[] AsUlongs(byte[] x)
-        {
-            ulong[] z = new ulong[2];
-            Pack.BE_To_UInt64(x, 0, z);
-            return z;
-        }
-
-        internal static void AsUlongs(byte[] x, ulong[] z)
-        {
-            Pack.BE_To_UInt64(x, 0, z);
-        }
-
-        internal static void AsUlongs(byte[] x, ulong[] z, int zOff)
-        {
-            Pack.BE_To_UInt64(x, 0, z, zOff, 2);
-        }
-
-        internal static void Copy(uint[] x, uint[] z)
-        {
-            z[0] = x[0];
-            z[1] = x[1];
-            z[2] = x[2];
-            z[3] = x[3];
-        }
-
-        internal static void Copy(ulong[] x, ulong[] z)
-        {
-            z[0] = x[0];
-            z[1] = x[1];
-        }
-
-        internal static void Copy(ulong[] x, int xOff, ulong[] z, int zOff)
-        {
-            z[zOff + 0] = x[xOff + 0];
-            z[zOff + 1] = x[xOff + 1];
-        }
-
-        internal static void DivideP(ulong[] x, ulong[] z)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong m = (ulong)((long)x0 >> 63);
-            x0 ^= (m & E1UL);
-            z[0] = (x0 << 1) | (x1 >> 63);
-            z[1] = (x1 << 1) | (ulong)(-(long)m);
-        }
-
-        internal static void DivideP(ulong[] x, int xOff, ulong[] z, int zOff)
-        {
-            ulong x0 = x[xOff + 0], x1 = x[xOff + 1];
-            ulong m = (ulong)((long)x0 >> 63);
-            x0 ^= (m & E1UL);
-            z[zOff + 0] = (x0 << 1) | (x1 >> 63);
-            z[zOff + 1] = (x1 << 1) | (ulong)(-(long)m);
         }
 
         internal static void DivideP(ref FieldElement x, out FieldElement z)
@@ -233,140 +167,12 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             x.n1 = z1;
         }
 
-        internal static void MultiplyP(uint[] x)
-        {
-            uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3];
-            uint m = (uint)((int)(x3 << 31) >> 31);
-            x[0] = (x0 >> 1) ^ (m & E1);
-            x[1] = (x1 >> 1) | (x0 << 31);
-            x[2] = (x2 >> 1) | (x1 << 31);
-            x[3] = (x3 >> 1) | (x2 << 31);
-        }
-
-        internal static void MultiplyP(uint[] x, uint[] z)
-        {
-            uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3];
-            uint m = (uint)((int)(x3 << 31) >> 31);
-            z[0] = (x0 >> 1) ^ (m & E1);
-            z[1] = (x1 >> 1) | (x0 << 31);
-            z[2] = (x2 >> 1) | (x1 << 31);
-            z[3] = (x3 >> 1) | (x2 << 31);
-        }
-
-        internal static void MultiplyP(ulong[] x)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong m = (ulong)((long)(x1 << 63) >> 63);
-            x[0] = (x0 >> 1) ^ (m & E1UL);
-            x[1] = (x1 >> 1) | (x0 << 63);
-        }
-
-        internal static void MultiplyP(ulong[] x, ulong[] z)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong m = (ulong)((long)(x1 << 63) >> 63);
-            z[0] = (x0 >> 1) ^ (m & E1UL);
-            z[1] = (x1 >> 1) | (x0 << 63);
-        }
-
-        internal static void MultiplyP3(ulong[] x, ulong[] z)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong c = x1 << 61;
-            z[0] = (x0 >> 3) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            z[1] = (x1 >> 3) | (x0 << 61);
-        }
-
-        internal static void MultiplyP3(ulong[] x, int xOff, ulong[] z, int zOff)
-        {
-            ulong x0 = x[xOff + 0], x1 = x[xOff + 1];
-            ulong c = x1 << 61;
-            z[zOff + 0] = (x0 >> 3) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            z[zOff + 1] = (x1 >> 3) | (x0 << 61);
-        }
-
-        internal static void MultiplyP4(ulong[] x, ulong[] z)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong c = x1 << 60;
-            z[0] = (x0 >> 4) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            z[1] = (x1 >> 4) | (x0 << 60);
-        }
-
-        internal static void MultiplyP4(ulong[] x, int xOff, ulong[] z, int zOff)
-        {
-            ulong x0 = x[xOff + 0], x1 = x[xOff + 1];
-            ulong c = x1 << 60;
-            z[zOff + 0] = (x0 >> 4) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            z[zOff + 1] = (x1 >> 4) | (x0 << 60);
-        }
-
-        internal static void MultiplyP7(ulong[] x, ulong[] z)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong c = x1 << 57;
-            z[0] = (x0 >> 7) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            z[1] = (x1 >> 7) | (x0 << 57);
-        }
-
-        internal static void MultiplyP7(ulong[] x, int xOff, ulong[] z, int zOff)
-        {
-            ulong x0 = x[xOff + 0], x1 = x[xOff + 1];
-            ulong c = x1 << 57;
-            z[zOff + 0] = (x0 >> 7) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            z[zOff + 1] = (x1 >> 7) | (x0 << 57);
-        }
-
         internal static void MultiplyP7(ref FieldElement x)
         {
             ulong x0 = x.n0, x1 = x.n1;
             ulong c = x1 << 57;
             x.n0 = (x0 >> 7) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
             x.n1 = (x1 >> 7) | (x0 << 57);
-        }
-
-        internal static void MultiplyP8(uint[] x)
-        {
-            uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3];
-            uint c = x3 << 24;
-            x[0] = (x0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            x[1] = (x1 >> 8) | (x0 << 24);
-            x[2] = (x2 >> 8) | (x1 << 24);
-            x[3] = (x3 >> 8) | (x2 << 24);
-        }
-
-        internal static void MultiplyP8(uint[] x, uint[] y)
-        {
-            uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3];
-            uint c = x3 << 24;
-            y[0] = (x0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            y[1] = (x1 >> 8) | (x0 << 24);
-            y[2] = (x2 >> 8) | (x1 << 24);
-            y[3] = (x3 >> 8) | (x2 << 24);
-        }
-
-        internal static void MultiplyP8(ulong[] x)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong c = x1 << 56;
-            x[0] = (x0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            x[1] = (x1 >> 8) | (x0 << 56);
-        }
-
-        internal static void MultiplyP8(ulong[] x, ulong[] y)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong c = x1 << 56;
-            y[0] = (x0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            y[1] = (x1 >> 8) | (x0 << 56);
-        }
-
-        internal static void MultiplyP8(ulong[] x, int xOff, ulong[] y, int yOff)
-        {
-            ulong x0 = x[xOff + 0], x1 = x[xOff + 1];
-            ulong c = x1 << 56;
-            y[yOff + 0] = (x0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            y[yOff + 1] = (x1 >> 8) | (x0 << 56);
         }
 
         internal static void MultiplyP8(ref FieldElement x)
@@ -383,14 +189,6 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             ulong c = x1 << 56;
             y.n0 = (x0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
             y.n1 = (x1 >> 8) | (x0 << 56);
-        }
-
-        internal static void MultiplyP16(ulong[] x)
-        {
-            ulong x0 = x[0], x1 = x[1];
-            ulong c = x1 << 48;
-            x[0] = (x0 >> 16) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
-            x[1] = (x1 >> 16) | (x0 << 48);
         }
 
         internal static void MultiplyP16(ref FieldElement x)
@@ -448,19 +246,6 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             while (i < 16);
         }
 
-        internal static void Xor(byte[] x, int xOff, byte[] y, int yOff, byte[] z, int zOff)
-        {
-            int i = 0;
-            do
-            {
-                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]); ++i;
-                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]); ++i;
-                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]); ++i;
-                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]); ++i;
-            }
-            while (i < 16);
-        }
-
         internal static void Xor(byte[] x, byte[] y, int yOff, int yLen)
         {
             while (--yLen >= 0)
@@ -477,69 +262,16 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             }
         }
 
-        internal static void Xor(byte[] x, byte[] y, byte[] z)
+        internal static void Xor(ref FieldElement x, ref FieldElement y)
         {
-            int i = 0;
-            do
-            {
-                z[i] = (byte)(x[i] ^ y[i]); ++i;
-                z[i] = (byte)(x[i] ^ y[i]); ++i;
-                z[i] = (byte)(x[i] ^ y[i]); ++i;
-                z[i] = (byte)(x[i] ^ y[i]); ++i;
-            }
-            while (i < 16);
-        }
-
-        internal static void Xor(uint[] x, uint[] y)
-        {
-            x[0] ^= y[0];
-            x[1] ^= y[1];
-            x[2] ^= y[2];
-            x[3] ^= y[3];
-        }
-
-        internal static void Xor(uint[] x, uint[] y, uint[] z)
-        {
-            z[0] = x[0] ^ y[0];
-            z[1] = x[1] ^ y[1];
-            z[2] = x[2] ^ y[2];
-            z[3] = x[3] ^ y[3];
-        }
-
-        internal static void Xor(ulong[] x, ulong[] y)
-        {
-            x[0] ^= y[0];
-            x[1] ^= y[1];
-        }
-
-        internal static void Xor(ulong[] x, int xOff, ulong[] y, int yOff)
-        {
-            x[xOff + 0] ^= y[yOff + 0];
-            x[xOff + 1] ^= y[yOff + 1];
-        }
-
-        internal static void Xor(ulong[] x, ulong[] y, ulong[] z)
-        {
-            z[0] = x[0] ^ y[0];
-            z[1] = x[1] ^ y[1];
-        }
-
-        internal static void Xor(ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z, int zOff)
-        {
-            z[zOff + 0] = x[xOff + 0] ^ y[yOff + 0];
-            z[zOff + 1] = x[xOff + 1] ^ y[yOff + 1];
+            x.n0 ^= y.n0;
+            x.n1 ^= y.n1;
         }
 
         internal static void Xor(ref FieldElement x, ref FieldElement y, out FieldElement z)
         {
             z.n0 = x.n0 ^ y.n0;
             z.n1 = x.n1 ^ y.n1;
-        }
-
-        internal static void Xor(ref FieldElement x, ref FieldElement y)
-        {
-            x.n0 ^= y.n0;
-            x.n1 ^= y.n1;
         }
 
         private static ulong ImplMul64(ulong x, ulong y)
