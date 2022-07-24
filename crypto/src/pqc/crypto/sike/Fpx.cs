@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics;
-#if NETSTANDARD1_0_OR_GREATER || NET5_0_OR_GREATER
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
 
@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Is x < y?
-#if NETSTANDARD1_0_OR_GREATER || NET5_0_OR_GREATER
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
         private ulong is_digit_lessthan_ct(ulong x, ulong y)
@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         }
 
         // Is x != 0?
-#if NETSTANDARD1_0_OR_GREATER || NET5_0_OR_GREATER
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
         private ulong is_digit_nonzero_ct(ulong x)
@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
             return ((x | (0-x)) >> (int)(Internal.RADIX -1));
         }
         // Is x = 0?
-#if NETSTANDARD1_0_OR_GREATER || NET5_0_OR_GREATER
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
         private ulong is_digit_zero_ct(ulong x)
