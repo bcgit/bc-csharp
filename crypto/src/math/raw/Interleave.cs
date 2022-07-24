@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Math.Raw
             if (Bmi2.X64.IsSupported)
             {
                 low  = Bmi2.X64.ParallelBitDeposit(x >> 32, 0xAAAAAAAAAAAAAAAAUL);
-                return Bmi2.X64.ParallelBitDeposit(x, 0xAAAAAAAAAAAAAAAAUL);
+                return Bmi2.X64.ParallelBitDeposit(x      , 0xAAAAAAAAAAAAAAAAUL);
             }
 #endif
 
