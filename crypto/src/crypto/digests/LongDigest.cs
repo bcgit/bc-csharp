@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             //
             // process whole words.
             //
-            while (length > xBuf.Length)
+            while (length >= xBuf.Length)
             {
                 ProcessWord(input, inOff);
 
@@ -172,7 +172,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-		/**
+        /**
         * adjust the byte counts so that byteCount2 represents the
         * upper long (less 3 bits) word of the byte count.
         */

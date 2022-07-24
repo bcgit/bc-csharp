@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             //
             // process whole words.
             //
-            int limit = ((length - i) & ~3) + i;
+            int limit = length - 3;
             for (; i < limit; i += 4)
             {
                 ProcessWord(input, inOff + i);
