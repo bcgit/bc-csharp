@@ -441,33 +441,134 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal static uint LE_To_UInt32(Span<byte> s)
+        internal static uint BE_To_UInt32(ReadOnlySpan<byte> bs)
         {
-            return s[0]
-                | (uint)s[1] << 8
-                | (uint)s[2] << 16
-                | (uint)s[3] << 24;
+            return (uint)bs[0] << 24
+                |  (uint)bs[1] << 16
+                |  (uint)bs[2] <<  8
+                |        bs[3];
         }
 
-        internal static ulong LE_To_UInt64(Span<byte> s)
+        internal static void BE_To_UInt32(ReadOnlySpan<byte> bs, Span<uint> ns)
         {
-            uint lo = LE_To_UInt32(s);
-            uint hi = LE_To_UInt32(s.Slice(4));
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                ns[i] = BE_To_UInt32(bs);
+                bs = bs[4..];
+            }
+        }
+
+        internal static ulong BE_To_UInt64(ReadOnlySpan<byte> bs)
+        {
+            uint hi = BE_To_UInt32(bs);
+            uint lo = BE_To_UInt32(bs[4..]);
+            return ((ulong)hi << 32) | lo;
+        }
+
+        internal static void BE_To_UInt64(ReadOnlySpan<byte> bs, Span<ulong> ns)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                ns[i] = BE_To_UInt64(bs);
+                bs = bs[8..];
+            }
+        }
+
+        internal static uint LE_To_UInt32(ReadOnlySpan<byte> bs)
+        {
+            return      bs[0]
+                | (uint)bs[1] <<  8
+                | (uint)bs[2] << 16
+                | (uint)bs[3] << 24;
+        }
+
+        internal static void LE_To_UInt32(ReadOnlySpan<byte> bs, Span<uint> ns)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                ns[i] = LE_To_UInt32(bs);
+                bs = bs[4..];
+            }
+        }
+
+        internal static ulong LE_To_UInt64(ReadOnlySpan<byte> bs)
+        {
+            uint lo = LE_To_UInt32(bs);
+            uint hi = LE_To_UInt32(bs[4..]);
             return (ulong)hi << 32 | lo;
         }
 
-        internal static void UInt32_To_LE(uint n, Span<byte> s)
+        internal static void LE_To_UInt64(ReadOnlySpan<byte> bs, Span<ulong> ns)
         {
-            s[0] = (byte)n;
-            s[1] = (byte)(n >> 8);
-            s[2] = (byte)(n >> 16);
-            s[3] = (byte)(n >> 24);
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                ns[i] = LE_To_UInt64(bs);
+                bs = bs[8..];
+            }
         }
 
-        internal static void UInt64_To_LE(ulong n, Span<byte> s)
+        internal static void UInt32_To_BE(uint n, Span<byte> bs)
         {
-            UInt32_To_LE((uint)n, s);
-            UInt32_To_LE((uint)(n >> 32), s.Slice(4));
+            bs[0] = (byte)(n >> 24);
+            bs[1] = (byte)(n >> 16);
+            bs[2] = (byte)(n >>  8);
+            bs[3] = (byte) n;
+        }
+
+        internal static void UInt32_To_BE(ReadOnlySpan<uint> ns, Span<byte> bs)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                UInt32_To_BE(ns[i], bs);
+                bs = bs[4..];
+            }
+        }
+
+        internal static void UInt32_To_LE(uint n, Span<byte> bs)
+        {
+            bs[0] = (byte) n;
+            bs[1] = (byte)(n >>  8);
+            bs[2] = (byte)(n >> 16);
+            bs[3] = (byte)(n >> 24);
+        }
+
+        internal static void UInt32_To_LE(ReadOnlySpan<uint> ns, Span<byte> bs)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                UInt32_To_LE(ns[i], bs);
+                bs = bs[4..];
+            }
+        }
+
+        internal static void UInt64_To_BE(ulong n, Span<byte> bs)
+        {
+            UInt32_To_BE((uint)(n >> 32), bs);
+            UInt32_To_BE((uint)n, bs[4..]);
+        }
+
+        internal static void UInt64_To_BE(ReadOnlySpan<ulong> ns, Span<byte> bs)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                UInt64_To_BE(ns[i], bs);
+                bs = bs[8..];
+            }
+        }
+
+        internal static void UInt64_To_LE(ulong n, Span<byte> bs)
+        {
+            UInt32_To_LE((uint)n, bs);
+            UInt32_To_LE((uint)(n >> 32), bs[4..]);
+        }
+
+        internal static void UInt64_To_LE(ReadOnlySpan<ulong> ns, Span<byte> bs)
+        {
+            for (int i = 0; i < ns.Length; ++i)
+            {
+                UInt64_To_LE(ns[i], bs);
+                bs = bs[8..];
+            }
         }
 #endif
     }
