@@ -182,7 +182,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             buffer[off++] = input;
         }
 
-        public void Update(byte[] input, int inOff, int len)
+        public override void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (off + len > 64)
             {

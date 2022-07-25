@@ -138,11 +138,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public abstract void Update(byte input);
 
-
-        public void BlockUpdate(byte[] input, int inOff, int length)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract void BlockUpdate(byte[] input, int inOff, int length);
 
         public abstract int DoFinal(byte[] output, int outOff);
 

@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] expected512 = Hex.Decode("be7f723b4e80a99813b292287f306f625a6d57331cae5f34dd9277b0945be2aa");
 
             Haraka512Digest haraka = new Haraka512Digest();
-            haraka.Update(input, 0, input.Length);
+            haraka.BlockUpdate(input, 0, input.Length);
             byte[] output = new byte[haraka.GetDigestSize()];
             haraka.DoFinal(output, 0);
             Assert.IsTrue(Arrays.AreEqual(expected512, output));
@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Haraka512Digest haraka = new Haraka512Digest();
                 byte[] input = new byte[63];
-                haraka.Update(input, 0, input.Length);
+                haraka.BlockUpdate(input, 0, input.Length);
                 haraka.DoFinal(null, 0);
                 Assert.Fail("fail on input not 64 bytes.");
             }
@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Haraka512Digest haraka = new Haraka512Digest();
                 byte[] input = new byte[65];
-                haraka.Update(input, 0, input.Length);
+                haraka.BlockUpdate(input, 0, input.Length);
                 haraka.DoFinal(null, 0);
                 Assert.Fail("fail on input not 64 bytes.");
             }
@@ -75,7 +75,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Haraka512Digest haraka = new Haraka512Digest();
                 byte[] input = new byte[64];
-                haraka.Update(input, 0, input.Length);
+                haraka.BlockUpdate(input, 0, input.Length);
                 byte[] output = new byte[31];
                 haraka.DoFinal(output, 0);
                 Assert.Fail("Output too short for digest result.");
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Haraka512Digest haraka = new Haraka512Digest();
                 byte[] input = new byte[64];
-                haraka.Update(input, 0, input.Length);
+                haraka.BlockUpdate(input, 0, input.Length);
                 byte[] output = new byte[48];
                 haraka.DoFinal(output, 17);
                 Assert.Fail("Output too short for digest result.");
@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 byte[] expected512 = Hex.Decode("00000000be7f723b4e80a99813b292287f306f625a6d57331cae5f34dd9277b0945be2aa");
 
                 Haraka512Digest haraka = new Haraka512Digest();
-                haraka.Update(input, 0, input.Length);
+                haraka.BlockUpdate(input, 0, input.Length);
                 byte[] output = new byte[haraka.GetDigestSize() + 4];
                 haraka.DoFinal(output, 4);
                 Assert.IsTrue(Arrays.AreEqual(expected512, output));
@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 byte[] result = new byte[haraka.GetDigestSize()];
                 for (int t = 0; t < 1000; t++)
                 {
-                    haraka.Update(input, 0, input.Length);
+                    haraka.BlockUpdate(input, 0, input.Length);
                     haraka.DoFinal(result, 0);
 
                     if ((t & 0x01) == 1)
