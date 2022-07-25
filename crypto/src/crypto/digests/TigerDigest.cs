@@ -644,7 +644,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             //
             // process whole words.
             //
-            while (length > 8)
+            while (length >= 8)
             {
                 ProcessWord(input, inOff);
 

@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 				length--;
 			}
 
-			while (length > xBuf.Length)
+			while (length >= xBuf.Length)
 			{
 				Array.Copy(input, inOff, xBuf, 0, xBuf.Length);
 
