@@ -382,9 +382,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
             Array.Clear(internalState, 0, internalState.Length);
 
+            byte[] bytes = new byte[8];
             for (int i = 0; i < chainValue.Length && (i * 8 < digestLength); i++)
             {
-                byte[] bytes = Pack.UInt64_To_LE(chainValue[i]);
+                Pack.UInt64_To_LE(chainValue[i], bytes, 0);
 
                 if (i * 8 < digestLength - 8)
                 {
@@ -429,10 +430,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             InitializeInternalState();
 
             ulong[] m = new ulong[16];
-            for (int j = 0; j < 16; j++)
-            {
-                m[j] = Pack.LE_To_UInt64(message, messagePos + j * 8);
-            }
+            Pack.LE_To_UInt64(message, messagePos, m);
 
             for (int round = 0; round < ROUNDS; round++)
             {
