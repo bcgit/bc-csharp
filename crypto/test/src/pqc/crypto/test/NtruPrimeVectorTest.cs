@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc secret");
                             
                             // Decapsulation
-                            NtruPrimeKEMExtractor ntruDecCipher = new NtruPrimeKEMExtractor(privParams);
+                            NtruPrimeKemExtractor ntruDecCipher = new NtruPrimeKemExtractor(privParams);
                             byte[] dec_key = ntruDecCipher.ExtractSecret(generatedCT);
                             
                             // Check decapsulation secret

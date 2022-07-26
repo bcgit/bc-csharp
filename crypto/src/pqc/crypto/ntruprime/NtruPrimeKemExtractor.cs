@@ -3,12 +3,12 @@ using Org.BouncyCastle.Pqc.Crypto.Frodo;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
-    public class NtruPrimeKEMExtractor : IEncapsulatedSecretExtractor
+    public class NtruPrimeKemExtractor : IEncapsulatedSecretExtractor
     {
         private NtruPrimeEngine _pEngine;
         private NtruPrimeKeyParameters _pKey;
 
-        public NtruPrimeKEMExtractor(NtruPrimeKeyParameters privParams)
+        public NtruPrimeKemExtractor(NtruPrimeKeyParameters privParams)
         {
             this._pKey = privParams;
             InitCipher(_pKey.Parameters);
