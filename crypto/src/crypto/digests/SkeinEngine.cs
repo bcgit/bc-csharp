@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -75,7 +76,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 bytes[5] = 0;
 
                 // 8..15 = output length
-                ThreefishEngine.WordToBytes((ulong)outputSizeBits, bytes, 8);
+                Pack.UInt64_To_LE((ulong)outputSizeBits, bytes, 8);
             }
 
             public byte[] Bytes
@@ -441,10 +442,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             private void ProcessBlock(ulong[] output)
             {
                 engine.threefish.Init(true, engine.chain, tweak.GetWords());
-                for (int i = 0; i < message.Length; i++)
-                {
-                    message[i] = ThreefishEngine.BytesToWord(currentBlock, i * 8);
-                }
+                Pack.LE_To_UInt64(currentBlock, 0, message);
 
                 engine.threefish.ProcessBlock(message, output);
 
@@ -465,7 +463,6 @@ namespace Org.BouncyCastle.Crypto.Digests
                 tweak.Final = true;
                 ProcessBlock(output);
             }
-
         }
 
         /**
@@ -776,31 +773,28 @@ namespace Org.BouncyCastle.Crypto.Digests
         private void Output(ulong outputSequence, byte[] outBytes, int outOff, int outputBytes)
         {
             byte[] currentBytes = new byte[8];
-            ThreefishEngine.WordToBytes(outputSequence, currentBytes, 0);
+            Pack.UInt64_To_LE(outputSequence, currentBytes, 0);
 
-            // Output is a sequence of UBI invocations all of which use and preserve the pre-output
-            // state
+            // Output is a sequence of UBI invocations all of which use and preserve the pre-output state
             ulong[] outputWords = new ulong[chain.Length];
             UbiInit(PARAM_TYPE_OUTPUT);
             this.ubi.Update(currentBytes, 0, currentBytes.Length, outputWords);
             ubi.DoFinal(outputWords);
 
-            int wordsRequired = ((outputBytes + 8 - 1) / 8);
+            int wordsRequired = (outputBytes + 8 - 1) / 8;
             for (int i = 0; i < wordsRequired; i++)
             {
                 int toWrite = System.Math.Min(8, outputBytes - (i * 8));
                 if (toWrite == 8)
                 {
-                    ThreefishEngine.WordToBytes(outputWords[i], outBytes, outOff + (i * 8));
+                    Pack.UInt64_To_LE(outputWords[i], outBytes, outOff + (i * 8));
                 }
                 else
                 {
-                    ThreefishEngine.WordToBytes(outputWords[i], currentBytes, 0);
+                    Pack.UInt64_To_LE(outputWords[i], currentBytes, 0);
                     Array.Copy(currentBytes, 0, outBytes, outOff + (i * 8), toWrite);
                 }
             }
         }
-
     }
 }
-
