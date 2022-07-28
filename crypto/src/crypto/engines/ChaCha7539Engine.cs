@@ -168,7 +168,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 #if NETCOREAPP3_0_OR_GREATER
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ImplProcessBlocks2_X86_Avx2(int rounds, uint[] state, Span<byte> input, Span<byte> output)
+		internal static void ImplProcessBlocks2_X86_Avx2(int rounds, uint[] state, ReadOnlySpan<byte> input,
+			Span<byte> output)
 		{
 			if (!Avx2.IsSupported)
 				throw new PlatformNotSupportedException();
@@ -244,18 +245,19 @@ namespace Org.BouncyCastle.Crypto.Engines
 			var n3 = Avx2.Permute2x128(v2, v3, 0x31).AsByte();
 
 			n0 = Avx2.Xor(n0, Load256_Byte(input));
-			n1 = Avx2.Xor(n1, Load256_Byte(input.Slice(0x20)));
-			n2 = Avx2.Xor(n2, Load256_Byte(input.Slice(0x40)));
-			n3 = Avx2.Xor(n3, Load256_Byte(input.Slice(0x60)));
+			n1 = Avx2.Xor(n1, Load256_Byte(input[0x20..]));
+			n2 = Avx2.Xor(n2, Load256_Byte(input[0x40..]));
+			n3 = Avx2.Xor(n3, Load256_Byte(input[0x60..]));
 
 			Store256_Byte(ref n0, output);
-			Store256_Byte(ref n1, output.Slice(0x20));
-			Store256_Byte(ref n2, output.Slice(0x40));
-			Store256_Byte(ref n3, output.Slice(0x60));
+			Store256_Byte(ref n1, output[0x20..]);
+			Store256_Byte(ref n2, output[0x40..]);
+			Store256_Byte(ref n3, output[0x60..]);
 		}
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ImplProcessBlocks2_X86_Sse2(int rounds, uint[] state, Span<byte> input, Span<byte> output)
+		internal static void ImplProcessBlocks2_X86_Sse2(int rounds, uint[] state, ReadOnlySpan<byte> input,
+			Span<byte> output)
 		{
 			if (!Sse2.IsSupported)
 				throw new PlatformNotSupportedException();
@@ -319,9 +321,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 			v3 = Sse2.Add(v3, x3);
 
 			var n0 = Load128_Byte(input);
-			var n1 = Load128_Byte(input.Slice(0x10));
-			var n2 = Load128_Byte(input.Slice(0x20));
-			var n3 = Load128_Byte(input.Slice(0x30));
+			var n1 = Load128_Byte(input[0x10..]);
+			var n2 = Load128_Byte(input[0x20..]);
+			var n3 = Load128_Byte(input[0x30..]);
 
 			n0 = Sse2.Xor(n0, v0.AsByte());
 			n1 = Sse2.Xor(n1, v1.AsByte());
@@ -329,9 +331,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 			n3 = Sse2.Xor(n3, v3.AsByte());
 
 			Store128_Byte(ref n0, output);
-			Store128_Byte(ref n1, output.Slice(0x10));
-			Store128_Byte(ref n2, output.Slice(0x20));
-			Store128_Byte(ref n3, output.Slice(0x30));
+			Store128_Byte(ref n1, output[0x10..]);
+			Store128_Byte(ref n2, output[0x20..]);
+			Store128_Byte(ref n3, output[0x30..]);
 
 			x3 = Load128_UInt32(state.AsSpan(12));
 			++state[12];
@@ -383,46 +385,46 @@ namespace Org.BouncyCastle.Crypto.Engines
 			v2 = Sse2.Add(v2, x2);
 			v3 = Sse2.Add(v3, x3);
 
-			n0 = Load128_Byte(input.Slice(0x40));
-			n1 = Load128_Byte(input.Slice(0x50));
-			n2 = Load128_Byte(input.Slice(0x60));
-			n3 = Load128_Byte(input.Slice(0x70));
+			n0 = Load128_Byte(input[0x40..]);
+			n1 = Load128_Byte(input[0x50..]);
+			n2 = Load128_Byte(input[0x60..]);
+			n3 = Load128_Byte(input[0x70..]);
 
 			n0 = Sse2.Xor(n0, v0.AsByte());
 			n1 = Sse2.Xor(n1, v1.AsByte());
 			n2 = Sse2.Xor(n2, v2.AsByte());
 			n3 = Sse2.Xor(n3, v3.AsByte());
 
-			Store128_Byte(ref n0, output.Slice(0x40));
-			Store128_Byte(ref n1, output.Slice(0x50));
-			Store128_Byte(ref n2, output.Slice(0x60));
-			Store128_Byte(ref n3, output.Slice(0x70));
+			Store128_Byte(ref n0, output[0x40..]);
+			Store128_Byte(ref n1, output[0x50..]);
+			Store128_Byte(ref n2, output[0x60..]);
+			Store128_Byte(ref n3, output[0x70..]);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector128<byte> Load128_Byte(Span<byte> t)
+		private static Vector128<byte> Load128_Byte(ReadOnlySpan<byte> t)
 		{
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
-				return Unsafe.ReadUnaligned<Vector128<byte>>(ref t[0]);
+				return Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(t[0]));
 
 			return Vector128.Create(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12],
 				t[13], t[14], t[15]);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector128<uint> Load128_UInt32(Span<uint> t)
+		private static Vector128<uint> Load128_UInt32(ReadOnlySpan<uint> t)
 		{
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
-				return Unsafe.ReadUnaligned<Vector128<uint>>(ref Unsafe.As<uint, byte>(ref t[0]));
+				return Unsafe.ReadUnaligned<Vector128<uint>>(ref Unsafe.As<uint, byte>(ref Unsafe.AsRef(t[0])));
 
 			return Vector128.Create(t[0], t[1], t[2], t[3]);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector256<byte> Load256_Byte(Span<byte> t)
+		private static Vector256<byte> Load256_Byte(ReadOnlySpan<byte> t)
         {
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector256<byte>>() == 32)
-				return Unsafe.ReadUnaligned<Vector256<byte>>(ref t[0]);
+				return Unsafe.ReadUnaligned<Vector256<byte>>(ref Unsafe.AsRef(t[0]));
 
 			return Vector256.Create(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12],
 				t[13], t[14], t[15], t[16], t[17], t[18], t[19], t[20], t[21], t[22], t[23], t[24], t[25], t[26], t[27],
@@ -440,7 +442,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			var u = s.AsUInt64();
 			Pack.UInt64_To_LE(u.GetElement(0), t);
-			Pack.UInt64_To_LE(u.GetElement(1), t.Slice(8));
+			Pack.UInt64_To_LE(u.GetElement(1), t[8..]);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -454,9 +456,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			var u = s.AsUInt64();
 			Pack.UInt64_To_LE(u.GetElement(0), t);
-			Pack.UInt64_To_LE(u.GetElement(1), t.Slice(8));
-			Pack.UInt64_To_LE(u.GetElement(2), t.Slice(16));
-			Pack.UInt64_To_LE(u.GetElement(3), t.Slice(24));
+			Pack.UInt64_To_LE(u.GetElement(1), t[8..]);
+			Pack.UInt64_To_LE(u.GetElement(2), t[16..]);
+			Pack.UInt64_To_LE(u.GetElement(3), t[24..]);
 		}
 #endif
 	}

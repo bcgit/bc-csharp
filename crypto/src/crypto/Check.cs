@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal static void DataLength(Span<byte> input, int len, string msg)
+        internal static void DataLength(ReadOnlySpan<byte> input, int len, string msg)
         {
             if (input.Length < len)
                 throw new DataLengthException(msg);

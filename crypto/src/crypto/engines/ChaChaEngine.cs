@@ -213,10 +213,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 #if NETCOREAPP3_0_OR_GREATER
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector128<uint> Load128_UInt32(Span<uint> t)
+		private static Vector128<uint> Load128_UInt32(ReadOnlySpan<uint> t)
 		{
 			if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<uint>>() == 16)
-				return Unsafe.ReadUnaligned<Vector128<uint>>(ref Unsafe.As<uint, byte>(ref t[0]));
+				return Unsafe.ReadUnaligned<Vector128<uint>>(ref Unsafe.As<uint, byte>(ref Unsafe.AsRef(t[0])));
 
 			return Vector128.Create(t[0], t[1], t[2], t[3]);
 		}
@@ -232,7 +232,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			var u = s.AsUInt64();
 			Pack.UInt64_To_LE(u.GetElement(0), t);
-			Pack.UInt64_To_LE(u.GetElement(1), t.Slice(8));
+			Pack.UInt64_To_LE(u.GetElement(1), t[8..]);
 		}
 #endif
 	}
