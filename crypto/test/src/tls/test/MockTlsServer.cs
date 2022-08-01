@@ -155,6 +155,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
             byte[] tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
             Console.WriteLine("Server 'tls-unique': " + ToHexString(tlsUnique));
+
+            byte[] tlsExporter = m_context.ExportChannelBinding(ChannelBinding.tls_exporter);
+            Console.WriteLine("Server 'tls-exporter': " + ToHexString(tlsExporter));
         }
 
         public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)

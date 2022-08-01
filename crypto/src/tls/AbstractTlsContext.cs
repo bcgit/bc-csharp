@@ -170,6 +170,9 @@ namespace Org.BouncyCastle.Tls
 
             SecurityParameters securityParameters = SecurityParameters;
 
+            if (ChannelBinding.tls_exporter == channelBinding)
+                return ExportKeyingMaterial("EXPORTER-Channel-Binding", TlsUtilities.EmptyBytes, 32);
+
             if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                 return null;
 
