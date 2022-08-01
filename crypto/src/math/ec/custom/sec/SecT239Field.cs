@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Math.Raw;
 
@@ -298,6 +302,20 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             Debug.Assert(x >> 60 == 0);
             Debug.Assert(y >> 60 == 0);
+
+#if NETCOREAPP3_0_OR_GREATER
+            if (Pclmulqdq.IsSupported)
+            {
+                var X = Vector128.CreateScalar(x);
+                var Y = Vector128.CreateScalar(y);
+                var Z = Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
+                ulong z0 = Z.GetElement(0);
+                ulong z1 = Z.GetElement(1);
+                z[zOff    ] ^= z0 & M60;
+                z[zOff + 1] ^= (z0 >> 60) ^ (z1 << 4);
+                return;
+            }
+#endif
 
             //u[0] = 0;
             u[1] = y;
