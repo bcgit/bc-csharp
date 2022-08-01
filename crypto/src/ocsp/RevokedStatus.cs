@@ -27,6 +27,12 @@ namespace Org.BouncyCastle.Ocsp
 			this.info = new RevokedInfo(new DerGeneralizedTime(revocationDate), new CrlReason(reason));
 		}
 
+		public RevokedStatus(
+			DateTime revocationDate)
+		{
+			this.info = new RevokedInfo(new DerGeneralizedTime(revocationDate));
+		}
+
 		public DateTime RevocationTime
 		{
 			get { return info.RevocationTime.ToDateTime(); }
