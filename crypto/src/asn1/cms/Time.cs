@@ -36,17 +36,15 @@ namespace Org.BouncyCastle.Asn1.Cms
         public Time(
             DateTime date)
         {
-            string d = date.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
+            DateTime d = date.ToUniversalTime();
 
-			int year = int.Parse(d.Substring(0, 4));
-
-			if (year < 1950 || year > 2049)
+			if (d.Year < 1950 || d.Year > 2049)
             {
                 time = new DerGeneralizedTime(d);
             }
             else
             {
-                time = new DerUtcTime(d.Substring(2));
+                time = new DerUtcTime(d);
             }
         }
 
