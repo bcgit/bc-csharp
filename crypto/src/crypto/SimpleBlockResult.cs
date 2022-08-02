@@ -49,5 +49,14 @@ namespace Org.BouncyCastle.Crypto
 
             return result.Length;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Collect(Span<byte> destination)
+        {
+            result.AsSpan().CopyTo(destination);
+
+            return result.Length;
+        }
+#endif
     }
 }

@@ -23,5 +23,14 @@ namespace Org.BouncyCastle.Crypto.Operators
             signature.CopyTo(sig, sigOff);
             return signature.Length;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Collect(Span<byte> destination)
+        {
+            byte[] result = Collect();
+            result.AsSpan().CopyTo(destination);
+            return result.Length;
+        }
+#endif
     }
 }
