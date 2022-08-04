@@ -241,6 +241,54 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMultiply(ulong[] x, ulong[] y, ulong[] zz)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Pclmulqdq.IsSupported)
+            {
+                var X01 = Vector128.Create(x[0], x[1]);
+                var X23 = Vector128.Create(x[2], x[3]);
+                var Y01 = Vector128.Create(y[0], y[1]);
+                var Y23 = Vector128.Create(y[2], y[3]);
+                var X03 = Sse2.Xor(X01, X23);
+                var Y03 = Sse2.Xor(Y01, Y23);
+
+                var Z01 =          Pclmulqdq.CarrylessMultiply(X01, Y01, 0x00);
+                var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x01),
+                                   Pclmulqdq.CarrylessMultiply(X01, Y01, 0x10));
+                var Z23 =          Pclmulqdq.CarrylessMultiply(X01, Y01, 0x11);
+
+                var Z45 =          Pclmulqdq.CarrylessMultiply(X23, Y23, 0x00);
+                var Z56 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y23, 0x01),
+                                   Pclmulqdq.CarrylessMultiply(X23, Y23, 0x10));
+                var Z67 =          Pclmulqdq.CarrylessMultiply(X23, Y23, 0x11);
+
+                var K01 =          Pclmulqdq.CarrylessMultiply(X03, Y03, 0x00);
+                var K12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X03, Y03, 0x01),
+                                   Pclmulqdq.CarrylessMultiply(X03, Y03, 0x10));
+                var K23 =          Pclmulqdq.CarrylessMultiply(X03, Y03, 0x11);
+
+                K01 = Sse2.Xor(K01, Z01);
+                K12 = Sse2.Xor(K12, Z12);
+                K23 = Sse2.Xor(K23, Z23);
+
+                K01 = Sse2.Xor(K01, Z45);
+                K12 = Sse2.Xor(K12, Z56);
+                K23 = Sse2.Xor(K23, Z67);
+
+                Z23 = Sse2.Xor(Z23, K01);
+                Z45 = Sse2.Xor(Z45, K23);
+
+                zz[0] = Z01.GetElement(0);
+                zz[1] = Z01.GetElement(1) ^ Z12.GetElement(0);
+                zz[2] = Z23.GetElement(0) ^ Z12.GetElement(1);
+                zz[3] = Z23.GetElement(1) ^ K12.GetElement(0);
+                zz[4] = Z45.GetElement(0) ^ K12.GetElement(1);
+                zz[5] = Z45.GetElement(1) ^ Z56.GetElement(0);
+                zz[6] = Z67.GetElement(0) ^ Z56.GetElement(1);
+                zz[7] = Z67.GetElement(1);
+                return;
+            }
+#endif
+
             /*
              * "Two-level seven-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
              */
@@ -293,20 +341,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             Debug.Assert(x >> 59 == 0);
             Debug.Assert(y >> 59 == 0);
-
-#if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported)
-            {
-                var X = Vector128.CreateScalar(x);
-                var Y = Vector128.CreateScalar(y);
-                var Z = Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
-                ulong z0 = Z.GetElement(0);
-                ulong z1 = Z.GetElement(1);
-                z[zOff    ] ^= z0 & M59;
-                z[zOff + 1] ^= (z0 >> 59) ^ (z1 << 5);
-                return;
-            }
-#endif
 
             //u[0] = 0;
             u[1] = y;

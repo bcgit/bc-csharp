@@ -230,6 +230,38 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMultiply(ulong[] x, ulong[] y, ulong[] zz)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Pclmulqdq.IsSupported)
+            {
+                var X01 = Vector128.Create(x[0], x[1]);
+                var X2_ = Vector128.CreateScalar(x[2]);
+                var Y01 = Vector128.Create(y[0], y[1]);
+                var Y2_ = Vector128.CreateScalar(y[2]);
+
+                var Z01 =          Pclmulqdq.CarrylessMultiply(X01, Y01, 0x00);
+                var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x01),
+                                   Pclmulqdq.CarrylessMultiply(X01, Y01, 0x10));
+                var Z23 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y2_, 0x00),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x11),
+                                   Pclmulqdq.CarrylessMultiply(X2_, Y01, 0x00)));
+                var Z34 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y2_, 0x01),
+                                   Pclmulqdq.CarrylessMultiply(X2_, Y01, 0x10));
+                var Z45 =          Pclmulqdq.CarrylessMultiply(X2_, Y2_, 0x00);
+
+                ulong X3M = 0UL - x[3];
+                ulong Y3M = 0UL - y[3];
+
+                zz[0] = Z01.GetElement(0);
+                zz[1] = Z01.GetElement(1) ^ Z12.GetElement(0);
+                zz[2] = Z23.GetElement(0) ^ Z12.GetElement(1);
+                zz[3] = Z23.GetElement(1) ^ Z34.GetElement(0) ^ (X3M & y[0]) ^ (x[0] & Y3M);
+                zz[4] = Z45.GetElement(0) ^ Z34.GetElement(1) ^ (X3M & y[1]) ^ (x[1] & Y3M);
+                zz[5] = Z45.GetElement(1)                     ^ (X3M & y[2]) ^ (x[2] & Y3M);
+                zz[6] =                                          X3M & y[3];
+                return;
+            }
+#endif
+
             /*
              * "Two-level seven-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
              */
@@ -282,20 +314,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             Debug.Assert(x >> 49 == 0);
             Debug.Assert(y >> 49 == 0);
-
-#if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported)
-            {
-                var X = Vector128.CreateScalar(x);
-                var Y = Vector128.CreateScalar(y);
-                var Z = Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
-                ulong z0 = Z.GetElement(0);
-                ulong z1 = Z.GetElement(1);
-                z[zOff    ] ^= z0 & M49;
-                z[zOff + 1] ^= (z0 >> 49) ^ (z1 << 15);
-                return;
-            }
-#endif
 
             //u[0] = 0;
             u[1] = y;

@@ -249,6 +249,56 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMultiply(ulong[] x, ulong[] y, ulong[] zz)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Pclmulqdq.IsSupported)
+            {
+                var X01 = Vector128.Create(x[0], x[1]);
+                var X23 = Vector128.Create(x[2], x[3]);
+                var X4_ = Vector128.CreateScalar(x[4]);
+                var Y01 = Vector128.Create(y[0], y[1]);
+                var Y23 = Vector128.Create(y[2], y[3]);
+                var Y4_ = Vector128.CreateScalar(y[4]);
+
+                var Z01 =          Pclmulqdq.CarrylessMultiply(X01, Y01, 0x00);
+                var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x01),
+                                   Pclmulqdq.CarrylessMultiply(X01, Y01, 0x10));
+                var Z23 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y23, 0x00),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x11),
+                                   Pclmulqdq.CarrylessMultiply(X23, Y01, 0x00)));
+                var Z34 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y23, 0x01),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y23, 0x10),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y01, 0x01),
+                                   Pclmulqdq.CarrylessMultiply(X23, Y01, 0x10))));
+                var Z45 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y4_, 0x00),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y23, 0x11),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y23, 0x00),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y01, 0x11),
+                                   Pclmulqdq.CarrylessMultiply(X4_, Y01, 0x00)))));
+                var Z56 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y4_, 0x01),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y23, 0x01),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y23, 0x10),
+                                   Pclmulqdq.CarrylessMultiply(X4_, Y01, 0x10))));
+                var Z67 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y4_, 0x00),
+                          Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y23, 0x11),
+                                   Pclmulqdq.CarrylessMultiply(X4_, Y23, 0x00)));
+                var Z78 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y4_, 0x01),
+                                   Pclmulqdq.CarrylessMultiply(X4_, Y23, 0x10));
+                var Z89 =          Pclmulqdq.CarrylessMultiply(X4_, Y4_, 0x00);
+
+                zz[0] = Z01.GetElement(0);
+                zz[1] = Z01.GetElement(1) ^ Z12.GetElement(0);
+                zz[2] = Z23.GetElement(0) ^ Z12.GetElement(1);
+                zz[3] = Z23.GetElement(1) ^ Z34.GetElement(0);
+                zz[4] = Z45.GetElement(0) ^ Z34.GetElement(1);
+                zz[5] = Z45.GetElement(1) ^ Z56.GetElement(0);
+                zz[6] = Z67.GetElement(0) ^ Z56.GetElement(1);
+                zz[7] = Z67.GetElement(1) ^ Z78.GetElement(0);
+                zz[8] = Z89.GetElement(0) ^ Z78.GetElement(1);
+                zz[9] = Z89.GetElement(1);
+                return;
+            }
+#endif
+
             /*
              * Formula (17) from "Some New Results on Binary Polynomial Multiplication",
              * Murat Cenk and M. Anwar Hasan.
@@ -376,20 +426,6 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             Debug.Assert(x >> 57 == 0);
             Debug.Assert(y >> 57 == 0);
-
-#if NETCOREAPP3_0_OR_GREATER
-            if (Pclmulqdq.IsSupported)
-            {
-                var X = Vector128.CreateScalar(x);
-                var Y = Vector128.CreateScalar(y);
-                var Z = Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
-                ulong z0 = Z.GetElement(0);
-                ulong z1 = Z.GetElement(1);
-                z[zOff    ] = z0 & M57;
-                z[zOff + 1] = (z0 >> 57) ^ (z1 << 7);
-                return;
-            }
-#endif
 
             //u[0] = 0;
             u[1] = y;
