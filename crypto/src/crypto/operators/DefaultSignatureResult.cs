@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Crypto.Operators
         public int Collect(Span<byte> destination)
         {
             byte[] result = Collect();
-            result.AsSpan().CopyTo(destination);
+            result.CopyTo(destination);
             return result.Length;
         }
 #endif

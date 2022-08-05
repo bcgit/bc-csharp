@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int Collect(Span<byte> destination)
         {
-            result.AsSpan().CopyTo(destination);
+            result.CopyTo(destination);
 
             return result.Length;
         }
