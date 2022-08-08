@@ -32,30 +32,11 @@ namespace Org.BouncyCastle.Ocsp
 			internal DerGeneralizedTime    nextUpdate;
 			internal X509Extensions        extensions;
 
-			public ResponseObject(
+			internal ResponseObject(
 				CertificateID		certId,
 				CertificateStatus	certStatus,
 				DateTime			thisUpdate,
-				X509Extensions		extensions)
-				: this(certId, certStatus, new DerGeneralizedTime(thisUpdate), null, extensions)
-			{
-			}
-
-			public ResponseObject(
-				CertificateID		certId,
-				CertificateStatus	certStatus,
-				DateTime			thisUpdate,
-				DateTime			nextUpdate,
-				X509Extensions		extensions)
-				: this(certId, certStatus, new DerGeneralizedTime(thisUpdate), new DerGeneralizedTime(nextUpdate), extensions)
-			{
-			}
-
-			private ResponseObject(
-				CertificateID		certId,
-				CertificateStatus	certStatus,
-				DerGeneralizedTime	thisUpdate,
-				DerGeneralizedTime	nextUpdate,
+				DateTime?			nextUpdate,
 				X509Extensions		extensions)
 			{
 				this.certId = certId;
@@ -79,8 +60,8 @@ namespace Org.BouncyCastle.Ocsp
 						new RevokedInfo(new DerGeneralizedTime(rs.RevocationTime), revocationReason));
 				}
 
-				this.thisUpdate = thisUpdate;
-				this.nextUpdate = nextUpdate;
+				this.thisUpdate = new DerGeneralizedTime(thisUpdate);
+				this.nextUpdate = nextUpdate.HasValue ? new DerGeneralizedTime(nextUpdate.Value) : null;
 
 				this.extensions = extensions;
 			}
@@ -119,7 +100,7 @@ namespace Org.BouncyCastle.Ocsp
 			CertificateID		certID,
 			CertificateStatus	certStatus)
 		{
-			list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, null));
+			list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, null, null));
 		}
 
 		/**
@@ -134,7 +115,7 @@ namespace Org.BouncyCastle.Ocsp
 			CertificateStatus	certStatus,
 			X509Extensions		singleExtensions)
 		{
-			list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, singleExtensions));
+			list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, null, singleExtensions));
 		}
 
 		/**
@@ -148,7 +129,7 @@ namespace Org.BouncyCastle.Ocsp
 		public void AddResponse(
 			CertificateID		certID,
 			CertificateStatus	certStatus,
-			DateTime			nextUpdate,
+			DateTime?			nextUpdate,
 			X509Extensions		singleExtensions)
 		{
 			list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, nextUpdate, singleExtensions));
@@ -167,7 +148,7 @@ namespace Org.BouncyCastle.Ocsp
 			CertificateID		certID,
 			CertificateStatus	certStatus,
 			DateTime			thisUpdate,
-			DateTime			nextUpdate,
+			DateTime?			nextUpdate,
 			X509Extensions		singleExtensions)
 		{
 			list.Add(new ResponseObject(certID, certStatus, thisUpdate, nextUpdate, singleExtensions));
@@ -230,7 +211,7 @@ namespace Org.BouncyCastle.Ocsp
 			DerSequence chainSeq = null;
 			if (chain != null && chain.Length > 0)
 			{
-				Asn1EncodableVector v = new Asn1EncodableVector();
+				Asn1EncodableVector v = new Asn1EncodableVector(chain.Length);
 				try
 				{
 					for (int i = 0; i != chain.Length; i++)

@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return 16;
         }
 
-        public int ProcessBlock(Span<byte> input, Span<byte> output)
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input, 16, "input buffer too short");
             Check.OutputLength(output, 16, "output buffer too short");
@@ -329,13 +329,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vector128<byte> Load128(Span<byte> t)
+        private static Vector128<byte> Load128(ReadOnlySpan<byte> t)
         {
 #if NET7_0_OR_GREATER
             return Vector128.Create<byte>(t);
 #else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
-                return Unsafe.ReadUnaligned<Vector128<byte>>(ref t[0]);
+                return Unsafe.ReadUnaligned<Vector128<byte>>(ref Unsafe.AsRef(t[0]));
 
             return Vector128.Create(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12],
                 t[13], t[14], t[15]);
@@ -343,13 +343,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vector64<byte> Load64(Span<byte> t)
+        private static Vector64<byte> Load64(ReadOnlySpan<byte> t)
         {
 #if NET7_0_OR_GREATER
             return Vector64.Create<byte>(t);
 #else
             if (BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector64<byte>>() == 8)
-                return Unsafe.ReadUnaligned<Vector64<byte>>(ref t[0]);
+                return Unsafe.ReadUnaligned<Vector64<byte>>(ref Unsafe.AsRef(t[0]));
 
             return Vector64.Create(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
 #endif
@@ -369,7 +369,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             var u = s.AsUInt64();
             Utilities.Pack.UInt64_To_LE(u.GetElement(0), t);
-            Utilities.Pack.UInt64_To_LE(u.GetElement(1), t.Slice(8));
+            Utilities.Pack.UInt64_To_LE(u.GetElement(1), t[8..]);
 #endif
         }
     }

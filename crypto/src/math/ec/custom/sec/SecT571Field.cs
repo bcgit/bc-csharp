@@ -175,6 +175,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static ulong[] PrecompMultiplicand(ulong[] x)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            ulong[] z = Nat576.Create64();
+            Nat576.Copy64(x, z);
+            return z;
+#else
             /*
              * Precompute table of all 4-bit products of x (first section)
              */
@@ -197,6 +202,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Nat.ShiftUpBits64(len, t, 0, 4, 0UL, t, len);
 
             return t;
+#endif
         }
 
         public static void Reduce(ulong[] xx, ulong[] z)
@@ -367,6 +373,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMultiplyPrecomp(ulong[] x, ulong[] precomp, ulong[] zz)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            ImplMultiply(x, precomp, zz);
+#else
             uint MASK = 0xF;
 
             /*
@@ -399,6 +408,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                     Nat.ShiftUpBits64(18, zz, 0, 8, 0UL);
                 }
             }
+#endif
         }
 
         protected static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)

@@ -83,6 +83,15 @@ namespace Org.BouncyCastle.Crmf
             signature.CopyTo(sig, sigOff);
             return signature.Length;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Collect(Span<byte> destination)
+        {
+            byte[] result = Collect();
+            result.CopyTo(destination);
+            return result.Length;
+        }
+#endif
     }
 
     public class PKMacBuilder
