@@ -23,8 +23,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     encodedkey = skparam.GetEncoded();
                     nist = new FalconNIST(
                         ((ParametersWithRandom)param).Random, 
-                        skparam.GetParameters().GetLogN(),
-                        skparam.GetParameters().GetNonceLength());
+                        skparam.Parameters.LogN,
+                        skparam.Parameters.NonceLength);
                 }
                 else
                 {
@@ -33,8 +33,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     nist = new FalconNIST(
                         new SecureRandom(),
                         // CryptoServicesRegistrar.GetSecureRandom(),
-                        skparam.GetParameters().GetLogN(),
-                        skparam.GetParameters().GetNonceLength()
+                        skparam.Parameters.LogN,
+                        skparam.Parameters.NonceLength
                         ); 
                         // TODO when CryptoServicesRegistrar has been implemented, use that instead
 
@@ -47,8 +47,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 nist = new FalconNIST(
                     new SecureRandom(),
                     // CryptoServicesRegistrar.GetSecureRandom()
-                    pkparam.GetParameters().GetLogN(),
-                    pkparam.GetParameters().GetNonceLength());
+                    pkparam.Parameters.LogN,
+                    pkparam.Parameters.NonceLength);
             }
         }
 

@@ -19,8 +19,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         {
             this.parameters = (FalconKeyGenerationParameters)param;
             this.random = param.Random;
-            this.logn = ((FalconKeyGenerationParameters)param).GetParameters().GetLogN();
-            this.noncelen = ((FalconKeyGenerationParameters)param).GetParameters().GetNonceLength();
+            this.logn = ((FalconKeyGenerationParameters)param).Parameters.LogN;
+            this.noncelen = ((FalconKeyGenerationParameters)param).Parameters.NonceLength;
             this.nist = new FalconNIST(random, logn, noncelen);
             int n = 1 << (int)this.logn;
             int sk_coeff_size = 8;
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             pk = new byte[pk_size];
             sk = new byte[sk_size];
             nist.crypto_sign_keypair(pk, 0, sk, 0);
-            FalconParameters p = ((FalconKeyGenerationParameters)this.parameters).GetParameters();
+            FalconParameters p = ((FalconKeyGenerationParameters)this.parameters).Parameters;
             FalconPrivateKeyParameters privk = new FalconPrivateKeyParameters(p, sk);
             FalconPublicKeyParameters pubk = new FalconPublicKeyParameters(p, pk);
             return new AsymmetricCipherKeyPair(pubk, privk);

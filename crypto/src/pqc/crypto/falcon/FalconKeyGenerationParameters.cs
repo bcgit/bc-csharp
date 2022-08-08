@@ -14,9 +14,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             this.parameters = parameters;
         }
 
-        public FalconParameters GetParameters()
+        public FalconParameters Parameters
         {
-            return this.parameters;
+            get { return this.parameters; }
         }
     }
 }

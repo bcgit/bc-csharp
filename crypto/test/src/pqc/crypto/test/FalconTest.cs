@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             FalconPublicKeyParameters pkparam = new FalconPublicKeyParameters(parameters[fileIndex], pk);
                             verifier.Init(false, pkparam);
                             byte[] noncesig = new byte[sm_len - m_len - 2 + 1];
-                            noncesig[0] = (byte)(0x30 + parameters[fileIndex].GetLogN());
+                            noncesig[0] = (byte)(0x30 + parameters[fileIndex].LogN);
                             Array.Copy(sm, 2, noncesig, 1, 40);
                             Array.Copy(sm, 2 + 40 + m_len, noncesig, 40 + 1, sm_len - 2 - 40 - m_len);
                             bool vrfyrespass = verifier.VerifySignature(msg, noncesig);
