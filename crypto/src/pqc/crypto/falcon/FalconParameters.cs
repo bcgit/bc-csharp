@@ -13,26 +13,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         private uint logn;
         private uint nonce_length;
 
-        public FalconParameters(String name, uint logn, uint nonce_length)
+        private FalconParameters(String name, uint logn, uint nonce_length)
         {
             this.name = name;
             this.logn = logn;
             this.nonce_length = nonce_length;
         }
 
-        public uint GetLogN()
+        public uint LogN
         {
-            return logn;
+            get { return logn; }
         }
 
-        public uint GetNonceLength()
+        public uint NonceLength
         {
-            return nonce_length;
+            get { return nonce_length; }
         }
 
-        public String GetName()
+        public string Name
         {
-            return name;
+            get { return name; }
         }
     }
 }
