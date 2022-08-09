@@ -45,6 +45,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             if (Ssse3.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
             {
                 var X = Vector128.Create(x0, x1).AsByte();
+                // TODO[Arm] System.Runtime.Intrinsics.Arm.AdvSimd.Reverse8
                 var Z = Ssse3.Shuffle(X, EndianMask);
                 Unsafe.WriteUnaligned(ref z[0], Z);
                 return;
