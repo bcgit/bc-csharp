@@ -33,28 +33,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 "kat_kem_ntrulp_953.rsp",
                 "kat_kem_ntrulp_1013.rsp",
                 "kat_kem_ntrulp_1277.rsp",
-                "kat_kem_sntrup_653.rsp",
-                "kat_kem_sntrup_761.rsp",
-                "kat_kem_sntrup_857.rsp",
-                "kat_kem_sntrup_953.rsp",
-                "kat_kem_sntrup_1013.rsp",
-                "kat_kem_sntrup_1277.rsp",
             };
 
-            NtruPrimeParameters[] parameters =
+            NtruLPRimeParameters[] parameters =
             {
-                NtruPrimeParameters.ntrulpr653,
-                NtruPrimeParameters.ntrulpr761,
-                NtruPrimeParameters.ntrulpr857,
-                NtruPrimeParameters.ntrulpr953,
-                NtruPrimeParameters.ntrulpr1013,
-                NtruPrimeParameters.ntrulpr1277,
-                NtruPrimeParameters.sntrup653, 
-                NtruPrimeParameters.sntrup761,
-                NtruPrimeParameters.sntrup857,
-                NtruPrimeParameters.sntrup953,
-                NtruPrimeParameters.sntrup1013,
-                NtruPrimeParameters.sntrup1277,
+                NtruLPRimeParameters.ntrulpr653,
+                NtruLPRimeParameters.ntrulpr761,
+                NtruLPRimeParameters.ntrulpr857,
+                NtruLPRimeParameters.ntrulpr953,
+                NtruLPRimeParameters.ntrulpr1013,
+                NtruLPRimeParameters.ntrulpr1277,
             };
 
             for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
@@ -93,24 +81,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                             
                             NistSecureRandom random = new NistSecureRandom(seed, null);
-                            NtruPrimeParameters ntruPParameters = parameters[fileIndex];
+                            NtruLPRimeParameters ntruPParameters = parameters[fileIndex];
                             
-                            NtruKeyPairGenerator kpGen = new NtruKeyPairGenerator();
-                            NtruKeyGenerationParameters genParams = new NtruKeyGenerationParameters(random,ntruPParameters);
+                            NtruLPRimeKeyPairGenerator kpGen = new NtruLPRimeKeyPairGenerator();
+                            NtruLPRimeKeyGenerationParameters genParams = new NtruLPRimeKeyGenerationParameters(random,ntruPParameters);
                             
                             // Generate the key pair
                             kpGen.Init(genParams);
                             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
                             
-                            NtruPrimePublicKeyParameters pubParams = (NtruPrimePublicKeyParameters) kp.Public;
-                            NtruPrimePrivateKeyParameters privParams = (NtruPrimePrivateKeyParameters) kp.Private;
+                            NtruLPRimePublicKeyParameters pubParams = (NtruLPRimePublicKeyParameters) kp.Public;
+                            NtruLPRimePrivateKeyParameters privParams = (NtruLPRimePrivateKeyParameters) kp.Private;
                             
                             // Check public and private key
                             Assert.True(Arrays.AreEqual(pk,pubParams.GetEncoded()), $"{name} {count} : public key");
                             Assert.True(Arrays.AreEqual(sk,privParams.GetEncoded()), $"{name} {count} : private key");
                             
                             // Encapsulation
-                            NtruPrimeKemGenerator ntruPEncCipher = new NtruPrimeKemGenerator(random);
+                            NtruLPRimeKemGenerator ntruPEncCipher = new NtruLPRimeKemGenerator(random);
                             ISecretWithEncapsulation secWenc = ntruPEncCipher.GenerateEncapsulated(pubParams);
                             byte[] generatedCT = secWenc.GetEncapsulation();
                             
@@ -122,7 +110,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc secret");
                             
                             // Decapsulation
-                            NtruPrimeKemExtractor ntruDecCipher = new NtruPrimeKemExtractor(privParams);
+                            NtruLPRimeKemExtractor ntruDecCipher = new NtruLPRimeKemExtractor(privParams);
                             byte[] dec_key = ntruDecCipher.ExtractSecret(generatedCT);
                             
                             // Check decapsulation secret
@@ -143,6 +131,111 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 Console.WriteLine("OK");
             }
 
+            files = new string[]
+            {
+                "kat_kem_sntrup_653.rsp",
+                "kat_kem_sntrup_761.rsp",
+                "kat_kem_sntrup_857.rsp",
+                "kat_kem_sntrup_953.rsp",
+                "kat_kem_sntrup_1013.rsp",
+                "kat_kem_sntrup_1277.rsp",
+            };
+
+            SNtruPrimeParameters[] sparameters =
+            {
+                SNtruPrimeParameters.sntrup653,
+                SNtruPrimeParameters.sntrup761,
+                SNtruPrimeParameters.sntrup857,
+                SNtruPrimeParameters.sntrup953,
+                SNtruPrimeParameters.sntrup1013,
+                SNtruPrimeParameters.sntrup1277,
+            };
+
+            for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
+            {
+                String name = files[fileIndex];
+                Console.Write("Testing " + name + "...");
+                Console.WriteLine("pqc.ntruprime." + name);
+                StreamReader src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.ntruprime." + name));
+                String line = null;
+                Dictionary<String, String> buf = new Dictionary<string, string>();
+
+                while ((line = src.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    if (line.StartsWith("#"))
+                    {
+                        continue;
+                    }
+
+                    if (line.Length == 0)
+                    {
+                        if (buf.Count > 0)
+                        {
+                            String count = buf["count"];
+
+                            if (!"0".Equals(count))
+                            {
+                                // Console.WriteLine("Zero");
+                            }
+
+                            byte[] seed = Hex.Decode(buf["seed"]);
+                            byte[] pk = Hex.Decode(buf["pk"]);
+                            byte[] ct = Hex.Decode(buf["ct"]);
+                            byte[] sk = Hex.Decode(buf["sk"]);
+                            byte[] ss = Hex.Decode(buf["ss"]);
+
+
+                            NistSecureRandom random = new NistSecureRandom(seed, null);
+                            SNtruPrimeParameters ntruPParameters = sparameters[fileIndex];
+
+                            SNtruPrimeKeyPairGenerator kpGen = new SNtruPrimeKeyPairGenerator();
+                            SNtruPrimeKeyGenerationParameters genParams = new SNtruPrimeKeyGenerationParameters(random, ntruPParameters);
+
+                            // Generate the key pair
+                            kpGen.Init(genParams);
+                            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+
+                            SNtruPrimePublicKeyParameters pubParams = (SNtruPrimePublicKeyParameters)kp.Public;
+                            SNtruPrimePrivateKeyParameters privParams = (SNtruPrimePrivateKeyParameters)kp.Private;
+
+                            // Check public and private key
+                            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), $"{name} {count} : public key");
+                            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), $"{name} {count} : private key");
+
+                            // Encapsulation
+                            SNtruPrimeKemGenerator ntruPEncCipher = new SNtruPrimeKemGenerator(random);
+                            ISecretWithEncapsulation secWenc = ntruPEncCipher.GenerateEncapsulated(pubParams);
+                            byte[] generatedCT = secWenc.GetEncapsulation();
+
+                            // Check ciphertext
+                            Assert.True(Arrays.AreEqual(ct, generatedCT), name + " " + count + ": kem_enc cipher text");
+
+                            // Check secret
+                            byte[] secret = secWenc.GetSecret();
+                            Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc secret");
+
+                            // Decapsulation
+                            SNtruPrimeKemExtractor ntruDecCipher = new SNtruPrimeKemExtractor(privParams);
+                            byte[] dec_key = ntruDecCipher.ExtractSecret(generatedCT);
+
+                            // Check decapsulation secret
+                            Assert.True(Arrays.AreEqual(dec_key, ss), $"{name} {count}: kem_dec ss");
+                            Assert.True(Arrays.AreEqual(dec_key, secret), $"{name} {count}: kem_dec key");
+                        }
+                        buf.Clear();
+
+                        continue;
+                    }
+
+                    int a = line.IndexOf("=");
+                    if (a > -1)
+                    {
+                        buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
+                    }
+                }
+                Console.WriteLine("OK");
+            }
         }
         
     }
