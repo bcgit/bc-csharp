@@ -122,6 +122,12 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        public static void AddConnectionIdExtension(IDictionary<int, byte[]> extensions, byte[] connectionId)
+        {
+            extensions[ExtensionType.connection_id] = CreateConnectionIdExtension(connectionId);
+        }
+
+        /// <exception cref="IOException"/>
         public static void AddMaxFragmentLengthExtension(IDictionary<int, byte[]> extensions, short maxFragmentLength)
         {
             extensions[ExtensionType.max_fragment_length] = CreateMaxFragmentLengthExtension(maxFragmentLength);
@@ -355,6 +361,13 @@ namespace Org.BouncyCastle.Tls
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.key_share);
             return extensionData == null ? null : ReadKeyShareServerHello(extensionData);
+        }
+
+        /// <exception cref="IOException"/>
+        public static byte[] GetConnectionIdExtension(IDictionary<int, byte[]> extensions)
+        {
+            byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.connection_id);
+            return extensionData == null ? null : ReadConnectionIdExtension(extensionData);
         }
 
         /// <exception cref="IOException"/>
@@ -716,6 +729,12 @@ namespace Org.BouncyCastle.Tls
             serverShare.Encode(buf);
 
             return buf.ToArray();
+        }
+
+        /// <exception cref="IOException"/>
+        public static byte[] CreateConnectionIdExtension(byte[] connectionId)
+        {
+            return TlsUtilities.EncodeOpaque8(connectionId);
         }
 
         /// <exception cref="IOException"/>
@@ -1150,6 +1169,12 @@ namespace Org.BouncyCastle.Tls
             TlsProtocol.AssertEmpty(buf);
 
             return serverShare;
+        }
+
+        /// <exception cref="IOException"/>
+        public static byte[] ReadConnectionIdExtension(byte[] extensionData)
+        {
+            return TlsUtilities.DecodeOpaque8(extensionData);
         }
 
         /// <exception cref="IOException"/>

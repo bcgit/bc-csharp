@@ -57,6 +57,19 @@ namespace Org.BouncyCastle.Tls
         internal byte[] m_localVerifyData = null;
         internal byte[] m_peerVerifyData = null;
 
+        /// <summary>
+        /// Does our peer support connection IDs
+        /// </summary>
+        internal bool m_connectionIdPeerSupported;
+        /// <summary>
+        /// Connection ID we use during communication to the peer
+        /// </summary>
+        internal byte[] m_connectionIdLocal;
+        /// <summary>
+        /// Connection ID our peer uses for communication to us
+        /// </summary>
+        internal byte[] m_connectionIdPeer;
+
         internal void Clear()
         {
             this.m_sessionHash = null;
@@ -70,6 +83,9 @@ namespace Org.BouncyCastle.Tls
             this.m_serverSigAlgsCert = null;
             this.m_serverSupportedGroups = null;
             this.m_statusRequestVersion = 0;
+            this.m_connectionIdPeerSupported = false;
+            this.m_connectionIdLocal = null;
+            this.m_connectionIdPeer = null;
 
             this.m_baseKeyClient = ClearSecret(m_baseKeyClient);
             this.m_baseKeyServer = ClearSecret(m_baseKeyServer);

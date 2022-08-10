@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Tls
             if (length > MAX_FRAGMENT_LENGTH)
                 return null;
 
-            // NOTE: We ignore/drop any data after the first record 
+            // NOTE: We ignore/drop any data after the first record
             return TlsUtilities.CopyOfRangeExact(data, dataOff + RECORD_HEADER_LENGTH,
                 dataOff + RECORD_HEADER_LENGTH + length);
         }
@@ -283,7 +283,7 @@ namespace Org.BouncyCastle.Tls
                 waitMillis = Timeout.ConstrainWaitMillis(waitMillis, m_heartbeatTimeout, currentTimeMillis);
                 waitMillis = Timeout.ConstrainWaitMillis(waitMillis, m_heartbeatResendTimeout, currentTimeMillis);
 
-                // NOTE: Guard against bad logic giving a negative value 
+                // NOTE: Guard against bad logic giving a negative value
                 if (waitMillis < 0)
                 {
                     waitMillis = 1;
@@ -473,16 +473,33 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         private int ProcessRecord(int received, byte[] record, byte[] buf, int off)
         {
-            // NOTE: received < 0 (timeout) is covered by this first case
-            if (received < RECORD_HEADER_LENGTH)
-                return -1;
-
-            int length = TlsUtilities.ReadUint16(record, 11);
-            if (received != (length + RECORD_HEADER_LENGTH))
+            if (received < 1)
                 return -1;
 
             // TODO[dtls13] Deal with opaque record type for 1.3 AEAD ciphers
             short recordType = TlsUtilities.ReadUint8(record, 0);
+
+            int headerLength;
+            int dataLength;
+            switch (recordType)
+            {
+                case ContentType.tls12_cid:
+                    {
+                        var cidLength = m_context.SecurityParameters.m_connectionIdPeer?.Length ?? 0;
+                        headerLength = RECORD_HEADER_LENGTH + cidLength;
+                        dataLength = TlsUtilities.ReadUint16(record, 11 + cidLength);
+                        break;
+                    }
+                default:
+                    {
+                        headerLength = RECORD_HEADER_LENGTH;
+                        dataLength = TlsUtilities.ReadUint16(record, 11);
+                        break;
+                    }
+            }
+
+            if (received != (headerLength + dataLength))
+                return -1;
 
             switch (recordType)
             {
@@ -491,7 +508,8 @@ namespace Org.BouncyCastle.Tls
             case ContentType.change_cipher_spec:
             case ContentType.handshake:
             case ContentType.heartbeat:
-                break;
+            case ContentType.tls12_cid:
+                    break;
             default:
                 return -1;
             }
@@ -524,14 +542,14 @@ namespace Org.BouncyCastle.Tls
             {
                 /*
                  * Special-case handling for retransmitted ClientHello records.
-                 * 
+                 *
                  * TODO Revisit how 'readVersion' works, since this is quite awkward.
                  */
                 bool isClientHelloFragment =
                         ReadEpoch == 0
-                    &&  length > 0
+                    &&  dataLength > 0
                     &&  ContentType.handshake == recordType
-                    &&  HandshakeType.client_hello == TlsUtilities.ReadUint8(record, RECORD_HEADER_LENGTH);
+                    &&  HandshakeType.client_hello == TlsUtilities.ReadUint8(record, headerLength);
 
                 if (!isClientHelloFragment)
                     return -1;
@@ -540,7 +558,7 @@ namespace Org.BouncyCastle.Tls
             long macSeqNo = GetMacSequenceNumber(recordEpoch.Epoch, seq);
 
             TlsDecodeResult decoded = recordEpoch.Cipher.DecodeCiphertext(macSeqNo, recordType, recordVersion, record,
-                RECORD_HEADER_LENGTH, length);
+                headerLength, dataLength);
 
             recordEpoch.ReplayWindow.ReportAuthenticated(seq);
 
@@ -554,9 +572,9 @@ namespace Org.BouncyCastle.Tls
             {
                 bool isHelloVerifyRequest =
                         ReadEpoch == 0
-                    &&  length > 0
+                    &&  dataLength > 0
                     &&  ContentType.handshake == recordType
-                    &&  HandshakeType.hello_verify_request == TlsUtilities.ReadUint8(record, RECORD_HEADER_LENGTH);
+                    &&  HandshakeType.hello_verify_request == TlsUtilities.ReadUint8(record, headerLength);
 
                 if (isHelloVerifyRequest)
                 {
@@ -713,15 +731,34 @@ namespace Org.BouncyCastle.Tls
         {
             if (m_recordQueue.Available > 0)
             {
-                int length = 0;
+                int recordLength = 0;
                 if (m_recordQueue.Available >= RECORD_HEADER_LENGTH)
                 {
-                    byte[] lengthBytes = new byte[2];
-                    m_recordQueue.Read(lengthBytes, 0, 2, 11);
-                    length = TlsUtilities.ReadUint16(lengthBytes, 0);
+                    byte[] typeByte = new byte[1];
+                    m_recordQueue.Read(typeByte, 0, 1, 0);
+                    short contentType = typeByte[0];
+
+                    switch (contentType)
+                    {
+                        case ContentType.tls12_cid:
+                            {
+                                int cidLength = m_context.SecurityParameters.m_connectionIdPeer?.Length ?? 0;
+                                byte[] lengthBytes = new byte[2];
+                                m_recordQueue.Read(lengthBytes, 0, 2, 11 + cidLength);
+                                recordLength = RECORD_HEADER_LENGTH + cidLength + TlsUtilities.ReadUint16(lengthBytes, 0);
+                                break;
+                            }
+                        default:
+                            {
+                                byte[] lengthBytes = new byte[2];
+                                m_recordQueue.Read(lengthBytes, 0, 2, 11);
+                                recordLength = RECORD_HEADER_LENGTH + TlsUtilities.ReadUint16(lengthBytes, 0);
+                                break;
+                            }
+                    }
                 }
 
-                int received = System.Math.Min(m_recordQueue.Available, RECORD_HEADER_LENGTH + length);
+                int received = System.Math.Min(m_recordQueue.Available, recordLength);
                 m_recordQueue.RemoveData(buf, off, received, 0);
                 return received;
             }

@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Tls
 
             /*
              * NOTE: Currently no server support for session resumption
-             * 
+             *
              * If adding support, ensure securityParameters.tlsUnique is set to the localVerifyData, but
              * ONLY when extended_master_secret has been negotiated (otherwise NULL).
              */
@@ -290,7 +290,7 @@ namespace Org.BouncyCastle.Tls
                         /*
                          * RFC 5246 If no suitable certificate is available, the client MUST send a
                          * certificate message containing no certificates.
-                         * 
+                         *
                          * NOTE: In previous RFCs, this was SHOULD instead of MUST.
                          */
                         throw new TlsFatalAlert(AlertDescription.unexpected_message);
@@ -341,10 +341,10 @@ namespace Org.BouncyCastle.Tls
 
             if (state.expectSessionTicket)
             {
-               /*
-                * TODO[new_session_ticket] Check the server-side rules regarding the session ID, since the client
-                * is going to ignore any session ID it received once it sees the new_session_ticket message.
-                */
+                /*
+                 * TODO[new_session_ticket] Check the server-side rules regarding the session ID, since the client
+                 * is going to ignore any session ID it received once it sees the new_session_ticket message.
+                 */
 
                 NewSessionTicket newSessionTicket = state.server.GetNewSessionTicket();
                 byte[] newSessionTicketBody = GenerateNewSessionTicket(state, newSessionTicket);
@@ -473,7 +473,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             /*
-             * RFC 5746 3.6. Server Behavior: Initial Handshake 
+             * RFC 5746 3.6. Server Behavior: Initial Handshake
              */
             if (securityParameters.IsSecureRenegotiation)
             {
@@ -503,7 +503,7 @@ namespace Org.BouncyCastle.Tls
             /*
              * RFC 7627 4. Clients and servers SHOULD NOT accept handshakes that do not use the extended
              * master secret [..]. (and see 5.2, 5.3)
-             * 
+             *
              * RFC 8446 Appendix D. Because TLS 1.3 always hashes in the transcript up to the server
              * Finished, implementations which support both TLS 1.3 and earlier versions SHOULD indicate
              * the use of the Extended Master Secret extension in their APIs whenever TLS 1.3 is used.
@@ -538,7 +538,10 @@ namespace Org.BouncyCastle.Tls
                     new HeartbeatExtension(state.heartbeatPolicy));
             }
 
-
+            if (TlsUtilities.IsTlsV12(server_version) && securityParameters.m_connectionIdPeerSupported)
+            {
+                TlsExtensionsUtilities.AddConnectionIdExtension(state.serverExtensions, securityParameters.m_connectionIdPeer ?? Arrays.EmptyBytes);
+            }
 
             /*
              * RFC 7301 3.1. When session resumption or session tickets [...] are used, the previous
@@ -727,7 +730,7 @@ namespace Org.BouncyCastle.Tls
             state.server.NotifyOfferedCipherSuites(state.offeredCipherSuites);
 
             /*
-             * TODO[resumption] Check RFC 7627 5.4. for required behaviour 
+             * TODO[resumption] Check RFC 7627 5.4. for required behaviour
              */
 
             /*
@@ -810,6 +813,18 @@ namespace Org.BouncyCastle.Tls
                         }
 
                         state.heartbeatPolicy = state.server.GetHeartbeatPolicy();
+                    }
+                }
+
+                if (TlsUtilities.IsTlsV12(client_version))
+                {
+                    var connectionIdExtension = TlsExtensionsUtilities.GetConnectionIdExtension(state.clientExtensions);
+                    if (connectionIdExtension != null)
+                    {
+                        securityParameters.m_connectionIdPeerSupported = true;
+                        securityParameters.m_connectionIdLocal = connectionIdExtension.Length == 0 ? null : connectionIdExtension;
+                        var serverConnectionId = state.server.GetNewServerConnectionId();
+                        securityParameters.m_connectionIdPeer = serverConnectionId.Length == 0 ? null : serverConnectionId;
                     }
                 }
 

@@ -126,5 +126,17 @@ namespace Org.BouncyCastle.Tls
         /// <returns>The ticket.</returns>
         /// <exception cref="IOException"/>
         NewSessionTicket GetNewSessionTicket();
+
+        /// <summary>
+        /// RFC 9146 DTLS connection ID.
+        /// </summary>
+        /// <remarks>
+        /// This method will be called if a connection_id extension was sent by the client.
+        /// If the return value is non-null, the server will send this connection ID to the client to use in future packets.
+        /// As future communication doesn't include the connection IDs length, this should either be fixed-length
+        /// or include the connection IDs length. (see explanation in RFC 9146 4. "cid:")
+        /// </remarks>
+        /// <returns>The connection ID to use.</returns>
+        byte[] GetNewServerConnectionId();
     }
 }

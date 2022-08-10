@@ -256,6 +256,11 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        public virtual byte[] GetNewServerConnectionId()
+        {
+            return null;
+        }
+
         public virtual void NotifySession(TlsSession session)
         {
         }
@@ -423,7 +428,7 @@ namespace Org.BouncyCastle.Tls
                 {
                     /*
                      * TODO[tls13] RFC 8446 4.4.2.1. OCSP Status and SCT Extensions.
-                     * 
+                     *
                      * OCSP information is carried in an extension for a CertificateEntry.
                      */
                 }

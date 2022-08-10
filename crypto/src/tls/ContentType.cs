@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Org.BouncyCastle.Tls
+﻿namespace Org.BouncyCastle.Tls
 {
     /// <summary>RFC 2246 6.2.1</summary>
     public abstract class ContentType
@@ -10,6 +8,7 @@ namespace Org.BouncyCastle.Tls
         public const short handshake = 22;
         public const short application_data = 23;
         public const short heartbeat = 24;
+        public const short tls12_cid = 25;
 
         public static string GetName(short contentType)
         {
@@ -25,6 +24,8 @@ namespace Org.BouncyCastle.Tls
                 return "handshake";
             case heartbeat:
                 return "heartbeat";
+            case tls12_cid:
+                return "tls12_cid";
             default:
                 return "UNKNOWN";
             }

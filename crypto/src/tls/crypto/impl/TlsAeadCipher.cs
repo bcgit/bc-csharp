@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
@@ -13,6 +14,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         private const int NONCE_RFC5288 = 1;
         private const int NONCE_RFC7905 = 2;
+        private const long SEQUENCE_NUMBER_PLACEHOLDER = unchecked((long)0xFFFFFFFFFFFFFFFF);
 
         protected readonly TlsCryptoParameters m_cryptoParams;
         protected readonly int m_keySize;
@@ -22,6 +24,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         protected readonly TlsAeadCipherImpl m_decryptCipher, m_encryptCipher;
         protected readonly byte[] m_decryptNonce, m_encryptNonce;
+        protected readonly byte[] m_decryptConnectionId, m_encryptConnectionId;
 
         protected readonly bool m_isTlsV13;
         protected readonly int m_nonceMode;
@@ -38,6 +41,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             this.m_isTlsV13 = TlsImplUtilities.IsTlsV13(negotiatedVersion);
             this.m_nonceMode = GetNonceMode(m_isTlsV13, aeadType);
+            this.m_decryptConnectionId = securityParameters.m_connectionIdPeer;
+            this.m_encryptConnectionId = securityParameters.m_connectionIdLocal;
 
             switch (m_nonceMode)
             {
@@ -171,7 +176,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             short recordType = m_isTlsV13 ? ContentType.application_data : contentType;
 
             byte[] additionalData = GetAdditionalData(seqNo, recordType, recordVersion, ciphertextLength,
-                plaintextLength);
+                plaintextLength, m_encryptConnectionId);
 
             try
             {
@@ -234,7 +239,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             int plaintextLength = m_decryptCipher.GetOutputSize(encryptionLength);
 
             byte[] additionalData = GetAdditionalData(seqNo, recordType, recordVersion, ciphertextLength,
-                plaintextLength);
+                plaintextLength, m_decryptConnectionId);
 
             int outputPos;
             try
@@ -259,9 +264,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
 
             short contentType = recordType;
-            if (m_isTlsV13)
+            if (m_isTlsV13 || (recordType == ContentType.tls12_cid && m_decryptConnectionId != null))
             {
-                // Strip padding and read true content type from TLSInnerPlaintext
+                // Strip padding and read true content type from (D)TLSInnerPlaintext
                 int pos = plaintextLength;
                 for (;;)
                 {
@@ -297,7 +302,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
         protected virtual byte[] GetAdditionalData(long seqNo, short recordType, ProtocolVersion recordVersion,
-            int ciphertextLength, int plaintextLength)
+            int ciphertextLength, int plaintextLength, byte[] connectionId)
         {
             if (m_isTlsV13)
             {
@@ -308,6 +313,23 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 TlsUtilities.WriteUint8(recordType, additional_data, 0);
                 TlsUtilities.WriteVersion(recordVersion, additional_data, 1);
                 TlsUtilities.WriteUint16(ciphertextLength, additional_data, 3);
+                return additional_data;
+            }
+            else if (recordType == ContentType.tls12_cid && connectionId != null)
+            {
+                // seq_num_placeholder + tls12_cid + cid_length + tls12_cid + DTLSCiphertext.version + epoch + sequence_number + cid + length_of_DTLSInnerPlaintext
+                int cidLength = connectionId.Length;
+                byte[] additional_data = new byte[23 + cidLength];
+                TlsUtilities.WriteUint64(SEQUENCE_NUMBER_PLACEHOLDER, additional_data, 0);
+                TlsUtilities.WriteUint8(ContentType.tls12_cid, additional_data, 8);
+                TlsUtilities.WriteUint8(cidLength, additional_data, 9);
+                TlsUtilities.WriteUint8(ContentType.tls12_cid, additional_data, 10);
+                TlsUtilities.WriteVersion(recordVersion, additional_data, 11);
+                TlsUtilities.WriteUint64(seqNo, additional_data, 13);
+                Array.Copy(connectionId, 0, additional_data, 21, cidLength);
+                TlsUtilities.WriteUint16(plaintextLength, additional_data, 21 + cidLength);
+
+                var hex = string.Join(" ", additional_data.Select(x => x.ToString("X2")));
                 return additional_data;
             }
             else
