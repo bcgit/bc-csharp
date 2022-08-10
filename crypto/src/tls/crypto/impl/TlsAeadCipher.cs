@@ -328,8 +328,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 TlsUtilities.WriteUint64(seqNo, additional_data, 13);
                 Array.Copy(connectionId, 0, additional_data, 21, cidLength);
                 TlsUtilities.WriteUint16(plaintextLength, additional_data, 21 + cidLength);
-
-                var hex = string.Join(" ", additional_data.Select(x => x.ToString("X2")));
                 return additional_data;
             }
             else

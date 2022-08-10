@@ -83,9 +83,6 @@ namespace Org.BouncyCastle.Tls
             this.m_serverSigAlgsCert = null;
             this.m_serverSupportedGroups = null;
             this.m_statusRequestVersion = 0;
-            this.m_connectionIdPeerSupported = false;
-            this.m_connectionIdLocal = null;
-            this.m_connectionIdPeer = null;
 
             this.m_baseKeyClient = ClearSecret(m_baseKeyClient);
             this.m_baseKeyServer = ClearSecret(m_baseKeyServer);
