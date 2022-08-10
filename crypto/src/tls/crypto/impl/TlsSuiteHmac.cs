@@ -8,6 +8,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public class TlsSuiteHmac
         : TlsSuiteMac
     {
+        private const long SEQUENCE_NUMBER_PLACEHOLDER = unchecked((long)0xFFFFFFFFFFFFFFFF);
+
         protected static int GetMacSize(TlsCryptoParameters cryptoParams, TlsMac mac)
         {
             int macSize = mac.MacLength;
@@ -53,39 +55,64 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             get { return m_macSize; }
         }
 
-        public virtual byte[] CalculateMac(long seqNo, short type, byte[] msg, int msgOff, int msgLen)
+        public virtual byte[] CalculateMac(long seqNo, short recordType, byte[] connectionId, byte[] msg, int msgOff, int msgLen)
         {
             ProtocolVersion serverVersion = m_cryptoParams.ServerVersion;
             bool isSsl = serverVersion.IsSsl;
 
-            byte[] macHeader = new byte[isSsl ? 11 : 13];
-            TlsUtilities.WriteUint64(seqNo, macHeader, 0);
-            TlsUtilities.WriteUint8(type, macHeader, 8);
-            if (!isSsl)
+            if (isSsl)
             {
-                TlsUtilities.WriteVersion(serverVersion, macHeader, 9);
-            }
-            TlsUtilities.WriteUint16(msgLen, macHeader, macHeader.Length - 2);
+                byte[] macHeader = new byte[11];
+                TlsUtilities.WriteUint64(seqNo, macHeader, 0);
+                TlsUtilities.WriteUint8(recordType, macHeader, 8);
+                TlsUtilities.WriteUint16(msgLen, macHeader, 9);
 
-            m_mac.Update(macHeader, 0, macHeader.Length);
+                m_mac.Update(macHeader, 0, macHeader.Length);
+            }
+            else if (recordType == ContentType.tls12_cid && connectionId != null)
+            {
+                int cidLength = connectionId.Length;
+                byte[] macHeader = new byte[23 + cidLength];
+                TlsUtilities.WriteUint64(SEQUENCE_NUMBER_PLACEHOLDER, macHeader, 0);
+                TlsUtilities.WriteUint8(ContentType.tls12_cid, macHeader, 8);
+                TlsUtilities.WriteUint8(cidLength, macHeader, 9);
+                TlsUtilities.WriteUint8(ContentType.tls12_cid, macHeader, 10);
+                TlsUtilities.WriteVersion(serverVersion, macHeader, 11);
+                TlsUtilities.WriteUint64(seqNo, macHeader, 13);
+                Array.Copy(connectionId, 0, macHeader, 21, cidLength);
+                TlsUtilities.WriteUint16(msgLen, macHeader, 21 + cidLength);
+
+                m_mac.Update(macHeader, 0, macHeader.Length);
+            }
+            else
+            {
+                byte[] macHeader = new byte[13];
+                TlsUtilities.WriteUint64(seqNo, macHeader, 0);
+                TlsUtilities.WriteUint8(recordType, macHeader, 8);
+                TlsUtilities.WriteVersion(serverVersion, macHeader, 9);
+                TlsUtilities.WriteUint16(msgLen, macHeader, 11);
+
+                m_mac.Update(macHeader, 0, macHeader.Length);
+            }
+
             m_mac.Update(msg, msgOff, msgLen);
 
             return Truncate(m_mac.CalculateMac());
         }
 
-        public virtual byte[] CalculateMacConstantTime(long seqNo, short type, byte[] msg, int msgOff, int msgLen,
+        public virtual byte[] CalculateMacConstantTime(long seqNo, short recordType, byte[] connectionId, byte[] msg, int msgOff, int msgLen,
             int fullLength, byte[] dummyData)
         {
             /*
              * Actual MAC only calculated on 'length' bytes...
              */
-            byte[] result = CalculateMac(seqNo, type, msg, msgOff, msgLen);
+            byte[] result = CalculateMac(seqNo, recordType, connectionId, msg, msgOff, msgLen);
 
             /*
              * ...but ensure a constant number of complete digest blocks are processed (as many as would
              * be needed for 'fullLength' bytes of input).
              */
-            int headerLength = TlsImplUtilities.IsSsl(m_cryptoParams) ? 11 : 13;
+            int headerLength = GetHeaderLength(recordType, connectionId);
 
             // How many extra full blocks do we need to calculate?
             int extra = GetDigestBlockCount(headerLength + fullLength) - GetDigestBlockCount(headerLength + msgLen);
@@ -100,6 +127,22 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             m_mac.Reset();
 
             return result;
+        }
+
+        protected virtual int GetHeaderLength(short recordType, byte[] connectionId)
+        {
+            if (m_cryptoParams.ServerVersion.IsSsl)
+            {
+                return 11;
+            }
+            else if (recordType == ContentType.tls12_cid && connectionId != null)
+            {
+                return 23 + connectionId.Length;
+            }
+            else
+            {
+                return 13;
+            }
         }
 
         protected virtual int GetDigestBlockCount(int inputLength)

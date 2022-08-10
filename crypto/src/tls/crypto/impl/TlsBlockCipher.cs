@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         protected readonly TlsBlockCipherImpl m_decryptCipher, m_encryptCipher;
         protected readonly TlsSuiteMac m_readMac, m_writeMac;
+        protected readonly byte[] m_decryptConnectionId, m_encryptConnectionId;
 
         /// <exception cref="IOException"/>
         public TlsBlockCipher(TlsCryptoParameters cryptoParams, TlsBlockCipherImpl encryptCipher,
@@ -30,6 +31,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             if (TlsImplUtilities.IsTlsV13(negotiatedVersion))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
+            this.m_decryptConnectionId = securityParameters.m_connectionIdPeer;
+            this.m_encryptConnectionId = securityParameters.m_connectionIdLocal;
+
             this.m_cryptoParams = cryptoParams;
             this.m_randomData = cryptoParams.NonceGenerator.GenerateNonce(256);
 
@@ -40,7 +44,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             /*
              * Don't use variable-length padding with truncated MACs.
-             * 
+             *
              * See "Tag Size Does Matter: Attacks and Proofs for the TLS Record Protocol", Paterson,
              * Ristenpart, Shrimpton.
              *
@@ -210,7 +214,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             if (!m_encryptThenMac)
             {
-                byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, plaintext, offset, len);
+                byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, m_encryptConnectionId, plaintext, offset, len);
                 Array.Copy(mac, 0, outBuf, outOff, mac.Length);
                 outOff += mac.Length;
             }
@@ -225,7 +229,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             if (m_encryptThenMac)
             {
-                byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, outBuf, headerAllocation,
+                byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, m_encryptConnectionId, outBuf, headerAllocation,
                     outOff - headerAllocation);
                 Array.Copy(mac, 0, outBuf, outOff, mac.Length);
                 outOff += mac.Length;
@@ -272,7 +276,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             if (m_encryptThenMac)
             {
-                byte[] expectedMac = m_readMac.CalculateMac(seqNo, recordType, ciphertext, offset, len - macSize);
+                byte[] expectedMac = m_readMac.CalculateMac(seqNo, recordType, m_decryptConnectionId, ciphertext, offset, len - macSize);
 
                 bool checkMac = TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext,
                     offset + len - macSize);
@@ -309,7 +313,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             {
                 dec_output_length -= macSize;
 
-                byte[] expectedMac = m_readMac.CalculateMacConstantTime(seqNo, recordType, ciphertext, offset,
+                byte[] expectedMac = m_readMac.CalculateMacConstantTime(seqNo, recordType, m_decryptConnectionId, ciphertext, offset,
                     dec_output_length, blocks_length - macSize, m_randomData);
 
                 badMac |= !TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext,
@@ -319,7 +323,27 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             if (badMac)
                 throw new TlsFatalAlert(AlertDescription.bad_record_mac);
 
-            return new TlsDecodeResult(ciphertext, offset, dec_output_length, recordType);
+            short contentType = recordType;
+            if (recordType == ContentType.tls12_cid && m_decryptConnectionId != null)
+            {
+                // Strip padding and read true content type from DTLSInnerPlaintext
+                int pos = dec_output_length;
+                for (; ; )
+                {
+                    if (--pos < 0)
+                        throw new TlsFatalAlert(AlertDescription.unexpected_message);
+
+                    byte octet = ciphertext[offset + pos];
+                    if (0 != octet)
+                    {
+                        contentType = (short)(octet & 0xFF);
+                        dec_output_length = pos;
+                        break;
+                    }
+                }
+            }
+
+            return new TlsDecodeResult(ciphertext, offset, dec_output_length, contentType);
         }
 
         public virtual void RekeyDecoder()

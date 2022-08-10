@@ -9,12 +9,17 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     {
         protected readonly TlsCryptoParameters m_cryptoParams;
         protected readonly TlsSuiteHmac m_readMac, m_writeMac;
+        protected readonly byte[] m_decryptConnectionId, m_encryptConnectionId;
 
         /// <exception cref="IOException"/>
         public TlsNullCipher(TlsCryptoParameters cryptoParams, TlsHmac clientMac, TlsHmac serverMac)
         {
             if (TlsImplUtilities.IsTlsV13(cryptoParams))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            var securityParameters = cryptoParams.SecurityParameters;
+            this.m_decryptConnectionId = securityParameters.m_connectionIdPeer;
+            this.m_encryptConnectionId = securityParameters.m_connectionIdLocal;
 
             this.m_cryptoParams = cryptoParams;
 
@@ -61,7 +66,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len)
         {
-            byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, plaintext, offset, len);
+            byte[] mac = m_writeMac.CalculateMac(seqNo, contentType, m_encryptConnectionId, plaintext, offset, len);
             byte[] ciphertext = new byte[headerAllocation + len + mac.Length];
             Array.Copy(plaintext, offset, ciphertext, headerAllocation, len);
             Array.Copy(mac, 0, ciphertext, headerAllocation + len, mac.Length);
@@ -77,7 +82,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             int macInputLen = len - macSize;
 
-            byte[] expectedMac = m_readMac.CalculateMac(seqNo, recordType, ciphertext, offset, macInputLen);
+            byte[] expectedMac = m_readMac.CalculateMac(seqNo, recordType, m_decryptConnectionId, ciphertext, offset, macInputLen);
 
             bool badMac = !TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext, offset + macInputLen);
             if (badMac)
