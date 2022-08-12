@@ -57,6 +57,7 @@ namespace Org.BouncyCastle.Tls
         internal byte[] m_localVerifyData = null;
         internal byte[] m_peerVerifyData = null;
 
+        // TODO[cid] does this belong here or would the TlsServer be a better place for these?
         /// <summary>
         /// Does our peer support connection IDs
         /// </summary>

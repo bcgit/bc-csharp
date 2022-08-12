@@ -822,9 +822,18 @@ namespace Org.BouncyCastle.Tls
                     if (connectionIdExtension != null)
                     {
                         securityParameters.m_connectionIdPeerSupported = true;
-                        securityParameters.m_connectionIdLocal = connectionIdExtension.Length == 0 ? null : connectionIdExtension;
-                        var serverConnectionId = state.server.GetNewServerConnectionId();
-                        securityParameters.m_connectionIdPeer = serverConnectionId.Length == 0 ? null : serverConnectionId;
+
+                        if(connectionIdExtension.Length != 0)
+                        {
+                            securityParameters.m_connectionIdLocal = connectionIdExtension;
+                            state.server.NotifyClientConnectionId(connectionIdExtension);
+                        }
+
+                        byte[] serverConnectionId = state.server.GetNewServerConnectionId();
+                        if (serverConnectionId != null && serverConnectionId.Length > 0)
+                        {
+                            securityParameters.m_connectionIdPeer = serverConnectionId;
+                        }
                     }
                 }
 

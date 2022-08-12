@@ -260,6 +260,9 @@ namespace Org.BouncyCastle.Tls
         {
             return null;
         }
+        public virtual void NotifyClientConnectionId(byte[] connectionId)
+        {
+        }
 
         public virtual void NotifySession(TlsSession session)
         {

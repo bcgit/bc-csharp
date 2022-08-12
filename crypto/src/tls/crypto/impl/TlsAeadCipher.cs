@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
@@ -25,6 +24,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         protected readonly TlsAeadCipherImpl m_decryptCipher, m_encryptCipher;
         protected readonly byte[] m_decryptNonce, m_encryptNonce;
         protected readonly byte[] m_decryptConnectionId, m_encryptConnectionId;
+        protected readonly bool m_decryptUseInnerPlaintext, m_encryptUseInnerPlaintext;
 
         protected readonly bool m_isTlsV13;
         protected readonly int m_nonceMode;
@@ -41,8 +41,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             this.m_isTlsV13 = TlsImplUtilities.IsTlsV13(negotiatedVersion);
             this.m_nonceMode = GetNonceMode(m_isTlsV13, aeadType);
+
+            // TODO[cid] does this really belong in the cipher?
+            // other than the MAC calculation, everything could be done in the record layer instead
             this.m_decryptConnectionId = securityParameters.m_connectionIdPeer;
+            this.m_decryptUseInnerPlaintext = m_isTlsV13 || m_decryptConnectionId != null;
             this.m_encryptConnectionId = securityParameters.m_connectionIdLocal;
+            this.m_encryptUseInnerPlaintext = m_isTlsV13 || m_encryptConnectionId != null;
 
             switch (m_nonceMode)
             {
@@ -113,13 +118,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
         {
-            return plaintextLimit + m_macSize + m_record_iv_length + (m_isTlsV13 ? 1 : 0);
+            return plaintextLimit + m_macSize + m_record_iv_length + (m_decryptUseInnerPlaintext ? 1 : 0);
         }
 
         public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             int innerPlaintextLimit = plaintextLength;
-            if (m_isTlsV13)
+            if (m_encryptUseInnerPlaintext)
             {
                 // TODO[tls13] Add support for padding
                 int maxPadding = 0;
@@ -132,7 +137,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public virtual int GetPlaintextLimit(int ciphertextLimit)
         {
-            return ciphertextLimit - m_macSize - m_record_iv_length - (m_isTlsV13 ? 1 : 0);
+            // TODO[cid] do we need to split this into send and receive?
+            bool mayUseInnerPlaintext = m_decryptUseInnerPlaintext || m_encryptUseInnerPlaintext;
+            return ciphertextLimit - m_macSize - m_record_iv_length - (mayUseInnerPlaintext ? 1 : 0);
         }
 
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
@@ -158,10 +165,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
 
-            int extraLength = m_isTlsV13 ? 1 : 0;
+            // the length of the plaintext to encrypt, including content type and padding (currently not supported)
+            int encryptPlaintextLength = plaintextLength + (m_encryptUseInnerPlaintext ? 1 : 0);
 
-            // TODO[tls13] If we support adding padding to TLSInnerPlaintext, this will need review
-            int encryptionLength = m_encryptCipher.GetOutputSize(plaintextLength + extraLength);
+            // TODO[tls13] If we support adding padding to (D)TLSInnerPlaintext, this will need review
+            int encryptionLength = m_encryptCipher.GetOutputSize(encryptPlaintextLength);
             int ciphertextLength = m_record_iv_length + encryptionLength;
 
             byte[] output = new byte[headerAllocation + ciphertextLength];
@@ -173,21 +181,25 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 outputPos += m_record_iv_length;
             }
 
-            short recordType = m_isTlsV13 ? ContentType.application_data : contentType;
+            short recordType = contentType;
+            if (m_encryptUseInnerPlaintext)
+            {
+                recordType = m_isTlsV13 ? ContentType.application_data : ContentType.tls12_cid;
+            }
 
             byte[] additionalData = GetAdditionalData(seqNo, recordType, recordVersion, ciphertextLength,
-                plaintextLength, m_encryptConnectionId);
+                encryptPlaintextLength, m_encryptConnectionId);
 
             try
             {
                 Array.Copy(plaintext, plaintextOffset, output, outputPos, plaintextLength);
-                if (m_isTlsV13)
+                if (m_encryptUseInnerPlaintext)
                 {
                     output[outputPos + plaintextLength] = (byte)contentType;
                 }
 
                 m_encryptCipher.Init(nonce, m_macSize, additionalData);
-                outputPos += m_encryptCipher.DoFinal(output, outputPos, plaintextLength + extraLength, output,
+                outputPos += m_encryptCipher.DoFinal(output, outputPos, encryptPlaintextLength, output,
                     outputPos);
             }
             catch (IOException e)
@@ -264,7 +276,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
 
             short contentType = recordType;
-            if (m_isTlsV13 || (recordType == ContentType.tls12_cid && m_decryptConnectionId != null))
+            if (m_decryptUseInnerPlaintext)
             {
                 // Strip padding and read true content type from (D)TLSInnerPlaintext
                 int pos = plaintextLength;

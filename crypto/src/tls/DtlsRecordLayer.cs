@@ -830,17 +830,32 @@ namespace Org.BouncyCastle.Tls
                 long macSequenceNumber = GetMacSequenceNumber(recordEpoch, recordSequenceNumber);
                 ProtocolVersion recordVersion = m_writeVersion;
 
-                TlsEncodeResult encoded = m_writeEpoch.Cipher.EncodePlaintext(macSequenceNumber, contentType,
-                    recordVersion, RECORD_HEADER_LENGTH, buf, off, len);
+                int headerLength = RECORD_HEADER_LENGTH;
+                byte[] connectionIdLocal = m_context.SecurityParameters.m_connectionIdLocal;
 
-                int ciphertextLength = encoded.len - RECORD_HEADER_LENGTH;
+                // TODO[cid] find a better way to implement "once encryption is enabled"
+                // https://www.rfc-editor.org/rfc/rfc9146.html#section-3-10
+                bool useConnectionId = connectionIdLocal != null && recordEpoch != 0;
+                if (useConnectionId)
+                {
+                    headerLength = RECORD_HEADER_LENGTH + connectionIdLocal.Length;
+                }
+
+                TlsEncodeResult encoded = m_writeEpoch.Cipher.EncodePlaintext(macSequenceNumber, contentType,
+                    recordVersion, headerLength, buf, off, len);
+
+                int ciphertextLength = encoded.len - headerLength;
                 TlsUtilities.CheckUint16(ciphertextLength);
 
                 TlsUtilities.WriteUint8(encoded.recordType, encoded.buf, encoded.off + 0);
                 TlsUtilities.WriteVersion(recordVersion, encoded.buf, encoded.off + 1);
                 TlsUtilities.WriteUint16(recordEpoch, encoded.buf, encoded.off + 3);
                 TlsUtilities.WriteUint48(recordSequenceNumber, encoded.buf, encoded.off + 5);
-                TlsUtilities.WriteUint16(ciphertextLength, encoded.buf, encoded.off + 11);
+                if (useConnectionId)
+                {
+                    Array.Copy(connectionIdLocal, 0, encoded.buf, encoded.off + 11, connectionIdLocal.Length);
+                }
+                TlsUtilities.WriteUint16(ciphertextLength, encoded.buf, encoded.off + 11 + (useConnectionId ? connectionIdLocal.Length : 0));
 
                 SendDatagram(m_transport, encoded.buf, encoded.off, encoded.len);
             }
