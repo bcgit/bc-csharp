@@ -59,6 +59,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 "firesaber.rsp"
             };
 
+            TestSampler sampler = new TestSampler();
             for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
             {
                 String name = files[fileIndex];
@@ -78,7 +79,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                     if (line.Length == 0)
                     {
-                        if (buf.Count > 0)
+                        if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                         {
                             String count = buf["count"];
 

@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         private static void RunTestVectorFile(string name)
         {
             var buf = new Dictionary<string, string>();
-
+            TestSampler sampler = new TestSampler();
             using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.sike." + name)))
             {
                 string line;
@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         continue;
                     }
 
-                    if (buf.Count > 0)
+                    if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                     {
                         RunTestVector(name, buf);
                         buf.Clear();
