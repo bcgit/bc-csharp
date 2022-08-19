@@ -70,6 +70,13 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
         }
 
+        // TODO Add efficient override (needs ISP80090Drbg support for spans)
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+//        public override void NextBytes(Span<byte> buffer)
+//        {
+//        }
+//#endif
+
         public override byte[] GenerateSeed(int numBytes)
         {
             return EntropyUtilities.GenerateSeed(mEntropySource, numBytes);

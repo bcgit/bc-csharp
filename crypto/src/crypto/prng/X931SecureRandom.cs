@@ -60,6 +60,21 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void NextBytes(Span<byte> buffer)
+        {
+            lock (this)
+            {
+                // check if a reseed is required...
+                if (mDrbg.Generate(buffer, mPredictionResistant) < 0)
+                {
+                    mDrbg.Reseed();
+                    mDrbg.Generate(buffer, mPredictionResistant);
+                }
+            }
+        }
+#endif
+
         public override byte[] GenerateSeed(int numBytes)
         {
             return EntropyUtilities.GenerateSeed(mDrbg.EntropySource, numBytes);

@@ -103,6 +103,67 @@ namespace Org.BouncyCastle.Crypto.Prng
             return outputLen * 8;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal int Generate(Span<byte> output, bool predictionResistant)
+        {
+            int outputLen = output.Length;
+
+            if (mR.Length == 8) // 64 bit block size
+            {
+                if (mReseedCounter > BLOCK64_RESEED_MAX)
+                    return -1;
+
+                if (outputLen > BLOCK64_MAX_BITS_REQUEST / 8)
+                    throw new ArgumentException("Number of bits per request limited to " + BLOCK64_MAX_BITS_REQUEST, "output");
+            }
+            else
+            {
+                if (mReseedCounter > BLOCK128_RESEED_MAX)
+                    return -1;
+
+                if (outputLen > BLOCK128_MAX_BITS_REQUEST / 8)
+                    throw new ArgumentException("Number of bits per request limited to " + BLOCK128_MAX_BITS_REQUEST, "output");
+            }
+
+            if (predictionResistant || mV == null)
+            {
+                mV = mEntropySource.GetEntropy();
+                if (mV.Length != mEngine.GetBlockSize())
+                    throw new InvalidOperationException("Insufficient entropy returned");
+            }
+
+            int m = outputLen / mR.Length;
+
+            for (int i = 0; i < m; i++)
+            {
+                mEngine.ProcessBlock(mDT, 0, mI, 0);
+                Process(mR, mI, mV);
+                Process(mV, mR, mI);
+
+                mR.CopyTo(output[(i * mR.Length)..]);
+
+                Increment(mDT);
+            }
+
+            int bytesToCopy = (outputLen - m * mR.Length);
+
+            if (bytesToCopy > 0)
+            {
+                mEngine.ProcessBlock(mDT, 0, mI, 0);
+                Process(mR, mI, mV);
+                Process(mV, mR, mI);
+
+                mR.AsSpan(0, bytesToCopy).CopyTo(output[(m * mR.Length)..]);
+
+                Increment(mDT);
+            }
+
+            mReseedCounter++;
+
+            return outputLen * 8;
+        }
+#endif
+
         /**
          * Reseed the RNG.
          */

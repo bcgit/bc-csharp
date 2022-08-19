@@ -45,6 +45,9 @@ namespace Org.BouncyCastle.Crypto.Prng
             if (bytes.Length < (start + len))
                 throw new ArgumentException("Byte array too small for requested offset and length");
 
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+            rndProv.GetBytes(bytes, start, len);
+#else
             if (bytes.Length == len && start == 0) 
             {
                 NextBytes(bytes);
@@ -55,8 +58,16 @@ namespace Org.BouncyCastle.Crypto.Prng
                 NextBytes(tmpBuf);
                 Array.Copy(tmpBuf, 0, bytes, start, len);
             }
+#endif
         }
 
-        #endregion
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void NextBytes(Span<byte> bytes)
+        {
+            rndProv.GetBytes(bytes);
+        }
+#endif
+
+#endregion
     }
 }

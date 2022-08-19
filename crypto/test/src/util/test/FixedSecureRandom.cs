@@ -226,7 +226,16 @@ namespace Org.BouncyCastle.Utilities.Test
 			_index += len;
 		}
 
-		public bool IsExhausted
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void NextBytes(Span<byte> buffer)
+        {
+            _data.AsSpan(_index, buffer.Length).CopyTo(buffer);
+
+            _index += buffer.Length;
+        }
+#endif
+
+        public bool IsExhausted
 		{
 			get { return _index == _data.Length; }
 		}
@@ -248,6 +257,15 @@ namespace Org.BouncyCastle.Utilities.Test
 
                 index += len;
             }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void NextBytes(Span<byte> buffer)
+            {
+                data.AsSpan(index, buffer.Length).CopyTo(buffer);
+
+                index += buffer.Length;
+            }
+#endif
         }
 
         private static byte[] ExpandToBitLength(int bitLength, byte[] v)
