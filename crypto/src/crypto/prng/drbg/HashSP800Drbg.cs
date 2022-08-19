@@ -137,7 +137,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	            byte[] newInput = new byte[1 + mV.Length + additionalInput.Length];
 	            newInput[0] = 0x02;
 	            Array.Copy(mV, 0, newInput, 1, mV.Length);
-	            // TODO: inOff / inLength
 	            Array.Copy(additionalInput, 0, newInput, 1 + mV.Length, additionalInput.Length);
 	            byte[] w = Hash(newInput);
 
