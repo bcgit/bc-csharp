@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             {
                                 // Console.WriteLine("Zero");
                             }
-                    
+                
                             byte[] seed = Hex.Decode(buf["seed"]);
                             byte[] pk = Hex.Decode(buf["pk"]);
                             byte[] ct = Hex.Decode(buf["ct"]);
@@ -108,14 +108,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             
                             // Check secret
                             byte[] secret = secWenc.GetSecret();
-                            Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc secret");
-                            
+                            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc secret");
+                             
                             // Decapsulation
                             NtruLPRimeKemExtractor ntruDecCipher = new NtruLPRimeKemExtractor(privParams);
                             byte[] dec_key = ntruDecCipher.ExtractSecret(generatedCT);
-                            
+
                             // Check decapsulation secret
-                            Assert.True(Arrays.AreEqual(dec_key, ss), $"{name} {count}: kem_dec ss");
+                            Assert.True(ntruPParameters.DefaultKeySize == dec_key.Length * 8);
+                            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), $"{name} {count}: kem_dec ss");
                             Assert.True(Arrays.AreEqual(dec_key, secret),$"{name} {count}: kem_dec key");
                         }
                         buf.Clear();
@@ -171,7 +172,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                     if (line.Length == 0)
                     {
-                        if (buf.Count > 0)
+                        if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                         {
                             String count = buf["count"];
 
@@ -214,15 +215,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                             // Check secret
                             byte[] secret = secWenc.GetSecret();
-                            Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc secret");
+                            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc secret");
 
                             // Decapsulation
                             SNtruPrimeKemExtractor ntruDecCipher = new SNtruPrimeKemExtractor(privParams);
                             byte[] dec_key = ntruDecCipher.ExtractSecret(generatedCT);
 
                             // Check decapsulation secret
-                            Assert.True(Arrays.AreEqual(dec_key, ss), $"{name} {count}: kem_dec ss");
-                            Assert.True(Arrays.AreEqual(dec_key, secret), $"{name} {count}: kem_dec key");
+                            Assert.True(ntruPParameters.DefaultKeySize == dec_key.Length * 8);
+                            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), $"{name} {count}: kem_dec ss");
+                            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, secret, 0, secret.Length), $"{name} {count}: kem_dec key");
                         }
                         buf.Clear();
 

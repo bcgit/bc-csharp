@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private readonly int _smallBytes;
         private readonly int _hashBytes;
         
-        private const int SessionKeyBytes = 32;
+        private readonly int SessionKeyBytes;
 
         // Parameters for NTRU
         private readonly int _p;
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         public int SessionKeySize => SessionKeyBytes;
         
         public NtruPrimeEngine(int p, int q, bool lpr, int w, int tau0,
-            int tau1, int tau2, int tau3, int skBytes, int pkBytes, int ctBytes, int roundedBytes, int rqBytes)
+            int tau1, int tau2, int tau3, int skBytes, int pkBytes, int ctBytes, int roundedBytes, int rqBytes, int defaultKeyLen)
         {
             this._p = p;
             this._q = q;
@@ -73,6 +73,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             this._lpr = lpr;
 
             this._confirmBytes = 32;
+            this.SessionKeyBytes = defaultKeyLen;
 
             _smallBytes = ((p + 3) / 4);
             _q12 = ((q - 1) / 2);
@@ -1233,7 +1234,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 }
             }
 
-            HashPrefix(ref output, b, ref x, x.Length);
+            byte[] hash = new byte[32];
+            HashPrefix(ref hash, b, ref x, x.Length);
+            Array.Copy(hash, 0, output, 0, output.Length);
         }
         
         private int NegativeMask(short x)

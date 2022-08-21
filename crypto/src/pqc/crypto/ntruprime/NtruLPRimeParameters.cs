@@ -23,10 +23,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private int _skBytes;
         private int _pkBytes;
         private int _ctBytes;
+        private int _defaultKeySize;
         private NtruPrimeEngine _primeEngine;
         
         private NtruLPRimeParameters(String name, int p, int q, bool LPR, int w, int tau0,
-            int tau1, int tau2, int tau3, int skBytes, int pkBytes, int ctBytes, int roundedBytes, int rqBytes)
+            int tau1, int tau2, int tau3, int skBytes, int pkBytes, int ctBytes, int roundedBytes, int rqBytes, int defaultKeySize)
         {
             this.name = name;
             this.p = p;
@@ -44,21 +45,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             this._skBytes = skBytes;
             this._pkBytes = pkBytes;
             this._ctBytes = ctBytes;
-            this._primeEngine = new NtruPrimeEngine(p,q, LPR, w, tau0, tau1, tau2, tau3, skBytes, pkBytes, ctBytes, roundedBytes, rqBytes);
+            this._primeEngine = new NtruPrimeEngine(p,q, LPR, w, tau0, tau1, tau2, tau3, skBytes, pkBytes, ctBytes, roundedBytes, rqBytes, defaultKeySize / 8);
+            this._defaultKeySize = defaultKeySize;
         }
 
-        public static NtruLPRimeParameters ntrulpr653 = new NtruLPRimeParameters("NTRU_LPRime_653", 653, 4621, true, 252, 2175,113,2031,290,1125,897,1025, 865, -1);
-        public static NtruLPRimeParameters ntrulpr761 = new NtruLPRimeParameters("NTRU_LPRime_761", 761, 4591, true, 250, 2156,114,2007,287,1294,1039,1167, 1007, -1);
-        public static NtruLPRimeParameters ntrulpr857 = new NtruLPRimeParameters("NTRU_LPRime_857", 857, 5167, true, 281, 2433,101,2265,324,1463,1184,1312, 1152, -1);
-        public static NtruLPRimeParameters ntrulpr953 = new NtruLPRimeParameters("NTRU_LPRime_953", 953, 6343, true, 345, 2997,82,2798,400,1652,1349,1477, 1317, -1);
-        public static NtruLPRimeParameters ntrulpr1013 = new NtruLPRimeParameters("NTRU_LPRime_1013", 1013, 7177, true, 392, 3367,73,3143,449,1773,1455,1583, 1423, -1);
-        public static NtruLPRimeParameters ntrulpr1277 = new NtruLPRimeParameters("NTRU_LPRime_1277", 1277, 7879, true, 429, 3724,66,3469,496,2231,1847,1975, 1815, -1);
+        public static NtruLPRimeParameters ntrulpr653 = new NtruLPRimeParameters("NTRU_LPRime_653", 653, 4621, true, 252, 2175,113,2031,290,1125,897,1025, 865, -1, 128);
+        public static NtruLPRimeParameters ntrulpr761 = new NtruLPRimeParameters("NTRU_LPRime_761", 761, 4591, true, 250, 2156,114,2007,287,1294,1039,1167, 1007, -1, 128);
+        public static NtruLPRimeParameters ntrulpr857 = new NtruLPRimeParameters("NTRU_LPRime_857", 857, 5167, true, 281, 2433,101,2265,324,1463,1184,1312, 1152, -1, 128);
+        public static NtruLPRimeParameters ntrulpr953 = new NtruLPRimeParameters("NTRU_LPRime_953", 953, 6343, true, 345, 2997,82,2798,400,1652,1349,1477, 1317, -1, 192);
+        public static NtruLPRimeParameters ntrulpr1013 = new NtruLPRimeParameters("NTRU_LPRime_1013", 1013, 7177, true, 392, 3367,73,3143,449,1773,1455,1583, 1423, -1, 192);
+        public static NtruLPRimeParameters ntrulpr1277 = new NtruLPRimeParameters("NTRU_LPRime_1277", 1277, 7879, true, 429, 3724,66,3469,496,2231,1847,1975, 1815, -1, 256);
         
         public int P => p;
         public bool lpr => LPR;
         
         public int Q => q;
 
+        public int DefaultKeySize => _defaultKeySize;
+        
         internal NtruPrimeEngine PrimeEngine => _primeEngine;
 
     }

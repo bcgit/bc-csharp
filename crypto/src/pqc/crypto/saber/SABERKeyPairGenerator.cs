@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             this.saberParams = (SABERKeyGenerationParameters) param;
             this.random = param.Random;
 
-            this.l = this.saberParams.GetParameters().GetL();
+            this.l = this.saberParams.GetParameters().L;
         }
 
         private AsymmetricCipherKeyPair GenKeyPair()
