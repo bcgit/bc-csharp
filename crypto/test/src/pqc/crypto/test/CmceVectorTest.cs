@@ -80,6 +80,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 CmceParameters.mceliece8192128fr3
             };
 
+            TestSampler sampler = new TestSampler();
             for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
             {
                 string name = files[fileIndex];
@@ -100,7 +101,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     }
                     if (line.Length == 0)
                     {
-                        if (buf.Count > 0)
+                        if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                         {
                             string count = buf["count"];
                             if (!"0".Equals(count))
@@ -137,18 +138,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                             // KEM Enc
                             CmceKemGenerator CmceEncCipher = new CmceKemGenerator(random);
-                            ISecretWithEncapsulation secWenc = CmceEncCipher.GenerateEncapsulated(pubParams, 256);
+                            ISecretWithEncapsulation secWenc = CmceEncCipher.GenerateEncapsulated(pubParams);
                             byte[] generated_cipher_text = secWenc.GetEncapsulation();
                             Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
                             byte[] secret = secWenc.GetSecret();
-                            Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc key");
+                            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc key");
 
                             // KEM Dec
                             CmceKemExtractor CmceDecCipher = new CmceKemExtractor(privParams);
 
-                            byte[] dec_key = CmceDecCipher.ExtractSecret(generated_cipher_text, 256);
+                            byte[] dec_key = CmceDecCipher.ExtractSecret(generated_cipher_text);
 
-                            Assert.True(Arrays.AreEqual(dec_key, ss), name + " " + count + ": kem_dec ss");
+                            Assert.True(Cmceparameters.DefaultKeySize == dec_key.Length * 8);
+                            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), name + " " + count + ": kem_dec ss");
                             Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key");
                         }
                         buf.Clear();
