@@ -1,4 +1,5 @@
 using Org.BouncyCastle.Crypto;
+using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
@@ -29,6 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
 
     public byte[] ExtractSecret(byte[] encapsulation, uint sessionKeySizeInBits)
     {
+            Console.Error.WriteLine("WARNING: the SIKE algorithm is only for research purposes, insecure");
         byte[] session_key = new byte[sessionKeySizeInBits / 8];
         engine.crypto_kem_dec(session_key, encapsulation, ((SIKEPrivateKeyParameters)key).GetPrivateKey());
         return session_key;

@@ -5,8 +5,8 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-                
-        public abstract class Internal
+
+    internal abstract class Internal
         {
                 protected static Dictionary<string, string> _props;
                 

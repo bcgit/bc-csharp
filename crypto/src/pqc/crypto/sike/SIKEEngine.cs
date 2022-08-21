@@ -5,7 +5,7 @@ using Org.BouncyCastle.Security;
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
     
-public class SIKEEngine
+internal class SIKEEngine
 {
     private SecureRandom random;
     

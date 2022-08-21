@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    public class Utils
+    internal class Utils
     {
         public static ulong[][] InitArray(uint size1, uint size2)
         {

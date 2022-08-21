@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class P610
+    internal class P610
     : Internal
 {
         internal P610(bool isCompressed)

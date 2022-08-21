@@ -113,9 +113,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             byte[] dec_key = sikeDecCipher.ExtractSecret(generated_cipher_text);
 
-//                        System.out.println(Hex.toHexString(dec_key).toUpperCase());
-//                        System.out.println(Hex.toHexString(ss).toUpperCase());
+            //                        System.out.println(Hex.toHexString(dec_key).toUpperCase());
+            //                        System.out.println(Hex.toHexString(ss).toUpperCase());
 
+            Assert.True(SIKEParameters.DefaultKeySize == dec_key.Length * 8);
             Assert.True(Arrays.AreEqual(dec_key, ss), name + " " + count + ": kem_dec ss" );
             Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key" );
         
