@@ -62,6 +62,11 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public virtual byte[] ProcessBlock(byte[] input, int inOff, int inLen)
         {
+            if ((inOff + inLen) > input.Length || inLen == 0)
+            {
+                throw new DataLengthException("input buffer too short");
+            }
+
             if (mForEncryption)
             {
                 return Encrypt(input, inOff, inLen);
