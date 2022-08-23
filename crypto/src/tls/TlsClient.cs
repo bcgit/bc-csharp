@@ -107,5 +107,36 @@ namespace Org.BouncyCastle.Tls
         /// <param name="newSessionTicket">The ticket.</param>
         /// <exception cref="IOException"/>
         void NotifyNewSessionTicket(NewSessionTicket newSessionTicket);
+
+        /// <summary>
+        /// Allow RFC 9146 DTLS connection ID.
+        /// </summary>
+        /// <remarks>
+        /// If this is <see langword="true"/>, the client will send the connection_id extension to signal to the server
+        /// that it supports connection IDs.
+        /// </remarks>
+        /// <returns><see langword="true"/>, if connection ID support is desired.</returns>
+        bool AllowConnectionId();
+
+        /// <summary>
+        /// Set RFC 9146 DTLS client connection ID.
+        /// </summary>
+        /// <remarks>
+        /// This method will be called if a <see cref="AllowConnectionId"/> returned <see langword="true"/>.
+        /// If the return value is non-null, the client will send this connection ID to the server to use in future packets.
+        /// As future communication doesn't include the connection IDs length, this should either be fixed-length
+        /// or include the connection IDs length. (see explanation in RFC 9146 4. "cid:")
+        /// </remarks>
+        /// <returns>The connection ID to use or <see langword="null"/> to not set a connection ID</returns>
+        byte[] GetNewClientConnectionId();
+
+        /// <summary>
+        /// Get RFC 9146 DTLS server connection ID.
+        /// </summary>
+        /// <param name="connectionIdLocal">The connection ID if it was defined by the server, else <see langword="null"/></param>
+        /// <remarks>
+        /// This method will be called if a connection_id extension was sent by the server.
+        /// </remarks>
+        void NotifyServerConnectionId(byte[] connectionIdLocal);
     }
 }

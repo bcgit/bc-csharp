@@ -485,7 +485,7 @@ namespace Org.BouncyCastle.Tls
             {
                 case ContentType.tls12_cid:
                     {
-                        var cidLength = m_context.SecurityParameters.m_connectionIdPeer?.Length ?? 0;
+                        var cidLength = m_context.SecurityParameters.ConnectionIdPeer?.Length ?? 0;
                         headerLength = RECORD_HEADER_LENGTH + cidLength;
                         dataLength = TlsUtilities.ReadUint16(record, 11 + cidLength);
                         break;
@@ -742,7 +742,7 @@ namespace Org.BouncyCastle.Tls
                     {
                         case ContentType.tls12_cid:
                             {
-                                int cidLength = m_context.SecurityParameters.m_connectionIdPeer?.Length ?? 0;
+                                int cidLength = m_context.SecurityParameters.ConnectionIdPeer?.Length ?? 0;
                                 byte[] lengthBytes = new byte[2];
                                 m_recordQueue.Read(lengthBytes, 0, 2, 11 + cidLength);
                                 recordLength = RECORD_HEADER_LENGTH + cidLength + TlsUtilities.ReadUint16(lengthBytes, 0);
@@ -831,7 +831,7 @@ namespace Org.BouncyCastle.Tls
                 ProtocolVersion recordVersion = m_writeVersion;
 
                 int headerLength = RECORD_HEADER_LENGTH;
-                byte[] connectionIdLocal = m_context.SecurityParameters.m_connectionIdLocal;
+                byte[] connectionIdLocal = m_context.SecurityParameters.ConnectionIdLocal;
 
                 // TODO[cid] find a better way to implement "once encryption is enabled"
                 // https://www.rfc-editor.org/rfc/rfc9146.html#section-3-10

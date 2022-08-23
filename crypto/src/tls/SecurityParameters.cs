@@ -329,6 +329,21 @@ namespace Org.BouncyCastle.Tls
             get { return m_verifyDataLength; }
         }
 
+        /// <summary>
+        /// Connection ID we use during communication to the peer
+        /// </summary>
+        public byte[] ConnectionIdLocal
+        {
+            get { return m_connectionIdPeerSupported ? m_connectionIdLocal : null; }
+        }
+        /// <summary>
+        /// Connection ID our peer uses for communication to us
+        /// </summary>
+        public byte[] ConnectionIdPeer
+        {
+            get { return m_connectionIdPeerSupported ? m_connectionIdPeer : null; }
+        }
+
         private static TlsSecret ClearSecret(TlsSecret secret)
         {
             if (null != secret)

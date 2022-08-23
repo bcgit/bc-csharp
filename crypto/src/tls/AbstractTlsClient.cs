@@ -443,5 +443,19 @@ namespace Org.BouncyCastle.Tls
         public virtual void NotifyNewSessionTicket(NewSessionTicket newSessionTicket)
         {
         }
+
+        public virtual bool AllowConnectionId()
+        {
+            return false;
+        }
+
+        public virtual byte[] GetNewClientConnectionId()
+        {
+            return null;
+        }
+
+        public void NotifyServerConnectionId(byte[] connectionIdLocal)
+        {
+        }
     }
 }

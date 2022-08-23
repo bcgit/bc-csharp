@@ -304,7 +304,7 @@ namespace Org.BouncyCastle.Tls
             }
             else
             {
-                state.keyExchange.ProcessClientCredentials(clientAuthCredentials);                    
+                state.keyExchange.ProcessClientCredentials(clientAuthCredentials);
             }
 
             var clientSupplementalData = state.client.GetClientSupplementalData();
@@ -521,7 +521,16 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
+            if (TlsUtilities.IsTlsV12(client_version) && state.client.AllowConnectionId())
+            {
+                byte[] clientConnectionId = state.client.GetNewClientConnectionId();
+                if (clientConnectionId != null && clientConnectionId.Length > 0)
+                {
+                    securityParameters.m_connectionIdPeer = clientConnectionId;
+                }
 
+                TlsExtensionsUtilities.AddConnectionIdExtension(state.clientExtensions, securityParameters.m_connectionIdPeer ?? Arrays.EmptyBytes);
+            }
 
             ClientHello clientHello = new ClientHello(legacy_version, securityParameters.ClientRandom, session_id,
                 TlsUtilities.EmptyBytes, state.offeredCipherSuites, state.clientExtensions, 0);
@@ -705,7 +714,7 @@ namespace Org.BouncyCastle.Tls
             /*
              * RFC 7627 4. Clients and servers SHOULD NOT accept handshakes that do not use the extended
              * master secret [..]. (and see 5.2, 5.3)
-             * 
+             *
              * RFC 8446 Appendix D. Because TLS 1.3 always hashes in the transcript up to the server
              * Finished, implementations which support both TLS 1.3 and earlier versions SHOULD indicate
              * the use of the Extended Master Secret extension in their APIs whenever TLS 1.3 is used.
@@ -737,7 +746,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             /*
-             * 
+             *
              * RFC 3546 2.2 Note that the extended server hello message is only sent in response to an
              * extended client hello message. However, see RFC 5746 exception below. We always include
              * the SCSV, so an Extended Server Hello is always allowed.
@@ -836,7 +845,20 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
+            if (TlsUtilities.IsTlsV12(server_version))
+            {
+                var connectionIdExtension = TlsExtensionsUtilities.GetConnectionIdExtension(state.serverExtensions);
+                if (connectionIdExtension != null)
+                {
+                    securityParameters.m_connectionIdPeerSupported = true;
 
+                    if (connectionIdExtension.Length != 0)
+                    {
+                        securityParameters.m_connectionIdLocal = connectionIdExtension;
+                        state.client.NotifyServerConnectionId(connectionIdExtension);
+                    }
+                }
+            }
 
             var sessionClientExtensions = state.clientExtensions;
             var sessionServerExtensions = state.serverExtensions;

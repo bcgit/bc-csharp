@@ -18,8 +18,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             var securityParameters = cryptoParams.SecurityParameters;
-            this.m_decryptConnectionId = securityParameters.m_connectionIdPeer;
-            this.m_encryptConnectionId = securityParameters.m_connectionIdLocal;
+            this.m_decryptConnectionId = securityParameters.ConnectionIdPeer;
+            this.m_encryptConnectionId = securityParameters.ConnectionIdLocal;
 
             this.m_cryptoParams = cryptoParams;
 

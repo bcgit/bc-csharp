@@ -44,9 +44,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             // TODO[cid] does this really belong in the cipher?
             // other than the MAC calculation, everything could be done in the record layer instead
-            this.m_decryptConnectionId = securityParameters.m_connectionIdPeer;
+            this.m_decryptConnectionId = securityParameters.ConnectionIdPeer;
             this.m_decryptUseInnerPlaintext = m_isTlsV13 || m_decryptConnectionId != null;
-            this.m_encryptConnectionId = securityParameters.m_connectionIdLocal;
+            this.m_encryptConnectionId = securityParameters.ConnectionIdLocal;
             this.m_encryptUseInnerPlaintext = m_isTlsV13 || m_encryptConnectionId != null;
 
             switch (m_nonceMode)
