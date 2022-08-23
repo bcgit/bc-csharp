@@ -205,7 +205,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 		internal static void SpanConsistencyTest(SimpleTest test, IDigest digest, byte[] buf, int off, int len)
         {
 			// NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
-			//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 			digest.Reset();
 

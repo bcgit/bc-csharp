@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Crypto
     /// <remarks>Base interface for a message digest.</remarks>
     public interface IDigest
     {
-        /// <summary>the algorithm name</summary>
+        /// <summary>The algorithm name.</summary>
         string AlgorithmName { get; }
 
         /// <summary>Return the size, in bytes, of the digest produced by this message digest.</summary>
