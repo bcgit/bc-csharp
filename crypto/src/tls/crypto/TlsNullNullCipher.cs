@@ -18,7 +18,12 @@ namespace Org.BouncyCastle.Tls.Crypto
             return plaintextLength;
         }
 
-        public int GetPlaintextLimit(int ciphertextLimit)
+        public int GetPlaintextDecodeLimit(int ciphertextLimit)
+        {
+            return ciphertextLimit;
+        }
+
+        public int GetPlaintextEncodeLimit(int ciphertextLimit)
         {
             return ciphertextLimit;
         }

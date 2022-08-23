@@ -19,10 +19,15 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>the maximum output size of the ciphertext for plaintextlimit bytes of input.</returns>
         int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit);
 
-        /// <summary>Return the maximum size for the plaintext given ciphertextlimit bytes of ciphertext.</summary>
+        /// <summary>Return the maximum input size for the plaintext given ciphertextlimit bytes of ciphertext.</summary>
         /// <param name="ciphertextLimit">the maximum number of bytes of ciphertext.</param>
         /// <returns>the maximum size of the plaintext for ciphertextlimit bytes of input.</returns>
-        int GetPlaintextLimit(int ciphertextLimit);
+        int GetPlaintextDecodeLimit(int ciphertextLimit);
+
+        /// <summary>Return the maximum output size for the plaintext given ciphertextlimit bytes of ciphertext.</summary>
+        /// <param name="ciphertextLimit">the maximum number of bytes of ciphertext.</param>
+        /// <returns>the maximum size of the plaintext for ciphertextlimit bytes of input.</returns>
+        int GetPlaintextEncodeLimit(int ciphertextLimit);
 
         /// <summary>Encode the passed in plaintext using the current bulk cipher.</summary>
         /// <param name="seqNo">sequence number of the message represented by plaintext.</param>

@@ -58,7 +58,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return plaintextLength + m_writeMac.Size;
         }
 
-        public virtual int GetPlaintextLimit(int ciphertextLimit)
+        public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
+        {
+            return ciphertextLimit - m_writeMac.Size;
+        }
+
+        public virtual int GetPlaintextEncodeLimit(int ciphertextLimit)
         {
             return ciphertextLimit - m_writeMac.Size;
         }

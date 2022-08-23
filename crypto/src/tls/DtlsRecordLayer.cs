@@ -231,14 +231,14 @@ namespace Org.BouncyCastle.Tls
         public virtual int GetReceiveLimit()
         {
             return System.Math.Min(m_plaintextLimit,
-                m_readEpoch.Cipher.GetPlaintextLimit(m_transport.GetReceiveLimit() - RECORD_HEADER_LENGTH));
+                m_readEpoch.Cipher.GetPlaintextDecodeLimit(m_transport.GetReceiveLimit() - RECORD_HEADER_LENGTH));
         }
 
         /// <exception cref="IOException"/>
         public virtual int GetSendLimit()
         {
             return System.Math.Min(m_plaintextLimit,
-                m_writeEpoch.Cipher.GetPlaintextLimit(m_transport.GetSendLimit() - RECORD_HEADER_LENGTH));
+                m_writeEpoch.Cipher.GetPlaintextEncodeLimit(m_transport.GetSendLimit() - RECORD_HEADER_LENGTH));
         }
 
         /// <exception cref="IOException"/>

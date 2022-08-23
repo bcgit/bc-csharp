@@ -135,11 +135,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit + m_macSize + m_record_iv_length;
         }
 
-        public virtual int GetPlaintextLimit(int ciphertextLimit)
+        public int GetPlaintextDecodeLimit(int ciphertextLimit)
         {
-            // TODO[cid] do we need to split this into send and receive?
-            bool mayUseInnerPlaintext = m_decryptUseInnerPlaintext || m_encryptUseInnerPlaintext;
-            return ciphertextLimit - m_macSize - m_record_iv_length - (mayUseInnerPlaintext ? 1 : 0);
+            return ciphertextLimit - m_macSize - m_record_iv_length - (m_decryptUseInnerPlaintext ? 1 : 0);
+        }
+
+        public int GetPlaintextEncodeLimit(int ciphertextLimit)
+        {
+            return ciphertextLimit - m_macSize - m_record_iv_length - (m_encryptUseInnerPlaintext ? 1 : 0);
         }
 
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
@@ -223,7 +226,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int ciphertextOffset, int ciphertextLength)
         {
-            if (GetPlaintextLimit(ciphertextLength) < 0)
+            if (GetPlaintextDecodeLimit(ciphertextLength) < 0)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
 
             byte[] nonce = new byte[m_decryptNonce.Length + m_record_iv_length];

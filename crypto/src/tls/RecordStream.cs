@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Tls
             if (ContentType.application_data == recordType && m_handler.IsApplicationDataReady)
             {
                 applicationDataLimit = System.Math.Max(0, System.Math.Min(m_plaintextLimit,
-                    m_readCipher.GetPlaintextLimit(length)));
+                    m_readCipher.GetPlaintextDecodeLimit(length)));
             }
 
             return new RecordPreview(recordSize, applicationDataLimit);
