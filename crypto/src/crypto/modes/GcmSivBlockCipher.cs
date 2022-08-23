@@ -472,8 +472,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (badLen || myLast > myBufLen)
             {
                 throw pOutput
-                ? new OutputLengthException("Output buffer too short.")
-                : new DataLengthException("Input buffer too short.");
+                ? new OutputLengthException("output buffer too short.")
+                : new DataLengthException("input buffer too short.");
             }
         }
 

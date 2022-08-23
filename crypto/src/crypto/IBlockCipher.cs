@@ -28,9 +28,19 @@ namespace Org.BouncyCastle.Crypto
 		/// <returns>The number of bytes processed and produced.</returns>
 		int ProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff);
 
-		/// <summary>
-		/// Reset the cipher to the same state as it was after the last init (if there was one).
-		/// </summary>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+
+		/// <summary>Process a block.</summary>
+		/// <param name="input">The input block as a span.</param>
+		/// <param name="output">The output span.</param>
+		/// <exception cref="DataLengthException">If input block is wrong size, or output span too small.</exception>
+		/// <returns>The number of bytes processed and produced.</returns>
+		int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output);
+#endif
+
+        /// <summary>
+        /// Reset the cipher to the same state as it was after the last init (if there was one).
+        /// </summary>
         void Reset();
     }
 }

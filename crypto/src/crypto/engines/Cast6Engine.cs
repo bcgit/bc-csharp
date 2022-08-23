@@ -134,20 +134,44 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-		/**
-        * Encrypt the given input starting at the given offset and place
-        * the result in the provided buffer starting at the given offset.
-        *
-        * @param src        The plaintext buffer
-        * @param srcIndex    An offset into src
-        * @param dst        The ciphertext buffer
-        * @param dstIndex    An offset into dst
-        */
-        internal override int EncryptBlock(
-            byte[]	src,
-            int		srcIndex,
-            byte[]	dst,
-            int		dstIndex)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal override int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            // process the input block
+            // batch the units up into 4x32 bit chunks and go for it
+            uint A = Pack.BE_To_UInt32(input);
+            uint B = Pack.BE_To_UInt32(input[4..]);
+            uint C = Pack.BE_To_UInt32(input[8..]);
+            uint D = Pack.BE_To_UInt32(input[12..]);
+            uint[] result = new uint[4];
+            CAST_Encipher(A, B, C, D, result);
+            // now stuff them into the destination block
+            Pack.UInt32_To_BE(result[0], output);
+            Pack.UInt32_To_BE(result[1], output[4..]);
+            Pack.UInt32_To_BE(result[2], output[8..]);
+            Pack.UInt32_To_BE(result[3], output[12..]);
+            return BLOCK_SIZE;
+        }
+
+        internal override int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            // process the input block
+            // batch the units up into 4x32 bit chunks and go for it
+            uint A = Pack.BE_To_UInt32(input);
+            uint B = Pack.BE_To_UInt32(input[4..]);
+            uint C = Pack.BE_To_UInt32(input[8..]);
+            uint D = Pack.BE_To_UInt32(input[12..]);
+            uint[] result = new uint[4];
+            CAST_Decipher(A, B, C, D, result);
+            // now stuff them into the destination block
+            Pack.UInt32_To_BE(result[0], output);
+            Pack.UInt32_To_BE(result[1], output[4..]);
+            Pack.UInt32_To_BE(result[2], output[8..]);
+            Pack.UInt32_To_BE(result[3], output[12..]);
+            return BLOCK_SIZE;
+        }
+#else
+        internal override int EncryptBlock(byte[] src, int srcIndex, byte[] dst, int dstIndex)
         {
             // process the input block
             // batch the units up into 4x32 bit chunks and go for it
@@ -165,20 +189,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 
-		/**
-        * Decrypt the given input starting at the given offset and place
-        * the result in the provided buffer starting at the given offset.
-        *
-        * @param src        The plaintext buffer
-        * @param srcIndex    An offset into src
-        * @param dst        The ciphertext buffer
-        * @param dstIndex    An offset into dst
-        */
-        internal override int DecryptBlock(
-            byte[]	src,
-            int		srcIndex,
-            byte[]	dst,
-            int		dstIndex)
+        internal override int DecryptBlock(byte[] src, int srcIndex, byte[] dst, int dstIndex)
         {
             // process the input block
             // batch the units up into 4x32 bit chunks and go for it
@@ -195,8 +206,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_BE(result[3], dst, dstIndex + 12);
             return BLOCK_SIZE;
         }
+#endif
 
-		/**
+        /**
         * Does the 12 quad rounds rounds to encrypt the block.
         *
         * @param A    the 00-31  bits of the plaintext block

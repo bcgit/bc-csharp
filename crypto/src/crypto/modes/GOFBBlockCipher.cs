@@ -1,7 +1,7 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
@@ -131,41 +131,17 @@ namespace Org.BouncyCastle.Crypto.Modes
 			return blockSize;
 		}
 
-		/**
-		* Process one block of input from the array in and write it to
-		* the out array.
-		*
-		* @param in the array containing the input data.
-		* @param inOff offset into the in array the data starts at.
-		* @param out the array the output data will be copied into.
-		* @param outOff the offset into the out array the output will start at.
-		* @exception DataLengthException if there isn't enough data in in, or
-		* space in out.
-		* @exception InvalidOperationException if the cipher isn't initialised.
-		* @return the number of bytes processed and produced.
-		*/
-		public int ProcessBlock(
-			byte[]	input,
-			int		inOff,
-			byte[]	output,
-			int		outOff)
+		public int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
 		{
-			if ((inOff + blockSize) > input.Length)
-			{
-				throw new DataLengthException("input buffer too short");
-			}
-
-			if ((outOff + blockSize) > output.Length)
-			{
-				throw new DataLengthException("output buffer too short");
-			}
+			Check.DataLength(input, inOff, blockSize, "input buffer too short");
+			Check.OutputLength(output, outOff, blockSize, "output buffer too short");
 
 			if (firstStep)
 			{
 				firstStep = false;
 				cipher.ProcessBlock(ofbV, 0, ofbOutV, 0);
-				N3 = bytesToint(ofbOutV, 0);
-				N4 = bytesToint(ofbOutV, 4);
+				N3 = (int)Pack.LE_To_UInt32(ofbOutV, 0);
+				N4 = (int)Pack.LE_To_UInt32(ofbOutV, 4);
 			}
 			N3 += C2;
 			N4 += C1;
@@ -176,8 +152,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                     N4++;
                 }
             }
-            intTobytes(N3, ofbV, 0);
-			intTobytes(N4, ofbV, 4);
+			Pack.UInt32_To_LE((uint)N3, ofbV, 0);
+			Pack.UInt32_To_LE((uint)N4, ofbV, 4);
 
 			cipher.ProcessBlock(ofbV, 0, ofbOutV, 0);
 
@@ -199,6 +175,52 @@ namespace Org.BouncyCastle.Crypto.Modes
 			return blockSize;
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			Check.DataLength(input, blockSize, "input buffer too short");
+			Check.OutputLength(output, blockSize, "output buffer too short");
+
+			if (firstStep)
+			{
+				firstStep = false;
+				cipher.ProcessBlock(ofbV, ofbOutV);
+				N3 = (int)Pack.LE_To_UInt32(ofbOutV, 0);
+				N4 = (int)Pack.LE_To_UInt32(ofbOutV, 4);
+			}
+			N3 += C2;
+			N4 += C1;
+			if (N4 < C1)  // addition is mod (2**32 - 1)
+			{
+				if (N4 > 0)
+				{
+					N4++;
+				}
+			}
+			Pack.UInt32_To_LE((uint)N3, ofbV, 0);
+			Pack.UInt32_To_LE((uint)N4, ofbV, 4);
+
+			cipher.ProcessBlock(ofbV, ofbOutV);
+
+			//
+			// XOR the ofbV with the plaintext producing the cipher text (and
+			// the next input block).
+			//
+			for (int i = 0; i < blockSize; i++)
+			{
+				output[i] = (byte)(ofbOutV[i] ^ input[i]);
+			}
+
+			//
+			// change over the input block.
+			//
+			Array.Copy(ofbV, blockSize, ofbV, 0, ofbV.Length - blockSize);
+			Array.Copy(ofbOutV, 0, ofbV, ofbV.Length - blockSize, blockSize);
+
+			return blockSize;
+		}
+#endif
+
 		/**
 		* reset the feedback vector back to the IV and reset the underlying
 		* cipher.
@@ -208,27 +230,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 			Array.Copy(IV, 0, ofbV, 0, IV.Length);
 
 			cipher.Reset();
-		}
-
-		//array of bytes to type int
-		private int bytesToint(
-			byte[]  inBytes,
-			int     inOff)
-		{
-			return  (int)((inBytes[inOff + 3] << 24) & 0xff000000) + ((inBytes[inOff + 2] << 16) & 0xff0000) +
-					((inBytes[inOff + 1] << 8) & 0xff00) + (inBytes[inOff] & 0xff);
-		}
-
-		//int to array of bytes
-		private void intTobytes(
-				int     num,
-				byte[]  outBytes,
-				int     outOff)
-		{
-				outBytes[outOff + 3] = (byte)(num >> 24);
-				outBytes[outOff + 2] = (byte)(num >> 16);
-				outBytes[outOff + 1] = (byte)(num >> 8);
-				outBytes[outOff] =     (byte)num;
 		}
 	}
 }

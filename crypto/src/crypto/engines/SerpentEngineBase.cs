@@ -75,6 +75,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, BlockSize, "input buffer too short");
             Check.OutputLength(output, outOff, BlockSize, "output buffer too short");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (encrypting)
+            {
+                EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+            else
+            {
+                DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+#else
             if (encrypting)
             {
                 EncryptBlock(input, inOff, output, outOff);
@@ -83,9 +93,32 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 DecryptBlock(input, inOff, output, outOff);
             }
+#endif
 
             return BlockSize;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (wKey == null)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+            Check.DataLength(input, BlockSize, "input buffer too short");
+            Check.OutputLength(output, BlockSize, "output buffer too short");
+
+            if (encrypting)
+            {
+                EncryptBlock(input, output);
+            }
+            else
+            {
+                DecryptBlock(input, output);
+            }
+
+            return BlockSize;
+        }
+#endif
 
         public virtual void Reset()
         {
@@ -462,8 +495,12 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         protected abstract int[] MakeWorkingKey(byte[] key);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected abstract void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output);
+        protected abstract void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output);
+#else
         protected abstract void EncryptBlock(byte[] input, int inOff, byte[] output, int outOff);
-
         protected abstract void DecryptBlock(byte[] input, int inOff, byte[] output, int outOff);
+#endif
     }
 }

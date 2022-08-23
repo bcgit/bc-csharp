@@ -159,11 +159,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 
-        public virtual int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
         {
             if (workingKey == null)
                 throw new InvalidOperationException("RC2 engine not initialised");
@@ -171,6 +167,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
             Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (encrypting)
+            {
+                EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+            else
+            {
+                DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+#else
             if (encrypting)
             {
                 EncryptBlock(input, inOff, output, outOff);
@@ -179,26 +185,150 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 DecryptBlock(input, inOff, output, outOff);
             }
+#endif
 
             return BLOCK_SIZE;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (workingKey == null)
+                throw new InvalidOperationException("RC2 engine not initialised");
+
+            Check.DataLength(input, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, BLOCK_SIZE, "output buffer too short");
+
+            if (encrypting)
+            {
+                EncryptBlock(input, output);
+            }
+            else
+            {
+                DecryptBlock(input, output);
+            }
+
+            return BLOCK_SIZE;
+        }
+#endif
+
         /**
         * return the result rotating the 16 bit number in x left by y
         */
-        private int RotateWordLeft(
-            int x,
-            int y)
+        private int RotateWordLeft(int x, int y)
         {
             x &= 0xffff;
             return (x << y) | (x >> (16 - y));
         }
 
-        private void EncryptBlock(
-            byte[]  input,
-            int     inOff,
-            byte[]  outBytes,
-            int     outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int x76, x54, x32, x10;
+
+            x76 = ((input[7] & 0xff) << 8) + (input[6] & 0xff);
+            x54 = ((input[5] & 0xff) << 8) + (input[4] & 0xff);
+            x32 = ((input[3] & 0xff) << 8) + (input[2] & 0xff);
+            x10 = ((input[1] & 0xff) << 8) + (input[0] & 0xff);
+
+            for (int i = 0; i <= 16; i += 4)
+            {
+                x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i], 1);
+                x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i + 1], 2);
+                x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i + 2], 3);
+                x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i + 3], 5);
+            }
+
+            x10 += workingKey[x76 & 63];
+            x32 += workingKey[x10 & 63];
+            x54 += workingKey[x32 & 63];
+            x76 += workingKey[x54 & 63];
+
+            for (int i = 20; i <= 40; i += 4)
+            {
+                x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i], 1);
+                x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i + 1], 2);
+                x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i + 2], 3);
+                x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i + 3], 5);
+            }
+
+            x10 += workingKey[x76 & 63];
+            x32 += workingKey[x10 & 63];
+            x54 += workingKey[x32 & 63];
+            x76 += workingKey[x54 & 63];
+
+            for (int i = 44; i < 64; i += 4)
+            {
+                x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i], 1);
+                x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i + 1], 2);
+                x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i + 2], 3);
+                x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i + 3], 5);
+            }
+
+            output[0] = (byte)x10;
+            output[1] = (byte)(x10 >> 8);
+            output[2] = (byte)x32;
+            output[3] = (byte)(x32 >> 8);
+            output[4] = (byte)x54;
+            output[5] = (byte)(x54 >> 8);
+            output[6] = (byte)x76;
+            output[7] = (byte)(x76 >> 8);
+        }
+
+        private void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int x76, x54, x32, x10;
+
+            x76 = ((input[7] & 0xff) << 8) + (input[6] & 0xff);
+            x54 = ((input[5] & 0xff) << 8) + (input[4] & 0xff);
+            x32 = ((input[3] & 0xff) << 8) + (input[2] & 0xff);
+            x10 = ((input[1] & 0xff) << 8) + (input[0] & 0xff);
+
+            for (int i = 60; i >= 44; i -= 4)
+            {
+                x76 = RotateWordLeft(x76, 11) - ((x10 & ~x54) + (x32 & x54) + workingKey[i + 3]);
+                x54 = RotateWordLeft(x54, 13) - ((x76 & ~x32) + (x10 & x32) + workingKey[i + 2]);
+                x32 = RotateWordLeft(x32, 14) - ((x54 & ~x10) + (x76 & x10) + workingKey[i + 1]);
+                x10 = RotateWordLeft(x10, 15) - ((x32 & ~x76) + (x54 & x76) + workingKey[i]);
+            }
+
+            x76 -= workingKey[x54 & 63];
+            x54 -= workingKey[x32 & 63];
+            x32 -= workingKey[x10 & 63];
+            x10 -= workingKey[x76 & 63];
+
+            for (int i = 40; i >= 20; i -= 4)
+            {
+                x76 = RotateWordLeft(x76, 11) - ((x10 & ~x54) + (x32 & x54) + workingKey[i + 3]);
+                x54 = RotateWordLeft(x54, 13) - ((x76 & ~x32) + (x10 & x32) + workingKey[i + 2]);
+                x32 = RotateWordLeft(x32, 14) - ((x54 & ~x10) + (x76 & x10) + workingKey[i + 1]);
+                x10 = RotateWordLeft(x10, 15) - ((x32 & ~x76) + (x54 & x76) + workingKey[i]);
+            }
+
+            x76 -= workingKey[x54 & 63];
+            x54 -= workingKey[x32 & 63];
+            x32 -= workingKey[x10 & 63];
+            x10 -= workingKey[x76 & 63];
+
+            for (int i = 16; i >= 0; i -= 4)
+            {
+                x76 = RotateWordLeft(x76, 11) - ((x10 & ~x54) + (x32 & x54) + workingKey[i + 3]);
+                x54 = RotateWordLeft(x54, 13) - ((x76 & ~x32) + (x10 & x32) + workingKey[i + 2]);
+                x32 = RotateWordLeft(x32, 14) - ((x54 & ~x10) + (x76 & x10) + workingKey[i + 1]);
+                x10 = RotateWordLeft(x10, 15) - ((x32 & ~x76) + (x54 & x76) + workingKey[i]);
+            }
+
+            output[0] = (byte)x10;
+            output[1] = (byte)(x10 >> 8);
+            output[2] = (byte)x32;
+            output[3] = (byte)(x32 >> 8);
+            output[4] = (byte)x54;
+            output[5] = (byte)(x54 >> 8);
+            output[6] = (byte)x76;
+            output[7] = (byte)(x76 >> 8);
+        }
+#else
+        private void EncryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             int x76, x54, x32, x10;
 
@@ -209,10 +339,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             for (int i = 0; i <= 16; i += 4)
             {
-                    x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i  ], 1);
-                    x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i+1], 2);
-                    x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i+2], 3);
-                    x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i+3], 5);
+                x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i  ], 1);
+                x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i+1], 2);
+                x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i+2], 3);
+                x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i+3], 5);
             }
 
             x10 += workingKey[x76 & 63];
@@ -222,10 +352,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             for (int i = 20; i <= 40; i += 4)
             {
-                    x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i  ], 1);
-                    x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i+1], 2);
-                    x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i+2], 3);
-                    x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i+3], 5);
+                x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i  ], 1);
+                x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i+1], 2);
+                x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i+2], 3);
+                x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i+3], 5);
             }
 
             x10 += workingKey[x76 & 63];
@@ -235,10 +365,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             for (int i = 44; i < 64; i += 4)
             {
-                    x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i  ], 1);
-                    x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i+1], 2);
-                    x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i+2], 3);
-                    x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i+3], 5);
+                x10 = RotateWordLeft(x10 + (x32 & ~x76) + (x54 & x76) + workingKey[i  ], 1);
+                x32 = RotateWordLeft(x32 + (x54 & ~x10) + (x76 & x10) + workingKey[i+1], 2);
+                x54 = RotateWordLeft(x54 + (x76 & ~x32) + (x10 & x32) + workingKey[i+2], 3);
+                x76 = RotateWordLeft(x76 + (x10 & ~x54) + (x32 & x54) + workingKey[i+3], 5);
             }
 
             outBytes[outOff + 0] = (byte)x10;
@@ -251,11 +381,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             outBytes[outOff + 7] = (byte)(x76 >> 8);
         }
 
-        private void DecryptBlock(
-            byte[]  input,
-            int     inOff,
-            byte[]  outBytes,
-            int     outOff)
+        private void DecryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             int x76, x54, x32, x10;
 
@@ -307,5 +433,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             outBytes[outOff + 6] = (byte)x76;
             outBytes[outOff + 7] = (byte)(x76 >> 8);
         }
+#endif
     }
 }

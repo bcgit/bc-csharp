@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
-            Check.DataLength(input, inOff, len, "Input buffer too short");
+            Check.DataLength(input, inOff, len, "input buffer too short");
 
             if (paddedKey == null)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public int DoFinal(byte[] output, int outOff)
         {
-            Check.OutputLength(output, outOff, macSize, "Output buffer too short");
+            Check.OutputLength(output, outOff, macSize, "output buffer too short");
 
             if (paddedKey == null)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
