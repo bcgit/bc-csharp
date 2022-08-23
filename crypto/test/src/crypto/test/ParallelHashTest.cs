@@ -119,6 +119,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             IsTrue("oops!", Arrays.AreEqual(Hex.Decode("6b3e790b330c889a204c2fbc728d809f19367328d852f4002dc829f73afd6bcefb7fe5b607b13a801c0be5c1170bdb794e339458fdb0e62a6af3d42558970249"), res));
 
             testEmpty();
+
+            DigestTest.SpanConsistencyTests(this, new ParallelHash(128, new byte[0], 8));
+            DigestTest.SpanConsistencyTests(this, new ParallelHash(256, new byte[0], 8));
         }
 
         private void testEmpty()

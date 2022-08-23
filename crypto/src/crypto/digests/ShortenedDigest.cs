@@ -1,5 +1,4 @@
 using System;
-using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
@@ -58,7 +57,14 @@ namespace Org.BouncyCastle.Crypto.Digests
 			baseDigest.BlockUpdate(input, inOff, length);
 		}
 
-		public int DoFinal(byte[] output, int outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            baseDigest.BlockUpdate(input);
+        }
+#endif
+
+        public int DoFinal(byte[] output, int outOff)
 		{
 			byte[] tmp = new byte[baseDigest.GetDigestSize()];
 
@@ -69,7 +75,20 @@ namespace Org.BouncyCastle.Crypto.Digests
 			return length;
 		}
 
-		public void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            Span<byte> tmp = stackalloc byte[baseDigest.GetDigestSize()];
+
+            baseDigest.DoFinal(tmp);
+
+            tmp[..length].CopyTo(output);
+
+            return length;
+        }
+#endif
+
+        public void Reset()
 		{
 			baseDigest.Reset();
 		}

@@ -162,6 +162,20 @@ namespace Org.BouncyCastle.Crypto.Digests
 			return GetDigestSize();
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public int DoFinal(Span<byte> output)
+		{
+			// sets output[0..DIGEST_LENGTH_BYTES]
+			Finish();
+
+			Pack.UInt64_To_BE(_hash, output);
+
+			Reset();
+
+			return GetDigestSize();
+		}
+#endif
+
 		/**
 		* Reset the chaining variables
 		*/
@@ -275,6 +289,16 @@ namespace Org.BouncyCastle.Crypto.Digests
 				--length;
 			}
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public void BlockUpdate(ReadOnlySpan<byte> input)
+		{
+			for (int i = 0; i < input.Length; ++i)
+			{
+				Update(input[i]);
+			}
+		}
+#endif
 
 		private void Finish()
 		{

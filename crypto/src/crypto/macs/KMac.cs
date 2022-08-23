@@ -39,6 +39,16 @@ namespace Org.BouncyCastle.Crypto.Macs
             cshake.BlockUpdate(input, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            if (!initialised)
+                throw new InvalidOperationException("KMAC not initialized");
+
+            cshake.BlockUpdate(input);
+        }
+#endif
+
         public int DoFinal(byte[] output, int outOff)
         {
             if (firstOutput)
@@ -57,6 +67,27 @@ namespace Org.BouncyCastle.Crypto.Macs
 
             return rv;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            if (firstOutput)
+            {
+                if (!initialised)
+                    throw new InvalidOperationException("KMAC not initialized");
+
+                Span<byte> lengthEncoding = stackalloc byte[9];
+                int count = XofUtilities.RightEncode(GetMacSize() * 8, lengthEncoding);
+                cshake.BlockUpdate(lengthEncoding[..count]);
+            }
+
+            int rv = cshake.OutputFinal(output[..GetMacSize()]);
+
+            Reset();
+
+            return rv;
+        }
+#endif
 
         public int DoFinal(byte[] output, int outOff, int outLen)
         {
@@ -77,6 +108,27 @@ namespace Org.BouncyCastle.Crypto.Macs
             return rv;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int OutputFinal(Span<byte> output)
+        {
+            if (firstOutput)
+            {
+                if (!initialised)
+                    throw new InvalidOperationException("KMAC not initialized");
+
+                Span<byte> lengthEncoding = stackalloc byte[9];
+                int count = XofUtilities.RightEncode(output.Length * 8, lengthEncoding);
+                cshake.BlockUpdate(lengthEncoding[..count]);
+            }
+
+            int rv = cshake.OutputFinal(output);
+
+            Reset();
+
+            return rv;
+        }
+#endif
+
         public int DoOutput(byte[] output, int outOff, int outLen)
         {
             if (firstOutput)
@@ -93,6 +145,25 @@ namespace Org.BouncyCastle.Crypto.Macs
 
             return cshake.DoOutput(output, outOff, outLen);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Output(Span<byte> output)
+        {
+            if (firstOutput)
+            {
+                if (!initialised)
+                    throw new InvalidOperationException("KMAC not initialized");
+
+                Span<byte> lengthEncoding = stackalloc byte[9];
+                int count = XofUtilities.RightEncode(0, lengthEncoding);
+                cshake.BlockUpdate(lengthEncoding[..count]);
+
+                firstOutput = false;
+            }
+
+            return cshake.Output(output);
+        }
+#endif
 
         public int GetByteLength()
         {

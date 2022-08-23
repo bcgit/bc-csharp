@@ -1,7 +1,6 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
-
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -11,6 +10,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 	public abstract class DigestTest
 		: SimpleTest
 	{
+		internal static readonly SecureRandom Random = new SecureRandom();
+
 		private IDigest digest;
 		private string[] input;
 		private string[] results;
@@ -108,6 +109,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				Fail("failing memo copy vector test", results[results.Length - 1], Hex.ToHexString(resBuf));
 			}
+
+			SpanConsistencyTests(this, digest);
 		}
 
 		private byte[] toByteArray(
@@ -178,6 +181,58 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				Fail("64k test failed");
 			}
+		}
+
+		internal static void SpanConsistencyTests(SimpleTest test, IDigest digest)
+        {
+			// NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+
+			// Span-based API consistency checks
+			byte[] data = new byte[16 + 256];
+			Random.NextBytes(data);
+
+			for (int len = 0; len <= 256; ++len)
+			{
+				int off = Random.Next(0, 17);
+
+				SpanConsistencyTest(test, digest, data, off, len);
+			}
+#endif
+		}
+
+		internal static void SpanConsistencyTest(SimpleTest test, IDigest digest, byte[] buf, int off, int len)
+        {
+			// NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+			//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			digest.Reset();
+
+			byte[] arrayResult = DigestUtilities.DoFinal(digest, buf, off, len);
+			byte[] spanResult1 = DigestUtilities.DoFinal(digest, buf.AsSpan(off, len));
+
+			if (!test.AreEqual(arrayResult, spanResult1))
+			{
+				test.Fail("failing span consistency test 1", Hex.ToHexString(arrayResult), Hex.ToHexString(spanResult1));
+			}
+
+			int pos = 0;
+			while (pos < len)
+			{
+				int next = 1 + Random.Next(len - pos);
+				digest.BlockUpdate(buf.AsSpan(off + pos, next));
+				pos += next;
+			}
+
+			byte[] spanResult2 = new byte[digest.GetDigestSize()];
+			digest.DoFinal(spanResult2.AsSpan());
+
+			if (!test.AreEqual(arrayResult, spanResult2))
+			{
+				test.Fail("failing span consistency test 2", Hex.ToHexString(arrayResult), Hex.ToHexString(spanResult2));
+			}
+#endif
 		}
 	}
 }

@@ -357,10 +357,62 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
 
             // fill the buffer with left bytes, this might be a full block
-            Array.Copy(message, messagePos, buffer, 0, offset + len
-                - messagePos);
+            Array.Copy(message, messagePos, buffer, 0, offset + len - messagePos);
             bufferPos += offset + len - messagePos;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            if (input.IsEmpty)
+                return;
+
+            int remainingLength = 0; // left bytes of buffer
+
+            if (bufferPos != 0)
+            { // commenced, incomplete buffer
+
+                // complete the buffer:
+                remainingLength = BLOCK_LENGTH_BYTES - bufferPos;
+                if (remainingLength < input.Length)
+                { // full buffer + at least 1 byte
+                    input[..remainingLength].CopyTo(buffer.AsSpan(bufferPos));
+                    t0 += BLOCK_LENGTH_BYTES;
+                    if (t0 == 0)
+                    { // if message > 2^64
+                        t1++;
+                    }
+                    Compress(buffer, 0);
+                    bufferPos = 0;
+                    Array.Clear(buffer, 0, buffer.Length);// clear buffer
+                }
+                else
+                {
+                    input.CopyTo(buffer.AsSpan(bufferPos));
+                    bufferPos += input.Length;
+                    return;
+                }
+            }
+
+            // process blocks except last block (also if last block is full)
+            int messagePos;
+            int blockWiseLastPos = input.Length - BLOCK_LENGTH_BYTES;
+            for (messagePos = remainingLength; messagePos < blockWiseLastPos; messagePos += BLOCK_LENGTH_BYTES)
+            { // block wise 128 bytes
+                // without buffer:
+                t0 += BLOCK_LENGTH_BYTES;
+                if (t0 == 0)
+                {
+                    t1++;
+                }
+                Compress(input[messagePos..]);
+            }
+
+            // fill the buffer with left bytes, this might be a full block
+            input[messagePos..].CopyTo(buffer.AsSpan());
+            bufferPos += input.Length - messagePos;
+        }
+#endif
 
         /**
          * close the digest, producing the final digest value. The doFinal
@@ -382,19 +434,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
             Array.Clear(internalState, 0, internalState.Length);
 
-            byte[] bytes = new byte[8];
-            for (int i = 0; i < chainValue.Length && (i * 8 < digestLength); i++)
+            int full = digestLength >> 3, partial = digestLength & 7;
+            Pack.UInt64_To_LE(chainValue, 0, full, output, outOffset);
+            if (partial > 0)
             {
-                Pack.UInt64_To_LE(chainValue[i], bytes, 0);
-
-                if (i * 8 < digestLength - 8)
-                {
-                    Array.Copy(bytes, 0, output, outOffset + i * 8, 8);
-                }
-                else
-                {
-                    Array.Copy(bytes, 0, output, outOffset + i * 8, digestLength - (i * 8));
-                }
+                byte[] bytes = new byte[8];
+                Pack.UInt64_To_LE(chainValue[full], bytes, 0);
+                Array.Copy(bytes, 0, output, outOffset + digestLength - partial, partial);
             }
 
             Array.Clear(chainValue, 0, chainValue.Length);
@@ -403,6 +449,36 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             return digestLength;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            f0 = 0xFFFFFFFFFFFFFFFFUL;
+            t0 += (ulong)bufferPos;
+            if (bufferPos > 0 && t0 == 0)
+            {
+                t1++;
+            }
+            Compress(buffer, 0);
+            Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
+            Array.Clear(internalState, 0, internalState.Length);
+
+            int full = digestLength >> 3, partial = digestLength & 7;
+            Pack.UInt64_To_LE(chainValue.AsSpan(0, full), output);
+            if (partial > 0)
+            {
+                Span<byte> bytes = stackalloc byte[8];
+                Pack.UInt64_To_LE(chainValue[full], bytes);
+                bytes[..partial].CopyTo(output[(digestLength - partial)..]);
+            }
+
+            Array.Clear(chainValue, 0, chainValue.Length);
+
+            Reset();
+
+            return digestLength;
+        }
+#endif
 
         /**
          * Reset the digest back to it's initial state.
@@ -452,6 +528,36 @@ namespace Org.BouncyCastle.Crypto.Digests
                 chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void Compress(ReadOnlySpan<byte> message)
+        {
+            InitializeInternalState();
+
+            Span<ulong> m = stackalloc ulong[16];
+            Pack.LE_To_UInt64(message, m);
+
+            for (int round = 0; round < ROUNDS; round++)
+            {
+                // G apply to columns of internalState:m[blake2b_sigma[round][2 * blockPos]] /+1
+                G(m[blake2b_sigma[round, 0]], m[blake2b_sigma[round, 1]], 0, 4, 8, 12);
+                G(m[blake2b_sigma[round, 2]], m[blake2b_sigma[round, 3]], 1, 5, 9, 13);
+                G(m[blake2b_sigma[round, 4]], m[blake2b_sigma[round, 5]], 2, 6, 10, 14);
+                G(m[blake2b_sigma[round, 6]], m[blake2b_sigma[round, 7]], 3, 7, 11, 15);
+                // G apply to diagonals of internalState:
+                G(m[blake2b_sigma[round, 8]], m[blake2b_sigma[round, 9]], 0, 5, 10, 15);
+                G(m[blake2b_sigma[round, 10]], m[blake2b_sigma[round, 11]], 1, 6, 11, 12);
+                G(m[blake2b_sigma[round, 12]], m[blake2b_sigma[round, 13]], 2, 7, 8, 13);
+                G(m[blake2b_sigma[round, 14]], m[blake2b_sigma[round, 15]], 3, 4, 9, 14);
+            }
+
+            // update chain values:
+            for (int offset = 0; offset < chainValue.Length; offset++)
+            {
+                chainValue[offset] = chainValue[offset] ^ internalState[offset] ^ internalState[offset + 8];
+            }
+        }
+#endif
 
         private void G(ulong m1, ulong m2, int posA, int posB, int posC, int posD)
         {
