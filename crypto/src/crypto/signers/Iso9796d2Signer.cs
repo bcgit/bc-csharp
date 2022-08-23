@@ -218,9 +218,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             recoveredMessage.CopyTo(mBuf, 0);
         }
 
-        /// <summary> update the internal digest with the byte b</summary>
-        public virtual void Update(
-            byte input)
+        public virtual void Update(byte input)
         {
             digest.Update(input);
 
@@ -232,26 +230,42 @@ namespace Org.BouncyCastle.Crypto.Signers
             messageLength++;
         }
 
-        /// <summary> update the internal digest with the byte array in</summary>
-        public virtual void BlockUpdate(
-            byte[]	input,
-            int		inOff,
-            int		length)
+        public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
-            while (length > 0 && messageLength < mBuf.Length)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BlockUpdate(input.AsSpan(inOff, inLen));
+#else
+            while (inLen > 0 && messageLength < mBuf.Length)
             {
-                //for (int i = 0; i < length && (i + messageLength) < mBuf.Length; i++)
-                //{
-                //    mBuf[messageLength + i] = input[inOff + i];
-                //}
                 this.Update(input[inOff]);
                 inOff++;
-                length--;
+                inLen--;
             }
 
-            digest.BlockUpdate(input, inOff, length);
-            messageLength += length;
+            if (inLen > 0)
+            {
+                digest.BlockUpdate(input, inOff, inLen);
+                messageLength += inLen;
+            }
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            while (!input.IsEmpty && messageLength < mBuf.Length)
+            {
+                this.Update(input[0]);
+                input = input[1..];
+            }
+
+            if (!input.IsEmpty)
+            {
+                digest.BlockUpdate(input);
+                messageLength += input.Length;
+            }
+        }
+#endif
 
         /// <summary> reset the internal state</summary>
         public virtual void Reset()
