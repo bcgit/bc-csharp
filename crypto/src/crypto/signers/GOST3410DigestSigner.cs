@@ -15,8 +15,6 @@ namespace Org.BouncyCastle.Crypto.Signers
         private int halfSize;
         private bool forSigning;
 
-
-
         public Gost3410DigestSigner(
             IDsa signer,
             IDigest digest)

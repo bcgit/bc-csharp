@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 		}
 
         public DsaDigestSigner(
-            IDsaExt dsa,
+            IDsa dsa,
             IDigest digest,
             IDsaEncoding encoding)
         {
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         protected virtual BigInteger GetOrder()
         {
-            return dsa is IDsaExt ? ((IDsaExt)dsa).Order : null;
+            return dsa.Order;
         }
 	}
 }
