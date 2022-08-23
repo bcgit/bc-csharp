@@ -1,7 +1,9 @@
 ﻿using System;
-namespace Org.BouncyCastle.pqc.crypto.sphincsplus
+
+namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class HarakaSXof : HarakaSBase
+    internal class HarakaSXof
+        : HarakaSBase
     {
         public String GetAlgorithmName()
         {
@@ -82,6 +84,4 @@ namespace Org.BouncyCastle.pqc.crypto.sphincsplus
             return outLen;
         }
     }
-
 }
-

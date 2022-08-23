@@ -1,7 +1,8 @@
 ﻿using System;
+
 using Org.BouncyCastle.Utilities;
 
-namespace Org.BouncyCastle.pqc.crypto.sphincsplus
+namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
     /**
      * Haraka-512 v2, https://eprint.iacr.org/2016/098.pdf
@@ -9,19 +10,19 @@ namespace Org.BouncyCastle.pqc.crypto.sphincsplus
      * Haraka512-256 with reference to Python Reference Impl from: https://github.com/sphincs/sphincsplus
      * </p>
      */
-    public class HarakaSBase
+    internal class HarakaSBase
     {
         internal ulong[][] haraka512_rc = new ulong[][]{
-        new ulong[]{0x24cf0ab9086f628bL, 0xbdd6eeecc83b8382L, 0xd96fb0306cdad0a7L, 0xaace082ac8f95f89L, 0x449d8e8870d7041fL, 0x49bb2f80b2b3e2f8L, 0x0569ae98d93bb258L, 0x23dc9691e7d6a4b1L},
-        new ulong[]{0xd8ba10ede0fe5b6eL, 0x7ecf7dbe424c7b8eL, 0x6ea9949c6df62a31L, 0xbf3f3c97ec9c313eL, 0x241d03a196a1861eL, 0xead3a51116e5a2eaL, 0x77d479fcad9574e3L, 0x18657a1af894b7a0L},
-        new ulong[]{0x10671e1a7f595522L, 0xd9a00ff675d28c7bL, 0x2f1edf0d2b9ba661L, 0xb8ff58b8e3de45f9L, 0xee29261da9865c02L, 0xd1532aa4b50bdf43L, 0x8bf858159b231bb1L, 0xdf17439d22d4f599L},
-        new ulong[]{0xdd4b2f0870b918c0L, 0x757a81f3b39b1bb6L, 0x7a5c556898952e3fL, 0x7dd70a16d915d87aL, 0x3ae61971982b8301L, 0xc3ab319e030412beL, 0x17c0033ac094a8cbL, 0x5a0630fc1a8dc4efL},
-        new ulong[]{0x17708988c1632f73L, 0xf92ddae090b44f4fL, 0x11ac0285c43aa314L, 0x509059941936b8baL, 0xd03e152fa2ce9b69L, 0x3fbcbcb63a32998bL, 0x6204696d692254f7L, 0x915542ed93ec59b4L},
-        new ulong[]{0xf4ed94aa8879236eL, 0xff6cb41cd38e03c0L, 0x069b38602368aeabL, 0x669495b820f0ddbaL, 0xf42013b1b8bf9e3dL, 0xcf935efe6439734dL, 0xbc1dcf42ca29e3f8L, 0x7e6d3ed29f78ad67L},
-        new ulong[]{0xf3b0f6837ffcddaaL, 0x3a76faef934ddf41L, 0xcec7ae583a9c8e35L, 0xe4dd18c68f0260afL, 0x2c0e5df1ad398eaaL, 0x478df5236ae22e8cL, 0xfb944c46fe865f39L, 0xaa48f82f028132baL},
-        new ulong[]{0x231b9ae2b76aca77L, 0x292a76a712db0b40L, 0x5850625dc8134491L, 0x73137dd469810fb5L, 0x8a12a6a202a474fdL, 0xd36fd9daa78bdb80L, 0xb34c5e733505706fL, 0xbaf1cdca818d9d96L},
-        new ulong[]{0x2e99781335e8c641L, 0xbddfe5cce47d560eL, 0xf74e9bf32e5e040cL, 0x1d7a709d65996be9L, 0x670df36a9cf66cddL, 0xd05ef84a176a2875L, 0x0f888e828cb1c44eL, 0x1a79e9c9727b052cL},
-        new ulong[]{0x83497348628d84deL, 0x2e9387d51f22a754L, 0xb000068da2f852d6L, 0x378c9e1190fd6fe5L, 0x870027c316de7293L, 0xe51a9d4462e047bbL, 0x90ecf7f8c6251195L, 0x655953bfbed90a9cL},
+            new ulong[]{0x24cf0ab9086f628bL, 0xbdd6eeecc83b8382L, 0xd96fb0306cdad0a7L, 0xaace082ac8f95f89L, 0x449d8e8870d7041fL, 0x49bb2f80b2b3e2f8L, 0x0569ae98d93bb258L, 0x23dc9691e7d6a4b1L},
+            new ulong[]{0xd8ba10ede0fe5b6eL, 0x7ecf7dbe424c7b8eL, 0x6ea9949c6df62a31L, 0xbf3f3c97ec9c313eL, 0x241d03a196a1861eL, 0xead3a51116e5a2eaL, 0x77d479fcad9574e3L, 0x18657a1af894b7a0L},
+            new ulong[]{0x10671e1a7f595522L, 0xd9a00ff675d28c7bL, 0x2f1edf0d2b9ba661L, 0xb8ff58b8e3de45f9L, 0xee29261da9865c02L, 0xd1532aa4b50bdf43L, 0x8bf858159b231bb1L, 0xdf17439d22d4f599L},
+            new ulong[]{0xdd4b2f0870b918c0L, 0x757a81f3b39b1bb6L, 0x7a5c556898952e3fL, 0x7dd70a16d915d87aL, 0x3ae61971982b8301L, 0xc3ab319e030412beL, 0x17c0033ac094a8cbL, 0x5a0630fc1a8dc4efL},
+            new ulong[]{0x17708988c1632f73L, 0xf92ddae090b44f4fL, 0x11ac0285c43aa314L, 0x509059941936b8baL, 0xd03e152fa2ce9b69L, 0x3fbcbcb63a32998bL, 0x6204696d692254f7L, 0x915542ed93ec59b4L},
+            new ulong[]{0xf4ed94aa8879236eL, 0xff6cb41cd38e03c0L, 0x069b38602368aeabL, 0x669495b820f0ddbaL, 0xf42013b1b8bf9e3dL, 0xcf935efe6439734dL, 0xbc1dcf42ca29e3f8L, 0x7e6d3ed29f78ad67L},
+            new ulong[]{0xf3b0f6837ffcddaaL, 0x3a76faef934ddf41L, 0xcec7ae583a9c8e35L, 0xe4dd18c68f0260afL, 0x2c0e5df1ad398eaaL, 0x478df5236ae22e8cL, 0xfb944c46fe865f39L, 0xaa48f82f028132baL},
+            new ulong[]{0x231b9ae2b76aca77L, 0x292a76a712db0b40L, 0x5850625dc8134491L, 0x73137dd469810fb5L, 0x8a12a6a202a474fdL, 0xd36fd9daa78bdb80L, 0xb34c5e733505706fL, 0xbaf1cdca818d9d96L},
+            new ulong[]{0x2e99781335e8c641L, 0xbddfe5cce47d560eL, 0xf74e9bf32e5e040cL, 0x1d7a709d65996be9L, 0x670df36a9cf66cddL, 0xd05ef84a176a2875L, 0x0f888e828cb1c44eL, 0x1a79e9c9727b052cL},
+            new ulong[]{0x83497348628d84deL, 0x2e9387d51f22a754L, 0xb000068da2f852d6L, 0x378c9e1190fd6fe5L, 0x870027c316de7293L, 0xe51a9d4462e047bbL, 0x90ecf7f8c6251195L, 0x655953bfbed90a9cL},
         };
 
         internal uint[][] haraka256_rc = new uint[10][];
@@ -791,4 +792,3 @@ namespace Org.BouncyCastle.pqc.crypto.sphincsplus
         }
     }
 }
-

@@ -6,12 +6,11 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.pqc.crypto.sphincsplus;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    abstract class SPHINCSPlusEngine
+    internal abstract class SPHINCSPlusEngine
     {
         bool robust;
 
@@ -91,7 +90,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             this.T = 1U << a;
         }
 
-        public abstract void init(byte[] pkSeed);
+        public abstract void Init(byte[] pkSeed);
 
         public abstract byte[] F(byte[] pkSeed, Adrs adrs, byte[] m1);
 
@@ -146,7 +145,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 this.msgDigestBuf = new byte[msgDigest.GetDigestSize()];
             }
 
-            public override void init(byte[] pkSeed)
+            public override void Init(byte[] pkSeed)
             {
                 byte[] padding = new byte[bl];
 
@@ -366,7 +365,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 this.maskDigest = new ShakeDigest(256);
             }
 
-            public override void init(byte[] pkSeed)
+            public override void Init(byte[] pkSeed)
             {
                 // TODO: add use of memo
             }
@@ -526,7 +525,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         }
 
-        internal class HarakaSEngine : SPHINCSPlusEngine
+        internal class HarakaSEngine
+            : SPHINCSPlusEngine
         {
             public HarakaSXof harakaSXof;
             public HarakaS256Digest harakaS256Digest;
@@ -537,7 +537,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             }
 
-            public override void init(byte[] pkSeed)
+            public override void Init(byte[] pkSeed)
             {
                 harakaSXof = new HarakaSXof(pkSeed);
                 harakaS256Digest = new HarakaS256Digest(harakaSXof);
