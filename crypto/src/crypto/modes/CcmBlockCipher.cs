@@ -134,7 +134,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[]	outBytes,
             int		outOff)
         {
-            Check.DataLength(inBytes, inOff, inLen, "Input buffer too short");
+            Check.DataLength(inBytes, inOff, inLen, "input buffer too short");
 
             data.Write(inBytes, inOff, inLen);
 

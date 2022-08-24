@@ -1,5 +1,7 @@
 using System;
+
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -168,12 +170,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 		private int[] wKey;
 		private bool forEncryption;
 
-        public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
 			this.forEncryption = forEncryption;
-			wKey = createWorkingKey(((KeyParameter)parameters).GetKey());
+			wKey = CreateWorkingKey(((KeyParameter)parameters).GetKey());
 		}
 
         public virtual string AlgorithmName
@@ -191,11 +191,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return BlockSize;
 		}
 
-        public virtual int ProcessBlock(
-			byte[]	inBuf,
-			int		inOff,
-			byte[]	outBuf,
-			int		outOff)
+        public virtual int ProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
 		{
 			if (wKey == null)
 				throw new InvalidOperationException("SEED engine not initialised");
@@ -203,8 +199,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(inBuf, inOff, BlockSize, "input buffer too short");
             Check.OutputLength(outBuf, outOff, BlockSize, "output buffer too short");
 
-            long l = bytesToLong(inBuf, inOff + 0);
-			long r = bytesToLong(inBuf, inOff + 8);
+            long l = (long)Pack.BE_To_UInt64(inBuf, inOff + 0);
+			long r = (long)Pack.BE_To_UInt64(inBuf, inOff + 8);
 
 			if (forEncryption)
 			{
@@ -227,25 +223,64 @@ namespace Org.BouncyCastle.Crypto.Engines
 				}
 			}
 
-			longToBytes(outBuf, outOff + 0, r);
-			longToBytes(outBuf, outOff + 8, l);
+			Pack.UInt64_To_BE((ulong)r, outBuf, outOff + 0);
+			Pack.UInt64_To_BE((ulong)l, outBuf, outOff + 8);
 
 			return BlockSize;
 		}
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			if (wKey == null)
+				throw new InvalidOperationException("SEED engine not initialised");
+
+			Check.DataLength(input, BlockSize, "input buffer too short");
+			Check.OutputLength(output, BlockSize, "output buffer too short");
+
+			long l = (long)Pack.BE_To_UInt64(input);
+			long r = (long)Pack.BE_To_UInt64(input[8..]);
+
+			if (forEncryption)
+			{
+				for (int i = 0; i < 16; i++)
+				{
+					long nl = r;
+
+					r = l ^ F(wKey[2 * i], wKey[(2 * i) + 1], r);
+					l = nl;
+				}
+			}
+			else
+			{
+				for (int i = 15; i >= 0; i--)
+				{
+					long nl = r;
+
+					r = l ^ F(wKey[2 * i], wKey[(2 * i) + 1], r);
+					l = nl;
+				}
+			}
+
+			Pack.UInt64_To_BE((ulong)r, output);
+			Pack.UInt64_To_BE((ulong)l, output[8..]);
+
+			return BlockSize;
+		}
+#endif
+
+		public virtual void Reset()
 		{
 		}
 
-		private int[] createWorkingKey(
-			byte[] inKey)
+		private int[] CreateWorkingKey(byte[] inKey)
 		{
 			if (inKey.Length != 16)
 				throw new ArgumentException("key size must be 128 bits");
 
 			int[] key = new int[32];
-			long lower = bytesToLong(inKey, 0);
-			long upper = bytesToLong(inKey, 8);
+			long lower = (long)Pack.BE_To_UInt64(inKey, 0);
+			long upper = (long)Pack.BE_To_UInt64(inKey, 8);
 
 			int key0 = extractW0(lower);
 			int key1 = extractW1(lower);
@@ -296,31 +331,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			long x)
 		{
 			return ((long)((ulong) x >> 8)) | (x << 56);
-		}
-
-		private long bytesToLong(
-			byte[]	src,
-			int		srcOff)
-		{
-			long word = 0;
-
-			for (int i = 0; i <= 7; i++)
-			{
-				word = (word << 8) + (src[i + srcOff] & 0xff);
-			}
-
-			return word;
-		}
-
-		private void longToBytes(
-			byte[]	dest,
-			int		destOff,
-			long	value)
-		{
-			for (int i = 0; i < 8; i++)
-			{
-				dest[i + destOff] = (byte)(value >> ((7 - i) * 8));
-			}
 		}
 
 		private int G(

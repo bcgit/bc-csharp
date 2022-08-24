@@ -290,27 +290,46 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
         }
 
-        /// <summary> update the internal digest with the byte array in</summary>
-        public virtual void BlockUpdate(
-            byte[]	input,
-            int		inOff,
-            int		length)
+        public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BlockUpdate(input.AsSpan(inOff, inLen));
+#else
             if (preSig == null)
             {
-                while (length > 0 && messageLength < mBuf.Length)
+                while (inLen > 0 && messageLength < mBuf.Length)
                 {
                     this.Update(input[inOff]);
                     inOff++;
-                    length--;
+                    inLen--;
                 }
             }
 
-            if (length > 0)
+            if (inLen > 0)
             {
-                digest.BlockUpdate(input, inOff, length);
+                digest.BlockUpdate(input, inOff, inLen);
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            if (preSig == null)
+            {
+                while (!input.IsEmpty && messageLength < mBuf.Length)
+                {
+                    this.Update(input[0]);
+                    input = input[1..];
+                }
+            }
+
+            if (!input.IsEmpty)
+            {
+                digest.BlockUpdate(input);
             }
         }
+#endif
 
         /// <summary> reset the internal state</summary>
         public virtual void Reset()

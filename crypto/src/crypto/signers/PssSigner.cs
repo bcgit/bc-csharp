@@ -198,31 +198,28 @@ namespace Org.BouncyCastle.Crypto.Signers
 			Array.Clear(block, 0, block.Length);
 		}
 
-		/// <summary> update the internal digest with the byte b</summary>
-		public virtual void Update(
-			byte input)
+		public virtual void Update(byte input)
 		{
 			contentDigest1.Update(input);
 		}
 
-		/// <summary> update the internal digest with the byte array in</summary>
-		public virtual void BlockUpdate(
-			byte[]	input,
-			int		inOff,
-			int		length)
+		public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
 		{
-			contentDigest1.BlockUpdate(input, inOff, length);
+			contentDigest1.BlockUpdate(input, inOff, inLen);
 		}
 
-		/// <summary> reset the internal state</summary>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+		{
+			contentDigest1.BlockUpdate(input);
+		}
+#endif
+
 		public virtual void Reset()
 		{
 			contentDigest1.Reset();
 		}
 
-		/// <summary> Generate a signature for the message we've been loaded with using
-		/// the key we were initialised with.
-		/// </summary>
 		public virtual byte[] GenerateSignature()
 		{
 			if (contentDigest1.GetDigestSize() != hLen)
@@ -268,11 +265,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 			return b;
 		}
 
-		/// <summary> return true if the internal state represents the signature described
-		/// in the passed in array.
-		/// </summary>
-		public virtual bool VerifySignature(
-			byte[] signature)
+		public virtual bool VerifySignature(byte[] signature)
 		{
 			if (contentDigest1.GetDigestSize() != hLen)
 				throw new InvalidOperationException();

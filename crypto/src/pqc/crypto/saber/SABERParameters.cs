@@ -33,22 +33,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             this.engine = new SABEREngine(l, defaultKeySize);
         }
 
-        public String GetName()
-        {
-            return name;
-        }
+        public String Name => name;
 
-        public int GetL()
-        {
-            return l;
-        }
+        public int L => l;
 
-        public int GetDefaultKeySize()
-        {
-            return defaultKeySize;
-        }
+        public int DefaultKeySize => defaultKeySize;
 
-        public SABEREngine GetEngine()
+        internal SABEREngine GetEngine()
         {
             return engine;
         }

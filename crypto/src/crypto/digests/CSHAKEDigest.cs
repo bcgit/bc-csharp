@@ -95,6 +95,25 @@ namespace Org.BouncyCastle.Crypto.Digests
             return outLen;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Output(Span<byte> output)
+        {
+            if (diff == null)
+            {
+                return base.Output(output);
+            }
+
+            if (!squeezing)
+            {
+                AbsorbBits(0x00, 2);
+            }
+
+            Squeeze(output);
+
+            return output.Length;
+        }
+#endif
+
         public override void Reset()
         {
             base.Reset();

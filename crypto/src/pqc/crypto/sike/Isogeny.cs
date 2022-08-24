@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class Isogeny
+    internal class Isogeny
 {
      SIKEEngine engine;
 

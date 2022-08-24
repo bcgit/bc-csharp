@@ -21,12 +21,13 @@ public class SIKEParameters
         this.engine = new SIKEEngine(ver, isCompressed, null);
     }
 
-    public SIKEEngine GetEngine()
+    internal SIKEEngine GetEngine()
     {
         return engine;
     }
 
-
-}
+        public string Name => name;
+        public int DefaultKeySize => (int)this.engine.GetDefaultSessionKeySize();
+    }
 
 }

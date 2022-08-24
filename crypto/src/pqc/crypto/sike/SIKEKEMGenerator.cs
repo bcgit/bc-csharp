@@ -1,6 +1,7 @@
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
+using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
@@ -26,6 +27,7 @@ public class SIKEKEMGenerator
 
     public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey, uint sessionKeySizeInBits)
     {
+            Console.Error.WriteLine("WARNING: the SIKE algorithm is only for research purposes, insecure");
         SIKEPublicKeyParameters key = (SIKEPublicKeyParameters)recipientKey;
         SIKEEngine engine = key.GetParameters().GetEngine();
         byte[] cipher_text = new byte[engine.GetCipherTextSize()];

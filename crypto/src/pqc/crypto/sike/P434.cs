@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class P434 
+internal class P434 
     : Internal
 {
     // Encoding of field elementsL, elements over Z_orderL, elements over GF(p^2) and elliptic curve points:

@@ -85,11 +85,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return cipher.GetBlockSize();
         }
 
-        public virtual int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             cipher.ProcessBlock(counter, 0, counterOut, 0);
 
@@ -109,6 +105,29 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             return counter.Length;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            cipher.ProcessBlock(counter, 0, counterOut, 0);
+
+            //
+            // XOR the counterOut with the plaintext producing the cipher text
+            //
+            for (int i = 0; i < counterOut.Length; i++)
+            {
+                output[i] = (byte)(counterOut[i] ^ input[i]);
+            }
+
+            // Increment the counter
+            int j = counter.Length;
+            while (--j >= 0 && ++counter[j] == 0)
+            {
+            }
+
+            return counter.Length;
+        }
+#endif
 
         public virtual void Reset()
         {

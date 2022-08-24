@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
@@ -441,6 +442,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static uint BE_To_UInt32(ReadOnlySpan<byte> bs)
         {
             return (uint)bs[0] << 24
@@ -449,6 +451,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 |        bs[3];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void BE_To_UInt32(ReadOnlySpan<byte> bs, Span<uint> ns)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -458,6 +461,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ulong BE_To_UInt64(ReadOnlySpan<byte> bs)
         {
             uint hi = BE_To_UInt32(bs);
@@ -465,6 +469,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return ((ulong)hi << 32) | lo;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void BE_To_UInt64(ReadOnlySpan<byte> bs, Span<ulong> ns)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -474,6 +479,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static uint LE_To_UInt32(ReadOnlySpan<byte> bs)
         {
             return      bs[0]
@@ -482,6 +488,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 | (uint)bs[3] << 24;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void LE_To_UInt32(ReadOnlySpan<byte> bs, Span<uint> ns)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -491,6 +498,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ulong LE_To_UInt64(ReadOnlySpan<byte> bs)
         {
             uint lo = LE_To_UInt32(bs);
@@ -498,6 +506,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return (ulong)hi << 32 | lo;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void LE_To_UInt64(ReadOnlySpan<byte> bs, Span<ulong> ns)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -507,6 +516,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt32_To_BE(uint n, Span<byte> bs)
         {
             bs[0] = (byte)(n >> 24);
@@ -515,6 +525,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             bs[3] = (byte) n;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt32_To_BE(ReadOnlySpan<uint> ns, Span<byte> bs)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -524,6 +535,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt32_To_LE(uint n, Span<byte> bs)
         {
             bs[0] = (byte) n;
@@ -532,6 +544,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             bs[3] = (byte)(n >> 24);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt32_To_LE(ReadOnlySpan<uint> ns, Span<byte> bs)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -541,12 +554,14 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt64_To_BE(ulong n, Span<byte> bs)
         {
             UInt32_To_BE((uint)(n >> 32), bs);
             UInt32_To_BE((uint)n, bs[4..]);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt64_To_BE(ReadOnlySpan<ulong> ns, Span<byte> bs)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -556,12 +571,14 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt64_To_LE(ulong n, Span<byte> bs)
         {
             UInt32_To_LE((uint)n, bs);
             UInt32_To_LE((uint)(n >> 32), bs[4..]);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt64_To_LE(ReadOnlySpan<ulong> ns, Span<byte> bs)
         {
             for (int i = 0; i < ns.Length; ++i)

@@ -59,15 +59,12 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             this.encrypting = forEncryption;
 
-            if (parameters is ParametersWithIV)
+            if (parameters is ParametersWithIV ivParam)
             {
-                ParametersWithIV ivParam = (ParametersWithIV)parameters;
-                byte[]      iv = ivParam.GetIV();
+                byte[] iv = ivParam.GetIV();
 
                 if (iv.Length != blockSize)
-                {
                     throw new ArgumentException("initialisation vector must be the same length as block size");
-                }
 
                 Array.Copy(iv, 0, IV, 0, iv.Length);
 
@@ -112,29 +109,27 @@ namespace Org.BouncyCastle.Crypto.Modes
             return cipher.GetBlockSize();
         }
 
-        /**
-        * Process one block of input from the array in and write it to
-        * the out array.
-        *
-        * @param in the array containing the input data.
-        * @param inOff offset into the in array the data starts at.
-        * @param out the array the output data will be copied into.
-        * @param outOff the offset into the out array the output will start at.
-        * @exception DataLengthException if there isn't enough data in in, or
-        * space in out.
-        * @exception InvalidOperationException if the cipher isn't initialised.
-        * @return the number of bytes processed and produced.
-        */
-        public int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+        public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
-            return (encrypting)
-				?	EncryptBlock(input, inOff, output, outOff)
-				:	DecryptBlock(input, inOff, output, outOff);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return encrypting
+                ? EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff))
+                : DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+#else
+            return encrypting
+				? EncryptBlock(input, inOff, output, outOff)
+				: DecryptBlock(input, inOff, output, outOff);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            return encrypting
+                ? EncryptBlock(input, output)
+                : DecryptBlock(input, output);
+        }
+#endif
 
         /**
         * reset the chaining vector back to the IV and reset the underlying
@@ -148,33 +143,50 @@ namespace Org.BouncyCastle.Crypto.Modes
             cipher.Reset();
         }
 
-        /**
-        * Do the appropriate chaining step for CBC mode encryption.
-        *
-        * @param in the array containing the data to be encrypted.
-        * @param inOff offset into the in array the data starts at.
-        * @param out the array the encrypted data will be copied into.
-        * @param outOff the offset into the out array the output will start at.
-        * @exception DataLengthException if there isn't enough data in in, or
-        * space in out.
-        * @exception InvalidOperationException if the cipher isn't initialised.
-        * @return the number of bytes processed and produced.
-        */
-        private int EncryptBlock(
-            byte[]      input,
-            int         inOff,
-            byte[]      outBytes,
-            int         outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            if ((inOff + blockSize) > input.Length)
+            Check.DataLength(input, blockSize, "input buffer too short");
+            Check.OutputLength(output, blockSize, "output buffer too short");
+
+            for (int i = 0; i < blockSize; i++)
             {
-                throw new DataLengthException("input buffer too short");
+                cbcV[i] ^= input[i];
             }
 
-            /*
-            * XOR the cbcV and the input,
-            * then encrypt the cbcV
-            */
+            int length = cipher.ProcessBlock(cbcV, output);
+
+            output[..blockSize].CopyTo(cbcV);
+
+            return length;
+        }
+
+        private int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            Check.DataLength(input, blockSize, "input buffer too short");
+            Check.OutputLength(output, blockSize, "output buffer too short");
+
+            input[..blockSize].CopyTo(cbcNextV);
+
+            int length = cipher.ProcessBlock(input, output);
+
+            for (int i = 0; i < blockSize; i++)
+            {
+                output[i] ^= cbcV[i];
+            }
+
+            byte[] tmp = cbcV;
+            cbcV = cbcNextV;
+            cbcNextV = tmp;
+
+            return length;
+        }
+#else
+        private int EncryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
+        {
+            Check.DataLength(input, inOff, blockSize, "input buffer too short");
+            Check.OutputLength(outBytes, outOff, blockSize, "output buffer too short");
+
             for (int i = 0; i < blockSize; i++)
             {
                 cbcV[i] ^= input[inOff + i];
@@ -182,60 +194,31 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             int length = cipher.ProcessBlock(cbcV, 0, outBytes, outOff);
 
-            /*
-            * copy ciphertext to cbcV
-            */
             Array.Copy(outBytes, outOff, cbcV, 0, cbcV.Length);
 
             return length;
         }
 
-        /**
-        * Do the appropriate chaining step for CBC mode decryption.
-        *
-        * @param in the array containing the data to be decrypted.
-        * @param inOff offset into the in array the data starts at.
-        * @param out the array the decrypted data will be copied into.
-        * @param outOff the offset into the out array the output will start at.
-        * @exception DataLengthException if there isn't enough data in in, or
-        * space in out.
-        * @exception InvalidOperationException if the cipher isn't initialised.
-        * @return the number of bytes processed and produced.
-        */
-        private int DecryptBlock(
-            byte[]      input,
-            int         inOff,
-            byte[]      outBytes,
-            int         outOff)
+        private int DecryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
-            if ((inOff + blockSize) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
+            Check.DataLength(input, inOff, blockSize, "input buffer too short");
+            Check.OutputLength(outBytes, outOff, blockSize, "output buffer too short");
 
             Array.Copy(input, inOff, cbcNextV, 0, blockSize);
 
             int length = cipher.ProcessBlock(input, inOff, outBytes, outOff);
 
-            /*
-            * XOR the cbcV and the output
-            */
             for (int i = 0; i < blockSize; i++)
             {
                 outBytes[outOff + i] ^= cbcV[i];
             }
 
-            /*
-            * swap the back up buffer into next position
-            */
-            byte[]  tmp;
-
-            tmp = cbcV;
+            byte[] tmp = cbcV;
             cbcV = cbcNextV;
             cbcNextV = tmp;
 
             return length;
         }
+#endif
     }
-
 }

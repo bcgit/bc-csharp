@@ -293,6 +293,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             RunSelfTest();
             DoTestNullKeyVsUnkeyed();
             DoTestLengthConstruction();
+
+            DigestTest.SpanConsistencyTests(this, new Blake2sDigest(256));
         }
 
         [Test]

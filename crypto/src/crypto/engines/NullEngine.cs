@@ -41,11 +41,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return BlockSize;
 		}
 
-        public virtual int ProcessBlock(
-			byte[]	input,
-			int		inOff,
-			byte[]	output,
-			int		outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
 		{
 			if (!initialised)
 				throw new InvalidOperationException("Null engine not initialised");
@@ -61,7 +57,22 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return BlockSize;
 		}
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			if (!initialised)
+				throw new InvalidOperationException("Null engine not initialised");
+
+            Check.DataLength(input, BlockSize, "input buffer too short");
+            Check.OutputLength(output, BlockSize, "output buffer too short");
+
+			input[..BlockSize].CopyTo(output);
+
+			return BlockSize;
+		}
+#endif
+
+		public virtual void Reset()
 		{
 			// nothing needs to be done
 		}

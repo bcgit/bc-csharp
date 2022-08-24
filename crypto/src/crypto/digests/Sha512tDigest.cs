@@ -76,6 +76,26 @@ namespace Org.BouncyCastle.Crypto.Digests
             return digestLength;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            Finish();
+
+            UInt64_To_BE(H1, output, 0, digestLength);
+            UInt64_To_BE(H2, output, 8, digestLength - 8);
+            UInt64_To_BE(H3, output, 16, digestLength - 16);
+            UInt64_To_BE(H4, output, 24, digestLength - 24);
+            UInt64_To_BE(H5, output, 32, digestLength - 32);
+            UInt64_To_BE(H6, output, 40, digestLength - 40);
+            UInt64_To_BE(H7, output, 48, digestLength - 48);
+            UInt64_To_BE(H8, output, 56, digestLength - 56);
+
+            Reset();
+
+            return digestLength;
+        }
+#endif
+
         /**
          * reset the chaining variables
          */
@@ -170,7 +190,32 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-		public override IMemoable Copy()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void UInt64_To_BE(ulong n, Span<byte> bs, int off, int max)
+        {
+            if (max > 0)
+            {
+                UInt32_To_BE((uint)(n >> 32), bs, off, max);
+
+                if (max > 4)
+                {
+                    UInt32_To_BE((uint)n, bs, off + 4, max - 4);
+                }
+            }
+        }
+
+        private static void UInt32_To_BE(uint n, Span<byte> bs, int off, int max)
+        {
+            int num = System.Math.Min(4, max);
+            while (--num >= 0)
+            {
+                int shift = 8 * (3 - num);
+                bs[off + num] = (byte)(n >> shift);
+            }
+        }
+#endif
+
+        public override IMemoable Copy()
 		{
 			return new Sha512tDigest(this);
 		}

@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
     public class FrodoEngine
     {
         // constant parameters
-        private static int nbar = 8;
+        internal static int nbar = 8;
         private static int mbar = 8;
         private static int len_seedA = 128;
         private static int len_z = 128;

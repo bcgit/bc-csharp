@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return GenerateEncapsulated(recipientKey, engine.DefaultSessionKeySize);
         }
 
-        public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey, int sessionKeySizeInBits)
+        private ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey, int sessionKeySizeInBits)
         {
             CmcePublicKeyParameters key = (CmcePublicKeyParameters)recipientKey;
             CmceEngine engine = key.Parameters.Engine;

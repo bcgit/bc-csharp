@@ -7,7 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    public class SABEREngine
+    internal class SABEREngine
     {
         // constant parameters
         public static int SABER_EQ = 13;

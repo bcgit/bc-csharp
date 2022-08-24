@@ -1,11 +1,7 @@
 ﻿using System;
 
-using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
-
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
@@ -132,23 +128,44 @@ namespace Org.BouncyCastle.Crypto.Digests
                 --length;
             }
 
-            if (length > 0)
+            while (length >= blockSize)
             {
-                while (length >= blockSize)
-                {
-                    ProcessBlock(input, inOff);
-                    inOff += blockSize;
-                    length -= blockSize;
-                    ++inputBlocks;
-                }
+                ProcessBlock(input, inOff);
+                inOff += blockSize;
+                length -= blockSize;
+                ++inputBlocks;
+            }
 
-                while (length > 0)
-                {
-                    Update(input[inOff++]);
-                    --length;
-                }
+            while (length > 0)
+            {
+                Update(input[inOff++]);
+                --length;
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            while (bufOff != 0 && input.Length > 0)
+            {
+                Update(input[0]);
+                input = input[1..];
+            }
+
+            while (input.Length >= blockSize)
+            {
+                ProcessBlock(input);
+                input = input[blockSize..];
+                ++inputBlocks;
+            }
+
+            while (input.Length > 0)
+            {
+                Update(input[0]);
+                input = input[1..];
+            }
+        }
+#endif
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
@@ -179,7 +196,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 c >>= 32;
                 c += ((inputBlocks >> 32) * (ulong)blockSize) << 3;
                 Pack.UInt64_To_LE(c, buf, bufOff);
-    //            bufOff += 8;
+                //bufOff += 8;
                 ProcessBlock(buf, 0);
             }
 
@@ -205,6 +222,64 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             return hashSize;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            // Apply padding: terminator byte and 96-bit length field
+            {
+                int inputBytes = bufOff;
+                buf[bufOff++] = (byte)0x80;
+
+                int lenPos = blockSize - 12;
+                if (bufOff > lenPos)
+                {
+                    while (bufOff < blockSize)
+                    {
+                        buf[bufOff++] = 0;
+                    }
+                    bufOff = 0;
+                    ProcessBlock(buf, 0);
+                }
+
+                while (bufOff < lenPos)
+                {
+                    buf[bufOff++] = 0;
+                }
+
+                ulong c = ((inputBlocks & 0xFFFFFFFFUL) * (ulong)blockSize + (uint)inputBytes) << 3;
+                Pack.UInt32_To_LE((uint)c, buf, bufOff);
+                bufOff += 4;
+                c >>= 32;
+                c += ((inputBlocks >> 32) * (ulong)blockSize) << 3;
+                Pack.UInt64_To_LE(c, buf, bufOff);
+                //bufOff += 8;
+                ProcessBlock(buf, 0);
+            }
+
+            {
+                Array.Copy(state, 0, tempState1, 0, columns);
+
+                P(tempState1);
+
+                for (int col = 0; col < columns; ++col)
+                {
+                    state[col] ^= tempState1[col];
+                }
+            }
+
+            int neededColumns = hashSize / 8;
+            for (int col = columns - neededColumns; col < columns; ++col)
+            {
+                Pack.UInt64_To_LE(state[col], output);
+                output = output[8..];
+            }
+
+            Reset();
+
+            return hashSize;
+        }
+#endif
 
         public virtual void Reset()
         {
@@ -235,6 +310,28 @@ namespace Org.BouncyCastle.Crypto.Digests
                 state[col] ^= tempState1[col] ^ tempState2[col];
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected virtual void ProcessBlock(ReadOnlySpan<byte> input)
+        {
+            for (int col = 0; col < columns; ++col)
+            {
+                ulong word = Pack.LE_To_UInt64(input);
+                input = input[8..];
+
+                tempState1[col] = state[col] ^ word;
+                tempState2[col] = word;
+            }
+
+            P(tempState1);
+            Q(tempState2);
+
+            for (int col = 0; col < columns; ++col)
+            {
+                state[col] ^= tempState1[col] ^ tempState2[col];
+            }
+        }
+#endif
 
         private void P(ulong[] s)
         {

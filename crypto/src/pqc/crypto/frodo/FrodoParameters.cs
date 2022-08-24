@@ -13,14 +13,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private static short[] cdf_table976  = {5638, 15915, 23689, 28571, 31116, 32217, 32613, 32731, 32760, 32766, 32767};
         private static short[] cdf_table1344 = {9142, 23462, 30338, 32361, 32725, 32765, 32767};
 
-        public static FrodoParameters frodokem19888r3 = new FrodoParameters("frodokem19888", 640, 15, 2, cdf_table640, new ShakeDigest(128), new FrodoMatrixGenerator.Aes128MatrixGenerator(640, (1<<15)), 64);
-        public static FrodoParameters frodokem19888shaker3 = new FrodoParameters("frodokem19888shake", 640, 15, 2, cdf_table640, new ShakeDigest(128), new FrodoMatrixGenerator.Shake128MatrixGenerator(640, (1<<15)), 64);
+        public static FrodoParameters frodokem19888r3 = new FrodoParameters("frodokem19888", 640, 15, 2, cdf_table640, new ShakeDigest(128), new FrodoMatrixGenerator.Aes128MatrixGenerator(640, (1<<15)));
+        public static FrodoParameters frodokem19888shaker3 = new FrodoParameters("frodokem19888shake", 640, 15, 2, cdf_table640, new ShakeDigest(128), new FrodoMatrixGenerator.Shake128MatrixGenerator(640, (1<<15)));
 
-        public static FrodoParameters frodokem31296r3 = new FrodoParameters("frodokem31296", 976, 16, 3, cdf_table976, new ShakeDigest(256), new FrodoMatrixGenerator.Aes128MatrixGenerator(976, (1<<16)), 96);
-        public static FrodoParameters frodokem31296shaker3 = new FrodoParameters("frodokem31296shake", 976, 16, 3, cdf_table976, new ShakeDigest(256), new FrodoMatrixGenerator.Shake128MatrixGenerator(976, (1<<16)), 96);
+        public static FrodoParameters frodokem31296r3 = new FrodoParameters("frodokem31296", 976, 16, 3, cdf_table976, new ShakeDigest(256), new FrodoMatrixGenerator.Aes128MatrixGenerator(976, (1<<16)));
+        public static FrodoParameters frodokem31296shaker3 = new FrodoParameters("frodokem31296shake", 976, 16, 3, cdf_table976, new ShakeDigest(256), new FrodoMatrixGenerator.Shake128MatrixGenerator(976, (1<<16)));
 
-        public static FrodoParameters frodokem43088r3 = new FrodoParameters("frodokem43088", 1344, 16, 4, cdf_table1344, new ShakeDigest(256), new FrodoMatrixGenerator.Aes128MatrixGenerator(1344, (1<<16)), 128);
-        public static FrodoParameters frodokem43088shaker3 = new FrodoParameters("frodokem43088shake", 1344, 16, 4, cdf_table1344, new ShakeDigest(256), new FrodoMatrixGenerator.Shake128MatrixGenerator(1344, (1<<16)), 128);
+        public static FrodoParameters frodokem43088r3 = new FrodoParameters("frodokem43088", 1344, 16, 4, cdf_table1344, new ShakeDigest(256), new FrodoMatrixGenerator.Aes128MatrixGenerator(1344, (1<<16)));
+        public static FrodoParameters frodokem43088shaker3 = new FrodoParameters("frodokem43088shake", 1344, 16, 4, cdf_table1344, new ShakeDigest(256), new FrodoMatrixGenerator.Shake128MatrixGenerator(1344, (1<<16)));
 
         private String name;
         private int n;
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private int defaultKeySize;
         private FrodoEngine engine;
 
-        public FrodoParameters(String name, int n, int d, int b, short[] cdf_table, IDigest digest, FrodoMatrixGenerator mGen, int defaultKeySize)
+        public FrodoParameters(String name, int n, int d, int b, short[] cdf_table, IDigest digest, FrodoMatrixGenerator mGen)
         {
             this.name = name;
             this.n = n;
@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             this.cdf_table = cdf_table;
             this.digest = digest;
             this.mGen = mGen;
-            this.defaultKeySize = defaultKeySize;
+            this.defaultKeySize = B * FrodoEngine.nbar * FrodoEngine.nbar;
             this.engine = new FrodoEngine(n, d, b, cdf_table, digest, mGen);
         }
 

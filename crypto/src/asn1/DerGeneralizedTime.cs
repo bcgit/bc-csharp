@@ -139,32 +139,28 @@ namespace Org.BouncyCastle.Asn1
             // standardise the format.
             //
             if (time[time.Length - 1] == 'Z')
-            {
                 return time.Substring(0, time.Length - 1) + "GMT+00:00";
+
+            int signPos = time.Length - 5;
+            char sign = time[signPos];
+            if (sign == '-' || sign == '+')
+            {
+                return time.Substring(0, signPos)
+                    + "GMT"
+                    + time.Substring(signPos, 3)
+                    + ":"
+                    + time.Substring(signPos + 3);
             }
             else
             {
-                int signPos = time.Length - 5;
-                char sign = time[signPos];
+                signPos = time.Length - 3;
+                sign = time[signPos];
                 if (sign == '-' || sign == '+')
                 {
                     return time.Substring(0, signPos)
                         + "GMT"
-                        + time.Substring(signPos, 3)
-                        + ":"
-                        + time.Substring(signPos + 3);
-                }
-                else
-                {
-                    signPos = time.Length - 3;
-                    sign = time[signPos];
-                    if (sign == '-' || sign == '+')
-                    {
-                        return time.Substring(0, signPos)
-                            + "GMT"
-                            + time.Substring(signPos)
-                            + ":00";
-                    }
+                        + time.Substring(signPos)
+                        + ":00";
                 }
             }
 
@@ -212,9 +208,17 @@ namespace Org.BouncyCastle.Asn1
                     int fCount = d.Length - d.IndexOf('.') - 2;
                     formatStr = @"yyyyMMddHHmmss." + FString(fCount) + @"\Z";
                 }
-                else
+                else if (HasSeconds)
                 {
                     formatStr = @"yyyyMMddHHmmss\Z";
+                }
+                else if (HasMinutes)
+                {
+                    formatStr = @"yyyyMMddHHmm\Z";
+                }
+                else
+                {
+                    formatStr = @"yyyyMMddHH\Z";
                 }
             }
             else if (time.IndexOf('-') > 0 || time.IndexOf('+') > 0)
@@ -239,9 +243,17 @@ namespace Org.BouncyCastle.Asn1
                     int fCount = d.Length - 1 - d.IndexOf('.');
                     formatStr = @"yyyyMMddHHmmss." + FString(fCount);
                 }
-                else
+                else if (HasSeconds)
                 {
                     formatStr = @"yyyyMMddHHmmss";
+                }
+                else if (HasMinutes)
+                {
+                    formatStr = @"yyyyMMddHHmm";
+                }
+                else
+                {
+                    formatStr = @"yyyyMMddHH";
                 }
 
                 // TODO?
@@ -291,19 +303,55 @@ namespace Org.BouncyCastle.Asn1
             get { return time.IndexOf('.') == 14; }
         }
 
-        private byte[] GetOctets()
+        private bool HasSeconds =>  IsDigit(12) && IsDigit(13);
+
+        private bool HasMinutes => IsDigit(10) && IsDigit(11);
+
+        private bool IsDigit(int pos)
         {
+            return time.Length > pos && char.IsDigit(time[pos]);
+        }
+
+        private byte[] GetOctets(int encoding)
+        {
+            if (Asn1OutputStream.EncodingDer == encoding && time[time.Length - 1] == 'Z')
+            {
+                if (!HasMinutes)
+                    return Strings.ToAsciiByteArray(time.Insert(time.Length - 1, "0000"));
+                if (!HasSeconds)
+                    return Strings.ToAsciiByteArray(time.Insert(time.Length - 1, "00"));
+
+                if (HasFractionalSeconds)
+                {
+                    int ind = time.Length - 2;
+                    while (ind > 0 && time[ind] == '0')
+                    {
+                        --ind;
+                    }
+
+                    if (time[ind] != '.')
+                    {
+                        ++ind;
+                    }
+
+                    if (ind != time.Length - 1)
+                    {
+                        return Strings.ToAsciiByteArray(time.Remove(ind, time.Length - 1 - ind));
+                    }
+                }
+            }
+
             return Strings.ToAsciiByteArray(time);
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
-            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.GeneralizedTime, GetOctets());
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.GeneralizedTime, GetOctets(encoding));
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
         {
-            return new PrimitiveEncoding(tagClass, tagNo, GetOctets());
+            return new PrimitiveEncoding(tagClass, tagNo, GetOctets(encoding));
         }
 
         protected override bool Asn1Equals(Asn1Object asn1Object)

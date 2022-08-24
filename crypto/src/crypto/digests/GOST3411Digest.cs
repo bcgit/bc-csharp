@@ -91,10 +91,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 			byteCount++;
 		}
 
-		public void BlockUpdate(
-			byte[]	input,
-			int		inOff,
-			int		length)
+		public void BlockUpdate(byte[] input, int inOff, int length)
 		{
 			while ((xBufOff != 0) && (length > 0))
 			{
@@ -122,6 +119,34 @@ namespace Org.BouncyCastle.Crypto.Digests
 				length--;
 			}
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public void BlockUpdate(ReadOnlySpan<byte> input)
+		{
+			while ((xBufOff != 0) && (input.Length > 0))
+			{
+				Update(input[0]);
+				input = input[1..];
+			}
+
+			while (input.Length >= xBuf.Length)
+			{
+				input[..xBuf.Length].CopyTo(xBuf.AsSpan());
+
+				sumByteArray(xBuf); // calc sum M
+				processBlock(xBuf, 0);
+				input = input[xBuf.Length..];
+				byteCount += (uint)xBuf.Length;
+			}
+
+			// load in the remainder.
+			while (input.Length > 0)
+			{
+				Update(input[0]);
+				input = input[1..];
+			}
+		}
+#endif
 
 		// (i + 1 + 4(k - 1)) = 8i + k      i = 0-3, k = 1-8
 		private byte[] K = new byte[32];
@@ -234,7 +259,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 			Array.Copy(S, 0, H, 0, H.Length);
 		}
 
-		private void finish()
+		private void Finish()
 		{
 			ulong bitCount = byteCount * 8;
 			Pack.UInt64_To_LE(bitCount, L);
@@ -248,11 +273,9 @@ namespace Org.BouncyCastle.Crypto.Digests
 			processBlock(Sum, 0);
 		}
 
-		public int DoFinal(
-			byte[]  output,
-			int     outOff)
+		public int DoFinal(byte[] output, int outOff)
 		{
-			finish();
+			Finish();
 
 			H.CopyTo(output, outOff);
 
@@ -260,6 +283,19 @@ namespace Org.BouncyCastle.Crypto.Digests
 
 			return DIGEST_LENGTH;
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public int DoFinal(Span<byte> output)
+		{
+			Finish();
+
+			H.CopyTo(output);
+
+			Reset();
+
+			return DIGEST_LENGTH;
+		}
+#endif
 
 		/**
 		* reset the chaining variables to the IV values.

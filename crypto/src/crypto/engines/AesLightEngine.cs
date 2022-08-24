@@ -380,6 +380,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, 16, "input buffer too short");
             Check.OutputLength(output, outOff, 16, "output buffer too short");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (forEncryption)
+            {
+                EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff), WorkingKey);
+            }
+            else
+            {
+                DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff), WorkingKey);
+            }
+#else
             if (forEncryption)
             {
                 EncryptBlock(input, inOff, output, outOff, WorkingKey);
@@ -388,14 +398,134 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 DecryptBlock(input, inOff, output, outOff, WorkingKey);
             }
+#endif
 
             return BLOCK_SIZE;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (WorkingKey == null)
+                throw new InvalidOperationException("AES engine not initialised");
+
+            Check.DataLength(input, 16, "input buffer too short");
+            Check.OutputLength(output, 16, "output buffer too short");
+
+            if (forEncryption)
+            {
+                EncryptBlock(input, output, WorkingKey);
+            }
+            else
+            {
+                DecryptBlock(input, output, WorkingKey);
+            }
+
+            return BLOCK_SIZE;
+        }
+#endif
 
         public virtual void Reset()
         {
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output, uint[][] KW)
+        {
+            uint C0 = Pack.LE_To_UInt32(input);
+            uint C1 = Pack.LE_To_UInt32(input[4..]);
+            uint C2 = Pack.LE_To_UInt32(input[8..]);
+            uint C3 = Pack.LE_To_UInt32(input[12..]);
+
+            uint[] kw = KW[0];
+            uint t0 = C0 ^ kw[0];
+            uint t1 = C1 ^ kw[1];
+            uint t2 = C2 ^ kw[2];
+
+            uint r0, r1, r2, r3 = C3 ^ kw[3];
+            int r = 1;
+            while (r < ROUNDS - 1)
+            {
+                kw = KW[r++];
+                r0 = Mcol((uint)S[t0 & 255] ^ (((uint)S[(t1 >> 8) & 255]) << 8) ^ (((uint)S[(t2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24)) ^ kw[0];
+                r1 = Mcol((uint)S[t1 & 255] ^ (((uint)S[(t2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(t0 >> 24) & 255]) << 24)) ^ kw[1];
+                r2 = Mcol((uint)S[t2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(t0 >> 16) & 255]) << 16) ^ (((uint)S[(t1 >> 24) & 255]) << 24)) ^ kw[2];
+                r3 = Mcol((uint)S[r3 & 255] ^ (((uint)S[(t0 >> 8) & 255]) << 8) ^ (((uint)S[(t1 >> 16) & 255]) << 16) ^ (((uint)S[(t2 >> 24) & 255]) << 24)) ^ kw[3];
+                kw = KW[r++];
+                t0 = Mcol((uint)S[r0 & 255] ^ (((uint)S[(r1 >> 8) & 255]) << 8) ^ (((uint)S[(r2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24)) ^ kw[0];
+                t1 = Mcol((uint)S[r1 & 255] ^ (((uint)S[(r2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(r0 >> 24) & 255]) << 24)) ^ kw[1];
+                t2 = Mcol((uint)S[r2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(r0 >> 16) & 255]) << 16) ^ (((uint)S[(r1 >> 24) & 255]) << 24)) ^ kw[2];
+                r3 = Mcol((uint)S[r3 & 255] ^ (((uint)S[(r0 >> 8) & 255]) << 8) ^ (((uint)S[(r1 >> 16) & 255]) << 16) ^ (((uint)S[(r2 >> 24) & 255]) << 24)) ^ kw[3];
+            }
+
+            kw = KW[r++];
+            r0 = Mcol((uint)S[t0 & 255] ^ (((uint)S[(t1 >> 8) & 255]) << 8) ^ (((uint)S[(t2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24)) ^ kw[0];
+            r1 = Mcol((uint)S[t1 & 255] ^ (((uint)S[(t2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(t0 >> 24) & 255]) << 24)) ^ kw[1];
+            r2 = Mcol((uint)S[t2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(t0 >> 16) & 255]) << 16) ^ (((uint)S[(t1 >> 24) & 255]) << 24)) ^ kw[2];
+            r3 = Mcol((uint)S[r3 & 255] ^ (((uint)S[(t0 >> 8) & 255]) << 8) ^ (((uint)S[(t1 >> 16) & 255]) << 16) ^ (((uint)S[(t2 >> 24) & 255]) << 24)) ^ kw[3];
+
+            // the final round is a simple function of S
+
+            kw = KW[r];
+            C0 = (uint)S[r0 & 255] ^ (((uint)S[(r1 >> 8) & 255]) << 8) ^ (((uint)S[(r2 >> 16) & 255]) << 16) ^ (((uint)S[(r3 >> 24) & 255]) << 24) ^ kw[0];
+            C1 = (uint)S[r1 & 255] ^ (((uint)S[(r2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^ (((uint)S[(r0 >> 24) & 255]) << 24) ^ kw[1];
+            C2 = (uint)S[r2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(r0 >> 16) & 255]) << 16) ^ (((uint)S[(r1 >> 24) & 255]) << 24) ^ kw[2];
+            C3 = (uint)S[r3 & 255] ^ (((uint)S[(r0 >> 8) & 255]) << 8) ^ (((uint)S[(r1 >> 16) & 255]) << 16) ^ (((uint)S[(r2 >> 24) & 255]) << 24) ^ kw[3];
+
+            Pack.UInt32_To_LE(C0, output);
+            Pack.UInt32_To_LE(C1, output[4..]);
+            Pack.UInt32_To_LE(C2, output[8..]);
+            Pack.UInt32_To_LE(C3, output[12..]);
+        }
+
+        private void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output, uint[][] KW)
+        {
+            uint C0 = Pack.LE_To_UInt32(input);
+            uint C1 = Pack.LE_To_UInt32(input[4..]);
+            uint C2 = Pack.LE_To_UInt32(input[8..]);
+            uint C3 = Pack.LE_To_UInt32(input[12..]);
+
+            uint[] kw = KW[ROUNDS];
+            uint t0 = C0 ^ kw[0];
+            uint t1 = C1 ^ kw[1];
+            uint t2 = C2 ^ kw[2];
+
+            uint r0, r1, r2, r3 = C3 ^ kw[3];
+            int r = ROUNDS - 1;
+            while (r > 1)
+            {
+                kw = KW[r--];
+                r0 = Inv_Mcol((uint)Si[t0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(t2 >> 16) & 255]) << 16) ^ ((uint)Si[(t1 >> 24) & 255] << 24)) ^ kw[0];
+                r1 = Inv_Mcol((uint)Si[t1 & 255] ^ (((uint)Si[(t0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ ((uint)Si[(t2 >> 24) & 255] << 24)) ^ kw[1];
+                r2 = Inv_Mcol((uint)Si[t2 & 255] ^ (((uint)Si[(t1 >> 8) & 255]) << 8) ^ (((uint)Si[(t0 >> 16) & 255]) << 16) ^ ((uint)Si[(r3 >> 24) & 255] << 24)) ^ kw[2];
+                r3 = Inv_Mcol((uint)Si[r3 & 255] ^ (((uint)Si[(t2 >> 8) & 255]) << 8) ^ (((uint)Si[(t1 >> 16) & 255]) << 16) ^ ((uint)Si[(t0 >> 24) & 255] << 24)) ^ kw[3];
+                kw = KW[r--];
+                t0 = Inv_Mcol((uint)Si[r0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(r2 >> 16) & 255]) << 16) ^ ((uint)Si[(r1 >> 24) & 255] << 24)) ^ kw[0];
+                t1 = Inv_Mcol((uint)Si[r1 & 255] ^ (((uint)Si[(r0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ ((uint)Si[(r2 >> 24) & 255] << 24)) ^ kw[1];
+                t2 = Inv_Mcol((uint)Si[r2 & 255] ^ (((uint)Si[(r1 >> 8) & 255]) << 8) ^ (((uint)Si[(r0 >> 16) & 255]) << 16) ^ ((uint)Si[(r3 >> 24) & 255] << 24)) ^ kw[2];
+                r3 = Inv_Mcol((uint)Si[r3 & 255] ^ (((uint)Si[(r2 >> 8) & 255]) << 8) ^ (((uint)Si[(r1 >> 16) & 255]) << 16) ^ ((uint)Si[(r0 >> 24) & 255] << 24)) ^ kw[3];
+            }
+
+            kw = KW[1];
+            r0 = Inv_Mcol((uint)Si[t0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(t2 >> 16) & 255]) << 16) ^ ((uint)Si[(t1 >> 24) & 255] << 24)) ^ kw[0];
+            r1 = Inv_Mcol((uint)Si[t1 & 255] ^ (((uint)Si[(t0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ ((uint)Si[(t2 >> 24) & 255] << 24)) ^ kw[1];
+            r2 = Inv_Mcol((uint)Si[t2 & 255] ^ (((uint)Si[(t1 >> 8) & 255]) << 8) ^ (((uint)Si[(t0 >> 16) & 255]) << 16) ^ ((uint)Si[(r3 >> 24) & 255] << 24)) ^ kw[2];
+            r3 = Inv_Mcol((uint)Si[r3 & 255] ^ (((uint)Si[(t2 >> 8) & 255]) << 8) ^ (((uint)Si[(t1 >> 16) & 255]) << 16) ^ ((uint)Si[(t0 >> 24) & 255] << 24)) ^ kw[3];
+
+            // the final round's table is a simple function of Si
+
+            kw = KW[0];
+            C0 = (uint)Si[r0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(r2 >> 16) & 255]) << 16) ^ (((uint)Si[(r1 >> 24) & 255]) << 24) ^ kw[0];
+            C1 = (uint)Si[r1 & 255] ^ (((uint)Si[(r0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^ (((uint)Si[(r2 >> 24) & 255]) << 24) ^ kw[1];
+            C2 = (uint)Si[r2 & 255] ^ (((uint)Si[(r1 >> 8) & 255]) << 8) ^ (((uint)Si[(r0 >> 16) & 255]) << 16) ^ (((uint)Si[(r3 >> 24) & 255]) << 24) ^ kw[2];
+            C3 = (uint)Si[r3 & 255] ^ (((uint)Si[(r2 >> 8) & 255]) << 8) ^ (((uint)Si[(r1 >> 16) & 255]) << 16) ^ (((uint)Si[(r0 >> 24) & 255]) << 24) ^ kw[3];
+
+            Pack.UInt32_To_LE(C0, output);
+            Pack.UInt32_To_LE(C1, output[4..]);
+            Pack.UInt32_To_LE(C2, output[8..]);
+            Pack.UInt32_To_LE(C3, output[12..]);
+        }
+#else
         private void EncryptBlock(byte[] input, int inOff, byte[] output, int outOff, uint[][] KW)
         {
             uint C0 = Pack.LE_To_UInt32(input, inOff + 0);
@@ -491,5 +621,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_LE(C2, output, outOff + 8);
             Pack.UInt32_To_LE(C3, output, outOff + 12);
         }
+#endif
     }
 }

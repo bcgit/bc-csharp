@@ -5,7 +5,6 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-
 	/// <summary>
 	/// Implementation of the Skein parameterised hash function in 256, 512 and 1024 bit block sizes,
 	/// based on the <see cref="Org.BouncyCastle.Crypto.Engines.ThreefishEngine">Threefish</see> tweakable block cipher.
@@ -111,5 +110,16 @@ namespace Org.BouncyCastle.Crypto.Digests
 			return engine.DoFinal(outBytes, outOff);
 		}
 
-	}
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            engine.Update(input);
+        }
+
+        public int DoFinal(Span<byte> output)
+        {
+            return engine.DoFinal(output);
+        }
+#endif
+    }
 }

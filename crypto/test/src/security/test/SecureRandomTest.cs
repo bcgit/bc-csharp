@@ -1,11 +1,9 @@
 using System;
-using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -16,16 +14,13 @@ namespace Org.BouncyCastle.Security.Tests
     [TestFixture]
     public class SecureRandomTest
     {
-#if !PORTABLE
         [Test]
         public void TestCryptoApi()
         {
-            SecureRandom random = new SecureRandom(
-                new CryptoApiRandomGenerator());
+            SecureRandom random = new SecureRandom(new CryptoApiRandomGenerator());
 
             CheckSecureRandom(random);
         }
-#endif
 
         [Test]
         public void TestDefault()
@@ -129,20 +124,45 @@ namespace Org.BouncyCastle.Security.Tests
 
         private static bool RunChiSquaredTests(SecureRandom random)
         {
-            int passes = 0;
-
-            for (int tries = 0; tries < 100; ++tries)
             {
-                double chi2 = MeasureChiSquared(random, 1000);
+                int passes = 0;
 
-                // 255 degrees of freedom in test => Q ~ 10.0% for 285
-                if (chi2 < 285.0)
+                for (int tries = 0; tries < 100; ++tries)
                 {
-                    ++passes;
+                    double chi2 = MeasureChiSquared(random, 1000);
+
+                    // 255 degrees of freedom in test => Q ~ 10.0% for 285
+                    if (chi2 < 285.0)
+                    {
+                        ++passes;
+                    }
                 }
+
+                if (passes <= 75)
+                    return false;
             }
 
-            return passes > 75;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            {
+                int passes = 0;
+
+                for (int tries = 0; tries < 100; ++tries)
+                {
+                    double chi2 = MeasureChiSquaredSpan(random, 1000);
+
+                    // 255 degrees of freedom in test => Q ~ 10.0% for 285
+                    if (chi2 < 285.0)
+                    {
+                        ++passes;
+                    }
+                }
+
+                if (passes <= 75)
+                    return false;
+            }
+#endif
+
+            return true;
         }
 
         private static double MeasureChiSquared(SecureRandom random, int rounds)
@@ -203,6 +223,66 @@ namespace Org.BouncyCastle.Security.Tests
             return chi2;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static double MeasureChiSquaredSpan(SecureRandom random, int rounds)
+        {
+            byte[] opts = random.GenerateSeed(2);
+            Span<int> counts = stackalloc int[256];
+
+            Span<byte> bs = stackalloc byte[256];
+            for (int i = 0; i < rounds; ++i)
+            {
+                random.NextBytes(bs);
+
+                for (int b = 0; b < 256; ++b)
+                {
+                    ++counts[bs[b]];
+                }
+            }
+
+            byte mask = opts[0];
+            for (int i = 0; i < rounds; ++i)
+            {
+                random.NextBytes(bs);
+
+                for (int b = 0; b < 256; ++b)
+                {
+                    ++counts[bs[b] ^ mask];
+                }
+
+                ++mask;
+            }
+
+            byte shift = opts[1];
+            for (int i = 0; i < rounds; ++i)
+            {
+                random.NextBytes(bs);
+
+                for (int b = 0; b < 256; ++b)
+                {
+                    ++counts[(byte)(bs[b] + shift)];
+                }
+
+                ++shift;
+            }
+
+            int total = 3 * rounds;
+
+            double chi2 = 0;
+            for (int k = 0; k < counts.Length; ++k)
+            {
+                double diff = ((double)counts[k]) - total;
+                double diff2 = diff * diff;
+
+                chi2 += diff2;
+            }
+
+            chi2 /= total;
+
+            return chi2;
+        }
+#endif
+
         private abstract class TestRandomGenerator
             : IRandomGenerator
         {
@@ -220,6 +300,10 @@ namespace Org.BouncyCastle.Security.Tests
             }
 
             public abstract void NextBytes(byte[] bytes, int start, int len);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public abstract void NextBytes(Span<byte> bytes);
+#endif
         }
 
         private sealed class FixedRandomGenerator
@@ -236,6 +320,13 @@ namespace Org.BouncyCastle.Security.Tests
             {
                 Arrays.Fill(bytes, start, start + len, b);
             }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void NextBytes(Span<byte> bytes)
+            {
+                bytes.Fill(b);
+            }
+#endif
         }
     }
 }

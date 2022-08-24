@@ -103,6 +103,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             checkSHAKE(128, new CShakeDigest(128, null, new byte[0]), Hex.Decode("eeaabeef"));
             checkSHAKE(128, new CShakeDigest(128, null, null), Hex.Decode("eeaabeef"));
             checkSHAKE(256, new CShakeDigest(256, null, null), Hex.Decode("eeaabeef"));
+
+            DigestTest.SpanConsistencyTests(this, new CShakeDigest(128, null, null));
+            DigestTest.SpanConsistencyTests(this, new CShakeDigest(256, null, null));
         }
 
         private void checkZeroPadZ()

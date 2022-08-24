@@ -32,7 +32,6 @@ namespace Org.BouncyCastle.Utilities.Collections
         }
 
         public static T GetValueOrKey<T>(IDictionary<T, T> d, T k)
-            where T : class
         {
             return d.TryGetValue(k, out var v) ? v : k;
         }
