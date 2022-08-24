@@ -499,8 +499,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected virtual TlsAeadCipher CreateCipher_Aes_Ccm(TlsCryptoParameters cryptoParams, int cipherKeySize,
             int macSize)
         {
-            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_Aes_Ccm(), true);
-            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_Aes_Ccm(), false);
+            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_Aes_Ccm(), true);
+            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_Aes_Ccm(), false);
 
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, cipherKeySize, macSize, TlsAeadCipher.AEAD_CCM);
         }
@@ -508,8 +508,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected virtual TlsAeadCipher CreateCipher_Aes_Gcm(TlsCryptoParameters cryptoParams, int cipherKeySize,
             int macSize)
         {
-            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_Aes_Gcm(), true);
-            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_Aes_Gcm(), false);
+            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_Aes_Gcm(), true);
+            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_Aes_Gcm(), false);
 
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, cipherKeySize, macSize, TlsAeadCipher.AEAD_GCM);
         }
@@ -517,8 +517,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected virtual TlsAeadCipher CreateCipher_Aria_Gcm(TlsCryptoParameters cryptoParams, int cipherKeySize,
             int macSize)
         {
-            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_Aria_Gcm(), true);
-            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_Aria_Gcm(), false);
+            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_Aria_Gcm(), true);
+            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_Aria_Gcm(), false);
 
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, cipherKeySize, macSize, TlsAeadCipher.AEAD_GCM);
         }
@@ -526,8 +526,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected virtual TlsAeadCipher CreateCipher_Camellia_Gcm(TlsCryptoParameters cryptoParams, int cipherKeySize,
             int macSize)
         {
-            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_Camellia_Gcm(), true);
-            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_Camellia_Gcm(), false);
+            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_Camellia_Gcm(), true);
+            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_Camellia_Gcm(), false);
 
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, cipherKeySize, macSize, TlsAeadCipher.AEAD_GCM);
         }
@@ -546,16 +546,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected virtual TlsAeadCipher CreateCipher_SM4_Ccm(TlsCryptoParameters cryptoParams)
         {
-            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_SM4_Ccm(), true);
-            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_SM4_Ccm(), false);
+            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_SM4_Ccm(), true);
+            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_SM4_Ccm(), false);
 
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, 16, 16, TlsAeadCipher.AEAD_CCM);
         }
 
         protected virtual TlsAeadCipher CreateCipher_SM4_Gcm(TlsCryptoParameters cryptoParams)
         {
-            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_SM4_Gcm(), true);
-            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadBlockCipher_SM4_Gcm(), false);
+            BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_SM4_Gcm(), true);
+            BcTlsAeadCipherImpl decrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_SM4_Gcm(), false);
 
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, 16, 16, TlsAeadCipher.AEAD_GCM);
         }
@@ -596,43 +596,43 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new SM4Engine();
         }
 
-        protected virtual IAeadBlockCipher CreateCcmMode(IBlockCipher engine)
+        protected virtual IAeadCipher CreateCcmMode(IBlockCipher engine)
         {
             return new CcmBlockCipher(engine);
         }
 
-        protected virtual IAeadBlockCipher CreateGcmMode(IBlockCipher engine)
+        protected virtual IAeadCipher CreateGcmMode(IBlockCipher engine)
         {
             // TODO Consider allowing custom configuration of multiplier
             return new GcmBlockCipher(engine);
         }
 
-        protected virtual IAeadBlockCipher CreateAeadBlockCipher_Aes_Ccm()
+        protected virtual IAeadCipher CreateAeadCipher_Aes_Ccm()
         {
             return CreateCcmMode(CreateAesEngine());
         }
 
-        protected virtual IAeadBlockCipher CreateAeadBlockCipher_Aes_Gcm()
+        protected virtual IAeadCipher CreateAeadCipher_Aes_Gcm()
         {
             return CreateGcmMode(CreateAesEngine());
         }
 
-        protected virtual IAeadBlockCipher CreateAeadBlockCipher_Aria_Gcm()
+        protected virtual IAeadCipher CreateAeadCipher_Aria_Gcm()
         {
             return CreateGcmMode(CreateAriaEngine());
         }
 
-        protected virtual IAeadBlockCipher CreateAeadBlockCipher_Camellia_Gcm()
+        protected virtual IAeadCipher CreateAeadCipher_Camellia_Gcm()
         {
             return CreateGcmMode(CreateCamelliaEngine());
         }
 
-        protected virtual IAeadBlockCipher CreateAeadBlockCipher_SM4_Ccm()
+        protected virtual IAeadCipher CreateAeadCipher_SM4_Ccm()
         {
             return CreateCcmMode(CreateSM4Engine());
         }
 
-        protected virtual IAeadBlockCipher CreateAeadBlockCipher_SM4_Gcm()
+        protected virtual IAeadCipher CreateAeadCipher_SM4_Gcm()
         {
             return CreateGcmMode(CreateSM4Engine());
         }
