@@ -875,8 +875,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                     parent.gHASH(parent.theReverse);
 
                     /* Adjust counters */
-                    numProcessed += mySpace;
-                    myRemaining -= mySpace;
+                    numProcessed += BUFLEN;
+                    myRemaining -= BUFLEN;
                 }
 
                 /* If we have remaining data */
