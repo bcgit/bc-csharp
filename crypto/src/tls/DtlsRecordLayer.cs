@@ -557,10 +557,24 @@ namespace Org.BouncyCastle.Tls
 
             long macSeqNo = GetMacSequenceNumber(recordEpoch.Epoch, seq);
 
-            TlsDecodeResult decoded = recordEpoch.Cipher.DecodeCiphertext(macSeqNo, recordType, recordVersion, record,
-                headerLength, dataLength);
+            TlsDecodeResult decoded;
+            try
+            {
+                decoded = recordEpoch.Cipher.DecodeCiphertext(macSeqNo, recordType, recordVersion, record, headerLength, dataLength);
 
-            recordEpoch.ReplayWindow.ReportAuthenticated(seq);
+                recordEpoch.ReplayWindow.ReportAuthenticated(seq);
+
+                // TODO[cid] somehow notify server of valid packet for peer address update
+            }
+            catch (TlsFatalAlert fatalAlert) when (fatalAlert.AlertDescription == AlertDescription.bad_record_mac)
+            {
+                /*
+                 * RFC 9146 6.
+                 * DTLS implementations MUST silently discard records with bad MACs or that are otherwise invalid.
+                 */
+                return -1;
+            }
+
 
             if (decoded.len > m_plaintextLimit)
                 return -1;
