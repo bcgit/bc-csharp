@@ -120,5 +120,12 @@ namespace Org.BouncyCastle.Crypto.Macs
 		{
 			return engine.DoFinal(output, outOff);
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public int DoFinal(Span<byte> output)
+		{
+			return engine.DoFinal(output);
+		}
+#endif
 	}
 }

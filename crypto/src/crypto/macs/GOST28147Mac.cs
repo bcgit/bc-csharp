@@ -283,6 +283,9 @@ namespace Org.BouncyCastle.Crypto.Macs
 
 		public int DoFinal(byte[] output, int outOff)
 		{
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return DoFinal(output.AsSpan(outOff));
+#else
 			//padding with zero
 			while (bufOff < BlockSize)
 			{
@@ -307,7 +310,38 @@ namespace Org.BouncyCastle.Crypto.Macs
 			Reset();
 
 			return MacSize;
+#endif
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public int DoFinal(Span<byte> output)
+		{
+			//padding with zero
+			while (bufOff < BlockSize)
+			{
+				buf[bufOff++] = 0;
+			}
+
+			byte[] sum = new byte[buf.Length];
+			if (firstStep)
+			{
+				firstStep = false;
+				Array.Copy(buf, 0, sum, 0, mac.Length);
+			}
+			else
+			{
+				Cm5Func(buf, 0, mac, sum);
+			}
+
+			Gost28147MacFunc(workingKey, sum, 0, mac, 0);
+
+			mac.AsSpan((mac.Length / 2) - MacSize, MacSize).CopyTo(output);
+
+			Reset();
+
+			return MacSize;
+		}
+#endif
 
 		public void Reset()
 		{

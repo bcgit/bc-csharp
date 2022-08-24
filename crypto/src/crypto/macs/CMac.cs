@@ -233,10 +233,11 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
-        public int DoFinal(
-            byte[]	outBytes,
-            int		outOff)
+        public int DoFinal(byte[] outBytes, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(outBytes.AsSpan(outOff));
+#else
             int blockSize = cipher.GetBlockSize();
 
             byte[] lu;
@@ -262,7 +263,39 @@ namespace Org.BouncyCastle.Crypto.Macs
             Reset();
 
             return macSize;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            int blockSize = cipher.GetBlockSize();
+
+            byte[] lu;
+            if (bufOff == blockSize)
+            {
+                lu = Lu;
+            }
+            else
+            {
+                new ISO7816d4Padding().AddPadding(buf, bufOff);
+                lu = Lu2;
+            }
+
+            for (int i = 0; i < mac.Length; i++)
+            {
+                buf[i] ^= lu[i];
+            }
+
+            cipher.ProcessBlock(buf, mac);
+
+            mac.AsSpan(0, macSize).CopyTo(output);
+
+            Reset();
+
+            return macSize;
+        }
+#endif
 
         /**
         * Reset the mac generator.

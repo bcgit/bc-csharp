@@ -328,7 +328,10 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public int DoFinal(byte[] output, int outOff)
         {
-            Check.DataLength(output, outOff, BlockSize, "output buffer is too short.");
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
+            Check.OutputLength(output, outOff, BlockSize, "output buffer is too short.");
 
             if (currentBlockOffset > 0)
             {
@@ -344,11 +347,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                     h4 -= (1 << 24);
                 }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                ProcessBlock(currentBlock);
-#else
                 ProcessBlock(currentBlock, 0);
-#endif
             }
 
             Debug.Assert(h4 >> 26 == 0);
@@ -372,7 +371,54 @@ namespace Org.BouncyCastle.Crypto.Macs
 
             Reset();
             return BlockSize;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            Check.OutputLength(output, BlockSize, "output buffer is too short.");
+
+            if (currentBlockOffset > 0)
+            {
+                // Process padded block
+                if (currentBlockOffset < BlockSize)
+                {
+                    currentBlock[currentBlockOffset++] = 1;
+                    while (currentBlockOffset < BlockSize)
+                    {
+                        currentBlock[currentBlockOffset++] = 0;
+                    }
+
+                    h4 -= (1 << 24);
+                }
+
+                ProcessBlock(currentBlock);
+            }
+
+            Debug.Assert(h4 >> 26 == 0);
+
+            //h0 += (h4 >> 26) * 5U + 5U; h4 &= 0x3ffffff;
+            h0 += 5U;
+            h1 += h0 >> 26; h0 &= 0x3ffffff;
+            h2 += h1 >> 26; h1 &= 0x3ffffff;
+            h3 += h2 >> 26; h2 &= 0x3ffffff;
+            h4 += h3 >> 26; h3 &= 0x3ffffff;
+
+            long c = ((int)(h4 >> 26) - 1) * 5;
+            c += (long)k0 + ((h0) | (h1 << 26));
+            Pack.UInt32_To_LE((uint)c, output); c >>= 32;
+            c += (long)k1 + ((h1 >> 6) | (h2 << 20));
+            Pack.UInt32_To_LE((uint)c, output[4..]); c >>= 32;
+            c += (long)k2 + ((h2 >> 12) | (h3 << 14));
+            Pack.UInt32_To_LE((uint)c, output[8..]); c >>= 32;
+            c += (long)k3 + ((h3 >> 18) | (h4 << 8));
+            Pack.UInt32_To_LE((uint)c, output[12..]);
+
+            Reset();
+            return BlockSize;
+        }
+#endif
 
         public void Reset()
         {

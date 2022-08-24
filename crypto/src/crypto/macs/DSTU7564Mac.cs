@@ -89,10 +89,10 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public int DoFinal(byte[] output, int outOff)
         {
-            Check.OutputLength(output, outOff, macSize, "output buffer too short");
-
             if (paddedKey == null)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+            Check.OutputLength(output, outOff, macSize, "output buffer too short");
 
             Pad();
 
@@ -102,6 +102,24 @@ namespace Org.BouncyCastle.Crypto.Macs
 
             return engine.DoFinal(output, outOff);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            if (paddedKey == null)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+            Check.OutputLength(output, macSize, "output buffer too short");
+
+            Pad();
+
+            engine.BlockUpdate(invertedKey);
+
+            inputLength = 0;
+
+            return engine.DoFinal(output);
+        }
+#endif
 
         public void Reset()
         {

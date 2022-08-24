@@ -106,6 +106,17 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            // TODO[span] call cipher.DoFinal(Span<byte) when available
+            byte[] tmp = new byte[GetMacSize()];
+            int result = DoFinal(tmp, 0);
+            tmp.CopyTo(output);
+            return result;
+        }
+#endif
+
         public void Reset()
         {
             cipher.Reset();

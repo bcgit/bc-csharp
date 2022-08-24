@@ -190,6 +190,15 @@ namespace Org.BouncyCastle.Crypto.Macs
             return 8;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            long result = DoFinal();
+            Pack.UInt64_To_LE((ulong)result, output);
+            return 8;
+        }
+#endif
+
         public virtual void Reset()
         {
             v0 = k0 ^ 0x736f6d6570736575L;

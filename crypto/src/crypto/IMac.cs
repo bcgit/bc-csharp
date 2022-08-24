@@ -39,6 +39,14 @@ namespace Org.BouncyCastle.Crypto
         /// <returns>the number of bytes written</returns>
         int DoFinal(byte[] output, int outOff);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Perform final calculations, producing the result MAC.</summary>
+        /// <remarks>This call leaves the MAC reset.</remarks>
+        /// <param name="output">the span the MAC is to be copied into.</param>
+        /// <returns>the number of bytes written</returns>
+        int DoFinal(Span<byte> output);
+#endif
+
         /// <summary>Reset the MAC back to its initial state.</summary>
         void Reset();
     }

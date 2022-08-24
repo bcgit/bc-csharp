@@ -177,18 +177,36 @@ namespace Org.BouncyCastle.Crypto.Macs
             if (bufOff % buf.Length != 0)
                 throw new DataLengthException("Input must be a multiple of blocksize");
 
+            Check.OutputLength(output, outOff, macSize, "output buffer too short");
+
             //Last block
             Xor(c, 0, buf, 0, cTemp);
             Xor(cTemp, 0, kDelta, 0, c);
             engine.ProcessBlock(c, 0, c, 0);
 
-            if (macSize + outOff > output.Length)
-                throw new DataLengthException("Output buffer too short");
-
             Array.Copy(c, 0, output, outOff, macSize);
 
             return macSize;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            if (bufOff % buf.Length != 0)
+                throw new DataLengthException("Input must be a multiple of blocksize");
+
+            Check.OutputLength(output, macSize, "output buffer too short");
+
+            //Last block
+            Xor(c, 0, buf, 0, cTemp);
+            Xor(cTemp, 0, kDelta, 0, c);
+            engine.ProcessBlock(c, c);
+
+            c.AsSpan(0, macSize).CopyTo(output);
+
+            return macSize;
+        }
+#endif
 
         public void Reset()
         {

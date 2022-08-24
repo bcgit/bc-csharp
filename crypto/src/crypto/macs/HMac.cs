@@ -108,12 +108,15 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
             digest.DoFinal(outputBuf, blockLength);
 
 			if (opadState != null)
 			{
 				((IMemoable)digest).Reset(opadState);
-				digest.BlockUpdate(outputBuf, blockLength, digest.GetDigestSize());
+				digest.BlockUpdate(outputBuf, blockLength, digestSize);
 			}
 			else
 			{
@@ -134,7 +137,40 @@ namespace Org.BouncyCastle.Crypto.Macs
 			}
 
             return len;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            digest.DoFinal(outputBuf.AsSpan(blockLength));
+
+            if (opadState != null)
+            {
+                ((IMemoable)digest).Reset(opadState);
+                digest.BlockUpdate(outputBuf.AsSpan(blockLength, digestSize));
+            }
+            else
+            {
+                digest.BlockUpdate(outputBuf);
+            }
+
+            int len = digest.DoFinal(output);
+
+            Array.Clear(outputBuf, blockLength, digestSize);
+
+            if (ipadState != null)
+            {
+                ((IMemoable)digest).Reset(ipadState);
+            }
+            else
+            {
+                digest.BlockUpdate(inputPad);
+            }
+
+            return len;
+        }
+#endif
 
         /**
         * Reset the mac generator.
