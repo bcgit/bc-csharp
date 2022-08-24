@@ -99,6 +99,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             digest.BlockUpdate(input, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            digest.BlockUpdate(input);
+        }
+#endif
+
         public virtual int DoFinal(byte[] output, int outOff)
         {
             digest.DoFinal(outputBuf, blockLength);

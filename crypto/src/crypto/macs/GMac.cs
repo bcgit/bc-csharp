@@ -52,10 +52,8 @@ namespace Org.BouncyCastle.Crypto.Macs
         /// </summary>
         public void Init(ICipherParameters parameters)
         {
-            if (parameters is ParametersWithIV)
+            if (parameters is ParametersWithIV param)
             {
-                ParametersWithIV param = (ParametersWithIV)parameters;
-
                 byte[] iv = param.GetIV();
                 KeyParameter keyParam = (KeyParameter)param.Parameters;
 
@@ -87,6 +85,22 @@ namespace Org.BouncyCastle.Crypto.Macs
         {
             cipher.ProcessAadBytes(input, inOff, len);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            // TODO[span] Add span-based variant of ProcessAadBytes
+            byte[] tmp = new byte[64];
+            while (input.Length > 64)
+            {
+                input[..64].CopyTo(tmp);
+                input = input[64..];
+                cipher.ProcessAadBytes(tmp, 0, 64);
+            }
+            input.CopyTo(tmp);
+            cipher.ProcessAadBytes(tmp, 0, input.Length);
+        }
+#endif
 
         public int DoFinal(byte[] output, int outOff)
         {

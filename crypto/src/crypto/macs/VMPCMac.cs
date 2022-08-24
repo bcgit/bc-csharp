@@ -159,15 +159,24 @@ namespace Org.BouncyCastle.Crypto.Macs
 			n = (byte) ((n + 1) & 0xff);
 		}
 
-		public virtual void BlockUpdate(byte[] input, int inOff, int len)
+		public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
 		{
-			if ((inOff + len) > input.Length)
-				throw new DataLengthException("input buffer too short");
+			Check.DataLength(input, inOff, inLen, "input buffer too short");
 
-			for (int i = 0; i < len; i++)
+			for (int i = 0; i < inLen; i++)
 			{
 				Update(input[inOff + i]);
 			}
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+			for (int i = 0; i < input.Length; i++)
+			{
+				Update(input[i]);
+			}
+		}
+#endif
 	}
 }

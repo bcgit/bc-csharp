@@ -180,14 +180,14 @@ namespace Org.BouncyCastle.Crypto.Macs
 			buf[bufOff++] = input;
 		}
 
-		public void BlockUpdate(
-			byte[]	input,
-			int		inOff,
-			int		len)
+		public void BlockUpdate(byte[] input, int inOff, int len)
 		{
 			if (len < 0)
 				throw new ArgumentException("Can't have a negative input length!");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			BlockUpdate(input.AsSpan(inOff, len));
+#else
 			int blockSize = cipher.GetBlockSize();
 			int resultLen = 0;
 			int gapLen = blockSize - bufOff;
@@ -214,7 +214,37 @@ namespace Org.BouncyCastle.Crypto.Macs
 			Array.Copy(input, inOff, buf, bufOff, len);
 
 			bufOff += len;
+#endif
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public void BlockUpdate(ReadOnlySpan<byte> input)
+		{
+			int blockSize = cipher.GetBlockSize();
+			int resultLen = 0;
+			int gapLen = blockSize - bufOff;
+
+			if (input.Length > gapLen)
+			{
+				input[..gapLen].CopyTo(buf.AsSpan(bufOff));
+
+				resultLen += cipher.ProcessBlock(buf, mac);
+
+				bufOff = 0;
+				input = input[gapLen..];
+
+				while (input.Length > blockSize)
+				{
+					resultLen += cipher.ProcessBlock(input, mac);
+					input = input[blockSize..];
+				}
+			}
+
+			input.CopyTo(buf.AsSpan(bufOff));
+
+			bufOff += input.Length;
+		}
+#endif
 
 		public int DoFinal(
 			byte[]	output,

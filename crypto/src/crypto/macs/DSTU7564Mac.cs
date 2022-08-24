@@ -70,6 +70,17 @@ namespace Org.BouncyCastle.Crypto.Macs
             inputLength += (ulong)len;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            if (paddedKey == null)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+            engine.BlockUpdate(input);
+            inputLength += (ulong)input.Length;
+        }
+#endif
+
         public void Update(byte input)
         {
             engine.Update(input);
