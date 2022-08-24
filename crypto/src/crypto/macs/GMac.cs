@@ -89,16 +89,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
-            // TODO[span] Add span-based variant of ProcessAadBytes
-            byte[] tmp = new byte[64];
-            while (input.Length > 64)
-            {
-                input[..64].CopyTo(tmp);
-                input = input[64..];
-                cipher.ProcessAadBytes(tmp, 0, 64);
-            }
-            input.CopyTo(tmp);
-            cipher.ProcessAadBytes(tmp, 0, input.Length);
+            cipher.ProcessAadBytes(input);
         }
 #endif
 

@@ -117,6 +117,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             associatedText.Write(inBytes, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            // TODO: Process AAD online
+            associatedText.Write(input);
+        }
+#endif
+
         public virtual int ProcessByte(
             byte	input,
             byte[]	outBytes,

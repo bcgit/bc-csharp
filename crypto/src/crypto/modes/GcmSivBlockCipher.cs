@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -296,15 +295,30 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void ProcessAadBytes(byte[] pData, int pOffset, int pLen)
         {
-            /* Check that we can supply AEAD */
-            CheckAeadStatus(pLen);
-
             /* Check input buffer */
             CheckBuffer(pData, pOffset, pLen, false);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ProcessAadBytes(pData.AsSpan(pOffset, pLen));
+#else
+            /* Check that we can supply AEAD */
+            CheckAeadStatus(pLen);
+
             /* Process the aead */
             theAEADHasher.updateHash(pData, pOffset, pLen);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            /* Check that we can supply AEAD */
+            CheckAeadStatus(input.Length);
+
+            /* Process the aead */
+            theAEADHasher.updateHash(input);
+        }
+#endif
 
         public virtual int ProcessByte(byte pByte, byte[] pOutput, int pOutOffset)
         {
@@ -647,6 +661,18 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void fillReverse(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            /* Loop through the buffer */
+            for (int i = 0, j = BUFLEN - 1; i < input.Length; i++, j--)
+            {
+                /* Copy byte */
+                output[j] = input[i];
+            }
+        }
+#endif
+
         /**
         * xor a full block buffer.
         * @param pLeft the left operand and result
@@ -890,6 +916,49 @@ namespace Org.BouncyCastle.Crypto.Modes
                 /* Adjust the number of bytes processed */
                 numHashed += (ulong)pLen;
             }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            internal void updateHash(ReadOnlySpan<byte> buffer)
+            {
+                int pLen = buffer.Length;
+
+                /* If we should process the cache */
+                int mySpace = BUFLEN - numActive;
+                if (numActive > 0 && buffer.Length >= mySpace)
+                {
+                    /* Copy data into the cache and hash it */
+                    buffer[..mySpace].CopyTo(theBuffer.AsSpan(numActive));
+                    fillReverse(theBuffer, parent.theReverse);
+                    parent.gHASH(parent.theReverse);
+
+                    /* Adjust counters */
+                    buffer = buffer[mySpace..];
+                    numActive = 0;
+                }
+
+                /* While we have full blocks */
+                while (buffer.Length >= BUFLEN)
+                {
+                    /* Access the next data */
+                    fillReverse(buffer[..BUFLEN], parent.theReverse);
+                    parent.gHASH(parent.theReverse);
+
+                    /* Adjust counters */
+                    buffer = buffer[BUFLEN..];
+                }
+
+                /* If we have remaining data */
+                if (!buffer.IsEmpty)
+                {
+                    /* Copy data into the cache */
+                    buffer.CopyTo(theBuffer.AsSpan(numActive));
+                    numActive += buffer.Length;
+                }
+
+                /* Adjust the number of bytes processed */
+                numHashed += (ulong)pLen;
+            }
+#endif
 
             /**
             * complete hash.

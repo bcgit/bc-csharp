@@ -209,6 +209,19 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            CheckAad();
+
+            if (!input.IsEmpty)
+            {
+                this.mAadCount = IncrementCount(mAadCount, (uint)input.Length, AadLimit);
+                mPoly1305.BlockUpdate(input);
+            }
+        }
+#endif
+
         public virtual int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
             CheckData();

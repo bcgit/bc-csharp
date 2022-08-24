@@ -158,6 +158,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             associatedText.Write(input, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            associatedText.Write(input);
+        }
+#endif
+
         private void ProcessAAD(byte[] assocText, int assocOff, int assocLen, int dataLen)
         {
             if (assocLen - assocOff < engine.GetBlockSize())
