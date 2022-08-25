@@ -340,7 +340,7 @@ namespace Org.BouncyCastle.Tls
                     // Implicitly send change_cipher_spec and change to pending cipher state
 
                     // TODO Send change_cipher_spec and finished records in single datagram?
-                    byte[] data = new byte[]{ 1 };
+                    byte[] data = new byte[] { 1 };
                     SendRecord(ContentType.change_cipher_spec, data, 0, data.Length);
 
                     this.m_writeEpoch = nextEpoch;
@@ -476,42 +476,29 @@ namespace Org.BouncyCastle.Tls
             if (received < 1)
                 return -1;
 
-            // TODO[dtls13] Deal with opaque record type for 1.3 AEAD ciphers
-            short recordType = TlsUtilities.ReadUint8(record, 0);
 
-            int headerLength;
-            int dataLength;
-            switch (recordType)
-            {
-                case ContentType.tls12_cid:
-                    {
-                        var cidLength = m_context.SecurityParameters.ConnectionIdPeer?.Length ?? 0;
-                        headerLength = RECORD_HEADER_LENGTH + cidLength;
-                        dataLength = TlsUtilities.ReadUint16(record, 11 + cidLength);
-                        break;
-                    }
-                default:
-                    {
-                        headerLength = RECORD_HEADER_LENGTH;
-                        dataLength = TlsUtilities.ReadUint16(record, 11);
-                        break;
-                    }
-            }
+            var cidLength = m_context.SecurityParameters.ConnectionIdPeer?.Length ?? 0;
+
+            if (!TryGetRecordLength(record, 0, received, cidLength, out int headerLength, out int dataLength))
+                return -1;
 
             if (received != (headerLength + dataLength))
                 return -1;
 
+            // TODO[dtls13] Deal with opaque record type for 1.3 AEAD ciphers
+            short recordType = TlsUtilities.ReadUint8(record, 0);
+
             switch (recordType)
             {
-            case ContentType.alert:
-            case ContentType.application_data:
-            case ContentType.change_cipher_spec:
-            case ContentType.handshake:
-            case ContentType.heartbeat:
-            case ContentType.tls12_cid:
+                case ContentType.alert:
+                case ContentType.application_data:
+                case ContentType.change_cipher_spec:
+                case ContentType.handshake:
+                case ContentType.heartbeat:
+                case ContentType.tls12_cid:
                     break;
-            default:
-                return -1;
+                default:
+                    return -1;
             }
 
             int epoch = TlsUtilities.ReadUint16(record, 3);
@@ -547,9 +534,9 @@ namespace Org.BouncyCastle.Tls
                  */
                 bool isClientHelloFragment =
                         ReadEpoch == 0
-                    &&  dataLength > 0
-                    &&  ContentType.handshake == recordType
-                    &&  HandshakeType.client_hello == TlsUtilities.ReadUint8(record, headerLength);
+                    && dataLength > 0
+                    && ContentType.handshake == recordType
+                    && HandshakeType.client_hello == TlsUtilities.ReadUint8(record, headerLength);
 
                 if (!isClientHelloFragment)
                     return -1;
@@ -586,9 +573,9 @@ namespace Org.BouncyCastle.Tls
             {
                 bool isHelloVerifyRequest =
                         ReadEpoch == 0
-                    &&  dataLength > 0
-                    &&  ContentType.handshake == recordType
-                    &&  HandshakeType.hello_verify_request == TlsUtilities.ReadUint8(record, headerLength);
+                    && dataLength > 0
+                    && ContentType.handshake == recordType
+                    && HandshakeType.hello_verify_request == TlsUtilities.ReadUint8(record, headerLength);
 
                 if (isHelloVerifyRequest)
                 {
@@ -609,120 +596,120 @@ namespace Org.BouncyCastle.Tls
 
             switch (decoded.contentType)
             {
-            case ContentType.alert:
-            {
-                if (decoded.len == 2)
-                {
-                    short alertLevel = TlsUtilities.ReadUint8(decoded.buf, decoded.off);
-                    short alertDescription = TlsUtilities.ReadUint8(decoded.buf, decoded.off + 1);
-
-                    m_peer.NotifyAlertReceived(alertLevel, alertDescription);
-
-                    if (alertLevel == AlertLevel.fatal)
+                case ContentType.alert:
                     {
-                        Failed();
-                        throw new TlsFatalAlert(alertDescription);
-                    }
-
-                    // TODO Can close_notify be a fatal alert?
-                    if (alertDescription == AlertDescription.close_notify)
-                    {
-                        CloseTransport();
-                    }
-                }
-
-                return -1;
-            }
-            case ContentType.application_data:
-            {
-                if (m_inHandshake)
-                {
-                    // TODO Consider buffering application data for new epoch that arrives
-                    // out-of-order with the Finished message
-                    return -1;
-                }
-                break;
-            }
-            case ContentType.change_cipher_spec:
-            {
-                // Implicitly receive change_cipher_spec and change to pending cipher state
-
-                for (int i = 0; i < decoded.len; ++i)
-                {
-                    short message = TlsUtilities.ReadUint8(decoded.buf, decoded.off + i);
-                    if (message != ChangeCipherSpec.change_cipher_spec)
-                        continue;
-
-                    if (m_pendingEpoch != null)
-                    {
-                        m_readEpoch = m_pendingEpoch;
-                    }
-                }
-
-                return -1;
-            }
-            case ContentType.handshake:
-            {
-                if (!m_inHandshake)
-                {
-                    if (null != m_retransmit)
-                    {
-                        m_retransmit.ReceivedHandshakeRecord(epoch, decoded.buf, decoded.off, decoded.len);
-                    }
-
-                    // TODO Consider support for HelloRequest
-                    return -1;
-                }
-                break;
-            }
-            case ContentType.heartbeat:
-            {
-                if (null != m_heartbeatInFlight || m_heartBeatResponder)
-                {
-                    try
-                    {
-                        MemoryStream input = new MemoryStream(decoded.buf, decoded.off, decoded.len, false);
-                        HeartbeatMessage heartbeatMessage = HeartbeatMessage.Parse(input);
-
-                        if (null != heartbeatMessage)
+                        if (decoded.len == 2)
                         {
-                            switch (heartbeatMessage.Type)
-                            {
-                            case HeartbeatMessageType.heartbeat_request:
-                            {
-                                if (m_heartBeatResponder)
-                                {
-                                    HeartbeatMessage response = HeartbeatMessage.Create(m_context,
-                                        HeartbeatMessageType.heartbeat_response, heartbeatMessage.Payload);
+                            short alertLevel = TlsUtilities.ReadUint8(decoded.buf, decoded.off);
+                            short alertDescription = TlsUtilities.ReadUint8(decoded.buf, decoded.off + 1);
 
-                                    SendHeartbeatMessage(response);
-                                }
-                                break;
-                            }
-                            case HeartbeatMessageType.heartbeat_response:
+                            m_peer.NotifyAlertReceived(alertLevel, alertDescription);
+
+                            if (alertLevel == AlertLevel.fatal)
                             {
-                                if (null != m_heartbeatInFlight
-                                    && Arrays.AreEqual(heartbeatMessage.Payload, m_heartbeatInFlight.Payload))
-                                {
-                                    ResetHeartbeat();
-                                }
-                                break;
+                                Failed();
+                                throw new TlsFatalAlert(alertDescription);
                             }
-                            default:
-                                break;
+
+                            // TODO Can close_notify be a fatal alert?
+                            if (alertDescription == AlertDescription.close_notify)
+                            {
+                                CloseTransport();
                             }
                         }
-                    }
-                    catch (Exception)
-                    {
-                        // Ignore
-                    }
-                }
 
-                return -1;
-            }
-            default:
-                return -1;
+                        return -1;
+                    }
+                case ContentType.application_data:
+                    {
+                        if (m_inHandshake)
+                        {
+                            // TODO Consider buffering application data for new epoch that arrives
+                            // out-of-order with the Finished message
+                            return -1;
+                        }
+                        break;
+                    }
+                case ContentType.change_cipher_spec:
+                    {
+                        // Implicitly receive change_cipher_spec and change to pending cipher state
+
+                        for (int i = 0; i < decoded.len; ++i)
+                        {
+                            short message = TlsUtilities.ReadUint8(decoded.buf, decoded.off + i);
+                            if (message != ChangeCipherSpec.change_cipher_spec)
+                                continue;
+
+                            if (m_pendingEpoch != null)
+                            {
+                                m_readEpoch = m_pendingEpoch;
+                            }
+                        }
+
+                        return -1;
+                    }
+                case ContentType.handshake:
+                    {
+                        if (!m_inHandshake)
+                        {
+                            if (null != m_retransmit)
+                            {
+                                m_retransmit.ReceivedHandshakeRecord(epoch, decoded.buf, decoded.off, decoded.len);
+                            }
+
+                            // TODO Consider support for HelloRequest
+                            return -1;
+                        }
+                        break;
+                    }
+                case ContentType.heartbeat:
+                    {
+                        if (null != m_heartbeatInFlight || m_heartBeatResponder)
+                        {
+                            try
+                            {
+                                MemoryStream input = new MemoryStream(decoded.buf, decoded.off, decoded.len, false);
+                                HeartbeatMessage heartbeatMessage = HeartbeatMessage.Parse(input);
+
+                                if (null != heartbeatMessage)
+                                {
+                                    switch (heartbeatMessage.Type)
+                                    {
+                                        case HeartbeatMessageType.heartbeat_request:
+                                            {
+                                                if (m_heartBeatResponder)
+                                                {
+                                                    HeartbeatMessage response = HeartbeatMessage.Create(m_context,
+                                                        HeartbeatMessageType.heartbeat_response, heartbeatMessage.Payload);
+
+                                                    SendHeartbeatMessage(response);
+                                                }
+                                                break;
+                                            }
+                                        case HeartbeatMessageType.heartbeat_response:
+                                            {
+                                                if (null != m_heartbeatInFlight
+                                                    && Arrays.AreEqual(heartbeatMessage.Payload, m_heartbeatInFlight.Payload))
+                                                {
+                                                    ResetHeartbeat();
+                                                }
+                                                break;
+                                            }
+                                        default:
+                                            break;
+                                    }
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // Ignore
+                            }
+                        }
+
+                        return -1;
+                    }
+                default:
+                    return -1;
             }
 
             /*
@@ -743,48 +730,36 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         private int ReceiveRecord(byte[] buf, int off, int len, int waitMillis)
         {
+            int cidLength = m_context.SecurityParameters.ConnectionIdPeer?.Length ?? 0;
+
             if (m_recordQueue.Available > 0)
             {
-                int recordLength = 0;
                 if (m_recordQueue.Available >= RECORD_HEADER_LENGTH)
                 {
-                    byte[] typeByte = new byte[1];
-                    m_recordQueue.Read(typeByte, 0, 1, 0);
-                    short contentType = typeByte[0];
+                    var maxHeaderLength = System.Math.Min(RECORD_HEADER_LENGTH + cidLength, m_recordQueue.Available);
+                    byte[] header = new byte[maxHeaderLength];
+                    m_recordQueue.Read(header, 0, maxHeaderLength, 0);
 
-                    switch (contentType)
+                    if (TryGetRecordLength(header, 0, maxHeaderLength, cidLength, out int headerLength, out int dataLength))
                     {
-                        case ContentType.tls12_cid:
-                            {
-                                int cidLength = m_context.SecurityParameters.ConnectionIdPeer?.Length ?? 0;
-                                byte[] lengthBytes = new byte[2];
-                                m_recordQueue.Read(lengthBytes, 0, 2, 11 + cidLength);
-                                recordLength = RECORD_HEADER_LENGTH + cidLength + TlsUtilities.ReadUint16(lengthBytes, 0);
-                                break;
-                            }
-                        default:
-                            {
-                                byte[] lengthBytes = new byte[2];
-                                m_recordQueue.Read(lengthBytes, 0, 2, 11);
-                                recordLength = RECORD_HEADER_LENGTH + TlsUtilities.ReadUint16(lengthBytes, 0);
-                                break;
-                            }
+                        int received = System.Math.Min(m_recordQueue.Available, headerLength + dataLength);
+                        m_recordQueue.RemoveData(buf, off, received, 0);
+                        return received;
                     }
                 }
-
-                int received = System.Math.Min(m_recordQueue.Available, recordLength);
-                m_recordQueue.RemoveData(buf, off, received, 0);
-                return received;
+                else
+                {
+                    return 0;
+                }
             }
 
             {
                 int received = ReceiveDatagram(buf, off, len, waitMillis);
-                if (received >= RECORD_HEADER_LENGTH)
+                if (TryGetRecordLength(buf, off, received, cidLength, out int headerLength, out int dataLength))
                 {
                     this.m_inConnection = true;
+                    var recordLength = headerLength + dataLength;
 
-                    int fragmentLength = TlsUtilities.ReadUint16(buf, off + 11);
-                    int recordLength = RECORD_HEADER_LENGTH + fragmentLength;
                     if (received > recordLength)
                     {
                         m_recordQueue.AddData(buf, off + recordLength, received - recordLength);
@@ -793,6 +768,37 @@ namespace Org.BouncyCastle.Tls
                 }
 
                 return received;
+            }
+        }
+
+        private static bool TryGetRecordLength(byte[] buf, int off, int len, int cidLength, out int headerLength, out int dataLength)
+        {
+            if (len < RECORD_HEADER_LENGTH)
+            {
+                headerLength = 0;
+                dataLength = 0;
+                return false;
+            }
+            short contentType = buf[off];
+
+            if (contentType == ContentType.tls12_cid)
+            {
+                if (len < RECORD_HEADER_LENGTH + cidLength)
+                {
+                    headerLength = 0;
+                    dataLength = 0;
+                    return false;
+                }
+
+                headerLength = RECORD_HEADER_LENGTH + cidLength;
+                dataLength = TlsUtilities.ReadUint16(buf, off + 11 + cidLength);
+                return true;
+            }
+            else
+            {
+                headerLength = RECORD_HEADER_LENGTH;
+                dataLength = TlsUtilities.ReadUint16(buf, off + 11);
+                return true;
             }
         }
 
