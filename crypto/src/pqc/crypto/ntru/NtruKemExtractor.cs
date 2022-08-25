@@ -79,9 +79,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
             }
         }
 
-        public int GetInputSize()
-        {
-            return _parameters.ParameterSet.NtruCiphertextBytes();
-        }
+        public int EncapsulationLength => _parameters.ParameterSet.NtruCiphertextBytes();
     }
 }

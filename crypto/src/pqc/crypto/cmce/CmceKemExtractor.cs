@@ -39,9 +39,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return session_key;
         }
 
-        public int GetInputSize()
-        {
-            return engine.CipherTextSize;
-        }
+        public int EncapsulationLength => engine.CipherTextSize;
     }
 }

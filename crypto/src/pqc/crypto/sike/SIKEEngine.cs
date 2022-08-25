@@ -21,7 +21,7 @@ internal class SIKEEngine
         return param.MSG_BYTES * 8;
     }
 
-    public uint GetCipherTextSize()
+    public int GetCipherTextSize()
     {
         return param.CRYPTO_CIPHERTEXTBYTES;
     }

@@ -29,9 +29,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return session_key;
         }
 
-        public int GetInputSize()
-        {
-            return engine.CipherTextSize;
-        }
+        public int EncapsulationLength => (int)engine.CipherTextSize;
     }
 }

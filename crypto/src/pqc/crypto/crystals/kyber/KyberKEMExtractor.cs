@@ -31,6 +31,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             return rv;
         }
 
-        public int InputSize => engine.CryptoCipherTextBytes;
+        public int EncapsulationLength => engine.CryptoCipherTextBytes;
     }
 }
