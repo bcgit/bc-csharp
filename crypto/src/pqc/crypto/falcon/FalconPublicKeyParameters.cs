@@ -7,8 +7,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
     {
         private byte[] publicKey;
 
-        public byte[] PublicKey => Arrays.Clone(publicKey);
-
         public FalconPublicKeyParameters(FalconParameters parameters, byte[] pk_encoded)
             : base(false, parameters)
         {
