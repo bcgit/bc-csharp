@@ -66,15 +66,14 @@ namespace Org.BouncyCastle.Crypto.Paddings
         /**
         * return the number of pad bytes present in the block.
         */
-        public int PadCount(
-			byte[] input)
+        public int PadCount(byte[] input)
         {
-            int count = input[input.Length - 1] & 0xff;
+            int count = input[input.Length - 1];
+            int position = input.Length - count;
 
-            if (count > input.Length)
-            {
+            int failed = (position | (count - 1)) >> 31;
+            if (failed != 0)
                 throw new InvalidCipherTextException("pad block corrupted");
-            }
 
             return count;
         }

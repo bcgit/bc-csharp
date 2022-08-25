@@ -65,15 +65,16 @@ namespace Org.BouncyCastle.Crypto.Paddings
         /// <summary> return the number of pad bytes present in the block.</summary>
         public virtual int PadCount(byte[] input)
         {
-            byte code = input[input.Length - 1];
-
-            int index = input.Length - 1;
-            while (index > 0 && input[index - 1] == code)
+            int i = input.Length;
+            int code = input[--i], count = 1, countingMask = -1;
+            while (--i >= 0)
             {
-                index--;
+                int next = input[i];
+                int matchMask = ((next ^ code) - 1) >> 31;
+                countingMask &= matchMask;
+                count -= countingMask;
             }
-
-            return input.Length - index;
+            return count;
         }
     }
 }

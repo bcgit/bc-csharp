@@ -58,22 +58,22 @@ namespace Org.BouncyCastle.Crypto.Paddings
 		/**
 		 * return the number of pad bytes present in the block.
 		 */
-		public int PadCount(
-			byte[] input)
+		public int PadCount(byte[] input)
 		{
-			int count = input.Length - 1;
-
-			while (count > 0 && input[count] == 0)
+			int position = -1, still00Mask = -1;
+			int i = input.Length;
+			while (--i >= 0)
 			{
-				count--;
+				int next = input[i];
+				int match00Mask = ((next ^ 0x00) - 1) >> 31;
+				int match80Mask = ((next ^ 0x80) - 1) >> 31;
+				position ^= (i ^ position) & (still00Mask & match80Mask);
+				still00Mask &= match00Mask;
 			}
-
-			if (input[count] != (byte)0x80)
-			{
+			if (position < 0)
 				throw new InvalidCipherTextException("pad block corrupted");
-			}
 
-			return input.Length - count;
+			return input.Length - position;
 		}
 	}
 }
