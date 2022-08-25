@@ -476,7 +476,6 @@ namespace Org.BouncyCastle.Tls
             if (received < 1)
                 return -1;
 
-
             var cidLength = m_context.SecurityParameters.ConnectionIdPeer?.Length ?? 0;
 
             if (!TryGetRecordLength(record, 0, received, cidLength, out int headerLength, out int dataLength))
@@ -734,23 +733,23 @@ namespace Org.BouncyCastle.Tls
 
             if (m_recordQueue.Available > 0)
             {
-                if (m_recordQueue.Available >= RECORD_HEADER_LENGTH)
-                {
-                    var maxHeaderLength = System.Math.Min(RECORD_HEADER_LENGTH + cidLength, m_recordQueue.Available);
-                    byte[] header = new byte[maxHeaderLength];
-                    m_recordQueue.Read(header, 0, maxHeaderLength, 0);
+                var maxHeaderLength = System.Math.Min(RECORD_HEADER_LENGTH + cidLength, m_recordQueue.Available);
+                byte[] header = new byte[maxHeaderLength];
+                m_recordQueue.Read(header, 0, maxHeaderLength, 0);
 
-                    if (TryGetRecordLength(header, 0, maxHeaderLength, cidLength, out int headerLength, out int dataLength))
-                    {
-                        int received = System.Math.Min(m_recordQueue.Available, headerLength + dataLength);
-                        m_recordQueue.RemoveData(buf, off, received, 0);
-                        return received;
-                    }
+                int recordLength;
+                if (TryGetRecordLength(header, 0, maxHeaderLength, cidLength, out int headerLength, out int dataLength))
+                {
+                    recordLength = System.Math.Min(m_recordQueue.Available, headerLength + dataLength);
                 }
                 else
                 {
-                    return 0;
+                    // if we can't determine a length, just return the rest of the buffer - if it's invalid, ProcessRecord will discard it
+                    // under normal circumstances, there should never be incomplete/invalid records in the queue
+                    recordLength = m_recordQueue.Available;
                 }
+                m_recordQueue.RemoveData(buf, off, recordLength, 0);
+                return recordLength;
             }
 
             {
@@ -762,6 +761,7 @@ namespace Org.BouncyCastle.Tls
 
                     if (received > recordLength)
                     {
+                        // if we have more than one record in this datagram, add all but the first to the queue
                         m_recordQueue.AddData(buf, off + recordLength, received - recordLength);
                         received = recordLength;
                     }
