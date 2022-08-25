@@ -278,6 +278,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ProcessAadBytes(inBytes.AsSpan(inOff, len));
+#else
             CheckStatus();
 
             if (atBlockPos > 0)
@@ -309,7 +312,42 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             atBlockPos = BlockSize + inLimit - inOff;
             Array.Copy(inBytes, inOff, atBlock, 0, atBlockPos);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            CheckStatus();
+
+            if (atBlockPos > 0)
+            {
+                int available = BlockSize - atBlockPos;
+                if (input.Length < available)
+                {
+                    input.CopyTo(atBlock.AsSpan(atBlockPos));
+                    atBlockPos += input.Length;
+                    return;
+                }
+
+                input[..available].CopyTo(atBlock.AsSpan(atBlockPos));
+                gHASHBlock(S_at, atBlock);
+                atLength += BlockSize;
+                input = input[available..];
+                //atBlockPos = 0;
+            }
+
+            while (input.Length >= BlockSize)
+            {
+                gHASHBlock(S_at, input);
+                atLength += BlockSize;
+                input = input[BlockSize..];
+            }
+
+            input.CopyTo(atBlock);
+            atBlockPos = input.Length;
+        }
+#endif
 
         private void InitCipher()
         {
@@ -930,6 +968,13 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void gHASHBlock(byte[] Y, ReadOnlySpan<byte> b)
+        {
+            GcmUtilities.Xor(Y, b);
+            multiplier.MultiplyH(Y);
+        }
+#else
         private void gHASHBlock(byte[] Y, byte[] b)
         {
             GcmUtilities.Xor(Y, b);
@@ -941,6 +986,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             GcmUtilities.Xor(Y, b, off);
             multiplier.MultiplyH(Y);
         }
+#endif
 
         private void gHASHPartial(byte[] Y, byte[] b, int off, int len)
         {

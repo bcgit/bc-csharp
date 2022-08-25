@@ -3,6 +3,7 @@ using System;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -103,6 +104,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             IsTrue("oops!", !Arrays.AreEqual(Hex.Decode("45 00 0B E6 3F 9B 6B FD 89 F5 47 17 67 0F 69 A9 BC 76 35 91 A4 F0 5C 50 D6 88 91 A7 44 BC C6 E7 D6 D5 B5 E8 2C 01 8D A9 99 ED 35 B0 BB 49 C9 67 8E 52 6A BD 8E 85 C1 3E D2 54 02 1D B9 E7 90 CE"), res));
             IsTrue("oops!", Arrays.AreEqual(Hex.Decode("0c59b11464f2336c34663ed51b2b950bec743610856f36c28d1d088d8a2446284dd09830a6a178dc752376199fae935d86cfdee5913d4922dfd369b66a53c897"), res));
+
+            SpanConsistencyTests();
         }
 
         [Test]
@@ -111,6 +114,65 @@ namespace Org.BouncyCastle.Crypto.Tests
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
+        internal void SpanConsistencyTests()
+        {
+            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            IDigest digest1 = new TupleHash(128, new byte[0]);
+            IDigest digest2 = new TupleHash(128, new byte[0]);
+
+            // Span-based API consistency checks
+            byte[] data = new byte[16 + 256];
+            DigestTest.Random.NextBytes(data);
+
+            for (int len = 0; len <= 256; ++len)
+            {
+                int off = DigestTest.Random.Next(0, 17);
+
+                SpanConsistencyTest(digest1, digest2, data, off, len);
+            }
+#endif
+        }
+
+        internal void SpanConsistencyTest(IDigest digest1, IDigest digest2, byte[] buf, int off, int len)
+        {
+            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            digest1.Reset();
+            digest2.Reset();
+
+            byte[] arrayResult1 = DigestUtilities.DoFinal(digest1, buf, off, len);
+            byte[] spanResult1 = DigestUtilities.DoFinal(digest2, buf.AsSpan(off, len));
+
+            if (!AreEqual(arrayResult1, spanResult1))
+            {
+                Fail("failing span consistency test 1", Hex.ToHexString(arrayResult1), Hex.ToHexString(spanResult1));
+            }
+
+            int pos = 0;
+            while (pos < len)
+            {
+                int next = 1 + DigestTest.Random.Next(len - pos);
+                digest1.BlockUpdate(buf, off + pos, next);
+                digest2.BlockUpdate(buf.AsSpan(off + pos, next));
+                pos += next;
+            }
+
+            byte[] arrayResult2 = new byte[digest1.GetDigestSize()];
+            digest1.DoFinal(arrayResult2, 0);
+
+            byte[] spanResult2 = new byte[digest2.GetDigestSize()];
+            digest2.DoFinal(spanResult2.AsSpan());
+
+            if (!AreEqual(arrayResult2, spanResult2))
+            {
+                Fail("failing span consistency test 2", Hex.ToHexString(arrayResult2), Hex.ToHexString(spanResult2));
+            }
+#endif
         }
     }
 }

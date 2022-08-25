@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 sk = new SK(SecRand(engine.N), SecRand(engine.N));
                 pkSeed = SecRand(engine.N);
             }
-            engine.init(pkSeed);
+            engine.Init(pkSeed);
             // TODO
             PK pk = new PK(pkSeed, new HT(engine, sk.seed, pkSeed).HTPubKey);
 
@@ -51,11 +51,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         private byte[] SecRand(int n)
         {
-            byte[] rv = new byte[n];
-
-            random.NextBytes(rv);
-
-            return rv;
+            return SecureRandom.GetNextBytes(random, n);
         }
     }
 }

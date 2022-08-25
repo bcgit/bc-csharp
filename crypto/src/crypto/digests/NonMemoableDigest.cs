@@ -44,10 +44,24 @@ namespace Org.BouncyCastle.Crypto.Digests
             mBaseDigest.BlockUpdate(input, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            mBaseDigest.BlockUpdate(input);
+        }
+#endif
+
         public virtual int DoFinal(byte[] output, int outOff)
         {
             return mBaseDigest.DoFinal(output, outOff);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            return mBaseDigest.DoFinal(output);
+        }
+#endif
 
         public virtual void Reset()
         {

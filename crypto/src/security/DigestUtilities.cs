@@ -266,9 +266,22 @@ namespace Org.BouncyCastle.Security
         public static byte[] CalculateDigest(string algorithm, byte[] input)
         {
             IDigest digest = GetDigest(algorithm);
-            digest.BlockUpdate(input, 0, input.Length);
-            return DoFinal(digest);
+            return DoFinal(digest, input);
         }
+
+        public static byte[] CalculateDigest(string algorithm, byte[] buf, int off, int len)
+        {
+            IDigest digest = GetDigest(algorithm);
+            return DoFinal(digest, buf, off, len);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] CalculateDigest(string algorithm, ReadOnlySpan<byte> buffer)
+        {
+            IDigest digest = GetDigest(algorithm);
+            return DoFinal(digest, buffer);
+        }
+#endif
 
         public static byte[] DoFinal(IDigest digest)
         {
@@ -282,5 +295,19 @@ namespace Org.BouncyCastle.Security
             digest.BlockUpdate(input, 0, input.Length);
             return DoFinal(digest);
         }
+
+        public static byte[] DoFinal(IDigest digest, byte[] buf, int off, int len)
+        {
+            digest.BlockUpdate(buf, off, len);
+            return DoFinal(digest);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] DoFinal(IDigest digest, ReadOnlySpan<byte> buffer)
+        {
+            digest.BlockUpdate(buffer);
+            return DoFinal(digest);
+        }
+#endif
     }
 }

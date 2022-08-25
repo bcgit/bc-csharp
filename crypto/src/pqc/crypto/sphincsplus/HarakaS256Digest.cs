@@ -1,7 +1,9 @@
 ﻿using System;
-namespace Org.BouncyCastle.pqc.crypto.sphincsplus
+
+namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class HarakaS256Digest : HarakaSBase
+    internal class HarakaS256Digest
+        : HarakaSBase
     {
         public HarakaS256Digest(HarakaSXof harakaSXof)
         {

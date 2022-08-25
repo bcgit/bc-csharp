@@ -77,6 +77,34 @@ namespace Org.BouncyCastle.Crypto.Digests
             return outLen;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            return OutputFinal(output[..GetDigestSize()]);
+        }
+
+        public virtual int OutputFinal(Span<byte> output)
+        {
+            int length = Output(output);
+
+            Reset();
+
+            return length;
+        }
+
+        public virtual int Output(Span<byte> output)
+        {
+            if (!squeezing)
+            {
+                AbsorbBits(0x0F, 4);
+            }
+
+            Squeeze(output);
+
+            return output.Length;
+        }
+#endif
+
         /*
          * TODO Possible API change to support partial-byte suffixes.
          */

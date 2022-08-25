@@ -285,21 +285,27 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public virtual int ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
 		{
-			if ((outOff + blocksizeBytes) > outBytes.Length)
-			{
-				throw new DataLengthException("Output buffer too short");
-			}
-
-			if ((inOff + blocksizeBytes) > inBytes.Length)
-			{
-				throw new DataLengthException("Input buffer too short");
-			}
+			Check.DataLength(inBytes, inOff, blocksizeBytes, "input buffer too short");
+			Check.OutputLength(outBytes, outOff, blocksizeBytes, "output buffer too short");
 
 			Pack.LE_To_UInt64(inBytes, inOff, currentBlock);
 			ProcessBlock(this.currentBlock, this.currentBlock);
 			Pack.UInt64_To_LE(currentBlock, outBytes, outOff);
 			return blocksizeBytes;
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			Check.DataLength(input, blocksizeBytes, "input buffer too short");
+			Check.OutputLength(output, blocksizeBytes, "output buffer too short");
+
+			Pack.LE_To_UInt64(input, currentBlock);
+			ProcessBlock(this.currentBlock, this.currentBlock);
+			Pack.UInt64_To_LE(currentBlock, output);
+			return blocksizeBytes;
+		}
+#endif
 
 		/// <summary>
 		/// Process a block of data represented as 64 bit words.
@@ -317,13 +323,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 
 			if (inWords.Length != blocksizeWords)
-			{
-				throw new DataLengthException("Input buffer too short");
-			}
+				throw new DataLengthException("input buffer too short");
 			if (outWords.Length != blocksizeWords)
-			{
-				throw new DataLengthException("Output buffer too short");
-			}
+				throw new OutputLengthException("output buffer too short");
 
 			if (forEncryption)
 			{

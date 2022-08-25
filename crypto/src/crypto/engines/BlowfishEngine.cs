@@ -347,11 +347,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return false; }
 		}
 
-		public  int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+		public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
                 throw new InvalidOperationException("Blowfish not initialised");
@@ -359,7 +355,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
             Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
 
-            if (encrypting)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			if (encrypting)
+			{
+				EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+			}
+			else
+			{
+				DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+			}
+#else
+			if (encrypting)
             {
                 EncryptBlock(input, inOff, output, outOff);
             }
@@ -367,11 +373,34 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 DecryptBlock(input, inOff, output, outOff);
             }
+#endif
 
             return BLOCK_SIZE;
         }
 
-        public void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			if (workingKey == null)
+				throw new InvalidOperationException("Blowfish not initialised");
+
+			Check.DataLength(input, BLOCK_SIZE, "input buffer too short");
+			Check.OutputLength(output, BLOCK_SIZE, "output buffer too short");
+
+			if (encrypting)
+			{
+				EncryptBlock(input, output);
+			}
+			else
+			{
+				DecryptBlock(input, output);
+			}
+
+			return BLOCK_SIZE;
+		}
+#endif
+
+		public void Reset()
         {
         }
 
@@ -499,16 +528,46 @@ namespace Org.BouncyCastle.Crypto.Engines
             ProcessTable(S2[SBOX_SK - 2], S2[SBOX_SK - 1], S3);
         }
 
-        /**
-        * Encrypt the given input starting at the given offset and place
-        * the result in the provided buffer starting at the given offset.
-        * The input will be an exact multiple of our blocksize.
-        */
-        private void EncryptBlock(
-            byte[]  src,
-            int     srcIndex,
-            byte[]  dst,
-            int     dstIndex)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			uint xl = Pack.BE_To_UInt32(input);
+			uint xr = Pack.BE_To_UInt32(input[4..]);
+
+			xl ^= P[0];
+
+			for (int i = 1; i < ROUNDS; i += 2)
+			{
+				xr ^= F(xl) ^ P[i];
+				xl ^= F(xr) ^ P[i + 1];
+			}
+
+			xr ^= P[ROUNDS + 1];
+
+			Pack.UInt32_To_BE(xr, output);
+			Pack.UInt32_To_BE(xl, output[4..]);
+		}
+
+		private void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			uint xl = Pack.BE_To_UInt32(input);
+			uint xr = Pack.BE_To_UInt32(input[4..]);
+
+			xl ^= P[ROUNDS + 1];
+
+			for (int i = ROUNDS; i > 0; i -= 2)
+			{
+				xr ^= F(xl) ^ P[i];
+				xl ^= F(xr) ^ P[i - 1];
+			}
+
+			xr ^= P[0];
+
+			Pack.UInt32_To_BE(xr, output);
+			Pack.UInt32_To_BE(xl, output[4..]);
+		}
+#else
+		private void EncryptBlock(byte[] src, int srcIndex, byte[] dst, int dstIndex)
         {
             uint xl = Pack.BE_To_UInt32(src, srcIndex);
             uint xr = Pack.BE_To_UInt32(src, srcIndex+4);
@@ -527,16 +586,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_BE(xl, dst, dstIndex + 4);
         }
 
-        /**
-        * Decrypt the given input starting at the given offset and place
-        * the result in the provided buffer starting at the given offset.
-        * The input will be an exact multiple of our blocksize.
-        */
-        private void DecryptBlock(
-            byte[] src,
-            int srcIndex,
-            byte[] dst,
-            int dstIndex)
+        private void DecryptBlock(byte[] src, int srcIndex, byte[] dst, int dstIndex)
         {
             uint xl = Pack.BE_To_UInt32(src, srcIndex);
             uint xr = Pack.BE_To_UInt32(src, srcIndex + 4);
@@ -554,5 +604,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_BE(xr, dst, dstIndex);
             Pack.UInt32_To_BE(xl, dst, dstIndex + 4);
         }
-    }
+#endif
+	}
 }

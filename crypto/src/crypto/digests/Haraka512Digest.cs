@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Digests
 {
     public class Haraka512Digest : HarakaBase
@@ -167,10 +169,92 @@ namespace Org.BouncyCastle.Crypto.Digests
             return DIGEST_SIZE;
         }
 
-        public string GetAlgorithmName()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private int Haraka512256(byte[] msg, Span<byte> output)
         {
-            return "Haraka-512";
+            byte[][] s1 = new byte[4][];
+            s1[0] = new byte[16];
+            s1[1] = new byte[16];
+            s1[2] = new byte[16];
+            s1[3] = new byte[16];
+            byte[][] s2 = new byte[4][];
+            s2[0] = new byte[16];
+            s2[1] = new byte[16];
+            s2[2] = new byte[16];
+            s2[3] = new byte[16];
+
+            //-- Unrolled version of above.
+
+            Array.Copy(msg, 0, s1[0], 0, 16);
+            Array.Copy(msg, 16, s1[1], 0, 16);
+            Array.Copy(msg, 32, s1[2], 0, 16);
+            Array.Copy(msg, 48, s1[3], 0, 16);
+
+            s1[0] = aesEnc(s1[0], RC[0]);
+            s1[1] = aesEnc(s1[1], RC[1]);
+            s1[2] = aesEnc(s1[2], RC[2]);
+            s1[3] = aesEnc(s1[3], RC[3]);
+            s1[0] = aesEnc(s1[0], RC[4]);
+            s1[1] = aesEnc(s1[1], RC[5]);
+            s1[2] = aesEnc(s1[2], RC[6]);
+            s1[3] = aesEnc(s1[3], RC[7]);
+            Mix512(s1, s2);
+
+            s1[0] = aesEnc(s2[0], RC[8]);
+            s1[1] = aesEnc(s2[1], RC[9]);
+            s1[2] = aesEnc(s2[2], RC[10]);
+            s1[3] = aesEnc(s2[3], RC[11]);
+            s1[0] = aesEnc(s1[0], RC[12]);
+            s1[1] = aesEnc(s1[1], RC[13]);
+            s1[2] = aesEnc(s1[2], RC[14]);
+            s1[3] = aesEnc(s1[3], RC[15]);
+            Mix512(s1, s2);
+
+            s1[0] = aesEnc(s2[0], RC[16]);
+            s1[1] = aesEnc(s2[1], RC[17]);
+            s1[2] = aesEnc(s2[2], RC[18]);
+            s1[3] = aesEnc(s2[3], RC[19]);
+            s1[0] = aesEnc(s1[0], RC[20]);
+            s1[1] = aesEnc(s1[1], RC[21]);
+            s1[2] = aesEnc(s1[2], RC[22]);
+            s1[3] = aesEnc(s1[3], RC[23]);
+            Mix512(s1, s2);
+
+            s1[0] = aesEnc(s2[0], RC[24]);
+            s1[1] = aesEnc(s2[1], RC[25]);
+            s1[2] = aesEnc(s2[2], RC[26]);
+            s1[3] = aesEnc(s2[3], RC[27]);
+            s1[0] = aesEnc(s1[0], RC[28]);
+            s1[1] = aesEnc(s1[1], RC[29]);
+            s1[2] = aesEnc(s1[2], RC[30]);
+            s1[3] = aesEnc(s1[3], RC[31]);
+            Mix512(s1, s2);
+
+            s1[0] = aesEnc(s2[0], RC[32]);
+            s1[1] = aesEnc(s2[1], RC[33]);
+            s1[2] = aesEnc(s2[2], RC[34]);
+            s1[3] = aesEnc(s2[3], RC[35]);
+            s1[0] = aesEnc(s1[0], RC[36]);
+            s1[1] = aesEnc(s1[1], RC[37]);
+            s1[2] = aesEnc(s1[2], RC[38]);
+            s1[3] = aesEnc(s1[3], RC[39]);
+            Mix512(s1, s2);
+
+            s1[0] = Xor(s2[0], msg, 0);
+            s1[1] = Xor(s2[1], msg, 16);
+            s1[2] = Xor(s2[2], msg, 32);
+            s1[3] = Xor(s2[3], msg, 48);
+
+            s1[0].AsSpan(8, 8).CopyTo(output);
+            s1[1].AsSpan(8, 8).CopyTo(output[8..]);
+            s1[2].AsSpan(0, 8).CopyTo(output[16..]);
+            s1[3].AsSpan(0, 8).CopyTo(output[24..]);
+
+            return DIGEST_SIZE;
         }
+#endif
+
+        public override string AlgorithmName => "Haraka-512";
 
         public override void Update(byte input)
         {
@@ -193,6 +277,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             off += len;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            if (off + input.Length > 64)
+            {
+                throw new ArgumentException("total input cannot be more than 64 bytes");
+            }
+
+            input.CopyTo(buffer.AsSpan(off));
+            off += input.Length;
+        }
+#endif
+
         public override int DoFinal(byte[] output, int outOff)
         {
             if (off != 64)
@@ -211,6 +308,27 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             return rv;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            if (off != 64)
+            {
+                throw new ArgumentException("input must be exactly 64 bytes");
+            }
+
+            if (output.Length < 32)
+            {
+                throw new ArgumentException("output too short to receive digest");
+            }
+
+            int rv = Haraka512256(buffer, output);
+
+            Reset();
+
+            return rv;
+        }
+#endif
 
         public override void Reset()
         {

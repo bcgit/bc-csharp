@@ -70,6 +70,18 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal override void ProcessWord(ReadOnlySpan<byte> word)
+        {
+            X[xOff++] = (int)Pack.LE_To_UInt32(word);
+
+            if (xOff == 16)
+            {
+                ProcessBlock();
+            }
+        }
+#endif
+
         internal override void ProcessLength(
             long bitLength)
         {
@@ -99,6 +111,26 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             return DigestLength;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            Finish();
+
+            Pack.UInt32_To_LE((uint)H0, output);
+            Pack.UInt32_To_LE((uint)H1, output[4..]);
+            Pack.UInt32_To_LE((uint)H2, output[8..]);
+            Pack.UInt32_To_LE((uint)H3, output[12..]);
+            Pack.UInt32_To_LE((uint)H4, output[16..]);
+            Pack.UInt32_To_LE((uint)H5, output[20..]);
+            Pack.UInt32_To_LE((uint)H6, output[24..]);
+            Pack.UInt32_To_LE((uint)H7, output[28..]);
+
+            Reset();
+
+            return DigestLength;
+        }
+#endif
 
         /// <summary> reset the chaining variables to the IV values.</summary>
         public override void  Reset()

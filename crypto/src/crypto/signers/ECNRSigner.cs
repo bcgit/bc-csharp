@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * EC-NR as described in IEEE 1363-2000
      */
     public class ECNRSigner
-        : IDsaExt
+        : IDsa
     {
         private bool			forSigning;
         private ECKeyParameters	key;

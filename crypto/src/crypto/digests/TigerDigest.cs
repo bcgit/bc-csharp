@@ -603,6 +603,20 @@ namespace Org.BouncyCastle.Crypto.Digests
             bOff = 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void ProcessWord(ReadOnlySpan<byte> b)
+        {
+            x[xOff++] = (long)Pack.LE_To_UInt64(b);
+
+            if (xOff == x.Length)
+            {
+                ProcessBlock();
+            }
+
+            bOff = 0;
+        }
+#endif
+
         public void Update(
             byte input)
         {
@@ -655,6 +669,47 @@ namespace Org.BouncyCastle.Crypto.Digests
                 length--;
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            int inOff = 0, length = input.Length;
+
+            //
+            // fill the current word
+            //
+            while ((bOff != 0) && (length > 0))
+            {
+                Update(input[inOff]);
+
+                inOff++;
+                length--;
+            }
+
+            //
+            // process whole words.
+            //
+            while (length >= 8)
+            {
+                ProcessWord(input[inOff..]);
+
+                inOff += 8;
+                length -= 8;
+                byteCount += 8;
+            }
+
+            //
+            // load in the remainder.
+            //
+            while (length > 0)
+            {
+                Update(input[inOff]);
+
+                inOff++;
+                length--;
+            }
+        }
+#endif
 
         private void RoundABC(
             long    x,
@@ -808,6 +863,21 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             return DigestLength;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            Finish();
+
+            Pack.UInt64_To_LE((ulong)a, output);
+            Pack.UInt64_To_LE((ulong)b, output[8..]);
+            Pack.UInt64_To_LE((ulong)c, output[16..]);
+
+            Reset();
+
+            return DigestLength;
+        }
+#endif
 
         /**
         * reset the chaining variables

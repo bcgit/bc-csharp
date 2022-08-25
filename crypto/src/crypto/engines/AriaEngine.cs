@@ -195,6 +195,36 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BlockSize;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (m_roundKeys == null)
+                throw new InvalidOperationException("ARIA engine not initialised");
+
+            Check.DataLength(input, BlockSize, "input buffer too short");
+            Check.OutputLength(output, BlockSize, "output buffer too short");
+
+            byte[] z = new byte[BlockSize];
+            input[..BlockSize].CopyTo(z);
+
+            int i = 0, rounds = m_roundKeys.Length - 3;
+            while (i < rounds)
+            {
+                FO(z, m_roundKeys[i++]);
+                FE(z, m_roundKeys[i++]);
+            }
+
+            FO(z, m_roundKeys[i++]);
+            Xor(z, m_roundKeys[i++]);
+            SL2(z);
+            Xor(z, m_roundKeys[i]);
+
+            z.CopyTo(output);
+
+            return BlockSize;
+        }
+#endif
+
         public virtual void Reset()
         {
             // Empty

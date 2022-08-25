@@ -287,6 +287,20 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            for (int i = 0; i < input.Length; ++i)
+            {
+                hashBlock[hashBlockPos] = input[i];
+                if (++hashBlockPos == hashBlock.Length)
+                {
+                    ProcessHashBlock();
+                }
+            }
+        }
+#endif
+
         public virtual int ProcessByte(byte input, byte[] output, int outOff)
         {
             mainBlock[mainBlockPos] = input;

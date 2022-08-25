@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -14,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * EC-DSA as described in X9.62
      */
     public class ECDsaSigner
-        : IDsaExt
+        : IDsa
     {
         private static readonly BigInteger Eight = BigInteger.ValueOf(8);
 

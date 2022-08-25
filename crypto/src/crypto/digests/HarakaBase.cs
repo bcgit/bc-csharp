@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
@@ -26,10 +24,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         {(byte)0xe1, (byte)0xf8, (byte)0x98, (byte)0x11, (byte)0x69, (byte)0xd9, (byte)0x8e, (byte)0x94, (byte)0x9b, (byte)0x1e, (byte)0x87, (byte)0xe9, (byte)0xce, (byte)0x55, (byte)0x28, (byte)0xdf},
         {(byte)0x8c, (byte)0xa1, (byte)0x89, (byte)0x0d, (byte)0xbf, (byte)0xe6, (byte)0x42, (byte)0x68, (byte)0x41, (byte)0x99, (byte)0x2d, (byte)0x0f, (byte)0xb0, (byte)0x54, (byte)0xbb, (byte)0x16}};
 
-        public string AlgorithmName
-        {
-            get { return "Haraka Base"; }
-        }
+        public abstract string AlgorithmName { get; }
 
         static byte sBox(byte x)
         {
@@ -144,5 +139,10 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public abstract void Reset();
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract void BlockUpdate(ReadOnlySpan<byte> input);
+
+        public abstract int DoFinal(Span<byte> output);
+#endif
     }
 }

@@ -52,10 +52,8 @@ namespace Org.BouncyCastle.Crypto.Macs
         /// </summary>
         public void Init(ICipherParameters parameters)
         {
-            if (parameters is ParametersWithIV)
+            if (parameters is ParametersWithIV param)
             {
-                ParametersWithIV param = (ParametersWithIV)parameters;
-
                 byte[] iv = param.GetIV();
                 KeyParameter keyParam = (KeyParameter)param.Parameters;
 
@@ -88,6 +86,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             cipher.ProcessAadBytes(input, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            cipher.ProcessAadBytes(input);
+        }
+#endif
+
         public int DoFinal(byte[] output, int outOff)
         {
             try
@@ -100,6 +105,17 @@ namespace Org.BouncyCastle.Crypto.Macs
                 throw new InvalidOperationException(e.ToString());
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            // TODO[span] call cipher.DoFinal(Span<byte) when available
+            byte[] tmp = new byte[GetMacSize()];
+            int result = DoFinal(tmp, 0);
+            tmp.CopyTo(output);
+            return result;
+        }
+#endif
 
         public void Reset()
         {

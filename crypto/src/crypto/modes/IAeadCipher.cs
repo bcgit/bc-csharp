@@ -41,6 +41,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// <param name="len">The number of bytes to be processed.</param>
         void ProcessAadBytes(byte[] inBytes, int inOff, int len);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add a span of bytes to the associated data check.</summary>
+        /// <remarks>If the implementation supports it, this will be an online operation and will not retain the associated data.</remarks>
+        /// <param name="input">the span containing the data.</param>
+        void ProcessAadBytes(ReadOnlySpan<byte> input);
+#endif
+
         /**
 		* Encrypt/decrypt a single byte.
 		*

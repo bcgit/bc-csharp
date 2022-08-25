@@ -46,6 +46,18 @@ namespace Org.BouncyCastle.Crypto.Digests
 			return 32;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            Span<byte> result = stackalloc byte[64];
+            base.DoFinal(result);
+
+            result[32..].CopyTo(output);
+
+            return 32;
+        }
+#endif
+
         public override IMemoable Copy()
         {
 			return new Gost3411_2012_256Digest(this);

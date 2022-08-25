@@ -146,6 +146,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             ResetTest();
             DoTestNullKeyVsUnkeyed();
             DoTestLengthConstruction();
+
+            DigestTest.SpanConsistencyTests(this, new Blake2bDigest(512));
         }
 
         private void CloneTest()

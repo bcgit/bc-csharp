@@ -117,6 +117,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             associatedText.Write(inBytes, inOff, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            // TODO: Process AAD online
+            associatedText.Write(input);
+        }
+#endif
+
         public virtual int ProcessByte(
             byte	input,
             byte[]	outBytes,
@@ -134,7 +142,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[]	outBytes,
             int		outOff)
         {
-            Check.DataLength(inBytes, inOff, inLen, "Input buffer too short");
+            Check.DataLength(inBytes, inOff, inLen, "input buffer too short");
 
             data.Write(inBytes, inOff, inLen);
 

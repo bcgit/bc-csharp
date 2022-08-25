@@ -118,25 +118,30 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
-            if (outOff + len > output.Length)
-            {
-               throw new DataLengthException("Output buffer too short");
-            }
-
-            if (inOff + len > input.Length)
-            {
-                    throw new DataLengthException("Input buffer too small");
-            }
+            Check.DataLength(input, inOff, len, "input buffer too small");
+            Check.OutputLength(output, outOff, len, "output buffer too short");
 
             int inStart = inOff;
             int inEnd = inOff + len;
             int outStart = outOff;
 
-            while (inStart<inEnd)
+            while (inStart < inEnd)
             {
-                 output[outStart++] = CalculateByte(input[inStart++]);
+                output[outStart++] = CalculateByte(input[inStart++]);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            Check.OutputLength(output, input.Length, "output buffer too short");
+
+            for (int i = 0; i < input.Length; ++i)
+            {
+                output[i] = CalculateByte(input[i]);
+            }
+        }
+#endif
 
         protected byte CalculateByte(byte b)
         {
@@ -176,19 +181,27 @@ namespace Org.BouncyCastle.Crypto.Modes
          */
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
-            if (input.Length - inOff< GetBlockSize())
-            {
-                throw new DataLengthException("Input buffer too short");
-            }
-            if (output.Length - outOff< GetBlockSize())
-            {
-                throw new DataLengthException("Output buffer too short");
-            }
+            int blockSize = GetBlockSize();
+            Check.DataLength(input, inOff, blockSize, "input buffer too short");
+            Check.OutputLength(output, outOff, blockSize, "output buffer too short");
 
-            ProcessBytes(input, inOff, GetBlockSize(), output, outOff);
+            ProcessBytes(input, inOff, blockSize, output, outOff);
 
-            return GetBlockSize();
+            return blockSize;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int blockSize = GetBlockSize();
+            Check.DataLength(input, blockSize, "input buffer too short");
+            Check.OutputLength(output, blockSize, "output buffer too short");
+
+            ProcessBytes(input[..blockSize], output);
+
+            return blockSize;
+        }
+#endif
 
         /**
         * reset the chaining vector back to the IV and reset the underlying

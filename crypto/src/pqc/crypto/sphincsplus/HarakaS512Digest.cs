@@ -1,5 +1,6 @@
 ﻿using System;
-namespace Org.BouncyCastle.pqc.crypto.sphincsplus
+
+namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
     /**
     * Haraka-512 v2, https://eprint.iacr.org/2016/098.pdf
@@ -7,7 +8,8 @@ namespace Org.BouncyCastle.pqc.crypto.sphincsplus
     * Haraka512-256 with reference to Python Reference Impl from: https://github.com/sphincs/sphincsplus
     * </p>
     */
-    class HarakaS512Digest : HarakaSBase
+    internal class HarakaS512Digest
+        : HarakaSBase
     {
         public HarakaS512Digest(HarakaSBase harakaSBase)
         {
@@ -42,7 +44,6 @@ namespace Org.BouncyCastle.pqc.crypto.sphincsplus
             Array.Copy(input, inOff, buffer, off, len);
             off += len;
         }
-
 
         public int DoFinal(byte[] output, int outOff)
         {

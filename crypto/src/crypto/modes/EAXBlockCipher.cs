@@ -194,13 +194,22 @@ namespace Org.BouncyCastle.Crypto.Modes
         public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
             if (cipherInitialized)
-            {
                 throw new InvalidOperationException("AAD data cannot be added after encryption/decryption processing has begun.");
-            }
+
             mac.BlockUpdate(inBytes, inOff, len);
         }
 
-        public virtual int ProcessByte(
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+		{
+			if (cipherInitialized)
+				throw new InvalidOperationException("AAD data cannot be added after encryption/decryption processing has begun.");
+
+			mac.BlockUpdate(input);
+		}
+#endif
+
+		public virtual int ProcessByte(
 			byte	input,
 			byte[]	outBytes,
 			int		outOff)
