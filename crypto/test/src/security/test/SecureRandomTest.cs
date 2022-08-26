@@ -12,6 +12,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Security.Tests
 {
     [TestFixture]
+    [Parallelizable(ParallelScope.All)]
     public class SecureRandomTest
     {
         [Test]
@@ -142,7 +143,9 @@ namespace Org.BouncyCastle.Security.Tests
                     return false;
             }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             {
                 int passes = 0;
 
@@ -223,7 +226,9 @@ namespace Org.BouncyCastle.Security.Tests
             return chi2;
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static double MeasureChiSquaredSpan(SecureRandom random, int rounds)
         {
             byte[] opts = random.GenerateSeed(2);
@@ -301,7 +306,9 @@ namespace Org.BouncyCastle.Security.Tests
 
             public abstract void NextBytes(byte[] bytes, int start, int len);
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public abstract void NextBytes(Span<byte> bytes);
 #endif
         }
@@ -321,7 +328,9 @@ namespace Org.BouncyCastle.Security.Tests
                 Arrays.Fill(bytes, start, start + len, b);
             }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public override void NextBytes(Span<byte> bytes)
             {
                 bytes.Fill(b);

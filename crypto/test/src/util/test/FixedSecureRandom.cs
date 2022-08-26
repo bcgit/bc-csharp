@@ -226,7 +226,9 @@ namespace Org.BouncyCastle.Utilities.Test
 			_index += len;
 		}
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+        //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override void NextBytes(Span<byte> buffer)
         {
             _data.AsSpan(_index, buffer.Length).CopyTo(buffer);
@@ -258,7 +260,9 @@ namespace Org.BouncyCastle.Utilities.Test
                 index += len;
             }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public override void NextBytes(Span<byte> buffer)
             {
                 data.AsSpan(index, buffer.Length).CopyTo(buffer);
