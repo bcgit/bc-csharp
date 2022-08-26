@@ -1,5 +1,5 @@
 using System;
-using Org.BouncyCastle.Crypto;
+
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Paddings
@@ -30,39 +30,44 @@ namespace Org.BouncyCastle.Crypto.Paddings
             // nothing to do.
         }
 
-        /// <summary> add the pad bytes to the passed in block, returning the
-        /// number of bytes added.
-        /// <p>
-        /// Note: this assumes that the last block of plain text is always
-        /// passed to it inside in. i.e. if inOff is zero, indicating the
-        /// entire block is to be overwritten with padding the value of in
-        /// should be the same as the last block of plain text.
-        /// </p>
-        /// </summary>
+        /// <summary> add the pad bytes to the passed in block, returning the number of bytes added.</summary>
+        /// <remarks>
+        /// This assumes that the last block of plain text is always passed to it inside <paramref name="input"/>.
+        /// i.e. if <paramref name="inOff"/> is zero, indicating the padding will fill the entire block,the value of
+        /// <paramref name="input"/> should be the same as the last block of plain text.
+        /// </remarks>
         public virtual int AddPadding(byte[] input, int inOff)
         {
             int count = input.Length - inOff;
-            byte code;
-
-            if (inOff > 0)
-            {
-                code = (byte)((input[inOff - 1] & 0x01) == 0?0xff:0x00);
-            }
-            else
-            {
-                code = (byte)((input[input.Length - 1] & 0x01) == 0?0xff:0x00);
-            }
+            byte lastByte = inOff > 0 ? input[inOff - 1] : input[input.Length - 1];
+            byte padValue = (byte)((lastByte & 1) - 1);
 
             while (inOff < input.Length)
             {
-                input[inOff] = code;
-                inOff++;
+                input[inOff++] = padValue;
             }
 
             return count;
         }
 
-        /// <summary> return the number of pad bytes present in the block.</summary>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary> add the pad bytes to the passed in block, returning the number of bytes added.</summary>
+        /// <remarks>
+        /// This assumes that the last block of plain text is always passed to it inside <paramref name="block"/>.
+        /// i.e. if <paramref name="position"/> is zero, indicating the padding will fill the entire block,the value of
+        /// <paramref name="block"/> should be the same as the last block of plain text.
+        /// </remarks>
+        public virtual int AddPadding(Span<byte> block, int position)
+        {
+            byte lastByte = position > 0 ? block[position - 1] : block[block.Length - 1];
+            byte padValue = (byte)((lastByte & 1) - 1);
+
+            var padding = block[position..];
+            padding.Fill(padValue);
+            return padding.Length;
+        }
+#endif
+
         public virtual int PadCount(byte[] input)
         {
             int i = input.Length;
@@ -76,5 +81,21 @@ namespace Org.BouncyCastle.Crypto.Paddings
             }
             return count;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int PadCount(ReadOnlySpan<byte> block)
+        {
+            int i = block.Length;
+            int code = block[--i], count = 1, countingMask = -1;
+            while (--i >= 0)
+            {
+                int next = block[i];
+                int matchMask = ((next ^ code) - 1) >> 31;
+                countingMask &= matchMask;
+                count -= countingMask;
+            }
+            return count;
+        }
+#endif
     }
 }

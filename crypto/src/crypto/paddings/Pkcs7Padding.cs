@@ -32,43 +32,63 @@ namespace Org.BouncyCastle.Crypto.Paddings
             get { return "PKCS7"; }
         }
 
-        /**
-        * add the pad bytes to the passed in block, returning the
-        * number of bytes added.
-        */
-        public int AddPadding(
-            byte[]  input,
-            int     inOff)
+        public int AddPadding(byte[] input, int inOff)
         {
-            byte code = (byte)(input.Length - inOff);
+            int count = input.Length - inOff;
+            byte padValue = (byte)count;
 
             while (inOff < input.Length)
             {
-                input[inOff] = code;
-                inOff++;
+                input[inOff++] = padValue;
             }
 
-            return code;
+            return count;
         }
 
-        /**
-        * return the number of pad bytes present in the block.
-        */
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int AddPadding(Span<byte> block, int position)
+        {
+            int count = block.Length - position;
+            byte padValue = (byte)count;
+            block[position..].Fill(padValue);
+            return count;
+        }
+#endif
+
         public int PadCount(byte[] input)
         {
-            byte countAsByte = input[input.Length - 1];
-            int count = countAsByte;
+            byte padValue = input[input.Length - 1];
+            int count = padValue;
             int position = input.Length - count;
 
             int failed = (position | (count - 1)) >> 31;
             for (int i = 0; i < input.Length; ++i)
             {
-                failed |= (input[i] ^ countAsByte) & ~((i - position) >> 31);
+                failed |= (input[i] ^ padValue) & ~((i - position) >> 31);
             }
             if (failed != 0)
                 throw new InvalidCipherTextException("pad block corrupted");
 
             return count;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int PadCount(ReadOnlySpan<byte> block)
+        {
+            byte padValue = block[block.Length - 1];
+            int count = padValue;
+            int position = block.Length - count;
+
+            int failed = (position | (count - 1)) >> 31;
+            for (int i = 0; i < block.Length; ++i)
+            {
+                failed |= (block[i] ^ padValue) & ~((i - position) >> 31);
+            }
+            if (failed != 0)
+                throw new InvalidCipherTextException("pad block corrupted");
+
+            return count;
+        }
+#endif
     }
 }
