@@ -1,7 +1,7 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             //
             for (int i = 8; i < 16; i++)
             {
-                kPad[i] = RotateLeft(kPad[i - 8] ^ kPad[i - 5] ^ kPad[i - 3] ^ kPad[i - 1] ^ PHI ^ (i - 8), 11);
+                kPad[i] = Integers.RotateLeft(kPad[i - 8] ^ kPad[i - 5] ^ kPad[i - 3] ^ kPad[i - 1] ^ PHI ^ (i - 8), 11);
             }
 
             Array.Copy(kPad, 8, w, 0, 8);
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             //
             for (int i = 8; i < amount; i++)
             {
-                w[i] = RotateLeft(w[i - 8] ^ w[i - 5] ^ w[i - 3] ^ w[i - 1] ^ PHI ^ i, 11);
+                w[i] = Integers.RotateLeft(w[i - 8] ^ w[i - 5] ^ w[i - 3] ^ w[i - 1] ^ PHI ^ i, 11);
             }
 
             //
