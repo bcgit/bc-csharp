@@ -30,8 +30,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 		{
 			private readonly byte[] vals;
 
-			public FixedRandom(
-				byte[] vals)
+			public FixedRandom(byte[] vals)
+				: base(null)
 			{
 				this.vals = vals;
 			}

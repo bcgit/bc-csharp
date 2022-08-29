@@ -56,6 +56,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         }
 
         public NistSecureRandom(byte[] seed, byte[] personalization)
+            : base(null)
         {
             this.seed = seed;
             this.personalization = personalization;

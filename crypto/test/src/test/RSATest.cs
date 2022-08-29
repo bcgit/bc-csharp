@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Tests
 		private class MyFixedSecureRandom
 			: SecureRandom
 		{
-			byte[] seed =
+			private static readonly byte[] seed =
 			{
 				(byte)0xaa, (byte)0xfd, (byte)0x12, (byte)0xf6, (byte)0x59,
 				(byte)0xca, (byte)0xe6, (byte)0x34, (byte)0x89, (byte)0xb4,
@@ -39,7 +39,12 @@ namespace Org.BouncyCastle.Tests
 				(byte)0xc2, (byte)0xf0, (byte)0x6c, (byte)0xb5, (byte)0x8f
 			};
 
-			public override void NextBytes(byte[] buf)
+			internal MyFixedSecureRandom()
+				: base(null)
+			{
+			}
+
+            public override void NextBytes(byte[] buf)
 			{
 				NextBytes(buf, 0, buf.Length);
 			}

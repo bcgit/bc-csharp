@@ -258,7 +258,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 				public override void NextBytes(byte[] bytes)
 				{
-
 					byte[] d = Hex.Decode("02");
 
 					Array.Copy(d, 0, bytes, bytes.Length-d.Length, d.Length);
@@ -1594,6 +1593,11 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		internal class SecureRandomImpl : SecureRandom
 		{
+			internal SecureRandomImpl()
+				: base(null)
+			{
+			}
+
 			public override void NextBytes(byte[] buf, int off, int len)
 			{
 				byte[] bytes = new byte[len];

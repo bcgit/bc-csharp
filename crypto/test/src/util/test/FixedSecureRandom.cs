@@ -85,14 +85,13 @@ namespace Org.BouncyCastle.Utilities.Test
             }
         }
 
-        protected FixedSecureRandom(
-			byte[] data)
+        protected FixedSecureRandom(byte[] data)
+            : base(null)
 		{
 			_data = data;
 		}
 
-		public static FixedSecureRandom From(
-			params byte[][] values)
+		public static FixedSecureRandom From(params byte[][] values)
 		{
 			MemoryStream bOut = new MemoryStream();
 
@@ -112,8 +111,8 @@ namespace Org.BouncyCastle.Utilities.Test
 			return new FixedSecureRandom(bOut.ToArray());
 		}
 
-        public FixedSecureRandom(
-            Source[] sources)
+        public FixedSecureRandom(Source[] sources)
+            : base(null)
         {
             MemoryStream bOut = new MemoryStream();
 
@@ -226,17 +225,6 @@ namespace Org.BouncyCastle.Utilities.Test
 			_index += len;
 		}
 
-        // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
-        //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public override void NextBytes(Span<byte> buffer)
-        {
-            _data.AsSpan(_index, buffer.Length).CopyTo(buffer);
-
-            _index += buffer.Length;
-        }
-#endif
-
         public bool IsExhausted
 		{
 			get { return _index == _data.Length; }
@@ -247,6 +235,11 @@ namespace Org.BouncyCastle.Utilities.Test
         {
             byte[] data = Hex.Decode("01020304ffffffff0506070811111111");
             int    index = 0;
+
+            internal RandomChecker()
+                : base(null)
+            {
+            }
 
             public override void NextBytes(byte[] buf)
             {
@@ -259,17 +252,6 @@ namespace Org.BouncyCastle.Utilities.Test
 
                 index += len;
             }
-
-            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
-//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            public override void NextBytes(Span<byte> buffer)
-            {
-                data.AsSpan(index, buffer.Length).CopyTo(buffer);
-
-                index += buffer.Length;
-            }
-#endif
         }
 
         private static byte[] ExpandToBitLength(int bitLength, byte[] v)
