@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         private readonly X931Rng        mDrbg;
 
         internal X931SecureRandom(SecureRandom randomSource, X931Rng drbg, bool predictionResistant)
-            : base((IRandomGenerator)null)
+            : base(null)
         {
             this.mRandomSource = randomSource;
             this.mDrbg = drbg;
