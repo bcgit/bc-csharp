@@ -83,6 +83,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         int DoFinal(byte[] outBytes, int outOff);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int DoFinal(Span<byte> output);
+#endif
+
         /**
         * Return the value of the MAC associated with the last stream processed.
         *

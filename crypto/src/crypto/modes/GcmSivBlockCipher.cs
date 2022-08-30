@@ -295,8 +295,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void ProcessAadBytes(byte[] pData, int pOffset, int pLen)
         {
-            /* Check input buffer */
-            CheckBuffer(pData, pOffset, pLen, false);
+            Check.DataLength(pData, pOffset, pLen, "input buffer too short");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ProcessAadBytes(pData.AsSpan(pOffset, pLen));
@@ -345,8 +344,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             /* Check that we have initialised */
             CheckStatus(pLen);
 
-            /* Check input buffer */
-            CheckBuffer(pData, pOffset, pLen, false);
+            Check.DataLength(pData, pOffset, pLen, "input buffer too short");
 
             /* Store the data */
             if (forEncryption)
@@ -365,20 +363,22 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int DoFinal(byte[] pOutput, int pOffset)
         {
+            Check.OutputLength(pOutput, pOffset, GetOutputSize(0), "output buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(pOutput.AsSpan(pOffset));
+#else
             /* Check that we have initialised */
             CheckStatus(0);
-
-            /* Check output buffer */
-            CheckBuffer(pOutput, pOffset, GetOutputSize(0), true);
 
             /* If we are encrypting */
             if (forEncryption)
             {
                 /* Derive the tag */
-                byte[] myTag = calculateTag();
+                byte[] myTag = CalculateTag();
 
                 /* encrypt the plain text */
-                int myDataLen = BUFLEN + encryptPlain(myTag, pOutput, pOffset);
+                int myDataLen = BUFLEN + EncryptPlain(myTag, pOutput, pOffset);
 
                 /* Add the tag to the output */
                 Array.Copy(myTag, 0, pOutput, pOffset + Convert.ToInt32(thePlain.Length), BUFLEN);
@@ -392,7 +392,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             else
             {
                 /* decrypt to plain text */
-                decryptPlain();
+                DecryptPlain();
 
                 /* Release plain text */
                 int myDataLen = Streams.WriteBufTo(thePlain, pOutput, pOffset);
@@ -401,7 +401,53 @@ namespace Org.BouncyCastle.Crypto.Modes
                 ResetStreams();
                 return myDataLen;
             }
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            /* Check that we have initialised */
+            CheckStatus(0);
+
+            Check.OutputLength(output, GetOutputSize(0), "output buffer too short");
+
+            /* If we are encrypting */
+            if (forEncryption)
+            {
+                /* Derive the tag */
+                byte[] myTag = CalculateTag();
+
+                /* encrypt the plain text */
+                int myDataLen = BUFLEN + EncryptPlain(myTag, output);
+
+                /* Add the tag to the output */
+                myTag.AsSpan(0, BUFLEN).CopyTo(output[Convert.ToInt32(thePlain.Length)..]);
+
+                /* Reset the streams */
+                ResetStreams();
+                return myDataLen;
+
+                /* else we are decrypting */
+            }
+            else
+            {
+                /* decrypt to plain text */
+                DecryptPlain();
+
+                /* Release plain text */
+                if (!thePlain.TryGetBuffer(out var buffer))
+                    throw new InvalidOperationException();
+
+                buffer.AsSpan().CopyTo(output);
+                int myDataLen = buffer.Count;
+
+                /* Reset the streams */
+                ResetStreams();
+                return myDataLen;
+            }
+        }
+#endif
 
         public virtual byte[] GetMac()
         {
@@ -468,37 +514,43 @@ namespace Org.BouncyCastle.Crypto.Modes
             return pBuffer == null ? 0 : pBuffer.Length;
         }
 
-        /**
-        * Check buffer.
-        * @param pBuffer the buffer
-        * @param pOffset the offset
-        * @param pLen the length
-        * @param pOutput is this an output buffer?
-        */
-        private static void CheckBuffer(byte[] pBuffer, int pOffset, int pLen, bool pOutput)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private int EncryptPlain(byte[] pCounter, Span<byte> target)
         {
-            /* Access lengths */
-            int myBufLen = bufLength(pBuffer);
-            int myLast = pOffset + pLen;
+            byte[] thePlainBuf = thePlain.GetBuffer();
+            int thePlainLen = Convert.ToInt32(thePlain.Length);
 
-            /* Check for negative values and buffer overflow */
-            bool badLen = pLen < 0 || pOffset < 0 || myLast < 0;
-            if (badLen || myLast > myBufLen)
+            byte[] mySrc = thePlainBuf;
+            byte[] myCounter = Arrays.Clone(pCounter);
+            myCounter[BUFLEN - 1] |= MASK;
+            byte[] myMask = new byte[BUFLEN];
+            long myRemaining = thePlainLen;
+            int myOff = 0;
+
+            /* While we have data to process */
+            while (myRemaining > 0)
             {
-                throw pOutput
-                ? new OutputLengthException("output buffer too short.")
-                : new DataLengthException("input buffer too short.");
-            }
-        }
+                /* Generate the next mask */
+                theCipher.ProcessBlock(myCounter, 0, myMask, 0);
 
-        /**
-        * encrypt data stream.
-        * @param pCounter the counter
-        * @param pTarget the target buffer
-        * @param pOffset the target offset
-        * @return the length of data encrypted
-        */
-        private int encryptPlain(byte[] pCounter, byte[] pTarget, int pOffset)
+                /* Xor data into mask */
+                int myLen = (int)System.Math.Min(BUFLEN, myRemaining);
+                xorBlock(myMask, mySrc, myOff, myLen);
+
+                /* Copy encrypted data to output */
+                myMask.AsSpan(0, myLen).CopyTo(target[myOff..]);
+
+                /* Adjust counters */
+                myRemaining -= myLen;
+                myOff += myLen;
+                incrementCounter(myCounter);
+            }
+
+            /* Return the amount of data processed */
+            return thePlainLen;
+        }
+#else
+        private int EncryptPlain(byte[] pCounter, byte[] pTarget, int pOffset)
         {
             byte[] thePlainBuf = thePlain.GetBuffer();
             int thePlainLen = Convert.ToInt32(thePlain.Length);
@@ -532,12 +584,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             /* Return the amount of data processed */
             return thePlainLen;
         }
+#endif
 
-        /**
-        * decrypt data stream.
-        * @throws InvalidCipherTextException on data too short or mac check failed
-        */
-        private void decryptPlain()
+        private void DecryptPlain()
         {
             byte[] theEncDataBuf = theEncData.GetBuffer();
             int theEncDataLen = Convert.ToInt32(theEncData.Length);
@@ -579,7 +628,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             /* Derive and check the tag */
-            byte[] myTag = calculateTag();
+            byte[] myTag = CalculateTag();
             if (!Arrays.ConstantTimeAreEqual(myTag, myExpected))
             {
                 Reset();
@@ -591,7 +640,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * calculate tag.
         * @return the calculated tag
         */
-        private byte[] calculateTag()
+        private byte[] CalculateTag()
         {
             /* Complete the hash */
             theDataHasher.completeHash();

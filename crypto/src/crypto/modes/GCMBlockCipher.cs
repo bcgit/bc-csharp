@@ -510,7 +510,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (forEncryption)
             {
-                Check.OutputLength(output, outOff, extra + macSize, "Output buffer too short");
+                Check.OutputLength(output, outOff, extra + macSize, "output buffer too short");
             }
             else
             {
@@ -519,7 +519,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 extra -= macSize;
 
-                Check.OutputLength(output, outOff, extra, "Output buffer too short");
+                Check.OutputLength(output, outOff, extra, "output buffer too short");
             }
 
             if (extra > 0)
@@ -606,6 +606,21 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             return resultLen;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            // TODO[span] Implement efficiently
+
+            int outputLen = GetOutputSize(0);
+            Check.OutputLength(output, outputLen, "output buffer too short");
+
+            byte[] bytes = new byte[outputLen];
+            int len = DoFinal(bytes, 0);
+            bytes[..len].CopyTo(output);
+            return len;
+        }
+#endif
 
         public virtual void Reset()
         {

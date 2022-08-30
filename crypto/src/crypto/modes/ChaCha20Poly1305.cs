@@ -397,6 +397,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (outOff < 0)
                 throw new ArgumentException("cannot be negative", "outOff");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(outBytes.AsSpan(outOff));
+#else
             CheckData();
 
             Array.Clear(mMac, 0, MacSize);
@@ -423,9 +426,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 FinishData(State.DecFinal);
 
                 if (!Arrays.ConstantTimeAreEqual(MacSize, mMac, 0, mBuf, resultLen))
-                {
                     throw new InvalidCipherTextException("mac check in ChaCha20Poly1305 failed");
-                }
 
                 break;
             }
@@ -453,7 +454,68 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(false, true);
 
             return resultLen;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            CheckData();
+
+            Array.Clear(mMac, 0, MacSize);
+
+            int resultLen = 0;
+
+            switch (mState)
+            {
+            case State.DecData:
+            {
+                if (mBufPos < MacSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                resultLen = mBufPos - MacSize;
+
+                Check.OutputLength(output, resultLen, "output buffer too short");
+
+                if (resultLen > 0)
+                {
+                    mPoly1305.BlockUpdate(mBuf, 0, resultLen);
+                    ProcessData(mBuf.AsSpan(0, resultLen), output);
+                }
+
+                FinishData(State.DecFinal);
+
+                if (!Arrays.ConstantTimeAreEqual(MacSize, mMac, 0, mBuf, resultLen))
+                    throw new InvalidCipherTextException("mac check in ChaCha20Poly1305 failed");
+
+                break;
+            }
+            case State.EncData:
+            {
+                resultLen = mBufPos + MacSize;
+
+                Check.OutputLength(output, resultLen, "output buffer too short");
+
+                if (mBufPos > 0)
+                {
+                    ProcessData(mBuf.AsSpan(0, mBufPos), output);
+                    mPoly1305.BlockUpdate(output[..mBufPos]);
+                }
+
+                FinishData(State.EncFinal);
+
+                mMac.AsSpan(0, MacSize).CopyTo(output[mBufPos..]);
+                break;
+            }
+            default:
+                throw new InvalidOperationException();
+            }
+
+            Reset(false, true);
+
+            return resultLen;
+        }
+#endif
 
         public virtual byte[] GetMac()
         {
@@ -577,6 +639,16 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.mDataCount = IncrementCount(mDataCount, 128U, DataLimit);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void ProcessData(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            Check.OutputLength(output, input.Length, "output buffer too short");
+
+            mChacha20.ProcessBytes(input, output);
+
+            this.mDataCount = IncrementCount(mDataCount, (uint)input.Length, DataLimit);
+        }
+#else
         private void ProcessData(byte[] inBytes, int inOff, int inLen, byte[] outBytes, int outOff)
         {
             Check.OutputLength(outBytes, outOff, inLen, "output buffer too short");
@@ -585,6 +657,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             this.mDataCount = IncrementCount(mDataCount, (uint)inLen, DataLimit);
         }
+#endif
 
         private void Reset(bool clearMac, bool resetCipher)
         {

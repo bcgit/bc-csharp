@@ -331,6 +331,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
             /*
              * For decryption, get the tag from the end of the message
              */
@@ -371,7 +374,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Xor(mainBlock, Pad);
 
-                Check.OutputLength(output, outOff, mainBlockPos, "Output buffer too short");
+                Check.OutputLength(output, outOff, mainBlockPos, "output buffer too short");
                 Array.Copy(mainBlock, 0, output, outOff, mainBlockPos);
 
                 if (!forEncryption)
@@ -399,7 +402,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (forEncryption)
             {
-                Check.OutputLength(output, outOff, resultLen + macSize, "Output buffer too short");
+                Check.OutputLength(output, outOff, resultLen + macSize, "output buffer too short");
 
                 // Append tag to the message
                 Array.Copy(macBlock, 0, output, outOff + resultLen, macSize);
@@ -415,7 +418,98 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(false);
 
             return resultLen;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            /*
+             * For decryption, get the tag from the end of the message
+             */
+            byte[] tag = null;
+            if (!forEncryption)
+            {
+                if (mainBlockPos < macSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                mainBlockPos -= macSize;
+                tag = new byte[macSize];
+                Array.Copy(mainBlock, mainBlockPos, tag, 0, macSize);
+            }
+
+            /*
+             * HASH: Process any final partial block; compute final hash value
+             */
+            if (hashBlockPos > 0)
+            {
+                OCB_extend(hashBlock, hashBlockPos);
+                UpdateHASH(L_Asterisk);
+            }
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Process any final partial block
+             */
+            if (mainBlockPos > 0)
+            {
+                if (forEncryption)
+                {
+                    OCB_extend(mainBlock, mainBlockPos);
+                    Xor(Checksum, mainBlock);
+                }
+
+                Xor(OffsetMAIN, L_Asterisk);
+
+                byte[] Pad = new byte[16];
+                hashCipher.ProcessBlock(OffsetMAIN, 0, Pad, 0);
+
+                Xor(mainBlock, Pad);
+
+                Check.OutputLength(output, mainBlockPos, "output buffer too short");
+                mainBlock.AsSpan(0, mainBlockPos).CopyTo(output);
+
+                if (!forEncryption)
+                {
+                    OCB_extend(mainBlock, mainBlockPos);
+                    Xor(Checksum, mainBlock);
+                }
+            }
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Compute raw tag
+             */
+            Xor(Checksum, OffsetMAIN);
+            Xor(Checksum, L_Dollar);
+            hashCipher.ProcessBlock(Checksum, 0, Checksum, 0);
+            Xor(Checksum, Sum);
+
+            this.macBlock = new byte[macSize];
+            Array.Copy(Checksum, 0, macBlock, 0, macSize);
+
+            /*
+             * Validate or append tag and reset this cipher for the next run
+             */
+            int resultLen = mainBlockPos;
+
+            if (forEncryption)
+            {
+                // Append tag to the message
+                Check.OutputLength(output, resultLen + macSize, "output buffer too short");
+                macBlock.AsSpan(0, macSize).CopyTo(output[resultLen..]);
+                resultLen += macSize;
+            }
+            else
+            {
+                // Compare the tag from the message with the calculated one
+                if (!Arrays.ConstantTimeAreEqual(macBlock, tag))
+                    throw new InvalidCipherTextException("mac check in OCB failed");
+            }
+
+            Reset(false);
+
+            return resultLen;
+        }
+#endif
 
         public virtual void Reset()
         {

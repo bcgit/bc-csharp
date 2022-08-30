@@ -124,10 +124,26 @@ namespace Org.BouncyCastle.Utilities
             int d = 0;
             for (int i = 0; i < len; ++i)
             {
-                d |= (a[aOff + i] ^ b[bOff + i]);
+                d |= a[aOff + i] ^ b[bOff + i];
             }
             return 0 == d;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool ConstantTimeAreEqual(Span<byte> a, Span<byte> b)
+        {
+            if (a.Length != b.Length)
+                throw new ArgumentException("Spans to compare must have equal length");
+
+            int d = 0;
+            for (int i = 0, count = a.Length; i < count; ++i)
+            {
+                d |= a[i] ^ b[i];
+            }
+            return 0 == d;
+
+        }
+#endif
 
         public static bool AreEqual(
             int[]	a,

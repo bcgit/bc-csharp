@@ -238,11 +238,12 @@ namespace Org.BouncyCastle.Crypto.Modes
             return resultLen;
 		}
 
-		public virtual int DoFinal(
-			byte[]	outBytes,
-			int		outOff)
+		public virtual int DoFinal(byte[] outBytes, int outOff)
 		{
-            InitCipher();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return DoFinal(outBytes.AsSpan(outOff));
+#else
+			InitCipher();
 
             int extra = bufOff;
 			byte[] tmp = new byte[bufBlock.Length];
@@ -251,7 +252,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
 			if (forEncryption)
 			{
-                Check.OutputLength(outBytes, outOff, extra + macSize, "Output buffer too short");
+                Check.OutputLength(outBytes, outOff, extra + macSize, "output buffer too short");
 
                 cipher.ProcessBlock(bufBlock, 0, tmp, 0);
 
@@ -272,7 +273,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (extra < macSize)
                     throw new InvalidCipherTextException("data too short");
 
-                Check.OutputLength(outBytes, outOff, extra - macSize, "Output buffer too short");
+                Check.OutputLength(outBytes, outOff, extra - macSize, "output buffer too short");
 
                 if (extra > macSize)
 				{
@@ -292,9 +293,66 @@ namespace Org.BouncyCastle.Crypto.Modes
 
 				return extra - macSize;
 			}
+#endif
 		}
 
-		public virtual byte[] GetMac()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+		{
+            InitCipher();
+
+            int extra = bufOff;
+			Span<byte> tmp = stackalloc byte[bufBlock.Length];
+
+            bufOff = 0;
+
+			if (forEncryption)
+			{
+                Check.OutputLength(output, extra + macSize, "output buffer too short");
+
+                cipher.ProcessBlock(bufBlock, tmp);
+
+				tmp[..extra].CopyTo(output);
+
+				mac.BlockUpdate(tmp[..extra]);
+
+				CalculateMac();
+
+				macBlock.AsSpan(0, macSize).CopyTo(output[extra..]);
+
+				Reset(false);
+
+				return extra + macSize;
+			}
+			else
+			{
+                if (extra < macSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                Check.OutputLength(output, extra - macSize, "output buffer too short");
+
+                if (extra > macSize)
+				{
+					mac.BlockUpdate(bufBlock.AsSpan(0, extra - macSize));
+
+					cipher.ProcessBlock(bufBlock, tmp);
+
+					tmp[..(extra - macSize)].CopyTo(output);
+				}
+
+				CalculateMac();
+
+				if (!VerifyMac(bufBlock, extra - macSize))
+					throw new InvalidCipherTextException("mac check in EAX failed");
+
+				Reset(false);
+
+				return extra - macSize;
+			}
+		}
+#endif
+
+        public virtual byte[] GetMac()
 		{
 			byte[] mac = new byte[macSize];
 
