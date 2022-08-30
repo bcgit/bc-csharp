@@ -944,5 +944,37 @@ namespace Org.BouncyCastle.Utilities
         {
             return null == array || array.Length < 1;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+
+        public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
+        {
+            byte[] rv = new byte[a.Length + b.Length];
+            a.CopyTo(rv);
+            b.CopyTo(rv.AsSpan(a.Length));
+            return rv;
+        }
+
+        public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, ReadOnlySpan<byte> c)
+        {
+            byte[] rv = new byte[a.Length + b.Length + c.Length];
+            a.CopyTo(rv);
+            b.CopyTo(rv.AsSpan(a.Length));
+            c.CopyTo(rv.AsSpan(a.Length + b.Length));
+            return rv;
+        }
+
+        public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, ReadOnlySpan<byte> c,
+            ReadOnlySpan<byte> d)
+        {
+            byte[] rv = new byte[a.Length + b.Length + c.Length + d.Length];
+            a.CopyTo(rv);
+            b.CopyTo(rv.AsSpan(a.Length));
+            c.CopyTo(rv.AsSpan(a.Length + b.Length));
+            d.CopyTo(rv.AsSpan(a.Length + b.Length + c.Length));
+            return rv;
+        }
+
+#endif
     }
 }
