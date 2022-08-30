@@ -1,7 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Parameters;
-
 namespace Org.BouncyCastle.Crypto
 {
 	/**
@@ -88,8 +86,8 @@ namespace Org.BouncyCastle.Crypto
 			byte[]	output,
 			int		outOff)
 		{
-			if (outOff + length > output.Length)
-				throw new DataLengthException("output buffer too small in ProcessBytes()");
+			Check.DataLength(input, inOff, length, "input buffer too short");
+            Check.OutputLength(output, outOff, length, "output buffer too short");
 
 			for (int i = 0; i != length; i++)
 			{
@@ -97,11 +95,23 @@ namespace Org.BouncyCastle.Crypto
 			}
 		}
 
-		/**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            Check.OutputLength(output, input.Length, "output buffer too short");
+
+            for (int i = 0; i != input.Length; i++)
+            {
+				cipher.ProcessBlock(input[i..], output[i..]);
+            }
+        }
+#endif
+
+        /**
 		* reset the underlying cipher. This leaves it in the same state
 		* it was at after the last init (if there was one).
 		*/
-		public void Reset()
+        public void Reset()
 		{
 			cipher.Reset();
 		}

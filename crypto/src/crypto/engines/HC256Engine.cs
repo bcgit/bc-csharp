@@ -206,6 +206,21 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (!initialised)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+            Check.OutputLength(output, input.Length, "output buffer too short");
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                output[i] = (byte)(input[i] ^ GetByte());
+            }
+        }
+#endif
+
         public virtual void Reset()
 		{
 			Init();

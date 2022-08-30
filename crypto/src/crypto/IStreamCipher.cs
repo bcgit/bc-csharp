@@ -22,24 +22,35 @@ namespace Org.BouncyCastle.Crypto
 		/// <returns>the result of processing the input byte.</returns>
         byte ReturnByte(byte input);
 
-		/// <summary>
-		/// Process a block of bytes from <c>input</c> putting the result into <c>output</c>.
-		/// </summary>
-		/// <param name="input">The input byte array.</param>
-		/// <param name="inOff">
-		/// The offset into <c>input</c> where the data to be processed starts.
-		/// </param>
-		/// <param name="length">The number of bytes to be processed.</param>
-		/// <param name="output">The output buffer the processed bytes go into.</param>
-		/// <param name="outOff">
-		/// The offset into <c>output</c> the processed data starts at.
-		/// </param>
-		/// <exception cref="DataLengthException">If the output buffer is too small.</exception>
+        /// <summary>
+        /// Process a block of bytes from <paramref name="input"/>, putting the result into <paramref name="output"/>.
+        /// </summary>
+        /// <param name="input">The input byte array.</param>
+        /// <param name="inOff">
+        /// The offset into <c>input</c> where the data to be processed starts.
+        /// </param>
+        /// <param name="length">The number of bytes to be processed.</param>
+        /// <param name="output">The output buffer the processed bytes go into.</param>
+        /// <param name="outOff">
+        /// The offset into <c>output</c> the processed data starts at.
+        /// </param>
+        /// <exception cref="DataLengthException">If the input buffer is too small.</exception>
+        /// <exception cref="OutputLengthException">If the output buffer is too small.</exception>
         void ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff);
 
-		/// <summary>
-		/// Reset the cipher to the same state as it was after the last init (if there was one).
-		/// </summary>
-		void Reset();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Process a block of bytes from <paramref name="input"/>, putting the result into <paramref name="output"/>.
+        /// </summary>
+		/// <param name="input">The input span.</param>
+		/// <param name="output">The output span.</param>
+        /// <exception cref="OutputLengthException">If the output span is too small.</exception>
+        void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output);
+#endif
+
+        /// <summary>
+        /// Reset the cipher to the same state as it was after the last init (if there was one).
+        /// </summary>
+        void Reset();
     }
 }
