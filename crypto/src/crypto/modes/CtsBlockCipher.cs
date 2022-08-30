@@ -121,19 +121,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             int		outOff)
         {
             if (length < 0)
-            {
-                throw new ArgumentException("Can't have a negative input outLength!");
-            }
+                throw new ArgumentException("Can't have a negative input length!");
 
             int blockSize = GetBlockSize();
             int outLength = GetUpdateOutputSize(length);
 
             if (outLength > 0)
             {
-                if ((outOff + outLength) > output.Length)
-                {
-                    throw new DataLengthException("output buffer too short");
-                }
+                Check.OutputLength(output, outOff, outLength, "output buffer too short");
             }
 
             int resultLen = 0;
