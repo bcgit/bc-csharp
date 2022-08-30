@@ -81,16 +81,24 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			while (inLen >= 128)
             {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ProcessBlocks2(inBuf.AsSpan(inOff), outBuf.AsSpan(outOff));
+#else
 				ProcessBlocks2(inBuf, inOff, outBuf, outOff);
-				inOff += 128;
+#endif
+                inOff += 128;
 				inLen -= 128;
 				outOff += 128;
 			}
 
 			if (inLen >= 64)
 			{
-				ImplProcessBlock(inBuf, inOff, outBuf, outOff);
-				inOff += 64;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ImplProcessBlock(inBuf.AsSpan(inOff), outBuf.AsSpan(outOff));
+#else
+                ImplProcessBlock(inBuf, inOff, outBuf, outOff);
+#endif
+                inOff += 64;
 				inLen -= 64;
 				outOff += 64;
 			}
@@ -111,6 +119,60 @@ namespace Org.BouncyCastle.Crypto.Engines
 			// TODO Prevent re-use if encrypting
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (!initialised)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+            if (LimitExceeded(64U))
+                throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
+
+            Debug.Assert(index == 0);
+
+            ImplProcessBlock(input, output);
+        }
+
+        internal void ProcessBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (!initialised)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+            if (LimitExceeded(128U))
+                throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
+
+            Debug.Assert(index == 0);
+
+#if NETCOREAPP3_0_OR_GREATER
+            if (Avx2.IsSupported)
+            {
+                ImplProcessBlocks2_X86_Avx2(rounds, engineState, input, output);
+                return;
+            }
+
+            if (Sse2.IsSupported)
+            {
+                ImplProcessBlocks2_X86_Sse2(rounds, engineState, input, output);
+                return;
+            }
+#endif
+
+            {
+				ImplProcessBlock(input, output);
+				ImplProcessBlock(input[64..], output[64..]);
+			}
+		}
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void ImplProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            ChaChaEngine.ChachaCore(rounds, engineState, keyStream);
+            AdvanceCounter();
+
+            for (int i = 0; i < 64; ++i)
+            {
+                output[i] = (byte)(keyStream[i] ^ input[i]);
+            }
+        }
+#else
 		internal void ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
         {
             if (!initialised)
@@ -132,20 +194,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             Debug.Assert(index == 0);
 
-#if NETCOREAPP3_0_OR_GREATER
-            if (Avx2.IsSupported)
-            {
-                ImplProcessBlocks2_X86_Avx2(rounds, engineState, inBytes.AsSpan(inOff), outBytes.AsSpan(outOff));
-                return;
-            }
-
-            if (Sse2.IsSupported)
-            {
-                ImplProcessBlocks2_X86_Sse2(rounds, engineState, inBytes.AsSpan(inOff), outBytes.AsSpan(outOff));
-                return;
-            }
-#endif
-
             {
 				ImplProcessBlock(inBytes, inOff, outBytes, outOff);
 				ImplProcessBlock(inBytes, inOff + 64, outBytes, outOff + 64);
@@ -165,6 +213,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 				outBuf[outOff + i] = (byte)(keyStream[i] ^ inBuf[inOff + i]);
 			}
 		}
+#endif
 
 #if NETCOREAPP3_0_OR_GREATER
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -125,22 +125,23 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        public virtual int ProcessByte(
-            byte	input,
-            byte[]	outBytes,
-            int		outOff)
+        public virtual int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
             data.WriteByte(input);
 
             return 0;
         }
 
-        public virtual int ProcessBytes(
-            byte[]	inBytes,
-            int		inOff,
-            int		inLen,
-            byte[]	outBytes,
-            int		outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
+        {
+            data.WriteByte(input);
+
+            return 0;
+        }
+#endif
+
+        public virtual int ProcessBytes(byte[] inBytes, int inOff, int inLen, byte[] outBytes, int outOff)
         {
             Check.DataLength(inBytes, inOff, inLen, "input buffer too short");
 
@@ -148,6 +149,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             return 0;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            data.Write(input);
+
+            return 0;
+        }
+#endif
 
         public virtual int DoFinal(byte[] outBytes, int outOff)
         {

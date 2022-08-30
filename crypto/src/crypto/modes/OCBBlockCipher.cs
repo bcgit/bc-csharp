@@ -312,8 +312,24 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
+        {
+            mainBlock[mainBlockPos] = input;
+            if (++mainBlockPos == mainBlock.Length)
+            {
+                ProcessMainBlock(output);
+                return BLOCK_SIZE;
+            }
+            return 0;
+        }
+#endif
+
         public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessBytes(input.AsSpan(inOff, len), Spans.FromNullable(output, outOff));
+#else
             int resultLen = 0;
 
             for (int i = 0; i < len; ++i)
@@ -327,7 +343,28 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             return resultLen;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int len = input.Length;
+            int resultLen = 0;
+
+            for (int i = 0; i < len; ++i)
+            {
+                mainBlock[mainBlockPos] = input[i];
+                if (++mainBlockPos == mainBlock.Length)
+                {
+                    ProcessMainBlock(output[resultLen..]);
+                    resultLen += BLOCK_SIZE;
+                }
+            }
+
+            return resultLen;
+        }
+#endif
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
@@ -571,6 +608,38 @@ namespace Org.BouncyCastle.Crypto.Modes
                 mainBlockPos = macSize;
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected virtual void ProcessMainBlock(Span<byte> output)
+        {
+            Check.DataLength(output, BLOCK_SIZE, "output buffer too short");
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Process any whole blocks
+             */
+
+            if (forEncryption)
+            {
+                Xor(Checksum, mainBlock);
+                mainBlockPos = 0;
+            }
+
+            Xor(OffsetMAIN, GetLSub(OCB_ntz(++mainBlockCount)));
+
+            Xor(mainBlock, OffsetMAIN);
+            mainCipher.ProcessBlock(mainBlock, 0, mainBlock, 0);
+            Xor(mainBlock, OffsetMAIN);
+
+            mainBlock.AsSpan(0, BLOCK_SIZE).CopyTo(output);
+
+            if (!forEncryption)
+            {
+                Xor(Checksum, mainBlock);
+                Array.Copy(mainBlock, BLOCK_SIZE, mainBlock, 0, macSize);
+                mainBlockPos = macSize;
+            }
+        }
+#endif
 
         protected virtual void Reset(bool clearMac)
         {

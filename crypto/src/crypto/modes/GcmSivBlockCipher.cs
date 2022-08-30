@@ -290,7 +290,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             CheckAeadStatus(1);
 
             /* Process the aead */
-            theAEADHasher.updateHash(pByte);
+            theAEADHasher.UpdateHash(pByte);
         }
 
         public virtual void ProcessAadBytes(byte[] pData, int pOffset, int pLen)
@@ -304,7 +304,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             CheckAeadStatus(pLen);
 
             /* Process the aead */
-            theAEADHasher.updateHash(pData, pOffset, pLen);
+            theAEADHasher.UpdateHash(pData, pOffset, pLen);
 #endif
         }
 
@@ -315,7 +315,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             CheckAeadStatus(input.Length);
 
             /* Process the aead */
-            theAEADHasher.updateHash(input);
+            theAEADHasher.UpdateHash(input);
         }
 #endif
 
@@ -328,7 +328,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (forEncryption)
             {
                 thePlain.WriteByte(pByte);
-                theDataHasher.updateHash(pByte);
+                theDataHasher.UpdateHash(pByte);
             }
             else
             {
@@ -339,18 +339,43 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
-        public virtual int ProcessBytes(byte[] pData, int pOffset, int pLen, byte[] pOutput, int pOutOffset)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
         {
             /* Check that we have initialised */
-            CheckStatus(pLen);
+            CheckStatus(1);
 
+            /* Store the data */
+            if (forEncryption)
+            {
+                thePlain.WriteByte(input);
+                theDataHasher.UpdateHash(input);
+            }
+            else
+            {
+                theEncData.WriteByte(input);
+            }
+
+            /* No data returned */
+            return 0;
+        }
+#endif
+
+        public virtual int ProcessBytes(byte[] pData, int pOffset, int pLen, byte[] pOutput, int pOutOffset)
+        {
             Check.DataLength(pData, pOffset, pLen, "input buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessBytes(pData.AsSpan(pOffset, pLen), Spans.FromNullable(pOutput, pOutOffset));
+#else
+            /* Check that we have initialised */
+            CheckStatus(pLen);
 
             /* Store the data */
             if (forEncryption)
             {
                 thePlain.Write(pData, pOffset, pLen);
-                theDataHasher.updateHash(pData, pOffset, pLen);
+                theDataHasher.UpdateHash(pData, pOffset, pLen);
             }
             else
             {
@@ -359,7 +384,30 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             /* No data returned */
             return 0;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            /* Check that we have initialised */
+            CheckStatus(input.Length);
+
+            /* Store the data */
+            if (forEncryption)
+            {
+                thePlain.Write(input);
+                theDataHasher.UpdateHash(input);
+            }
+            else
+            {
+                theEncData.Write(input);
+            }
+
+            /* No data returned */
+            return 0;
+        }
+#endif
 
         public virtual int DoFinal(byte[] pOutput, int pOffset)
         {
@@ -500,7 +548,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             Arrays.Fill(theGHash, (byte)0);
             if (theInitialAEAD != null)
             {
-                theAEADHasher.updateHash(theInitialAEAD, 0, theInitialAEAD.Length);
+                theAEADHasher.UpdateHash(theInitialAEAD, 0, theInitialAEAD.Length);
             }
         }
 
@@ -619,7 +667,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 /* Write data to plain dataStream */
                 thePlain.Write(myMask, 0, myLen);
-                theDataHasher.updateHash(myMask, 0, myLen);
+                theDataHasher.UpdateHash(myMask, 0, myLen);
 
                 /* Adjust counters */
                 myRemaining -= myLen;
@@ -911,10 +959,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             * update hash.
             * @param pByte the byte
             */
-            internal void updateHash(byte pByte)
+            internal void UpdateHash(byte pByte)
             {
                 theByte[0] = pByte;
-                updateHash(theByte, 0, 1);
+                UpdateHash(theByte, 0, 1);
             }
 
             /**
@@ -923,7 +971,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             * @param pOffset the offset within the buffer
             * @param pLen the length of data
             */
-            internal void updateHash(byte[] pBuffer, int pOffset, int pLen)
+            internal void UpdateHash(byte[] pBuffer, int pOffset, int pLen)
             {
                 /* If we should process the cache */
                 int mySpace = BUFLEN - numActive;
@@ -967,7 +1015,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            internal void updateHash(ReadOnlySpan<byte> buffer)
+            internal void UpdateHash(ReadOnlySpan<byte> buffer)
             {
                 int pLen = buffer.Length;
 

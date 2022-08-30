@@ -59,6 +59,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 		*/
         int ProcessByte(byte input, byte[] outBytes, int outOff);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int ProcessByte(byte input, Span<byte> output);
+#endif
+
         /**
         * Process a block of bytes from in putting the result into out.
         *
@@ -71,6 +75,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         * @exception DataLengthException if the output buffer is too small.
         */
         int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output);
+#endif
 
         /**
         * Finish the operation either appending or verifying the MAC at the end of the data.

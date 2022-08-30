@@ -7,7 +7,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
-    public class KCcmBlockCipher: IAeadBlockCipher
+    public class KCcmBlockCipher
+        : IAeadBlockCipher
     {
         private static readonly int BYTES_IN_INT = 4;
         private static readonly int BITS_IN_BYTE = 8;
@@ -234,6 +235,15 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
+        {
+            data.WriteByte(input);
+
+            return 0;
+        }
+#endif
+
         public virtual int ProcessBytes(byte[] input, int inOff, int inLen, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -242,6 +252,15 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             return 0;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            data.Write(input);
+
+            return 0;
+        }
+#endif
 
         public int ProcessPacket(byte[] input, int inOff, int len, byte[] output, int outOff)
         {

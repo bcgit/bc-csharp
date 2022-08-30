@@ -209,25 +209,33 @@ namespace Org.BouncyCastle.Crypto.Modes
 		}
 #endif
 
-		public virtual int ProcessByte(
-			byte	input,
-			byte[]	outBytes,
-			int		outOff)
+        public virtual int ProcessByte(byte input, byte[] outBytes, int outOff)
 		{
             InitCipher();
 
-            return Process(input, outBytes, outOff);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return Process(input, Spans.FromNullable(outBytes, outOff));
+#else
+			return Process(input, outBytes, outOff);
+#endif
 		}
 
-        public virtual int ProcessBytes(
-			byte[]	inBytes,
-			int		inOff,
-			int		len,
-			byte[]	outBytes,
-			int		outOff)
-		{
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
+        {
             InitCipher();
 
+            return Process(input, output);
+        }
+#endif
+
+        public virtual int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
+        {
+            InitCipher();
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return ProcessBytes(inBytes.AsSpan(inOff, len), Spans.FromNullable(outBytes, outOff));
+#else
             int resultLen = 0;
 
 			for (int i = 0; i != len; i++)
@@ -236,9 +244,27 @@ namespace Org.BouncyCastle.Crypto.Modes
 			}
 
             return resultLen;
+#endif
 		}
 
-		public virtual int DoFinal(byte[] outBytes, int outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            InitCipher();
+
+			int len = input.Length;
+            int resultLen = 0;
+
+            for (int i = 0; i != len; i++)
+            {
+                resultLen += Process(input[i], output[resultLen..]);
+            }
+
+            return resultLen;
+        }
+#endif
+
+        public virtual int DoFinal(byte[] outBytes, int outOff)
 		{
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 			return DoFinal(outBytes.AsSpan(outOff));
@@ -389,12 +415,49 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData < macSize ? 0 : totalData - macSize;
         }
 
-		private int Process(
-			byte	b,
-			byte[]	outBytes,
-			int		outOff)
-		{
-			bufBlock[bufOff++] = b;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private int Process(byte b, Span<byte> output)
+        {
+            bufBlock[bufOff++] = b;
+
+            if (bufOff == bufBlock.Length)
+            {
+                Check.OutputLength(output, blockSize, "output buffer too short");
+
+                // TODO Could move the ProcessByte(s) calls to here
+                //InitCipher();
+
+                int size;
+
+                if (forEncryption)
+                {
+                    size = cipher.ProcessBlock(bufBlock, output);
+
+					mac.BlockUpdate(output[..blockSize]);
+                }
+                else
+                {
+                    mac.BlockUpdate(bufBlock.AsSpan(0, blockSize));
+
+                    size = cipher.ProcessBlock(bufBlock, output);
+                }
+
+                bufOff = 0;
+                if (!forEncryption)
+                {
+                    Array.Copy(bufBlock, blockSize, bufBlock, 0, macSize);
+                    bufOff = macSize;
+                }
+
+                return size;
+            }
+
+            return 0;
+        }
+#else
+        private int Process(byte b, byte[] outBytes, int outOff)
+        {
+            bufBlock[bufOff++] = b;
 
 			if (bufOff == bufBlock.Length)
 			{
@@ -430,8 +493,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
 			return 0;
 		}
+#endif
 
-		private bool VerifyMac(byte[] mac, int off)
+        private bool VerifyMac(byte[] mac, int off)
 		{
             int nonEqual = 0;
 
