@@ -101,6 +101,14 @@ namespace Org.BouncyCastle.Crypto
 			return length;
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			cipher.ProcessBytes(input, output);
+			return input.Length;
+		}
+#endif
+
 		public override byte[] DoFinal()
 		{
 			Reset();
@@ -123,7 +131,22 @@ namespace Org.BouncyCastle.Crypto
 			return output;
 		}
 
-		public override void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+		{
+			Reset();
+			return 0;
+		}
+
+        public virtual int DoFinal(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int len = ProcessBytes(input, output);
+			Reset();
+            return len;
+        }
+#endif
+
+        public override void Reset()
 		{
 			cipher.Reset();
 		}

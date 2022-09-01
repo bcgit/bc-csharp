@@ -2,8 +2,6 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -87,7 +85,15 @@ namespace Org.BouncyCastle.Crypto
 			return null;
 		}
 
-		public override byte[] DoFinal()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			buffer.Write(input);
+			return 0;
+		}
+#endif
+
+        public override byte[] DoFinal()
 		{
 			byte[] buf = buffer.ToArray();
 
@@ -105,7 +111,20 @@ namespace Org.BouncyCastle.Crypto
 			return DoFinal();
 		}
 
-		public override void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+		{
+            byte[] buf = buffer.ToArray();
+
+            Reset();
+
+            byte[] block = engine.ProcessBlock(buf, 0, buf.Length);
+			block.CopyTo(output);
+			return block.Length;
+        }
+#endif
+
+        public override void Reset()
 		{
 			buffer.SetLength(0);
 		}

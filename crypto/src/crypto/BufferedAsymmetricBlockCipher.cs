@@ -1,7 +1,4 @@
 using System;
-using System.Diagnostics;
-
-using Org.BouncyCastle.Crypto.Engines;
 
 namespace Org.BouncyCastle.Crypto
 {
@@ -111,7 +108,18 @@ namespace Org.BouncyCastle.Crypto
 			return null;
 		}
 
-		/**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			Check.DataLength(input, buffer.Length - bufOff, "attempt to process message too long for cipher");
+
+			input.CopyTo(buffer.AsSpan(bufOff));
+            bufOff += input.Length;
+            return 0;
+        }
+#endif
+
+        /**
         * process the contents of the buffer using the underlying
         * cipher.
         *
@@ -139,7 +147,24 @@ namespace Org.BouncyCastle.Crypto
 			return DoFinal();
 		}
 
-		/// <summary>Reset the buffer</summary>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+		{
+			int result = 0;
+			if (bufOff > 0)
+			{
+				byte[] outBytes = cipher.ProcessBlock(buffer, 0, bufOff);
+				outBytes.CopyTo(output);
+				result = outBytes.Length;
+            }
+
+            Reset();
+
+            return result;
+        }
+#endif
+
+        /// <summary>Reset the buffer</summary>
         public override void Reset()
         {
 			if (buffer != null)
