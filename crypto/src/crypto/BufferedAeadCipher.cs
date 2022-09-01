@@ -96,10 +96,7 @@ namespace Org.BouncyCastle.Crypto
         * @exception DataLengthException if there isn't enough space in out.
         * @exception InvalidOperationException if the cipher isn't initialised.
         */
-        public override int ProcessByte(
-            byte input,
-            byte[] output,
-            int outOff)
+        public override int ProcessByte(byte input, byte[] output, int outOff)
         {
             return cipher.ProcessByte(input, output, outOff);
         }
@@ -122,6 +119,13 @@ namespace Org.BouncyCastle.Crypto
 
             return outBytes;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessByte(byte input, Span<byte> output)
+        {
+            return cipher.ProcessByte(input, output);
+        }
+#endif
 
         public override byte[] ProcessBytes(
             byte[] input,

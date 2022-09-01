@@ -90,7 +90,27 @@ namespace Org.BouncyCastle.Crypto
 			return null;
 		}
 
-		public override byte[] ProcessBytes(
+        public override int ProcessByte(byte input, byte[] output, int outOff)
+        {
+            if (bufOff >= buffer.Length)
+                throw new DataLengthException("attempt to process message too long for cipher");
+
+            buffer[bufOff++] = input;
+            return 0;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessByte(byte input, Span<byte> output)
+        {
+            if (bufOff >= buffer.Length)
+                throw new DataLengthException("attempt to process message too long for cipher");
+
+            buffer[bufOff++] = input;
+            return 0;
+        }
+#endif
+
+        public override byte[] ProcessBytes(
 			byte[]	input,
 			int		inOff,
 			int		length)

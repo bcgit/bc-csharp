@@ -126,10 +126,7 @@ namespace Org.BouncyCastle.Crypto
 		* @exception DataLengthException if there isn't enough space in out.
 		* @exception InvalidOperationException if the cipher isn't initialised.
 		*/
-		public override int ProcessByte(
-			byte	input,
-			byte[]	output,
-			int		outOff)
+		public override int ProcessByte(byte input, byte[] output, int outOff)
 		{
 			buf[bufOff++] = input;
 
@@ -164,7 +161,24 @@ namespace Org.BouncyCastle.Crypto
 			return outBytes;
 		}
 
-		public override byte[] ProcessBytes(
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessByte(byte input, Span<byte> output)
+        {
+            buf[bufOff++] = input;
+
+            if (bufOff == buf.Length)
+            {
+				Check.OutputLength(output, buf.Length, "output buffer too short");
+
+                bufOff = 0;
+                return cipher.ProcessBlock(buf, output);
+            }
+
+            return 0;
+        }
+#endif
+
+        public override byte[] ProcessBytes(
 			byte[]	input,
 			int		inOff,
 			int		length)
@@ -230,7 +244,7 @@ namespace Org.BouncyCastle.Crypto
 			if (length >= gapLen)
 			{
 				Array.Copy(input, inOff, buf, bufOff, gapLen);
-				resultLen += cipher.ProcessBlock(buf, 0, output, outOff);
+				resultLen = cipher.ProcessBlock(buf, 0, output, outOff);
 				bufOff = 0;
 				length -= gapLen;
 				inOff += gapLen;
@@ -265,7 +279,7 @@ namespace Org.BouncyCastle.Crypto
             if (input.Length >= gapLen)
             {
 				input[..gapLen].CopyTo(buf.AsSpan(bufOff));
-                resultLen += cipher.ProcessBlock(buf, output);
+                resultLen = cipher.ProcessBlock(buf, output);
                 bufOff = 0;
 				input = input[gapLen..];
                 while (input.Length >= buf.Length)

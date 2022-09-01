@@ -60,14 +60,27 @@ namespace Org.BouncyCastle.Crypto
 			return 0;
 		}
 
-		public override byte[] ProcessByte(
-			byte input)
+		public override byte[] ProcessByte(byte input)
 		{
 			buffer.WriteByte(input);
 			return null;
 		}
 
-		public override byte[] ProcessBytes(
+        public override int ProcessByte(byte input, byte[] output, int outOff)
+        {
+            buffer.WriteByte(input);
+            return 0;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessByte(byte input, Span<byte> output)
+        {
+            buffer.WriteByte(input);
+            return 0;
+        }
+#endif
+
+        public override byte[] ProcessBytes(
 			byte[]	input,
 			int		inOff,
 			int		length)

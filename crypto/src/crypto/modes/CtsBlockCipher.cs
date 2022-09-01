@@ -1,9 +1,6 @@
 using System;
 using System.Diagnostics;
 
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-
 namespace Org.BouncyCastle.Crypto.Modes
 {
     /**
@@ -80,10 +77,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * @exception DataLengthException if there isn't enough space in out.
         * @exception InvalidOperationException if the cipher isn't initialised.
         */
-        public override int ProcessByte(
-            byte	input,
-            byte[]	output,
-            int		outOff)
+        public override int ProcessByte(byte input, byte[] output, int outOff)
         {
             int resultLen = 0;
 
@@ -101,7 +95,27 @@ namespace Org.BouncyCastle.Crypto.Modes
             return resultLen;
         }
 
-		/**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessByte(byte input, Span<byte> output)
+        {
+            int resultLen = 0;
+
+            if (bufOff == buf.Length)
+            {
+                resultLen = cipher.ProcessBlock(buf, output);
+                Debug.Assert(resultLen == blockSize);
+
+                Array.Copy(buf, blockSize, buf, 0, blockSize);
+                bufOff = blockSize;
+            }
+
+            buf[bufOff++] = input;
+
+            return resultLen;
+        }
+#endif
+
+        /**
         * process an array of bytes, producing output if necessary.
         *
         * @param in the input byte array.
@@ -113,12 +127,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * @exception DataLengthException if there isn't enough space in out.
         * @exception InvalidOperationException if the cipher isn't initialised.
         */
-        public override int ProcessBytes(
-            byte[]	input,
-            int		inOff,
-            int		length,
-            byte[]	output,
-            int		outOff)
+        public override int ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             if (length < 0)
                 throw new ArgumentException("Can't have a negative input length!");
@@ -138,7 +147,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 Array.Copy(input, inOff, buf, bufOff, gapLen);
 
-                resultLen += cipher.ProcessBlock(buf, 0, output, outOff);
+                resultLen = cipher.ProcessBlock(buf, 0, output, outOff);
                 Array.Copy(buf, blockSize, buf, 0, blockSize);
 
                 bufOff = blockSize;
@@ -164,6 +173,49 @@ namespace Org.BouncyCastle.Crypto.Modes
             return resultLen;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int blockSize = GetBlockSize();
+            int outLength = GetUpdateOutputSize(input.Length);
+
+            if (outLength > 0)
+            {
+                Check.OutputLength(output, outLength, "output buffer too short");
+            }
+
+            int resultLen = 0;
+            int gapLen = buf.Length - bufOff;
+
+            if (input.Length > gapLen)
+            {
+                input[..gapLen].CopyTo(buf.AsSpan(bufOff));
+
+                resultLen = cipher.ProcessBlock(buf, output);
+                Array.Copy(buf, blockSize, buf, 0, blockSize);
+
+                bufOff = blockSize;
+
+                input = input[gapLen..];
+
+                while (input.Length > blockSize)
+                {
+                    input[..blockSize].CopyTo(buf.AsSpan(bufOff));
+                    resultLen += cipher.ProcessBlock(buf, output[resultLen..]);
+                    Array.Copy(buf, blockSize, buf, 0, blockSize);
+
+                    input = input[blockSize..];
+                }
+            }
+
+            input.CopyTo(buf.AsSpan(bufOff));
+
+            bufOff += input.Length;
+
+            return resultLen;
+        }
+#endif
+
         /**
         * Process the last block in the buffer.
         *
@@ -177,14 +229,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         * @exception InvalidCipherTextException if cipher text decrypts wrongly (in
         * case the exception will never Get thrown).
         */
-        public override int DoFinal(
-            byte[]  output,
-            int     outOff)
+        public override int DoFinal(byte[] output, int outOff)
         {
             if (bufOff + outOff > output.Length)
-            {
-                throw new DataLengthException("output buffer too small in doFinal");
-            }
+                throw new DataLengthException("output buffer too small in DoFinal");
 
             int blockSize = cipher.GetBlockSize();
             int length = bufOff - blockSize;
@@ -195,9 +243,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 cipher.ProcessBlock(buf, 0, block, 0);
 
 				if (bufOff < blockSize)
-				{
 					throw new DataLengthException("need at least one block of input for CTS");
-				}
 
                 for (int i = bufOff; i != buf.Length; i++)
                 {
@@ -244,5 +290,69 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             return offset;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            if (bufOff > output.Length)
+                throw new DataLengthException("output buffer too small in DoFinal");
+
+            int blockSize = cipher.GetBlockSize();
+            int length = bufOff - blockSize;
+            Span<byte> block = stackalloc byte[blockSize];
+
+            if (forEncryption)
+            {
+                cipher.ProcessBlock(buf, block);
+
+                if (bufOff < blockSize)
+                    throw new DataLengthException("need at least one block of input for CTS");
+
+                for (int i = bufOff; i != buf.Length; i++)
+                {
+                    buf[i] = block[i - blockSize];
+                }
+
+                for (int i = blockSize; i != bufOff; i++)
+                {
+                    buf[i] ^= block[i - blockSize];
+                }
+
+                IBlockCipher c = (cipher is CbcBlockCipher)
+                    ? ((CbcBlockCipher)cipher).GetUnderlyingCipher()
+                    : cipher;
+
+                c.ProcessBlock(buf.AsSpan(blockSize), output);
+
+                block[..length].CopyTo(output[blockSize..]);
+            }
+            else
+            {
+                Span<byte> lastBlock = stackalloc byte[blockSize];
+
+                IBlockCipher c = (cipher is CbcBlockCipher)
+                    ? ((CbcBlockCipher)cipher).GetUnderlyingCipher()
+                    : cipher;
+
+                c.ProcessBlock(buf, block);
+
+                for (int i = blockSize; i != bufOff; i++)
+                {
+                    lastBlock[i - blockSize] = (byte)(block[i - blockSize] ^ buf[i]);
+                }
+
+                buf.AsSpan(blockSize, length).CopyTo(block);
+
+                cipher.ProcessBlock(block, output);
+                lastBlock[..length].CopyTo(output[blockSize..]);
+            }
+
+            int offset = bufOff;
+
+            Reset();
+
+            return offset;
+        }
+#endif
     }
 }

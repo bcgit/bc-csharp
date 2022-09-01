@@ -32,7 +32,11 @@ namespace Org.BouncyCastle.Crypto
 			return outBytes.Length;
 		}
 
-		public virtual byte[] ProcessBytes(
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public abstract int ProcessByte(byte input, Span<byte> output);
+#endif
+
+        public virtual byte[] ProcessBytes(
 			byte[] input)
 		{
 			return ProcessBytes(input, 0, input.Length);
