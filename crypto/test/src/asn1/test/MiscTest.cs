@@ -85,11 +85,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void SetAllowUnsafeProperty(bool allowUnsafe)
         {
-#if PORTABLE && !DOTNET
-            // Can't SetEnvironmentVariable !
-#else
             Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, allowUnsafe ? "true" : "false");
-#endif
         }
 
         public override void PerformTest()

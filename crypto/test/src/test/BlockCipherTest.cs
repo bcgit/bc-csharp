@@ -472,11 +472,7 @@ namespace Org.BouncyCastle.Tests
 
             SecureRandom rand = new FixedSecureRandom();
 
-#if PORTABLE
-            string upper = algorithm.ToUpperInvariant();
-#else
             string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
-#endif
             string[] parts = upper.Split('/');
             string baseAlgorithm = parts[0];
             string mode = parts.Length > 1 ? parts[1] : null;
@@ -509,11 +505,7 @@ namespace Org.BouncyCastle.Tests
                 inCipher = CipherUtilities.GetCipher(algorithm);
                 outCipher = CipherUtilities.GetCipher(algorithm);
 
-#if PORTABLE
-                upper = inCipher.AlgorithmName.ToUpperInvariant();
-#else
                 upper = inCipher.AlgorithmName.ToUpper(CultureInfo.InvariantCulture);
-#endif
                 if (!upper.StartsWith(baseAlgorithm))
                 {
                     Fail("wrong cipher returned!");
