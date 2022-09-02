@@ -1,6 +1,8 @@
 using System;
-#if NETCOREAPP3_0_OR_GREATER
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Runtime.CompilerServices;
+#endif
+#if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -808,6 +810,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, BlockSize, "output buffer too short");
@@ -859,6 +862,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             totalLength += BlockSize;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void DecryptBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, BlockSize * 2, "output buffer too short");
@@ -950,6 +954,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             totalLength += BlockSize * 2;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, BlockSize, "output buffer too short");
@@ -1001,6 +1006,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             totalLength += BlockSize;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void EncryptBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, BlockSize * 2, "Output buffer too short");
@@ -1092,6 +1098,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             totalLength += BlockSize * 2;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GetNextCtrBlock(Span<byte> block)
         {
             if (blocksRemaining == 0)
@@ -1341,6 +1348,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void gHASHBlock(byte[] Y, ReadOnlySpan<byte> b)
         {
             GcmUtilities.Xor(Y, b);
