@@ -741,9 +741,7 @@ namespace Org.BouncyCastle.Cms
 
 		private static Stream GetSafeOutputStream(Stream s)
 		{
-			if (s == null)
-				return new NullOutputStream();
-			return s;
+			return s ?? Stream.Null;
 		}
 
 		private static Stream GetSafeTeeOutputStream(Stream s1, Stream s2)
