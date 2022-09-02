@@ -288,6 +288,14 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             }
             while (i < 16);
         }
+
+        internal static void Xor(Span<byte> x, ReadOnlySpan<byte> y, int len)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                x[i] ^= y[i];
+            }
+        }
 #endif
 
         private static ulong ImplMul64(ulong x, ulong y)

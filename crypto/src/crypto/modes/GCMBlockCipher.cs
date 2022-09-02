@@ -638,6 +638,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public int DoFinal(byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
             CheckStatus();
 
             if (totalLength == 0)
@@ -744,20 +747,118 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(false);
 
             return resultLen;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual int DoFinal(Span<byte> output)
         {
-            // TODO[span] Implement efficiently
+            CheckStatus();
 
-            int outputLen = GetOutputSize(0);
-            Check.OutputLength(output, outputLen, "output buffer too short");
+            if (totalLength == 0)
+            {
+                InitCipher();
+            }
 
-            byte[] bytes = new byte[outputLen];
-            int len = DoFinal(bytes, 0);
-            bytes[..len].CopyTo(output);
-            return len;
+            int extra = bufOff;
+
+            if (forEncryption)
+            {
+                Check.OutputLength(output, extra + macSize, "output buffer too short");
+            }
+            else
+            {
+                if (extra < macSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                extra -= macSize;
+
+                Check.OutputLength(output, extra, "output buffer too short");
+            }
+
+            if (extra > 0)
+            {
+                ProcessPartial(bufBlock.AsSpan(0, extra), output);
+            }
+
+            atLength += (uint)atBlockPos;
+
+            if (atLength > atLengthPre)
+            {
+                /*
+                 *  Some AAD was sent after the cipher started. We determine the difference b/w the hash value
+                 *  we actually used when the cipher started (S_atPre) and the final hash value calculated (S_at).
+                 *  Then we carry this difference forward by multiplying by H^c, where c is the number of (full or
+                 *  partial) cipher-text blocks produced, and adjust the current hash.
+                 */
+
+                // Finish hash for partial AAD block
+                if (atBlockPos > 0)
+                {
+                    gHASHPartial(S_at, atBlock, 0, atBlockPos);
+                }
+
+                // Find the difference between the AAD hashes
+                if (atLengthPre > 0)
+                {
+                    GcmUtilities.Xor(S_at, S_atPre);
+                }
+
+                // Number of cipher-text blocks produced
+                long c = (long)(((totalLength * 8) + 127) >> 7);
+
+                // Calculate the adjustment factor
+                byte[] H_c = new byte[16];
+                if (exp == null)
+                {
+                    exp = new BasicGcmExponentiator();
+                    exp.Init(H);
+                }
+                exp.ExponentiateX(c, H_c);
+
+                // Carry the difference forward
+                GcmUtilities.Multiply(S_at, H_c);
+
+                // Adjust the current hash
+                GcmUtilities.Xor(S, S_at);
+            }
+
+            // Final gHASH
+            Span<byte> X = stackalloc byte[BlockSize];
+            Pack.UInt64_To_BE(atLength * 8UL, X);
+            Pack.UInt64_To_BE(totalLength * 8UL, X[8..]);
+
+            gHASHBlock(S, X);
+
+            // T = MSBt(GCTRk(J0,S))
+            Span<byte> tag = stackalloc byte[BlockSize];
+            cipher.ProcessBlock(J0, tag);
+            GcmUtilities.Xor(tag, S);
+
+            int resultLen = extra;
+
+            // We place into macBlock our calculated value for T
+            this.macBlock = new byte[macSize];
+            tag[..macSize].CopyTo(macBlock);
+
+            if (forEncryption)
+            {
+                // Append T to the message
+                macBlock.CopyTo(output[bufOff..]);
+                resultLen += macSize;
+            }
+            else
+            {
+                // Retrieve the T value from the message and compare to calculated one
+                Span<byte> msgMac = stackalloc byte[macSize];
+                bufBlock.AsSpan(extra, macSize).CopyTo(msgMac);
+                if (!Arrays.ConstantTimeAreEqual(this.macBlock, msgMac))
+                    throw new InvalidCipherTextException("mac check in GCM failed");
+            }
+
+            Reset(false);
+
+            return resultLen;
         }
 #endif
 
@@ -1110,6 +1211,26 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             cipher.ProcessBlock(counter, block);
         }
+
+        private void ProcessPartial(Span<byte> partialBlock, Span<byte> output)
+        {
+            Span<byte> ctrBlock = stackalloc byte[BlockSize];
+            GetNextCtrBlock(ctrBlock);
+
+            if (forEncryption)
+            {
+                GcmUtilities.Xor(partialBlock, ctrBlock, partialBlock.Length);
+                gHASHPartial(S, partialBlock);
+            }
+            else
+            {
+                gHASHPartial(S, partialBlock);
+                GcmUtilities.Xor(partialBlock, ctrBlock, partialBlock.Length);
+            }
+
+            partialBlock.CopyTo(output);
+            totalLength += (uint)partialBlock.Length;
+        }
 #else
         private void DecryptBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
@@ -1316,7 +1437,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             cipher.ProcessBlock(counter, 0, block, 0);
         }
-#endif
 
         private void ProcessPartial(byte[] buf, int off, int len, byte[] output, int outOff)
         {
@@ -1337,6 +1457,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             Array.Copy(buf, off, output, outOff, len);
             totalLength += (uint)len;
         }
+#endif
 
         private void gHASH(byte[] Y, byte[] b, int len)
         {
@@ -1352,6 +1473,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         private void gHASHBlock(byte[] Y, ReadOnlySpan<byte> b)
         {
             GcmUtilities.Xor(Y, b);
+            multiplier.MultiplyH(Y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void gHASHPartial(byte[] Y, ReadOnlySpan<byte> b)
+        {
+            GcmUtilities.Xor(Y, b, b.Length);
             multiplier.MultiplyH(Y);
         }
 #else
