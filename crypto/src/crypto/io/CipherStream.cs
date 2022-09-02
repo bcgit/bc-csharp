@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 using System.Diagnostics;
 using System.IO;
 
@@ -7,44 +10,39 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
-    public class CipherStream
+    public sealed class CipherStream
         : Stream
     {
-        internal Stream stream;
-        internal IBufferedCipher inCipher, outCipher;
-        private byte[] mInBuf;
-        private int mInPos;
-        private bool inStreamEnded;
+        private readonly Stream m_stream;
+        private readonly IBufferedCipher m_readCipher, m_writeCipher;
+
+        private byte[] m_readBuf;
+        private int m_readBufPos;
+        private bool m_readEnded;
 
         public CipherStream(Stream stream, IBufferedCipher readCipher, IBufferedCipher writeCipher)
         {
-            this.stream = stream;
+            m_stream = stream;
 
             if (readCipher != null)
             {
-                this.inCipher = readCipher;
-                mInBuf = null;
+                m_readCipher = readCipher;
+                m_readBuf = null;
             }
 
             if (writeCipher != null)
             {
-                this.outCipher = writeCipher;
+                m_writeCipher = writeCipher;
             }
         }
 
-        public IBufferedCipher ReadCipher
-        {
-            get { return inCipher; }
-        }
+        public IBufferedCipher ReadCipher => m_readCipher;
 
-        public IBufferedCipher WriteCipher
-        {
-            get { return outCipher; }
-        }
+        public IBufferedCipher WriteCipher => m_writeCipher;
 
         public override bool CanRead
         {
-            get { return stream.CanRead; }
+            get { return m_stream.CanRead; }
         }
 
         public sealed override bool CanSeek
@@ -54,42 +52,26 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override bool CanWrite
         {
-            get { return stream.CanWrite; }
+            get { return m_stream.CanWrite; }
         }
 
-#if PORTABLE
-        protected override void Dispose(bool disposing)
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize)
         {
-            if (disposing)
+            if (m_readCipher == null)
             {
-			    if (outCipher != null)
-			    {
-				    byte[] data = outCipher.DoFinal();
-				    stream.Write(data, 0, data.Length);
-				    stream.Flush();
-			    }
-                Platform.Dispose(stream);
+                m_stream.CopyTo(destination, bufferSize);
             }
-            base.Dispose(disposing);
-        }
-#else
-        public override void Close()
-        {
-            if (outCipher != null)
+            else
             {
-                byte[] data = outCipher.DoFinal();
-                stream.Write(data, 0, data.Length);
-                stream.Flush();
+                base.CopyTo(destination, bufferSize);
             }
-            Platform.Dispose(stream);
-            base.Close();
         }
 #endif
 
         public override void Flush()
         {
-            // Note: outCipher.DoFinal is only called during Close()
-            stream.Flush();
+            m_stream.Flush();
         }
 
         public sealed override long Length
@@ -105,41 +87,70 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (inCipher == null)
-                return stream.Read(buffer, offset, count);
+            if (m_readCipher == null)
+                return m_stream.Read(buffer, offset, count);
 
             Streams.ValidateBufferArguments(buffer, offset, count);
 
             int num = 0;
             while (num < count)
             {
-                if (mInBuf == null || mInPos >= mInBuf.Length)
+                if (m_readBuf == null || m_readBufPos >= m_readBuf.Length)
                 {
                     if (!FillInBuf())
                         break;
                 }
 
-                int numToCopy = System.Math.Min(count - num, mInBuf.Length - mInPos);
-                Array.Copy(mInBuf, mInPos, buffer, offset + num, numToCopy);
-                mInPos += numToCopy;
+                int numToCopy = System.Math.Min(count - num, m_readBuf.Length - m_readBufPos);
+                Array.Copy(m_readBuf, m_readBufPos, buffer, offset + num, numToCopy);
+                m_readBufPos += numToCopy;
                 num += numToCopy;
             }
 
             return num;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            if (buffer.IsEmpty)
+                return 0;
+
+            if (m_readCipher == null)
+                return m_stream.Read(buffer);
+
+            int num = 0;
+            while (num < buffer.Length)
+            {
+                if (m_readBuf == null || m_readBufPos >= m_readBuf.Length)
+                {
+                    if (!FillInBuf())
+                        break;
+                }
+
+                int numToCopy = System.Math.Min(buffer.Length - num, m_readBuf.Length - m_readBufPos);
+                m_readBuf.AsSpan(m_readBufPos, numToCopy).CopyTo(buffer[num..]);
+
+                m_readBufPos += numToCopy;
+                num += numToCopy;
+            }
+
+            return num;
+        }
+#endif
+
         public override int ReadByte()
         {
-            if (inCipher == null)
-                return stream.ReadByte();
+            if (m_readCipher == null)
+                return m_stream.ReadByte();
 
-            if (mInBuf == null || mInPos >= mInBuf.Length)
+            if (m_readBuf == null || m_readBufPos >= m_readBuf.Length)
             {
                 if (!FillInBuf())
                     return -1;
             }
 
-            return mInBuf[mInPos++];
+            return m_readBuf[m_readBufPos++];
         }
 
         public sealed override long Seek(long offset, SeekOrigin origin)
@@ -154,9 +165,9 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (outCipher == null)
+            if (m_writeCipher == null)
             {
-                stream.Write(buffer, offset, count);
+                m_stream.Write(buffer, offset, count);
                 return;
             }
 
@@ -164,69 +175,142 @@ namespace Org.BouncyCastle.Crypto.IO
 
             if (count > 0)
             {
-                byte[] data = outCipher.ProcessBytes(buffer, offset, count);
-                if (data != null)
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                int outputSize = m_writeCipher.GetUpdateOutputSize(count);
+                byte[] output = outputSize > 0 ? ArrayPool<byte>.Shared.Rent(outputSize) : null;
+                try
                 {
-                    stream.Write(data, 0, data.Length);
+                    int length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
+                    if (length > 0)
+                    {
+                        m_stream.Write(output, 0, length);
+                    }
                 }
+                finally
+                {
+                    if (output != null)
+                    {
+                        ArrayPool<byte>.Shared.Return(output);
+                    }
+                }
+#else
+                byte[] output = m_writeCipher.ProcessBytes(buffer, offset, count);
+                if (output != null)
+                {
+                    m_stream.Write(output, 0, output.Length);
+                }
+#endif
             }
         }
 
-        public override void WriteByte(byte value)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
         {
-            if (outCipher == null)
+            if (buffer.IsEmpty)
+                return;
+
+            if (m_writeCipher == null)
             {
-                stream.WriteByte(value);
+                m_stream.Write(buffer);
                 return;
             }
 
-            byte[] data = outCipher.ProcessByte(value);
+            int outputSize = m_writeCipher.GetUpdateOutputSize(buffer.Length);
+            byte[] output = outputSize > 0 ? ArrayPool<byte>.Shared.Rent(outputSize) : null;
+            try
+            {
+                int length = m_writeCipher.ProcessBytes(buffer, Spans.FromNullable(output, 0));
+                if (length > 0)
+                {
+                    m_stream.Write(output[..length]);
+                }
+            }
+            finally
+            {
+                if (output != null)
+                {
+                    ArrayPool<byte>.Shared.Return(output);
+                }
+            }
+        }
+#endif
+
+        public override void WriteByte(byte value)
+        {
+            if (m_writeCipher == null)
+            {
+                m_stream.WriteByte(value);
+                return;
+            }
+
+            byte[] data = m_writeCipher.ProcessByte(value);
             if (data != null)
             {
-                stream.Write(data, 0, data.Length);
+                m_stream.Write(data, 0, data.Length);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+			    if (m_writeCipher != null)
+			    {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    int outputSize = m_writeCipher.GetOutputSize(0);
+                    Span<byte> output = stackalloc byte[outputSize];
+                    int len = m_writeCipher.DoFinal(output);
+                    m_stream.Write(output[..len]);
+#else
+                    byte[] data = m_writeCipher.DoFinal();
+                    m_stream.Write(data, 0, data.Length);
+#endif
+			    }
+                Platform.Dispose(m_stream);
+            }
+            base.Dispose(disposing);
         }
 
         private bool FillInBuf()
         {
-            if (inStreamEnded)
+            if (m_readEnded)
                 return false;
 
-            mInPos = 0;
+            m_readBufPos = 0;
 
             do
             {
-                mInBuf = ReadAndProcessBlock();
+                m_readBuf = ReadAndProcessBlock();
             }
-            while (!inStreamEnded && mInBuf == null);
+            while (!m_readEnded && m_readBuf == null);
 
-            return mInBuf != null;
+            return m_readBuf != null;
         }
 
         private byte[] ReadAndProcessBlock()
         {
-            int blockSize = inCipher.GetBlockSize();
-            int readSize = (blockSize == 0) ? 256 : blockSize;
+            int blockSize = m_readCipher.GetBlockSize();
+            int readSize = blockSize == 0 ? 256 : blockSize;
 
             byte[] block = new byte[readSize];
             int numRead = 0;
             do
             {
-                int count = stream.Read(block, numRead, block.Length - numRead);
+                int count = m_stream.Read(block, numRead, block.Length - numRead);
                 if (count < 1)
                 {
-                    inStreamEnded = true;
+                    m_readEnded = true;
                     break;
                 }
                 numRead += count;
             }
             while (numRead < block.Length);
 
-            Debug.Assert(inStreamEnded || numRead == block.Length);
+            Debug.Assert(m_readEnded || numRead == block.Length);
 
-            byte[] bytes = inStreamEnded
-                ? inCipher.DoFinal(block, 0, numRead)
-                : inCipher.ProcessBytes(block);
+            byte[] bytes = m_readEnded
+                ? m_readCipher.DoFinal(block, 0, numRead)
+                : m_readCipher.ProcessBytes(block);
 
             if (bytes != null && bytes.Length == 0)
             {

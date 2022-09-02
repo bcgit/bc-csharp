@@ -421,39 +421,32 @@ namespace Org.BouncyCastle.Bzip2
 
         bool closed = false;
 
-//        protected void Finalize()
-//        {
-//            Close();
-//        }
+        protected void Detach(bool disposing)
+        {
+            if (disposing)
+            {
+                if (!closed)
+                {
+                    Finish();
+                    closed = true;
+                }
+            }
+            base.Dispose(disposing);
+        }
 
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                if (closed)
-                    return;
-
-                Finish();
-                closed = true;
-                Platform.Dispose(this.bsStream);
+                if (!closed)
+                {
+                    Finish();
+                    closed = true;
+                    Platform.Dispose(this.bsStream);
+                }
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-        {
-            if (closed)
-                return;
-
-            Finish();
-
-            closed = true;
-            Platform.Dispose(this.bsStream);
-
-            base.Close();
-        }
-#endif
 
         public void Finish()
         {

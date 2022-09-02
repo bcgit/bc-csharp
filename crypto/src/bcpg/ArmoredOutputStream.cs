@@ -331,35 +331,20 @@ namespace Org.BouncyCastle.Bcpg
          * <b>Note</b>: Close() does not close the underlying stream. So it is possible to write
          * multiple objects using armoring to a single stream.
          */
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                if (type == null)
-                    return;
+                if (type != null)
+                {
+                    DoClose();
 
-                DoClose();
-
-                type = null;
-                start = true;
+                    type = null;
+                    start = true;
+                }
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-        {
-            if (type == null)
-                return;
-
-            DoClose();
-
-            type = null;
-            start = true;
-
-            base.Close();
-        }
-#endif
 
         private void DoClose()
         {

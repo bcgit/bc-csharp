@@ -5,33 +5,27 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
-    public class DigestStream
+    public sealed class DigestStream
         : Stream
     {
-        protected readonly Stream stream;
-        protected readonly IDigest inDigest;
-        protected readonly IDigest outDigest;
+        private readonly Stream m_stream;
+        private readonly IDigest m_readDigest;
+        private readonly IDigest m_writeDigest;
 
         public DigestStream(Stream stream, IDigest readDigest, IDigest writeDigest)
         {
-            this.stream = stream;
-            this.inDigest = readDigest;
-            this.outDigest = writeDigest;
+            m_stream = stream;
+            m_readDigest = readDigest;
+            m_writeDigest = writeDigest;
         }
 
-        public virtual IDigest ReadDigest()
-        {
-            return inDigest;
-        }
+        public IDigest ReadDigest => m_readDigest;
 
-        public virtual IDigest WriteDigest()
-        {
-            return outDigest;
-        }
+        public IDigest WriteDigest => m_writeDigest;
 
         public override bool CanRead
         {
-            get { return stream.CanRead; }
+            get { return m_stream.CanRead; }
         }
 
         public sealed override bool CanSeek
@@ -41,29 +35,26 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override bool CanWrite
         {
-            get { return stream.CanWrite; }
+            get { return m_stream.CanWrite; }
         }
 
-#if PORTABLE
-        protected override void Dispose(bool disposing)
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize)
         {
-            if (disposing)
+            if (m_readDigest == null)
             {
-                Platform.Dispose(stream);
+                m_stream.CopyTo(destination, bufferSize);
             }
-            base.Dispose(disposing);
-        }
-#else
-        public override void Close()
-        {
-            Platform.Dispose(stream);
-            base.Close();
+            else
+            {
+                base.CopyTo(destination, bufferSize);
+            }
         }
 #endif
 
         public override void Flush()
         {
-            stream.Flush();
+            m_stream.Flush();
         }
 
         public sealed override long Length
@@ -79,23 +70,37 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int n = stream.Read(buffer, offset, count);
+            int n = m_stream.Read(buffer, offset, count);
 
-            if (inDigest != null && n > 0)
+            if (m_readDigest != null && n > 0)
             {
-                inDigest.BlockUpdate(buffer, offset, n);
+                m_readDigest.BlockUpdate(buffer, offset, n);
             }
 
             return n;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            int n = m_stream.Read(buffer);
+
+            if (m_readDigest != null && n > 0)
+            {
+                m_readDigest.BlockUpdate(buffer[..n]);
+            }
+
+            return n;
+        }
+#endif
+
         public override int ReadByte()
         {
-            int b = stream.ReadByte();
+            int b = m_stream.ReadByte();
 
-            if (inDigest != null && b >= 0)
+            if (m_readDigest != null && b >= 0)
             {
-                inDigest.Update((byte)b);
+                m_readDigest.Update((byte)b);
             }
 
             return b;
@@ -113,23 +118,43 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            stream.Write(buffer, offset, count);
+            m_stream.Write(buffer, offset, count);
 
-            if (outDigest != null && count > 0)
+            if (m_writeDigest != null && count > 0)
             {
-                outDigest.BlockUpdate(buffer, offset, count);
+                m_writeDigest.BlockUpdate(buffer, offset, count);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            m_stream.Write(buffer);
+
+            if (m_writeDigest != null && !buffer.IsEmpty)
+            {
+                m_writeDigest.BlockUpdate(buffer);
+            }
+        }
+#endif
 
         public override void WriteByte(byte value)
         {
-            stream.WriteByte(value);
+            m_stream.WriteByte(value);
 
-            if (outDigest != null)
+            if (m_writeDigest != null)
             {
-                outDigest.Update(value);
+                m_writeDigest.Update(value);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Platform.Dispose(m_stream);
+            }
+            base.Dispose(disposing);
         }
     }
 }
-

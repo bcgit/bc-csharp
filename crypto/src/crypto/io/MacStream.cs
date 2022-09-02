@@ -5,33 +5,27 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
-    public class MacStream
+    public sealed class MacStream
         : Stream
     {
-        protected readonly Stream stream;
-        protected readonly IMac inMac;
-        protected readonly IMac outMac;
+        private readonly Stream m_stream;
+        private readonly IMac m_readMac;
+        private readonly IMac m_writeMac;
 
         public MacStream(Stream stream, IMac readMac, IMac writeMac)
         {
-            this.stream = stream;
-            this.inMac = readMac;
-            this.outMac = writeMac;
+            m_stream = stream;
+            m_readMac = readMac;
+            m_writeMac = writeMac;
         }
 
-        public virtual IMac ReadMac()
-        {
-            return inMac;
-        }
+        public IMac ReadMac => m_readMac;
 
-        public virtual IMac WriteMac()
-        {
-            return outMac;
-        }
+        public IMac WriteMac => m_writeMac;
 
         public override bool CanRead
         {
-            get { return stream.CanRead; }
+            get { return m_stream.CanRead; }
         }
 
         public sealed override bool CanSeek
@@ -41,29 +35,26 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override bool CanWrite
         {
-            get { return stream.CanWrite; }
+            get { return m_stream.CanWrite; }
         }
 
-#if PORTABLE
-        protected override void Dispose(bool disposing)
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize)
         {
-            if (disposing)
+            if (m_readMac == null)
             {
-                Platform.Dispose(stream);
+                m_stream.CopyTo(destination, bufferSize);
             }
-            base.Dispose(disposing);
-        }
-#else
-        public override void Close()
-        {
-            Platform.Dispose(stream);
-            base.Close();
+            else
+            {
+                base.CopyTo(destination, bufferSize);
+            }
         }
 #endif
 
         public override void Flush()
         {
-            stream.Flush();
+            m_stream.Flush();
         }
 
         public sealed override long Length
@@ -79,23 +70,37 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int n = stream.Read(buffer, offset, count);
+            int n = m_stream.Read(buffer, offset, count);
 
-            if (inMac != null && n > 0)
+            if (m_readMac != null && n > 0)
             {
-                inMac.BlockUpdate(buffer, offset, n);
+                m_readMac.BlockUpdate(buffer, offset, n);
             }
 
             return n;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            int n = m_stream.Read(buffer);
+
+            if (m_readMac != null && n > 0)
+            {
+                m_readMac.BlockUpdate(buffer[..n]);
+            }
+
+            return n;
+        }
+#endif
+
         public override int ReadByte()
         {
-            int b = stream.ReadByte();
+            int b = m_stream.ReadByte();
 
-            if (inMac != null && b >= 0)
+            if (m_readMac != null && b >= 0)
             {
-                inMac.Update((byte)b);
+                m_readMac.Update((byte)b);
             }
 
             return b;
@@ -113,23 +118,43 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            stream.Write(buffer, offset, count);
+            m_stream.Write(buffer, offset, count);
 
-            if (outMac != null && count > 0)
+            if (m_writeMac != null && count > 0)
             {
-                outMac.BlockUpdate(buffer, offset, count);
+                m_writeMac.BlockUpdate(buffer, offset, count);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            m_stream.Write(buffer);
+
+            if (m_writeMac != null && !buffer.IsEmpty)
+            {
+                m_writeMac.BlockUpdate(buffer);
+            }
+        }
+#endif
 
         public override void WriteByte(byte value)
         {
-            stream.WriteByte(value);
+            m_stream.WriteByte(value);
 
-            if (outMac != null)
+            if (m_writeMac != null)
             {
-                outMac.Update(value);
+                m_writeMac.Update(value);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Platform.Dispose(m_stream);
+            }
+            base.Dispose(disposing);
         }
     }
 }
-

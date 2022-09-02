@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             //
 			byte[] lookAhead = truncStream.GetLookAhead();
 
-			IDigest hash = dIn.ReadDigest();
+			IDigest hash = dIn.ReadDigest;
 			hash.BlockUpdate(lookAhead, 0, 2);
 			byte[] digest = DigestUtilities.DoFinal(hash);
 

@@ -791,7 +791,6 @@ namespace Org.BouncyCastle.Cms
 				_out.WriteByte(value);
 			}
 
-#if PORTABLE
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
@@ -800,13 +799,6 @@ namespace Org.BouncyCastle.Cms
                 }
                 base.Dispose(disposing);
             }
-#else
-			public override void Close()
-            {
-                DoClose();
-				base.Close();
-			}
-#endif
 
             private void DoClose()
             {

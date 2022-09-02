@@ -77,7 +77,11 @@ namespace Org.BouncyCastle.Asn1
                 return;
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> stack = stackalloc byte[5];
+#else
             byte[] stack = new byte[5];
+#endif
             int pos = stack.Length;
 
             do
@@ -90,7 +94,11 @@ namespace Org.BouncyCastle.Asn1
             int count = stack.Length - pos;
             stack[--pos] = (byte)(0x80 | count);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Write(stack[pos..]);
+#else
             Write(stack, pos, count + 1);
+#endif
         }
 
         internal void WriteIdentifier(int tagClass, int tagNo)
@@ -101,7 +109,11 @@ namespace Org.BouncyCastle.Asn1
                 return;
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> stack = stackalloc byte[6];
+#else
             byte[] stack = new byte[6];
+#endif
             int pos = stack.Length;
 
             stack[--pos] = (byte)(tagNo & 0x7F);
@@ -113,7 +125,11 @@ namespace Org.BouncyCastle.Asn1
 
             stack[--pos] = (byte)(tagClass | 0x1F);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Write(stack[pos..]);
+#else
             Write(stack, pos, stack.Length - pos);
+#endif
         }
 
         internal static IAsn1Encoding[] GetContentsEncodings(int encoding, Asn1Encodable[] elements)

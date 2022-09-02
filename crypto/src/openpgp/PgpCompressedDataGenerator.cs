@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			this.pkOut = new BcpgOutputStream(outStr, PacketTag.CompressedData);
 
-			doOpen();
+			DoOpen();
 
 			return new WrappedGeneratorStream(this, dOut);
 		}
@@ -120,12 +120,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			this.pkOut = new BcpgOutputStream(outStr, PacketTag.CompressedData, buffer);
 
-			doOpen();
+			DoOpen();
 
 			return new WrappedGeneratorStream(this, dOut);
 		}
 
-		private void doOpen()
+		private void DoOpen()
 		{
 			pkOut.WriteByte((byte) algorithm);
 
@@ -173,22 +173,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			{
 			}
 
-#if PORTABLE
             protected override void Dispose(bool disposing)
             {
-                if (disposing)
-                {
-				    Finish();
-                    return;
-                }
-                base.Dispose(disposing);
+                Detach(disposing);
             }
-#else
-            public override void Close()
-			{
-				Finish();
-			}
-#endif
 		}
 
 		private class SafeZOutputStream : ZOutputStream
@@ -198,24 +186,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			{
 			}
 
-#if PORTABLE
             protected override void Dispose(bool disposing)
             {
-                if (disposing)
-                {
-				    Finish();
-				    End();
-                    return;
-                }
-                base.Dispose(disposing);
+				Detach(disposing);
             }
-#else
-            public override void Close()
-			{
-				Finish();
-				End();
-			}
-#endif
 		}
 	}
 }

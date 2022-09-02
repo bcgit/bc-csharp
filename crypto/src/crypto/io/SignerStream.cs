@@ -5,12 +5,12 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
-    public class SignerStream
+    public sealed class SignerStream
         : Stream
     {
-        protected readonly Stream stream;
-        protected readonly ISigner inSigner;
-        protected readonly ISigner outSigner;
+        private readonly Stream stream;
+        private readonly ISigner inSigner;
+        private readonly ISigner outSigner;
 
         public SignerStream(Stream stream, ISigner readSigner, ISigner writeSigner)
         {
@@ -19,15 +19,9 @@ namespace Org.BouncyCastle.Crypto.IO
             this.outSigner = writeSigner;
         }
 
-        public virtual ISigner ReadSigner()
-        {
-            return inSigner;
-        }
+        public ISigner ReadSigner => inSigner;
 
-        public virtual ISigner WriteSigner()
-        {
-            return outSigner;
-        }
+        public ISigner WriteSigner => outSigner;
 
         public override bool CanRead
         {
@@ -44,20 +38,17 @@ namespace Org.BouncyCastle.Crypto.IO
             get { return stream.CanWrite; }
         }
 
-#if PORTABLE
-        protected override void Dispose(bool disposing)
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize)
         {
-            if (disposing)
+            if (inSigner == null)
             {
-                Platform.Dispose(stream);
+                stream.CopyTo(destination, bufferSize);
             }
-            base.Dispose(disposing);
-        }
-#else
-        public override void Close()
-        {
-            Platform.Dispose(stream);
-            base.Close();
+            else
+            {
+                base.CopyTo(destination, bufferSize);
+            }
         }
 #endif
 
@@ -88,6 +79,20 @@ namespace Org.BouncyCastle.Crypto.IO
 
             return n;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            int n = stream.Read(buffer);
+
+            if (inSigner != null && n > 0)
+            {
+                inSigner.BlockUpdate(buffer[..n]);
+            }
+
+            return n;
+        }
+#endif
 
         public override int ReadByte()
         {
@@ -121,6 +126,18 @@ namespace Org.BouncyCastle.Crypto.IO
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            stream.Write(buffer);
+
+            if (outSigner != null && !buffer.IsEmpty)
+            {
+                outSigner.BlockUpdate(buffer);
+            }
+        }
+#endif
+
         public override void WriteByte(byte value)
         {
             stream.WriteByte(value);
@@ -130,6 +147,14 @@ namespace Org.BouncyCastle.Crypto.IO
                 outSigner.Update(value);
             }
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Platform.Dispose(stream);
+            }
+            base.Dispose(disposing);
+        }
     }
 }
-
