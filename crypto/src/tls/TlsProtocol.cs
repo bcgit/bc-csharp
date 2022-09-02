@@ -717,7 +717,7 @@ namespace Org.BouncyCastle.Tls
                     if (this.m_failedWithError)
                         throw new IOException("Cannot read application data on failed TLS connection");
 
-                    return -1;
+                    return 0;
                 }
 
                 /*
