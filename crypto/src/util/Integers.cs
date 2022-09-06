@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Utilities
 #if NETCOREAPP3_0_OR_GREATER
             return (int)BitOperations.RotateLeft((uint)i, distance);
 #else
-            return (i << distance) ^ (int)((uint)i >> -distance);
+            return (i << distance) | (int)((uint)i >> -distance);
 #endif
         }
 
@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.Utilities
 #if NETCOREAPP3_0_OR_GREATER
             return BitOperations.RotateLeft(i, distance);
 #else
-            return (i << distance) ^ (i >> -distance);
+            return (i << distance) | (i >> -distance);
 #endif
         }
 
@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Utilities
 #if NETCOREAPP3_0_OR_GREATER
             return (int)BitOperations.RotateRight((uint)i, distance);
 #else
-            return (int)((uint)i >> distance) ^ (i << -distance);
+            return (int)((uint)i >> distance) | (i << -distance);
 #endif
         }
 
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Utilities
 #if NETCOREAPP3_0_OR_GREATER
             return BitOperations.RotateRight(i, distance);
 #else
-            return (i >> distance) ^ (i << -distance);
+            return (i >> distance) | (i << -distance);
 #endif
         }
     }

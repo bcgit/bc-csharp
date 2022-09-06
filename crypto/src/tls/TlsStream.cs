@@ -28,7 +28,6 @@ namespace Org.BouncyCastle.Tls
             get { return true; }
         }
 
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -37,13 +36,6 @@ namespace Org.BouncyCastle.Tls
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-        {
-            m_handler.Close();
-            base.Close();
-        }
-#endif
 
         public override void Flush()
         {
@@ -69,7 +61,7 @@ namespace Org.BouncyCastle.Tls
         public override int ReadByte()
         {
             byte[] buf = new byte[1];
-            int ret = Read(buf, 0, 1);
+            int ret = m_handler.ReadApplicationData(buf, 0, 1);
             return ret <= 0 ? -1 : buf[0];
         }
 
@@ -90,7 +82,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void WriteByte(byte value)
         {
-            Write(new byte[]{ value }, 0, 1);
+            m_handler.WriteApplicationData(new byte[]{ value }, 0, 1);
         }
     }
 }

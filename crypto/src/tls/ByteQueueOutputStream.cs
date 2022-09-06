@@ -27,6 +27,13 @@ namespace Org.BouncyCastle.Tls
             m_buffer.AddData(buffer, offset, count);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            m_buffer.AddData(buffer);
+        }
+#endif
+
         public override void WriteByte(byte value)
         {
             m_buffer.AddData(new byte[]{ value }, 0, 1);

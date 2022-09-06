@@ -741,9 +741,7 @@ namespace Org.BouncyCastle.Cms
 
 		private static Stream GetSafeOutputStream(Stream s)
 		{
-			if (s == null)
-				return new NullOutputStream();
-			return s;
+			return s ?? Stream.Null;
 		}
 
 		private static Stream GetSafeTeeOutputStream(Stream s1, Stream s2)
@@ -793,7 +791,6 @@ namespace Org.BouncyCastle.Cms
 				_out.WriteByte(value);
 			}
 
-#if PORTABLE
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
@@ -802,13 +799,6 @@ namespace Org.BouncyCastle.Cms
                 }
                 base.Dispose(disposing);
             }
-#else
-			public override void Close()
-            {
-                DoClose();
-				base.Close();
-			}
-#endif
 
             private void DoClose()
             {

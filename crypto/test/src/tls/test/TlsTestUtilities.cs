@@ -51,11 +51,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static string ToUpperInvariant(string s)
         {
-#if PORTABLE
-            return s.ToUpperInvariant();
-#else
             return s.ToUpper(CultureInfo.InvariantCulture);
-#endif
         }
 
         internal static string Fingerprint(X509CertificateStructure c)

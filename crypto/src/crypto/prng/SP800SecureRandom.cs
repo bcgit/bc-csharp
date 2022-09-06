@@ -15,8 +15,9 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         private ISP80090Drbg mDrbg;
 
-        internal SP800SecureRandom(SecureRandom randomSource, IEntropySource entropySource, IDrbgProvider drbgProvider, bool predictionResistant)
-            : base((IRandomGenerator)null)
+        internal SP800SecureRandom(SecureRandom randomSource, IEntropySource entropySource, IDrbgProvider drbgProvider,
+            bool predictionResistant)
+            : base(null)
         {
             this.mRandomSource = randomSource;
             this.mEntropySource = entropySource;
@@ -70,12 +71,25 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
         }
 
-        // TODO Add efficient override (needs ISP80090Drbg support for spans)
-//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-//        public override void NextBytes(Span<byte> buffer)
-//        {
-//        }
-//#endif
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void NextBytes(Span<byte> buffer)
+        {
+            lock (this)
+            {
+                if (mDrbg == null)
+                {
+                    mDrbg = mDrbgProvider.Get(mEntropySource);
+                }
+
+                // check if a reseed is required...
+                if (mDrbg.Generate(buffer, null, mPredictionResistant) < 0)
+                {
+                    mDrbg.Reseed(null);
+                    mDrbg.Generate(buffer, null, mPredictionResistant);
+                }
+            }
+        }
+#endif
 
         public override byte[] GenerateSeed(int numBytes)
         {

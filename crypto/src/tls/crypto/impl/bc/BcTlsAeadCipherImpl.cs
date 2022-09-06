@@ -10,11 +10,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         : TlsAeadCipherImpl
     {
         private readonly bool m_isEncrypting;
-        private readonly IAeadBlockCipher m_cipher;
+        private readonly IAeadCipher m_cipher;
 
         private KeyParameter key;
 
-        internal BcTlsAeadCipherImpl(IAeadBlockCipher cipher, bool isEncrypting)
+        internal BcTlsAeadCipherImpl(IAeadCipher cipher, bool isEncrypting)
         {
             this.m_cipher = cipher;
             this.m_isEncrypting = isEncrypting;

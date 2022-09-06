@@ -275,9 +275,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void ImplTestDisable()
         {
-#if PORTABLE && !DOTNET
-            // Can't SetEnvironmentVariable !
-#else
             Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable", "true");
             try
             {
@@ -313,7 +310,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             ImplTestFF3_1();
             Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable_ff1", "false");
-#endif
         }
 
         private void ImplTestFF3_1_255()

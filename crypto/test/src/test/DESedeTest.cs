@@ -45,13 +45,18 @@ namespace Org.BouncyCastle.Tests
         private class FixedSecureRandom
             : SecureRandom
         {
-            private byte[] seed =
+            private static readonly byte[] seed =
             {
                 (byte)0xaa, (byte)0xfd, (byte)0x12, (byte)0xf6, (byte)0x59,
                 (byte)0xca, (byte)0xe6, (byte)0x34, (byte)0x89, (byte)0xb4,
                 (byte)0x79, (byte)0xe5, (byte)0x07, (byte)0x6d, (byte)0xde,
                 (byte)0xc2, (byte)0xf0, (byte)0x6c, (byte)0xb5, (byte)0x8f
             };
+
+            internal FixedSecureRandom()
+                : base(null)
+            {
+            }
 
             public override void NextBytes(byte[] buf)
             {

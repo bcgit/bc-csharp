@@ -33,11 +33,7 @@ namespace Org.BouncyCastle.Cms
 			int		bufSize)
 		{
 			_oid = oid;
-#if PORTABLE
-			_in = new FullReaderStream(inStream);
-#else
 			_in = new FullReaderStream(new BufferedStream(inStream, bufSize));
-#endif
 		}
 
 		public string ContentType
@@ -63,10 +59,24 @@ namespace Org.BouncyCastle.Cms
 			{
 			}
 
-			public override int Read(byte[]	buf, int off, int len)
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void CopyTo(Stream destination, int bufferSize)
+            {
+				s.CopyTo(destination, bufferSize);
+            }
+#endif
+
+            public override int Read(byte[]	buf, int off, int len)
 			{
-				return Streams.ReadFully(base.s, buf, off, len);
+				return Streams.ReadFully(s, buf, off, len);
 			}
-		}
-	}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override int Read(Span<byte> buffer)
+            {
+                return Streams.ReadFully(s, buffer);
+            }
+#endif
+        }
+    }
 }

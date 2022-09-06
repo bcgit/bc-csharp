@@ -25,10 +25,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return session_key;
         }
 
-        public int GetInputSize()
-        {
-            return _primeEngine.CipherTextSize;
-        }
-        
+        public int EncapsulationLength => _primeEngine.CipherTextSize;
     }
 }

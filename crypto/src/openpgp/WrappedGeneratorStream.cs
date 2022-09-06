@@ -31,11 +31,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				m_generator = null;
 			}
 
-			// Don't dispose the wrapped Stream
-			if (!disposing)
-            {
-				base.Dispose(disposing);
-			}
+			Detach(disposing);
 		}
 	}
 }

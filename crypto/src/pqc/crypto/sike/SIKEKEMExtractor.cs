@@ -36,10 +36,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
         return session_key;
     }
 
-//    public int GetInputSize()
-//    {
-//        return engine.GetCipherTextSize();
-//    }
+        public int EncapsulationLength => (int)engine.GetCipherTextSize();
 
     }
 

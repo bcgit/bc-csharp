@@ -33,47 +33,65 @@ namespace Org.BouncyCastle.Crypto.Paddings
 			get { return "ISO7816-4"; }
 		}
 
-		/**
-		 * add the pad bytes to the passed in block, returning the
-		 * number of bytes added.
-		 */
-		public int AddPadding(
-			byte[]	input,
-			int		inOff)
+		public int AddPadding(byte[] input, int inOff)
 		{
-			int added = (input.Length - inOff);
+			int count = input.Length - inOff;
 
-			input[inOff]= (byte) 0x80;
-			inOff ++;
-
-			while (inOff < input.Length)
+			input[inOff]= 0x80;
+			while (++inOff < input.Length)
 			{
-				input[inOff] = (byte) 0;
-				inOff++;
+				input[inOff] = 0x00;
 			}
 
-			return added;
+			return count;
 		}
 
-		/**
-		 * return the number of pad bytes present in the block.
-		 */
-		public int PadCount(
-			byte[] input)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int AddPadding(Span<byte> block, int position)
+        {
+            int count = block.Length - position;
+			block[position++] = 0x80;
+            block[position..].Fill(0x00);
+            return count;
+        }
+#endif
+
+        public int PadCount(byte[] input)
 		{
-			int count = input.Length - 1;
-
-			while (count > 0 && input[count] == 0)
+			int position = -1, still00Mask = -1;
+			int i = input.Length;
+			while (--i >= 0)
 			{
-				count--;
+				int next = input[i];
+				int match00Mask = ((next ^ 0x00) - 1) >> 31;
+				int match80Mask = ((next ^ 0x80) - 1) >> 31;
+				position ^= (i ^ position) & still00Mask & match80Mask;
+				still00Mask &= match00Mask;
 			}
-
-			if (input[count] != (byte)0x80)
-			{
+			if (position < 0)
 				throw new InvalidCipherTextException("pad block corrupted");
-			}
 
-			return input.Length - count;
+			return input.Length - position;
 		}
-	}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int PadCount(ReadOnlySpan<byte> block)
+		{
+            int position = -1, still00Mask = -1;
+            int i = block.Length;
+            while (--i >= 0)
+            {
+                int next = block[i];
+                int match00Mask = ((next ^ 0x00) - 1) >> 31;
+                int match80Mask = ((next ^ 0x80) - 1) >> 31;
+                position ^= (i ^ position) & still00Mask & match80Mask;
+                still00Mask &= match00Mask;
+            }
+            if (position < 0)
+                throw new InvalidCipherTextException("pad block corrupted");
+
+            return block.Length - position;
+        }
+#endif
+    }
 }

@@ -28,6 +28,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             return session_key;
         }
 
-        public int InputSize => engine.GetCipherTextSize();
+        public int EncapsulationLength => engine.GetCipherTextSize();
     }
 }

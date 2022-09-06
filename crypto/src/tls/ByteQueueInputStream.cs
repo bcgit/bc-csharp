@@ -40,6 +40,15 @@ namespace Org.BouncyCastle.Tls
             return bytesToRead;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            int bytesToRead = System.Math.Min(m_buffer.Available, buffer.Length);
+            m_buffer.RemoveData(buffer[..bytesToRead], 0);
+            return bytesToRead;
+        }
+#endif
+
         public override int ReadByte()
         {
             if (m_buffer.Available == 0)
@@ -59,16 +68,5 @@ namespace Org.BouncyCastle.Tls
         {
             get { return m_buffer.Available; }
         }
-
-#if PORTABLE
-        //protected override void Dispose(bool disposing)
-        //{
-        //    base.Dispose(disposing);
-        //}
-#else
-        public override void Close()
-        {
-        }
-#endif
     }
 }

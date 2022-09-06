@@ -1,7 +1,7 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Paddings
 {
@@ -35,48 +35,69 @@ namespace Org.BouncyCastle.Crypto.Paddings
             get { return "X9.23"; }
         }
 
-		/**
-        * add the pad bytes to the passed in block, returning the
-        * number of bytes added.
-        */
-        public int AddPadding(
-            byte[]  input,
-            int     inOff)
+        public int AddPadding(byte[] input, int inOff)
         {
-            byte code = (byte)(input.Length - inOff);
-
-            while (inOff < input.Length - 1)
+            int count = input.Length - inOff;
+            if (count > 1)
             {
                 if (random == null)
                 {
-                    input[inOff] = 0;
+                    Arrays.Fill(input, inOff, input.Length - 1, 0x00);
                 }
                 else
                 {
-                    input[inOff] = (byte)random.NextInt();
+                    random.NextBytes(input, inOff, count - 1);
                 }
-                inOff++;
             }
-
-            input[inOff] = code;
-
-            return code;
+            input[input.Length - 1] = (byte)count;
+            return count;
         }
 
-        /**
-        * return the number of pad bytes present in the block.
-        */
-        public int PadCount(
-			byte[] input)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int AddPadding(Span<byte> block, int position)
         {
-            int count = input[input.Length - 1] & 0xff;
-
-            if (count > input.Length)
+            int count = block.Length - position;
+            if (count > 1)
             {
-                throw new InvalidCipherTextException("pad block corrupted");
+                var body = block[position..(block.Length - 1)];
+                if (random == null)
+                {
+                    body.Fill(0x00);
+                }
+                else
+                {
+                    random.NextBytes(body);
+                }
             }
+            block[block.Length - 1] = (byte)count;
+            return count;
+        }
+#endif
+
+        public int PadCount(byte[] input)
+        {
+            int count = input[input.Length - 1];
+            int position = input.Length - count;
+
+            int failed = (position | (count - 1)) >> 31;
+            if (failed != 0)
+                throw new InvalidCipherTextException("pad block corrupted");
 
             return count;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int PadCount(ReadOnlySpan<byte> block)
+        {
+            int count = block[block.Length - 1];
+            int position = block.Length - count;
+
+            int failed = (position | (count - 1)) >> 31;
+            if (failed != 0)
+                throw new InvalidCipherTextException("pad block corrupted");
+
+            return count;
+        }
+#endif
     }
 }

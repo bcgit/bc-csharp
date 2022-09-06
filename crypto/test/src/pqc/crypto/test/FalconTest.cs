@@ -11,6 +11,7 @@ using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
+    [TestFixture]
     public class FalconTest
     {
         [Test]
@@ -24,6 +25,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 FalconParameters.falcon_1024
             };
 
+            TestSampler sampler = new TestSampler();
             for (int fileIndex = 0; fileIndex < files.Length; fileIndex++) {
                 string name = files[fileIndex];
                 Console.Write("testing: " + name);
@@ -40,7 +42,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     }
                     if (line.Length == 0)
                     {
-                        if (buf.Count > 0)
+                        if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                         {
                             string count = buf["count"];
                             Console.Write("test case: " + count);

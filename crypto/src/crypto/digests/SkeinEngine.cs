@@ -752,17 +752,17 @@ namespace Org.BouncyCastle.Crypto.Digests
         public void Update(byte inByte)
         {
             singleByte[0] = inByte;
-            Update(singleByte, 0, 1);
+            BlockUpdate(singleByte, 0, 1);
         }
 
-        public void Update(byte[] inBytes, int inOff, int len)
+        public void BlockUpdate(byte[] inBytes, int inOff, int len)
         {
             CheckInitialised();
             ubi.Update(inBytes, inOff, len, chain);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public void Update(ReadOnlySpan<byte> input)
+        public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             CheckInitialised();
             ubi.Update(input, chain);

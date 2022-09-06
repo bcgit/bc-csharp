@@ -15,15 +15,6 @@ namespace Org.BouncyCastle.Utilities.IO
 
             this.s = s;
         }
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                s.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
         public override bool CanRead
         {
             get { return s.CanRead; }
@@ -36,6 +27,10 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             get { return s.CanWrite; }
         }
+        public override void Flush()
+        {
+            s.Flush();
+        }
         public override long Length
         {
             get { return s.Length; }
@@ -45,9 +40,13 @@ namespace Org.BouncyCastle.Utilities.IO
             get { return s.Position; }
             set { s.Position = value; }
         }
-        public override void Flush()
+        public override int Read(byte[] buffer, int offset, int count)
         {
-            s.Flush();
+            return s.Read(buffer, offset, count);
+        }
+        public override int ReadByte()
+        {
+            return s.ReadByte();
         }
         public override long Seek(long offset, SeekOrigin origin)
         {
@@ -57,14 +56,6 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             s.SetLength(value);
         }
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return s.Read(buffer, offset, count);
-        }
-        public override int ReadByte()
-        {
-            return s.ReadByte();
-        }
         public override void Write(byte[] buffer, int offset, int count)
         {
             s.Write(buffer, offset, count);
@@ -72,6 +63,19 @@ namespace Org.BouncyCastle.Utilities.IO
         public override void WriteByte(byte value)
         {
             s.WriteByte(value);
+        }
+        protected void Detach(bool disposing)
+        {
+            base.Dispose(disposing);
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                s.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

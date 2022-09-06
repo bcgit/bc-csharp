@@ -23,10 +23,18 @@ namespace Org.BouncyCastle.Crypto
 		byte[] ProcessByte(byte input);
 		int ProcessByte(byte input, byte[] output, int outOff);
 
-		byte[] ProcessBytes(byte[] input);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int ProcessByte(byte input, Span<byte> output);
+#endif
+
+        byte[] ProcessBytes(byte[] input);
 		byte[] ProcessBytes(byte[] input, int inOff, int length);
 		int ProcessBytes(byte[] input, byte[] output, int outOff);
 		int ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output);
+#endif
 
 		byte[] DoFinal();
 		byte[] DoFinal(byte[] input);
@@ -34,6 +42,11 @@ namespace Org.BouncyCastle.Crypto
 		int DoFinal(byte[] output, int outOff);
 		int DoFinal(byte[] input, byte[] output, int outOff);
 		int DoFinal(byte[] input, int inOff, int length, byte[] output, int outOff);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		int DoFinal(Span<byte> output);
+		int DoFinal(ReadOnlySpan<byte> input, Span<byte> output);
+#endif
 
 		/// <summary>
 		/// Reset the cipher. After resetting the cipher is in the same state

@@ -1,13 +1,10 @@
-using System;
 using System.IO;
 using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.IO.Tests
 {
@@ -20,9 +17,9 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		public void TestEncryptDecryptA()
 		{
 			byte[] dataBytes = Encoding.ASCII.GetBytes(DATA);
-			byte[] encryptedDataBytes = encryptOnWrite(dataBytes);
+			byte[] encryptedDataBytes = EncryptOnWrite(dataBytes);
 
-			byte[] decryptedDataBytes = decryptOnRead(encryptedDataBytes);
+			byte[] decryptedDataBytes = DecryptOnRead(encryptedDataBytes);
 			string decryptedData = Encoding.ASCII.GetString(decryptedDataBytes, 0, decryptedDataBytes.Length);
 			Assert.AreEqual(DATA, decryptedData);
 		}
@@ -31,9 +28,9 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		public void TestEncryptDecryptB()
 		{
 			byte[] dataBytes = Encoding.ASCII.GetBytes(DATA);
-			byte[] encryptedDataBytes = encryptOnRead(dataBytes);
+			byte[] encryptedDataBytes = EncryptOnRead(dataBytes);
 
-			byte[] decryptedDataBytes = decryptOnWrite(encryptedDataBytes);
+			byte[] decryptedDataBytes = DecryptOnWrite(encryptedDataBytes);
 			string decryptedData = Encoding.ASCII.GetString(decryptedDataBytes, 0, decryptedDataBytes.Length);
 			Assert.AreEqual(DATA, decryptedData);
 		}
@@ -42,9 +39,9 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		public void TestEncryptDecryptC()
 		{
 			byte[] dataBytes = Encoding.ASCII.GetBytes(DATA);
-			byte[] encryptedDataBytes = encryptOnWrite(dataBytes);
+			byte[] encryptedDataBytes = EncryptOnWrite(dataBytes);
 
-			byte[] decryptedDataBytes = decryptOnWrite(encryptedDataBytes);
+			byte[] decryptedDataBytes = DecryptOnWrite(encryptedDataBytes);
 			string decryptedData = Encoding.ASCII.GetString(decryptedDataBytes, 0, decryptedDataBytes.Length);
 			Assert.AreEqual(DATA, decryptedData);
 		}
@@ -53,17 +50,17 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 		public void TestEncryptDecryptD()
 		{
 			byte[] dataBytes = Encoding.ASCII.GetBytes(DATA);
-			byte[] encryptedDataBytes = encryptOnRead(dataBytes);
+			byte[] encryptedDataBytes = EncryptOnRead(dataBytes);
 
-			byte[] decryptedDataBytes = decryptOnRead(encryptedDataBytes);
+			byte[] decryptedDataBytes = DecryptOnRead(encryptedDataBytes);
 			string decryptedData = Encoding.ASCII.GetString(decryptedDataBytes, 0, decryptedDataBytes.Length);
 			Assert.AreEqual(DATA, decryptedData);
 		}
 
-		private byte[] encryptOnWrite(byte[] dataBytes)
+		private byte[] EncryptOnWrite(byte[] dataBytes)
 		{
 			MemoryStream encryptedDataStream = new MemoryStream();
-			IBufferedCipher outCipher = createCipher(true);
+			IBufferedCipher outCipher = CreateCipher(true);
 			CipherStream outCipherStream = new CipherStream(encryptedDataStream, null, outCipher);
 			outCipherStream.Write(dataBytes, 0, dataBytes.Length);
 			Assert.AreEqual(0L, encryptedDataStream.Position % outCipher.GetBlockSize());
@@ -75,11 +72,11 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 			return encryptedDataBytes;
 		}
 
-		private byte[] encryptOnRead(byte[] dataBytes)
+		private byte[] EncryptOnRead(byte[] dataBytes)
 		{
 			MemoryStream dataStream = new MemoryStream(dataBytes, false);
 			MemoryStream encryptedDataStream = new MemoryStream();
-			IBufferedCipher inCipher = createCipher(true);
+			IBufferedCipher inCipher = CreateCipher(true);
 			CipherStream inCipherStream = new CipherStream(dataStream, inCipher, null);
 
 			int ch;
@@ -97,11 +94,11 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 			return encryptedDataBytes;
 		}
 
-		private byte[] decryptOnRead(byte[] encryptedDataBytes)
+		private byte[] DecryptOnRead(byte[] encryptedDataBytes)
 		{
 			MemoryStream encryptedDataStream = new MemoryStream(encryptedDataBytes, false);
 			MemoryStream dataStream = new MemoryStream();
-			IBufferedCipher inCipher = createCipher(false);
+			IBufferedCipher inCipher = CreateCipher(false);
 			CipherStream inCipherStream = new CipherStream(encryptedDataStream, inCipher, null);
 
 			int ch;
@@ -119,11 +116,11 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 			return dataBytes;
 		}
 
-		private byte[] decryptOnWrite(byte[] encryptedDataBytes)
+		private byte[] DecryptOnWrite(byte[] encryptedDataBytes)
 		{
 			MemoryStream encryptedDataStream = new MemoryStream(encryptedDataBytes, false);
 			MemoryStream dataStream = new MemoryStream();
-			IBufferedCipher outCipher = createCipher(false);
+			IBufferedCipher outCipher = CreateCipher(false);
 			CipherStream outCipherStream = new CipherStream(dataStream, null, outCipher);
 
 			int ch;
@@ -141,7 +138,7 @@ namespace Org.BouncyCastle.Crypto.IO.Tests
 			return dataBytes;
 		}
 
-		private IBufferedCipher createCipher(bool forEncryption)
+		private IBufferedCipher CreateCipher(bool forEncryption)
 		{
 //			IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CFB/NoPadding");
 

@@ -22,6 +22,11 @@ namespace Org.BouncyCastle.Crypto.Tests
 		private class RFCRandom
 			: SecureRandom
 		{
+			internal RFCRandom()
+				: base(null)
+			{
+			}
+
 			public override void NextBytes(byte[] buf)
 			{
 				NextBytes(buf, 0, buf.Length);

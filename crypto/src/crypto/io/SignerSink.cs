@@ -4,20 +4,17 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
-    public class SignerSink
+    public sealed class SignerSink
 		: BaseOutputStream
 	{
-		private readonly ISigner mSigner;
+		private readonly ISigner m_signer;
 
         public SignerSink(ISigner signer)
 		{
-            this.mSigner = signer;
+            m_signer = signer;
 		}
 
-        public virtual ISigner Signer
-        {
-            get { return mSigner; }
-        }
+		public ISigner Signer => m_signer;
 
 		public override void Write(byte[] buffer, int offset, int count)
 		{
@@ -25,13 +22,23 @@ namespace Org.BouncyCastle.Crypto.IO
 
 			if (count > 0)
 			{
-				mSigner.BlockUpdate(buffer, offset, count);
+				m_signer.BlockUpdate(buffer, offset, count);
 			}
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public override void Write(ReadOnlySpan<byte> buffer)
+		{
+			if (!buffer.IsEmpty)
+			{
+				m_signer.BlockUpdate(buffer);
+			}
+		}
+#endif
+
 		public override void WriteByte(byte value)
 		{
-			mSigner.Update(value);
+			m_signer.Update(value);
 		}
 	}
 }

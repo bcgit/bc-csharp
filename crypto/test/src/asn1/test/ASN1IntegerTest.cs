@@ -24,9 +24,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         public override void PerformTest()
         {
-#if PORTABLE && !DOTNET
-            // Can't SetEnvironmentVariable !
-#else
             SetAllowUnsafeProperty(true);
 
             Asn1Sequence.GetInstance(suspectKey);
@@ -37,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             DoTestInvalidEncoding_ff();
             DoTestInvalidEncoding_00_32bits();
             DoTestInvalidEncoding_ff_32bits();
-            //DoDoTestLooseInvalidValidEncoding_FF_32B();
+            //DoTestLooseInvalidValidEncoding_FF_32B();
             //DoTestLooseInvalidValidEncoding_zero_32B();
             DoTestLooseValidEncoding_zero_32BAligned();
             DoTestLooseValidEncoding_FF_32BAligned();
@@ -114,7 +111,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             {
                 CheckArgumentException(e, "malformed enumerated");
             }
-#endif
         }
 
         /**
@@ -255,7 +251,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        public void DoDoTestLooseInvalidValidEncoding_FF_32B()
+        public void DoTestLooseInvalidValidEncoding_FF_32B()
             throws Exception
         {
             //
@@ -351,11 +347,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void SetAllowUnsafeProperty(bool allowUnsafe)
         {
-#if PORTABLE && !DOTNET
-            // Can't SetEnvironmentVariable !
-#else
             Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, allowUnsafe ? "true" : "false");
-#endif
         }
 
         private void CheckIntValue(DerInteger i, int n)

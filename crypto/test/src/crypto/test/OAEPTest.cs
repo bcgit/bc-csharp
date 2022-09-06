@@ -289,6 +289,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             private readonly byte[] seed;
 
             internal VecRand(byte[] seed)
+                : base(null)
             {
                 this.seed = seed;
             }

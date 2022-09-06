@@ -79,11 +79,11 @@ namespace Org.BouncyCastle.Tests
             "DES/CBC/PKCS5Padding",
             "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122afdc70484fb9c0232",
             "DES/CBC/ISO10126Padding",
-            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122a980639850a2cc3e8",
+            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122aee404f971826fd3b",
             "DES/CBC/ISO7816-4Padding",
             "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122a1f80b9b0f1be49ac",
             "DES/CBC/X9.23Padding",
-            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122a980639850a2cc3e8",
+            "60fa2f8fae5aa2a38e9ac77d0246726beb7511e4515feb12cf99f75cc6e0122aee404f971826fd3b",
             "DESede/CBC/PKCS7Padding",
             "4d3d7931875cf25593dc402298add8b914761e4936c9585ae22b2c1441169231a41e40695f1cff84",
             "SKIPJACK/CBC/PKCS7Padding",
@@ -103,9 +103,9 @@ namespace Org.BouncyCastle.Tests
             "IDEA/CBC/PKCS7Padding",
             "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d9e584751325ef7c32",
             "IDEA/CBC/ISO10126Padding",
-            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d978b3fd73135f033b",
+            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d937be6ee9fe5e35f6",
             "IDEA/CBC/X9.23Padding",
-            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d978b3fd73135f033b",
+            "30cd990ebdae80fe12b6c6e4fcd1c064a27d985c276b3d7097351c8684e4c4d937be6ee9fe5e35f6",
             "AES/CBC/PKCS7Padding",
             "cf87f4d8bb9d1abb36cdd9f44ead7d046db2f802d99e1ef0a5940f306079e08389a44c4a8cc1a47cbaee1128da55bbb7",
             "AES/CBC/ISO7816-4Padding",
@@ -395,12 +395,17 @@ namespace Org.BouncyCastle.Tests
         private class FixedSecureRandom
             : SecureRandom
         {
-            byte[] seed = {
+            private static readonly byte[] seed = {
                     (byte)0xaa, (byte)0xfd, (byte)0x12, (byte)0xf6, (byte)0x59,
                     (byte)0xca, (byte)0xe6, (byte)0x34, (byte)0x89, (byte)0xb4,
                     (byte)0x79, (byte)0xe5, (byte)0x07, (byte)0x6d, (byte)0xde,
                     (byte)0xc2, (byte)0xf0, (byte)0x6c, (byte)0xb5, (byte)0x8f
             };
+
+            internal FixedSecureRandom()
+                : base(null)
+            {
+            }
 
             public override void NextBytes(byte[] buf)
             {
@@ -467,11 +472,7 @@ namespace Org.BouncyCastle.Tests
 
             SecureRandom rand = new FixedSecureRandom();
 
-#if PORTABLE
-            string upper = algorithm.ToUpperInvariant();
-#else
             string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
-#endif
             string[] parts = upper.Split('/');
             string baseAlgorithm = parts[0];
             string mode = parts.Length > 1 ? parts[1] : null;
@@ -504,11 +505,7 @@ namespace Org.BouncyCastle.Tests
                 inCipher = CipherUtilities.GetCipher(algorithm);
                 outCipher = CipherUtilities.GetCipher(algorithm);
 
-#if PORTABLE
-                upper = inCipher.AlgorithmName.ToUpperInvariant();
-#else
                 upper = inCipher.AlgorithmName.ToUpper(CultureInfo.InvariantCulture);
-#endif
                 if (!upper.StartsWith(baseAlgorithm))
                 {
                     Fail("wrong cipher returned!");

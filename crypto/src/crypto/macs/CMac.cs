@@ -132,8 +132,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             return ret;
         }
 
-        public void Init(
-            ICipherParameters parameters)
+        public void Init(ICipherParameters parameters)
         {
             if (parameters is KeyParameter)
             {
@@ -159,8 +158,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             return macSize;
         }
 
-        public void Update(
-            byte input)
+        public void Update(byte input)
         {
             if (bufOff == buf.Length)
             {
@@ -171,14 +169,14 @@ namespace Org.BouncyCastle.Crypto.Macs
             buf[bufOff++] = input;
         }
 
-        public void BlockUpdate(
-            byte[]	inBytes,
-            int		inOff,
-            int		len)
+        public void BlockUpdate(byte[] inBytes, int inOff, int len)
         {
             if (len < 0)
                 throw new ArgumentException("Can't have a negative input length!");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BlockUpdate(inBytes.AsSpan(inOff, len));
+#else
             int blockSize = cipher.GetBlockSize();
             int gapLen = blockSize - bufOff;
 
@@ -204,12 +202,42 @@ namespace Org.BouncyCastle.Crypto.Macs
             Array.Copy(inBytes, inOff, buf, bufOff, len);
 
             bufOff += len;
+#endif
         }
 
-        public int DoFinal(
-            byte[]	outBytes,
-            int		outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
         {
+            int blockSize = cipher.GetBlockSize();
+            int gapLen = blockSize - bufOff;
+
+            if (input.Length > gapLen)
+            {
+                input[..gapLen].CopyTo(buf.AsSpan(bufOff));
+
+                cipher.ProcessBlock(buf, mac);
+
+                bufOff = 0;
+                input = input[gapLen..];
+
+                while (input.Length > blockSize)
+                {
+                    cipher.ProcessBlock(input, mac);
+                    input = input[blockSize..];
+                }
+            }
+
+            input.CopyTo(buf.AsSpan(bufOff));
+
+            bufOff += input.Length;
+        }
+#endif
+
+        public int DoFinal(byte[] outBytes, int outOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(outBytes.AsSpan(outOff));
+#else
             int blockSize = cipher.GetBlockSize();
 
             byte[] lu;
@@ -235,7 +263,39 @@ namespace Org.BouncyCastle.Crypto.Macs
             Reset();
 
             return macSize;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            int blockSize = cipher.GetBlockSize();
+
+            byte[] lu;
+            if (bufOff == blockSize)
+            {
+                lu = Lu;
+            }
+            else
+            {
+                new ISO7816d4Padding().AddPadding(buf, bufOff);
+                lu = Lu2;
+            }
+
+            for (int i = 0; i < mac.Length; i++)
+            {
+                buf[i] ^= lu[i];
+            }
+
+            cipher.ProcessBlock(buf, mac);
+
+            mac.AsSpan(0, macSize).CopyTo(output);
+
+            Reset();
+
+            return macSize;
+        }
+#endif
 
         /**
         * Reset the mac generator.

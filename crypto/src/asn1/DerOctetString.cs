@@ -37,5 +37,22 @@ namespace Org.BouncyCastle.Asn1
             asn1Out.WriteDL(len);
             asn1Out.Write(buf, off, len);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void Encode(Asn1OutputStream asn1Out, ReadOnlySpan<byte> buf)
+        {
+            asn1Out.WriteIdentifier(Asn1Tags.Universal, Asn1Tags.OctetString);
+            asn1Out.WriteDL(buf.Length);
+            asn1Out.Write(buf);
+        }
+
+        internal static void Encode(Asn1OutputStream asn1Out, ReadOnlySpan<byte> buf1, ReadOnlySpan<byte> buf2)
+        {
+            asn1Out.WriteIdentifier(Asn1Tags.Universal, Asn1Tags.OctetString);
+            asn1Out.WriteDL(buf1.Length + buf2.Length);
+            asn1Out.Write(buf1);
+            asn1Out.Write(buf2);
+        }
+#endif
     }
 }

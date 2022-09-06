@@ -215,7 +215,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         /**
         * return the result rotating the 16 bit number in x left by y
         */
-        private int RotateWordLeft(int x, int y)
+        private static int RotateWordLeft(int x, int y)
         {
             x &= 0xffff;
             return (x << y) | (x >> (16 - y));

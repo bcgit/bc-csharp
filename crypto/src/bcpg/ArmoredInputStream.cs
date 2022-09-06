@@ -482,7 +482,6 @@ namespace Org.BouncyCastle.Bcpg
             return c;
         }
 
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -491,13 +490,6 @@ namespace Org.BouncyCastle.Bcpg
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-		{
-            Platform.Dispose(input);
-			base.Close();
-		}
-#endif
 
         /**
          * Change how the stream should react if it encounters missing CRC checksum.

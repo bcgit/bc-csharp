@@ -64,6 +64,9 @@ namespace Org.BouncyCastle.Asn1
 			{
 				Streams.ValidateBufferArguments(buffer, offset, count);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Write(buffer.AsSpan(offset, count));
+#else
                 int bufLen = _buf.Length;
                 int available = bufLen - _off;
                 if (count < available)
@@ -77,8 +80,9 @@ namespace Org.BouncyCastle.Asn1
                 if (_off > 0)
                 {
                     Array.Copy(buffer, offset, _buf, _off, available);
-                    pos += available;
+                    pos = available;
                     DerOctetString.Encode(_derOut, _buf, 0, bufLen);
+                    //_off = 0;
                 }
 
                 int remaining;
@@ -90,9 +94,40 @@ namespace Org.BouncyCastle.Asn1
 
                 Array.Copy(buffer, offset + pos, _buf, 0, remaining);
                 this._off = remaining;
+#endif
             }
 
-			public override void WriteByte(byte value)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void Write(ReadOnlySpan<byte> buffer)
+			{
+                int bufLen = _buf.Length;
+                int available = bufLen - _off;
+                if (buffer.Length < available)
+                {
+                    buffer.CopyTo(_buf.AsSpan(_off));
+                    _off += buffer.Length;
+                    return;
+                }
+
+                if (_off > 0)
+                {
+                    DerOctetString.Encode(_derOut, _buf.AsSpan(0, _off), buffer[..available]);
+                    buffer = buffer[available..];
+                    //_off = 0;
+                }
+
+                while (buffer.Length >= bufLen)
+                {
+                    DerOctetString.Encode(_derOut, buffer[..bufLen]);
+                    buffer = buffer[bufLen..];
+                }
+
+                buffer.CopyTo(_buf.AsSpan());
+                _off = buffer.Length;
+            }
+#endif
+
+            public override void WriteByte(byte value)
 			{
 				_buf[_off++] = value;
 
@@ -103,33 +138,20 @@ namespace Org.BouncyCastle.Asn1
 				}
 			}
 
-#if PORTABLE
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
-                    ImplClose();
+                    if (_off != 0)
+                    {
+                        DerOctetString.Encode(_derOut, _buf, 0, _off);
+                    }
+
+                    _derOut.FlushInternal();
+
+                    _gen.WriteBerEnd();
                 }
                 base.Dispose(disposing);
-            }
-#else
-            public override void Close()
-            {
-                ImplClose();
-                base.Close();
-            }
-#endif
-
-            private void ImplClose()
-            {
-                if (_off != 0)
-                {
-                    DerOctetString.Encode(_derOut, _buf, 0, _off);
-                }
-
-                _derOut.FlushInternal();
-
-                _gen.WriteBerEnd();
             }
         }
     }

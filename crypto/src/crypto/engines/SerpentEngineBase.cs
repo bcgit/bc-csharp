@@ -124,16 +124,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
         }
 
-        protected static int RotateLeft(int x, int bits)
-        {
-            return ((x << bits) | (int) ((uint)x >> (32 - bits)));
-        }
-
-        private static int RotateRight(int x, int bits)
-        {
-            return ( (int)((uint)x >> bits) | (x << (32 - bits)));
-        }
-
         /*
          * The sboxes below are based on the work of Brian Gladman and
          * Sam Simpson, whose original notice appears below.
@@ -467,15 +457,15 @@ namespace Org.BouncyCastle.Crypto.Engines
         */
         protected void LT()
         {
-            int x0 = RotateLeft(X0, 13);
-            int x2 = RotateLeft(X2, 3);
+            int x0 = Integers.RotateLeft(X0, 13);
+            int x2 = Integers.RotateLeft(X2, 3);
             int x1 = X1 ^ x0 ^ x2;
             int x3 = X3 ^ x2 ^ x0 << 3;
 
-            X1 = RotateLeft(x1, 1);
-            X3 = RotateLeft(x3, 7);
-            X0 = RotateLeft(x0 ^ X1 ^ X3, 5);
-            X2 = RotateLeft(x2 ^ X3 ^ (X1 << 7), 22);
+            X1 = Integers.RotateLeft(x1, 1);
+            X3 = Integers.RotateLeft(x3, 7);
+            X0 = Integers.RotateLeft(x0 ^ X1 ^ X3, 5);
+            X2 = Integers.RotateLeft(x2 ^ X3 ^ (X1 << 7), 22);
         }
 
         /**
@@ -483,14 +473,14 @@ namespace Org.BouncyCastle.Crypto.Engines
         */
         protected void InverseLT()
         {
-            int x2 = RotateRight(X2, 22) ^ X3 ^ (X1 << 7);
-            int x0 = RotateRight(X0, 5) ^ X1 ^ X3;
-            int x3 = RotateRight(X3, 7);
-            int x1 = RotateRight(X1, 1);
+            int x2 = Integers.RotateRight(X2, 22) ^ X3 ^ (X1 << 7);
+            int x0 = Integers.RotateRight(X0, 5) ^ X1 ^ X3;
+            int x3 = Integers.RotateRight(X3, 7);
+            int x1 = Integers.RotateRight(X1, 1);
             X3 = x3 ^ x2 ^ x0 << 3;
             X1 = x1 ^ x0 ^ x2;
-            X2 = RotateRight(x2, 3);
-            X0 = RotateRight(x0, 13);
+            X2 = Integers.RotateRight(x2, 3);
+            X0 = Integers.RotateRight(x0, 13);
         }
 
         protected abstract int[] MakeWorkingKey(byte[] key);

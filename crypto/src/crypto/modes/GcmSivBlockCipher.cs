@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -291,20 +290,34 @@ namespace Org.BouncyCastle.Crypto.Modes
             CheckAeadStatus(1);
 
             /* Process the aead */
-            theAEADHasher.updateHash(pByte);
+            theAEADHasher.UpdateHash(pByte);
         }
 
         public virtual void ProcessAadBytes(byte[] pData, int pOffset, int pLen)
         {
+            Check.DataLength(pData, pOffset, pLen, "input buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ProcessAadBytes(pData.AsSpan(pOffset, pLen));
+#else
             /* Check that we can supply AEAD */
             CheckAeadStatus(pLen);
 
-            /* Check input buffer */
-            CheckBuffer(pData, pOffset, pLen, false);
+            /* Process the aead */
+            theAEADHasher.UpdateHash(pData, pOffset, pLen);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            /* Check that we can supply AEAD */
+            CheckAeadStatus(input.Length);
 
             /* Process the aead */
-            theAEADHasher.updateHash(pData, pOffset, pLen);
+            theAEADHasher.UpdateHash(input);
         }
+#endif
 
         public virtual int ProcessByte(byte pByte, byte[] pOutput, int pOutOffset)
         {
@@ -315,7 +328,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (forEncryption)
             {
                 thePlain.WriteByte(pByte);
-                theDataHasher.updateHash(pByte);
+                theDataHasher.UpdateHash(pByte);
             }
             else
             {
@@ -326,19 +339,43 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
-        public virtual int ProcessBytes(byte[] pData, int pOffset, int pLen, byte[] pOutput, int pOutOffset)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
         {
             /* Check that we have initialised */
-            CheckStatus(pLen);
+            CheckStatus(1);
 
-            /* Check input buffer */
-            CheckBuffer(pData, pOffset, pLen, false);
+            /* Store the data */
+            if (forEncryption)
+            {
+                thePlain.WriteByte(input);
+                theDataHasher.UpdateHash(input);
+            }
+            else
+            {
+                theEncData.WriteByte(input);
+            }
+
+            /* No data returned */
+            return 0;
+        }
+#endif
+
+        public virtual int ProcessBytes(byte[] pData, int pOffset, int pLen, byte[] pOutput, int pOutOffset)
+        {
+            Check.DataLength(pData, pOffset, pLen, "input buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessBytes(pData.AsSpan(pOffset, pLen), Spans.FromNullable(pOutput, pOutOffset));
+#else
+            /* Check that we have initialised */
+            CheckStatus(pLen);
 
             /* Store the data */
             if (forEncryption)
             {
                 thePlain.Write(pData, pOffset, pLen);
-                theDataHasher.updateHash(pData, pOffset, pLen);
+                theDataHasher.UpdateHash(pData, pOffset, pLen);
             }
             else
             {
@@ -347,24 +384,49 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             /* No data returned */
             return 0;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            /* Check that we have initialised */
+            CheckStatus(input.Length);
+
+            /* Store the data */
+            if (forEncryption)
+            {
+                thePlain.Write(input);
+                theDataHasher.UpdateHash(input);
+            }
+            else
+            {
+                theEncData.Write(input);
+            }
+
+            /* No data returned */
+            return 0;
+        }
+#endif
 
         public virtual int DoFinal(byte[] pOutput, int pOffset)
         {
+            Check.OutputLength(pOutput, pOffset, GetOutputSize(0), "output buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(pOutput.AsSpan(pOffset));
+#else
             /* Check that we have initialised */
             CheckStatus(0);
-
-            /* Check output buffer */
-            CheckBuffer(pOutput, pOffset, GetOutputSize(0), true);
 
             /* If we are encrypting */
             if (forEncryption)
             {
                 /* Derive the tag */
-                byte[] myTag = calculateTag();
+                byte[] myTag = CalculateTag();
 
                 /* encrypt the plain text */
-                int myDataLen = BUFLEN + encryptPlain(myTag, pOutput, pOffset);
+                int myDataLen = BUFLEN + EncryptPlain(myTag, pOutput, pOffset);
 
                 /* Add the tag to the output */
                 Array.Copy(myTag, 0, pOutput, pOffset + Convert.ToInt32(thePlain.Length), BUFLEN);
@@ -378,7 +440,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             else
             {
                 /* decrypt to plain text */
-                decryptPlain();
+                DecryptPlain();
 
                 /* Release plain text */
                 int myDataLen = Streams.WriteBufTo(thePlain, pOutput, pOffset);
@@ -387,7 +449,53 @@ namespace Org.BouncyCastle.Crypto.Modes
                 ResetStreams();
                 return myDataLen;
             }
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            /* Check that we have initialised */
+            CheckStatus(0);
+
+            Check.OutputLength(output, GetOutputSize(0), "output buffer too short");
+
+            /* If we are encrypting */
+            if (forEncryption)
+            {
+                /* Derive the tag */
+                byte[] myTag = CalculateTag();
+
+                /* encrypt the plain text */
+                int myDataLen = BUFLEN + EncryptPlain(myTag, output);
+
+                /* Add the tag to the output */
+                myTag.AsSpan(0, BUFLEN).CopyTo(output[Convert.ToInt32(thePlain.Length)..]);
+
+                /* Reset the streams */
+                ResetStreams();
+                return myDataLen;
+
+                /* else we are decrypting */
+            }
+            else
+            {
+                /* decrypt to plain text */
+                DecryptPlain();
+
+                /* Release plain text */
+                if (!thePlain.TryGetBuffer(out var buffer))
+                    throw new InvalidOperationException();
+
+                buffer.AsSpan().CopyTo(output);
+                int myDataLen = buffer.Count;
+
+                /* Reset the streams */
+                ResetStreams();
+                return myDataLen;
+            }
+        }
+#endif
 
         public virtual byte[] GetMac()
         {
@@ -440,7 +548,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             Arrays.Fill(theGHash, (byte)0);
             if (theInitialAEAD != null)
             {
-                theAEADHasher.updateHash(theInitialAEAD, 0, theInitialAEAD.Length);
+                theAEADHasher.UpdateHash(theInitialAEAD, 0, theInitialAEAD.Length);
             }
         }
 
@@ -454,37 +562,43 @@ namespace Org.BouncyCastle.Crypto.Modes
             return pBuffer == null ? 0 : pBuffer.Length;
         }
 
-        /**
-        * Check buffer.
-        * @param pBuffer the buffer
-        * @param pOffset the offset
-        * @param pLen the length
-        * @param pOutput is this an output buffer?
-        */
-        private static void CheckBuffer(byte[] pBuffer, int pOffset, int pLen, bool pOutput)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private int EncryptPlain(byte[] pCounter, Span<byte> target)
         {
-            /* Access lengths */
-            int myBufLen = bufLength(pBuffer);
-            int myLast = pOffset + pLen;
+            byte[] thePlainBuf = thePlain.GetBuffer();
+            int thePlainLen = Convert.ToInt32(thePlain.Length);
 
-            /* Check for negative values and buffer overflow */
-            bool badLen = pLen < 0 || pOffset < 0 || myLast < 0;
-            if (badLen || myLast > myBufLen)
+            byte[] mySrc = thePlainBuf;
+            byte[] myCounter = Arrays.Clone(pCounter);
+            myCounter[BUFLEN - 1] |= MASK;
+            byte[] myMask = new byte[BUFLEN];
+            long myRemaining = thePlainLen;
+            int myOff = 0;
+
+            /* While we have data to process */
+            while (myRemaining > 0)
             {
-                throw pOutput
-                ? new OutputLengthException("output buffer too short.")
-                : new DataLengthException("input buffer too short.");
-            }
-        }
+                /* Generate the next mask */
+                theCipher.ProcessBlock(myCounter, 0, myMask, 0);
 
-        /**
-        * encrypt data stream.
-        * @param pCounter the counter
-        * @param pTarget the target buffer
-        * @param pOffset the target offset
-        * @return the length of data encrypted
-        */
-        private int encryptPlain(byte[] pCounter, byte[] pTarget, int pOffset)
+                /* Xor data into mask */
+                int myLen = (int)System.Math.Min(BUFLEN, myRemaining);
+                xorBlock(myMask, mySrc, myOff, myLen);
+
+                /* Copy encrypted data to output */
+                myMask.AsSpan(0, myLen).CopyTo(target[myOff..]);
+
+                /* Adjust counters */
+                myRemaining -= myLen;
+                myOff += myLen;
+                incrementCounter(myCounter);
+            }
+
+            /* Return the amount of data processed */
+            return thePlainLen;
+        }
+#else
+        private int EncryptPlain(byte[] pCounter, byte[] pTarget, int pOffset)
         {
             byte[] thePlainBuf = thePlain.GetBuffer();
             int thePlainLen = Convert.ToInt32(thePlain.Length);
@@ -518,12 +632,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             /* Return the amount of data processed */
             return thePlainLen;
         }
+#endif
 
-        /**
-        * decrypt data stream.
-        * @throws InvalidCipherTextException on data too short or mac check failed
-        */
-        private void decryptPlain()
+        private void DecryptPlain()
         {
             byte[] theEncDataBuf = theEncData.GetBuffer();
             int theEncDataLen = Convert.ToInt32(theEncData.Length);
@@ -556,7 +667,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 /* Write data to plain dataStream */
                 thePlain.Write(myMask, 0, myLen);
-                theDataHasher.updateHash(myMask, 0, myLen);
+                theDataHasher.UpdateHash(myMask, 0, myLen);
 
                 /* Adjust counters */
                 myRemaining -= myLen;
@@ -565,7 +676,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             /* Derive and check the tag */
-            byte[] myTag = calculateTag();
+            byte[] myTag = CalculateTag();
             if (!Arrays.ConstantTimeAreEqual(myTag, myExpected))
             {
                 Reset();
@@ -577,7 +688,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * calculate tag.
         * @return the calculated tag
         */
-        private byte[] calculateTag()
+        private byte[] CalculateTag()
         {
             /* Complete the hash */
             theDataHasher.completeHash();
@@ -646,6 +757,18 @@ namespace Org.BouncyCastle.Crypto.Modes
                 pOutput[j] = pInput[pOffset + i];
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void fillReverse(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            /* Loop through the buffer */
+            for (int i = 0, j = BUFLEN - 1; i < input.Length; i++, j--)
+            {
+                /* Copy byte */
+                output[j] = input[i];
+            }
+        }
+#endif
 
         /**
         * xor a full block buffer.
@@ -836,10 +959,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             * update hash.
             * @param pByte the byte
             */
-            internal void updateHash(byte pByte)
+            internal void UpdateHash(byte pByte)
             {
                 theByte[0] = pByte;
-                updateHash(theByte, 0, 1);
+                UpdateHash(theByte, 0, 1);
             }
 
             /**
@@ -848,7 +971,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             * @param pOffset the offset within the buffer
             * @param pLen the length of data
             */
-            internal void updateHash(byte[] pBuffer, int pOffset, int pLen)
+            internal void UpdateHash(byte[] pBuffer, int pOffset, int pLen)
             {
                 /* If we should process the cache */
                 int mySpace = BUFLEN - numActive;
@@ -875,8 +998,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                     parent.gHASH(parent.theReverse);
 
                     /* Adjust counters */
-                    numProcessed += mySpace;
-                    myRemaining -= mySpace;
+                    numProcessed += BUFLEN;
+                    myRemaining -= BUFLEN;
                 }
 
                 /* If we have remaining data */
@@ -890,6 +1013,49 @@ namespace Org.BouncyCastle.Crypto.Modes
                 /* Adjust the number of bytes processed */
                 numHashed += (ulong)pLen;
             }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            internal void UpdateHash(ReadOnlySpan<byte> buffer)
+            {
+                int pLen = buffer.Length;
+
+                /* If we should process the cache */
+                int mySpace = BUFLEN - numActive;
+                if (numActive > 0 && buffer.Length >= mySpace)
+                {
+                    /* Copy data into the cache and hash it */
+                    buffer[..mySpace].CopyTo(theBuffer.AsSpan(numActive));
+                    fillReverse(theBuffer, parent.theReverse);
+                    parent.gHASH(parent.theReverse);
+
+                    /* Adjust counters */
+                    buffer = buffer[mySpace..];
+                    numActive = 0;
+                }
+
+                /* While we have full blocks */
+                while (buffer.Length >= BUFLEN)
+                {
+                    /* Access the next data */
+                    fillReverse(buffer[..BUFLEN], parent.theReverse);
+                    parent.gHASH(parent.theReverse);
+
+                    /* Adjust counters */
+                    buffer = buffer[BUFLEN..];
+                }
+
+                /* If we have remaining data */
+                if (!buffer.IsEmpty)
+                {
+                    /* Copy data into the cache */
+                    buffer.CopyTo(theBuffer.AsSpan(numActive));
+                    numActive += buffer.Length;
+                }
+
+                /* Adjust the number of bytes processed */
+                numHashed += (ulong)pLen;
+            }
+#endif
 
             /**
             * complete hash.

@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
 		public void BlockUpdate(byte[] inBytes, int inOff, int len)
 		{
-			engine.Update(inBytes, inOff, len);
+			engine.BlockUpdate(inBytes, inOff, len);
 		}
 
 		public int DoFinal(byte[] outBytes, int outOff)
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
-            engine.Update(input);
+            engine.BlockUpdate(input);
         }
 
         public int DoFinal(Span<byte> output)
