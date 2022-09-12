@@ -80,15 +80,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.mainCipher = mainCipher;
         }
 
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return mainCipher;
-        }
+        public virtual string AlgorithmName => mainCipher.AlgorithmName + "/OCB";
 
-        public virtual string AlgorithmName
-        {
-            get { return mainCipher.AlgorithmName + "/OCB"; }
-        }
+        public virtual IBlockCipher UnderlyingCipher => mainCipher;
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
@@ -99,10 +93,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             KeyParameter keyParameter;
 
             byte[] N;
-            if (parameters is AeadParameters)
+            if (parameters is AeadParameters aeadParameters)
             {
-                AeadParameters aeadParameters = (AeadParameters) parameters;
-
                 N = aeadParameters.GetNonce();
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 
@@ -113,10 +105,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                 macSize = macSizeBits / 8;
                 keyParameter = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV parametersWithIV)
             {
-                ParametersWithIV parametersWithIV = (ParametersWithIV) parameters;
-
                 N = parametersWithIV.GetIV();
                 initialAssociatedText = null;
                 macSize = 16;

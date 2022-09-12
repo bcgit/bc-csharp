@@ -49,35 +49,26 @@ namespace Org.BouncyCastle.Crypto.Modes
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public virtual IBlockCipher UnderlyingCipher => cipher;
 
-        public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
 
             ICipherParameters cipherParameters;
-            if (parameters is AeadParameters)
+            if (parameters is AeadParameters aeadParameters)
             {
-                AeadParameters param = (AeadParameters) parameters;
-
-                nonce = param.GetNonce();
-                initialAssociatedText = param.GetAssociatedText();
-                macSize = GetMacSize(forEncryption, param.MacSize);
-                cipherParameters = param.Key;
+                nonce = aeadParameters.GetNonce();
+                initialAssociatedText = aeadParameters.GetAssociatedText();
+                macSize = GetMacSize(forEncryption, aeadParameters.MacSize);
+                cipherParameters = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV parametersWithIV)
             {
-                ParametersWithIV param = (ParametersWithIV) parameters;
-
-                nonce = param.GetIV();
+                nonce = parametersWithIV.GetIV();
                 initialAssociatedText = null;
                 macSize = GetMacSize(forEncryption, 64);
-                cipherParameters = param.Parameters;
+                cipherParameters = parametersWithIV.Parameters;
             }
             else
             {
@@ -96,10 +87,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset();
         }
 
-        public virtual string AlgorithmName
-        {
-            get { return cipher.AlgorithmName + "/CCM"; }
-        }
+        public virtual string AlgorithmName => cipher.AlgorithmName + "/CCM";
 
         public virtual int GetBlockSize()
         {
@@ -206,14 +194,12 @@ namespace Org.BouncyCastle.Crypto.Modes
             return Arrays.CopyOfRange(macBlock, 0, macSize);
         }
 
-        public virtual int GetUpdateOutputSize(
-            int len)
+        public virtual int GetUpdateOutputSize(int len)
         {
             return 0;
         }
 
-        public virtual int GetOutputSize(
-            int len)
+        public virtual int GetOutputSize(int len)
         {
             int totalData = Convert.ToInt32(data.Length) + len;
 

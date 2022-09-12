@@ -131,23 +131,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual string AlgorithmName
-        {
-            get
-            {
-                return engine.AlgorithmName + "/KCCM";
-            }
-        }
+        public virtual string AlgorithmName => engine.AlgorithmName + "/KCCM";
 
         public virtual int GetBlockSize()
         {
             return engine.GetBlockSize();
         }
 
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return engine;
-        }
+        public virtual IBlockCipher UnderlyingCipher => engine;
 
         public virtual void ProcessAadByte(byte input)
         {

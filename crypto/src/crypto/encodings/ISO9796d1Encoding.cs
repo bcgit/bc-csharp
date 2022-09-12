@@ -29,31 +29,21 @@ namespace Org.BouncyCastle.Crypto.Encodings
 		private int padBits = 0;
 		private BigInteger modulus;
 
-		public ISO9796d1Encoding(
-			IAsymmetricBlockCipher   cipher)
+		public ISO9796d1Encoding(IAsymmetricBlockCipher cipher)
 		{
 			this.engine = cipher;
 		}
 
-		public string AlgorithmName
-		{
-			get { return engine.AlgorithmName + "/ISO9796-1Padding"; }
-		}
+		public string AlgorithmName => engine.AlgorithmName + "/ISO9796-1Padding";
 
-		public IAsymmetricBlockCipher GetUnderlyingCipher()
-		{
-			return engine;
-		}
+		public IAsymmetricBlockCipher UnderlyingCipher => engine;
 
-		public void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
-		{
-			RsaKeyParameters kParam;
-			if (parameters is ParametersWithRandom)
+        public void Init(bool forEncryption, ICipherParameters parameters)
+        {
+            RsaKeyParameters kParam;
+			if (parameters is ParametersWithRandom withRandom)
 			{
-				ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-				kParam = (RsaKeyParameters)rParam.Parameters;
+				kParam = (RsaKeyParameters)withRandom.Parameters;
 			}
 			else
 			{
