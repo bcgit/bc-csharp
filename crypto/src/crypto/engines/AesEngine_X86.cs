@@ -152,8 +152,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public string AlgorithmName => "AES";
 
-        public bool IsPartialBlockOkay => false;
-
         public int GetBlockSize() => 16;
 
         public void Init(bool forEncryption, ICipherParameters parameters)
@@ -217,10 +215,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             Store128(ref s3, output[32..48]);
             Store128(ref s4, output[48..64]);
             return 64;
-        }
-
-        public void Reset()
-        {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]

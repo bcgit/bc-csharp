@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     * block cipher.
     */
     public class SicBlockCipher
-        : IBlockCipher
+        : IBlockCipherMode
     {
         private readonly IBlockCipher cipher;
         private readonly int blockSize;
@@ -39,10 +39,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
 
         public virtual void Init(
             bool				forEncryption, //ignored by this CTR mode
@@ -133,7 +130,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             Arrays.Fill(counter, (byte)0);
             Array.Copy(IV, 0, counter, 0, IV.Length);
-            cipher.Reset();
         }
     }
 }

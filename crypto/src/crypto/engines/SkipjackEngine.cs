@@ -77,11 +77,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "SKIPJACK"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
@@ -139,10 +134,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
         /**
         * The G permutation

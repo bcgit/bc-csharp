@@ -44,11 +44,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "Serpent"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-        {
-            get { return false; }
-        }
-
         public virtual int GetBlockSize()
         {
             return BlockSize;
@@ -119,10 +114,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BlockSize;
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
         /*
          * The sboxes below are based on the work of Brian Gladman and

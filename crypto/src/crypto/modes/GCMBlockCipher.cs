@@ -867,11 +867,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(true);
         }
 
-        private void Reset(
-            bool clearMac)
+        private void Reset(bool clearMac)
         {
-            cipher.Reset();
-
             // note: we do not reset the nonce.
 
             S = new byte[BlockSize];

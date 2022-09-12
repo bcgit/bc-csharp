@@ -7,7 +7,8 @@ namespace Org.BouncyCastle.Crypto.Modes
     /**
     * Implements a Gamming or Counter (CTR) mode on top of a DSTU 7624 block cipher.
     */
-    public class KCtrBlockCipher : IStreamCipher, IBlockCipher
+    public class KCtrBlockCipher
+        : IStreamCipher, IBlockCipherMode
     {
         private byte[] IV;
         private byte[] ofbV;
@@ -40,10 +41,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
+
         /**
         * Initialise the cipher and, possibly, the initialisation vector (IV).
         * If an IV isn't passed as part of the parameter, the IV will be all zeros.
@@ -213,7 +212,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 cipher.ProcessBlock(IV, 0, ofbV, 0);
             }
-            cipher.Reset();
             byteCount = 0;
         }
 

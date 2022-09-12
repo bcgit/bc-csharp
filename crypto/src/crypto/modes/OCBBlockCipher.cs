@@ -643,9 +643,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         protected virtual void Reset(bool clearMac)
         {
-            hashCipher.Reset();
-            mainCipher.Reset();
-
             Clear(hashBlock);
             Clear(mainBlock);
 

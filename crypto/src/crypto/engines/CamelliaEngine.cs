@@ -653,11 +653,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "Camellia"; }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return BLOCK_SIZE;
@@ -711,10 +706,5 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 		}
 #endif
-
-		public virtual void Reset()
-		{
-			// nothing
-		}
 	}
 }

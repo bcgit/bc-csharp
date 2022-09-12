@@ -16,9 +16,6 @@ namespace Org.BouncyCastle.Crypto
 		/// <returns>The block size for this cipher, in bytes.</returns>
 		int GetBlockSize();
 
-		/// <summary>Indicates whether this cipher can handle partial blocks.</summary>
-		bool IsPartialBlockOkay { get; }
-
 		/// <summary>Process a block.</summary>
 		/// <param name="inBuf">The input buffer.</param>
 		/// <param name="inOff">The offset into <paramref>inBuf</paramref> that the input block begins.</param>
@@ -37,10 +34,5 @@ namespace Org.BouncyCastle.Crypto
 		/// <returns>The number of bytes processed and produced.</returns>
 		int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output);
 #endif
-
-        /// <summary>
-        /// Reset the cipher to the same state as it was after the last init (if there was one).
-        /// </summary>
-        void Reset();
     }
 }

@@ -191,7 +191,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual void Reset()
         {
-            cipher.Reset();
             associatedText.SetLength(0);
             data.SetLength(0);
         }

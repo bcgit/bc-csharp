@@ -189,11 +189,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "Gost28147"; }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return BlockSize;
@@ -230,10 +225,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return BlockSize;
 		}
 #endif
-
-		public virtual void Reset()
-		{
-		}
 
 		private int[] GenerateWorkingKey(bool forEncryption, byte[] userKey)
 		{

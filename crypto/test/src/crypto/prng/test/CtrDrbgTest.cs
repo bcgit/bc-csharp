@@ -497,11 +497,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 get { return cipher.AlgorithmName; }
             }
 
-            public bool IsPartialBlockOkay
-            {
-                get { return false; }
-            }
-
             public int GetBlockSize()
             {
                 return cipher.GetBlockSize();
@@ -520,11 +515,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
                 return cipher.ProcessBlock(input, output);
             }
 #endif
-
-            public void Reset()
-            {
-                cipher.Reset();
-            }
         }
     }
 }

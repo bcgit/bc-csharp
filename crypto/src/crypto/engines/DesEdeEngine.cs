@@ -125,9 +125,5 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 #endif
-
-        public override void Reset()
-        {
-        }
     }
 }

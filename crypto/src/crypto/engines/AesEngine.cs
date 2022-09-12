@@ -468,11 +468,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "AES"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-        {
-            get { return false; }
-        }
-
         public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
@@ -530,10 +525,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 #endif
-
-        public virtual void Reset()
-        {
-        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output, uint[][] KW)

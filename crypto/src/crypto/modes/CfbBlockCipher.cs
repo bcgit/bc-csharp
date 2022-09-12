@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     * implements a Cipher-FeedBack (CFB) mode on top of a simple cipher.
     */
     public class CfbBlockCipher
-		: IBlockCipher
+		: IBlockCipherMode
     {
         private byte[]	IV;
         private byte[]	cfbV;
@@ -43,10 +43,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
+
         /**
         * Initialise the cipher and, possibly, the initialisation vector (IV).
         * If an IV isn't passed as part of the parameter, the IV will be all zeros.
@@ -223,7 +221,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         public void Reset()
         {
             Array.Copy(IV, 0, cfbV, 0, IV.Length);
-            cipher.Reset();
         }
     }
 }
