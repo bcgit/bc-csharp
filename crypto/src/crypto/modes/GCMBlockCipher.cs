@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     /// Implements the Galois/Counter mode (GCM) detailed in
     /// NIST Special Publication 800-38D.
     /// </summary>
-    public class GcmBlockCipher
+    public sealed class GcmBlockCipher
         : IAeadBlockCipher
     {
         private static IGcmMultiplier CreateGcmMultiplier()
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.multiplier = m;
         }
 
-        public virtual string AlgorithmName
+        public string AlgorithmName
         {
             get { return cipher.AlgorithmName + "/GCM"; }
         }
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return cipher;
         }
 
-        public virtual int GetBlockSize()
+        public int GetBlockSize()
         {
             return BlockSize;
         }
@@ -105,9 +105,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// MAC sizes from 32 bits to 128 bits (must be a multiple of 8) are supported. The default is 128 bits.
         /// Sizes less than 96 are not recommended, but are supported for specialized applications.
         /// </remarks>
-        public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
             this.macBlock = null;
@@ -229,15 +227,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual byte[] GetMac()
+        public byte[] GetMac()
         {
             return macBlock == null
                 ?   new byte[macSize]
                 :   Arrays.Clone(macBlock);
         }
 
-        public virtual int GetOutputSize(
-            int len)
+        public int GetOutputSize(int len)
         {
             int totalData = len + bufOff;
 
@@ -249,8 +246,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData < macSize ? 0 : totalData - macSize;
         }
 
-        public virtual int GetUpdateOutputSize(
-            int len)
+        public int GetUpdateOutputSize(int len)
         {
             int totalData = len + bufOff;
             if (!forEncryption)
@@ -264,7 +260,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData - totalData % BlockSize;
         }
 
-        public virtual void ProcessAadByte(byte input)
+        public void ProcessAadByte(byte input)
         {
             CheckStatus();
 
@@ -278,7 +274,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
+        public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ProcessAadBytes(inBytes.AsSpan(inOff, len));
@@ -318,7 +314,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             CheckStatus();
 
@@ -372,7 +368,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual int ProcessByte(byte	input, byte[] output, int outOff)
+        public int ProcessByte(byte	input, byte[] output, int outOff)
         {
             CheckStatus();
 
@@ -404,7 +400,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int ProcessByte(byte input, Span<byte> output)
+        public int ProcessByte(byte input, Span<byte> output)
         {
             CheckStatus();
 
@@ -428,7 +424,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
+        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             CheckStatus();
 
@@ -537,7 +533,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             CheckStatus();
 
@@ -751,7 +747,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int DoFinal(Span<byte> output)
+        public int DoFinal(Span<byte> output)
         {
             CheckStatus();
 
@@ -862,7 +858,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        public virtual void Reset()
+        public void Reset()
         {
             Reset(true);
         }

@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     * for round precomputation, but it has the smallest foot print.
     * </p>
     */
-    public class AesLightEngine
+    public sealed class AesLightEngine
         : IBlockCipher
     {
         // The S box
@@ -342,13 +342,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
-            KeyParameter keyParameter = parameters as KeyParameter;
-
-            if (keyParameter == null)
+            if (!(parameters is KeyParameter keyParameter))
                 throw new ArgumentException("invalid parameter passed to AES init - "
                     + Platform.GetTypeName(parameters));
 
@@ -357,17 +353,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.forEncryption = forEncryption;
         }
 
-        public virtual string AlgorithmName
+        public string AlgorithmName
         {
             get { return "AES"; }
         }
 
-        public virtual int GetBlockSize()
+        public int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
+        public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (WorkingKey == null)
                 throw new InvalidOperationException("AES engine not initialised");
@@ -399,7 +395,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (WorkingKey == null)
                 throw new InvalidOperationException("AES engine not initialised");

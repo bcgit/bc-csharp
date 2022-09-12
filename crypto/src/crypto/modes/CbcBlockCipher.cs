@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     /**
     * implements Cipher-Block-Chaining (CBC) mode on top of a simple cipher.
     */
-    public class CbcBlockCipher
+    public sealed class CbcBlockCipher
 		: IBlockCipherMode
     {
         private byte[]			IV, cbcV, cbcNextV;
@@ -48,9 +48,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-        public void Init(
-            bool forEncryption,
-            ICipherParameters parameters)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
             bool oldEncrypting = this.encrypting;
 
