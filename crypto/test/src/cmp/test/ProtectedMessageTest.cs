@@ -73,36 +73,36 @@ namespace Org.BouncyCastle.Cmp.Tests
             rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
             AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
-            doNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), MakeUtcDateTime(1, 1, 1, 0, 0, 10));
-            doNotBeforeNotAfterTest(rsaKeyPair, DateTime.MinValue, MakeUtcDateTime(1, 1, 1, 0, 0, 10));
-            doNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), DateTime.MinValue);
+            DoNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), MakeUtcDateTime(1, 1, 1, 0, 0, 10));
+            DoNotBeforeNotAfterTest(rsaKeyPair, null, MakeUtcDateTime(1, 1, 1, 0, 0, 10));
+            DoNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), null);
         }
 
-        private void doNotBeforeNotAfterTest(AsymmetricCipherKeyPair kp, DateTime notBefore, DateTime notAfter)
+        private void DoNotBeforeNotAfterTest(AsymmetricCipherKeyPair kp, DateTime? notBefore, DateTime? notAfter)
         {
             CertificateRequestMessageBuilder builder = new CertificateRequestMessageBuilder(BigInteger.One)
                 .SetPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public))
                 .SetProofOfPossessionSubsequentMessage(SubsequentMessage.encrCert);
 
-            builder.SetValidity(new Time(notBefore), new Time(notAfter));
+            builder.SetValidity(notBefore, notAfter);
             CertificateRequestMessage msg = builder.Build();
 
-            if (!notBefore.Equals(DateTime.MinValue))
+            if (notBefore != null)
             {
-                IsTrue("NotBefore did not match", (notBefore.Equals(msg.GetCertTemplate().Validity.NotBefore.ToDateTime())));
+                IsTrue("NotBefore did not match", notBefore.Equals(msg.GetCertTemplate().Validity.NotBefore.ToDateTime()));
             }
             else
             {
-                IsTrue("Expected NotBefore to empty.", DateTime.MinValue == msg.GetCertTemplate().Validity.NotBefore.ToDateTime());
+                Assert.IsNull(msg.GetCertTemplate().Validity.NotBefore);
             }
 
-            if (!notAfter.Equals(DateTime.MinValue))
+            if (notAfter != null)
             {
-                IsTrue("NotAfter did not match", (notAfter.Equals(msg.GetCertTemplate().Validity.NotAfter.ToDateTime())));
+                IsTrue("NotAfter did not match", notAfter.Equals(msg.GetCertTemplate().Validity.NotAfter.ToDateTime()));
             }
             else
             {
-                IsTrue("Expected NotAfter to be empty.", DateTime.MinValue == msg.GetCertTemplate().Validity.NotAfter.ToDateTime());
+                Assert.IsNull(msg.GetCertTemplate().Validity.NotAfter);
             }
         }
 
