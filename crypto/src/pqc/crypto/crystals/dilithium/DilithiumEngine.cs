@@ -126,8 +126,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             PolyVecK s2 = new PolyVecK(this), t1 = new PolyVecK(this), t0 = new PolyVecK(this);
 
             _random.NextBytes(SeedBuf);
-
-            //Console.WriteLine("SeedBuf = {0}", Convert.ToHexString(SeedBuf));
+         
 
 
             ShakeDigest Shake256Digest = new ShakeDigest(256);
@@ -158,19 +157,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             t1.ConditionalAddQ();
             t1.Power2Round(t0);
 
-            //Console.WriteLine("t1 = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (short coeff in t1.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            //Console.WriteLine("rho = {0}", Convert.ToHexString(rho));
-
+      
             Packing.PackPublicKey(pk, rho, t1, this);
 
             Shake256Digest.BlockUpdate(pk, 0, CryptoPublicKeyBytes);
@@ -179,8 +166,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             Packing.PackSecretKey(sk, rho, tr, key, t0, s1, s2, this);
         }
 
-        public void SignSignature(byte[] sig, int siglen, byte[] msg, int msglen, byte[] sk)
+        public byte[] SignSignature(DilithiumEngine engine, byte[] msg, int msglen, byte[] sk)
         {
+            byte[] sig = new byte[engine.CryptoBytes];
             int n;
             byte[] SeedBuf = new byte[3 * SeedBytes + 2 * CrhBytes];
             byte[] rho = new byte[SeedBytes], tr = new byte[SeedBytes], key = new byte[SeedBytes], mu = new byte[CrhBytes], rhoPrime = new byte[CrhBytes];
@@ -209,207 +197,94 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 ShakeDigest256.DoFinal(rhoPrime, 0, CrhBytes);
             }
 
-            Matrix.ExpandMatrix(rho);
-
-            //Console.WriteLine("Matrix = [");
-            //for (int i = 0; i < K; i++)
-            //{
-            //    Console.Write("[", i);
-            //    for (int j = 0; j < L; j++)
-            //    {
-            //        Console.Write("{0} {1} [", i, j);
-            //        for (int co = 0; co < N; co++)
-            //        {
-            //            Console.Write("{0}, ", Matrix.Matrix[i].Vec[j].Coeffs[co]);
-            //        }
-            //        Console.Write("]\n");
-            //    }
-            //    Console.Write("]\n");
-            //}
-            //Console.Write("]\n");
+            Matrix.ExpandMatrix(rho);         
 
             s1.Ntt();
             s2.Ntt();
             t0.Ntt();
 
-        rej:
-            y.UniformGamma1(rhoPrime, nonce++);
-            y.CopyPolyVecL(z);
-            z.Ntt();
+            int count = 0;
+         
 
-            Matrix.PointwiseMontgomery(w1, z);
-
-            //Console.WriteLine("w1 = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in w1.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-
-            w1.Reduce();
-            w1.InverseNttToMont();
-
-            w1.ConditionalAddQ();
-            w1.Decompose(w0);
-            
-            //Console.WriteLine("w0 = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in w0.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            w1.PackW1(sig);
-
-            ShakeDigest256.BlockUpdate(mu, 0, CrhBytes);
-            ShakeDigest256.BlockUpdate(sig, 0, K * PolyW1PackedBytes);
-            ShakeDigest256.DoFinal(sig, 0, SeedBytes);
-
-            cp.Challenge(sig);
-
-            cp.PolyNtt();
-
-            z.PointwisePolyMontgomery(cp, s1);
-            z.InverseNttToMont();
-            z.AddPolyVecL(y);
-            z.Reduce();
-            if (z.CheckNorm(Gamma1 - Beta))
+            while (count < 1000)
             {
-                goto rej;
+                count++;
+
+                y.UniformGamma1(rhoPrime, nonce++);
+                y.CopyPolyVecL(z);
+                z.Ntt();
+
+                Matrix.PointwiseMontgomery(w1, z);
+
+                w1.Reduce();
+                w1.InverseNttToMont();
+
+                w1.ConditionalAddQ();
+                w1.Decompose(w0);
+
+                w1.PackW1(sig);
+
+                ShakeDigest256.BlockUpdate(mu, 0, CrhBytes);
+                ShakeDigest256.BlockUpdate(sig, 0, K * PolyW1PackedBytes);
+                ShakeDigest256.DoFinal(sig, 0, SeedBytes);
+
+                cp.Challenge(sig);
+
+                cp.PolyNtt();
+
+                z.PointwisePolyMontgomery(cp, s1);
+                z.InverseNttToMont();
+                z.AddPolyVecL(y);
+                z.Reduce();
+                if (z.CheckNorm(Gamma1 - Beta))
+                {
+                    continue;
+                }
+
+
+                h.PointwisePolyMontgomery(cp, s2);
+                h.InverseNttToMont(); 
+
+                w0.Subtract(h);
+                w0.Reduce();
+                if (w0.CheckNorm(Gamma2 - Beta))
+                {
+                    continue;
+                }
+
+                h.PointwisePolyMontgomery(cp, t0);
+                h.InverseNttToMont();
+                h.Reduce();
+                if (h.CheckNorm(Gamma2))
+                {                  
+                    continue;
+                }
+
+                w0.AddPolyVecK(h);
+
+
+                w0.ConditionalAddQ();
+
+             
+                n = h.MakeHint(w0, w1);
+                if (n > Omega)
+                {
+                    continue;
+                }
+                       
+
+                sig =  Packing.PackSignature(sig, z, h, this);
+                return sig;
             }
-
-            //Console.WriteLine("cp = ");
-            //Console.Write("[");
-            //foreach (int coeff in cp.Coeffs)
-            //{
-            //    Console.Write(String.Format("{0}, ", coeff));
-            //}
-            //Console.Write("]\n");
-
-            //Console.WriteLine("s2 = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in s2.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            h.PointwisePolyMontgomery(cp, s2);
-            h.InverseNttToMont();
-
-            //Console.WriteLine("h = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in h.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            w0.Subtract(h);
-            w0.Reduce();
-            if (w0.CheckNorm(Gamma2 - Beta))
-            {
-                goto rej;
-            }
-
-            h.PointwisePolyMontgomery(cp, t0);
-            h.InverseNttToMont();
-            h.Reduce();
-            if (h.CheckNorm(Gamma2))
-            {
-                goto rej;
-            }
-
-            w0.AddPolyVecK(h);
-
-            //Console.WriteLine("w0 = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in w0.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            w0.ConditionalAddQ();
-
-            //Console.WriteLine("w0 = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in w0.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            //Console.WriteLine("w1 = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in w1.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            n = h.MakeHint(w0, w1);
-            if (n > Omega)
-            {
-                goto rej;
-            }
-
-
-            //Console.WriteLine("z = ");
-            //for (int i = 0; i < L; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in z.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            //Console.WriteLine("h = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in h.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            Packing.PackSignature(sig, sig, z, h, this);
+            return null;
         }
 
-        public void Sign(byte[] sig, int siglen, byte[] msg, int msglen, byte[] sk)
+        public byte[] Sign(DilithiumEngine engine, byte[] msg, int msglen, byte[] sk)
         {
-            SignSignature(sig, siglen, msg, msglen, sk);
+           return SignSignature(engine, msg, msglen, sk);          
         }
 
-        public bool SignVerify(byte[] msg, int msglen, byte[] sig, int siglen, byte[] pk)
+        public bool SignVerify(byte[] sig, int siglen, byte[] msg, int msglen, byte[] pk)
         {
             byte[] buf = new byte[K * PolyW1PackedBytes], rho = new byte[SeedBytes], mu = new byte[CrhBytes], c = new byte[SeedBytes], c2 = new byte[SeedBytes];
             Poly cp = new Poly(this);
@@ -417,27 +292,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             PolyVecL z = new PolyVecL(this);
             PolyVecK t1 = new PolyVecK(this), w1 = new PolyVecK(this), h = new PolyVecK(this);
 
-            if (sig.Length != CryptoBytes + msg.Length)
+            if (siglen != CryptoBytes)
             {
                 return false;
             }
 
             Packing.UnpackPublicKey(rho, t1, pk, this);
-
-            //Console.WriteLine("rho = "+Convert.ToHexString(rho));
-
-            //Console.WriteLine("t1 = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in t1.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-
+     
             if (!Packing.UnpackSignature(c, z, h, sig, this))
             {
                 return false;
@@ -447,31 +308,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             {
                 return false;
             }
-
-            //Console.WriteLine("z = ");
-            //for (int i = 0; i < L; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in z.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            //Console.WriteLine("h = ");
-            //for (int i = 0; i < K; ++i)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (int coeff in h.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-
-
+         
             ShakeDigest Shake256Digest = new ShakeDigest(256);
             Shake256Digest.BlockUpdate(pk, 0, CryptoPublicKeyBytes);
             Shake256Digest.DoFinal(mu, 0, SeedBytes);
@@ -521,21 +358,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             int i;
             if (siglen < CryptoBytes)
             {
-                goto badsig;
+                return false;
             }
-
-            Array.Copy(sig, CryptoBytes, msg, 0, siglen - CryptoBytes);
-            if (SignVerify(msg, siglen - CryptoBytes, sig, siglen, pk))
-            {
-                return true;
-            }
-
-        badsig:
-            for (i = 0; i < msg.Length; i++)
-            {
-                msg[i] = 0;
-            }
-            return false;
+         
+            return SignVerify(sig, siglen, msg, msglen, pk);
+            
         }
     }
 }

@@ -37,6 +37,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             RunTestVectorFile(testVectorFile);
         }
 
+        [Test]
+        public void TestDilithiumRandom()
+        {
+            byte[] msg = Strings.ToByteArray("Hello World!");
+
+            Security.SecureRandom random = new Security.SecureRandom();
+
+            DilithiumKeyPairGenerator kpGen = new DilithiumKeyPairGenerator();
+            DilithiumKeyGenerationParameters genParams = new DilithiumKeyGenerationParameters(random, DilithiumParameters.Dilithium2);
+            kpGen.Init(genParams);
+
+          
+
+
+            for (int i = 0; i < 1000; i++) {
+
+                //
+                // Generate keys and test.
+                //
+              
+                AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+
+
+                DilithiumSigner signer = new DilithiumSigner(random);
+
+                signer.Init(true, kp.Private);
+
+                byte[] s =  signer.GenerateSignature(msg);
+
+                signer.Init(false, kp.Public);
+                               
+                
+                Assert.True(signer.VerifySignature(msg,s),"Here "+i);
+
+            }
+        }
+        
+
+
         private static void TestVectors(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
@@ -85,13 +124,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             Assert.True(smlen == attachedSig.Length, name + " " + count + ": signature length");
 
-            byte[] msg1 = new byte[msg.Length];
+          
 
             signer.Init(false, pubParams);
-            Assert.True(signer.VerifySignature(msg1, attachedSig), (name + " " + count + ": signature verify"));
+            Assert.True(signer.VerifySignature(msg, sigGenerated), (name + " " + count + ": signature verify"));
 
-            Assert.True(Arrays.AreEqual(msg, msg1), name + " " + count + ": signature message verify");
-
+           
             Assert.True(Arrays.AreEqual(sigExpected, attachedSig), name + " " + count + ": signature gen match");
         }
 

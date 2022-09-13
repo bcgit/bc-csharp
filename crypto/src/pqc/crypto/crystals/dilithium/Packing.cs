@@ -86,9 +86,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
         }
 
-        public static void PackSignature(byte[] sig, byte[] c, PolyVecL z, PolyVecK h, DilithiumEngine engine)
+        public static byte[] PackSignature(byte[] c, PolyVecL z, PolyVecK h, DilithiumEngine engine)
         {
             int i, j, k, end = 0;
+            byte[] sig = new byte[engine.CryptoBytes];
+
 
             Array.Copy(c, 0, sig, 0, DilithiumEngine.SeedBytes);
             end += DilithiumEngine.SeedBytes;
@@ -117,7 +119,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 }
                 sig[end + engine.Omega + i] = (byte)k;
             }
-            //Console.WriteLine("sig = " + Convert.ToHexString(sig));
+
+            return sig;
 
         }
 

@@ -42,9 +42,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         public byte[] GenerateSignature(byte[] message)
         {
             DilithiumEngine engine = privKey.Parameters.GetEngine(random);
-            byte[] sig = new byte[engine.CryptoBytes];
-            engine.Sign(sig, sig.Length, message, message.Length, privKey.GetEncoded());
-            return sig;
+          
+            return engine.Sign(engine, message, message.Length, privKey.GetEncoded());
+         
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)
