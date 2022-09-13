@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             k = param;
         }
 
-        public DilithiumEngine GetEngine(SecureRandom Random)
+        internal DilithiumEngine GetEngine(SecureRandom Random)
         {
             return new DilithiumEngine(k, Random);
         }
