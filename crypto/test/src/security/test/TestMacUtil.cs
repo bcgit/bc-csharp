@@ -14,13 +14,14 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestCultureIndependence()
         {
-            CultureInfo ci = CultureInfo.CurrentCulture;
+            Thread t = Thread.CurrentThread;
+            CultureInfo ci = t.CurrentCulture;
             try
             {
                 /*
                  * In Hungarian, the "CS" in "HMACSHA256" is linguistically a single character, so "HMAC" is not a prefix.
                  */
-                CultureInfo.CurrentCulture = new CultureInfo("hu-HU");
+                t.CurrentCulture = new CultureInfo("hu-HU");
                 IMac mac = MacUtilities.GetMac("HMACSHA256");
                 Assert.NotNull(mac);
             }
@@ -30,7 +31,7 @@ namespace Org.BouncyCastle.Security.Tests
             }
             finally
             {
-                CultureInfo.CurrentCulture = ci;
+                t.CurrentCulture = ci;
             }
         }
     }

@@ -1,34 +1,67 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netstandard2.0;net40</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.0;net4</TargetFrameworks>
+    <AssemblyName>BouncyCastle.Crypto</AssemblyName>
     <RootNamespace>Org.BouncyCastle</RootNamespace>
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
+    <Product>Bouncy Castle for .NET ($(TargetFramework))</Product>
+    <Copyright>© 2000-2022 Legion of the Bouncy Castle Inc. </Copyright>
+    <Company>The Legion of the Bouncy Castle Inc.</Company>
+    <Authors>Claire Novotny</Authors>
+    <Title>Bouncy Castle Portable</Title>
+    <PackageId>Portable.BouncyCastle</PackageId>
+    <Description>Bouncy Castle Cryptography API</Description>
+    <PackageLicenseUrl>https://www.bouncycastle.org/csharp/licence.html</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.bouncycastle.org/csharp/</PackageProjectUrl>
+    <PackageReleaseNotes>https://www.bouncycastle.org/csharp/#DOWNLOAD1900</PackageReleaseNotes>
+    <PackageIconUrl>https://www.bouncycastle.org/images/csharp_logo.gif</PackageIconUrl>
+    <PackageTags>bouncycastle cryptography encryption security</PackageTags>
+    <NoWarn>1591;618;672</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants />
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net4'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="**\*.properties" />
     <EmbeddedResource Include="**\*.properties" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.109">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="NerdBank.GitVersioning" Version="3.4.255" PrivateAssets="All" />
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1" PrivateAssets="All"/>
   </ItemGroup>
 
+  <Target Name="SetBuildVer" AfterTargets="GetBuildVersion" BeforeTargets="SetCloudBuildVersionVars;SetCloudBuildNumberWithVersion">
+    <PropertyGroup>
+      <CloudBuildNumber>$(BuildVersion)</CloudBuildNumber>
+      <Version>$(BuildVersion)</Version>
+      <PackageVersion>$(BuildVersion)</PackageVersion>
+      <NuGetPackageVersion>$(BuildVersion)</NuGetPackageVersion>
+      <AssemblyVersion>$(BuildVersionSimple)</AssemblyVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(IsMatchingBase)' == 'true'">
+      <CloudBuildNumber>$(BuildVersionSimple)</CloudBuildNumber>
+      <Version>$(BuildVersionSimple)</Version>
+      <PackageVersion>$(BuildVersionSimple)</PackageVersion>
+      <NuGetPackageVersion>$(BuildVersionSimple)</NuGetPackageVersion>
+      <AssemblyVersion>$(BuildVersionSimple)</AssemblyVersion>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="AddCommitHashToAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition=" '$(SourceRevisionId)' != '' ">
+        <_Parameter1>CommitHash</_Parameter1>
+        <_Parameter2>$(SourceRevisionId)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
 </Project>

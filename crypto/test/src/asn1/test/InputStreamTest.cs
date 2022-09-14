@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 using NUnit.Framework;
@@ -120,10 +120,10 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-		[Test]
-		public void TestFunction()
-		{
-			string resultText = Perform().ToString();
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
         }

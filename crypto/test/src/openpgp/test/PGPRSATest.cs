@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 
@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             + "22n2jo0zo30/TZLo+jDl2vTzIvPeLEsPM3ZUE/1Ytqs4SG2TxIQbH7xf3uzcYXq2"
             + "5Fw9AA==");
 
-//		private static readonly byte[] sig1crc = Base64.Decode("+3i0");
+        //		private static readonly byte[] sig1crc = Base64.Decode("+3i0");
 
         private static readonly byte[] subKey = Base64.Decode(
               "lQH8BD89pyQBBADk1aljL6mBOvd6k4Myr/0yaSI94SPC5WDwuptXZNM92wy8FVZP"
@@ -136,14 +136,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             + "AZUqTyDyJ6/OUbJF5fI5uiv76DCsw1zyMWotUIu5/X01q+AVP5Ly3STzI7xkWg/J"
             + "APz4zUHism7kSYz2viAQaJx9/bNnH3AM6qm1Fuyikl4=");
 
-//		private static readonly byte[] enc1crc = Base64.Decode("lv4o");
+        //		private static readonly byte[] enc1crc = Base64.Decode("lv4o");
 
-//        private static readonly byte[] enc2 = Base64.Decode(
-//			  "hIwDKwfQexPJboABBAC62jcJH8xKnKb1neDVmiovYON04+7VQ2v4BmeHwJrdag1g"
-//			+ "Ya++6PeBlQ2Q9lSGBwLobVuJmQ7cOnPUJP727JeSGWlMyFtMbBSHekOaTenT5lj7"
-//			+ "Zk7oRHxMp/hByzlMacIDzOn8LPSh515RHM57eDLCOwqnAxGQwk67GRl8f5dFH9JQ"
-//			+ "Aa7xx8rjCqPbiIQW6t5LqCNvPZOiSCmftll6+se1XJhFEuq8WS4nXtPfTiJ3vib4"
-//			+ "3soJdHzGB6AOs+BQ6aKmmNTVAxa5owhtSt1Z/6dfSSk=");
+        //        private static readonly byte[] enc2 = Base64.Decode(
+        //			  "hIwDKwfQexPJboABBAC62jcJH8xKnKb1neDVmiovYON04+7VQ2v4BmeHwJrdag1g"
+        //			+ "Ya++6PeBlQ2Q9lSGBwLobVuJmQ7cOnPUJP727JeSGWlMyFtMbBSHekOaTenT5lj7"
+        //			+ "Zk7oRHxMp/hByzlMacIDzOn8LPSh515RHM57eDLCOwqnAxGQwk67GRl8f5dFH9JQ"
+        //			+ "Aa7xx8rjCqPbiIQW6t5LqCNvPZOiSCmftll6+se1XJhFEuq8WS4nXtPfTiJ3vib4"
+        //			+ "3soJdHzGB6AOs+BQ6aKmmNTVAxa5owhtSt1Z/6dfSSk=");
 
         private static readonly byte[] subPubKey = Base64.Decode(
               "mIsEPz2nJAEEAOTVqWMvqYE693qTgzKv/TJpIj3hI8LlYPC6m1dk0z3bDLwVVk9F"
@@ -181,7 +181,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             + "EQIAGQUCP0cHNQQLBwMCAxUCAwMWAgECHgECF4AACgkQzSP16cTKNEMCXACfauui"
             + "bSwyG59Yrm8hHCDuCPmqwsQAni+dPl08FVuWh+wb6kOgJV4lcYae");
 
-//		private static readonly byte[] subPubCrc = Base64.Decode("rikt");
+        //		private static readonly byte[] subPubCrc = Base64.Decode("rikt");
 
         private static readonly byte[] pgp8Key = Base64.Decode(
               "lQIEBEBXUNMBBADScQczBibewnbCzCswc/9ut8R0fwlltBRxMW0NMdKJY2LF"
@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             + "BA4Y9uTHuObHfI+1yxUS2PrlRUX0m48ZjpIX+cEN3QblGBJudI/A1QSd6P0LZeBr"
             + "7F1Z1aF7ZDo0KzgiAIBvgXkeTpw=");
 
-//		private static readonly byte[] fingerprintCheck = Base64.Decode("CTv2");
+        //		private static readonly byte[] fingerprintCheck = Base64.Decode("CTv2");
 
         private static readonly byte[] jpegImage = Base64.Decode(
               "/9j/4AAQSkZJRgABAQEASABIAAD/4QAWRXhpZgAATU0AKgAAAAgAAAAAAAD/2wBDAAUDBAQEAwUE"
@@ -339,13 +339,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             if (!Arrays.AreEqual(pubKey.GetFingerprint(), Hex.Decode("3062363c1046a01a751946bb35586146fdf3f373")))
             {
-               Fail("version 4 fingerprint test failed");
+                Fail("version 4 fingerprint test failed");
             }
         }
 
         private void MixedTest(
-            PgpPrivateKey	pgpPrivKey,
-            PgpPublicKey	pgpPubKey)
+            PgpPrivateKey pgpPrivKey,
+            PgpPublicKey pgpPubKey)
         {
             byte[] text = Encoding.ASCII.GetBytes("hello world!\n");
 
@@ -385,11 +385,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             cOut.Write(bytes, 0, bytes.Length);
 
-#if PORTABLE
-            cOut.Dispose();
-#else
             cOut.Close();
-#endif
 
             byte[] encData = bcOut.ToArray();
 
@@ -398,9 +394,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             //
             PgpObjectFactory pgpF = new PgpObjectFactory(encData);
 
-            PgpEncryptedDataList encList = (PgpEncryptedDataList) pgpF.NextPgpObject();
+            PgpEncryptedDataList encList = (PgpEncryptedDataList)pgpF.NextPgpObject();
 
-            PgpPublicKeyEncryptedData  encP = (PgpPublicKeyEncryptedData)encList[0];
+            PgpPublicKeyEncryptedData encP = (PgpPublicKeyEncryptedData)encList[0];
 
             Stream clear = encP.GetDataStream(pgpPrivKey);
 
@@ -415,18 +411,18 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             encList = (PgpEncryptedDataList)pgpF.NextPgpObject();
 
-            PgpPbeEncryptedData encPbe = (PgpPbeEncryptedData) encList[1];
+            PgpPbeEncryptedData encPbe = (PgpPbeEncryptedData)encList[1];
 
             clear = encPbe.GetDataStream("password".ToCharArray());
 
             pgpF = new PgpObjectFactory(clear);
 
-            CheckLiteralData((PgpLiteralData) pgpF.NextPgpObject(), text);
+            CheckLiteralData((PgpLiteralData)pgpF.NextPgpObject(), text);
         }
 
         private void CheckLiteralData(
-            PgpLiteralData	ld,
-            byte[]			data)
+            PgpLiteralData ld,
+            byte[] data)
         {
             if (!ld.FileName.Equals(PgpLiteralData.Console))
                 throw new Exception("wrong filename in packet");
@@ -542,7 +538,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             AsymmetricKeyParameter pubKey = pgpPub.GetPublicKey().GetKey();
 
-            var enumerator1= pgpPub.GetPublicKey().GetUserIds().GetEnumerator();
+            var enumerator1 = pgpPub.GetPublicKey().GetUserIds().GetEnumerator();
             enumerator1.MoveNext();
             string uid = enumerator1.Current;
 
@@ -634,13 +630,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             //
             IBufferedCipher c = CipherUtilities.GetCipher("RSA");
 
-//                c.Init(Cipher.ENCRYPT_MODE, pubKey);
+            //                c.Init(Cipher.ENCRYPT_MODE, pubKey);
             c.Init(true, pubKey);
 
             byte[] inBytes = Encoding.ASCII.GetBytes("hello world");
             byte[] outBytes = c.DoFinal(inBytes);
 
-//                c.Init(Cipher.DECRYPT_MODE, pgpPrivKey.GetKey());
+            //                c.Init(Cipher.DECRYPT_MODE, pgpPrivKey.GetKey());
             c.Init(false, pgpPrivKey.Key);
 
             outBytes = c.DoFinal(outBytes);
@@ -737,12 +733,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Stream cOut = cPk.Open(new UncloseableStream(cbOut), shortText.Length);
 
             cOut.Write(shortText, 0, shortText.Length);
-            
-#if PORTABLE
-            cOut.Dispose();
-#else
+
             cOut.Close();
-#endif
 
             pgpF = new PgpObjectFactory(cbOut.ToArray());
 
@@ -778,11 +770,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             cOut.Write(text, 0, text.Length);
 
-#if PORTABLE
-            cOut.Dispose();
-#else
             cOut.Close();
-#endif
 
             pgpF = new PgpObjectFactory(cbOut.ToArray());
 
@@ -991,19 +979,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 sGen.Update((byte)ch);
             }
 
-#if PORTABLE
-            lOut.Dispose();
-#else
             lOut.Close();
-#endif
 
             sGen.Generate().Encode(bcOut);
-            
-#if PORTABLE
-            bcOut.Dispose();
-#else
+
             bcOut.Close();
-#endif
 
             //
             // verify generated signature
@@ -1071,23 +1051,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             // (via ISigner implementation of PgpSignatureGenerator)
             while ((ch = testIn.ReadByte()) >= 0)
             {
-                lOut.WriteByte((byte) ch);
+                lOut.WriteByte((byte)ch);
                 sGen.Update((byte)ch);
             }
-            
-#if PORTABLE
-            lOut.Dispose();
-#else
+
             lOut.Close();
-#endif
 
             sGen.Generate().Encode(bcOut);
 
-#if PORTABLE
-            bcOut.Dispose();
-#else
             bcOut.Close();
-#endif
 
             //
             // verify generated signature
@@ -1147,9 +1119,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         }
 
         private void PerformTestSig(
-            HashAlgorithmTag	hashAlgorithm,
-            PgpPublicKey		pubKey,
-            PgpPrivateKey		privKey)
+            HashAlgorithmTag hashAlgorithm,
+            PgpPublicKey pubKey,
+            PgpPrivateKey privKey)
         {
             const string data = "hello world!";
             byte[] dataBytes = Encoding.ASCII.GetBytes(data);
@@ -1183,21 +1155,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 lOut.WriteByte((byte)ch);
                 sGen.Update((byte)ch);
             }
-            
-#if PORTABLE
-            lOut.Dispose();
-#else
+
             lOut.Close();
-#endif
 
             sGen.Generate().Encode(bcOut);
 
-#if PORTABLE
-            bcOut.Dispose();
-#else
             bcOut.Close();
-#endif
-
 
             //
             // verify generated signature
@@ -1240,17 +1203,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         private class UncloseableMemoryStream
             : MemoryStream
         {
-#if PORTABLE
-            protected override void Dispose(bool disposing)
-            {
-                throw new Exception("Dispose() called on underlying stream");
-            }
-#else
             public override void Close()
-			{
-				throw new Exception("Close() called on underlying stream");
-			}
-#endif
+            {
+                throw new Exception("Close() called on underlying stream");
+            }
         }
 
         public override string Name

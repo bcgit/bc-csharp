@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -407,7 +407,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return MakeKey(algorithm, keyBytes);
         }
 
-#if !PORTABLE || NETSTANDARD1_3
+#if !PORTABLE || DOTNET
         /// <summary>Write out the passed in file as a literal data packet.</summary>
         public static void WriteFileToLiteralData(
             Stream		output,

@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP3_0_OR_GREATER
+﻿#if NET6_0_OR_GREATER
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
@@ -23,107 +23,107 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             switch (key.Length)
             {
-            case 16:
-            {
-                ReadOnlySpan<byte> rcon = stackalloc byte[]{ 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
+                case 16:
+                    {
+                        ReadOnlySpan<byte> rcon = stackalloc byte[] { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
 
-                K = new Vector128<byte>[11];
+                        K = new Vector128<byte>[11];
 
-                var s = Load128(key.AsSpan(0, 16));
-                K[0] = s;
+                        var s = Load128(key.AsSpan(0, 16));
+                        K[0] = s;
 
-                for (int round = 0; round < 10;)
-                {
-                    var t = Aes.KeygenAssist(s, rcon[round++]);
-                    t = Sse2.Shuffle(t.AsInt32(), 0xFF).AsByte();
-                    s = Sse2.Xor(s, Sse2.ShiftLeftLogical128BitLane(s, 8));
-                    s = Sse2.Xor(s, Sse2.ShiftLeftLogical128BitLane(s, 4));
-                    s = Sse2.Xor(s, t);
-                    K[round] = s;
-                }
+                        for (int round = 0; round < 10;)
+                        {
+                            var t = Aes.KeygenAssist(s, rcon[round++]);
+                            t = Sse2.Shuffle(t.AsInt32(), 0xFF).AsByte();
+                            s = Sse2.Xor(s, Sse2.ShiftLeftLogical128BitLane(s, 8));
+                            s = Sse2.Xor(s, Sse2.ShiftLeftLogical128BitLane(s, 4));
+                            s = Sse2.Xor(s, t);
+                            K[round] = s;
+                        }
 
-                break;
-            }
-            case 24:
-            {
-                K = new Vector128<byte>[13];
-
-                var s1 = Load128(key.AsSpan(0, 16));
-                var s2 = Load64(key.AsSpan(16, 8)).ToVector128();
-                K[0] = s1;
-
-                byte rcon = 0x01;
-                for (int round = 0;;)
-                {
-                    var t1 = Aes.KeygenAssist(s2, rcon);    rcon <<= 1;
-                    t1 = Sse2.Shuffle(t1.AsInt32(), 0x55).AsByte();
-
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
-                    s1 = Sse2.Xor(s1, t1);
-
-                    K[++round] = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s1, 8));
-
-                    var s3 = Sse2.Xor(s2, Sse2.ShiftRightLogical128BitLane(s1, 12));
-                    s3 = Sse2.Xor(s3, Sse2.ShiftLeftLogical128BitLane(s3, 4));
-
-                    K[++round] = Sse2.Xor(
-                        Sse2.ShiftRightLogical128BitLane(s1, 8),
-                        Sse2.ShiftLeftLogical128BitLane(s3, 8));
-
-                    var t2 = Aes.KeygenAssist(s3, rcon);    rcon <<= 1;
-                    t2 = Sse2.Shuffle(t2.AsInt32(), 0x55).AsByte();
-
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
-                    s1 = Sse2.Xor(s1, t2);
-
-                    K[++round] = s1;
-
-                    if (round == 12)
                         break;
+                    }
+                case 24:
+                    {
+                        K = new Vector128<byte>[13];
 
-                    s2 = Sse2.Xor(s3, Sse2.ShiftRightLogical128BitLane(s1, 12));
-                    s2 = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s2, 4));
-                    s2 = s2.WithUpper(Vector64<byte>.Zero);
-                }
+                        var s1 = Load128(key.AsSpan(0, 16));
+                        var s2 = Load64(key.AsSpan(16, 8)).ToVector128();
+                        K[0] = s1;
 
-                break;
-            }
-            case 32:
-            {
-                K = new Vector128<byte>[15];
+                        byte rcon = 0x01;
+                        for (int round = 0; ;)
+                        {
+                            var t1 = Aes.KeygenAssist(s2, rcon); rcon <<= 1;
+                            t1 = Sse2.Shuffle(t1.AsInt32(), 0x55).AsByte();
 
-                var s1 = Load128(key.AsSpan(0, 16));
-                var s2 = Load128(key.AsSpan(16, 16));
-                K[0] = s1;
-                K[1] = s2;
+                            s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
+                            s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
+                            s1 = Sse2.Xor(s1, t1);
 
-                byte rcon = 0x01;
-                for (int round = 1;;)
-                {
-                    var t1 = Aes.KeygenAssist(s2, rcon);    rcon <<= 1;
-                    t1 = Sse2.Shuffle(t1.AsInt32(), 0xFF).AsByte();
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
-                    s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
-                    s1 = Sse2.Xor(s1, t1);
-                    K[++round] = s1;
+                            K[++round] = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s1, 8));
 
-                    if (round == 14)
+                            var s3 = Sse2.Xor(s2, Sse2.ShiftRightLogical128BitLane(s1, 12));
+                            s3 = Sse2.Xor(s3, Sse2.ShiftLeftLogical128BitLane(s3, 4));
+
+                            K[++round] = Sse2.Xor(
+                                Sse2.ShiftRightLogical128BitLane(s1, 8),
+                                Sse2.ShiftLeftLogical128BitLane(s3, 8));
+
+                            var t2 = Aes.KeygenAssist(s3, rcon); rcon <<= 1;
+                            t2 = Sse2.Shuffle(t2.AsInt32(), 0x55).AsByte();
+
+                            s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
+                            s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
+                            s1 = Sse2.Xor(s1, t2);
+
+                            K[++round] = s1;
+
+                            if (round == 12)
+                                break;
+
+                            s2 = Sse2.Xor(s3, Sse2.ShiftRightLogical128BitLane(s1, 12));
+                            s2 = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s2, 4));
+                            s2 = s2.WithUpper(Vector64<byte>.Zero);
+                        }
+
                         break;
+                    }
+                case 32:
+                    {
+                        K = new Vector128<byte>[15];
 
-                    var t2 = Aes.KeygenAssist(s1, 0x00);
-                    t2 = Sse2.Shuffle(t2.AsInt32(), 0xAA).AsByte();
-                    s2 = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s2, 8));
-                    s2 = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s2, 4));
-                    s2 = Sse2.Xor(s2, t2);
-                    K[++round] = s2;
-                }
+                        var s1 = Load128(key.AsSpan(0, 16));
+                        var s2 = Load128(key.AsSpan(16, 16));
+                        K[0] = s1;
+                        K[1] = s2;
 
-                break;
-            }
-            default:
-                throw new ArgumentException("Key length not 128/192/256 bits.");
+                        byte rcon = 0x01;
+                        for (int round = 1; ;)
+                        {
+                            var t1 = Aes.KeygenAssist(s2, rcon); rcon <<= 1;
+                            t1 = Sse2.Shuffle(t1.AsInt32(), 0xFF).AsByte();
+                            s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 8));
+                            s1 = Sse2.Xor(s1, Sse2.ShiftLeftLogical128BitLane(s1, 4));
+                            s1 = Sse2.Xor(s1, t1);
+                            K[++round] = s1;
+
+                            if (round == 14)
+                                break;
+
+                            var t2 = Aes.KeygenAssist(s1, 0x00);
+                            t2 = Sse2.Shuffle(t2.AsInt32(), 0xAA).AsByte();
+                            s2 = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s2, 8));
+                            s2 = Sse2.Xor(s2, Sse2.ShiftLeftLogical128BitLane(s2, 4));
+                            s2 = Sse2.Xor(s2, t2);
+                            K[++round] = s2;
+                        }
+
+                        break;
+                    }
+                default:
+                    throw new ArgumentException("Key length not 128/192/256 bits.");
             }
 
             if (!forEncryption)
@@ -222,13 +222,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             switch (m_mode)
             {
-            case Mode.DEC_128: Decrypt128(m_roundKeys, ref state); break;
-            case Mode.DEC_192: Decrypt192(m_roundKeys, ref state); break;
-            case Mode.DEC_256: Decrypt256(m_roundKeys, ref state); break;
-            case Mode.ENC_128: Encrypt128(m_roundKeys, ref state); break;
-            case Mode.ENC_192: Encrypt192(m_roundKeys, ref state); break;
-            case Mode.ENC_256: Encrypt256(m_roundKeys, ref state); break;
-            default: throw new InvalidOperationException(nameof(AesEngine_X86) + " not initialised");
+                case Mode.DEC_128: Decrypt128(m_roundKeys, ref state); break;
+                case Mode.DEC_192: Decrypt192(m_roundKeys, ref state); break;
+                case Mode.DEC_256: Decrypt256(m_roundKeys, ref state); break;
+                case Mode.ENC_128: Encrypt128(m_roundKeys, ref state); break;
+                case Mode.ENC_192: Encrypt192(m_roundKeys, ref state); break;
+                case Mode.ENC_256: Encrypt256(m_roundKeys, ref state); break;
+                default: throw new InvalidOperationException(nameof(AesEngine_X86) + " not initialised");
             }
         }
 
@@ -238,13 +238,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             switch (m_mode)
             {
-            case Mode.DEC_128: DecryptFour128(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
-            case Mode.DEC_192: DecryptFour192(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
-            case Mode.DEC_256: DecryptFour256(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
-            case Mode.ENC_128: EncryptFour128(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
-            case Mode.ENC_192: EncryptFour192(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
-            case Mode.ENC_256: EncryptFour256(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
-            default: throw new InvalidOperationException(nameof(AesEngine_X86) + " not initialised");
+                case Mode.DEC_128: DecryptFour128(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
+                case Mode.DEC_192: DecryptFour192(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
+                case Mode.DEC_256: DecryptFour256(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
+                case Mode.ENC_128: EncryptFour128(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
+                case Mode.ENC_192: EncryptFour192(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
+                case Mode.ENC_256: EncryptFour256(m_roundKeys, ref s1, ref s2, ref s3, ref s4); break;
+                default: throw new InvalidOperationException(nameof(AesEngine_X86) + " not initialised");
             }
         }
 

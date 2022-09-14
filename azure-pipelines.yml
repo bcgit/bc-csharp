@@ -20,19 +20,19 @@ stages:
     steps:
     - task: UseDotNet@2
       inputs:
-        version: 5.x
+        version: 3.x
         packageType: runtime
         performMultiLevelLookup: true
     
     - task: UseDotNet@2
       inputs:
-        version: 3.x
+        version: 6.x
         packageType: runtime
         performMultiLevelLookup: true
 
     - task: UseDotNet@2
       inputs:
-        version: 6.x
+        version: 7.x
         performMultiLevelLookup: true
         includePreviewVersions: true
 
@@ -49,7 +49,7 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: pack
-        packagesToPack: .\crypto\src\crypto.csproj
+        packagesToPack: .\crypto\src\BouncyCastle.Crypto.csproj
         packDirectory: $(Build.ArtifactStagingDirectory)\Packages
         configuration: $(BuildConfiguration)
         arguments: /p:PackageId="Portable.BouncyCastle" 
@@ -65,7 +65,7 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: test
-        projects: .\crypto\test\crypto.test.csproj
+        projects: .\crypto\test\BouncyCastle.Crypto.Tests.csproj
         arguments: -c $(BuildConfiguration) --collect:"XPlat Code Coverage" -s $(System.DefaultWorkingDirectory)\CodeCoverage.runsettings
       displayName: Run Tests
 

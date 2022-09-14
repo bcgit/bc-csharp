@@ -1,19 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32602.291
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.32804.182
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F8F54480-386E-4CE7-8C0E-537922E2A634}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitlab-ci.yml = .gitlab-ci.yml
 		azure-pipelines.yml = azure-pipelines.yml
 		README.md = README.md
 		version.json = version.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "crypto", "crypto\src\crypto.csproj", "{60F6E5B2-8CE6-4817-89B6-369AAE1C6187}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BouncyCastle.Crypto", "crypto\src\BouncyCastle.Crypto.csproj", "{25326952-177B-4D34-9448-3024AF0D7B46}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "crypto.test", "crypto\test\crypto.test.csproj", "{8EAF3F18-33E6-47A6-B299-4584822399B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BouncyCastle.Crypto.Tests", "crypto\test\BouncyCastle.Crypto.Tests.csproj", "{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,14 +22,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{60F6E5B2-8CE6-4817-89B6-369AAE1C6187}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{60F6E5B2-8CE6-4817-89B6-369AAE1C6187}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{60F6E5B2-8CE6-4817-89B6-369AAE1C6187}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{60F6E5B2-8CE6-4817-89B6-369AAE1C6187}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8EAF3F18-33E6-47A6-B299-4584822399B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8EAF3F18-33E6-47A6-B299-4584822399B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8EAF3F18-33E6-47A6-B299-4584822399B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8EAF3F18-33E6-47A6-B299-4584822399B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25326952-177B-4D34-9448-3024AF0D7B46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C1B7AC6-C338-4DB4-BB3A-E6B2F1882E7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

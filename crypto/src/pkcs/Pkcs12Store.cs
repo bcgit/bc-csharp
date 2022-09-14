@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -102,21 +102,21 @@ namespace Org.BouncyCastle.Pkcs
             var attributes = new Dictionary<DerObjectIdentifier, Asn1Encodable>();
             AsymmetricKeyEntry keyEntry = new AsymmetricKeyEntry(privKey, attributes);
 
-                                string alias = null;
-                                Asn1OctetString localId = null;
+            string alias = null;
+            Asn1OctetString localId = null;
 
             if (bagAttributes != null)
-                                {
+            {
                 foreach (Asn1Sequence sq in bagAttributes)
-                                    {
+                {
                     DerObjectIdentifier aOid = DerObjectIdentifier.GetInstance(sq[0]);
                     Asn1Set attrSet = Asn1Set.GetInstance(sq[1]);
-                                        Asn1Encodable attr = null;
+                    Asn1Encodable attr = null;
 
-                                        if (attrSet.Count > 0)
-                                        {
-                                            // TODO We should be adding all attributes in the set
-                                            attr = attrSet[0];
+                    if (attrSet.Count > 0)
+                    {
+                        // TODO We should be adding all attributes in the set
+                        attr = attrSet[0];
 
                         // TODO We might want to "merge" attribute sets with
                         // the same OID - currently, differing values give an error
@@ -145,9 +145,9 @@ namespace Org.BouncyCastle.Pkcs
                 }
             }
 
-                                if (localId != null)
-                                {
-                                    string name = Hex.ToHexString(localId.GetOctets());
+            if (localId != null)
+            {
+                string name = Hex.ToHexString(localId.GetOctets());
 
                 if (alias == null)
                 {
@@ -162,20 +162,20 @@ namespace Org.BouncyCastle.Pkcs
             else
             {
                 unmarkedKeyEntry = keyEntry;
-                                }
-                            }
+            }
+        }
 
         protected virtual void LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo encPrivKeyInfo, Asn1Set bagAttributes,
             char[] password, bool wrongPkcs12Zero)
-                            {
+        {
             if (password != null)
-                            {
+            {
                 PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(
                     password, wrongPkcs12Zero, encPrivKeyInfo);
 
                 LoadKeyBag(privInfo, bagAttributes);
-                            }
-                        }
+            }
+        }
 
         public void Load(Stream input, char[] password)
         {
@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Pkcs
                 byte[] dig = dInfo.GetDigest();
 
                 if (!Arrays.ConstantTimeAreEqual(mac, dig))
-                                    {
+                {
                     if (password.Length > 0)
                         throw new IOException("PKCS12 key store MAC invalid - wrong password or corrupted file.");
 
@@ -240,7 +240,7 @@ namespace Org.BouncyCastle.Pkcs
                 ContentInfo[] cis = authSafe.GetContentInfo();
 
                 foreach (ContentInfo ci in cis)
-                                {
+                {
                     DerObjectIdentifier oid = ci.ContentType;
 
                     byte[] octets = null;
@@ -249,18 +249,18 @@ namespace Org.BouncyCastle.Pkcs
                         octets = Asn1OctetString.GetInstance(ci.Content).GetOctets();
                     }
                     else if (oid.Equals(PkcsObjectIdentifiers.EncryptedData))
-                                        {
+                    {
                         if (password != null)
-                                            {
+                        {
                             EncryptedData d = EncryptedData.GetInstance(ci.Content);
                             octets = CryptPbeData(false, d.EncryptionAlgorithm,
                                 password, wrongPkcs12Zero, d.Content.GetOctets());
-                                            }
-                                        }
-                                        else
-                                        {
+                        }
+                    }
+                    else
+                    {
                         // TODO Other data types
-                                        }
+                    }
 
                     if (octets != null)
                     {
@@ -271,14 +271,14 @@ namespace Org.BouncyCastle.Pkcs
                             SafeBag b = SafeBag.GetInstance(subSeq);
 
                             if (b.BagID.Equals(PkcsObjectIdentifiers.CertBag))
-                                {
+                            {
                                 certBags.Add(b);
-                                }
+                            }
                             else if (b.BagID.Equals(PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag))
-                                {
+                            {
                                 LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(b.BagValue),
                                     b.BagAttributes, password, wrongPkcs12Zero);
-                                }
+                            }
                             else if (b.BagID.Equals(PkcsObjectIdentifiers.KeyBag))
                             {
                                 LoadKeyBag(PrivateKeyInfo.GetInstance(b.BagValue), b.BagAttributes);
@@ -286,8 +286,8 @@ namespace Org.BouncyCastle.Pkcs
                             else
                             {
                                 // TODO Other bag types
+                            }
                         }
-                    }
                     }
                 }
             }
@@ -901,7 +901,7 @@ namespace Org.BouncyCastle.Pkcs
             else
             {
                 byte[] certBytes = CryptPbeData(true, cAlgId, password, false, certBagsEncoding);
-            EncryptedData cInfo = new EncryptedData(PkcsObjectIdentifiers.Data, cAlgId, new BerOctetString(certBytes));
+                EncryptedData cInfo = new EncryptedData(PkcsObjectIdentifiers.Data, cAlgId, new BerOctetString(certBytes));
                 certsInfo = new ContentInfo(PkcsObjectIdentifiers.EncryptedData, cInfo.ToAsn1Object());
             }
 
@@ -918,15 +918,15 @@ namespace Org.BouncyCastle.Pkcs
             MacData macData = null;
             if (password != null)
             {
-            byte[] mSalt = new byte[20];
-            random.NextBytes(mSalt);
+                byte[] mSalt = new byte[20];
+                random.NextBytes(mSalt);
 
-            byte[] mac = CalculatePbeMac(OiwObjectIdentifiers.IdSha1,
-                mSalt, MinIterations, password, false, data);
+                byte[] mac = CalculatePbeMac(OiwObjectIdentifiers.IdSha1,
+                    mSalt, MinIterations, password, false, data);
 
-            AlgorithmIdentifier algId = new AlgorithmIdentifier(
-                OiwObjectIdentifiers.IdSha1, DerNull.Instance);
-            DigestInfo dInfo = new DigestInfo(algId, mac);
+                AlgorithmIdentifier algId = new AlgorithmIdentifier(
+                    OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+                DigestInfo dInfo = new DigestInfo(algId, mac);
 
                 macData = new MacData(dInfo, mSalt, MinIterations);
             }
