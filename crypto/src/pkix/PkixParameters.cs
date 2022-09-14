@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
@@ -38,7 +37,7 @@ namespace Org.BouncyCastle.Pkix
 		public const int ChainValidityModel = 1;
 
 		private HashSet<TrustAnchor> trustAnchors;
-		private DateTimeObject date;
+		private DateTime? date;
 		private List<PkixCertPathChecker> m_checkers;
 		private bool revocationEnabled = true;
 		private HashSet<string> initialPolicies;
@@ -174,7 +173,7 @@ namespace Org.BouncyCastle.Pkix
 		//	set { this.checkOnlyEECertificateCrl = value; }
 		//}
 
-		public virtual DateTimeObject Date
+		public virtual DateTime? Date
 		{
 			get { return this.date; }
 			set { this.date = value; }

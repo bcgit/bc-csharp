@@ -17,7 +17,6 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
@@ -86,7 +85,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			extensionsGenerator.AddExtension(X509Extensions.AuditIdentity, false, new DerUtf8String("Test"));
 
 
-			TimeStampResponse tsResp = tsRespGen.GenerateGrantedResponse(request, new BigInteger("23"), new DateTimeObject( DateTime.UtcNow), "Okay", extensionsGenerator.Generate());
+			TimeStampResponse tsResp = tsRespGen.GenerateGrantedResponse(request, new BigInteger("23"), DateTime.UtcNow, "Okay", extensionsGenerator.Generate());
 
 			tsResp = new TimeStampResponse(tsResp.GetEncoded());
 
@@ -473,7 +472,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 			//
 
 			tsResp = tsRespGen.Generate(request, new BigInteger("23"), null);
-					
+
 			tsResp = new TimeStampResponse(tsResp.GetEncoded());
 
 			TimeStampToken tsToken = tsResp.TimeStampToken;

@@ -11,7 +11,6 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 using Org.BouncyCastle.X509.Store;
@@ -173,7 +172,7 @@ namespace Org.BouncyCastle.Pkix
 
 		internal static DateTime GetValidDate(PkixParameters paramsPKIX)
 		{
-			DateTimeObject validDate = paramsPKIX.Date;
+			DateTime? validDate = paramsPKIX.Date;
 
 			if (validDate == null)
 				return DateTime.UtcNow;
@@ -541,7 +540,7 @@ namespace Org.BouncyCastle.Pkix
 
             // (i) or (j)
             certStatus.Status = reasonCodeValue;
-            certStatus.RevocationDate = new DateTimeObject(revocationDate);
+            certStatus.RevocationDate = revocationDate;
         }
 
 		/**

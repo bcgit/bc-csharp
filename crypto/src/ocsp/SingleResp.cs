@@ -2,7 +2,6 @@ using System;
 
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
@@ -56,15 +55,7 @@ namespace Org.BouncyCastle.Ocsp
 		*
 		* @return nextUpdate, or null if not present.
 		*/
-		public DateTimeObject NextUpdate
-		{
-			get
-			{
-				return resp.NextUpdate == null
-					?	null
-					:	new DateTimeObject(resp.NextUpdate.ToDateTime());
-			}
-		}
+		public DateTime? NextUpdate => resp.NextUpdate?.ToDateTime();
 
 		public X509Extensions SingleExtensions
 		{

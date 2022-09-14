@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509.Store
@@ -17,7 +16,7 @@ namespace Org.BouncyCastle.X509.Store
 		// TODO Missing criteria?
 
 		private X509Certificate certificateChecking;
-		private DateTimeObject dateAndTime;
+		private DateTime? dateAndTime;
 		private IList<X509Name> issuers;
 		private BigInteger maxCrlNumber;
 		private BigInteger minCrlNumber;
@@ -61,7 +60,7 @@ namespace Org.BouncyCastle.X509.Store
 			set { certificateChecking = value; }
 		}
 
-		public DateTimeObject DateAndTime
+		public DateTime? DateAndTime
 		{
 			get { return dateAndTime; }
 			set { dateAndTime = value; }
@@ -190,7 +189,7 @@ namespace Org.BouncyCastle.X509.Store
 			{
 				DateTime dt = dateAndTime.Value;
 				DateTime tu = c.ThisUpdate;
-				DateTimeObject nu = c.NextUpdate;
+				DateTime? nu = c.NextUpdate;
 
 				if (dt.CompareTo(tu) < 0 || nu == null || dt.CompareTo(nu.Value) >= 0)
 					return false;

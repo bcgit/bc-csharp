@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509.Store
@@ -19,13 +18,13 @@ namespace Org.BouncyCastle.X509.Store
 		private byte[] authorityKeyIdentifier;
 		private int basicConstraints = -1;
 		private X509Certificate certificate;
-		private DateTimeObject certificateValid;
+		private DateTime? certificateValid;
 		private ISet<DerObjectIdentifier> extendedKeyUsage;
         private bool ignoreX509NameOrdering;
 		private X509Name issuer;
 		private bool[] keyUsage;
 		private ISet<DerObjectIdentifier> policy;
-		private DateTimeObject privateKeyValid;
+		private DateTime? privateKeyValid;
 		private BigInteger serialNumber;
 		private X509Name subject;
 		private byte[] subjectKeyIdentifier;
@@ -85,7 +84,7 @@ namespace Org.BouncyCastle.X509.Store
 			set { this.certificate = value; }
 		}
 
-		public DateTimeObject CertificateValid
+		public DateTime? CertificateValid
 		{
 			get { return certificateValid; }
 			set { certificateValid = value; }
@@ -124,7 +123,7 @@ namespace Org.BouncyCastle.X509.Store
 			set { policy = CopySet(value); }
 		}
 
-		public DateTimeObject PrivateKeyValid
+		public DateTime? PrivateKeyValid
 		{
 			get { return privateKeyValid; }
 			set { privateKeyValid = value; }

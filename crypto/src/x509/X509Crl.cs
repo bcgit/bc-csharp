@@ -12,7 +12,6 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509.Extension;
 
@@ -163,15 +162,7 @@ namespace Org.BouncyCastle.X509
 			get { return c.ThisUpdate.ToDateTime(); }
 		}
 
-		public virtual DateTimeObject NextUpdate
-		{
-			get
-			{
-				return c.NextUpdate == null
-					?	null
-					:	new DateTimeObject(c.NextUpdate.ToDateTime());
-			}
-		}
+		public virtual DateTime? NextUpdate => c.NextUpdate?.ToDateTime();
 
 		private ISet<X509CrlEntry> LoadCrlEntries()
 		{

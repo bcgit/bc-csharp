@@ -5,7 +5,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509.Store
@@ -23,7 +22,7 @@ namespace Org.BouncyCastle.X509.Store
 		// TODO: name constraints???
 
 		private X509V2AttributeCertificate attributeCert;
-		private DateTimeObject attributeCertificateValid;
+		private DateTime? attributeCertificateValid;
 		private AttributeCertificateHolder holder;
 		private AttributeCertificateIssuer issuer;
 		private BigInteger serialNumber;
@@ -162,7 +161,7 @@ namespace Org.BouncyCastle.X509.Store
 
 		/// <summary>The criteria for validity</summary>
 		/// <remarks>If <c>null</c> is given any will do.</remarks>
-		public DateTimeObject AttributeCertificateValid
+		public DateTime? AttributeCertificateValid
 		{
 			get { return attributeCertificateValid; }
 			set { this.attributeCertificateValid = value; }

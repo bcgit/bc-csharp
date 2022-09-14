@@ -8,7 +8,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
@@ -682,7 +681,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			}
 
 			// Perform validation as of this date since test certs expired
-			parameters.Date = new DateTimeObject(DateTime.Parse("1/1/2011"));
+			parameters.Date = DateTime.Parse("1/1/2011");
 
 			return validator.Validate(certPath, parameters);
 		}
@@ -743,7 +742,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			builderParams.AddStoreCrl(x509CrlStore);
 
 			// Perform validation as of this date since test certs expired
-			builderParams.Date = new DateTimeObject(DateTime.Parse("1/1/2011"));
+			builderParams.Date = DateTime.Parse("1/1/2011");
 
 			try
 			{

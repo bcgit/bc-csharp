@@ -6,7 +6,6 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
@@ -230,7 +229,7 @@ namespace Org.BouncyCastle.Tests
 			}
 
 			attrSelector = new X509AttrCertStoreSelector();
-			attrSelector.AttributeCertificateValid = new DateTimeObject(attrCert.NotBefore);
+			attrSelector.AttributeCertificateValid = attrCert.NotBefore;
 			if (attrSelector.AttributeCertificateValid.Value != attrCert.NotBefore)
 			{
 				Fail("valid get not correct");
@@ -241,13 +240,13 @@ namespace Org.BouncyCastle.Tests
 				Fail("attrCert not found on valid");
 			}
 			attrSelector = new X509AttrCertStoreSelector();
-			attrSelector.AttributeCertificateValid = new DateTimeObject(attrCert.NotBefore.AddMilliseconds(-100));
+			attrSelector.AttributeCertificateValid = attrCert.NotBefore.AddMilliseconds(-100);
 			attrs = new List<X509V2AttributeCertificate>(attrStore.EnumerateMatches(attrSelector));
 			if (attrs.Count != 0)
 			{
 				Fail("attrCert found on before");
 			}
-			attrSelector.AttributeCertificateValid = new DateTimeObject(attrCert.NotAfter.AddMilliseconds(100));
+			attrSelector.AttributeCertificateValid = attrCert.NotAfter.AddMilliseconds(100);
 			attrs = new List<X509V2AttributeCertificate>(attrStore.EnumerateMatches(attrSelector));
 			if (attrs.Count != 0)
 			{

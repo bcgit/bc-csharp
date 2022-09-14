@@ -6,7 +6,6 @@ using NUnit.Framework;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
@@ -165,7 +164,7 @@ namespace Org.BouncyCastle.Tests
             PkixParameters param = new PkixParameters(trust);
             param.AddStoreCert(x509CertStore);
             param.AddStoreCrl(x509CrlStore);
-            param.Date = new DateTimeObject(validDate);
+            param.Date = validDate;
             MyChecker checker = new MyChecker();
             param.AddCertPathChecker(checker);
 
@@ -197,7 +196,7 @@ namespace Org.BouncyCastle.Tests
             param = new PkixParameters(trust);
             param.AddStoreCert(x509CertStore);
             param.AddStoreCrl(x509CrlStore);
-            param.Date = new DateTimeObject(validDate);
+            param.Date = validDate;
             checker = new MyChecker();
             param.AddCertPathChecker(checker);
 
@@ -239,7 +238,7 @@ namespace Org.BouncyCastle.Tests
                 param = new PkixParameters(trust);
                 param.AddStoreCert(x509CertStore);
                 param.IsRevocationEnabled = false;
-                param.Date = new DateTimeObject(validDate);
+                param.Date = validDate;
 
                 result = cpv.Validate(cp, param);
                 policyTree = result.PolicyTree;
