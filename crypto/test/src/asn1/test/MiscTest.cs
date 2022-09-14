@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using NUnit.Framework;
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 //if (!"Extra data detected in stream".Equals(e.Message))
                 if (!"extra data found after object".Equals(e.Message))
                 {
-                    Fail("wrong exception");
+                        Fail("wrong exception");
                 }
             }
         }
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             try
             {
-                new DerInteger(new byte[] { 0x00, 0x00, 0x00, 0x01 });
+                new DerInteger(new byte[]{ 0x00, 0x00, 0x00, 0x01});
                 Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             try
             {
-                new DerInteger(new byte[] { 0xFF, 0x80, 0x00, 0x01 });
+                new DerInteger(new byte[]{ 0xFF, 0x80, 0x00, 0x01});
                 Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             try
             {
-                new DerEnumerated(new byte[] { 0x00, 0x00, 0x00, 0x01 });
+                new DerEnumerated(new byte[]{ 0x00, 0x00, 0x00, 0x01});
                 Fail("expected ArgumentException");
             }
             catch (ArgumentException e)
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             try
             {
-                new DerEnumerated(new byte[] { 0xFF, 0x80, 0x00, 0x01 });
+                new DerEnumerated(new byte[]{ 0xFF, 0x80, 0x00, 0x01});
                 Fail("expected ArgumentException");
             }
             catch (ArgumentException e)

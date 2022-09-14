@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using NUnit.Framework;
@@ -8,10 +8,10 @@ using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
 {
-    [TestFixture]
-    public class InputStreamTest
-        : SimpleTest
-    {
+	[TestFixture]
+	public class InputStreamTest
+		: SimpleTest
+	{
         private static readonly byte[] outOfBoundsLength = new byte[] { (byte)0x30, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff };
         private static readonly byte[] negativeLength = new byte[] { (byte)0x30, (byte)0x84, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff };
         private static readonly byte[] outsideLimitLength = new byte[] { (byte)0x30, (byte)0x83, (byte)0x0f, (byte)0xff, (byte)0xff };
@@ -22,58 +22,58 @@ namespace Org.BouncyCastle.Asn1.Tests
         private static readonly byte[] memoryError1 = Base64.Decode("vm66gOiEe+FV/NvujMwSkUp5Lffw5caQlaRU5sdMPC70IGWmyK2/");
         private static readonly byte[] memoryError2 = Base64.Decode("vm4ogOSEfVGsS3w+KTzb2A0ALYR8VBOQqQeuRwnsPC4AAGWEDLjd");
 
-        public override string Name
-        {
-            get { return "InputStream"; }
-        }
+		public override string Name
+		{
+			get { return "InputStream"; }
+		}
 
-        public override void PerformTest()
-        {
-            Asn1InputStream aIn = new Asn1InputStream(outOfBoundsLength);
+		public override void PerformTest()
+		{
+			Asn1InputStream aIn = new Asn1InputStream(outOfBoundsLength);
 
-            try
-            {
-                aIn.ReadObject();
-                Fail("out of bounds length not detected.");
-            }
-            catch (IOException e)
-            {
+			try
+			{
+				aIn.ReadObject();
+				Fail("out of bounds length not detected.");
+			}
+			catch (IOException e)
+			{
                 if (!e.Message.Equals("invalid long form definite-length 0xFF"))
                 {
-                    Fail("wrong exception: " + e.Message);
-                }
-            }
+					Fail("wrong exception: " + e.Message);
+				}
+			}
 
             // NOTE: Not really a "negative" length, but 32 bits
             aIn = new Asn1InputStream(negativeLength);
 
             try
             {
-                aIn.ReadObject();
-                Fail("negative length not detected.");
-            }
-            catch (IOException e)
-            {
+				aIn.ReadObject();
+				Fail("negative length not detected.");
+			}
+			catch (IOException e)
+			{
                 if (!e.Message.Equals("long form definite-length more than 31 bits"))
                 {
-                    Fail("wrong exception: " + e.Message);
-                }
-            }
+					Fail("wrong exception: " + e.Message);
+				}
+			}
 
-            aIn = new Asn1InputStream(outsideLimitLength);
+			aIn = new Asn1InputStream(outsideLimitLength);
 
-            try
-            {
-                aIn.ReadObject();
-                Fail("outside limit length not detected.");
-            }
-            catch (IOException e)
-            {
+			try
+			{
+				aIn.ReadObject();
+				Fail("outside limit length not detected.");
+			}
+			catch (IOException e)
+			{
                 if (!e.Message.Equals("corrupted stream - out of bounds length found: 1048575 >= 5"))
                 {
-                    Fail("wrong exception: " + e.Message);
-                }
-            }
+					Fail("wrong exception: " + e.Message);
+				}
+			}
 
             // TODO Test data has length issues too; needs to be reworked
             //DoTestWithByteArray(classCast1, "unknown object encountered: Org.BouncyCastle.Asn1.DerApplicationSpecific");
@@ -120,12 +120,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
+		[Test]
+		public void TestFunction()
+		{
+			string resultText = Perform().ToString();
 
-            Assert.AreEqual(Name + ": Okay", resultText);
-        }
-    }
+			Assert.AreEqual(Name + ": Okay", resultText);
+		}
+	}
 }
