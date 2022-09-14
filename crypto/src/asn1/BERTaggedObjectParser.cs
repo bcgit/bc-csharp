@@ -3,8 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-    [Obsolete("Will be made non-public. Test for and use only Asn1TaggedObjectParser.")]
-	public class BerTaggedObjectParser
+	internal class BerTaggedObjectParser
 		: Asn1TaggedObjectParser
 	{
         internal readonly int m_tagClass;
@@ -43,15 +42,6 @@ namespace Org.BouncyCastle.Asn1
             return m_tagClass == tagClass && m_tagNo == tagNo;
         }
 
-        [Obsolete("Use 'Parse...' methods instead, after checking this parser's TagClass and TagNo")]
-        public IAsn1Convertible GetObjectParser(int baseTagNo, bool declaredExplicit)
-		{
-            if (Asn1Tags.ContextSpecific != TagClass)
-                throw new Asn1Exception("this method only valid for CONTEXT_SPECIFIC tags");
-
-            return ParseBaseUniversal(declaredExplicit, baseTagNo);
-		}
-
         public virtual IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
         {
             if (declaredExplicit)
@@ -72,10 +62,6 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual Asn1TaggedObjectParser ParseImplicitBaseTagged(int baseTagClass, int baseTagNo)
         {
-            // TODO[asn1] Special handling can be removed once ASN1ApplicationSpecificParser types removed.
-            if (Asn1Tags.Application == baseTagClass)
-                return new BerApplicationSpecificParser(baseTagNo, m_parser);
-
             return new BerTaggedObjectParser(baseTagClass, baseTagNo, m_parser);
         }
 

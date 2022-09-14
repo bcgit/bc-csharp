@@ -3,11 +3,9 @@ using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -57,7 +55,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public override void PerformTest()
 		{
-			CcmBlockCipher ccm = new CcmBlockCipher(new AesEngine());
+			CcmBlockCipher ccm = new CcmBlockCipher(AesUtilities.CreateEngine());
 
             checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
 			checkVectors(1, ccm, K2, 48, N2, A2, P2, T2, C2);
@@ -301,12 +299,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			string resultText = Perform().ToString();
 
 			Assert.AreEqual(Name + ": Okay", resultText);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new CcmTest());
 		}
 	}
 }

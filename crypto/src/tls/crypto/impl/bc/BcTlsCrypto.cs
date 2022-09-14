@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement.Srp;
@@ -152,38 +153,23 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsNonceGenerator(randomGenerator);
         }
 
-        public override bool HasAllRawSignatureAlgorithms()
+        public override bool HasAnyStreamVerifiers(IList<SignatureAndHashAlgorithm> signatureAndHashAlgorithms)
         {
-            // TODO[RFC 8422] Revisit the need to buffer the handshake for "Intrinsic" hash signatures
-            return !HasSignatureAlgorithm(SignatureAlgorithm.ed25519)
-                && !HasSignatureAlgorithm(SignatureAlgorithm.ed448);
-        }
-
-        public override bool HasDHAgreement()
-        {
-            return true;
-        }
-
-        public override bool HasECDHAgreement()
-        {
-            return true;
-        }
-
-        public override bool HasEncryptionAlgorithm(int encryptionAlgorithm)
-        {
-            switch (encryptionAlgorithm)
+            foreach (SignatureAndHashAlgorithm algorithm in signatureAndHashAlgorithms)
             {
-            case EncryptionAlgorithm.DES40_CBC:
-            case EncryptionAlgorithm.DES_CBC:
-            case EncryptionAlgorithm.IDEA_CBC:
-            case EncryptionAlgorithm.RC2_CBC_40:
-            case EncryptionAlgorithm.RC4_128:
-            case EncryptionAlgorithm.RC4_40:
-                return false;
-
-            default:
-                return true;
+                switch (SignatureScheme.From(algorithm))
+                {
+                case SignatureScheme.ed25519:
+                case SignatureScheme.ed448:
+                    return true;
+                }
             }
+            return false;
+        }
+
+        public override bool HasAnyStreamVerifiersLegacy(short[] clientCertificateTypes)
+        {
+            return false;
         }
 
         public override bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm)
@@ -233,9 +219,85 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
-        public override bool HasMacAlgorithm(int macAlgorithm)
+        public override bool HasDHAgreement()
         {
             return true;
+        }
+
+        public override bool HasECDHAgreement()
+        {
+            return true;
+        }
+
+        public override bool HasEncryptionAlgorithm(int encryptionAlgorithm)
+        {
+            switch (encryptionAlgorithm)
+            {
+            case EncryptionAlgorithm.AES_128_CBC:
+            case EncryptionAlgorithm.AES_128_CCM:
+            case EncryptionAlgorithm.AES_128_CCM_8:
+            case EncryptionAlgorithm.AES_128_GCM:
+            case EncryptionAlgorithm.AES_256_CBC:
+            case EncryptionAlgorithm.AES_256_CCM:
+            case EncryptionAlgorithm.AES_256_CCM_8:
+            case EncryptionAlgorithm.AES_256_GCM:
+            case EncryptionAlgorithm.ARIA_128_CBC:
+            case EncryptionAlgorithm.ARIA_128_GCM:
+            case EncryptionAlgorithm.ARIA_256_CBC:
+            case EncryptionAlgorithm.ARIA_256_GCM:
+            case EncryptionAlgorithm.CAMELLIA_128_CBC:
+            case EncryptionAlgorithm.CAMELLIA_128_GCM:
+            case EncryptionAlgorithm.CAMELLIA_256_CBC:
+            case EncryptionAlgorithm.CAMELLIA_256_GCM:
+            case EncryptionAlgorithm.CHACHA20_POLY1305:
+            case EncryptionAlgorithm.cls_3DES_EDE_CBC:
+            case EncryptionAlgorithm.NULL:
+            case EncryptionAlgorithm.SEED_CBC:
+            case EncryptionAlgorithm.SM4_CBC:
+            case EncryptionAlgorithm.SM4_CCM:
+            case EncryptionAlgorithm.SM4_GCM:
+                return true;
+
+            case EncryptionAlgorithm.DES_CBC:
+            case EncryptionAlgorithm.DES40_CBC:
+            case EncryptionAlgorithm.IDEA_CBC:
+            case EncryptionAlgorithm.RC2_CBC_40:
+            case EncryptionAlgorithm.RC4_128:
+            case EncryptionAlgorithm.RC4_40:
+            default:
+                return false;
+            }
+        }
+
+        public override bool HasHkdfAlgorithm(int cryptoHashAlgorithm)
+        {
+            switch (cryptoHashAlgorithm)
+            {
+            case CryptoHashAlgorithm.sha256:
+            case CryptoHashAlgorithm.sha384:
+            case CryptoHashAlgorithm.sha512:
+            case CryptoHashAlgorithm.sm3:
+                return true;
+
+            default:
+                return false;
+            }
+        }
+
+        public override bool HasMacAlgorithm(int macAlgorithm)
+        {
+            switch (macAlgorithm)
+            {
+            case MacAlgorithm.hmac_md5:
+            case MacAlgorithm.hmac_sha1:
+            case MacAlgorithm.hmac_sha256:
+            case MacAlgorithm.hmac_sha384:
+            case MacAlgorithm.hmac_sha512:
+                return true;
+
+            default:
+                return false;
+            }
         }
 
         public override bool HasNamedGroup(int namedGroup)
@@ -284,10 +346,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             switch (sigAndHashAlgorithm.Hash)
             {
-                case HashAlgorithm.md5:
-                    return SignatureAlgorithm.rsa == signature && HasSignatureAlgorithm(signature);
-                default:
-                    return HasSignatureAlgorithm(signature);
+            case HashAlgorithm.md5:
+                return SignatureAlgorithm.rsa == signature && HasSignatureAlgorithm(signature);
+            default:
+                return HasSignatureAlgorithm(signature);
             }
         }
 
@@ -506,7 +568,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected virtual IBlockCipher CreateAesEngine()
         {
-            return new AesEngine();
+            return AesUtilities.CreateEngine();
         }
 
         protected virtual IBlockCipher CreateAriaEngine()
@@ -577,7 +639,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override TlsHmac CreateHmac(int macAlgorithm)
         {
-            return CreateHmacForHash(TlsCryptoUtilities.GetHashForHmac(macAlgorithm));
+            switch (macAlgorithm)
+            {
+            case MacAlgorithm.hmac_md5:
+            case MacAlgorithm.hmac_sha1:
+            case MacAlgorithm.hmac_sha256:
+            case MacAlgorithm.hmac_sha384:
+            case MacAlgorithm.hmac_sha512:
+                return CreateHmacForHash(TlsCryptoUtilities.GetHashForHmac(macAlgorithm));
+
+            default:
+                throw new ArgumentException("invalid MacAlgorithm: " + macAlgorithm);
+            }
         }
 
         public override TlsHmac CreateHmacForHash(int cryptoHashAlgorithm)

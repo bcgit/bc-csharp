@@ -1,4 +1,5 @@
-using System.Collections;
+using System;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -15,18 +16,18 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
 {
-    public sealed class GeneratorUtilities
+    public static class GeneratorUtilities
     {
-        private GeneratorUtilities()
-        {
-        }
-
-        private static readonly IDictionary kgAlgorithms = Platform.CreateHashtable();
-        private static readonly IDictionary kpgAlgorithms = Platform.CreateHashtable();
-        private static readonly IDictionary defaultKeySizes = Platform.CreateHashtable();
+        private static readonly IDictionary<string, string> KgAlgorithms =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly IDictionary<string, string> KpgAlgorithms =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly IDictionary<string, int> DefaultKeySizes =
+            new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         static GeneratorUtilities()
         {
@@ -263,72 +264,62 @@ namespace Org.BouncyCastle.Security
         {
             foreach (string algorithm in algorithms)
             {
-                defaultKeySizes.Add(algorithm, size);
+                DefaultKeySizes.Add(algorithm, size);
             }
         }
 
-        private static void AddKgAlgorithm(
-            string			canonicalName,
-            params object[] aliases)
+        private static void AddKgAlgorithm(string canonicalName, params object[] aliases)
         {
-            kgAlgorithms[Platform.ToUpperInvariant(canonicalName)] = canonicalName;
+            KgAlgorithms[canonicalName] = canonicalName;
 
             foreach (object alias in aliases)
             {
-                kgAlgorithms[Platform.ToUpperInvariant(alias.ToString())] = canonicalName;
+                KgAlgorithms[alias.ToString()] = canonicalName;
             }
         }
 
-        private static void AddKpgAlgorithm(
-            string			canonicalName,
-            params object[] aliases)
+        private static void AddKpgAlgorithm(string canonicalName, params object[] aliases)
         {
-            kpgAlgorithms[Platform.ToUpperInvariant(canonicalName)] = canonicalName;
+            KpgAlgorithms[canonicalName] = canonicalName;
 
             foreach (object alias in aliases)
             {
-                kpgAlgorithms[Platform.ToUpperInvariant(alias.ToString())] = canonicalName;
+                KpgAlgorithms[alias.ToString()] = canonicalName;
             }
         }
 
-        private static void AddHMacKeyGenerator(
-            string			algorithm,
-            params object[]	aliases)
+        private static void AddHMacKeyGenerator(string algorithm, params object[] aliases)
         {
             string mainName = "HMAC" + algorithm;
 
-            kgAlgorithms[mainName] = mainName;
-            kgAlgorithms["HMAC-" + algorithm] = mainName;
-            kgAlgorithms["HMAC/" + algorithm] = mainName;
+            KgAlgorithms[mainName] = mainName;
+            KgAlgorithms["HMAC-" + algorithm] = mainName;
+            KgAlgorithms["HMAC/" + algorithm] = mainName;
 
             foreach (object alias in aliases)
             {
-                kgAlgorithms[Platform.ToUpperInvariant(alias.ToString())] = mainName;
+                KgAlgorithms[alias.ToString()] = mainName;
             }
         }
 
         // TODO Consider making this public
-        internal static string GetCanonicalKeyGeneratorAlgorithm(
-            string algorithm)
+        internal static string GetCanonicalKeyGeneratorAlgorithm(string algorithm)
         {
-            return (string) kgAlgorithms[Platform.ToUpperInvariant(algorithm)];
+            return CollectionUtilities.GetValueOrNull(KgAlgorithms, algorithm);
         }
 
         // TODO Consider making this public
-        internal static string GetCanonicalKeyPairGeneratorAlgorithm(
-            string algorithm)
+        internal static string GetCanonicalKeyPairGeneratorAlgorithm(string algorithm)
         {
-            return (string)kpgAlgorithms[Platform.ToUpperInvariant(algorithm)];
+            return CollectionUtilities.GetValueOrNull(KpgAlgorithms, algorithm);
         }
 
-        public static CipherKeyGenerator GetKeyGenerator(
-            DerObjectIdentifier oid)
+        public static CipherKeyGenerator GetKeyGenerator(DerObjectIdentifier oid)
         {
             return GetKeyGenerator(oid.Id);
         }
 
-        public static CipherKeyGenerator GetKeyGenerator(
-            string algorithm)
+        public static CipherKeyGenerator GetKeyGenerator(string algorithm)
         {
             string canonicalName = GetCanonicalKeyGeneratorAlgorithm(algorithm);
 
@@ -349,14 +340,12 @@ namespace Org.BouncyCastle.Security
             return new CipherKeyGenerator(defaultKeySize);
         }
 
-        public static IAsymmetricCipherKeyPairGenerator GetKeyPairGenerator(
-            DerObjectIdentifier oid)
+        public static IAsymmetricCipherKeyPairGenerator GetKeyPairGenerator(DerObjectIdentifier oid)
         {
             return GetKeyPairGenerator(oid.Id);
         }
 
-        public static IAsymmetricCipherKeyPairGenerator GetKeyPairGenerator(
-            string algorithm)
+        public static IAsymmetricCipherKeyPairGenerator GetKeyPairGenerator(string algorithm)
         {
             string canonicalName = GetCanonicalKeyPairGeneratorAlgorithm(algorithm);
 
@@ -398,14 +387,12 @@ namespace Org.BouncyCastle.Security
                 + " (" + canonicalName + ") not supported.");
         }
 
-        internal static int GetDefaultKeySize(
-            DerObjectIdentifier oid)
+        internal static int GetDefaultKeySize(DerObjectIdentifier oid)
         {
             return GetDefaultKeySize(oid.Id);
         }
 
-        internal static int GetDefaultKeySize(
-            string algorithm)
+        internal static int GetDefaultKeySize(string algorithm)
         {
             string canonicalName = GetCanonicalKeyGeneratorAlgorithm(algorithm);
 
@@ -420,13 +407,9 @@ namespace Org.BouncyCastle.Security
             return defaultKeySize;
         }
 
-        private static int FindDefaultKeySize(
-            string canonicalName)
+        private static int FindDefaultKeySize(string canonicalName)
         {
-            if (!defaultKeySizes.Contains(canonicalName))
-                return -1;
-
-            return (int)defaultKeySizes[canonicalName];
+            return DefaultKeySizes.TryGetValue(canonicalName, out int keySize) ? keySize : -1;
         }
     }
 }

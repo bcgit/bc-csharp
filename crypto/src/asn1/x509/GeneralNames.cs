@@ -78,18 +78,13 @@ namespace Org.BouncyCastle.Asn1.X509
 		public override string ToString()
 		{
 			StringBuilder buf = new StringBuilder();
-			string sep = Platform.NewLine;
-
-			buf.Append("GeneralNames:");
-			buf.Append(sep);
-
+			buf.AppendLine("GeneralNames:");
 			foreach (GeneralName name in names)
 			{
-				buf.Append("    ");
-				buf.Append(name);
-				buf.Append(sep);
+				buf.Append("    ")
+				   .Append(name)
+				   .AppendLine();
 			}
-
 			return buf.ToString();
 		}
 	}

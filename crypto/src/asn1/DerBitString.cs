@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.Asn1
                 return;
             }
 
-            int bits = BigInteger.BitLen(namedBits);
+            int bits = 32 - Integers.NumberOfLeadingZeros(namedBits);
             int bytes = (bits + 7) / 8;
             Debug.Assert(0 < bytes && bytes <= 4);
 

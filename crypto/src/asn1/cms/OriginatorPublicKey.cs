@@ -19,9 +19,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.mPublicKey = new DerBitString(publicKey);
         }
 
-        [Obsolete("Use 'GetInstance' instead")]
-		public OriginatorPublicKey(
-            Asn1Sequence seq)
+		private OriginatorPublicKey(Asn1Sequence seq)
         {
             this.mAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
             this.mPublicKey = DerBitString.GetInstance(seq[1]);

@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             if (i < len)
             {
-                while (len - i > B)
+                while (len - i >= B)
                 {
                     compress(inBuf, inOff + i, B);
                     i += B;

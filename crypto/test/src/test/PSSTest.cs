@@ -33,10 +33,17 @@ namespace Org.BouncyCastle.Tests
 				this.vals = vals;
 			}
 
-			public override void NextBytes(
-				byte[] bytes)
+			public override void NextBytes(byte[] buf)
 			{
-				vals.CopyTo(bytes, 0);
+				NextBytes(buf, 0, buf.Length);
+			}
+
+			public override void NextBytes(byte[] buf, int off, int len)
+			{
+				if (vals.Length > len)
+					throw new InvalidOperationException();
+
+				vals.CopyTo(buf, off);
 			}
 		}
 
@@ -234,12 +241,6 @@ namespace Org.BouncyCastle.Tests
 		public override string Name
 		{
 			get { return "PSS"; }
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PssTest());
 		}
 
 		[Test]

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Text;
 
@@ -264,10 +263,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			sGen.InitSign(PgpSignature.CanonicalTextDocument, pgpPrivKey);
 
-			IEnumerator    it = pgpSecKey.PublicKey.GetUserIds().GetEnumerator();
-			if (it.MoveNext())
+			foreach (var userId in pgpSecKey.PublicKey.GetUserIds())
 			{
-				spGen.SetSignerUserId(false, (string)it.Current);
+				spGen.SetSignerUserId(false, userId);
 				sGen.SetHashedSubpackets(spGen.Generate());
 			}
 
@@ -426,11 +424,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			generateTest(nlOnlyMessage, "\\r");
 			generateTest(crOnlyMessage, "\\n");
 			generateTest(crNlMessage, "\\r\\n");
-		}
-
-		public static void Main(string[] args)
-		{
-			RunTest(new PgpClearSignedSignatureTest());
 		}
 
 		[Test]

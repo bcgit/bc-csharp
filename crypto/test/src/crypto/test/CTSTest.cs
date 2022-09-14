@@ -163,23 +163,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new SimpleTestResult(true, Name + ": Okay");
         }
 
-        public static void Main(
-            string[] args)
-        {
-            CTSTest test = new CTSTest();
-            ITestResult result = test.Perform();
-
-            Console.WriteLine(result);
-        }
-
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
-        }
-
         static CTSTest()
         {
             in1 = Hex.Decode("4e6f7720697320746865207420");

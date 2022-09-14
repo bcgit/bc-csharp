@@ -29,12 +29,6 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             get { return "JPakeParticipant"; }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new JPakeParticipantTest());
-        }
-
         [Test]
         public void TestFunction()
         {

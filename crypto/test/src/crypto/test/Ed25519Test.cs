@@ -24,11 +24,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "Ed25519"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new Ed25519Test());
-        }
-
         [Test]
         public void TestFunction()
         {

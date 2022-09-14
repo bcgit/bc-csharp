@@ -1,7 +1,11 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.Intrinsics.X86;
+#endif
+using System.Runtime.Serialization;
 using System.Text;
 
 using Org.BouncyCastle.Security;
@@ -9,9 +13,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]
-#endif
     public class BigInteger
     {
         // The first few odd primes
@@ -137,26 +139,6 @@ namespace Org.BouncyCastle.Math
         public static readonly BigInteger Four;
         public static readonly BigInteger Ten;
 
-        //private readonly static byte[] BitCountTable =
-        //{
-        //    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
-        //    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        //    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        //    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        //    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-        //    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        //    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-        //    4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
-        //};
-
         private readonly static byte[] BitLengthTable =
         {
             0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -188,7 +170,7 @@ namespace Org.BouncyCastle.Math
          * They are calculated according to the expected savings in multiplications.
          * Some squares will also be saved on average, but we offset these against the extra storage costs.
          */
-        private static readonly int[] ExpWindowThresholds = { 7, 25, 81, 241, 673, 1793, 4609, Int32.MaxValue };
+        private static readonly int[] ExpWindowThresholds = { 7, 25, 81, 241, 673, 1793, 4609, int.MaxValue };
 
         private const int BitsPerByte = 8;
         private const int BitsPerInt = 32;
@@ -239,9 +221,21 @@ namespace Org.BouncyCastle.Math
 
         private int[] magnitude; // array of ints with [0] being the most significant
         private int sign; // -1 means -ve; +1 means +ve; 0 means 0;
+
+        [NonSerialized]
         private int nBits = -1; // cache BitCount() value
+        [NonSerialized]
         private int nBitLength = -1; // cache BitLength() value
+        [NonSerialized]
         private int mQuote = 0; // -m^(-1) mod b, b = 2^32 (see Montgomery mult.), 0 when uninitialised
+
+        [OnDeserialized]
+        private void OnDeserialized(StreamingContext context)
+        {
+            this.nBits = -1;
+            this.nBitLength = -1;
+            this.mQuote = 0;
+        }
 
         private static int GetByteLength(
             int nBits)
@@ -361,7 +355,7 @@ namespace Org.BouncyCastle.Math
             }
 
             // strip leading zeros from the string str
-            while (index < str.Length && Int32.Parse(str[index].ToString(), style) == 0)
+            while (index < str.Length && int.Parse(str[index].ToString(), style) == 0)
             {
                 index++;
             }
@@ -473,7 +467,7 @@ namespace Org.BouncyCastle.Math
 //            {
 //				char c = value[index];
 //				string s = c.ToString();
-//				int i = Int32.Parse(s, style);
+//				int i = int.Parse(s, style);
 //
 //                b = b.Multiply(r).Add(ValueOf(i));
 //                index++;
@@ -900,6 +894,13 @@ namespace Org.BouncyCastle.Math
 
         public static int BitCnt(int i)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Popcnt.IsSupported)
+            {
+                return (int)Popcnt.PopCount((uint)i);
+            }
+#endif
+
             uint u = (uint)i;
             u = u - ((u >> 1) & 0x55555555);
             u = (u & 0x33333333) + ((u >> 2) & 0x33333333);
@@ -965,8 +966,15 @@ namespace Org.BouncyCastle.Math
         //
         // BitLen(value) is the number of bits in value.
         //
-        internal static int BitLen(int w)
+        private static int BitLen(int w)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Lzcnt.IsSupported)
+            {
+                return 32 - (int)Lzcnt.LeadingZeroCount((uint)w);
+            }
+#endif
+
             uint v = (uint)w;
             uint t = v >> 24;
             if (t != 0)
@@ -2570,7 +2578,7 @@ namespace Org.BouncyCastle.Math
             if (QuickPow2Check())
             {
                 long powOf2 = (long)exp * (BitLength - 1);
-                if (powOf2 > Int32.MaxValue)
+                if (powOf2 > int.MaxValue)
                 {
                     throw new ArithmeticException("Result too large");
                 }
@@ -2788,7 +2796,7 @@ namespace Org.BouncyCastle.Math
             int excessBits = (numWords << 5) - n;
             if (excessBits > 0)
             {
-                result[0] &= (int)(UInt32.MaxValue >> excessBits);
+                result[0] &= (int)(uint.MaxValue >> excessBits);
             }
 
             return result;
@@ -3258,7 +3266,7 @@ namespace Org.BouncyCastle.Math
                 int mask = (1 << 30) - 1;
                 BigInteger u = this.Abs();
                 int bits = u.BitLength;
-                IList S = Platform.CreateArrayList();
+                var S = new List<string>();
                 while (bits > 30)
                 {
                     S.Add(Convert.ToString(u.IntValue & mask, 8));
@@ -3268,7 +3276,7 @@ namespace Org.BouncyCastle.Math
                 sb.Append(Convert.ToString(u.IntValue, 8));
                 for (int i = S.Count - 1; i >= 0; --i)
                 {
-                    AppendZeroExtendedString(sb, (string)S[i], 10);
+                    AppendZeroExtendedString(sb, S[i], 10);
                 }
                 break;
             }
@@ -3294,8 +3302,8 @@ namespace Org.BouncyCastle.Math
                 }
 
                 // TODO Could cache the moduli for each radix (soft reference?)
-                IList moduli = Platform.CreateArrayList();
-                BigInteger R = BigInteger.ValueOf(radix);
+                var moduli = new List<BigInteger>();
+                BigInteger R = ValueOf(radix);
                 while (R.CompareTo(q) <= 0)
                 {
                     moduli.Add(R);
@@ -3314,7 +3322,7 @@ namespace Org.BouncyCastle.Math
             return sb.ToString();
         }
 
-        private static void ToString(StringBuilder sb, int radix, IList moduli, int scale, BigInteger pos)
+        private static void ToString(StringBuilder sb, int radix, IList<BigInteger> moduli, int scale, BigInteger pos)
         {
             if (pos.BitLength < 64)
             {
@@ -3330,7 +3338,7 @@ namespace Org.BouncyCastle.Math
                 return;
             }
 
-            BigInteger[] qr = pos.DivideAndRemainder((BigInteger)moduli[--scale]);
+            BigInteger[] qr = pos.DivideAndRemainder(moduli[--scale]);
 
             ToString(sb, radix, moduli, scale, qr[0]);
             ToString(sb, radix, moduli, scale, qr[1]);

@@ -1,27 +1,19 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Multiplier;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.CryptoPro
 {
-    /// <summary>
-    /// Table of the available named parameters for GOST 3410-2001 / 2012.
-    /// </summary>
-    public sealed class ECGost3410NamedCurves
+    /// <summary>Elliptic curve registry for GOST 3410-2001 / 2012.</summary>
+    public static class ECGost3410NamedCurves
     {
-        private ECGost3410NamedCurves()
-        {
-        }
-
         private static X9ECPoint ConfigureBasepoint(ECCurve curve, BigInteger x, BigInteger y)
         {
             ECPoint G = curve.CreatePoint(x, y);
@@ -39,9 +31,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             return new BigInteger(1, Hex.DecodeStrict(hex));
         }
 
-        /*
-         * GostR3410-2001-CryptoPro-A (and GostR3410-2001-CryptoPro-XchA)
-         */
         internal class Holder_gostR3410_2001_CryptoPro_A
             : X9ECParametersHolder
         {
@@ -74,9 +63,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-        /*
-         * GostR3410-2001-CryptoPro-B
-         */
         internal class Holder_gostR3410_2001_CryptoPro_B
             : X9ECParametersHolder
         {
@@ -109,9 +95,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-        /*
-         * GostR3410-2001-CryptoPro-C
-         */
         internal class Holder_gostR3410_2001_CryptoPro_C
             : X9ECParametersHolder
         {
@@ -144,9 +127,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-        /*
-         * GostR3410-2001-CryptoPro-XchB
-         */
         internal class Holder_gostR3410_2001_CryptoPro_XchB
             : X9ECParametersHolder
         {
@@ -179,9 +159,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-        /*
-         * Tc26-Gost-3410-12-256-paramSetA
-         */
         internal class Holder_id_tc26_gost_3410_12_256_paramSetA
             : X9ECParametersHolder
         {
@@ -214,9 +191,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-        /*
-         * Tc26-Gost-3410-12-512-paramSetA
-         */
         internal class Holder_id_tc26_gost_3410_12_512_paramSetA
             : X9ECParametersHolder
         {
@@ -249,9 +223,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-        /*
-         * Tc26-Gost-3410-12-512-paramSetB
-         */
         internal class Holder_id_tc26_gost_3410_12_512_paramSetB
             : X9ECParametersHolder
         {
@@ -284,9 +255,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-        /*
-         * Tc26-Gost-3410-12-512-paramSetC
-         */
         internal class Holder_id_tc26_gost_3410_12_512_paramSetC
             : X9ECParametersHolder
         {
@@ -319,10 +287,12 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             }
         };
 
-
-        private static readonly IDictionary objIds = Platform.CreateHashtable();
-        private static readonly IDictionary curves = Platform.CreateHashtable();
-        private static readonly IDictionary names = Platform.CreateHashtable();
+        private static readonly Dictionary<string, DerObjectIdentifier> objIds =
+            new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<DerObjectIdentifier, X9ECParametersHolder> curves =
+            new Dictionary<DerObjectIdentifier, X9ECParametersHolder>();
+        private static readonly Dictionary<DerObjectIdentifier, string> names =
+            new Dictionary<DerObjectIdentifier, string>();
 
         private static void DefineCurve(string name, DerObjectIdentifier oid, X9ECParametersHolder holder)
         {
@@ -333,71 +303,93 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 
         static ECGost3410NamedCurves()
         {
-            DefineCurve("GostR3410-2001-CryptoPro-A", CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+            DefineCurve("GostR3410-2001-CryptoPro-A",
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
                 Holder_gostR3410_2001_CryptoPro_A.Instance);
-            DefineCurve("GostR3410-2001-CryptoPro-B", CryptoProObjectIdentifiers.GostR3410x2001CryptoProB,
+            DefineCurve("GostR3410-2001-CryptoPro-B",
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProB,
                 Holder_gostR3410_2001_CryptoPro_B.Instance);
-            DefineCurve("GostR3410-2001-CryptoPro-C", CryptoProObjectIdentifiers.GostR3410x2001CryptoProC,
+            DefineCurve("GostR3410-2001-CryptoPro-C",
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProC,
                 Holder_gostR3410_2001_CryptoPro_C.Instance);
-            DefineCurve("GostR3410-2001-CryptoPro-XchA", CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchA,
+            DefineCurve("GostR3410-2001-CryptoPro-XchA",
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchA,
                 Holder_gostR3410_2001_CryptoPro_A.Instance);
-            DefineCurve("GostR3410-2001-CryptoPro-XchB", CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchB,
+            DefineCurve("GostR3410-2001-CryptoPro-XchB",
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchB,
                 Holder_gostR3410_2001_CryptoPro_XchB.Instance);
-            DefineCurve("Tc26-Gost-3410-12-256-paramSetA", RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
+            DefineCurve("Tc26-Gost-3410-12-256-paramSetA",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
                 Holder_id_tc26_gost_3410_12_256_paramSetA.Instance);
-            DefineCurve("Tc26-Gost-3410-12-512-paramSetA", RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA,
+            DefineCurve("Tc26-Gost-3410-12-512-paramSetA",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA,
                 Holder_id_tc26_gost_3410_12_512_paramSetA.Instance);
-            DefineCurve("Tc26-Gost-3410-12-512-paramSetB", RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetB,
+            DefineCurve("Tc26-Gost-3410-12-512-paramSetB",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetB,
                 Holder_id_tc26_gost_3410_12_512_paramSetB.Instance);
-            DefineCurve("Tc26-Gost-3410-12-512-paramSetC", RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetC,
+            DefineCurve("Tc26-Gost-3410-12-512-paramSetC",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetC,
                 Holder_id_tc26_gost_3410_12_512_paramSetC.Instance);
         }
 
-        public static X9ECParameters GetByNameX9(string name)
+        /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given name.</summary>
+        /// <param name="name">The name of the curve.</param>
+        public static X9ECParameters GetByName(string name)
         {
             DerObjectIdentifier oid = GetOid(name);
-            return oid == null ? null : GetByOidX9(oid);
+            return oid == null ? null : GetByOid(oid);
         }
 
+        /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given name.</summary>
+        /// <remarks>
+        /// Allows accessing the <see cref="ECCurve">curve</see> without necessarily triggering the creation of the
+        /// full <see cref="X9ECParameters"/>.
+        /// </remarks>
+        /// <param name="name">The name of the curve.</param>
         public static X9ECParametersHolder GetByNameLazy(string name)
         {
             DerObjectIdentifier oid = GetOid(name);
             return oid == null ? null : GetByOidLazy(oid);
         }
 
-        public static X9ECParameters GetByOidX9(DerObjectIdentifier oid)
+        /// <summary>Look up the <see cref="X9ECParameters"/> for the curve with the given
+        /// <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
+        public static X9ECParameters GetByOid(DerObjectIdentifier oid)
         {
-            X9ECParametersHolder holder = GetByOidLazy(oid);
-            return holder == null ? null : holder.Parameters;
+            return GetByOidLazy(oid)?.Parameters;
         }
 
+        /// <summary>Look up an <see cref="X9ECParametersHolder"/> for the curve with the given
+        /// <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <remarks>
+        /// Allows accessing the <see cref="ECCurve">curve</see> without necessarily triggering the creation of the
+        /// full <see cref="X9ECParameters"/>.
+        /// </remarks>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
         public static X9ECParametersHolder GetByOidLazy(DerObjectIdentifier oid)
         {
-            return (X9ECParametersHolder)curves[oid];
+            return CollectionUtilities.GetValueOrNull(curves, oid);
         }
 
-        public static DerObjectIdentifier GetOid(
-            string name)
+        /// <summary>Look up the name of the curve with the given <see cref="DerObjectIdentifier">OID</see>.</summary>
+        /// <param name="oid">The <see cref="DerObjectIdentifier">OID</see> for the curve.</param>
+        public static string GetName(DerObjectIdentifier oid)
         {
-            return (DerObjectIdentifier)objIds[name];
+            return CollectionUtilities.GetValueOrNull(names, oid);
         }
 
-        /**
-         * return the named curve name represented by the given object identifier.
-         */
-        public static string GetName(
-            DerObjectIdentifier oid)
+        /// <summary>Look up the <see cref="DerObjectIdentifier">OID</see> of the curve with the given name.</summary>
+        /// <param name="name">The name of the curve.</param>
+        public static DerObjectIdentifier GetOid(string name)
         {
-            return (string)names[oid];
+            return CollectionUtilities.GetValueOrNull(objIds, name);
         }
 
-        /**
-         * returns an enumeration containing the name strings for curves
-         * contained in this structure.
-         */
-        public static IEnumerable Names
+        /// <summary>Enumerate the available curve names in this registry.</summary>
+        public static IEnumerable<string> Names
         {
-            get { return new EnumerableProxy(names.Values); }
+            get { return CollectionUtilities.Proxy(objIds.Keys); }
         }
     }
 }

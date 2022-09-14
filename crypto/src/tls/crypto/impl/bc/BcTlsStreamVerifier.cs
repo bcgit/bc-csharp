@@ -18,9 +18,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             this.m_signature = signature;
         }
 
-        public Stream GetOutputStream()
+        public Stream Stream
         {
-            return m_output;
+            get { return m_output; }
         }
 
         public bool IsVerified()

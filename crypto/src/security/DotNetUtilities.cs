@@ -1,6 +1,7 @@
-#if !(NETCF_1_0 || SILVERLIGHT || PORTABLE)
-
 using System;
+#if NET5_0_OR_GREATER
+using System.Runtime.Versioning;
+#endif
 using System.Security.Cryptography;
 using SystemX509 = System.Security.Cryptography.X509Certificates;
 
@@ -17,12 +18,11 @@ namespace Org.BouncyCastle.Security
     /// <summary>
     /// A class containing methods to interface the BouncyCastle world to the .NET Crypto world.
     /// </summary>
-    public sealed class DotNetUtilities
+#if NET5_0_OR_GREATER
+    [SupportedOSPlatform("windows")]
+#endif
+    public static class DotNetUtilities
     {
-        private DotNetUtilities()
-        {
-        }
-
         /// <summary>
         /// Create an System.Security.Cryptography.X509Certificate from an X509Certificate Structure.
         /// </summary>
@@ -229,16 +229,14 @@ namespace Org.BouncyCastle.Security
             return BigIntegers.AsUnsignedByteArray(size, n);
         }
 
-        private static RSA CreateRSAProvider(RSAParameters rp)
+        private static RSACryptoServiceProvider CreateRSAProvider(RSAParameters rp)
         {
             CspParameters csp = new CspParameters();
             csp.KeyContainerName = string.Format("BouncyCastle-{0}", Guid.NewGuid());
-            RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider(csp);
-            rsaCsp.ImportParameters(rp);
-            return rsaCsp;
+            return CreateRSAProvider(rp, csp);
         }
 
-        private static RSA CreateRSAProvider(RSAParameters rp, CspParameters csp)
+        private static RSACryptoServiceProvider CreateRSAProvider(RSAParameters rp, CspParameters csp)
         {
             RSACryptoServiceProvider rsaCsp = new RSACryptoServiceProvider(csp);
             rsaCsp.ImportParameters(rp);
@@ -246,5 +244,3 @@ namespace Org.BouncyCastle.Security
         }
     }
 }
-
-#endif

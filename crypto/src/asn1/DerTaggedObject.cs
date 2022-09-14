@@ -10,16 +10,6 @@ namespace Org.BouncyCastle.Asn1
 	public class DerTaggedObject
 		: Asn1TaggedObject
 	{
-        /**
-		 * create an implicitly tagged object that contains a zero
-		 * length sequence.
-		 */
-        [Obsolete("Will be removed")]
-        public DerTaggedObject(int tagNo)
-            : base(false, tagNo, DerSequence.Empty)
-        {
-        }
-
         public DerTaggedObject(int tagNo, Asn1Encodable obj)
 			: base(true, tagNo, obj)
 		{

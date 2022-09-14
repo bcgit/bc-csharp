@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return Nat576.ToBigInteger64(x);
         }
 
-        public override String FieldName
+        public override string FieldName
         {
             get { return "SecT571Field"; }
         }

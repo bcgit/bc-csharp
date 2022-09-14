@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual String AlgorithmName
+        public virtual string AlgorithmName
         {
             get
             {
@@ -243,15 +243,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (associatedText.Length > 0)
             {
-#if PORTABLE
-                byte[] aad = associatedText.ToArray();
-                int aadLen = aad.Length;
-#else
                 byte[] aad = associatedText.GetBuffer();
-                int aadLen = (int)associatedText.Length;
-#endif
+                int aadLen = Convert.ToInt32(associatedText.Length);
 
-                int dataLen = forEncryption ? (int)data.Length : ((int)data.Length - macSize);
+                int dataLen = Convert.ToInt32(data.Length) - (forEncryption ? 0 : macSize);
 
                 ProcessAAD(aad, 0, aadLen, dataLen);
             }
@@ -385,13 +380,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
-#if PORTABLE
-            byte[] buf = data.ToArray();
-            int bufLen = buf.Length;
-#else
             byte[] buf = data.GetBuffer();
-            int bufLen = (int)data.Length;
-#endif
+            int bufLen = Convert.ToInt32(data.Length);
 
             int len = ProcessPacket(buf, 0, bufLen, output, outOff);
 
@@ -476,7 +466,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     break;
             }
 
-            String binaryNb = Convert.ToString(Nb_ - 1, 2);
+            string binaryNb = Convert.ToString(Nb_ - 1, 2);
             while (binaryNb.Length < 4)
             {
                 binaryNb = new StringBuilder(binaryNb).Insert(0, "0").ToString();

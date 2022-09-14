@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Crypto.Modes
          * KEY-DEPENDENT
          */
         // NOTE: elements are lazily calculated
-        private IList L;
+        private IList<byte[]> L;
         private byte[] L_Asterisk, L_Dollar;
 
         /*
@@ -161,7 +161,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             this.L_Dollar = OCB_double(L_Asterisk);
 
-            this.L = Platform.CreateArrayList();
+            this.L = new List<byte[]>();
             this.L.Add(OCB_double(L_Dollar));
 
             /*
@@ -420,9 +420,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             while (n >= L.Count)
             {
-                L.Add(OCB_double((byte[]) L[L.Count - 1]));
+                L.Add(OCB_double(L[L.Count - 1]));
             }
-            return (byte[])L[n];
+            return L[n];
         }
 
         protected virtual void ProcessHashBlock()

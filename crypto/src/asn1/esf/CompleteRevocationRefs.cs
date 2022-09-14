@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
@@ -56,12 +55,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 		}
 
 		public CompleteRevocationRefs(
-			IEnumerable crlOcspRefs)
+			IEnumerable<CrlOcspRef> crlOcspRefs)
 		{
 			if (crlOcspRefs == null)
 				throw new ArgumentNullException("crlOcspRefs");
-			if (!CollectionUtilities.CheckElementsAreOfType(crlOcspRefs, typeof(CrlOcspRef)))
-				throw new ArgumentException("Must contain only 'CrlOcspRef' objects", "crlOcspRefs");
 
 			this.crlOcspRefs = new DerSequence(
 				Asn1EncodableVector.FromEnumerable(crlOcspRefs));

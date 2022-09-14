@@ -1,10 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26906.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32602.291
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{43196EF9-B75F-4ABB-8967-DAFD621A7D05}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F8F54480-386E-4CE7-8C0E-537922E2A634}"
 	ProjectSection(SolutionItems) = preProject
+		.gitlab-ci.yml = .gitlab-ci.yml
 		azure-pipelines.yml = azure-pipelines.yml
 		README.md = README.md
 		version.json = version.json
@@ -33,6 +34,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {BD9C9675-3AF5-41BA-8A57-7D70CAAFAA70}
+		SolutionGuid = {491E9412-DD09-44EE-86A7-2D0C51842AFC}
 	EndGlobalSection
 EndGlobal

@@ -1,12 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-
-#if PORTABLE
-using System.Collections.Generic;
-using System.Linq;
-#endif
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -14,7 +9,7 @@ using Org.BouncyCastle.Utilities.Collections;
 namespace Org.BouncyCastle.Asn1
 {
     public abstract class Asn1Set
-        : Asn1Object, IEnumerable
+        : Asn1Object, IEnumerable<Asn1Encodable>
     {
         internal class Meta : Asn1UniversalType
         {
@@ -140,9 +135,15 @@ namespace Org.BouncyCastle.Asn1
             this.isSorted = isSorted || elements.Length < 2;
         }
 
-        public virtual IEnumerator GetEnumerator()
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return elements.GetEnumerator();
+            return GetEnumerator();
+        }
+
+        public virtual IEnumerator<Asn1Encodable> GetEnumerator()
+        {
+            IEnumerable<Asn1Encodable> e = elements;
+            return e.GetEnumerator();
         }
 
         /**
@@ -260,14 +261,6 @@ namespace Org.BouncyCastle.Asn1
             if (count < 2)
                 return elements;
 
-#if PORTABLE
-            return elements
-                .Cast<Asn1Encodable>()
-                .Select(a => new { Item = a, Key = a.GetEncoded(Asn1Encodable.Der) })
-                .OrderBy(t => t.Key, new DerComparer())
-                .Select(t => t.Item)
-                .ToArray();
-#else
             byte[][] keys = new byte[count][];
             for (int i = 0; i < count; ++i)
             {
@@ -275,24 +268,13 @@ namespace Org.BouncyCastle.Asn1
             }
             Array.Sort(keys, elements, new DerComparer());
             return elements;
-#endif
         }
 
-#if PORTABLE
         private class DerComparer
             : IComparer<byte[]>
         {
-            public int Compare(byte[] x, byte[] y)
+            public int Compare(byte[] a, byte[] b)
             {
-                byte[] a = x, b = y;
-#else
-        private class DerComparer
-            : IComparer
-        {
-            public int Compare(object x, object y)
-            {
-                byte[] a = (byte[])x, b = (byte[])y;
-#endif
                 Debug.Assert(a.Length >= 2 && b.Length >= 2);
 
                 /*

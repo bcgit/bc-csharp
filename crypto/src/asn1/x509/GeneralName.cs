@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -319,7 +319,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		private void parseIPv4Mask(string mask, byte[] addr, int offset)
 		{
-			int maskVal = Int32.Parse(mask);
+			int maskVal = int.Parse(mask);
 
 			for (int i = 0; i != maskVal; i++)
 			{
@@ -331,14 +331,14 @@ namespace Org.BouncyCastle.Asn1.X509
 		{
 			foreach (string token in ip.Split('.', '/'))
 			{
-				addr[offset++] = (byte)Int32.Parse(token);
+				addr[offset++] = (byte)int.Parse(token);
 			}
 		}
 
 		private int[] parseMask(string mask)
 		{
 			int[] res = new int[8];
-			int   maskVal = Int32.Parse(mask);
+			int maskVal = int.Parse(mask);
 
 			for (int i = 0; i != maskVal; i++)
 			{
@@ -367,7 +367,8 @@ namespace Org.BouncyCastle.Asn1.X509
 				ip = ip.Substring(0, ip.Length - 1);
 			}
 
-			IEnumerator sEnum = ip.Split(':').GetEnumerator();
+			IEnumerable<string> split = ip.Split(':');
+			var sEnum = split.GetEnumerator();
 
 			int index = 0;
 			int[] val = new int[8];
@@ -376,7 +377,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
 			while (sEnum.MoveNext())
 			{
-				string e = (string) sEnum.Current;
+				string e = sEnum.Current;
 
 				if (e.Length == 0)
 				{
@@ -387,14 +388,14 @@ namespace Org.BouncyCastle.Asn1.X509
 				{
 					if (e.IndexOf('.') < 0)
 					{
-						val[index++] = Int32.Parse(e, NumberStyles.AllowHexSpecifier);
+						val[index++] = int.Parse(e, NumberStyles.AllowHexSpecifier);
 					}
 					else
 					{
 						string[] tokens = e.Split('.');
 
-						val[index++] = (Int32.Parse(tokens[0]) << 8) | Int32.Parse(tokens[1]);
-						val[index++] = (Int32.Parse(tokens[2]) << 8) | Int32.Parse(tokens[3]);
+						val[index++] = (int.Parse(tokens[0]) << 8) | int.Parse(tokens[1]);
+						val[index++] = (int.Parse(tokens[2]) << 8) | int.Parse(tokens[3]);
 					}
 				}
 			}

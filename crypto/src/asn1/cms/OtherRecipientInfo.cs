@@ -16,9 +16,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             this.oriValue = oriValue;
         }
 
-        [Obsolete("Use GetInstance() instead")]
-        public OtherRecipientInfo(
-            Asn1Sequence seq)
+        private OtherRecipientInfo(Asn1Sequence seq)
         {
             oriType = DerObjectIdentifier.GetInstance(seq[0]);
             oriValue = seq[1];

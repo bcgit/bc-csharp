@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Crypto.Agreement.Srp;
@@ -29,9 +29,9 @@ namespace Org.BouncyCastle.Tls.Tests
         {
         }
 
-        protected override IList GetProtocolNames()
+        protected override IList<ProtocolName> GetProtocolNames()
         {
-            IList protocolNames = new ArrayList();
+            var protocolNames = new List<ProtocolName>();
             protocolNames.Add(ProtocolName.Http_2_Tls);
             protocolNames.Add(ProtocolName.Http_1_1);
             return protocolNames;
@@ -93,15 +93,39 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
+        public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
+        {
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessClientExtensions(clientExtensions);
+        }
+
+        public override IDictionary<int, byte[]> GetServerExtensions()
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return base.GetServerExtensions();
+        }
+
+        public override void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.GetServerExtensionsForConnection(serverExtensions);
+        }
+
         protected override TlsCredentialedSigner GetDsaSignerCredentials()
         {
-            IList clientSigAlgs = m_context.SecurityParameters.ClientSigAlgs;
+            var clientSigAlgs = m_context.SecurityParameters.ClientSigAlgs;
             return TlsTestUtilities.LoadSignerCredentialsServer(m_context, clientSigAlgs, SignatureAlgorithm.dsa);
         }
 
         protected override TlsCredentialedSigner GetRsaSignerCredentials()
         {
-            IList clientSigAlgs = m_context.SecurityParameters.ClientSigAlgs;
+            var clientSigAlgs = m_context.SecurityParameters.ClientSigAlgs;
             return TlsTestUtilities.LoadSignerCredentialsServer(m_context, clientSigAlgs, SignatureAlgorithm.rsa);
         }
 

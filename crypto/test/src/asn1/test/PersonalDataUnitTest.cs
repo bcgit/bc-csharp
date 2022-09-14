@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				PersonalData.GetInstance(new Object());
+				PersonalData.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -108,12 +108,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkOptionalField("placeOfBirth", placeOfBirth, data.PlaceOfBirth);
 			checkOptionalField("gender", gender, data.Gender);
 			checkOptionalField("postalAddress", postalAddress, data.PostalAddress);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PersonalDataUnitTest());
 		}
 
 		[Test]

@@ -1,7 +1,3 @@
-using Org.BouncyCastle.Asn1;
-using System;
-using System.Collections;
-
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
@@ -28,7 +24,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public DHParameter(
             Asn1Sequence seq)
         {
-            IEnumerator e = seq.GetEnumerator();
+            var e = seq.GetEnumerator();
 
 			e.MoveNext();
             p = (DerInteger)e.Current;

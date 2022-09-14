@@ -252,12 +252,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             return kpg.GenerateKeyPair();
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new SM2SignerTest());
-        }
-
         [Test]
         public void TestFunction()
         {

@@ -1,6 +1,10 @@
 using System;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
-using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Modes.Gcm;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -15,6 +19,19 @@ namespace Org.BouncyCastle.Crypto.Modes
     public class GcmBlockCipher
         : IAeadBlockCipher
     {
+        private static IGcmMultiplier CreateGcmMultiplier()
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            // TODO Prefer more tightly coupled test
+            if (System.Runtime.Intrinsics.X86.Pclmulqdq.IsSupported)
+            {
+                return new BasicGcmMultiplier();
+            }
+#endif
+
+            return new Tables4kGcmMultiplier();
+        }
+
         private const int BlockSize = 16;
 
         private readonly IBlockCipher	cipher;
@@ -36,6 +53,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[]		macBlock;
         private byte[]      S, S_at, S_atPre;
         private byte[]      counter;
+        private uint        counter32;
         private uint        blocksRemaining;
         private int         bufOff;
         private ulong		totalLength;
@@ -59,7 +77,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (m == null)
             {
-                m = new Tables4kGcmMultiplier();
+                m = CreateGcmMultiplier();
             }
 
             this.cipher = c;
@@ -198,6 +216,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.atLength = 0;
             this.atLengthPre = 0;
             this.counter = Arrays.Clone(J0);
+            this.counter32 = Pack.BE_To_UInt32(counter, 12);
             this.blocksRemaining = uint.MaxValue - 1; // page 8, len(P) <= 2^39 - 256, 1 block used by tag
             this.bufOff = 0;
             this.totalLength = 0;
@@ -261,17 +280,35 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             CheckStatus();
 
-            for (int i = 0; i < len; ++i)
+            if (atBlockPos > 0)
             {
-                atBlock[atBlockPos] = inBytes[inOff + i];
-                if (++atBlockPos == BlockSize)
+                int available = BlockSize - atBlockPos;
+                if (len < available)
                 {
-                    // Hash each block as it fills
-                    gHASHBlock(S_at, atBlock);
-                    atBlockPos = 0;
-                    atLength += BlockSize;
+                    Array.Copy(inBytes, inOff, atBlock, atBlockPos, len);
+                    atBlockPos += len;
+                    return;
                 }
+
+                Array.Copy(inBytes, inOff, atBlock, atBlockPos, available);
+                gHASHBlock(S_at, atBlock);
+                atLength += BlockSize;
+                inOff += available;
+                len -= available;
+                //atBlockPos = 0;
             }
+
+            int inLimit = inOff + len - BlockSize;
+
+            while (inOff <= inLimit)
+            {
+                gHASHBlock(S_at, inBytes, inOff);
+                atLength += BlockSize;
+                inOff += BlockSize;
+            }
+
+            atBlockPos = BlockSize + inLimit - inOff;
+            Array.Copy(inBytes, inOff, atBlock, 0, atBlockPos);
         }
 
         private void InitCipher()
@@ -295,23 +332,21 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        public virtual int ProcessByte(
-            byte	input,
-            byte[]	output,
-            int		outOff)
+        public virtual int ProcessByte(byte	input, byte[] output, int outOff)
         {
             CheckStatus();
 
             bufBlock[bufOff] = input;
             if (++bufOff == bufBlock.Length)
             {
-                ProcessBlock(bufBlock, 0, output, outOff);
                 if (forEncryption)
                 {
+                    EncryptBlock(bufBlock, 0, output, outOff);
                     bufOff = 0;
                 }
                 else
                 {
+                    DecryptBlock(bufBlock, 0, output, outOff);
                     Array.Copy(bufBlock, BlockSize, bufBlock, 0, macSize);
                     bufOff = macSize;
                 }
@@ -320,12 +355,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
-        public virtual int ProcessBytes(
-            byte[]	input,
-            int		inOff,
-            int		len,
-            byte[]	output,
-            int		outOff)
+        public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             CheckStatus();
 
@@ -335,49 +365,95 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (forEncryption)
             {
-                if (bufOff != 0)
+                if (bufOff > 0)
                 {
-                    while (len > 0)
+                    int available = BlockSize - bufOff;
+                    if (len < available)
                     {
-                        --len;
-                        bufBlock[bufOff] = input[inOff++];
-                        if (++bufOff == BlockSize)
-                        {
-                            ProcessBlock(bufBlock, 0, output, outOff);
-                            bufOff = 0;
-                            resultLen += BlockSize;
-                            break;
-                        }
+                        Array.Copy(input, inOff, bufBlock, bufOff, len);
+                        bufOff += len;
+                        return 0;
                     }
+
+                    Array.Copy(input, inOff, bufBlock, bufOff, available);
+                    EncryptBlock(bufBlock, 0, output, outOff);
+                    inOff += available;
+                    len -= available;
+                    resultLen = BlockSize;
+                    //bufOff = 0;
                 }
 
-                while (len >= BlockSize)
+                int inLimit1 = inOff + len - BlockSize;
+                int inLimit2 = inLimit1 - BlockSize;
+
+                while (inOff <= inLimit2)
                 {
-                    ProcessBlock(input, inOff, output, outOff + resultLen);
+                    EncryptBlocks2(input, inOff, output, outOff + resultLen);
+                    inOff += BlockSize * 2;
+                    resultLen += BlockSize * 2;
+                }
+
+                if (inOff <= inLimit1)
+                {
+                    EncryptBlock(input, inOff, output, outOff + resultLen);
                     inOff += BlockSize;
-                    len -= BlockSize;
                     resultLen += BlockSize;
                 }
 
-                if (len > 0)
-                {
-                    Array.Copy(input, inOff, bufBlock, 0, len);
-                    bufOff = len;
-                }
+                bufOff = BlockSize + inLimit1 - inOff;
+                Array.Copy(input, inOff, bufBlock, 0, bufOff);
             }
             else
             {
-                for (int i = 0; i < len; ++i)
+                int available = bufBlock.Length - bufOff;
+                if (len < available)
                 {
-                    bufBlock[bufOff] = input[inOff + i];
-                    if (++bufOff == bufBlock.Length)
+                    Array.Copy(input, inOff, bufBlock, bufOff, len);
+                    bufOff += len;
+                    return 0;
+                }
+
+                if (bufOff >= BlockSize)
+                {
+                    DecryptBlock(bufBlock, 0, output, outOff);
+                    Array.Copy(bufBlock, BlockSize, bufBlock, 0, bufOff -= BlockSize);
+                    resultLen = BlockSize;
+
+                    available += BlockSize;
+                    if (len < available)
                     {
-                        ProcessBlock(bufBlock, 0, output, outOff + resultLen);
-                        Array.Copy(bufBlock, BlockSize, bufBlock, 0, macSize);
-                        bufOff = macSize;
-                        resultLen += BlockSize;
+                        Array.Copy(input, inOff, bufBlock, bufOff, len);
+                        bufOff += len;
+                        return resultLen;
                     }
                 }
+
+                int inLimit1 = inOff + len - bufBlock.Length;
+                int inLimit2 = inLimit1 - BlockSize;
+
+                available = BlockSize - bufOff;
+                Array.Copy(input, inOff, bufBlock, bufOff, available);
+                DecryptBlock(bufBlock, 0, output, outOff + resultLen);
+                inOff += available;
+                resultLen += BlockSize;
+                //bufOff = 0;
+
+                while (inOff <= inLimit2)
+                {
+                    DecryptBlocks2(input, inOff, output, outOff + resultLen);
+                    inOff += BlockSize * 2;
+                    resultLen += BlockSize * 2;
+                }
+
+                if (inOff <= inLimit1)
+                {
+                    DecryptBlock(input, inOff, output, outOff + resultLen);
+                    inOff += BlockSize;
+                    resultLen += BlockSize;
+                }
+
+                bufOff = bufBlock.Length + inLimit1 - inOff;
+                Array.Copy(input, inOff, bufBlock, 0, bufOff);
             }
 
             return resultLen;
@@ -513,6 +589,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             atLength = 0;
             atLengthPre = 0;
             counter = Arrays.Clone(J0);
+            counter32 = Pack.BE_To_UInt32(counter, 12);
             blocksRemaining = uint.MaxValue - 1;
             bufOff = 0;
             totalLength = 0;
@@ -540,9 +617,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        private void ProcessBlock(byte[] buf, int bufOff, byte[] output, int outOff)
+        private void DecryptBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
-            Check.OutputLength(output, outOff, BlockSize, "Output buffer too short");
+            Check.OutputLength(outBuf, outOff, BlockSize, "Output buffer too short");
 
             if (totalLength == 0)
             {
@@ -550,21 +627,278 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             byte[] ctrBlock = new byte[BlockSize];
-            GetNextCtrBlock(ctrBlock);
 
-            if (forEncryption)
+            GetNextCtrBlock(ctrBlock);
+#if NETCOREAPP3_0_OR_GREATER
+            if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
             {
-                GcmUtilities.Xor(ctrBlock, buf, bufOff);
-                gHASHBlock(S, ctrBlock);
-                Array.Copy(ctrBlock, 0, output, outOff, BlockSize);
+                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref inBuf[inOff]);
+                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
+                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+
+                t1 = Sse2.Xor(t1, t0);
+                t2 = Sse2.Xor(t2, t0);
+
+                Unsafe.WriteUnaligned(ref outBuf[outOff], t1);
+                Unsafe.WriteUnaligned(ref S[0], t2);
             }
             else
+#endif
             {
-                gHASHBlock(S, buf, bufOff);
-                GcmUtilities.Xor(ctrBlock, 0, buf, bufOff, output, outOff);
+                for (int i = 0; i < BlockSize; i += 4)
+                {
+                    byte c0 = inBuf[inOff + i + 0];
+                    byte c1 = inBuf[inOff + i + 1];
+                    byte c2 = inBuf[inOff + i + 2];
+                    byte c3 = inBuf[inOff + i + 3];
+
+                    S[i + 0] ^= c0;
+                    S[i + 1] ^= c1;
+                    S[i + 2] ^= c2;
+                    S[i + 3] ^= c3;
+
+                    outBuf[outOff + i + 0] = (byte)(c0 ^ ctrBlock[i + 0]);
+                    outBuf[outOff + i + 1] = (byte)(c1 ^ ctrBlock[i + 1]);
+                    outBuf[outOff + i + 2] = (byte)(c2 ^ ctrBlock[i + 2]);
+                    outBuf[outOff + i + 3] = (byte)(c3 ^ ctrBlock[i + 3]);
+                }
             }
+            multiplier.MultiplyH(S);
 
             totalLength += BlockSize;
+        }
+
+        private void DecryptBlocks2(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
+        {
+            Check.OutputLength(outBuf, outOff, BlockSize * 2, "Output buffer too short");
+
+            if (totalLength == 0)
+            {
+                InitCipher();
+            }
+
+            byte[] ctrBlock = new byte[BlockSize];
+
+            GetNextCtrBlock(ctrBlock);
+#if NETCOREAPP3_0_OR_GREATER
+            if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
+            {
+                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref inBuf[inOff]);
+                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
+                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+
+                t1 = Sse2.Xor(t1, t0);
+                t2 = Sse2.Xor(t2, t0);
+
+                Unsafe.WriteUnaligned(ref outBuf[outOff], t1);
+                Unsafe.WriteUnaligned(ref S[0], t2);
+            }
+            else
+#endif
+            {
+                for (int i = 0; i < BlockSize; i += 4)
+                {
+                    byte c0 = inBuf[inOff + i + 0];
+                    byte c1 = inBuf[inOff + i + 1];
+                    byte c2 = inBuf[inOff + i + 2];
+                    byte c3 = inBuf[inOff + i + 3];
+
+                    S[i + 0] ^= c0;
+                    S[i + 1] ^= c1;
+                    S[i + 2] ^= c2;
+                    S[i + 3] ^= c3;
+
+                    outBuf[outOff + i + 0] = (byte)(c0 ^ ctrBlock[i + 0]);
+                    outBuf[outOff + i + 1] = (byte)(c1 ^ ctrBlock[i + 1]);
+                    outBuf[outOff + i + 2] = (byte)(c2 ^ ctrBlock[i + 2]);
+                    outBuf[outOff + i + 3] = (byte)(c3 ^ ctrBlock[i + 3]);
+                }
+            }
+            multiplier.MultiplyH(S);
+
+            inOff += BlockSize;
+            outOff += BlockSize;
+
+            GetNextCtrBlock(ctrBlock);
+#if NETCOREAPP3_0_OR_GREATER
+            if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
+            {
+                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref inBuf[inOff]);
+                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
+                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+
+                t1 = Sse2.Xor(t1, t0);
+                t2 = Sse2.Xor(t2, t0);
+
+                Unsafe.WriteUnaligned(ref outBuf[outOff], t1);
+                Unsafe.WriteUnaligned(ref S[0], t2);
+            }
+            else
+#endif
+            {
+                for (int i = 0; i < BlockSize; i += 4)
+                {
+                    byte c0 = inBuf[inOff + i + 0];
+                    byte c1 = inBuf[inOff + i + 1];
+                    byte c2 = inBuf[inOff + i + 2];
+                    byte c3 = inBuf[inOff + i + 3];
+
+                    S[i + 0] ^= c0;
+                    S[i + 1] ^= c1;
+                    S[i + 2] ^= c2;
+                    S[i + 3] ^= c3;
+
+                    outBuf[outOff + i + 0] = (byte)(c0 ^ ctrBlock[i + 0]);
+                    outBuf[outOff + i + 1] = (byte)(c1 ^ ctrBlock[i + 1]);
+                    outBuf[outOff + i + 2] = (byte)(c2 ^ ctrBlock[i + 2]);
+                    outBuf[outOff + i + 3] = (byte)(c3 ^ ctrBlock[i + 3]);
+                }
+            }
+            multiplier.MultiplyH(S);
+
+            totalLength += BlockSize * 2;
+        }
+
+        private void EncryptBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
+        {
+            Check.OutputLength(outBuf, outOff, BlockSize, "Output buffer too short");
+
+            if (totalLength == 0)
+            {
+                InitCipher();
+            }
+
+            byte[] ctrBlock = new byte[BlockSize];
+
+            GetNextCtrBlock(ctrBlock);
+#if NETCOREAPP3_0_OR_GREATER
+            if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
+            {
+                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref inBuf[inOff]);
+                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
+                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+
+                t1 = Sse2.Xor(t1, t0);
+                t2 = Sse2.Xor(t2, t1);
+
+                Unsafe.WriteUnaligned(ref outBuf[outOff], t1);
+                Unsafe.WriteUnaligned(ref S[0], t2);
+            }
+            else
+#endif
+            {
+                for (int i = 0; i < BlockSize; i += 4)
+                {
+                    byte c0 = (byte)(ctrBlock[i + 0] ^ inBuf[inOff + i + 0]);
+                    byte c1 = (byte)(ctrBlock[i + 1] ^ inBuf[inOff + i + 1]);
+                    byte c2 = (byte)(ctrBlock[i + 2] ^ inBuf[inOff + i + 2]);
+                    byte c3 = (byte)(ctrBlock[i + 3] ^ inBuf[inOff + i + 3]);
+
+                    S[i + 0] ^= c0;
+                    S[i + 1] ^= c1;
+                    S[i + 2] ^= c2;
+                    S[i + 3] ^= c3;
+
+                    outBuf[outOff + i + 0] = c0;
+                    outBuf[outOff + i + 1] = c1;
+                    outBuf[outOff + i + 2] = c2;
+                    outBuf[outOff + i + 3] = c3;
+                }
+            }
+            multiplier.MultiplyH(S);
+
+            totalLength += BlockSize;
+        }
+
+        private void EncryptBlocks2(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
+        {
+            Check.OutputLength(outBuf, outOff, BlockSize * 2, "Output buffer too short");
+
+            if (totalLength == 0)
+            {
+                InitCipher();
+            }
+
+            byte[] ctrBlock = new byte[BlockSize];
+
+            GetNextCtrBlock(ctrBlock);
+#if NETCOREAPP3_0_OR_GREATER
+            if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
+            {
+                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref inBuf[inOff]);
+                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
+                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+
+                t1 = Sse2.Xor(t1, t0);
+                t2 = Sse2.Xor(t2, t1);
+
+                Unsafe.WriteUnaligned(ref outBuf[outOff], t1);
+                Unsafe.WriteUnaligned(ref S[0], t2);
+            }
+            else
+#endif
+            {
+                for (int i = 0; i < BlockSize; i += 4)
+                {
+                    byte c0 = (byte)(ctrBlock[i + 0] ^ inBuf[inOff + i + 0]);
+                    byte c1 = (byte)(ctrBlock[i + 1] ^ inBuf[inOff + i + 1]);
+                    byte c2 = (byte)(ctrBlock[i + 2] ^ inBuf[inOff + i + 2]);
+                    byte c3 = (byte)(ctrBlock[i + 3] ^ inBuf[inOff + i + 3]);
+
+                    S[i + 0] ^= c0;
+                    S[i + 1] ^= c1;
+                    S[i + 2] ^= c2;
+                    S[i + 3] ^= c3;
+
+                    outBuf[outOff + i + 0] = c0;
+                    outBuf[outOff + i + 1] = c1;
+                    outBuf[outOff + i + 2] = c2;
+                    outBuf[outOff + i + 3] = c3;
+                }
+            }
+            multiplier.MultiplyH(S);
+
+            inOff += BlockSize;
+            outOff += BlockSize;
+
+            GetNextCtrBlock(ctrBlock);
+#if NETCOREAPP3_0_OR_GREATER
+            if (Sse2.IsSupported && Unsafe.SizeOf<Vector128<byte>>() == BlockSize)
+            {
+                var t0 = Unsafe.ReadUnaligned<Vector128<byte>>(ref inBuf[inOff]);
+                var t1 = Unsafe.ReadUnaligned<Vector128<byte>>(ref ctrBlock[0]);
+                var t2 = Unsafe.ReadUnaligned<Vector128<byte>>(ref S[0]);
+
+                t1 = Sse2.Xor(t1, t0);
+                t2 = Sse2.Xor(t2, t1);
+
+                Unsafe.WriteUnaligned(ref outBuf[outOff], t1);
+                Unsafe.WriteUnaligned(ref S[0], t2);
+            }
+            else
+#endif
+            {
+                for (int i = 0; i < BlockSize; i += 4)
+                {
+                    byte c0 = (byte)(ctrBlock[i + 0] ^ inBuf[inOff + i + 0]);
+                    byte c1 = (byte)(ctrBlock[i + 1] ^ inBuf[inOff + i + 1]);
+                    byte c2 = (byte)(ctrBlock[i + 2] ^ inBuf[inOff + i + 2]);
+                    byte c3 = (byte)(ctrBlock[i + 3] ^ inBuf[inOff + i + 3]);
+
+                    S[i + 0] ^= c0;
+                    S[i + 1] ^= c1;
+                    S[i + 2] ^= c2;
+                    S[i + 3] ^= c3;
+
+                    outBuf[outOff + i + 0] = c0;
+                    outBuf[outOff + i + 1] = c1;
+                    outBuf[outOff + i + 2] = c2;
+                    outBuf[outOff + i + 3] = c3;
+                }
+            }
+            multiplier.MultiplyH(S);
+
+            totalLength += BlockSize * 2;
         }
 
         private void ProcessPartial(byte[] buf, int off, int len, byte[] output, int outOff)
@@ -621,11 +955,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             blocksRemaining--;
 
-            uint c = 1;
-            c += counter[15]; counter[15] = (byte)c; c >>= 8;
-            c += counter[14]; counter[14] = (byte)c; c >>= 8;
-            c += counter[13]; counter[13] = (byte)c; c >>= 8;
-            c += counter[12]; counter[12] = (byte)c;
+            Pack.UInt32_To_BE(++counter32, counter, 12);
 
             cipher.ProcessBlock(counter, 0, block, 0);
         }

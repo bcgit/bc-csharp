@@ -29,7 +29,7 @@ public class KMacWithShake256Params : Asn1Encodable
         this.customizationString = Arrays.Clone(customizationString);
     }
 
-    public static KMacWithShake256Params GetInstance(Object o)
+    public static KMacWithShake256Params GetInstance(object o)
     {
         if (o is KMacWithShake256Params)
         {

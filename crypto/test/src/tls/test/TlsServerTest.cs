@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Tls.Tests
     [TestFixture]
     public class TlsServerTest
     {
-        [Test, Ignore("Fill In Reason")]
+        [Test, Explicit]
         public void TestConnection()
         {
             int port = 5556;

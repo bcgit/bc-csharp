@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
 using System.IO;
+
 using Org.BouncyCastle.Bcpg.Sig;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -95,12 +94,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			return vals;
 		}
-
-        [Obsolete("Use 'GetNotationDataOccurrences' instead")]
-        public NotationData[] GetNotationDataOccurences()
-        {
-            return GetNotationDataOccurrences();
-        }
 
 		public long GetIssuerKeyId()
         {
@@ -253,12 +246,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             return new Features(p.IsCritical(), p.IsLongLength(), p.GetData());
         }
-
-        [Obsolete("Use 'Count' property instead")]
-		public int Size
-		{
-			get { return packets.Length; }
-		}
 
 		/// <summary>Return the number of packets this vector contains.</summary>
 		public int Count

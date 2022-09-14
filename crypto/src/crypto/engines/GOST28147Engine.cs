@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
@@ -117,7 +117,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 		//
 		// pre-defined sbox table
 		//
-		private static readonly IDictionary sBoxes = Platform.CreateHashtable();
+		private static readonly Dictionary<string, byte[]> m_sBoxes =
+			new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 
 		static Gost28147Engine()
 		{
@@ -133,7 +134,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 		private static void AddSBox(string sBoxName, byte[] sBox)
 		{
-			sBoxes.Add(Platform.ToUpperInvariant(sBoxName), sBox);        
+			m_sBoxes.Add(sBoxName, sBox);        
 		}
 
 		/**
@@ -351,12 +352,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @param sBoxName name of the S-Box
 		* @return byte array representing the S-Box
 		*/
-		public static byte[] GetSBox(
-			string sBoxName)
+		public static byte[] GetSBox(string sBoxName)
 		{
-			byte[] sBox = (byte[])sBoxes[Platform.ToUpperInvariant(sBoxName)];
-
-            if (sBox == null)
+			if (!m_sBoxes.TryGetValue(sBoxName, out var sBox))
 			{
 				throw new ArgumentException("Unknown S-Box - possible types: "
 					+ "\"Default\", \"E-Test\", \"E-A\", \"E-B\", \"E-C\", \"E-D\", \"D-Test\", \"D-A\".");
@@ -367,13 +365,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public static string GetSBoxName(byte[] sBox)
         {
-            foreach (string name in sBoxes.Keys)
+			foreach (var entry in m_sBoxes)
             {
-                byte[] sb = (byte[])sBoxes[name];
-                if (Arrays.AreEqual(sb, sBox))
-                {
-                    return name;
-                }
+                if (Arrays.AreEqual(entry.Value, sBox))
+                    return entry.Key;
             }
 
             throw new ArgumentException("SBOX provided did not map to a known one");

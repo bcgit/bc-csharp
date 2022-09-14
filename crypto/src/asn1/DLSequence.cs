@@ -28,6 +28,14 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /**
+		 * create a sequence containing two objects
+		 */
+        public DLSequence(Asn1Encodable element1, Asn1Encodable element2)
+            : base(element1, element2)
+        {
+        }
+
         internal DLSequence(params Asn1Encodable[] elements)
             : base(elements)
         {

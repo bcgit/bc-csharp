@@ -44,11 +44,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             IsTrue("enc 2 failed", AreEqual(privWithPub, privInfo2.GetEncoded()));
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new PrivateKeyInfoTest());
-        }
-
         [Test]
         public void TestFunction()
         {

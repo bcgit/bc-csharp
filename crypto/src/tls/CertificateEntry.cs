@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Tls.Crypto;
 
@@ -8,9 +8,9 @@ namespace Org.BouncyCastle.Tls
     public sealed class CertificateEntry
     {
         private readonly TlsCertificate m_certificate;
-        private readonly IDictionary m_extensions;
+        private readonly IDictionary<int, byte[]> m_extensions;
 
-        public CertificateEntry(TlsCertificate certificate, IDictionary extensions)
+        public CertificateEntry(TlsCertificate certificate, IDictionary<int, byte[]> extensions)
         {
             if (null == certificate)
                 throw new ArgumentNullException("certificate");
@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_certificate; }
         }
 
-        public IDictionary Extensions
+        public IDictionary<int, byte[]> Extensions
         {
             get { return m_extensions; }
         }

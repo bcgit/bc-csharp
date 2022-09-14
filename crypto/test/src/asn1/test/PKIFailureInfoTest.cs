@@ -72,12 +72,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             DoTestEncoding();
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PkiFailureInfoTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

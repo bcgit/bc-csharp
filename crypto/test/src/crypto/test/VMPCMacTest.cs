@@ -20,12 +20,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "VMPC-MAC"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new VmpcMacTest());
-		}
-
 		private static byte[] output1 = Hex.Decode("9BDA16E2AD0E284774A3ACBC8835A8326C11FAAD");
 
 		public override void PerformTest()

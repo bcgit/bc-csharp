@@ -42,12 +42,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Noekeon"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new NoekeonTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

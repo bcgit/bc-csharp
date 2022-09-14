@@ -1,21 +1,16 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
-using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -241,68 +236,54 @@ namespace Org.BouncyCastle.Cms
 				_eiGen = eiGen;
 			}
 
-			public override void WriteByte(
-				byte b)
+			public override void Write(byte[] buffer, int offset, int count)
 			{
-				_out.WriteByte(b);
+				_out.Write(buffer, offset, count);
 			}
 
-			public override void Write(
-				byte[]	bytes,
-				int		off,
-				int		len)
+			public override void WriteByte(byte value)
 			{
-				_out.Write(bytes, off, len);
+				_out.WriteByte(value);
 			}
 
 #if PORTABLE
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
-                {
-                    Platform.Dispose(_out);
-
-                    // TODO Parent context(s) should really be closed explicitly
-
-				    _eiGen.Close();
-
-                    if (_outer.unprotectedAttributeGenerator != null)
-                    {
-                        Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(Platform.CreateHashtable());
-
-                        Asn1Set unprotectedAttrs = new BerSet(attrTable.ToAsn1EncodableVector());
-
-                        _envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
-                    }
-
-				    _envGen.Close();
-				    _cGen.Close();
+ 				{
+					ImplClose();
                 }
                 base.Dispose(disposing);
             }
 #else
-            public override void Close()
+			public override void Close()
 			{
-                Platform.Dispose(_out);
-
-                // TODO Parent context(s) should really be closed explicitly
-
-                _eiGen.Close();
-
-                if (_outer.unprotectedAttributeGenerator != null)
-                {
-                    Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(Platform.CreateHashtable());
-
-                    Asn1Set unprotectedAttrs = new BerSet(attrTable.ToAsn1EncodableVector());
-
-                    _envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
-                }
-
-				_envGen.Close();
-				_cGen.Close();
+				ImplClose();
 				base.Close();
 			}
 #endif
+
+			private void ImplClose()
+            {
+				Platform.Dispose(_out);
+
+				// TODO Parent context(s) should really be closed explicitly
+
+				_eiGen.Close();
+
+				if (_outer.unprotectedAttributeGenerator != null)
+				{
+					Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(
+						new Dictionary<CmsAttributeTableParameter, object>());
+
+					Asn1Set unprotectedAttrs = new BerSet(attrTable.ToAsn1EncodableVector());
+
+					_envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
+				}
+
+				_envGen.Close();
+				_cGen.Close();
+			}
 		}
 	}
 }

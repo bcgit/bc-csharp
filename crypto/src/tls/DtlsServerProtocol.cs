@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Tls
 
             handshake.HandshakeHash.NotifyPrfDetermined();
 
-            IList serverSupplementalData = state.server.GetServerSupplementalData();
+            var serverSupplementalData = state.server.GetServerSupplementalData();
             if (serverSupplementalData != null)
             {
                 byte[] supplementalDataBody = GenerateSupplementalData(serverSupplementalData);
@@ -155,7 +155,13 @@ namespace Org.BouncyCastle.Tls
             }
 
             state.keyExchange = TlsUtilities.InitKeyExchangeServer(state.serverContext, state.server);
-            state.serverCredentials = TlsUtilities.EstablishServerCredentials(state.server);
+
+            state.serverCredentials = null;
+
+            if (!KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm))
+            {
+                state.serverCredentials = TlsUtilities.EstablishServerCredentials(state.server);
+            }
 
             // Server certificate
             {
@@ -225,17 +231,34 @@ namespace Org.BouncyCastle.Tls
 
                     TlsUtilities.EstablishServerSigAlgs(securityParameters, state.certificateRequest);
 
-                    TlsUtilities.TrackHashAlgorithms(handshake.HandshakeHash, securityParameters.ServerSigAlgs);
+                    if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+                    {
+                        TlsUtilities.TrackHashAlgorithms(handshake.HandshakeHash, securityParameters.ServerSigAlgs);
 
-                    byte[] certificateRequestBody = GenerateCertificateRequest(state, state.certificateRequest);
-                    handshake.SendMessage(HandshakeType.certificate_request, certificateRequestBody);
+                        if (state.serverContext.Crypto.HasAnyStreamVerifiers(securityParameters.ServerSigAlgs))
+                        {
+                            handshake.HandshakeHash.ForceBuffering();
+                        }
+                    }
+                    else
+                    {
+                        if (state.serverContext.Crypto.HasAnyStreamVerifiersLegacy(state.certificateRequest.CertificateTypes))
+                        {
+                            handshake.HandshakeHash.ForceBuffering();
+                        }
+                    }
                 }
             }
 
-            handshake.SendMessage(HandshakeType.server_hello_done, TlsUtilities.EmptyBytes);
+            handshake.HandshakeHash.SealHashAlgorithms();
 
-            bool forceBuffering = false;
-            TlsUtilities.SealHandshakeHash(state.serverContext, handshake.HandshakeHash, forceBuffering);
+            if (null != state.certificateRequest)
+            {
+                byte[] certificateRequestBody = GenerateCertificateRequest(state, state.certificateRequest);
+                handshake.SendMessage(HandshakeType.certificate_request, certificateRequestBody);
+            }
+
+            handshake.SendMessage(HandshakeType.server_hello_done, TlsUtilities.EmptyBytes);
 
             clientMessage = handshake.ReceiveMessage();
 
@@ -806,7 +829,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessClientSupplementalData(ServerHandshakeState state, byte[] body)
         {
             MemoryStream buf = new MemoryStream(body, false);
-            IList clientSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
+            var clientSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
             state.server.ProcessClientSupplementalData(clientSupplementalData);
         }
 
@@ -830,8 +853,8 @@ namespace Org.BouncyCastle.Tls
             internal TlsSecret sessionMasterSecret = null;
             internal SessionParameters.Builder sessionParametersBuilder = null;
             internal int[] offeredCipherSuites = null;
-            internal IDictionary clientExtensions = null;
-            internal IDictionary serverExtensions = null;
+            internal IDictionary<int, byte[]> clientExtensions = null;
+            internal IDictionary<int, byte[]> serverExtensions = null;
             internal bool offeredExtendedMasterSecret = false;
             internal bool resumedSession = false;
             internal bool expectSessionTicket = false;

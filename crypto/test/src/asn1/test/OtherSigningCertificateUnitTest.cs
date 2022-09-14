@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				OtherCertID.GetInstance(new Object());
+				OtherCertID.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -75,12 +75,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 				Fail("GetCerts() length wrong");
 			}
 			checkMandatoryField("GetCerts()[0]", otherCertID, otherCert.GetCerts()[0]);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new OtherSigningCertificateUnitTest());
 		}
 
 		[Test]

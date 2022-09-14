@@ -207,12 +207,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.IsTrue(Arrays.AreEqual(res1, res2));
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new CShakeTest());
-        }
-
         [Test]
         public void TestFunction()
         {

@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Tls.Tests
     [TestFixture]
     public class PskTlsClientTest
     {
-        [Test, Ignore("Fill In Reason")]
+        [Test, Explicit]
         public void TestConnection()
         {
             string host = "localhost";

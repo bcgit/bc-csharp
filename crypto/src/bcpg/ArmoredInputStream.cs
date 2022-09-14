@@ -1,5 +1,4 @@
-using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -114,7 +113,7 @@ namespace Org.BouncyCastle.Bcpg
         bool        newLineFound = false;
         bool        clearText = false;
         bool        restart = false;
-        IList       headerList = Platform.CreateArrayList();
+        IList<string> headerList = new List<string>();
         int         lastC = 0;
 		bool		isEndOfStream;
 
@@ -158,7 +157,7 @@ namespace Org.BouncyCastle.Bcpg
             int		last = 0;
             bool	headerFound = false;
 
-            headerList = Platform.CreateArrayList();
+            headerList = new List<string>();
 
 			//
             // if restart we already have a header
@@ -311,6 +310,26 @@ namespace Org.BouncyCastle.Bcpg
             return c;
         }
 
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            Streams.ValidateBufferArguments(buffer, offset, count);
+
+            /*
+             * TODO Currently can't return partial data when exception thrown (breaking test case), so we don't inherit
+             * the base class implementation. Probably the reason is that throws don't mark this instance as 'failed'.
+             */
+            int pos = 0;
+            while (pos < count)
+            {
+                int b = ReadByte();
+                if (b < 0)
+                    break;
+
+                buffer[offset + pos++] = (byte)b;
+            }
+            return pos;
+        }
+
         public override int ReadByte()
         {
             if (start)
@@ -461,52 +480,6 @@ namespace Org.BouncyCastle.Bcpg
             crc.Update(c);
 
             return c;
-        }
-
-        /**
-         * Reads up to <code>len</code> bytes of data from the input stream into
-         * an array of bytes.  An attempt is made to read as many as
-         * <code>len</code> bytes, but a smaller number may be read.
-         * The number of bytes actually read is returned as an integer.
-         *
-         * The first byte read is stored into element <code>b[off]</code>, the
-         * next one into <code>b[off+1]</code>, and so on. The number of bytes read
-         * is, at most, equal to <code>len</code>.
-         *
-         * NOTE: We need to override the custom behavior of Java's {@link InputStream#read(byte[], int, int)},
-         * as the upstream method silently swallows {@link IOException IOExceptions}.
-         * This would cause CRC checksum errors to go unnoticed.
-         *
-         * @see <a href="https://github.com/bcgit/bc-java/issues/998">Related BC bug report</a>
-         * @param b byte array
-         * @param off offset at which we start writing data to the array
-         * @param len number of bytes we write into the array
-         * @return total number of bytes read into the buffer
-         *
-         * @throws IOException if an exception happens AT ANY POINT
-         */
-        public override int Read(byte[] b, int off, int len)
-        {
-            CheckIndexSize(b.Length, off, len);
-
-            int pos = 0;
-            while (pos < len)
-            {
-                int c = ReadByte();
-                if (c < 0)
-                    break;
-
-                b[off + pos++] = (byte)c;
-            }
-            return pos;
-        }
-
-        private void CheckIndexSize(int size, int off, int len)
-        {
-            if (off < 0 || len < 0)
-                throw new IndexOutOfRangeException("Offset and length cannot be negative.");
-            if (off > size - len)
-                throw new IndexOutOfRangeException("Invalid offset and length.");
         }
 
 #if PORTABLE

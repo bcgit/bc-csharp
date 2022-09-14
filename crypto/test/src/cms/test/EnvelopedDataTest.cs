@@ -1,6 +1,5 @@
 using System;
-using System.Collections;
-using System.Reflection;
+using System.Collections.Generic;
 using System.Text;
 
 using NUnit.Framework;
@@ -11,11 +10,9 @@ using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Operators;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -195,7 +192,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedDataGenerator.DesEde3Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -226,7 +223,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ed.EncryptionAlgOid, "1.2.840.113549.3.4");
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -256,7 +253,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ed.EncryptionAlgOid, "1.2.840.113549.3.4");
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -285,7 +282,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ed.EncryptionAlgOid, OiwObjectIdentifiers.DesCbc.Id);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -315,7 +312,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			Assert.AreEqual(ed.EncryptionAlgOid,
 				CmsEnvelopedDataGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -345,7 +342,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			Assert.AreEqual(ed.EncryptionAlgOid,
 				CmsEnvelopedDataGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -374,7 +371,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			Assert.AreEqual(ed.EncryptionAlgOid,
 				CmsEnvelopedDataGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -411,7 +408,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedGenerator.Aes128Cbc);
 
-            ICollection c = recipients.GetRecipients();
+            var c = recipients.GetRecipients();
 
             Assert.AreEqual(1, c.Count);
 
@@ -444,7 +441,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			Assert.AreEqual(ed.EncryptionAlgOid,
 				CmsEnvelopedDataGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -538,7 +535,7 @@ namespace Org.BouncyCastle.Cms.Tests
 				Assert.IsTrue(asn1Params.GetTypeInfo().IsInstanceOfType(ed.EncryptionAlgorithmID.Parameters));
 			}
 
-			ArrayList c = new ArrayList(recipients.GetRecipients());
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -566,7 +563,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedDataGenerator.DesEde3Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -655,7 +652,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedDataGenerator.DesEde3Cbc);
 
-			ArrayList c = new ArrayList(recipients.GetRecipients());
+			var c = recipients.GetRecipients();
 
 			Assert.IsTrue(c.Count > 0);
 
@@ -728,7 +725,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
 
-			ArrayList recipientCerts = new ArrayList();
+			var recipientCerts = new List<X509Certificate>();
 			recipientCerts.Add(ReciECCert);
 			recipientCerts.Add(ReciECCert2);
 
@@ -818,7 +815,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual("1.2.840.113549.3.7", ed.EncryptionAlgOid);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -845,14 +842,14 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual("1.2.840.113549.3.2", ed.EncryptionAlgOid);
 
-			ICollection c = recipients.GetRecipients();
-			IEnumerator e = c.GetEnumerator();
+			var c = recipients.GetRecipients();
+			var e = c.GetEnumerator();
 
 			if (e.MoveNext())
 			{
 				do
 				{
-					RecipientInformation recipient = (RecipientInformation) e.Current;
+					RecipientInformation recipient = e.Current;
 
 					if (recipient is KeyTransRecipientInformation)
 					{
@@ -896,7 +893,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedDataGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -929,7 +926,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedDataGenerator.Aes128Cbc);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -957,7 +954,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(wrapAlg, ed.EncryptionAlgOid);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 
@@ -982,7 +979,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			RecipientInformationStore recipients = ed.GetRecipientInfos();
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(wrapAlg, ed.EncryptionAlgOid);
 			Assert.AreEqual(1, c.Count);

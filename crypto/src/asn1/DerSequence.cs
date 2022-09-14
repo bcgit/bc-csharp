@@ -28,7 +28,15 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		public DerSequence(params Asn1Encodable[] elements)
+        /**
+		 * create a sequence containing two objects
+		 */
+        public DerSequence(Asn1Encodable element1, Asn1Encodable element2)
+            : base(element1, element2)
+        {
+        }
+
+        public DerSequence(params Asn1Encodable[] elements)
             : base(elements)
 		{
 		}

@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Tls
             return new ProtocolName(Arrays.Clone(bytes));
         }
 
-        public static ProtocolName AsUtf8Encoding(String name)
+        public static ProtocolName AsUtf8Encoding(string name)
         {
             return new ProtocolName(Strings.ToUtf8ByteArray(name));
         }
@@ -35,6 +35,17 @@ namespace Org.BouncyCastle.Tls
         public static readonly ProtocolName Coap = AsUtf8Encoding("coap");
         public static readonly ProtocolName Xmpp_Client = AsUtf8Encoding("xmpp-client");
         public static readonly ProtocolName Xmpp_Server = AsUtf8Encoding("xmpp-server");
+        public static readonly ProtocolName Acme_Tls_1 = AsUtf8Encoding("acme-tls/1");
+        public static readonly ProtocolName Oasis_Mqtt = AsUtf8Encoding("mqtt");
+        public static readonly ProtocolName Dns_Over_Tls = AsUtf8Encoding("dot");
+        public static readonly ProtocolName Ntske_1 = AsUtf8Encoding("ntske/1");
+        public static readonly ProtocolName Sun_Rpc = AsUtf8Encoding("sunrpc");
+        public static readonly ProtocolName Http_3 = AsUtf8Encoding("h3");
+        public static readonly ProtocolName Smb_2 = AsUtf8Encoding("smb");
+        public static readonly ProtocolName Irc = AsUtf8Encoding("irc");
+        public static readonly ProtocolName Nntp_Reading = AsUtf8Encoding("nntp");
+        public static readonly ProtocolName Nntp_Transit = AsUtf8Encoding("nnsp");
+        public static readonly ProtocolName Dns_Over_Quic = AsUtf8Encoding("doq");
 
         private readonly byte[] m_bytes;
 

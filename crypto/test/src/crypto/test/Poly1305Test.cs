@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 			else
 			{
-				mac = new Poly1305(new AesEngine());
+				mac = new Poly1305(AesUtilities.CreateEngine());
 				mac.Init(new ParametersWithIV(new KeyParameter(tc.key), tc.nonce));
 			}
 			mac.BlockUpdate(tc.message, 0, tc.message.Length);
@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			byte[] output = new byte[16];
 
 			int c = 0;
-			IMac mac = new Poly1305(new AesEngine());
+			IMac mac = new Poly1305(AesUtilities.CreateEngine());
 			for (int loop = 0; loop < 13; loop++)
 			{
 				len = 0;
@@ -227,7 +227,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			byte[] output = new byte[16];
 
 			// Generate baseline
-			IMac poly = new Poly1305(new AesEngine());
+			IMac poly = new Poly1305(AesUtilities.CreateEngine());
 			poly.Init(new ParametersWithIV(new KeyParameter(k), new byte[16]));
 
 			poly.BlockUpdate(m, 0, m.Length);
@@ -273,7 +273,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			gen.Init(new KeyGenerationParameters(new SecureRandom(), 256));
 			byte[] k = gen.GenerateKey();
 
-			IMac poly = new Poly1305(new AesEngine());
+			IMac poly = new Poly1305(AesUtilities.CreateEngine());
 			poly.Init(new ParametersWithIV(new KeyParameter(k), new byte[16]));
 
 			try
@@ -499,13 +499,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Fail("rfc7539", Hex.ToHexString(tag), Hex.ToHexString(mac));
             }
-       }
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Poly1305Test());
-		}
+        }
 
 		[Test]
 		public void TestFunction()
@@ -514,6 +508,5 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText);
 		}
-
 	}
 }

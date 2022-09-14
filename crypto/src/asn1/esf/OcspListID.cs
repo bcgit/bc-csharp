@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
@@ -60,12 +59,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 		}
 
 		public OcspListID(
-			IEnumerable ocspResponses)
+			IEnumerable<OcspResponsesID> ocspResponses)
 		{
 			if (ocspResponses == null)
 				throw new ArgumentNullException("ocspResponses");
-			if (!CollectionUtilities.CheckElementsAreOfType(ocspResponses, typeof(OcspResponsesID)))
-				throw new ArgumentException("Must contain only 'OcspResponsesID' objects", "ocspResponses");
 
 			this.ocspResponses = new DerSequence(
 				Asn1EncodableVector.FromEnumerable(ocspResponses));

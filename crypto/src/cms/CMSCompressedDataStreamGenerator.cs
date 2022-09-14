@@ -111,18 +111,14 @@ namespace Org.BouncyCastle.Cms
 				_eiGen = eiGen;
 			}
 
-			public override void WriteByte(
-				byte b)
+			public override void Write(byte[] buffer, int offset, int count)
 			{
-				_out.WriteByte(b);
+				_out.Write(buffer, offset, count);
 			}
 
-			public override void Write(
-				byte[]	bytes,
-				int		off,
-				int		len)
+			public override void WriteByte(byte value)
 			{
-				_out.Write(bytes, off, len);
+				_out.WriteByte(value);
 			}
 
 #if PORTABLE
@@ -141,7 +137,7 @@ namespace Org.BouncyCastle.Cms
                 base.Dispose(disposing);
             }
 #else
-            public override void Close()
+			public override void Close()
 			{
                 Platform.Dispose(_out);
 

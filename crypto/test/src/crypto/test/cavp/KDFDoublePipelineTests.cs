@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 using NUnit.Framework;
 
@@ -28,7 +27,7 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
         private void KdfDblPipelineNoCounterTest()
         {
             string file = "KDFDblPipelineNoCounter_gen.rsp";
-            ArrayList vectors = CavpReader.ReadVectorFile(file);
+            var vectors = CavpReader.ReadVectorFile(file);
 
             foreach (Vector vector in vectors)
             {
@@ -53,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
         private void KdfDblPipelineCounterTest()
         {
             string file = "KDFDblPipelineCounter_gen.rsp";
-            ArrayList vectors = CavpReader.ReadVectorFile(file);
+            var vectors = CavpReader.ReadVectorFile(file);
 
             foreach (Vector vector in vectors)
             {
@@ -69,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Tests.Cavp
                     {
                         Assert.Fail("No RLEN");
                     }
-                    r = Int32.Parse(rlen.Split('_')[0]);
+                    r = int.Parse(rlen.Split('_')[0]);
                 }
                 int count = vector.ValueAsInt("COUNT");
                 int l = vector.ValueAsInt("L");

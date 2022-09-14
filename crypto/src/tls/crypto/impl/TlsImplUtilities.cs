@@ -56,20 +56,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         {
             SecurityParameters securityParameters = cryptoParams.SecurityParameters;
             TlsSecret master_secret = securityParameters.MasterSecret;
+            int prfAlgorithm = securityParameters.PrfAlgorithm;
             byte[] seed = Arrays.Concatenate(securityParameters.ServerRandom, securityParameters.ClientRandom);
-            return Prf(securityParameters, master_secret, ExporterLabel.key_expansion, seed, length).Extract();
-        }
-
-        public static TlsSecret Prf(SecurityParameters securityParameters, TlsSecret secret, string asciiLabel,
-            byte[] seed, int length)
-        {
-            return secret.DeriveUsingPrf(securityParameters.PrfAlgorithm, asciiLabel, seed, length);
-        }
-
-        public static TlsSecret Prf(TlsCryptoParameters cryptoParams, TlsSecret secret, string asciiLabel, byte[] seed,
-            int length)
-        {
-            return Prf(cryptoParams.SecurityParameters, secret, asciiLabel, seed, length);
+            return master_secret.DeriveUsingPrf(prfAlgorithm, ExporterLabel.key_expansion, seed, length).Extract();
         }
     }
 }

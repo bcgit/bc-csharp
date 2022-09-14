@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Asn1
      * Mutable class for building ASN.1 constructed objects such as SETs or SEQUENCEs.
      */
     public class Asn1EncodableVector
-        : IEnumerable
+        : IEnumerable<Asn1Encodable>
     {
         internal static readonly Asn1Encodable[] EmptyElements = new Asn1Encodable[0];
 
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1
         private int elementCount;
         private bool copyOnWrite;
 
-        public static Asn1EncodableVector FromEnumerable(IEnumerable e)
+        public static Asn1EncodableVector FromEnumerable(IEnumerable<Asn1Encodable> e)
         {
             Asn1EncodableVector v = new Asn1EncodableVector();
             foreach (Asn1Encodable obj in e)
@@ -42,6 +42,19 @@ namespace Org.BouncyCastle.Asn1
             this.copyOnWrite = false;
         }
 
+        public Asn1EncodableVector(Asn1Encodable element)
+            : this()
+        {
+            Add(element);
+        }
+
+        public Asn1EncodableVector(Asn1Encodable element1, Asn1Encodable element2)
+            : this()
+        {
+            Add(element1);
+            Add(element2);
+        }
+
         public Asn1EncodableVector(params Asn1Encodable[] v)
             : this()
         {
@@ -64,6 +77,12 @@ namespace Org.BouncyCastle.Asn1
             this.elementCount = minCapacity;
         }
 
+        public void Add(Asn1Encodable element1, Asn1Encodable element2)
+        {
+            Add(element1);
+            Add(element2);
+        }
+
         public void Add(params Asn1Encodable[] objs)
         {
             foreach (Asn1Encodable obj in objs)
@@ -72,15 +91,35 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        public void AddOptional(params Asn1Encodable[] objs)
+        public void AddOptional(Asn1Encodable element)
         {
-            if (objs != null)
+            if (element != null)
             {
-                foreach (Asn1Encodable obj in objs)
+                Add(element);
+            }
+        }
+
+        public void AddOptional(Asn1Encodable element1, Asn1Encodable element2)
+        {
+            if (element1 != null)
+            {
+                Add(element1);
+            }
+            if (element2 != null)
+            {
+                Add(element2);
+            }
+        }
+
+        public void AddOptional(params Asn1Encodable[] elements)
+        {
+            if (elements != null)
+            {
+                foreach (var element in elements)
                 {
-                    if (obj != null)
+                    if (element != null)
                     {
-                        Add(obj);
+                        Add(element);
                     }
                 }
             }
@@ -140,9 +179,15 @@ namespace Org.BouncyCastle.Asn1
             get { return elementCount; }
         }
 
-        public IEnumerator GetEnumerator()
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return CopyElements().GetEnumerator();
+            return GetEnumerator();
+        }
+
+        public IEnumerator<Asn1Encodable> GetEnumerator()
+        {
+            IEnumerable<Asn1Encodable> e = CopyElements();
+            return e.GetEnumerator();
         }
 
         internal Asn1Encodable[] CopyElements()

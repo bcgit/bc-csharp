@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -7,10 +7,8 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Ocsp
 {
@@ -103,72 +101,42 @@ namespace Org.BouncyCastle.Ocsp
             get { return resp.SignatureAlgorithm.Algorithm.Id; }
 		}
 
-		[Obsolete("RespData class is no longer required as all functionality is available on this class")]
-		public RespData GetResponseData()
-		{
-			return new RespData(data);
-		}
-
 		public byte[] GetSignature()
 		{
 			return resp.GetSignatureOctets();
 		}
 
-		private IList GetCertList()
+		private List<X509Certificate> GetCertList()
 		{
-			// load the certificates and revocation lists if we have any
+			// load the certificates if we have any
 
-			IList certs = Platform.CreateArrayList();
-			Asn1Sequence s = resp.Certs;
+			var result = new List<X509Certificate>();
 
-			if (s != null)
+			Asn1Sequence certs = resp.Certs;
+			if (certs != null)
 			{
-				foreach (Asn1Encodable ae in s)
+				foreach (Asn1Encodable ae in certs)
 				{
-					try
+					if (ae != null && ae.ToAsn1Object() is Asn1Sequence s)
 					{
-						certs.Add(new X509CertificateParser().ReadCertificate(ae.GetEncoded()));
-					}
-					catch (IOException ex)
-					{
-						throw new OcspException("can't re-encode certificate!", ex);
-					}
-					catch (CertificateException ex)
-					{
-						throw new OcspException("can't re-encode certificate!", ex);
+						result.Add(new X509Certificate(X509CertificateStructure.GetInstance(s)));
 					}
 				}
 			}
 
-			return certs;
+			return result;
 		}
 
 		public X509Certificate[] GetCerts()
 		{
-			IList certs = GetCertList();
-            X509Certificate[] result = new X509Certificate[certs.Count];
-            for (int i = 0; i < certs.Count; ++i)
-            {
-                result[i] = (X509Certificate)certs[i];
-            }
-            return result;
+			return GetCertList().ToArray();
 		}
 
 		/// <returns>The certificates, if any, associated with the response.</returns>
 		/// <exception cref="OcspException">In the event of an encoding error.</exception>
-		public IX509Store GetCertificates(
-			string type)
+		public IStore<X509Certificate> GetCertificates()
 		{
-			try
-			{
-				return X509StoreFactory.Create(
-					"Certificate/" + type,
-					new X509CollectionStoreParameters(this.GetCertList()));
-			}
-			catch (Exception e)
-			{
-				throw new OcspException("can't setup the CertStore", e);
-			}
+			return CollectionUtilities.CreateStore(this.GetCertList());
 		}
 
 		/// <summary>

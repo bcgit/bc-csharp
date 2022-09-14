@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Text;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
@@ -96,18 +94,13 @@ namespace Org.BouncyCastle.Asn1.X509
             //return "AuthorityInformationAccess: Oid(" + this.descriptions[0].AccessMethod.Id + ")";
 
             StringBuilder buf = new StringBuilder();
-            string sep = Platform.NewLine;
-
-            buf.Append("AuthorityInformationAccess:");
-            buf.Append(sep);
-
+            buf.AppendLine("AuthorityInformationAccess:");
             foreach (AccessDescription description in descriptions)
             {
-                buf.Append("    ");
-                buf.Append(description);
-                buf.Append(sep);
+                buf.Append("    ")
+                   .Append(description)
+                   .AppendLine();
             }
-
             return buf.ToString();
         }
     }

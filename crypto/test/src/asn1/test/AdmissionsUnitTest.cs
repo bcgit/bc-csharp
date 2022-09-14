@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				Admissions.GetInstance(new Object());
+				Admissions.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -71,12 +71,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			checkMandatoryField("admissionAuthority", name, admissions.AdmissionAuthority);
 			checkMandatoryField("namingAuthority", auth, admissions.NamingAuthority);
-		}
-
-        public static void Main(
-			string[] args)
-		{
-			RunTest(new AdmissionsUnitTest());
 		}
 
 		[Test]

@@ -31,19 +31,21 @@ namespace Org.BouncyCastle.Tls
             return bytesToRead;
         }
 
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            Streams.ValidateBufferArguments(buffer, offset, count);
+
+            int bytesToRead = System.Math.Min(m_buffer.Available, count);
+            m_buffer.RemoveData(buffer, offset, bytesToRead, 0);
+            return bytesToRead;
+        }
+
         public override int ReadByte()
         {
             if (m_buffer.Available == 0)
                 return -1;
 
             return m_buffer.RemoveData(1, 0)[0];
-        }
-
-        public override int Read(byte[] buf, int off, int len)
-        {
-            int bytesToRead = System.Math.Min(m_buffer.Available, len);
-            m_buffer.RemoveData(buf, off, bytesToRead, 0);
-            return bytesToRead;
         }
 
         public long Skip(long n)

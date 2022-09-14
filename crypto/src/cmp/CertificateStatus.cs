@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Cmp
 
         public bool IsVerified(X509Certificate cert)
         {
-            AlgorithmIdentifier digAlg = digestAlgFinder.find(sigAlgFinder.Find(cert.SigAlgName));
+            AlgorithmIdentifier digAlg = digestAlgFinder.Find(sigAlgFinder.Find(cert.SigAlgName));
             if (null == digAlg)
                 throw new CmpException("cannot find algorithm for digest from signature " + cert.SigAlgName);
 

@@ -21,11 +21,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
             get { return "HashDRBG"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new HashDrbgTest());
-        }
-
         [Test]
         public void TestFunction()
         {
@@ -361,7 +356,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 
                 byte[] output = new byte[tv.GetExpectedValue(0).Length];
 
-                d.Generate(output, tv.GetAdditionalInput(0), tv.PredictionResistance);
+                d.Generate(output, 0, output.Length, tv.GetAdditionalInput(0), tv.PredictionResistance);
 
                 byte[] expected = tv.GetExpectedValue(0);
 
@@ -372,7 +367,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 
                 output = new byte[tv.GetExpectedValue(0).Length];
 
-                d.Generate(output, tv.GetAdditionalInput(1), tv.PredictionResistance);
+                d.Generate(output, 0, output.Length, tv.GetAdditionalInput(1), tv.PredictionResistance);
 
                 expected = tv.GetExpectedValue(1);
                 if (!AreEqual(expected, output))

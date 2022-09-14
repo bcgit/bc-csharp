@@ -1,10 +1,10 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
-using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -15,8 +15,8 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tsp
 {
@@ -34,8 +34,11 @@ namespace Org.BouncyCastle.Tsp
         private GeneralName tsa = null;
         private DerObjectIdentifier tsaPolicyOID;
     
-        private IX509Store x509Certs;
-        private IX509Store x509Crls;
+        private IStore<X509Certificate> x509Certs;
+        private IStore<X509Crl> x509Crls;
+        private IStore<X509V2AttributeCertificate> x509AttrCerts;
+        // TODO Port changes from bc-java
+        //private Dictionary<> otherRevoc = new Dictionary<>();
         private SignerInfoGenerator signerInfoGenerator;
         IDigestFactory digestCalculator;
 
@@ -59,22 +62,18 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
-
         public TimeStampTokenGenerator(
             SignerInfoGenerator signerInfoGen,
             IDigestFactory digestCalculator,
             DerObjectIdentifier tsaPolicy,
             bool isIssuerSerialIncluded)
         {
-
             this.signerInfoGenerator = signerInfoGen;
             this.digestCalculator = digestCalculator;
             this.tsaPolicyOID = tsaPolicy;
 
             if (signerInfoGenerator.certificate == null)
-            {
                 throw new ArgumentException("SignerInfoGenerator must have an associated certificate");
-            }
 
             X509Certificate assocCert = signerInfoGenerator.certificate;
             TspUtil.ValidateCertificate(assocCert);
@@ -119,7 +118,6 @@ namespace Org.BouncyCastle.Tsp
                         .WithSignedAttributeGenerator(new TableGen2(signerInfoGen, essCertID))
                         .Build(signerInfoGen.contentSigner, signerInfoGen.certificate);
                 }
-
             }
             catch (Exception ex)
             {
@@ -143,30 +141,26 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
-
         internal static SignerInfoGenerator makeInfoGenerator(
           AsymmetricKeyParameter key,
           X509Certificate cert,
           string digestOID,
-
           Asn1.Cms.AttributeTable signedAttr,
           Asn1.Cms.AttributeTable unsignedAttr)
         {
-
-
             TspUtil.ValidateCertificate(cert);
 
             //
             // Add the ESSCertID attribute
             //
-            IDictionary signedAttrs;
+            IDictionary<DerObjectIdentifier, object> signedAttrs;
             if (signedAttr != null)
             {
                 signedAttrs = signedAttr.ToDictionary();
             }
             else
             {
-                signedAttrs = Platform.CreateHashtable();
+                signedAttrs = new Dictionary<DerObjectIdentifier, object>();
             }
 
             //try
@@ -190,7 +184,6 @@ namespace Org.BouncyCastle.Tsp
             //    throw new TspException("Can't find a SHA-1 implementation.", e);
             //}
 
-
             string digestName = CmsSignedHelper.Instance.GetDigestAlgName(digestOID);
             string signatureName = digestName + "with" + CmsSignedHelper.Instance.GetEncryptionAlgName(CmsSignedHelper.Instance.GetEncOid(key, digestOID));
 
@@ -204,15 +197,17 @@ namespace Org.BouncyCastle.Tsp
                 .Build(sigfact, cert);
         }
 
+        public void SetAttributeCertificates(IStore<X509V2AttributeCertificate> attributeCertificates)
+        {
+            this.x509AttrCerts = attributeCertificates;
+        }
 
-        public void SetCertificates(
-        IX509Store certificates)
+        public void SetCertificates(IStore<X509Certificate> certificates)
         {
             this.x509Certs = certificates;
         }
 
-        public void SetCrls(
-            IX509Store crls)
+        public void SetCrls(IStore<X509Crl> crls)
         {
             this.x509Crls = crls;
         }
@@ -365,6 +360,7 @@ namespace Org.BouncyCastle.Tsp
                 if (request.CertReq)
                 {
                     signedDataGenerator.AddCertificates(x509Certs);
+                    signedDataGenerator.AddAttributeCertificates(x509AttrCerts);
                 }
 
                 signedDataGenerator.AddCrls(x509Crls);
@@ -386,10 +382,6 @@ namespace Org.BouncyCastle.Tsp
             {
                 throw new TspException("Exception encoding info", e);
             }
-            catch (X509StoreException e)
-            {
-                throw new TspException("Exception handling CertStore", e);
-            }
             //			catch (InvalidAlgorithmParameterException e)
             //			{
             //				throw new TspException("Exception handling CertStore CRLs", e);
@@ -398,7 +390,7 @@ namespace Org.BouncyCastle.Tsp
 
         private string createGeneralizedTime(DateTime genTime)
         {
-            String format = "yyyyMMddHHmmss.fff";
+            string format = "yyyyMMddHHmmss.fff";
            
             StringBuilder sBuild = new StringBuilder(genTime.ToString(format));
             int dotIndex = sBuild.ToString().IndexOf(".");
@@ -447,7 +439,8 @@ namespace Org.BouncyCastle.Tsp
             return sBuild.ToString();
         }
 
-        private class TableGen : CmsAttributeTableGenerator
+        private class TableGen
+            : CmsAttributeTableGenerator
         {
             private readonly SignerInfoGenerator infoGen;
             private readonly EssCertID essCertID;
@@ -459,7 +452,7 @@ namespace Org.BouncyCastle.Tsp
                 this.essCertID = essCertID;
             }
 
-            public Asn1.Cms.AttributeTable GetAttributes(IDictionary parameters)
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
             {
                 Asn1.Cms.AttributeTable tab = infoGen.signedGen.GetAttributes(parameters);
                 if (tab[PkcsObjectIdentifiers.IdAASigningCertificate] == null)
@@ -470,7 +463,8 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-        private class TableGen2 : CmsAttributeTableGenerator
+        private class TableGen2
+            : CmsAttributeTableGenerator
         {
             private readonly SignerInfoGenerator infoGen;
             private readonly EssCertIDv2 essCertID;
@@ -482,7 +476,7 @@ namespace Org.BouncyCastle.Tsp
                 this.essCertID = essCertID;
             }
 
-            public Asn1.Cms.AttributeTable GetAttributes(IDictionary parameters)
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
             {
                 Asn1.Cms.AttributeTable tab = infoGen.signedGen.GetAttributes(parameters);
                 if (tab[PkcsObjectIdentifiers.IdAASigningCertificateV2] == null)

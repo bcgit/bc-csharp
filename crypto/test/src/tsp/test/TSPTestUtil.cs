@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
@@ -12,6 +12,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -58,18 +59,18 @@ namespace Org.BouncyCastle.Tsp.Tests
 		public static readonly string EncryptionGost3410 = CryptoProObjectIdentifiers.GostR3410x94.Id;
 		public static readonly string EncryptionECGost3410 = CryptoProObjectIdentifiers.GostR3410x2001.Id;
 
-		private static readonly IDictionary encryptionAlgs = new Hashtable();
-		private static readonly IDictionary digestAlgs = new Hashtable();
-		private static readonly IDictionary digestAliases = new Hashtable();
+		private static readonly Dictionary<string, string> EncryptionAlgs = new Dictionary<string, string>();
+		private static readonly Dictionary<string, string> DigestAlgs = new Dictionary<string, string>();
+		private static readonly Dictionary<string, string[]> DigestAliases = new Dictionary<string, string[]>();
 
-		private static readonly ISet noParams = new HashSet();
-		private static readonly IDictionary ecAlgorithms = new Hashtable();
+		private static readonly ISet<string> NoParams = new HashSet<string>();
+		private static readonly Dictionary<string, string> ECAlgorithms = new Dictionary<string, string>();
 
 		private static void AddEntries(DerObjectIdentifier oid, string digest, string encryption)
 		{
 			string alias = oid.Id;
-			digestAlgs.Add(alias, digest);
-			encryptionAlgs.Add(alias, encryption);
+			DigestAlgs.Add(alias, digest);
+			EncryptionAlgs.Add(alias, encryption);
 		}
 
 		static TspTestUtil()
@@ -130,49 +131,49 @@ namespace Org.BouncyCastle.Tsp.Tests
 			AddEntries(EacObjectIdentifiers.id_TA_RSA_PSS_SHA_1, "SHA1", "RSAandMGF1");
 			AddEntries(EacObjectIdentifiers.id_TA_RSA_PSS_SHA_256, "SHA256", "RSAandMGF1");
 
-			encryptionAlgs.Add(X9ObjectIdentifiers.IdDsa.Id, "DSA");
-			encryptionAlgs.Add(PkcsObjectIdentifiers.RsaEncryption.Id, "RSA");
-			encryptionAlgs.Add(TeleTrusTObjectIdentifiers.TeleTrusTRsaSignatureAlgorithm.Id, "RSA");
-			encryptionAlgs.Add(X509ObjectIdentifiers.IdEARsa.Id, "RSA");
-			encryptionAlgs.Add(EncryptionRsaPss, "RSAandMGF1");
-			encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x94.Id, "GOST3410");
-			encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x2001.Id, "ECGOST3410");
-			encryptionAlgs.Add("1.3.6.1.4.1.5849.1.6.2", "ECGOST3410");
-			encryptionAlgs.Add("1.3.6.1.4.1.5849.1.1.5", "GOST3410");
+			EncryptionAlgs.Add(X9ObjectIdentifiers.IdDsa.Id, "DSA");
+			EncryptionAlgs.Add(PkcsObjectIdentifiers.RsaEncryption.Id, "RSA");
+			EncryptionAlgs.Add(TeleTrusTObjectIdentifiers.TeleTrusTRsaSignatureAlgorithm.Id, "RSA");
+			EncryptionAlgs.Add(X509ObjectIdentifiers.IdEARsa.Id, "RSA");
+			EncryptionAlgs.Add(EncryptionRsaPss, "RSAandMGF1");
+			EncryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x94.Id, "GOST3410");
+			EncryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x2001.Id, "ECGOST3410");
+			EncryptionAlgs.Add("1.3.6.1.4.1.5849.1.6.2", "ECGOST3410");
+			EncryptionAlgs.Add("1.3.6.1.4.1.5849.1.1.5", "GOST3410");
 
-			digestAlgs.Add(PkcsObjectIdentifiers.MD2.Id, "MD2");
-			digestAlgs.Add(PkcsObjectIdentifiers.MD4.Id, "MD4");
-			digestAlgs.Add(PkcsObjectIdentifiers.MD5.Id, "MD5");
-			digestAlgs.Add(OiwObjectIdentifiers.IdSha1.Id, "SHA1");
-			digestAlgs.Add(NistObjectIdentifiers.IdSha224.Id, "SHA224");
-			digestAlgs.Add(NistObjectIdentifiers.IdSha256.Id, "SHA256");
-			digestAlgs.Add(NistObjectIdentifiers.IdSha384.Id, "SHA384");
-			digestAlgs.Add(NistObjectIdentifiers.IdSha512.Id, "SHA512");
-			digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD128.Id, "RIPEMD128");
-			digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD160.Id, "RIPEMD160");
-			digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD256.Id, "RIPEMD256");
-			digestAlgs.Add(CryptoProObjectIdentifiers.GostR3411.Id, "GOST3411");
-			digestAlgs.Add("1.3.6.1.4.1.5849.1.2.1", "GOST3411");
+			DigestAlgs.Add(PkcsObjectIdentifiers.MD2.Id, "MD2");
+			DigestAlgs.Add(PkcsObjectIdentifiers.MD4.Id, "MD4");
+			DigestAlgs.Add(PkcsObjectIdentifiers.MD5.Id, "MD5");
+			DigestAlgs.Add(OiwObjectIdentifiers.IdSha1.Id, "SHA1");
+			DigestAlgs.Add(NistObjectIdentifiers.IdSha224.Id, "SHA224");
+			DigestAlgs.Add(NistObjectIdentifiers.IdSha256.Id, "SHA256");
+			DigestAlgs.Add(NistObjectIdentifiers.IdSha384.Id, "SHA384");
+			DigestAlgs.Add(NistObjectIdentifiers.IdSha512.Id, "SHA512");
+			DigestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD128.Id, "RIPEMD128");
+			DigestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD160.Id, "RIPEMD160");
+			DigestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD256.Id, "RIPEMD256");
+			DigestAlgs.Add(CryptoProObjectIdentifiers.GostR3411.Id, "GOST3411");
+			DigestAlgs.Add("1.3.6.1.4.1.5849.1.2.1", "GOST3411");
 
-			digestAliases.Add("SHA1", new string[] { "SHA-1" });
-			digestAliases.Add("SHA224", new string[] { "SHA-224" });
-			digestAliases.Add("SHA256", new string[] { "SHA-256" });
-			digestAliases.Add("SHA384", new string[] { "SHA-384" });
-			digestAliases.Add("SHA512", new string[] { "SHA-512" });
+			DigestAliases.Add("SHA1", new string[] { "SHA-1" });
+			DigestAliases.Add("SHA224", new string[] { "SHA-224" });
+			DigestAliases.Add("SHA256", new string[] { "SHA-256" });
+			DigestAliases.Add("SHA384", new string[] { "SHA-384" });
+			DigestAliases.Add("SHA512", new string[] { "SHA-512" });
 
-			noParams.Add(EncryptionDsa);
+			NoParams.Add(EncryptionDsa);
 			//noParams.Add(EncryptionECDsa);
-			noParams.Add(EncryptionECDsaWithSha1);
-			noParams.Add(EncryptionECDsaWithSha224);
-			noParams.Add(EncryptionECDsaWithSha256);
-			noParams.Add(EncryptionECDsaWithSha384);
-			noParams.Add(EncryptionECDsaWithSha512);
+			NoParams.Add(EncryptionECDsaWithSha1);
+			NoParams.Add(EncryptionECDsaWithSha224);
+			NoParams.Add(EncryptionECDsaWithSha256);
+			NoParams.Add(EncryptionECDsaWithSha384);
+			NoParams.Add(EncryptionECDsaWithSha512);
 
-			ecAlgorithms.Add(DigestSha1, EncryptionECDsaWithSha1);
-			ecAlgorithms.Add(DigestSha224, EncryptionECDsaWithSha224);
-			ecAlgorithms.Add(DigestSha256, EncryptionECDsaWithSha256);
-			ecAlgorithms.Add(DigestSha384, EncryptionECDsaWithSha384);
-			ecAlgorithms.Add(DigestSha512, EncryptionECDsaWithSha512);
+			ECAlgorithms.Add(DigestSha1, EncryptionECDsaWithSha1);
+			ECAlgorithms.Add(DigestSha224, EncryptionECDsaWithSha224);
+			ECAlgorithms.Add(DigestSha256, EncryptionECDsaWithSha256);
+			ECAlgorithms.Add(DigestSha384, EncryptionECDsaWithSha384);
+			ECAlgorithms.Add(DigestSha512, EncryptionECDsaWithSha512);
 		}
 
 		public static string DumpBase64(
@@ -186,13 +187,12 @@ namespace Org.BouncyCastle.Tsp.Tests
 			{
 				if (i + 64 < data.Length)
 				{
-					buf.Append(Encoding.ASCII.GetString(data, i, 64));
+					buf.AppendLine(Encoding.ASCII.GetString(data, i, 64));
 				}
 				else
 				{
-					buf.Append(Encoding.ASCII.GetString(data, i, data.Length - i));
+					buf.AppendLine(Encoding.ASCII.GetString(data, i, data.Length - i));
 				}
-				buf.Append('\n');
 			}
 
 			return buf.ToString();
@@ -200,33 +200,17 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 		public static string GetDigestAlgName(string digestAlgOid)
 		{
-			string algName = (string)digestAlgs[digestAlgOid];
-
-			if (algName != null)
-			{
-				return algName;
-			}
-
-			return digestAlgOid;
+			return CollectionUtilities.GetValueOrKey(DigestAlgs, digestAlgOid);
 		}
 
 		public static string GetEncryptionAlgName(string encryptionAlgOid)
 		{
-			string algName = (string)encryptionAlgs[encryptionAlgOid];
-
-			if (algName != null)
-			{
-				return algName;
-			}
-
-			return encryptionAlgOid;
+			return CollectionUtilities.GetValueOrKey(EncryptionAlgs, encryptionAlgOid);
 		}
 
-		internal static string GetEncOid(
-			AsymmetricKeyParameter key,
-			string digestOID)
+		internal static string GetEncOid(AsymmetricKeyParameter key, string digestOID)
 		{
-			string encOID = null;
+			string encOID;
 
 			if (key is RsaKeyParameters)
 			{
@@ -274,9 +258,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 				else
 				{
 					// TODO Should we insist on algName being one of "EC" or "ECDSA", as Java does?
-					encOID = (string)ecAlgorithms[digestOID];
-
-					if (encOID == null)
+					if (!ECAlgorithms.TryGetValue(digestOID, out encOID))
 						throw new ArgumentException("can't mix ECDSA with anything but SHA family digests");
 				}
 			}
@@ -350,7 +332,6 @@ namespace Org.BouncyCastle.Tsp.Tests
 			_v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
 			_v3CertGen.SetSubjectDN(new X509Name(_subDN));
 			_v3CertGen.SetPublicKey(_subPub);
-			_v3CertGen.SetSignatureAlgorithm("MD5WithRSAEncryption");
 
 			_v3CertGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false,
 					createSubjectKeyId(_subPub));
@@ -369,9 +350,10 @@ namespace Org.BouncyCastle.Tsp.Tests
 					ExtendedKeyUsage.GetInstance(new DerSequence(KeyPurposeID.IdKPTimeStamping)));
 			}
 
-			X509Certificate _cert = _v3CertGen.Generate(_issPriv);
+            X509Certificate _cert = _v3CertGen.Generate(
+				new Asn1SignatureFactory("MD5WithRSAEncryption", _issPriv, null));
 
-			_cert.CheckValidity(DateTime.UtcNow);
+            _cert.CheckValidity(DateTime.UtcNow);
 			_cert.Verify(_issPub);
 
 			return _cert;

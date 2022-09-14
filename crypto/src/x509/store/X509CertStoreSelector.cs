@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -12,7 +12,7 @@ using Org.BouncyCastle.X509.Extension;
 namespace Org.BouncyCastle.X509.Store
 {
 	public class X509CertStoreSelector
-		: IX509Selector
+		: ISelector<X509Certificate>
 	{
 		// TODO Missing criteria?
 
@@ -20,11 +20,11 @@ namespace Org.BouncyCastle.X509.Store
 		private int basicConstraints = -1;
 		private X509Certificate certificate;
 		private DateTimeObject certificateValid;
-		private ISet extendedKeyUsage;
+		private ISet<DerObjectIdentifier> extendedKeyUsage;
         private bool ignoreX509NameOrdering;
 		private X509Name issuer;
 		private bool[] keyUsage;
-		private ISet policy;
+		private ISet<DerObjectIdentifier> policy;
 		private DateTimeObject privateKeyValid;
 		private BigInteger serialNumber;
 		private X509Name subject;
@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.X509.Store
 			set { certificateValid = value; }
 		}
 
-		public ISet ExtendedKeyUsage
+		public ISet<DerObjectIdentifier> ExtendedKeyUsage
 		{
 			get { return CopySet(extendedKeyUsage); }
 			set { extendedKeyUsage = CopySet(value); }
@@ -109,12 +109,6 @@ namespace Org.BouncyCastle.X509.Store
 			set { issuer = value; }
 		}
 
-		[Obsolete("Avoid working with X509Name objects in string form")]
-		public string IssuerAsString
-		{
-			get { return issuer != null ? issuer.ToString() : null; }
-		}
-
 		public bool[] KeyUsage
 		{
 			get { return CopyBoolArray(keyUsage); }
@@ -124,7 +118,7 @@ namespace Org.BouncyCastle.X509.Store
 		/// <summary>
 		/// An <code>ISet</code> of <code>DerObjectIdentifier</code> objects.
 		/// </summary>
-		public ISet Policy
+		public ISet<DerObjectIdentifier> Policy
 		{
 			get { return CopySet(policy); }
 			set { policy = CopySet(value); }
@@ -148,12 +142,6 @@ namespace Org.BouncyCastle.X509.Store
 			set { subject = value; }
 		}
 
-        [Obsolete("Avoid working with X509Name objects in string form")]
-        public string SubjectAsString
-		{
-			get { return subject != null ? subject.ToString() : null; }
-		}
-
 		public byte[] SubjectKeyIdentifier
 		{
 			get { return Arrays.Clone(subjectKeyIdentifier); }
@@ -172,11 +160,8 @@ namespace Org.BouncyCastle.X509.Store
 			set { subjectPublicKeyAlgID = value; }
 		}
 
-		public virtual bool Match(
-			object obj)
+		public virtual bool Match(X509Certificate c)
 		{
-			X509Certificate c = obj as X509Certificate;
-
 			if (c == null)
 				return false;
 
@@ -207,7 +192,7 @@ namespace Org.BouncyCastle.X509.Store
 
 			if (extendedKeyUsage != null)
 			{
-				IList eku = c.GetExtendedKeyUsage();
+				var eku = c.GetExtendedKeyUsage();
 
 				// Note: if no extended key usage set, all key purposes are implicitly allowed
 
@@ -215,7 +200,7 @@ namespace Org.BouncyCastle.X509.Store
 				{
 					foreach (DerObjectIdentifier oid in extendedKeyUsage)
 					{
-						if (!eku.Contains(oid.Id))
+						if (!eku.Contains(oid))
 							return false;
 					}
 				}
@@ -315,10 +300,9 @@ namespace Org.BouncyCastle.X509.Store
 			return b == null ? null : (bool[]) b.Clone();
 		}
 
-		private static ISet CopySet(
-			ISet s)
+		private static ISet<T> CopySet<T>(ISet<T> s)
 		{
-			return s == null ? null : new HashSet(s);
+			return s == null ? null : new HashSet<T>(s);
 		}
 
 		private static SubjectPublicKeyInfo GetSubjectPublicKey(

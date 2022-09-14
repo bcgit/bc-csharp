@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
 		public int GetDigestSize()
 		{
-			return (int)bOut.Length;
+			return Convert.ToInt32(bOut.Length);
 		}
 
 		public void Update(byte b)

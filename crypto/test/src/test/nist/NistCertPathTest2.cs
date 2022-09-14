@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.IO;
-using System.Reflection;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -28,15 +26,16 @@ namespace Org.BouncyCastle.Tests.Nist
         private static readonly string NIST_TEST_POLICY_2 = "2.16.840.1.101.3.2.1.48.2";
         private static readonly string NIST_TEST_POLICY_3 = "2.16.840.1.101.3.2.1.48.3";
 
-		private static readonly IDictionary certs = new Hashtable();
-		private static readonly IDictionary crls = new Hashtable();
+		private static readonly IDictionary<string, X509Certificate> m_certs =
+            new Dictionary<string, X509Certificate>();
+		private static readonly IDictionary<string, X509Crl> m_crls = new Dictionary<string, X509Crl>();
 
-        private static readonly ISet noPolicies = new HashSet();
-        private static readonly ISet anyPolicy = new HashSet();
-        private static readonly ISet nistTestPolicy1 = new HashSet();
-        private static readonly ISet nistTestPolicy2 = new HashSet();
-        private static readonly ISet nistTestPolicy3 = new HashSet();
-        private static readonly ISet nistTestPolicy1And2 = new HashSet();
+        private static readonly ISet<string> noPolicies = new HashSet<string>();
+        private static readonly ISet<string> anyPolicy = new HashSet<string>();
+        private static readonly ISet<string> nistTestPolicy1 = new HashSet<string>();
+        private static readonly ISet<string> nistTestPolicy2 = new HashSet<string>();
+        private static readonly ISet<string> nistTestPolicy3 = new HashSet<string>();
+        private static readonly ISet<string> nistTestPolicy1And2 = new HashSet<string>();
 
         static NistCertPathTest2()
 		{
@@ -259,7 +258,7 @@ namespace Org.BouncyCastle.Tests.Nist
 			string		trustAnchor,
 			string[]	certs,
 			string[]	crls,
-			ISet		policies,
+			ISet<string> policies,
 			int			index,
 			string		message)
 		{
@@ -310,13 +309,13 @@ namespace Org.BouncyCastle.Tests.Nist
 			string trustAnchor,
 			string[] certs,
 			string[] crls,
-			ISet policies)
+			ISet<string> policies)
 		{
-			ISet trustedSet = new HashSet();
+			var trustedSet = new HashSet<TrustAnchor>();
 			trustedSet.Add(GetTrustAnchor(trustAnchor));
 
-			IList x509Certs = new ArrayList();
-			IList x509Crls = new ArrayList();
+			var x509Certs = new List<X509Certificate>();
+			var x509Crls = new List<X509Crl>();
 			X509Certificate endCert = LoadCert(certs[certs.Length - 1]);
 
 			for (int i = 0; i != certs.Length - 1; i++)
@@ -333,18 +332,14 @@ namespace Org.BouncyCastle.Tests.Nist
 				x509Crls.Add(LoadCrl(crls[i]));
 			}
 
-			IX509Store x509CertStore = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(x509Certs));
-			IX509Store x509CrlStore = X509StoreFactory.Create(
-				"CRL/Collection",
-				new X509CollectionStoreParameters(x509Crls));
+            var x509CertStore = CollectionUtilities.CreateStore(x509Certs);
+			var x509CrlStore = CollectionUtilities.CreateStore(x509Crls);
 
             PkixCertPathValidator validator = new PkixCertPathValidator();
 			PkixParameters parameters = new PkixParameters(trustedSet);
 
-			parameters.AddStore(x509CertStore);
-			parameters.AddStore(x509CrlStore);
+			parameters.AddStoreCert(x509CertStore);
+			parameters.AddStoreCrl(x509CrlStore);
 			parameters.IsRevocationEnabled = true;
 
 			if (policies != null)
@@ -363,15 +358,15 @@ namespace Org.BouncyCastle.Tests.Nist
             string trustAnchor,
             string[] certs,
             string[] crls,
-            ISet initialPolicies,
+            ISet<string> initialPolicies,
             bool policyMappingInhibited,
             bool anyPolicyInhibited)
         {
-            ISet trustedSet = new HashSet();
+            var trustedSet = new HashSet<TrustAnchor>();
             trustedSet.Add(GetTrustAnchor(trustAnchor));
 
-            IList x509Certs = new ArrayList();
-            IList x509Crls = new ArrayList();
+            var x509Certs = new List<X509Certificate>();
+            var x509Crls = new List<X509Crl>();
             X509Certificate endCert = LoadCert(certs[certs.Length - 1]);
 
             for (int i = 0; i != certs.Length - 1; i++)
@@ -386,12 +381,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 x509Crls.Add(LoadCrl(crls[i]));
             }
 
-            IX509Store x509CertStore = X509StoreFactory.Create(
-                "Certificate/Collection",
-                new X509CollectionStoreParameters(x509Certs));
-            IX509Store x509CrlStore = X509StoreFactory.Create(
-                "CRL/Collection",
-                new X509CollectionStoreParameters(x509Crls));
+            var x509CertStore = CollectionUtilities.CreateStore(x509Certs);
+            var x509CrlStore = CollectionUtilities.CreateStore(x509Crls);
 
             PkixCertPathBuilder builder = new PkixCertPathBuilder();
 
@@ -415,8 +406,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 builderParams.IsAnyPolicyInhibited = anyPolicyInhibited;
             }
 
-            builderParams.AddStore(x509CertStore);
-            builderParams.AddStore(x509CrlStore);
+            builderParams.AddStoreCert(x509CertStore);
+            builderParams.AddStoreCrl(x509CrlStore);
 
             // Perform validation as of this date since test certs expired
             builderParams.Date = new DateTimeObject(DateTime.Parse("1/1/2011"));
@@ -433,52 +424,28 @@ namespace Org.BouncyCastle.Tests.Nist
 
         private X509Certificate LoadCert(string certName)
 		{
-			X509Certificate cert = (X509Certificate)certs[certName];
-			if (null != cert)
-				return cert;
+            if (m_certs.TryGetValue(certName, out var cachedCert))
+                return cachedCert;
 
-            Stream fs = null;
-
-			try
-			{
-				fs = SimpleTest.GetTestDataAsStream("PKITS.certs." + certName + ".crt");
-				cert = new X509CertificateParser().ReadCertificate(fs);
-				certs[certName] = cert;
-				return cert;
-			}
-			catch (Exception e)
-			{
-				throw new InvalidOperationException("exception loading certificate " + certName + ": " + e);
-			}
-			finally
-			{
-				fs.Close();
-			}
+            using (var fs = SimpleTest.GetTestDataAsStream("PKITS.certs." + certName + ".crt"))
+            {
+                var cert = new X509CertificateParser().ReadCertificate(fs);
+                m_certs[certName] = cert;
+                return cert;
+            }
 		}
 
 		private X509Crl LoadCrl(string crlName)
 		{
-			X509Crl crl = (X509Crl)crls[crlName];
-			if (null != crl)
-				return crl;
+            if (m_crls.TryGetValue(crlName, out var cachedCrl))
+                return cachedCrl;
 
-            Stream fs = null;
-
-			try
-			{
-				fs = SimpleTest.GetTestDataAsStream("PKITS.crls." + crlName + ".crl");
-				crl = new X509CrlParser().ReadCrl(fs);
-				crls[crlName] = crl;
-				return crl;
-			}
-			catch (Exception)
-			{
-				throw new InvalidOperationException("exception loading CRL: " + crlName);
-			}
-			finally
-			{
-				fs.Close();
-			}
+            using (var fs = SimpleTest.GetTestDataAsStream("PKITS.crls." + crlName + ".crl"))
+            {
+                var crl = new X509CrlParser().ReadCrl(fs);
+                m_crls[crlName] = crl;
+                return crl;
+            }
 		}
 
         private TrustAnchor GetTrustAnchor(string trustAnchorName)

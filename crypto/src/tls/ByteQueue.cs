@@ -59,9 +59,18 @@ namespace Org.BouncyCastle.Tls
             if (m_readOnlyBuf)
                 throw new InvalidOperationException("Cannot add data to read-only buffer");
 
-            if ((m_skipped + m_available + len) > m_databuf.Length)
+            if (m_available == 0)
             {
-                int desiredSize = ByteQueue.NextTwoPow(m_available + len);
+                if (len > m_databuf.Length)
+                {
+                    int desiredSize = NextTwoPow(len | 256);
+                    m_databuf = new byte[desiredSize];
+                }
+                m_skipped = 0;
+            }
+            else if ((m_skipped + m_available + len) > m_databuf.Length)
+            {
+                int desiredSize = NextTwoPow(m_available + len);
                 if (desiredSize > m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];
@@ -140,6 +149,14 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.ReadInt32(m_databuf, m_skipped);
         }
 
+        public int ReadUint16(int skip)
+        {
+            if (m_available < skip + 2)
+                throw new InvalidOperationException("Not enough data to read");
+
+            return TlsUtilities.ReadUint16(m_databuf, m_skipped + skip);
+        }
+
         /// <summary>Remove some bytes from our data from the beginning.</summary>
         /// <param name="i">How many bytes to remove.</param>
         public void RemoveData(int i)
@@ -181,7 +198,7 @@ namespace Org.BouncyCastle.Tls
             }
             else
             {
-                int desiredSize = ByteQueue.NextTwoPow(m_available);
+                int desiredSize = NextTwoPow(m_available);
                 if (desiredSize < m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];

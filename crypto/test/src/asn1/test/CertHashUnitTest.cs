@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				CertHash.GetInstance(new Object());
+				CertHash.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -74,12 +74,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("algorithmHash", algId, certHash.HashAlgorithm);
 
 			checkMandatoryField("certificateHash", digest, certHash.CertificateHash);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new CertHashUnitTest());
 		}
 
 		[Test]

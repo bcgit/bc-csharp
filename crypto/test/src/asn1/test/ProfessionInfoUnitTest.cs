@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				ProcurationSyntax.GetInstance(new Object());
+				ProfessionInfo.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -102,12 +102,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 			checkOptionalField("registrationNumber", registrationNumber, profInfo.RegistrationNumber);
 			checkOptionalField("addProfessionInfo", addProfInfo, profInfo.AddProfessionInfo);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new ProfessionInfoUnitTest());
 		}
 
 		[Test]

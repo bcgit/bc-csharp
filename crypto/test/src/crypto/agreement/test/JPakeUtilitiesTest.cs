@@ -32,12 +32,6 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             get { return "JPakeUtilities"; }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new JPakeUtilitiesTest());
-        }
-
         [Test]
         public void TestFunction()
         {

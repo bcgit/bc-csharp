@@ -10,8 +10,6 @@ namespace Org.BouncyCastle.Bcpg
         RsaSign = 3,			// RSA Sign-Only
         ElGamalEncrypt = 16,	// Elgamal (Encrypt-Only), see [ELGAMAL]
         Dsa = 17,				// DSA (Digital Signature Standard)
-        [Obsolete("Use 'ECDH' instead")]
-        EC = 18,				// Reserved for Elliptic Curve
         ECDH = 18,              // Reserved for Elliptic Curve (actual algorithm name)
         ECDsa = 19,				// Reserved for ECDSA
         ElGamalGeneral = 20,	// Elgamal (Encrypt or Sign)

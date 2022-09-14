@@ -1,17 +1,10 @@
 using System;
 using System.IO;
-using System.Text;
 
-#if !LIB
-using NUnit.Core;
-#endif
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.OpenSsl.Tests
 {
@@ -32,43 +25,6 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			public char[] GetPassword()
 			{
 				return (char[]) password.Clone();
-			}
-		}
-
-#if !LIB
-        public static void Main(string[] args)
-        {
-            Suite.Run(new NullListener(), NUnit.Core.TestFilter.Empty);
-        }
-
-        [Suite]
-        public static TestSuite Suite
-        {
-            get
-            {
-                TestSuite suite = new TestSuite("OpenSSL Tests");
-                suite.Add(new AllTests());
-                return suite;
-            }
-        }
-#endif
-
-        [Test]
-		public void TestOpenSsl()
-		{
-			Org.BouncyCastle.Utilities.Test.ITest[] tests = new Org.BouncyCastle.Utilities.Test.ITest[]{
-				new ReaderTest(),
-				new WriterTest()
-			};
-
-			foreach (Org.BouncyCastle.Utilities.Test.ITest test in tests)
-			{
-				SimpleTestResult result = (SimpleTestResult)test.Perform();
-
-				if (!result.IsSuccessful())
-				{
-					Assert.Fail(result.ToString());
-				}
 			}
 		}
 
@@ -96,7 +52,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 			pWrt.WriteObject(pkcs8);
 			pWrt.Writer.Close();
 
-			String result = sw.ToString();
+			string result = sw.ToString();
 
 			PemReader pRd = new PemReader(new StringReader(result), new Password("hello".ToCharArray()));
 

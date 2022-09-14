@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 || NistObjectIdentifiers.IdAes192Cbc.Equals(algorithm)
                 || NistObjectIdentifiers.IdAes256Cbc.Equals(algorithm))
             {
-                cipher = new CbcBlockCipher(new AesEngine());
+                cipher = new CbcBlockCipher(AesUtilities.CreateEngine());
             }
             else if (PkcsObjectIdentifiers.DesEde3Cbc.Equals(algorithm))
             {

@@ -67,13 +67,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
-        [Obsolete("Use overload that doesn't take a public key")]
-        public void Sign(Ed448.Algorithm algorithm, Ed448PublicKeyParameters publicKey, byte[] ctx, byte[] msg, int msgOff, int msgLen,
-            byte[] sig, int sigOff)
-        {
-            Sign(algorithm, ctx, msg, msgOff, msgLen, sig, sigOff);
-        }
-
         public void Sign(Ed448.Algorithm algorithm, byte[] ctx, byte[] msg, int msgOff, int msgLen,
             byte[] sig, int sigOff)
         {

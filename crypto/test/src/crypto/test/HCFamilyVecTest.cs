@@ -123,8 +123,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 				int posA = lead.IndexOf('[');
 				int posB = lead.IndexOf("..");
 				int posC = lead.IndexOf(']');
-				int start = Int32.Parse(lead.Substring(posA + 1, posB - (posA + 1)));
-				int end = Int32.Parse(lead.Substring(posB + 2, posC - (posB + 2)));
+				int start = int.Parse(lead.Substring(posA + 1, posB - (posA + 1)));
+				int end = int.Parse(lead.Substring(posB + 2, posC - (posB + 2)));
 
 				if (start % 64 != 0 || (end - start != 63))
 					throw new InvalidOperationException(vectorName + ": " + lead + " not on 64 byte boundaries");
@@ -166,12 +166,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				digest[i] ^= block[i];
 			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new HCFamilyVecTest());
 		}
 
 		[Test]

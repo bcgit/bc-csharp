@@ -1,5 +1,3 @@
-#if !(NETCF_1_0 || PORTABLE)
-
 using System;
 using System.Security.Cryptography;
 
@@ -62,5 +60,3 @@ namespace Org.BouncyCastle.Crypto.Prng
         #endregion
     }
 }
-
-#endif

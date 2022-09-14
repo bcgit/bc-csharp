@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -14,40 +13,6 @@ namespace Org.BouncyCastle.Security
     {
         private static long counter = Times.NanoTime();
 
-#if NETCF_1_0 || PORTABLE
-        private static object counterLock = new object();
-        private static long NextCounterValue()
-        {
-            lock (counterLock)
-            {
-                return ++counter;
-            }
-        }
-
-        private static readonly SecureRandom[] master = { null };
-        private static SecureRandom Master
-        {
-            get
-            {
-                lock (master)
-                {
-                    if (master[0] == null)
-                    {
-                        SecureRandom sr = master[0] = GetInstance("SHA256PRNG", false);
-
-                        // Even though Ticks has at most 8 or 14 bits of entropy, there's no harm in adding it.
-                        sr.SetSeed(DateTime.Now.Ticks);
-
-                        // 32 will be enough when ThreadedSeedGenerator is fixed.  Until then, ThreadedSeedGenerator returns low
-                        // entropy, and this is not sufficient to be secure. http://www.bouncycastle.org/csharpdevmailarchive/msg00814.html
-                        sr.SetSeed(new ThreadedSeedGenerator().GenerateSeed(32, true));
-                    }
-
-                    return master[0];
-                }
-            }
-        }
-#else
         private static long NextCounterValue()
         {
             return Interlocked.Increment(ref counter);
@@ -58,7 +23,6 @@ namespace Org.BouncyCastle.Security
         {
             get { return master; }
         }
-#endif
 
         private static DigestRandomGenerator CreatePrng(string digestName, bool autoSeed)
         {
@@ -98,24 +62,19 @@ namespace Org.BouncyCastle.Security
         /// <param name="autoSeed">If true, the instance will be auto-seeded.</param>
         public static SecureRandom GetInstance(string algorithm, bool autoSeed)
         {
-            string upper = Platform.ToUpperInvariant(algorithm);
-            if (Platform.EndsWith(upper, "PRNG"))
+            if (algorithm == null)
+                throw new ArgumentNullException(nameof(algorithm));
+
+            if (algorithm.EndsWith("PRNG", StringComparison.OrdinalIgnoreCase))
             {
-                string digestName = upper.Substring(0, upper.Length - "PRNG".Length);
+                string digestName = algorithm.Substring(0, algorithm.Length - "PRNG".Length);
+
                 DigestRandomGenerator prng = CreatePrng(digestName, autoSeed);
                 if (prng != null)
-                {
                     return new SecureRandom(prng);
-                }
             }
 
             throw new ArgumentException("Unrecognised PRNG algorithm: " + algorithm, "algorithm");
-        }
-
-        [Obsolete("Call GenerateSeed() on a SecureRandom instance instead")]
-        public static byte[] GetSeed(int length)
-        {
-            return GetNextBytes(Master, length);
         }
 
         protected readonly IRandomGenerator generator;
@@ -123,16 +82,6 @@ namespace Org.BouncyCastle.Security
         public SecureRandom()
             : this(CreatePrng("SHA256", true))
         {
-        }
-
-        /// <remarks>
-        /// To replicate existing predictable output, replace with GetInstance("SHA1PRNG", false), followed by SetSeed(seed)
-        /// </remarks>
-        [Obsolete("Use GetInstance/SetSeed instead")]
-        public SecureRandom(byte[] seed)
-            : this(CreatePrng("SHA1", false))
-        {
-            SetSeed(seed);
         }
 
         /// <summary>Use the specified instance of IRandomGenerator as random source.</summary>
@@ -171,7 +120,6 @@ namespace Org.BouncyCastle.Security
 
         public override int Next(int maxValue)
         {
-
             if (maxValue < 2)
             {
                 if (maxValue < 0)

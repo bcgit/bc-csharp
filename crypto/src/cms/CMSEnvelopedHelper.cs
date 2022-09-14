@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -9,7 +9,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
@@ -18,8 +17,8 @@ namespace Org.BouncyCastle.Cms
 	{
 		internal static readonly CmsEnvelopedHelper Instance = new CmsEnvelopedHelper();
 
-		private static readonly IDictionary KeySizes = Platform.CreateHashtable();
-		private static readonly IDictionary BaseCipherNames = Platform.CreateHashtable();
+		private static readonly IDictionary<string, int> KeySizes = new Dictionary<string, int>();
+		private static readonly IDictionary<string, string> BaseCipherNames = new Dictionary<string, string>();
 
 		static CmsEnvelopedHelper()
 		{
@@ -76,35 +75,32 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
-		internal string GetRfc3211WrapperName(
-			string oid)
+		internal string GetRfc3211WrapperName(string oid)
 		{
 			if (oid == null)
-				throw new ArgumentNullException("oid");
+				throw new ArgumentNullException(nameof(oid));
 
-			string alg = (string) BaseCipherNames[oid];
-
-			if (alg == null)
-				throw new ArgumentException("no name for " + oid, "oid");
+			if (!BaseCipherNames.TryGetValue(oid, out var alg))
+				throw new ArgumentException("no name for " + oid, nameof(oid));
 
 			return alg + "RFC3211Wrap";
 		}
 
-		internal int GetKeySize(
-			string oid)
+		internal int GetKeySize(string oid)
 		{
-			if (!KeySizes.Contains(oid))
-			{
-				throw new ArgumentException("no keysize for " + oid, "oid");
-			}
+			if (oid == null)
+				throw new ArgumentNullException(nameof(oid));
 
-			return (int) KeySizes[oid];
+			if (!KeySizes.TryGetValue(oid, out var keySize))
+				throw new ArgumentException("no keysize for " + oid, "oid");
+
+			return keySize;
 		}
 
 		internal static RecipientInformationStore BuildRecipientInformationStore(
 			Asn1Set recipientInfos, CmsSecureReadable secureReadable)
 		{
-			IList infos = Platform.CreateArrayList();
+			var infos = new List<RecipientInformation>();
 			for (int i = 0; i != recipientInfos.Count; i++)
 			{
 				RecipientInfo info = RecipientInfo.GetInstance(recipientInfos[i]);
@@ -114,8 +110,8 @@ namespace Org.BouncyCastle.Cms
 			return new RecipientInformationStore(infos);
 		}
 
-		private static void ReadRecipientInfo(
-			IList infos, RecipientInfo info, CmsSecureReadable secureReadable)
+		private static void ReadRecipientInfo(IList<RecipientInformation> infos, RecipientInfo info,
+			CmsSecureReadable secureReadable)
 		{
 			Asn1Encodable recipInfo = info.Info;
 			if (recipInfo is KeyTransRecipientInfo)

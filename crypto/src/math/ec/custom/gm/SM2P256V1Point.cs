@@ -7,47 +7,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
     internal class SM2P256V1Point
         : AbstractFpPoint
     {
-        /**
-         * Create a point which encodes with point compression.
-         * 
-         * @param curve
-         *            the curve to use
-         * @param x
-         *            affine x co-ordinate
-         * @param y
-         *            affine y co-ordinate
-         * 
-         * @deprecated Use ECCurve.createPoint to construct points
-         */
-        public SM2P256V1Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
-            : this(curve, x, y, false)
+        internal SM2P256V1Point(ECCurve curve, ECFieldElement x, ECFieldElement y)
+            : base(curve, x, y)
         {
         }
 
-        /**
-         * Create a point that encodes with or without point compresion.
-         * 
-         * @param curve
-         *            the curve to use
-         * @param x
-         *            affine x co-ordinate
-         * @param y
-         *            affine y co-ordinate
-         * @param withCompression
-         *            if true encode with point compression
-         * 
-         * @deprecated per-point compression property will be removed, refer
-         *             {@link #getEncoded(bool)}
-         */
-        public SM2P256V1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, bool withCompression)
-            : base(curve, x, y, withCompression)
-        {
-            if ((x == null) != (y == null))
-                throw new ArgumentException("Exactly one of the field elements is null");
-        }
-
-        internal SM2P256V1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs, bool withCompression)
-            : base(curve, x, y, zs, withCompression)
+        internal SM2P256V1Point(ECCurve curve, ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
+            : base(curve, x, y, zs)
         {
         }
 
@@ -172,7 +138,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
 
             ECFieldElement[] zs = new ECFieldElement[]{ Z3 };
 
-            return new SM2P256V1Point(curve, X3, Y3, zs, IsCompressed);
+            return new SM2P256V1Point(curve, X3, Y3, zs);
         }
 
         public override ECPoint Twice()
@@ -240,7 +206,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
                 SM2P256V1Field.Multiply(Z3.x, Z1.x, Z3.x);
             }
 
-            return new SM2P256V1Point(curve, X3, Y3, new ECFieldElement[]{ Z3 }, IsCompressed);
+            return new SM2P256V1Point(curve, X3, Y3, new ECFieldElement[]{ Z3 });
         }
 
         public override ECPoint TwicePlus(ECPoint b)
@@ -273,7 +239,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.GM
             if (IsInfinity)
                 return this;
 
-            return new SM2P256V1Point(Curve, RawXCoord, RawYCoord.Negate(), RawZCoords, IsCompressed);
+            return new SM2P256V1Point(Curve, RawXCoord, RawYCoord.Negate(), RawZCoords);
         }
     }
 }

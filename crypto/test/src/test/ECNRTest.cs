@@ -194,11 +194,5 @@ namespace Org.BouncyCastle.Tests
             TestECNR239bitPrime();
             TestECNR521bitPrime();
         }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new ECNRTest());
-        }
     }
 }

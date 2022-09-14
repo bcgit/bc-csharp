@@ -35,7 +35,7 @@ namespace crypto
 
             gen.Init(data, Base64.Decode(salt), 2048);
 
-            return Base64.ToBase64String(((KeyParameter)gen.GenerateDerivedParameters(sha.GetDigestSize() * 8)).GetKey());
+            return Base64.ToBase64String(((KeyParameter)gen.GenerateDerivedParameters("AES", sha.GetDigestSize() * 8)).GetKey());
         }
 
         public static string Decrypt(string cipherText, string key, string iv)

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Utilities.Encoders;
@@ -28,7 +27,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 				throw new ArgumentNullException("writer");
 
 			this.writer = writer;
-			this.nlLength = Platform.NewLine.Length;
+			this.nlLength = Environment.NewLine.Length;
 		}
 
 		public TextWriter Writer

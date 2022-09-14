@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -9,8 +10,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -24,8 +23,8 @@ namespace Org.BouncyCastle.Tests
     public class BlockCipherTest
         : SimpleTest
     {
-        private static readonly ISet validModes = CollectionUtilities.ReadOnly(
-            new HashSet(new string[]{ "CBC", "CCM", "CFB", "CTR", "CTS", "EAX", "ECB", "GCM", "OCB", "OFB" }));
+        private static readonly ISet<string> ValidModes =
+            new HashSet<string>(){ "CBC", "CCM", "CFB", "CTR", "CTS", "EAX", "ECB", "GCM", "OCB", "OFB" };
 
         private static readonly string[] cipherTests1 =
         {
@@ -403,18 +402,21 @@ namespace Org.BouncyCastle.Tests
                     (byte)0xc2, (byte)0xf0, (byte)0x6c, (byte)0xb5, (byte)0x8f
             };
 
-            public override void NextBytes(
-                byte[] bytes)
+            public override void NextBytes(byte[] buf)
             {
-                int offset = 0;
+                NextBytes(buf, 0, buf.Length);
+            }
 
-                while ((offset + seed.Length) < bytes.Length)
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                int pos = 0;
+                while ((pos + seed.Length) < len)
                 {
-                    Array.Copy(seed, 0, bytes, offset, seed.Length);
-                    offset += seed.Length;
+                    Array.Copy(seed, 0, buf, off + pos, seed.Length);
+                    pos += seed.Length;
                 }
 
-                Array.Copy(seed, 0, bytes, offset, bytes.Length- offset);
+                Array.Copy(seed, 0, buf, off + pos, len - pos);
             }
         }
 
@@ -436,7 +438,7 @@ namespace Org.BouncyCastle.Tests
             int pos = mode.IndexOfAny(new char[]{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' });
             string baseMode = pos < 0 ? mode : mode.Substring(0, pos);
 
-            if (!validModes.Contains(baseMode))
+            if (!ValidModes.Contains(baseMode))
                 throw new Exception("Unhandled mode: " + mode);
 
             if (baseMode == "CCM")
@@ -458,15 +460,19 @@ namespace Org.BouncyCastle.Tests
         {
             KeyParameter key = null;
             CipherKeyGenerator keyGen;
-            SecureRandom rand;
             IBufferedCipher inCipher = null, outCipher = null;
             byte[] iv = null;
             CipherStream cIn, cOut;
             MemoryStream bIn, bOut;
 
-            rand = new FixedSecureRandom();
+            SecureRandom rand = new FixedSecureRandom();
 
-            string[] parts = algorithm.ToUpperInvariant().Split('/');
+#if PORTABLE
+            string upper = algorithm.ToUpperInvariant();
+#else
+            string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
+#endif
+            string[] parts = upper.Split('/');
             string baseAlgorithm = parts[0];
             string mode = parts.Length > 1 ? parts[1] : null;
 
@@ -498,7 +504,12 @@ namespace Org.BouncyCastle.Tests
                 inCipher = CipherUtilities.GetCipher(algorithm);
                 outCipher = CipherUtilities.GetCipher(algorithm);
 
-                if (!inCipher.AlgorithmName.ToUpperInvariant().StartsWith(baseAlgorithm))
+#if PORTABLE
+                upper = inCipher.AlgorithmName.ToUpperInvariant();
+#else
+                upper = inCipher.AlgorithmName.ToUpper(CultureInfo.InvariantCulture);
+#endif
+                if (!upper.StartsWith(baseAlgorithm))
                 {
                     Fail("wrong cipher returned!");
                 }
@@ -1073,12 +1084,6 @@ namespace Org.BouncyCastle.Tests
             }
 
             doTestExceptions();
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new BlockCipherTest());
         }
 
         [Test]

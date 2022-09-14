@@ -215,8 +215,7 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-        private void PartialFlush(
-            bool isLast)
+        private void PartialFlush(bool isLast)
         {
             if (isLast)
             {
@@ -232,70 +231,54 @@ namespace Org.BouncyCastle.Bcpg
             partialOffset = 0;
         }
 
-		private void WritePartial(
-            byte b)
+        private void PartialWrite(byte[] buffer, int offset, int count)
         {
+            Streams.ValidateBufferArguments(buffer, offset, count);
+
             if (partialOffset == partialBufferLength)
             {
                 PartialFlush(false);
             }
 
-			partialBuffer[partialOffset++] = b;
-        }
-
-		private void WritePartial(
-            byte[]	buffer,
-            int		off,
-            int		len)
-        {
-            if (partialOffset == partialBufferLength)
+            if (count <= (partialBufferLength - partialOffset))
             {
-                PartialFlush(false);
-            }
-
-            if (len <= (partialBufferLength - partialOffset))
-            {
-                Array.Copy(buffer, off, partialBuffer, partialOffset, len);
-                partialOffset += len;
+                Array.Copy(buffer, offset, partialBuffer, partialOffset, count);
+                partialOffset += count;
             }
             else
             {
                 int diff = partialBufferLength - partialOffset;
-                Array.Copy(buffer, off, partialBuffer, partialOffset, diff);
-                off += diff;
-                len -= diff;
+                Array.Copy(buffer, offset, partialBuffer, partialOffset, diff);
+                offset += diff;
+                count -= diff;
                 PartialFlush(false);
-                while (len > partialBufferLength)
+                while (count > partialBufferLength)
                 {
-                    Array.Copy(buffer, off, partialBuffer, 0, partialBufferLength);
-                    off += partialBufferLength;
-                    len -= partialBufferLength;
+                    Array.Copy(buffer, offset, partialBuffer, 0, partialBufferLength);
+                    offset += partialBufferLength;
+                    count -= partialBufferLength;
                     PartialFlush(false);
                 }
-                Array.Copy(buffer, off, partialBuffer, 0, len);
-                partialOffset += len;
+                Array.Copy(buffer, offset, partialBuffer, 0, count);
+                partialOffset += count;
             }
         }
-        public override void WriteByte(
-			byte value)
+
+        private void PartialWriteByte(byte value)
+        {
+            if (partialOffset == partialBufferLength)
+            {
+                PartialFlush(false);
+            }
+
+            partialBuffer[partialOffset++] = value;
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
         {
             if (partialBuffer != null)
             {
-                WritePartial(value);
-            }
-            else
-            {
-                outStr.WriteByte(value);
-            }
-        }
-        public override void Write(
-            byte[]	buffer,
-            int		offset,
-            int		count)
-        {
-            if (partialBuffer != null)
-            {
-                WritePartial(buffer, offset, count);
+                PartialWrite(buffer, offset, count);
             }
             else
             {
@@ -303,8 +286,20 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-		// Additional helper methods to write primitive types
-		internal virtual void WriteShort(
+        public override void WriteByte(byte value)
+        {
+            if (partialBuffer != null)
+            {
+                PartialWriteByte(value);
+            }
+            else
+            {
+                outStr.WriteByte(value);
+            }
+        }
+
+        // Additional helper methods to write primitive types
+        internal virtual void WriteShort(
 			short n)
 		{
 			this.Write(

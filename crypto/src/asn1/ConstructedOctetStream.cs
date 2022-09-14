@@ -18,9 +18,11 @@ namespace Org.BouncyCastle.Asn1
 			m_parser = parser;
 		}
 
-		public override int Read(byte[] buf, int off, int len)
+		public override int Read(byte[] buffer, int offset, int count)
 		{
-            if (len < 1)
+			Streams.ValidateBufferArguments(buffer, offset, count);
+
+			if (count < 1)
                 return 0;
 
 			if (m_currentStream == null)
@@ -40,13 +42,13 @@ namespace Org.BouncyCastle.Asn1
 
 			for (;;)
 			{
-				int numRead = m_currentStream.Read(buf, off + totalRead, len - totalRead);
+				int numRead = m_currentStream.Read(buffer, offset + totalRead, count - totalRead);
 
 				if (numRead > 0)
 				{
 					totalRead += numRead;
 
-					if (totalRead == len)
+					if (totalRead == count)
 						return totalRead;
 				}
 				else

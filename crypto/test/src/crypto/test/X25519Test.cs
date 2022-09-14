@@ -21,11 +21,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             get { return "X25519"; }
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new X25519Test());
-        }
-
         [Test]
         public void TestFunction()
         {

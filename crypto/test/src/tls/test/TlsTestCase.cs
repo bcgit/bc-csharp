@@ -70,6 +70,8 @@ namespace Org.BouncyCastle.Tls.Tests
                 Assert.AreEqual(count, data.Length);
                 Assert.IsTrue(Arrays.AreEqual(data, echo));
 
+                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsKeyingMaterial1, serverImpl.m_tlsKeyingMaterial1));
+                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsKeyingMaterial2, serverImpl.m_tlsKeyingMaterial2));
                 Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsServerEndPoint, serverImpl.m_tlsServerEndPoint));
 
                 if (!TlsUtilities.IsTlsV13(clientImpl.m_negotiatedVersion))

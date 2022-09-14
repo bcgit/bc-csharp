@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
@@ -45,6 +45,10 @@ namespace Org.BouncyCastle.Tls.Tests
         /// _claimed_ in the CertificateVerify (if one is sent), independently of what was actually used.</summary>
         public SignatureAndHashAlgorithm clientAuthSigAlgClaimed = null;
 
+        /// <summary>If TLS 1.2 or higher is negotiated, configures the set of supported signature algorithms in the
+        /// ClientHello. If null, uses a default set.</summary>
+        public IList<SignatureAndHashAlgorithm> clientCHSigAlgs = null;
+
         /// <summary>Control whether the client will call
         /// <see cref="TlsUtilities.CheckPeerSigAlgs(TlsContext, Crypto.TlsCertificate[])"/> to check the server
         /// certificate chain.</summary>
@@ -80,7 +84,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         /// <summary>If TLS 1.2 or higher is negotiated, configures the set of supported signature algorithms in the
         /// CertificateRequest (if one is sent). If null, uses a default set.</summary>
-        public IList serverCertReqSigAlgs = null;
+        public IList<SignatureAndHashAlgorithm> serverCertReqSigAlgs = null;
 
         /// <summary>Control whether the server will call
         /// <see cref="TlsUtilities.CheckPeerSigAlgs(TlsContext, Crypto.TlsCertificate[])"/> to check the client

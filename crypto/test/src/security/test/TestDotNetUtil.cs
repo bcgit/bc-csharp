@@ -1,14 +1,17 @@
-#if !(NETCF_1_0 || SILVERLIGHT || PORTABLE)
-
 using System;
+using System.Collections.Generic;
+#if NET5_0_OR_GREATER
+using System.Runtime.Versioning;
+#endif
 using System.Security.Cryptography;
 using SystemX509 = System.Security.Cryptography.X509Certificates;
-using System.Collections;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -17,7 +20,10 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Security.Tests
 {
 	[TestFixture]
-	public class TestDotNetUtilities
+#if NET5_0_OR_GREATER
+    [SupportedOSPlatform("windows")]
+#endif
+    public class TestDotNetUtilities
 	{
 		[Test]
 		public void TestRsaInterop()
@@ -48,14 +54,14 @@ namespace Org.BouncyCastle.Security.Tests
 			DsaPrivateKeyParameters dsaPriv = new DsaPrivateKeyParameters(DsaPrivateX, para);
 			DsaPublicKeyParameters dsaPub = new DsaPublicKeyParameters(DSAPublicY, para);
 
-			IDictionary attrs = new Hashtable();
+			var attrs = new Dictionary<DerObjectIdentifier, string>();
 			attrs[X509Name.C] = "AU";
 			attrs[X509Name.O] = "The Legion of the Bouncy Castle";
 			attrs[X509Name.L] = "Melbourne";
 			attrs[X509Name.ST] = "Victoria";
 			attrs[X509Name.E] = "feedback-crypto@bouncycastle.org";
 
-			IList ord = new ArrayList(attrs.Keys);
+			var ord = new List<DerObjectIdentifier>(attrs.Keys);
 
 			X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
 
@@ -66,11 +72,10 @@ namespace Org.BouncyCastle.Security.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
 			certGen.SetSubjectDN(new X509Name(ord, attrs));
 			certGen.SetPublicKey(dsaPub);
-			certGen.SetSignatureAlgorithm("SHA1WITHDSA");
 
-			X509Certificate cert = certGen.Generate(dsaPriv);
+            X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("SHA1WITHDSA", dsaPriv, null));
 
-			cert.CheckValidity();
+            cert.CheckValidity();
 			cert.Verify(dsaPub);
 
 			SystemX509.X509Certificate dotNetCert = DotNetUtilities.ToX509Certificate(cert);
@@ -84,5 +89,3 @@ namespace Org.BouncyCastle.Security.Tests
 		}
 	}
 }
-
-#endif

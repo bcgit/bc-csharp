@@ -6,10 +6,10 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 
@@ -25,9 +25,6 @@ namespace Org.BouncyCastle.Pkcs.Examples
 	public class Pkcs12Example
 	{
 		private static readonly char[] passwd = "hello world".ToCharArray();
-
-		private static readonly X509V1CertificateGenerator v1CertGen = new X509V1CertificateGenerator();
-		private static readonly X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
 
 		/**
 		* we generate the CA's certificate
@@ -49,16 +46,16 @@ namespace Org.BouncyCastle.Pkcs.Examples
 			//
 			// create the certificate - version 1
 			//
+			ISignatureFactory signatureFactory = new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null);
 
+			X509V1CertificateGenerator v1CertGen = new X509V1CertificateGenerator();
 			v1CertGen.SetSerialNumber(BigInteger.One);
 			v1CertGen.SetIssuerDN(new X509Name(issuer));
 			v1CertGen.SetNotBefore(DateTime.UtcNow.AddMonths(-1));
 			v1CertGen.SetNotAfter(DateTime.UtcNow.AddMonths(1));
 			v1CertGen.SetSubjectDN(new X509Name(subject));
 			v1CertGen.SetPublicKey(pubKey);
-			v1CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
-
-			X509Certificate cert = v1CertGen.Generate(privKey);
+			X509Certificate cert = v1CertGen.Generate(signatureFactory);
 
 			cert.CheckValidity(DateTime.UtcNow);
 
@@ -107,15 +104,13 @@ namespace Org.BouncyCastle.Pkcs.Examples
 			//
 			// create the certificate - version 3
 			//
-			v3CertGen.Reset();
-
+			X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
 			v3CertGen.SetSerialNumber(BigInteger.Two);
 			v3CertGen.SetIssuerDN(PrincipalUtilities.GetSubjectX509Principal(caCert));
 			v3CertGen.SetNotBefore(DateTime.UtcNow.AddMonths(-1));
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddMonths(1));
 			v3CertGen.SetSubjectDN(new X509Name(order, attrs));
 			v3CertGen.SetPublicKey(pubKey);
-			v3CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
 			//
 			// extensions
@@ -135,7 +130,7 @@ namespace Org.BouncyCastle.Pkcs.Examples
 				true,
 				new BasicConstraints(0));
 
-			X509Certificate cert = v3CertGen.Generate(caPrivKey);
+			X509Certificate cert = v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", caPrivKey, null));
 
 			cert.CheckValidity(DateTime.UtcNow);
 
@@ -202,15 +197,13 @@ namespace Org.BouncyCastle.Pkcs.Examples
 			//
 			// create the certificate - version 3
 			//
-			v3CertGen.Reset();
-
+			X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
 			v3CertGen.SetSerialNumber(BigInteger.Three);
 			v3CertGen.SetIssuerDN(new X509Name(sOrder, sAttrs));
 			v3CertGen.SetNotBefore(DateTime.UtcNow.AddMonths(-1));
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddMonths(1));
 			v3CertGen.SetSubjectDN(new X509Name(order, attrs));
 			v3CertGen.SetPublicKey(pubKey);
-			v3CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
 			//
 			// add the extensions
@@ -225,7 +218,7 @@ namespace Org.BouncyCastle.Pkcs.Examples
 				false,
 				new AuthorityKeyIdentifierStructure(caPubKey));
 
-			X509Certificate cert = v3CertGen.Generate(caPrivKey);
+			X509Certificate cert = v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", caPrivKey, null));
 
 			cert.CheckValidity(DateTime.UtcNow);
 

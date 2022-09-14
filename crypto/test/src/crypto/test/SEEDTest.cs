@@ -48,12 +48,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "SEED"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new SeedTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

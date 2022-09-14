@@ -357,15 +357,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "Gost28147"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			ITest test = new Gost28147Test();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-		}
-
 		[Test]
 		public void TestFunction()
 		{

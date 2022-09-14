@@ -22,10 +22,14 @@ namespace Org.BouncyCastle.Crypto.Tests
 		private class RFCRandom
 			: SecureRandom
 		{
-			public override void NextBytes(
-				byte[] nextBytes)
+			public override void NextBytes(byte[] buf)
 			{
-				Array.Copy(Hex.Decode("4845cce7fd1250"), 0, nextBytes, 0, nextBytes.Length);
+				NextBytes(buf, 0, buf.Length);
+			}
+
+			public override void NextBytes(byte[] buf, int off, int len)
+			{
+				Array.Copy(Hex.Decode("4845cce7fd1250"), 0, buf, off, len);
 			}
 		}
 
@@ -101,15 +105,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 		public string Name
 		{
 			get { return "RC2Wrap"; }
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			ITest test = new RC2WrapTest();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
 		}
 
 		[Test]

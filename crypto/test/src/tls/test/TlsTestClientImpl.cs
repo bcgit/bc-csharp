@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -47,6 +47,8 @@ namespace Org.BouncyCastle.Tls.Tests
         protected short m_firstFatalAlertDescription = -1;
 
         internal ProtocolVersion m_negotiatedVersion = null;
+        internal byte[] m_tlsKeyingMaterial1 = null;
+        internal byte[] m_tlsKeyingMaterial2 = null;
         internal byte[] m_tlsServerEndPoint = null;
         internal byte[] m_tlsUnique = null;
 
@@ -66,9 +68,12 @@ namespace Org.BouncyCastle.Tls.Tests
             get { return m_firstFatalAlertDescription; }
         }
 
-        public override IDictionary GetClientExtensions()
+        public override IDictionary<int, byte[]> GetClientExtensions()
         {
-            IDictionary clientExtensions = base.GetClientExtensions();
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            var clientExtensions = base.GetClientExtensions();
             if (clientExtensions != null)
             {
                 if (!m_config.clientSendSignatureAlgorithms)
@@ -85,12 +90,20 @@ namespace Org.BouncyCastle.Tls.Tests
             return clientExtensions;
         }
 
-        public override IList GetEarlyKeyShareGroups()
+        public override IList<int> GetEarlyKeyShareGroups()
         {
             if (m_config.clientEmptyKeyShare)
                 return null;
 
             return base.GetEarlyKeyShareGroups();
+        }
+
+        protected override IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()
+        {
+            if (m_config.clientCHSigAlgs != null)
+                return TlsUtilities.GetSupportedSignatureAlgorithms(m_context, m_config.clientCHSigAlgs);
+
+            return base.GetSupportedSignatureAlgorithms();
         }
 
         public override bool IsFallback()
@@ -143,6 +156,13 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyHandshakeComplete();
 
+            SecurityParameters securityParameters = m_context.SecurityParameters;
+            if (securityParameters.IsExtendedMasterSecret)
+            {
+                m_tlsKeyingMaterial1 = m_context.ExportKeyingMaterial("BC_TLS_TESTS_1", null, 16);
+                m_tlsKeyingMaterial2 = m_context.ExportKeyingMaterial("BC_TLS_TESTS_2", new byte[8], 16);
+            }
+
             m_tlsServerEndPoint = m_context.ExportChannelBinding(ChannelBinding.tls_server_end_point);
             m_tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
 
@@ -168,6 +188,14 @@ namespace Org.BouncyCastle.Tls.Tests
         public override TlsAuthentication GetAuthentication()
         {
             return new MyTlsAuthentication(this, m_context);
+        }
+
+        public override void ProcessServerExtensions(IDictionary<int, byte[]> serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessServerExtensions(serverExtensions);
         }
 
         protected virtual Certificate CorruptCertificate(Certificate cert)
@@ -298,17 +326,25 @@ namespace Org.BouncyCastle.Tls.Tests
                         return null;
                 }
 
-                IList supportedSigAlgs = certificateRequest.SupportedSignatureAlgorithms;
+                var supportedSigAlgs = certificateRequest.SupportedSignatureAlgorithms;
                 if (supportedSigAlgs != null && config.clientAuthSigAlg != null)
                 {
-                    supportedSigAlgs = new ArrayList(1);
-                    supportedSigAlgs.Add(config.clientAuthSigAlg);
+                    supportedSigAlgs = TlsUtilities.VectorOfOne(config.clientAuthSigAlg);
                 }
 
                 // TODO[tls13] Check also supportedSigAlgsCert against the chain signature(s)
 
                 TlsCredentialedSigner signerCredentials = TlsTestUtilities.LoadSignerCredentials(m_context,
                     supportedSigAlgs, SignatureAlgorithm.rsa, "x509-client-rsa.pem", "x509-client-key-rsa.pem");
+                if (signerCredentials == null && supportedSigAlgs != null)
+                {
+                    SignatureAndHashAlgorithm pss = SignatureAndHashAlgorithm.rsa_pss_rsae_sha256;
+                    if (TlsUtilities.ContainsSignatureAlgorithm(supportedSigAlgs, pss))
+                    {
+                        signerCredentials = TlsTestUtilities.LoadSignerCredentials(m_context,
+                            new string[]{ "x509-client-rsa.pem" }, "x509-client-key-rsa.pem", pss);
+                    }
+                }
 
                 if (config.clientAuth == TlsTestConfig.CLIENT_AUTH_VALID)
                     return signerCredentials;
@@ -363,8 +399,36 @@ namespace Org.BouncyCastle.Tls.Tests
 
             public virtual TlsStreamSigner GetStreamSigner()
             {
-                return null;
+                TlsStreamSigner streamSigner = m_inner.GetStreamSigner();
+
+                if (streamSigner != null && m_outer.m_config.clientAuth == TlsTestConfig.CLIENT_AUTH_INVALID_VERIFY)
+                    return new CorruptingStreamSigner(m_outer, streamSigner);
+
+                return streamSigner;
             }
-        };
+        }
+
+        internal class CorruptingStreamSigner
+            : TlsStreamSigner
+        {
+            private readonly TlsTestClientImpl m_outer;
+            private readonly TlsStreamSigner m_inner;
+
+            internal CorruptingStreamSigner(TlsTestClientImpl outer, TlsStreamSigner inner)
+            {
+                this.m_outer = outer;
+                this.m_inner = inner;
+            }
+
+            public Stream Stream
+            {
+                get { return m_inner.Stream; }
+            }
+
+            public byte[] GetSignature()
+            {
+                return m_outer.CorruptBit(m_inner.GetSignature());
+            }
+        }
     }
 }

@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crmf
 {
@@ -16,7 +14,7 @@ namespace Org.BouncyCastle.Crmf
         private readonly BigInteger _certReqId;
         private X509ExtensionsGenerator _extGenerator;
         private CertTemplateBuilder _templateBuilder;
-        private IList _controls = Platform.CreateArrayList();
+        private IList<IControl> m_controls = new List<IControl>();
         private ISignatureFactory _popSigner;
         private PKMacBuilder _pkMacBuilder;
         private char[] _password;
@@ -95,7 +93,7 @@ namespace Org.BouncyCastle.Crmf
 
         public CertificateRequestMessageBuilder AddControl(IControl control)
         {
-            _controls.Add(control);
+            m_controls.Add(control);
             return this;
         }
 
@@ -195,13 +193,12 @@ namespace Org.BouncyCastle.Crmf
 
             v.Add(_templateBuilder.Build());
 
-            if (_controls.Count > 0)
+            if (m_controls.Count > 0)
             {
                 Asn1EncodableVector controlV = new Asn1EncodableVector();
 
-                foreach (object item in _controls)
+                foreach (var control in m_controls)
                 {
-                    IControl control = (IControl)item;
                     controlV.Add(new AttributeTypeAndValue(control.Type, control.Value));
                 }
 

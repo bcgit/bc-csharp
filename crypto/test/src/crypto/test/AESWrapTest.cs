@@ -194,15 +194,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return new SimpleTestResult(true, Name + ": Okay");
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			AesWrapTest test = new AesWrapTest();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-		}
-
 		[Test]
 		public void TestFunction()
 		{

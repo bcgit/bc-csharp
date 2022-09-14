@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Asn1
             return (DerObjectIdentifier)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
         }
 
-        private const long LongLimit = (Int64.MaxValue >> 7) - 0x7F;
+        private const long LongLimit = (long.MaxValue >> 7) - 0x7F;
 
         private static readonly DerObjectIdentifier[] cache = new DerObjectIdentifier[1024];
 
@@ -165,7 +165,7 @@ namespace Org.BouncyCastle.Asn1
             token = tok.NextToken();
             if (token.Length <= 18)
             {
-                Asn1RelativeOid.WriteField(bOut, first + Int64.Parse(token));
+                Asn1RelativeOid.WriteField(bOut, first + long.Parse(token));
             }
             else
             {
@@ -177,7 +177,7 @@ namespace Org.BouncyCastle.Asn1
                 token = tok.NextToken();
                 if (token.Length <= 18)
                 {
-                    Asn1RelativeOid.WriteField(bOut, Int64.Parse(token));
+                    Asn1RelativeOid.WriteField(bOut, long.Parse(token));
                 }
                 else
                 {

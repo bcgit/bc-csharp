@@ -1,11 +1,18 @@
 {
-  "version": "1.9.0",
+  "$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/master/src/NerdBank.GitVersioning/version.schema.json",
+  "version": "2.0-beta",
+  "versionHeightOffset": -1,
+  "nugetPackageVersion": {
+    "semVer": 2
+  },
   "publicReleaseRefSpec": [
-    "^refs/heads/master$", // we release out of master
+    "^refs/heads/master$",
+    "^refs/heads/release/v\\d+\\.\\d+$",
     "^refs/heads/netstandard$", // we release out of netstandard
     "^refs/heads/ref/v\\d+\\.\\d+" // we also release tags starting with ref/vN.N 
   ],
-  "nugetPackageVersion":{
-    "semVer": 2
+  "release": {
+    "branchName": "release/v{version}",
+    "firstUnstableTag": "beta"
   }
 }

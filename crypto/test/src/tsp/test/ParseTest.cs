@@ -1,6 +1,5 @@
 using System;
-using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -8,7 +7,6 @@ using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tsp.Tests
 {
@@ -375,9 +373,8 @@ namespace Org.BouncyCastle.Tsp.Tests
 		{
 			TimeStampResponse response = new TimeStampResponse(encoded);
 
-			IX509Store store = response.TimeStampToken.GetCertificates("Collection");
-			X509Certificate cert = (X509Certificate)
-				new ArrayList(store.GetMatches(response.TimeStampToken.SignerID))[0];
+			var store = response.TimeStampToken.GetCertificates();
+			var cert = new List<X509Certificate>(store.EnumerateMatches(response.TimeStampToken.SignerID))[0];
 
 			response.TimeStampToken.Validate(cert);
 		}

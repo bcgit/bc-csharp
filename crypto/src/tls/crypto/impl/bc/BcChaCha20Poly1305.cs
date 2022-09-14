@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             {
                 int ciphertextLength = inputLength;
 
-                m_cipher.ProcessBytes(input, inputOffset, inputLength, output, outputOffset);
+                m_cipher.DoFinal(input, inputOffset, inputLength, output, outputOffset);
                 int outputLength = inputLength;
 
                 if (ciphertextLength != outputLength)
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 if (badMac)
                     throw new TlsFatalAlert(AlertDescription.bad_record_mac);
 
-                m_cipher.ProcessBytes(input, inputOffset, ciphertextLength, output, outputOffset);
+                m_cipher.DoFinal(input, inputOffset, ciphertextLength, output, outputOffset);
                 int outputLength = ciphertextLength;
 
                 if (ciphertextLength != outputLength)

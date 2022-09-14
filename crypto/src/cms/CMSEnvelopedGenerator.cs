@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
@@ -13,7 +13,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
@@ -100,7 +99,7 @@ namespace Org.BouncyCastle.Cms
 		public static readonly string ECDHSha1Kdf		= X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id;
 		public static readonly string ECMqvSha1Kdf		= X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id;
 
-		internal readonly IList recipientInfoGenerators = Platform.CreateArrayList();
+		internal readonly IList<RecipientInfoGenerator> recipientInfoGenerators = new List<RecipientInfoGenerator>();
 		internal readonly SecureRandom rand;
 
         internal CmsAttributeTableGenerator unprotectedAttributeGenerator = null;
@@ -216,7 +215,7 @@ namespace Org.BouncyCastle.Cms
 			X509Certificate			recipientCert,
 			string					cekWrapAlgorithm)
 		{
-            IList recipientCerts = Platform.CreateArrayList(1);
+            var recipientCerts = new List<X509Certificate>(1);
 			recipientCerts.Add(recipientCert);
 
 			AddKeyAgreementRecipients(agreementAlgorithm, senderPrivateKey, senderPublicKey,
@@ -238,7 +237,7 @@ namespace Org.BouncyCastle.Cms
 			string					agreementAlgorithm,
 			AsymmetricKeyParameter	senderPrivateKey,
 			AsymmetricKeyParameter	senderPublicKey,
-			ICollection				recipientCerts,
+			IEnumerable<X509Certificate> recipientCerts,
 			string					cekWrapAlgorithm)
 		{
 			if (!senderPrivateKey.IsPrivate)
@@ -254,7 +253,7 @@ namespace Org.BouncyCastle.Cms
 			KeyAgreeRecipientInfoGenerator karig = new KeyAgreeRecipientInfoGenerator();
 			karig.KeyAgreementOID = new DerObjectIdentifier(agreementAlgorithm);
 			karig.KeyEncryptionOID = new DerObjectIdentifier(cekWrapAlgorithm);
-			karig.RecipientCerts = recipientCerts;
+			karig.RecipientCerts = new List<X509Certificate>(recipientCerts);
 			karig.SenderKeyPair = new AsymmetricCipherKeyPair(senderPublicKey, senderPrivateKey);
 
 			recipientInfoGenerators.Add(karig);

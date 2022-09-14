@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -169,8 +169,9 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static readonly DerObjectIdentifier ExpiredCertsOnCrl = new DerObjectIdentifier("2.5.29.60");
 
-        private readonly IDictionary extensions = Platform.CreateHashtable();
-        private readonly IList ordering;
+        private readonly Dictionary<DerObjectIdentifier, X509Extension> m_extensions =
+            new Dictionary<DerObjectIdentifier, X509Extension>();
+        private readonly List<DerObjectIdentifier> m_ordering;
 
         public static X509Extension GetExtension(X509Extensions extensions, DerObjectIdentifier oid)
         {
@@ -182,11 +183,9 @@ namespace Org.BouncyCastle.Asn1.X509
             return null == extensions ? null : extensions.GetExtensionParsedValue(oid);
         }
 
-		public static X509Extensions GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+		public static X509Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
+            return GetInstance(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
         }
 
 		public static X509Extensions GetInstance(
@@ -215,10 +214,9 @@ namespace Org.BouncyCastle.Asn1.X509
          *
          * the extensions are a list of constructed sequences, either with (Oid, OctetString) or (Oid, Boolean, OctetString)
          */
-        private X509Extensions(
-            Asn1Sequence seq)
+        private X509Extensions(Asn1Sequence seq)
         {
-            this.ordering = Platform.CreateArrayList();
+            m_ordering = new List<DerObjectIdentifier>();
 
 			foreach (Asn1Encodable ae in seq)
 			{
@@ -234,11 +232,11 @@ namespace Org.BouncyCastle.Asn1.X509
 
 				Asn1OctetString octets = Asn1OctetString.GetInstance(s[s.Count - 1].ToAsn1Object());
 
-                if (extensions.Contains(oid))
+                if (m_extensions.ContainsKey(oid))
                     throw new ArgumentException("repeated extension found: " + oid);
 
-                extensions.Add(oid, new X509Extension(isCritical, octets));
-				ordering.Add(oid);
+                m_extensions.Add(oid, new X509Extension(isCritical, octets));
+				m_ordering.Add(oid);
 			}
         }
 
@@ -247,8 +245,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * <p>
          * it's is assumed the table contains Oid/string pairs.</p>
          */
-        public X509Extensions(
-            IDictionary extensions)
+        public X509Extensions(IDictionary<DerObjectIdentifier, X509Extension> extensions)
             : this(null, extensions)
         {
         }
@@ -258,22 +255,21 @@ namespace Org.BouncyCastle.Asn1.X509
          * <p>
          * It's is assumed the table contains Oid/string pairs.</p>
          */
-        public X509Extensions(
-            IList       ordering,
-            IDictionary extensions)
+        public X509Extensions(IList<DerObjectIdentifier> ordering,
+            IDictionary<DerObjectIdentifier, X509Extension> extensions)
         {
             if (ordering == null)
             {
-                this.ordering = Platform.CreateArrayList(extensions.Keys);
+                m_ordering = new List<DerObjectIdentifier>(extensions.Keys);
             }
             else
             {
-                this.ordering = Platform.CreateArrayList(ordering);
+                m_ordering = new List<DerObjectIdentifier>(ordering);
             }
 
-            foreach (DerObjectIdentifier oid in this.ordering)
+            foreach (DerObjectIdentifier oid in m_ordering)
             {
-                this.extensions.Add(oid, (X509Extension)extensions[oid]);
+                m_extensions.Add(oid, extensions[oid]);
             }
         }
 
@@ -283,90 +279,23 @@ namespace Org.BouncyCastle.Asn1.X509
          * @param objectIDs an ArrayList of the object identifiers.
          * @param values an ArrayList of the extension values.
          */
-        public X509Extensions(
-            IList oids,
-            IList values)
+        public X509Extensions(IList<DerObjectIdentifier> oids, IList<X509Extension> values)
         {
-            this.ordering = Platform.CreateArrayList(oids);
+            m_ordering = new List<DerObjectIdentifier>(oids);
 
             int count = 0;
-            foreach (DerObjectIdentifier oid in this.ordering)
+            foreach (DerObjectIdentifier oid in m_ordering)
             {
-                this.extensions.Add(oid, (X509Extension)values[count++]);
+                m_extensions.Add(oid, values[count++]);
             }
         }
-
-#if !(SILVERLIGHT || PORTABLE)
-		/**
-         * constructor from a table of extensions.
-         * <p>
-         * it's is assumed the table contains Oid/string pairs.</p>
-         */
-        [Obsolete]
-        public X509Extensions(
-            Hashtable extensions)
-             : this(null, extensions)
-        {
-        }
-
-		/**
-         * Constructor from a table of extensions with ordering.
-         * <p>
-         * It's is assumed the table contains Oid/string pairs.</p>
-         */
-        [Obsolete]
-        public X509Extensions(
-            ArrayList	ordering,
-            Hashtable	extensions)
-        {
-            if (ordering == null)
-            {
-                this.ordering = Platform.CreateArrayList(extensions.Keys);
-            }
-            else
-            {
-                this.ordering = Platform.CreateArrayList(ordering);
-            }
-
-            foreach (DerObjectIdentifier oid in this.ordering)
-			{
-				this.extensions.Add(oid, (X509Extension) extensions[oid]);
-			}
-        }
-
-		/**
-		 * Constructor from two vectors
-		 *
-		 * @param objectIDs an ArrayList of the object identifiers.
-		 * @param values an ArrayList of the extension values.
-		 */
-        [Obsolete]
-		public X509Extensions(
-			ArrayList	oids,
-			ArrayList	values)
-		{
-            this.ordering = Platform.CreateArrayList(oids);
-
-            int count = 0;
-			foreach (DerObjectIdentifier oid in this.ordering)
-			{
-				this.extensions.Add(oid, (X509Extension) values[count++]);
-			}
-		}
-#endif
-
-        [Obsolete("Use ExtensionOids IEnumerable property")]
-		public IEnumerator Oids()
-		{
-			return ExtensionOids.GetEnumerator();
-		}
 
 		/**
 		 * return an Enumeration of the extension field's object ids.
 		 */
-		public IEnumerable ExtensionOids
+		public IEnumerable<DerObjectIdentifier> ExtensionOids
         {
-			get { return new EnumerableProxy(ordering); }
+			get { return CollectionUtilities.Proxy(m_ordering); }
         }
 
 		/**
@@ -375,10 +304,9 @@ namespace Org.BouncyCastle.Asn1.X509
          *
          * @return the extension if it's present, null otherwise.
          */
-        public X509Extension GetExtension(
-            DerObjectIdentifier oid)
+        public X509Extension GetExtension(DerObjectIdentifier oid)
         {
-             return (X509Extension)extensions[oid];
+            return CollectionUtilities.GetValueOrNull(m_extensions, oid);
         }
 
         /**
@@ -389,9 +317,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public Asn1Encodable GetExtensionParsedValue(DerObjectIdentifier oid)
         {
-            X509Extension ext = GetExtension(oid);
-
-            return ext == null ? null : ext.GetParsedValue();
+            return GetExtension(oid)?.GetParsedValue();
         }
 
 		/**
@@ -406,44 +332,41 @@ namespace Org.BouncyCastle.Asn1.X509
 		 */
 		public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector	vec = new Asn1EncodableVector();
+            Asn1EncodableVector	v = new Asn1EncodableVector(m_ordering.Count);
 
-			foreach (DerObjectIdentifier oid in ordering)
+			foreach (DerObjectIdentifier oid in m_ordering)
 			{
-                X509Extension ext = (X509Extension) extensions[oid];
-                Asn1EncodableVector	v = new Asn1EncodableVector(oid);
-
-				if (ext.IsCritical)
+                X509Extension ext = m_extensions[oid];
+                if (ext.IsCritical)
                 {
-                    v.Add(DerBoolean.True);
+                    v.Add(new DerSequence(oid, DerBoolean.True, ext.Value));
                 }
-
-				v.Add(ext.Value);
-
-				vec.Add(new DerSequence(v));
+                else
+                {
+                    v.Add(new DerSequence(oid, ext.Value));
+                }
             }
 
-			return new DerSequence(vec);
+			return new DerSequence(v);
         }
 
-		public bool Equivalent(
-			X509Extensions other)
+		public bool Equivalent(X509Extensions other)
 		{
-			if (extensions.Count != other.extensions.Count)
+			if (m_extensions.Count != other.m_extensions.Count)
 				return false;
 
-			foreach (DerObjectIdentifier oid in extensions.Keys)
-			{
-				if (!extensions[oid].Equals(other.extensions[oid]))
-					return false;
-			}
+            foreach (var entry in m_extensions)
+            {
+                if (!entry.Value.Equals(other.GetExtension(entry.Key)))
+                    return false;
+            }
 
 			return true;
 		}
 
 		public DerObjectIdentifier[] GetExtensionOids()
 		{
-			return ToOidArray(ordering);
+            return m_ordering.ToArray();
 		}
 
 		public DerObjectIdentifier[] GetNonCriticalExtensionOids()
@@ -458,25 +381,17 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		private DerObjectIdentifier[] GetExtensionOids(bool isCritical)
 		{
-			IList oids = Platform.CreateArrayList();
+			var oids = new List<DerObjectIdentifier>();
 
-			foreach (DerObjectIdentifier oid in this.ordering)
+			foreach (DerObjectIdentifier oid in m_ordering)
             {
-				X509Extension ext = (X509Extension)extensions[oid];
-				if (ext.IsCritical == isCritical)
+				if (m_extensions[oid].IsCritical == isCritical)
 				{
 					oids.Add(oid);
 				}
             }
 
-			return ToOidArray(oids);
-		}
-
-		private static DerObjectIdentifier[] ToOidArray(IList oids)
-		{
-			DerObjectIdentifier[] oidArray = new DerObjectIdentifier[oids.Count];
-			oids.CopyTo(oidArray, 0);
-			return oidArray;
+            return oids.ToArray();
 		}
 	}
 }

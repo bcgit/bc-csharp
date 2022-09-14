@@ -37,17 +37,17 @@ namespace Org.BouncyCastle.Crypto.Modes
         * The maximum data length (AEAD/PlainText). Due to implementation constraints this is restricted to the maximum
         * array length (https://programming.guide/java/array-maximum-length.html) minus the BUFLEN to allow for the MAC
         */
-        private static readonly int MAX_DATALEN = Int32.MaxValue - 8 - BUFLEN;
+        private static readonly int MAX_DATALEN = int.MaxValue - 8 - BUFLEN;
 
         /**
         * The top bit mask.
         */
-        private static readonly byte MASK = (byte)0x80;
+        private static readonly byte MASK = 0x80;
 
         /**
         * The addition constant.
         */
-        private static readonly byte ADD = (byte)0xE1;
+        private static readonly byte ADD = 0xE1;
 
         /**
         * The initialisation flag.
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         * Constructor.
         */
         public GcmSivBlockCipher()
-            : this(new AesEngine())
+            : this(AesUtilities.CreateEngine())
         {
         }
 
@@ -246,7 +246,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             /* Make sure that we haven't breached AEAD data limit */
-            if ((long)theAEADHasher.getBytesProcessed() + Int64.MinValue > (MAX_DATALEN - pLen) + Int64.MinValue)
+            if ((long)theAEADHasher.getBytesProcessed() + long.MinValue > (MAX_DATALEN - pLen) + long.MinValue)
             {
                 throw new InvalidOperationException("AEAD byte count exceeded");
             }
@@ -279,8 +279,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 dataLimit += BUFLEN;
                 currBytes = theEncData.Length;
             }
-            if (currBytes + System.Int64.MinValue
-            > (dataLimit - pLen) + System.Int64.MinValue)
+            if (currBytes + long.MinValue > (dataLimit - pLen) + long.MinValue)
             {
                 throw new InvalidOperationException("byte count exceeded");
             }
@@ -368,7 +367,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 int myDataLen = BUFLEN + encryptPlain(myTag, pOutput, pOffset);
 
                 /* Add the tag to the output */
-                Array.Copy(myTag, 0, pOutput, pOffset + (int)thePlain.Length, BUFLEN);
+                Array.Copy(myTag, 0, pOutput, pOffset + Convert.ToInt32(thePlain.Length), BUFLEN);
 
                 /* Reset the streams */
                 ResetStreams();
@@ -404,9 +403,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             if (forEncryption)
             {
-                return (int)(pLen + thePlain.Length + BUFLEN);
+                return pLen + Convert.ToInt32(thePlain.Length) + BUFLEN;
             }
-            int myCurr = (int)(pLen + theEncData.Length);
+            int myCurr = pLen + Convert.ToInt32(theEncData.Length);
             return myCurr > BUFLEN ? myCurr - BUFLEN : 0;
         }
 
@@ -423,8 +422,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             /* Clear the plainText buffer */
             if (thePlain != null)
             {
-                thePlain.Position = 0L;
-                Streams.WriteZeroes(thePlain, thePlain.Capacity);
+                int count = Convert.ToInt32(thePlain.Length);
+                Array.Clear(thePlain.GetBuffer(), 0, count);
+                thePlain.SetLength(0);
             }
 
             /* Reset hashers */
@@ -486,14 +486,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         private int encryptPlain(byte[] pCounter, byte[] pTarget, int pOffset)
         {
-            /* Access buffer and length */
-#if PORTABLE
-            byte[] thePlainBuf = thePlain.ToArray();
-            int thePlainLen = thePlainBuf.Length;
-#else
             byte[] thePlainBuf = thePlain.GetBuffer();
-            int thePlainLen = (int)thePlain.Length;
-#endif
+            int thePlainLen = Convert.ToInt32(thePlain.Length);
 
             byte[] mySrc = thePlainBuf;
             byte[] myCounter = Arrays.Clone(pCounter);
@@ -531,14 +525,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         private void decryptPlain()
         {
-            /* Access buffer and length */
-#if PORTABLE
-            byte[] theEncDataBuf = theEncData.ToArray();
-            int theEncDataLen = theEncDataBuf.Length;
-#else
             byte[] theEncDataBuf = theEncData.GetBuffer();
-            int theEncDataLen = (int)theEncData.Length;
-#endif
+            int theEncDataLen = Convert.ToInt32(theEncData.Length);
 
             byte[] mySrc = theEncDataBuf;
             int myRemaining = theEncDataLen - BUFLEN;
@@ -649,13 +637,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             theMultiplier.MultiplyH(theGHash);
         }
 
-        /**
-        * Byte reverse a buffer.
-        * @param pInput the input buffer
-        * @param pOffset the offset
-        * @param pLength the length of data (<= BUFLEN)
-        * @param pOutput the output buffer
-        */
         private static void fillReverse(byte[] pInput, int pOffset, int pLength, byte[] pOutput)
         {
             /* Loop through the buffer */

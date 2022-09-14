@@ -55,9 +55,7 @@ namespace Org.BouncyCastle.Asn1.X9
             this._params = obj;
         }
 
-        [Obsolete("Use 'GetInstance' instead")]
-        public X962Parameters(
-            Asn1Object obj)
+        private X962Parameters(Asn1Object obj)
         {
             this._params = obj;
         }

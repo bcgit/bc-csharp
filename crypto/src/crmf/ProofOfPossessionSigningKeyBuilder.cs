@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
@@ -58,32 +59,30 @@ namespace Org.BouncyCastle.Crmf
             }
 
             PopoSigningKeyInput popo;
-            byte[] b;
+
             IStreamCalculator calc = signer.CreateCalculator();
-            if (_certRequest != null)
+            using (Stream sigStream = calc.Stream)
             {
-                popo = null;
-                b = _certRequest.GetDerEncoded();
-                calc.Stream.Write(b, 0, b.Length);
+                if (_certRequest != null)
+                {
+                    popo = null;
+                    _certRequest.EncodeTo(sigStream, Asn1Encodable.Der);
+                }
+                else if (_name != null)
+                {
+                    popo = new PopoSigningKeyInput(_name, _pubKeyInfo);
+                    popo.EncodeTo(sigStream, Asn1Encodable.Der);
+                }
+                else
+                {
+                    popo = new PopoSigningKeyInput(_publicKeyMAC, _pubKeyInfo);
+                    popo.EncodeTo(sigStream, Asn1Encodable.Der);
+                }
+            }
 
-            }
-            else if (_name != null)
-            {
-                popo = new PopoSigningKeyInput(_name, _pubKeyInfo);
-                b = popo.GetDerEncoded();
-                calc.Stream.Write(b, 0, b.Length);
-            }
-            else
-            {
-                popo = new PopoSigningKeyInput(_publicKeyMAC, _pubKeyInfo);
-                b = popo.GetDerEncoded();
-                calc.Stream.Write(b, 0, b.Length);
-            }
+            var signature = ((IBlockResult)calc.GetResult()).Collect();
 
-            calc.Stream.Flush();
-            Platform.Dispose(calc.Stream);
-            DefaultSignatureResult res = (DefaultSignatureResult)calc.GetResult();
-            return new PopoSigningKey(popo, (AlgorithmIdentifier)signer.AlgorithmDetails, new DerBitString(res.Collect()));
+            return new PopoSigningKey(popo, (AlgorithmIdentifier)signer.AlgorithmDetails, new DerBitString(signature));
         }
     }
 }

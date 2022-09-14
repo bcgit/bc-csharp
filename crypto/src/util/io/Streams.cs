@@ -19,38 +19,6 @@ namespace Org.BouncyCastle.Utilities.IO
 			}
 		}
 
-		public static byte[] ReadAll(Stream inStr)
-		{
-			MemoryStream buf = new MemoryStream();
-			PipeAll(inStr, buf);
-			return buf.ToArray();
-		}
-
-		public static byte[] ReadAllLimited(Stream inStr, int limit)
-		{
-			MemoryStream buf = new MemoryStream();
-			PipeAllLimited(inStr, limit, buf);
-			return buf.ToArray();
-		}
-
-		public static int ReadFully(Stream inStr, byte[] buf)
-		{
-			return ReadFully(inStr, buf, 0, buf.Length);
-		}
-
-		public static int ReadFully(Stream inStr, byte[] buf, int off, int len)
-		{
-			int totalRead = 0;
-			while (totalRead < len)
-			{
-				int numRead = inStr.Read(buf, off + totalRead, len - totalRead);
-				if (numRead < 1)
-					break;
-				totalRead += numRead;
-			}
-			return totalRead;
-		}
-
         /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
         /// <param name="inStr">Source stream.</param>
         /// <param name="outStr">Destination stream.</param>
@@ -105,29 +73,56 @@ namespace Org.BouncyCastle.Utilities.IO
 			return total;
 		}
 
-        /// <exception cref="IOException"></exception>
-        public static void WriteBufTo(MemoryStream buf, Stream output)
+		public static byte[] ReadAll(Stream inStr)
+		{
+			MemoryStream buf = new MemoryStream();
+			PipeAll(inStr, buf);
+			return buf.ToArray();
+		}
+
+		public static byte[] ReadAllLimited(Stream inStr, int limit)
+		{
+			MemoryStream buf = new MemoryStream();
+			PipeAllLimited(inStr, limit, buf);
+			return buf.ToArray();
+		}
+
+		public static int ReadFully(Stream inStr, byte[] buf)
+		{
+			return ReadFully(inStr, buf, 0, buf.Length);
+		}
+
+		public static int ReadFully(Stream inStr, byte[] buf, int off, int len)
+		{
+			int totalRead = 0;
+			while (totalRead < len)
+			{
+				int numRead = inStr.Read(buf, off + totalRead, len - totalRead);
+				if (numRead < 1)
+					break;
+				totalRead += numRead;
+			}
+			return totalRead;
+		}
+
+		public static void ValidateBufferArguments(byte[] buffer, int offset, int count)
         {
-            buf.WriteTo(output);
-        }
+			if (buffer == null)
+				throw new ArgumentNullException("buffer");
+			int available = buffer.Length - offset;
+			if ((offset | available) < 0)
+				throw new ArgumentOutOfRangeException("offset");
+			int remaining = available - count;
+			if ((count | remaining) < 0)
+				throw new ArgumentOutOfRangeException("count");
+		}
 
         /// <exception cref="IOException"></exception>
         public static int WriteBufTo(MemoryStream buf, byte[] output, int offset)
         {
-            int size = (int)buf.Length;
-            WriteBufTo(buf, new MemoryStream(output, offset, size));
+			int size = Convert.ToInt32(buf.Length);
+            buf.WriteTo(new MemoryStream(output, offset, size));
             return size;
-        }
-
-        public static void WriteZeroes(Stream outStr, long count)
-        {
-            byte[] zeroes = new byte[BufferSize];
-            while (count > BufferSize)
-            {
-                outStr.Write(zeroes, 0, BufferSize);
-                count -= BufferSize;
-            }
-            outStr.Write(zeroes, 0, (int)count);
         }
     }
 }

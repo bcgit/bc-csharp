@@ -19,6 +19,16 @@ namespace Org.BouncyCastle.Tls.Tests
             this.m_config = config;
         }
 
+        protected override void Send13CertificateVerifyMessage(DigitallySigned certificateVerify)
+        {
+            if (m_config.clientAuthSigAlgClaimed != null)
+            {
+                certificateVerify = new DigitallySigned(m_config.clientAuthSigAlgClaimed, certificateVerify.Signature);
+            }
+
+            base.Send13CertificateVerifyMessage(certificateVerify);
+        }
+
         protected override void SendCertificateVerifyMessage(DigitallySigned certificateVerify)
         {
             if (certificateVerify.Algorithm != null && m_config.clientAuthSigAlgClaimed != null)

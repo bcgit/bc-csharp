@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 
@@ -10,7 +9,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
         : FpeEngine
     {
         public FpeFf1Engine()
-            : this(new AesEngine())
+            : this(AesUtilities.CreateEngine())
         {
         }
 

@@ -1,15 +1,12 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms.Tests
@@ -94,7 +91,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			Assert.AreEqual(ad.MacAlgOid, macAlg);
 
-			ICollection c = recipients.GetRecipients();
+			var c = recipients.GetRecipients();
 
 			Assert.AreEqual(1, c.Count);
 

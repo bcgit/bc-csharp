@@ -81,12 +81,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			get { return "ShortenedDigest"; }
 		}
 
-		public static void Main(
-			string[]    args)
-		{
-			RunTest(new ShortenedDigestTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

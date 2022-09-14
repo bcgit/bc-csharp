@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -249,9 +249,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
         }
 
-        private static object First(IEnumerable e)
+        private static T First<T>(IEnumerable<T> e)
         {
-            IEnumerator n = e.GetEnumerator();
+            var n = e.GetEnumerator();
             Assert.IsTrue(n.MoveNext());
             return n.Current;
         }
@@ -259,11 +259,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         public override string Name
         {
             get { return "PgpECDHTest"; }
-        }
-
-        public static void Main(string[] args)
-        {
-            RunTest(new PgpECDHTest());
         }
 
         [Test]

@@ -23,11 +23,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			get { return "PgpParsingTest"; }
 		}
 
-        public static void Main(string[] args)
-		{
-			RunTest(new PgpParsingTest());
-		}
-
         [Test]
 		public void TestFunction()
 		{

@@ -1,13 +1,13 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 
@@ -30,23 +30,22 @@ namespace Org.BouncyCastle.Tests
 			return kpGen.GenerateKeyPair();
 		}
 
-		public static X509Certificate GenerateRootCert(
-			AsymmetricCipherKeyPair pair)
-		{
-			X509V1CertificateGenerator  certGen = new X509V1CertificateGenerator();
+        public static X509Certificate GenerateRootCert(
+            AsymmetricCipherKeyPair pair)
+        {
+            Asn1SignatureFactory signatureFactory = new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, null);
 
-			certGen.SetSerialNumber(BigInteger.One);
-			certGen.SetIssuerDN(new X509Name("CN=Test CA Certificate"));
-			certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-			certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
-			certGen.SetSubjectDN(new X509Name("CN=Test CA Certificate"));
-			certGen.SetPublicKey(pair.Public);
-			certGen.SetSignatureAlgorithm("SHA256WithRSAEncryption");
+            X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
+            certGen.SetSerialNumber(BigInteger.One);
+            certGen.SetIssuerDN(new X509Name("CN=Test CA Certificate"));
+            certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetSubjectDN(new X509Name("CN=Test CA Certificate"));
+            certGen.SetPublicKey(pair.Public);
+            return certGen.Generate(signatureFactory);
+        }
 
-			return certGen.Generate(pair.Private);
-		}
-
-		public static X509Certificate GenerateIntermediateCert(
+        public static X509Certificate GenerateIntermediateCert(
 			AsymmetricKeyParameter	intKey,
 			AsymmetricKeyParameter	caKey,
 			X509Certificate			caCert)
@@ -59,14 +58,13 @@ namespace Org.BouncyCastle.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			certGen.SetSubjectDN(new X509Name("CN=Test Intermediate Certificate"));
 			certGen.SetPublicKey(intKey);
-			certGen.SetSignatureAlgorithm("SHA256WithRSAEncryption");
 
 			certGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(caCert));
 			certGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false, new SubjectKeyIdentifierStructure(intKey));
 			certGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(0));
 			certGen.AddExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyCertSign | KeyUsage.CrlSign));
 
-			return certGen.Generate(caKey);
+			return certGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", caKey, null));
 		}
 
 		public static X509Certificate GenerateEndEntityCert(
@@ -82,14 +80,13 @@ namespace Org.BouncyCastle.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			certGen.SetSubjectDN(new X509Name("CN=Test End Certificate"));
 			certGen.SetPublicKey(entityKey);
-			certGen.SetSignatureAlgorithm("SHA256WithRSAEncryption");
 
 			certGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(caCert));
 			certGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false, new SubjectKeyIdentifierStructure(entityKey));
 			certGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(false));
 			certGen.AddExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyEncipherment));
 
-			return certGen.Generate(caKey);
+			return certGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", caKey, null));
 		}
 
 		public static X509Crl CreateCrl(
@@ -99,20 +96,18 @@ namespace Org.BouncyCastle.Tests
 		{
 			X509V2CrlGenerator	crlGen = new X509V2CrlGenerator();
 			DateTime			now = DateTime.UtcNow;
-//			BigInteger			revokedSerialNumber = BigInteger.Two;
 
 			crlGen.SetIssuerDN(PrincipalUtilities.GetSubjectX509Principal(caCert));
 
 			crlGen.SetThisUpdate(now);
 			crlGen.SetNextUpdate(now.AddSeconds(100));
-			crlGen.SetSignatureAlgorithm("SHA256WithRSAEncryption");
 
 			crlGen.AddCrlEntry(serialNumber, now, CrlReason.PrivilegeWithdrawn);
 
 			crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(caCert));
 			crlGen.AddExtension(X509Extensions.CrlNumber, false, new CrlNumber(BigInteger.One));
 
-			return crlGen.Generate(caKey);
+			return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", caKey, null));
 		}
 
 		public static X509Certificate CreateExceptionCertificate(
@@ -221,15 +216,12 @@ namespace Org.BouncyCastle.Tests
 			public override byte[] GetEncoded()
 			{
 				if (_exceptionOnEncode)
-				{
 					throw new CertificateEncodingException();
-				}
 
 				return new byte[0];
 			}
 
-			public override void Verify(
-				AsymmetricKeyParameter key)
+			public override void Verify(AsymmetricKeyParameter key)
 			{
 				throw new CertificateException();
 			}
@@ -244,18 +236,17 @@ namespace Org.BouncyCastle.Tests
 				return null;
 			}
 
-			public override ISet GetCriticalExtensionOids()
+			public override ISet<string> GetCriticalExtensionOids()
 			{
 				return null;
 			}
 
-			public override ISet GetNonCriticalExtensionOids()
+			public override ISet<string> GetNonCriticalExtensionOids()
 			{
 				return null;
 			}
 
-			public override Asn1OctetString GetExtensionValue(
-				DerObjectIdentifier oid)
+			public override Asn1OctetString GetExtensionValue(DerObjectIdentifier oid)
 			{
 				return null;
 			}

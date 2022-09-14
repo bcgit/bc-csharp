@@ -34,12 +34,12 @@ namespace Org.BouncyCastle.Pkix
 
 		public override string ToString()
 		{
-			StringBuilder s = new StringBuilder();
-			s.Append("SimplePKIXCertPathBuilderResult: [\n");
-			s.Append("  Certification Path: ").Append(CertPath).Append('\n');
-			s.Append("  Trust Anchor: ").Append(this.TrustAnchor.TrustedCert.IssuerDN.ToString()).Append('\n');
-			s.Append("  Subject Public Key: ").Append(this.SubjectPublicKey).Append("\n]");
-			return s.ToString();
+			StringBuilder sb = new StringBuilder();
+			sb.AppendLine("SimplePKIXCertPathBuilderResult: [");
+			sb.Append("  Certification Path: ").Append(CertPath).AppendLine();
+			sb.Append("  Trust Anchor: ").Append(TrustAnchor.TrustedCert.IssuerDN).AppendLine();
+			sb.Append("  Subject Public Key: ").Append(SubjectPublicKey).AppendLine();
+			return sb.ToString();
 		}
 	}
 }

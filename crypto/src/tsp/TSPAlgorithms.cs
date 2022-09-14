@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.GM;
@@ -7,14 +7,14 @@ using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Tsp
 {
 	/**
 	 * Recognised hash algorithms for the time stamp protocol.
 	 */
-	public abstract class TspAlgorithms
+	public static class TspAlgorithms
 	{
 		public static readonly string MD5 = PkcsObjectIdentifiers.MD5.Id;
 
@@ -35,20 +35,15 @@ namespace Org.BouncyCastle.Tsp
 
         public static readonly string SM3 = GMObjectIdentifiers.sm3.Id;
 
-        public static readonly IList Allowed;
+		public static readonly IList<string> Allowed;
 
 		static TspAlgorithms()
 		{
-			string[] algs = new string[]
+			Allowed = CollectionUtilities.ReadOnly(new List<string>()
 			{
-				Gost3411, Gost3411_2012_256, Gost3411_2012_512, MD5, RipeMD128, RipeMD160, RipeMD256, Sha1, Sha224, Sha256, Sha384, Sha512, SM3
-			};
-
-			Allowed = Platform.CreateArrayList();
-			foreach (string alg in algs)
-			{
-				Allowed.Add(alg);
-			}
+				Gost3411, Gost3411_2012_256, Gost3411_2012_512, MD5, RipeMD128, RipeMD160, RipeMD256, Sha1, Sha224,
+				Sha256, Sha384, Sha512, SM3
+			});
 		}
 	}
 }

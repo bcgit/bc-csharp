@@ -2,11 +2,11 @@
 {
     /**
      * Ukrainian object identifiers
-     * <p>
+     * <p/>
      * {iso(1) member-body(2) Ukraine(804) root(2) security(1) cryptography(1) pki(1)}
-     * <p>
+     * <p/>
      * { ...  pki-alg(1) pki-alg-sym(3) Dstu4145WithGost34311(1) PB(1)}
-     * <p>
+     * <p/>
      * DSTU4145 in polynomial basis has 2 oids, one for little-endian representation and one for big-endian
      */
     public abstract class UAObjectIdentifiers

@@ -190,12 +190,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 	        return new SM3Digest((SM3Digest)digest);
 	    }
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new SM3DigestTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

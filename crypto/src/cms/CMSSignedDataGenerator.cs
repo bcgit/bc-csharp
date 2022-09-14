@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -38,13 +38,13 @@ namespace Org.BouncyCastle.Cms
     {
 		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
 
-		private readonly IList signerInfs = Platform.CreateArrayList();
+		private readonly IList<SignerInf> signerInfs = new List<SignerInf>();
 
 		private class SignerInf
         {
             private readonly CmsSignedGenerator outer;
 
-			private readonly ISignatureFactory		sigCalc;
+			private readonly ISignatureFactory			sigCalc;
 			private readonly SignerIdentifier			signerIdentifier;
 			private readonly string						digestOID;
 			private readonly string						encOID;
@@ -87,7 +87,8 @@ namespace Org.BouncyCastle.Cms
                 this.outer = outer;
                 this.sigCalc = sigCalc;
                 this.signerIdentifier = signerIdentifier;
-                this.digestOID = new DefaultDigestAlgorithmIdentifierFinder().find((AlgorithmIdentifier)sigCalc.AlgorithmDetails).Algorithm.Id;
+                this.digestOID = new DefaultDigestAlgorithmIdentifierFinder().Find(
+					(AlgorithmIdentifier)sigCalc.AlgorithmDetails).Algorithm.Id;
                 this.encOID = ((AlgorithmIdentifier)sigCalc.AlgorithmDetails).Algorithm.Id;
                 this.sAttr = sAttr;
                 this.unsAttr = unsAttr;
@@ -118,13 +119,8 @@ namespace Org.BouncyCastle.Cms
 				string digestName = Helper.GetDigestAlgName(digestOID);
 
 				string signatureName = digestName + "with" + Helper.GetEncryptionAlgName(encOID);
-				
-                byte[] hash;
-                if (outer._digests.Contains(digestOID))
-                {
-                    hash = (byte[])outer._digests[digestOID];
-                }
-                else
+
+				if (!outer.m_digests.TryGetValue(digestOID, out var hash))
                 {
                     IDigest dig = Helper.GetDigestInstance(digestName);
                     if (content != null)
@@ -132,55 +128,49 @@ namespace Org.BouncyCastle.Cms
                         content.Write(new DigestSink(dig));
                     }
                     hash = DigestUtilities.DoFinal(dig);
-                    outer._digests.Add(digestOID, hash.Clone());
+                    outer.m_digests.Add(digestOID, (byte[])hash.Clone());
                 }
-
-                IStreamCalculator calculator = sigCalc.CreateCalculator();
-
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
-				Stream sigStr = calculator.Stream;
-#else
-				Stream sigStr = new BufferedStream(calculator.Stream);
-#endif
 
 				Asn1Set signedAttr = null;
-				if (sAttr != null)
-				{
-					IDictionary parameters = outer.GetBaseParameters(contentType, digAlgId, hash);
 
-//					Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(Collections.unmodifiableMap(parameters));
-					Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(parameters);
-
-                    if (contentType == null) //counter signature
-                    {
-                        if (signed != null && signed[CmsAttributes.ContentType] != null)
-                        {
-                            IDictionary tmpSigned = signed.ToDictionary();
-                            tmpSigned.Remove(CmsAttributes.ContentType);
-                            signed = new Asn1.Cms.AttributeTable(tmpSigned);
-                        }
-                    }
-
-					// TODO Validate proposed signed attributes
-
-					signedAttr = outer.GetAttributeSet(signed);
-
-                    // sig must be composed from the DER encoding.
-                    signedAttr.EncodeTo(sigStr, Asn1Encodable.Der);
-				}
-                else if (content != null)
+				IStreamCalculator calculator = sigCalc.CreateCalculator();
+				using (Stream sigStr = calculator.Stream)
                 {
-					// TODO Use raw signature of the hash value instead
-					content.Write(sigStr);
-                }
+					if (sAttr != null)
+					{
+						var parameters = outer.GetBaseParameters(contentType, digAlgId, hash);
 
-                Platform.Dispose(sigStr);
+                        //Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(Collections.unmodifiableMap(parameters));
+                        Asn1.Cms.AttributeTable signed = sAttr.GetAttributes(parameters);
+
+						if (contentType == null) //counter signature
+						{
+							if (signed != null && signed[CmsAttributes.ContentType] != null)
+							{
+								signed = signed.Remove(CmsAttributes.ContentType);
+							}
+						}
+
+						// TODO Validate proposed signed attributes
+
+						signedAttr = outer.GetAttributeSet(signed);
+
+						// sig must be composed from the DER encoding.
+						signedAttr.EncodeTo(sigStr, Asn1Encodable.Der);
+					}
+					else if (content != null)
+					{
+						// TODO Use raw signature of the hash value instead
+						content.Write(sigStr);
+					}
+				}
+
                 byte[] sigBytes = ((IBlockResult)calculator.GetResult()).Collect();
 
 				Asn1Set unsignedAttr = null;
 				if (unsAttr != null)
 				{
-					IDictionary baseParameters = outer.GetBaseParameters(contentType, digAlgId, hash);
+					var baseParameters = outer.GetBaseParameters(contentType, digAlgId, hash);
 					baseParameters[CmsAttributeTableParameter.Signature] = sigBytes.Clone();
 
 //					Asn1.Cms.AttributeTable unsigned = unsAttr.GetAttributes(Collections.unmodifiableMap(baseParameters));
@@ -463,7 +453,7 @@ namespace Org.BouncyCastle.Cms
             Asn1EncodableVector digestAlgs = new Asn1EncodableVector();
             Asn1EncodableVector signerInfos = new Asn1EncodableVector();
 
-			_digests.Clear(); // clear the current preserved digest state
+			m_digests.Clear(); // clear the current preserved digest state
 
 			//
             // add the precalculated SignerInfo objects.

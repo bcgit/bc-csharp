@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -51,7 +51,11 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static string ToUpperInvariant(string s)
         {
+#if PORTABLE
+            return s.ToUpperInvariant();
+#else
             return s.ToUpper(CultureInfo.InvariantCulture);
+#endif
         }
 
         internal static string Fingerprint(X509CertificateStructure c)
@@ -235,7 +239,8 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         internal static TlsCredentialedSigner LoadSignerCredentials(TlsContext context,
-            IList supportedSignatureAlgorithms, short signatureAlgorithm, string certResource, string keyResource)
+            IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms, short signatureAlgorithm,
+            string certResource, string keyResource)
         {
             if (supportedSignatureAlgorithms == null)
             {
@@ -262,7 +267,7 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         internal static TlsCredentialedSigner LoadSignerCredentialsServer(TlsContext context,
-            IList supportedSignatureAlgorithms, short signatureAlgorithm)
+            IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms, short signatureAlgorithm)
         {
             string sigName = GetResourceName(signatureAlgorithm);
 
@@ -294,7 +299,7 @@ namespace Org.BouncyCastle.Tls.Tests
                     TlsCertificate certificate = LoadCertificateResource(crypto, resources[i]);
 
                     // TODO[tls13] Add possibility of specifying e.g. CertificateStatus 
-                    IDictionary extensions = null;
+                    IDictionary<int, byte[]> extensions = null;
 
                     certificateEntryList[i] = new CertificateEntry(certificate, extensions);
                 }

@@ -1,27 +1,29 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Ocsp
 {
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
     [Serializable]
-#endif
     public class OcspException
 		: Exception
 	{
 		public OcspException()
+			: base()
 		{
 		}
 
-		public OcspException(
-			string message)
+		public OcspException(string message)
 			: base(message)
 		{
 		}
 
-		public OcspException(
-			string		message,
-			Exception	e)
-			: base(message, e)
+		public OcspException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected OcspException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
 		{
 		}
 	}

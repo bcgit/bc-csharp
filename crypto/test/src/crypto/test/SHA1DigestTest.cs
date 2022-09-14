@@ -40,12 +40,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return new Sha1Digest((Sha1Digest)digest);
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Sha1DigestTest());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

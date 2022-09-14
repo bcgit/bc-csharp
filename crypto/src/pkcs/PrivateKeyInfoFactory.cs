@@ -13,6 +13,9 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Pqc.Asn1;
+using Org.BouncyCastle.Pqc.Crypto.Cmce;
+using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -155,7 +158,7 @@ namespace Org.BouncyCastle.Pkcs
                 if (priv.AlgorithmName == "ECGOST3410")
                 {
                     if (priv.PublicKeyParamSet == null)
-                        throw Platform.CreateNotImplementedException("Not a CryptoPro parameter set");
+                        throw new NotImplementedException("Not a CryptoPro parameter set");
 
                     Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
                         priv.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
@@ -170,7 +173,8 @@ namespace Org.BouncyCastle.Pkcs
                     X962Parameters x962;
                     if (priv.PublicKeyParamSet == null)
                     {
-                        X9ECParameters ecP = new X9ECParameters(dp.Curve, dp.G, dp.N, dp.H, dp.GetSeed());
+                        X9ECParameters ecP = new X9ECParameters(dp.Curve, new X9ECPoint(dp.G, false), dp.N, dp.H,
+                            dp.GetSeed());
                         x962 = new X962Parameters(ecP);
                     }
                     else
@@ -191,7 +195,7 @@ namespace Org.BouncyCastle.Pkcs
                 Gost3410PrivateKeyParameters _key = (Gost3410PrivateKeyParameters)privateKey;
 
                 if (_key.PublicKeyParamSet == null)
-                    throw Platform.CreateNotImplementedException("Not a CryptoPro parameter set");
+                    throw new NotImplementedException("Not a CryptoPro parameter set");
 
                 byte[] keyEnc = _key.X.ToByteArrayUnsigned();
                 byte[] keyBytes = new byte[keyEnc.Length];
@@ -242,6 +246,21 @@ namespace Org.BouncyCastle.Pkcs
                 return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
                     new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
             }
+            
+            if (privateKey is CmcePrivateKeyParameters)
+            {
+                CmcePrivateKeyParameters parameters = (CmcePrivateKeyParameters)privateKey;
+
+                byte[] encoding = parameters.GetEncoded();
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.McElieceOidLookup(parameters.Parameters));
+
+                CmcePublicKey cmcePub = new CmcePublicKey(parameters.ReconstructPublicKey());
+                CmcePrivateKey cmcePriv = new CmcePrivateKey(0, parameters.Delta, parameters.C, parameters.G, parameters.Alpha, parameters.S, cmcePub);
+                return new PrivateKeyInfo(algorithmIdentifier, cmcePriv, attributes);
+            }
+            
+            
 
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));
         }

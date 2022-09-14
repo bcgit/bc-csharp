@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 // this is more conservative than the spec
                 BigInteger maxSize = Two.Pow(r).Multiply(BigInteger.ValueOf(h));
                 this.maxSizeExcl = maxSize.CompareTo(IntegerMax) == 1 ?
-                    Int32.MaxValue : maxSize.IntValue;
+                    int.MaxValue : maxSize.IntValue;
             }
             else
             {

@@ -214,11 +214,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             DoKeyExchangeTestF2m();
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new SM2KeyExchangeTest());
-        }
-
         [Test]
         public void TestFunction()
         {

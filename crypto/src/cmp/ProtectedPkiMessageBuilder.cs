@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
@@ -15,8 +14,8 @@ namespace Org.BouncyCastle.Cmp
     {
         private PkiHeaderBuilder hdrBuilBuilder;
         private PkiBody body;
-        private IList generalInfos = Platform.CreateArrayList();
-        private IList extraCerts = Platform.CreateArrayList();
+        private List<InfoTypeAndValue> generalInfos = new List<InfoTypeAndValue>();
+        private List<X509Certificate> extraCerts = new List<X509Certificate>();
 
         public ProtectedPkiMessageBuilder(GeneralName sender, GeneralName recipient)
             : this(PkiHeader.CMP_2000, sender, recipient)
@@ -123,13 +122,7 @@ namespace Org.BouncyCastle.Cmp
             hdrBuilBuilder.SetProtectionAlg(algorithmIdentifier);
             if (generalInfos.Count > 0)
             {
-                InfoTypeAndValue[] genInfos = new InfoTypeAndValue[generalInfos.Count];
-                for (int t = 0; t < genInfos.Length; t++)
-                {
-                    genInfos[t] = (InfoTypeAndValue)generalInfos[t];
-                }
-
-                hdrBuilBuilder.SetGeneralInfo(genInfos);
+                hdrBuilBuilder.SetGeneralInfo(generalInfos.ToArray());
             }
         }
 
@@ -140,8 +133,8 @@ namespace Org.BouncyCastle.Cmp
                 CmpCertificate[] cmpCertificates = new CmpCertificate[extraCerts.Count];
                 for (int i = 0; i < cmpCertificates.Length; i++)
                 {
-                    byte[] cert = ((X509Certificate)extraCerts[i]).GetEncoded();
-                    cmpCertificates[i] = CmpCertificate.GetInstance((Asn1Sequence.FromByteArray(cert)));
+                    byte[] cert = extraCerts[i].GetEncoded();
+                    cmpCertificates[i] = CmpCertificate.GetInstance(Asn1Object.FromByteArray(cert));
                 }
 
                 return new ProtectedPkiMessage(new PkiMessage(header, body, protection, cmpCertificates));
@@ -152,24 +145,20 @@ namespace Org.BouncyCastle.Cmp
 
         private byte[] CalculateSignature(IStreamCalculator signer, PkiHeader header, PkiBody body)
         {
-            Asn1EncodableVector avec = new Asn1EncodableVector();
-            avec.Add(header);
-            avec.Add(body);
-            byte[] encoded = new DerSequence(avec).GetEncoded();
-            signer.Stream.Write(encoded, 0, encoded.Length);
+            new DerSequence(header, body).EncodeTo(signer.Stream);
             object result = signer.GetResult();
 
-            if (result is DefaultSignatureResult)
+            if (result is DefaultSignatureResult sigResult)
             {
-                return ((DefaultSignatureResult)result).Collect();
+                return sigResult.Collect();
             }
-            else if (result is IBlockResult)
+            else if (result is IBlockResult blockResult)
             {
-                return ((IBlockResult)result).Collect();
+                return blockResult.Collect();
             }
-            else if (result is byte[])
+            else if (result is byte[] bytesResult)
             {
-                return (byte[])result;
+                return bytesResult;
             }
 
             throw new InvalidOperationException("result is not byte[] or DefaultSignatureResult");

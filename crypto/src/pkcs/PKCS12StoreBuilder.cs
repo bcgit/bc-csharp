@@ -10,7 +10,6 @@ namespace Org.BouncyCastle.Pkcs
 		private DerObjectIdentifier	keyAlgorithm = PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc;
 		private DerObjectIdentifier	certAlgorithm = PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc;
 		private DerObjectIdentifier keyPrfAlgorithm = null;
-		private DerObjectIdentifier certPrfAlgorithm = null;
 		private bool useDerEncoding = false;
 
 		public Pkcs12StoreBuilder()
@@ -19,7 +18,7 @@ namespace Org.BouncyCastle.Pkcs
 
 		public Pkcs12Store Build()
 		{
-			return new Pkcs12Store(keyAlgorithm, keyPrfAlgorithm, certAlgorithm, certPrfAlgorithm, useDerEncoding);
+			return new Pkcs12Store(keyAlgorithm, keyPrfAlgorithm, certAlgorithm, useDerEncoding);
 		}
 
 		public Pkcs12StoreBuilder SetCertAlgorithm(DerObjectIdentifier certAlgorithm)

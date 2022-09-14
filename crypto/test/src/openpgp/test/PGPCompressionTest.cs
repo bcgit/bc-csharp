@@ -118,10 +118,5 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 		{
 			get { return "PgpCompressionTest"; }
 		}
-
-		public static void Main(string[] args)
-		{
-			RunTest(new PgpCompressionTest());
-		}
 	}
 }

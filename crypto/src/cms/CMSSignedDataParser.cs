@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -8,12 +8,10 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -63,15 +61,12 @@ namespace Org.BouncyCastle.Cms
 		private SignedDataParser        _signedData;
 		private DerObjectIdentifier		_signedContentType;
 		private CmsTypedStream          _signedContent;
-		private IDictionary				_digests;
-		private ISet					_digestOids;
+		private IDictionary<string, IDigest> m_digests;
+		private HashSet<string>			_digestOids;
 
 		private SignerInformationStore  _signerInfoStore;
 		private Asn1Set                 _certSet, _crlSet;
 		private bool					_isCertCrlParsed;
-		private IX509Store				_attributeStore;
-		private IX509Store				_certificateStore;
-		private IX509Store				_crlStore;
 
 		public CmsSignedDataParser(
 			byte[] sigBlock)
@@ -110,8 +105,8 @@ namespace Org.BouncyCastle.Cms
 			{
 				this._signedContent = signedContent;
 				this._signedData = SignedDataParser.GetInstance(this.contentInfo.GetContent(Asn1Tags.Sequence));
-				this._digests = Platform.CreateHashtable();
-				this._digestOids = new HashSet();
+				this.m_digests = new Dictionary<string, IDigest>(StringComparer.OrdinalIgnoreCase);
+				this._digestOids = new HashSet<string>();
 
 				Asn1SetParser digAlgs = _signedData.GetDigestAlgorithms();
 				IAsn1Convertible o;
@@ -125,9 +120,9 @@ namespace Org.BouncyCastle.Cms
                         string digestOid = id.Algorithm.Id;
 						string digestName = Helper.GetDigestAlgName(digestOid);
 
-						if (!this._digests.Contains(digestName))
+						if (!this.m_digests.ContainsKey(digestName))
 						{
-							this._digests[digestName] = Helper.GetDigestInstance(digestName);
+							this.m_digests[digestName] = Helper.GetDigestInstance(digestName);
 							this._digestOids.Add(digestOid);
 						}
 					}
@@ -182,9 +177,9 @@ namespace Org.BouncyCastle.Cms
 			get { return _signedData.Version.IntValueExact; }
 		}
 
-		public ISet DigestOids
+		public ISet<string> DigestOids
 		{
-			get { return new HashSet(_digestOids); }
+			get { return new HashSet<string>(_digestOids); }
 		}
 
 		/**
@@ -198,13 +193,12 @@ namespace Org.BouncyCastle.Cms
 			{
 				PopulateCertCrlSets();
 
-                IList signerInfos = Platform.CreateArrayList();
-                IDictionary hashes = Platform.CreateHashtable();
+				var signerInfos = new List<SignerInformation>();
+                var hashes = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 
-				foreach (object digestKey in _digests.Keys)
+				foreach (var digest in m_digests)
 				{
-					hashes[digestKey] = DigestUtilities.DoFinal(
-						(IDigest)_digests[digestKey]);
+					hashes[digest.Key] = DigestUtilities.DoFinal(digest.Value);
 				}
 
 				try
@@ -215,10 +209,9 @@ namespace Org.BouncyCastle.Cms
 					while ((o = s.ReadObject()) != null)
 					{
 						SignerInfo info = SignerInfo.GetInstance(o.ToAsn1Object());
-						string digestName = Helper.GetDigestAlgName(
-                            info.DigestAlgorithm.Algorithm.Id);
+						string digestName = Helper.GetDigestAlgName(info.DigestAlgorithm.Algorithm.Id);
 
-						byte[] hash = (byte[]) hashes[digestName];
+						byte[] hash = hashes[digestName];
 
 						signerInfos.Add(new SignerInformation(info, _signedContentType, null, new BaseDigestCalculator(hash)));
 					}
@@ -243,17 +236,11 @@ namespace Org.BouncyCastle.Cms
 		 * @exception org.bouncycastle.x509.NoSuchStoreException if the store type isn't available.
 		 * @exception CmsException if a general exception prevents creation of the X509Store
 		 */
-		public IX509Store GetAttributeCertificates(
-			string type)
+		public IStore<X509V2AttributeCertificate> GetAttributeCertificates()
 		{
-			if (_attributeStore == null)
-			{
-				PopulateCertCrlSets();
+			PopulateCertCrlSets();
 
-				_attributeStore = Helper.CreateAttributeStore(type, _certSet);
-			}
-
-			return _attributeStore;
+			return Helper.GetAttributeCertificates(_certSet);
 		}
 
 		/**
@@ -265,17 +252,11 @@ namespace Org.BouncyCastle.Cms
 		* @exception NoSuchStoreException if the store type isn't available.
 		* @exception CmsException if a general exception prevents creation of the X509Store
 		*/
-		public IX509Store GetCertificates(
-			string type)
+		public IStore<X509Certificate> GetCertificates()
 		{
-			if (_certificateStore == null)
-			{
-				PopulateCertCrlSets();
+			PopulateCertCrlSets();
 
-				_certificateStore = Helper.CreateCertificateStore(type, _certSet);
-			}
-
-			return _certificateStore;
+			return Helper.GetCertificates(_certSet);
 		}
 
 		/**
@@ -287,17 +268,11 @@ namespace Org.BouncyCastle.Cms
 		* @exception NoSuchStoreException if the store type isn't available.
 		* @exception CmsException if a general exception prevents creation of the X509Store
 		*/
-		public IX509Store GetCrls(
-			string type)
+		public IStore<X509Crl> GetCrls()
 		{
-			if (_crlStore == null)
-			{
-				PopulateCertCrlSets();
+			PopulateCertCrlSets();
 
-				_crlStore = Helper.CreateCrlStore(type, _crlSet);
-			}
-
-			return _crlStore;
+			return Helper.GetCrls(_crlSet);
 		}
 
 		private void PopulateCertCrlSets()
@@ -337,7 +312,7 @@ namespace Org.BouncyCastle.Cms
 
 			Stream digStream = _signedContent.ContentStream;
 
-			foreach (IDigest digest in _digests.Values)
+			foreach (var digest in m_digests.Values)
 			{
 				digStream = new DigestStream(digStream, digest, null);
 			}
@@ -378,9 +353,9 @@ namespace Org.BouncyCastle.Cms
 				Streams.PipeAll(signedContent.ContentStream, contentOut);
 			}
 
-			gen.AddAttributeCertificates(parser.GetAttributeCertificates("Collection"));
-			gen.AddCertificates(parser.GetCertificates("Collection"));
-			gen.AddCrls(parser.GetCrls("Collection"));
+			gen.AddAttributeCertificates(parser.GetAttributeCertificates());
+			gen.AddCertificates(parser.GetCertificates());
+			gen.AddCrls(parser.GetCrls());
 
 //			gen.AddSigners(parser.GetSignerInfos());
 
@@ -401,12 +376,8 @@ namespace Org.BouncyCastle.Cms
 		 * @return out.
 		 * @exception CmsException if there is an error processing the CertStore
 		 */
-		public static Stream ReplaceCertificatesAndCrls(
-			Stream			original,
-			IX509Store		x509Certs,
-			IX509Store		x509Crls,
-			IX509Store		x509AttrCerts,
-			Stream			outStr)
+		public static Stream ReplaceCertificatesAndCrls(Stream original, IStore<X509Certificate> x509Certs,
+			IStore<X509Crl> x509Crls, IStore<X509V2AttributeCertificate> x509AttrCerts, Stream outStr)
 		{
 			// NB: SecureRandom would be ignored since using existing signatures only
 			CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
@@ -422,15 +393,18 @@ namespace Org.BouncyCastle.Cms
 				Streams.PipeAll(signedContent.ContentStream, contentOut);
 			}
 
-//			gen.AddAttributeCertificates(parser.GetAttributeCertificates("Collection"));
-//			gen.AddCertificates(parser.GetCertificates("Collection"));
-//			gen.AddCrls(parser.GetCrls("Collection"));
 			if (x509AttrCerts != null)
+            {
 				gen.AddAttributeCertificates(x509AttrCerts);
+			}
 			if (x509Certs != null)
+            {
 				gen.AddCertificates(x509Certs);
+			}
 			if (x509Crls != null)
+            {
 				gen.AddCrls(x509Crls);
+			}
 
 			gen.AddSigners(parser.GetSignerInfos());
 

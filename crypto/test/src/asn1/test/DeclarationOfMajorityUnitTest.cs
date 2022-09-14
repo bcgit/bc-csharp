@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				DeclarationOfMajority.GetInstance(new Object());
+				DeclarationOfMajority.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -74,12 +74,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			{
 				Fail("notYoungerThan mismatch");
 			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new DeclarationOfMajorityUnitTest());
 		}
 
 		[Test]

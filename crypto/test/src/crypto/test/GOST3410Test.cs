@@ -239,7 +239,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-TEST1-1024"; }
 			}
 
-			private class SecureRandomImpl1 : SecureRandom
+			private class SecureRandomImpl1 : SecureRandomImpl
 			{
 				bool firstInt = true;
 
@@ -266,7 +266,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl1();
 
-			private class SecureRandomImpl2 : SecureRandom
+			private class SecureRandomImpl2 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -291,7 +291,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl2();
 
-			private class SecureRandomImpl3 : SecureRandom
+			private class SecureRandomImpl3 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -386,7 +386,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-TEST2-1024"; }
 			}
 
-			private class SecureRandomImpl4 : SecureRandom
+			private class SecureRandomImpl4 : SecureRandomImpl
 			{
 				bool firstLong = true;
 
@@ -413,7 +413,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl4();
 
-			private class SecureRandomImpl5 : SecureRandom
+			private class SecureRandomImpl5 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -438,7 +438,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl5();
 
-			private class SecureRandomImpl6 : SecureRandom
+			private class SecureRandomImpl6 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -533,7 +533,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-AParam"; }
 			}
 
-			private class SecureRandomImpl7 : SecureRandom
+			private class SecureRandomImpl7 : SecureRandomImpl
 			{
 				bool firstLong = true;
 
@@ -560,7 +560,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl7();
 
-			private class SecureRandomImpl8 : SecureRandom
+			private class SecureRandomImpl8 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -585,7 +585,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl8();
 
-			private class SecureRandomImpl9 : SecureRandom
+			private class SecureRandomImpl9 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -680,7 +680,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-BParam"; }
 			}
 
-			private class SecureRandomImpl10 : SecureRandom
+			private class SecureRandomImpl10 : SecureRandomImpl
 			{
 				bool firstLong = true;
 
@@ -706,7 +706,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl10();
 
-			private class SecureRandomImpl11 : SecureRandom
+			private class SecureRandomImpl11 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -731,7 +731,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl11();
 
-			private class SecureRandomImpl12 : SecureRandom
+			private class SecureRandomImpl12 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -826,7 +826,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-CParam"; }
 			}
 
-			private class SecureRandomImpl13 : SecureRandom
+			private class SecureRandomImpl13 : SecureRandomImpl
 			{
 				bool firstLong = true;
 
@@ -852,7 +852,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl13();
 
-			private class SecureRandomImpl14 : SecureRandom
+			private class SecureRandomImpl14 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -877,7 +877,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl14();
 
-			private class SecureRandomImpl15 : SecureRandom
+			private class SecureRandomImpl15 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -972,7 +972,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-DParam"; }
 			}
 
-			private class SecureRandomImpl16 : SecureRandom
+			private class SecureRandomImpl16 : SecureRandomImpl
 			{
 				bool firstLong = true;
 
@@ -999,7 +999,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl16();
 
-			private class SecureRandomImpl17 : SecureRandom
+			private class SecureRandomImpl17 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -1024,7 +1024,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl17();
 
-			private class SecureRandomImpl18 : SecureRandom
+			private class SecureRandomImpl18 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -1119,7 +1119,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-AExParam"; }
 			}
 
-			private class SecureRandomImpl19 : SecureRandom
+			private class SecureRandomImpl19 : SecureRandomImpl
 			{
 				bool firstLong = true;
 
@@ -1145,7 +1145,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl19();
 
-			private class SecureRandomImpl20 : SecureRandom
+			private class SecureRandomImpl20 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -1170,7 +1170,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl20();
 
-			private class SecureRandomImpl21 : SecureRandom
+			private class SecureRandomImpl21 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -1265,7 +1265,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-BExParam"; }
 			}
 
-			private class SecureRandomImpl22 : SecureRandom
+			private class SecureRandomImpl22 : SecureRandomImpl
 			{
 				bool firstLong = true;
 
@@ -1291,7 +1291,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl22();
 
-			private class SecureRandomImpl23 : SecureRandom
+			private class SecureRandomImpl23 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -1316,7 +1316,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl23();
 
-			private class SecureRandomImpl24 : SecureRandom
+			private class SecureRandomImpl24 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -1411,7 +1411,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				get { return "Gost3410-CExParam"; }
 			}
 
-			private class SecureRandomImpl25 : SecureRandom
+			private class SecureRandomImpl25 : SecureRandomImpl
 			{
 				bool firstLong = true;
 
@@ -1437,7 +1437,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom init_random = new SecureRandomImpl25();
 
-			private class SecureRandomImpl26 : SecureRandom
+			private class SecureRandomImpl26 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -1462,7 +1462,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			};
 			SecureRandom random = new SecureRandomImpl26();
 
-			private class SecureRandomImpl27 : SecureRandom
+			private class SecureRandomImpl27 : SecureRandomImpl
 			{
 				public override void NextBytes(byte[] bytes)
 				{
@@ -1584,21 +1584,22 @@ namespace Org.BouncyCastle.Crypto.Tests
 			return new SimpleTestResult(true, "Gost3410: Okay");
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			ITest test = new Gost3410Test();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-		}
-
 		[Test]
 		public void TestFunction()
 		{
 			string resultText = Perform().ToString();
 
 			Assert.AreEqual(Name + ": Okay", resultText);
+		}
+
+		internal class SecureRandomImpl : SecureRandom
+		{
+			public override void NextBytes(byte[] buf, int off, int len)
+			{
+				byte[] bytes = new byte[len];
+				NextBytes(bytes);
+				bytes.CopyTo(buf, off);
+			}
 		}
 	}
 }

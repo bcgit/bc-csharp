@@ -33,12 +33,6 @@ namespace Org.BouncyCastle.Cms
             Platform.Dispose(input);
 		}
 
-        [Obsolete]
-		public virtual object GetContent()
-		{
-			return GetInputStream();
-		}
-
         protected virtual void CheckSingleUsage()
 		{
 			lock (this)

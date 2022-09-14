@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
@@ -8,9 +8,9 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -861,21 +861,21 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			//
 			// distinguished name table.
 			//
-            IDictionary issuerAttrs = new Hashtable();
+            var issuerAttrs = new Dictionary<DerObjectIdentifier, string>();
 			issuerAttrs.Add(X509Name.C, "AU");
 			issuerAttrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
 			issuerAttrs.Add(X509Name.L, "Melbourne");
 			issuerAttrs.Add(X509Name.ST, "Victoria");
 			issuerAttrs.Add(X509Name.EmailAddress, issuerEmail);
 
-			IDictionary subjectAttrs = new Hashtable();
+			var subjectAttrs = new Dictionary<DerObjectIdentifier, string>();
 			subjectAttrs.Add(X509Name.C, "AU");
 			subjectAttrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
 			subjectAttrs.Add(X509Name.L, "Melbourne");
 			subjectAttrs.Add(X509Name.ST, "Victoria");
 			subjectAttrs.Add(X509Name.EmailAddress, subjectEmail);
 
-			IList order = new ArrayList();
+			var order = new List<DerObjectIdentifier>();
 			order.Add(X509Name.C);
 			order.Add(X509Name.O);
 			order.Add(X509Name.L);
@@ -897,9 +897,10 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			certGen.SetNotAfter(DateTime.UtcNow.AddDays(30));
 			certGen.SetSubjectDN(new X509Name(order, subjectAttrs));
 			certGen.SetPublicKey(pubKey);
-			certGen.SetSignatureAlgorithm("MD5WithRSAEncryption");
 
-			return new X509CertificateEntry(certGen.Generate(privKey));
+			ISignatureFactory signatureFactory = new Asn1SignatureFactory("MD5WithRSAEncryption", privKey, null);
+			X509Certificate cert = certGen.Generate(signatureFactory);
+			return new X509CertificateEntry(cert);
 		}
 
         private void DoTestCertsOnly()
@@ -1435,12 +1436,6 @@ namespace Org.BouncyCastle.Pkcs.Tests
             DoTestCertsOnly();
 			DoTestPkcs12Store();
 			DoTestLoadRepeatedLocalKeyID();
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Pkcs12StoreTest());
 		}
 
 		[Test]

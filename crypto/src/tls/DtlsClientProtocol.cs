@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -237,12 +237,6 @@ namespace Org.BouncyCastle.Tls
 
                 TlsUtilities.EstablishServerSigAlgs(securityParameters, state.certificateRequest);
 
-                /*
-                 * TODO Give the client a chance to immediately select the CertificateVerify hash
-                 * algorithm here to avoid tracking the other hash algorithms unnecessarily?
-                 */
-                TlsUtilities.TrackHashAlgorithms(handshake.HandshakeHash, securityParameters.ServerSigAlgs);
-
                 serverMessage = handshake.ReceiveMessage();
             }
             else
@@ -262,7 +256,58 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
             }
 
-            IList clientSupplementalData = state.client.GetClientSupplementalData();
+            TlsCredentials clientAuthCredentials = null;
+            TlsCredentialedSigner clientAuthSigner = null;
+            Certificate clientAuthCertificate = null;
+            SignatureAndHashAlgorithm clientAuthAlgorithm = null;
+            TlsStreamSigner clientAuthStreamSigner = null;
+
+            if (state.certificateRequest != null)
+            {
+                clientAuthCredentials = TlsUtilities.EstablishClientCredentials(state.authentication,
+                    state.certificateRequest);
+                if (clientAuthCredentials != null)
+                {
+                    clientAuthCertificate = clientAuthCredentials.Certificate;
+
+                    if (clientAuthCredentials is TlsCredentialedSigner)
+                    {
+                        clientAuthSigner = (TlsCredentialedSigner)clientAuthCredentials;
+                        clientAuthAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
+                            securityParameters.NegotiatedVersion, clientAuthSigner);
+                        clientAuthStreamSigner = clientAuthSigner.GetStreamSigner();
+
+                        if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
+                        {
+                            TlsUtilities.VerifySupportedSignatureAlgorithm(securityParameters.ServerSigAlgs,
+                                clientAuthAlgorithm, AlertDescription.internal_error);
+
+                            if (clientAuthStreamSigner == null)
+                            {
+                                TlsUtilities.TrackHashAlgorithmClient(handshake.HandshakeHash, clientAuthAlgorithm);
+                            }
+                        }
+
+                        if (clientAuthStreamSigner != null)
+                        {
+                            handshake.HandshakeHash.ForceBuffering();
+                        }
+                    }
+                }
+            }
+
+            handshake.HandshakeHash.SealHashAlgorithms();
+
+            if (clientAuthCredentials == null)
+            {
+                state.keyExchange.SkipClientCredentials();
+            }
+            else
+            {
+                state.keyExchange.ProcessClientCredentials(clientAuthCredentials);                    
+            }
+
+            var clientSupplementalData = state.client.GetClientSupplementalData();
             if (clientSupplementalData != null)
             {
                 byte[] supplementalDataBody = GenerateSupplementalData(clientSupplementalData);
@@ -271,45 +316,8 @@ namespace Org.BouncyCastle.Tls
 
             if (null != state.certificateRequest)
             {
-                state.clientCredentials = TlsUtilities.EstablishClientCredentials(state.authentication,
-                    state.certificateRequest);
-
-                /*
-                 * RFC 5246 If no suitable certificate is available, the client MUST send a certificate
-                 * message containing no certificates.
-                 * 
-                 * NOTE: In previous RFCs, this was SHOULD instead of MUST.
-                 */
-
-                Certificate clientCertificate = null;
-                if (null != state.clientCredentials)
-                {
-                    clientCertificate = state.clientCredentials.Certificate;
-                }
-
-                SendCertificateMessage(state.clientContext, handshake, clientCertificate, null);
+                SendCertificateMessage(state.clientContext, handshake, clientAuthCertificate, null);
             }
-
-            TlsCredentialedSigner credentialedSigner = null;
-            TlsStreamSigner streamSigner = null;
-
-            if (null != state.clientCredentials)
-            {
-                state.keyExchange.ProcessClientCredentials(state.clientCredentials);
-
-                if (state.clientCredentials is TlsCredentialedSigner)
-                {
-                    credentialedSigner = (TlsCredentialedSigner)state.clientCredentials;
-                    streamSigner = credentialedSigner.GetStreamSigner();
-                }
-            }
-            else
-            {
-                state.keyExchange.SkipClientCredentials();
-            }
-
-            bool forceBuffering = streamSigner != null;
-            TlsUtilities.SealHandshakeHash(state.clientContext, handshake.HandshakeHash, forceBuffering);
 
             byte[] clientKeyExchangeBody = GenerateClientKeyExchange(state);
             handshake.SendMessage(HandshakeType.client_key_exchange, clientKeyExchangeBody);
@@ -319,17 +327,15 @@ namespace Org.BouncyCastle.Tls
             TlsProtocol.EstablishMasterSecret(state.clientContext, state.keyExchange);
             recordLayer.InitPendingEpoch(TlsUtilities.InitCipher(state.clientContext));
 
+            if (clientAuthSigner != null)
             {
-                if (credentialedSigner != null)
-                {
-                    DigitallySigned certificateVerify = TlsUtilities.GenerateCertificateVerifyClient(
-                        state.clientContext, credentialedSigner, streamSigner, handshake.HandshakeHash);
-                    byte[] certificateVerifyBody = GenerateCertificateVerify(state, certificateVerify);
-                    handshake.SendMessage(HandshakeType.certificate_verify, certificateVerifyBody);
-                }
-
-                handshake.PrepareToFinish();
+                DigitallySigned certificateVerify = TlsUtilities.GenerateCertificateVerifyClient(state.clientContext,
+                    clientAuthSigner, clientAuthAlgorithm, clientAuthStreamSigner, handshake.HandshakeHash);
+                byte[] certificateVerifyBody = GenerateCertificateVerify(state, certificateVerify);
+                handshake.SendMessage(HandshakeType.certificate_verify, certificateVerifyBody);
             }
+
+            handshake.PrepareToFinish();
 
             securityParameters.m_localVerifyData = TlsUtilities.CalculateVerifyData(state.clientContext,
                 handshake.HandshakeHash, false);
@@ -412,6 +418,13 @@ namespace Org.BouncyCastle.Tls
 
             context.SetClientVersion(client_version);
 
+            {
+                bool useGmtUnixTime = ProtocolVersion.DTLSv12.IsEqualOrLaterVersionOf(client_version)
+                    && state.client.ShouldUseGmtUnixTime();
+
+                securityParameters.m_clientRandom = TlsProtocol.CreateRandomBlock(useGmtUnixTime, state.clientContext);
+            }
+
             byte[] session_id = TlsUtilities.GetSessionID(state.tlsSession);
 
             bool fallback = state.client.IsFallback();
@@ -463,13 +476,6 @@ namespace Org.BouncyCastle.Tls
                 && state.client.RequiresExtendedMasterSecret())
             {
                 throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
-
-            {
-                bool useGmtUnixTime = ProtocolVersion.DTLSv12.IsEqualOrLaterVersionOf(client_version)
-                    && state.client.ShouldUseGmtUnixTime();
-
-                securityParameters.m_clientRandom = TlsProtocol.CreateRandomBlock(useGmtUnixTime, state.clientContext);
             }
 
             // Cipher Suites (and SCSV)
@@ -832,8 +838,8 @@ namespace Org.BouncyCastle.Tls
 
 
 
-            IDictionary sessionClientExtensions = state.clientExtensions,
-                sessionServerExtensions = state.serverExtensions;
+            var sessionClientExtensions = state.clientExtensions;
+            var sessionServerExtensions = state.serverExtensions;
 
             if (state.resumedSession)
             {
@@ -908,7 +914,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessServerSupplementalData(ClientHandshakeState state, byte[] body)
         {
             MemoryStream buf = new MemoryStream(body, false);
-            IList serverSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
+            var serverSupplementalData = TlsProtocol.ReadSupplementalDataMessage(buf);
             state.client.ProcessServerSupplementalData(serverSupplementalData);
         }
 
@@ -964,16 +970,15 @@ namespace Org.BouncyCastle.Tls
             internal TlsSecret sessionMasterSecret = null;
             internal SessionParameters.Builder sessionParametersBuilder = null;
             internal int[] offeredCipherSuites = null;
-            internal IDictionary clientExtensions = null;
-            internal IDictionary serverExtensions = null;
+            internal IDictionary<int, byte[]> clientExtensions = null;
+            internal IDictionary<int, byte[]> serverExtensions = null;
             internal bool resumedSession = false;
             internal bool expectSessionTicket = false;
-            internal IDictionary clientAgreements = null;
+            internal IDictionary<int, TlsAgreement> clientAgreements = null;
             internal TlsKeyExchange keyExchange = null;
             internal TlsAuthentication authentication = null;
             internal CertificateStatus certificateStatus = null;
             internal CertificateRequest certificateRequest = null;
-            internal TlsCredentials clientCredentials = null;
             internal TlsHeartbeat heartbeat = null;
             internal short heartbeatPolicy = HeartbeatMode.peer_not_allowed_to_send;
         }

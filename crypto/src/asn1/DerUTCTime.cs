@@ -101,11 +101,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public DerUtcTime(DateTime time)
         {
-#if PORTABLE
             this.time = time.ToUniversalTime().ToString("yyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
-#else
-            this.time = time.ToString("yyMMddHHmmss", CultureInfo.InvariantCulture) + "Z";
-#endif
         }
 
 		internal DerUtcTime(byte[] contents)
@@ -222,12 +218,6 @@ namespace Org.BouncyCastle.Asn1
 				}
 			}
         }
-
-		[Obsolete("Use 'AdjustedTimeString' property instead")]
-		public string AdjustedTime
-		{
-			get { return AdjustedTimeString; }
-		}
 
 		/// <summary>
 		/// Return a time string as an adjusted date with a 4 digit year.

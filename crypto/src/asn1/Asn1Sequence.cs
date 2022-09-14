@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -8,7 +8,7 @@ using Org.BouncyCastle.Utilities.Collections;
 namespace Org.BouncyCastle.Asn1
 {
     public abstract class Asn1Sequence
-        : Asn1Object, IEnumerable
+        : Asn1Object, IEnumerable<Asn1Encodable>
     {
         internal class Meta : Asn1UniversalType
         {
@@ -86,9 +86,19 @@ namespace Org.BouncyCastle.Asn1
         protected internal Asn1Sequence(Asn1Encodable element)
         {
             if (null == element)
-                throw new ArgumentNullException("element");
+                throw new ArgumentNullException(nameof(element));
 
             this.elements = new Asn1Encodable[]{ element };
+        }
+
+        protected internal Asn1Sequence(Asn1Encodable element1, Asn1Encodable element2)
+        {
+            if (null == element1)
+                throw new ArgumentNullException(nameof(element1));
+            if (null == element2)
+                throw new ArgumentNullException(nameof(element2));
+
+            this.elements = new Asn1Encodable[]{ element1, element2 };
         }
 
         protected internal Asn1Sequence(params Asn1Encodable[] elements)
@@ -112,9 +122,15 @@ namespace Org.BouncyCastle.Asn1
             this.elements = elementVector.TakeElements();
         }
 
-        public virtual IEnumerator GetEnumerator()
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return elements.GetEnumerator();
+            return GetEnumerator();
+        }
+
+        public virtual IEnumerator<Asn1Encodable> GetEnumerator()
+        {
+            IEnumerable<Asn1Encodable> e = elements;
+            return e.GetEnumerator();
         }
 
         private class Asn1SequenceParserImpl

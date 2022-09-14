@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
-
-using Org.BouncyCastle.Utilities;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -10,7 +8,7 @@ namespace Org.BouncyCastle.Tls
         private readonly short m_msg_type;
         private readonly byte[] m_body;
 
-        private readonly IList m_missing = Platform.CreateArrayList();
+        private readonly List<Range> m_missing = new List<Range>();
 
         internal DtlsReassembler(short msg_type, int length)
         {

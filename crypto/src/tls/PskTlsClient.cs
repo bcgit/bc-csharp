@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Tls
 
         protected override ProtocolVersion[] GetSupportedVersions()
         {
-            return ProtocolVersion.TLSv12.DownTo(ProtocolVersion.TLSv10);
+            return ProtocolVersion.TLSv12.Only();
         }
 
         protected override int[] GetSupportedCipherSuites()

@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             return new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);          
         }
 
-        public static Asn1DigestFactory Get(String mechanism)
+        public static Asn1DigestFactory Get(string mechanism)
         {
             DerObjectIdentifier oid = DigestUtilities.GetObjectIdentifier(mechanism);
             return new Asn1DigestFactory(DigestUtilities.GetDigest(oid), oid);

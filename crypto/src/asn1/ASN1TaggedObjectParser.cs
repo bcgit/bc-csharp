@@ -15,10 +15,6 @@ namespace Org.BouncyCastle.Asn1
         bool HasTag(int tagClass, int tagNo);
 
         /// <exception cref="IOException"/>
-        [Obsolete("Use 'Parse...' methods instead, after checking this parser's TagClass and TagNo")]
-        IAsn1Convertible GetObjectParser(int tag, bool isExplicit);
-
-        /// <exception cref="IOException"/>
         IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo);
 
         /// <summary>Needed for open types, until we have better type-guided parsing support.</summary>

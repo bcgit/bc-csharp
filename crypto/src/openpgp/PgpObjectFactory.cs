@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -18,14 +16,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly BcpgInputStream bcpgIn;
 
-		public PgpObjectFactory(
-            Stream inputStream)
+		public PgpObjectFactory(Stream inputStream)
         {
             this.bcpgIn = BcpgInputStream.Wrap(inputStream);
         }
 
-        public PgpObjectFactory(
-            byte[] bytes)
+        public PgpObjectFactory(byte[] bytes)
             : this(new MemoryStream(bytes, false))
         {
         }
@@ -36,108 +32,93 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             PacketTag tag = bcpgIn.NextPacketTag();
 
-            if ((int) tag == -1) return null;
+            if ((int) tag == -1)
+                return null;
 
             switch (tag)
             {
-                case PacketTag.Signature:
+            case PacketTag.Signature:
+            {
+                var l = new List<PgpSignature>();
+
+                while (bcpgIn.NextPacketTag() == PacketTag.Signature)
                 {
-                    IList l = Platform.CreateArrayList();
-
-                    while (bcpgIn.NextPacketTag() == PacketTag.Signature)
-                    {
-                        try
-                        {
-                            l.Add(new PgpSignature(bcpgIn));
-                        }
-                        catch (UnsupportedPacketVersionException e)
-                        {
-                            // Signatures of unsupported version MUST BE ignored
-                            // see: https://tests.sequoia-pgp.org/#Detached_signatures_with_unknown_packets
-                            continue;
-                        }
-                        catch (PgpException e)
-                        {
-                            throw new IOException("can't create signature object: " + e);
-                        }
-                    }
-
-                    PgpSignature[] sigs = new PgpSignature[l.Count];
-                    for (int i = 0; i < l.Count; ++i)
-                    {
-                        sigs[i] = (PgpSignature)l[i];
-                    }
-                    return new PgpSignatureList(sigs);
-                }
-                case PacketTag.SecretKey:
                     try
                     {
-                        return new PgpSecretKeyRing(bcpgIn);
+                        l.Add(new PgpSignature(bcpgIn));
+                    }
+                    catch (UnsupportedPacketVersionException)
+                    {
+                        // Signatures of unsupported version MUST BE ignored
+                        // see: https://tests.sequoia-pgp.org/#Detached_signatures_with_unknown_packets
+                        continue;
                     }
                     catch (PgpException e)
                     {
-                        throw new IOException("can't create secret key object: " + e);
+                        throw new IOException("can't create signature object: " + e);
                     }
-                case PacketTag.PublicKey:
-                    return new PgpPublicKeyRing(bcpgIn);
-				// TODO Make PgpPublicKey a PgpObject or return a PgpPublicKeyRing
-//				case PacketTag.PublicSubkey:
-//					return PgpPublicKeyRing.ReadSubkey(bcpgIn);
-                case PacketTag.CompressedData:
-                    return new PgpCompressedData(bcpgIn);
-                case PacketTag.LiteralData:
-                    return new PgpLiteralData(bcpgIn);
-                case PacketTag.PublicKeyEncryptedSession:
-                case PacketTag.SymmetricKeyEncryptedSessionKey:
-                    return new PgpEncryptedDataList(bcpgIn);
-                case PacketTag.OnePassSignature:
-                {
-                    IList l = Platform.CreateArrayList();
-
-                    while (bcpgIn.NextPacketTag() == PacketTag.OnePassSignature)
-                    {
-                        try
-                        {
-                            l.Add(new PgpOnePassSignature(bcpgIn));
-                        }
-                        catch (PgpException e)
-                        {
-							throw new IOException("can't create one pass signature object: " + e);
-						}
-                    }
-
-                    PgpOnePassSignature[] sigs = new PgpOnePassSignature[l.Count];
-                    for (int i = 0; i < l.Count; ++i)
-                    {
-                        sigs[i] = (PgpOnePassSignature)l[i];
-                    }
-					return new PgpOnePassSignatureList(sigs);
                 }
-                case PacketTag.Marker:
-                    return new PgpMarker(bcpgIn);
-                case PacketTag.Experimental1:
-                case PacketTag.Experimental2:
-                case PacketTag.Experimental3:
-                case PacketTag.Experimental4:
-					return new PgpExperimental(bcpgIn);
+
+                return new PgpSignatureList(l.ToArray());
+            }
+            case PacketTag.SecretKey:
+                try
+                {
+                    return new PgpSecretKeyRing(bcpgIn);
+                }
+                catch (PgpException e)
+                {
+                    throw new IOException("can't create secret key object: " + e);
+                }
+            case PacketTag.PublicKey:
+                return new PgpPublicKeyRing(bcpgIn);
+			// TODO Make PgpPublicKey a PgpObject or return a PgpPublicKeyRing
+			//case PacketTag.PublicSubkey:
+			//	return PgpPublicKeyRing.ReadSubkey(bcpgIn);
+            case PacketTag.CompressedData:
+                return new PgpCompressedData(bcpgIn);
+            case PacketTag.LiteralData:
+                return new PgpLiteralData(bcpgIn);
+            case PacketTag.PublicKeyEncryptedSession:
+            case PacketTag.SymmetricKeyEncryptedSessionKey:
+                return new PgpEncryptedDataList(bcpgIn);
+            case PacketTag.OnePassSignature:
+            {
+                var l = new List<PgpOnePassSignature>();
+
+                while (bcpgIn.NextPacketTag() == PacketTag.OnePassSignature)
+                {
+                    try
+                    {
+                        l.Add(new PgpOnePassSignature(bcpgIn));
+                    }
+                    catch (PgpException e)
+                    {
+						throw new IOException("can't create one pass signature object: " + e);
+					}
+                }
+
+				return new PgpOnePassSignatureList(l.ToArray());
+            }
+            case PacketTag.Marker:
+                return new PgpMarker(bcpgIn);
+            case PacketTag.Experimental1:
+            case PacketTag.Experimental2:
+            case PacketTag.Experimental3:
+            case PacketTag.Experimental4:
+				return new PgpExperimental(bcpgIn);
             }
 
             throw new IOException("unknown object in stream " + bcpgIn.NextPacketTag());
         }
 
-		[Obsolete("Use NextPgpObject() instead")]
-		public object NextObject()
-		{
-			return NextPgpObject();
-		}
-
 		/// <summary>
 		/// Return all available objects in a list.
 		/// </summary>
 		/// <returns>An <c>IList</c> containing all objects from this factory, in order.</returns>
-		public IList AllPgpObjects()
+		public IList<PgpObject> AllPgpObjects()
 		{
-            IList result = Platform.CreateArrayList();
+            var result = new List<PgpObject>();
 			PgpObject pgpObject;
 			while ((pgpObject = NextPgpObject()) != null)
 			{
@@ -149,17 +130,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>
         /// Read all available objects, returning only those that are assignable to the specified type.
         /// </summary>
-        /// <param name="type">The type of objects to return. All other objects are ignored.</param>
-        /// <returns>An <c>IList</c> containing the filtered objects from this factory, in order.</returns>
-        public IList FilterPgpObjects(Type type)
+        /// <returns>An <see cref="IList{T}"/> containing the filtered objects from this factory, in order.</returns>
+        public IList<T> FilterPgpObjects<T>()
+            where T : PgpObject
         {
-            IList result = Platform.CreateArrayList();
+            var result = new List<T>();
             PgpObject pgpObject;
             while ((pgpObject = NextPgpObject()) != null)
             {
-                if (type.IsInstanceOfType(pgpObject))
+                if (pgpObject is T t)
                 {
-                    result.Add(pgpObject);
+                    result.Add(t);
                 }
             }
             return result;

@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
 
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.X9
 			if (seq.Count < 3 || seq.Count > 5)
 				throw new ArgumentException("Bad sequence size: " + seq.Count, "seq");
 
-			IEnumerator e = seq.GetEnumerator();
+			var e = seq.GetEnumerator();
 			this.p = DerInteger.GetInstance(GetNext(e));
 			this.g = DerInteger.GetInstance(GetNext(e));
 			this.q = DerInteger.GetInstance(GetNext(e));
@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.X9
 			}
 		}
 
-		private static Asn1Encodable GetNext(IEnumerator e)
+		private static Asn1Encodable GetNext(IEnumerator<Asn1Encodable> e)
 		{
 			return e.MoveNext() ? (Asn1Encodable)e.Current : null;
 		}

@@ -326,7 +326,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         protected IBlockCipher CreateAesEngine()
         {
-            return new AesEngine();
+            return AesUtilities.CreateEngine();
         }
 
         private void DoTestExceptions()
@@ -726,12 +726,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             while (bits - value + (n - 1) < 0);
 
             return value;
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new GcmTest());
         }
 
         [Test]

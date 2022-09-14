@@ -745,8 +745,19 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             SecureRandom random = new SecureRandom();
 
-            X9ECParameters x9 = CustomNamedCurves.GetByName("curve25519");
-            ECDomainParameters ec = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H, x9.GetSeed());
+            // "curve25519" in short Weierstrass form
+            BigInteger q = BigInteger.One.ShiftLeft(255).Subtract(BigInteger.ValueOf(19));
+            BigInteger a = new BigInteger(1, Hex.DecodeStrict("2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA984914A144"));
+            BigInteger b = new BigInteger(1, Hex.DecodeStrict("7B425ED097B425ED097B425ED097B425ED097B425ED097B4260B5E9C7710C864"));
+            BigInteger n = new BigInteger(1, Hex.DecodeStrict("1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED"));
+            BigInteger h = BigInteger.ValueOf(8);
+
+            ECCurve curve = new FpCurve(q, a, b, n, h);
+            X9ECPoint G = new X9ECPoint(curve,
+                Hex.DecodeStrict("042AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD245A20AE19A1B8A086B4E01EDD2C7748D14C923D4D7E6D7C61B229E9C5A27ECED3D9"));
+
+            X9ECParameters x9 = new X9ECParameters(curve, G, n, h);
+            ECDomainParameters ec = new ECDomainParameters(x9);
 
             ECKeyPairGenerator kpg = new ECKeyPairGenerator();
             kpg.Init(new ECKeyGenerationParameters(ec, random));
@@ -948,12 +959,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             TestECMqvTestVector1();
             TestECMqvTestVector2();
             TestECMqvRandom();
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new ECTest());
         }
     }
 }

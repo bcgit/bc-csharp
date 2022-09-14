@@ -1,13 +1,10 @@
 using System;
-using System.Collections;
 using System.Diagnostics;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
     public class BerOctetString
-        : DerOctetString, IEnumerable
+        : DerOctetString
     {
         private const int DefaultSegmentLimit = 1000;
 
@@ -54,27 +51,8 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        private static Asn1OctetString[] ToOctetStringArray(IEnumerable e)
-        {
-            IList list = Platform.CreateArrayList(e);
-
-            int count = list.Count;
-            Asn1OctetString[] v = new Asn1OctetString[count];
-            for (int i = 0; i < count; ++i)
-            {
-                v[i] = GetInstance(list[i]);
-            }
-            return v;
-        }
-
         private readonly int segmentLimit;
         private readonly Asn1OctetString[] elements;
-
-        [Obsolete("Will be removed")]
-        public BerOctetString(IEnumerable e)
-            : this(ToOctetStringArray(e))
-        {
-        }
 
         public BerOctetString(byte[] contents)
 			: this(contents, DefaultSegmentLimit)
@@ -103,23 +81,6 @@ namespace Org.BouncyCastle.Asn1
             this.segmentLimit = segmentLimit;
         }
 
-        /**
-         * return the DER octets that make up this string.
-         */
-		public IEnumerator GetEnumerator()
-		{
-			if (elements == null)
-                return new ChunkEnumerator(contents, segmentLimit);
-
-			return elements.GetEnumerator();
-		}
-
-		[Obsolete("Use GetEnumerator() instead")]
-        public IEnumerator GetObjects()
-        {
-			return GetEnumerator();
-		}
-
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
             if (Asn1OutputStream.EncodingBer != encoding)
@@ -142,55 +103,6 @@ namespace Org.BouncyCastle.Asn1
 
             return new ConstructedILEncoding(tagClass, tagNo,
                 Asn1OutputStream.GetContentsEncodings(encoding, elements));
-        }
-
-        private class ChunkEnumerator
-            : IEnumerator
-        {
-            private readonly byte[] octets;
-            private readonly int segmentLimit;
-
-            private DerOctetString currentSegment = null;
-            private int nextSegmentPos = 0;
-
-            internal ChunkEnumerator(byte[] octets, int segmentLimit)
-            {
-                this.octets = octets;
-                this.segmentLimit = segmentLimit;
-            }
-
-            public object Current
-            {
-                get
-                {
-                    if (null == currentSegment)
-                        throw new InvalidOperationException();
-
-                    return currentSegment;
-                }
-            }
-
-            public bool MoveNext()
-            {
-                if (nextSegmentPos >= octets.Length)
-                {
-                    this.currentSegment = null;
-                    return false;
-                }
-
-                int length = System.Math.Min(octets.Length - nextSegmentPos, segmentLimit);
-                byte[] segment = new byte[length];
-                Array.Copy(octets, nextSegmentPos, segment, 0, length);
-                this.currentSegment = new DerOctetString(segment);
-                this.nextSegmentPos += length;
-                return true;
-            }
-
-            public void Reset()
-            {
-                this.currentSegment = null;
-                this.nextSegmentPos = 0;
-            }
         }
     }
 }

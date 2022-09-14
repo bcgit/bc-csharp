@@ -28,14 +28,14 @@ namespace Org.BouncyCastle.Crypto.Digests
      */
 
     /**
-     * Implementation of the cryptographic hash function Blakbe2b.
-     * <p>
+     * Implementation of the cryptographic hash function Blake2b.
+     * <p/>
      * Blake2b offers a built-in keying mechanism to be used directly
      * for authentication ("Prefix-MAC") rather than a HMAC construction.
-     * <p>
+     * <p/>
      * Blake2b offers a built-in support for a salt for randomized hashing
      * and a personal string for defining a unique hash function for each application.
-     * <p>
+     * <p/>
      * BLAKE2b is optimized for 64-bit platforms and produces digests of any size
      * between 1 and 64 bytes.
      */
@@ -382,9 +382,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
             Array.Clear(internalState, 0, internalState.Length);
 
+            byte[] bytes = new byte[8];
             for (int i = 0; i < chainValue.Length && (i * 8 < digestLength); i++)
             {
-                byte[] bytes = Pack.UInt64_To_LE(chainValue[i]);
+                Pack.UInt64_To_LE(chainValue[i], bytes, 0);
 
                 if (i * 8 < digestLength - 8)
                 {
@@ -429,10 +430,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             InitializeInternalState();
 
             ulong[] m = new ulong[16];
-            for (int j = 0; j < 16; j++)
-            {
-                m[j] = Pack.LE_To_UInt64(message, messagePos + j * 8);
-            }
+            Pack.LE_To_UInt64(message, messagePos, m);
 
             for (int round = 0; round < ROUNDS; round++)
             {

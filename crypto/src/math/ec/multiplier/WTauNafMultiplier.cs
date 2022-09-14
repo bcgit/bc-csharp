@@ -24,10 +24,10 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         */
         protected override ECPoint MultiplyPositive(ECPoint point, BigInteger k)
         {
-            if (!(point is AbstractF2mPoint))
+            AbstractF2mPoint p = point as AbstractF2mPoint;
+            if (p == null)
                 throw new ArgumentException("Only AbstractF2mPoint can be used in WTauNafMultiplier");
 
-            AbstractF2mPoint p = (AbstractF2mPoint)point;
             AbstractF2mCurve curve = (AbstractF2mCurve)p.Curve;
             int m = curve.FieldSize;
             sbyte a = (sbyte)curve.A.ToBigInteger().IntValue;

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -321,9 +321,9 @@ namespace Org.BouncyCastle.Cmp.Tests
 
     public class TestCertBuilder
     {
-        IDictionary attrs = new Hashtable();
-        IList ord = new ArrayList();
-        IList values = new ArrayList();
+        IDictionary<DerObjectIdentifier, string> attrs = new Dictionary<DerObjectIdentifier, string>();
+        IList<DerObjectIdentifier> ord = new List<DerObjectIdentifier>();
+        IList<string> values = new List<string>();
 
         private DateTime notBefore, notAfter;
         private AsymmetricKeyParameter publicKey;
@@ -366,7 +366,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             set { this.subject = value; }
         }
 
-        public TestCertBuilder AddAttribute(DerObjectIdentifier name, Object value)
+        public TestCertBuilder AddAttribute(DerObjectIdentifier name, string value)
         {
             attrs[name] = value;
             ord.Add(name);
@@ -402,9 +402,8 @@ namespace Org.BouncyCastle.Cmp.Tests
             }
 
             certGen.SetPublicKey(PublicKey);
-            certGen.SetSignatureAlgorithm(SignatureAlgorithm);
 
-            return certGen.Generate(privateKey);
+            return certGen.Generate(new Asn1SignatureFactory(SignatureAlgorithm, privateKey, null));
         }
     }
 }

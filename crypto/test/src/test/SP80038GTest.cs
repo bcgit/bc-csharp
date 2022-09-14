@@ -24,12 +24,13 @@ namespace Org.BouncyCastle.Tests
         private readonly byte[] ciphertext;
         private readonly byte[] tweak;
 
-        public static FFSample from(int radix, String hexKey, String asciiPT, String asciiCT, String hexTweak)
+        public static FFSample From(int radix, string hexKey, string asciiPT, string asciiCT, string hexTweak)
         {
-            return new FFSample(radix, fromHex(hexKey), fromAscii(radix, asciiPT), fromAscii(radix, asciiCT), fromHex(hexTweak));
+            return new FFSample(radix, FromHex(hexKey), FromAscii(radix, asciiPT), FromAscii(radix, asciiCT),
+                FromHex(hexTweak));
         }
 
-        private static byte fromAlphaNumeric(char c)
+        private static byte FromAlphaNumeric(char c)
         {
             if (c >= '0' && c <= '9')
             {
@@ -49,12 +50,12 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        private static byte[] fromAscii(int radix, string ascii)
+        private static byte[] FromAscii(int radix, string ascii)
         {
             byte[] result = new byte[ascii.Length];
             for (int i = 0; i < result.Length; ++i)
             {
-                result[i] = fromAlphaNumeric(ascii[i]);
+                result[i] = FromAlphaNumeric(ascii[i]);
                 if (result[i] < 0 || result[i] >= radix)
                 {
                     throw new ArgumentException();
@@ -63,7 +64,7 @@ namespace Org.BouncyCastle.Tests
             return result;
         }
 
-        private static byte[] fromHex(string hex)
+        private static byte[] FromHex(string hex)
         {
             return Hex.Decode(hex);
         }
@@ -106,25 +107,25 @@ namespace Org.BouncyCastle.Tests
     private static FFSample[] ff1Samples = new FFSample[]
         {
             // FF1-AES128
-            FFSample.from(10, "2B7E151628AED2A6ABF7158809CF4F3C", "0123456789", "2433477484", ""),
-            FFSample.from(10, "2B7E151628AED2A6ABF7158809CF4F3C", "0123456789", "6124200773", "39383736353433323130"),
-            FFSample.from(36, "2B7E151628AED2A6ABF7158809CF4F3C", "0123456789abcdefghi", "a9tv40mll9kdu509eum", "3737373770717273373737"),
+            FFSample.From(10, "2B7E151628AED2A6ABF7158809CF4F3C", "0123456789", "2433477484", ""),
+            FFSample.From(10, "2B7E151628AED2A6ABF7158809CF4F3C", "0123456789", "6124200773", "39383736353433323130"),
+            FFSample.From(36, "2B7E151628AED2A6ABF7158809CF4F3C", "0123456789abcdefghi", "a9tv40mll9kdu509eum", "3737373770717273373737"),
 
             // FF1-AES192
-            FFSample.from(10, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "0123456789", "2830668132", ""),
-            FFSample.from(10, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "0123456789", "2496655549", "39383736353433323130"),
-            FFSample.from(36, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "0123456789abcdefghi", "xbj3kv35jrawxv32ysr", "3737373770717273373737"),
+            FFSample.From(10, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "0123456789", "2830668132", ""),
+            FFSample.From(10, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "0123456789", "2496655549", "39383736353433323130"),
+            FFSample.From(36, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F", "0123456789abcdefghi", "xbj3kv35jrawxv32ysr", "3737373770717273373737"),
 
             // FF1-AES256
-            FFSample.from(10, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "0123456789", "6657667009", ""),
-            FFSample.from(10, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "0123456789", "1001623463", "39383736353433323130"),
-            FFSample.from(36, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "0123456789abcdefghi", "xs8a0azh2avyalyzuwd", "3737373770717273373737"),
+            FFSample.From(10, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "0123456789", "6657667009", ""),
+            FFSample.From(10, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "0123456789", "1001623463", "39383736353433323130"),
+            FFSample.From(36, "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94", "0123456789abcdefghi", "xs8a0azh2avyalyzuwd", "3737373770717273373737"),
         };
 
     private static FFSample[] ff3_1Samples = new FFSample[]
         {
             // FF3-AES128
-            FFSample.from(62, "7793833CE891B496381BD5B882F77EA1", "YbpT3hDo0J9xwCQ5qUWt93iv", "dDEYxViK56lGbV1WdZTPTe4w", "C58797C2580174"),
+            FFSample.From(62, "7793833CE891B496381BD5B882F77EA1", "YbpT3hDo0J9xwCQ5qUWt93iv", "dDEYxViK56lGbV1WdZTPTe4w", "C58797C2580174"),
         };
 
     private void testFF1()
@@ -272,8 +273,8 @@ namespace Org.BouncyCastle.Tests
 
     private void testDisable()
     {
-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || (PORTABLE && !DOTNET) || NET_1_1
-            // Can't SetEnvironmentVariable !
+#if PORTABLE && !DOTNET
+        // Can't SetEnvironmentVariable !
 #else
         Environment.SetEnvironmentVariable("org.bouncycastle.fpe.disable", "true");
         try
@@ -322,8 +323,6 @@ namespace Org.BouncyCastle.Tests
         FpeEngine fpeEngine = new FpeFf3_1Engine();
 
         fpeEngine.Init(true, new FpeParameters(new KeyParameter(key), radix, tweak));
-
-        ulong valueToEncrypt = 0x31009155FFL;
 
         byte[] bytes = Hex.Decode("31009155FF");
         byte[] enc = new byte[bytes.Length];
@@ -421,7 +420,7 @@ namespace Org.BouncyCastle.Tests
 
     private void testFF3_1Bounds()
     {
-        String bigAlpha = "+-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+        string bigAlpha = "+-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
 
         IAlphabetMapper alphabetMapper = new BasicAlphabetMapper(bigAlpha);
 
@@ -461,7 +460,7 @@ namespace Org.BouncyCastle.Tests
         }
     }
 
-    private void ff3_1Test(IAlphabetMapper alphabetMapper, String skey, String stweak, String input, String output)
+    private void ff3_1Test(IAlphabetMapper alphabetMapper, string skey, string stweak, string input, string output)
     {
         FpeEngine fpeEncEngine = new FpeFf3_1Engine();
         FpeEngine fpeDecEngine = new FpeFf3_1Engine();
@@ -476,12 +475,12 @@ namespace Org.BouncyCastle.Tests
         byte[] bytes = alphabetMapper.ConvertToIndexes(input.ToCharArray());
 
         byte[] encryptedBytes = process(fpeEncEngine, bytes);
-        IsEquals(output, new String(alphabetMapper.ConvertToChars(encryptedBytes)));
+        IsEquals(output, new string(alphabetMapper.ConvertToChars(encryptedBytes)));
 
         byte[] decryptedBytes = process(fpeDecEngine, encryptedBytes);
         IsTrue(Arrays.AreEqual(bytes, decryptedBytes));
         char[] chars = alphabetMapper.ConvertToChars(decryptedBytes);
-        IsEquals(input, new String(chars));
+        IsEquals(input, new string(chars));
     }
 
     private byte[] process(FpeEngine fpeEngine, byte[] bytes)

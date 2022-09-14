@@ -295,11 +295,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             DoTestLengthConstruction();
         }
 
-        public static void Main(string[] args)
-        {
-            RunTest(new Blake2sDigestTest());
-        }
-
         [Test]
         public void TestFunction()
         {

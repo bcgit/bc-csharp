@@ -27,12 +27,6 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-		[Obsolete("Use 'Value' property instead")]
-        public int GetValue()
-        {
-            return crc;
-        }
-
 		public int Value
 		{
 			get { return crc; }

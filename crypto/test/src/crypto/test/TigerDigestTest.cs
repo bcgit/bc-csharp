@@ -65,12 +65,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new TigerDigest((TigerDigest)digest);
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new TigerDigestTest());
-        }
-
         [Test]
         public void TestFunction()
         {

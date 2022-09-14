@@ -163,15 +163,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			get { return "Ocsp"; }
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			ITest test = new OcspTest();
-			ITestResult result = test.Perform();
-
-			Console.WriteLine(result);
-		}
-
 		[Test]
 		public void TestFunction()
 		{

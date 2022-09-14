@@ -1,4 +1,5 @@
-using System.Collections;
+using System;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.EdEC;
@@ -7,30 +8,26 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Agreement.Kdf;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
 {
 	/// <remarks>
 	///  Utility class for creating IBasicAgreement objects from their names/Oids
 	/// </remarks>
-	public sealed class AgreementUtilities
+	public static class AgreementUtilities
 	{
-		private AgreementUtilities()
-		{
-		}
-
-		private static readonly IDictionary algorithms = Platform.CreateHashtable();
-        //private static readonly IDictionary oids = Platform.CreateHashtable();
+		private static readonly IDictionary<string, string> Algorithms =
+			new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         static AgreementUtilities()
 		{
-            algorithms[X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id] = "ECCDHWITHSHA1KDF";
-			algorithms[X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id] = "ECDHWITHSHA1KDF";
-			algorithms[X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id] = "ECMQVWITHSHA1KDF";
+            Algorithms[X9ObjectIdentifiers.DHSinglePassCofactorDHSha1KdfScheme.Id] = "ECCDHWITHSHA1KDF";
+			Algorithms[X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme.Id] = "ECDHWITHSHA1KDF";
+			Algorithms[X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme.Id] = "ECMQVWITHSHA1KDF";
 
-            algorithms[EdECObjectIdentifiers.id_X25519.Id] = "X25519";
-            algorithms[EdECObjectIdentifiers.id_X448.Id] = "X448";
+            Algorithms[EdECObjectIdentifiers.id_X25519.Id] = "X25519";
+            Algorithms[EdECObjectIdentifiers.id_X448.Id] = "X448";
         }
 
         public static IBasicAgreement GetBasicAgreement(
@@ -94,8 +91,7 @@ namespace Org.BouncyCastle.Security
             return GetRawAgreement(oid.Id);
         }
 
-        public static IRawAgreement GetRawAgreement(
-            string algorithm)
+        public static IRawAgreement GetRawAgreement(string algorithm)
         {
             string mechanism = GetMechanism(algorithm);
 
@@ -108,17 +104,16 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Raw Agreement " + algorithm + " not recognised.");
         }
 
-		public static string GetAlgorithmName(
-			DerObjectIdentifier oid)
+		public static string GetAlgorithmName(DerObjectIdentifier oid)
 		{
-			return (string)algorithms[oid.Id];
+			return CollectionUtilities.GetValueOrNull(Algorithms, oid.Id);
 		}
 
-        private static string GetMechanism(string algorithm)
+		private static string GetMechanism(string algorithm)
         {
-            string upper = Platform.ToUpperInvariant(algorithm);
-            string mechanism = (string)algorithms[upper];
-            return mechanism == null ? upper : mechanism;
+			var mechanism = CollectionUtilities.GetValueOrKey(Algorithms, algorithm);
+
+			return mechanism.ToUpperInvariant();
         }
 	}
 }

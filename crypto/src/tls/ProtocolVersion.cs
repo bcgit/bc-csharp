@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
 
@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Tls
         public static readonly ProtocolVersion TLSv13 = new ProtocolVersion(0x0304, "TLS 1.3");
         public static readonly ProtocolVersion DTLSv10 = new ProtocolVersion(0xFEFF, "DTLS 1.0");
         public static readonly ProtocolVersion DTLSv12 = new ProtocolVersion(0xFEFD, "DTLS 1.2");
+        public static readonly ProtocolVersion DTLSv13 = new ProtocolVersion(0xFEFC, "DTLS 1.3");
 
         internal static readonly ProtocolVersion CLIENT_EARLIEST_SUPPORTED_DTLS = DTLSv10;
         internal static readonly ProtocolVersion CLIENT_EARLIEST_SUPPORTED_TLS = SSLv3;
@@ -168,7 +169,7 @@ namespace Org.BouncyCastle.Tls
             if (!IsEqualOrLaterVersionOf(min))
                 throw new ArgumentException("must be an equal or earlier version of this one", "min");
 
-            IList result = Platform.CreateArrayList();
+            var result = new List<ProtocolVersion>();
             result.Add(this);
 
             ProtocolVersion current = this;
@@ -178,12 +179,7 @@ namespace Org.BouncyCastle.Tls
                 result.Add(current);
             }
 
-            ProtocolVersion[] versions = new ProtocolVersion[result.Count];
-            for (int i = 0; i < result.Count; ++i)
-            {
-                versions[i] = (ProtocolVersion)result[i];
-            }
-            return versions;
+            return result.ToArray();
         }
 
         public int FullVersion
@@ -225,17 +221,22 @@ namespace Org.BouncyCastle.Tls
         {
             switch (MajorVersion)
             {
-                case 0x03:
-                    return this;
-                case 0xFE:
-                    switch (MinorVersion)
-                    {
-                        case 0xFF: return TLSv11;
-                        case 0xFD: return TLSv12;
-                        default: return null;
-                    }
+            case 0x03:
+                return this;
+            case 0xFE:
+                switch (MinorVersion)
+                {
+                case 0xFF:
+                    return TLSv11;
+                case 0xFD:
+                    return TLSv12;
+                case 0xFC:
+                    return TLSv13;
                 default:
                     return null;
+                }
+            default:
+                return null;
             }
         }
 
@@ -247,15 +248,20 @@ namespace Org.BouncyCastle.Tls
             case 0x03:
                 switch (minor)
                 {
-                    case 0xFF: return null;
-                    default: return Get(major, minor + 1);
+                case 0xFF:
+                    return null;
+                default:
+                    return Get(major, minor + 1);
                 }
             case 0xFE:
                 switch (minor)
                 {
-                    case 0x00: return null;
-                    case 0xFF: return DTLSv12;
-                    default: return Get(major, minor - 1);
+                case 0x00:
+                    return null;
+                case 0xFF:
+                    return DTLSv12;
+                default:
+                    return Get(major, minor - 1);
                 }
             default:
                 return null;
@@ -267,21 +273,26 @@ namespace Org.BouncyCastle.Tls
             int major = MajorVersion, minor = MinorVersion;
             switch (major)
             {
-                case 0x03:
-                    switch (minor)
-                    {
-                        case 0x00: return null;
-                        default: return Get(major, minor - 1);
-                    }
-                case 0xFE:
-                    switch (minor)
-                    {
-                        case 0xFF: return null;
-                        case 0xFD: return DTLSv10;
-                        default: return Get(major, minor + 1);
-                    }
-                default:
+            case 0x03:
+                switch (minor)
+                {
+                case 0x00:
                     return null;
+                default:
+                    return Get(major, minor - 1);
+                }
+            case 0xFE:
+                switch (minor)
+                {
+                case 0xFF:
+                    return null;
+                case 0xFD:
+                    return DTLSv10;
+                default:
+                    return Get(major, minor + 1);
+                }
+            default:
+                return null;
             }
         }
 
@@ -367,6 +378,8 @@ namespace Org.BouncyCastle.Tls
                     throw new ArgumentException("{0xFE, 0xFE} is a reserved protocol version");
                 case 0xFD:
                     return DTLSv12;
+                case 0xFC:
+                    return DTLSv13;
                 }
                 return GetUnknownVersion(major, minor, "DTLS");
             }
@@ -399,7 +412,7 @@ namespace Org.BouncyCastle.Tls
             CheckUint8(minor);
 
             int v = (major << 8) | minor;
-            string hex = Platform.ToUpperInvariant(Convert.ToString(0x10000 | v, 16).Substring(1));
+            string hex = Convert.ToString(0x10000 | v, 16).Substring(1).ToUpperInvariant();
             return new ProtocolVersion(v, prefix + " 0x" + hex);
         }
     }

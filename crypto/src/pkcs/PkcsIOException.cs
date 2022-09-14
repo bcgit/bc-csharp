@@ -1,19 +1,32 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Pkcs
 {
-    /// <summary>
-    /// Base exception for parsing related issues in the PKCS namespace.
-    /// </summary>
-    public class PkcsIOException: IOException
+	/// <summary>Base exception for parsing related issues in the PKCS namespace.</summary>
+	[Serializable]
+	public class PkcsIOException
+		: IOException
     {
-        public PkcsIOException(String message) : base(message)
-        {
-        }
+		public PkcsIOException()
+			: base()
+		{
+		}
 
-        public PkcsIOException(String message, Exception underlying) : base(message, underlying)
-        {
-        }
-    }
+		public PkcsIOException(string message)
+			: base(message)
+		{
+		}
+
+		public PkcsIOException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected PkcsIOException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
+		}
+	}
 }

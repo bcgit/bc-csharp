@@ -439,11 +439,5 @@ namespace Org.BouncyCastle.Tests
 		{
 			get { return "CipherStreamTest"; }
 		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new CipherStreamTest());
-		}
 	}
 }

@@ -819,12 +819,6 @@ namespace Org.BouncyCastle.Tests
             get { return "DSA/ECDSA"; }
         }
 
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new DsaTest());
-        }
-
         private class DsaTestSecureRandom
             : FixedSecureRandom
         {
@@ -835,16 +829,21 @@ namespace Org.BouncyCastle.Tests
             {
             }
 
-            public override void NextBytes(byte[] bytes)
+            public override void NextBytes(byte[] buf)
+            {
+                NextBytes(buf, 0, buf.Length);
+            }
+
+            public override void NextBytes(byte[] buf, int off, int len)
             {
                 if (first)
                 {
-                    base.NextBytes(bytes);
+                    base.NextBytes(buf, off, len);
                     first = false;
                 }
                 else
                 {
-                    bytes[bytes.Length - 1] = 2;
+                    buf[off + len - 1] = 2;
                 }
             }
         }

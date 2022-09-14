@@ -1,8 +1,5 @@
-using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -20,18 +17,13 @@ namespace Org.BouncyCastle.Bcpg
             UserAttributeSubpacketsParser sIn = new UserAttributeSubpacketsParser(bcpgIn);
             UserAttributeSubpacket sub;
 
-            IList v = Platform.CreateArrayList();
+            var v = new List<UserAttributeSubpacket>();
             while ((sub = sIn.ReadPacket()) != null)
             {
                 v.Add(sub);
             }
 
-            subpackets = new UserAttributeSubpacket[v.Count];
-
-            for (int i = 0; i != subpackets.Length; i++)
-            {
-                subpackets[i] = (UserAttributeSubpacket)v[i];
-            }
+            subpackets = v.ToArray();
         }
 
         public UserAttributePacket(

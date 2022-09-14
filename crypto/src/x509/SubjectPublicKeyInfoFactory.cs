@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.X509
                 if (_key.AlgorithmName == "ECGOST3410")
                 {
                     if (_key.PublicKeyParamSet == null)
-                        throw Platform.CreateNotImplementedException("Not a CryptoPro parameter set");
+                        throw new NotImplementedException("Not a CryptoPro parameter set");
 
                     ECPoint q = _key.Q.Normalize();
                     BigInteger bX = q.AffineXCoord.ToBigInteger();
@@ -168,7 +168,8 @@ namespace Org.BouncyCastle.X509
                     if (_key.PublicKeyParamSet == null)
                     {
                         ECDomainParameters kp = _key.Parameters;
-                        X9ECParameters ecP = new X9ECParameters(kp.Curve, kp.G, kp.N, kp.H, kp.GetSeed());
+                        X9ECParameters ecP = new X9ECParameters(kp.Curve, new X9ECPoint(kp.G, false), kp.N, kp.H,
+                            kp.GetSeed());
 
                         x962 = new X962Parameters(ecP);
                     }
@@ -191,7 +192,7 @@ namespace Org.BouncyCastle.X509
                 Gost3410PublicKeyParameters _key = (Gost3410PublicKeyParameters) publicKey;
 
                 if (_key.PublicKeyParamSet == null)
-                    throw Platform.CreateNotImplementedException("Not a CryptoPro parameter set");
+                    throw new NotImplementedException("Not a CryptoPro parameter set");
 
                 byte[] keyEnc = _key.Y.ToByteArrayUnsigned();
                 byte[] keyBytes = new byte[keyEnc.Length];

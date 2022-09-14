@@ -1,4 +1,5 @@
-using Org.BouncyCastle.Utilities.Collections;
+using System.Collections.Generic;
+
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
@@ -63,7 +64,7 @@ namespace Org.BouncyCastle.Pkix
          *         <code>PKIXCertPathChecker</code>, or <code>null</code> if no
          *         extensions are supported
          */
-        public abstract ISet GetSupportedExtensions();
+        public abstract ISet<string> GetSupportedExtensions();
 
         /**
          * Performs the check(s) on the specified certificate using its internal
@@ -80,7 +81,7 @@ namespace Org.BouncyCastle.Pkix
          * @exception CertPathValidatorException
          *                if the specified certificate does not pass the check
          */
-        public abstract void Check(X509Certificate cert, ISet unresolvedCritExts);
+        public abstract void Check(X509Certificate cert, ISet<string> unresolvedCritExts);
         //throws CertPathValidatorException;
 
         /**

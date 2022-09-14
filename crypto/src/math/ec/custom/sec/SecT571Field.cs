@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
 
 using Org.BouncyCastle.Math.Raw;
 
@@ -231,19 +235,11 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         {
             ulong[] evn = Nat576.Create64(), odd = Nat576.Create64();
 
-            int pos = 0;
-            for (int i = 0; i < 4; ++i)
-            {
-                ulong u0 = Interleave.Unshuffle(x[pos++]);
-                ulong u1 = Interleave.Unshuffle(x[pos++]);
-                evn[i] = (u0 & 0x00000000FFFFFFFFUL) | (u1 << 32);
-                odd[i] = (u0 >> 32) | (u1 & 0xFFFFFFFF00000000UL);
-            }
-            {
-                ulong u0 = Interleave.Unshuffle(x[pos]);
-                evn[4] = (u0 & 0x00000000FFFFFFFFUL);
-                odd[4] = (u0 >> 32);
-            }
+            odd[0] = Interleave.Unshuffle(x[0], x[1], out evn[0]);
+            odd[1] = Interleave.Unshuffle(x[2], x[3], out evn[1]);
+            odd[2] = Interleave.Unshuffle(x[4], x[5], out evn[2]);
+            odd[3] = Interleave.Unshuffle(x[6], x[7], out evn[3]);
+            odd[4] = Interleave.Unshuffle(x[8]      , out evn[4]);
 
             Multiply(odd, ROOT_Z, z);
             Add(z, evn, z);
@@ -407,6 +403,18 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Pclmulqdq.IsSupported)
+            {
+                var X = Vector128.CreateScalar(x);
+                var Y = Vector128.CreateScalar(y);
+                var Z = Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
+                z[zOff    ] ^= Z.GetElement(0);
+                z[zOff + 1] ^= Z.GetElement(1);
+                return;
+            }
+#endif
+
             //u[0] = 0;
             u[1] = y;
             for (int i = 2; i < 16; i += 2)

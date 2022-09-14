@@ -301,12 +301,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Salsa20Test());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

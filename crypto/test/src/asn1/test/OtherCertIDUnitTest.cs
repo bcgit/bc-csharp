@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			try
 			{
-				OtherCertID.GetInstance(new Object());
+				OtherCertID.GetInstance(new object());
 
 				Fail("GetInstance() failed to detect bad object.");
 			}
@@ -81,12 +81,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 			checkMandatoryField("hashValue", digest, certID.OtherCertHash.GetHashValue());
 
 			checkOptionalField("issuerSerial", issuerSerial, certID.IssuerSerial);
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new OtherCertIDUnitTest());
 		}
 
 		[Test]

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
@@ -50,6 +50,8 @@ namespace Org.BouncyCastle.Tls.Tests
         protected int m_firstFatalAlertConnectionEnd = -1;
         protected short m_firstFatalAlertDescription = -1;
 
+        internal byte[] m_tlsKeyingMaterial1 = null;
+        internal byte[] m_tlsKeyingMaterial2 = null;
         internal byte[] m_tlsServerEndPoint = null;
         internal byte[] m_tlsUnique = null;
 
@@ -128,6 +130,13 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyHandshakeComplete();
 
+            SecurityParameters securityParameters = m_context.SecurityParameters;
+            if (securityParameters.IsExtendedMasterSecret)
+            {
+                m_tlsKeyingMaterial1 = m_context.ExportKeyingMaterial("BC_TLS_TESTS_1", null, 16);
+                m_tlsKeyingMaterial2 = m_context.ExportKeyingMaterial("BC_TLS_TESTS_2", new byte[8], 16);
+            }
+
             m_tlsServerEndPoint = m_context.ExportChannelBinding(ChannelBinding.tls_server_end_point);
             m_tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
 
@@ -157,7 +166,7 @@ namespace Org.BouncyCastle.Tls.Tests
             if (m_config.serverCertReq == TlsTestConfig.SERVER_CERT_REQ_NONE)
                 return null;
 
-            IList serverSigAlgs = null;
+            IList<SignatureAndHashAlgorithm> serverSigAlgs = null;
             if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(m_context.ServerVersion))
             {
                 serverSigAlgs = m_config.serverCertReqSigAlgs;
@@ -167,7 +176,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 }
             }
 
-            IList certificateAuthorities = new ArrayList();
+            var certificateAuthorities = new List<X509Name>();
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-dsa.pem").Subject);
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-ecdsa.pem").Subject);
             //certificateAuthorities.Add(TlsTestUtilities.LoadBcCertificateResource("x509-ca-rsa.pem").Subject);
@@ -181,7 +190,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 byte[] certificateRequestContext = TlsUtilities.EmptyBytes;
 
                 // TODO[tls13] Add TlsTestConfig.serverCertReqSigAlgsCert
-                IList serverSigAlgsCert = null;
+                IList<SignatureAndHashAlgorithm> serverSigAlgsCert = null;
 
                 return new CertificateRequest(certificateRequestContext, serverSigAlgs, serverSigAlgsCert,
                     certificateAuthorities);
@@ -245,13 +254,35 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        protected virtual IList GetSupportedSignatureAlgorithms()
+        public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
+        {
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessClientExtensions(clientExtensions);
+        }
+
+        public override IDictionary<int, byte[]> GetServerExtensions()
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return base.GetServerExtensions();
+        }
+
+        public override void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.GetServerExtensionsForConnection(serverExtensions);
+        }
+
+        protected virtual IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()
         {
             if (TlsUtilities.IsTlsV12(m_context) && m_config.serverAuthSigAlg != null)
             {
-                IList signatureAlgorithms = new ArrayList(1);
-                signatureAlgorithms.Add(m_config.serverAuthSigAlg);
-                return signatureAlgorithms;
+                return TlsUtilities.VectorOfOne(m_config.serverAuthSigAlg);
             }
 
             return m_context.SecurityParameters.ClientSigAlgs;

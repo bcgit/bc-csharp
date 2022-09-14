@@ -211,21 +211,15 @@ namespace Org.BouncyCastle.Utilities.Test
 
         public override byte[] GenerateSeed(int numBytes)
         {
-            return SecureRandom.GetNextBytes(this, numBytes);
+            return GetNextBytes(this, numBytes);
         }
 
-        public override void NextBytes(
-			byte[] buf)
+        public override void NextBytes(byte[] buf)
 		{
-			Array.Copy(_data, _index, buf, 0, buf.Length);
-
-			_index += buf.Length;
+            NextBytes(buf, 0, buf.Length);
 		}
 
-		public override void NextBytes(
-			byte[]	buf,
-			int		off,
-			int		len)
+		public override void NextBytes(byte[] buf, int off, int len)
 		{
 			Array.Copy(_data, _index, buf, off, len);
 
@@ -243,11 +237,16 @@ namespace Org.BouncyCastle.Utilities.Test
             byte[] data = Hex.Decode("01020304ffffffff0506070811111111");
             int    index = 0;
 
-            public override void NextBytes(byte[] bytes)
+            public override void NextBytes(byte[] buf)
             {
-                Array.Copy(data, index, bytes, 0, bytes.Length);
+                NextBytes(buf, 0, buf.Length);
+            }
 
-                index += bytes.Length;
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                Array.Copy(data, index, buf, off, len);
+
+                index += len;
             }
         }
 

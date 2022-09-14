@@ -107,13 +107,13 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 TestCase testCase = TEST_VECTORS[i];
 
-                IMac mac = new GMac(new GcmBlockCipher(new AesEngine()), testCase.getTag().Length * 8);
+                IMac mac = new GMac(new GcmBlockCipher(AesUtilities.CreateEngine()), testCase.getTag().Length * 8);
                 ICipherParameters key = new KeyParameter(testCase.getKey());
                 mac.Init(new ParametersWithIV(key, testCase.getIv()));
 
                 testSingleByte(mac, testCase);
 
-                mac = new GMac(new GcmBlockCipher(new AesEngine()), testCase.getTag().Length * 8);
+                mac = new GMac(new GcmBlockCipher(AesUtilities.CreateEngine()), testCase.getTag().Length * 8);
                 mac.Init(new ParametersWithIV(key, testCase.getIv()));
 
                 testMultibyte(mac, testCase);
@@ -129,7 +129,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             try
             {
-                GMac mac = new GMac(new GcmBlockCipher(new AesEngine()), size);
+                GMac mac = new GMac(new GcmBlockCipher(AesUtilities.CreateEngine()), size);
                 mac.Init(new ParametersWithIV(null, new byte[16]));
                 Fail("Expected failure for illegal mac size " + size);
             }
@@ -172,12 +172,6 @@ namespace Org.BouncyCastle.Crypto.Tests
         public override string Name
         {
             get { return "GMac"; }
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new GMacTest());
         }
 
         [Test]

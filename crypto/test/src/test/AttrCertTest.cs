@@ -1,20 +1,19 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
-using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tests
 {
@@ -139,7 +138,7 @@ namespace Org.BouncyCastle.Tests
 
 		private void doTestCertWithBaseCertificateID()
 		{
-			IX509AttributeCertificate attrCert = new X509V2AttributeCertificate(certWithBaseCertificateID);
+			var attrCert = new X509V2AttributeCertificate(certWithBaseCertificateID);
 			X509CertificateParser fact = new X509CertificateParser();
 			X509Certificate cert = fact.ReadCertificate(holderCertWithBaseCertificateID);
 
@@ -179,7 +178,7 @@ namespace Org.BouncyCastle.Tests
 		}
 
 		private void equalityAndHashCodeTest(
-			IX509AttributeCertificate	attrCert,
+			X509V2AttributeCertificate  attrCert,
 			byte[]						encoding)
 		{
 			if (!attrCert.Equals(attrCert))
@@ -207,7 +206,7 @@ namespace Org.BouncyCastle.Tests
 				Fail("wrong issuer equal");
 			}
 
-			IX509AttributeCertificate attrCert2 = new X509V2AttributeCertificate(encoding);
+			var attrCert2 = new X509V2AttributeCertificate(encoding);
 
 			if (attrCert2.Holder.GetHashCode() != attrCert.Holder.GetHashCode())
 			{
@@ -270,9 +269,8 @@ namespace Org.BouncyCastle.Tests
 			gen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			gen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			gen.SetSerialNumber(BigInteger.One);
-			gen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
-			IX509AttributeCertificate aCert = gen.Generate(privKey);
+			var aCert = gen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
 			aCert.CheckValidity();
 
@@ -378,9 +376,8 @@ namespace Org.BouncyCastle.Tests
 			gen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			gen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			gen.SetSerialNumber(BigInteger.One);
-			gen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
-			IX509AttributeCertificate aCert = gen.Generate(privKey);
+			var aCert = gen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
 			aCert.CheckValidity();
 
@@ -420,7 +417,7 @@ namespace Org.BouncyCastle.Tests
 
 		public override void PerformTest()
 		{
-			IX509AttributeCertificate aCert = new X509V2AttributeCertificate(attrCert);
+			var aCert = new X509V2AttributeCertificate(attrCert);
 			X509CertificateParser fact = new X509CertificateParser();
 			X509Certificate sCert = fact.ReadCertificate(signCert);
 
@@ -429,19 +426,13 @@ namespace Org.BouncyCastle.Tests
 			//
 			// search test
 			//
-			IList list = new ArrayList();
+			var list = new List<X509Certificate>();
 
 			list.Add(sCert);
 
-//			CollectionCertStoreParameters ccsp = new CollectionCertStoreParameters(list);
-//			CertStore store = CertStore.getInstance("Collection", ccsp);
-			IX509Store store = X509StoreFactory.Create(
-				"Certificate/Collection",
-				new X509CollectionStoreParameters(list));
+			var store = CollectionUtilities.CreateStore(list);
 
-			ArrayList certs = new ArrayList(
-//				store.getCertificates(aCert.getIssuer()));
-				store.GetMatches(aCert.Issuer));
+			var certs = new List<X509Certificate>(store.EnumerateMatches(aCert.Issuer));
 
 			if (certs.Count != 1 || !certs.Contains(sCert))
 			{
@@ -461,7 +452,7 @@ namespace Org.BouncyCastle.Tests
 
 			aCert.Verify(sCert.GetPublicKey());
 
-			IX509AttributeCertificate saCert = new X509V2AttributeCertificate(aCert.GetEncoded());
+			var saCert = new X509V2AttributeCertificate(aCert.GetEncoded());
 
 			if (!aCert.NotAfter.Equals(saCert.NotAfter))
 			{
@@ -499,9 +490,8 @@ namespace Org.BouncyCastle.Tests
 			gen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
 			gen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
 			gen.SetSerialNumber(aCert.SerialNumber);
-			gen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 
-			aCert = gen.Generate(privKey);
+			aCert = gen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
 			aCert.CheckValidity();
 
@@ -510,9 +500,7 @@ namespace Org.BouncyCastle.Tests
 			// as the issuer is the same this should still work (even though it is not
 			// technically correct
 
-			certs = new ArrayList(
-//				store.getCertificates(aCert.Issuer));
-				store.GetMatches(aCert.Issuer));
+			certs = new List<X509Certificate>(store.EnumerateMatches(aCert.Issuer));
 
 			if (certs.Count != 1 || !certs.Contains(sCert))
 			{
@@ -575,9 +563,9 @@ namespace Org.BouncyCastle.Tests
 
 			gen.AddExtension("2.2", false, new DerOctetString(new byte[20]));
 
-			aCert = gen.Generate(privKey);
+			aCert = gen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 
-			ISet exts = aCert.GetCriticalExtensionOids();
+			var exts = aCert.GetCriticalExtensionOids();
 
 			if (exts.Count != 1 || !exts.Contains("1.1"))
 			{
@@ -602,12 +590,6 @@ namespace Org.BouncyCastle.Tests
 			doTestCertWithBaseCertificateID();
 			doTestGenerateWithCert();
 			doTestGenerateWithPrincipal();
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new AttrCertTest());
 		}
 
 		[Test]

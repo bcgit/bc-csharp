@@ -10,14 +10,13 @@ using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Security.Tests
 {
     [TestFixture]
     public class SecureRandomTest
     {
-#if !(NETCF_1_0 || PORTABLE)
+#if !PORTABLE
         [Test]
         public void TestCryptoApi()
         {
@@ -57,11 +56,12 @@ namespace Org.BouncyCastle.Security.Tests
         }
 
         [Test]
-        public void TestSha1PrngBackward()
+        public void TestSha1PrngReplicable()
         {
-            byte[] seed = Encoding.ASCII.GetBytes("backward compatible");
+            SecureRandom random = new SecureRandom();
+            byte[] seed = SecureRandom.GetNextBytes(random, 16);
 
-            SecureRandom sx = new SecureRandom(seed);
+            SecureRandom sx = SecureRandom.GetInstance("SHA1PRNG", false); sx.SetSeed(seed);
             SecureRandom sy = SecureRandom.GetInstance("SHA1PRNG", false); sy.SetSeed(seed);
 
             byte[] bx = new byte[128]; sx.NextBytes(bx);
@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestSP800Ctr()
         {
-            SecureRandom random = new SP800SecureRandomBuilder().BuildCtr(new AesEngine(), 256, new byte[32], false);
+            SecureRandom random = new SP800SecureRandomBuilder().BuildCtr(AesUtilities.CreateEngine(), 256, new byte[32], false);
 
             CheckSecureRandom(random);
         }
@@ -103,15 +103,6 @@ namespace Org.BouncyCastle.Security.Tests
         }
 
         [Test]
-        public void TestThreadedSeed()
-        {
-            SecureRandom random = SecureRandom.GetInstance("SHA1PRNG", false);
-            random.SetSeed(new ThreadedSeedGenerator().GenerateSeed(20, false));
-
-            CheckSecureRandom(random);
-        }
-
-        [Test]
         public void TestVmpcPrng()
         {
             SecureRandom random = new SecureRandom(new VmpcRandomGenerator());
@@ -123,7 +114,7 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
         public void TestX931()
         {
-            SecureRandom random = new X931SecureRandomBuilder().Build(new AesEngine(), new KeyParameter(new byte[16]), false);
+            SecureRandom random = new X931SecureRandomBuilder().Build(AesUtilities.CreateEngine(), new KeyParameter(new byte[16]), false);
 
             CheckSecureRandom(random);
         }

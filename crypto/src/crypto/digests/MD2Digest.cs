@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             //
             // process whole words.
             //
-            while (length > 16)
+            while (length >= 16)
             {
                 Array.Copy(input,inOff,M,0,16);
                 ProcessChecksum(M);

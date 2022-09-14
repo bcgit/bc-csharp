@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(buffer, 0, B, 0, blockSize / 2);
             //Console.WriteLine("B0: "+ Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(B));
 
-            IList bTemp = Platform.CreateArrayList();
+            var bTemp = new List<byte[]>();
             int bHalfBlocksLen = buffer.Length - blockSize / 2;
             int bufOff = blockSize / 2;
             while (bHalfBlocksLen != 0)
@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             for (int j = 0; j < V; j++)
             {
                 Array.Copy(B, 0, buffer, 0, blockSize / 2);
-                Array.Copy((byte[])bTemp[0], 0, buffer, blockSize / 2, blockSize / 2);
+                Array.Copy(bTemp[0], 0, buffer, blockSize / 2, blockSize / 2);
 
                 engine.ProcessBlock(buffer, 0, buffer, 0);
 
@@ -97,10 +97,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 for (int i = 2; i < n; i++)
                 {
-                    Array.Copy((byte[])bTemp[i - 1], 0, (byte[])bTemp[i - 2], 0, blockSize / 2);
+                    Array.Copy(bTemp[i - 1], 0, bTemp[i - 2], 0, blockSize / 2);
                 }
 
-                Array.Copy(buffer, 0, (byte[])bTemp[n - 2], 0, blockSize / 2);
+                Array.Copy(buffer, 0, bTemp[n - 2], 0, blockSize / 2);
 
                 //Console.WriteLine("B" + j.ToString() + ": " + Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(B));
                 //Console.WriteLine("b: " + Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(bTemp[0]));
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(buffer, 0, B, 0, blockSize / 2);
             //Console.WriteLine("B18: " + Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(B));
 
-            IList bTemp = Platform.CreateArrayList();
+            var bTemp = new List<byte[]>();
 
             int bHalfBlocksLen = buffer.Length - blockSize / 2;
             int bufOff = blockSize / 2;
@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             for (int j = 0; j < V; j++)
             {
-                Array.Copy((byte[])bTemp[n - 2], 0, buffer, 0, blockSize / 2);
+                Array.Copy(bTemp[n - 2], 0, buffer, 0, blockSize / 2);
                 Array.Copy(B, 0, buffer, blockSize / 2, blockSize / 2);
 
                 byte[] intArray = Pack.UInt32_To_LE((uint)(V - j));
@@ -179,10 +179,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 for (int i = 2; i < n; i++)
                 {
-                    Array.Copy((byte[])bTemp[n - i - 1], 0, (byte[])bTemp[n - i], 0, blockSize / 2);
+                    Array.Copy(bTemp[n - i - 1], 0, bTemp[n - i], 0, blockSize / 2);
                 }
 
-                Array.Copy(buffer, blockSize / 2, (byte[])bTemp[0], 0, blockSize / 2);
+                Array.Copy(buffer, blockSize / 2, bTemp[0], 0, blockSize / 2);
 
                 //Console.WriteLine("B" + (V - j - 1).ToString() + ": " + Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(B));
                 //Console.WriteLine("b: " + Org.BouncyCastle.Utilities.Encoders.Hex.ToHexString(bTemp[0]));
@@ -197,7 +197,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             for (int i = 0; i < n - 1; i++)
             {
-                Array.Copy((byte[])bTemp[i], 0, buffer, bufOff, blockSize / 2);
+                Array.Copy(bTemp[i], 0, buffer, bufOff, blockSize / 2);
                 bufOff += blockSize / 2;
             }
 

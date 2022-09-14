@@ -1,22 +1,31 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>Generic exception class for PGP encoding/decoding problems.</remarks>
-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
+	/// <summary>Generic exception class for PGP encoding/decoding problems.</summary>
     [Serializable]
-#endif
     public class PgpException
 		: Exception
 	{
-		public PgpException() : base() {}
-		public PgpException(string message) : base(message) {}
-		public PgpException(string message, Exception exception) : base(message, exception) {}
-
-		[Obsolete("Use InnerException property")]
-		public Exception UnderlyingException
+		public PgpException()
+			: base()
 		{
-			get { return InnerException; }
+		}
+
+		public PgpException(string message)
+			: base(message)
+		{
+		}
+
+		public PgpException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
+		protected PgpException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{
 		}
 	}
 }

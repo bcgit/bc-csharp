@@ -1,6 +1,5 @@
 using System;
-using System.Collections;
-using System.Globalization;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Iana;
@@ -13,118 +12,86 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
 {
     /// <remarks>
     ///  Utility class for creating HMac object from their names/Oids
     /// </remarks>
-    public sealed class MacUtilities
+    public static class MacUtilities
     {
-        private MacUtilities()
-        {
-        }
-
-        private static readonly IDictionary algorithms = Platform.CreateHashtable();
-        //private static readonly IDictionary oids = Platform.CreateHashtable();
+        private static readonly IDictionary<string, string> Algorithms =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         static MacUtilities()
         {
-            algorithms[IanaObjectIdentifiers.HmacMD5.Id] = "HMAC-MD5";
-            algorithms[IanaObjectIdentifiers.HmacRipeMD160.Id] = "HMAC-RIPEMD160";
-            algorithms[IanaObjectIdentifiers.HmacSha1.Id] = "HMAC-SHA1";
-            algorithms[IanaObjectIdentifiers.HmacTiger.Id] = "HMAC-TIGER";
+            Algorithms[IanaObjectIdentifiers.HmacMD5.Id] = "HMAC-MD5";
+            Algorithms[IanaObjectIdentifiers.HmacRipeMD160.Id] = "HMAC-RIPEMD160";
+            Algorithms[IanaObjectIdentifiers.HmacSha1.Id] = "HMAC-SHA1";
+            Algorithms[IanaObjectIdentifiers.HmacTiger.Id] = "HMAC-TIGER";
 
-            algorithms[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "HMAC-SHA1";
-            algorithms[MiscObjectIdentifiers.HMAC_SHA1.Id] = "HMAC-SHA1";
-            algorithms[PkcsObjectIdentifiers.IdHmacWithSha224.Id] = "HMAC-SHA224";
-            algorithms[PkcsObjectIdentifiers.IdHmacWithSha256.Id] = "HMAC-SHA256";
-            algorithms[PkcsObjectIdentifiers.IdHmacWithSha384.Id] = "HMAC-SHA384";
-            algorithms[PkcsObjectIdentifiers.IdHmacWithSha512.Id] = "HMAC-SHA512";
+            Algorithms[PkcsObjectIdentifiers.IdHmacWithSha1.Id] = "HMAC-SHA1";
+            Algorithms[MiscObjectIdentifiers.HMAC_SHA1.Id] = "HMAC-SHA1";
+            Algorithms[PkcsObjectIdentifiers.IdHmacWithSha224.Id] = "HMAC-SHA224";
+            Algorithms[PkcsObjectIdentifiers.IdHmacWithSha256.Id] = "HMAC-SHA256";
+            Algorithms[PkcsObjectIdentifiers.IdHmacWithSha384.Id] = "HMAC-SHA384";
+            Algorithms[PkcsObjectIdentifiers.IdHmacWithSha512.Id] = "HMAC-SHA512";
 
-            algorithms[NistObjectIdentifiers.IdHMacWithSha3_224.Id] = "HMAC-SHA3-224";
-            algorithms[NistObjectIdentifiers.IdHMacWithSha3_256.Id] = "HMAC-SHA3-256";
-            algorithms[NistObjectIdentifiers.IdHMacWithSha3_384.Id] = "HMAC-SHA3-384";
-            algorithms[NistObjectIdentifiers.IdHMacWithSha3_512.Id] = "HMAC-SHA3-512";
+            Algorithms[NistObjectIdentifiers.IdHMacWithSha3_224.Id] = "HMAC-SHA3-224";
+            Algorithms[NistObjectIdentifiers.IdHMacWithSha3_256.Id] = "HMAC-SHA3-256";
+            Algorithms[NistObjectIdentifiers.IdHMacWithSha3_384.Id] = "HMAC-SHA3-384";
+            Algorithms[NistObjectIdentifiers.IdHMacWithSha3_512.Id] = "HMAC-SHA3-512";
 
-            algorithms[RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_256.Id] = "HMAC-GOST3411-2012-256";
-            algorithms[RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_512.Id] = "HMAC-GOST3411-2012-512";
+            Algorithms[RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_256.Id] = "HMAC-GOST3411-2012-256";
+            Algorithms[RosstandartObjectIdentifiers.id_tc26_hmac_gost_3411_12_512.Id] = "HMAC-GOST3411-2012-512";
 
             // TODO AESMAC?
 
-            algorithms["DES"] = "DESMAC";
-            algorithms["DES/CFB8"] = "DESMAC/CFB8";
-            algorithms["DES64"] = "DESMAC64";
-            algorithms["DESEDE"] = "DESEDEMAC";
-            algorithms[PkcsObjectIdentifiers.DesEde3Cbc.Id] = "DESEDEMAC";
-            algorithms["DESEDE/CFB8"] = "DESEDEMAC/CFB8";
-            algorithms["DESISO9797MAC"] = "DESWITHISO9797";
-            algorithms["DESEDE64"] = "DESEDEMAC64";
+            Algorithms["DES"] = "DESMAC";
+            Algorithms["DES/CFB8"] = "DESMAC/CFB8";
+            Algorithms["DES64"] = "DESMAC64";
+            Algorithms["DESEDE"] = "DESEDEMAC";
+            Algorithms[PkcsObjectIdentifiers.DesEde3Cbc.Id] = "DESEDEMAC";
+            Algorithms["DESEDE/CFB8"] = "DESEDEMAC/CFB8";
+            Algorithms["DESISO9797MAC"] = "DESWITHISO9797";
+            Algorithms["DESEDE64"] = "DESEDEMAC64";
 
-            algorithms["DESEDE64WITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
-            algorithms["DESEDEISO9797ALG1MACWITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
-            algorithms["DESEDEISO9797ALG1WITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
+            Algorithms["DESEDE64WITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
+            Algorithms["DESEDEISO9797ALG1MACWITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
+            Algorithms["DESEDEISO9797ALG1WITHISO7816-4PADDING"] = "DESEDEMAC64WITHISO7816-4PADDING";
 
-            algorithms["ISO9797ALG3"] = "ISO9797ALG3MAC";
-            algorithms["ISO9797ALG3MACWITHISO7816-4PADDING"] = "ISO9797ALG3WITHISO7816-4PADDING";
+            Algorithms["ISO9797ALG3"] = "ISO9797ALG3MAC";
+            Algorithms["ISO9797ALG3MACWITHISO7816-4PADDING"] = "ISO9797ALG3WITHISO7816-4PADDING";
 
-            algorithms["SKIPJACK"] = "SKIPJACKMAC";
-            algorithms["SKIPJACK/CFB8"] = "SKIPJACKMAC/CFB8";
-            algorithms["IDEA"] = "IDEAMAC";
-            algorithms["IDEA/CFB8"] = "IDEAMAC/CFB8";
-            algorithms["RC2"] = "RC2MAC";
-            algorithms["RC2/CFB8"] = "RC2MAC/CFB8";
-            algorithms["RC5"] = "RC5MAC";
-            algorithms["RC5/CFB8"] = "RC5MAC/CFB8";
-            algorithms["GOST28147"] = "GOST28147MAC";
-            algorithms["VMPC"] = "VMPCMAC";
-            algorithms["VMPC-MAC"] = "VMPCMAC";
-            algorithms["SIPHASH"] = "SIPHASH-2-4";
+            Algorithms["SKIPJACK"] = "SKIPJACKMAC";
+            Algorithms["SKIPJACK/CFB8"] = "SKIPJACKMAC/CFB8";
+            Algorithms["IDEA"] = "IDEAMAC";
+            Algorithms["IDEA/CFB8"] = "IDEAMAC/CFB8";
+            Algorithms["RC2"] = "RC2MAC";
+            Algorithms["RC2/CFB8"] = "RC2MAC/CFB8";
+            Algorithms["RC5"] = "RC5MAC";
+            Algorithms["RC5/CFB8"] = "RC5MAC/CFB8";
+            Algorithms["GOST28147"] = "GOST28147MAC";
+            Algorithms["VMPC"] = "VMPCMAC";
+            Algorithms["VMPC-MAC"] = "VMPCMAC";
+            Algorithms["SIPHASH"] = "SIPHASH-2-4";
 
-            algorithms["PBEWITHHMACSHA"] = "PBEWITHHMACSHA1";
-            algorithms["1.3.14.3.2.26"] = "PBEWITHHMACSHA1";
+            Algorithms["PBEWITHHMACSHA"] = "PBEWITHHMACSHA1";
+            Algorithms["1.3.14.3.2.26"] = "PBEWITHHMACSHA1";
         }
 
-//		/// <summary>
-//		/// Returns a ObjectIdentifier for a given digest mechanism.
-//		/// </summary>
-//		/// <param name="mechanism">A string representation of the digest meanism.</param>
-//		/// <returns>A DerObjectIdentifier, null if the Oid is not available.</returns>
-//		public static DerObjectIdentifier GetObjectIdentifier(
-//			string mechanism)
-//		{
-//			mechanism = (string) algorithms[Platform.ToUpperInvariant(mechanism)];
-//
-//			if (mechanism != null)
-//			{
-//				return (DerObjectIdentifier)oids[mechanism];
-//			}
-//
-//			return null;
-//		}
-
-//		public static ICollection Algorithms
-//		{
-//			get { return oids.Keys; }
-//		}
-
-        public static IMac GetMac(
-            DerObjectIdentifier id)
+        public static IMac GetMac(DerObjectIdentifier id)
         {
             return GetMac(id.Id);
         }
 
-        public static IMac GetMac(
-            string algorithm)
+        public static IMac GetMac(string algorithm)
         {
-            string upper = Platform.ToUpperInvariant(algorithm);
+            if (algorithm == null)
+                throw new ArgumentNullException(nameof(algorithm));
 
-            string mechanism = (string) algorithms[upper];
-
-            if (mechanism == null)
-            {
-                mechanism = upper;
-            }
+            string mechanism = CollectionUtilities.GetValueOrKey(Algorithms, algorithm).ToUpperInvariant();
 
             if (Platform.StartsWith(mechanism, "PBEWITH"))
             {
@@ -148,7 +115,7 @@ namespace Org.BouncyCastle.Security
 
             if (mechanism == "AESCMAC")
             {
-                return new CMac(new AesEngine());
+                return new CMac(AesUtilities.CreateEngine());
             }
             if (mechanism == "DESMAC")
             {
@@ -238,10 +205,9 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Mac " + mechanism + " not recognised.");
         }
 
-        public static string GetAlgorithmName(
-            DerObjectIdentifier oid)
+        public static string GetAlgorithmName(DerObjectIdentifier oid)
         {
-            return (string) algorithms[oid.Id];
+            return CollectionUtilities.GetValueOrNull(Algorithms, oid.Id);
         }
 
         public static byte[] CalculateMac(string algorithm, ICipherParameters cp, byte[] input)

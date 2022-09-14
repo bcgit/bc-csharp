@@ -722,14 +722,5 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             get { return "Dstu7624"; }
         }
-
-        public static void Main(
-           string[] args)
-        {
-            Dstu7624Test test = new Dstu7624Test();
-            ITestResult result = test.Perform();
-
-            Console.WriteLine(result.ToString());
-        }
     }
 }

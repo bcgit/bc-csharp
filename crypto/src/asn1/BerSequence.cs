@@ -28,7 +28,15 @@ namespace Org.BouncyCastle.Asn1
 		{
 		}
 
-		public BerSequence(params Asn1Encodable[] elements)
+        /**
+		 * create a sequence containing two objects
+		 */
+        public BerSequence(Asn1Encodable element1, Asn1Encodable element2)
+            : base(element1, element2)
+        {
+        }
+
+        public BerSequence(params Asn1Encodable[] elements)
             : base(elements)
 		{
 		}

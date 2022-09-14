@@ -19,23 +19,6 @@ namespace Org.BouncyCastle.Cms
 		internal readonly byte[]	salt;
 		internal readonly int		iterationCount;
 
-		[Obsolete("Use version taking 'char[]' instead")]
-		public CmsPbeKey(
-			string	password,
-			byte[]	salt,
-			int		iterationCount)
-			: this(password.ToCharArray(), salt, iterationCount)
-		{
-		}
-
-		[Obsolete("Use version taking 'char[]' instead")]
-		public CmsPbeKey(
-			string				password,
-			AlgorithmIdentifier keyDerivationAlgorithm)
-			: this(password.ToCharArray(), keyDerivationAlgorithm)
-		{
-		}
-		
 		public CmsPbeKey(
 			char[]	password,
 			byte[]	salt,
@@ -67,21 +50,9 @@ namespace Org.BouncyCastle.Cms
 			Array.Clear(this.password, 0, this.password.Length);
 		}
 
-		[Obsolete("Will be removed")]
-		public string Password
-		{
-			get { return new string(password); }
-		}
-
 		public byte[] Salt
 		{
 			get { return Arrays.Clone(salt); }
-		}
-
-		[Obsolete("Use 'Salt' property instead")]
-		public byte[] GetSalt()
-		{
-			return Salt;
 		}
 
 		public int IterationCount

@@ -140,10 +140,5 @@ namespace Org.BouncyCastle.Tests
                     Hex.Decode(cipherTests[i + 3]));
             }
         }
-
-        public static void Main(string[] args)
-        {
-            RunTest(new SM4Test());
-        }
     }
 }

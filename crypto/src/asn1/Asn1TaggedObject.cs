@@ -26,17 +26,17 @@ namespace Org.BouncyCastle.Asn1
                 return (Asn1TaggedObject)obj;
             }
             //else if (obj is Asn1TaggedObjectParser)
-            else if (obj is IAsn1Convertible)
+            else if (obj is IAsn1Convertible asn1Convertible)
             {
-                Asn1Object asn1Object = ((IAsn1Convertible)obj).ToAsn1Object();
-                if (asn1Object is Asn1TaggedObject)
-                    return (Asn1TaggedObject)asn1Object;
+                Asn1Object asn1Object = asn1Convertible.ToAsn1Object();
+                if (asn1Object is Asn1TaggedObject taggedObject)
+                    return taggedObject;
             }
-            else if (obj is byte[])
+            else if (obj is byte[] byteArray)
             {
                 try
                 {
-                    return CheckedCast(FromByteArray((byte[])obj));
+                    return CheckedCast(FromByteArray(byteArray));
                 }
                 catch (IOException e)
                 {
@@ -46,6 +46,30 @@ namespace Org.BouncyCastle.Asn1
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
 		}
+
+        public static Asn1TaggedObject GetInstance(object obj, int tagClass)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+
+            Asn1TaggedObject taggedObject = GetInstance(obj);
+            if (tagClass != taggedObject.TagClass)
+                throw new ArgumentException("unexpected tag in GetInstance: " + Asn1Utilities.GetTagText(taggedObject));
+
+            return taggedObject;
+        }
+
+        public static Asn1TaggedObject GetInstance(object obj, int tagClass, int tagNo)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+
+            Asn1TaggedObject taggedObject = GetInstance(obj);
+            if (!taggedObject.HasTag(tagClass, tagNo))
+                throw new ArgumentException("unexpected tag in GetInstance: " + Asn1Utilities.GetTagText(taggedObject));
+
+            return taggedObject;
+        }
 
         public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
@@ -93,9 +117,6 @@ namespace Org.BouncyCastle.Asn1
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            if (asn1Object is DerApplicationSpecific)
-                return asn1Object.CallAsn1Equals(this);
-
             Asn1TaggedObject that = asn1Object as Asn1TaggedObject;
             if (null == that || this.tagNo != that.tagNo || this.tagClass != that.tagClass)
                 return false;
@@ -159,12 +180,6 @@ namespace Org.BouncyCastle.Asn1
             return this.tagClass == tagClass && this.tagNo == tagNo;
         }
 
-        [Obsolete("Will be removed. Replace with constant return value of 'false'")]
-        public bool IsEmpty()
-        {
-            return false;
-        }
-
         /**
          * return whether or not the object may be explicitly tagged.
          * <p>
@@ -196,61 +211,6 @@ namespace Org.BouncyCastle.Asn1
                 return true;
             default:
                 return false;
-            }
-        }
-
-        /**
-         * Return the contents of this object as a byte[]
-         *
-         * @return the encoded contents of the object.
-         */
-        // TODO Need this public if/when DerApplicationSpecific extends Asn1TaggedObject
-        internal byte[] GetContents()
-        {
-            try
-            {
-                byte[] baseEncoding = obj.GetEncoded(Asn1Encoding);
-                if (IsExplicit())
-                    return baseEncoding;
-
-                MemoryStream input = new MemoryStream(baseEncoding, false);
-                int tag = input.ReadByte();
-                Asn1InputStream.ReadTagNumber(input, tag);
-                int length = Asn1InputStream.ReadLength(input, (int)(input.Length - input.Position), false);
-                int remaining = (int)(input.Length - input.Position);
-
-                // For indefinite form, account for end-of-contents octets
-                int contentsLength = length < 0 ? remaining - 2 : remaining;
-                if (contentsLength < 0)
-                    throw new InvalidOperationException("failed to get contents");
-
-                byte[] contents = new byte[contentsLength];
-                Array.Copy(baseEncoding, baseEncoding.Length - remaining, contents, 0, contentsLength);
-                return contents;
-            }
-            catch (IOException e)
-            {
-                throw new InvalidOperationException("failed to get contents", e);
-            }
-        }
-
-        internal bool IsConstructed()
-        {
-            switch (explicitness)
-            {
-            case DeclaredImplicit:
-            {
-                Asn1Object baseObject = obj.ToAsn1Object();
-                if (baseObject is Asn1Sequence || baseObject is Asn1Set)
-                    return true;
-
-                Asn1TaggedObject baseTagged = baseObject as Asn1TaggedObject;
-                return null != baseTagged && baseTagged.IsConstructed();
-            }
-            case ParsedImplicit:
-                return obj is Asn1Sequence;
-            default:
-                return true;
             }
         }
 
@@ -353,8 +313,8 @@ namespace Org.BouncyCastle.Asn1
                 return universalType.FromImplicitConstructed(RebuildConstructed(baseObject));
             case ParsedImplicit:
             {
-                if (baseObject is Asn1Sequence)
-                    return universalType.FromImplicitConstructed((Asn1Sequence)baseObject);
+                if (baseObject is Asn1Sequence asn1Sequence)
+                    return universalType.FromImplicitConstructed(asn1Sequence);
 
                 return universalType.FromImplicitPrimitive((DerOctetString)baseObject);
             }
@@ -362,20 +322,6 @@ namespace Org.BouncyCastle.Asn1
                 return universalType.CheckedCast(baseObject);
             }
         }
-
-        /**
-		* Return the object held in this tagged object as a parser assuming it has
-		* the type of the passed in tag. If the object doesn't have a parser
-		* associated with it, the base object is returned.
-		*/
-        [Obsolete("Use 'Parse...' methods instead, after checking this parser's TagClass and TagNo")]
-        public IAsn1Convertible GetObjectParser(int tag, bool isExplicit)
-		{
-            if (Asn1Tags.ContextSpecific != TagClass)
-                throw new InvalidOperationException("this method only valid for CONTEXT_SPECIFIC tags");
-
-            return ParseBaseUniversal(isExplicit, tag);
-		}
 
         public IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo)
         {
@@ -426,49 +372,24 @@ namespace Org.BouncyCastle.Asn1
         {
             bool maybeExplicit = (contentsElements.Count == 1);
 
-            Asn1TaggedObject taggedObject = maybeExplicit
+            return maybeExplicit
                 ? new DLTaggedObject(ParsedExplicit, tagClass, tagNo, contentsElements[0])
                 : new DLTaggedObject(ParsedImplicit, tagClass, tagNo, DLSequence.FromVector(contentsElements));
-
-            switch (tagClass)
-            {
-            case Asn1Tags.Application:
-                return new DLApplicationSpecific(taggedObject);
-            default:
-                return taggedObject;
-            }
         }
 
         internal static Asn1Object CreateConstructedIL(int tagClass, int tagNo, Asn1EncodableVector contentsElements)
         {
             bool maybeExplicit = (contentsElements.Count == 1);
 
-            Asn1TaggedObject taggedObject = maybeExplicit
+            return maybeExplicit
                 ? new BerTaggedObject(ParsedExplicit, tagClass, tagNo, contentsElements[0])
                 : new BerTaggedObject(ParsedImplicit, tagClass, tagNo, BerSequence.FromVector(contentsElements));
-
-            switch (tagClass)
-            {
-            case Asn1Tags.Application:
-                return new BerApplicationSpecific(taggedObject);
-            default:
-                return taggedObject;
-            }
         }
 
         internal static Asn1Object CreatePrimitive(int tagClass, int tagNo, byte[] contentsOctets)
         {
             // Note: !CONSTRUCTED => IMPLICIT
-            Asn1TaggedObject taggedObject = new DLTaggedObject(ParsedImplicit, tagClass, tagNo,
-                new DerOctetString(contentsOctets));
-
-            switch (tagClass)
-            {
-            case Asn1Tags.Application:
-                return new DLApplicationSpecific(taggedObject);
-            default:
-                return taggedObject;
-            }
+            return new DLTaggedObject(ParsedImplicit, tagClass, tagNo, new DerOctetString(contentsOctets));
         }
 
         private static Asn1TaggedObject CheckedCast(Asn1Object asn1Object)

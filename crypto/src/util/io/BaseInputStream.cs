@@ -1,33 +1,14 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
-    public abstract class BaseInputStream : Stream
+    public abstract class BaseInputStream
+        : Stream
     {
-		private bool closed;
-
-		public sealed override bool CanRead { get { return !closed; } }
+        public sealed override bool CanRead { get { return true; } }
         public sealed override bool CanSeek { get { return false; } }
         public sealed override bool CanWrite { get { return false; } }
-
-#if PORTABLE
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                closed = true;
-            }
-            base.Dispose(disposing);
-        }
-#else
-		public override void Close()
-        {
-            closed = true;
-            base.Close();
-        }
-#endif
 
         public sealed override void Flush() {}
         public sealed override long Length { get { throw new NotSupportedException(); } }
@@ -39,22 +20,26 @@ namespace Org.BouncyCastle.Utilities.IO
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int pos = offset;
+            Streams.ValidateBufferArguments(buffer, offset, count);
+
+            int pos = 0;
             try
             {
-                int end = offset + count;
-                while (pos < end)
+                while (pos < count)
                 {
                     int b = ReadByte();
-                    if (b == -1) break;
-                    buffer[pos++] = (byte) b;
+                    if (b < 0)
+                        break;
+
+                    buffer[offset + pos++] = (byte)b;
                 }
             }
             catch (IOException)
             {
-                if (pos == offset) throw;
+                if (pos == 0)
+                    throw;
             }
-            return pos - offset;
+            return pos;
         }
 
         public sealed override long Seek(long offset, SeekOrigin origin) { throw new NotSupportedException(); }

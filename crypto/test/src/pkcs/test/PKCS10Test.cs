@@ -1,8 +1,5 @@
-#region Using directives
-
 using System;
-using System.Collections;
-using System.Text;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -12,11 +9,8 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.Security;
-
-#endregion
 
 namespace Org.BouncyCastle.Pkcs.Tests
 {
@@ -32,27 +26,24 @@ namespace Org.BouncyCastle.Pkcs.Tests
         [Test]
         public void BrokenRequestWithDuplicateExtension()
         {
-
-            String keyName = "RSA";
+            string keyName = "RSA";
             int keySize = 2048;
 
-            String sigName = "SHA256withRSA";
+            string sigName = "SHA256withRSA";
 
             IAsymmetricCipherKeyPairGenerator kpg = GeneratorUtilities.GetKeyPairGenerator(keyName);
-
-            //			kpg.initialize(keySize);
             kpg.Init(new KeyGenerationParameters(new SecureRandom(), keySize));
 
             AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
 
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs.Add(X509Name.C, "AU");
             attrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
             attrs.Add(X509Name.L, "Melbourne");
             attrs.Add(X509Name.ST, "Victoria");
             attrs.Add(X509Name.EmailAddress, "feedback-crypto@bouncycastle.org");
 
-            IList order = new ArrayList();
+            var order = new List<DerObjectIdentifier>();
             order.Add(X509Name.C);
             order.Add(X509Name.O);
             order.Add(X509Name.L);
@@ -143,7 +134,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
             AsymmetricCipherKeyPair pair = pGen.GenerateKeyPair();
 
-            IDictionary attrs = new Hashtable();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
 
             attrs.Add(X509Name.C, "AU");
             attrs.Add(X509Name.O, "The Legion of the Bouncy Castle");
@@ -151,7 +142,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             attrs.Add(X509Name.ST, "Victoria");
             attrs.Add(X509Name.EmailAddress, "feedback-crypto@bouncycastle.org");
 
-            X509Name subject = new X509Name(new ArrayList(attrs.Keys), attrs);
+            X509Name subject = new X509Name(new List<DerObjectIdentifier>(attrs.Keys), attrs);
 
             Pkcs10CertificationRequest req1 = new Pkcs10CertificationRequest(
 				"SHA1withRSA",
@@ -173,12 +164,6 @@ namespace Org.BouncyCastle.Pkcs.Tests
             {
                 Fail("Failed public key check.");
             }
-        }
-
-        public static void Main(
-            string[] args)
-        {
-			RunTest(new Pkcs10Test());
         }
 
 		[Test]

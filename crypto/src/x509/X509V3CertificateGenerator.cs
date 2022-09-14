@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509.Extension;
@@ -20,10 +19,7 @@ namespace Org.BouncyCastle.X509
     {
 		private readonly X509ExtensionsGenerator extGenerator = new X509ExtensionsGenerator();
 
-		private V3TbsCertificateGenerator	tbsGen;
-        private DerObjectIdentifier			sigOid;
-        private AlgorithmIdentifier			sigAlgId;
-        private string						signatureAlgorithm;
+		private V3TbsCertificateGenerator tbsGen;
 
 		public X509V3CertificateGenerator()
         {
@@ -106,30 +102,6 @@ namespace Org.BouncyCastle.X509
         {
             tbsGen.SetSubjectPublicKeyInfo(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
         }
-
-		/// <summary>
-        /// Set the signature algorithm that will be used to sign this certificate.
-        /// </summary>
-        /// <param name="signatureAlgorithm"/>
-		[Obsolete("Not needed if Generate used with an ISignatureFactory")]
-        public void SetSignatureAlgorithm(
-			string signatureAlgorithm)
-        {
-			this.signatureAlgorithm = signatureAlgorithm;
-
-			try
-			{
-				sigOid = X509Utilities.GetAlgorithmOid(signatureAlgorithm);
-			}
-			catch (Exception)
-			{
-				throw new ArgumentException("Unknown signature type requested: " + signatureAlgorithm);
-			}
-
-			sigAlgId = X509Utilities.GetSigAlgID(sigOid, signatureAlgorithm);
-
-			tbsGen.SetSignature(sigAlgId);
-		}
 
 		/// <summary>
 		/// Set the subject unique ID - note: it is very rare that it is correct to do this.
@@ -253,11 +225,8 @@ namespace Org.BouncyCastle.X509
 			X509Certificate		cert)
 		{
 			Asn1OctetString extValue = cert.GetExtensionValue(oid);
-
 			if (extValue == null)
-			{
 				throw new CertificateParsingException("extension " + oid + " not present");
-			}
 
 			try
 			{
@@ -272,39 +241,16 @@ namespace Org.BouncyCastle.X509
 		}
 
 		/// <summary>
-        /// Generate an X509Certificate.
-        /// </summary>
-        /// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
-        /// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureFactory")]
-		public X509Certificate Generate(
-			AsymmetricKeyParameter privateKey)
-        {
-            return Generate(privateKey, null);
-        }
-
-		/// <summary>
-		/// Generate an X509Certificate using your own SecureRandom.
+		/// Generate a new <see cref="X509Certificate"/> using the provided <see cref="ISignatureFactory"/>.
 		/// </summary>
-		/// <param name="privateKey">The private key of the issuer that is signing this certificate.</param>
-		/// <param name="random">You Secure Random instance.</param>
-		/// <returns>An X509Certificate.</returns>
-		[Obsolete("Use Generate with an ISignatureFactory")]
-		public X509Certificate Generate(
-			AsymmetricKeyParameter	privateKey,
-			SecureRandom			random)
+		/// <param name="signatureFactory">A <see cref="ISignatureFactory">signature factory</see> with the necessary
+		/// algorithm details.</param>
+		/// <returns>An <see cref="X509Certificate"/>.</returns>
+		public X509Certificate Generate(ISignatureFactory signatureFactory)
 		{
-			return Generate(new Asn1SignatureFactory(signatureAlgorithm, privateKey, random));
-		}
+			var sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
 
-		/// <summary>
-		/// Generate a new X509Certificate using the passed in SignatureCalculator.
-		/// </summary>
-		/// <param name="signatureCalculatorFactory">A signature calculator factory with the necessary algorithm details.</param>
-		/// <returns>An X509Certificate.</returns>
-		public X509Certificate Generate(ISignatureFactory signatureCalculatorFactory)
-		{
-			tbsGen.SetSignature ((AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails);
+			tbsGen.SetSignature(sigAlgID);
 
             if (!extGenerator.IsEmpty)
             {
@@ -313,30 +259,21 @@ namespace Org.BouncyCastle.X509
 
             TbsCertificateStructure tbsCert = tbsGen.GenerateTbsCertificate();
 
-			IStreamCalculator streamCalculator = signatureCalculatorFactory.CreateCalculator();
+			IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
+			using (Stream sigStream = streamCalculator.Stream)
+            {
+				tbsCert.EncodeTo(sigStream, Asn1Encodable.Der);
+			}
 
-			byte[] encoded = tbsCert.GetDerEncoded();
+			var signature = ((IBlockResult)streamCalculator.GetResult()).Collect();
 
-			streamCalculator.Stream.Write(encoded, 0, encoded.Length);
-
-            Platform.Dispose(streamCalculator.Stream);
-
-            return GenerateJcaObject(tbsCert, (AlgorithmIdentifier)signatureCalculatorFactory.AlgorithmDetails, ((IBlockResult)streamCalculator.GetResult()).Collect());
-		}
-
-		private X509Certificate GenerateJcaObject(
-			TbsCertificateStructure	tbsCert,
-			AlgorithmIdentifier     sigAlg,
-			byte[]					signature)
-		{
-			return new X509Certificate(
-				new X509CertificateStructure(tbsCert, sigAlg, new DerBitString(signature)));
+			return new X509Certificate(new X509CertificateStructure(tbsCert, sigAlgID, new DerBitString(signature)));
 		}
 
 		/// <summary>
 		/// Allows enumeration of the signature names supported by the generator.
 		/// </summary>
-		public IEnumerable SignatureAlgNames
+		public IEnumerable<string> SignatureAlgNames
 		{
 			get { return X509Utilities.GetAlgNames(); }
 		}

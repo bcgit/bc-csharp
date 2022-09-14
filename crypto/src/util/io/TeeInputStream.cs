@@ -37,13 +37,13 @@ namespace Org.BouncyCastle.Utilities.IO
 		}
 #endif
 
-        public override int Read(byte[] buf, int off, int len)
+        public override int Read(byte[] buffer, int offset, int count)
 		{
-			int i = input.Read(buf, off, len);
+			int i = input.Read(buffer, offset, count);
 
 			if (i > 0)
 			{
-				tee.Write(buf, off, i);
+				tee.Write(buffer, offset, i);
 			}
 
 			return i;

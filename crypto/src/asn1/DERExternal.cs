@@ -61,13 +61,12 @@ namespace Org.BouncyCastle.Asn1
 		private readonly int encoding;
 		private readonly Asn1Object externalContent;
 
-        [Obsolete("Use constructor taking an Asn1Sequence instead.")]
         public DerExternal(Asn1EncodableVector vector)
             : this(new DerSequence(vector))
         {
         }
 
-        public DerExternal(DerSequence sequence)
+        public DerExternal(Asn1Sequence sequence)
 		{
 			int offset = 0;
 
@@ -100,13 +99,6 @@ namespace Org.BouncyCastle.Asn1
             this.externalContent = GetExternalContent(obj);
 		}
 
-        [Obsolete("Use constructor with dataValueDescriptor of type Asn1ObjectDescriptor")]
-        public DerExternal(DerObjectIdentifier directReference, DerInteger indirectReference,
-            Asn1Object dataValueDescriptor, DerTaggedObject externalData)
-			: this(directReference, indirectReference, CheckDataValueDescriptor(dataValueDescriptor), externalData)
-		{
-		}
-
         /**
 		* Creates a new instance of DerExternal
 		* See X.690 for more informations about the meaning of these parameters
@@ -124,14 +116,6 @@ namespace Org.BouncyCastle.Asn1
             this.encoding = CheckEncoding(externalData.TagNo);
             this.externalContent = GetExternalContent(externalData);
         }
-
-        [Obsolete("Use constructor with dataValueDescriptor of type Asn1ObjectDescriptor")]
-        public DerExternal(DerObjectIdentifier directReference, DerInteger indirectReference,
-            Asn1Object dataValueDescriptor, int encoding, Asn1Object externalData)
-            : this(directReference, indirectReference, CheckDataValueDescriptor(dataValueDescriptor), encoding,
-                  externalData)
-		{
-		}
 
         /**
 		* Creates a new instance of DerExternal.
@@ -172,9 +156,9 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode()
 		{
-            return Platform.GetHashCode(this.directReference)
-                ^  Platform.GetHashCode(this.indirectReference)
-                ^  Platform.GetHashCode(this.dataValueDescriptor)
+            return Objects.GetHashCode(this.directReference)
+                ^  Objects.GetHashCode(this.indirectReference)
+                ^  Objects.GetHashCode(this.dataValueDescriptor)
                 ^  this.encoding
                 ^  this.externalContent.GetHashCode();
 		}
@@ -183,9 +167,9 @@ namespace Org.BouncyCastle.Asn1
 		{
 			DerExternal that = asn1Object as DerExternal;
             return null != that
-                && Platform.Equals(this.directReference, that.directReference)
-                && Platform.Equals(this.indirectReference, that.indirectReference)
-                && Platform.Equals(this.dataValueDescriptor, that.dataValueDescriptor)
+                && Equals(this.directReference, that.directReference)
+                && Equals(this.indirectReference, that.indirectReference)
+                && Equals(this.dataValueDescriptor, that.dataValueDescriptor)
                 && this.encoding == that.encoding
 				&& this.externalContent.Equals(that.externalContent);
 		}

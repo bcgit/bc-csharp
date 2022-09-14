@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpPublicKeyRing
         : PgpKeyRing
     {
-        private readonly IList keys;
+        private readonly IList<PgpPublicKey> keys;
 
         public PgpPublicKeyRing(
             byte[] encoding)
@@ -25,8 +25,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
-        internal PgpPublicKeyRing(
-            IList pubKeys)
+        internal PgpPublicKeyRing(IList<PgpPublicKey> pubKeys)
         {
             this.keys = pubKeys;
         }
@@ -34,7 +33,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public PgpPublicKeyRing(
             Stream inputStream)
         {
-            this.keys = Platform.CreateArrayList();
+            this.keys = new List<PgpPublicKey>();
 
             BcpgInputStream bcpgInput = BcpgInputStream.Wrap(inputStream);
 
@@ -49,9 +48,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             TrustPacket trustPk = ReadOptionalTrustPacket(bcpgInput);
 
             // direct signatures and revocations
-            IList keySigs = ReadSignaturesAndTrust(bcpgInput);
+            var keySigs = ReadSignaturesAndTrust(bcpgInput);
 
-            IList ids, idTrusts, idSigs;
+            IList<object> ids;
+            IList<TrustPacket> idTrusts;
+            IList<IList<PgpSignature>> idSigs;
             ReadUserIDs(bcpgInput, out ids, out idTrusts, out idSigs);
 
             keys.Add(new PgpPublicKey(pubPk, trustPk, keySigs, ids, idTrusts, idSigs));
@@ -87,9 +88,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         /// <summary>Allows enumeration of all the public keys.</summary>
         /// <returns>An <c>IEnumerable</c> of <c>PgpPublicKey</c> objects.</returns>
-        public virtual IEnumerable GetPublicKeys()
+        public virtual IEnumerable<PgpPublicKey> GetPublicKeys()
         {
-            return new EnumerableProxy(keys);
+            return CollectionUtilities.Proxy(keys);
         }
 
         public virtual byte[] GetEncoded()
@@ -124,13 +125,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpPublicKeyRing	pubRing,
             PgpPublicKey		pubKey)
         {
-            IList keys = Platform.CreateArrayList(pubRing.keys);
+            var keys = new List<PgpPublicKey>(pubRing.keys);
             bool found = false;
             bool masterFound = false;
 
             for (int i = 0; i != keys.Count; i++)
             {
-                PgpPublicKey key = (PgpPublicKey) keys[i];
+                PgpPublicKey key = keys[i];
 
                 if (key.KeyId == pubKey.KeyId)
                 {
@@ -165,21 +166,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="pubRing">The public key ring to be modified.</param>
         /// <param name="pubKey">The public key to be removed.</param>
         /// <returns>A new <c>PgpPublicKeyRing</c>, or null if pubKey is not found.</returns>
-        public static PgpPublicKeyRing RemovePublicKey(
-            PgpPublicKeyRing	pubRing,
-            PgpPublicKey		pubKey)
+        public static PgpPublicKeyRing RemovePublicKey(PgpPublicKeyRing pubRing, PgpPublicKey pubKey)
         {
-            IList keys = Platform.CreateArrayList(pubRing.keys);
+            var keys = new List<PgpPublicKey>(pubRing.keys);
             bool found = false;
 
-            for (int i = 0; i < keys.Count; i++)
+            // TODO Is there supposed to be at most a single match?
+            int pos = keys.Count;
+            while (--pos >= 0)
             {
-                PgpPublicKey key = (PgpPublicKey) keys[i];
+                PgpPublicKey key = keys[pos];
 
                 if (key.KeyId == pubKey.KeyId)
                 {
                     found = true;
-                    keys.RemoveAt(i);
+                    keys.RemoveAt(pos);
                 }
             }
 
@@ -201,7 +202,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             TrustPacket kTrust = ReadOptionalTrustPacket(bcpgInput);
 
             // PGP 8 actually leaves out the signature.
-            IList sigList = ReadSignaturesAndTrust(bcpgInput);
+            var sigList = ReadSignaturesAndTrust(bcpgInput);
 
             return new PgpPublicKey(pk, kTrust, sigList);
         }

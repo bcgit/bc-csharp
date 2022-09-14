@@ -60,10 +60,41 @@ namespace Org.BouncyCastle.Asn1
 				_derOut = Asn1OutputStream.Create(_gen.Out, Asn1Encodable.Der);
 			}
 
-			public override void WriteByte(
-				byte b)
+			public override void Write(byte[] buffer, int offset, int count)
 			{
-				_buf[_off++] = b;
+				Streams.ValidateBufferArguments(buffer, offset, count);
+
+                int bufLen = _buf.Length;
+                int available = bufLen - _off;
+                if (count < available)
+                {
+                    Array.Copy(buffer, offset, _buf, _off, count);
+                    _off += count;
+                    return;
+                }
+
+                int pos = 0;
+                if (_off > 0)
+                {
+                    Array.Copy(buffer, offset, _buf, _off, available);
+                    pos += available;
+                    DerOctetString.Encode(_derOut, _buf, 0, bufLen);
+                }
+
+                int remaining;
+                while ((remaining = count - pos) >= bufLen)
+                {
+                    DerOctetString.Encode(_derOut, buffer, offset + pos, bufLen);
+                    pos += bufLen;
+                }
+
+                Array.Copy(buffer, offset + pos, _buf, 0, remaining);
+                this._off = remaining;
+            }
+
+			public override void WriteByte(byte value)
+			{
+				_buf[_off++] = value;
 
 				if (_off == _buf.Length)
 				{
@@ -72,66 +103,34 @@ namespace Org.BouncyCastle.Asn1
 				}
 			}
 
-			public override void Write(byte[] b, int off, int len)
-			{
-                int bufLen = _buf.Length;
-                int available = bufLen - _off;
-                if (len < available)
-                {
-                    Array.Copy(b, off, _buf, _off, len);
-                    _off += len;
-                    return;
-                }
-
-                int count = 0;
-                if (_off > 0)
-                {
-                    Array.Copy(b, off, _buf, _off, available);
-                    count += available;
-                    DerOctetString.Encode(_derOut, _buf, 0, bufLen);
-                }
-
-                int remaining;
-                while ((remaining = len - count) >= bufLen)
-                {
-                    DerOctetString.Encode(_derOut, b, off + count, bufLen);
-                    count += bufLen;
-                }
-
-                Array.Copy(b, off + count, _buf, 0, remaining);
-                this._off = remaining;
-            }
-
 #if PORTABLE
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
-				    if (_off != 0)
-				    {
-					    DerOctetString.Encode(_derOut, true, _buf, 0, _off);
-				    }
-
-                    _derOut.FlushInternal();
-
-				    _gen.WriteBerEnd();
+                    ImplClose();
                 }
                 base.Dispose(disposing);
             }
 #else
             public override void Close()
-			{
-				if (_off != 0)
-				{
-					DerOctetString.Encode(_derOut, _buf, 0, _off);
-				}
+            {
+                ImplClose();
+                base.Close();
+            }
+#endif
+
+            private void ImplClose()
+            {
+                if (_off != 0)
+                {
+                    DerOctetString.Encode(_derOut, _buf, 0, _off);
+                }
 
                 _derOut.FlushInternal();
 
                 _gen.WriteBerEnd();
-				base.Close();
-			}
-#endif
-		}
-	}
+            }
+        }
+    }
 }

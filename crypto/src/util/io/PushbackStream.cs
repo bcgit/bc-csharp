@@ -13,6 +13,23 @@ namespace Org.BouncyCastle.Utilities.IO
 		{
 		}
 
+		public override int Read(byte[] buffer, int offset, int count)
+		{
+			Streams.ValidateBufferArguments(buffer, offset, count);
+
+			if (m_buf != -1)
+			{
+				if (count < 1)
+					return 0;
+
+				buffer[offset] = (byte)m_buf;
+				m_buf = -1;
+				return 1;
+			}
+
+			return base.Read(buffer, offset, count);
+		}
+
 		public override int ReadByte()
 		{
 			if (m_buf != -1)
@@ -23,21 +40,6 @@ namespace Org.BouncyCastle.Utilities.IO
 			}
 
 			return base.ReadByte();
-		}
-
-		public override int Read(byte[] buffer, int offset, int count)
-		{
-            if (count < 1)
-                return 0;
-
-			if (m_buf != -1)
-			{
-				buffer[offset] = (byte)m_buf;
-				m_buf = -1;
-				return 1;
-			}
-
-			return base.Read(buffer, offset, count);
 		}
 
 		public virtual void Unread(int b)

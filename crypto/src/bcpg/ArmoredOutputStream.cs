@@ -1,15 +1,10 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
-using System.Text;
-
-#if PORTABLE
-using System.Linq;
-#endif
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -97,32 +92,32 @@ namespace Org.BouncyCastle.Bcpg
 
         private string          type;
 
-        private static readonly string    nl = Platform.NewLine;
+        private static readonly string    NewLine = Environment.NewLine;
         private static readonly string    headerStart = "-----BEGIN PGP ";
         private static readonly string    headerTail = "-----";
         private static readonly string    footerStart = "-----END PGP ";
         private static readonly string    footerTail = "-----";
 
-        private static readonly string Version = "BCPG C# v" + AssemblyInfo.Version;
+        private static readonly string Version = "BCPG C# v" + typeof(ArmoredOutputStream).Assembly.GetName().Version;
 
-        private readonly IDictionary headers;
+        private readonly IDictionary<string, IList<string>> m_headers;
 
         public ArmoredOutputStream(Stream outStream)
         {
             this.outStream = outStream;
-            this.headers = Platform.CreateHashtable(1);
+            this.m_headers = new Dictionary<string, IList<string>>(1);
             SetHeader(HeaderVersion, Version);
         }
 
-        public ArmoredOutputStream(Stream outStream, IDictionary headers)
+        public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers)
             : this(outStream)
         {
-            foreach (string header in headers.Keys)
+            foreach (var header in headers)
             {
-                IList headerList = Platform.CreateArrayList(1);
-                headerList.Add(headers[header]);
+                var headerList = new List<string>(1);
+                headerList.Add(header.Value);
 
-                this.headers[header] = headerList;
+                m_headers[header.Key] = headerList;
             }
         }
 
@@ -136,22 +131,21 @@ namespace Org.BouncyCastle.Bcpg
         {
             if (val == null)
             {
-                this.headers.Remove(name);
+                this.m_headers.Remove(name);
+                return;
+            }
+
+            if (m_headers.TryGetValue(name, out var valueList))
+            {
+                valueList.Clear();
             }
             else
             {
-                IList valueList = (IList)headers[name];
-                if (valueList == null)
-                {
-                    valueList = Platform.CreateArrayList(1);
-                    this.headers[name] = valueList;
-                }
-                else
-                {
-                    valueList.Clear();
-                }
-                valueList.Add(val);
+                valueList = new List<string>(1);
+                m_headers[name] = valueList;
             }
+
+            valueList.Add(val);
         }
 
         /**
@@ -166,12 +160,12 @@ namespace Org.BouncyCastle.Bcpg
             if (val == null || name == null)
                 return;
 
-            IList valueList = (IList)headers[name];
-            if (valueList == null)
+            if (!m_headers.TryGetValue(name, out var valueList))
             {
-                valueList = Platform.CreateArrayList(1);
-                this.headers[name] = valueList;
+                valueList = new List<string>(1);
+                m_headers[name] = valueList;
             }
+
             valueList.Add(val);
         }
 
@@ -180,13 +174,13 @@ namespace Org.BouncyCastle.Bcpg
          */
         public void ResetHeaders()
         {
-            IList versions = (IList)headers[HeaderVersion];
+            var versions = CollectionUtilities.GetValueOrNull(m_headers, HeaderVersion);
 
-            headers.Clear();
+            m_headers.Clear();
 
             if (versions != null)
             {
-                headers[HeaderVersion] = versions;
+                m_headers[HeaderVersion] = versions;
             }
         }
 
@@ -226,8 +220,8 @@ namespace Org.BouncyCastle.Bcpg
                 throw new IOException("unknown hash algorithm tag in beginClearText: " + hashAlgorithm);
             }
 
-            DoWrite("-----BEGIN PGP SIGNED MESSAGE-----" + nl);
-            DoWrite("Hash: " + hash + nl + nl);
+            DoWrite("-----BEGIN PGP SIGNED MESSAGE-----" + NewLine);
+            DoWrite("Hash: " + hash + NewLine + NewLine);
 
             clearText = true;
             newLine = true;
@@ -239,45 +233,44 @@ namespace Org.BouncyCastle.Bcpg
             clearText = false;
         }
 
-        public override void WriteByte(
-            byte b)
+        public override void WriteByte(byte value)
         {
             if (clearText)
             {
-                outStream.WriteByte(b);
+                outStream.WriteByte(value);
 
                 if (newLine)
                 {
-                    if (!(b == '\n' && lastb == '\r'))
+                    if (!(value == '\n' && lastb == '\r'))
                     {
                         newLine = false;
                     }
-                    if (b == '-')
+                    if (value == '-')
                     {
                         outStream.WriteByte((byte)' ');
                         outStream.WriteByte((byte)'-');      // dash escape
                     }
                 }
-                if (b == '\r' || (b == '\n' && lastb != '\r'))
+                if (value == '\r' || (value == '\n' && lastb != '\r'))
                 {
                     newLine = true;
                 }
-                lastb = b;
+                lastb = value;
                 return;
             }
 
             if (start)
             {
-                bool newPacket = (b & 0x40) != 0;
+                bool newPacket = (value & 0x40) != 0;
 
                 int tag;
                 if (newPacket)
                 {
-                    tag = b & 0x3f;
+                    tag = value & 0x3f;
                 }
                 else
                 {
-                    tag = (b & 0x3f) >> 2;
+                    tag = (value & 0x3f) >> 2;
                 }
 
                 switch ((PacketTag)tag)
@@ -296,30 +289,26 @@ namespace Org.BouncyCastle.Bcpg
                     break;
                 }
 
-                DoWrite(headerStart + type + headerTail + nl);
+                DoWrite(headerStart + type + headerTail + NewLine);
 
+                if (m_headers.TryGetValue(HeaderVersion, out var versionHeaders))
                 {
-                    IList versionHeaders = (IList)headers[HeaderVersion];
-                    if (versionHeaders != null)
-                    {
-                        WriteHeaderEntry(HeaderVersion, versionHeaders[0].ToString());
-                    }
+                    WriteHeaderEntry(HeaderVersion, versionHeaders[0]);
                 }
 
-                foreach (DictionaryEntry de in headers)
+                foreach (var de in m_headers)
                 {
-                    string k = (string)de.Key;
+                    string k = de.Key;
                     if (k != HeaderVersion)
                     {
-                        IList values = (IList)de.Value;
-                        foreach (string v in values)
+                        foreach (string v in de.Value)
                         {
                             WriteHeaderEntry(k, v);
                         }
                     }
                 }
 
-                DoWrite(nl);
+                DoWrite(NewLine);
 
                 start = false;
             }
@@ -330,12 +319,12 @@ namespace Org.BouncyCastle.Bcpg
                 bufPtr = 0;
                 if ((++chunkCount & 0xf) == 0)
                 {
-                    DoWrite(nl);
+                    DoWrite(NewLine);
                 }
             }
 
-            crc.Update(b);
-            buf[bufPtr++] = b & 0xff;
+            crc.Update(value);
+            buf[bufPtr++] = value & 0xff;
         }
 
         /**
@@ -379,7 +368,7 @@ namespace Org.BouncyCastle.Bcpg
                 Encode(outStream, buf, bufPtr);
             }
 
-            DoWrite(nl + '=');
+            DoWrite(NewLine + '=');
 
             int crcV = crc.Value;
 
@@ -389,11 +378,11 @@ namespace Org.BouncyCastle.Bcpg
 
             Encode(outStream, buf, 3);
 
-            DoWrite(nl);
+            DoWrite(NewLine);
             DoWrite(footerStart);
             DoWrite(type);
             DoWrite(footerTail);
-            DoWrite(nl);
+            DoWrite(NewLine);
 
             outStream.Flush();
         }
@@ -402,7 +391,7 @@ namespace Org.BouncyCastle.Bcpg
             string name,
             string v)
         {
-            DoWrite(name + ": " + v + nl);
+            DoWrite(name + ": " + v + NewLine);
         }
 
         private void DoWrite(

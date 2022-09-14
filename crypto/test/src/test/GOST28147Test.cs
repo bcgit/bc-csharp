@@ -228,12 +228,6 @@ namespace Org.BouncyCastle.Tests
 			}
 		}
 
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new Gost28147Test());
-		}
-
 		[Test]
 		public void TestFunction()
 		{

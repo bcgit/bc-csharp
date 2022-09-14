@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkix;
@@ -41,9 +42,7 @@ namespace Org.BouncyCastle.Tests
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(30));
 			v3CertGen.SetSubjectDN(new X509Name(subject));
 			v3CertGen.SetPublicKey(pubKey);
-			v3CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
-			X509Certificate cert = v3CertGen.Generate(privKey);
-			return cert;
+			return v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", privKey, null));
 		}
 
 		/**
@@ -54,7 +53,7 @@ namespace Org.BouncyCastle.Tests
 			AsymmetricKeyParameter caPrivKey,
 			AsymmetricKeyParameter caPubKey,
 			Asn1EncodableVector policies,
-			Hashtable policyMap)
+			IDictionary<string, string> policyMap)
 		{
 			string issuer = "C=JP, O=policyMappingAdditionalTest, OU=trustAnchor";
 			string subject = "C=JP, O=policyMappingAdditionalTest, OU=intmedCA";
@@ -65,12 +64,10 @@ namespace Org.BouncyCastle.Tests
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(30));
 			v3CertGen.SetSubjectDN(new X509Name(subject));
 			v3CertGen.SetPublicKey(pubKey);
-			v3CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 			v3CertGen.AddExtension(X509Extensions.CertificatePolicies, true, new DerSequence(policies));
 			v3CertGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(true));
 			v3CertGen.AddExtension(X509Extensions.PolicyMappings, true, new PolicyMappings(policyMap));
-			X509Certificate cert = v3CertGen.Generate(caPrivKey);
-			return cert;
+			return v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", caPrivKey, null));
 		}
 
 		/**
@@ -91,10 +88,8 @@ namespace Org.BouncyCastle.Tests
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(30));
 			v3CertGen.SetSubjectDN(new X509Name(subject));
 			v3CertGen.SetPublicKey(pubKey);
-			v3CertGen.SetSignatureAlgorithm("SHA1WithRSAEncryption");
 			v3CertGen.AddExtension(X509Extensions.CertificatePolicies, true, new DerSequence(policies));
-			X509Certificate cert = v3CertGen.Generate(caPrivKey);
-			return cert;
+			return v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", caPrivKey, null));
 		}
 
 		private string TestPolicies(
@@ -102,23 +97,21 @@ namespace Org.BouncyCastle.Tests
 			X509Certificate trustCert,
 			X509Certificate intCert,
 			X509Certificate endCert,
-			ISet requirePolicies,
+			ISet<string> requirePolicies,
 			bool okay)
 		{
-			ISet trust = new HashSet();
+			var trust = new HashSet<TrustAnchor>();
 			trust.Add(new TrustAnchor(trustCert, null));
-			X509CertStoreSelector targetConstraints = new X509CertStoreSelector();
-			targetConstraints.Subject = endCert.SubjectDN;
-			PkixBuilderParameters pbParams = new PkixBuilderParameters(trust, targetConstraints);
+			X509CertStoreSelector targetConstraintsCert = new X509CertStoreSelector();
+			targetConstraintsCert.Subject = endCert.SubjectDN;
+			PkixBuilderParameters pbParams = new PkixBuilderParameters(trust, targetConstraintsCert);
 
-			ISet certs = new HashSet();
+			var certs = new HashSet<X509Certificate>();
 			certs.Add(intCert);
 			certs.Add(endCert);
 
-			IX509Store store = X509StoreFactory.Create(
-				"CERTIFICATE/COLLECTION",
-				new X509CollectionStoreParameters(certs));
-			pbParams.AddStore(store);
+			var store = CollectionUtilities.CreateStore(certs);
+			pbParams.AddStoreCert(store);
 
 			pbParams.IsRevocationEnabled = false;
 			if (requirePolicies != null)
@@ -127,13 +120,12 @@ namespace Org.BouncyCastle.Tests
 				pbParams.SetInitialPolicies(requirePolicies);
 			}
 
-//			CertPathBuilder cpb = CertPathBuilder.GetInstance("PKIX");
 			PkixCertPathBuilder cpb = new PkixCertPathBuilder();
-			PkixCertPathBuilderResult result = null;
+			PkixCertPathBuilderResult result;
 
 			try
 			{
-				result = (PkixCertPathBuilderResult)cpb.Build(pbParams);
+				result = cpb.Build(pbParams);
 
 				if (!okay)
 				{
@@ -239,16 +231,16 @@ namespace Org.BouncyCastle.Tests
 
 			X509Certificate trustCert = CreateTrustCert(caPubKey, caPrivKeySpec);
 			Asn1EncodableVector intPolicies = null;
-			Hashtable map = null;
+			IDictionary<string, string> map = null;
 			Asn1EncodableVector policies = null;
-			ISet requirePolicies = null;
+			ISet<string> requirePolicies = null;
 			X509Certificate intCert = null;
 			X509Certificate endCert = null;
 
 			// valid test_00
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -263,7 +255,7 @@ namespace Org.BouncyCastle.Tests
 			// test_01
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -271,7 +263,7 @@ namespace Org.BouncyCastle.Tests
 			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
-			requirePolicies = new HashSet();
+			requirePolicies = new HashSet<string>();
 			requirePolicies.Add("2.16.840.1.101.3.2.1.48.1");
 			msg = TestPolicies(1, trustCert, intCert, endCert, requirePolicies, true);
 			CheckMessage(1, msg, "");
@@ -279,7 +271,7 @@ namespace Org.BouncyCastle.Tests
 			// test_02
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -287,7 +279,7 @@ namespace Org.BouncyCastle.Tests
 			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
-			requirePolicies = new HashSet();
+			requirePolicies = new HashSet<string>();
 			requirePolicies.Add("2.5.29.32.0");
 			msg = TestPolicies(2, trustCert, intCert, endCert, requirePolicies, true);
 			CheckMessage(2, msg, "");
@@ -296,7 +288,7 @@ namespace Org.BouncyCastle.Tests
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -304,7 +296,7 @@ namespace Org.BouncyCastle.Tests
 			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
-			requirePolicies = new HashSet();
+			requirePolicies = new HashSet<string>();
 			requirePolicies.Add("2.16.840.1.101.3.2.1.48.1");
 			msg = TestPolicies(3, trustCert, intCert, endCert, requirePolicies, true);
 			CheckMessage(3, msg, "");
@@ -313,7 +305,7 @@ namespace Org.BouncyCastle.Tests
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -321,7 +313,7 @@ namespace Org.BouncyCastle.Tests
 			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
-			requirePolicies = new HashSet();
+			requirePolicies = new HashSet<string>();
 			requirePolicies.Add("2.16.840.1.101.3.2.1.48.3");
 			msg = TestPolicies(4, trustCert, intCert, endCert, requirePolicies, true);
 			CheckMessage(4, msg, "");
@@ -329,7 +321,7 @@ namespace Org.BouncyCastle.Tests
 			// test_05
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -337,7 +329,7 @@ namespace Org.BouncyCastle.Tests
 			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
-			requirePolicies = new HashSet();
+			requirePolicies = new HashSet<string>();
 			requirePolicies.Add("2.16.840.1.101.3.2.1.48.2");
 			msg = TestPolicies(5, trustCert, intCert, endCert, requirePolicies, false);
 			CheckMessage(5, msg, "Path processing failed on policy.");
@@ -345,7 +337,7 @@ namespace Org.BouncyCastle.Tests
 			// test_06
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -353,7 +345,7 @@ namespace Org.BouncyCastle.Tests
 			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.1")));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
-			requirePolicies = new HashSet();
+			requirePolicies = new HashSet<string>();
 			requirePolicies.Add("2.16.840.1.101.3.2.1.48.1");
 			msg = TestPolicies(6, trustCert, intCert, endCert, requirePolicies, true);
 			CheckMessage(6, msg, "");
@@ -361,7 +353,7 @@ namespace Org.BouncyCastle.Tests
 			// test_07
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -369,7 +361,7 @@ namespace Org.BouncyCastle.Tests
 			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
-			requirePolicies = new HashSet();
+			requirePolicies = new HashSet<string>();
 			requirePolicies.Add("2.16.840.1.101.3.2.1.48.3");
 			msg = TestPolicies(7, trustCert, intCert, endCert, requirePolicies, false);
 			CheckMessage(7, msg, "Path processing failed on policy.");
@@ -377,7 +369,7 @@ namespace Org.BouncyCastle.Tests
 			// test_08
 			intPolicies = new Asn1EncodableVector();
 			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Hashtable();
+			map = new Dictionary<string, string>();
 			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
@@ -385,7 +377,7 @@ namespace Org.BouncyCastle.Tests
 			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
-			requirePolicies = new HashSet();
+			requirePolicies = new HashSet<string>();
 			requirePolicies.Add("2.16.840.1.101.3.2.1.48.1");
 			msg = TestPolicies(8, trustCert, intCert, endCert, requirePolicies, false);
 			CheckMessage(8, msg, "Path processing failed on policy.");
@@ -400,12 +392,6 @@ namespace Org.BouncyCastle.Tests
 			{
 				Fail("test " + index + " failed got: " + msg + " expected: " + expected);
 			}
-		}
-
-		public static void Main(
-			string[] args)
-		{
-			RunTest(new PkixPolicyMappingTest());
 		}
 
 		[Test]

@@ -46,25 +46,28 @@ namespace Org.BouncyCastle.Tests
             : SecureRandom
         {
             private byte[] seed =
-        {
-            (byte)0xaa, (byte)0xfd, (byte)0x12, (byte)0xf6, (byte)0x59,
-            (byte)0xca, (byte)0xe6, (byte)0x34, (byte)0x89, (byte)0xb4,
-            (byte)0x79, (byte)0xe5, (byte)0x07, (byte)0x6d, (byte)0xde,
-            (byte)0xc2, (byte)0xf0, (byte)0x6c, (byte)0xb5, (byte)0x8f
-        };
-
-            public override void NextBytes(
-                byte[] bytes)
             {
-                int offset = 0;
+                (byte)0xaa, (byte)0xfd, (byte)0x12, (byte)0xf6, (byte)0x59,
+                (byte)0xca, (byte)0xe6, (byte)0x34, (byte)0x89, (byte)0xb4,
+                (byte)0x79, (byte)0xe5, (byte)0x07, (byte)0x6d, (byte)0xde,
+                (byte)0xc2, (byte)0xf0, (byte)0x6c, (byte)0xb5, (byte)0x8f
+            };
 
-                while ((offset + seed.Length) < bytes.Length)
+            public override void NextBytes(byte[] buf)
+            {
+                NextBytes(buf, 0, buf.Length);
+            }
+
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                int pos = 0;
+                while ((pos + seed.Length) < len)
                 {
-                    Array.Copy(seed, 0, bytes, offset, seed.Length);
-                    offset += seed.Length;
+                    Array.Copy(seed, 0, buf, off + pos, seed.Length);
+                    pos += seed.Length;
                 }
 
-                Array.Copy(seed, 0, bytes, offset, bytes.Length - offset);
+                Array.Copy(seed, 0, buf, off + pos, len - pos);
             }
         }
 
@@ -279,12 +282,6 @@ namespace Org.BouncyCastle.Tests
 
             wrapTest("DESEDE", 1, kek1, iv1, in1, out1);
             wrapTest("TDEA", 1, kek1, iv1, in1, out1);
-        }
-
-        public static void Main(
-            string[] args)
-        {
-            RunTest(new DesEdeTest());
         }
 
         [Test]

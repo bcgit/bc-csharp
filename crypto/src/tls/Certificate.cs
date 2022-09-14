@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -137,8 +136,8 @@ namespace Org.BouncyCastle.Tls
             }
 
             int count = m_certificateEntryList.Length;
-            IList certEncodings = Platform.CreateArrayList(count);
-            IList extEncodings = isTlsV13 ? Platform.CreateArrayList(count) : null;
+            var certEncodings = new List<byte[]>(count);
+            var extEncodings = isTlsV13 ? new List<byte[]>(count) : null;
 
             long totalLength = 0;
             for (int i = 0; i < count; ++i)
@@ -158,7 +157,7 @@ namespace Org.BouncyCastle.Tls
 
                 if (isTlsV13)
                 {
-                    IDictionary extensions = entry.Extensions;
+                    var extensions = entry.Extensions;
                     byte[] extEncoding = (null == extensions)
                         ?   TlsUtilities.EmptyBytes
                         :   TlsProtocol.WriteExtensionsData(extensions);
@@ -174,13 +173,11 @@ namespace Org.BouncyCastle.Tls
 
             for (int i = 0; i < count; ++i)
             {
-                byte[] certEncoding = (byte[])certEncodings[i];
-                TlsUtilities.WriteOpaque24(certEncoding, messageOutput);
+                TlsUtilities.WriteOpaque24(certEncodings[i], messageOutput);
 
                 if (isTlsV13)
                 {
-                    byte[] extEncoding = (byte[])extEncodings[i];
-                    TlsUtilities.WriteOpaque16(extEncoding, messageOutput);
+                    TlsUtilities.WriteOpaque16(extEncodings[i], messageOutput);
                 }
             }
         }
@@ -219,7 +216,7 @@ namespace Org.BouncyCastle.Tls
             TlsCrypto crypto = context.Crypto;
             int maxChainLength = System.Math.Max(1, options.MaxChainLength);
 
-            IList certificate_list = Platform.CreateArrayList();
+            var certificate_list = new List<CertificateEntry>();
             while (buf.Position < buf.Length)
             {
                 if (certificate_list.Count >= maxChainLength)
@@ -236,7 +233,7 @@ namespace Org.BouncyCastle.Tls
                     CalculateEndPointHash(context, cert, derEncoding, endPointHashOutput);
                 }
 
-                IDictionary extensions = null;
+                IDictionary<int, byte[]> extensions = null;
                 if (isTlsV13)
                 {
                     byte[] extEncoding = TlsUtilities.ReadOpaque16(buf);

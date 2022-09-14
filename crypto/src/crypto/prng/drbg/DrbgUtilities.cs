@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Org.BouncyCastle.Utilities;
 
@@ -7,31 +7,32 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 {
 	internal class DrbgUtilities
 	{
-		private static readonly IDictionary maxSecurityStrengths = Platform.CreateHashtable();
+		private static readonly IDictionary<string, int> MaxSecurityStrengths =
+			new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         static DrbgUtilities()
 	    {
-	        maxSecurityStrengths.Add("SHA-1", 128);
+			MaxSecurityStrengths.Add("SHA-1", 128);
 
-	        maxSecurityStrengths.Add("SHA-224", 192);
-	        maxSecurityStrengths.Add("SHA-256", 256);
-	        maxSecurityStrengths.Add("SHA-384", 256);
-	        maxSecurityStrengths.Add("SHA-512", 256);
+			MaxSecurityStrengths.Add("SHA-224", 192);
+			MaxSecurityStrengths.Add("SHA-256", 256);
+			MaxSecurityStrengths.Add("SHA-384", 256);
+			MaxSecurityStrengths.Add("SHA-512", 256);
 
-	        maxSecurityStrengths.Add("SHA-512/224", 192);
-	        maxSecurityStrengths.Add("SHA-512/256", 256);
+			MaxSecurityStrengths.Add("SHA-512/224", 192);
+			MaxSecurityStrengths.Add("SHA-512/256", 256);
 	    }
 
         internal static int GetMaxSecurityStrength(IDigest d)
 	    {
-	        return (int)maxSecurityStrengths[d.AlgorithmName];
+	        return MaxSecurityStrengths[d.AlgorithmName];
 	    }
 
         internal static int GetMaxSecurityStrength(IMac m)
 	    {
 	        string name = m.AlgorithmName;
 
-            return (int)maxSecurityStrengths[name.Substring(0, name.IndexOf("/"))];
+            return MaxSecurityStrengths[name.Substring(0, name.IndexOf("/"))];
 	    }
 
 	    /**
@@ -93,11 +94,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        }
 
             return temp;
-	    }
-
-        internal static bool IsTooLarge(byte[] bytes, int maxBytes)
-	    {
-	        return bytes != null && bytes.Length > maxBytes;
 	    }
 	}
 }

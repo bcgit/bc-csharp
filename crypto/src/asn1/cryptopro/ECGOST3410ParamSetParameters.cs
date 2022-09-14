@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -11,25 +10,20 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
     {
         internal readonly DerInteger p, q, a, b, x, y;
 
-        public static ECGost3410ParamSetParameters GetInstance(
-            Asn1TaggedObject	obj,
-            bool				explicitly)
+        public static ECGost3410ParamSetParameters GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
             return GetInstance(Asn1Sequence.GetInstance(obj, explicitly));
         }
 
-        public static ECGost3410ParamSetParameters GetInstance(
-            object obj)
+        public static ECGost3410ParamSetParameters GetInstance(object obj)
         {
             if (obj == null || obj is ECGost3410ParamSetParameters)
             {
                 return (ECGost3410ParamSetParameters) obj;
             }
 
-            if (obj is Asn1Sequence)
-            {
-                return new ECGost3410ParamSetParameters((Asn1Sequence) obj);
-            }
+            if (obj is Asn1Sequence seq)
+                return new ECGost3410ParamSetParameters(seq);
 
             throw new ArgumentException("Invalid GOST3410Parameter: " + Platform.GetTypeName(obj));
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
@@ -105,6 +106,22 @@ namespace Org.BouncyCastle.Tls.Tests
                 byte[] tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
                 Console.WriteLine("Client 'tls-unique': " + ToHexString(tlsUnique));
             }
+        }
+
+        public override IDictionary<int, byte[]> GetClientExtensions()
+        {
+            if (m_context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return base.GetClientExtensions();
+        }
+
+        public override void ProcessServerExtensions(IDictionary<int, byte[]> serverExtensions)
+        {
+            if (m_context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            base.ProcessServerExtensions(serverExtensions);
         }
 
         protected virtual string ToHexString(byte[] data)

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
@@ -146,13 +145,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[]	outBytes,
             int		outOff)
         {
-#if PORTABLE
-            byte[] input = data.ToArray();
-            int inLen = input.Length;
-#else
             byte[] input = data.GetBuffer();
-            int inLen = (int)data.Position;
-#endif
+            int inLen = Convert.ToInt32(data.Length);
 
             int len = ProcessPacket(input, 0, inLen, outBytes, outOff);
 
@@ -188,7 +182,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         public virtual int GetOutputSize(
             int len)
         {
-            int totalData = (int)data.Length + len;
+            int totalData = Convert.ToInt32(data.Length) + len;
 
             if (forEncryption)
             {
@@ -403,15 +397,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 {
                     cMac.BlockUpdate(initialAssociatedText, 0, initialAssociatedText.Length);
                 }
-                if (associatedText.Position > 0)
+                if (associatedText.Length > 0)
                 {
-#if PORTABLE
-                    byte[] input = associatedText.ToArray();
-                    int len = input.Length;
-#else
                     byte[] input = associatedText.GetBuffer();
-                    int len = (int)associatedText.Position;
-#endif
+                    int len = Convert.ToInt32(associatedText.Length);
 
                     cMac.BlockUpdate(input, 0, len);
                 }
@@ -444,7 +433,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private int GetAssociatedTextLength()
         {
-            return (int)associatedText.Length + ((initialAssociatedText == null) ? 0 : initialAssociatedText.Length);
+            return Convert.ToInt32(associatedText.Length) +
+                (initialAssociatedText == null ? 0 : initialAssociatedText.Length);
         }
 
         private bool HasAssociatedText()

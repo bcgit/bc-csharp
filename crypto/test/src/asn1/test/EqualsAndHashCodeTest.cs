@@ -23,7 +23,6 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new BerSequence(new DerPrintableString("hello world")),
                 new BerSet(new DerPrintableString("hello world")),
                 new BerTaggedObject(0, new DerPrintableString("hello world")),
-				new DerApplicationSpecific(0, data),
                 new DerBitString(data),
                 new DerBmpString("hello world"),
                 DerBoolean.True,
@@ -80,12 +79,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 		{
 			get { return "EqualsAndHashCode"; }
 		}
-
-        public static void Main(
-            string[] args)
-        {
-			RunTest(new EqualsAndHashCodeTest());
-        }
 
 		[Test]
         public void TestFunction()

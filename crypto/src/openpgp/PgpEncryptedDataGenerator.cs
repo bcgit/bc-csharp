@@ -1,17 +1,14 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -214,7 +211,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-		private readonly IList methods = Platform.CreateArrayList();
+        private readonly List<EncMethod> methods = new List<EncMethod>();
         private readonly SymmetricKeyAlgorithmTag defAlgorithm;
         private readonly SecureRandom rand;
 
@@ -269,19 +266,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.rand = rand;
             this.oldFormat = oldFormat;
         }
-
-		/// <summary>
-		/// Add a PBE encryption method to the encrypted object using the default algorithm (S2K_SHA1).
-		/// </summary>
-        /// <remarks>
-        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
-        /// the historical behaviour of the library (1.7 and earlier).
-        /// </remarks>
-        [Obsolete("Use version that takes an explicit s2kDigest parameter")]
-        public void AddMethod(char[] passPhrase)
-		{
-			AddMethod(passPhrase, HashAlgorithmTag.Sha1);
-		}
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
         /// <remarks>
@@ -392,40 +376,39 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			if (methods.Count == 1)
             {
-                if (methods[0] is PbeMethod)
+                if (methods[0] is PbeMethod pbeMethod)
                 {
-                    PbeMethod m = (PbeMethod)methods[0];
-
-					key = m.GetKey();
+					key = pbeMethod.GetKey();
                 }
-                else
+                else if (methods[0] is PubMethod pubMethod)
                 {
                     key = PgpUtilities.MakeRandomKey(defAlgorithm, rand);
 
 					byte[] sessionInfo = CreateSessionInfo(defAlgorithm, key);
-                    PubMethod m = (PubMethod)methods[0];
 
                     try
                     {
-                        m.AddSessionInfo(sessionInfo, rand);
+                        pubMethod.AddSessionInfo(sessionInfo, rand);
                     }
                     catch (Exception e)
                     {
                         throw new PgpException("exception encrypting session key", e);
                     }
                 }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
 
-				pOut.WritePacket((ContainedPacket)methods[0]);
+				pOut.WritePacket(methods[0]);
             }
             else // multiple methods
             {
                 key = PgpUtilities.MakeRandomKey(defAlgorithm, rand);
 				byte[] sessionInfo = CreateSessionInfo(defAlgorithm, key);
 
-				for (int i = 0; i != methods.Count; i++)
+                foreach (EncMethod m in methods)
                 {
-                    EncMethod m = (EncMethod)methods[i];
-
                     try
                     {
                         m.AddSessionInfo(sessionInfo, rand);
@@ -441,9 +424,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             string cName = PgpUtilities.GetSymmetricCipherName(defAlgorithm);
 			if (cName == null)
-            {
                 throw new PgpException("null cipher specified");
-            }
 
 			try
             {

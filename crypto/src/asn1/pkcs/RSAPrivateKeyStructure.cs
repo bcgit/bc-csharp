@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
@@ -52,9 +50,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             this.coefficient = coefficient;
         }
 
-        [Obsolete("Use 'GetInstance' method(s) instead")]
-        public RsaPrivateKeyStructure(
-            Asn1Sequence seq)
+        private RsaPrivateKeyStructure(Asn1Sequence seq)
         {
             BigInteger version = ((DerInteger)seq[0]).Value;
             if (version.IntValue != 0)
