@@ -162,6 +162,18 @@ namespace Org.BouncyCastle.Asn1
             get { return elements.Length; }
         }
 
+        public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
+        {
+            // NOTE: Call Count here to 'force' a LazyDerSet
+            int count = Count;
+            T[] result = new T[count];
+            for (int i = 0; i < count; ++i)
+            {
+                result[i] = func(elements[i]);
+            }
+            return result;
+        }
+
         public virtual Asn1Encodable[] ToArray()
         {
             return Asn1EncodableVector.CloneElements(elements);

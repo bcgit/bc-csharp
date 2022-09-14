@@ -195,6 +195,18 @@ namespace Org.BouncyCastle.Asn1
             get { return elements.Length; }
         }
 
+        public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
+        {
+            // NOTE: Call Count here to 'force' a LazyDerSequence
+            int count = Count;
+            T[] result = new T[count];
+            for (int i = 0; i < count; ++i)
+            {
+                result[i] = func(elements[i]);
+            }
+            return result;
+        }
+
         public virtual Asn1Encodable[] ToArray()
         {
             return Asn1EncodableVector.CloneElements(elements);
@@ -246,26 +258,12 @@ namespace Org.BouncyCastle.Asn1
         // TODO[asn1] Preferably return an Asn1BitString[] (doesn't exist yet)
         internal DerBitString[] GetConstructedBitStrings()
         {
-            // NOTE: Call Count here to 'force' a LazyDerSequence
-            int count = Count;
-            DerBitString[] bitStrings = new DerBitString[count];
-            for (int i = 0; i < count; ++i)
-            {
-                bitStrings[i] = DerBitString.GetInstance(elements[i]);
-            }
-            return bitStrings;
+            return MapElements(DerBitString.GetInstance);
         }
 
         internal Asn1OctetString[] GetConstructedOctetStrings()
         {
-            // NOTE: Call Count here to 'force' a LazyDerSequence
-            int count = Count;
-            Asn1OctetString[] octetStrings = new Asn1OctetString[count];
-            for (int i = 0; i < count; ++i)
-            {
-                octetStrings[i] = Asn1OctetString.GetInstance(elements[i]);
-            }
-            return octetStrings;
+            return MapElements(Asn1OctetString.GetInstance);
         }
 
         // TODO[asn1] Preferably return an Asn1BitString (doesn't exist yet)
