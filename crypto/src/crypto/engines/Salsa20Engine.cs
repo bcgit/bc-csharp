@@ -181,6 +181,30 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (!initialised)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+            Check.OutputLength(output, input.Length, "output buffer too short");
+
+            if (LimitExceeded((uint)input.Length))
+                throw new MaxBytesExceededException("2^70 byte limit per IV would be exceeded; Change IV");
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (index == 0)
+                {
+                    GenerateKeyStream(keyStream);
+                    AdvanceCounter();
+                }
+                output[i] = (byte)(keyStream[index++] ^ input[i]);
+                index &= 63;
+            }
+        }
+#endif
+
         public virtual void Reset()
 		{
 			index = 0;

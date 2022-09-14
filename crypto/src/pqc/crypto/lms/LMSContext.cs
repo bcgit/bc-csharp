@@ -124,5 +124,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             digest.Reset();
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            digest.BlockUpdate(input);
+        }
+
+        public int DoFinal(Span<byte> output)
+        {
+            return digest.DoFinal(output);
+        }
+#endif
     }
 }

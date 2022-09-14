@@ -80,15 +80,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.mainCipher = mainCipher;
         }
 
-        public virtual IBlockCipher GetUnderlyingCipher()
-        {
-            return mainCipher;
-        }
+        public virtual string AlgorithmName => mainCipher.AlgorithmName + "/OCB";
 
-        public virtual string AlgorithmName
-        {
-            get { return mainCipher.AlgorithmName + "/OCB"; }
-        }
+        public virtual IBlockCipher UnderlyingCipher => mainCipher;
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
@@ -99,10 +93,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             KeyParameter keyParameter;
 
             byte[] N;
-            if (parameters is AeadParameters)
+            if (parameters is AeadParameters aeadParameters)
             {
-                AeadParameters aeadParameters = (AeadParameters) parameters;
-
                 N = aeadParameters.GetNonce();
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 
@@ -113,10 +105,8 @@ namespace Org.BouncyCastle.Crypto.Modes
                 macSize = macSizeBits / 8;
                 keyParameter = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV)
+            else if (parameters is ParametersWithIV parametersWithIV)
             {
-                ParametersWithIV parametersWithIV = (ParametersWithIV) parameters;
-
                 N = parametersWithIV.GetIV();
                 initialAssociatedText = null;
                 macSize = 16;
@@ -287,6 +277,20 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            for (int i = 0; i < input.Length; ++i)
+            {
+                hashBlock[hashBlockPos] = input[i];
+                if (++hashBlockPos == hashBlock.Length)
+                {
+                    ProcessHashBlock();
+                }
+            }
+        }
+#endif
+
         public virtual int ProcessByte(byte input, byte[] output, int outOff)
         {
             mainBlock[mainBlockPos] = input;
@@ -298,8 +302,24 @@ namespace Org.BouncyCastle.Crypto.Modes
             return 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessByte(byte input, Span<byte> output)
+        {
+            mainBlock[mainBlockPos] = input;
+            if (++mainBlockPos == mainBlock.Length)
+            {
+                ProcessMainBlock(output);
+                return BLOCK_SIZE;
+            }
+            return 0;
+        }
+#endif
+
         public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessBytes(input.AsSpan(inOff, len), Spans.FromNullable(output, outOff));
+#else
             int resultLen = 0;
 
             for (int i = 0; i < len; ++i)
@@ -313,10 +333,34 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             return resultLen;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int len = input.Length;
+            int resultLen = 0;
+
+            for (int i = 0; i < len; ++i)
+            {
+                mainBlock[mainBlockPos] = input[i];
+                if (++mainBlockPos == mainBlock.Length)
+                {
+                    ProcessMainBlock(output[resultLen..]);
+                    resultLen += BLOCK_SIZE;
+                }
+            }
+
+            return resultLen;
+        }
+#endif
 
         public virtual int DoFinal(byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
             /*
              * For decryption, get the tag from the end of the message
              */
@@ -357,7 +401,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Xor(mainBlock, Pad);
 
-                Check.OutputLength(output, outOff, mainBlockPos, "Output buffer too short");
+                Check.OutputLength(output, outOff, mainBlockPos, "output buffer too short");
                 Array.Copy(mainBlock, 0, output, outOff, mainBlockPos);
 
                 if (!forEncryption)
@@ -385,7 +429,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (forEncryption)
             {
-                Check.OutputLength(output, outOff, resultLen + macSize, "Output buffer too short");
+                Check.OutputLength(output, outOff, resultLen + macSize, "output buffer too short");
 
                 // Append tag to the message
                 Array.Copy(macBlock, 0, output, outOff + resultLen, macSize);
@@ -401,7 +445,98 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(false);
 
             return resultLen;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int DoFinal(Span<byte> output)
+        {
+            /*
+             * For decryption, get the tag from the end of the message
+             */
+            byte[] tag = null;
+            if (!forEncryption)
+            {
+                if (mainBlockPos < macSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                mainBlockPos -= macSize;
+                tag = new byte[macSize];
+                Array.Copy(mainBlock, mainBlockPos, tag, 0, macSize);
+            }
+
+            /*
+             * HASH: Process any final partial block; compute final hash value
+             */
+            if (hashBlockPos > 0)
+            {
+                OCB_extend(hashBlock, hashBlockPos);
+                UpdateHASH(L_Asterisk);
+            }
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Process any final partial block
+             */
+            if (mainBlockPos > 0)
+            {
+                if (forEncryption)
+                {
+                    OCB_extend(mainBlock, mainBlockPos);
+                    Xor(Checksum, mainBlock);
+                }
+
+                Xor(OffsetMAIN, L_Asterisk);
+
+                byte[] Pad = new byte[16];
+                hashCipher.ProcessBlock(OffsetMAIN, 0, Pad, 0);
+
+                Xor(mainBlock, Pad);
+
+                Check.OutputLength(output, mainBlockPos, "output buffer too short");
+                mainBlock.AsSpan(0, mainBlockPos).CopyTo(output);
+
+                if (!forEncryption)
+                {
+                    OCB_extend(mainBlock, mainBlockPos);
+                    Xor(Checksum, mainBlock);
+                }
+            }
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Compute raw tag
+             */
+            Xor(Checksum, OffsetMAIN);
+            Xor(Checksum, L_Dollar);
+            hashCipher.ProcessBlock(Checksum, 0, Checksum, 0);
+            Xor(Checksum, Sum);
+
+            this.macBlock = new byte[macSize];
+            Array.Copy(Checksum, 0, macBlock, 0, macSize);
+
+            /*
+             * Validate or append tag and reset this cipher for the next run
+             */
+            int resultLen = mainBlockPos;
+
+            if (forEncryption)
+            {
+                // Append tag to the message
+                Check.OutputLength(output, resultLen + macSize, "output buffer too short");
+                macBlock.AsSpan(0, macSize).CopyTo(output[resultLen..]);
+                resultLen += macSize;
+            }
+            else
+            {
+                // Compare the tag from the message with the calculated one
+                if (!Arrays.ConstantTimeAreEqual(macBlock, tag))
+                    throw new InvalidCipherTextException("mac check in OCB failed");
+            }
+
+            Reset(false);
+
+            return resultLen;
+        }
+#endif
 
         public virtual void Reset()
         {
@@ -464,11 +599,40 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected virtual void ProcessMainBlock(Span<byte> output)
+        {
+            Check.DataLength(output, BLOCK_SIZE, "output buffer too short");
+
+            /*
+             * OCB-ENCRYPT/OCB-DECRYPT: Process any whole blocks
+             */
+
+            if (forEncryption)
+            {
+                Xor(Checksum, mainBlock);
+                mainBlockPos = 0;
+            }
+
+            Xor(OffsetMAIN, GetLSub(OCB_ntz(++mainBlockCount)));
+
+            Xor(mainBlock, OffsetMAIN);
+            mainCipher.ProcessBlock(mainBlock, 0, mainBlock, 0);
+            Xor(mainBlock, OffsetMAIN);
+
+            mainBlock.AsSpan(0, BLOCK_SIZE).CopyTo(output);
+
+            if (!forEncryption)
+            {
+                Xor(Checksum, mainBlock);
+                Array.Copy(mainBlock, BLOCK_SIZE, mainBlock, 0, macSize);
+                mainBlockPos = macSize;
+            }
+        }
+#endif
+
         protected virtual void Reset(bool clearMac)
         {
-            hashCipher.Reset();
-            mainCipher.Reset();
-
             Clear(hashBlock);
             Clear(mainBlock);
 

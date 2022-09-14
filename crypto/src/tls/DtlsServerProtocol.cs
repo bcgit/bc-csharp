@@ -667,7 +667,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessClientHello(ServerHandshakeState state, byte[] body)
         {
             MemoryStream buf = new MemoryStream(body, false);
-            ClientHello clientHello = ClientHello.Parse(buf, new NullOutputStream());
+            ClientHello clientHello = ClientHello.Parse(buf, Stream.Null);
             ProcessClientHello(state, clientHello);
         }
 

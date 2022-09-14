@@ -90,6 +90,28 @@ namespace Org.BouncyCastle.Crypto.Prng
 			}
 		}
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual void NextBytes(Span<byte> bytes)
+		{
+			lock (this)
+			{
+				int stateOff = 0;
+
+				GenerateState();
+
+				for (int i = 0; i < bytes.Length; ++i)
+				{
+					if (stateOff == state.Length)
+					{
+						GenerateState();
+						stateOff = 0;
+					}
+					bytes[i] = state[stateOff++];
+				}
+			}
+		}
+#endif
+
 		private void CycleSeed()
 		{
 			DigestUpdate(seed);

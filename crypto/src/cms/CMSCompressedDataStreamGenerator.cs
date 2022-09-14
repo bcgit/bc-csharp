@@ -121,7 +121,6 @@ namespace Org.BouncyCastle.Cms
 				_out.WriteByte(value);
 			}
 
-#if PORTABLE
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
@@ -136,19 +135,6 @@ namespace Org.BouncyCastle.Cms
                 }
                 base.Dispose(disposing);
             }
-#else
-			public override void Close()
-			{
-                Platform.Dispose(_out);
-
-                // TODO Parent context(s) should really be be closed explicitly
-
-                _eiGen.Close();
-				_cGen.Close();
-				_sGen.Close();
-				base.Close();
-			}
-#endif
 		}
 	}
 }

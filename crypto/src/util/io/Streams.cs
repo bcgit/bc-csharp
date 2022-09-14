@@ -13,10 +13,7 @@ namespace Org.BouncyCastle.Utilities.IO
 
 		public static void Drain(Stream inStr)
 		{
-			byte[] bs = new byte[BufferSize];
-			while (inStr.Read(bs, 0, bs.Length) > 0)
-			{
-			}
+			inStr.CopyTo(Stream.Null, BufferSize);
 		}
 
         /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
@@ -25,7 +22,7 @@ namespace Org.BouncyCastle.Utilities.IO
         /// <exception cref="IOException">In case of IO failure.</exception>
         public static void PipeAll(Stream inStr, Stream outStr)
 		{
-            PipeAll(inStr, outStr, BufferSize);
+			inStr.CopyTo(outStr, BufferSize);
         }
 
         /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
@@ -35,12 +32,7 @@ namespace Org.BouncyCastle.Utilities.IO
         /// <exception cref="IOException">In case of IO failure.</exception>
         public static void PipeAll(Stream inStr, Stream outStr, int bufferSize)
         {
-            byte[] bs = new byte[bufferSize];
-            int numRead;
-			while ((numRead = inStr.Read(bs, 0, bs.Length)) > 0)
-			{
-				outStr.Write(bs, 0, numRead);
-			}
+            inStr.CopyTo(outStr, bufferSize);
 		}
 
 		/// <summary>
@@ -60,17 +52,9 @@ namespace Org.BouncyCastle.Utilities.IO
 		/// <exception cref="IOException"></exception>
 		public static long PipeAllLimited(Stream inStr, long limit, Stream outStr)
 		{
-			byte[] bs = new byte[BufferSize];
-			long total = 0;
-			int numRead;
-			while ((numRead = inStr.Read(bs, 0, bs.Length)) > 0)
-			{
-                if ((limit - total) < numRead)
-					throw new StreamOverflowException("Data Overflow");
-                total += numRead;
-                outStr.Write(bs, 0, numRead);
-			}
-			return total;
+			var limited = new LimitedInputStream(inStr, limit);
+            limited.CopyTo(outStr, BufferSize);
+			return limit - limited.CurrentLimit;
 		}
 
 		public static byte[] ReadAll(Stream inStr)
@@ -105,7 +89,22 @@ namespace Org.BouncyCastle.Utilities.IO
 			return totalRead;
 		}
 
-		public static void ValidateBufferArguments(byte[] buffer, int offset, int count)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int ReadFully(Stream inStr, Span<byte> buffer)
+        {
+            int totalRead = 0;
+            while (totalRead < buffer.Length)
+            {
+                int numRead = inStr.Read(buffer[totalRead..]);
+                if (numRead < 1)
+                    break;
+                totalRead += numRead;
+            }
+            return totalRead;
+        }
+#endif
+
+        public static void ValidateBufferArguments(byte[] buffer, int offset, int count)
         {
 			if (buffer == null)
 				throw new ArgumentNullException("buffer");
@@ -120,6 +119,14 @@ namespace Org.BouncyCastle.Utilities.IO
         /// <exception cref="IOException"></exception>
         public static int WriteBufTo(MemoryStream buf, byte[] output, int offset)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (buf.TryGetBuffer(out var buffer))
+            {
+				buffer.CopyTo(output, offset);
+				return buffer.Count;
+            }
+#endif
+
 			int size = Convert.ToInt32(buf.Length);
             buf.WriteTo(new MemoryStream(output, offset, size));
             return size;

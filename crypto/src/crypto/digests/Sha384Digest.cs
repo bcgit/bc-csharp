@@ -64,6 +64,24 @@ namespace Org.BouncyCastle.Crypto.Digests
             return DigestLength;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            Finish();
+
+            Pack.UInt64_To_BE(H1, output);
+            Pack.UInt64_To_BE(H2, output[8..]);
+            Pack.UInt64_To_BE(H3, output[16..]);
+            Pack.UInt64_To_BE(H4, output[24..]);
+            Pack.UInt64_To_BE(H5, output[32..]);
+            Pack.UInt64_To_BE(H6, output[40..]);
+
+            Reset();
+
+            return DigestLength;
+        }
+#endif
+
         /**
         * reset the chaining variables
         */
@@ -72,9 +90,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             base.Reset();
 
             /* SHA-384 initial hash value
-                * The first 64 bits of the fractional parts of the square roots
-                * of the 9th through 16th prime numbers
-                */
+             * The first 64 bits of the fractional parts of the square roots
+             * of the 9th through 16th prime numbers
+              */
             H1 = 0xcbbb9d5dc1059ed8;
             H2 = 0x629a292a367cd507;
             H3 = 0x9159015a3070dd17;
@@ -96,6 +114,5 @@ namespace Org.BouncyCastle.Crypto.Digests
 
 			CopyIn(d);
 		}
-
     }
 }

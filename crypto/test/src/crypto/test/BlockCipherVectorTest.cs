@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			int len1 = cipher.ProcessBytes(input, 0, input.Length, outBytes, 0);
 
-				cipher.DoFinal(outBytes, len1);
+			cipher.DoFinal(outBytes, len1);
 
 			if (!AreEqual(outBytes, output))
 			{
@@ -70,6 +70,32 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				Fail("failed reversal got " + Hex.ToHexString(outBytes));
 			}
+
+            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			cipher.Init(true, param);
+
+			len1 = cipher.ProcessBytes(input, outBytes);
+
+			cipher.DoFinal(outBytes.AsSpan(len1));
+
+			if (!AreEqual(outBytes, output))
+			{
+				Fail("failed - " + "expected " + Hex.ToHexString(output) + " got " + Hex.ToHexString(outBytes));
+			}
+
+			cipher.Init(false, param);
+
+			len2 = cipher.ProcessBytes(output, outBytes);
+
+			cipher.DoFinal(outBytes.AsSpan(len2));
+
+			if (!AreEqual(input, outBytes))
+			{
+				Fail("failed reversal got " + Hex.ToHexString(outBytes));
+			}
+#endif
 		}
 	}
 }

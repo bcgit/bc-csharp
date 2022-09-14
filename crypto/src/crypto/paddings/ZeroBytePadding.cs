@@ -1,5 +1,5 @@
 using System;
-using Org.BouncyCastle.Crypto;
+
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Paddings
@@ -28,41 +28,55 @@ namespace Org.BouncyCastle.Crypto.Paddings
             // nothing to do.
         }
 
-        /// <summary> add the pad bytes to the passed in block, returning the
-        /// number of bytes added.
-        /// </summary>
-        public int AddPadding(
-			byte[]	input,
-			int		inOff)
+        public int AddPadding(byte[] input, int inOff)
         {
-            int added = (input.Length - inOff);
+            int added = input.Length - inOff;
 
             while (inOff < input.Length)
             {
-                input[inOff] = (byte) 0;
-                inOff++;
+                input[inOff++] = 0x00;
             }
 
             return added;
         }
 
-		/// <summary> return the number of pad bytes present in the block.</summary>
-        public int PadCount(
-			byte[] input)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int AddPadding(Span<byte> block, int position)
         {
-            int count = input.Length;
-
-            while (count > 0)
-            {
-                if (input[count - 1] != 0)
-                {
-                    break;
-                }
-
-                count--;
-            }
-
-            return input.Length - count;
+            int count = block.Length - position;
+            block[position..].Fill(0x00);
+            return count;
         }
+#endif
+
+        public int PadCount(byte[] input)
+        {
+            int count = 0, still00Mask = -1;
+            int i = input.Length;
+            while (--i >= 0)
+            {
+                int next = input[i];
+                int match00Mask = ((next ^ 0x00) - 1) >> 31;
+                still00Mask &= match00Mask;
+                count -= still00Mask;
+            }
+            return count;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int PadCount(ReadOnlySpan<byte> block)
+        {
+            int count = 0, still00Mask = -1;
+            int i = block.Length;
+            while (--i >= 0)
+            {
+                int next = block[i];
+                int match00Mask = ((next ^ 0x00) - 1) >> 31;
+                still00Mask &= match00Mask;
+                count -= still00Mask;
+            }
+            return count;
+        }
+#endif
     }
 }

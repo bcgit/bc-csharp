@@ -124,10 +124,26 @@ namespace Org.BouncyCastle.Utilities
             int d = 0;
             for (int i = 0; i < len; ++i)
             {
-                d |= (a[aOff + i] ^ b[bOff + i]);
+                d |= a[aOff + i] ^ b[bOff + i];
             }
             return 0 == d;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool ConstantTimeAreEqual(Span<byte> a, Span<byte> b)
+        {
+            if (a.Length != b.Length)
+                throw new ArgumentException("Spans to compare must have equal length");
+
+            int d = 0;
+            for (int i = 0, count = a.Length; i < count; ++i)
+            {
+                d |= a[i] ^ b[i];
+            }
+            return 0 == d;
+
+        }
+#endif
 
         public static bool AreEqual(
             int[]	a,
@@ -944,5 +960,37 @@ namespace Org.BouncyCastle.Utilities
         {
             return null == array || array.Length < 1;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+
+        public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
+        {
+            byte[] rv = new byte[a.Length + b.Length];
+            a.CopyTo(rv);
+            b.CopyTo(rv.AsSpan(a.Length));
+            return rv;
+        }
+
+        public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, ReadOnlySpan<byte> c)
+        {
+            byte[] rv = new byte[a.Length + b.Length + c.Length];
+            a.CopyTo(rv);
+            b.CopyTo(rv.AsSpan(a.Length));
+            c.CopyTo(rv.AsSpan(a.Length + b.Length));
+            return rv;
+        }
+
+        public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, ReadOnlySpan<byte> c,
+            ReadOnlySpan<byte> d)
+        {
+            byte[] rv = new byte[a.Length + b.Length + c.Length + d.Length];
+            a.CopyTo(rv);
+            b.CopyTo(rv.AsSpan(a.Length));
+            c.CopyTo(rv.AsSpan(a.Length + b.Length));
+            d.CopyTo(rv.AsSpan(a.Length + b.Length + c.Length));
+            return rv;
+        }
+
+#endif
     }
 }

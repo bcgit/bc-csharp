@@ -116,34 +116,18 @@ namespace Org.BouncyCastle.Utilities.Zlib
             this.z.avail_in = 0;
         }
 
-        /*public int available() throws IOException {
-		return inf.finished() ? 0 : 1;
-		}*/
-
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-			    if (closed)
-                    return;
-
-                closed = true;
-                Platform.Dispose(input);
+			    if (!closed)
+                {
+                    closed = true;
+                    Platform.Dispose(input);
+                }
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-        {
-            if (closed)
-                return;
-
-            closed = true;
-            Platform.Dispose(input);
-            base.Close();
-        }
-#endif
 
         public virtual int FlushMode
         {

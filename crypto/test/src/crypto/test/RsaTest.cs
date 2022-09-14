@@ -398,7 +398,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 		
 			eng.Init(true, encParameters);
 
-			if (eng.GetOutputBlockSize() != ((Pkcs1Encoding)eng).GetUnderlyingCipher().GetOutputBlockSize())
+			if (eng.GetOutputBlockSize() != ((Pkcs1Encoding)eng).UnderlyingCipher.GetOutputBlockSize())
 			{
 				Fail("PKCS1 output block size incorrect");
 			}
@@ -526,7 +526,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			eng.Init(true, pubParameters);
 
-			if (eng.GetOutputBlockSize() != ((Pkcs1Encoding)eng).GetUnderlyingCipher().GetOutputBlockSize())
+			if (eng.GetOutputBlockSize() != ((Pkcs1Encoding)eng).UnderlyingCipher.GetOutputBlockSize())
 			{
 				Fail("PKCS1 output block size incorrect");
 			}
@@ -594,7 +594,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             //
             // PKCS1 - private encrypt, public decrypt
             //
-            eng = new Pkcs1Encoding(((Pkcs1Encoding)eng).GetUnderlyingCipher());
+            eng = new Pkcs1Encoding(((Pkcs1Encoding)eng).UnderlyingCipher);
 
 			eng.Init(true, privParameters);
 

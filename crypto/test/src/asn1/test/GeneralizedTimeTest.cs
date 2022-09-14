@@ -2,6 +2,8 @@ using System;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
@@ -113,6 +115,43 @@ namespace Org.BouncyCastle.Asn1.Tests
             "20020122022220.000Z"
         };
 
+        private static readonly string[] derMzOutput =
+        {
+            "20020122122220Z",
+            "20020122122220Z",
+            "20020122222220Z",
+            "20020122122220Z",
+            "20020122122220.1Z",
+            "20020122122220.1Z",
+            "20020122222220.1Z",
+            "20020122122220.1Z",
+            "20020122122220.01Z",
+            "20020122122220.01Z",
+            "20020122222220.01Z",
+            "20020122122220.01Z",
+            "20020122122220.001Z",
+            "20020122122220.001Z",
+            "20020122222220.001Z",
+            "20020122122220.001Z",
+            "20020122122220Z",
+            "20020122122220Z",
+            "20020122222220Z",
+            "20020122122220Z",
+            "20020122022220Z"
+        };
+
+        private static readonly string[] truncOutput =
+        {
+            "200201221222Z",
+            "2002012212Z"
+        };
+
+        private static readonly string[] derTruncOutput =
+        {
+            "20020122122200Z",
+            "20020122120000Z"
+        };
+
         public override string Name
         {
             get { return "GeneralizedTime"; }
@@ -163,6 +202,54 @@ namespace Org.BouncyCastle.Asn1.Tests
                     Fail("failed long date conversion test");
                 }
             }
+
+            // TODO
+            //for (int i = 0; i != mzOutput.Length; i++)
+            //{
+            //    DerGeneralizedTime t = new DerGeneralizedTime(mzOutput[i]);
+
+            //    if (!AreEqual(t.GetEncoded(), new DerGeneralizedTime(derMzOutput[i]).GetEncoded()))
+            //    {
+            //        Fail("der encoding wrong");
+            //    }
+            //}
+
+            // TODO
+            //for (int i = 0; i != truncOutput.Length; i++)
+            //{
+            //    DerGeneralizedTime t = new DerGeneralizedTime(truncOutput[i]);
+
+            //    if (!AreEqual(t.GetEncoded(), new DerGeneralizedTime(derTruncOutput[i]).GetEncoded()))
+            //    {
+            //        Fail("trunc der encoding wrong");
+            //    }
+            //}
+
+            {
+                // check BER encoding is still "as given"
+                DerGeneralizedTime t = new DerGeneralizedTime("202208091215Z");
+
+                //IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), t.GetEncoded(Asn1Encodable.DL)));
+                IsTrue(Arrays.AreEqual(Hex.Decode("180d3230323230383039313231355a"), t.GetEncoded(Asn1Encodable.Ber)));
+                IsTrue(Arrays.AreEqual(Hex.Decode("180f32303232303830393132313530305a"), t.GetEncoded(Asn1Encodable.Der)));
+            }
+
+            // TODO
+            //{
+            //    // check an actual GMT string comes back untampered
+            //    DerGeneralizedTime time = new DerGeneralizedTime("20190704031318GMT+00:00");
+
+            //    IsTrue("20190704031318GMT+00:00".Equals(time.GetTime()));
+
+            //    try
+            //    {
+            //        DerGeneralizedTime.GetInstance(new byte[0]);
+            //    }
+            //    catch (ArgumentException e)
+            //    {
+            //        IsTrue(e.Message.Equals("GeneralizedTime string too short"));
+            //    }
+            //}
 
             /*
              * [BMA-87]

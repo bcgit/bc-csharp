@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public virtual string AlgorithmName
 		{
-			get { return engine.GetUnderlyingCipher().AlgorithmName + "/RFC3211Wrap"; }
+			get { return engine.UnderlyingCipher.AlgorithmName + "/RFC3211Wrap"; }
 		}
 
         public virtual byte[] Wrap(

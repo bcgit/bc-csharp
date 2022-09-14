@@ -8,7 +8,7 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-    public class Fpx
+    internal class Fpx
     {
         private SIKEEngine engine;
 

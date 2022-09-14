@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Signers
      * Cryptography", pages 452 - 453.
      */
     public class DsaSigner
-        : IDsaExt
+        : IDsa
     {
         protected readonly IDsaKCalculator kCalculator;
 

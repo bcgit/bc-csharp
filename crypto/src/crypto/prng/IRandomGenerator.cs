@@ -22,5 +22,9 @@ namespace Org.BouncyCastle.Crypto.Prng
 		/// <param name="start">Index to start filling at.</param>
 		/// <param name="len">Length of segment to fill.</param>
 		void NextBytes(byte[] bytes, int start, int len);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		void NextBytes(Span<byte> bytes);
+#endif
 	}
 }

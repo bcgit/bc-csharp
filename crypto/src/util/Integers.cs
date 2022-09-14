@@ -1,5 +1,6 @@
 ﻿using System;
 #if NETCOREAPP3_0_OR_GREATER
+using System.Numerics;
 using System.Runtime.Intrinsics.X86;
 #endif
 
@@ -107,24 +108,40 @@ namespace Org.BouncyCastle.Utilities
 
         public static int RotateLeft(int i, int distance)
         {
-            return (i << distance) ^ (int)((uint)i >> -distance);
+#if NETCOREAPP3_0_OR_GREATER
+            return (int)BitOperations.RotateLeft((uint)i, distance);
+#else
+            return (i << distance) | (int)((uint)i >> -distance);
+#endif
         }
 
         [CLSCompliant(false)]
         public static uint RotateLeft(uint i, int distance)
         {
-            return (i << distance) ^ (i >> -distance);
+#if NETCOREAPP3_0_OR_GREATER
+            return BitOperations.RotateLeft(i, distance);
+#else
+            return (i << distance) | (i >> -distance);
+#endif
         }
 
         public static int RotateRight(int i, int distance)
         {
-            return (int)((uint)i >> distance) ^ (i << -distance);
+#if NETCOREAPP3_0_OR_GREATER
+            return (int)BitOperations.RotateRight((uint)i, distance);
+#else
+            return (int)((uint)i >> distance) | (i << -distance);
+#endif
         }
 
         [CLSCompliant(false)]
         public static uint RotateRight(uint i, int distance)
         {
-            return (i >> distance) ^ (i << -distance);
+#if NETCOREAPP3_0_OR_GREATER
+            return BitOperations.RotateRight(i, distance);
+#else
+            return (i >> distance) | (i << -distance);
+#endif
         }
     }
 }

@@ -4,20 +4,17 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
-    public class DigestSink
+    public sealed class DigestSink
         : BaseOutputStream
     {
-        private readonly IDigest mDigest;
+        private readonly IDigest m_digest;
 
         public DigestSink(IDigest digest)
         {
-            this.mDigest = digest;
+            m_digest = digest;
         }
 
-        public virtual IDigest Digest
-        {
-            get { return mDigest; }
-        }
+        public IDigest Digest => m_digest;
 
         public override void Write(byte[] buffer, int offset, int count)
         {
@@ -25,13 +22,23 @@ namespace Org.BouncyCastle.Crypto.IO
 
             if (count > 0)
             {
-                mDigest.BlockUpdate(buffer, offset, count);
+                m_digest.BlockUpdate(buffer, offset, count);
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (!buffer.IsEmpty)
+            {
+                m_digest.BlockUpdate(buffer);
+            }
+        }
+#endif
+
         public override void WriteByte(byte value)
         {
-            mDigest.Update(value);
+            m_digest.Update(value);
         }
     }
 }

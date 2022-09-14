@@ -181,6 +181,22 @@ namespace Org.BouncyCastle.Security
             generator.NextBytes(buf, off, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void NextBytes(Span<byte> buffer)
+        {
+            if (generator != null)
+            {
+                generator.NextBytes(buffer);
+            }
+            else
+            {
+                byte[] tmp = new byte[buffer.Length];
+                NextBytes(tmp);
+                tmp.CopyTo(buffer);
+            }
+        }
+#endif
+
         private static readonly double DoubleScale = 1.0 / Convert.ToDouble(1L << 53);
 
         public override double NextDouble()

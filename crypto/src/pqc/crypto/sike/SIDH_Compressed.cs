@@ -4,7 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class SIDH_Compressed
+internal class SIDH_Compressed
 {
     private SIKEEngine engine;
 

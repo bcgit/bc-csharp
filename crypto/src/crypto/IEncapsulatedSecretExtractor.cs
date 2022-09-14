@@ -7,5 +7,10 @@ namespace Org.BouncyCastle.Crypto
         /// </summary>
         /// <param name="encapsulation"> the encapsulated secret.</param>
         byte[] ExtractSecret(byte[] encapsulation);
+
+        /// <summary>
+        /// The length in bytes of the encapsulation.
+        /// </summary>
+        int EncapsulationLength { get;  }
     }
 }

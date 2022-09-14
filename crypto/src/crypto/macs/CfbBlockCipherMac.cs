@@ -9,8 +9,8 @@ namespace Org.BouncyCastle.Crypto.Macs
     /**
     * implements a Cipher-FeedBack (CFB) mode on top of a simple cipher.
     */
-    class MacCFBBlockCipher
-		: IBlockCipher
+    internal class MacCfbBlockCipher
+		: IBlockCipherMode
     {
         private byte[] IV;
         private byte[] cfbV;
@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         * feedback mode.
         * @param blockSize the block size in bits (note: a multiple of 8)
         */
-        public MacCFBBlockCipher(
+        public MacCfbBlockCipher(
             IBlockCipher	cipher,
             int				bitBlockSize)
         {
@@ -47,13 +47,10 @@ namespace Org.BouncyCastle.Crypto.Macs
         * @exception ArgumentException if the parameters argument is
         * inappropriate.
         */
-		public void Init(
-			bool				forEncryption,
-            ICipherParameters	parameters)
+		public void Init(bool forEncryption, ICipherParameters parameters)
         {
-			if (parameters is ParametersWithIV)
+			if (parameters is ParametersWithIV ivParam)
             {
-                ParametersWithIV ivParam = (ParametersWithIV)parameters;
                 byte[] iv = ivParam.GetIV();
 
                 if (iv.Length < IV.Length)
@@ -84,7 +81,9 @@ namespace Org.BouncyCastle.Crypto.Macs
 			get { return cipher.AlgorithmName + "/CFB" + (blockSize * 8); }
         }
 
-		public bool IsPartialBlockOkay
+        public IBlockCipher UnderlyingCipher => cipher;
+
+        public bool IsPartialBlockOkay
 		{
 			get { return true; }
 		}
@@ -99,30 +98,10 @@ namespace Org.BouncyCastle.Crypto.Macs
             return blockSize;
         }
 
-		/**
-        * Process one block of input from the array in and write it to
-        * the out array.
-        *
-        * @param in the array containing the input data.
-        * @param inOff offset into the in array the data starts at.
-        * @param out the array the output data will be copied into.
-        * @param outOff the offset into the out array the output will start at.
-        * @exception DataLengthException if there isn't enough data in in, or
-        * space in out.
-        * @exception InvalidOperationException if the cipher isn't initialised.
-        * @return the number of bytes processed and produced.
-        */
-        public int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	outBytes,
-            int		outOff)
+        public int ProcessBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
-            if ((inOff + blockSize) > input.Length)
-                throw new DataLengthException("input buffer too short");
-
-			if ((outOff + blockSize) > outBytes.Length)
-                throw new DataLengthException("output buffer too short");
+            Check.DataLength(input, inOff, blockSize, "input buffer too short");
+            Check.OutputLength(outBytes, outOff, blockSize, "output buffer too short");
 
 			cipher.ProcessBlock(cfbV, 0, cfbOutV, 0);
 
@@ -143,15 +122,39 @@ namespace Org.BouncyCastle.Crypto.Macs
 			return blockSize;
         }
 
-		/**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            Check.DataLength(input, blockSize, "input buffer too short");
+            Check.OutputLength(output, blockSize, "output buffer too short");
+
+            cipher.ProcessBlock(cfbV, cfbOutV);
+
+            //
+            // XOR the cfbV with the plaintext producing the cipher text
+            //
+            for (int i = 0; i < blockSize; i++)
+            {
+                output[i] = (byte)(cfbOutV[i] ^ input[i]);
+            }
+
+            //
+            // change over the input block.
+            //
+            Array.Copy(cfbV, blockSize, cfbV, 0, cfbV.Length - blockSize);
+            output[..blockSize].CopyTo(cfbV.AsSpan(cfbV.Length - blockSize));
+
+            return blockSize;
+        }
+#endif
+
+        /**
         * reset the chaining vector back to the IV and reset the underlying
         * cipher.
         */
         public void Reset()
         {
 			IV.CopyTo(cfbV, 0);
-
-			cipher.Reset();
         }
 
 		public void GetMacBlock(
@@ -167,7 +170,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         private byte[] mac;
         private byte[] Buffer;
         private int bufOff;
-        private MacCFBBlockCipher cipher;
+        private MacCfbBlockCipher cipher;
         private IBlockCipherPadding padding;
         private int macSize;
 
@@ -247,7 +250,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
 			mac = new byte[cipher.GetBlockSize()];
 
-			this.cipher = new MacCFBBlockCipher(cipher, cfbBitSize);
+			this.cipher = new MacCfbBlockCipher(cipher, cfbBitSize);
             this.padding = padding;
             this.macSize = macSizeInBits / 8;
 
@@ -260,8 +263,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             get { return cipher.AlgorithmName; }
         }
 
-		public void Init(
-            ICipherParameters parameters)
+		public void Init(ICipherParameters parameters)
         {
             Reset();
 
@@ -273,8 +275,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             return macSize;
         }
 
-		public void Update(
-            byte input)
+		public void Update(byte input)
         {
             if (bufOff == Buffer.Length)
             {
@@ -285,15 +286,15 @@ namespace Org.BouncyCastle.Crypto.Macs
 			Buffer[bufOff++] = input;
         }
 
-		public void BlockUpdate(
-            byte[]	input,
-            int		inOff,
-            int		len)
+		public void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (len < 0)
                 throw new ArgumentException("Can't have a negative input length!");
 
-			int blockSize = cipher.GetBlockSize();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BlockUpdate(input.AsSpan(inOff, len));
+#else
+            int blockSize = cipher.GetBlockSize();
             int resultLen = 0;
             int gapLen = blockSize - bufOff;
 
@@ -319,12 +320,43 @@ namespace Org.BouncyCastle.Crypto.Macs
 			Array.Copy(input, inOff, Buffer, bufOff, len);
 
 			bufOff += len;
+#endif
         }
 
-		public int DoFinal(
-            byte[]	output,
-            int		outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void BlockUpdate(ReadOnlySpan<byte> input)
         {
+            int blockSize = cipher.GetBlockSize();
+            int resultLen = 0;
+            int gapLen = blockSize - bufOff;
+
+            if (input.Length > gapLen)
+            {
+                input[..gapLen].CopyTo(Buffer.AsSpan(bufOff));
+
+                resultLen += cipher.ProcessBlock(Buffer, mac);
+
+                bufOff = 0;
+                input = input[gapLen..];
+
+                while (input.Length > blockSize)
+                {
+                    resultLen += cipher.ProcessBlock(input, mac);
+                    input = input[blockSize..];
+                }
+            }
+
+            input.CopyTo(Buffer.AsSpan(bufOff));
+
+            bufOff += input.Length;
+        }
+#endif
+
+        public int DoFinal(byte[] output, int outOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
             int blockSize = cipher.GetBlockSize();
 
             // pad with zeroes
@@ -349,7 +381,38 @@ namespace Org.BouncyCastle.Crypto.Macs
 			Reset();
 
 			return macSize;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            int blockSize = cipher.GetBlockSize();
+
+            // pad with zeroes
+            if (this.padding == null)
+            {
+                while (bufOff < blockSize)
+                {
+                    Buffer[bufOff++] = 0;
+                }
+            }
+            else
+            {
+                padding.AddPadding(Buffer, bufOff);
+            }
+
+            cipher.ProcessBlock(Buffer, 0, mac, 0);
+
+            cipher.GetMacBlock(mac);
+
+            mac.AsSpan(0, macSize).CopyTo(output);
+
+            Reset();
+
+            return macSize;
+        }
+#endif
 
         /**
         * Reset the mac generator.
@@ -364,5 +427,4 @@ namespace Org.BouncyCastle.Crypto.Macs
             cipher.Reset();
         }
     }
-
 }

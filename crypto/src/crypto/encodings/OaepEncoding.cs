@@ -62,31 +62,22 @@ namespace Org.BouncyCastle.Crypto.Encodings
             hash.DoFinal(defHash, 0);
         }
 
-        public IAsymmetricBlockCipher GetUnderlyingCipher()
-        {
-            return engine;
-        }
+        public string AlgorithmName => engine.AlgorithmName + "/OAEPPadding";
 
-        public string AlgorithmName
-        {
-            get { return engine.AlgorithmName + "/OAEPPadding"; }
-        }
+        public IAsymmetricBlockCipher UnderlyingCipher => engine;
 
-        public void Init(
-            bool				forEncryption,
-            ICipherParameters	param)
+        public void Init(bool forEncryption, ICipherParameters parameters)
         {
-            if (param is ParametersWithRandom)
+            if (parameters is ParametersWithRandom withRandom)
             {
-                ParametersWithRandom rParam = (ParametersWithRandom)param;
-                this.random = rParam.Random;
+                this.random = withRandom.Random;
             }
             else
             {
                 this.random = new SecureRandom();
             }
 
-            engine.Init(forEncryption, param);
+            engine.Init(forEncryption, parameters);
 
             this.forEncryption = forEncryption;
         }

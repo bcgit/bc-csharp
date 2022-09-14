@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
-    public class Utils
+    internal class Utils
     {
 
         private int SABER_N;
@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         private int SABER_EP;
         private int SABER_KEYBYTES;
 
-        public Utils(SABEREngine engine)
+        internal Utils(SABEREngine engine)
         {
             this.SABER_N = engine.getSABER_N();
             this.SABER_L = engine.getSABER_L();

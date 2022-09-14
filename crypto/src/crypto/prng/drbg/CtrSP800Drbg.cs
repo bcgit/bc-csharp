@@ -334,7 +334,10 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	    public int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput,
 			bool predictionResistant)
 	    {
-	        if (mIsTdea)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Generate(output.AsSpan(outputOff, outputLen), additionalInput, predictionResistant);
+#else
+			if (mIsTdea)
 	        {
 	            if (mReseedCounter > TDEA_RESEED_MAX)
 	                return -1;
@@ -390,14 +393,78 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
             mReseedCounter++;
 
             return outputLen * 8;
-	    }
+#endif
+        }
 
-	    /**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Generate(Span<byte> output, byte[] additionalInput, bool predictionResistant)
+		{
+			int outputLen = output.Length;
+            if (mIsTdea)
+            {
+                if (mReseedCounter > TDEA_RESEED_MAX)
+                    return -1;
+
+                if (outputLen > TDEA_MAX_BITS_REQUEST / 8)
+                    throw new ArgumentException("Number of bits per request limited to " + TDEA_MAX_BITS_REQUEST, "output");
+            }
+            else
+            {
+                if (mReseedCounter > AES_RESEED_MAX)
+                    return -1;
+
+                if (outputLen > AES_MAX_BITS_REQUEST / 8)
+                    throw new ArgumentException("Number of bits per request limited to " + AES_MAX_BITS_REQUEST, "output");
+            }
+
+            if (predictionResistant)
+            {
+                CTR_DRBG_Reseed_algorithm(additionalInput);
+                additionalInput = null;
+            }
+
+            if (additionalInput != null)
+            {
+                additionalInput = Block_Cipher_df(additionalInput, mSeedLength);
+                CTR_DRBG_Update(additionalInput, mKey, mV);
+            }
+            else
+            {
+                additionalInput = new byte[mSeedLength];
+            }
+
+            byte[] tmp = new byte[mV.Length];
+
+            mEngine.Init(true, new KeyParameter(ExpandKey(mKey)));
+
+            for (int i = 0, limit = outputLen / tmp.Length; i <= limit; i++)
+            {
+                int bytesToCopy = System.Math.Min(tmp.Length, outputLen - i * tmp.Length);
+
+                if (bytesToCopy != 0)
+                {
+                    AddOneTo(mV);
+
+                    mEngine.ProcessBlock(mV, 0, tmp, 0);
+
+					tmp[..bytesToCopy].CopyTo(output[(i * tmp.Length)..]);
+                }
+            }
+
+            CTR_DRBG_Update(additionalInput, mKey, mV);
+
+            mReseedCounter++;
+
+            return outputLen * 8;
+        }
+#endif
+
+        /**
 	      * Reseed the DRBG.
 	      *
 	      * @param additionalInput additional input to be added to the DRBG in this step.
 	      */
-	    public void Reseed(byte[] additionalInput)
+        public void Reseed(byte[] additionalInput)
 	    {
 	        CTR_DRBG_Reseed_algorithm(additionalInput);
 	    }

@@ -109,49 +109,61 @@ namespace Org.BouncyCastle.Utilities.Zlib
             this.z.deflateInit(level, nowrap);
         }
 
-#if PORTABLE
+        protected void Detach(bool disposing)
+        {
+            if (disposing)
+            {
+                if (!closed)
+                {
+                    try
+                    {
+                        try
+                        {
+                            Finish();
+                        }
+                        catch (IOException)
+                        {
+                            // Ignore
+                        }
+                    }
+                    finally
+                    {
+                        this.closed = true;
+                        End();
+                        output = null;
+                    }
+                }
+            }
+            base.Dispose(disposing);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-			    if (closed)
-				    return;
-
-                DoClose();
+			    if (!closed)
+                {
+                    try
+                    {
+                        try
+                        {
+                            Finish();
+                        }
+                        catch (IOException)
+                        {
+                            // Ignore
+                        }
+                    }
+                    finally
+                    {
+                        this.closed = true;
+                        End();
+                        Platform.Dispose(output);
+                        output = null;
+                    }
+                }
             }
             base.Dispose(disposing);
-        }
-#else
-        public override void Close()
-        {
-            if (closed)
-                return;
-
-            DoClose();
-            base.Close();
-        }
-#endif
-
-        private void DoClose()
-        {
-            try
-            {
-                try
-                {
-                    Finish();
-                }
-                catch (IOException)
-                {
-                    // Ignore
-                }
-            }
-            finally
-            {
-                this.closed = true;
-                End();
-                Platform.Dispose(output);
-                output = null;
-            }
         }
 
         public virtual void End()

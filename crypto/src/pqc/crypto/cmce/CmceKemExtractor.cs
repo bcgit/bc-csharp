@@ -32,16 +32,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             return ExtractSecret(encapsulation, engine.DefaultSessionKeySize);
         }
 
-        public byte[] ExtractSecret(byte[] encapsulation, int sessionKeySizeInBits)
+        private byte[] ExtractSecret(byte[] encapsulation, int sessionKeySizeInBits)
         {
             byte[] session_key = new byte[sessionKeySizeInBits / 8];
             engine.kem_dec(session_key, encapsulation, ((CmcePrivateKeyParameters)key).PrivateKey);
             return session_key;
         }
 
-        public int GetInputSize()
-        {
-            return engine.CipherTextSize;
-        }
+        public int EncapsulationLength => engine.CipherTextSize;
     }
 }

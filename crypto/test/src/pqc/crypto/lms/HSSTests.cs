@@ -728,9 +728,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          *
          * @
          */
-        class HSSSecureRandom
+        internal class HSSSecureRandom
             : SecureRandom
         {
+            internal HSSSecureRandom()
+                : base(null)
+            {
+            }
+
             public override void NextBytes(byte[] buf)
             {
                 NextBytes(buf, 0, buf.Length);

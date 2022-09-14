@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Utilities.IO
         public sealed override bool CanSeek { get { return false; } }
         public sealed override bool CanWrite { get { return true; } }
 
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void CopyTo(Stream destination, int bufferSize) { throw new NotSupportedException(); }
+#endif
         public override void Flush() {}
         public sealed override long Length { get { throw new NotSupportedException(); } }
         public sealed override long Position
@@ -34,11 +37,6 @@ namespace Org.BouncyCastle.Utilities.IO
         public virtual void Write(params byte[] buffer)
         {
             Write(buffer, 0, buffer.Length);
-        }
-
-        public override void WriteByte(byte value)
-        {
-            Write(new byte[]{ value }, 0, 1);
         }
     }
 }

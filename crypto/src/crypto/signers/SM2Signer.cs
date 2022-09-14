@@ -106,10 +106,17 @@ namespace Org.BouncyCastle.Crypto.Signers
             digest.Update(b);
         }
 
-        public virtual void BlockUpdate(byte[] buf, int off, int len)
+        public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
-            digest.BlockUpdate(buf, off, len);
+            digest.BlockUpdate(input, inOff, inLen);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            digest.BlockUpdate(input);
+        }
+#endif
 
         public virtual bool VerifySignature(byte[] signature)
         {

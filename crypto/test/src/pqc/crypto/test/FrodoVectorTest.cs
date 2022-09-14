@@ -28,12 +28,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     FrodoParameters.frodokem43088shaker3
             };
 
-            Assert.AreEqual(64, FrodoParameters.frodokem19888r3.DefaultKeySize);
-            Assert.AreEqual(64, FrodoParameters.frodokem19888shaker3.DefaultKeySize);
-            Assert.AreEqual(96, FrodoParameters.frodokem31296r3.DefaultKeySize);
-            Assert.AreEqual(96, FrodoParameters.frodokem31296shaker3.DefaultKeySize);
-            Assert.AreEqual(128, FrodoParameters.frodokem43088r3.DefaultKeySize);
-            Assert.AreEqual(128, FrodoParameters.frodokem43088shaker3.DefaultKeySize);
+            Assert.AreEqual(128, FrodoParameters.frodokem19888r3.DefaultKeySize);
+            Assert.AreEqual(128, FrodoParameters.frodokem19888shaker3.DefaultKeySize);
+            Assert.AreEqual(192, FrodoParameters.frodokem31296r3.DefaultKeySize);
+            Assert.AreEqual(192, FrodoParameters.frodokem31296shaker3.DefaultKeySize);
+            Assert.AreEqual(256, FrodoParameters.frodokem43088r3.DefaultKeySize);
+            Assert.AreEqual(256, FrodoParameters.frodokem43088shaker3.DefaultKeySize);
         }
         
         [Test]
@@ -76,6 +76,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     FrodoParameters.frodokem19888shaker3,
                 };
             }
+            TestSampler sampler = new TestSampler();
             for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
             {
                 String name = files[fileIndex];
@@ -95,7 +96,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     }
                     if (line.Length == 0)
                     {
-                        if (buf.Count > 0)
+                        if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                         {
                             String count = buf["count"];
                             if (!"0".Equals(count))
@@ -144,6 +145,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                             byte[] dec_key = frodoDecCipher.ExtractSecret(generated_cipher_text);
 
+                            Assert.True(frodoParameters.DefaultKeySize == dec_key.Length * 8);
                             Assert.True(Arrays.AreEqual(dec_key, ss), $"{name} {count}: kem_dec ss");
                             Assert.True(Arrays.AreEqual(dec_key, secret),$"{name} {count}: kem_dec key");
                         }

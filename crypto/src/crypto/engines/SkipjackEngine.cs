@@ -77,21 +77,12 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "SKIPJACK"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-        public virtual int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
         {
             if (key1 == null)
                 throw new InvalidOperationException("SKIPJACK engine not initialised");
@@ -99,6 +90,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
             Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (encrypting)
+            {
+                EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+            else
+            {
+                DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+#else
             if (encrypting)
             {
                 EncryptBlock(input, inOff, output, outOff);
@@ -107,13 +108,32 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 DecryptBlock(input, inOff, output, outOff);
             }
+#endif
 
 			return BLOCK_SIZE;
         }
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            if (key1 == null)
+                throw new InvalidOperationException("SKIPJACK engine not initialised");
+
+            Check.DataLength(input, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, BLOCK_SIZE, "output buffer too short");
+
+            if (encrypting)
+            {
+                EncryptBlock(input, output);
+            }
+            else
+            {
+                DecryptBlock(input, output);
+            }
+
+            return BLOCK_SIZE;
         }
+#endif
 
         /**
         * The G permutation
@@ -135,11 +155,97 @@ namespace Org.BouncyCastle.Crypto.Engines
             return ((g5 << 8) + g6);
         }
 
-        public virtual int EncryptBlock(
-            byte[]      input,
-            int         inOff,
-            byte[]      outBytes,
-            int         outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int w1 = (input[0] << 8) + (input[1] & 0xff);
+            int w2 = (input[2] << 8) + (input[3] & 0xff);
+            int w3 = (input[4] << 8) + (input[5] & 0xff);
+            int w4 = (input[6] << 8) + (input[7] & 0xff);
+
+            int k = 0;
+
+            for (int t = 0; t < 2; t++)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    int tmp = w4;
+                    w4 = w3;
+                    w3 = w2;
+                    w2 = G(k, w1);
+                    w1 = w2 ^ tmp ^ (k + 1);
+                    k++;
+                }
+
+                for (int i = 0; i < 8; i++)
+                {
+                    int tmp = w4;
+                    w4 = w3;
+                    w3 = w1 ^ w2 ^ (k + 1);
+                    w2 = G(k, w1);
+                    w1 = tmp;
+                    k++;
+                }
+            }
+
+            output[0] = (byte)((w1 >> 8));
+            output[1] = (byte)(w1);
+            output[2] = (byte)((w2 >> 8));
+            output[3] = (byte)(w2);
+            output[4] = (byte)((w3 >> 8));
+            output[5] = (byte)(w3);
+            output[6] = (byte)((w4 >> 8));
+            output[7] = (byte)(w4);
+
+            return BLOCK_SIZE;
+        }
+
+        public virtual int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int w2 = (input[0] << 8) + (input[1] & 0xff);
+            int w1 = (input[2] << 8) + (input[3] & 0xff);
+            int w4 = (input[4] << 8) + (input[5] & 0xff);
+            int w3 = (input[6] << 8) + (input[7] & 0xff);
+
+            int k = 31;
+
+            for (int t = 0; t < 2; t++)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    int tmp = w4;
+                    w4 = w3;
+                    w3 = w2;
+                    w2 = H(k, w1);
+                    w1 = w2 ^ tmp ^ (k + 1);
+                    k--;
+                }
+
+                for (int i = 0; i < 8; i++)
+                {
+                    int tmp = w4;
+                    w4 = w3;
+                    w3 = w1 ^ w2 ^ (k + 1);
+                    w2 = H(k, w1);
+                    w1 = tmp;
+                    k--;
+                }
+            }
+
+            output[0] = (byte)((w2 >> 8));
+            output[1] = (byte)(w2);
+            output[2] = (byte)((w1 >> 8));
+            output[3] = (byte)(w1);
+            output[4] = (byte)((w4 >> 8));
+            output[5] = (byte)(w4);
+            output[6] = (byte)((w3 >> 8));
+            output[7] = (byte)(w3);
+
+            return BLOCK_SIZE;
+        }
+
+#else
+        public virtual int EncryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             int w1 = (input[inOff + 0] << 8) + (input[inOff + 1] & 0xff);
             int w2 = (input[inOff + 2] << 8) + (input[inOff + 3] & 0xff);
@@ -183,31 +289,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 
-        /**
-        * the inverse of the G permutation.
-        */
-        private int H(
-            int     k,
-            int     w)
-        {
-            int h1, h2, h3, h4, h5, h6;
-
-            h1 = w & 0xff;
-            h2 = (w >> 8) & 0xff;
-
-            h3 = ftable[h2 ^ key3[k]] ^ h1;
-            h4 = ftable[h3 ^ key2[k]] ^ h2;
-            h5 = ftable[h4 ^ key1[k]] ^ h3;
-            h6 = ftable[h5 ^ key0[k]] ^ h4;
-
-            return ((h6 << 8) + h5);
-        }
-
-        public virtual int DecryptBlock(
-            byte[]      input,
-            int         inOff,
-            byte[]      outBytes,
-            int         outOff)
+        public virtual int DecryptBlock(byte[] input, int inOff, byte[] outBytes, int outOff)
         {
             int w2 = (input[inOff + 0] << 8) + (input[inOff + 1] & 0xff);
             int w1 = (input[inOff + 2] << 8) + (input[inOff + 3] & 0xff);
@@ -218,7 +300,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             for (int t = 0; t < 2; t++)
             {
-                for(int i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     int tmp = w4;
                     w4 = w3;
@@ -228,7 +310,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     k--;
                 }
 
-                for(int i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     int tmp = w4;
                     w4 = w3;
@@ -249,6 +331,23 @@ namespace Org.BouncyCastle.Crypto.Engines
             outBytes[outOff + 7] = (byte)(w3);
 
             return BLOCK_SIZE;
+        }
+#endif
+
+        /**
+        * the inverse of the G permutation.
+        */
+        private int H(int k, int w)
+        {
+            int h1 = w & 0xff;
+            int h2 = (w >> 8) & 0xff;
+
+            int h3 = ftable[h2 ^ key3[k]] ^ h1;
+            int h4 = ftable[h3 ^ key2[k]] ^ h2;
+            int h5 = ftable[h4 ^ key1[k]] ^ h3;
+            int h6 = ftable[h5 ^ key0[k]] ^ h4;
+
+            return (h6 << 8) + h5;
         }
     }
 }

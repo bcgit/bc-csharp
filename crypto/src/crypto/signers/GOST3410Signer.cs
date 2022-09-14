@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 	 * Gost R 34.10-94 Signature Algorithm
 	 */
 	public class Gost3410Signer
-		: IDsaExt
+		: IDsa
 	{
 		private Gost3410KeyParameters key;
 		private SecureRandom random;

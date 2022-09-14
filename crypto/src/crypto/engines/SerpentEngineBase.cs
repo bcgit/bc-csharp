@@ -44,11 +44,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "Serpent"; }
         }
 
-        public virtual bool IsPartialBlockOkay
-        {
-            get { return false; }
-        }
-
         public virtual int GetBlockSize()
         {
             return BlockSize;
@@ -75,6 +70,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, BlockSize, "input buffer too short");
             Check.OutputLength(output, outOff, BlockSize, "output buffer too short");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (encrypting)
+            {
+                EncryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+            else
+            {
+                DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
+            }
+#else
             if (encrypting)
             {
                 EncryptBlock(input, inOff, output, outOff);
@@ -83,23 +88,32 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 DecryptBlock(input, inOff, output, outOff);
             }
+#endif
 
             return BlockSize;
         }
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
-        }
+            if (wKey == null)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
 
-        protected static int RotateLeft(int x, int bits)
-        {
-            return ((x << bits) | (int) ((uint)x >> (32 - bits)));
-        }
+            Check.DataLength(input, BlockSize, "input buffer too short");
+            Check.OutputLength(output, BlockSize, "output buffer too short");
 
-        private static int RotateRight(int x, int bits)
-        {
-            return ( (int)((uint)x >> bits) | (x << (32 - bits)));
+            if (encrypting)
+            {
+                EncryptBlock(input, output);
+            }
+            else
+            {
+                DecryptBlock(input, output);
+            }
+
+            return BlockSize;
         }
+#endif
 
         /*
          * The sboxes below are based on the work of Brian Gladman and
@@ -434,15 +448,15 @@ namespace Org.BouncyCastle.Crypto.Engines
         */
         protected void LT()
         {
-            int x0 = RotateLeft(X0, 13);
-            int x2 = RotateLeft(X2, 3);
+            int x0 = Integers.RotateLeft(X0, 13);
+            int x2 = Integers.RotateLeft(X2, 3);
             int x1 = X1 ^ x0 ^ x2;
             int x3 = X3 ^ x2 ^ x0 << 3;
 
-            X1 = RotateLeft(x1, 1);
-            X3 = RotateLeft(x3, 7);
-            X0 = RotateLeft(x0 ^ X1 ^ X3, 5);
-            X2 = RotateLeft(x2 ^ X3 ^ (X1 << 7), 22);
+            X1 = Integers.RotateLeft(x1, 1);
+            X3 = Integers.RotateLeft(x3, 7);
+            X0 = Integers.RotateLeft(x0 ^ X1 ^ X3, 5);
+            X2 = Integers.RotateLeft(x2 ^ X3 ^ (X1 << 7), 22);
         }
 
         /**
@@ -450,20 +464,24 @@ namespace Org.BouncyCastle.Crypto.Engines
         */
         protected void InverseLT()
         {
-            int x2 = RotateRight(X2, 22) ^ X3 ^ (X1 << 7);
-            int x0 = RotateRight(X0, 5) ^ X1 ^ X3;
-            int x3 = RotateRight(X3, 7);
-            int x1 = RotateRight(X1, 1);
+            int x2 = Integers.RotateRight(X2, 22) ^ X3 ^ (X1 << 7);
+            int x0 = Integers.RotateRight(X0, 5) ^ X1 ^ X3;
+            int x3 = Integers.RotateRight(X3, 7);
+            int x1 = Integers.RotateRight(X1, 1);
             X3 = x3 ^ x2 ^ x0 << 3;
             X1 = x1 ^ x0 ^ x2;
-            X2 = RotateRight(x2, 3);
-            X0 = RotateRight(x0, 13);
+            X2 = Integers.RotateRight(x2, 3);
+            X0 = Integers.RotateRight(x0, 13);
         }
 
         protected abstract int[] MakeWorkingKey(byte[] key);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected abstract void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output);
+        protected abstract void DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output);
+#else
         protected abstract void EncryptBlock(byte[] input, int inOff, byte[] output, int outOff);
-
         protected abstract void DecryptBlock(byte[] input, int inOff, byte[] output, int outOff);
+#endif
     }
 }

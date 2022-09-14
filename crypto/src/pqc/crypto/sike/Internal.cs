@@ -5,8 +5,8 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-                
-        public abstract class Internal
+
+    internal abstract class Internal
         {
                 protected static Dictionary<string, string> _props;
                 
@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Sike
                 protected internal static uint LOG2RADIX = 6;
 
                 protected internal uint CRYPTO_PUBLICKEYBYTES;
-                protected internal uint CRYPTO_CIPHERTEXTBYTES;
+                protected internal int CRYPTO_CIPHERTEXTBYTES;
                 protected internal uint CRYPTO_BYTES;
                 protected internal uint CRYPTO_SECRETKEYBYTES;
 

@@ -2,68 +2,52 @@ using System;
 
 namespace Org.BouncyCastle.Crypto
 {
-    /**
-     * The base interface for implementations of message authentication codes (MACs).
-     */
+    /// <summary>The base interface for implementations of message authentication codes (MACs).</summary>
     public interface IMac
     {
-        /**
-         * Initialise the MAC.
-         *
-         * @param param the key and other data required by the MAC.
-         * @exception ArgumentException if the parameters argument is
-         * inappropriate.
-         */
+        /// <summary>Initialise the MAC.</summary>
+        /// <param name="parameters">The key or other data required by the MAC.</param>
         void Init(ICipherParameters parameters);
 
-        /**
-         * Return the name of the algorithm the MAC implements.
-         *
-         * @return the name of the algorithm the MAC implements.
-         */
+        /// <summary>The algorithm name.</summary>
         string AlgorithmName { get; }
 
-		/**
-		 * Return the block size for this MAC (in bytes).
-		 *
-		 * @return the block size for this MAC in bytes.
-		 */
-		int GetMacSize();
+        /// <summary>Return the size, in bytes, of the MAC produced by this implementation.</summary>
+        /// <returns>the size, in bytes, of the MAC produced by this implementation.</returns>
+        int GetMacSize();
 
-        /**
-         * add a single byte to the mac for processing.
-         *
-         * @param in the byte to be processed.
-         * @exception InvalidOperationException if the MAC is not initialised.
-         */
+        /// <summary>Update the MAC with a single byte.</summary>
+        /// <param name="input">the input byte to be entered.</param>
         void Update(byte input);
 
-		/**
-         * @param in the array containing the input.
-         * @param inOff the index in the array the data begins at.
-         * @param len the length of the input starting at inOff.
-         * @exception InvalidOperationException if the MAC is not initialised.
-         * @exception DataLengthException if there isn't enough data in in.
-         */
-        void BlockUpdate(byte[] input, int inOff, int len);
+        /// <summary>Update the MAC with a block of bytes.</summary>
+        /// <param name="input">the byte array containing the data.</param>
+        /// <param name="inOff">the offset into the byte array where the data starts.</param>
+        /// <param name="inLen">the length of the data.</param>
+        void BlockUpdate(byte[] input, int inOff, int inLen);
 
-		/**
-         * Compute the final stage of the MAC writing the output to the out
-         * parameter.
-         * <p>
-         * doFinal leaves the MAC in the same state it was after the last init.
-         * </p>
-         * @param out the array the MAC is to be output to.
-         * @param outOff the offset into the out buffer the output is to start at.
-         * @exception DataLengthException if there isn't enough space in out.
-         * @exception InvalidOperationException if the MAC is not initialised.
-         */
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Update the MAC with a span of bytes.</summary>
+        /// <param name="input">the span containing the data.</param>
+        void BlockUpdate(ReadOnlySpan<byte> input);
+#endif
+
+        /// <summary>Perform final calculations, producing the result MAC.</summary>
+        /// <remarks>This call leaves the MAC reset.</remarks>
+        /// <param name="output">the byte array the MAC is to be copied into.</param>
+        /// <param name="outOff">the offset into the byte array the MAC is to start at.</param>
+        /// <returns>the number of bytes written</returns>
         int DoFinal(byte[] output, int outOff);
 
-		/**
-         * Reset the MAC. At the end of resetting the MAC should be in the
-         * in the same state it was after the last init (if there was one).
-         */
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Perform final calculations, producing the result MAC.</summary>
+        /// <remarks>This call leaves the MAC reset.</remarks>
+        /// <param name="output">the span the MAC is to be copied into.</param>
+        /// <returns>the number of bytes written</returns>
+        int DoFinal(Span<byte> output);
+#endif
+
+        /// <summary>Reset the MAC back to its initial state.</summary>
         void Reset();
     }
 }

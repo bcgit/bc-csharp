@@ -561,7 +561,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     digestOut.Flush();
 
 					// TODO
-					byte[] dig = DigestUtilities.DoFinal(digestOut.WriteDigest());
+					byte[] dig = DigestUtilities.DoFinal(digestOut.WriteDigest);
 					cOut.Write(dig, 0, dig.Length);
                 }
 

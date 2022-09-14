@@ -2,6 +2,7 @@
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -185,6 +186,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             TestInputTooShort();
             TestOutput();
             TestMonty();
+
+            SpanConsistencyTests();
         }
 
         [Test]
@@ -193,6 +196,23 @@ namespace Org.BouncyCastle.Crypto.Tests
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
+        private void SpanConsistencyTests()
+        {
+            // NOTE: .NET Core 2.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            // Span-based API consistency checks
+            byte[] data = new byte[16 + 32];
+            DigestTest.Random.NextBytes(data);
+
+            var digest = new Haraka256Digest();
+            for (int off = 0; off <= 16; ++off)
+            {
+                DigestTest.SpanConsistencyTest(this, digest, data, off, 32);
+            }
+#endif
         }
     }
 }

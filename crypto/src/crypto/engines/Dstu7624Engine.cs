@@ -268,7 +268,11 @@ namespace Org.BouncyCastle.Crypto.Engines
                 {
                 case 2:
                 {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    EncryptBlock_128(input.AsSpan(inOff), output.AsSpan(outOff));
+#else
                     EncryptBlock_128(input, inOff, output, outOff);
+#endif
                     break;
                 }
                 default:
@@ -288,6 +292,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     }
                     AddRoundKey(roundsAmount);
                     Pack.UInt64_To_LE(internalState, output, outOff);
+                    Array.Clear(internalState, 0, internalState.Length);
                     break;
                 }
                 }
@@ -299,7 +304,11 @@ namespace Org.BouncyCastle.Crypto.Engines
                 {
                 case 2:
                 {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    DecryptBlock_128(input.AsSpan(inOff), output.AsSpan(outOff));
+#else
                     DecryptBlock_128(input, inOff, output, outOff);
+#endif
                     break;
                 }
                 default:
@@ -319,6 +328,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     }
                     SubRoundKey(0);
                     Pack.UInt64_To_LE(internalState, output, outOff);
+                    Array.Clear(internalState, 0, internalState.Length);
                     break;
                 }
                 }
@@ -326,6 +336,84 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             return GetBlockSize();
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (workingKey == null)
+                throw new InvalidOperationException("Dstu7624Engine not initialised");
+
+            Check.DataLength(input, GetBlockSize(), "input buffer too short");
+            Check.OutputLength(output, GetBlockSize(), "output buffer too short");
+
+            if (forEncryption)
+            {
+                /* Encrypt */
+                switch (wordsInBlock)
+                {
+                case 2:
+                {
+                    EncryptBlock_128(input, output);
+                    break;
+                }
+                default:
+                {
+                    Pack.LE_To_UInt64(input, internalState);
+                    AddRoundKey(0);
+                    for (int round = 0;;)
+                    {
+                        EncryptionRound();
+
+                        if (++round == roundsAmount)
+                        {
+                            break;
+                        }
+
+                        XorRoundKey(round);
+                    }
+                    AddRoundKey(roundsAmount);
+                    Pack.UInt64_To_LE(internalState, output);
+                    Array.Clear(internalState, 0, internalState.Length);
+                    break;
+                }
+                }
+            }
+            else
+            {
+                /* Decrypt */
+                switch (wordsInBlock)
+                {
+                case 2:
+                {
+                    DecryptBlock_128(input, output);
+                    break;
+                }
+                default:
+                {
+                    Pack.LE_To_UInt64(input, internalState);
+                    SubRoundKey(roundsAmount);
+                    for (int round = roundsAmount;;)
+                    {
+                        DecryptionRound();
+
+                        if (--round == 0)
+                        {
+                            break;
+                        }
+    
+                        XorRoundKey(round);
+                    }
+                    SubRoundKey(0);
+                    Pack.UInt64_To_LE(internalState, output);
+                    Array.Clear(internalState, 0, internalState.Length);
+                    break;
+                }
+                }
+            }
+
+            return GetBlockSize();
+        }
+#endif
 
         private void EncryptionRound()
         {
@@ -341,6 +429,133 @@ namespace Org.BouncyCastle.Crypto.Engines
             InvSubBytes();
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void DecryptBlock_128(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            ulong c0 = Pack.LE_To_UInt64(input);
+            ulong c1 = Pack.LE_To_UInt64(input[8..]);
+
+            ulong[] roundKey = roundKeys[roundsAmount];
+            c0 -= roundKey[0];
+            c1 -= roundKey[1];
+
+            for (int round = roundsAmount; ;)
+            {
+                c0 = MixColumnInv(c0);
+                c1 = MixColumnInv(c1);
+
+                uint lo0 = (uint)c0, hi0 = (uint)(c0 >> 32);
+                uint lo1 = (uint)c1, hi1 = (uint)(c1 >> 32);
+
+                {
+                    byte t0 = T0[lo0 & 0xFF];
+                    byte t1 = T1[(lo0 >> 8) & 0xFF];
+                    byte t2 = T2[(lo0 >> 16) & 0xFF];
+                    byte t3 = T3[lo0 >> 24];
+                    lo0 = (uint)t0 | ((uint)t1 << 8) | ((uint)t2 << 16) | ((uint)t3 << 24);
+                    byte t4 = T0[hi1 & 0xFF];
+                    byte t5 = T1[(hi1 >> 8) & 0xFF];
+                    byte t6 = T2[(hi1 >> 16) & 0xFF];
+                    byte t7 = T3[hi1 >> 24];
+                    hi1 = (uint)t4 | ((uint)t5 << 8) | ((uint)t6 << 16) | ((uint)t7 << 24);
+                    c0 = (ulong)lo0 | ((ulong)hi1 << 32);
+                }
+
+                {
+                    byte t0 = T0[lo1 & 0xFF];
+                    byte t1 = T1[(lo1 >> 8) & 0xFF];
+                    byte t2 = T2[(lo1 >> 16) & 0xFF];
+                    byte t3 = T3[lo1 >> 24];
+                    lo1 = (uint)t0 | ((uint)t1 << 8) | ((uint)t2 << 16) | ((uint)t3 << 24);
+                    byte t4 = T0[hi0 & 0xFF];
+                    byte t5 = T1[(hi0 >> 8) & 0xFF];
+                    byte t6 = T2[(hi0 >> 16) & 0xFF];
+                    byte t7 = T3[hi0 >> 24];
+                    hi0 = (uint)t4 | ((uint)t5 << 8) | ((uint)t6 << 16) | ((uint)t7 << 24);
+                    c1 = (ulong)lo1 | ((ulong)hi0 << 32);
+                }
+
+                if (--round == 0)
+                {
+                    break;
+                }
+
+                roundKey = roundKeys[round];
+                c0 ^= roundKey[0];
+                c1 ^= roundKey[1];
+            }
+
+            roundKey = roundKeys[0];
+            c0 -= roundKey[0];
+            c1 -= roundKey[1];
+
+            Pack.UInt64_To_LE(c0, output);
+            Pack.UInt64_To_LE(c1, output[8..]);
+        }
+
+        private void EncryptBlock_128(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            ulong c0 = Pack.LE_To_UInt64(input);
+            ulong c1 = Pack.LE_To_UInt64(input[8..]);
+
+            ulong[] roundKey = roundKeys[0];
+            c0 += roundKey[0];
+            c1 += roundKey[1];
+
+            for (int round = 0; ;)
+            {
+                uint lo0 = (uint)c0, hi0 = (uint)(c0 >> 32);
+                uint lo1 = (uint)c1, hi1 = (uint)(c1 >> 32);
+
+                {
+                    byte t0 = S0[lo0 & 0xFF];
+                    byte t1 = S1[(lo0 >> 8) & 0xFF];
+                    byte t2 = S2[(lo0 >> 16) & 0xFF];
+                    byte t3 = S3[lo0 >> 24];
+                    lo0 = (uint)t0 | ((uint)t1 << 8) | ((uint)t2 << 16) | ((uint)t3 << 24);
+                    byte t4 = S0[hi1 & 0xFF];
+                    byte t5 = S1[(hi1 >> 8) & 0xFF];
+                    byte t6 = S2[(hi1 >> 16) & 0xFF];
+                    byte t7 = S3[hi1 >> 24];
+                    hi1 = (uint)t4 | ((uint)t5 << 8) | ((uint)t6 << 16) | ((uint)t7 << 24);
+                    c0 = (ulong)lo0 | ((ulong)hi1 << 32);
+                }
+
+                {
+                    byte t0 = S0[lo1 & 0xFF];
+                    byte t1 = S1[(lo1 >> 8) & 0xFF];
+                    byte t2 = S2[(lo1 >> 16) & 0xFF];
+                    byte t3 = S3[lo1 >> 24];
+                    lo1 = (uint)t0 | ((uint)t1 << 8) | ((uint)t2 << 16) | ((uint)t3 << 24);
+                    byte t4 = S0[hi0 & 0xFF];
+                    byte t5 = S1[(hi0 >> 8) & 0xFF];
+                    byte t6 = S2[(hi0 >> 16) & 0xFF];
+                    byte t7 = S3[hi0 >> 24];
+                    hi0 = (uint)t4 | ((uint)t5 << 8) | ((uint)t6 << 16) | ((uint)t7 << 24);
+                    c1 = (ulong)lo1 | ((ulong)hi0 << 32);
+                }
+
+                c0 = MixColumn(c0);
+                c1 = MixColumn(c1);
+
+                if (++round == roundsAmount)
+                {
+                    break;
+                }
+
+                roundKey = roundKeys[round];
+                c0 ^= roundKey[0];
+                c1 ^= roundKey[1];
+            }
+
+            roundKey = roundKeys[roundsAmount];
+            c0 += roundKey[0];
+            c1 += roundKey[1];
+
+            Pack.UInt64_To_LE(c0, output);
+            Pack.UInt64_To_LE(c1, output[8..]);
+        }
+#else
         private void DecryptBlock_128(byte[] input, int inOff, byte[] output, int outOff)
         {
             ulong c0 = Pack.LE_To_UInt64(input, inOff);
@@ -466,6 +681,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt64_To_LE(c0, output, outOff);
             Pack.UInt64_To_LE(c1, output, outOff + 8);
         }
+#endif
 
         private void SubBytes()
         {
@@ -900,7 +1116,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        #region TABLES AND S-BOXES
+#region TABLES AND S-BOXES
 
         private const ulong mdsMatrix = 0x0407060801050101UL;
         private const ulong mdsInvMatrix = 0xCAD7492FA87695ADUL;
@@ -1057,7 +1273,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             0xf3, 0x83, 0x28, 0x32, 0x45, 0x1e, 0xa4, 0xd3, 0xa2, 0x46, 0x6e, 0x9c, 0xdd, 0x63, 0xd4, 0x9d
         };
 
-        #endregion
+#endregion
 
         public virtual string AlgorithmName
         {
@@ -1067,16 +1283,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         public virtual int GetBlockSize()
         {
             return wordsInBlock << 3;
-        }
-
-        public virtual bool IsPartialBlockOkay
-        {
-            get { return false; }
-        }
-
-        public virtual void Reset()
-        {
-            Array.Clear(internalState, 0, internalState.Length);
         }
     }
 }

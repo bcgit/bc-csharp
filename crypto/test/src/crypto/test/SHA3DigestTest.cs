@@ -40,6 +40,8 @@ namespace Org.BouncyCastle.Crypto.Tests
         public override void PerformTest()
         {
             TestVectors();
+
+            DigestTest.SpanConsistencyTests(this, new Sha3Digest());
         }
 
         public void TestVectors()

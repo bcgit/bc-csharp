@@ -246,44 +246,31 @@ namespace Org.BouncyCastle.Cms
 				_out.WriteByte(value);
 			}
 
-#if PORTABLE
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
  				{
-					ImplClose();
+                    Platform.Dispose(_out);
+
+                    // TODO Parent context(s) should really be closed explicitly
+
+                    _eiGen.Close();
+
+                    if (_outer.unprotectedAttributeGenerator != null)
+                    {
+                        Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(
+                            new Dictionary<CmsAttributeTableParameter, object>());
+
+                        Asn1Set unprotectedAttrs = new BerSet(attrTable.ToAsn1EncodableVector());
+
+                        _envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
+                    }
+
+                    _envGen.Close();
+                    _cGen.Close();
                 }
                 base.Dispose(disposing);
             }
-#else
-			public override void Close()
-			{
-				ImplClose();
-				base.Close();
-			}
-#endif
-
-			private void ImplClose()
-            {
-				Platform.Dispose(_out);
-
-				// TODO Parent context(s) should really be closed explicitly
-
-				_eiGen.Close();
-
-				if (_outer.unprotectedAttributeGenerator != null)
-				{
-					Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(
-						new Dictionary<CmsAttributeTableParameter, object>());
-
-					Asn1Set unprotectedAttrs = new BerSet(attrTable.ToAsn1EncodableVector());
-
-					_envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
-				}
-
-				_envGen.Close();
-				_cGen.Close();
-			}
 		}
 	}
 }

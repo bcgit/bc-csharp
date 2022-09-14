@@ -22,6 +22,9 @@ namespace Org.BouncyCastle.Crypto.Macs
 
 		public virtual int DoFinal(byte[] output, int outOff)
 		{
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return DoFinal(output.AsSpan(outOff));
+#else
 			// Execute the Post-Processing Phase
 			for (int r = 1; r < 25; r++)
 			{
@@ -68,7 +71,60 @@ namespace Org.BouncyCastle.Crypto.Macs
 			Reset();
 
 			return M.Length;
+#endif
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int DoFinal(Span<byte> output)
+        {
+			// Execute the Post-Processing Phase
+			for (int r = 1; r < 25; r++)
+			{
+				s = P[(s + P[n & 0xff]) & 0xff];
+
+				x4 = P[(x4 + x3 + r) & 0xff];
+				x3 = P[(x3 + x2 + r) & 0xff];
+				x2 = P[(x2 + x1 + r) & 0xff];
+				x1 = P[(x1 + s + r) & 0xff];
+				T[g & 0x1f] = (byte)(T[g & 0x1f] ^ x1);
+				T[(g + 1) & 0x1f] = (byte)(T[(g + 1) & 0x1f] ^ x2);
+				T[(g + 2) & 0x1f] = (byte)(T[(g + 2) & 0x1f] ^ x3);
+				T[(g + 3) & 0x1f] = (byte)(T[(g + 3) & 0x1f] ^ x4);
+				g = (byte)((g + 4) & 0x1f);
+
+				byte temp = P[n & 0xff];
+				P[n & 0xff] = P[s & 0xff];
+				P[s & 0xff] = temp;
+				n = (byte)((n + 1) & 0xff);
+			}
+
+			// Input T to the IV-phase of the VMPC KSA
+			for (int m = 0; m < 768; m++)
+			{
+				s = P[(s + P[m & 0xff] + T[m & 0x1f]) & 0xff];
+				byte temp = P[m & 0xff];
+				P[m & 0xff] = P[s & 0xff];
+				P[s & 0xff] = temp;
+			}
+
+			// Store 20 new outputs of the VMPC Stream Cipher input table M
+			byte[] M = new byte[20];
+			for (int i = 0; i < 20; i++)
+			{
+				s = P[(s + P[i & 0xff]) & 0xff];
+				M[i] = P[(P[(P[s & 0xff]) & 0xff] + 1) & 0xff];
+
+				byte temp = P[i & 0xff];
+				P[i & 0xff] = P[s & 0xff];
+				P[s & 0xff] = temp;
+			}
+
+			M.CopyTo(output);
+			Reset();
+
+			return M.Length;
+		}
+#endif
 
 		public virtual string AlgorithmName
 		{
@@ -159,15 +215,24 @@ namespace Org.BouncyCastle.Crypto.Macs
 			n = (byte) ((n + 1) & 0xff);
 		}
 
-		public virtual void BlockUpdate(byte[] input, int inOff, int len)
+		public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
 		{
-			if ((inOff + len) > input.Length)
-				throw new DataLengthException("input buffer too short");
+			Check.DataLength(input, inOff, inLen, "input buffer too short");
 
-			for (int i = 0; i < len; i++)
+			for (int i = 0; i < inLen; i++)
 			{
 				Update(input[inOff + i]);
 			}
 		}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+			for (int i = 0; i < input.Length; i++)
+			{
+				Update(input[i]);
+			}
+		}
+#endif
 	}
 }

@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     * implements a Output-FeedBack (OFB) mode on top of a simple cipher.
     */
     public class OfbBlockCipher
-		: IBlockCipher
+		: IBlockCipherMode
     {
         private byte[]	IV;
         private byte[]	ofbV;
@@ -41,10 +41,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         *
         * @return the underlying block cipher that we are wrapping.
         */
-        public IBlockCipher GetUnderlyingCipher()
-        {
-            return cipher;
-        }
+        public IBlockCipher UnderlyingCipher => cipher;
 
         /**
         * Initialise the cipher and, possibly, the initialisation vector (IV).
@@ -61,9 +58,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             bool				forEncryption, //ignored by this OFB mode
             ICipherParameters	parameters)
         {
-			if (parameters is ParametersWithIV)
+			if (parameters is ParametersWithIV ivParam)
             {
-                ParametersWithIV ivParam = (ParametersWithIV)parameters;
                 byte[] iv = ivParam.GetIV();
 
                 if (iv.Length < IV.Length)
@@ -118,34 +114,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             return blockSize;
         }
 
-        /**
-        * Process one block of input from the array in and write it to
-        * the out array.
-        *
-        * @param in the array containing the input data.
-        * @param inOff offset into the in array the data starts at.
-        * @param out the array the output data will be copied into.
-        * @param outOff the offset into the out array the output will start at.
-        * @exception DataLengthException if there isn't enough data in in, or
-        * space in out.
-        * @exception InvalidOperationException if the cipher isn't initialised.
-        * @return the number of bytes processed and produced.
-        */
-        public int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+        public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
-            if ((inOff + blockSize) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-
-            if ((outOff + blockSize) > output.Length)
-            {
-                throw new DataLengthException("output buffer too short");
-            }
+            Check.DataLength(input, inOff, blockSize, "input buffer too short");
+            Check.OutputLength(output, outOff, blockSize, "output buffer too short");
 
             cipher.ProcessBlock(ofbV, 0, ofbOutV, 0);
 
@@ -167,6 +139,33 @@ namespace Org.BouncyCastle.Crypto.Modes
             return blockSize;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            Check.DataLength(input, blockSize, "input buffer too short");
+            Check.OutputLength(output, blockSize, "output buffer too short");
+
+            cipher.ProcessBlock(ofbV, ofbOutV);
+
+            //
+            // XOR the ofbV with the plaintext producing the cipher text (and
+            // the next input block).
+            //
+            for (int i = 0; i < blockSize; i++)
+            {
+                output[i] = (byte)(ofbOutV[i] ^ input[i]);
+            }
+
+            //
+            // change over the input block.
+            //
+            Array.Copy(ofbV, blockSize, ofbV, 0, ofbV.Length - blockSize);
+            Array.Copy(ofbOutV, 0, ofbV, ofbV.Length - blockSize, blockSize);
+
+            return blockSize;
+        }
+#endif
+
         /**
         * reset the feedback vector back to the IV and reset the underlying
         * cipher.
@@ -174,9 +173,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         public void Reset()
         {
             Array.Copy(IV, 0, ofbV, 0, IV.Length);
-
-            cipher.Reset();
         }
     }
-
 }

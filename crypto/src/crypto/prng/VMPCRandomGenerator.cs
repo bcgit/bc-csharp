@@ -110,5 +110,23 @@ namespace Org.BouncyCastle.Crypto.Prng
                 }
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void NextBytes(Span<byte> bytes)
+        {
+            lock (P) 
+            {
+                for (int i = 0; i != bytes.Length; i++) 
+                {
+                    s = P[(s + P[n & 0xff]) & 0xff];
+                    bytes[i] = P[(P[(P[s & 0xff]) & 0xff] + 1) & 0xff];
+                    byte temp = P[n & 0xff];
+                    P[n & 0xff] = P[s & 0xff];
+                    P[s & 0xff] = temp;
+                    n = (byte) ((n + 1) & 0xff);
+                }
+            }
+        }
+#endif
     }
 }

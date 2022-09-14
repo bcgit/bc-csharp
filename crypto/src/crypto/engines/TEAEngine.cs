@@ -42,11 +42,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			get { return "TEA"; }
 		}
 
-        public virtual bool IsPartialBlockOkay
-		{
-			get { return false; }
-		}
-
         public virtual int GetBlockSize()
 		{
 			return block_size;
@@ -60,11 +55,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @exception ArgumentException if the params argument is
 		* inappropriate.
 		*/
-        public virtual void Init(
-			bool				forEncryption,
-			ICipherParameters	parameters)
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
 		{
-			if (!(parameters is KeyParameter))
+			if (!(parameters is KeyParameter keyParameter))
 			{
 				throw new ArgumentException("invalid parameter passed to TEA init - "
 					+ Platform.GetTypeName(parameters));
@@ -73,16 +66,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 			_forEncryption = forEncryption;
 			_initialised = true;
 
-			KeyParameter p = (KeyParameter) parameters;
-
-			setKey(p.GetKey());
+			SetKey(keyParameter.GetKey());
 		}
 
-        public virtual int ProcessBlock(
-			byte[]  inBytes,
-			int     inOff,
-			byte[]  outBytes,
-			int     outOff)
+        public virtual int ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
 		{
 			if (!_initialised)
 				throw new InvalidOperationException(AlgorithmName + " not initialised");
@@ -90,22 +77,38 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(inBytes, inOff, block_size, "input buffer too short");
             Check.OutputLength(outBytes, outOff, block_size, "output buffer too short");
 
-            return _forEncryption
-				?	encryptBlock(inBytes, inOff, outBytes, outOff)
-				:	decryptBlock(inBytes, inOff, outBytes, outOff);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return _forEncryption
+				? EncryptBlock(inBytes.AsSpan(inOff), outBytes.AsSpan(outOff))
+				: DecryptBlock(inBytes.AsSpan(inOff), outBytes.AsSpan(outOff));
+#else
+			return _forEncryption
+				? EncryptBlock(inBytes, inOff, outBytes, outOff)
+				: DecryptBlock(inBytes, inOff, outBytes, outOff);
+#endif
 		}
 
-        public virtual void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
 		{
+			if (!_initialised)
+				throw new InvalidOperationException(AlgorithmName + " not initialised");
+
+			Check.DataLength(input, block_size, "input buffer too short");
+			Check.OutputLength(output, block_size, "output buffer too short");
+
+			return _forEncryption
+				? EncryptBlock(input, output)
+				: DecryptBlock(input, output);
 		}
+#endif
 
 		/**
 		* Re-key the cipher.
 		*
 		* @param  key  the key to be used
 		*/
-		private void setKey(
-			byte[] key)
+		private void SetKey(byte[] key)
 		{
 			_a = Pack.BE_To_UInt32(key, 0);
 			_b = Pack.BE_To_UInt32(key, 4);
@@ -113,18 +116,57 @@ namespace Org.BouncyCastle.Crypto.Engines
 			_d = Pack.BE_To_UInt32(key, 12);
 		}
 
-		private int encryptBlock(
-			byte[]	inBytes,
-			int		inOff,
-			byte[]	outBytes,
-			int		outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+		private int EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			// Pack bytes into integers
+			uint v0 = Pack.BE_To_UInt32(input);
+			uint v1 = Pack.BE_To_UInt32(input[4..]);
+
+			uint sum = 0;
+
+			for (int i = 0; i != rounds; i++)
+			{
+				sum += delta;
+				v0  += ((v1 << 4) + _a) ^ (v1 + sum) ^ ((v1 >> 5) + _b);
+				v1  += ((v0 << 4) + _c) ^ (v0 + sum) ^ ((v0 >> 5) + _d);
+			}
+
+			Pack.UInt32_To_BE(v0, output);
+			Pack.UInt32_To_BE(v1, output[4..]);
+
+			return block_size;
+		}
+
+		private int DecryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		{
+			// Pack bytes into integers
+			uint v0 = Pack.BE_To_UInt32(input);
+			uint v1 = Pack.BE_To_UInt32(input[4..]);
+
+			uint sum = d_sum;
+
+			for (int i = 0; i != rounds; i++)
+			{
+				v1  -= ((v0 << 4) + _c) ^ (v0 + sum) ^ ((v0 >> 5) + _d);
+				v0  -= ((v1 << 4) + _a) ^ (v1 + sum) ^ ((v1 >> 5) + _b);
+				sum -= delta;
+			}
+
+			Pack.UInt32_To_BE(v0, output);
+			Pack.UInt32_To_BE(v1, output[4..]);
+
+			return block_size;
+		}
+#else
+		private int EncryptBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
 		{
 			// Pack bytes into integers
 			uint v0 = Pack.BE_To_UInt32(inBytes, inOff);
 			uint v1 = Pack.BE_To_UInt32(inBytes, inOff + 4);
-	        
+
 			uint sum = 0;
-	        
+
 			for (int i = 0; i != rounds; i++)
 			{
 				sum += delta;
@@ -138,11 +180,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return block_size;
 		}
 
-		private int decryptBlock(
-			byte[]	inBytes,
-			int		inOff,
-			byte[]	outBytes,
-			int		outOff)
+		private int DecryptBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
 		{
 			// Pack bytes into integers
 			uint v0 = Pack.BE_To_UInt32(inBytes, inOff);
@@ -162,5 +200,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 			return block_size;
 		}
+#endif
 	}
 }

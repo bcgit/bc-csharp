@@ -107,15 +107,16 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	    public int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput,
 			bool predictionResistant)
 	    {
-	        int numberOfBits = outputLen * 8;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			return Generate(output.AsSpan(outputOff, outputLen), additionalInput, predictionResistant);
+#else
+			int numberOfBits = outputLen * 8;
 
             if (numberOfBits > MAX_BITS_REQUEST)
 	            throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
 
             if (mReseedCounter > RESEED_MAX)
-	        {
 	            return -1;
-	        }
 
             if (predictionResistant)
 	        {
@@ -159,14 +160,69 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        Array.Copy(rv, 0, output, outputOff, outputLen);
 
             return numberOfBits;
+#endif
 	    }
 
-	    /**
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Generate(Span<byte> output, byte[] additionalInput, bool predictionResistant)
+        {
+			int outputLen = output.Length;
+            int numberOfBits = outputLen * 8;
+
+            if (numberOfBits > MAX_BITS_REQUEST)
+                throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
+
+            if (mReseedCounter > RESEED_MAX)
+                return -1;
+
+            if (predictionResistant)
+            {
+                Reseed(additionalInput);
+                additionalInput = null;
+            }
+
+            // 2.
+            if (additionalInput != null)
+            {
+                hmac_DRBG_Update(additionalInput);
+            }
+
+            // 3.
+            int m = outputLen / mV.Length;
+
+            mHMac.Init(new KeyParameter(mK));
+
+            for (int i = 0; i < m; i++)
+            {
+                mHMac.BlockUpdate(mV, 0, mV.Length);
+                mHMac.DoFinal(mV, 0);
+
+				mV.CopyTo(output[(i * mV.Length)..]);
+            }
+
+			int remaining = outputLen - m * mV.Length;
+            if (remaining > 0)
+            {
+                mHMac.BlockUpdate(mV, 0, mV.Length);
+                mHMac.DoFinal(mV, 0);
+
+				mV[..remaining].CopyTo(output[(m * mV.Length)..]);
+            }
+
+            hmac_DRBG_Update(additionalInput);
+
+            mReseedCounter++;
+
+            return numberOfBits;
+        }
+#endif
+
+        /**
 	      * Reseed the DRBG.
 	      *
 	      * @param additionalInput additional input to be added to the DRBG in this step.
 	      */
-	    public void Reseed(byte[] additionalInput)
+        public void Reseed(byte[] additionalInput)
 	    {
 	        byte[] entropy = GetEntropy();
 	        byte[] seedMaterial = Arrays.Concatenate(entropy, additionalInput);

@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
@@ -63,11 +64,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return BLOCK_SIZE;
         }
 
-        public override int ProcessBlock(
-            byte[]	input,
-            int		inOff,
-            byte[]	output,
-            int		outOff)
+        public override int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey1 == null)
                 throw new InvalidOperationException("DESede engine not initialised");
@@ -75,26 +72,58 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(input, inOff, BLOCK_SIZE, "input buffer too short");
             Check.OutputLength(output, outOff, BLOCK_SIZE, "output buffer too short");
 
-            byte[] temp = new byte[BLOCK_SIZE];
+            uint hi32 = Pack.BE_To_UInt32(input, inOff);
+            uint lo32 = Pack.BE_To_UInt32(input, inOff + 4);
 
             if (forEncryption)
             {
-                DesFunc(workingKey1, input, inOff, temp, 0);
-                DesFunc(workingKey2, temp, 0, temp, 0);
-                DesFunc(workingKey3, temp, 0, output, outOff);
+                DesFunc(workingKey1, ref hi32, ref lo32);
+                DesFunc(workingKey2, ref hi32, ref lo32);
+                DesFunc(workingKey3, ref hi32, ref lo32);
             }
             else
             {
-                DesFunc(workingKey3, input, inOff, temp, 0);
-                DesFunc(workingKey2, temp, 0, temp, 0);
-                DesFunc(workingKey1, temp, 0, output, outOff);
+                DesFunc(workingKey3, ref hi32, ref lo32);
+                DesFunc(workingKey2, ref hi32, ref lo32);
+                DesFunc(workingKey1, ref hi32, ref lo32);
             }
+
+            Pack.UInt32_To_BE(hi32, output, outOff);
+            Pack.UInt32_To_BE(lo32, output, outOff + 4);
 
             return BLOCK_SIZE;
         }
 
-        public override void Reset()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            if (workingKey1 == null)
+                throw new InvalidOperationException("DESede engine not initialised");
+
+            Check.DataLength(input, BLOCK_SIZE, "input buffer too short");
+            Check.OutputLength(output, BLOCK_SIZE, "output buffer too short");
+
+            uint hi32 = Pack.BE_To_UInt32(input);
+            uint lo32 = Pack.BE_To_UInt32(input[4..]);
+
+            if (forEncryption)
+            {
+                DesFunc(workingKey1, ref hi32, ref lo32);
+                DesFunc(workingKey2, ref hi32, ref lo32);
+                DesFunc(workingKey3, ref hi32, ref lo32);
+            }
+            else
+            {
+                DesFunc(workingKey3, ref hi32, ref lo32);
+                DesFunc(workingKey2, ref hi32, ref lo32);
+                DesFunc(workingKey1, ref hi32, ref lo32);
+            }
+
+            Pack.UInt32_To_BE(hi32, output);
+            Pack.UInt32_To_BE(lo32, output[4..]);
+
+            return BLOCK_SIZE;
         }
+#endif
     }
 }

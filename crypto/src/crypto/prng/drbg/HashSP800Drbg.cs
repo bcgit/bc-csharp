@@ -104,20 +104,23 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	    public int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput,
 			bool predictionResistant)
 	    {
-	        // 1. If reseed_counter > reseed_interval, then return an indication that a
-	        // reseed is required.
-	        // 2. If (additional_input != Null), then do
-	        // 2.1 w = Hash (0x02 || V || additional_input).
-	        // 2.2 V = (V + w) mod 2^seedlen
-	        // .
-	        // 3. (returned_bits) = Hashgen (requested_number_of_bits, V).
-	        // 4. H = Hash (0x03 || V).
-	        // 5. V = (V + H + C + reseed_counter) mod 2^seedlen
-	        // .
-	        // 6. reseed_counter = reseed_counter + 1.
-	        // 7. Return SUCCESS, returned_bits, and the new values of V, C, and
-	        // reseed_counter for the new_working_state.
-	        int numberOfBits = outputLen * 8;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Generate(output.AsSpan(outputOff, outputLen), additionalInput, predictionResistant);
+#else
+			// 1. If reseed_counter > reseed_interval, then return an indication that a
+			// reseed is required.
+			// 2. If (additional_input != Null), then do
+			// 2.1 w = Hash (0x02 || V || additional_input).
+			// 2.2 V = (V + w) mod 2^seedlen
+			// .
+			// 3. (returned_bits) = Hashgen (requested_number_of_bits, V).
+			// 4. H = Hash (0x03 || V).
+			// 5. V = (V + H + C + reseed_counter) mod 2^seedlen
+			// .
+			// 6. reseed_counter = reseed_counter + 1.
+			// 7. Return SUCCESS, returned_bits, and the new values of V, C, and
+			// reseed_counter for the new_working_state.
+			int numberOfBits = outputLen * 8;
 
 	        if (numberOfBits > MAX_BITS_REQUEST)
 	            throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
@@ -137,7 +140,6 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	            byte[] newInput = new byte[1 + mV.Length + additionalInput.Length];
 	            newInput[0] = 0x02;
 	            Array.Copy(mV, 0, newInput, 1, mV.Length);
-	            // TODO: inOff / inLength
 	            Array.Copy(additionalInput, 0, newInput, 1 + mV.Length, additionalInput.Length);
 	            byte[] w = Hash(newInput);
 
@@ -170,9 +172,82 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	        Array.Copy(rv, 0, output, outputOff, outputLen);
 
 	        return numberOfBits;
-	    }
+#endif
+        }
 
-	    private byte[] GetEntropy()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int Generate(Span<byte> output, byte[] additionalInput, bool predictionResistant)
+		{
+			// 1. If reseed_counter > reseed_interval, then return an indication that a
+			// reseed is required.
+			// 2. If (additional_input != Null), then do
+			// 2.1 w = Hash (0x02 || V || additional_input).
+			// 2.2 V = (V + w) mod 2^seedlen
+			// .
+			// 3. (returned_bits) = Hashgen (requested_number_of_bits, V).
+			// 4. H = Hash (0x03 || V).
+			// 5. V = (V + H + C + reseed_counter) mod 2^seedlen
+			// .
+			// 6. reseed_counter = reseed_counter + 1.
+			// 7. Return SUCCESS, returned_bits, and the new values of V, C, and
+			// reseed_counter for the new_working_state.
+			int outputLen = output.Length;
+            int numberOfBits = outputLen * 8;
+
+            if (numberOfBits > MAX_BITS_REQUEST)
+                throw new ArgumentException("Number of bits per request limited to " + MAX_BITS_REQUEST, "output");
+
+            if (mReseedCounter > RESEED_MAX)
+                return -1;
+
+            if (predictionResistant)
+            {
+                Reseed(additionalInput);
+                additionalInput = null;
+            }
+
+            // 2.
+            if (additionalInput != null)
+            {
+                byte[] newInput = new byte[1 + mV.Length + additionalInput.Length];
+                newInput[0] = 0x02;
+                Array.Copy(mV, 0, newInput, 1, mV.Length);
+                Array.Copy(additionalInput, 0, newInput, 1 + mV.Length, additionalInput.Length);
+                byte[] w = Hash(newInput);
+
+                AddTo(mV, w);
+            }
+
+            // 3.
+            byte[] rv = hashgen(mV, numberOfBits);
+
+            // 4.
+            byte[] subH = new byte[mV.Length + 1];
+            Array.Copy(mV, 0, subH, 1, mV.Length);
+            subH[0] = 0x03;
+
+            byte[] H = Hash(subH);
+
+            // 5.
+            AddTo(mV, H);
+            AddTo(mV, mC);
+            byte[] c = new byte[4];
+            c[0] = (byte)(mReseedCounter >> 24);
+            c[1] = (byte)(mReseedCounter >> 16);
+            c[2] = (byte)(mReseedCounter >> 8);
+            c[3] = (byte)mReseedCounter;
+
+            AddTo(mV, c);
+
+            mReseedCounter++;
+
+			rv.CopyTo(output);
+
+            return numberOfBits;
+        }
+#endif
+
+        private byte[] GetEntropy()
 	    {
 	        byte[] entropy = mEntropySource.GetEntropy();
 	        if (entropy.Length < (mSecurityStrength + 7) / 8)

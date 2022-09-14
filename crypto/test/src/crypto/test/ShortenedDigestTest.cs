@@ -74,6 +74,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 			{
 				// expected
 			}
+
+			DigestTest.SpanConsistencyTests(this, new ShortenedDigest(new Sha1Digest(), 10));
 		}
 
 		public override string Name

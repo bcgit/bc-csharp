@@ -41,6 +41,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// <param name="len">The number of bytes to be processed.</param>
         void ProcessAadBytes(byte[] inBytes, int inOff, int len);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add a span of bytes to the associated data check.</summary>
+        /// <remarks>If the implementation supports it, this will be an online operation and will not retain the associated data.</remarks>
+        /// <param name="input">the span containing the data.</param>
+        void ProcessAadBytes(ReadOnlySpan<byte> input);
+#endif
+
         /**
 		* Encrypt/decrypt a single byte.
 		*
@@ -51,6 +58,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 		* @exception DataLengthException if the output buffer is too small.
 		*/
         int ProcessByte(byte input, byte[] outBytes, int outOff);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int ProcessByte(byte input, Span<byte> output);
+#endif
 
         /**
         * Process a block of bytes from in putting the result into out.
@@ -65,6 +76,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         */
         int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output);
+#endif
+
         /**
         * Finish the operation either appending or verifying the MAC at the end of the data.
         *
@@ -75,6 +90,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         * @throws InvalidCipherTextException if the MAC fails to match.
         */
         int DoFinal(byte[] outBytes, int outOff);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        int DoFinal(Span<byte> output);
+#endif
 
         /**
         * Return the value of the MAC associated with the last stream processed.

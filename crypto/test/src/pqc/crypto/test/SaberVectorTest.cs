@@ -31,15 +31,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     SABERParameters.firesaberkem256r3,
                 };
 
-            Assert.AreEqual(128, SABERParameters.lightsaberkem128r3.GetDefaultKeySize());
-            Assert.AreEqual(128, SABERParameters.saberkem128r3.GetDefaultKeySize());
-            Assert.AreEqual(128, SABERParameters.firesaberkem128r3.GetDefaultKeySize());
-            Assert.AreEqual(192, SABERParameters.lightsaberkem192r3.GetDefaultKeySize());
-            Assert.AreEqual(192, SABERParameters.saberkem192r3.GetDefaultKeySize());
-            Assert.AreEqual(192, SABERParameters.firesaberkem192r3.GetDefaultKeySize());
-            Assert.AreEqual(256, SABERParameters.lightsaberkem256r3.GetDefaultKeySize());
-            Assert.AreEqual(256, SABERParameters.saberkem256r3.GetDefaultKeySize());
-            Assert.AreEqual(256, SABERParameters.firesaberkem256r3.GetDefaultKeySize());
+            Assert.AreEqual(128, SABERParameters.lightsaberkem128r3.DefaultKeySize);
+            Assert.AreEqual(128, SABERParameters.saberkem128r3.DefaultKeySize);
+            Assert.AreEqual(128, SABERParameters.firesaberkem128r3.DefaultKeySize);
+            Assert.AreEqual(192, SABERParameters.lightsaberkem192r3.DefaultKeySize);
+            Assert.AreEqual(192, SABERParameters.saberkem192r3.DefaultKeySize);
+            Assert.AreEqual(192, SABERParameters.firesaberkem192r3.DefaultKeySize);
+            Assert.AreEqual(256, SABERParameters.lightsaberkem256r3.DefaultKeySize);
+            Assert.AreEqual(256, SABERParameters.saberkem256r3.DefaultKeySize);
+            Assert.AreEqual(256, SABERParameters.firesaberkem256r3.DefaultKeySize);
         }
 
         [Test]
@@ -59,6 +59,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 "firesaber.rsp"
             };
 
+            TestSampler sampler = new TestSampler();
             for (int fileIndex = 0; fileIndex != files.Length; fileIndex++)
             {
                 String name = files[fileIndex];
@@ -78,7 +79,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                     if (line.Length == 0)
                     {
-                        if (buf.Count > 0)
+                        if (buf.Count > 0 && !sampler.SkipTest(buf["count"]))
                         {
                             String count = buf["count"];
 
@@ -118,14 +119,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             byte[] generated_cipher_text = secWenc.GetEncapsulation();
                             Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
                             byte[] secret = secWenc.GetSecret();
-                            Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc key");
+                            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc key");
 
                             // KEM Dec
                             SABERKEMExtractor SABERDecCipher = new SABERKEMExtractor(privParams);
 
                             byte[] dec_key = SABERDecCipher.ExtractSecret(generated_cipher_text);
 
-                            Assert.True(Arrays.AreEqual(dec_key, ss), name + " " + count + ": kem_dec ss");
+                            Assert.True(parameters.DefaultKeySize == dec_key.Length * 8);
+                            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), name + " " + count + ": kem_dec ss");
                             Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key");
                         }
 

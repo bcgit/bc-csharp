@@ -55,6 +55,15 @@ namespace Org.BouncyCastle.Crypto.Digests
             return base.DoFinal(output,  outOff);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int DoFinal(Span<byte> output)
+        {
+            AbsorbBits(0x02, 2);
+
+            return base.DoFinal(output);
+        }
+#endif
+
         /*
          * TODO Possible API change to support partial-byte suffixes.
          */

@@ -184,11 +184,7 @@ namespace Org.BouncyCastle.Bcpg
             else
             {
                 PartialInputStream pis = new PartialInputStream(this, partial, bodyLen);
-#if PORTABLE
-                Stream buf = pis;
-#else
 				Stream buf = new BufferedStream(pis);
-#endif
                 objStream = new BcpgInputStream(buf);
             }
 
@@ -251,7 +247,6 @@ namespace Org.BouncyCastle.Bcpg
             return tag;
         }
 
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -260,13 +255,6 @@ namespace Org.BouncyCastle.Bcpg
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-		{
-            Platform.Dispose(m_in);
-			base.Close();
-		}
-#endif
 
 		/// <summary>
 		/// A stream that overlays our input stream, allowing the user to only read a segment of it.

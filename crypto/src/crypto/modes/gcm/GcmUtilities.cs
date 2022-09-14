@@ -45,6 +45,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             if (Ssse3.IsSupported && BitConverter.IsLittleEndian && Unsafe.SizeOf<Vector128<byte>>() == 16)
             {
                 var X = Vector128.Create(x0, x1).AsByte();
+                // TODO[Arm] System.Runtime.Intrinsics.Arm.AdvSimd.Reverse8
                 var Z = Ssse3.Shuffle(X, EndianMask);
                 Unsafe.WriteUnaligned(ref z[0], Z);
                 return;
@@ -273,6 +274,29 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             z.n0 = x.n0 ^ y.n0;
             z.n1 = x.n1 ^ y.n1;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void Xor(Span<byte> x, ReadOnlySpan<byte> y)
+        {
+            int i = 0;
+            do
+            {
+                x[i] ^= y[i]; ++i;
+                x[i] ^= y[i]; ++i;
+                x[i] ^= y[i]; ++i;
+                x[i] ^= y[i]; ++i;
+            }
+            while (i < 16);
+        }
+
+        internal static void Xor(Span<byte> x, ReadOnlySpan<byte> y, int len)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                x[i] ^= y[i];
+            }
+        }
+#endif
 
         private static ulong ImplMul64(ulong x, ulong y)
         {

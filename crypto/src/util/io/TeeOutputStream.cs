@@ -18,7 +18,6 @@ namespace Org.BouncyCastle.Utilities.IO
 			this.tee = tee;
 		}
 
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -28,14 +27,6 @@ namespace Org.BouncyCastle.Utilities.IO
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-		{
-            Platform.Dispose(output);
-            Platform.Dispose(tee);
-            base.Close();
-		}
-#endif
 
         public override void Write(byte[] buffer, int offset, int count)
 		{
@@ -43,7 +34,15 @@ namespace Org.BouncyCastle.Utilities.IO
 			tee.Write(buffer, offset, count);
 		}
 
-		public override void WriteByte(byte value)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            output.Write(buffer);
+            tee.Write(buffer);
+        }
+#endif
+
+        public override void WriteByte(byte value)
 		{
 			output.WriteByte(value);
 			tee.WriteByte(value);

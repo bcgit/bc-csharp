@@ -88,34 +88,28 @@ namespace Org.BouncyCastle.Crypto.Signers
             Array.Clear(block, 0, block.Length);
         }
 
-        /**
-         * update the internal digest with the byte b
-         */
         public virtual void Update(byte b)
         {
             digest.Update(b);
         }
 
-        /**
-         * update the internal digest with the byte array in
-         */
-        public virtual void BlockUpdate(byte[] input, int off, int len)
+        public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
-            digest.BlockUpdate(input, off, len);
+            digest.BlockUpdate(input, inOff, inLen);
         }
 
-        /**
-         * reset the internal state
-         */
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            digest.BlockUpdate(input);
+        }
+#endif
+
         public virtual void Reset()
         {
             digest.Reset();
         }
 
-        /**
-         * generate a signature for the loaded message using the key we were
-         * initialised with.
-         */
         public virtual byte[] GenerateSignature()
         {
             CreateSignatureBlock();
@@ -156,10 +150,6 @@ namespace Org.BouncyCastle.Crypto.Signers
             block[delta - 1] = (byte)0xba;
         }
 
-        /**
-         * return true if the signature represents a ISO9796-2 signature
-         * for the passed in message.
-         */
         public virtual bool VerifySignature(byte[] signature)
         {
             try

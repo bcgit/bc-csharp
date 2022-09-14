@@ -55,6 +55,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             buffer.Write(buf, off, len);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
+        {
+            buffer.Write(input);
+        }
+#endif
+
         public virtual byte[] GenerateSignature()
         {
             if (!forSigning || null == privateKey)

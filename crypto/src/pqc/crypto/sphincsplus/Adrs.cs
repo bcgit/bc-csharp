@@ -1,11 +1,10 @@
-
 using System;
+
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-
     internal class Adrs
     {
         public static uint WOTS_HASH = 0;

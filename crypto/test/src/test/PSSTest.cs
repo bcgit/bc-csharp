@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.Tests
 		{
 			private readonly byte[] vals;
 
-			public FixedRandom(
-				byte[] vals)
+			internal FixedRandom(byte[] vals)
+				: base(null)
 			{
 				this.vals = vals;
 			}

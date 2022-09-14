@@ -273,6 +273,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             //    Fail("Keccak mismatch on " + digest.AlgorithmName + " extreme data test");
             //}
             //Console.WriteLine("Done");
+
+            DigestTest.SpanConsistencyTests(this, digest);
         }
 
         private void TestDigestDoFinal(IDigest digest)

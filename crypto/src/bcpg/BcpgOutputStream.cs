@@ -376,7 +376,6 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-#if PORTABLE
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -387,14 +386,5 @@ namespace Org.BouncyCastle.Bcpg
             }
             base.Dispose(disposing);
         }
-#else
-        public override void Close()
-        {
-			this.Finish();
-			outStr.Flush();
-            Platform.Dispose(outStr);
-			base.Close();
-        }
-#endif
     }
 }

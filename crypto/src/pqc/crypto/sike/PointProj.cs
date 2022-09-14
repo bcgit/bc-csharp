@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Sike
 {
-public class PointProj
+internal class PointProj
 {
     internal PointProj(uint nwords_field)
     {
