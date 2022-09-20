@@ -22,7 +22,8 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Cmp.Tests
 {
     [TestFixture]
-    public class ProtectedMessageTest : SimpleTest
+    public class ProtectedMessageTest
+        : SimpleTest
     {
         public override string Name
         {
@@ -39,87 +40,57 @@ namespace Org.BouncyCastle.Cmp.Tests
             TestSampleCr();
         }
 
-        //        [Test]
-        //        public void TestServerSideKey()
-        //        {
-        //            RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-        //            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
-        //            AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
-        //
-        //            TestCertBuilder builder = new TestCertBuilder()
-        //            {
-        //                Issuer = new X509Name("CN=Test"),
-        //                Subject =  new X509Name("CN=Test"),
-        //                NotBefore = DateTime.UtcNow.AddDays(-1),
-        //                NotAfter = DateTime.UtcNow.AddDays(1),
-        //                PublicKey = rsaKeyPair.Public,
-        //                SignatureAlgorithm = "MD5WithRSAEncryption"
-        //            };
-        //
-        //            builder.AddAttribute(X509Name.C, "Foo");
-        //            X509Certificate cert = builder.Build(rsaKeyPair.Private);
-        //               
-        //            GeneralName sender = new GeneralName(new X509Name("CN=Sender"));
-        //            GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
-        //
-        //            
-        //
-        //        }
+        //[Test]
+        //public void TestServerSideKey()
+        //{
+        //    RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
+        //    rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
+        //    AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
+
+        //    TestCertBuilder builder = new TestCertBuilder()
+        //    {
+        //        Issuer = new X509Name("CN=Test"),
+        //        Subject = new X509Name("CN=Test"),
+        //        NotBefore = DateTime.UtcNow.AddDays(-1),
+        //        NotAfter = DateTime.UtcNow.AddDays(1),
+        //        PublicKey = rsaKeyPair.Public,
+        //        SignatureAlgorithm = "MD5WithRSAEncryption",
+        //    };
+        //    builder.AddAttribute(X509Name.C, "Foo");
+        //    X509Certificate cert = builder.Build(rsaKeyPair.Private);
+
+        //    GeneralName sender = new GeneralName(new X509Name("CN=Sender"));
+        //    GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
+        //}
 
         [Test]
         public void TestNotBeforeNotAfter()
         {
             RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
+            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
             AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
-            DoNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), MakeUtcDateTime(1, 1, 1, 0, 0, 10));
-            DoNotBeforeNotAfterTest(rsaKeyPair, null, MakeUtcDateTime(1, 1, 1, 0, 0, 10));
-            DoNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), null);
-        }
-
-        private void DoNotBeforeNotAfterTest(AsymmetricCipherKeyPair kp, DateTime? notBefore, DateTime? notAfter)
-        {
-            CertificateRequestMessageBuilder builder = new CertificateRequestMessageBuilder(BigInteger.One)
-                .SetPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public))
-                .SetProofOfPossessionSubsequentMessage(SubsequentMessage.encrCert);
-
-            builder.SetValidity(notBefore, notAfter);
-            CertificateRequestMessage msg = builder.Build();
-
-            if (notBefore != null)
-            {
-                IsTrue("NotBefore did not match", notBefore.Equals(msg.GetCertTemplate().Validity.NotBefore.ToDateTime()));
-            }
-            else
-            {
-                Assert.IsNull(msg.GetCertTemplate().Validity.NotBefore);
-            }
-
-            if (notAfter != null)
-            {
-                IsTrue("NotAfter did not match", notAfter.Equals(msg.GetCertTemplate().Validity.NotAfter.ToDateTime()));
-            }
-            else
-            {
-                Assert.IsNull(msg.GetCertTemplate().Validity.NotAfter);
-            }
+            ImplNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), MakeUtcDateTime(1, 1, 1, 0, 0, 10));
+            ImplNotBeforeNotAfterTest(rsaKeyPair, null, MakeUtcDateTime(1, 1, 1, 0, 0, 10));
+            ImplNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), null);
         }
 
         [Test]
         public void TestSubsequentMessage()
         {
             RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
+            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
             AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
-            TestCertBuilder builder = new TestCertBuilder();
-            builder.NotBefore = DateTime.UtcNow.AddDays(-1);
-            builder.NotAfter = DateTime.UtcNow.AddDays(1);
-            builder.PublicKey = rsaKeyPair.Public;
-            builder.SignatureAlgorithm = "Sha1WithRSAEncryption";
-
+            TestCertBuilder builder = new TestCertBuilder()
+            {
+                NotBefore = DateTime.UtcNow.AddDays(-1),
+                NotAfter = DateTime.UtcNow.AddDays(1),
+                PublicKey = rsaKeyPair.Public,
+                SignatureAlgorithm = "Sha1WithRSAEncryption",
+            };
             X509Certificate cert = builder.Build(rsaKeyPair.Private);
+
             GeneralName user = new GeneralName(new X509Name("CN=Test"));
 
             CertificateRequestMessageBuilder crmBuiler = new CertificateRequestMessageBuilder(BigInteger.One)
@@ -162,15 +133,16 @@ namespace Org.BouncyCastle.Cmp.Tests
         public void TestConfirmationMessage()
         {
             RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
+            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
             AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
-            TestCertBuilder builder = new TestCertBuilder();
-            builder.NotBefore = DateTime.UtcNow.AddDays(-1);
-            builder.NotAfter = DateTime.UtcNow.AddDays(1);
-            builder.PublicKey = rsaKeyPair.Public;
-            builder.SignatureAlgorithm = "Sha1WithRSAEncryption";
-
+            TestCertBuilder builder = new TestCertBuilder()
+            {
+                NotBefore = DateTime.UtcNow.AddDays(-1),
+                NotAfter = DateTime.UtcNow.AddDays(1),
+                PublicKey = rsaKeyPair.Public,
+                SignatureAlgorithm = "Sha1WithRSAEncryption",
+            };
             builder.AddAttribute(X509Name.C, "Foo");
             X509Certificate cert = builder.Build(rsaKeyPair.Private);
 
@@ -190,7 +162,7 @@ namespace Org.BouncyCastle.Cmp.Tests
 
             IVerifierFactory verifierFactory = new Asn1VerifierFactory("MD5WithRSA", rsaKeyPair.Public);
 
-            IsTrue("PKIMessage must verify (MD5withRSA)", msg.Verify(verifierFactory));
+            IsTrue("PkiMessage must verify (MD5withRSA)", msg.Verify(verifierFactory));
 
             IsEquals(sender, msg.Header.Sender);
             IsEquals(recipient, msg.Header.Recipient);
@@ -205,15 +177,16 @@ namespace Org.BouncyCastle.Cmp.Tests
         public void TestProtectedMessage()
         {
             RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
+            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
             AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
-            TestCertBuilder builder = new TestCertBuilder();
-            builder.NotBefore = DateTime.UtcNow.AddDays(-1);
-            builder.NotAfter = DateTime.UtcNow.AddDays(1);
-            builder.PublicKey = rsaKeyPair.Public;
-            builder.SignatureAlgorithm = "Sha1WithRSAEncryption";
-
+            TestCertBuilder builder = new TestCertBuilder()
+            {
+                NotBefore = DateTime.UtcNow.AddDays(-1),
+                NotAfter = DateTime.UtcNow.AddDays(1),
+                PublicKey = rsaKeyPair.Public,
+                SignatureAlgorithm = "Sha1WithRSAEncryption",
+            };
             builder.AddAttribute(X509Name.C, "Foo");
             X509Certificate cert = builder.Build(rsaKeyPair.Private);
 
@@ -232,23 +205,24 @@ namespace Org.BouncyCastle.Cmp.Tests
 
             IVerifierFactory verifierFactory = new Asn1VerifierFactory("MD5WithRSA", rsaKeyPair.Public);
 
-            IsTrue("PKIMessage must verify (MD5withRSA)", msg.Verify(verifierFactory));
+            IsTrue("PkiMessage must verify (MD5withRSA)", msg.Verify(verifierFactory));
         }
 
         [Test]
         public void TestMacProtectedMessage()
         {
             RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048,
+            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512,
                 100));
             AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
-            TestCertBuilder builder = new TestCertBuilder();
-            builder.NotBefore = DateTime.UtcNow.AddDays(-1);
-            builder.NotAfter = DateTime.UtcNow.AddDays(1);
-            builder.PublicKey = rsaKeyPair.Public;
-            builder.SignatureAlgorithm = "Sha1WithRSAEncryption";
-
+            TestCertBuilder builder = new TestCertBuilder()
+            {
+                NotBefore = DateTime.UtcNow.AddDays(-1),
+                NotAfter = DateTime.UtcNow.AddDays(1),
+                PublicKey = rsaKeyPair.Public,
+                SignatureAlgorithm = "Sha1WithRSAEncryption",
+            };
             builder.AddAttribute(X509Name.C, "Foo");
             X509Certificate cert = builder.Build(rsaKeyPair.Private);
 
@@ -276,24 +250,24 @@ namespace Org.BouncyCastle.Cmp.Tests
             // Test with content generated by BC-JAVA version.
             //
 
-            ICipherParameters publicKey = PublicKeyFactory.CreateKey(Hex.Decode(
-                "305c300d06092a864886f70d0101010500034b003048024100ac1e59ba5f96" +
-                "ba86c86e6d8bbfd43ece04265fa29e6ebdb320388b58af365d05b26970cbd2" +
-                "6e5b0fa7df2074b90b42a1d16ab270cdb851b53e464b87f683774502030100" +
-                "01"));
-            ICipherParameters privateKey = PrivateKeyFactory.CreateKey(Hex.Decode(
-                "30820155020100300d06092a864886f70d01010105000482013f3082013b02" +
-                "0100024100ac1e59ba5f96ba86c86e6d8bbfd43ece04265fa29e6ebdb32038" +
-                "8b58af365d05b26970cbd26e5b0fa7df2074b90b42a1d16ab270cdb851b53e" +
-                "464b87f68377450203010001024046f3f208570c735349bfe00fdaa1fbcc00" +
-                "c0f2eebe42279876a168ac43fa74a8cdf9a1bb49066c07cfcfa7196f69f2b9" +
-                "419d378109db967891428c50273dcc37022100d488dc3fb86f404d726a8166" +
-                "b2a9aba9bee12fdbf38470a62403a2a20bad0977022100cf51874e479b141f" +
-                "9915533bf54d68f1940f84d7fe6130538ff01a23e3493423022100986f94f1" +
-                "0afa9837341219bfabf32fd16ebb9a94fa630a5ccf45e036b383275f02201b" +
-                "6dff07f563684b31f6e757548254733a12bf91d05f4d8490d3c4b1a0ddcb9f" +
-                "02210087c3b2049e9a3edfc4cb40a3a275dabf7ffff80b467157e384603042" +
-                "3fe91d68"));
+            //ICipherParameters publicKey = PublicKeyFactory.CreateKey(Hex.Decode(
+            //    "305c300d06092a864886f70d0101010500034b003048024100ac1e59ba5f96" +
+            //    "ba86c86e6d8bbfd43ece04265fa29e6ebdb320388b58af365d05b26970cbd2" +
+            //    "6e5b0fa7df2074b90b42a1d16ab270cdb851b53e464b87f683774502030100" +
+            //    "01"));
+            //ICipherParameters privateKey = PrivateKeyFactory.CreateKey(Hex.Decode(
+            //    "30820155020100300d06092a864886f70d01010105000482013f3082013b02" +
+            //    "0100024100ac1e59ba5f96ba86c86e6d8bbfd43ece04265fa29e6ebdb32038" +
+            //    "8b58af365d05b26970cbd26e5b0fa7df2074b90b42a1d16ab270cdb851b53e" +
+            //    "464b87f68377450203010001024046f3f208570c735349bfe00fdaa1fbcc00" +
+            //    "c0f2eebe42279876a168ac43fa74a8cdf9a1bb49066c07cfcfa7196f69f2b9" +
+            //    "419d378109db967891428c50273dcc37022100d488dc3fb86f404d726a8166" +
+            //    "b2a9aba9bee12fdbf38470a62403a2a20bad0977022100cf51874e479b141f" +
+            //    "9915533bf54d68f1940f84d7fe6130538ff01a23e3493423022100986f94f1" +
+            //    "0afa9837341219bfabf32fd16ebb9a94fa630a5ccf45e036b383275f02201b" +
+            //    "6dff07f563684b31f6e757548254733a12bf91d05f4d8490d3c4b1a0ddcb9f" +
+            //    "02210087c3b2049e9a3edfc4cb40a3a275dabf7ffff80b467157e384603042" +
+            //    "3fe91d68"));
 
             byte[] ind = Hex.Decode(
                 "308201ac306e020102a4133011310f300d06035504030c0653656e646572a4" +
@@ -317,54 +291,53 @@ namespace Org.BouncyCastle.Cmp.Tests
 
             IsTrue(pkiMsg.Verify(new PKMacBuilder().SetParameters(pbmParameters), "secret".ToCharArray()));
         }
+
+        private void ImplNotBeforeNotAfterTest(AsymmetricCipherKeyPair kp, DateTime? notBefore, DateTime? notAfter)
+        {
+            CertificateRequestMessageBuilder builder = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public))
+                .SetProofOfPossessionSubsequentMessage(SubsequentMessage.encrCert);
+
+            builder.SetValidity(notBefore, notAfter);
+            CertificateRequestMessage msg = builder.Build();
+
+            if (notBefore != null)
+            {
+                IsTrue("NotBefore did not match", notBefore.Equals(msg.GetCertTemplate().Validity.NotBefore.ToDateTime()));
+            }
+            else
+            {
+                Assert.IsNull(msg.GetCertTemplate().Validity.NotBefore);
+            }
+
+            if (notAfter != null)
+            {
+                IsTrue("NotAfter did not match", notAfter.Equals(msg.GetCertTemplate().Validity.NotAfter.ToDateTime()));
+            }
+            else
+            {
+                Assert.IsNull(msg.GetCertTemplate().Validity.NotAfter);
+            }
+        }
     }
 
     public class TestCertBuilder
     {
-        IDictionary<DerObjectIdentifier, string> attrs = new Dictionary<DerObjectIdentifier, string>();
-        IList<DerObjectIdentifier> ord = new List<DerObjectIdentifier>();
-        IList<string> values = new List<string>();
+        private readonly Dictionary<DerObjectIdentifier, string> attrs = new Dictionary<DerObjectIdentifier, string>();
+        private readonly List<DerObjectIdentifier> ord = new List<DerObjectIdentifier>();
+        private readonly List<string> values = new List<string>();
 
-        private DateTime notBefore, notAfter;
-        private AsymmetricKeyParameter publicKey;
-        private string signatureAlgorithm;
-        private X509Name issuer, subject;
+        public DateTime NotBefore { get; set; }
 
-        public DateTime NotBefore
-        {
-            get { return notBefore; }
-            set { this.notBefore = value; }
-        }
+        public DateTime NotAfter { get; set; }
 
-        public DateTime NotAfter
-        {
-            get { return notAfter; }
-            set { this.notAfter = value; }
-        }
+        public AsymmetricKeyParameter PublicKey { get; set; }
 
-        public AsymmetricKeyParameter PublicKey
-        {
-            get { return publicKey; }
-            set { this.publicKey = value; }
-        }
+        public string SignatureAlgorithm { get; set; }
 
-        public string SignatureAlgorithm
-        {
-            get { return signatureAlgorithm; }
-            set { this.signatureAlgorithm = value; }
-        }
+        public X509Name Issuer { get; set; }
 
-        public X509Name Issuer
-        {
-            get { return issuer; }
-            set { this.issuer = value; }
-        }
-
-        public X509Name Subject
-        {
-            get { return subject; }
-            set { this.subject = value; }
-        }
+        public X509Name Subject { get; set; }
 
         public TestCertBuilder AddAttribute(DerObjectIdentifier name, string value)
         {

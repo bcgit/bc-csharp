@@ -1,38 +1,24 @@
-﻿using System;
-
-using Org.BouncyCastle.Asn1.Cmp;
+﻿using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Cmp
 {
-    public class RevocationDetails
+    public struct RevocationDetails
     {
-        private readonly RevDetails revDetails;
+        private readonly RevDetails m_revDetails;
 
         public RevocationDetails(RevDetails revDetails)
         {
-            this.revDetails = revDetails;
+            m_revDetails = revDetails;
         }
 
-        public X509Name Subject
-        {
-            get { return revDetails.CertDetails.Subject; }
-        }
+        public X509Name Subject => m_revDetails.CertDetails.Subject;
 
-        public X509Name Issuer
-        {
-            get { return revDetails.CertDetails.Issuer; }
-        }
+        public X509Name Issuer => m_revDetails.CertDetails.Issuer;
 
-        public BigInteger SerialNumber
-        {
-            get { return revDetails.CertDetails.SerialNumber.Value; }
-        }
+        public BigInteger SerialNumber => m_revDetails.CertDetails.SerialNumber.Value;
 
-        public RevDetails ToASN1Structure()
-        {
-            return revDetails;
-        }
+        public RevDetails ToASN1Structure() => m_revDetails;
     }
 }
