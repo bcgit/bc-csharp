@@ -15,8 +15,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Modes
 {
     /// <summary>
-    /// Implements the Galois/Counter mode (GCM) detailed in
-    /// NIST Special Publication 800-38D.
+    /// Implements the Galois/Counter mode (GCM) detailed in NIST Special Publication 800-38D.
     /// </summary>
     public sealed class GcmBlockCipher
         : IAeadBlockCipher
@@ -25,7 +24,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
 #if NETCOREAPP3_0_OR_GREATER
             // TODO Prefer more tightly coupled test
-            if (System.Runtime.Intrinsics.X86.Pclmulqdq.IsSupported)
+            if (Pclmulqdq.IsSupported)
             {
                 return new BasicGcmMultiplier();
             }
@@ -106,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.initialised = true;
 
             KeyParameter keyParam;
-            byte[] newNonce = null;
+            byte[] newNonce;
 
             if (parameters is AeadParameters)
             {

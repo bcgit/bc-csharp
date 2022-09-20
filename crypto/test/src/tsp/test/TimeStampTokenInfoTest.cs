@@ -1,5 +1,3 @@
-using System;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
