@@ -17,7 +17,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         public const int RootOfUnity = 1753;
         public const int SeedBytes = 32;
         public const int CrhBytes = 64;
-        public const bool RandomizedSigning = false;
 
         public const int PolyT1PackedBytes = 320;
         public const int PolyT0PackedBytes = 416;
@@ -185,7 +184,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             ShakeDigest256.BlockUpdate(msg, 0, msglen);
             ShakeDigest256.DoFinal(mu, 0, CrhBytes);
 
-            if (RandomizedSigning)
+            if (_random != null)
             {
                 _random.NextBytes(rhoPrime);
             }

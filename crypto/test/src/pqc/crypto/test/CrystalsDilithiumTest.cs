@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
 
-                DilithiumSigner signer = new DilithiumSigner(random);
+                DilithiumSigner signer = new DilithiumSigner();
 
                 signer.Init(true, kp.Private);
 
@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             //
             // Signature test
             //
-            DilithiumSigner signer = new DilithiumSigner(random);
+            DilithiumSigner signer = new DilithiumSigner();
 
             signer.Init(true, privParams);
             byte[] sigGenerated = signer.GenerateSignature(msg);

@@ -12,9 +12,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         private SecureRandom random;
 
-        public DilithiumSigner(SecureRandom random)
+        public DilithiumSigner()
         {
-            this.random = random;
         }
 
         public void Init(bool forSigning, ICipherParameters param)
@@ -22,15 +21,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             if (forSigning)
             {
                 if (param is ParametersWithRandom)
-            {
+                {
                     privKey = (DilithiumPrivateKeyParameters)((ParametersWithRandom)param).Parameters;
                     random = ((ParametersWithRandom)param).Random;
                 }
                 else
-                    {
-                        privKey = (DilithiumPrivateKeyParameters)param;
-                        random = new SecureRandom();
-                    }
+                {
+                    privKey = (DilithiumPrivateKeyParameters)param;
+                    random = null;
+                }
             }
             else
             {
