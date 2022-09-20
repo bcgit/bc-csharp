@@ -194,5 +194,12 @@ namespace Org.BouncyCastle.Utilities.Test
         {
             return new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Utc);
         }
+
+        public static void TestBitStringConstant(int bitNo, int value)
+        {
+            int expectedValue = 1 << ((bitNo | 7) - (bitNo & 7));
+            if (expectedValue != value)
+                throw new ArgumentException("bit value " + bitNo + " wrong");
+        }
     }
 }

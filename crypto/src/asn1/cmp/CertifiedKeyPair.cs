@@ -42,8 +42,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 				}
 				else
 				{
-					m_privateKey = EncryptedKey.GetInstance(Asn1TaggedObject.GetInstance(seq[1]));
-					m_publicationInfo = PkiPublicationInfo.GetInstance(Asn1TaggedObject.GetInstance(seq[2]));
+                    m_privateKey = EncryptedKey.GetInstance(Asn1TaggedObject.GetInstance(seq[1]).GetObject());
+                    m_publicationInfo = PkiPublicationInfo.GetInstance(Asn1TaggedObject.GetInstance(seq[2]).GetObject());
 				}
 			}
 		}
