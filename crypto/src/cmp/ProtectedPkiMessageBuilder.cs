@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Cmp
             if (null == body)
                 throw new InvalidOperationException("body must be set before building");
 
-            IStreamCalculator calculator = signatureFactory.CreateCalculator();
+            IStreamCalculator<IBlockResult> calculator = signatureFactory.CreateCalculator();
 
             if (!(signatureFactory.AlgorithmDetails is AlgorithmIdentifier))
             {
@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Cmp
             if (null == body)
                 throw new InvalidOperationException("body must be set before building");
 
-            IStreamCalculator calculator = factory.CreateCalculator();
+            IStreamCalculator<IBlockResult> calculator = factory.CreateCalculator();
             FinalizeHeader((AlgorithmIdentifier)factory.AlgorithmDetails);
             PkiHeader header = hdrBuilBuilder.Build();
             DerBitString protection = new DerBitString(CalculateSignature(calculator, header, body));
@@ -128,40 +128,23 @@ namespace Org.BouncyCastle.Cmp
 
         private ProtectedPkiMessage FinalizeMessage(PkiHeader header, DerBitString protection)
         {
-            if (extraCerts.Count > 0)
-            {
-                CmpCertificate[] cmpCertificates = new CmpCertificate[extraCerts.Count];
-                for (int i = 0; i < cmpCertificates.Length; i++)
-                {
-                    byte[] cert = extraCerts[i].GetEncoded();
-                    cmpCertificates[i] = CmpCertificate.GetInstance(Asn1Object.FromByteArray(cert));
-                }
+            if (extraCerts.Count < 1)
+                return new ProtectedPkiMessage(new PkiMessage(header, body, protection));
 
-                return new ProtectedPkiMessage(new PkiMessage(header, body, protection, cmpCertificates));
+            CmpCertificate[] cmpCertificates = new CmpCertificate[extraCerts.Count];
+            for (int i = 0; i < cmpCertificates.Length; i++)
+            {
+                byte[] cert = extraCerts[i].GetEncoded();
+                cmpCertificates[i] = CmpCertificate.GetInstance(Asn1Object.FromByteArray(cert));
             }
 
-            return new ProtectedPkiMessage(new PkiMessage(header, body, protection));
+            return new ProtectedPkiMessage(new PkiMessage(header, body, protection, cmpCertificates));
         }
 
-        private byte[] CalculateSignature(IStreamCalculator signer, PkiHeader header, PkiBody body)
+        private byte[] CalculateSignature(IStreamCalculator<IBlockResult> signer, PkiHeader header, PkiBody body)
         {
             new DerSequence(header, body).EncodeTo(signer.Stream);
-            object result = signer.GetResult();
-
-            if (result is DefaultSignatureResult sigResult)
-            {
-                return sigResult.Collect();
-            }
-            else if (result is IBlockResult blockResult)
-            {
-                return blockResult.Collect();
-            }
-            else if (result is byte[] bytesResult)
-            {
-                return bytesResult;
-            }
-
-            throw new InvalidOperationException("result is not byte[] or DefaultSignatureResult");
+            return signer.GetResult().Collect();
         }
     }
 }

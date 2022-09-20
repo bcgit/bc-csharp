@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.Cms
 
 				Asn1Set signedAttr = null;
 
-				IStreamCalculator calculator = sigCalc.CreateCalculator();
+				IStreamCalculator<IBlockResult> calculator = sigCalc.CreateCalculator();
 				using (Stream sigStr = calculator.Stream)
                 {
 					if (sAttr != null)
@@ -165,7 +165,7 @@ namespace Org.BouncyCastle.Cms
 					}
 				}
 
-                byte[] sigBytes = ((IBlockResult)calculator.GetResult()).Collect();
+                byte[] sigBytes = calculator.GetResult().Collect();
 
 				Asn1Set unsignedAttr = null;
 				if (unsAttr != null)

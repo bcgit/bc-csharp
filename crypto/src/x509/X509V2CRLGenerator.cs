@@ -186,13 +186,13 @@ namespace Org.BouncyCastle.X509
 
 			TbsCertificateList tbsCertList = tbsGen.GenerateTbsCertList();
 
-            IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
+            IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
 			using (Stream sigStream = streamCalculator.Stream)
 			{
 				tbsCertList.EncodeTo(sigStream, Asn1Encodable.Der);
 			}
 
-			var signature = ((IBlockResult)streamCalculator.GetResult()).Collect();
+			var signature = streamCalculator.GetResult().Collect();
 
 			return new X509Crl(
 				CertificateList.GetInstance(new DerSequence(tbsCertList, sigAlgID, new DerBitString(signature))));

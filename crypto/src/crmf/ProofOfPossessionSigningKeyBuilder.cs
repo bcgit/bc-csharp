@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Crmf
         {
             IMacFactory fact = generator.Build(password);
 
-            IStreamCalculator calc = fact.CreateCalculator();
+            IStreamCalculator<IBlockResult> calc = fact.CreateCalculator();
             byte[] d = _pubKeyInfo.GetDerEncoded();
             calc.Stream.Write(d, 0, d.Length);
             calc.Stream.Flush();
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Crmf
 
             this._publicKeyMAC = new PKMacValue(
                 (AlgorithmIdentifier)fact.AlgorithmDetails,
-                new DerBitString(((IBlockResult)calc.GetResult()).Collect()));
+                new DerBitString(calc.GetResult().Collect()));
 
             return this;
         }
@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crmf
 
             PopoSigningKeyInput popo;
 
-            IStreamCalculator calc = signer.CreateCalculator();
+            IStreamCalculator<IBlockResult> calc = signer.CreateCalculator();
             using (Stream sigStream = calc.Stream)
             {
                 if (_certRequest != null)
@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Crmf
                 }
             }
 
-            var signature = ((IBlockResult)calc.GetResult()).Collect();
+            var signature = calc.GetResult().Collect();
 
             return new PopoSigningKey(popo, (AlgorithmIdentifier)signer.AlgorithmDetails, new DerBitString(signature));
         }

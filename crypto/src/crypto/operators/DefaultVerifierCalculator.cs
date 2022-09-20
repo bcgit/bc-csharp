@@ -6,7 +6,7 @@ using Org.BouncyCastle.Crypto.IO;
 namespace Org.BouncyCastle.Crypto.Operators
 {
     public class DefaultVerifierCalculator
-        : IStreamCalculator
+        : IStreamCalculator<IVerifier>
     {
         private readonly SignerSink mSignerSink;
 
@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             get { return mSignerSink; }
         }
 
-        public object GetResult()
+        public IVerifier GetResult()
         {
             return new DefaultVerifierResult(mSignerSink.Signer);
         }

@@ -306,7 +306,7 @@ namespace Org.BouncyCastle.Crypto.Operators
 			get { return this.algID; }
 		}
 
-        public IStreamCalculator CreateCalculator()
+        public IStreamCalculator<IBlockResult> CreateCalculator()
         {
             ISigner signer = SignerUtilities.InitSigner(algorithm, true, privateKey, random);
 
@@ -363,9 +363,8 @@ namespace Org.BouncyCastle.Crypto.Operators
 			get { return this.algID; }
 		}
 
-        public IStreamCalculator CreateCalculator()
+        public IStreamCalculator<IVerifier> CreateCalculator()
         {       
-           
             ISigner verifier = SignerUtilities.InitSigner(X509Utilities.GetSignatureName(algID), false, publicKey, null);
 
             return new DefaultVerifierCalculator(verifier);

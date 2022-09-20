@@ -126,14 +126,13 @@ namespace Org.BouncyCastle.X509
         protected virtual void CheckSignature(
             IVerifierFactory verifier)
         {
+            // TODO Compare IsAlgIDEqual in X509Certificate.CheckSignature
             if (!c.SignatureAlgorithm.Equals(c.TbsCertList.Signature))
-            {
                 throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
-            }
 
             Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
 
-            IStreamCalculator streamCalculator = verifier.CreateCalculator();
+            IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
 
             byte[] b = this.GetTbsCertList();
 
@@ -141,10 +140,8 @@ namespace Org.BouncyCastle.X509
 
             Platform.Dispose(streamCalculator.Stream);
 
-            if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
-            {
+            if (!streamCalculator.GetResult().IsVerified(this.GetSignature()))
                 throw new InvalidKeyException("CRL does not verify with supplied public key.");
-            }
         }
 
         public virtual int Version

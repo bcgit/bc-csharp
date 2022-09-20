@@ -15,7 +15,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crmf
 {
     internal class PKMacStreamCalculator
-        : IStreamCalculator
+        : IStreamCalculator<DefaultPKMacResult>
     {
         private readonly MacSink _stream;
 
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crmf
             get { return _stream; }
         }
 
-        public object GetResult()
+        public DefaultPKMacResult GetResult()
         {
             return new DefaultPKMacResult(_stream.Mac);
         }
@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Crmf
             get { return new AlgorithmIdentifier(CmpObjectIdentifiers.passwordBasedMac, parameters); }
         }
 
-        public virtual IStreamCalculator CreateCalculator()
+        public virtual IStreamCalculator<IBlockResult> CreateCalculator()
         {
             IMac mac = MacUtilities.GetMac(parameters.Mac.Algorithm);
             mac.Init(new KeyParameter(key));

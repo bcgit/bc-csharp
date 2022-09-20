@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Tsp
 
             try
             {
-                IStreamCalculator calculator = digestCalculator.CreateCalculator();
+                IStreamCalculator<IBlockResult> calculator = digestCalculator.CreateCalculator();
                 Stream stream = calculator.Stream;
                 byte[] certEnc = assocCert.GetEncoded();
                 stream.Write(certEnc, 0, certEnc.Length);
@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Tsp
                 if (((AlgorithmIdentifier)digestCalculator.AlgorithmDetails).Algorithm.Equals(OiwObjectIdentifiers.IdSha1))
                 {
                     EssCertID essCertID = new EssCertID(
-                       ((IBlockResult)calculator.GetResult()).Collect(),
+                       calculator.GetResult().Collect(),
                        isIssuerSerialIncluded ?
                            new IssuerSerial(
                                new GeneralNames(
@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Tsp
                         ((AlgorithmIdentifier)digestCalculator.AlgorithmDetails).Algorithm);
 
                     EssCertIDv2 essCertID = new EssCertIDv2(
-                        ((IBlockResult)calculator.GetResult()).Collect(),
+                        calculator.GetResult().Collect(),
                         isIssuerSerialIncluded ?
                             new IssuerSerial(
                                 new GeneralNames(

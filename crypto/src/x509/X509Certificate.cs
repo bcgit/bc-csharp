@@ -682,7 +682,7 @@ namespace Org.BouncyCastle.X509
 
             Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
 
-            IStreamCalculator streamCalculator = verifier.CreateCalculator();
+            IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
 
             byte[] b = this.GetTbsCertificate();
 
@@ -690,10 +690,8 @@ namespace Org.BouncyCastle.X509
 
             Platform.Dispose(streamCalculator.Stream);
 
-            if (!((IVerifier)streamCalculator.GetResult()).IsVerified(this.GetSignature()))
-            {
+            if (!streamCalculator.GetResult().IsVerified(this.GetSignature()))
                 throw new InvalidKeyException("Public key presented not for certificate signature");
-            }
         }
 
         private CachedEncoding GetCachedEncoding()

@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Crmf
         private bool verifySignature(IVerifierFactoryProvider verifierFactoryProvider, PopoSigningKey signKey)
         {
             IVerifierFactory verifer;
-            IStreamCalculator calculator;
+            IStreamCalculator<IVerifier> calculator;
             try
             {
                 verifer = verifierFactoryProvider.CreateVerifierFactory(signKey.AlgorithmIdentifier);
@@ -212,7 +212,7 @@ namespace Org.BouncyCastle.Crmf
                 calculator.Stream.Write(b, 0, b.Length);
             }
 
-            DefaultVerifierResult result = (DefaultVerifierResult)calculator.GetResult();
+            IVerifier result = calculator.GetResult();
 
             return result.IsVerified(signKey.Signature.GetBytes());
         }

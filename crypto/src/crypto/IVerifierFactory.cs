@@ -16,6 +16,6 @@ namespace Org.BouncyCastle.Crypto
         /// and producing a result which can be used to verify the original signature.
         /// </summary>
         /// <returns>A calculator producing an IVerifier which can verify the signature.</returns>
-        IStreamCalculator CreateCalculator();
+        IStreamCalculator<IVerifier> CreateCalculator();
     }
 }

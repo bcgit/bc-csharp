@@ -193,13 +193,13 @@ namespace Org.BouncyCastle.Ocsp
 
 			try
 			{
-                IStreamCalculator streamCalculator = signatureCalculator.CreateCalculator();
+                IStreamCalculator<IBlockResult> streamCalculator = signatureCalculator.CreateCalculator();
 				using (Stream sigStream = streamCalculator.Stream)
 				{
 					tbsResp.EncodeTo(sigStream, Asn1Encodable.Der);
 				}
 
-				bitSig = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
+				bitSig = new DerBitString(streamCalculator.GetResult().Collect());
 			}
 			catch (Exception e)
 			{

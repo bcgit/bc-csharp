@@ -104,14 +104,14 @@ namespace Org.BouncyCastle.Cmp
         /// <returns>true if the provider is able to create a verifier that validates the signature, false otherwise.</returns>      
         public bool Verify(IVerifierFactory verifierFactory)
         {
-            IStreamCalculator streamCalculator = verifierFactory.CreateCalculator();
+            IStreamCalculator<IVerifier> streamCalculator = verifierFactory.CreateCalculator();
 
-            IVerifier result = (IVerifier)Process(streamCalculator);
+            IVerifier result = Process(streamCalculator);
 
             return result.IsVerified(pkiMessage.Protection.GetBytes());
         }
 
-        private object Process(IStreamCalculator streamCalculator)
+        private TResult Process<TResult>(IStreamCalculator<TResult> streamCalculator)
         {
             Asn1EncodableVector avec = new Asn1EncodableVector();
             avec.Add(pkiMessage.Header);
@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Cmp
 
             pkMacBuilder.SetParameters(parameter);
 
-            IBlockResult result = (IBlockResult)Process(pkMacBuilder.Build(password).CreateCalculator());
+            IBlockResult result = Process(pkMacBuilder.Build(password).CreateCalculator());
 
             return Arrays.ConstantTimeAreEqual(result.Collect(), this.pkiMessage.Protection.GetBytes());
         }

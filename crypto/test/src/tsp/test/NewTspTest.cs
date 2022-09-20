@@ -642,27 +642,27 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			{
 				Asn1DigestFactory digCalc = Asn1DigestFactory.Get(OiwObjectIdentifiers.IdSha1);
-				IStreamCalculator calc = digCalc.CreateCalculator();
+				var calc = digCalc.CreateCalculator();
 				using (Stream s = calc.Stream)
 				{
 					byte[] crt = cert.GetEncoded();
 					s.Write(crt, 0, crt.Length);
 				}
 
-				certHash = ((SimpleBlockResult)calc.GetResult()).Collect();
+				certHash = calc.GetResult().Collect();
 			}
 
 
 			{
 				Asn1DigestFactory digCalc = Asn1DigestFactory.Get(NistObjectIdentifiers.IdSha256);
-				IStreamCalculator calc = digCalc.CreateCalculator();
+				var calc = digCalc.CreateCalculator();
 				using (Stream s = calc.Stream)
 				{
 					byte[] crt = cert.GetEncoded();
 					s.Write(crt, 0, crt.Length);
 				}
 
-				certHash256 = ((SimpleBlockResult)calc.GetResult()).Collect();
+				certHash256 = calc.GetResult().Collect();
 			}
 
 
@@ -772,14 +772,14 @@ namespace Org.BouncyCastle.Tsp.Tests
 			Assert.NotNull(table[PkcsObjectIdentifiers.IdAASigningCertificateV2]);
 
 			Asn1DigestFactory digCalc = Asn1DigestFactory.Get(NistObjectIdentifiers.IdSha256);
-			IStreamCalculator calc = digCalc.CreateCalculator();
+			var calc = digCalc.CreateCalculator();
 			using (Stream s = calc.Stream)
 			{
 				byte[] crt = cert.GetEncoded();
 				s.Write(crt, 0, crt.Length);
 			}
 
-			byte[] certHash = ((SimpleBlockResult)calc.GetResult()).Collect();
+			byte[] certHash = calc.GetResult().Collect();
 
 			SigningCertificateV2 sigCertV2 = SigningCertificateV2.GetInstance(table[PkcsObjectIdentifiers.IdAASigningCertificateV2].AttrValues[0]);
 

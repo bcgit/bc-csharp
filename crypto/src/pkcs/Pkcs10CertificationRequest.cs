@@ -281,14 +281,14 @@ namespace Org.BouncyCastle.Pkcs
 
             this.reqInfo = new CertificationRequestInfo(subject, pubInfo, attributes);
 
-            IStreamCalculator streamCalculator = signatureFactory.CreateCalculator();
+            IStreamCalculator<IBlockResult> streamCalculator = signatureFactory.CreateCalculator();
             using (Stream sigStream = streamCalculator.Stream)
             {
                 reqInfo.EncodeTo(sigStream, Der);
             }
 
             // Generate Signature.
-            sigBits = new DerBitString(((IBlockResult)streamCalculator.GetResult()).Collect());
+            sigBits = new DerBitString(streamCalculator.GetResult().Collect());
         }
 
         //        internal Pkcs10CertificationRequest(
@@ -344,13 +344,13 @@ namespace Org.BouncyCastle.Pkcs
             {
                 byte[] b = reqInfo.GetDerEncoded();
 
-                IStreamCalculator streamCalculator = verifier.CreateCalculator();
+                IStreamCalculator<IVerifier> streamCalculator = verifier.CreateCalculator();
 
                 streamCalculator.Stream.Write(b, 0, b.Length);
 
                 Platform.Dispose(streamCalculator.Stream);
 
-                return ((IVerifier)streamCalculator.GetResult()).IsVerified(sigBits.GetOctets());
+                return streamCalculator.GetResult().IsVerified(sigBits.GetOctets());
             }
             catch (Exception e)
             {
