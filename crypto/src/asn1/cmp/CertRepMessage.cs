@@ -7,8 +7,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
 	public class CertRepMessage
 		: Asn1Encodable
 	{
-		private readonly Asn1Sequence caPubs;
-		private readonly Asn1Sequence response;
+        public static CertRepMessage GetInstance(object obj)
+        {
+            if (obj is CertRepMessage certRepMessage)
+                return certRepMessage;
+
+            if (obj != null)
+				return new CertRepMessage(Asn1Sequence.GetInstance(obj));
+
+			return null;
+        }
+
+        private readonly Asn1Sequence m_caPubs;
+		private readonly Asn1Sequence m_response;
 		
 		private CertRepMessage(Asn1Sequence seq)
 		{
@@ -16,57 +27,33 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 			if (seq.Count > 1)
 			{
-				caPubs = Asn1Sequence.GetInstance((Asn1TaggedObject)seq[index++], true);
+				m_caPubs = Asn1Sequence.GetInstance((Asn1TaggedObject)seq[index++], true);
 			}
 
-			response = Asn1Sequence.GetInstance(seq[index]);
-		}
-
-		public static CertRepMessage GetInstance(object obj)
-		{
-			if (obj is CertRepMessage)
-				return (CertRepMessage)obj;
-
-			if (obj is Asn1Sequence)
-				return new CertRepMessage((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
+			m_response = Asn1Sequence.GetInstance(seq[index]);
 		}
 
 		public CertRepMessage(CmpCertificate[] caPubs, CertResponse[] response)
 		{
 			if (response == null)
-				throw new ArgumentNullException("response");
+				throw new ArgumentNullException(nameof(response));
 
 			if (caPubs != null)
 			{
-				this.caPubs = new DerSequence(caPubs);
+				m_caPubs = new DerSequence(caPubs);
 			}
 
-			this.response = new DerSequence(response);
+			m_response = new DerSequence(response);
 		}
 
 		public virtual CmpCertificate[] GetCAPubs()
 		{
-			if (caPubs == null)
-				return null;
-
-			CmpCertificate[] results = new CmpCertificate[caPubs.Count];
-			for (int i = 0; i != results.Length; ++i)
-			{
-				results[i] = CmpCertificate.GetInstance(caPubs[i]);
-			}
-			return results;
+			return m_caPubs == null ? null : m_caPubs.MapElements(CmpCertificate.GetInstance);
 		}
 
 		public virtual CertResponse[] GetResponse()
 		{
-			CertResponse[] results = new CertResponse[response.Count];
-			for (int i = 0; i != results.Length; ++i)
-			{
-				results[i] = CertResponse.GetInstance(response[i]);
-			}
-			return results;
+            return m_response.MapElements(CertResponse.GetInstance);
 		}
 
 		/**
@@ -81,9 +68,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector();
-            v.AddOptionalTagged(true, 1, caPubs);
-			v.Add(response);
+			Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.AddOptionalTagged(true, 1, m_caPubs);
+			v.Add(m_response);
 			return new DerSequence(v);
 		}
 	}

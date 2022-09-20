@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
     {
         private Asn1Sequence content;
 
-        private PkiMessages(Asn1Sequence seq)
+        internal PkiMessages(Asn1Sequence seq)
         {
             content = seq;
         }

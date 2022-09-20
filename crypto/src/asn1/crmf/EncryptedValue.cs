@@ -7,44 +7,6 @@ namespace Org.BouncyCastle.Asn1.Crmf
     public class EncryptedValue
         : Asn1Encodable
     {
-        private readonly AlgorithmIdentifier intendedAlg;
-        private readonly AlgorithmIdentifier symmAlg;
-        private readonly DerBitString encSymmKey;
-        private readonly AlgorithmIdentifier keyAlg;
-        private readonly Asn1OctetString valueHint;
-        private readonly DerBitString encValue;
-
-        private EncryptedValue(Asn1Sequence seq)
-        {
-            int index = 0;
-            while (seq[index] is Asn1TaggedObject)
-            {
-                Asn1TaggedObject tObj = (Asn1TaggedObject)seq[index];
-
-                switch (tObj.TagNo)
-                {
-                    case 0:
-                        intendedAlg = AlgorithmIdentifier.GetInstance(tObj, false);
-                        break;
-                    case 1:
-                        symmAlg = AlgorithmIdentifier.GetInstance(tObj, false);
-                        break;
-                    case 2:
-                        encSymmKey = DerBitString.GetInstance(tObj, false);
-                        break;
-                    case 3:
-                        keyAlg = AlgorithmIdentifier.GetInstance(tObj, false);
-                        break;
-                    case 4:
-                        valueHint = Asn1OctetString.GetInstance(tObj, false);
-                        break;
-                }
-                ++index;
-            }
-
-            encValue = DerBitString.GetInstance(seq[index]);
-        }
-
         public static EncryptedValue GetInstance(object obj)
         {
             if (obj is EncryptedValue)
@@ -56,6 +18,41 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return null;
         }
 
+        private readonly AlgorithmIdentifier intendedAlg;
+        private readonly AlgorithmIdentifier symmAlg;
+        private readonly DerBitString encSymmKey;
+        private readonly AlgorithmIdentifier keyAlg;
+        private readonly Asn1OctetString valueHint;
+        private readonly DerBitString encValue;
+
+        private EncryptedValue(Asn1Sequence seq)
+        {
+            int index = 0;
+            while (seq[index++] is Asn1TaggedObject tObj)
+            {
+                switch (tObj.TagNo)
+                {
+                case 0:
+                    intendedAlg = AlgorithmIdentifier.GetInstance(tObj, false);
+                    break;
+                case 1:
+                    symmAlg = AlgorithmIdentifier.GetInstance(tObj, false);
+                    break;
+                case 2:
+                    encSymmKey = DerBitString.GetInstance(tObj, false);
+                    break;
+                case 3:
+                    keyAlg = AlgorithmIdentifier.GetInstance(tObj, false);
+                    break;
+                case 4:
+                    valueHint = Asn1OctetString.GetInstance(tObj, false);
+                    break;
+                }
+            }
+
+            encValue = DerBitString.GetInstance(seq[index]);
+        }
+
         public EncryptedValue(
             AlgorithmIdentifier intendedAlg,
             AlgorithmIdentifier symmAlg,
@@ -65,9 +62,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
             DerBitString encValue)
         {
             if (encValue == null)
-            {
-                throw new ArgumentNullException("encValue");
-            }
+                throw new ArgumentNullException(nameof(encValue));
 
             this.intendedAlg = intendedAlg;
             this.symmAlg = symmAlg;
@@ -109,6 +104,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         /**
          * <pre>
+         * (IMPLICIT TAGS)
          * EncryptedValue ::= SEQUENCE {
          *                     intendedAlg   [0] AlgorithmIdentifier  OPTIONAL,
          *                     -- the intended algorithm for which the value will be used

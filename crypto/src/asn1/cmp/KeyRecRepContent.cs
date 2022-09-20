@@ -1,20 +1,29 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
 	public class KeyRecRepContent
 		: Asn1Encodable
 	{
-		private readonly PkiStatusInfo status;
-		private readonly CmpCertificate newSigCert;
-		private readonly Asn1Sequence caCerts;
-		private readonly Asn1Sequence keyPairHist;
+        public static KeyRecRepContent GetInstance(object obj)
+        {
+			if (obj is KeyRecRepContent keyRecRepContent)
+				return keyRecRepContent;
+
+			if (obj != null)
+				return new KeyRecRepContent(Asn1Sequence.GetInstance(obj));
+
+			return null;
+        }
+
+        private readonly PkiStatusInfo m_status;
+		private readonly CmpCertificate m_newSigCert;
+		private readonly Asn1Sequence m_caCerts;
+		private readonly Asn1Sequence m_keyPairHist;
 
 		private KeyRecRepContent(Asn1Sequence seq)
 		{
-			status = PkiStatusInfo.GetInstance(seq[0]);
+			m_status = PkiStatusInfo.GetInstance(seq[0]);
 
 			for (int pos = 1; pos < seq.Count; ++pos)
 			{
@@ -22,66 +31,39 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 				switch (tObj.TagNo)
 				{
-					case 0:
-						newSigCert = CmpCertificate.GetInstance(tObj.GetObject());
-						break;
-					case 1:
-						caCerts = Asn1Sequence.GetInstance(tObj.GetObject());
-						break;
-					case 2:
-						keyPairHist = Asn1Sequence.GetInstance(tObj.GetObject());
-						break;
-					default:
-						throw new ArgumentException("unknown tag number: " + tObj.TagNo, "seq");
+				case 0:
+					m_newSigCert = CmpCertificate.GetInstance(tObj.GetObject());
+					break;
+				case 1:
+					m_caCerts = Asn1Sequence.GetInstance(tObj.GetObject());
+					break;
+				case 2:
+					m_keyPairHist = Asn1Sequence.GetInstance(tObj.GetObject());
+					break;
+				default:
+					throw new ArgumentException("unknown tag number: " + tObj.TagNo, "seq");
 				}
 			}
 		}
 
-		public static KeyRecRepContent GetInstance(object obj)
-		{
-			if (obj is KeyRecRepContent)
-				return (KeyRecRepContent)obj;
+		public virtual PkiStatusInfo Status => m_status;
 
-			if (obj is Asn1Sequence)
-				return new KeyRecRepContent((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
-		}
-
-		public virtual PkiStatusInfo Status
-		{
-			get { return status; }
-		}
-
-		public virtual CmpCertificate NewSigCert
-		{
-			get { return newSigCert; }
-		}
+		public virtual CmpCertificate NewSigCert => m_newSigCert;
 
 		public virtual CmpCertificate[] GetCACerts()
 		{
-			if (caCerts == null)
+			if (m_caCerts == null)
 				return null;
 
-			CmpCertificate[] results = new CmpCertificate[caCerts.Count];
-			for (int i = 0; i != results.Length; ++i)
-			{
-				results[i] = CmpCertificate.GetInstance(caCerts[i]);
-			}
-			return results;
+			return m_caCerts.MapElements(CmpCertificate.GetInstance);
 		}
 
 		public virtual CertifiedKeyPair[] GetKeyPairHist()
 		{
-			if (keyPairHist == null)
+			if (m_keyPairHist == null)
 				return null;
 
-			CertifiedKeyPair[] results = new CertifiedKeyPair[keyPairHist.Count];
-			for (int i = 0; i != results.Length; ++i)
-			{
-				results[i] = CertifiedKeyPair.GetInstance(keyPairHist[i]);
-			}
-			return results;
+			return m_keyPairHist.MapElements(CertifiedKeyPair.GetInstance);
 		}
 
 		/**
@@ -99,10 +81,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(status);
-            v.AddOptionalTagged(true, 0, newSigCert);
-            v.AddOptionalTagged(true, 1, caCerts);
-            v.AddOptionalTagged(true, 2, keyPairHist);
+			Asn1EncodableVector v = new Asn1EncodableVector(m_status);
+            v.AddOptionalTagged(true, 0, m_newSigCert);
+            v.AddOptionalTagged(true, 1, m_caCerts);
+            v.AddOptionalTagged(true, 2, m_keyPairHist);
 			return new DerSequence(v);
 		}
 	}

@@ -1,43 +1,52 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class ErrorMsgContent
+    /**
+     * <pre>
+     *      ErrorMsgContent ::= SEQUENCE {
+     *          pKIStatusInfo          PKIStatusInfo,
+     *          errorCode              INTEGER           OPTIONAL,
+     *          -- implementation-specific error codes
+     *          errorDetails           PKIFreeText       OPTIONAL
+     *          -- implementation-specific error details
+     *      }
+     * </pre>
+     */
+    public class ErrorMsgContent
 		: Asn1Encodable
 	{
-		private readonly PkiStatusInfo pkiStatusInfo;
-		private readonly DerInteger errorCode;
-		private readonly PkiFreeText errorDetails;
+        public static ErrorMsgContent GetInstance(object obj)
+        {
+            if (obj is ErrorMsgContent errorMsgContent)
+                return errorMsgContent;
+
+            if (obj != null)
+                return new ErrorMsgContent(Asn1Sequence.GetInstance(obj));
+
+            return null;
+        }
+
+        private readonly PkiStatusInfo m_pkiStatusInfo;
+		private readonly DerInteger m_errorCode;
+		private readonly PkiFreeText m_errorDetails;
 
 		private ErrorMsgContent(Asn1Sequence seq)
 		{
-			pkiStatusInfo = PkiStatusInfo.GetInstance(seq[0]);
+			m_pkiStatusInfo = PkiStatusInfo.GetInstance(seq[0]);
 
 			for (int pos = 1; pos < seq.Count; ++pos)
 			{
 				Asn1Encodable ae = seq[pos];
 				if (ae is DerInteger)
 				{
-					errorCode = DerInteger.GetInstance(ae);
+					m_errorCode = DerInteger.GetInstance(ae);
 				}
 				else
 				{
-					errorDetails = PkiFreeText.GetInstance(ae);
+					m_errorDetails = PkiFreeText.GetInstance(ae);
 				}
 			}
-		}
-
-		public static ErrorMsgContent GetInstance(object obj)
-		{
-			if (obj is ErrorMsgContent)
-				return (ErrorMsgContent)obj;
-
-			if (obj is Asn1Sequence)
-				return new ErrorMsgContent((Asn1Sequence)obj);
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), "obj");
 		}
 
 		public ErrorMsgContent(PkiStatusInfo pkiStatusInfo)
@@ -51,27 +60,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			PkiFreeText		errorDetails)
 		{
 			if (pkiStatusInfo == null)
-				throw new ArgumentNullException("pkiStatusInfo");
+				throw new ArgumentNullException(nameof(pkiStatusInfo));
 
-			this.pkiStatusInfo = pkiStatusInfo;
-			this.errorCode = errorCode;
-			this.errorDetails = errorDetails;
-		}
-		
-		public virtual PkiStatusInfo PkiStatusInfo
-		{
-			get { return pkiStatusInfo; }
+			m_pkiStatusInfo = pkiStatusInfo;
+			m_errorCode = errorCode;
+			m_errorDetails = errorDetails;
 		}
 
-		public virtual DerInteger ErrorCode
-		{
-			get { return errorCode; }
-		}
+		public virtual PkiStatusInfo PkiStatusInfo => m_pkiStatusInfo;
 
-		public virtual PkiFreeText ErrorDetails
-		{
-			get { return errorDetails; }
-		}
+		public virtual DerInteger ErrorCode => m_errorCode;
+
+		public virtual PkiFreeText ErrorDetails => m_errorDetails;
 
 		/**
 		 * <pre>
@@ -87,8 +87,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		 */
 		public override Asn1Object ToAsn1Object()
 		{
-			Asn1EncodableVector v = new Asn1EncodableVector(pkiStatusInfo);
-			v.AddOptional(errorCode, errorDetails);
+			Asn1EncodableVector v = new Asn1EncodableVector(m_pkiStatusInfo);
+			v.AddOptional(m_errorCode, m_errorDetails);
 			return new DerSequence(v);
 		}
 	}

@@ -41,35 +41,35 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
                 switch (tObj.TagNo)
                 {
-                    case 0:
-                        messageTime = DerGeneralizedTime.GetInstance(tObj, true);
-                        break;
-                    case 1:
-                        protectionAlg = AlgorithmIdentifier.GetInstance(tObj, true);
-                        break;
-                    case 2:
-                        senderKID = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 3:
-                        recipKID = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 4:
-                        transactionID = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 5:
-                        senderNonce = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 6:
-                        recipNonce = Asn1OctetString.GetInstance(tObj, true);
-                        break;
-                    case 7:
-                        freeText = PkiFreeText.GetInstance(tObj, true);
-                        break;
-                    case 8:
-                        generalInfo = Asn1Sequence.GetInstance(tObj, true);
-                        break;
-                    default:
-                        throw new ArgumentException("unknown tag number: " + tObj.TagNo, "seq");
+                case 0:
+                    messageTime = DerGeneralizedTime.GetInstance(tObj, true);
+                    break;
+                case 1:
+                    protectionAlg = AlgorithmIdentifier.GetInstance(tObj, true);
+                    break;
+                case 2:
+                    senderKID = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 3:
+                    recipKID = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 4:
+                    transactionID = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 5:
+                    senderNonce = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 6:
+                    recipNonce = Asn1OctetString.GetInstance(tObj, true);
+                    break;
+                case 7:
+                    freeText = PkiFreeText.GetInstance(tObj, true);
+                    break;
+                case 8:
+                    generalInfo = Asn1Sequence.GetInstance(tObj, true);
+                    break;
+                default:
+                    throw new ArgumentException("unknown tag number: " + tObj.TagNo, nameof(seq));
                 }
             }
         }
