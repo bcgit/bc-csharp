@@ -380,8 +380,8 @@ namespace Org.BouncyCastle.Tls
                      * NOTE: Certificate processing (including authentication) is delayed to allow for a
                      * possible CertificateStatus message.
                      */
-                    this.m_authentication = TlsUtilities.ReceiveServerCertificate(m_tlsClientContext, m_tlsClient,
-                        buf);
+                    m_authentication = TlsUtilities.ReceiveServerCertificate(m_tlsClientContext, m_tlsClient, buf,
+                        m_serverExtensions);
                     break;
                 }
                 default:
@@ -1364,6 +1364,10 @@ namespace Org.BouncyCastle.Tls
 
             this.m_certificateRequest = certificateRequest;
 
+            m_tlsClientContext.SecurityParameters.m_clientCertificateType =
+                TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(m_serverExtensions,
+                    CertificateType.X509);
+
             TlsUtilities.EstablishServerSigAlgs(m_tlsClientContext.SecurityParameters, certificateRequest);
         }
 
@@ -1467,7 +1471,8 @@ namespace Org.BouncyCastle.Tls
             if (m_selectedPsk13)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-            this.m_authentication = TlsUtilities.Receive13ServerCertificate(m_tlsClientContext, m_tlsClient, buf);
+            m_authentication = TlsUtilities.Receive13ServerCertificate(m_tlsClientContext, m_tlsClient, buf,
+                m_serverExtensions);
 
             // NOTE: In TLS 1.3 we don't have to wait for a possible CertificateStatus message.
             HandleServerCertificate();
@@ -1509,7 +1514,11 @@ namespace Org.BouncyCastle.Tls
 
             AssertEmpty(buf);
 
-            this.m_certificateRequest = TlsUtilities.ValidateCertificateRequest(certificateRequest, m_keyExchange);
+            m_certificateRequest = TlsUtilities.ValidateCertificateRequest(certificateRequest, m_keyExchange);
+
+            m_tlsClientContext.SecurityParameters.m_clientCertificateType =
+                TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(m_serverExtensions,
+                    CertificateType.X509);
         }
 
         /// <exception cref="IOException"/>

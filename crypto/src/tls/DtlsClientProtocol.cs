@@ -579,6 +579,10 @@ namespace Org.BouncyCastle.Tls
             TlsProtocol.AssertEmpty(buf);
 
             state.certificateRequest = TlsUtilities.ValidateCertificateRequest(certificateRequest, state.keyExchange);
+
+            state.clientContext.SecurityParameters.m_clientCertificateType =
+                TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(state.serverExtensions,
+                    CertificateType.X509);
         }
 
         /// <exception cref="IOException"/>
@@ -633,7 +637,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessServerCertificate(ClientHandshakeState state, byte[] body)
         {
             state.authentication = TlsUtilities.ReceiveServerCertificate(state.clientContext, state.client,
-                new MemoryStream(body, false));
+                new MemoryStream(body, false), state.serverExtensions);
         }
 
         /// <exception cref="IOException"/>

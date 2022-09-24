@@ -637,7 +637,11 @@ namespace Org.BouncyCastle.Tls
             MemoryStream buf = new MemoryStream(body, false);
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
-                .SetMaxChainLength(state.server.GetMaxCertificateChainLength());
+            {
+                CertificateType = TlsExtensionsUtilities.GetClientCertificateTypeExtensionServer(
+                    state.clientExtensions, CertificateType.X509),
+                MaxChainLength = state.server.GetMaxCertificateChainLength(),
+            };
 
             Certificate clientCertificate = Certificate.Parse(options, state.serverContext, buf, null);
 

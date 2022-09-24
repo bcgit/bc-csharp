@@ -112,6 +112,13 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <exception cref="IOException">if there is an issue on decoding or constructing the certificate.</exception>
         TlsCertificate CreateCertificate(byte[] encoding);
 
+        /// <summary>Create a TlsCertificate from an ASN.1 binary encoding of a certificate.</summary>
+        /// <param name="type">Certificate type as per IANA TLS Certificate Types registry.</param>
+        /// <param name="encoding">DER/BER encoding of the certificate of interest.</param>
+        /// <returns>a TlsCertificate.</returns>
+        /// <exception cref="IOException">if there is an issue on decoding or constructing the certificate.</exception>
+        TlsCertificate CreateCertificate(short type, byte[] encoding);
+
         /// <summary>Create a cipher for the specified encryption and MAC algorithms.</summary>
         /// <remarks>
         /// See enumeration classes <see cref="EncryptionAlgorithm"/>, <see cref="MacAlgorithm"/> for appropriate

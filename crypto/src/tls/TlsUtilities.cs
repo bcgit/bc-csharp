@@ -4756,7 +4756,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static TlsAuthentication ReceiveServerCertificate(TlsClientContext clientContext, TlsClient client,
-            MemoryStream buf)
+            MemoryStream buf, IDictionary<int, byte[]> serverExtensions)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
             if (KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm)
@@ -4768,7 +4768,11 @@ namespace Org.BouncyCastle.Tls
             MemoryStream endPointHash = new MemoryStream();
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
-                .SetMaxChainLength(client.GetMaxCertificateChainLength());
+            {
+                CertificateType = TlsExtensionsUtilities.GetServerCertificateTypeExtensionServer(serverExtensions,
+                    CertificateType.X509),
+                MaxChainLength = client.GetMaxCertificateChainLength(),
+            };
 
             Certificate serverCertificate = Certificate.Parse(options, clientContext, buf, endPointHash);
 
@@ -4788,14 +4792,18 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static TlsAuthentication Receive13ServerCertificate(TlsClientContext clientContext, TlsClient client,
-            MemoryStream buf)
+            MemoryStream buf, IDictionary<int, byte[]> serverExtensions)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
             if (null != securityParameters.PeerCertificate)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
             Certificate.ParseOptions options = new Certificate.ParseOptions()
-                .SetMaxChainLength(client.GetMaxCertificateChainLength());
+            {
+                CertificateType = TlsExtensionsUtilities.GetServerCertificateTypeExtensionServer(serverExtensions,
+                    CertificateType.X509),
+                MaxChainLength = client.GetMaxCertificateChainLength(),
+            };
 
             Certificate serverCertificate = Certificate.Parse(options, clientContext, buf, null);
 

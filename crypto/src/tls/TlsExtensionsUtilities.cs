@@ -302,10 +302,11 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        public static short GetClientCertificateTypeExtensionServer(IDictionary<int, byte[]> extensions)
+        public static short GetClientCertificateTypeExtensionServer(IDictionary<int, byte[]> extensions,
+            short defaultValue)
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.client_certificate_type);
-            return extensionData == null ? (short)-1 : ReadCertificateTypeExtensionServer(extensionData);
+            return extensionData == null ? defaultValue : ReadCertificateTypeExtensionServer(extensionData);
         }
 
         /// <exception cref="IOException"/>
@@ -415,10 +416,11 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        public static short GetServerCertificateTypeExtensionServer(IDictionary<int, byte[]> extensions)
+        public static short GetServerCertificateTypeExtensionServer(IDictionary<int, byte[]> extensions,
+            short defaultValue)
         {
             byte[] extensionData = TlsUtilities.GetExtensionData(extensions, ExtensionType.server_certificate_type);
-            return extensionData == null ? (short)-1 : ReadCertificateTypeExtensionServer(extensionData);
+            return extensionData == null ? defaultValue : ReadCertificateTypeExtensionServer(extensionData);
         }
 
         /// <exception cref="IOException"/>

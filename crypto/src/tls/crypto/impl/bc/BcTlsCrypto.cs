@@ -42,9 +42,17 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             get { return m_entropySource; }
         }
 
-        public override TlsCertificate CreateCertificate(byte[] encoding)
+        public override TlsCertificate CreateCertificate(short type, byte[] encoding)
         {
-            return new BcTlsCertificate(this, encoding);
+            switch (type)
+            {
+            case CertificateType.X509:
+                return new BcTlsCertificate(this, encoding);
+            case CertificateType.RawPublicKey:
+                return new BcTlsRawKeyCertificate(this, encoding);
+            default:
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
         }
 
         public override TlsCipher CreateCipher(TlsCryptoParameters cryptoParams, int encryptionAlgorithm,

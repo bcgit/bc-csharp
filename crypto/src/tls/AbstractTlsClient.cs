@@ -174,6 +174,16 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        protected virtual short[] GetAllowedClientCertificateTypes()
+        {
+            return null;
+        }
+
+        protected virtual short[] GetAllowedServerCertificateTypes()
+        {
+            return null;
+        }
+
         public virtual void Init(TlsClientContext context)
         {
             this.m_context = context;
@@ -332,6 +342,33 @@ namespace Org.BouncyCastle.Tls
                     TlsExtensionsUtilities.AddSupportedPointFormatsExtension(clientExtensions,
                         new short[]{ ECPointFormat.uncompressed });
                 }
+            }
+
+            /*
+             * RFC 7250 4.1:
+             *
+             * If the client has no remaining certificate types to send in
+             * the client hello, other than the default X.509 type, it MUST omit the
+             * client_certificate_type extension in the client hello.
+             */
+            short[] clientCertTypes = GetAllowedClientCertificateTypes();
+            if (clientCertTypes != null && (clientCertTypes.Length > 1 || clientCertTypes[0] != CertificateType.X509))
+            {
+                TlsExtensionsUtilities.AddClientCertificateTypeExtensionClient(clientExtensions, clientCertTypes);
+            }
+
+            /*
+             * RFC 7250 4.1:
+             *
+             * If the client has no remaining certificate types to send in
+             * the client hello, other than the default X.509 certificate type, it
+             * MUST omit the entire server_certificate_type extension from the
+             * client hello.
+             */
+            short[] serverCertTypes = GetAllowedServerCertificateTypes();
+            if (serverCertTypes != null && (serverCertTypes.Length > 1 || serverCertTypes[0] != CertificateType.X509))
+            {
+                TlsExtensionsUtilities.AddServerCertificateTypeExtensionClient(clientExtensions, serverCertTypes);
             }
 
             return clientExtensions;

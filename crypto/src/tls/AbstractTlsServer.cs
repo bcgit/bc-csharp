@@ -207,6 +207,16 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        protected virtual bool PreferLocalClientCertificateTypes()
+        {
+            return false;
+        }
+
+        protected virtual short[] GetAllowedClientCertificateTypes()
+        {
+            return null;
+        }
+
         public virtual void Init(TlsServerContext context)
         {
             this.m_context = context;
@@ -489,6 +499,66 @@ namespace Org.BouncyCastle.Tls
             if (m_maxFragmentLengthOffered >= 0 && MaxFragmentLength.IsValid(m_maxFragmentLengthOffered))
             {
                 TlsExtensionsUtilities.AddMaxFragmentLengthExtension(m_serverExtensions, m_maxFragmentLengthOffered);
+            }
+
+            // RFC 7250 4.2 for server_certificate_type
+            short[] serverCertTypes = TlsExtensionsUtilities.GetServerCertificateTypeExtensionClient(
+                m_clientExtensions);
+            if (serverCertTypes != null)
+            {
+                TlsCredentials credentials = GetCredentials();
+
+                if (credentials == null || !Arrays.Contains(serverCertTypes, credentials.Certificate.CertificateType))
+                {
+                    // outcome 2: we support the extension but have no common types
+                    throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                }
+
+                // outcome 3: we support the extension and have a common type
+                TlsExtensionsUtilities.AddServerCertificateTypeExtensionServer(m_serverExtensions,
+                    credentials.Certificate.CertificateType);
+            }
+
+            // RFC 7250 4.2 for client_certificate_type
+            short[] remoteClientCertTypes = TlsExtensionsUtilities.GetClientCertificateTypeExtensionClient(
+                m_clientExtensions);
+            if (remoteClientCertTypes != null)
+            {
+                short[] localClientCertTypes = GetAllowedClientCertificateTypes();
+                if (localClientCertTypes != null)
+                {
+                    short[] preferredTypes;
+                    short[] nonPreferredTypes;
+                    if (PreferLocalClientCertificateTypes())
+                    {
+                        preferredTypes = localClientCertTypes;
+                        nonPreferredTypes = remoteClientCertTypes;
+                    }
+                    else
+                    {
+                        preferredTypes = remoteClientCertTypes;
+                        nonPreferredTypes = localClientCertTypes;
+                    }
+
+                    short selectedType = -1;
+                    for (int i = 0; i < preferredTypes.Length; i++)
+                    {
+                        if (Arrays.Contains(nonPreferredTypes, preferredTypes[i]))
+                        {
+                            selectedType = preferredTypes[i];
+                            break;
+                        }
+                    }
+
+                    if (selectedType == -1)
+                    {
+                        // outcome 2: we support the extension but have no common types
+                        throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+                    }
+
+                    // outcome 3: we support the extension and have a common type
+                    TlsExtensionsUtilities.AddClientCertificateTypeExtensionServer(m_serverExtensions, selectedType);
+                } // else outcome 1: we don't support the extension
             }
 
             return m_serverExtensions;

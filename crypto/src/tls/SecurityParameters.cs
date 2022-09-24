@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Org.BouncyCastle.Tls.Crypto;
 
@@ -52,6 +51,7 @@ namespace Org.BouncyCastle.Tls
         internal Certificate m_peerCertificate = null;
         internal ProtocolVersion m_negotiatedVersion = null;
         internal int m_statusRequestVersion = 0;
+        internal short m_clientCertificateType = -1;
 
         // TODO[tls-ops] Investigate whether we can handle verify data using TlsSecret
         internal byte[] m_localVerifyData = null;
@@ -98,6 +98,11 @@ namespace Org.BouncyCastle.Tls
         public int CipherSuite
         {
             get { return m_cipherSuite; }
+        }
+
+        public short ClientCertificateType
+        {
+            get { return m_clientCertificateType; }
         }
 
         public short[] ClientCertTypes
