@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Security
         private enum DigestAlgorithm {
             BLAKE2B_160, BLAKE2B_256, BLAKE2B_384, BLAKE2B_512,
             BLAKE2S_128, BLAKE2S_160, BLAKE2S_224, BLAKE2S_256,
+            BLAKE3_256,
             DSTU7564_256, DSTU7564_384, DSTU7564_512,
             GOST3411,
             GOST3411_2012_256, GOST3411_2012_512,
@@ -122,6 +123,7 @@ namespace Org.BouncyCastle.Security
             Aliases[MiscObjectIdentifiers.id_blake2s160.Id] = "BLAKE2S-160";
             Aliases[MiscObjectIdentifiers.id_blake2s224.Id] = "BLAKE2S-224";
             Aliases[MiscObjectIdentifiers.id_blake2s256.Id] = "BLAKE2S-256";
+            Aliases[MiscObjectIdentifiers.blake3_256.Id] = "BLAKE3-256";
 
             Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256.Id] = "GOST3411-2012-256";
             Aliases[RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512.Id] = "GOST3411-2012-512";
@@ -159,6 +161,7 @@ namespace Org.BouncyCastle.Security
             Oids["BLAKE2S-160"] = MiscObjectIdentifiers.id_blake2s160;
             Oids["BLAKE2S-224"] = MiscObjectIdentifiers.id_blake2s224;
             Oids["BLAKE2S-256"] = MiscObjectIdentifiers.id_blake2s256;
+            Oids["BLAKE3-256"] = MiscObjectIdentifiers.blake3_256;
             Oids["GOST3411-2012-256"] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
             Oids["GOST3411-2012-512"] = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512;
             Oids["DSTU7564-256"] = UAObjectIdentifiers.dstu7564digest_256;
@@ -209,6 +212,7 @@ namespace Org.BouncyCastle.Security
                 case DigestAlgorithm.BLAKE2S_160: return new Blake2sDigest(160);
                 case DigestAlgorithm.BLAKE2S_224: return new Blake2sDigest(224);
                 case DigestAlgorithm.BLAKE2S_256: return new Blake2sDigest(256);
+                case DigestAlgorithm.BLAKE3_256: return new Blake3Digest(256);
                 case DigestAlgorithm.DSTU7564_256: return new Dstu7564Digest(256);
                 case DigestAlgorithm.DSTU7564_384: return new Dstu7564Digest(384);
                 case DigestAlgorithm.DSTU7564_512: return new Dstu7564Digest(512);
