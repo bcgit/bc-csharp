@@ -1,22 +1,19 @@
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
-    public class KyberKeyGenerationParameters
+    public sealed class KyberKeyGenerationParameters
         : KeyGenerationParameters
     {
-        private KyberParameters parameters;
+        private readonly KyberParameters m_parameters;
 
-        public KyberKeyGenerationParameters(
-            SecureRandom random,
-            KyberParameters KyberParameters)
+        public KyberKeyGenerationParameters(SecureRandom random, KyberParameters KyberParameters)
             : base(random, 256)
         {
-            this.parameters = KyberParameters;
+            m_parameters = KyberParameters;
         }
 
-        public KyberParameters Parameters => parameters;
+        public KyberParameters Parameters => m_parameters;
     }
 }

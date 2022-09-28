@@ -1,36 +1,29 @@
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
-    public class KyberKEMExtractor
+    public sealed class KyberKemExtractor
         : IEncapsulatedSecretExtractor
     {
-        private KyberEngine engine;
+        private readonly KyberKeyParameters m_key;
+        private readonly KyberEngine m_engine;
 
-        private KyberKeyParameters key;
-
-        public KyberKEMExtractor(KyberKeyParameters privParams)
+        public KyberKemExtractor(KyberKeyParameters privParams)
         {
-            this.key = privParams;
-            InitCipher(key.Parameters);
-        }
-
-        private void InitCipher(KyberParameters param)
-        {
-            engine = param.GetEngine();
+            m_key = privParams;
+            m_engine = m_key.Parameters.Engine;
         }
 
         public byte[] ExtractSecret(byte[] encapsulation)
         {
-            byte[] sessionKey = new byte[engine.CryptoBytes];
-            engine.KemDecrypt(sessionKey, encapsulation, ((KyberPrivateKeyParameters) key).privateKey);
-            byte[] rv = Arrays.CopyOfRange(sessionKey, 0, key.Parameters.DefaultKeySize / 8);
+            byte[] sessionKey = new byte[m_engine.CryptoBytes];
+            m_engine.KemDecrypt(sessionKey, encapsulation, ((KyberPrivateKeyParameters)m_key).m_privateKey);
+            byte[] rv = Arrays.CopyOfRange(sessionKey, 0, m_key.Parameters.DefaultKeySize / 8);
             Arrays.Clear(sessionKey);
             return rv;
         }
 
-        public int EncapsulationLength => engine.CryptoCipherTextBytes;
+        public int EncapsulationLength => m_engine.CryptoCipherTextBytes;
     }
 }

@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
 
                             // KEM Enc
-                            KyberKEMGenerator KyberEncCipher = new KyberKEMGenerator(random);
+                            KyberKemGenerator KyberEncCipher = new KyberKemGenerator(random);
                             ISecretWithEncapsulation secWenc = KyberEncCipher.GenerateEncapsulated(pubParams);
                             byte[] generated_cipher_text = secWenc.GetEncapsulation();
 
@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                             Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc key");
 
                             // KEM Dec
-                            KyberKEMExtractor KyberDecCipher = new KyberKEMExtractor(privParams);
+                            KyberKemExtractor KyberDecCipher = new KyberKemExtractor(privParams);
 
                             byte[] dec_key = KyberDecCipher.ExtractSecret(generated_cipher_text);
 

@@ -2,20 +2,20 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
-    public class KyberPublicKeyParameters
+    public sealed class KyberPublicKeyParameters
         : KyberKeyParameters
     {
-        internal byte[] publicKey;
-
-        public byte[] GetEncoded()
-        {
-            return Arrays.Clone(publicKey);
-        }
+        internal readonly byte[] m_publicKey;
 
         public KyberPublicKeyParameters(KyberParameters parameters, byte[] publicKey)
             : base(false, parameters)
         {
-            this.publicKey = Arrays.Clone(publicKey);
+            m_publicKey = Arrays.Clone(publicKey);
+        }
+
+        public byte[] GetEncoded()
+        {
+            return Arrays.Clone(m_publicKey);
         }
     }
 }

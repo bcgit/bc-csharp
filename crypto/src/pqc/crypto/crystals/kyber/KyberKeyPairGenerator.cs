@@ -1,6 +1,4 @@
-
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
@@ -8,42 +6,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
     public class KyberKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private KyberKeyGenerationParameters KyberParams;
-
-        private int k;
-
-        private SecureRandom random;
-
-        private void Initialize(
-            KeyGenerationParameters param)
-        {
-            this.KyberParams = (KyberKeyGenerationParameters) param;
-            this.random = param.Random;
-
-            this.k = this.KyberParams.Parameters.K;
-        }
-
-        private AsymmetricCipherKeyPair GenKeyPair()
-        {
-            KyberEngine engine = KyberParams.Parameters.GetEngine();
-            engine.Init(random);
-            byte[] sk = new byte[engine.CryptoSecretKeyBytes];
-            byte[] pk = new byte[engine.CryptoPublicKeyBytes];
-            engine.GenerateKemKeyPair(pk, sk);
-
-            KyberPublicKeyParameters pubKey = new KyberPublicKeyParameters(KyberParams.Parameters, pk);
-            KyberPrivateKeyParameters privKey = new KyberPrivateKeyParameters(KyberParams.Parameters, sk);
-            return new AsymmetricCipherKeyPair(pubKey, privKey);
-        }
+        private KyberKeyGenerationParameters m_kyberParams;
+        private SecureRandom m_random;
 
         public void Init(KeyGenerationParameters param)
         {
-            this.Initialize(param);
+            m_kyberParams = (KyberKeyGenerationParameters)param;
+            m_random = param.Random;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            return GenKeyPair();
+            KyberEngine engine = m_kyberParams.Parameters.Engine;
+            engine.Init(m_random);
+            byte[] sk = new byte[engine.CryptoSecretKeyBytes];
+            byte[] pk = new byte[engine.CryptoPublicKeyBytes];
+            engine.GenerateKemKeyPair(pk, sk);
+
+            KyberPublicKeyParameters pubKey = new KyberPublicKeyParameters(m_kyberParams.Parameters, pk);
+            KyberPrivateKeyParameters privKey = new KyberPrivateKeyParameters(m_kyberParams.Parameters, sk);
+            return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
     }
 }

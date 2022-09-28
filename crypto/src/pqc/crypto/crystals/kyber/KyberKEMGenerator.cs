@@ -1,84 +1,79 @@
-
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
-    public class KyberKEMGenerator
+    public sealed class KyberKemGenerator
         : IEncapsulatedSecretGenerator
     {
         // the source of randomness
-        private SecureRandom sr;
+        private readonly SecureRandom m_random;
 
-        public KyberKEMGenerator(SecureRandom random)
+        public KyberKemGenerator(SecureRandom random)
         {
-            this.sr = random;
+            m_random = random;
         }
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
-            KyberPublicKeyParameters key = (KyberPublicKeyParameters) recipientKey;
-            KyberEngine engine = key.Parameters.GetEngine();
-            engine.Init(sr);
-            byte[] CipherText = new byte[engine.CryptoCipherTextBytes];
-            byte[] SessionKey = new byte[engine.CryptoBytes];
-            engine.KemEncrypt(CipherText, SessionKey, key.publicKey);
-            byte[] rv = Arrays.CopyOfRange(SessionKey, 0, key.Parameters.DefaultKeySize / 8);
-            Arrays.Clear(SessionKey);
-            return new SecretWithEncapsulationImpl(rv, CipherText);
+            KyberPublicKeyParameters key = (KyberPublicKeyParameters)recipientKey;
+            KyberEngine engine = key.Parameters.Engine;
+            engine.Init(m_random);
+            byte[] cipherText = new byte[engine.CryptoCipherTextBytes];
+            byte[] sessionKey = new byte[engine.CryptoBytes];
+            engine.KemEncrypt(cipherText, sessionKey, key.m_publicKey);
+            byte[] rv = Arrays.CopyOfRange(sessionKey, 0, key.Parameters.DefaultKeySize / 8);
+            Arrays.Clear(sessionKey);
+            return new SecretWithEncapsulationImpl(rv, cipherText);
         }
 
-        private class SecretWithEncapsulationImpl
+        private sealed class SecretWithEncapsulationImpl
             : ISecretWithEncapsulation
         {
-            private volatile bool hasBeenDestroyed = false;
+            private volatile bool m_hasBeenDestroyed = false;
 
-            private byte[] SessionKey;
-            private byte[] CipherText;
+            private readonly byte[] m_sessionKey;
+            private readonly byte[] m_cipherText;
 
-            public SecretWithEncapsulationImpl(byte[] sessionKey, byte[] cipher_text)
+            internal SecretWithEncapsulationImpl(byte[] sessionKey, byte[] cipher_text)
             {
-                this.SessionKey = sessionKey;
-                this.CipherText = cipher_text;
+                m_sessionKey = sessionKey;
+                m_cipherText = cipher_text;
             }
 
             public byte[] GetSecret()
             {
                 CheckDestroyed();
 
-                return Arrays.Clone(SessionKey);
+                return Arrays.Clone(m_sessionKey);
             }
 
             public byte[] GetEncapsulation()
             {
                 CheckDestroyed();
 
-                return Arrays.Clone(CipherText);
+                return Arrays.Clone(m_cipherText);
             }
 
             public void Dispose()
             {
-                if (!hasBeenDestroyed)
+                if (!m_hasBeenDestroyed)
                 {
-                    hasBeenDestroyed = true;
-                    Arrays.Clear(SessionKey);
-                    Arrays.Clear(CipherText);
+                    m_hasBeenDestroyed = true;
+                    Arrays.Clear(m_sessionKey);
+                    Arrays.Clear(m_cipherText);
                 }
             }
 
-            public bool IsDestroyed()
-            {
-                return hasBeenDestroyed;
-            }
+            internal bool IsDestroyed => m_hasBeenDestroyed;
 
-            void CheckDestroyed()
+            private void CheckDestroyed()
             {
-                if (IsDestroyed())
-                {
+                if (IsDestroyed)
                     throw new ArgumentException("data has been destroyed");
-                }
             }
         }
     }
