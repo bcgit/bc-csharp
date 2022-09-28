@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             public Aes128MatrixGenerator(int n, int q)
                 : base(n, q)
             {
-                cipher = new BufferedBlockCipher(new AesEngine());
+                cipher = new BufferedBlockCipher(AesUtilities.CreateEngine());
 
             }
 
