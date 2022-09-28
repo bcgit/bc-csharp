@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         : IEncapsulatedSecretGenerator
     {
         // the source of randomness
-        private readonly SecureRandom m_random;
+        private SecureRandom m_random;
 
         public KyberKemGenerator(SecureRandom random)
         {
@@ -19,15 +19,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
-            KyberPublicKeyParameters key = (KyberPublicKeyParameters)recipientKey;
+            KyberPublicKeyParameters key = (KyberPublicKeyParameters) recipientKey;
             KyberEngine engine = key.Parameters.Engine;
             engine.Init(m_random);
             byte[] cipherText = new byte[engine.CryptoCipherTextBytes];
             byte[] sessionKey = new byte[engine.CryptoBytes];
-            engine.KemEncrypt(cipherText, sessionKey, key.m_publicKey);
-            byte[] rv = Arrays.CopyOfRange(sessionKey, 0, key.Parameters.DefaultKeySize / 8);
-            Arrays.Clear(sessionKey);
-            return new SecretWithEncapsulationImpl(rv, cipherText);
+            engine.KemEncrypt(cipherText, sessionKey, key.GetEncoded());
+            return new SecretWithEncapsulationImpl(sessionKey, cipherText);
         }
 
         private sealed class SecretWithEncapsulationImpl
@@ -35,8 +33,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         {
             private volatile bool m_hasBeenDestroyed = false;
 
-            private readonly byte[] m_sessionKey;
-            private readonly byte[] m_cipherText;
+            private byte[] m_sessionKey;
+            private byte[] m_cipherText;
 
             internal SecretWithEncapsulationImpl(byte[] sessionKey, byte[] cipher_text)
             {
@@ -68,12 +66,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 }
             }
 
-            internal bool IsDestroyed => m_hasBeenDestroyed;
+            internal bool IsDestroyed()
+            {
+                return m_hasBeenDestroyed;
+            }
 
             private void CheckDestroyed()
             {
-                if (IsDestroyed)
+                if (IsDestroyed())
+                {
                     throw new ArgumentException("data has been destroyed");
+                }
             }
         }
     }

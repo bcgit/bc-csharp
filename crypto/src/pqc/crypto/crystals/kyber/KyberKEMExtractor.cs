@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         private readonly KyberKeyParameters m_key;
         private readonly KyberEngine m_engine;
 
+
         public KyberKemExtractor(KyberKeyParameters privParams)
         {
             m_key = privParams;
@@ -17,11 +18,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         public byte[] ExtractSecret(byte[] encapsulation)
         {
-            byte[] sessionKey = new byte[m_engine.CryptoBytes];
-            m_engine.KemDecrypt(sessionKey, encapsulation, ((KyberPrivateKeyParameters)m_key).m_privateKey);
-            byte[] rv = Arrays.CopyOfRange(sessionKey, 0, m_key.Parameters.DefaultKeySize / 8);
-            Arrays.Clear(sessionKey);
-            return rv;
+            byte[] sharedSecret = new byte[m_engine.CryptoBytes];
+            m_engine.KemDecrypt(sharedSecret, encapsulation, ((KyberPrivateKeyParameters)m_key).GetEncoded());
+            return sharedSecret;
         }
 
         public int EncapsulationLength => m_engine.CryptoCipherTextBytes;

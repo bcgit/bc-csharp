@@ -1,31 +1,32 @@
-﻿using System;
+﻿
+using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 {
     internal class Poly
     {
-        private short[] m_coeffs = new short[KyberEngine.N];
-
         private KyberEngine m_engine;
-
-        internal Poly(KyberEngine engine)
+        public short[] m_coeffs = new short[KyberEngine.N];
+        private Symmetric m_symmetric;
+        public Poly(KyberEngine mEngine)
         {
-            m_engine = engine;
+            m_engine = mEngine;
+            m_symmetric = mEngine.Symmetric;
         }
-
+        
         internal short[] Coeffs => m_coeffs;
 
         internal void GetNoiseEta1(byte[] seed, byte nonce)
         {
             byte[] buf = new byte[m_engine.Eta1 * KyberEngine.N / 4];
-            Symmetric.Prf(buf, buf.Length, seed, nonce);
+            m_symmetric.Prf(buf, seed, nonce);
             Cbd.Eta(this, buf, m_engine.Eta1);
         }
 
         internal void GetNoiseEta2(byte[] seed, byte nonce)
         {
             byte[] buf = new byte[KyberEngine.Eta2 * KyberEngine.N / 4];
-            Symmetric.Prf(buf, buf.Length, seed, nonce);
+            m_symmetric.Prf(buf, seed, nonce);
             Cbd.Eta(this, buf, KyberEngine.Eta2);
         }
 
@@ -76,7 +77,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         {
             for (int i = 0; i < KyberEngine.N; i++)
             {
-                Coeffs[i] = (short)(a.Coeffs[i] - Coeffs[i]);
+                Coeffs[i] = (short) (a.Coeffs[i] - Coeffs[i]);
             }
         }
 
@@ -90,12 +91,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
 
         internal void CompressPoly(byte[] r, int off)
         {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> t = stackalloc byte[8];
-#else
             byte[] t = new byte[8];
-#endif
-
             int count = 0;
             CondSubQ();
 
@@ -186,7 +182,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 throw new ArgumentException("PolyCompressedBytes is neither 128 or 160!");
             }
         }
-
+        
         internal void ToBytes(byte[] r, int off)
         {
             CondSubQ();
@@ -228,8 +224,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         internal void FromMsg(byte[] m)
         {
             if (m.Length != KyberEngine.N / 8)
+            {
                 throw new ArgumentException("KYBER_INDCPA_MSGBYTES must be equal to KYBER_N/8 bytes!");
-
+            }
             for (int i = 0; i < KyberEngine.N / 8; i++)
             {
                 for (int j = 0; j < 8; j++)

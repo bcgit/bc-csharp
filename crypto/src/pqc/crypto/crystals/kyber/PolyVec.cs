@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                             t[k] = (short)
                                 (
                                     (
-                                        (((uint) m_vec[i].Coeffs[4 * j + k] << 10)
+                                        (((uint) m_vec[i].m_coeffs[4 * j + k] << 10)
                                             + (KyberEngine.Q / 2))
                                             / KyberEngine.Q)
                                         & 0x3ff);
@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                             t[k] = (short)
                                 (
                                     (
-                                        (((uint) m_vec[i].Coeffs[8 * j + k] << 11)
+                                        (((uint) m_vec[i].m_coeffs[8 * j + k] << 11)
                                             + (KyberEngine.Q / 2))
                                             / KyberEngine.Q)
                                         & 0x7ff);
@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                         count += 5;
                         for (int k = 0; k < 4; k++)
                         {
-                            m_vec[i].Coeffs[4 * j + k] = (short)(((t[k] & 0x3FF) * KyberEngine.Q + 512) >> 10);
+                            m_vec[i].m_coeffs[4 * j + k] = (short)(((t[k] & 0x3FF) * KyberEngine.Q + 512) >> 10);
                         }
                     }
                 }
@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                         count += 11;
                         for (int k = 0; k < 8; k++)
                         {
-                            m_vec[i].Coeffs[8 * j + k] = (short)(((t[k] & 0x7FF) * KyberEngine.Q + 1024) >> 11);
+                            m_vec[i].m_coeffs[8 * j + k] = (short)(((t[k] & 0x7FF) * KyberEngine.Q + 1024) >> 11);
                         }
                     }
                 }

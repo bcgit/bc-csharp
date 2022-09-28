@@ -1,6 +1,5 @@
 ﻿using System;
 
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
@@ -8,37 +7,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
     internal class KyberIndCpa
     {
         private readonly KyberEngine m_engine;
-
-        internal KyberIndCpa(KyberEngine engine)
+        private Symmetric m_symmetric;
+        internal KyberIndCpa(KyberEngine mEngine)
         {
-            m_engine = engine;
+            m_engine = mEngine;
+            m_symmetric = mEngine.Symmetric;
         }
-
-        private int XofBlockBytes => Symmetric.Shake128Rate;
-
-        private int GenerateMatrixNBlocks => ((12 * KyberEngine.N / 8 * (1 << 12) / KyberEngine.Q + XofBlockBytes) / XofBlockBytes);
+        
+        private int GenerateMatrixNBlocks => ((12 * KyberEngine.N / 8 * (1 << 12) / KyberEngine.Q + m_symmetric.XofBlockBytes) / m_symmetric.XofBlockBytes);
 
         private void GenerateMatrix(PolyVec[] a, byte[] seed, bool transposed)
         {
             int K = m_engine.K;
-            ShakeDigest shake128 = new ShakeDigest(128);
-            byte[] buf = new byte[GenerateMatrixNBlocks * XofBlockBytes + 2];
 
+            byte[] buf = new byte[GenerateMatrixNBlocks * m_symmetric.XofBlockBytes + 2];
             for (int i = 0; i < K; i++)
             {
                 for (int j = 0; j < K; j++)
                 {
                     if (transposed)
                     {
-                        shake128 = Symmetric.Xof(seed, (byte) i, (byte) j);
+                        m_symmetric.XofAbsorb(seed, (byte) i, (byte) j);
                     }
                     else
                     {
-                        shake128 = Symmetric.Xof(seed, (byte) j, (byte) i);
+                        m_symmetric.XofAbsorb(seed, (byte) j, (byte) i);
                     }
-                    shake128.DoOutput(buf, 0, GenerateMatrixNBlocks * XofBlockBytes);
-                    int buflen = GenerateMatrixNBlocks * XofBlockBytes;
-                    int ctr = RejectionSampling(a[i].m_vec[j].Coeffs, 0, KyberEngine.N, buf, buflen);
+                    m_symmetric.XofSqueezeBlocks(buf, 0, GenerateMatrixNBlocks * m_symmetric.XofBlockBytes);
+                    int buflen = GenerateMatrixNBlocks * m_symmetric.XofBlockBytes;
+                    int ctr = RejectionSampling(a[i].m_vec[j].m_coeffs, 0, KyberEngine.N, buf, buflen);
                     while (ctr < KyberEngine.N)
                     {
                         int off = buflen % 3;
@@ -46,13 +43,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                         {
                             buf[k] = buf[buflen - off + k];
                         }
-                        shake128.DoOutput(buf, off, XofBlockBytes * 2);
-                        buflen = off + XofBlockBytes;
-                        ctr += RejectionSampling(a[i].m_vec[j].Coeffs, ctr, KyberEngine.N - ctr, buf, buflen);
+                        m_symmetric.XofSqueezeBlocks(buf, off, m_symmetric.XofBlockBytes * 2);
+                        buflen = off + m_symmetric.XofBlockBytes;
+                        ctr += RejectionSampling(a[i].m_vec[j].m_coeffs, ctr, KyberEngine.N - ctr, buf, buflen);
                     }
 
                 }
             }
+            return;
         }
 
         private int RejectionSampling(short[] r, int off, int len, byte[] buf, int buflen)
@@ -77,7 +75,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             return ctr;
         }
 
-        internal void GenerateKeyPair(byte[] pk, byte[] sk)
+        internal void GenerateKeyPair(out byte[] pk, out byte[] sk)
         {
             int K = m_engine.K;
 
@@ -85,14 +83,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             byte nonce = 0;
             PolyVec[] Matrix = new PolyVec[K];
             PolyVec e = new PolyVec(m_engine), pkpv = new PolyVec(m_engine), skpv = new PolyVec(m_engine);
-            Sha3Digest Sha3Digest512 = new Sha3Digest(512);
 
-            m_engine.RandomBytes(buf, KyberEngine.SymBytes);
+            byte[] d = new byte[32];
+            m_engine.RandomBytes(d, 32);
             
-            Sha3Digest512.BlockUpdate(buf, 0, KyberEngine.SymBytes);
-            Sha3Digest512.DoFinal(buf, 0);
+            m_symmetric.Hash_g(buf, d);
 
-            //Console.WriteLine(string.Format("buf = {0}", Convert.ToHexString(buf)));
             byte[] PublicSeed = Arrays.CopyOfRange(buf, 0, KyberEngine.SymBytes);
             byte[] NoiseSeed = Arrays.CopyOfRange(buf, KyberEngine.SymBytes, 2 * KyberEngine.SymBytes);
 
@@ -112,61 +108,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             {
                 e.m_vec[i].GetNoiseEta1(NoiseSeed, nonce++);
             }
-
+            
             skpv.Ntt();
             e.Ntt();
-
-            //Console.WriteLine("skpv = ");
-            //for (int i = 0; i < K; i++)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (short coeff in skpv.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
-
-            //for (int i = 0; i < K; i++)
-            //{
-            //    Console.Write("[");
-            //    for (int j = 0; j < K; j++)
-            //    {
-            //        Console.Write("[");
-            //        for (int k = 0; k < KyberEngine.N; k++)
-            //        {
-            //            Console.Write(String.Format("{0:G}, ", Matrix[i].Vec[j].Coeffs[k]));
-            //        }
-            //        Console.Write("], \n");
-            //    }
-            //    Console.Write("] \n");
-            //}
-
+            
             for (int i = 0; i < K; i++)
             {
                 PolyVec.PointwiseAccountMontgomery(pkpv.m_vec[i], Matrix[i], skpv, m_engine);
                 pkpv.m_vec[i].ToMont();
             }
-
-            //Console.WriteLine("pkpv = ");
-            //for (int i = 0; i < K; i++)
-            //{
-            //    Console.Write(String.Format("{0} [", i));
-            //    foreach (short coeff in pkpv.Vec[i].Coeffs)
-            //    {
-            //        Console.Write(String.Format("{0}, ", coeff));
-            //    }
-            //    Console.Write("]\n");
-            //}
+            
             pkpv.Add(e);
             pkpv.Reduce();
 
-            PackSecretKey(sk, skpv);
-            PackPublicKey(pk, pkpv, PublicSeed);
+            PackSecretKey(out sk, skpv);
+            PackPublicKey(out pk, pkpv, PublicSeed);
         }
 
-        private void PackSecretKey(byte[] sk, PolyVec skpv)
+        private void PackSecretKey(out byte[] sk, PolyVec skpv)
         {
+            sk = new byte[m_engine.PolyVecBytes];
             skpv.ToBytes(sk);
         }
 
@@ -175,26 +136,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             skpv.FromBytes(sk);
         }
 
-        private void PackPublicKey(byte[] pk, PolyVec pkpv, byte[] seed)
+        private void PackPublicKey(out byte[] pk, PolyVec pkpv, byte[] seed)
         {
+            int i;
+            pk = new byte[m_engine.IndCpaPublicKeyBytes];
             pkpv.ToBytes(pk);
             Array.Copy(seed, 0, pk, m_engine.PolyVecBytes, KyberEngine.SymBytes);
         }
 
         private void UnpackPublicKey(PolyVec pkpv, byte[] seed, byte[] pk)
         {
+            int i;
             pkpv.FromBytes(pk);
             Array.Copy(pk, m_engine.PolyVecBytes, seed, 0, KyberEngine.SymBytes);
         }
 
-        internal void Encrypt(byte[] c, byte[] m, byte[] pk, byte[] coins)
+        public void Encrypt(byte[] c, byte[] m, byte[] pk, byte[] coins)
         {
             int K = m_engine.K;
 
             byte[] seed = new byte[KyberEngine.SymBytes];
             byte nonce = 0;
-            PolyVec sp = new PolyVec(m_engine), pkpv = new PolyVec(m_engine), ep = new PolyVec(m_engine),
-                bp = new PolyVec(m_engine);
+            PolyVec sp = new PolyVec(m_engine), pkpv = new PolyVec(m_engine), ep = new PolyVec(m_engine), bp = new PolyVec(m_engine);
             PolyVec[] MatrixTransposed = new PolyVec[K];
             Poly v = new Poly(m_engine), k = new Poly(m_engine), epp = new Poly(m_engine);
 

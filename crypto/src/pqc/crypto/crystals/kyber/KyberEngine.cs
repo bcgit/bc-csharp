@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -10,7 +9,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
     {
         private SecureRandom m_random;
         private KyberIndCpa m_indCpa;
-
         // Constant Parameters
         public const int N = 256;
         public const int Q = 3329;
@@ -24,6 +22,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         public const int Eta2 = 2;
 
         public int IndCpaMsgBytes = SymBytes;
+        public Symmetric Symmetric { get; private set; }
 
 
         // Parameters
@@ -45,7 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         public int CryptoPublicKeyBytes { get; private set; }
         public int CryptoCipherTextBytes { get; private set; }
 
-        internal KyberEngine(int k)
+        public KyberEngine(int k, bool usingAes)
         {
             K = k;
             switch (k)
@@ -65,8 +64,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
                 PolyCompressedBytes = 160;
                 PolyVecCompressedBytes = K * 352;
                 break;
-            default:
-                break;
             }
 
             PolyVecBytes = k * PolyBytes;
@@ -83,6 +80,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             CryptoPublicKeyBytes = PublicKeyBytes;
             CryptoCipherTextBytes = CipherTextBytes;
 
+            if (usingAes)
+            {
+                Symmetric = new Symmetric.AesSymmetric();
+            }
+            else
+            {
+                Symmetric = new Symmetric.ShakeSymmetric();
+            }
+
             m_indCpa = new KyberIndCpa(this);
         }
 
@@ -91,83 +97,71 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             m_random = random;
         }
 
-        internal void UpdateSeed(byte[] seed)
+        internal void GenerateKemKeyPair(out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk, out byte[] nonce)
         {
-            m_random.SetSeed(seed);
-        }
+            byte[] pk, sk;
+            m_indCpa.GenerateKeyPair(out pk, out sk);
+            s = Arrays.CopyOfRange(sk, 0, IndCpaSecretKeyBytes);
+            
+            hpk = new byte[32];
+            Symmetric.Hash_h(hpk, pk, 0);
 
-        internal void GenerateKemKeyPair(byte[] pk, byte[] sk)
-        {
-            Sha3Digest Sha3Digest256 = new Sha3Digest(256);
-            m_indCpa.GenerateKeyPair(pk, sk);
-            Array.Copy(pk, 0, sk, IndCpaSecretKeyBytes, IndCpaPublicKeyBytes);
-            Sha3Digest256.BlockUpdate(pk, 0, PublicKeyBytes);
-            Sha3Digest256.DoFinal(sk, SecretKeyBytes - 2 * SymBytes);
-            m_random.NextBytes(sk, SecretKeyBytes - SymBytes, SymBytes);            
+            nonce = new byte[SymBytes];
+            m_random.NextBytes(nonce);
+            
+            t = Arrays.CopyOfRange(pk, 0, IndCpaPublicKeyBytes - 32);
+            rho = Arrays.CopyOfRange(pk, IndCpaPublicKeyBytes - 32, IndCpaPublicKeyBytes);
+
         }
 
         internal void KemEncrypt(byte[] cipherText, byte[] sharedSecret, byte[] pk)
         {
+            byte[] randBytes = new byte[SymBytes];
             byte[] buf = new byte[2 * SymBytes];
             byte[] kr = new byte[2 * SymBytes];
 
-            Sha3Digest Sha3Digest256 = new Sha3Digest(256);
+            m_random.NextBytes(randBytes, 0, SymBytes);
 
-            m_random.NextBytes(buf, 0, SymBytes);
+            Symmetric.Hash_h(randBytes, randBytes, 0);
+            Array.Copy(randBytes, 0, buf, 0, SymBytes);
 
-            Sha3Digest256.BlockUpdate(buf, 0, SymBytes);
-            Sha3Digest256.DoFinal(buf, 0);
+            Symmetric.Hash_h(buf, pk, SymBytes);
 
-            Sha3Digest256.BlockUpdate(pk, 0, PublicKeyBytes);
-            Sha3Digest256.DoFinal(buf, SymBytes);
-
-            Sha3Digest Sha3Digest512 = new Sha3Digest(512);
-            Sha3Digest512.BlockUpdate(buf, 0, 2 * SymBytes);
-            Sha3Digest512.DoFinal(kr, 0);
-
-            m_indCpa.Encrypt(cipherText, Arrays.CopyOfRange(buf, 0, SymBytes), pk, Arrays.CopyOfRange(kr, SymBytes, 2 * SymBytes));
-            Sha3Digest256.BlockUpdate(cipherText, 0, CipherTextBytes);
-            Sha3Digest256.DoFinal(kr, SymBytes);
-
-            ShakeDigest ShakeDigest128 = new ShakeDigest(256);
+            Symmetric.Hash_g(kr, buf);
             
-            ShakeDigest128.BlockUpdate(kr, 0, 2 * SymBytes);
-            ShakeDigest128.DoFinal(sharedSecret, 0, SymBytes);
+            m_indCpa.Encrypt(cipherText, Arrays.CopyOfRange(buf, 0, SymBytes), pk, Arrays.CopyOfRange(kr, SymBytes, 2 * SymBytes));
+
+            Symmetric.Hash_h(kr, cipherText, SymBytes);
+
+            Symmetric.Kdf(sharedSecret, kr);
         }
 
         internal void KemDecrypt(byte[] sharedSecret, byte[] cipherText, byte[] secretKey)
         {
+            int i;
             byte[] buf = new byte[2 * SymBytes], kr = new byte[2 * SymBytes], cmp = new byte[CipherTextBytes];
             byte[] pk = Arrays.CopyOfRange(secretKey, IndCpaSecretKeyBytes, secretKey.Length);
             m_indCpa.Decrypt(buf, cipherText, secretKey);
             Array.Copy(secretKey, SecretKeyBytes - 2 * SymBytes, buf, SymBytes, SymBytes);
 
-            Sha3Digest Sha3Digest512 = new Sha3Digest(512);
-            Sha3Digest512.BlockUpdate(buf, 0, 2 * SymBytes);
-            Sha3Digest512.DoFinal(kr, 0);
+            Symmetric.Hash_g(kr, buf);
+
 
             m_indCpa.Encrypt(cmp, Arrays.CopyOf(buf, SymBytes), pk, Arrays.CopyOfRange(kr, SymBytes, kr.Length));
 
             bool fail = !Arrays.ConstantTimeAreEqual(cipherText, cmp);
+            
+            Symmetric.Hash_h(kr, cipherText, SymBytes);
 
-            Sha3Digest Sha3Digest256 = new Sha3Digest(256);
-            Sha3Digest256.BlockUpdate(cipherText, 0, CipherTextBytes);
-            Sha3Digest256.DoFinal(kr, SymBytes);
 
             CMov(kr, Arrays.CopyOfRange(secretKey, SecretKeyBytes - SymBytes, SecretKeyBytes), SymBytes, fail);
 
-            ShakeDigest ShakeDigest256 = new ShakeDigest(256);
-            ShakeDigest256.BlockUpdate(kr, 0, 2 * SymBytes);
-            ShakeDigest256.DoFinal(sharedSecret, 0, SymBytes);
-        }
-
-        internal void RandomBytes(byte[] buf, int len)
-        {
-            m_random.NextBytes(buf, 0, len);
+            Symmetric.Kdf(sharedSecret, kr);
         }
 
         private void CMov(byte[] r, byte[] x, int len, bool b)
         {
+            int i;
             if (b)
             {
                 Array.Copy(x, 0, r, 0, len);
@@ -176,6 +170,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             {
                 Array.Copy(r, 0, r, 0, len);
             }
+        }
+        
+        internal void RandomBytes(byte[] buf, int len)
+        {
+            m_random.NextBytes(buf,0,len);
         }
     }
 }
