@@ -4,7 +4,7 @@ using Org.BouncyCastle.Security;
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     public class DilithiumKeyGenerationParameters
-     : KeyGenerationParameters
+        : KeyGenerationParameters
     {
         private DilithiumParameters parameters;
 

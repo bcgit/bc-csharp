@@ -1,96 +1,74 @@
-﻿using System;
-using Org.BouncyCastle.Utilities;
+﻿using Org.BouncyCastle.Utilities;
+using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     internal class Packing
     {
-        public static void PackPublicKey(byte[] pk, byte[] rho, PolyVecK t1, DilithiumEngine Engine)
+
+        public static byte[] PackPublicKey(PolyVecK t1, DilithiumEngine Engine)
         {
-            Array.Copy(rho, 0, pk, 0, DilithiumEngine.SeedBytes);
+            byte[] output = new byte[Engine.CryptoPublicKeyBytes - DilithiumEngine.SeedBytes];
+
             for (int i = 0; i < Engine.K; i++)
             {
-                t1.Vec[i].PolyT1Pack(pk, DilithiumEngine.SeedBytes + i * DilithiumEngine.PolyT1PackedBytes);
+                Array.Copy(t1.Vec[i].PolyT1Pack(), 0, output, i * DilithiumEngine.PolyT1PackedBytes, DilithiumEngine.PolyT1PackedBytes );
             }
+            return output;
         }
 
-        public static void UnpackPublicKey(byte[] rho, PolyVecK t1, byte[] pk, DilithiumEngine Engine)
+        public static PolyVecK UnpackPublicKey(PolyVecK t1, byte[] pk, DilithiumEngine Engine)
         {
             int i;
-
-            Array.Copy(pk, 0, rho, 0, DilithiumEngine.SeedBytes);
-
             for (i = 0; i < Engine.K; ++i)
             {
-                t1.Vec[i].PolyT1Unpack(pk, DilithiumEngine.SeedBytes + i * DilithiumEngine.PolyT1PackedBytes);
+                t1.Vec[i].PolyT1Unpack(Arrays.CopyOfRange(pk, i * DilithiumEngine.PolyT1PackedBytes, DilithiumEngine.SeedBytes + (i + 1) * DilithiumEngine.PolyT1PackedBytes));
             }
+
+            return t1;
         }
 
-        public static void PackSecretKey(byte[] sk, byte[] rho, byte[] tr, byte[] key, PolyVecK t0, PolyVecL s1, PolyVecK s2, DilithiumEngine Engine)
+        public static void PackSecretKey(byte[] t0_, byte[] s1_, byte[] s2_, PolyVecK t0, PolyVecL s1, PolyVecK s2, DilithiumEngine Engine)
         {
-            int i, end = 0;
-            Array.Copy(rho, sk, DilithiumEngine.SeedBytes);
-            end += DilithiumEngine.SeedBytes;
-
-            Array.Copy(key, 0, sk, end, DilithiumEngine.SeedBytes);
-            end += DilithiumEngine.SeedBytes;
-
-            Array.Copy(tr, 0, sk, end, DilithiumEngine.SeedBytes);
-            end += DilithiumEngine.SeedBytes;
+            int i;
+            
 
             for (i = 0; i < Engine.L; ++i)
             {
-                s1.Vec[i].PolyEtaPack(sk, end + i * Engine.PolyEtaPackedBytes);
+                s1.Vec[i].PolyEtaPack(s1_, i * Engine.PolyEtaPackedBytes);
             }
-            end += Engine.L * Engine.PolyEtaPackedBytes;
 
             for (i = 0; i < Engine.K; ++i)
             {
-                s2.Vec[i].PolyEtaPack(sk, end + i * Engine.PolyEtaPackedBytes);
+                s2.Vec[i].PolyEtaPack(s2_, i * Engine.PolyEtaPackedBytes);
             }
-            end += Engine.K * Engine.PolyEtaPackedBytes;
 
             for (i = 0; i < Engine.K; ++i)
             {
-                t0.Vec[i].PolyT0Pack(sk, end + i * DilithiumEngine.PolyT0PackedBytes);
+                t0.Vec[i].PolyT0Pack(t0_,i * DilithiumEngine.PolyT0PackedBytes);
             }
         }
 
-        public static void UnpackSecretKey(byte[] rho, byte[] tr, byte[] key, PolyVecK t0, PolyVecL s1, PolyVecK s2, byte[] sk, DilithiumEngine Engine)
+        public static void UnpackSecretKey(PolyVecK t0, PolyVecL s1, PolyVecK s2, byte[] t0Enc, byte[] s1Enc, byte[] s2Enc, DilithiumEngine Engine)
         {
-            int i, end = 0;
-            Array.Copy(sk, 0, rho, 0, DilithiumEngine.SeedBytes);
-            end += DilithiumEngine.SeedBytes;
-
-            Array.Copy(sk, end, key, 0, DilithiumEngine.SeedBytes);
-            end += DilithiumEngine.SeedBytes;
-
-            Array.Copy(sk, end, tr, 0, DilithiumEngine.SeedBytes);
-            end += DilithiumEngine.SeedBytes;
-
+            int i;
             for (i = 0; i < Engine.L; ++i)
             {
-                s1.Vec[i].PolyEtaUnpack(sk, end + i * Engine.PolyEtaPackedBytes);
+                s1.Vec[i].PolyEtaUnpack(s1Enc,i * Engine.PolyEtaPackedBytes);
             }
-            end += Engine.L * Engine.PolyEtaPackedBytes;
-
             for (i = 0; i < Engine.K; ++i)
             {
-                s2.Vec[i].PolyEtaUnpack(sk, end + i * Engine.PolyEtaPackedBytes);
+                s2.Vec[i].PolyEtaUnpack(s2Enc,i * Engine.PolyEtaPackedBytes);
             }
-            end += Engine.K * Engine.PolyEtaPackedBytes;
-
             for (i = 0; i < Engine.K; ++i)
             {
-                t0.Vec[i].PolyT0Unpack(sk, end + i * DilithiumEngine.PolyT0PackedBytes);
+                t0.Vec[i].PolyT0Unpack(t0Enc,i * DilithiumEngine.PolyT0PackedBytes);
             }
         }
 
-        public static byte[] PackSignature(byte[] c, PolyVecL z, PolyVecK h, DilithiumEngine engine)
+        public static void PackSignature(byte[] sig, byte[] c, PolyVecL z, PolyVecK h, DilithiumEngine engine)
         {
             int i, j, k, end = 0;
-            byte[] sig = new byte[engine.CryptoBytes];
-
 
             Array.Copy(c, 0, sig, 0, DilithiumEngine.SeedBytes);
             end += DilithiumEngine.SeedBytes;
@@ -119,21 +97,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 }
                 sig[end + engine.Omega + i] = (byte)k;
             }
-
-            return sig;
+            //Console.WriteLine("sig = " + Convert.ToHexString(sig));
 
         }
 
-        public static bool UnpackSignature(byte[] c, PolyVecL z, PolyVecK h, byte[] sig, DilithiumEngine Engine)
+        public static bool UnpackSignature(PolyVecL z, PolyVecK h, byte[] sig, DilithiumEngine Engine)
         {
             int i, j, k;
-
-            Array.Copy(sig, c, DilithiumEngine.SeedBytes);
-
+            
             int end = DilithiumEngine.SeedBytes;
             for (i = 0; i < Engine.L; ++i)
             {
-                z.Vec[i].UnpackZ(sig, end + i * Engine.PolyZPackedBytes);
+                z.Vec[i].UnpackZ(Arrays.CopyOfRange(sig, end + i * Engine.PolyZPackedBytes, end + (i + 1) * Engine.PolyZPackedBytes));
             }
             end += Engine.L * Engine.PolyZPackedBytes;
 

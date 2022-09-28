@@ -1,5 +1,5 @@
-﻿using System;
-using Org.BouncyCastle.Crypto.Digests;
+﻿using Org.BouncyCastle.Crypto.Digests;
+using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
@@ -9,25 +9,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         private int N;
         private DilithiumEngine Engine;
-        private int PolyUniformNBlocks = (768 + Symmetric.Shake128Rate - 1) / Symmetric.Shake128Rate;
+        private int PolyUniformNBlocks;
+        private Symmetric Symmetric;
 
         public Poly(DilithiumEngine engine)
         {
             N = DilithiumEngine.N;
             Coeffs = new int[N];
             Engine = engine;
+            Symmetric = engine.Symmetric;
+            PolyUniformNBlocks = (768 + Symmetric.Stream128BlockBytes - 1) / Symmetric.Stream128BlockBytes;
         }
 
         public void UniformBlocks(byte[] seed, ushort nonce)
         {
             int i, ctr, off,
-            buflen = PolyUniformNBlocks * Symmetric.Shake128Rate;
+            buflen = PolyUniformNBlocks * Symmetric.Stream128BlockBytes;
             byte[] buf = new byte[buflen + 2];
-            ShakeDigest Shake128Digest = new ShakeDigest(128);
+            
+            Symmetric.Stream128Init(seed, nonce);
 
-            Symmetric.ShakeStreamInit(Shake128Digest, seed, nonce);
-
-            Shake128Digest.DoOutput(buf, 0, buflen + 2);
+            Symmetric.Stream128SqueezeBlocks(buf, 0, buflen);
 
             ctr = RejectUniform(Coeffs, 0, N, buf, buflen);
 
@@ -38,9 +40,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 {
                     buf[i] = buf[buflen - off + i];
                 }
-                Shake128Digest.DoOutput(buf, buflen + off, 1);
-                buflen = Symmetric.Shake128Rate + off;
-                ctr += RejectUniform(Coeffs, ctr, N, buf, buflen);
+                Symmetric.Stream128SqueezeBlocks(buf, off, Symmetric.Stream128BlockBytes);
+                buflen = Symmetric.Stream128BlockBytes + off;
+                ctr += RejectUniform(Coeffs, ctr, N - ctr, buf, buflen);
             }
 
 
@@ -76,30 +78,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
             if (Engine.Eta == 2)
             {
-                PolyUniformEtaNBlocks = ((136 + Symmetric.Shake128Rate - 1) / Symmetric.Shake256Rate);
+                PolyUniformEtaNBlocks = ((136 + Symmetric.Stream256BlockBytes - 1) / Symmetric.Stream256BlockBytes);
             }
             else if (Engine.Eta == 4)
             {
-                PolyUniformEtaNBlocks = ((227 + Symmetric.Shake128Rate - 1) / Symmetric.Shake256Rate);
+                PolyUniformEtaNBlocks = ((227 + Symmetric.Stream256BlockBytes - 1) / Symmetric.Stream256BlockBytes);
             }
             else
             {
                 throw new ArgumentException("Wrong Dilithium Eta!");
             }
 
-            int buflen = PolyUniformEtaNBlocks * Symmetric.Shake128Rate;
+            int buflen = PolyUniformEtaNBlocks * Symmetric.Stream256BlockBytes;
 
             byte[] buf = new byte[buflen];
-            ShakeDigest Shake256Digest = new ShakeDigest(256);
 
-            Symmetric.ShakeStreamInit(Shake256Digest, seed, nonce);
-            Shake256Digest.DoOutput(buf, 0, buflen);
+            Symmetric.Stream256Init(seed, nonce);
+            Symmetric.Stream256SqueezeBlocks(buf, 0, buflen);
             ctr = RejectEta(Coeffs, 0, N, buf, buflen, eta);
 
             while (ctr < DilithiumEngine.N)
             {
-                Shake256Digest.DoOutput(buf, buflen, Symmetric.Shake128Rate);
-                ctr += RejectEta(Coeffs, ctr, N - ctr, buf, Symmetric.Shake128Rate, eta);
+                Symmetric.Stream256SqueezeBlocks(buf, 0, Symmetric.Stream256BlockBytes);
+                ctr += RejectEta(Coeffs, ctr, N - ctr, buf, Symmetric.Stream256BlockBytes, eta);
             }
         }
 
@@ -157,26 +158,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             Poly t = new Poly(Engine);
 
             PointwiseMontgomery(u.Vec[0], v.Vec[0]);
-            //Console.Write("temp = [");
-            //for (int j = 0; j < N; ++j)
-            //{
-            //    Console.Write("{0}, ", Coeffs[j]);
-            //}
-            //Console.Write("]\n");
-
-            
 
             for (i = 1; i < Engine.L; ++i)
             {
                 t.PointwiseMontgomery(u.Vec[i], v.Vec[i]);
                 AddPoly(t);
             }
-            //Console.Write("temp = [");
-            //for (int j = 0; j < N; ++j)
-            //{
-            //    Console.Write("{0}, ", Coeffs[j]);
-            //}
-            //Console.Write("]\n");
         }
 
         public void AddPoly(Poly a)
@@ -339,28 +326,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
         }
 
-        public void PolyT1Pack(byte[] r, int off)
+        public byte[] PolyT1Pack()
         {
+            byte[] output = new byte[DilithiumEngine.PolyT1PackedBytes];
             for (int i = 0; i < N / 4; ++i)
             {
-                r[off + 5 * i + 0] = (byte)(Coeffs[4 * i + 0] >> 0);
-                r[off + 5 * i + 1] = (byte)((Coeffs[4 * i + 0] >> 8) | (Coeffs[4 * i + 1] << 2));
-                r[off + 5 * i + 2] = (byte)((Coeffs[4 * i + 1] >> 6) | (Coeffs[4 * i + 2] << 4));
-                r[off + 5 * i + 3] = (byte)((Coeffs[4 * i + 2] >> 4) | (Coeffs[4 * i + 3] << 6));
-                r[off + 5 * i + 4] = (byte)(Coeffs[4 * i + 3] >> 2);
+                output[5 * i + 0] = (byte)(Coeffs[4 * i + 0] >> 0);
+                output[5 * i + 1] = (byte)((Coeffs[4 * i + 0] >> 8) | (Coeffs[4 * i + 1] << 2));
+                output[5 * i + 2] = (byte)((Coeffs[4 * i + 1] >> 6) | (Coeffs[4 * i + 2] << 4));
+                output[5 * i + 3] = (byte)((Coeffs[4 * i + 2] >> 4) | (Coeffs[4 * i + 3] << 6));
+                output[5 * i + 4] = (byte)(Coeffs[4 * i + 3] >> 2);
             }
+            return output;
         }
 
-        public void PolyT1Unpack(byte[] a, int off)
+        public void PolyT1Unpack(byte[] a)
         {
             int i;
 
             for (i = 0; i < N / 4; ++i)
             {
-                Coeffs[4 * i + 0] = (((a[off + 5 * i + 0] & 0xFF) >> 0) | ((int)(a[off + 5 * i + 1] & 0xFF) << 8)) & 0x3FF;
-                Coeffs[4 * i + 1] = (((a[off + 5 * i + 1] & 0xFF) >> 2) | ((int)(a[off + 5 * i + 2] & 0xFF) << 6)) & 0x3FF;
-                Coeffs[4 * i + 2] = (((a[off + 5 * i + 2] & 0xFF) >> 4) | ((int)(a[off + 5 * i + 3] & 0xFF) << 4)) & 0x3FF;
-                Coeffs[4 * i + 3] = (((a[off + 5 * i + 3] & 0xFF) >> 6) | ((int)(a[off + 5 * i + 4] & 0xFF) << 2)) & 0x3FF;
+                Coeffs[4 * i + 0] = (((a[5 * i + 0] & 0xFF) >> 0) | ((int)(a[5 * i + 1] & 0xFF) << 8)) & 0x3FF;
+                Coeffs[4 * i + 1] = (((a[5 * i + 1] & 0xFF) >> 2) | ((int)(a[5 * i + 2] & 0xFF) << 6)) & 0x3FF;
+                Coeffs[4 * i + 2] = (((a[5 * i + 2] & 0xFF) >> 4) | ((int)(a[5 * i + 3] & 0xFF) << 4)) & 0x3FF;
+                Coeffs[4 * i + 3] = (((a[5 * i + 3] & 0xFF) >> 6) | ((int)(a[5 * i + 4] & 0xFF) << 2)) & 0x3FF;
             }
         }
 
@@ -443,11 +432,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         public void UniformGamma1(byte[] seed, ushort nonce)
         {
-            byte[] buf = new byte[Engine.PolyUniformGamma1NBytes * Symmetric.Shake256Rate];
-            ShakeDigest ShakeDigest256 = new ShakeDigest(256);
-            Symmetric.ShakeStreamInit(ShakeDigest256, seed, nonce);
-            ShakeDigest256.DoFinal(buf, 0, buf.Length);
-            UnpackZ(buf, 0);
+            byte[] buf = new byte[Engine.PolyUniformGamma1NBytes * Symmetric.Stream256BlockBytes];
+            Symmetric.Stream256Init(seed, nonce);
+            Symmetric.Stream256SqueezeBlocks(buf, 0, buf.Length);
+            UnpackZ(buf);
 
         }
 
@@ -496,7 +484,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
         }
 
-        public void UnpackZ(byte[] a, int off)
+        public void UnpackZ(byte[] a)
         {
             int i;
             if (Engine.Gamma1 == (1 << 17))
@@ -505,27 +493,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 {
                     Coeffs[4 * i + 0] =
                         (
-                            (((a[off + 9 * i + 0] & 0xFF)) |
-                                ((a[off + 9 * i + 1] & 0xFF) << 8)) |
-                                ((a[off + 9 * i + 2] & 0xFF) << 16)
+                            (((a[9 * i + 0] & 0xFF)) |
+                                ((a[9 * i + 1] & 0xFF) << 8)) |
+                                ((a[9 * i + 2] & 0xFF) << 16)
                         ) & 0x3FFFF;
                     Coeffs[4 * i + 1] =
                         (
-                            (((a[off + 9 * i + 2] & 0xFF) >> 2) |
-                                ((a[off + 9 * i + 3] & 0xFF) << 6)) |
-                                ((a[off + 9 * i + 4] & 0xFF) << 14)
+                            (((a[9 * i + 2] & 0xFF) >> 2) |
+                                ((a[9 * i + 3] & 0xFF) << 6)) |
+                                ((a[9 * i + 4] & 0xFF) << 14)
                         ) & 0x3FFFF;
                     Coeffs[4 * i + 2] =
                         (
-                            (((a[off + 9 * i + 4] & 0xFF) >> 4) |
-                                ((a[off + 9 * i + 5] & 0xFF) << 4)) |
-                                ((a[off + 9 * i + 6] & 0xFF) << 12)
+                            (((a[9 * i + 4] & 0xFF) >> 4) |
+                                ((a[9 * i + 5] & 0xFF) << 4)) |
+                                ((a[9 * i + 6] & 0xFF) << 12)
                         ) & 0x3FFFF;
                     Coeffs[4 * i + 3] =
                         (
-                            (((a[off + 9 * i + 6] & 0xFF) >> 6) |
-                                ((a[off + 9 * i + 7] & 0xFF) << 2)) |
-                                ((a[off + 9 * i + 8] & 0xFF) << 10)
+                            (((a[9 * i + 6] & 0xFF) >> 6) |
+                                ((a[9 * i + 7] & 0xFF) << 2)) |
+                                ((a[9 * i + 8] & 0xFF) << 10)
                         ) & 0x3FFFF;
 
 
@@ -541,15 +529,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 {
                     Coeffs[2 * i + 0] =
                         (
-                            (((a[off + 5 * i + 0] & 0xFF)) |
-                                ((a[off + 5 * i + 1] & 0xFF) << 8)) |
-                                ((a[off + 5 * i + 2] & 0xFF) << 16)
+                            (((a[5 * i + 0] & 0xFF)) |
+                                ((a[5 * i + 1] & 0xFF) << 8)) |
+                                ((a[5 * i + 2] & 0xFF) << 16)
                         ) & 0xFFFFF;
                     Coeffs[2 * i + 1] =
                         (
-                            (((a[off + 5 * i + 2] & 0xFF) >> 4) |
-                                ((a[off + 5 * i + 3] & 0xFF) << 4)) |
-                                ((a[off + 5 * i + 4] & 0xFF) << 12)
+                            (((a[5 * i + 2] & 0xFF) >> 4) |
+                                ((a[5 * i + 3] & 0xFF) << 4)) |
+                                ((a[5 * i + 4] & 0xFF) << 12)
                         ) & 0xFFFFF;
 
                     Coeffs[2 * i + 0] = Engine.Gamma1 - Coeffs[2 * i + 0];
@@ -599,11 +587,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         {
             int i, b, pos;
             ulong signs;
-            byte[] buf = new byte[Symmetric.Shake256Rate];
+            byte[] buf = new byte[Symmetric.Stream256BlockBytes];
 
             ShakeDigest ShakeDigest256 = new ShakeDigest(256);
             ShakeDigest256.BlockUpdate(seed, 0, DilithiumEngine.SeedBytes);
-            ShakeDigest256.DoOutput(buf, 0, Symmetric.Shake256Rate);
+            ShakeDigest256.DoOutput(buf, 0, Symmetric.Stream256BlockBytes);
 
             signs = 0;
             for (i = 0; i < 8; ++i)
@@ -622,9 +610,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             {
                 do
                 {
-                    if (pos >= Symmetric.Shake256Rate)
+                    if (pos >= Symmetric.Stream256BlockBytes)
                     {
-                        ShakeDigest256.DoOutput(buf, 0, Symmetric.Shake256Rate);
+                        ShakeDigest256.DoOutput(buf, 0, Symmetric.Stream256BlockBytes);
                         pos = 0;
                     }
                     b = (buf[pos++] & 0xFF);

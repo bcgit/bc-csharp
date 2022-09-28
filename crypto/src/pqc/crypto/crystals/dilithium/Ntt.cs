@@ -1,7 +1,4 @@
-﻿using Org.BouncyCastle.Utilities;
-
-
-namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
+﻿namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     internal class Ntt
     {

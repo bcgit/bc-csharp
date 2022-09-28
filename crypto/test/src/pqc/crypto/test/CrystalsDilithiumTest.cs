@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-
 using NUnit.Framework;
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -20,14 +16,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             { "PQCsignKAT_Dilithium2.rsp", DilithiumParameters.Dilithium2 },
             { "PQCsignKAT_Dilithium3.rsp", DilithiumParameters.Dilithium3 },
-            { "PQCsignKAT_Dilithium5.rsp", DilithiumParameters.Dilithium5 }
+            { "PQCsignKAT_Dilithium5.rsp", DilithiumParameters.Dilithium5 },
+            { "PQCsignKAT_Dilithium2-AES.rsp", DilithiumParameters.Dilithium2Aes },
+            { "PQCsignKAT_Dilithium3-AES.rsp", DilithiumParameters.Dilithium3Aes },
+            { "PQCsignKAT_Dilithium5-AES.rsp", DilithiumParameters.Dilithium5Aes }
         };
 
         private static readonly string[] TestVectorFilesBasic =
         {
             "PQCsignKAT_Dilithium2.rsp",
             "PQCsignKAT_Dilithium3.rsp",
-            "PQCsignKAT_Dilithium5.rsp"
+            "PQCsignKAT_Dilithium5.rsp",
+            "PQCsignKAT_Dilithium2-AES.rsp",
+            "PQCsignKAT_Dilithium3-AES.rsp",
+            "PQCsignKAT_Dilithium5-AES.rsp",
         };
 
         [TestCaseSource(nameof(TestVectorFilesBasic))]
@@ -36,45 +38,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             RunTestVectorFile(testVectorFile);
         }
-
-        [Test]
-        public void TestDilithiumRandom()
-        {
-            byte[] msg = Strings.ToByteArray("Hello World!");
-
-            Security.SecureRandom random = new Security.SecureRandom();
-
-            DilithiumKeyPairGenerator kpGen = new DilithiumKeyPairGenerator();
-            DilithiumKeyGenerationParameters genParams = new DilithiumKeyGenerationParameters(random, DilithiumParameters.Dilithium2);
-            kpGen.Init(genParams);
-
-          
-
-
-            for (int i = 0; i < 1000; i++) {
-
-                //
-                // Generate keys and test.
-                //
-              
-                AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
-
-
-                DilithiumSigner signer = new DilithiumSigner();
-
-                signer.Init(true, kp.Private);
-
-                byte[] s =  signer.GenerateSignature(msg);
-
-                signer.Init(false, kp.Public);
-                               
-                
-                Assert.True(signer.VerifySignature(msg,s),"Here "+i);
-
-            }
-        }
-        
-
 
         private static void TestVectors(string name, IDictionary<string, string> buf)
         {
@@ -85,7 +48,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] pk = Hex.Decode(buf["pk"]);          // public key
             byte[] sk = Hex.Decode(buf["sk"]);          // private key
             int smlen = int.Parse(buf["smlen"]);        // signature length
-            byte[] sigExpected = Hex.Decode(buf["sm"]); // signature
+            byte[] sm = Hex.Decode(buf["sm"]);          // signature
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
             DilithiumParameters dilithiumparameters = parameters[name];
@@ -97,11 +60,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             // Generate keys and test.
             //
             kpGen.Init(genParams);
-            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+            AsymmetricCipherKeyPair ackp = kpGen.GenerateKeyPair();
 
 
-            DilithiumPublicKeyParameters pubParams = (DilithiumPublicKeyParameters) kp.Public;
-            DilithiumPrivateKeyParameters privParams = (DilithiumPrivateKeyParameters) kp.Private;
+            DilithiumPublicKeyParameters pubParams = (DilithiumPublicKeyParameters) ackp.Public;
+            DilithiumPrivateKeyParameters privParams = (DilithiumPrivateKeyParameters) ackp.Private;
 
             //Console.WriteLine(string.Format("{0} Expected pk       = {1}", pk.Length, Convert.ToHexString(pk)));
             //Console.WriteLine(String.Format("{0} Actual Public key = {1}", pubParams.GetEncoded().Length, Convert.ToHexString(pubParams.GetEncoded())));
@@ -113,24 +76,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             // Signature test
             //
             DilithiumSigner signer = new DilithiumSigner();
+            DilithiumPrivateKeyParameters skparam = (DilithiumPrivateKeyParameters)ackp.Private;
 
-            signer.Init(true, privParams);
+            signer.Init(true, skparam);
             byte[] sigGenerated = signer.GenerateSignature(msg);
             byte[] attachedSig = Arrays.ConcatenateAll(sigGenerated, msg);
 
-
-            //Console.WriteLine(string.Format("{0} Expected sig       = {1}", sigExpected.Length, Convert.ToHexString(sigExpected)));
-            //Console.WriteLine(String.Format("{0} Actual Signature   = {1}", attachedSig.Length, Convert.ToHexString(attachedSig)));
-
-            Assert.True(smlen == attachedSig.Length, name + " " + count + ": signature length");
-
-          
-
-            signer.Init(false, pubParams);
-            Assert.True(signer.VerifySignature(msg, sigGenerated), (name + " " + count + ": signature verify"));
-
-           
-            Assert.True(Arrays.AreEqual(sigExpected, attachedSig), name + " " + count + ": signature gen match");
+            //
+            // Verify
+            //
+            DilithiumSigner verifier = new DilithiumSigner();
+            DilithiumPublicKeyParameters pkparam = pubParams;
+            verifier.Init(false, pkparam);
+                
+            bool vrfyrespass = verifier.VerifySignature(msg, sigGenerated);
+            sigGenerated[3]++; // changing the signature by 1 byte should cause it to fail
+            bool vrfyresfail = verifier.VerifySignature(msg, sigGenerated);
+            
+            Assert.True(Arrays.AreEqual(attachedSig, sm), name + " " + count + " signature");
+            //verify
+            Assert.True(vrfyrespass, name + " " + count + " verify failed when should pass");
+            Assert.False(vrfyresfail, name + " " + count + " verify passed when should fail");
         }
 
         private static byte[] UInt32_To_LE(uint n)
