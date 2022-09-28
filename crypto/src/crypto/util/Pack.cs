@@ -12,13 +12,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static void UInt16_To_BE(ushort n, byte[] bs)
         {
             bs[0] = (byte)(n >> 8);
-            bs[1] = (byte)(n);
+            bs[1] = (byte)n;
         }
 
         internal static void UInt16_To_BE(ushort n, byte[] bs, int off)
         {
             bs[off] = (byte)(n >> 8);
-            bs[off + 1] = (byte)(n);
+            bs[off + 1] = (byte)n;
         }
 
         internal static void UInt16_To_BE(ushort[] ns, byte[] bs, int off)
@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static ushort BE_To_UInt16(byte[] bs, int off)
         {
             uint n = (uint)bs[off] << 8
-                | (uint)bs[off + 1];
+                | bs[off + 1];
             return (ushort)n;
         }
 
@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             bs[0] = (byte)(n >> 24);
             bs[1] = (byte)(n >> 16);
             bs[2] = (byte)(n >> 8);
-            bs[3] = (byte)(n);
+            bs[3] = (byte)n;
         }
 
         internal static void UInt32_To_BE(uint n, byte[] bs, int off)
@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             bs[off] = (byte)(n >> 24);
             bs[off + 1] = (byte)(n >> 16);
             bs[off + 2] = (byte)(n >> 8);
-            bs[off + 3] = (byte)(n);
+            bs[off + 3] = (byte)n;
         }
 
         internal static void UInt32_To_BE(uint[] ns, byte[] bs, int off)
@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return (uint)bs[0] << 24
                 | (uint)bs[1] << 16
                 | (uint)bs[2] << 8
-                | (uint)bs[3];
+                | bs[3];
         }
 
         internal static uint BE_To_UInt32(byte[] bs, int off)
@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return (uint)bs[off] << 24
                 | (uint)bs[off + 1] << 16
                 | (uint)bs[off + 2] << 8
-                | (uint)bs[off + 3];
+                | bs[off + 3];
         }
 
         internal static void BE_To_UInt32(byte[] bs, int off, uint[] ns)
@@ -180,13 +180,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static void UInt64_To_BE(ulong n, byte[] bs)
         {
             UInt32_To_BE((uint)(n >> 32), bs);
-            UInt32_To_BE((uint)(n), bs, 4);
+            UInt32_To_BE((uint)n, bs, 4);
         }
 
         internal static void UInt64_To_BE(ulong n, byte[] bs, int off)
         {
             UInt32_To_BE((uint)(n >> 32), bs, off);
-            UInt32_To_BE((uint)(n), bs, off + 4);
+            UInt32_To_BE((uint)n, bs, off + 4);
         }
 
         internal static byte[] UInt64_To_BE(ulong[] ns)
@@ -241,13 +241,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         internal static void UInt16_To_LE(ushort n, byte[] bs)
         {
-            bs[0] = (byte)(n);
+            bs[0] = (byte)n;
             bs[1] = (byte)(n >> 8);
         }
 
         internal static void UInt16_To_LE(ushort n, byte[] bs, int off)
         {
-            bs[off] = (byte)(n);
+            bs[off] = (byte)n;
             bs[off + 1] = (byte)(n >> 8);
         }
 
@@ -260,14 +260,14 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         internal static ushort LE_To_UInt16(byte[] bs)
         {
-            uint n = (uint)bs[0]
+            uint n = bs[0]
                 | (uint)bs[1] << 8;
             return (ushort)n;
         }
 
         internal static ushort LE_To_UInt16(byte[] bs, int off)
         {
-            uint n = (uint)bs[off]
+            uint n = bs[off]
                 | (uint)bs[off + 1] << 8;
             return (ushort)n;
         }
@@ -281,7 +281,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         internal static void UInt32_To_LE(uint n, byte[] bs)
         {
-            bs[0] = (byte)(n);
+            bs[0] = (byte)n;
             bs[1] = (byte)(n >> 8);
             bs[2] = (byte)(n >> 16);
             bs[3] = (byte)(n >> 24);
@@ -289,7 +289,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         internal static void UInt32_To_LE(uint n, byte[] bs, int off)
         {
-            bs[off] = (byte)(n);
+            bs[off] = (byte)n;
             bs[off + 1] = (byte)(n >> 8);
             bs[off + 2] = (byte)(n >> 16);
             bs[off + 3] = (byte)(n >> 24);
@@ -320,9 +320,16 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        internal static uint LE_To_UInt24(byte[] bs, int off)
+        {
+            return bs[off]
+                | (uint)bs[off + 1] << 8
+                | (uint)bs[off + 2] << 16;
+        }
+
         internal static uint LE_To_UInt32(byte[] bs)
         {
-            return (uint)bs[0]
+            return bs[0]
                 | (uint)bs[1] << 8
                 | (uint)bs[2] << 16
                 | (uint)bs[3] << 24;
@@ -330,7 +337,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         internal static uint LE_To_UInt32(byte[] bs, int off)
         {
-            return (uint)bs[off]
+            return bs[off]
                 | (uint)bs[off + 1] << 8
                 | (uint)bs[off + 2] << 16
                 | (uint)bs[off + 3] << 24;
@@ -374,13 +381,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         internal static void UInt64_To_LE(ulong n, byte[] bs)
         {
-            UInt32_To_LE((uint)(n), bs);
+            UInt32_To_LE((uint)n, bs);
             UInt32_To_LE((uint)(n >> 32), bs, 4);
         }
 
         internal static void UInt64_To_LE(ulong n, byte[] bs, int off)
         {
-            UInt32_To_LE((uint)(n), bs, off);
+            UInt32_To_LE((uint)n, bs, off);
             UInt32_To_LE((uint)(n >> 32), bs, off + 4);
         }
 
@@ -538,7 +545,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt32_To_LE(uint n, Span<byte> bs)
         {
-            bs[0] = (byte) n;
+            bs[0] = (byte)n;
             bs[1] = (byte)(n >>  8);
             bs[2] = (byte)(n >> 16);
             bs[3] = (byte)(n >> 24);
