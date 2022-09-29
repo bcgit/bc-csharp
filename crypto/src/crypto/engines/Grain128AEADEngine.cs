@@ -298,8 +298,16 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public void Reset()
         {
+            Reset(true);
+        }
+
+        private void Reset(bool clearMac)
+        {
             this.isEven = true;
-            this.mac = null;
+            if (clearMac)
+            {
+                this.mac = null;
+            }
             this.aadData.SetLength(0);
             this.aadFinished = false;
 
@@ -547,14 +555,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             Array.Copy(mac, 0, output, outOff, mac.Length);
 
-            try
-            {
-                return mac.Length;
-            }
-            finally
-            {
-                Reset();
-            }
+            Reset(false);
+
+            return mac.Length;
 #endif
         }
 
@@ -585,14 +588,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             mac.CopyTo(output);
 
-            try
-            {
-                return mac.Length;
-            }
-            finally
-            {
-                Reset();
-            }
+            Reset(false);
+
+            return mac.Length;
         }
 #endif
 
