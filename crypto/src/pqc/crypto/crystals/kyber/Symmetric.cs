@@ -1,7 +1,7 @@
-﻿using Org.BouncyCastle.Crypto.Digests;
-using System;
+﻿using System;
+
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             {
                 this.sha256Digest = new Sha256Digest();
                 this.sha512Digest = new Sha512Digest();
-                this.cipher = new SicBlockCipher(new AesEngine());
+                this.cipher = new SicBlockCipher(AesUtilities.CreateEngine());
             }
             private void DoDigest(IDigest digest, byte[] output, byte[] input, int outOffset)
             {
