@@ -1,14 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Numerics;
-using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class Grain128AeadEngine//: AeadCipher
+    public class Grain128AeadEngine: IAeadCipher
     {
 
         /**
@@ -36,10 +33,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private byte[] mac;
 
 
-        public String GetAlgorithmName()
-        {
-            return "Grain-128AEAD";
-        }
+        public string AlgorithmName => "Grain-128AEAD";
 
         /**
          * Initialize a Grain-128AEAD cipher.
@@ -285,8 +279,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (!initialised)
             {
-                throw new ArgumentException(GetAlgorithmName()
-                    + " not initialised");
+                throw new ArgumentException(AlgorithmName + " not initialised");
             }
             if (!aadFinished)
             {
@@ -307,6 +300,28 @@ namespace Org.BouncyCastle.Crypto.Engines
             GetKeyStream(input, inOff, len, output, outOff);
             return len;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            if (!initialised)
+            {
+                throw new ArgumentException(AlgorithmName + " not initialised");
+            }
+            if (!aadFinished)
+            {
+                DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
+                aadFinished = true;
+            }
+
+            if (input.Length > output.Length)
+            {
+                throw new OutputLengthException("output buffer too short");
+            }
+            GetKeyStream(input.ToArray(), 0, input.Length, output.ToArray(), 0);
+            return input.Length;
+        }
+#endif
 
         public void Reset()
         {
@@ -379,7 +394,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (!initialised)
             {
-                throw new ArgumentException(GetAlgorithmName()
+                throw new ArgumentException(AlgorithmName
                     + " not initialised");
             }
             byte[] plaintext = new byte[1];
@@ -389,7 +404,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 
-        public void ProcessAADByte(byte input)
+        public void ProcessAadByte(byte input)
         {
             if (aadFinished)
             {
@@ -399,14 +414,29 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         }
 
-        public void ProcessAADBytes(byte[] input, int inOff, int len)
+        public void ProcessAadBytes(byte[] input, int inOff, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ProcessAadBytes(input.AsSpan(inOff, len));
+#else
             if (aadFinished)
             {
                 throw new ArgumentException("associated data must be added before plaintext/ciphertext");
             }
             aadData.Write(input, inOff, len);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            if (aadFinished)
+            {
+                throw new ArgumentException("associated data must be added before plaintext/ciphertext");
+            }
+            aadData.Write(input);
+        }
+#endif
 
         private void Accumulate()
         {
@@ -425,6 +455,14 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             return ProcessBytes(new byte[] { input }, 0, 1, output, outOff);
         }
+
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessByte(byte input, Span<byte> output)
+        {
+            return ProcessBytes(new byte[] { input }.AsSpan<byte>(), output);
+        }
+#endif
 
         private void DoProcessAADBytes(byte[] input, int inOff, int len)
         {
@@ -498,6 +536,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public int DoFinal(byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
             if (!aadFinished)
             {
                 DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
@@ -530,11 +571,48 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 Reset();
             }
-
+#endif
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            if (!aadFinished)
+            {
+                DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
+                aadFinished = true;
+            }
 
-        public byte[] GetMac()
+            this.mac = new byte[8];
+
+            outputZ = GetOutput();
+            nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
+            lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
+            Accumulate();
+
+            int cCnt = 0;
+            for (int i = 0; i < 2; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                {
+                    mac[cCnt++] = (byte)((authAcc[i] >> (j << 3)) & 0xff);
+                }
+            }
+
+            Array.Copy(mac, 0, output.ToArray(), 0, mac.Length);
+
+            try
+            {
+                return mac.Length;
+            }
+            finally
+            {
+                Reset();
+            }
+        }
+#endif
+
+            public byte[] GetMac()
         {
             return mac;
         }
@@ -557,21 +635,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             x = (uint)(((x & 0x33) << 2) | ((x & (~0x33)) >> 2)) & 0xFF;
             x = (uint)(((x & 0x0f) << 4) | ((x & (~0x0f)) >> 4)) & 0xFF;
             return x;
-        }
-
-        public uint HighestOneBit(uint v)
-        {
-            int[] MultiplyDeBruijnBitPosition ={
-      0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
-      8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
-   };
-            v |= v >> 1;
-            v |= v >> 2;
-            v |= v >> 4;
-            v |= v >> 8;
-            v |= v >> 16;
-
-            return (uint)(1 << MultiplyDeBruijnBitPosition[(v * 0x07C4ACDDU) >> 27]);
         }
     }
 }

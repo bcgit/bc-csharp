@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ICipherParameters param;
             var buf = new Dictionary<string, string>();
             //TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.LWC_Aead_KAT_128_96.txt")))
+            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.LWC_AEAD_KAT_128_96.txt")))
             {
                 string line;
                 string[] data;
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                         param = new ParametersWithIV(new KeyParameter(Hex.Decode(map["Key"])), Hex.Decode(map["Nonce"]));
                         grain.Init(true, param);
                         adByte = Hex.Decode(map["AD"]);
-                        grain.ProcessAADBytes(adByte, 0, adByte.Length);
+                        grain.ProcessAadBytes(adByte, 0, adByte.Length);
                         ptByte = Hex.Decode(map["PT"]);
                         rv = new byte[ptByte.Length];
                         grain.ProcessBytes(ptByte, 0, ptByte.Length, rv, 0);
@@ -86,9 +86,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             ParametersWithIV param = new ParametersWithIV(new KeyParameter(Key), Nonce);
             grain.Init(true, param);
 
-            grain.ProcessAADBytes(AD, 0, 10);
-            grain.ProcessAADByte(AD[10]);
-            grain.ProcessAADBytes(AD, 11, AD.Length - 11);
+            grain.ProcessAadBytes(AD, 0, 10);
+            grain.ProcessAadByte(AD[10]);
+            grain.ProcessAadBytes(AD, 11, AD.Length - 11);
 
             byte[] rv = new byte[CT.Length];
             int len = grain.ProcessBytes(PT, 0, 10, rv, 0);
@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             grain.ProcessBytes(PT, 0, 10, rv, 0);
             try
             {
-                grain.ProcessAADByte((byte)0x01);
+                grain.ProcessAadByte((byte)0x01);
                 Assert.Fail("no exception");
             }
             catch (ArgumentException e)
@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                grain.ProcessAADBytes(AD, 0, AD.Length);
+                grain.ProcessAadBytes(AD, 0, AD.Length);
                 Assert.Fail("no exception");
             }
             catch (ArgumentException e)
@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ParametersWithIV param = new ParametersWithIV(new KeyParameter(Key), Nonce);
             grain.Init(true, param);
 
-            grain.ProcessAADBytes(AD, 0, AD.Length);
+            grain.ProcessAadBytes(AD, 0, AD.Length);
 
             byte[] rv = new byte[CT.Length];
             int len = grain.ProcessBytes(PT, 0, 10, rv, 0);
@@ -153,7 +153,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             grain.ProcessBytes(PT, 0, 10, rv, 0);
             try
             {
-                grain.ProcessAADByte((byte)0x01);
+                grain.ProcessAadByte((byte)0x01);
                 Assert.Fail("no exception");
             }
             catch (ArgumentException e)
@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             try
             {
-                grain.ProcessAADBytes(AD, 0, AD.Length);
+                grain.ProcessAadBytes(AD, 0, AD.Length);
                 Assert.Fail("no exception");
             }
             catch (ArgumentException e)
@@ -184,7 +184,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.IsTrue(Contains(e.Message, "Grain-128Aead Init parameters must include an IV"));
+                Assert.IsTrue(Contains(e.Message, "Grain-128AEAD Init parameters must include an IV"));
             }
 
             try
@@ -196,7 +196,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.IsTrue(Contains(e.Message, "Grain-128Aead requires exactly 12 bytes of IV"));
+                Assert.IsTrue(Contains(e.Message, "Grain-128AEAD requires exactly 12 bytes of IV"));
             }
 
             try
@@ -208,7 +208,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.IsTrue(Contains(e.Message, "Grain-128Aead key must be 128 bits long"));
+                Assert.IsTrue(Contains(e.Message, "Grain-128AEAD key must be 128 bits long"));
             }
         }
 
