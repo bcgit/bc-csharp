@@ -107,7 +107,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         internal class Sha2Engine
             : SPHINCSPlusEngine
         {
-            private byte[] padding = new byte[128];
             private HMac treeHMac;
             private Mgf1BytesGenerator mgf1;
             private byte[] hmacBuf;

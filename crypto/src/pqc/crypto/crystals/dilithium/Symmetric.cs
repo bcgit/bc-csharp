@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Crypto.Digests;
+﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -34,7 +35,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             public AesSymmetric()
                 : base(64, 64)
             {
-                cipher = new SicBlockCipher(new AesEngine());
+                cipher = new SicBlockCipher(AesUtilities.CreateEngine());
             }
 
             private void Aes128(byte[] output, int offset, int size)
