@@ -13,7 +13,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         private uint noncelen;
 
         private int pk_size;
-        private int sk_size;
 
         public void Init(KeyGenerationParameters param)
         {
@@ -36,18 +35,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             {
                 sk_coeff_size = 7;
             }
+
             this.pk_size = 1 + (14 * n / 8);
-            this.sk_size = 1 + (2 * sk_coeff_size * n / 8) + (n);
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            byte[] pk, sk;
-            pk = new byte[pk_size];
-            sk = new byte[sk_size];
-            nist.crypto_sign_keypair(pk, 0, sk, 0);
+            byte[] pk, sk, f, g, F;
+            nist.crypto_sign_keypair(out pk, out f, out g, out F);
             FalconParameters p = ((FalconKeyGenerationParameters)this.parameters).Parameters;
-            FalconPrivateKeyParameters privk = new FalconPrivateKeyParameters(p, sk);
+            FalconPrivateKeyParameters privk = new FalconPrivateKeyParameters(p, f, g, F, pk);
             FalconPublicKeyParameters pubk = new FalconPublicKeyParameters(p, pk);
             return new AsymmetricCipherKeyPair(pubk, privk);
         }

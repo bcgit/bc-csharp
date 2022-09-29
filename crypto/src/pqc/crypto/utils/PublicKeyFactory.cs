@@ -10,6 +10,9 @@ using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
@@ -73,6 +76,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             converters[BCObjectIdentifiers.sikep503_compressed] = new SikeConverter();
             converters[BCObjectIdentifiers.sikep610_compressed] = new SikeConverter();
             converters[BCObjectIdentifiers.sikep751_compressed] = new SikeConverter();
+            
+            converters[BCObjectIdentifiers.dilithium2] = new DilithiumConverter();
+            converters[BCObjectIdentifiers.dilithium3] = new DilithiumConverter();
+            converters[BCObjectIdentifiers.dilithium5] = new DilithiumConverter();
+            converters[BCObjectIdentifiers.dilithium2_aes] = new DilithiumConverter();
+            converters[BCObjectIdentifiers.dilithium3_aes] = new DilithiumConverter();
+            converters[BCObjectIdentifiers.dilithium5_aes] = new DilithiumConverter();
+            
+            converters[BCObjectIdentifiers.falcon_512] = new FalconConverter();
+            converters[BCObjectIdentifiers.falcon_1024] = new FalconConverter();
+            
+            converters[BCObjectIdentifiers.kyber512] = new KyberConverter();
+            converters[BCObjectIdentifiers.kyber512_aes] = new KyberConverter();
+            converters[BCObjectIdentifiers.kyber768] = new KyberConverter();
+            converters[BCObjectIdentifiers.kyber768_aes] = new KyberConverter();
+            converters[BCObjectIdentifiers.kyber1024] = new KyberConverter();
+            converters[BCObjectIdentifiers.kyber1024_aes] = new KyberConverter();
         }
         
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding</summary>
@@ -188,6 +208,83 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 SIKEParameters sikeParams = PqcUtilities.SikeParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
                 return new SIKEPublicKeyParameters(sikeParams, keyEnc);
+            }
+        }
+        private class DilithiumConverter
+            : SubjectPublicKeyInfoConverter
+        {
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            {
+                DilithiumParameters dilithiumParams = PqcUtilities.DilithiumParamsLookup(keyInfo.AlgorithmID.Algorithm);
+
+                Asn1Object obj = keyInfo.ParsePublicKey();
+                if (obj is Asn1Sequence)
+                {
+                    Asn1Sequence keySeq = Asn1Sequence.GetInstance(obj);
+
+                    return new DilithiumPublicKeyParameters(dilithiumParams,
+                        Asn1OctetString.GetInstance(keySeq[0]).GetOctets(),
+                        Asn1OctetString.GetInstance(keySeq[1]).GetOctets());
+                }
+                else
+                {
+                    byte[] encKey = Asn1OctetString.GetInstance(obj).GetOctets();
+
+                    return new DilithiumPublicKeyParameters(dilithiumParams, encKey);
+                }
+            }
+        }
+
+        private class KyberConverter
+            : SubjectPublicKeyInfoConverter
+        {
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            {
+                KyberParameters kyberParameters = PqcUtilities.KyberParamsLookup(keyInfo.AlgorithmID.Algorithm);
+
+                Asn1Object obj = keyInfo.ParsePublicKey();
+                if (obj is Asn1Sequence)
+                {
+                    Asn1Sequence keySeq = Asn1Sequence.GetInstance(obj);
+
+                    return new KyberPublicKeyParameters(kyberParameters,
+                        Asn1OctetString.GetInstance(keySeq[0]).GetOctets(),
+                        Asn1OctetString.GetInstance(keySeq[1]).GetOctets());
+                }
+                else
+                {
+                    byte[] encKey = Asn1OctetString.GetInstance(obj).GetOctets();
+
+                    return new KyberPublicKeyParameters(kyberParameters, encKey);
+                }
+            }
+        }
+        
+        private class FalconConverter 
+            : SubjectPublicKeyInfoConverter
+        {
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            {
+                FalconParameters falconParams = PqcUtilities.FalconParamsLookup(keyInfo.AlgorithmID.Algorithm);
+
+                Asn1Object obj = keyInfo.ParsePublicKey();
+                if (obj is Asn1Sequence)
+                {
+                    byte[] keyEnc = Asn1OctetString.GetInstance(Asn1Sequence.GetInstance(obj)[0]).GetOctets();
+
+                    return new FalconPublicKeyParameters(falconParams, keyEnc);
+                }
+                else
+                {
+                    // header byte + h
+                    byte[] keyEnc = Asn1OctetString.GetInstance(obj).GetOctets();
+
+                    if (keyEnc[0] != (byte)(0x00 + falconParams.LogN))
+                    {
+                        throw new ArgumentException("byte[] enc of Falcon h value not tagged correctly");
+                    }
+                    return new FalconPublicKeyParameters(falconParams, Arrays.CopyOfRange(keyEnc, 1, keyEnc.Length));
+                }
             }
         }
     }

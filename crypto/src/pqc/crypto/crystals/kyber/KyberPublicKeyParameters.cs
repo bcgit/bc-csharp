@@ -26,6 +26,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
             m_t = Arrays.Clone(t);
             m_rho = Arrays.Clone(rho);
         }
+
+        internal byte[] T => m_t;
+        internal byte[] Rho => m_rho;
     }
 }
     

@@ -10,6 +10,9 @@ using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
@@ -105,6 +108,114 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new SIKEPrivateKeyParameters(sikeParams, keyEnc);
             }
+            if (algOID.Equals(BCObjectIdentifiers.kyber512)
+                || algOID.Equals(BCObjectIdentifiers.kyber512_aes)
+                || algOID.Equals(BCObjectIdentifiers.kyber768)
+                || algOID.Equals(BCObjectIdentifiers.kyber768_aes)
+                || algOID.Equals(BCObjectIdentifiers.kyber1024)
+                || algOID.Equals(BCObjectIdentifiers.kyber1024_aes))
+            {
+                Asn1Sequence keyEnc = Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey());
+
+                KyberParameters spParams = PqcUtilities.KyberParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
+
+                int version = DerInteger.GetInstance(keyEnc[0]).Value.IntValue;
+                if (version != 0)
+                {
+                    throw new IOException("unknown private key version: " + version);
+                }
+ 
+                if (keyInfo.PublicKeyData != null)
+                {
+                    Asn1Sequence pubKey = Asn1Sequence.GetInstance(keyInfo.PublicKeyData.GetOctets());
+                    return new KyberPrivateKeyParameters(spParams,
+                        Asn1OctetString.GetInstance(keyEnc[1]).GetDerEncoded(), 
+                        Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(), 
+                        Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
+                        Asn1OctetString.GetInstance(pubKey[0]).GetOctets(), // t
+                        Asn1OctetString.GetInstance(pubKey[1]).GetOctets()); // rho
+                }
+                else
+                {
+                    return new KyberPrivateKeyParameters(spParams,
+                        Asn1OctetString.GetInstance(keyEnc[1]).GetOctets(),
+                        Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(),
+                        Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
+                        null,
+                        null);
+                }
+            }
+            if (algOID.Equals(BCObjectIdentifiers.dilithium2)
+                || algOID.Equals(BCObjectIdentifiers.dilithium3)
+                || algOID.Equals(BCObjectIdentifiers.dilithium5)
+                || algOID.Equals(BCObjectIdentifiers.dilithium2_aes)
+                || algOID.Equals(BCObjectIdentifiers.dilithium3_aes)
+                || algOID.Equals(BCObjectIdentifiers.dilithium5_aes))
+            {
+                Asn1Sequence keyEnc = Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey());
+
+                DilithiumParameters spParams = PqcUtilities.DilithiumParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
+
+                int version = DerInteger.GetInstance(keyEnc[0]).Value.IntValue;
+                if (version != 0)
+                {
+                    throw new IOException("unknown private key version: " + version);
+                }
+
+                if (keyInfo.PublicKeyData != null)
+                {
+                    Asn1Sequence pubKey = Asn1Sequence.GetInstance(keyInfo.PublicKeyData.GetOctets());
+                    return new DilithiumPrivateKeyParameters(spParams,
+                        DerBitString.GetInstance(keyEnc[1]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[2]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[3]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[4]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[5]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[6]).GetOctets(),
+                        Asn1OctetString.GetInstance(pubKey[1]).GetOctets()); // encT1
+                }
+                else
+                {
+                    return new DilithiumPrivateKeyParameters(spParams,
+                        DerBitString.GetInstance(keyEnc[1]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[2]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[3]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[4]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[5]).GetOctets(),
+                        DerBitString.GetInstance(keyEnc[6]).GetOctets(),
+                        null);
+                }
+            }
+            if (algOID.Equals(BCObjectIdentifiers.falcon_512) || algOID.Equals(BCObjectIdentifiers.falcon_1024))
+                {
+                    Asn1Sequence keyEnc = Asn1Sequence.GetInstance(keyInfo.ParsePrivateKey());
+                    FalconParameters spParams = PqcUtilities.FalconParamsLookup(keyInfo.PrivateKeyAlgorithm.Algorithm);
+                    
+                    DerBitString publicKeyData = keyInfo.PublicKeyData;
+                    int version = DerInteger.GetInstance(keyEnc[0]).Value.IntValue;
+                    if (version != 1)
+                    {
+                        throw new IOException("unknown private key version: " + version);
+                    }
+
+                    if (keyInfo.PublicKeyData != null)
+                    {
+                        //ASN1Sequence pubKey = ASN1Sequence.getInstance(keyInfo.getPublicKeyData().getOctets());
+                        return new FalconPrivateKeyParameters(spParams,
+                            Asn1OctetString.GetInstance(keyEnc[1]).GetOctets(),
+                            Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(),
+                            Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
+                            publicKeyData.GetOctets()); // encT1
+                    }
+                    else
+                    {
+                        return new FalconPrivateKeyParameters(spParams,
+                            Asn1OctetString.GetInstance(keyEnc[1]).GetOctets(),
+                            Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(),
+                            Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
+                            null);
+                    }
+                }
             
             
             throw new Exception("algorithm identifier in private key not recognised");

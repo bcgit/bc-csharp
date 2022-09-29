@@ -57,13 +57,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
         }
 
-        internal int crypto_sign_keypair(byte[] pksrc, int pk, byte[] sksrc, int sk)
+        internal int crypto_sign_keypair(out byte[] pk, out byte[] fEnc, out byte[] gEnc, out byte[] FEnc)
         {
+            byte[] sk = new byte[CRYPTO_SECRETKEYBYTES];
+            pk = new byte[CRYPTO_PUBLICKEYBYTES];
             int n = (int)1 << (int)this.logn;
             SHAKE256 rng = new SHAKE256();
-            sbyte[] f = new sbyte[n],
-                    g = new sbyte[n],
-                    F = new sbyte[n];
+            sbyte[] f = new sbyte[n], g = new sbyte[n], F = new sbyte[n];
             ushort[] h = new ushort[n];
             byte[] seed = new byte[48];
             int u, v;
@@ -81,26 +81,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Encode private key.
             */
-            sksrc[sk+0] = (byte)(0x50 + this.logn);
+            sk[0] = (byte)(0x50 + this.logn);
             u = 1;
-            v = this.codec.trim_i8_encode(sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u,
+            v = this.codec.trim_i8_encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
                 f, 0, this.logn, this.codec.max_fg_bits[this.logn]);
             if (v == 0) {
                 // TODO check which exception types to use here
                 throw new InvalidOperationException("f encode failed");
             }
+            fEnc = Arrays.CopyOfRange(sk, u, u + v);
             u += v;
-            v = this.codec.trim_i8_encode(sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u,
+            v = this.codec.trim_i8_encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
                 g, 0, this.logn, this.codec.max_fg_bits[this.logn]);
             if (v == 0) {
                 throw new InvalidOperationException("g encode failed");
             }
+            gEnc = Arrays.CopyOfRange(sk, u, u + v);
             u += v;
-            v = this.codec.trim_i8_encode(sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u,
+            v = this.codec.trim_i8_encode(sk,  u, CRYPTO_SECRETKEYBYTES - u,
                 F, 0, this.logn, this.codec.max_FG_bits[this.logn]);
             if (v == 0) {
                  throw new InvalidOperationException("F encode failed");
             }
+            FEnc = Arrays.CopyOfRange(sk, u, u + v);
             u += v;
             if (u != CRYPTO_SECRETKEYBYTES) {
                  throw new InvalidOperationException("secret key encoding failed");
@@ -109,11 +112,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Encode public key.
             */
-            pksrc[pk+0] = (byte)(0x00 + this.logn);
-            v = this.codec.modq_encode(pksrc, pk + 1, CRYPTO_PUBLICKEYBYTES - 1, h, 0, this.logn);
+            pk[0] = (byte)(0x00 + this.logn);
+            v = this.codec.modq_encode(pk, 1, CRYPTO_PUBLICKEYBYTES - 1, h, 0, this.logn);
             if (v != CRYPTO_PUBLICKEYBYTES - 1) {
                  throw new InvalidOperationException("public key encoding failed");
             }
+
+            pk = Arrays.CopyOfRange(pk, 1, pk.Length);
 
             return 0;
         }
@@ -133,43 +138,51 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     g = new sbyte[n],
                     F = new sbyte[n],
                     G = new sbyte[n];
+            
             short[] sig = new short[n];
             ushort[] hm = new ushort[n];
+            
             byte[] seed = new byte[48],
                     nonce = new byte[this.noncelen];
+            
             byte[] esig = new byte[this.CRYPTO_BYTES - 2 - this.noncelen];
             SHAKE256 sc = new SHAKE256();
             FalconSign signer = new FalconSign(this.common);
 
-            /*
-            * Decode the private key.
-            */
-            if (sksrc[sk+0] != 0x50 + this.logn) {
-                throw new ArgumentException("private key header incorrect");
-            }
-            u = 1;
+            // /*
+            // * Decode the private key.
+            // */
+            // if (sksrc[sk+0] != 0x50 + this.logn) {
+            //     throw new ArgumentException("private key header incorrect");
+            // }
+            u = 0;
             v = this.codec.trim_i8_decode(f, 0, this.logn, this.codec.max_fg_bits[this.logn],
                 sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u);
-            if (v == 0) {
+            if (v == 0)
+            {
                 throw new InvalidOperationException("f decode failed");
             }
             u += v;
             v = this.codec.trim_i8_decode(g, 0, this.logn, this.codec.max_fg_bits[this.logn],
                 sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u);
-            if (v == 0) {
+            if (v == 0)
+            {
                 throw new InvalidOperationException("g decode failed");
             }
             u += v;
             v = this.codec.trim_i8_decode(F, 0, this.logn, this.codec.max_FG_bits[this.logn],
                 sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u);
-            if (v == 0) {
+            if (v == 0) 
+            {
                 throw new InvalidOperationException("F decode failed");
             }
             u += v;
-            if (u != CRYPTO_SECRETKEYBYTES) {
+            if (u != CRYPTO_SECRETKEYBYTES - 1) 
+            {
                 throw new InvalidOperationException("full Key not used");
             }
-            if (this.vrfy.complete_private(G, 0, f, 0, g, 0, F, 0, this.logn, new ushort[2 * n],0) == 0) {
+            if (this.vrfy.complete_private(G, 0, f, 0, g, 0, F, 0, this.logn, new ushort[2 * n],0) == 0) 
+            {
                 throw new InvalidOperationException("complete private failed");
             }
 
@@ -238,10 +251,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Decode public key.
             */
-            if (pksrc[pk+0] != 0x00 + this.logn) {
-                return -1;
-            }
-            if (this.codec.modq_decode(h, 0, this.logn, pksrc, pk + 1, CRYPTO_PUBLICKEYBYTES - 1)
+            // if (pksrc[pk+0] != 0x00 + this.logn) {
+            //     return -1;
+            // }
+            if (this.codec.modq_decode(h, 0, this.logn, pksrc, pk, CRYPTO_PUBLICKEYBYTES - 1)
                 != CRYPTO_PUBLICKEYBYTES - 1)
             {
                 return -1;

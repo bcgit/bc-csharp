@@ -6,6 +6,9 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
@@ -86,6 +89,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.SikeOidLookup(parameters.GetParameters()));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
+            }
+            if (publicKey is FalconPublicKeyParameters)
+            {
+                FalconPublicKeyParameters parameters = (FalconPublicKeyParameters)publicKey;
+
+                byte[] encoding = parameters.GetEncoded();
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.FalconOidLookup(parameters.Parameters));
+
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(new DerOctetString(encoding)));
+            }
+            if (publicKey is KyberPublicKeyParameters)
+            {
+                KyberPublicKeyParameters parameters = (KyberPublicKeyParameters)publicKey;
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.KyberOidLookup(parameters.Parameters));
+                Asn1EncodableVector v = new Asn1EncodableVector();
+                v.Add(new DerOctetString(parameters.T));
+                v.Add(new DerOctetString(parameters.Rho));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(v));
+            }
+            if (publicKey is DilithiumPublicKeyParameters)
+            {
+                DilithiumPublicKeyParameters parameters = (DilithiumPublicKeyParameters)publicKey;
+
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.DilithiumOidLookup(parameters.Parameters));
+                Asn1EncodableVector v = new Asn1EncodableVector();
+                v.Add(new DerOctetString(parameters.Rho));
+                v.Add(new DerOctetString(parameters.T1));
+                return new SubjectPublicKeyInfo(algorithmIdentifier, new DerSequence(v));
             }
             
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));

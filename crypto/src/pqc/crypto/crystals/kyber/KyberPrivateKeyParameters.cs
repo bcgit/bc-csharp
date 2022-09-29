@@ -25,5 +25,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber
         {
             return Arrays.ConcatenateAll(m_s, m_t, m_rho, m_hpk, m_nonce);
         }
+
+        internal byte[] S => m_s;
+        internal byte[] Hpk => m_hpk;
+        internal byte[] Nonce => m_nonce;
+        internal byte[] T => m_t;
+        internal byte[] Rho => m_rho;
+
     }
 }

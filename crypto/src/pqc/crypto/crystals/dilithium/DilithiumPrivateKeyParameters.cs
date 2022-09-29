@@ -26,40 +26,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             this.t1 = Arrays.Clone(t1);
         }
         
-        public byte[] GetRho()
-        {
-            return Arrays.Clone(rho);
-        }
+        public byte[] Rho => Arrays.Clone(rho);
 
-        public byte[] GetK()
-        {
-            return Arrays.Clone(k);
-        }
+        public byte[] K => Arrays.Clone(k);
 
-        public byte[] GetTr()
-        {
-            return Arrays.Clone(tr);
-        }
+        public byte[] Tr => Arrays.Clone(tr);
 
-        public byte[] GetS1()
-        {
-            return Arrays.Clone(s1);
-        }
+        public byte[] S1 => Arrays.Clone(s1);
 
-        public byte[] GetS2()
-        {
-            return Arrays.Clone(s2);
-        }
+        public byte[] S2 => Arrays.Clone(s2);
+        
 
-        public byte[] GetT0()
-        {
-            return Arrays.Clone(t0);
-        }
+        public byte[] T0 => Arrays.Clone(t0);
 
-        public byte[] GetT1()
-        {
-            return t1;
-        }
+        public byte[] T1 => t1;
 
         public byte[] GetEncoded()
         {

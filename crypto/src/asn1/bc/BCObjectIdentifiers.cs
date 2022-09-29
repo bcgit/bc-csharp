@@ -116,6 +116,27 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier picnicl1full = picnic.Branch("10");
         public static readonly DerObjectIdentifier picnicl3full = picnic.Branch("11");
         public static readonly DerObjectIdentifier picnicl5full = picnic.Branch("12");
+        
+        /*
+         * Falcon
+         */
+        public static readonly DerObjectIdentifier falcon = bc_sig.Branch("7");
+
+        public static readonly DerObjectIdentifier falcon_512 = new DerObjectIdentifier("1.3.9999.3.1");  // falcon.branch("1");
+        public static readonly DerObjectIdentifier falcon_1024 =  new DerObjectIdentifier("1.3.9999.3.4"); // falcon.branch("2");
+
+        /*
+         * Dilithium
+         */
+        public static readonly DerObjectIdentifier dilithium = bc_sig.Branch("8");
+
+        // OpenSSL OIDs
+        public static readonly DerObjectIdentifier dilithium2 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.7.4.4"); // dilithium.branch("1");
+        public static readonly DerObjectIdentifier dilithium3 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.7.6.5"); // dilithium.branch("2");
+        public static readonly DerObjectIdentifier dilithium5 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.7.8.7"); // dilithium.branch("3");
+        public static readonly DerObjectIdentifier dilithium2_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.4.4"); // dilithium.branch("4");
+        public static readonly DerObjectIdentifier dilithium3_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.6.5"); // dilithium.branch("5");
+        public static readonly DerObjectIdentifier dilithium5_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.8.7"); // dilithium.branch("6");
 
 
         /**
@@ -184,5 +205,17 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier sikep503_compressed = pqc_kem_sike.Branch("6");
         public static readonly DerObjectIdentifier sikep610_compressed = pqc_kem_sike.Branch("7");
         public static readonly DerObjectIdentifier sikep751_compressed = pqc_kem_sike.Branch("8");
+        
+        /**
+     * Kyber
+     */
+        public static readonly DerObjectIdentifier pqc_kem_kyber = bc_kem.Branch("6");
+
+        public static readonly DerObjectIdentifier kyber512 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.8.2.2"); // pqc_kem_kyber.Branch("1");
+        public static readonly DerObjectIdentifier kyber768 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.8.3.3"); // pqc_kem_kyber.Branch("2");
+        public static readonly DerObjectIdentifier kyber1024 = new DerObjectIdentifier("1.3.6.1.4.1.2.267.8.4.4"); // pqc_kem_kyber.Branch("3");
+        public static readonly DerObjectIdentifier kyber512_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.10.2.2"); // pqc_kem_kyber.Branch("4");
+        public static readonly DerObjectIdentifier kyber768_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.10.3.3"); // pqc_kem_kyber.Branch("5");
+        public static readonly DerObjectIdentifier kyber1024_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.10.4.4"); // pqc_kem_kyber.Branch("6");
 	}
 }

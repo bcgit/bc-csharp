@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
+using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Sike;
@@ -24,6 +27,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         
         private readonly static Dictionary<SIKEParameters, DerObjectIdentifier> sikeOids = new Dictionary<SIKEParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, SIKEParameters> sikeParams = new Dictionary<DerObjectIdentifier, SIKEParameters>();
+     
+        private readonly static Dictionary<KyberParameters, DerObjectIdentifier> kyberOids = new Dictionary<KyberParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, KyberParameters> kyberParams = new Dictionary<DerObjectIdentifier, KyberParameters>();
+
+        private readonly static Dictionary<DilithiumParameters, DerObjectIdentifier> dilithiumOids = new Dictionary<DilithiumParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, DilithiumParameters> dilithiumParams = new Dictionary<DerObjectIdentifier, DilithiumParameters>();
+
+        private readonly static Dictionary<FalconParameters, DerObjectIdentifier> falconOids = new Dictionary<FalconParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, FalconParameters> falconParams = new Dictionary<DerObjectIdentifier, FalconParameters>();
 
         
         static PqcUtilities()
@@ -108,13 +120,46 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sikeParams[BCObjectIdentifiers.sikep751_compressed] = SIKEParameters.sikep751_compressed;
             
             sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SIKEParameters.sikep503] = BCObjectIdentifiers.sikep503;
-            sikeOids[SIKEParameters.sikep610] = BCObjectIdentifiers.sikep610;
-            sikeOids[SIKEParameters.sikep751] = BCObjectIdentifiers.sikep751;
-            sikeOids[SIKEParameters.sikep434_compressed] = BCObjectIdentifiers.sikep434_compressed;
-            sikeOids[SIKEParameters.sikep503_compressed] = BCObjectIdentifiers.sikep503_compressed;
-            sikeOids[SIKEParameters.sikep610_compressed] = BCObjectIdentifiers.sikep610_compressed;
-            sikeOids[SIKEParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
+            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
+            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
+            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
+            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
+            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
+            
+            kyberOids[KyberParameters.kyber512] = BCObjectIdentifiers.kyber512;
+            kyberOids[KyberParameters.kyber768] = BCObjectIdentifiers.kyber768;
+            kyberOids[KyberParameters.kyber1024] = BCObjectIdentifiers.kyber1024;
+            kyberOids[KyberParameters.kyber512_aes] = BCObjectIdentifiers.kyber512_aes;
+            kyberOids[KyberParameters.kyber768_aes] = BCObjectIdentifiers.kyber768_aes;
+            kyberOids[KyberParameters.kyber1024_aes] = BCObjectIdentifiers.kyber1024_aes;   
+            
+            kyberParams[BCObjectIdentifiers.kyber512] = KyberParameters.kyber512;
+            kyberParams[BCObjectIdentifiers.kyber768] = KyberParameters.kyber768;
+            kyberParams[BCObjectIdentifiers.kyber1024] = KyberParameters.kyber1024;
+            kyberParams[BCObjectIdentifiers.kyber512_aes] = KyberParameters.kyber512_aes;
+            kyberParams[BCObjectIdentifiers.kyber768_aes] = KyberParameters.kyber768_aes;
+            kyberParams[BCObjectIdentifiers.kyber1024_aes] = KyberParameters.kyber1024_aes;
+            
+            
+            falconOids[FalconParameters.falcon_512] = BCObjectIdentifiers.falcon_512;
+            falconOids[FalconParameters.falcon_1024] = BCObjectIdentifiers.falcon_1024;
+            
+            falconParams[BCObjectIdentifiers.falcon_512] = FalconParameters.falcon_512;
+            falconParams[BCObjectIdentifiers.falcon_1024] = FalconParameters.falcon_1024;
+            
+            dilithiumOids[DilithiumParameters.Dilithium2] = BCObjectIdentifiers.dilithium2;
+            dilithiumOids[DilithiumParameters.Dilithium3] = BCObjectIdentifiers.dilithium3;
+            dilithiumOids[DilithiumParameters.Dilithium5] = BCObjectIdentifiers.dilithium5;
+            dilithiumOids[DilithiumParameters.Dilithium2Aes] = BCObjectIdentifiers.dilithium2_aes;
+            dilithiumOids[DilithiumParameters.Dilithium3Aes] = BCObjectIdentifiers.dilithium3_aes;
+            dilithiumOids[DilithiumParameters.Dilithium5Aes] = BCObjectIdentifiers.dilithium5_aes;
+            
+            dilithiumParams[BCObjectIdentifiers.dilithium2] = DilithiumParameters.Dilithium2;
+            dilithiumParams[BCObjectIdentifiers.dilithium3] = DilithiumParameters.Dilithium3;
+            dilithiumParams[BCObjectIdentifiers.dilithium5] = DilithiumParameters.Dilithium5;
+            dilithiumParams[BCObjectIdentifiers.dilithium2_aes] = DilithiumParameters.Dilithium2Aes;
+            dilithiumParams[BCObjectIdentifiers.dilithium3_aes] = DilithiumParameters.Dilithium3Aes;
+            dilithiumParams[BCObjectIdentifiers.dilithium5_aes] = DilithiumParameters.Dilithium5Aes;
         }
 
         public static DerObjectIdentifier McElieceOidLookup(CmceParameters parameters)
@@ -134,6 +179,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         internal static SABERParameters SaberParamsLookup(DerObjectIdentifier oid)
         {
             return saberParams[oid];
+        }
+        internal static KyberParameters KyberParamsLookup(DerObjectIdentifier oid)
+        {
+            return kyberParams[oid];
+        }       
+        internal static DerObjectIdentifier KyberOidLookup(KyberParameters parameters)
+        {
+            return kyberOids[parameters];
+        }
+        internal static FalconParameters FalconParamsLookup(DerObjectIdentifier oid)
+        {
+            return falconParams[oid];
+        }       
+        internal static DerObjectIdentifier FalconOidLookup(FalconParameters parameters)
+        {
+            return falconOids[parameters];
+        }
+        internal static DilithiumParameters DilithiumParamsLookup(DerObjectIdentifier oid)
+        {
+            return dilithiumParams[oid];
+        }       
+        internal static DerObjectIdentifier DilithiumOidLookup(DilithiumParameters parameters)
+        {
+            return dilithiumOids[parameters];
         }
 
         internal static DerObjectIdentifier SphincsPlusOidLookup(SPHINCSPlusParameters parameters)
