@@ -1,13 +1,14 @@
 ﻿using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    public class Grain128AeadEngine: IAeadCipher
+    public sealed class Grain128AeadEngine
+        : IAeadCipher
     {
-
         /**
          * Constants
          */
@@ -32,7 +33,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private byte[] mac;
 
-
         public string AlgorithmName => "Grain-128AEAD";
 
         /**
@@ -48,49 +48,32 @@ namespace Org.BouncyCastle.Crypto.Engines
              * Grain encryption and decryption is completely symmetrical, so the
              * 'forEncryption' is irrelevant.
              */
-            if (!(param is ParametersWithIV))
-            {
-                throw new ArgumentException(
-                    "Grain-128AEAD Init parameters must include an IV");
-            }
+            if (!(param is ParametersWithIV ivParams))
+                throw new ArgumentException("Grain-128AEAD Init parameters must include an IV");
 
-            ParametersWithIV ivParams = (ParametersWithIV)param;
-
-            byte[]
-            iv = ivParams.GetIV();
+            byte[] iv = ivParams.GetIV();
 
             if (iv == null || iv.Length != 12)
-            {
-                throw new ArgumentException(
-                    "Grain-128AEAD requires exactly 12 bytes of IV");
-            }
+                throw new ArgumentException("Grain-128AEAD requires exactly 12 bytes of IV");
 
-            if (!(ivParams.Parameters is KeyParameter))
-            {
-                throw new ArgumentException(
-                    "Grain-128AEAD Init parameters must include a key");
-            }
+            if (!(ivParams.Parameters is KeyParameter key))
+                throw new ArgumentException("Grain-128AEAD Init parameters must include a key");
 
-            KeyParameter key = (KeyParameter)ivParams.Parameters;
             byte[] keyBytes = key.GetKey();
             if (keyBytes.Length != 16)
-            {
-                throw new ArgumentException(
-                    "Grain-128AEAD key must be 128 bits long");
-            }
+                throw new ArgumentException("Grain-128AEAD key must be 128 bits long");
+
             /**
              * Initialize variables.
              */
-            workingIV = new byte[key.GetKey().Length];
-            workingKey = new byte[key.GetKey().Length];
+            workingIV = new byte[keyBytes.Length];
+            workingKey = keyBytes;
             lfsr = new uint[STATE_SIZE];
             nfsr = new uint[STATE_SIZE];
             authAcc = new uint[2];
             authSr = new uint[2];
 
-
             Array.Copy(iv, 0, workingIV, 0, iv.Length);
-            Array.Copy(key.GetKey(), 0, workingKey, 0, key.GetKey().Length);
 
             Reset();
         }
@@ -233,12 +216,10 @@ namespace Org.BouncyCastle.Crypto.Engines
          */
         private uint[] Shift(uint[] array, uint val)
         {
-
             array[0] = (array[0] >> 1) | (array[1] << 31);
             array[1] = (array[1] >> 1) | (array[2] << 31);
             array[2] = (array[2] >> 1) | (array[3] << 31);
             array[3] = (array[3] >> 1) | (val << 31);
-
             return array;
         }
 
@@ -274,51 +255,43 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
-        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output,
-                                int outOff)
+        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
+            Check.DataLength(input, inOff, len, "input buffer too short");
+            Check.OutputLength(output, outOff, len, "output buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessBytes(input.AsSpan(inOff, len), output.AsSpan(outOff));
+#else
             if (!initialised)
-            {
                 throw new ArgumentException(AlgorithmName + " not initialised");
-            }
+
             if (!aadFinished)
             {
                 DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
                 aadFinished = true;
             }
 
-
-            if ((inOff + len) > input.Length)
-            {
-                throw new DataLengthException("input buffer too short");
-            }
-
-            if ((outOff + len) > output.Length)
-            {
-                throw new OutputLengthException("output buffer too short");
-            }
             GetKeyStream(input, inOff, len, output, outOff);
             return len;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
+            Check.OutputLength(output, input.Length, "output buffer too short");
+
             if (!initialised)
-            {
                 throw new ArgumentException(AlgorithmName + " not initialised");
-            }
+
             if (!aadFinished)
             {
                 DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
                 aadFinished = true;
             }
 
-            if (input.Length > output.Length)
-            {
-                throw new OutputLengthException("output buffer too short");
-            }
-            GetKeyStream(input.ToArray(), 0, input.Length, output.ToArray(), 0);
+            GetKeyStream(input, output);
             return input.Length;
         }
 #endif
@@ -334,10 +307,49 @@ namespace Org.BouncyCastle.Crypto.Engines
             InitGrain();
         }
 
-        private byte[] GetKeyStream(byte[] input, int inOff, int len, byte[] ciphertext, int outOff)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void GetKeyStream(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int len = input.Length;
+            int mCnt = 0, acCnt = 0, cCnt = 0;
+            byte[] plaintext = new byte[len];
+            for (int i = 0; i < len; ++i)
+            {
+                plaintext[i] = (byte)ReverseByte(input[i]);
+            }
+            for (int i = 0; i < len; ++i)
+            {
+                byte cc = 0;
+                for (int j = 0; j < 16; ++j)
+                {
+                    outputZ = GetOutput();
+                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
+                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
+                    if (isEven)
+                    {
+                        cc |= (byte)(((((plaintext[mCnt >> 3]) >> (7 - (mCnt & 7))) & 1) ^ outputZ) << (cCnt & 7));
+                        mCnt++;
+                        cCnt++;
+                        isEven = false;
+                    }
+                    else
+                    {
+                        if ((plaintext[acCnt >> 3] & (1 << (7 - (acCnt & 7)))) != 0)
+                        {
+                            Accumulate();
+                        }
+                        AuthShift(outputZ);
+                        acCnt++;
+                        isEven = true;
+                    }
+                }
+                output[i] = cc;
+            }
+        }
+#else
+        private void GetKeyStream(byte[] input, int inOff, int len, byte[] ciphertext, int outOff)
         {
             int mCnt = 0, acCnt = 0, cCnt = 0;
-            byte cc;
             byte[] plaintext = new byte[len];
             for (int i = 0; i < len; ++i)
             {
@@ -345,7 +357,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             for (int i = 0; i < len; ++i)
             {
-                cc = 0;
+                byte cc = 0;
                 for (int j = 0; j < 16; ++j)
                 {
                     outputZ = GetOutput();
@@ -372,68 +384,49 @@ namespace Org.BouncyCastle.Crypto.Engines
                 }
                 ciphertext[outOff + i] = cc;
             }
-            //outputZ = GetOutput();
-            //nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-            //lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-            //Accumulate();
-            //cCnt = len + outOff;//acc_idx
-            //for (int i = 0; i < 2; ++i)
-            //{
-            //    for (int j = 0; j < 4; ++j)
-            //    {
-            //        ciphertext[cCnt] = (byte)((authAcc[i] >> (j << 3)) & 0xff);
-            //        cCnt++;
-            //    }
-            //}
-
-            return ciphertext;
         }
-
+#endif
 
         public byte ReturnByte(byte input)
         {
             if (!initialised)
-            {
-                throw new ArgumentException(AlgorithmName
-                    + " not initialised");
-            }
-            byte[] plaintext = new byte[1];
-            plaintext[0] = input;
-            byte[] ciphertext = new byte[1];
-            return GetKeyStream(plaintext, 0, 1, ciphertext, 0)[0];
-        }
+                throw new ArgumentException(AlgorithmName + " not initialised");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> plaintext = stackalloc byte[1]{ input };
+            Span<byte> ciphertext = stackalloc byte[1];
+            GetKeyStream(plaintext, ciphertext);
+            return ciphertext[0];
+#else
+            byte[] plaintext = new byte[1]{ input };
+            byte[] ciphertext = new byte[1];
+            GetKeyStream(plaintext, 0, 1, ciphertext, 0);
+            return ciphertext[0];
+#endif
+        }
 
         public void ProcessAadByte(byte input)
         {
             if (aadFinished)
-            {
                 throw new ArgumentException("associated data must be added before plaintext/ciphertext");
-            }
-            aadData.Write(new byte[] { input }, 0, 1);
 
+            aadData.WriteByte(input);
         }
 
         public void ProcessAadBytes(byte[] input, int inOff, int len)
         {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ProcessAadBytes(input.AsSpan(inOff, len));
-#else
             if (aadFinished)
-            {
                 throw new ArgumentException("associated data must be added before plaintext/ciphertext");
-            }
+
             aadData.Write(input, inOff, len);
-#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             if (aadFinished)
-            {
                 throw new ArgumentException("associated data must be added before plaintext/ciphertext");
-            }
+
             aadData.Write(input);
         }
 #endif
@@ -450,17 +443,15 @@ namespace Org.BouncyCastle.Crypto.Engines
             authSr[1] = (authSr[1] >> 1) | (val << 31);
         }
 
-
         public int ProcessByte(byte input, byte[] output, int outOff)
         {
-            return ProcessBytes(new byte[] { input }, 0, 1, output, outOff);
+            return ProcessBytes(new byte[]{ input }, 0, 1, output, outOff);
         }
-
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int ProcessByte(byte input, Span<byte> output)
         {
-            return ProcessBytes(new byte[] { input }.AsSpan<byte>(), output);
+            return ProcessBytes(stackalloc byte[1]{ input }, output);
         }
 #endif
 
@@ -468,7 +459,6 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             byte[] ader;
             int aderlen;
-            //encodeDer
             if (len < 128)
             {
                 ader = new byte[1 + len];
@@ -491,7 +481,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 ader[1 + aderlen + i] = (byte)ReverseByte(input[inOff + i]);
             }
-            byte adval;
+
             int adCnt = 0;
             for (int i = 0; i < ader.Length; ++i)
             {
@@ -502,7 +492,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
                     if ((j & 1) == 1)
                     {
-                        adval = (byte)(ader[adCnt >> 3] & (1 << (7 - (adCnt & 7))));
+                        byte adval = (byte)(ader[adCnt >> 3] & (1 << (7 - (adCnt & 7))));
                         if (adval != 0)
                         {
                             Accumulate();
@@ -512,24 +502,18 @@ namespace Org.BouncyCastle.Crypto.Engines
                     }
                 }
             }
-
-
         }
 
         private int LenLength(int v)
         {
             if ((v & 0xff) == v)
-            {
                 return 1;
-            }
+
             if ((v & 0xffff) == v)
-            {
                 return 2;
-            }
+
             if ((v & 0xffffff) == v)
-            {
                 return 3;
-            }
 
             return 4;
         }
@@ -599,7 +583,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 }
             }
 
-            Array.Copy(mac, 0, output.ToArray(), 0, mac.Length);
+            mac.CopyTo(output);
 
             try
             {
@@ -612,17 +596,15 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
-            public byte[] GetMac()
+        public byte[] GetMac()
         {
             return mac;
         }
-
 
         public int GetUpdateOutputSize(int len)
         {
             return len;
         }
-
 
         public int GetOutputSize(int len)
         {
