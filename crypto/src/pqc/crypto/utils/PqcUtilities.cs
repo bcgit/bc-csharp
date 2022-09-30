@@ -120,11 +120,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sikeParams[BCObjectIdentifiers.sikep751_compressed] = SIKEParameters.sikep751_compressed;
             
             sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SIKEParameters.sikep434] = BCObjectIdentifiers.sikep434;
+            sikeOids[SIKEParameters.sikep503] = BCObjectIdentifiers.sikep503;
+            sikeOids[SIKEParameters.sikep610] = BCObjectIdentifiers.sikep610;
+            sikeOids[SIKEParameters.sikep751] = BCObjectIdentifiers.sikep751;
+            sikeOids[SIKEParameters.sikep434_compressed] = BCObjectIdentifiers.sikep434_compressed;
+            sikeOids[SIKEParameters.sikep503_compressed] = BCObjectIdentifiers.sikep503_compressed;
+            sikeOids[SIKEParameters.sikep610_compressed] = BCObjectIdentifiers.sikep610_compressed;
+            sikeOids[SIKEParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
             
             kyberOids[KyberParameters.kyber512] = BCObjectIdentifiers.kyber512;
             kyberOids[KyberParameters.kyber768] = BCObjectIdentifiers.kyber768;
