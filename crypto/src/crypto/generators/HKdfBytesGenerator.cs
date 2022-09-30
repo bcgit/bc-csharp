@@ -144,9 +144,9 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int GenerateBytes(Span<byte> outputX)
+        public int GenerateBytes(Span<byte> output)
         {
-            int length = outputX.Length;
+            int length = output.Length;
             if (generatedBytes > 255 * hashLen - length)
                 throw new DataLengthException("HKDF may only be used for 255 * HashLen bytes of output");
 
@@ -154,19 +154,19 @@ namespace Org.BouncyCastle.Crypto.Generators
             if (posInT != 0)
             {
                 // copy what is left in the currentT (1..hash
-                int toCopy = System.Math.Min(hashLen - posInT, outputX.Length);
-                currentT.AsSpan(posInT, toCopy).CopyTo(outputX);
+                int toCopy = System.Math.Min(hashLen - posInT, output.Length);
+                currentT.AsSpan(posInT, toCopy).CopyTo(output);
                 generatedBytes += toCopy;
-                outputX = outputX[toCopy..];
+                output = output[toCopy..];
             }
 
-            while (!outputX.IsEmpty)
+            while (!output.IsEmpty)
             {
                 ExpandNext();
-                int toCopy = System.Math.Min(hashLen, outputX.Length);
-                currentT.AsSpan(0, toCopy).CopyTo(outputX);
+                int toCopy = System.Math.Min(hashLen, output.Length);
+                currentT.AsSpan(0, toCopy).CopyTo(output);
                 generatedBytes += toCopy;
-                outputX = outputX[toCopy..];
+                output = output[toCopy..];
             }
 
             return length;
