@@ -244,16 +244,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             paramsToOid[SPHINCSPlusParameters.haraka_256s] = sphincsPlus_haraka_256s_robust;
         }
 
-        private String name;
+        private string name;
         private ISPHINCSPlusEngineProvider engineProvider;
 
-        private SPHINCSPlusParameters(String name, ISPHINCSPlusEngineProvider engineProvider)
+        private SPHINCSPlusParameters(string name, ISPHINCSPlusEngineProvider engineProvider)
         {
             this.name = name;
             this.engineProvider = engineProvider;
         }
 
-        public String Name => name;
+        public string Name => name;
 
         internal int N => engineProvider.N;
 
@@ -270,7 +270,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
          */
         public static SPHINCSPlusParameters GetParams(uint id)
         {
-            return (SPHINCSPlusParameters)oidToParams[id];
+            return oidToParams[id];
         }
 
         /**
@@ -290,7 +290,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         }
     }
 
-    class Sha2EngineProvider : ISPHINCSPlusEngineProvider
+    internal class Sha2EngineProvider
+        : ISPHINCSPlusEngineProvider
     {
         private readonly bool robust;
         private readonly int n;
@@ -319,7 +320,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         }
     }
 
-    class Shake256EngineProvider : ISPHINCSPlusEngineProvider
+    internal class Shake256EngineProvider
+        : ISPHINCSPlusEngineProvider
     {
         private readonly bool robust;
         private readonly int n;
@@ -348,7 +350,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         }
     }
 
-    class Haraka256EngineProvider : ISPHINCSPlusEngineProvider
+    internal class Haraka256EngineProvider
+        : ISPHINCSPlusEngineProvider
     {
         private readonly bool robust;
         private readonly int n;

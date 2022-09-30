@@ -1,5 +1,3 @@
-using System;
-
 namespace Org.BouncyCastle.Crypto
 {
     /// <summary>
@@ -8,7 +6,7 @@ namespace Org.BouncyCastle.Crypto
     public interface IVerifierFactory
 	{
         /// <summary>The algorithm details object for this verifier.</summary>
-        object AlgorithmDetails { get ; }
+        object AlgorithmDetails { get; }
 
         /// <summary>
         /// Create a stream calculator for this verifier. The stream

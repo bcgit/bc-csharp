@@ -347,7 +347,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 return mask;
             }
-
         }
 
         internal class Shake256Engine
@@ -359,7 +358,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             public Shake256Engine(bool robust, int n, uint w, uint d, int a, int k, uint h)
                 : base(robust, n, w, d, a, k, h)
             {
-
                 this.treeDigest = new ShakeDigest(256);
                 this.maskDigest = new ShakeDigest(256);
             }

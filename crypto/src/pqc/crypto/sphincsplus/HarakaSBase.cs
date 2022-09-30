@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
      * Haraka512-256 with reference to Python Reference Impl from: https://github.com/sphincs/sphincsplus
      * </p>
      */
-    internal class HarakaSBase
+    internal abstract class HarakaSBase
     {
         internal ulong[][] haraka512_rc = new ulong[][]{
             new ulong[]{0x24cf0ab9086f628bL, 0xbdd6eeecc83b8382L, 0xd96fb0306cdad0a7L, 0xaace082ac8f95f89L, 0x449d8e8870d7041fL, 0x49bb2f80b2b3e2f8L, 0x0569ae98d93bb258L, 0x23dc9691e7d6a4b1L},

@@ -2,13 +2,10 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    internal class HarakaSXof
+    internal sealed class HarakaSXof
         : HarakaSBase
     {
-        public String GetAlgorithmName()
-        {
-            return "Haraka-S";
-        }
+        public string AlgorithmName => "Haraka-S";
 
         public HarakaSXof(byte[] pkSeed)
         {
@@ -23,6 +20,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 haraka256_rc[i] = new uint[8];
                 InterleaveConstant32(haraka256_rc[i], buf, i << 5);
                 InterleaveConstant(haraka512_rc[i], buf, i << 6);
+            }
+        }
+
+        public void Update(byte input)
+        {
+            buffer[off++] ^= input;
+            if (off == 32)
+            {
+                Haraka512Perm(buffer);
+                off = 0;
             }
         }
 
@@ -41,16 +48,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             while (i < inOff + len)
             {
                 buffer[off++] ^= input[i++];
-            }
-        }
-
-        public void BlockUpdate(byte input)
-        {
-            buffer[off++] ^= input;
-            if (off == 32)
-            {
-                Haraka512Perm(buffer);
-                off = 0;
             }
         }
 

@@ -2,7 +2,7 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    internal class HarakaS256Digest
+    internal sealed class HarakaS256Digest
         : HarakaSBase
     {
         public HarakaS256Digest(HarakaSXof harakaSXof)
@@ -10,10 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             haraka256_rc = harakaSXof.haraka256_rc;
         }
 
-        public String GetAlgorithmName()
-        {
-            return "HarakaS-256";
-        }
+        public string AlgorithmName => "HarakaS-256";
 
         public int GetDigestSize()
         {
@@ -23,9 +20,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         public void BlockUpdate(byte input)
         {
             if (off + 1 > 32)
-            {
                 throw new ArgumentException("total input cannot be more than 32 bytes");
-            }
 
             buffer[off++] = input;
         }
@@ -33,9 +28,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (off + len > 32)
-            {
                 throw new ArgumentException("total input cannot be more than 32 bytes");
-            }
 
             Array.Copy(input, inOff, buffer, off, len);
             off += len;
@@ -51,7 +44,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             return output.Length;
         }
-
     }
-
 }

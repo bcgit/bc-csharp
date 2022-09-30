@@ -1,5 +1,3 @@
-using System;
-
 namespace Org.BouncyCastle.Crypto
 {
     /// <summary>
@@ -8,7 +6,7 @@ namespace Org.BouncyCastle.Crypto
     public interface ISignatureFactory
 	{
         /// <summary>The algorithm details object for this calculator.</summary>
-        object AlgorithmDetails { get ; }
+        object AlgorithmDetails { get; }
 
         /// <summary>
         /// Create a stream calculator for this signature calculator. The stream
@@ -19,5 +17,3 @@ namespace Org.BouncyCastle.Crypto
         IStreamCalculator<IBlockResult> CreateCalculator();
     }
 }
-
-
