@@ -1,8 +1,3 @@
-using System;
-
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-
 namespace Org.BouncyCastle.Crypto.Generators
 {
 	/**
@@ -10,7 +5,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 	 * <br/>
 	 * This implementation is based on IEEE P1363/ISO 18033.
 	 */
-	public class Kdf2BytesGenerator
+	public sealed class Kdf2BytesGenerator
 		: BaseKdfBytesGenerator
 	{
 		/**

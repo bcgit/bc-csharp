@@ -6,28 +6,26 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /**
      * parameters for Key derivation functions for IEEE P1363a
      */
-    public class KdfParameters : IDerivationParameters
+    public class KdfParameters
+        : IDerivationParameters
     {
-        byte[]  iv;
-        byte[]  shared;
+        private readonly byte[] m_iv;
+        private readonly byte[] m_shared;
 
-        public KdfParameters(
-            byte[]  shared,
-            byte[]  iv)
+        public KdfParameters(byte[] shared, byte[] iv)
         {
-            this.shared = shared;
-            this.iv = iv;
+            m_shared = shared;
+            m_iv = iv;
         }
 
         public byte[] GetSharedSecret()
         {
-            return shared;
+            return m_shared;
         }
 
         public byte[] GetIV()
         {
-            return iv;
+            return m_iv;
         }
     }
-
 }

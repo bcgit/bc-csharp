@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Generators
      * (output keying material) and is likely to have better security properties
      * than KDF's based on just a hash function.
      */
-    public class HkdfBytesGenerator
+    public sealed class HkdfBytesGenerator
         : IDerivationFunction
     {
         private HMac hMacHash;
@@ -35,12 +35,11 @@ namespace Org.BouncyCastle.Crypto.Generators
             this.hashLen = hash.GetDigestSize();
         }
 
-        public virtual void Init(IDerivationParameters parameters)
+        public void Init(IDerivationParameters parameters)
         {
-            if (!(parameters is HkdfParameters))
+            if (!(parameters is HkdfParameters hkdfParameters))
                 throw new ArgumentException("HKDF parameters required for HkdfBytesGenerator", "parameters");
 
-            HkdfParameters hkdfParameters = (HkdfParameters)parameters;
             if (hkdfParameters.SkipExtract)
             {
                 // use IKM directly as PRK
@@ -108,45 +107,70 @@ namespace Org.BouncyCastle.Crypto.Generators
             hMacHash.DoFinal(currentT, 0);
         }
 
-        public virtual IDigest Digest
+        public IDigest Digest => hMacHash.GetUnderlyingDigest();
+
+        public int GenerateBytes(byte[] output, int outOff, int length)
         {
-            get { return hMacHash.GetUnderlyingDigest(); }
-        }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return GenerateBytes(output.AsSpan(outOff, length));
+#else
+            if (generatedBytes > 255 * hashLen - length)
+                throw new DataLengthException("HKDF may only be used for 255 * HashLen bytes of output");
 
-        public virtual int GenerateBytes(byte[] output, int outOff, int len)
-        {
-            if (generatedBytes + len > 255 * hashLen)
-            {
-                throw new DataLengthException(
-                    "HKDF may only be used for 255 * HashLen bytes of output");
-            }
-
-            if (generatedBytes % hashLen == 0)
-            {
-                ExpandNext();
-            }
-
-            // copy what is left in the currentT (1..hash
-            int toGenerate = len;
+            int toGenerate = length;
             int posInT = generatedBytes % hashLen;
-            int leftInT = hashLen - generatedBytes % hashLen;
-            int toCopy = System.Math.Min(leftInT, toGenerate);
-            Array.Copy(currentT, posInT, output, outOff, toCopy);
-            generatedBytes += toCopy;
-            toGenerate -= toCopy;
-            outOff += toCopy;
+            if (posInT != 0)
+            {
+                // copy what is left in the currentT (1..hash
+                int toCopy = System.Math.Min(hashLen - posInT, toGenerate);
+                Array.Copy(currentT, posInT, output, outOff, toCopy);
+                generatedBytes += toCopy;
+                toGenerate -= toCopy;
+                outOff += toCopy;
+            }
 
             while (toGenerate > 0)
             {
                 ExpandNext();
-                toCopy = System.Math.Min(hashLen, toGenerate);
+                int toCopy = System.Math.Min(hashLen, toGenerate);
                 Array.Copy(currentT, 0, output, outOff, toCopy);
                 generatedBytes += toCopy;
                 toGenerate -= toCopy;
                 outOff += toCopy;
             }
 
-            return len;
+            return length;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int GenerateBytes(Span<byte> outputX)
+        {
+            int length = outputX.Length;
+            if (generatedBytes > 255 * hashLen - length)
+                throw new DataLengthException("HKDF may only be used for 255 * HashLen bytes of output");
+
+            int posInT = generatedBytes % hashLen;
+            if (posInT != 0)
+            {
+                // copy what is left in the currentT (1..hash
+                int toCopy = System.Math.Min(hashLen - posInT, outputX.Length);
+                currentT.AsSpan(posInT, toCopy).CopyTo(outputX);
+                generatedBytes += toCopy;
+                outputX = outputX[toCopy..];
+            }
+
+            while (!outputX.IsEmpty)
+            {
+                ExpandNext();
+                int toCopy = System.Math.Min(hashLen, outputX.Length);
+                currentT.AsSpan(0, toCopy).CopyTo(outputX);
+                generatedBytes += toCopy;
+                outputX = outputX[toCopy..];
+            }
+
+            return length;
+        }
+#endif
     }
 }
