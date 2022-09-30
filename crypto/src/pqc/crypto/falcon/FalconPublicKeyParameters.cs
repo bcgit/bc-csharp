@@ -7,10 +7,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
     {
         private byte[] publicKey;
 
-        public FalconPublicKeyParameters(FalconParameters parameters, byte[] pk_encoded)
+        public FalconPublicKeyParameters(FalconParameters parameters, byte[] h)
             : base(false, parameters)
         {
-            this.publicKey = Arrays.Clone(pk_encoded);
+            this.publicKey = Arrays.Clone(h);
         }
 
         public byte[] GetEncoded()
