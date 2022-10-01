@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -25,18 +24,14 @@ namespace Org.BouncyCastle.Crypto.Signers
             get { return key.AlgorithmName; }
         }
 
-        public virtual void Init(
-            bool				forSigning,
-            ICipherParameters	parameters)
+        public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             this.forSigning = forSigning;
 
             if (forSigning)
             {
-                if (parameters is ParametersWithRandom)
+                if (parameters is ParametersWithRandom rParam)
                 {
-                    ParametersWithRandom rParam = (ParametersWithRandom)parameters;
-
                     this.random = rParam.Random;
                     parameters = rParam.Parameters;
                 }
@@ -45,24 +40,21 @@ namespace Org.BouncyCastle.Crypto.Signers
                     this.random = new SecureRandom();
                 }
 
-                if (!(parameters is ECPrivateKeyParameters))
+                if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
                     throw new InvalidKeyException("EC private key required for signing");
 
-                this.key = (ECPrivateKeyParameters) parameters;
+                this.key = ecPrivateKeyParameters;
             }
             else
             {
-                if (!(parameters is ECPublicKeyParameters))
+                if (!(parameters is ECPublicKeyParameters ecPublicKeyParameters))
                     throw new InvalidKeyException("EC public key required for verification");
 
-                this.key = (ECPublicKeyParameters)parameters;
+                this.key = ecPublicKeyParameters;
             }
         }
 
-        public virtual BigInteger Order
-        {
-            get { return key.Parameters.N; }
-        }
+        public virtual BigInteger Order => key.Parameters.N;
 
         /**
          * generate a signature for the given message using the key we were
@@ -71,13 +63,10 @@ namespace Org.BouncyCastle.Crypto.Signers
          *
          * @param message the message that will be verified later.
          */
-        public virtual BigInteger[] GenerateSignature(
-            byte[] message)
+        public virtual BigInteger[] GenerateSignature(byte[] message)
         {
             if (!forSigning)
-            {
                 throw new InvalidOperationException("not initialized for signing");
-            }
 
             byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
             BigInteger e = new BigInteger(1, mRev);
@@ -86,7 +75,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             BigInteger n = ec.N;
             BigInteger d = ((ECPrivateKeyParameters)key).D;
 
-            BigInteger r, s = null;
+            BigInteger r, s;
 
             ECMultiplier basePointMultiplier = CreateBasePointMultiplier();
 
@@ -97,7 +86,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 {
                     do
                     {
-                        k = new BigInteger(n.BitLength, random);
+                        k = BigIntegers.CreateRandomBigInteger(n.BitLength, random);
                     }
                     while (k.SignValue == 0);
 
@@ -107,7 +96,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
                 while (r.SignValue == 0);
 
-                s = (k.Multiply(e)).Add(d.Multiply(r)).Mod(n);
+                s = k.Multiply(e).Add(d.Multiply(r)).Mod(n);
             }
             while (s.SignValue == 0);
 
@@ -119,15 +108,10 @@ namespace Org.BouncyCastle.Crypto.Signers
          * the passed in message (for standard GOST3410 the message should be
          * a GOST3411 hash of the real message to be verified).
          */
-        public virtual bool VerifySignature(
-            byte[]		message,
-            BigInteger	r,
-            BigInteger	s)
+        public virtual bool VerifySignature(byte[] message, BigInteger r, BigInteger s)
         {
             if (forSigning)
-            {
                 throw new InvalidOperationException("not initialized for verification");
-            }
 
             byte[] mRev = Arrays.Reverse(message); // conversion is little-endian
             BigInteger e = new BigInteger(1, mRev);
@@ -135,20 +119,16 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             // r in the range [1,n-1]
             if (r.CompareTo(BigInteger.One) < 0 || r.CompareTo(n) >= 0)
-            {
                 return false;
-            }
 
             // s in the range [1,n-1]
             if (s.CompareTo(BigInteger.One) < 0 || s.CompareTo(n) >= 0)
-            {
                 return false;
-            }
 
             BigInteger v = BigIntegers.ModOddInverseVar(n, e);
 
             BigInteger z1 = s.Multiply(v).Mod(n);
-            BigInteger z2 = (n.Subtract(r)).Multiply(v).Mod(n);
+            BigInteger z2 = n.Subtract(r).Multiply(v).Mod(n);
 
             ECPoint G = key.Parameters.G; // P
             ECPoint Q = ((ECPublicKeyParameters)key).Q;
