@@ -901,36 +901,13 @@ namespace Org.BouncyCastle.Utilities
             return result;
         }
 
-        public static byte[] ReverseInPlace(byte[] a)
+        public static T[] ReverseInPlace<T>(T[] array)
         {
-            if (null == a)
+            if (null == array)
                 return null;
 
-            int p1 = 0, p2 = a.Length - 1;
-            while (p1 < p2)
-            {
-                byte t1 = a[p1], t2 = a[p2];
-                a[p1++] = t2;
-                a[p2--] = t1;
-            }
-
-            return a;
-        }
-
-        public static int[] ReverseInPlace(int[] a)
-        {
-            if (null == a)
-                return null;
-
-            int p1 = 0, p2 = a.Length - 1;
-            while (p1 < p2)
-            {
-                int t1 = a[p1], t2 = a[p2];
-                a[p1++] = t2;
-                a[p2--] = t1;
-            }
-
-            return a;
+            Array.Reverse(array);
+            return array;
         }
 
         public static void Clear(byte[] data)
