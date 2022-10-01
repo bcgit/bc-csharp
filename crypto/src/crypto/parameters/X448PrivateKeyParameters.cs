@@ -65,6 +65,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new InvalidOperationException("X448 agreement failed");
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void GenerateSecret(X448PublicKeyParameters publicKey, Span<byte> buf)
+        {
+            Span<byte> encoded = stackalloc byte[X448.PointSize];
+            publicKey.Encode(encoded);
+            if (!X448.CalculateAgreement(data, encoded, buf))
+                throw new InvalidOperationException("X448 agreement failed");
+        }
+#endif
+
         private static byte[] Validate(byte[] buf)
         {
             if (buf.Length != KeySize)

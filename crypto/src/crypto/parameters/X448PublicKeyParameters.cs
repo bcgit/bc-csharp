@@ -37,6 +37,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             Array.Copy(data, 0, buf, off, KeySize);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void Encode(Span<byte> buf)
+        {
+            data.CopyTo(buf);
+        }
+#endif
+
         public byte[] GetEncoded()
         {
             return Arrays.Clone(data);

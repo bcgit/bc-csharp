@@ -3,6 +3,10 @@ using System.Diagnostics;
 
 using Org.BouncyCastle.Math.Raw;
 
+#if NET5_0_OR_GREATER
+using static System.Math;
+#endif
+
 namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     public static class X25519Field
@@ -162,6 +166,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             z[9] &= M24;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Decode(ReadOnlySpan<byte> x, Span<int> z)
+        {
+            Decode128(x, z);
+            Decode128(x[16..], z[5..]);
+            z[9] &= M24;
+        }
+#endif
+
         private static void Decode128(uint[] x, int xOff, int[] z, int zOff)
         {
             uint t0 = x[xOff + 0], t1 = x[xOff + 1], t2 = x[xOff + 2], t3 = x[xOff + 3];
@@ -181,11 +194,27 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             uint t3 = Decode32(bs, off + 12);
 
             z[zOff + 0] = (int)t0 & M26;
-            z[zOff + 1] = (int)((t1 << 6) | (t0 >> 26)) & M26;
+            z[zOff + 1] = (int)((t1 <<  6) | (t0 >> 26)) & M26;
             z[zOff + 2] = (int)((t2 << 12) | (t1 >> 20)) & M25;
             z[zOff + 3] = (int)((t3 << 19) | (t2 >> 13)) & M26;
             z[zOff + 4] = (int)(t3 >> 7);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Decode128(ReadOnlySpan<byte> bs, Span<int> z)
+        {
+            uint t0 = Decode32(bs);
+            uint t1 = Decode32(bs[4..]);
+            uint t2 = Decode32(bs[8..]);
+            uint t3 = Decode32(bs[12..]);
+
+            z[0] = (int)t0 & M26;
+            z[1] = (int)((t1 <<  6) | (t0 >> 26)) & M26;
+            z[2] = (int)((t2 << 12) | (t1 >> 20)) & M25;
+            z[3] = (int)((t3 << 19) | (t2 >> 13)) & M26;
+            z[4] = (int)(t3 >> 7);
+        }
+#endif
 
         private static uint Decode32(byte[] bs, int off)
         {
@@ -195,6 +224,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             n |= (uint)bs[++off] << 24;
             return n;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static uint Decode32(ReadOnlySpan<byte> bs)
+        {
+            uint n = bs[0];
+            n |= (uint)bs[1] << 8;
+            n |= (uint)bs[2] << 16;
+            n |= (uint)bs[3] << 24;
+            return n;
+        }
+#endif
 
         [CLSCompliant(false)]
         public static void Encode(int[] x, uint[] z, int zOff)
@@ -208,6 +248,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             Encode128(x, 0, z, zOff);
             Encode128(x, 5, z, zOff + 16);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Encode(ReadOnlySpan<int> x, Span<byte> z)
+        {
+            Encode128(x, z);
+            Encode128(x[5..], z[16..]);
+        }
+#endif
 
         private static void Encode128(int[] x, int xOff, uint[] z, int zOff)
         {
@@ -231,6 +279,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             uint t3 = (x3 >> 19) | (x4 <<  7);  Encode32(t3, bs, off + 12);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Encode128(ReadOnlySpan<int> x, Span<byte> bs)
+        {
+            uint x0 = (uint)x[0], x1 = (uint)x[1], x2 = (uint)x[2];
+            uint x3 = (uint)x[3], x4 = (uint)x[4];
+
+            uint t0 =  x0        | (x1 << 26);  Encode32(t0, bs);
+            uint t1 = (x1 >>  6) | (x2 << 20);  Encode32(t1, bs[4..]);
+            uint t2 = (x2 >> 12) | (x3 << 13);  Encode32(t2, bs[8..]);
+            uint t3 = (x3 >> 19) | (x4 <<  7);  Encode32(t3, bs[12..]);
+        }
+#endif
+
         private static void Encode32(uint n, byte[] bs, int off)
         {
             bs[  off] = (byte)(n      );
@@ -238,6 +299,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             bs[++off] = (byte)(n >> 16);
             bs[++off] = (byte)(n >> 24);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Encode32(uint n, Span<byte> bs)
+        {
+            bs[0] = (byte)(n      );
+            bs[1] = (byte)(n >>  8);
+            bs[2] = (byte)(n >> 16);
+            bs[3] = (byte)(n >> 24);
+        }
+#endif
 
         public static void Inv(int[] x, int[] z)
         {
@@ -753,5 +824,361 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 z[i] = 0;
             }
         }
+
+#if NET5_0_OR_GREATER
+
+        public const int Size64 = 5;
+
+        private const long M51 = 0x0007FFFFFFFFFFFFL;
+
+        private static readonly long[] RootNegOne64 = { 0x00061B274A0EA0B0L, 0x0000D5A5FC8F189DL, 0x0007EF5E9CBD0C60L,
+            0x00078595A6804C9EL, 0x0002B8324804FC1DL };
+
+        public static void Add(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> z)
+        {
+            for (int i = 0; i < Size64; ++i)
+            {
+                z[i] = x[i] + y[i];
+            }
+        }
+
+        public static void AddOne(Span<long> z)
+        {
+            z[0] += 1L;
+        }
+
+        public static void Apm(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> zp, Span<long> zm)
+        {
+            for (int i = 0; i < Size64; ++i)
+            {
+                long xi = x[i], yi = y[i];
+                zp[i] = xi + yi;
+                zm[i] = xi - yi;
+            }
+        }
+
+        public static long AreEqual(ReadOnlySpan<long> x, ReadOnlySpan<long> y)
+        {
+            long d = 0;
+            for (int i = 0; i < Size64; ++i)
+            {
+                d |= x[i] ^ y[i];
+            }
+            return (~d & (d - 1)) >> 63;
+        }
+
+        public static bool AreEqualVar(ReadOnlySpan<long> x, ReadOnlySpan<long> y)
+        {
+            return 0 != AreEqual(x, y);
+        }
+
+        public static void CMov(long cond, ReadOnlySpan<long> x, Span<long> z)
+        {
+            Debug.Assert(0L == cond || -1L == cond);
+
+            for (int i = 0; i < Size64; ++i)
+            {
+                long z_i = z[i], diff = z_i ^ x[i];
+                z_i ^= diff & cond;
+                z[i] = z_i;
+            }
+        }
+
+        public static void CNegate(long negate, Span<long> z)
+        {
+            Debug.Assert(negate >> 1 == 0L);
+
+            long mask = 0L - negate;
+            for (int i = 0; i < Size64; ++i)
+            {
+                z[i] = (z[i] ^ mask) - mask;
+            }
+        }
+
+        public static void Copy(ReadOnlySpan<long> x, Span<long> z)
+        {
+            for (int i = 0; i < Size64; ++i)
+            {
+                z[i] = x[i];
+            }
+        }
+
+        public static void CSwap(long swap, Span<long> a, Span<long> b)
+        {
+            Debug.Assert(swap >> 1 == 0);
+            Debug.Assert(a != b);
+
+            long mask = 0 - swap;
+            for (int i = 0; i < Size64; ++i)
+            {
+                long ai = a[i], bi = b[i];
+                long dummy = mask & (ai ^ bi);
+                a[i] = ai ^ dummy;
+                b[i] = bi ^ dummy;
+            }
+        }
+
+        public static long IsOne(ReadOnlySpan<long> x)
+        {
+            long d = x[0] ^ 1L;
+            for (int i = 1; i < Size64; ++i)
+            {
+                d |= x[i];
+            }
+            return (~d & (d - 1)) >> 63;
+        }
+
+        public static bool IsOneVar(ReadOnlySpan<long> x)
+        {
+            return 0 != IsOne(x);
+        }
+
+        public static long IsZero(ReadOnlySpan<long> x)
+        {
+            long d = x[0];
+            for (int i = 1; i < Size64; ++i)
+            {
+                d |= x[i];
+            }
+            return (~d & (d - 1)) >> 63;
+        }
+
+        public static bool IsZeroVar(ReadOnlySpan<long> x)
+        {
+            return 0 != IsZero(x);
+        }
+
+        public static void Mul(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> z)
+        {
+            long x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3], x4 = x[4];
+            long y0 = y[0], y1 = y[1], y2 = y[2], y3 = y[3], y4 = y[4];
+            long z0, z1, z2, z3, z4, t5, t6, t7, t8, t9;
+
+            long hi00 = BigMul(x0, y0, out long lo00);
+
+            z0  = lo00 & M51;
+            z1  = (hi00 << 13)
+                + (lo00 >> 51);
+
+            long hi01 = BigMul(x0, y1, out long lo01);
+            long hi10 = BigMul(x1, y0, out long lo10);
+
+            z1 += (lo01 & M51) + (lo10 & M51);
+            z2  = ((hi01 + hi10) << 13)
+                + (lo01 >> 51) + (lo10 >> 51);
+
+            long hi02 = BigMul(x0, y2, out long lo02);
+            long hi11 = BigMul(x1, y1, out long lo11);
+            long hi20 = BigMul(x2, y0, out long lo20);
+
+            z2 += (lo02 & M51) + (lo11 & M51) + (lo20 & M51);
+            z3  = ((hi02 + hi11 + hi20) << 13)
+                + (lo02 >> 51) + (lo11 >> 51) + (lo20 >> 51);
+
+            long hi03 = BigMul(x0, y3, out long lo03);
+            long hi12 = BigMul(x1, y2, out long lo12);
+            long hi21 = BigMul(x2, y1, out long lo21);
+            long hi30 = BigMul(x3, y0, out long lo30);
+
+            z3 += (lo03 & M51) + (lo12 & M51) + (lo21 & M51) + (lo30 & M51);
+            z4  = ((hi03 + hi12 + hi21 + hi30) << 13)
+                + (lo03 >> 51) + (lo12 >> 51) + (lo21 >> 51) + (lo30 >> 51);
+
+            long hi04 = BigMul(x0, y4, out long lo04);
+            long hi13 = BigMul(x1, y3, out long lo13);
+            long hi22 = BigMul(x2, y2, out long lo22);
+            long hi31 = BigMul(x3, y1, out long lo31);
+            long hi40 = BigMul(x4, y0, out long lo40);
+
+            z4 += (lo04 & M51) + (lo13 & M51) + (lo22 & M51) + (lo31 & M51) + (lo40 & M51);
+            t5  = ((hi04 + hi13 + hi22 + hi31 + hi40) << 13)
+                + (lo04 >> 51) + (lo13 >> 51) + (lo22 >> 51) + (lo31 >> 51) + (lo40 >> 51);
+
+            long hi14 = BigMul(x1, y4, out long lo14);
+            long hi23 = BigMul(x2, y3, out long lo23);
+            long hi32 = BigMul(x3, y2, out long lo32);
+            long hi41 = BigMul(x4, y1, out long lo41);
+
+            t5 += (lo14 & M51) + (lo23 & M51) + (lo32 & M51) + (lo41 & M51);
+            t6  = ((hi14 + hi23 + hi32 + hi41) << 13)
+                + (lo14 >> 51) + (lo23 >> 51) + (lo32 >> 51) + (lo41 >> 51);
+
+            long hi24 = BigMul(x2, y4, out long lo24);
+            long hi33 = BigMul(x3, y3, out long lo33);
+            long hi42 = BigMul(x4, y2, out long lo42);
+
+            t6 += (lo24 & M51) + (lo33 & M51) + (lo42 & M51);
+            t7  = ((hi24 + hi33 + hi42) << 13)
+                + (lo24 >> 51) + (lo33 >> 51) + (lo42 >> 51);
+
+            long hi34 = BigMul(x3, y4, out long lo34);
+            long hi43 = BigMul(x4, y3, out long lo43);
+
+            t7 += (lo34 & M51) + (lo43 & M51);
+            t8  = ((hi34 + hi43) << 13)
+                + (lo34 >> 51) + (lo43 >> 51);
+
+            long hi44 = BigMul(x4, y4, out long lo44);
+
+            t8 += lo44 & M51;
+            t9  = (hi44 << 13)
+                + (lo44 >> 51);
+
+            z3 += t8 * 19;
+            z4 += t9 * 19;
+
+            z4 += z3 >> 51; z3 &= M51;
+            t5 += z4 >> 51; z4 &= M51;
+
+            z0 += t5 * 19;
+            z1 += t6 * 19;
+            z2 += t7 * 19;
+
+            z1 += z0 >> 51; z0 &= M51;
+            z2 += z1 >> 51; z1 &= M51;
+            z3 += z2 >> 51; z2 &= M51;
+            z4 += z3 >> 51; z3 &= M51;
+
+            z[0] = z0; z[1] = z1; z[2] = z2; z[3] = z3; z[4] = z4;
+        }
+
+        public static void Negate(ReadOnlySpan<long> x, Span<long> z)
+        {
+            for (int i = 0; i < Size64; ++i)
+            {
+                z[i] = -x[i];
+            }
+        }
+
+        public static void Normalize(Span<long> z)
+        {
+            long x = (z[4] >> 50) & 1L;
+            Reduce(z, x);
+            Reduce(z, -x);
+            Debug.Assert(z[4] >> 51 == 0);
+        }
+
+        public static void One(Span<long> z)
+        {
+            z[0] = 1L;
+            for (int i = 1; i < Size64; ++i)
+            {
+                z[i] = 0L;
+            }
+        }
+
+        private static void PowPm5d8(ReadOnlySpan<long> x, Span<long> rx2, Span<long> rz)
+        {
+            // z = x^((p-5)/8) = x^FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD
+            // (250 1s) (1 0s) (1 1s)
+            // Addition chain: [1] 2 3 5 10 15 25 50 75 125 [250]
+
+            Span<long> x2 = rx2;                        Sqr(x, x2);             Mul(x, x2, x2);
+            Span<long> x3 = stackalloc long[Size64];    Sqr(x2, x3);            Mul(x, x3, x3);
+            Span<long> x5 = x3;                         Sqr(x3, 2, x5);         Mul(x2, x5, x5);
+            Span<long> x10 = stackalloc long[Size64];   Sqr(x5, 5, x10);        Mul(x5, x10, x10);
+            Span<long> x15 = stackalloc long[Size64];   Sqr(x10, 5, x15);       Mul(x5, x15, x15);
+            Span<long> x25 = x5;                        Sqr(x15, 10, x25);      Mul(x10, x25, x25);
+            Span<long> x50 = x10;                       Sqr(x25, 25, x50);      Mul(x25, x50, x50);
+            Span<long> x75 = x15;                       Sqr(x50, 25, x75);      Mul(x25, x75, x75);
+            Span<long> x125 = x25;                      Sqr(x75, 50, x125);     Mul(x50, x125, x125);
+            Span<long> x250 = x50;                      Sqr(x125, 125, x250);   Mul(x125, x250, x250);
+
+            Span<long> t = x125;
+            Sqr(x250, 2, t);
+            Mul(t, x, rz);
+        }
+
+        private static void Reduce(Span<long> z, long x)
+        {
+            long t = z[4], z4 = t & M51;
+            t = (t >> 51) + x;
+
+            long cc = t * 19;
+            cc += z[0]; z[0] = cc & M51; cc >>= 51;
+            cc += z[1]; z[1] = cc & M51; cc >>= 51;
+            cc += z[2]; z[2] = cc & M51; cc >>= 51;
+            cc += z[3]; z[3] = cc & M51; cc >>= 51;
+            cc += z4  ; z[4] = cc;
+        }
+
+        public static void Sqr(ReadOnlySpan<long> x, Span<long> z)
+        {
+            Mul(x, x, z);
+        }
+
+        public static void Sqr(ReadOnlySpan<long> x, int n, Span<long> z)
+        {
+            Debug.Assert(n > 0);
+
+            Sqr(x, z);
+
+            while (--n > 0)
+            {
+                Sqr(z, z);
+            }
+        }
+
+        public static bool SqrtRatioVar(ReadOnlySpan<long> u, ReadOnlySpan<long> v, Span<long> z)
+        {
+            Span<long> uv3 = stackalloc long[Size64];
+            Span<long> uv7 = stackalloc long[Size64];
+
+            Mul(u, v, uv3);
+            Sqr(v, uv7);
+            Mul(uv3, uv7, uv3);
+            Sqr(uv7, uv7);
+            Mul(uv7, uv3, uv7);
+
+            Span<long> t = stackalloc long[Size64];
+            Span<long> x = stackalloc long[Size64];
+            PowPm5d8(uv7, t, x);
+            Mul(x, uv3, x);
+
+            Span<long> vx2 = stackalloc long[Size64];
+            Sqr(x, vx2);
+            Mul(vx2, v, vx2);
+
+            Sub(vx2, u, t);
+            Normalize(t);
+            if (IsZeroVar(t))
+            {
+                Copy(x, z);
+                return true;
+            }
+
+            Add(vx2, u, t);
+            Normalize(t);
+            if (IsZeroVar(t))
+            {
+                Mul(x, RootNegOne64, z);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void Sub(ReadOnlySpan<long> x, ReadOnlySpan<long> y, Span<long> z)
+        {
+            for (int i = 0; i < Size64; ++i)
+            {
+                z[i] = x[i] - y[i];
+            }
+        }
+
+        public static void SubOne(Span<long> z)
+        {
+            z[0] -= 1L;
+        }
+
+        public static void Zero(Span<long> z)
+        {
+            for (int i = 0; i < Size64; ++i)
+            {
+                z[i] = 0L;
+            }
+        }
+
+#endif
     }
 }

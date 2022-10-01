@@ -21,6 +21,18 @@ namespace Org.BouncyCastle.Utilities
             return bits == 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool AreAllZeroes(ReadOnlySpan<byte> buf)
+        {
+            uint bits = 0;
+            for (int i = 0; i < buf.Length; ++i)
+            {
+                bits |= buf[i];
+            }
+            return bits == 0;
+        }
+#endif
+
         public static bool AreEqual(
             bool[]  a,
             bool[]  b)
