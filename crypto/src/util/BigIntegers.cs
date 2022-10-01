@@ -66,6 +66,9 @@ namespace Org.BouncyCastle.Utilities
          */
         public static void AsUnsignedByteArray(BigInteger value, byte[] buf, int off, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            AsUnsignedByteArray(value, buf.AsSpan(off, len));
+#else
             byte[] bytes = value.ToByteArrayUnsigned();
             if (bytes.Length == len)
             {
@@ -82,7 +85,31 @@ namespace Org.BouncyCastle.Utilities
             int padLen = len - count;
             Arrays.Fill(buf, off, off + padLen, 0);
             Array.Copy(bytes, start, buf, off + padLen, count);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void AsUnsignedByteArray(BigInteger value, Span<byte> buf)
+        {
+            int len = buf.Length;
+            byte[] bytes = value.ToByteArrayUnsigned();
+            if (bytes.Length == len)
+            {
+                bytes.CopyTo(buf);
+                return;
+            }
+
+            int start = bytes[0] == 0 ? 1 : 0;
+            int count = bytes.Length - start;
+
+            if (count > len)
+                throw new ArgumentException("standard length exceeded for value");
+
+            int padLen = len - count;
+            buf[..padLen].Fill(0x00);
+            bytes.AsSpan(start, count).CopyTo(buf[padLen..]);
+        }
+#endif
 
         /// <summary>
         /// Creates a Random BigInteger from the secure random of a given bit length.
