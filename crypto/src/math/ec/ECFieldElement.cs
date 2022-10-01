@@ -96,8 +96,25 @@ namespace Org.BouncyCastle.Math.EC
 
         public virtual byte[] GetEncoded()
         {
-            return BigIntegers.AsUnsignedByteArray((FieldSize + 7) / 8, ToBigInteger());
+            return BigIntegers.AsUnsignedByteArray(GetEncodedLength(), ToBigInteger());
         }
+
+        public virtual int GetEncodedLength()
+        {
+            return (FieldSize + 7) / 8;
+        }
+
+        public virtual void EncodeTo(byte[] buf, int off)
+        {
+            BigIntegers.AsUnsignedByteArray(ToBigInteger(), buf, off, GetEncodedLength());
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void EncodeTo(Span<byte> buf)
+        {
+            BigIntegers.AsUnsignedByteArray(ToBigInteger(), buf[..GetEncodedLength()]);
+        }
+#endif
     }
 
     public abstract class AbstractFpFieldElement
