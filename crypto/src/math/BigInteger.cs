@@ -538,24 +538,21 @@ namespace Org.BouncyCastle.Math
             }
         }
 
-        private static int[] MakeMagnitude(
-            byte[]	bytes,
-            int		offset,
-            int		length)
+        private static int[] MakeMagnitude(byte[] bytes, int offset, int length)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return MakeMagnitude(bytes.AsSpan(offset, length));
+#else
             int end = offset + length;
 
             // strip leading zeros
             int firstSignificant;
-            for (firstSignificant = offset; firstSignificant < end
-                && bytes[firstSignificant] == 0; firstSignificant++)
+            for (firstSignificant = offset; firstSignificant < end && bytes[firstSignificant] == 0; firstSignificant++)
             {
             }
 
             if (firstSignificant >= end)
-            {
                 return ZeroMagnitude;
-            }
 
             int nInts = (end - firstSignificant + 3) / BytesPerInt;
             int bCount = (end - firstSignificant) % BytesPerInt;
@@ -565,9 +562,58 @@ namespace Org.BouncyCastle.Math
             }
 
             if (nInts < 1)
-            {
                 return ZeroMagnitude;
+
+            int[] mag = new int[nInts];
+
+            int v = 0;
+            int magnitudeIndex = 0;
+            for (int i = firstSignificant; i < end; ++i)
+            {
+                v <<= 8;
+                v |= bytes[i] & 0xff;
+                bCount--;
+                if (bCount <= 0)
+                {
+                    mag[magnitudeIndex] = v;
+                    magnitudeIndex++;
+                    bCount = BytesPerInt;
+                    v = 0;
+                }
             }
+
+            if (magnitudeIndex < mag.Length)
+            {
+                mag[magnitudeIndex] = v;
+            }
+
+            return mag;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static int[] MakeMagnitude(ReadOnlySpan<byte> bytes)
+        {
+            int end = bytes.Length;
+
+            // strip leading zeros
+            int firstSignificant;
+            for (firstSignificant = 0; firstSignificant < end && bytes[firstSignificant] == 0; firstSignificant++)
+            {
+            }
+
+            if (firstSignificant >= end)
+                return ZeroMagnitude;
+
+            int nInts = (end - firstSignificant + 3) / BytesPerInt;
+            int bCount = (end - firstSignificant) % BytesPerInt;
+            if (bCount == 0)
+            {
+                bCount = BytesPerInt;
+            }
+
+            if (nInts < 1)
+                return ZeroMagnitude;
 
             int[] mag = new int[nInts];
 
@@ -594,19 +640,14 @@ namespace Org.BouncyCastle.Math
 
             return mag;
         }
+#endif
 
-        public BigInteger(
-            int		sign,
-            byte[]	bytes)
+        public BigInteger(int sign, byte[] bytes)
             : this(sign, bytes, 0, bytes.Length)
         {
         }
 
-        public BigInteger(
-            int		sign,
-            byte[]	bytes,
-            int		offset,
-            int		length)
+        public BigInteger(int sign, byte[] bytes, int offset, int length)
         {
             if (sign < -1 || sign > 1)
                 throw new FormatException("Invalid sign value");
@@ -623,6 +664,26 @@ namespace Org.BouncyCastle.Math
                 this.sign = this.magnitude.Length < 1 ? 0 : sign;
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public BigInteger(int sign, ReadOnlySpan<byte> bytes)
+        {
+            if (sign < -1 || sign > 1)
+                throw new FormatException("Invalid sign value");
+
+            if (sign == 0)
+            {
+                this.sign = 0;
+                this.magnitude = ZeroMagnitude;
+            }
+            else
+            {
+                // copy bytes
+                this.magnitude = MakeMagnitude(bytes);
+                this.sign = this.magnitude.Length < 1 ? 0 : sign;
+            }
+        }
+#endif
 
         public BigInteger(
             int		sizeInBits,
