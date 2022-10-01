@@ -436,67 +436,143 @@ namespace Org.BouncyCastle.Math.EC
          */
         public virtual ECPoint DecodePoint(byte[] encoded)
         {
-            ECPoint p = null;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DecodePoint(encoded.AsSpan());
+#else
+            ECPoint p;
             int expectedLength = (FieldSize + 7) / 8;
 
             byte type = encoded[0];
             switch (type)
             {
-                case 0x00: // infinity
-                {
-                    if (encoded.Length != 1)
-                        throw new ArgumentException("Incorrect length for infinity encoding", "encoded");
+            case 0x00: // infinity
+            {
+                if (encoded.Length != 1)
+                    throw new ArgumentException("Incorrect length for infinity encoding", "encoded");
 
-                    p = Infinity;
-                    break;
-                }
+                p = Infinity;
+                break;
+            }
 
-                case 0x02: // compressed
-                case 0x03: // compressed
-                {
-                    if (encoded.Length != (expectedLength + 1))
-                        throw new ArgumentException("Incorrect length for compressed encoding", "encoded");
+            case 0x02: // compressed
+            case 0x03: // compressed
+            {
+                if (encoded.Length != (expectedLength + 1))
+                    throw new ArgumentException("Incorrect length for compressed encoding", "encoded");
 
-                    int yTilde = type & 1;
-                    BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
+                int yTilde = type & 1;
+                BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
 
-                    p = DecompressPoint(yTilde, X);
-                    if (!p.ImplIsValid(true, true))
-                        throw new ArgumentException("Invalid point");
+                p = DecompressPoint(yTilde, X);
+                if (!p.ImplIsValid(true, true))
+                    throw new ArgumentException("Invalid point");
 
-                    break;
-                }
+                break;
+            }
 
-                case 0x04: // uncompressed
-                {
-                    if (encoded.Length != (2 * expectedLength + 1))
-                        throw new ArgumentException("Incorrect length for uncompressed encoding", "encoded");
+            case 0x04: // uncompressed
+            {
+                if (encoded.Length != (2 * expectedLength + 1))
+                    throw new ArgumentException("Incorrect length for uncompressed encoding", "encoded");
 
-                    BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
-                    BigInteger Y = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
+                BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
+                BigInteger Y = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
 
-                    p = ValidatePoint(X, Y);
-                    break;
-                }
+                p = ValidatePoint(X, Y);
+                break;
+            }
 
-                case 0x06: // hybrid
-                case 0x07: // hybrid
-                {
-                    if (encoded.Length != (2 * expectedLength + 1))
-                        throw new ArgumentException("Incorrect length for hybrid encoding", "encoded");
+            case 0x06: // hybrid
+            case 0x07: // hybrid
+            {
+                if (encoded.Length != (2 * expectedLength + 1))
+                    throw new ArgumentException("Incorrect length for hybrid encoding", "encoded");
 
-                    BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
-                    BigInteger Y = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
+                BigInteger X = new BigInteger(1, encoded, 1, expectedLength);
+                BigInteger Y = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
 
-                    if (Y.TestBit(0) != (type == 0x07))
-                        throw new ArgumentException("Inconsistent Y coordinate in hybrid encoding", "encoded");
+                if (Y.TestBit(0) != (type == 0x07))
+                    throw new ArgumentException("Inconsistent Y coordinate in hybrid encoding", "encoded");
 
-                    p = ValidatePoint(X, Y);
-                    break;
-                }
+                p = ValidatePoint(X, Y);
+                break;
+            }
 
-                default:
-                    throw new FormatException("Invalid point encoding " + type);
+            default:
+                throw new FormatException("Invalid point encoding " + type);
+            }
+
+            if (type != 0x00 && p.IsInfinity)
+                throw new ArgumentException("Invalid infinity encoding", "encoded");
+
+            return p;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual ECPoint DecodePoint(ReadOnlySpan<byte> encodedX)
+        {
+            ECPoint p;
+            int expectedLength = (FieldSize + 7) / 8;
+
+            byte type = encodedX[0];
+            switch (type)
+            {
+            case 0x00: // infinity
+            {
+                if (encodedX.Length != 1)
+                    throw new ArgumentException("Incorrect length for infinity encoding", "encoded");
+
+                p = Infinity;
+                break;
+            }
+
+            case 0x02: // compressed
+            case 0x03: // compressed
+            {
+                if (encodedX.Length != (expectedLength + 1))
+                    throw new ArgumentException("Incorrect length for compressed encoding", "encoded");
+
+                int yTilde = type & 1;
+                BigInteger X = new BigInteger(1, encodedX[1..]);
+
+                p = DecompressPoint(yTilde, X);
+                if (!p.ImplIsValid(true, true))
+                    throw new ArgumentException("Invalid point");
+
+                break;
+            }
+
+            case 0x04: // uncompressed
+            {
+                if (encodedX.Length != (2 * expectedLength + 1))
+                    throw new ArgumentException("Incorrect length for uncompressed encoding", "encoded");
+
+                BigInteger X = new BigInteger(1, encodedX[1..(1 + expectedLength)]);
+                BigInteger Y = new BigInteger(1, encodedX[(1 + expectedLength)..]);
+
+                p = ValidatePoint(X, Y);
+                break;
+            }
+
+            case 0x06: // hybrid
+            case 0x07: // hybrid
+            {
+                if (encodedX.Length != (2 * expectedLength + 1))
+                    throw new ArgumentException("Incorrect length for hybrid encoding", "encoded");
+
+                BigInteger X = new BigInteger(1, encodedX[1..(1 + expectedLength)]);
+                BigInteger Y = new BigInteger(1, encodedX[(1 + expectedLength)..]);
+
+                if (Y.TestBit(0) != (type == 0x07))
+                    throw new ArgumentException("Inconsistent Y coordinate in hybrid encoding", "encoded");
+
+                p = ValidatePoint(X, Y);
+                break;
+            }
+
+            default:
+                throw new FormatException("Invalid point encoding " + type);
             }
 
             if (type != 0x00 && p.IsInfinity)
@@ -504,6 +580,7 @@ namespace Org.BouncyCastle.Math.EC
 
             return p;
         }
+#endif
 
         private class DefaultLookupTable
             : AbstractECLookupTable
