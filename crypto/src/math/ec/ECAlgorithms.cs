@@ -213,9 +213,15 @@ namespace Org.BouncyCastle.Math.EC
         {
             ECCurve cp = p.Curve;
             if (!c.Equals(cp))
-                throw new ArgumentException("Point must be on the same curve", "p");
+                throw new ArgumentException("Point must be on the same curve", nameof(p));
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> encoding = stackalloc byte[p.GetEncodedLength(false)];
+            p.EncodeTo(false, encoding);
+            return c.DecodePoint(encoding);
+#else
             return c.DecodePoint(p.GetEncoded(false));
+#endif
         }
 
         internal static ECPoint ImplCheckResult(ECPoint p)
