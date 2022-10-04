@@ -7,37 +7,39 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public class KeyParameter
 		: ICipherParameters
     {
-        private readonly byte[] key;
+        private readonly byte[] m_key;
 
-		public KeyParameter(
-			byte[] key)
+		public KeyParameter(byte[] key)
 		{
 			if (key == null)
-				throw new ArgumentNullException("key");
+				throw new ArgumentNullException(nameof(key));
 
-			this.key = (byte[]) key.Clone();
+			m_key = (byte[])key.Clone();
 		}
 
-		public KeyParameter(
-            byte[]	key,
-            int		keyOff,
-            int		keyLen)
+		public KeyParameter(byte[] key, int keyOff, int keyLen)
         {
 			if (key == null)
-				throw new ArgumentNullException("key");
+				throw new ArgumentNullException(nameof(key));
 			if (keyOff < 0 || keyOff > key.Length)
-				throw new ArgumentOutOfRangeException("keyOff");
+				throw new ArgumentOutOfRangeException(nameof(keyOff));
             if (keyLen < 0 || keyLen > (key.Length - keyOff))
-				throw new ArgumentOutOfRangeException("keyLen");
+				throw new ArgumentOutOfRangeException(nameof(keyLen));
 
-			this.key = new byte[keyLen];
-            Array.Copy(key, keyOff, this.key, 0, keyLen);
+			m_key = new byte[keyLen];
+            Array.Copy(key, keyOff, m_key, 0, keyLen);
         }
 
-		public byte[] GetKey()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public KeyParameter(ReadOnlySpan<byte> key)
         {
-			return (byte[]) key.Clone();
+            m_key = key.ToArray();
+        }
+#endif
+
+        public byte[] GetKey()
+        {
+			return (byte[])m_key.Clone();
         }
     }
-
 }
