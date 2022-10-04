@@ -208,10 +208,8 @@ namespace Org.BouncyCastle.Cms
         public override CmsTypedStream GetContentStream(
             ICipherParameters key)
         {
-            if (!(key is AsymmetricKeyParameter))
+            if (!(key is AsymmetricKeyParameter receiverPrivateKey))
                 throw new ArgumentException("KeyAgreement requires asymmetric key", "key");
-
-            AsymmetricKeyParameter receiverPrivateKey = (AsymmetricKeyParameter) key;
 
             if (!receiverPrivateKey.IsPrivate)
                 throw new ArgumentException("Expected private key", "key");

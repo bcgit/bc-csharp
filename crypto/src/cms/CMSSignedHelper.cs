@@ -210,9 +210,9 @@ namespace Org.BouncyCastle.Cms
         {
             string encOID = null;
 
-            if (key is RsaKeyParameters)
+            if (key is RsaKeyParameters rsaKeyParameters)
             {
-                if (!((RsaKeyParameters)key).IsPrivate)
+                if (!rsaKeyParameters.IsPrivate)
                     throw new ArgumentException("Expected RSA private key");
 
                 encOID = CmsSignedGenerator.EncryptionRsa;
@@ -244,9 +244,8 @@ namespace Org.BouncyCastle.Cms
                     throw new ArgumentException("can't mix DSA with anything but SHA1/SHA2");
                 }
             }
-            else if (key is ECPrivateKeyParameters)
+            else if (key is ECPrivateKeyParameters ecPrivKey)
             {
-                ECPrivateKeyParameters ecPrivKey = (ECPrivateKeyParameters)key;
                 string algName = ecPrivKey.AlgorithmName;
 
                 if (algName == "ECGOST3410")
