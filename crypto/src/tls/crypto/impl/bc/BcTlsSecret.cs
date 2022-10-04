@@ -74,8 +74,34 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override TlsSecret DeriveUsingPrf(int prfAlgorithm, ReadOnlySpan<char> label, ReadOnlySpan<byte> seed,
+            int length)
+        {
+            lock (this)
+            {
+                CheckAlive();
+
+                switch (prfAlgorithm)
+                {
+                case PrfAlgorithm.tls13_hkdf_sha256:
+                    return TlsCryptoUtilities.HkdfExpandLabel(this, CryptoHashAlgorithm.sha256, label, seed, length);
+                case PrfAlgorithm.tls13_hkdf_sha384:
+                    return TlsCryptoUtilities.HkdfExpandLabel(this, CryptoHashAlgorithm.sha384, label, seed, length);
+                case PrfAlgorithm.tls13_hkdf_sm3:
+                    return TlsCryptoUtilities.HkdfExpandLabel(this, CryptoHashAlgorithm.sm3, label, seed, length);
+                default:
+                    return m_crypto.AdoptLocalSecret(Prf(prfAlgorithm, label, seed, length));
+                }
+            }
+        }
+#endif
+
         public override TlsSecret HkdfExpand(int cryptoHashAlgorithm, byte[] info, int length)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return HkdfExpand(cryptoHashAlgorithm, info.AsSpan(), length);
+#else
             lock (this)
             {
                 if (length < 1)
@@ -118,7 +144,56 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
                 return m_crypto.AdoptLocalSecret(okm);
             }
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override TlsSecret HkdfExpand(int cryptoHashAlgorithm, ReadOnlySpan<byte> info, int length)
+        {
+            lock (this)
+            {
+                if (length < 1)
+                    return m_crypto.AdoptLocalSecret(TlsUtilities.EmptyBytes);
+
+                int hashLen = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
+                if (length > (255 * hashLen))
+                    throw new ArgumentException("must be <= 255 * (output size of 'hashAlgorithm')", "length");
+
+                CheckAlive();
+
+                ReadOnlySpan<byte> prk = m_data;
+
+                HMac hmac = new HMac(m_crypto.CreateDigest(cryptoHashAlgorithm));
+                hmac.Init(new KeyParameter(prk));
+
+                byte[] okm = new byte[length];
+
+                Span<byte> t = stackalloc byte[hashLen];
+                byte counter = 0x00;
+
+                int pos = 0;
+                for (;;)
+                {
+                    hmac.BlockUpdate(info);
+                    hmac.Update(++counter);
+                    hmac.DoFinal(t);
+
+                    int remaining = length - pos;
+                    if (remaining <= hashLen)
+                    {
+                        t[..remaining].CopyTo(okm.AsSpan(pos));
+                        break;
+                    }
+
+                    t.CopyTo(okm.AsSpan(pos));
+                    pos += hashLen;
+                    hmac.BlockUpdate(t);
+                }
+
+                return m_crypto.AdoptLocalSecret(okm);
+            }
+        }
+#endif
 
         public override TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm)
         {
@@ -187,8 +262,33 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return Prf_1_2(prfAlgorithm, labelSeed, length);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected virtual byte[] Prf(int prfAlgorithm, ReadOnlySpan<char> label, ReadOnlySpan<byte> seed, int length)
+        {
+            if (PrfAlgorithm.ssl_prf_legacy == prfAlgorithm)
+                return Prf_Ssl(seed, length);
+
+            byte[] labelSeed = new byte[label.Length + seed.Length];
+
+            for (int i = 0; i < label.Length; ++i)
+            {
+                labelSeed[i] = (byte)label[i];
+            }
+
+            seed.CopyTo(labelSeed.AsSpan(label.Length));
+
+            if (PrfAlgorithm.tls_prf_legacy == prfAlgorithm)
+                return Prf_1_0(labelSeed, length);
+
+            return Prf_1_2(prfAlgorithm, labelSeed, length);
+        }
+#endif
+
         protected virtual byte[] Prf_Ssl(byte[] seed, int length)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Prf_Ssl(seed.AsSpan(), length);
+#else
             IDigest md5 = m_crypto.CreateDigest(CryptoHashAlgorithm.md5);
             IDigest sha1 = m_crypto.CreateDigest(CryptoHashAlgorithm.sha1);
 
@@ -226,7 +326,51 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
 
             return result;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        protected virtual byte[] Prf_Ssl(ReadOnlySpan<byte> seed, int length)
+        {
+            IDigest md5 = m_crypto.CreateDigest(CryptoHashAlgorithm.md5);
+            IDigest sha1 = m_crypto.CreateDigest(CryptoHashAlgorithm.sha1);
+
+            int md5Size = md5.GetDigestSize();
+            int sha1Size = sha1.GetDigestSize();
+
+            Span<byte> tmp = stackalloc byte[System.Math.Max(md5Size, sha1Size)];
+            byte[] result = new byte[length];
+
+            int constLen = 1, constPos = 0, resultPos = 0;
+            while (resultPos < length)
+            {
+                sha1.BlockUpdate(Ssl3Const.AsSpan(constPos, constLen));
+                constPos += constLen++;
+
+                sha1.BlockUpdate(m_data);
+                sha1.BlockUpdate(seed);
+                sha1.DoFinal(tmp);
+
+                md5.BlockUpdate(m_data);
+                md5.BlockUpdate(tmp[..sha1Size]);
+
+                int remaining = length - resultPos;
+                if (remaining < md5Size)
+                {
+                    md5.DoFinal(tmp);
+                    tmp[..remaining].CopyTo(result.AsSpan(resultPos));
+                    resultPos += remaining;
+                }
+                else
+                {
+                    md5.DoFinal(result.AsSpan(resultPos));
+                    resultPos += md5Size;
+                }
+            }
+
+            return result;
+        }
+#endif
 
         protected virtual byte[] Prf_1_0(byte[] labelSeed, int length)
         {

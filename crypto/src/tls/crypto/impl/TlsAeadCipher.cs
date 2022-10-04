@@ -72,6 +72,31 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
 
             int keyBlockSize = (2 * keySize) + (2 * m_fixed_iv_length);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> keyBlock = stackalloc byte[keyBlockSize];
+            TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlock);
+
+            if (isServer)
+            {
+                decryptCipher.SetKey(keyBlock[..keySize]); keyBlock = keyBlock[keySize..];
+                encryptCipher.SetKey(keyBlock[..keySize]); keyBlock = keyBlock[keySize..];
+
+                keyBlock[..m_fixed_iv_length].CopyTo(m_decryptNonce); keyBlock = keyBlock[m_fixed_iv_length..];
+                keyBlock[..m_fixed_iv_length].CopyTo(m_encryptNonce); keyBlock = keyBlock[m_fixed_iv_length..];
+            }
+            else
+            {
+                encryptCipher.SetKey(keyBlock[..keySize]); keyBlock = keyBlock[keySize..];
+                decryptCipher.SetKey(keyBlock[..keySize]); keyBlock = keyBlock[keySize..];
+
+                keyBlock[..m_fixed_iv_length].CopyTo(m_encryptNonce); keyBlock = keyBlock[m_fixed_iv_length..];
+                keyBlock[..m_fixed_iv_length].CopyTo(m_decryptNonce); keyBlock = keyBlock[m_fixed_iv_length..];
+            }
+
+            if (!keyBlock.IsEmpty)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+#else
             byte[] keyBlock = TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlockSize);
             int pos = 0;
 
@@ -92,8 +117,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 Array.Copy(keyBlock, pos, m_decryptNonce, 0, m_fixed_iv_length); pos += m_fixed_iv_length;
             }
 
-            if (keyBlockSize != pos)
+            if (pos != keyBlockSize)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
+#endif
 
             int nonceLength = m_fixed_iv_length + m_record_iv_length;
 

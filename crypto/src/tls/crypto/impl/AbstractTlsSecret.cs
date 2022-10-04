@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <param name="data">the byte[] making up the secret value.</param>
         protected AbstractTlsSecret(byte[] data)
         {
-            this.m_data = data;
+            m_data = data;
         }
 
         protected virtual void CheckAlive()
@@ -46,6 +46,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public abstract TlsSecret DeriveUsingPrf(int prfAlgorithm, string label, byte[] seed, int length);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract TlsSecret DeriveUsingPrf(int prfAlgorithm, ReadOnlySpan<char> label, ReadOnlySpan<byte> seed,
+            int length);
+#endif
+
         public virtual void Destroy()
         {
             lock (this)
@@ -54,7 +59,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 {
                     // TODO Is there a way to ensure the data is really overwritten?
                     Array.Clear(m_data, 0, m_data.Length);
-                    this.m_data = null;
+                    m_data = null;
                 }
             }
         }
@@ -77,12 +82,29 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 CheckAlive();
 
                 byte[] result = m_data;
-                this.m_data = null;
+                m_data = null;
                 return result;
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void ExtractTo(Span<byte> output)
+        {
+            lock (this)
+            {
+                CheckAlive();
+
+                m_data.CopyTo(output);
+                m_data = null;
+            }
+        }
+#endif
+
         public abstract TlsSecret HkdfExpand(int cryptoHashAlgorithm, byte[] info, int length);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract TlsSecret HkdfExpand(int cryptoHashAlgorithm, ReadOnlySpan<byte> info, int length);
+#endif
 
         public abstract TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm);
 
@@ -91,6 +113,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             lock (this)
             {
                 return null != m_data;
+            }
+        }
+
+        public virtual int Length
+        {
+            get
+            {
+                lock (this)
+                {
+                    CheckAlive();
+
+                    return m_data.Length;
+                }
             }
         }
 

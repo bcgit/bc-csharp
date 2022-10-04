@@ -65,27 +65,53 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 serverCipher = decryptCipher;
             }
 
-            int key_block_size = (2 * cipherKeySize) + clientMac.MacLength + serverMac.MacLength;
+            int keyBlockSize = (2 * cipherKeySize) + clientMac.MacLength + serverMac.MacLength;
 
             // From TLS 1.1 onwards, block ciphers don't need IVs from the key_block
             if (!m_useExplicitIV)
             {
-                key_block_size += clientCipher.GetBlockSize() + serverCipher.GetBlockSize();
+                keyBlockSize += clientCipher.GetBlockSize() + serverCipher.GetBlockSize();
             }
 
-            byte[] key_block = TlsImplUtilities.CalculateKeyBlock(cryptoParams, key_block_size);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> keyBlock = stackalloc byte[keyBlockSize];
+            TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlock);
 
-            int offset = 0;
+            clientMac.SetKey(keyBlock[..clientMac.MacLength]); keyBlock = keyBlock[clientMac.MacLength..];
+            serverMac.SetKey(keyBlock[..serverMac.MacLength]); keyBlock = keyBlock[serverMac.MacLength..];
 
-            clientMac.SetKey(key_block, offset, clientMac.MacLength);
-            offset += clientMac.MacLength;
-            serverMac.SetKey(key_block, offset, serverMac.MacLength);
-            offset += serverMac.MacLength;
+            clientCipher.SetKey(keyBlock[..cipherKeySize]); keyBlock = keyBlock[cipherKeySize..];
+            serverCipher.SetKey(keyBlock[..cipherKeySize]); keyBlock = keyBlock[cipherKeySize..];
 
-            clientCipher.SetKey(key_block, offset, cipherKeySize);
-            offset += cipherKeySize;
-            serverCipher.SetKey(key_block, offset, cipherKeySize);
-            offset += cipherKeySize;
+            int clientIVLength = clientCipher.GetBlockSize();
+            int serverIVLength = serverCipher.GetBlockSize();
+
+            if (m_useExplicitIV)
+            {
+                clientCipher.Init(stackalloc byte[clientIVLength]);
+                serverCipher.Init(stackalloc byte[serverIVLength]);
+            }
+            else
+            {
+                clientCipher.Init(keyBlock[..clientIVLength]); keyBlock = keyBlock[clientIVLength..];
+                serverCipher.Init(keyBlock[..serverIVLength]); keyBlock = keyBlock[serverIVLength..];
+            }
+
+            if (!keyBlock.IsEmpty)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+#else
+            byte[] keyBlock = TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlockSize);
+            int pos = 0;
+
+            clientMac.SetKey(keyBlock, pos, clientMac.MacLength);
+            pos += clientMac.MacLength;
+            serverMac.SetKey(keyBlock, pos, serverMac.MacLength);
+            pos += serverMac.MacLength;
+
+            clientCipher.SetKey(keyBlock, pos, cipherKeySize);
+            pos += cipherKeySize;
+            serverCipher.SetKey(keyBlock, pos, cipherKeySize);
+            pos += cipherKeySize;
 
             int clientIVLength = clientCipher.GetBlockSize();
             int serverIVLength = serverCipher.GetBlockSize();
@@ -97,14 +123,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
             else
             {
-                clientCipher.Init(key_block, offset, clientIVLength);
-                offset += clientIVLength;
-                serverCipher.Init(key_block, offset, serverIVLength);
-                offset += serverIVLength;
+                clientCipher.Init(keyBlock, pos, clientIVLength);
+                pos += clientIVLength;
+                serverCipher.Init(keyBlock, pos, serverIVLength);
+                pos += serverIVLength;
             }
 
-            if (offset != key_block_size)
+            if (pos != keyBlockSize)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
+#endif
 
             if (cryptoParams.IsServer)
             {

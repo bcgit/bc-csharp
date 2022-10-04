@@ -1362,7 +1362,12 @@ namespace Org.BouncyCastle.Tls
             SecurityParameters securityParameters = context.SecurityParameters;
             bool isServerContext = context.IsServer;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> verify_data = stackalloc byte[securityParameters.VerifyDataLength];
+            TlsUtilities.ReadFully(verify_data, buf);
+#else
             byte[] verify_data = TlsUtilities.ReadFully(securityParameters.VerifyDataLength, buf);
+#endif
 
             AssertEmpty(buf);
 
@@ -1397,7 +1402,12 @@ namespace Org.BouncyCastle.Tls
             SecurityParameters securityParameters = context.SecurityParameters;
             bool isServerContext = context.IsServer;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> verify_data = stackalloc byte[securityParameters.VerifyDataLength];
+            TlsUtilities.ReadFully(verify_data, buf);
+#else
             byte[] verify_data = TlsUtilities.ReadFully(securityParameters.VerifyDataLength, buf);
+#endif
 
             AssertEmpty(buf);
 

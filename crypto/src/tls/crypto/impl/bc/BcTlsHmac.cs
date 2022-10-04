@@ -20,6 +20,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_hmac.Init(new KeyParameter(key, keyOff, keyLen));
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void SetKey(ReadOnlySpan<byte> key)
+        {
+            m_hmac.Init(new KeyParameter(key));
+        }
+#endif
+
         public void Update(byte[] input, int inOff, int length)
         {
             m_hmac.BlockUpdate(input, inOff, length);

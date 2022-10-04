@@ -309,6 +309,13 @@ namespace Org.BouncyCastle.Tls
             buf[offset] = (byte)i;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void WriteUint8(int i, Span<byte> buf)
+        {
+            buf[0] = (byte)i;
+        }
+#endif
+
         public static void WriteUint16(int i, Stream output)
         {
             output.WriteByte((byte)(i >> 8));
@@ -320,6 +327,14 @@ namespace Org.BouncyCastle.Tls
             buf[offset    ] = (byte)(i >> 8);
             buf[offset + 1] = (byte)i;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void WriteUint16(int i, Span<byte> buf)
+        {
+            buf[0] = (byte)(i >> 8);
+            buf[1] = (byte)i;
+        }
+#endif
 
         public static void WriteUint24(int i, Stream output)
         {
@@ -408,6 +423,15 @@ namespace Org.BouncyCastle.Tls
             WriteUint8(data.Length, buf, off);
             Array.Copy(data, 0, buf, off + 1, data.Length);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void WriteOpaque8(ReadOnlySpan<byte> data, Span<byte> buf)
+        {
+            CheckUint8(data.Length);
+            WriteUint8(data.Length, buf);
+            data.CopyTo(buf[1..]);
+        }
+#endif
 
         public static void WriteOpaque16(byte[] buf, Stream output)
         {
@@ -825,6 +849,15 @@ namespace Org.BouncyCastle.Tls
             if (length > 0 && length != Streams.ReadFully(input, buf))
                 throw new EndOfStreamException();
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void ReadFully(Span<byte> buf, Stream input)
+        {
+            int length = buf.Length;
+            if (length > 0 && length != Streams.ReadFully(input, buf))
+                throw new EndOfStreamException();
+        }
+#endif
 
         public static byte[] ReadOpaque8(Stream input)
         {
@@ -1381,6 +1414,14 @@ namespace Org.BouncyCastle.Tls
         {
             return secret.DeriveUsingPrf(securityParameters.PrfAlgorithm, asciiLabel, seed, length);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static TlsSecret Prf(SecurityParameters securityParameters, TlsSecret secret,
+            ReadOnlySpan<char> asciiLabel, ReadOnlySpan<byte> seed, int length)
+        {
+            return secret.DeriveUsingPrf(securityParameters.PrfAlgorithm, asciiLabel, seed, length);
+        }
+#endif
 
         public static byte[] Clone(byte[] data)
         {

@@ -102,6 +102,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_cipher.Init(m_isEncrypting, new ParametersWithIV(cipherKey, Zeroes, 0, 12));
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void SetKey(ReadOnlySpan<byte> key)
+        {
+            KeyParameter cipherKey = new KeyParameter(key);
+            m_cipher.Init(m_isEncrypting, new ParametersWithIV(cipherKey, Zeroes[..12]));
+        }
+#endif
+
         private void InitMac()
         {
             byte[] firstBlock = new byte[64];

@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
@@ -50,6 +51,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             Reset();
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void SetKey(ReadOnlySpan<byte> key)
+        {
+            this.m_secret = key.ToArray();
+
+            Reset();
+        }
+#endif
 
         public virtual void Update(byte[] input, int inOff, int len)
         {

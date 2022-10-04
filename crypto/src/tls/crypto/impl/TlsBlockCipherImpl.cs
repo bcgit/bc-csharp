@@ -13,12 +13,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <exception cref="IOException"/>
         void SetKey(byte[] key, int keyOff, int keyLen);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        void SetKey(ReadOnlySpan<byte> key);
+#endif
+
         /// <summary>Initialise the parameters for operator.</summary>
         /// <param name="iv">array holding the initialization vector (IV).</param>
         /// <param name="ivOff">offset into the array the IV starts at.</param>
         /// <param name="ivLen">length of the IV in the array.</param>
         /// <exception cref="IOException">if the parameters are inappropriate.</exception>
         void Init(byte[] iv, int ivOff, int ivLen);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        void Init(ReadOnlySpan<byte> iv);
+#endif
 
         /// <summary>Perform the cipher encryption/decryption returning the output in output.</summary>
         /// <remarks>
