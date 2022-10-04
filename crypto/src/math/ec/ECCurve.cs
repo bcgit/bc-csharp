@@ -510,17 +510,17 @@ namespace Org.BouncyCastle.Math.EC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual ECPoint DecodePoint(ReadOnlySpan<byte> encodedX)
+        public virtual ECPoint DecodePoint(ReadOnlySpan<byte> encoded)
         {
             ECPoint p;
             int expectedLength = (FieldSize + 7) / 8;
 
-            byte type = encodedX[0];
+            byte type = encoded[0];
             switch (type)
             {
             case 0x00: // infinity
             {
-                if (encodedX.Length != 1)
+                if (encoded.Length != 1)
                     throw new ArgumentException("Incorrect length for infinity encoding", "encoded");
 
                 p = Infinity;
@@ -530,11 +530,11 @@ namespace Org.BouncyCastle.Math.EC
             case 0x02: // compressed
             case 0x03: // compressed
             {
-                if (encodedX.Length != (expectedLength + 1))
+                if (encoded.Length != (expectedLength + 1))
                     throw new ArgumentException("Incorrect length for compressed encoding", "encoded");
 
                 int yTilde = type & 1;
-                BigInteger X = new BigInteger(1, encodedX[1..]);
+                BigInteger X = new BigInteger(1, encoded[1..]);
 
                 p = DecompressPoint(yTilde, X);
                 if (!p.ImplIsValid(true, true))
@@ -545,11 +545,11 @@ namespace Org.BouncyCastle.Math.EC
 
             case 0x04: // uncompressed
             {
-                if (encodedX.Length != (2 * expectedLength + 1))
+                if (encoded.Length != (2 * expectedLength + 1))
                     throw new ArgumentException("Incorrect length for uncompressed encoding", "encoded");
 
-                BigInteger X = new BigInteger(1, encodedX[1..(1 + expectedLength)]);
-                BigInteger Y = new BigInteger(1, encodedX[(1 + expectedLength)..]);
+                BigInteger X = new BigInteger(1, encoded[1..(1 + expectedLength)]);
+                BigInteger Y = new BigInteger(1, encoded[(1 + expectedLength)..]);
 
                 p = ValidatePoint(X, Y);
                 break;
@@ -558,11 +558,11 @@ namespace Org.BouncyCastle.Math.EC
             case 0x06: // hybrid
             case 0x07: // hybrid
             {
-                if (encodedX.Length != (2 * expectedLength + 1))
+                if (encoded.Length != (2 * expectedLength + 1))
                     throw new ArgumentException("Incorrect length for hybrid encoding", "encoded");
 
-                BigInteger X = new BigInteger(1, encodedX[1..(1 + expectedLength)]);
-                BigInteger Y = new BigInteger(1, encodedX[(1 + expectedLength)..]);
+                BigInteger X = new BigInteger(1, encoded[1..(1 + expectedLength)]);
+                BigInteger Y = new BigInteger(1, encoded[(1 + expectedLength)..]);
 
                 if (Y.TestBit(0) != (type == 0x07))
                     throw new ArgumentException("Inconsistent Y coordinate in hybrid encoding", "encoded");
