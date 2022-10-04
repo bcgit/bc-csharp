@@ -186,16 +186,18 @@ namespace Org.BouncyCastle.Security
             {
                 return new Ed448PrivateKeyParameters(GetRawKey(keyInfo));
             }
-            else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512)
-                     || algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256))
+            else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512)
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256)
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512))
             {
-                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(keyInfo.PrivateKeyAlgorithm.Parameters);
+                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(
+                    keyInfo.PrivateKeyAlgorithm.Parameters);
                 ECGost3410Parameters ecSpec;
                 BigInteger d;
                 Asn1Object p = keyInfo.PrivateKeyAlgorithm.Parameters.ToAsn1Object();
                 if (p is Asn1Sequence && (Asn1Sequence.GetInstance(p).Count == 2 || Asn1Sequence.GetInstance(p).Count == 3))
                 {
-
                     X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
 
                     ecSpec = new ECGost3410Parameters(

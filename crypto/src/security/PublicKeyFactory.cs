@@ -228,7 +228,9 @@ namespace Org.BouncyCastle.Security
                 return new Ed448PublicKeyParameters(GetRawKey(keyInfo));
             }
             else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
-                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512)
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256)
+                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512))
             {
                 Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
                 DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
