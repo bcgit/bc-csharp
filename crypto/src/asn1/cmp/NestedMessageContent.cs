@@ -6,7 +6,7 @@
     public class NestedMessageContent
         : PkiMessages
     {
-        public static NestedMessageContent GetInstance(object obj)
+        public static new NestedMessageContent GetInstance(object obj)
         {
             if (obj is NestedMessageContent nestedMessageContent)
                 return nestedMessageContent;

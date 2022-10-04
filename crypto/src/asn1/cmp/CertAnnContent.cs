@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class CertAnnContent
         : CmpCertificate
     {
-        public static CertAnnContent GetInstance(object obj)
+        public static new CertAnnContent GetInstance(object obj)
         {
             // TODO[cmp]
             if (obj == null)
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static CertAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static new CertAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             // TODO[cmp]
             if (taggedObject == null)

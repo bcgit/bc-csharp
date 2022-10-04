@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class OobCert
         : CmpCertificate
     {
-        public static OobCert GetInstance(object obj)
+        public static new OobCert GetInstance(object obj)
         {
             if (obj == null)
                 return null;
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        public static OobCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
+        public static new OobCert GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             if (taggedObject == null)
                 return null;
