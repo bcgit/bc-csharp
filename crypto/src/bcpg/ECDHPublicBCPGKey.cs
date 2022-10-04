@@ -14,15 +14,18 @@ namespace Org.BouncyCastle.Bcpg
         private SymmetricKeyAlgorithmTag symAlgorithmId;
 
         /// <param name="bcpgIn">The stream to read the packet from.</param>
-        public ECDHPublicBcpgKey(
-            BcpgInputStream bcpgIn)
+        public ECDHPublicBcpgKey(BcpgInputStream bcpgIn)
             : base(bcpgIn)
         {
             int length = bcpgIn.ReadByte();
-            byte[] kdfParameters =  new byte[length];
-            if (kdfParameters.Length != 3)
-                throw new InvalidOperationException("kdf parameters size of 3 expected.");
+            if (length != 3)
+                throw new InvalidOperationException("KDF parameters size of 3 expected.");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> kdfParameters = stackalloc byte[length];
+#else
+            byte[] kdfParameters = new byte[length];
+#endif
             bcpgIn.ReadFully(kdfParameters);
 
             reserved = kdfParameters[0];
@@ -75,7 +78,7 @@ namespace Org.BouncyCastle.Bcpg
 
         private void VerifyHashAlgorithm()
         {
-            switch ((HashAlgorithmTag)hashFunctionId)
+            switch (hashFunctionId)
             {
             case HashAlgorithmTag.Sha256:
             case HashAlgorithmTag.Sha384:
@@ -88,7 +91,7 @@ namespace Org.BouncyCastle.Bcpg
 
         private void VerifySymmetricKeyAlgorithm()
         {
-            switch ((SymmetricKeyAlgorithmTag)symAlgorithmId)
+            switch (symAlgorithmId)
             {
             case SymmetricKeyAlgorithmTag.Aes128:
             case SymmetricKeyAlgorithmTag.Aes192:

@@ -62,22 +62,26 @@ namespace Org.BouncyCastle.Bcpg
 			return Streams.ReadAll(this);
 		}
 
-		public void ReadFully(
-            byte[]	buffer,
-            int		off,
-            int		len)
+		public void ReadFully(byte[] buffer, int offset, int count)
         {
-			if (Streams.ReadFully(this, buffer, off, len) < len)
+			if (Streams.ReadFully(this, buffer, offset, count) < count)
 				throw new EndOfStreamException();
         }
 
-		public void ReadFully(
-            byte[] buffer)
+		public void ReadFully(byte[] buffer)
         {
             ReadFully(buffer, 0, buffer.Length);
         }
 
-		/// <summary>Returns the next packet tag in the stream.</summary>
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void ReadFully(Span<byte> buffer)
+        {
+            if (Streams.ReadFully(this, buffer) < buffer.Length)
+                throw new EndOfStreamException();
+        }
+#endif
+
+        /// <summary>Returns the next packet tag in the stream.</summary>
         public PacketTag NextPacketTag()
         {
             if (!next)

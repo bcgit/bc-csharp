@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] paddedSessionData = PgpPad.PadSessionData(sessionInfo, sessionKeyObfuscation);
 
                 byte[] C = w.Wrap(paddedSessionData, 0, paddedSessionData.Length);
-                byte[] VB = new MPInteger(new BigInteger(1, ephPub.Q.GetEncoded(false))).GetEncoded();
+                byte[] VB = new MPInteger(MPInteger.ToMpiBigInteger(ephPub.Q)).GetEncoded();
 
                 byte[] rv = new byte[VB.Length + 1 + C.Length];
 
