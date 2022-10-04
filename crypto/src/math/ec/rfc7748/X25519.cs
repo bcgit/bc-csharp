@@ -80,6 +80,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
         {
+            if (k.Length != ScalarSize)
+                throw new ArgumentException(nameof(k));
+
             random.NextBytes(k);
 
             k[0] &= 0xF8;
@@ -87,10 +90,31 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             k[ScalarSize - 1] |= 0x40;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void GeneratePrivateKey(SecureRandom random, Span<byte> k)
+        {
+            if (k.Length != ScalarSize)
+                throw new ArgumentException(nameof(k));
+
+            random.NextBytes(k);
+
+            k[0] &= 0xF8;
+            k[ScalarSize - 1] &= 0x7F;
+            k[ScalarSize - 1] |= 0x40;
+        }
+#endif
+
         public static void GeneratePublicKey(byte[] k, int kOff, byte[] r, int rOff)
         {
             ScalarMultBase(k, kOff, r, rOff);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void GeneratePublicKey(ReadOnlySpan<byte> k, Span<byte> r)
+        {
+            ScalarMultBase(k, r);
+        }
+#endif
 
         private static void PointDouble(int[] x, int[] z)
         {
@@ -255,5 +279,23 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             F.Normalize(y);
             F.Encode(y, r, rOff);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void ScalarMultBase(ReadOnlySpan<byte> k, Span<byte> r)
+        {
+            int[] y = F.Create();
+            int[] z = F.Create();
+
+            Ed25519.ScalarMultBaseYZ(k, y, z);
+
+            F.Apm(z, y, y, z);
+
+            F.Inv(z, z);
+            F.Mul(y, z, y);
+
+            F.Normalize(y);
+            F.Encode(y, r);
+        }
+#endif
     }
 }

@@ -234,6 +234,22 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)c;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint CAdd(int len, int mask, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
+        {
+            uint MASK = (uint)-(mask & 1);
+
+            ulong c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (ulong)x[i] + (y[i] & MASK);
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (uint)c;
+        }
+#endif
+
         public static void CMov(int len, int mask, uint[] x, int xOff, uint[] z, int zOff)
         {
             uint MASK = (uint)-(mask & 1);
@@ -838,6 +854,20 @@ namespace Org.BouncyCastle.Math.Raw
             }
             return c << 31;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint ShiftDownBit(int len, Span<uint> z, uint c)
+        {
+            int i = len;
+            while (--i >= 0)
+            {
+                uint next = z[i];
+                z[i] = (next >> 1) | (c << 31);
+                c = next;
+            }
+            return c << 31;
+        }
+#endif
 
         public static uint ShiftDownBit(int len, uint[] z, int zOff, uint c)
         {

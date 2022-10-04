@@ -92,12 +92,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static PointPrecomp[] PrecompBaseWnaf = null;
         private static int[] PrecompBaseComb = null;
 
-        private ref struct PointAccum
+        private struct PointAccum
         {
             internal int[] x, y, z, u, v;
         }
 
-        private ref struct PointAffine
+        private struct PointAffine
         {
             internal int[] x, y;
         }
@@ -238,6 +238,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return n;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static uint Decode32(ReadOnlySpan<byte> bs)
+        {
+            uint n = bs[0];
+            n |= (uint)bs[1] << 8;
+            n |= (uint)bs[2] << 16;
+            n |= (uint)bs[3] << 24;
+            return n;
+        }
+#endif
+
         private static void Decode32(byte[] bs, int bsOff, uint[] n, int nOff, int nLen)
         {
             for (int i = 0; i < nLen; ++i)
@@ -245,6 +256,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 n[nOff + i] = Decode32(bs, bsOff + i * 4);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void Decode32(ReadOnlySpan<byte> bs, Span<uint> n)
+        {
+            for (int i = 0; i < n.Length; ++i)
+            {
+                n[i] = Decode32(bs[(i * 4)..]);
+            }
+        }
+#endif
 
         private static bool DecodePointVar(byte[] p, int pOff, bool negate, ref PointAffine r)
         {
@@ -285,6 +306,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Decode32(k, kOff, n, 0, ScalarUints);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void DecodeScalar(ReadOnlySpan<byte> k, Span<uint> n)
+        {
+            Decode32(k, n[..ScalarUints]);
+        }
+#endif
+
         private static void Dom2(IDigest d, byte phflag, byte[] ctx)
         {
             if (ctx != null)
@@ -323,6 +351,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static int EncodePoint(ref PointAccum p, byte[] r, int rOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return EncodePoint(ref p, r.AsSpan(rOff));
+#else
             int[] x = F.Create();
             int[] y = F.Create();
 
@@ -338,12 +369,47 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             r[rOff + PointBytes - 1] |= (byte)((x[0] & 1) << 7);
 
             return result;
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static int EncodePoint(ref PointAccum p, Span<byte> r)
+        {
+            int[] x = F.Create();
+            int[] y = F.Create();
+
+            F.Inv(p.z, y);
+            F.Mul(p.x, y, x);
+            F.Mul(p.y, y, y);
+            F.Normalize(x);
+            F.Normalize(y);
+
+            int result = CheckPoint(x, y);
+
+            F.Encode(y, r);
+            r[PointBytes - 1] |= (byte)((x[0] & 1) << 7);
+
+            return result;
+        }
+#endif
 
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
         {
+            if (k.Length != SecretKeySize)
+                throw new ArgumentException(nameof(k));
+
             random.NextBytes(k);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void GeneratePrivateKey(SecureRandom random, Span<byte> k)
+        {
+            if (k.Length != SecretKeySize)
+                throw new ArgumentException(nameof(k));
+
+            random.NextBytes(k);
+        }
+#endif
 
         public static void GeneratePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)
         {
@@ -359,7 +425,27 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ScalarMultBaseEncoded(s, pk, pkOff);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void GeneratePublicKey(ReadOnlySpan<byte> sk, Span<byte> pk)
+        {
+            IDigest d = CreateDigest();
+            Span<byte> h = stackalloc byte[d.GetDigestSize()];
+
+            d.BlockUpdate(sk[..SecretKeySize]);
+            d.DoFinal(h);
+
+            Span<byte> s = stackalloc byte[ScalarBytes];
+            PruneScalar(h, s);
+
+            ScalarMultBaseEncoded(s, pk);
+        }
+#endif
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static uint GetWindow4(ReadOnlySpan<uint> x, int n)
+#else
         private static uint GetWindow4(uint[] x, int n)
+#endif
         {
             int w = (int)((uint)n >> 3), b = (n & 7) << 2;
             return (x[w] >> b) & 15U;
@@ -818,6 +904,32 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void PointLookupZ(ReadOnlySpan<uint> x, int n, ReadOnlySpan<int> table, ref PointPrecompZ r)
+        {
+            // TODO This method is currently hard-coded to 4-bit windows and 8 precomputed points
+
+            uint w = GetWindow4(x, n);
+
+            int sign = (int)(w >> (4 - 1)) ^ 1;
+            int abs = ((int)w ^ -sign) & 7;
+
+            Debug.Assert(sign == 0 || sign == 1);
+            Debug.Assert(0 <= abs && abs < 8);
+
+            for (int i = 0; i < 8; ++i)
+            {
+                int cond = ((i ^ abs) - 1) >> 31;
+                F.CMov(cond, table, r.ymx_h);       table = table[F.Size..];
+                F.CMov(cond, table, r.ypx_h);       table = table[F.Size..];
+                F.CMov(cond, table, r.xyd);         table = table[F.Size..];
+                F.CMov(cond, table, r.z);           table = table[F.Size..];
+            }
+
+            F.CSwap(sign, r.ymx_h, r.ypx_h);
+            F.CNegate(sign, r.xyd);
+        }
+#else
         private static void PointLookupZ(uint[] x, int n, int[] table, ref PointPrecompZ r)
         {
             // TODO This method is currently hard-coded to 4-bit windows and 8 precomputed points
@@ -842,6 +954,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.CSwap(sign, r.ymx_h, r.ypx_h);
             F.CNegate(sign, r.xyd);
         }
+#endif
 
         private static void PointPrecompute(ref PointAffine p, PointExtended[] points, int count, ref PointTemp t)
         {
@@ -1070,6 +1183,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             r[ScalarBytes - 1] |= 0x40;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void PruneScalar(ReadOnlySpan<byte> n, Span<byte> r)
+        {
+            n[..ScalarBytes].CopyTo(r);
+
+            r[0] &= 0xF8;
+            r[ScalarBytes - 1] &= 0x7F;
+            r[ScalarBytes - 1] |= 0x40;
+        }
+#endif
+
         private static byte[] ReduceScalar(byte[] n)
         {
             long x00 = Decode32(n,  0) & M32L;          // x00:32/--
@@ -1208,6 +1332,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void ScalarMult(byte[] k, ref PointAffine p, ref PointAccum r)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ScalarMult(k.AsSpan(), ref p, ref r);
+#else
             uint[] n = new uint[ScalarUints];
             DecodeScalar(k, 0, n);
 
@@ -1237,10 +1364,49 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     PointDouble(ref r);
                 }
             }
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void ScalarMult(ReadOnlySpan<byte> k, ref PointAffine p, ref PointAccum r)
+        {
+            Span<uint> n = stackalloc uint[ScalarUints];
+            DecodeScalar(k, n);
+
+            // Recode the scalar into signed-digit form
+            {
+                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
+                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
+            }
+
+            Init(out PointPrecompZ q);
+            Init(out PointTemp t);
+            int[] table = PointPrecomputeZ(ref p, 8, ref t);
+
+            PointSetNeutral(ref r);
+
+            int w = 63;
+            for (;;)
+            {
+                PointLookupZ(n, w, table, ref q);
+                PointAdd(ref q, ref r, ref t);
+
+                if (--w < 0)
+                    break;
+
+                for (int i = 0; i < 4; ++i)
+                {
+                    PointDouble(ref r);
+                }
+            }
+        }
+#endif
 
         private static void ScalarMultBase(byte[] k, ref PointAccum r)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ScalarMultBase(k.AsSpan(), ref r);
+#else
             // Equivalent (but much slower)
             //PointAffine p; Init(out p);
             //F.Copy(B_x, 0, p.x, 0);
@@ -1302,7 +1468,75 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             F.CNegate(resultSign, r.x);
             F.CNegate(resultSign, r.u);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void ScalarMultBase(ReadOnlySpan<byte> k, ref PointAccum r)
+        {
+            // Equivalent (but much slower)
+            //Init(out PointAffine p);
+            //F.Copy(B_x, 0, p.x, 0);
+            //F.Copy(B_y, 0, p.y, 0);
+            //ScalarMult(k, ref p, ref r);
+
+            Precompute();
+
+            Span<uint> n = stackalloc uint[ScalarUints];
+            DecodeScalar(k, n);
+
+            // Recode the scalar into signed-digit form, then group comb bits in each block
+            {
+                uint c1 = Nat.CAdd(ScalarUints, ~(int)n[0] & 1, n, L, n);   Debug.Assert(c1 == 0U);
+                uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
+
+                /*
+                 * Because we are using 4 teeth and 8 spacing, each limb of n corresponds to one of the 8 blocks.
+                 * Therefore we can efficiently group the bits for each comb position using a (double) shuffle. 
+                 */
+                for (int i = 0; i < ScalarUints; ++i)
+                {
+                    n[i] = Interleave.Shuffle2(n[i]);
+                }
+            }
+
+            Init(out PointPrecomp p);
+            Init(out PointTemp t);
+
+            PointSetNeutral(ref r);
+            int resultSign = 0;
+
+            int cOff = (PrecompSpacing - 1) * PrecompTeeth;
+            for (;;)
+            {
+                for (int b = 0; b < PrecompBlocks; ++b)
+                {
+                    uint w = n[b] >> cOff;
+                    int sign = (int)(w >> (PrecompTeeth - 1)) & 1;
+                    int abs = ((int)w ^ -sign) & PrecompMask;
+
+                    Debug.Assert(sign == 0 || sign == 1);
+                    Debug.Assert(0 <= abs && abs < PrecompPoints);
+
+                    PointLookup(b, abs, ref p);
+
+                    F.CNegate(resultSign ^ sign, r.x);
+                    F.CNegate(resultSign ^ sign, r.u);
+                    resultSign = sign;
+
+                    PointAdd(ref p, ref r, ref t);
+                }
+
+                if ((cOff -= PrecompTeeth) < 0)
+                    break;
+
+                PointDouble(ref r);
+            }
+
+            F.CNegate(resultSign, r.x);
+            F.CNegate(resultSign, r.u);
+        }
+#endif
 
         private static void ScalarMultBaseEncoded(byte[] k, byte[] r, int rOff)
         {
@@ -1311,6 +1545,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (0 == EncodePoint(ref p, r, rOff))
                 throw new InvalidOperationException();
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void ScalarMultBaseEncoded(ReadOnlySpan<byte> k, Span<byte> r)
+        {
+            Init(out PointAccum p);
+            ScalarMultBase(k, ref p);
+            if (0 == EncodePoint(ref p, r))
+                throw new InvalidOperationException();
+        }
+#endif
 
         internal static void ScalarMultBaseYZ(byte[] k, int kOff, int[] y, int[] z)
         {
@@ -1326,6 +1570,23 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             F.Copy(p.y, 0, y, 0);
             F.Copy(p.z, 0, z, 0);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void ScalarMultBaseYZ(ReadOnlySpan<byte> k, Span<int> y, Span<int> z)
+        {
+            Span<byte> n = stackalloc byte[ScalarBytes];
+            PruneScalar(k, n);
+
+            Init(out PointAccum p);
+            ScalarMultBase(n, ref p);
+
+            if (0 == CheckPoint(p.x, p.y, p.z))
+                throw new InvalidOperationException();
+
+            F.Copy(p.y, y);
+            F.Copy(p.z, z);
+        }
+#endif
 
         private static void ScalarMultOrderVar(ref PointAffine p, ref PointAccum r)
         {

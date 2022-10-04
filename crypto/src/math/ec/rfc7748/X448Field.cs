@@ -112,6 +112,22 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void CMov(int cond, ReadOnlySpan<uint> x, Span<uint> z)
+        {
+            Debug.Assert(0 == cond || -1 == cond);
+
+            uint MASK = (uint)cond;
+
+            for (int i = 0; i < Size; ++i)
+            {
+                uint z_i = z[i], diff = z_i ^ x[i];
+                z_i ^= (diff & MASK);
+                z[i] = z_i;
+            }
+        }
+#endif
+
         public static void CNegate(int negate, uint[] z)
         {
             Debug.Assert(negate >> 1 == 0);
@@ -129,6 +145,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 z[zOff + i] = x[xOff + i];
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Copy(ReadOnlySpan<uint> x, Span<uint> z)
+        {
+            x[..Size].CopyTo(z);
+        }
+#endif
 
         public static uint[] Create()
         {

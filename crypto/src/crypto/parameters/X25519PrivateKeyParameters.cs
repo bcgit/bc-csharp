@@ -33,6 +33,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
             Array.Copy(buf, off, data, 0, KeySize);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public X25519PrivateKeyParameters(ReadOnlySpan<byte> buf)
+            : base(true)
+        {
+            if (buf.Length != KeySize)
+                throw new ArgumentException("must have length " + KeySize, nameof(buf));
+
+            buf.CopyTo(data);
+        }
+#endif
+
         public X25519PrivateKeyParameters(Stream input)
             : base(true)
         {
@@ -45,6 +56,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             Array.Copy(data, 0, buf, off, KeySize);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void Encode(Span<byte> buf)
+        {
+            data.CopyTo(buf);
+        }
+#endif
+
         public byte[] GetEncoded()
         {
             return Arrays.Clone(data);
@@ -52,17 +70,27 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public X25519PublicKeyParameters GeneratePublicKey()
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> publicKey = stackalloc byte[X25519.PointSize];
+            X25519.GeneratePublicKey(data, publicKey);
+            return new X25519PublicKeyParameters(publicKey);
+#else
             byte[] publicKey = new byte[X25519.PointSize];
             X25519.GeneratePublicKey(data, 0, publicKey, 0);
             return new X25519PublicKeyParameters(publicKey, 0);
+#endif
         }
 
         public void GenerateSecret(X25519PublicKeyParameters publicKey, byte[] buf, int off)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            GenerateSecret(publicKey, buf.AsSpan(off));
+#else
             byte[] encoded = new byte[X25519.PointSize];
             publicKey.Encode(encoded, 0);
             if (!X25519.CalculateAgreement(data, 0, encoded, 0, buf, off))
                 throw new InvalidOperationException("X25519 agreement failed");
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -78,7 +106,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private static byte[] Validate(byte[] buf)
         {
             if (buf.Length != KeySize)
-                throw new ArgumentException("must have length " + KeySize, "buf");
+                throw new ArgumentException("must have length " + KeySize, nameof(buf));
 
             return buf;
         }
