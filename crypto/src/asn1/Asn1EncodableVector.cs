@@ -133,6 +133,14 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        public void AddOptionalTagged(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
+        {
+            if (null != obj)
+            {
+                Add(new DerTaggedObject(isExplicit, tagClass, tagNo, obj));
+            }
+        }
+
         public void AddAll(Asn1EncodableVector other)
         {
             if (null == other)
