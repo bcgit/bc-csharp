@@ -279,6 +279,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
         public static void ScalarMultBase(byte[] k, int kOff, byte[] r, int rOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ScalarMultBase(k.AsSpan(kOff), r.AsSpan(rOff));
+#else
             uint[] x = F.Create();
             uint[] y = F.Create();
 
@@ -290,6 +293,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             F.Normalize(x);
             F.Encode(x, r, rOff);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

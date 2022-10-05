@@ -397,6 +397,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static void GeneratePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            GeneratePublicKey(sk.AsSpan(skOff), pk.AsSpan(pkOff));
+#else
             IXof d = CreateXof();
             byte[] h = new byte[ScalarBytes * 2];
 
@@ -407,6 +410,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PruneScalar(h, 0, s);
 
             ScalarMultBaseEncoded(s, pk, pkOff);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -566,7 +570,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!CheckScalarVar(S, nS))
                 return false;
 
-            PointProjective pA; Init(out pA);
+            Init(out PointProjective pA);
             if (!DecodePointVar(pk, pkOff, true, ref pA))
                 return false;
 
@@ -584,7 +588,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] nA = new uint[ScalarUints];
             DecodeScalar(k, 0, nA);
 
-            PointProjective pR; Init(out pR);
+            Init(out PointProjective pR);
             ScalarMultStrausVar(nS, nA, ref pA, ref pR);
 
             byte[] check = new byte[PointBytes];
@@ -909,10 +913,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Debug.Assert(count > 0);
 
-            PointProjective q; Init(out q);
+            Init(out PointProjective q);
             PointCopy(ref p, ref q);
 
-            PointProjective d; Init(out d);
+            Init(out PointProjective d);
             PointCopy(ref q, ref d);
             PointDouble(ref d);
 
@@ -939,7 +943,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Debug.Assert(count > 0);
 
-            PointProjective d; Init(out d);
+            Init(out PointProjective d);
             PointCopy(ref p, ref d);
             PointDouble(ref d);
 
@@ -976,7 +980,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
                 PointProjective[] points = new PointProjective[totalPoints];
 
-                PointProjective p; Init(out p);
+                Init(out PointProjective p);
                 F.Copy(B_x, 0, p.x, 0);
                 F.Copy(B_y, 0, p.y, 0);
                 F.One(p.z);
@@ -1375,7 +1379,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
 
             uint[] table = PointPrecompute(ref p, 8);
-            PointProjective q; Init(out q);
+            Init(out PointProjective q);
 
             // Replace first 4 doublings (2^4 * P) with 1 addition (P + 15 * P)
             PointLookup15(table, ref r);
@@ -1442,7 +1446,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ScalarMultBase(k.AsSpan(), ref r);
 #else
             // Equivalent (but much slower)
-            //PointProjective p; Init(out p);
+            //Init(out PointProjective p);
             //F.Copy(B_x, 0, p.x, 0);
             //F.Copy(B_y, 0, p.y, 0);
             //F.One(p.z);
@@ -1461,7 +1465,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 Debug.Assert(c == (1U << 31));
             }
 
-            PointAffine p; Init(out p);
+            Init(out PointAffine p);
 
             PointSetNeutral(ref r);
 
@@ -1568,10 +1572,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void ScalarMultBaseEncoded(byte[] k, byte[] r, int rOff)
         {
-            PointProjective p; Init(out p);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ScalarMultBaseEncoded(k.AsSpan(), r.AsSpan(rOff));
+#else
+            Init(out PointProjective p);
             ScalarMultBase(k, ref p);
             if (0 == EncodePoint(ref p, r, rOff))
                 throw new InvalidOperationException();
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -1586,10 +1594,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         internal static void ScalarMultBaseXY(byte[] k, int kOff, uint[] x, uint[] y)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ScalarMultBaseXY(k.AsSpan(kOff), x.AsSpan(), y.AsSpan());
+#else
             byte[] n = new byte[ScalarBytes];
             PruneScalar(k, kOff, n);
 
-            PointProjective p; Init(out p);
+            Init(out PointProjective p);
             ScalarMultBase(n, ref p);
 
             if (0 == CheckPoint(p.x, p.y, p.z))
@@ -1597,6 +1608,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             F.Copy(p.x, 0, x, 0);
             F.Copy(p.y, 0, y, 0);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -1736,7 +1748,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
-            PointProjective p; Init(out p);
+            Init(out PointProjective p);
             if (!DecodePointVar(pk, pkOff, false, ref p))
                 return false;
 
@@ -1747,7 +1759,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (IsNeutralElementVar(p.x, p.y, p.z))
                 return false;
 
-            PointProjective r; Init(out r);
+            Init(out PointProjective r);
             ScalarMultOrderVar(ref p, ref r);
 
             F.Normalize(r.x);
@@ -1759,7 +1771,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
         {
-            PointProjective p; Init(out p);
+            Init(out PointProjective p);
             return DecodePointVar(pk, pkOff, false, ref p);
         }
 

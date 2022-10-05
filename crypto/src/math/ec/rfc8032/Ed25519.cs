@@ -413,6 +413,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static void GeneratePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            GeneratePublicKey(sk.AsSpan(skOff), pk.AsSpan(pkOff));
+#else
             IDigest d = CreateDigest();
             byte[] h = new byte[d.GetDigestSize()];
 
@@ -423,6 +426,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PruneScalar(h, 0, s);
 
             ScalarMultBaseEncoded(s, pk, pkOff);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -582,7 +586,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!CheckScalarVar(S, nS))
                 return false;
 
-            PointAffine pA; Init(out pA);
+            Init(out PointAffine pA);
             if (!DecodePointVar(pk, pkOff, true, ref pA))
                 return false;
 
@@ -600,7 +604,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             uint[] nA = new uint[ScalarUints];
             DecodeScalar(k, 0, nA);
 
-            PointAccum pR; Init(out pR);
+            Init(out PointAccum pR);
             ScalarMultStrausVar(nS, nA, ref pA, ref pR);
 
             byte[] check = new byte[PointBytes];
@@ -963,7 +967,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Init(out points[0]);
             PointCopy(ref p, ref points[0]);
 
-            PointExtended d; Init(out d);
+            Init(out PointExtended d);
             PointAdd(ref points[0], ref points[0], ref d, ref t);
 
             for (int i = 1; i < count; ++i)
@@ -977,13 +981,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Debug.Assert(count > 0);
 
-            PointExtended q; Init(out q);
+            Init(out PointExtended q);
             PointCopy(ref p, ref q);
 
-            PointExtended d; Init(out d);
+            Init(out PointExtended d);
             PointAdd(ref q, ref q, ref d, ref t);
 
-            PointPrecompZ r; Init(out r);
+            Init(out PointPrecompZ r);
             int[] table = F.CreateTable(count * 4);
             int off = 0;
 
@@ -1010,10 +1014,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             Debug.Assert(count > 0);
 
-            PointExtended q; Init(out q);
+            Init(out PointExtended q);
             PointCopy(ref p, ref q);
 
-            PointExtended d; Init(out d);
+            Init(out PointExtended d);
             PointAdd(ref q, ref q, ref d, ref t);
 
             int i = 0;
@@ -1051,15 +1055,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 int totalPoints = wnafPoints + combPoints;
 
                 PointExtended[] points = new PointExtended[totalPoints];
-                PointTemp t; Init(out t);
+                Init(out PointTemp t);
 
-                PointAffine b; Init(out b);
+                Init(out PointAffine b);
                 F.Copy(B_x, 0, b.x, 0);
                 F.Copy(B_y, 0, b.y, 0);
 
                 PointPrecompute(ref b, points, wnafPoints, ref t);
 
-                PointAccum p; Init(out p);
+                Init(out PointAccum p);
                 F.Copy(B_x, 0, p.x, 0);
                 F.Copy(B_y, 0, p.y, 0);
                 F.One(p.z);
@@ -1072,7 +1076,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 {
                     Init(out toothPowers[tooth]);
                 }
-                PointExtended u; Init(out u);
+                Init(out PointExtended u);
                 for (int block = 0; block < PrecompBlocks; ++block)
                 {
                     ref PointExtended sum = ref points[pointsIndex++];
@@ -1145,7 +1149,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
 
                 PrecompBaseComb = F.CreateTable(combPoints * 3);
-                PointPrecomp s; Init(out s);
+                Init(out PointPrecomp s);
                 int off = 0;
                 for (int i = wnafPoints; i < totalPoints; ++i)
                 {
@@ -1344,8 +1348,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 uint c2 = Nat.ShiftDownBit(ScalarUints, n, 1U);             Debug.Assert(c2 == (1U << 31));
             }
 
-            PointPrecompZ q; Init(out q);
-            PointTemp t; Init(out t);
+            Init(out PointPrecompZ q);
+            Init(out PointTemp t);
             int[] table = PointPrecomputeZ(ref p, 8, ref t);
 
             PointSetNeutral(ref r);
@@ -1408,7 +1412,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ScalarMultBase(k.AsSpan(), ref r);
 #else
             // Equivalent (but much slower)
-            //PointAffine p; Init(out p);
+            //Init(out PointAffine p);
             //F.Copy(B_x, 0, p.x, 0);
             //F.Copy(B_y, 0, p.y, 0);
             //ScalarMult(k, ref p, ref r);
@@ -1433,8 +1437,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 }
             }
 
-            PointPrecomp p; Init(out p);
-            PointTemp t; Init(out t);
+            Init(out PointPrecomp p);
+            Init(out PointTemp t);
 
             PointSetNeutral(ref r);
             int resultSign = 0;
@@ -1540,10 +1544,14 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static void ScalarMultBaseEncoded(byte[] k, byte[] r, int rOff)
         {
-            PointAccum p; Init(out p);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ScalarMultBaseEncoded(k.AsSpan(), r.AsSpan(rOff));
+#else
+            Init(out PointAccum p);
             ScalarMultBase(k, ref p);
             if (0 == EncodePoint(ref p, r, rOff))
                 throw new InvalidOperationException();
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -1558,10 +1566,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         internal static void ScalarMultBaseYZ(byte[] k, int kOff, int[] y, int[] z)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ScalarMultBaseYZ(k.AsSpan(kOff), y.AsSpan(), z.AsSpan());
+#else
             byte[] n = new byte[ScalarBytes];
             PruneScalar(k, kOff, n);
 
-            PointAccum p; Init(out p);
+            Init(out PointAccum p);
             ScalarMultBase(n, ref p);
 
             if (0 == CheckPoint(p.x, p.y, p.z))
@@ -1569,6 +1580,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             F.Copy(p.y, 0, y, 0);
             F.Copy(p.z, 0, z, 0);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -1594,7 +1606,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             int count = 1 << (WnafWidth - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
-            PointTemp t; Init(out t);
+            Init(out PointTemp t);
             PointPrecomputeZ(ref p, tp, count, ref t);
 
             PointSetNeutral(ref r);
@@ -1626,7 +1638,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             int count = 1 << (WnafWidth - 2);
             PointPrecompZ[] tp = new PointPrecompZ[count];
-            PointTemp t; Init(out t);
+            Init(out PointTemp t);
             PointPrecomputeZ(ref p, tp, count, ref t);
 
             PointSetNeutral(ref r);
@@ -1726,7 +1738,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
-            PointAffine p; Init(out p);
+            Init(out PointAffine p);
             if (!DecodePointVar(pk, pkOff, false, ref p))
                 return false;
 
@@ -1736,7 +1748,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (IsNeutralElementVar(p.x, p.y))
                 return false;
 
-            PointAccum r; Init(out r);
+            Init(out PointAccum r);
             ScalarMultOrderVar(ref p, ref r);
 
             F.Normalize(r.x);
@@ -1748,7 +1760,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
         {
-            PointAffine p; Init(out p);
+            Init(out PointAffine p);
             return DecodePointVar(pk, pkOff, false, ref p);
         }
 
