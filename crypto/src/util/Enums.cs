@@ -4,38 +4,43 @@ using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Utilities
 {
-    internal abstract class Enums
+    internal static class Enums
     {
-        internal static Enum GetEnumValue(Type enumType, string s)
+        internal static TEnum GetEnumValue<TEnum>(string s)
+            where TEnum : struct, Enum
         {
-            if (!enumType.IsEnum)
-                throw new ArgumentException("Not an enumeration type", nameof(enumType));
-
             // We only want to parse single named constants
             if (s.Length > 0 && char.IsLetter(s[0]) && s.IndexOf(',') < 0)
             {
                 s = s.Replace('-', '_');
                 s = s.Replace('/', '_');
 
-                return (Enum)Enum.Parse(enumType, s, false);
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                return Enum.Parse<TEnum>(s, false);
+#else
+                return (TEnum)Enum.Parse(typeof(TEnum), s, false);
+#endif
             }
 
             throw new ArgumentException();
         }
 
-        internal static Array GetEnumValues(Type enumType)
+        internal static TEnum[] GetEnumValues<TEnum>()
+            where TEnum : struct, Enum
         {
-            if (!enumType.IsEnum)
-                throw new ArgumentException("Not an enumeration type", nameof(enumType));
-
-            return Enum.GetValues(enumType);
+#if NET5_0_OR_GREATER
+            return Enum.GetValues<TEnum>();
+#else
+            return (TEnum[])Enum.GetValues(typeof(TEnum));
+#endif
         }
 
-        internal static Enum GetArbitraryValue(Type enumType)
+        internal static TEnum GetArbitraryValue<TEnum>()
+            where TEnum : struct, Enum
         {
-            Array values = GetEnumValues(enumType);
+            TEnum[] values = GetEnumValues<TEnum>();
             int pos = (int)(DateTimeUtilities.CurrentUnixMs() & int.MaxValue) % values.Length;
-            return (Enum)values.GetValue(pos);
+            return values[pos];
         }
     }
 }
