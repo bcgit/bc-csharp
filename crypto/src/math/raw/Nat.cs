@@ -599,6 +599,21 @@ namespace Org.BouncyCastle.Math.Raw
             return true;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool Gte(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                uint x_i = x[i], y_i = y[i];
+                if (x_i < y_i)
+                    return false;
+                if (x_i > y_i)
+                    return true;
+            }
+            return true;
+        }
+#endif
+
         public static uint Inc(int len, uint[] z)
         {
             for (int i = 0; i < len; ++i)
@@ -713,6 +728,20 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert(c == 0L || c == -1L);
             return (int)c;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int LessThan(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y)
+        {
+            long c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (long)x[i] - y[i];
+                c >>= 32;
+            }
+            Debug.Assert(c == 0L || c == -1L);
+            return (int)c;
+        }
+#endif
 
         public static void Mul(int len, uint[] x, uint[] y, uint[] zz)
         {
