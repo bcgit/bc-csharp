@@ -507,7 +507,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             ECPublicBcpgKey ecK = (ECPublicBcpgKey)publicPk.Key;
             X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(ecK.CurveOid);
-            ECPoint q = x9.Curve.DecodePoint(BigIntegers.AsUnsignedByteArray(ecK.EncodedPoint));
+            BigInteger encodedPoint = ecK.EncodedPoint;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int encodingLength = BigIntegers.GetUnsignedByteLength(encodedPoint);
+            Span<byte> encoding = stackalloc byte[encodingLength];
+            BigIntegers.AsUnsignedByteArray(encodedPoint, encoding);
+            ECPoint q = x9.Curve.DecodePoint(encoding);
+#else
+            ECPoint q = x9.Curve.DecodePoint(BigIntegers.AsUnsignedByteArray(encodedPoint));
+#endif
+
             return new ECPublicKeyParameters(algorithm, q, ecK.CurveOid);
         }
 

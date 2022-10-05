@@ -620,6 +620,24 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        public static void Fill<T>(T[] ts, T t)
+        {
+            for (int i = 0; i < ts.Length; ++i)
+            {
+                ts[i] = t;
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Fill<T>(Span<T> ts, T t)
+        {
+            for (int i = 0; i < ts.Length; ++i)
+            {
+                ts[i] = t;
+            }
+        }
+#endif
+
         public static byte[] CopyOf(byte[] data, int newLength)
         {
             byte[] tmp = new byte[newLength];

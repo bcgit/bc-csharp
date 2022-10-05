@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         private static int GetValueLength(DHParameters dh)
         {
-            return (dh.P.BitLength + 7) / 8;
+            return BigIntegers.GetUnsignedByteLength(dh.P);
         }
 
         public static BcTlsSecret CalculateDHAgreement(BcTlsCrypto crypto, DHPrivateKeyParameters privateKey,
