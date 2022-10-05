@@ -37,19 +37,17 @@ namespace Org.BouncyCastle.Crypto
 		 *
 		 * @param param the parameters to be used for key generation
 		 */
-		public void Init(
-			KeyGenerationParameters parameters)
+		public void Init(KeyGenerationParameters parameters)
 		{
 			if (parameters == null)
-				throw new ArgumentNullException("parameters");
+				throw new ArgumentNullException(nameof(parameters));
 
 			this.uninitialised = false;
 
-			engineInit(parameters);
+			EngineInit(parameters);
 		}
 
-		protected virtual void engineInit(
-			KeyGenerationParameters parameters)
+		protected virtual void EngineInit(KeyGenerationParameters parameters)
 		{
 			this.random = parameters.Random;
 			this.strength = (parameters.Strength + 7) / 8;
@@ -69,13 +67,13 @@ namespace Org.BouncyCastle.Crypto
 
 				uninitialised = false;
 
-				engineInit(new KeyGenerationParameters(new SecureRandom(), defaultStrength));
+				EngineInit(new KeyGenerationParameters(new SecureRandom(), defaultStrength));
 			}
 
-			return engineGenerateKey();
+			return EngineGenerateKey();
 		}
 
-        protected virtual byte[] engineGenerateKey()
+        protected virtual byte[] EngineGenerateKey()
 		{
             return SecureRandom.GetNextBytes(random, strength);
 		}
