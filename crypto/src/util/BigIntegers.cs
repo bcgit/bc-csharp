@@ -22,8 +22,7 @@ namespace Org.BouncyCastle.Utilities
         * @param value the value to be converted.
         * @return a byte array without a leading zero byte if present in the signed encoding.
         */
-        public static byte[] AsUnsignedByteArray(
-            BigInteger n)
+        public static byte[] AsUnsignedByteArray(BigInteger n)
         {
             return n.ToByteArrayUnsigned();
         }
@@ -37,6 +36,16 @@ namespace Org.BouncyCastle.Utilities
          */
         public static byte[] AsUnsignedByteArray(int length, BigInteger n)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int bytesLength = n.GetLengthofByteArrayUnsigned();
+
+            if (bytesLength > length)
+                throw new ArgumentException("standard length exceeded", nameof(n));
+
+            byte[] bytes = new byte[length];
+            n.ToByteArrayUnsigned(bytes.AsSpan(length - bytesLength));
+            return bytes;
+#else
             byte[] bytes = n.ToByteArrayUnsigned();
             int bytesLength = bytes.Length;
 
@@ -44,18 +53,19 @@ namespace Org.BouncyCastle.Utilities
                 return bytes;
 
             if (bytesLength > length)
-                throw new ArgumentException("standard length exceeded", "n");
+                throw new ArgumentException("standard length exceeded", nameof(n));
 
             byte[] tmp = new byte[length];
             Array.Copy(bytes, 0, tmp, length - bytesLength, bytesLength);
             return tmp;
+#endif
         }
 
         /**
          * Write the passed in value as unsigned bytes to the specified buffer range, padded with
          * leading zeros as necessary.
          *
-         * @param value
+         * @param n
          *            the value to be converted.
          * @param buf
          *            the buffer to which the value is written.
@@ -64,50 +74,33 @@ namespace Org.BouncyCastle.Utilities
          * @param len
          *            the fixed length of data written (possibly padded with leading zeros).
          */
-        public static void AsUnsignedByteArray(BigInteger value, byte[] buf, int off, int len)
+        public static void AsUnsignedByteArray(BigInteger n, byte[] buf, int off, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            AsUnsignedByteArray(value, buf.AsSpan(off, len));
+            AsUnsignedByteArray(n, buf.AsSpan(off, len));
 #else
-            byte[] bytes = value.ToByteArrayUnsigned();
-            if (bytes.Length == len)
-            {
-                Array.Copy(bytes, 0, buf, off, len);
-                return;
-            }
+            byte[] bytes = n.ToByteArrayUnsigned();
+            int bytesLength = bytes.Length;
 
-            int start = bytes[0] == 0 ? 1 : 0;
-            int count = bytes.Length - start;
+            if (bytesLength > len)
+                throw new ArgumentException("standard length exceeded", nameof(n));
 
-            if (count > len)
-                throw new ArgumentException("standard length exceeded for value");
-
-            int padLen = len - count;
+            int padLen = len - bytesLength;
             Arrays.Fill(buf, off, off + padLen, 0);
-            Array.Copy(bytes, start, buf, off + padLen, count);
+            Array.Copy(bytes, 0, buf, off + padLen, bytesLength);
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static void AsUnsignedByteArray(BigInteger value, Span<byte> buf)
+        public static void AsUnsignedByteArray(BigInteger n, Span<byte> buf)
         {
-            int len = buf.Length;
-            byte[] bytes = value.ToByteArrayUnsigned();
-            if (bytes.Length == len)
-            {
-                bytes.CopyTo(buf);
-                return;
-            }
+            int bytesLength = n.GetLengthofByteArrayUnsigned();
 
-            int start = bytes[0] == 0 ? 1 : 0;
-            int count = bytes.Length - start;
+            if (bytesLength > buf.Length)
+                throw new ArgumentException("standard length exceeded", nameof(n));
 
-            if (count > len)
-                throw new ArgumentException("standard length exceeded for value");
-
-            int padLen = len - count;
-            buf[..padLen].Fill(0x00);
-            bytes.AsSpan(start, count).CopyTo(buf[padLen..]);
+            buf[..^bytesLength].Fill(0x00);
+            n.ToByteArrayUnsigned(buf[^bytesLength..]);
         }
 #endif
 
@@ -209,9 +202,14 @@ namespace Org.BouncyCastle.Utilities
             return Nat.ToBigInteger(len, z);
         }
 
+        public static int GetByteLength(BigInteger n)
+        {
+            return n.GetLengthofByteArray();
+        }
+
         public static int GetUnsignedByteLength(BigInteger n)
         {
-            return (n.BitLength + 7) / 8;
+            return n.GetLengthofByteArrayUnsigned();
         }
     }
 }

@@ -14,7 +14,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Math
 {
     [Serializable]
-    public class BigInteger
+    public sealed class BigInteger
     {
         // The first few odd primes
         /*
@@ -237,8 +237,7 @@ namespace Org.BouncyCastle.Math
             this.mQuote = 0;
         }
 
-        private static int GetByteLength(
-            int nBits)
+        private static int GetByteLength(int nBits)
         {
             return (nBits + BitsPerByte - 1) / BitsPerByte;
         }
@@ -3169,18 +3168,41 @@ namespace Org.BouncyCastle.Math
             return Subtract(0, res, 0, lilMag);
         }
 
+        public int GetLengthofByteArray()
+        {
+            return GetByteLength(BitLength + 1);
+        }
+
+        public int GetLengthofByteArrayUnsigned()
+        {
+            return GetByteLength(sign < 0 ? BitLength + 1 : BitLength);
+        }
+
         public byte[] ToByteArray()
         {
             return ToByteArray(false);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void ToByteArray(Span<byte> output)
+        {
+            ToByteArray(false, output);
+        }
+#endif
 
         public byte[] ToByteArrayUnsigned()
         {
             return ToByteArray(true);
         }
 
-        private byte[] ToByteArray(
-            bool unsigned)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void ToByteArrayUnsigned(Span<byte> output)
+        {
+            ToByteArray(true, output);
+        }
+#endif
+
+        private byte[] ToByteArray(bool unsigned)
         {
             if (sign == 0)
                 return unsigned ? ZeroEncoding : new byte[1];
@@ -3258,6 +3280,90 @@ namespace Org.BouncyCastle.Math
 
             return bytes;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void ToByteArray(bool unsigned, Span<byte> output)
+        {
+            if (sign == 0)
+            {
+                if (!unsigned)
+                {
+                    output[0] = 0;
+                }
+                return;
+            }
+
+            int nBits = (unsigned && sign > 0) ? BitLength : BitLength + 1;
+
+            int nBytes = GetByteLength(nBits);
+            if (nBytes > output.Length)
+                throw new ArgumentException("insufficient space", nameof(output));
+
+            int magIndex = magnitude.Length;
+            int bytesIndex = nBytes;
+
+            if (sign > 0)
+            {
+                while (magIndex > 1)
+                {
+                    uint mag = (uint) magnitude[--magIndex];
+                    output[--bytesIndex] = (byte) mag;
+                    output[--bytesIndex] = (byte)(mag >> 8);
+                    output[--bytesIndex] = (byte)(mag >> 16);
+                    output[--bytesIndex] = (byte)(mag >> 24);
+                }
+
+                uint lastMag = (uint)magnitude[0];
+                while (lastMag > byte.MaxValue)
+                {
+                    output[--bytesIndex] = (byte)lastMag;
+                    lastMag >>= 8;
+                }
+
+                output[--bytesIndex] = (byte)lastMag;
+            }
+            else // sign < 0
+            {
+                bool carry = true;
+
+                while (magIndex > 1)
+                {
+                    uint mag = ~((uint)magnitude[--magIndex]);
+
+                    if (carry)
+                    {
+                        carry = (++mag == uint.MinValue);
+                    }
+
+                    output[--bytesIndex] = (byte) mag;
+                    output[--bytesIndex] = (byte)(mag >> 8);
+                    output[--bytesIndex] = (byte)(mag >> 16);
+                    output[--bytesIndex] = (byte)(mag >> 24);
+                }
+
+                uint lastMag = (uint)magnitude[0];
+
+                if (carry)
+                {
+                    // Never wraps because magnitude[0] != 0
+                    --lastMag;
+                }
+
+                while (lastMag > byte.MaxValue)
+                {
+                    output[--bytesIndex] = (byte)~lastMag;
+                    lastMag >>= 8;
+                }
+
+                output[--bytesIndex] = (byte)~lastMag;
+
+                if (bytesIndex > 0)
+                {
+                    output[--bytesIndex] = byte.MaxValue;
+                }
+            }
+        }
+#endif
 
         public override string ToString()
         {
