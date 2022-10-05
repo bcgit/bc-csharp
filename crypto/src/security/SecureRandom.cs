@@ -4,14 +4,13 @@ using System.Threading;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
     public class SecureRandom
         : Random
     {
-        private static long counter = Times.NanoTime();
+        private static long counter = DateTime.UtcNow.Ticks;
 
         private static long NextCounterValue()
         {
