@@ -237,7 +237,10 @@ namespace Org.BouncyCastle.Tls.Crypto
             int contextLength = context.Length;
             int expandedLabelLength = Tls13Prefix.Length + labelLength;
 
-            Span<byte> hkdfLabel = stackalloc byte[2 + (1 + expandedLabelLength) + (1 + contextLength)];
+            int hkdfLabelLength = 2 + (1 + expandedLabelLength) + (1 + contextLength);
+            Span<byte> hkdfLabel = hkdfLabelLength <= 512
+                ? stackalloc byte[hkdfLabelLength]
+                : new byte[hkdfLabelLength];
 
             // uint16 length
             {

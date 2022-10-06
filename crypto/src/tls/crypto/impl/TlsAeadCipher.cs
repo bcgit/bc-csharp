@@ -74,7 +74,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             int keyBlockSize = (2 * keySize) + (2 * m_fixed_iv_length);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> keyBlock = stackalloc byte[keyBlockSize];
+            Span<byte> keyBlock = keyBlockSize <= 512
+                ? stackalloc byte[keyBlockSize]
+                : new byte[keyBlockSize];
             TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlock);
 
             if (isServer)

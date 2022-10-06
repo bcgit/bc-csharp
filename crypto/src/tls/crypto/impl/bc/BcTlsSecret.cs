@@ -168,7 +168,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
                 byte[] okm = new byte[length];
 
-                Span<byte> t = stackalloc byte[hashLen];
+                Span<byte> t = hashLen <= 128
+                    ? stackalloc byte[hashLen]
+                    : new byte[hashLen];
                 byte counter = 0x00;
 
                 int pos = 0;

@@ -74,7 +74,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> keyBlock = stackalloc byte[keyBlockSize];
+            Span<byte> keyBlock = keyBlockSize <= 512
+                ? stackalloc byte[keyBlockSize]
+                : new byte[keyBlockSize];
             TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlock);
 
             clientMac.SetKey(keyBlock[..clientMac.MacLength]); keyBlock = keyBlock[clientMac.MacLength..];
@@ -88,8 +90,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             if (m_useExplicitIV)
             {
-                clientCipher.Init(stackalloc byte[clientIVLength]);
-                serverCipher.Init(stackalloc byte[serverIVLength]);
+                clientCipher.Init(clientIVLength <= 64 ? stackalloc byte[clientIVLength] : new byte[clientIVLength]);
+                serverCipher.Init(serverIVLength <= 64 ? stackalloc byte[serverIVLength] : new byte[serverIVLength]);
             }
             else
             {

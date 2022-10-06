@@ -21,7 +21,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             int keyBlockSize = clientMac.MacLength + serverMac.MacLength;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> keyBlock = stackalloc byte[keyBlockSize];
+            Span<byte> keyBlock = keyBlockSize <= 512
+                ? stackalloc byte[keyBlockSize]
+                : new byte[keyBlockSize];
             TlsImplUtilities.CalculateKeyBlock(cryptoParams, keyBlock);
 
             clientMac.SetKey(keyBlock[..clientMac.MacLength]); keyBlock = keyBlock[clientMac.MacLength..];
