@@ -33,7 +33,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             int level = 1; // This is the second level, we use this because it signs the message.
 
             // Generate the private key.
-            LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(LMSigParameters.GetParametersForType(5), LMOtsParameters.GetParametersForType(4), level, I, seed);
+            LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(LMSigParameters.GetParametersByID(5),
+                LMOtsParameters.GetParametersByID(4), level, I, seed);
 
             // This derives the public key.
             LMSPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();

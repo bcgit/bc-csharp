@@ -1,94 +1,69 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class SeedDerive
+    public sealed class SeedDerive
     {
-        private byte[] I;
-        private byte[] masterSeed;
-        private IDigest digest;
-        private int q;
-        private int j;
-
+        private readonly byte[] m_I;
+        private readonly byte[] m_masterSeed;
+        private readonly IDigest m_digest;
 
         public SeedDerive(byte[] I, byte[] masterSeed, IDigest digest)
         {
-            this.I = I;
-            this.masterSeed = masterSeed;
-            this.digest = digest;
+            m_I = I;
+            m_masterSeed = masterSeed;
+            m_digest = digest;
         }
 
-        public int GetQ()
+        public int Q { get; set; }
+
+        public int J { get; set; }
+
+        // FIXME
+        public byte[] I => m_I;
+
+        // FIXME
+        public byte[] MasterSeed => m_masterSeed;
+
+        public byte[] DeriveSeed(bool incJ, byte[] target, int offset)
         {
-            return q;
-        }
+            if (target.Length - offset < m_digest.GetDigestSize())
+                throw new ArgumentException("target length is less than digest size.", nameof(target));
 
-        public void SetQ(int q)
-        {
-            this.q = q;
-        }
+            int q = Q, j = J;
 
-        public int GetJ()
-        {
-            return j;
-        }
+            m_digest.BlockUpdate(I, 0, I.Length);
 
-        public void SetJ(int j)
-        {
-            this.j = j;
-        }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> qj = stackalloc byte[7];
+            Pack.UInt32_To_BE((uint)q, qj);
+            Pack.UInt16_To_BE((ushort)j, qj[4..]);
+            qj[6] = 0xFF;
+            m_digest.BlockUpdate(qj);
+#else
+            m_digest.Update((byte)(q >> 24));
+            m_digest.Update((byte)(q >> 16));
+            m_digest.Update((byte)(q >> 8));
+            m_digest.Update((byte)(q));
 
-        public byte[] GetI()
-        {
-            return I;
-        }
+            m_digest.Update((byte)(j >> 8));
+            m_digest.Update((byte)(j));
+            m_digest.Update(0xFF);
+#endif
 
-        public byte[] GetMasterSeed()
-        {
-            return masterSeed;
-        }
+            m_digest.BlockUpdate(m_masterSeed, 0, m_masterSeed.Length);
 
-
-        public byte[] DeriveSeed(byte[] target, int offset)
-        {
-            if (target.Length < digest.GetDigestSize())
-            {
-                throw new ArgumentException("target length is less than digest size.");
-            }
-
-            digest.BlockUpdate(I, 0, I.Length);
-            digest.Update((byte)(q >> 24));
-            digest.Update((byte)(q >> 16));
-            digest.Update((byte)(q >> 8));
-            digest.Update((byte)(q));
-
-            digest.Update((byte)(j >> 8));
-            digest.Update((byte)(j));
-            digest.Update((byte)0xFF);
-            digest.BlockUpdate(masterSeed, 0, masterSeed.Length);
-
-            digest.DoFinal(target, offset); // Digest resets here.
-
-            return target;
-        }
-
-        public void deriveSeed(byte[] target, bool incJ)
-        {
-            deriveSeed(target, incJ, 0);
-        }
-
-
-        public void deriveSeed(byte[] target, bool incJ, int offset)
-        {
-
-            DeriveSeed(target, offset);
+            m_digest.DoFinal(target, offset); // Digest resets here.
 
             if (incJ)
             {
-                j++;
+                ++J;
             }
 
+            return target;
         }
     }
 }

@@ -3,11 +3,10 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-
     public class LMSKeyGenerationParameters
         : KeyGenerationParameters
     {
-        private LMSParameters lmsParameters;
+        private readonly LMSParameters m_lmsParameters;
 
         /**
          * Base constructor - parameters and a source of randomness.
@@ -18,13 +17,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public LMSKeyGenerationParameters(LMSParameters lmsParameters, SecureRandom random)
             : base(random, LmsUtils.CalculateStrength(lmsParameters)) // TODO: need something for "strength"
         {
-            this.lmsParameters = lmsParameters;
+            m_lmsParameters = lmsParameters;
         }
 
-        public LMSParameters GetParameters()
-        {
-            return lmsParameters;
-        }
+        public LMSParameters LmsParameters => m_lmsParameters;
     }
 }
-

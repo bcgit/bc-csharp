@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
 
             LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
-            LMOtsPublicKey publicKey = LM_OTS.lms_ots_generatePublicKey(privateKey);
+            LMOtsPublicKey publicKey = LM_OTS.LmsOtsGeneratePublicKey(privateKey);
 
             byte[] ms = new byte[32];
             for (int t = 0; t < ms.Length; t++)
@@ -43,24 +43,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             
             ctx.BlockUpdate(ms, 0, ms.Length);
 
-            LMOtsSignature sig = LM_OTS.lm_ots_generate_signature(privateKey, ctx.GetQ(), ctx.C);
-            Assert.True(LM_OTS.lm_ots_validate_signature(publicKey, sig, ms, false));
+            LMOtsSignature sig = LM_OTS.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
+            Assert.True(LM_OTS.LMOtsValidateSignature(publicKey, sig, ms, false));
 
             //  Vandalise signature
             {
 
                 byte[] vandalisedSignature = sig.GetEncoded(); // Arrays.clone(sig);
                 vandalisedSignature[256] ^= 1; // Single bit error
-                Assert.False(LM_OTS.lm_ots_validate_signature(publicKey, LMOtsSignature.GetInstance(vandalisedSignature), ms, false));
+                Assert.False(LM_OTS.LMOtsValidateSignature(publicKey, LMOtsSignature.GetInstance(vandalisedSignature), ms, false));
             }
 
             // Vandalise public key.
             {
                 byte[] vandalisedPubKey = Arrays.Clone(publicKey.GetEncoded());
                 vandalisedPubKey[50] ^= 1;
-                Assert.False(LM_OTS.lm_ots_validate_signature(LMOtsPublicKey.GetInstance(vandalisedPubKey), sig, ms, false));
+                Assert.False(LM_OTS.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(vandalisedPubKey), sig, ms, false));
             }
-            
+
             //
             // check incorrect alg type is detected.
             //
@@ -68,14 +68,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 byte[] vandalisedPubKey = Arrays.Clone(publicKey.GetEncoded());
                 vandalisedPubKey[3] += 1;
-                LM_OTS.lm_ots_validate_signature(LMOtsPublicKey.GetInstance(vandalisedPubKey), sig, ms, false);
+                LM_OTS.LMOtsValidateSignature(LMOtsPublicKey.GetInstance(vandalisedPubKey), sig, ms, false);
                 Assert.True(false, "Must fail as public key type not match signature type.");
             }
             catch (LMSException ex)
             {
                 Assert.True(ex.Message.Contains("public key and signature ots types do not match"));
             }
-            
         }
 
         [Test]
@@ -94,10 +93,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] seed = Hex.Decode("a1c4696e2608035a886100d05cd99945eb3370731884a8235e2fb3d4d71f2547");
             int level = 1;
             LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(
-                LMSigParameters.GetParametersForType(5),
-                LMOtsParameters.GetParametersForType(4),
+                LMSigParameters.GetParametersByID(5),
+                LMOtsParameters.GetParametersByID(4),
                 level, Hex.Decode("215f83b7ccb9acbcd08db97b0d04dc2b"), seed);
-            
+
             LMSPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();
 
             lmsPrivateKey.ExtractKeyShard(3);
@@ -138,7 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
 
             LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
-            LMOtsPublicKey publicKey = LM_OTS.lms_ots_generatePublicKey(privateKey);
+            LMOtsPublicKey publicKey = LM_OTS.LmsOtsGeneratePublicKey(privateKey);
 
             byte[] ms = new byte[32];
                 for (int t = 0; t < ms.Length; t++)
@@ -150,8 +149,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             ctx.BlockUpdate(ms, 0, ms.Length);
 
-            LMOtsSignature sig = LM_OTS.lm_ots_generate_signature(privateKey, ctx.GetQ(), ctx.C);
-            Assert.True(LM_OTS.lm_ots_validate_signature(publicKey, sig, ms, false));
+            LMOtsSignature sig = LM_OTS.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
+            Assert.True(LM_OTS.LMOtsValidateSignature(publicKey, sig, ms, false));
 
             try
             {

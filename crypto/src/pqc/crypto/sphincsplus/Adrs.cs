@@ -83,12 +83,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             Arrays.Fill(value, 20, value.Length, (byte) 0);
         }
-        
+
         public void ChangeType(uint type)
         {
             Pack.UInt32_To_BE(type, value, OFFSET_TYPE);
         }
 
+        // FIXME
         public new uint GetType()
         {
             return Pack.BE_To_UInt32(value, OFFSET_TYPE);

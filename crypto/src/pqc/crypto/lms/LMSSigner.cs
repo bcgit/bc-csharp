@@ -5,21 +5,21 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMSSigner
+    public sealed class LMSSigner
         : IMessageSigner
     {
-        private LMSPrivateKeyParameters privKey;
-        private LMSPublicKeyParameters pubKey;
+        private LMSPrivateKeyParameters m_privateKey;
+        private LMSPublicKeyParameters m_publicKey;
 
         public void Init(bool forSigning, ICipherParameters param)
         {
             if (forSigning)
             {
-                privKey = (LMSPrivateKeyParameters)param;
+                m_privateKey = (LMSPrivateKeyParameters)param;
             }
             else
             {
-                pubKey = (LMSPublicKeyParameters)param;
+                m_publicKey = (LMSPublicKeyParameters)param;
             }
         }
 
@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return LMS.GenerateSign(privKey, message).GetEncoded();
+                return LMS.GenerateSign(m_privateKey, message).GetEncoded();
             }
             catch (IOException e)
             {
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return LMS.VerifySignature(pubKey, LMSSignature.GetInstance(signature), message);
+                return LMS.VerifySignature(m_publicKey, LMSSignature.GetInstance(signature), message);
             }
             catch (IOException e)
             {

@@ -55,10 +55,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             HSSPublicKeyParameters pubKey = (HSSPublicKeyParameters)kp.Public;
             
-            LMSParameters lmsParam = pubKey.GetLmsPublicKey().GetLmsParameters();
+            LMSParameters lmsParam = pubKey.LmsPublicKey.GetLmsParameters();
 
-            Assert.AreEqual(LMSigParameters.lms_sha256_n32_h5, lmsParam.GetLmSigParam());
-            Assert.AreEqual(LMOtsParameters.sha256_n32_w4, lmsParam.GetLmotsParam());
+            Assert.AreEqual(LMSigParameters.lms_sha256_n32_h5, lmsParam.LMSigParameters);
+            Assert.AreEqual(LMOtsParameters.sha256_n32_w4, lmsParam.LMOtsParameters);
 
             HSSSigner signer = new HSSSigner();
 

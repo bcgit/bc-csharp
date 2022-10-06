@@ -1,4 +1,5 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
@@ -32,12 +33,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static int CalculateStrength(LMSParameters lmsParameters)
         {
             if (lmsParameters == null)
-            {
-                throw new NullReferenceException("lmsParameters cannot be null");
-            }
+                throw new ArgumentNullException(nameof(lmsParameters));
 
-            LMSigParameters sigParameters = lmsParameters.GetLmSigParam();
-            return (1 << sigParameters.GetH()) * sigParameters.GetM();
+            LMSigParameters sigParameters = lmsParameters.LMSigParameters;
+            return sigParameters.M << sigParameters.H;
         }
     }
 }

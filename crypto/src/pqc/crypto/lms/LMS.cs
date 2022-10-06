@@ -1,11 +1,11 @@
-
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMS
+    public static class LMS
     {
         internal static ushort D_LEAF = 0x8282;
         internal static ushort D_INTR = 0x8383;
@@ -25,12 +25,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
 
             // Step 2
-            if (rootSeed == null || rootSeed.Length < parameterSet.GetM())
-            {
-                throw new ArgumentException($"root seed is less than {parameterSet.GetM()}");
-            }
+            if (rootSeed == null || rootSeed.Length < parameterSet.M)
+                throw new ArgumentException($"root seed is less than {parameterSet.M}");
 
-            int twoToH = 1 << parameterSet.GetH();
+            int twoToH = 1 << parameterSet.H;
 
             return new LMSPrivateKeyParameters(parameterSet, lmOtsParameters, q, I, twoToH, rootSeed);
         }
@@ -61,10 +59,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             // Step 1.
             LMOtsSignature ots_signature =
-                LM_OTS.lm_ots_generate_signature(context.GetPrivateKey(), context.GetQ(), context.C);
+                LM_OTS.LMOtsGenerateSignature(context.PrivateKey, context.GetQ(), context.C);
 
-            return new LMSSignature(context.GetPrivateKey().GetQ(), ots_signature, context.GetSigParams(),
-                context.GetPath());
+            return new LMSSignature(context.PrivateKey.Q, ots_signature, context.SigParams, context.Path);
         }
 
         public static bool VerifySignature(LMSPublicKeyParameters publicKey, LMSSignature S, byte[] message)
@@ -87,18 +84,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static bool VerifySignature(LMSPublicKeyParameters publicKey, LMSContext context)
         {
-            LMSSignature S = (LMSSignature) context.GetSignature();
-            LMSigParameters lmsParameter = S.GetParameter();
-            int h = lmsParameter.GetH();
-            byte[][] path = S.GetY();
-            byte[] Kc = LM_OTS.lm_ots_validate_signature_calculate(context);
+            LMSSignature S = (LMSSignature)context.Signature;
+            LMSigParameters lmsParameter = S.SigParameters;
+            int h = lmsParameter.H;
+            byte[][] path = S.Y;
+            byte[] Kc = LM_OTS.LMOtsValidateSignatureCalculate(context);
             // Step 4
             // node_num = 2^h + q
-            int node_num = (1 << h) + S.GetQ();
+            int node_num = (1 << h) + S.Q;
 
             // tmp = H(I || u32str(node_num) || u16str(D_LEAF) || Kc)
             byte[] I = publicKey.GetI();
-            IDigest H = DigestUtilities.GetDigest(lmsParameter.GetDigestOid());
+            IDigest H = DigestUtilities.GetDigest(lmsParameter.DigestOid);
             byte[] tmp = new byte[H.GetDigestSize()];
 
             H.BlockUpdate(I, 0, I.Length);

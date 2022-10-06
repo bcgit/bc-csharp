@@ -1,63 +1,60 @@
 using System;
 using System.IO;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
-using static Org.BouncyCastle.Pqc.Crypto.Lms.LM_OTS;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMOtsPublicKey
+    public sealed class LMOtsPublicKey
     {
-        private LMOtsParameters parameter;
-        private byte[] I;
-        private int q;
-        private byte[] K;
+        private readonly LMOtsParameters m_parameters;
+        private readonly byte[] m_I;
+        private readonly int m_q;
+        private readonly byte[] m_K;
 
-
-        public LMOtsPublicKey(LMOtsParameters parameter, byte[] i, int q, byte[] k)
+        public LMOtsPublicKey(LMOtsParameters parameters, byte[] i, int q, byte[] k)
         {
-            this.parameter = parameter;
-            this.I = i;
-            this.q = q;
-            this.K = k;
+            m_parameters = parameters;
+            m_I = i;
+            m_q = q;
+            m_K = k;
         }
 
-        public static LMOtsPublicKey GetInstance(Object src)
+        public static LMOtsPublicKey GetInstance(object src)
         {
-            
             //todo
-            if (src is LMOtsPublicKey)
+            if (src is LMOtsPublicKey lmOtsPublicKey)
             {
-                return (LMOtsPublicKey)src;
+                return lmOtsPublicKey;
             }
-            else if (src is BinaryReader)
+            else if (src is BinaryReader binaryReader)
             {
-                byte[] data = ((BinaryReader) src).ReadBytes(4);
+                byte[] data = binaryReader.ReadBytes(4);
                 Array.Reverse(data);
                 int index = BitConverter.ToInt32(data, 0);
                 
-                LMOtsParameters parameter = LMOtsParameters.GetParametersForType(index);
+                LMOtsParameters parameter = LMOtsParameters.GetParametersByID(index);
                 byte[] I = new byte[16];
-                ((BinaryReader)src).Read(I, 0, I.Length);
+                binaryReader.Read(I, 0, I.Length);
                 
                 Array.Reverse(data);
                 int q = BitConverter.ToInt32(data, 0);
 
-                byte[] K = new byte[parameter.GetN()];
-                ((BinaryReader)src).Read(K, 0, K.Length);
+                byte[] K = new byte[parameter.N];
+                binaryReader.Read(K, 0, K.Length);
 
                 return new LMOtsPublicKey(parameter, I, q, K);
 
             }
-            else if (src is byte[])
+            else if (src is byte[] bytes)
             {
                 BinaryReader input = null;
                 try // 1.5 / 1.6 compatibility
                 {
-                    input = new BinaryReader(new MemoryStream((byte[])src, false));
+                    input = new BinaryReader(new MemoryStream(bytes, false));
                     return GetInstance(input);
                 }
                 finally
@@ -65,100 +62,73 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     if (input != null) input.Close();//todo Platform Dispose
                 }
             }
-            else if (src is MemoryStream)
+            else if (src is MemoryStream memoryStream)
             {
-                return GetInstance(Streams.ReadAll((Stream)src));
+                return GetInstance(Streams.ReadAll(memoryStream));
             }
             throw new Exception ($"cannot parse {src}");
         }
 
-        public LMOtsParameters GetParameter()
-        {
-            return parameter;
-        }
+        public LMOtsParameters Parameters => m_parameters;
 
-        public byte[] GetI()
-        {
-            return I;
-        }
+        public byte[] I => m_I;
 
-        public int GetQ()
-        {
-            return q;
-        }
+        public int Q => m_q;
 
-        public byte[] GetK()
-        {
-            return K;
-        }
+        public byte[] K => m_K;
 
-        public override bool Equals(Object o)
+        public override bool Equals(object obj)
         {
-            if (this == o)
-            {
+            if (this == obj)
                 return true;
-            }
-            if (o == null || GetType() != o.GetType())
-            {
+            if (!(obj is LMOtsPublicKey that))
                 return false;
-            }
 
-            LMOtsPublicKey that = (LMOtsPublicKey)o;
-
-            if (q != that.q)
-            {
-                return false;
-            }
-            if (!parameter?.Equals(that.parameter) ?? that.parameter != null)
-            {
-                return false;
-            }
-            if (!Arrays.Equals(I, that.I))
-            {
-                return false;
-            }
-            return Arrays.Equals(K, that.K);
+            return m_q == that.m_q
+                && Objects.Equals(m_parameters, that.m_parameters)
+                && Arrays.AreEqual(m_I, that.m_I)
+                && Arrays.AreEqual(m_K, that.m_K);
         }
 
         public override int GetHashCode()
         {
-            int result = parameter != null ? parameter.GetHashCode() : 0;
-            result = 31 * result + Arrays.GetHashCode(I);
-            result = 31 * result + q;
-            result = 31 * result + Arrays.GetHashCode(K);
+            int result = Objects.GetHashCode(m_parameters);
+            result = 31 * result + Arrays.GetHashCode(m_I);
+            result = 31 * result + m_q;
+            result = 31 * result + Arrays.GetHashCode(m_K);
             return result;
         }
 
         public byte[] GetEncoded()
         {
             return Composer.Compose()
-                .U32Str(parameter.GetType())
-                .Bytes(I)
-                .U32Str(q)
-                .Bytes(K)
+                .U32Str(m_parameters.ID)
+                .Bytes(m_I)
+                .U32Str(m_q)
+                .Bytes(m_K)
                 .Build();
         }
 
         internal LMSContext CreateOtsContext(LMOtsSignature signature)
         {
-            IDigest ctx = DigestUtilities.GetDigest(parameter.GetDigestOid());
+            IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
 
-            LmsUtils.ByteArray(I, ctx);
-            LmsUtils.U32Str(q, ctx);
-            LmsUtils.U16Str(D_MESG, ctx);
-            LmsUtils.ByteArray(signature.GetC(), ctx);
+            LmsUtils.ByteArray(m_I, ctx);
+            LmsUtils.U32Str(m_q, ctx);
+            LmsUtils.U16Str(LM_OTS.D_MESG, ctx);
+            LmsUtils.ByteArray(signature.C, ctx);
 
             return new LMSContext(this, signature, ctx);
         }
 
         internal LMSContext CreateOtsContext(LMSSignature signature)
         {
-            IDigest ctx = DigestUtilities.GetDigest(parameter.GetDigestOid());
+            IDigest ctx = DigestUtilities.GetDigest(m_parameters.DigestOid);
 
-            LmsUtils.ByteArray(I, ctx);
-            LmsUtils.U32Str(q, ctx);
-            LmsUtils.U16Str(D_MESG, ctx);
-            LmsUtils.ByteArray(signature.GetOtsSignature().GetC(), ctx);
+            LmsUtils.ByteArray(m_I, ctx);
+            LmsUtils.U32Str(m_q, ctx);
+            LmsUtils.U16Str(LM_OTS.D_MESG, ctx);
+            LmsUtils.ByteArray(signature.OtsSignature.C, ctx);
 
             return new LMSContext(this, signature, ctx);
         }

@@ -1,13 +1,11 @@
-
 using System;
 using System.IO;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
+
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-
     public class HSSSignature
         : IEncodable
     {
@@ -31,19 +29,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
      */
         public static HSSSignature GetInstance(Object src, int L)
         {
-            if (src is HSSSignature)
+            if (src is HSSSignature hssSignature)
             {
-                return (HSSSignature) src;
+                return hssSignature;
             }
-            else if (src is BinaryReader)
+            else if (src is BinaryReader binaryReader)
             {
-                byte[] data = ((BinaryReader) src).ReadBytes(4);
+                byte[] data = binaryReader.ReadBytes(4);
                 Array.Reverse(data);
                 int lminus = BitConverter.ToInt32(data, 0);
                 if (lminus != L - 1)
-                {
                     throw new Exception("nspk exceeded maxNspk");
-                }
 
                 LMSSignedPubKey[] signedPubKeys = new LMSSignedPubKey[lminus];
                 if (lminus != 0)
@@ -59,12 +55,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 return new HSSSignature(lminus, signedPubKeys, sig);
             }
-            else if (src is byte[])
+            else if (src is byte[] bytes)
             {
                 BinaryReader input = null;
                 try // 1.5 / 1.6 compatibility
                 {
-                    input = new BinaryReader(new MemoryStream((byte[]) src));
+                    input = new BinaryReader(new MemoryStream(bytes));
                     return GetInstance(input, L);
                 }
                 finally
@@ -72,29 +68,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     if (input != null) input.Close();
                 }
             }
-            else if (src is MemoryStream)
+            else if (src is MemoryStream memoryStream)
             {
-                return GetInstance(Streams.ReadAll((Stream) src), L);
+                return GetInstance(Streams.ReadAll(memoryStream), L);
             }
 
             throw new ArgumentException($"cannot parse {src}");
         }
 
-
+        // FIXME
         public int GetlMinus1()
         {
             return lMinus1;
         }
 
-        public LMSSignedPubKey[] GetSignedPubKey()
+        public LMSSignedPubKey[] GetSignedPubKeys()
         {
             return signedPubKey;
         }
 
-        public LMSSignature GetSignature()
-        {
-            return signature;
-        }
+        public LMSSignature Signature => signature;
 
         public override bool Equals(Object o)
         {
@@ -114,6 +107,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 return false;
             }
+
+            // FIXME
             // Probably incorrect - comparing Object[] arrays with Arrays.equals
 
             if (signedPubKey.Length != signature1.signedPubKey.Length)

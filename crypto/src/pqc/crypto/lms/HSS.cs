@@ -10,8 +10,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             //
             // LmsPrivateKey can derive and hold the public key so we just use an array of those.
             //
-            LMSPrivateKeyParameters[] keys = new LMSPrivateKeyParameters[parameters.GetDepth()];
-            LMSSignature[] sig = new LMSSignature[parameters.GetDepth() - 1];
+            LMSPrivateKeyParameters[] keys = new LMSPrivateKeyParameters[parameters.Depth];
+            LMSSignature[] sig = new LMSSignature[parameters.Depth - 1];
 
             byte[] rootSeed = new byte[32];
             parameters.Random.NextBytes(rootSeed);
@@ -30,27 +30,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             long hssKeyMaxIndex = 1;
             for (int t = 0; t < keys.Length; t++)
             {
+                var lms = parameters.GetLmsParameters(t);
                 if (t == 0)
                 {
                     keys[t] = new LMSPrivateKeyParameters(
-                        parameters.GetLmsParameters()[t].GetLmSigParam(),
-                        parameters.GetLmsParameters()[t].GetLmotsParam(),
+                        lms.LMSigParameters,
+                        lms.LMOtsParameters,
                         0,
                         I,
-                        1 << parameters.GetLmsParameters()[t].GetLmSigParam().GetH(),
+                        1 << lms.LMSigParameters.H,
                         rootSeed);
                 }
                 else
                 {
                     keys[t] = new PlaceholderLMSPrivateKey(
-                        parameters.GetLmsParameters()[t].GetLmSigParam(),
-                        parameters.GetLmsParameters()[t].GetLmotsParam(),
+                        lms.LMSigParameters,
+                        lms.LMOtsParameters,
                         -1,
                         zero,
-                        1 << parameters.GetLmsParameters()[t].GetLmSigParam().GetH(),
+                        1 << lms.LMSigParameters.H,
                         zero);
                 }
-                hssKeyMaxIndex *= 1 << parameters.GetLmsParameters()[t].GetLmSigParam().GetH();
+                hssKeyMaxIndex <<= lms.LMSigParameters.H;
             }
 
             // if this has happened we're trying to generate a really large key
@@ -61,7 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
 
             return new HSSPrivateKeyParameters(
-                parameters.GetDepth(),
+                parameters.Depth,
                 new List<LMSPrivateKeyParameters>(keys),
                 new List<LMSSignature>(sig),
                 0, hssKeyMaxIndex);
@@ -82,10 +83,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 RangeTestKeys(keyPair);
                 keyPair.IncIndex();
-                (keyPair.GetKeys()[(keyPair.L - 1)] as LMSPrivateKeyParameters).IncIndex();
+                keyPair.GetKeys()[keyPair.L - 1].IncIndex();
             }
         }
-
 
         public static void RangeTestKeys(HSSPrivateKeyParameters keyPair)
         {
@@ -99,27 +99,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                             " is exhausted");
                 }
 
-
                 int L = keyPair.L;
                 int d = L;
                 var prv = keyPair.GetKeys();
-                while ((prv[d - 1] as LMSPrivateKeyParameters).GetIndex() == 1 << ((prv[(d - 1)] as LMSPrivateKeyParameters ).GetSigParameters().GetH()))
+                while (prv[d - 1].GetIndex() == 1 << prv[d - 1].GetSigParameters().H)
                 {
-                    d = d - 1;
-                    if (d == 0)
-                    {
-                        throw new Exception(
-                            "hss private key" +
-                                ((keyPair.IsShard()) ? " shard" : "") +
-                                " is exhausted the maximum limit for this HSS private key");
-                    }
+                    if (--d == 0)
+                        throw new Exception("hss private key" + (keyPair.IsShard() ? " shard" : "") +
+                            " is exhausted the maximum limit for this HSS private key");
                 }
-
 
                 while (d < L)
                 {
-                    keyPair.ReplaceConsumedKey(d);
-                    d = d + 1;
+                    keyPair.ReplaceConsumedKey(d++);
                 }
             }
         }
@@ -138,17 +130,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 var keys = keyPair.GetKeys();
                 var sig = keyPair.GetSig();
 
-                nextKey = keyPair.GetKeys()[L - 1] as LMSPrivateKeyParameters;
+                nextKey = keyPair.GetKeys()[L - 1];
 
                 // Step 2. Stand in for sig[L-1]
                 int i = 0;
                 signed_pub_key = new LMSSignedPubKey[L - 1];
                 while (i < L - 1)
                 {
-                    signed_pub_key[i] = new LMSSignedPubKey(
-                        sig[i] as LMSSignature,
-                        (keys[i + 1] as LMSPrivateKeyParameters).GetPublicKey());
-                    i = i + 1;
+                    signed_pub_key[i] = new LMSSignedPubKey(sig[i], keys[i + 1].GetPublicKey());
+                    ++i;
                 }
 
                 //
@@ -166,28 +156,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static HSSSignature GenerateSignature(int L, LMSContext context)
         {
-            return new HSSSignature(L - 1, context.GetSignedPubKeys(), LMS.GenerateSign(context));
+            return new HSSSignature(L - 1, context.SignedPubKeys, LMS.GenerateSign(context));
         }
 
         public static bool VerifySignature(HSSPublicKeyParameters publicKey, HSSSignature signature, byte[] message)
         {
             int Nspk = signature.GetlMinus1();
-            if (Nspk + 1 != publicKey.GetL())
-            {
+            if (Nspk + 1 != publicKey.L)
                 return false;
-            }
 
             LMSSignature[] sigList = new LMSSignature[Nspk + 1];
             LMSPublicKeyParameters[] pubList = new LMSPublicKeyParameters[Nspk];
 
             for (int i = 0; i < Nspk; i++)
             {
-                sigList[i] = signature.GetSignedPubKey()[i].GetSignature();
-                pubList[i] = signature.GetSignedPubKey()[i].GetPublicKey();
+                sigList[i] = signature.GetSignedPubKeys()[i].GetSignature();
+                pubList[i] = signature.GetSignedPubKeys()[i].GetPublicKey();
             }
-            sigList[Nspk] = signature.GetSignature();
+            sigList[Nspk] = signature.Signature;
 
-            LMSPublicKeyParameters key = publicKey.GetLmsPublicKey();
+            LMSPublicKeyParameters key = publicKey.LmsPublicKey;
 
             for (int i = 0; i < Nspk; i++)
             {
@@ -209,21 +197,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return LMS.VerifySignature(key, sigList[Nspk], message);
         }
 
-
-        class PlaceholderLMSPrivateKey
+        private class PlaceholderLMSPrivateKey
             : LMSPrivateKeyParameters
         {
-
-            public PlaceholderLMSPrivateKey(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q, byte[] I, int maxQ, byte[] masterSecret)
+            internal PlaceholderLMSPrivateKey(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q,
+                byte[] I, int maxQ, byte[] masterSecret)
                 : base(lmsParameter, otsParameters, q, I, maxQ, masterSecret)
-            {}
+            {
+            }
 
-            LMOtsPrivateKey GetNextOtsPrivateKey()
+            internal override LMOtsPrivateKey GetNextOtsPrivateKey()
             {
                 throw new Exception("placeholder only");
             }
 
-            public LMSPublicKeyParameters GetPublicKey()
+            public override LMSPublicKeyParameters GetPublicKey()
             {
                 throw new Exception("placeholder only");
             }

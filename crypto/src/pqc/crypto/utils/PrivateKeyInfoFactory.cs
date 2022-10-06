@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 HSSPrivateKeyParameters parameters = (HSSPrivateKeyParameters)privateKey;
 
                 byte[] encoding = Composer.Compose().U32Str(parameters.L).Bytes(parameters).Build();
-                byte[] pubEncoding = Composer.Compose().U32Str(parameters.L).Bytes(parameters.GetPublicKey().GetLmsPublicKey()).Build();
+                byte[] pubEncoding = Composer.Compose().U32Str(parameters.L).Bytes(parameters.GetPublicKey().LmsPublicKey).Build();
 
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes, pubEncoding);

@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             HSSPublicKeyParameters publicKey = HSSPublicKeyParameters.GetInstance(blocks[0]);
             byte[] message = (byte[]) blocks[1];
-            HSSSignature signature = HSSSignature.GetInstance(blocks[2], publicKey.GetL());
+            HSSSignature signature = HSSSignature.GetInstance(blocks[2], publicKey.L);
             Assert.True(HSS.VerifySignature(publicKey, signature, message), "Test Case 1 ");
         }
 
@@ -93,9 +93,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             var blocks = LoadVector("pqc.lms.testcase_2.txt");
 
             HSSPublicKeyParameters publicKey = HSSPublicKeyParameters.GetInstance(blocks[0]);
-            byte[] message = blocks[1] as byte[];
-            byte[] sig = blocks[2] as byte[];
-            HSSSignature signature = HSSSignature.GetInstance(sig, publicKey.GetL());
+            byte[] message = blocks[1];
+            byte[] sig = blocks[2];
+            HSSSignature signature = HSSSignature.GetInstance(sig, publicKey.L);
             Assert.True(HSS.VerifySignature(publicKey, signature, message), "Test Case 2 Signature");
 
             LMSPublicKeyParameters lmsPub = LMSPublicKeyParameters.GetInstance(blocks[3]);
@@ -145,8 +145,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
             int level = 0;
-            LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(LMSigParameters.GetParametersForType(6),
-                LMOtsParameters.GetParametersForType(3), level, Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534"), seed);
+            LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(LMSigParameters.GetParametersByID(6),
+                LMOtsParameters.GetParametersByID(3), level, Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534"), seed);
             LMSPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();
             Assert.True(Arrays.AreEqual(publicKey.GetT1(),
                 Hex.Decode("32a58885cd9ba0431235466bff9651c6c92124404d45fa53cf161c28f1ad5a8e")));
@@ -164,8 +164,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             byte[] seed = Hex.Decode("a1c4696e2608035a886100d05cd99945eb3370731884a8235e2fb3d4d71f2547");
             int level = 1;
-            LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(LMSigParameters.GetParametersForType(5),
-                LMOtsParameters.GetParametersForType(4), level, Hex.Decode("215f83b7ccb9acbcd08db97b0d04dc2b"), seed);
+            LMSPrivateKeyParameters lmsPrivateKey = LMS.GenerateKeys(LMSigParameters.GetParametersByID(5),
+                LMOtsParameters.GetParametersByID(4), level, Hex.Decode("215f83b7ccb9acbcd08db97b0d04dc2b"), seed);
             LMSPublicKeyParameters publicKey = lmsPrivateKey.GetPublicKey();
             Assert.True(Arrays.AreEqual(publicKey.GetT1(),
                 Hex.Decode("a1cd035833e0e90059603f26e07ad2aad152338e7a5e5984bcd5f7bb4eba40b7")));
@@ -243,8 +243,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     //
                     // Check the private keys can be encoded and are the same.
                     //
-                    byte[] pk1 = (keyPair.GetKeys()[t] as LMSPrivateKeyParameters).GetEncoded();
-                    byte[] pk2 = (regenKeyPair.GetKeys()[t] as LMSPrivateKeyParameters).GetEncoded();
+                    byte[] pk1 = keyPair.GetKeys()[t].GetEncoded();
+                    byte[] pk2 = regenKeyPair.GetKeys()[t].GetEncoded();
                     Assert.True(Arrays.AreEqual(pk1, pk2));
 
                     //
@@ -287,8 +287,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     //
                     // Check the private keys can be encoded and are not the same.
                     //
-                    byte[] pk1 = (keyPair.GetKeys()[t] as LMSPrivateKeyParameters).GetEncoded();
-                    byte[] pk2 = (differentKey.GetKeys()[t] as LMSPrivateKeyParameters).GetEncoded();
+                    byte[] pk1 = keyPair.GetKeys()[t].GetEncoded();
+                    byte[] pk2 = differentKey.GetKeys()[t].GetEncoded();
                     Assert.False(Arrays.AreEqual(pk1, pk2), "keys not the same");
 
                     //
@@ -343,12 +343,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 else if (line.StartsWith("LMType:"))
                 {
                     int typ = int.Parse(line.Substring("LMType:".Length).Trim());
-                    lmsParameters.Add(LMSigParameters.GetParametersForType(typ));
+                    lmsParameters.Add(LMSigParameters.GetParametersByID(typ));
                 }
                 else if (line.StartsWith("LMOtsType:"))
                 {
                     int typ = int.Parse(line.Substring("LMOtsType:".Length).Trim());
-                    lmOtsParameters.Add(LMOtsParameters.GetParametersForType(typ));
+                    lmOtsParameters.Add(LMOtsParameters.GetParametersByID(typ));
                 }
                 else if (line.StartsWith("Rand:"))
                 {
@@ -385,8 +385,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                     for (int i = 0; i != lmsParameters.Count; i++)
                     {
-                        lmsParams.Add(new LMSParameters(lmsParameters[i] as LMSigParameters,
-                            lmOtsParameters[i] as LMOtsParameters));
+                        lmsParams.Add(new LMSParameters(lmsParameters[i], lmOtsParameters[i]));
                     }
 
                     //
@@ -482,12 +481,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     else if (line.StartsWith("LMType:"))
                     {
                         int typ = int.Parse(line.Substring("LMType:".Length).Trim());
-                        lmsParameters.Add(LMSigParameters.GetParametersForType(typ));
+                        lmsParameters.Add(LMSigParameters.GetParametersByID(typ));
                     }
                     else if (line.StartsWith("LMOtsType:"))
                     {
                         int typ = int.Parse(line.Substring("LMOtsType:".Length).Trim());
-                        lmOtsParameters.Add(LMOtsParameters.GetParametersForType(typ));
+                        lmOtsParameters.Add(LMOtsParameters.GetParametersByID(typ));
                     }
                     else if (line.StartsWith("Rand:"))
                     {
@@ -519,15 +518,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 for (int i = 0; i != lmsParameters.Count; i++)
                 {
-                    lmsParams.Add(new LMSParameters(lmsParameters[i] as LMSigParameters,
-                        lmOtsParameters[i] as LMOtsParameters));
+                    lmsParams.Add(new LMSParameters(lmsParameters[i], lmOtsParameters[i]));
                 }
 
                 LMSParameters[] lmsParamsArray = new LMSParameters[lmsParams.Count];
                 lmsParams.CopyTo(lmsParamsArray, 0);
                 HSSPrivateKeyParameters keyPair = HSS.GenerateHssKeyPair(
-                    new HSSKeyGenerationParameters(
-                        lmsParamsArray, fixRnd)
+                    new HSSKeyGenerationParameters(lmsParamsArray, fixRnd)
                 );
 
                 Assert.True(Arrays.AreEqual(hssPubEnc, keyPair.GetPublicKey().GetEncoded()));
@@ -579,7 +576,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                         Assert.True(HSS.VerifySignature(pubKeyGenerated, sigCalculated, message));
 
                         HSSSignature sigFromVector = HSSSignature.GetInstance((byte[]) sigVectors[c],
-                            pubKeyFromVector.GetL());
+                            pubKeyFromVector.L);
 
                         Assert.True(HSS.VerifySignature(pubKeyFromVector, sigFromVector, message));
                         Assert.True(HSS.VerifySignature(pubKeyGenerated, sigFromVector, message));
@@ -616,7 +613,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             );
 
 
-            LMSPrivateKeyParameters lmsKey = keyPair.GetKeys()[keyPair.L - 1] as LMSPrivateKeyParameters;
+            LMSPrivateKeyParameters lmsKey = keyPair.GetKeys()[keyPair.L - 1];
             //
             // There should be a max of 32768 signatures for this key.
             //
@@ -659,7 +656,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             //
             // This should trigger the generation of a new key.
             //
-            LMSPrivateKeyParameters potentialNewLMSKey = keyPair.GetKeys()[keyPair.L - 1] as LMSPrivateKeyParameters;
+            LMSPrivateKeyParameters potentialNewLMSKey = keyPair.GetKeys()[keyPair.L - 1];
             Assert.False(potentialNewLMSKey.Equals(lmsKey));
         }
 
@@ -791,10 +788,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                         Pack_Int32_To_BE(ctr, message, 0);
                         HSSSignature sig = HSS.GenerateSignature(keyPair, message);
 
-                        Assert.True(ctr % 1024 == sig.GetSignature().GetQ());
+                        Assert.True(ctr % 1024 == sig.Signature.Q);
 
                         // Check there was a post increment in the tail end LMS key.
-                        Assert.True((ctr % 1024) + 1 == (keyPair.GetKeys()[keyPair.L - 1] as LMSPrivateKeyParameters).GetIndex());
+                        Assert.True((ctr % 1024) + 1 == keyPair.GetKeys()[keyPair.L - 1].GetIndex());
 
                         Assert.True(ctr + 1 == keyPair.GetIndex());
 
@@ -806,21 +803,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                         for (int t = keyPair.GetKeys().Count - 1; t >= 0; t--)
                         {
-                            LMSigParameters sigParameters = (keyPair.GetKeys()[t] as LMSPrivateKeyParameters).GetSigParameters();
-                            int mask = (1 << sigParameters.GetH()) - 1;
+                            LMSigParameters sigParameters = keyPair.GetKeys()[t].GetSigParameters();
+                            int mask = (1 << sigParameters.H) - 1;
                             qValues[t] = q & mask;
-                            q >>= sigParameters.GetH();
+                            q >>= sigParameters.H;
                         }
 
                         for (int t = 0; t < keyPair.GetKeys().Count; t++)
                         {
-                            Assert.True( (keyPair.GetKeys()[t] as LMSPrivateKeyParameters).GetIndex() - 1 == qValues[t]);
+                            Assert.True(keyPair.GetKeys()[t].GetIndex() - 1 == qValues[t]);
                         }
 
-
                         Assert.True(HSS.VerifySignature(pk, sig, message));
-                        Assert.True(sig.GetSignature().GetParameter().GetType() ==
-                                    LMSigParameters.lms_sha256_n32_h10.GetType());
+                        Assert.True(sig.Signature.SigParameters.ID == LMSigParameters.lms_sha256_n32_h10.ID);
 
                         {
                             //
@@ -828,7 +823,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                             //
                             byte[] rawSig = sig.GetEncoded();
                             rawSig[100] ^= 1;
-                            HSSSignature parsedSig = HSSSignature.GetInstance(rawSig, pk.GetL());
+                            HSSSignature parsedSig = HSSSignature.GetInstance(rawSig, pk.L);
                             Assert.False(HSS.VerifySignature(pk, parsedSig, message));
 
                             try

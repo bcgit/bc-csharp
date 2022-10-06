@@ -1,10 +1,8 @@
 using System;
 using System.IO;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
+
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
-
-using static Org.BouncyCastle.Pqc.Crypto.Lms.LMS;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -27,37 +25,36 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static LMSPublicKeyParameters GetInstance(Object src)
         {
-            if (src is LMSPublicKeyParameters)
+            if (src is LMSPublicKeyParameters lmsPublicKeyParameters)
             {
-                return (LMSPublicKeyParameters)src;
+                return lmsPublicKeyParameters;
             }
             // todo
-             else if (src is BinaryReader)
+             else if (src is BinaryReader binaryReader)
              {
-                 byte[] data = ((BinaryReader) src).ReadBytes(4);
+                 byte[] data = binaryReader.ReadBytes(4);
                  Array.Reverse(data);
                  int pubType = BitConverter.ToInt32(data, 0);
-                 LMSigParameters lmsParameter = LMSigParameters.GetParametersForType(pubType);
+                 LMSigParameters lmsParameter = LMSigParameters.GetParametersByID(pubType);
                  
-                 data = ((BinaryReader) src).ReadBytes(4);
+                 data = binaryReader.ReadBytes(4);
                  Array.Reverse(data);
                  int index = BitConverter.ToInt32(data, 0);
-                 LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersForType(index);
+                 LMOtsParameters ostTypeCode = LMOtsParameters.GetParametersByID(index);
             
                  byte[] I = new byte[16];
-                 ((BinaryReader)src).Read(I, 0, I.Length);//change to readbytes?
+                binaryReader.Read(I, 0, I.Length);//change to readbytes?
             
-                 byte[] T1 = new byte[lmsParameter.GetM()];
-                 ((BinaryReader)src).Read(T1, 0, T1.Length);
+                 byte[] T1 = new byte[lmsParameter.M];
+                binaryReader.Read(T1, 0, T1.Length);
                  return new LMSPublicKeyParameters(lmsParameter, ostTypeCode, T1, I);
              }
-             else if (src is byte[])
+             else if (src is byte[] bytes)
              {
-            
                  BinaryReader input = null;
                  try // 1.5 / 1.6 compatibility
                  {
-                     input = new BinaryReader(new MemoryStream((byte[])src, false));
+                     input = new BinaryReader(new MemoryStream(bytes, false));
                      return GetInstance(input);
                  }
                  finally
@@ -68,9 +65,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                      }
                  }
              }
-            else if (src is MemoryStream)
+            else if (src is MemoryStream memoryStream)
             {
-                return GetInstance(Streams.ReadAll((Stream)src));
+                return GetInstance(Streams.ReadAll(memoryStream));
             }
             throw new Exception ($"cannot parse {src}");
         }
@@ -155,8 +152,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal byte[] ToByteArray()
         {
             return Composer.Compose()
-                .U32Str(parameterSet.GetType())
-                .U32Str(lmOtsType.GetType())
+                .U32Str(parameterSet.ID)
+                .U32Str(lmOtsType.ID)
                 .Bytes(I)
                 .Bytes(T1)
                 .Build();
@@ -176,19 +173,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal LMSContext GenerateOtsContext(LMSSignature S)
         {
-            int ots_typecode = GetOtsParameters().GetType();
-            if (S.GetOtsSignature().GetParamType().GetType() != ots_typecode)
+            int ots_typecode = GetOtsParameters().ID;
+            if (S.OtsSignature.ParamType.ID != ots_typecode)
             {
                 throw new ArgumentException("ots type from lsm signature does not match ots" +
                     " signature type from embedded ots signature");
             }
 
-            return new LMOtsPublicKey(LMOtsParameters.GetParametersForType(ots_typecode), I,  S.GetQ(), null).CreateOtsContext(S);
+            return new LMOtsPublicKey(LMOtsParameters.GetParametersByID(ots_typecode), I,  S.Q, null)
+                .CreateOtsContext(S);
         }
 
         public bool Verify(LMSContext context)
         {
-            return VerifySignature(this, context);
+            return LMS.VerifySignature(this, context);
         }
     }
 }

@@ -524,6 +524,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void UInt16_To_BE(ushort n, Span<byte> bs)
+        {
+            bs[0] = (byte)(n >> 8);
+            bs[1] = (byte)n;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void UInt32_To_BE(uint n, Span<byte> bs)
         {
             bs[0] = (byte)(n >> 24);

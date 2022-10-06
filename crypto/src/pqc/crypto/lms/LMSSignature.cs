@@ -22,40 +22,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.y = y;
         }
 
-        public static LMSSignature GetInstance(Object src)
+        public static LMSSignature GetInstance(object src)
         {
-            if (src is LMSSignature)
+            if (src is LMSSignature lmsSignature)
             {
-                return (LMSSignature)src;
+                return lmsSignature;
             }
-            else if (src is BinaryReader)
+            else if (src is BinaryReader binaryReader)
             {
-                byte[] data = ((BinaryReader)src).ReadBytes(4);
+                byte[] data = binaryReader.ReadBytes(4);
                 Array.Reverse(data);
                 int q = BitConverter.ToInt32(data, 0);
                 
                 LMOtsSignature otsSignature = LMOtsSignature.GetInstance(src);
 
-                data = ((BinaryReader) src).ReadBytes(4);
+                data = binaryReader.ReadBytes(4);
                 Array.Reverse(data);
                 int index = BitConverter.ToInt32(data, 0);
-                LMSigParameters type = LMSigParameters.GetParametersForType(index);
-            
-                byte[][] path = new byte[type.GetH()][];
+                LMSigParameters type = LMSigParameters.GetParametersByID(index);
+
+                byte[][] path = new byte[type.H][];
                 for (int h = 0; h < path.Length; h++)
                 {
-                    path[h] = new byte[type.GetM()];
-                    ((BinaryReader)src).Read(path[h], 0, path[h].Length);
+                    path[h] = new byte[type.M];
+                    binaryReader.Read(path[h], 0, path[h].Length);
                 }
             
                 return new LMSSignature(q, otsSignature, type, path);
             }
-            else if (src is byte[])
+            else if (src is byte[] bytes)
             {
                 BinaryReader input = null;
                 try // 1.5 / 1.6 compatibility
                 {
-                    input = new BinaryReader(new MemoryStream( (byte[]) src, false));
+                    input = new BinaryReader(new MemoryStream(bytes, false));
                     return GetInstance(input);
                 }
                 finally
@@ -63,9 +63,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     if (input != null) input.Close();// todo platform dispose
                 }
             }
-            else if (src is MemoryStream)
+            else if (src is MemoryStream memoryStream)
             {
-                return GetInstance(Streams.ReadAll((Stream)src));
+                return GetInstance(Streams.ReadAll(memoryStream));
             }
             throw new Exception ($"cannot parse {src}");
         }
@@ -126,29 +126,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return Composer.Compose()
                 .U32Str(q)
                 .Bytes(otsSignature.GetEncoded())
-                .U32Str(parameter.GetType())
+                .U32Str(parameter.ID)
                 .Bytes(y)
                 .Build();
         }
 
-        public int GetQ()
-        {
-            return q;
-        }
+        public int Q => q;
 
-        public LMOtsSignature GetOtsSignature()
-        {
-            return otsSignature;
-        }
+        public LMOtsSignature OtsSignature => otsSignature;
 
-        public LMSigParameters GetParameter()
-        {
-            return parameter;
-        }
+        public LMSigParameters SigParameters => parameter;
 
-        public byte[][] GetY()
-        {
-            return y;
-        }
+        // FIXME
+        public byte[][] Y => y;
     }
 }

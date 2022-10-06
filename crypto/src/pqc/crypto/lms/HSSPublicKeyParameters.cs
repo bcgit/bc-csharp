@@ -1,43 +1,43 @@
 using System;
 using System.IO;
+
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class HSSPublicKeyParameters
+    public sealed class HSSPublicKeyParameters
         : LMSKeyParameters, ILMSContextBasedVerifier
     {
-        private int l;
-        private LMSPublicKeyParameters lmsPublicKey;
+        private readonly int m_l;
+        private readonly LMSPublicKeyParameters m_lmsPublicKey;
 
         public HSSPublicKeyParameters(int l, LMSPublicKeyParameters lmsPublicKey)
     	    :base(false)
         {
-
-            this.l = l;
-            this.lmsPublicKey = lmsPublicKey;
+            m_l = l;
+            m_lmsPublicKey = lmsPublicKey;
         }
 
-        public static HSSPublicKeyParameters GetInstance(Object src)
+        public static HSSPublicKeyParameters GetInstance(object src)
         {
-            if (src is HSSPublicKeyParameters)
+            if (src is HSSPublicKeyParameters hssPublicKeyParameters)
             {
-                return (HSSPublicKeyParameters)src;
+                return hssPublicKeyParameters;
             }
-            else if (src is BinaryReader)
+            else if (src is BinaryReader binaryReader)
             {
-                byte[] data = ((BinaryReader) src).ReadBytes(4);
+                byte[] data = binaryReader.ReadBytes(4);
                 Array.Reverse(data);
                 int L = BitConverter.ToInt32(data, 0);
                 LMSPublicKeyParameters lmsPublicKey = LMSPublicKeyParameters.GetInstance(src);// todo check endianness
                 return new HSSPublicKeyParameters(L, lmsPublicKey);
             }
-            else if (src is byte[])
+            else if (src is byte[] bytes)
             {
                 BinaryReader input = null;
                 try // 1.5 / 1.6 compatibility
                 {
-                    input = new BinaryReader(new MemoryStream((byte[])src));
+                    input = new BinaryReader(new MemoryStream(bytes));
                     return GetInstance(input);
                 }
                 finally
@@ -45,55 +45,42 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     if (input != null) input.Close();
                 }
             }
-            else if (src is MemoryStream)
+            else if (src is MemoryStream memoryStream)
             {
-                return GetInstance(Streams.ReadAll((Stream)src));
+                return GetInstance(Streams.ReadAll(memoryStream));
             }
 
             throw new ArgumentException($"cannot parse {src}");
         }
 
-        public int GetL()
-        {
-            return l;
-        }
+        public int L => m_l;
 
-        public LMSPublicKeyParameters GetLmsPublicKey()
-        {
-            return lmsPublicKey;
-        }
-        
+        public LMSPublicKeyParameters LmsPublicKey => m_lmsPublicKey;
+
         public override bool Equals(Object o)
         {
             if (this == o)
-            {
                 return true;
-            }
             if (o == null || GetType() != o.GetType())
-            {
                 return false;
-            }
 
             HSSPublicKeyParameters publicKey = (HSSPublicKeyParameters)o;
 
-            if (l != publicKey.l)
-            {
-                return false;
-            }
-            return lmsPublicKey.Equals(publicKey.lmsPublicKey);
+            return m_l == publicKey.m_l
+                && m_lmsPublicKey.Equals(publicKey.m_lmsPublicKey);
         }
 
         public override int GetHashCode()
         {
-            int result = l;
-            result = 31 * result + lmsPublicKey.GetHashCode();
+            int result = m_l;
+            result = 31 * result + m_lmsPublicKey.GetHashCode();
             return result;
         }
 
         public override byte[] GetEncoded()
         {
-            return Composer.Compose().U32Str(l)
-                .Bytes(lmsPublicKey.GetEncoded())
+            return Composer.Compose().U32Str(m_l)
+                .Bytes(m_lmsPublicKey.GetEncoded())
                 .Build();
         }
 
@@ -102,31 +89,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             HSSSignature signature;
             try
             {
-                signature = HSSSignature.GetInstance(sigEnc, GetL());
+                signature = HSSSignature.GetInstance(sigEnc, L);
             }
             catch (IOException e)
             {
                 throw new Exception($"cannot parse signature: {e.Message}");
             }
 
-            LMSSignedPubKey[] signedPubKeys = signature.GetSignedPubKey();
+            LMSSignedPubKey[] signedPubKeys = signature.GetSignedPubKeys();
             LMSPublicKeyParameters key = signedPubKeys[signedPubKeys.Length - 1].GetPublicKey();
 
-            return key.GenerateOtsContext(signature.GetSignature()).WithSignedPublicKeys(signedPubKeys);
+            return key.GenerateOtsContext(signature.Signature).WithSignedPublicKeys(signedPubKeys);
         }
 
         public bool Verify(LMSContext context)
         {
-            bool failed = false;
+            LMSSignedPubKey[] sigKeys = context.SignedPubKeys;
 
-            LMSSignedPubKey[] sigKeys = context.GetSignedPubKeys();
-
-            if (sigKeys.Length != GetL() - 1)
-            {
+            if (sigKeys.Length != L - 1)
                 return false;
-            }
 
-            LMSPublicKeyParameters key = GetLmsPublicKey();
+            LMSPublicKeyParameters key = LmsPublicKey;
+            bool failed = false;
 
             for (int i = 0; i < sigKeys.Length; i++)
             {

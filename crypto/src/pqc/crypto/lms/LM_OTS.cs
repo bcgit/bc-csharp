@@ -1,4 +1,5 @@
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
@@ -18,7 +19,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static int MAX_HASH = 32;
         internal static ushort D_MESG = 0x8181;
 
-
         public static int Coef(byte[] S, int i, int w)
         {
             int index = (i * w) / 8;
@@ -29,38 +29,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return (S[index] >> shift) & mask;
         }
 
-
         public static int Cksm(byte[] S, int sLen, LMOtsParameters parameters)
         {
             int sum = 0;
 
-            int w = parameters.GetW();
+            int w = parameters.W;
 
             // NB assumption about size of "w" not overflowing integer.
             int twoWpow = (1 << w) - 1;
 
-            for (int i = 0; i < (sLen * 8 / parameters.GetW()); i++)
+            for (int i = 0; i < (sLen * 8 / parameters.W); i++)
             {
-                sum = sum + twoWpow - Coef(S, i, parameters.GetW());
+                sum = sum + twoWpow - Coef(S, i, parameters.W);
             }
-            return sum << parameters.GetLs();
+            return sum << parameters.Ls;
         }
 
-
-        public static LMOtsPublicKey lms_ots_generatePublicKey(LMOtsPrivateKey privateKey)
+        public static LMOtsPublicKey LmsOtsGeneratePublicKey(LMOtsPrivateKey privateKey)
         {
-            byte[] K = lms_ots_generatePublicKey(privateKey.GetParameter(), privateKey.GetI(), privateKey.GetQ(), privateKey.GetMasterSecret());
-            return new LMOtsPublicKey(privateKey.GetParameter(), privateKey.GetI(), privateKey.GetQ(), K);
+            byte[] K = LmsOtsGeneratePublicKey(privateKey.Parameters, privateKey.I, privateKey.Q,
+                privateKey.MasterSecret);
+            return new LMOtsPublicKey(privateKey.Parameters, privateKey.I, privateKey.Q, K);
         }
 
-        internal static byte[] lms_ots_generatePublicKey(LMOtsParameters parameter, byte[] I, int q, byte[] masterSecret)
+        internal static byte[] LmsOtsGeneratePublicKey(LMOtsParameters parameter, byte[] I, int q, byte[] masterSecret)
         {
-
-
             //
             // Start hash that computes the final value.
             //
-            IDigest publicContext = DigestUtilities.GetDigest(parameter.GetDigestOid());
+            IDigest publicContext = DigestUtilities.GetDigest(parameter.DigestOid);
             byte[] prehashPrefix = Composer.Compose()
                 .Bytes(I)
                 .U32Str(q)
@@ -69,7 +66,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
             publicContext.BlockUpdate(prehashPrefix, 0, prehashPrefix.Length);
 
-            IDigest ctx = DigestUtilities.GetDigest(parameter.GetDigestOid());
+            IDigest ctx = DigestUtilities.GetDigest(parameter.DigestOid);
 
             byte[] buf = Composer.Compose()
                 .Bytes(I)
@@ -77,19 +74,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .PadUntil(0, 23 + ctx.GetDigestSize())
                 .Build();
 
+            SeedDerive derive = new SeedDerive(I, masterSecret, DigestUtilities.GetDigest(parameter.DigestOid))
+            {
+                Q = q,
+                J = 0,
+            };
 
-            SeedDerive derive = new SeedDerive(I, masterSecret, DigestUtilities.GetDigest(parameter.GetDigestOid()));
-            derive.SetQ(q);
-            derive.SetJ(0);
-
-            int p = parameter.GetP();
-            int n = parameter.GetN();
-            int twoToWminus1 = (1 << parameter.GetW()) - 1;
-
+            int p = parameter.P;
+            int n = parameter.N;
+            int twoToWminus1 = (1 << parameter.W) - 1;
 
             for (ushort i = 0; i < p; i++)
             {
-                derive.deriveSeed(buf, i < p - 1, ITER_PREV); // Private Key!
+                derive.DeriveSeed(i < p - 1, buf, ITER_PREV); // Private Key!
                 Pack.UInt16_To_BE(i, buf, ITER_K);
                 for (int j = 0; j < twoToWminus1; j++)
                 {
@@ -102,17 +99,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             byte[] K = new byte[publicContext.GetDigestSize()];
             publicContext.DoFinal(K, 0);
-
             return K;
-
         }
 
-        public static LMOtsSignature lm_ots_generate_signature(LMSigParameters sigParams, LMOtsPrivateKey privateKey, byte[][] path, byte[] message, bool preHashed)
+        public static LMOtsSignature lm_ots_generate_signature(LMSigParameters sigParams, LMOtsPrivateKey privateKey,
+            byte[][] path, byte[] message, bool preHashed)
         {
             //
             // Add the randomizer.
             //
-
             byte[] C;
             byte[] Q = new byte[MAX_HASH + 2];
 
@@ -128,23 +123,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             else
             {
                 C = new byte[SEED_LEN];
-                Array.Copy(message, 0, Q, 0, privateKey.GetParameter().GetN());
+                Array.Copy(message, 0, Q, 0, privateKey.Parameters.N);
             }
 
-            return lm_ots_generate_signature(privateKey, Q, C);
+            return LMOtsGenerateSignature(privateKey, Q, C);
         }
 
-        public static LMOtsSignature lm_ots_generate_signature(LMOtsPrivateKey privateKey, byte[] Q, byte[] C)
+        public static LMOtsSignature LMOtsGenerateSignature(LMOtsPrivateKey privateKey, byte[] Q, byte[] C)
         {
-            LMOtsParameters parameter = privateKey.GetParameter();
+            LMOtsParameters parameter = privateKey.Parameters;
 
-            int n = parameter.GetN();
-            int p = parameter.GetP();
-            int w = parameter.GetW();
+            int n = parameter.N;
+            int p = parameter.P;
+            int w = parameter.W;
 
             byte[] sigComposer = new byte[p * n];
 
-            IDigest ctx = DigestUtilities.GetDigest(parameter.GetDigestOid());
+            IDigest ctx = DigestUtilities.GetDigest(parameter.DigestOid);
 
             SeedDerive derive = privateKey.GetDerivationFunction();
 
@@ -153,16 +148,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Q[n + 1] = (byte)cs;
 
             byte[] tmp = Composer.Compose()
-                .Bytes(privateKey.GetI())
-                .U32Str(privateKey.GetQ())
+                .Bytes(privateKey.I)
+                .U32Str(privateKey.Q)
                 .PadUntil(0, ITER_PREV + n)
                 .Build();
 
-            derive.SetJ(0);
+            derive.J = 0;
             for (ushort i = 0; i < p; i++)
             {
                 Pack.UInt16_To_BE(i, tmp, ITER_K);
-                derive.deriveSeed(tmp, i < p - 1, ITER_PREV);
+                derive.DeriveSeed(i < p - 1, tmp, ITER_PREV);
                 int a = Coef(Q, i, w);
                 for (int j = 0; j < a; j++)
                 {
@@ -176,52 +171,53 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LMOtsSignature(parameter, C, sigComposer);
         }
 
-        public static bool lm_ots_validate_signature(LMOtsPublicKey publicKey, LMOtsSignature signature, byte[] message, bool prehashed)
+        public static bool LMOtsValidateSignature(LMOtsPublicKey publicKey, LMOtsSignature signature, byte[] message,
+            bool prehashed)
         {
-            if (!signature.GetParamType().Equals(publicKey.GetParameter())) // todo check
-            {
+            if (!signature.ParamType.Equals(publicKey.Parameters)) // todo check
                 throw new LMSException("public key and signature ots types do not match");
-            }
-            return Arrays.AreEqual(lm_ots_validate_signature_calculate(publicKey, signature, message), publicKey.GetK());
+
+            return Arrays.AreEqual(LMOtsValidateSignatureCalculate(publicKey, signature, message), publicKey.K);
         }
 
-        public static byte[] lm_ots_validate_signature_calculate(LMOtsPublicKey publicKey, LMOtsSignature signature, byte[] message)
+        public static byte[] LMOtsValidateSignatureCalculate(LMOtsPublicKey publicKey, LMOtsSignature signature, 
+            byte[] message)
         {
             LMSContext ctx = publicKey.CreateOtsContext(signature);
 
             LmsUtils.ByteArray(message, ctx);
 
-            return lm_ots_validate_signature_calculate(ctx);
+            return LMOtsValidateSignatureCalculate(ctx);
         }
 
-        public static byte[] lm_ots_validate_signature_calculate(LMSContext context)
+        public static byte[] LMOtsValidateSignatureCalculate(LMSContext context)
         {
-            LMOtsPublicKey publicKey = context.GetPublicKey();
-            LMOtsParameters parameter = publicKey.GetParameter();
-            Object sig = context.GetSignature();
+            LMOtsPublicKey publicKey = context.PublicKey;
+            LMOtsParameters parameter = publicKey.Parameters;
+            object sig = context.Signature;
             LMOtsSignature signature;
             if (sig is LMSSignature)
             {
-                signature = ((LMSSignature)sig).GetOtsSignature();
+                signature = ((LMSSignature)sig).OtsSignature;
             }
             else
             {
                 signature = (LMOtsSignature)sig;
             }
 
-            int n = parameter.GetN();
-            int w = parameter.GetW();
-            int p = parameter.GetP();
+            int n = parameter.N;
+            int w = parameter.W;
+            int p = parameter.P;
             byte[] Q = context.GetQ();
 
             int cs = Cksm(Q, n, parameter);
             Q[n] = (byte)((cs >> 8) & 0xFF);
             Q[n + 1] = (byte)cs;
 
-            byte[] I = publicKey.GetI();
-            int    q = publicKey.GetQ();
+            byte[] I = publicKey.I;
+            int q = publicKey.Q;
 
-            IDigest finalContext = DigestUtilities.GetDigest(parameter.GetDigestOid());
+            IDigest finalContext = DigestUtilities.GetDigest(parameter.DigestOid);
             LmsUtils.ByteArray(I, finalContext);
             LmsUtils.U32Str(q, finalContext);
             LmsUtils.U16Str(D_PBLC, finalContext);
@@ -234,9 +230,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             int max_digit = (1 << w) - 1;
 
-            byte[] y = signature.GetY();
+            byte[] y = signature.Y;
 
-            IDigest ctx = DigestUtilities.GetDigest(parameter.GetDigestOid());
+            IDigest ctx = DigestUtilities.GetDigest(parameter.DigestOid);
             for (ushort i = 0; i < p; i++)
             {
                 Pack.UInt16_To_BE(i, tmp, ITER_K);

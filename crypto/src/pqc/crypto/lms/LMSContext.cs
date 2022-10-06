@@ -1,139 +1,108 @@
 using System;
-using Org.BouncyCastle.Crypto;
 
-using static Org.BouncyCastle.Pqc.Crypto.Lms.LM_OTS;
+using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public class LMSContext
+    public sealed class LMSContext
         : IDigest
     {
-        private byte[] c;
-        private LMOtsPrivateKey key;
-        private LMSigParameters sigParams;
-        private byte[][] path;
-        private LMOtsPublicKey publicKey;
-        private Object signature;
+        private readonly byte[] m_c;
+        private readonly LMOtsPrivateKey m_privateKey;
+        private readonly LMSigParameters m_sigParams;
+        private readonly byte[][] m_path;
 
-        private LMSSignedPubKey[] signedPubKeys;
-        private volatile IDigest digest;
+        private readonly LMOtsPublicKey m_publicKey;
+        private readonly object m_signature;
+        private LMSSignedPubKey[] m_signedPubKeys;
+        private volatile IDigest m_digest;
 
-        public LMSContext(LMOtsPrivateKey key, LMSigParameters sigParams, IDigest digest, byte[] C, byte[][] path)
+        public LMSContext(LMOtsPrivateKey privateKey, LMSigParameters sigParams, IDigest digest, byte[] C,
+            byte[][] path)
         {
-            this.key = key;
-            this.sigParams = sigParams;
-            this.digest = digest;
-            this.c = C;
-            this.path = path;
-            this.publicKey = null;
-            this.signature = null;
+            m_privateKey = privateKey;
+            m_sigParams = sigParams;
+            m_digest = digest;
+            m_c = C;
+            m_path = path;
+            m_publicKey = null;
+            m_signature = null;
         }
 
-        public LMSContext(LMOtsPublicKey publicKey, Object signature, IDigest digest)
+        public LMSContext(LMOtsPublicKey publicKey, object signature, IDigest digest)
         {
-            this.publicKey = publicKey;
-            this.signature = signature;
-            this.digest = digest;
-            this.c = null;
-            this.key = null;
-            this.sigParams = null;
-            this.path = null;
+            m_publicKey = publicKey;
+            m_signature = signature;
+            m_digest = digest;
+            m_c = null;
+            m_privateKey = null;
+            m_sigParams = null;
+            m_path = null;
         }
 
-        public byte[] C => c;
+        public byte[] C => m_c;
 
         public byte[] GetQ()
         {
-            byte[] Q = new byte[MAX_HASH + 2];
-
-            digest.DoFinal(Q, 0);
-            
-            digest = null;
-
+            byte[] Q = new byte[LM_OTS.MAX_HASH + 2];
+            m_digest.DoFinal(Q, 0);
+            m_digest = null;
             return Q;
         }
 
-        internal byte[][] GetPath()
-        {
-            return path;
-        }
+        internal byte[][] Path => m_path;
 
-        internal LMOtsPrivateKey GetPrivateKey()
-        {
-            return key;
-        }
+        internal LMOtsPrivateKey PrivateKey => m_privateKey;
 
-        public LMOtsPublicKey GetPublicKey()
-        {
-            return publicKey;
-        }
+        public LMOtsPublicKey PublicKey => m_publicKey;
 
-        internal LMSigParameters GetSigParams()
-        {
-            return sigParams;
-        }
+        internal LMSigParameters SigParams => m_sigParams;
 
-        public Object GetSignature()
-        {
-            return signature;
-        }
+        public object Signature => m_signature;
 
-        internal LMSSignedPubKey[] GetSignedPubKeys()
-        {
-            return signedPubKeys;
-        }
+        internal LMSSignedPubKey[] SignedPubKeys => m_signedPubKeys;
 
         internal LMSContext WithSignedPublicKeys(LMSSignedPubKey[] signedPubKeys)
         {
-            this.signedPubKeys = signedPubKeys;
-
+            m_signedPubKeys = signedPubKeys;
             return this;
         }
 
-        public string AlgorithmName
-        {
-            get => digest.AlgorithmName;
-        }
+        public string AlgorithmName => m_digest.AlgorithmName;
 
-        public int GetDigestSize()
-        {
-            return digest.GetDigestSize();
-        }
+        public int GetDigestSize() => m_digest.GetDigestSize();
 
-        public int GetByteLength()
-        {
-            return digest.GetByteLength();
-        }
+        public int GetByteLength() => m_digest.GetByteLength();
 
         public void Update(byte input)
         {
-            digest.Update(input);
+            m_digest.Update(input);
         }
 
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
-            digest.BlockUpdate(input, inOff, len);
+            m_digest.BlockUpdate(input, inOff, len);
         }
 
         public int DoFinal(byte[] output, int outOff)
         {
-            return digest.DoFinal(output, outOff);
+            return m_digest.DoFinal(output, outOff);
         }
 
         public void Reset()
         {
-            digest.Reset();
+            m_digest.Reset();
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
-            digest.BlockUpdate(input);
+            m_digest.BlockUpdate(input);
         }
 
         public int DoFinal(Span<byte> output)
         {
-            return digest.DoFinal(output);
+            return m_digest.DoFinal(output);
         }
 #endif
     }

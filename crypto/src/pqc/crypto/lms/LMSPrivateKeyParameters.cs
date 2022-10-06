@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
-
-using static Org.BouncyCastle.Pqc.Crypto.Lms.LMS;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -53,9 +51,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.I = Arrays.Clone(I);
             this.maxQ = maxQ;
             this.masterSecret = Arrays.Clone(masterSecret);
-            this.maxCacheR = 1 << (parameters.GetH() + 1);
+            this.maxCacheR = 1 << (parameters.H + 1);
             this.tCache = new Dictionary<CacheKey, byte[]>();
-            this.tDigest = DigestUtilities.GetDigest(lmsParameter.GetDigestOid());
+            this.tDigest = DigestUtilities.GetDigest(lmsParameter.DigestOid);
         }
 
         private LMSPrivateKeyParameters(LMSPrivateKeyParameters parent, int q, int maxQ)
@@ -67,9 +65,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.I = parent.I;
             this.maxQ = maxQ;
             this.masterSecret = parent.masterSecret;
-            this.maxCacheR = 1 << parameters.GetH();
+            this.maxCacheR = 1 << parameters.H;
             this.tCache = parent.tCache;
-            this.tDigest = DigestUtilities.GetDigest(parameters.GetDigestOid());
+            this.tDigest = DigestUtilities.GetDigest(parameters.DigestOid);
             this.publicKey = parent.publicKey;
         }
 
@@ -115,13 +113,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 byte[] data = ((BinaryReader) src).ReadBytes(4);
                 Array.Reverse(data);
                 int paramType = BitConverter.ToInt32(data, 0);
-                LMSigParameters parameter = LMSigParameters.GetParametersForType(paramType);
-                
+                LMSigParameters parameter = LMSigParameters.GetParametersByID(paramType);
+
                 data = ((BinaryReader) src).ReadBytes(4);
                 Array.Reverse(data);
                 paramType = BitConverter.ToInt32(data, 0);
                 
-                LMOtsParameters otsParameter = LMOtsParameters.GetParametersForType(paramType);
+                LMOtsParameters otsParameter = LMOtsParameters.GetParametersByID(paramType);
                 byte[] I = new byte[16];
                 dIn.Read(I, 0, I.Length);
             
@@ -213,7 +211,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LMSigParameters lmsParameter = this.GetSigParameters();
 
             // Step 2
-            int h = lmsParameter.GetH();
+            int h = lmsParameter.H;
             int q = GetIndex();
             LMOtsPrivateKey otsPk = GetNextOtsPrivateKey();
 
@@ -236,7 +234,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return GenerateSign(context).GetEncoded();
+                return LMS.GenerateSign(context).GetEncoded();
             }
             catch (IOException e)
             {
@@ -244,7 +242,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        LMOtsPrivateKey GetNextOtsPrivateKey()
+        internal virtual LMOtsPrivateKey GetNextOtsPrivateKey()
         {
             lock (this)
             {
@@ -257,7 +255,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return otsPrivateKey;
             }
         }
-
 
         /**
          * Return a key that can be used usageCount times.
@@ -308,7 +305,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return maxQ - q;
         }
 
-        public LMSPublicKeyParameters GetPublicKey()
+        public virtual LMSPublicKeyParameters GetPublicKey()
         {
             lock (this)
             {
@@ -347,7 +344,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private byte[] CalcT(int r)
         {
-            int h = this.GetSigParameters().GetH();
+            int h = this.GetSigParameters().H;
 
             int twoToh = 1 << h;
 
@@ -359,12 +356,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 LmsUtils.ByteArray(this.GetI(), tDigest);
                 LmsUtils.U32Str(r, tDigest);
-                LmsUtils.U16Str(D_LEAF, tDigest);
+                LmsUtils.U16Str(LMS.D_LEAF, tDigest);
                 //
                 // These can be pre generated at the time of key generation and held within the private key.
                 // However it will cost memory to have them stick around.
                 //
-                byte[] K = LM_OTS.lms_ots_generatePublicKey(this.GetOtsParameters(), this.GetI(), (r - twoToh), this.GetMasterSecret());
+                byte[] K = LM_OTS.LmsOtsGeneratePublicKey(this.GetOtsParameters(), this.GetI(), (r - twoToh),
+                    this.GetMasterSecret());
 
                 LmsUtils.ByteArray(K, tDigest);
                 T = new byte[tDigest.GetDigestSize()];
@@ -377,7 +375,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LmsUtils.ByteArray(this.GetI(), tDigest);
             LmsUtils.U32Str(r, tDigest);
-            LmsUtils.U16Str(D_INTR, tDigest);
+            LmsUtils.U16Str(LMS.D_INTR, tDigest);
             LmsUtils.ByteArray(t2r, tDigest);
             LmsUtils.ByteArray(t2rPlus1, tDigest);
             T = new byte[tDigest.GetDigestSize()];
@@ -467,8 +465,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             return Composer.Compose()
                 .U32Str(0) // version
-                .U32Str(parameters.GetType()) // type
-                .U32Str(otsParameters.GetType()) // ots type
+                .U32Str(parameters.ID) // type
+                .U32Str(otsParameters.ID) // ots type
                 .Bytes(I) // I at 16 bytes
                 .U32Str(q) // q
                 .U32Str(maxQ) // maximum q
