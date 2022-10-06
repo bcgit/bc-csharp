@@ -125,15 +125,10 @@ namespace Org.BouncyCastle.Math.Raw
             int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
             int len30 = (bits + 29) / 30;
 
-            if (len30 <= 50)
-                return ImplModOddInverse(m, x, z, bits, len30, stackalloc int[len30 * 5]);
+            Span<int> alloc = len30 <= 50
+                ? stackalloc int[len30 * 5]
+                : new int[len30 * 5];
 
-            return ImplModOddInverse(m, x, z, bits, len30, new int[len30 * 5]);
-        }
-
-        private static uint ImplModOddInverse(ReadOnlySpan<uint> m, ReadOnlySpan<uint> x, Span<uint> z, int bits,
-            int len30, Span<int> alloc)
-        {
             Span<int> t = stackalloc int[4];
             Span<int> D = alloc[..len30]; alloc = alloc[len30..];
             Span<int> E = alloc[..len30]; alloc = alloc[len30..];
@@ -278,15 +273,10 @@ namespace Org.BouncyCastle.Math.Raw
             int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
             int len30 = (bits + 29) / 30;
 
-            if (len30 <= 50)
-                return ImplModOddInverseVar(m, x, z, bits, len30, stackalloc int[len30 * 5]);
+            Span<int> alloc = len30 <= 50
+                ? stackalloc int[len30 * 5]
+                : new int[len30 * 5];
 
-            return ImplModOddInverseVar(m, x, z, bits, len30, new int[len30 * 5]);
-        }
-
-        private static bool ImplModOddInverseVar(ReadOnlySpan<uint> m, ReadOnlySpan<uint> x, Span<uint> z, int bits,
-            int len30, Span<int> alloc)
-        {
             Span<int> t = stackalloc int[4];
             Span<int> D = alloc[..len30]; alloc = alloc[len30..];
             Span<int> E = alloc[..len30]; alloc = alloc[len30..];
@@ -407,7 +397,10 @@ namespace Org.BouncyCastle.Math.Raw
             m |= m >> 8;
             m |= m >> 16;
 
-            Span<byte> bytes = stackalloc byte[len << 2];
+            Span<byte> bytes = len <= 256
+                ? stackalloc byte[len << 2]
+                : new byte[len << 2];
+
             do
             {
                 RandomSource.NextBytes(bytes);
