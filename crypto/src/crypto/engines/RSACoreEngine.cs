@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -103,28 +104,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 			return input;
 		}
 
-        public virtual byte[] ConvertOutput(
-			BigInteger result)
+        public virtual byte[] ConvertOutput(BigInteger result)
 		{
             CheckInitialised();
 
-            byte[] output = result.ToByteArrayUnsigned();
-
-			if (forEncryption)
-			{
-				int outSize = GetOutputBlockSize();
-
-				// TODO To avoid this, create version of BigInteger.ToByteArray that
-				// writes to an existing array
-				if (output.Length < outSize) // have ended up with less bytes than normal, lengthen
-				{
-					byte[] tmp = new byte[outSize];
-					output.CopyTo(tmp, tmp.Length - output.Length);
-					output = tmp;
-				}
-			}
-
-			return output;
+			return forEncryption
+				? BigIntegers.AsUnsignedByteArray(GetOutputBlockSize(), result)
+				: BigIntegers.AsUnsignedByteArray(result);
 		}
 
         public virtual BigInteger ProcessBlock(
