@@ -179,7 +179,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             CreateSignatureBlock();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> fBlock = stackalloc byte[block.Length];
+            int fBlockSize = block.Length;
+            Span<byte> fBlock = fBlockSize <= 512
+                ? stackalloc byte[fBlockSize]
+                : new byte[fBlockSize];
             BigIntegers.AsUnsignedByteArray(f, fBlock);
 #else
             byte[] fBlock = BigIntegers.AsUnsignedByteArray(block.Length, f);

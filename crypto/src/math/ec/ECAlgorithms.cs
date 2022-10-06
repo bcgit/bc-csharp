@@ -216,7 +216,10 @@ namespace Org.BouncyCastle.Math.EC
                 throw new ArgumentException("Point must be on the same curve", nameof(p));
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> encoding = stackalloc byte[p.GetEncodedLength(false)];
+            int encodedLength = p.GetEncodedLength(false);
+            Span<byte> encoding = encodedLength <= 512
+                ? stackalloc byte[encodedLength]
+                : new byte[encodedLength];
             p.EncodeTo(false, encoding);
             return c.DecodePoint(encoding);
 #else

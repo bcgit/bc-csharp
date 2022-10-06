@@ -316,7 +316,11 @@ namespace Org.BouncyCastle.Crypto.Modes
             InitCipher();
 
             int extra = bufOff;
-			Span<byte> tmp = stackalloc byte[bufBlock.Length];
+			int tmpLength = bufBlock.Length;
+
+            Span<byte> tmp = tmpLength <= 128
+				? stackalloc byte[tmpLength]
+				: new byte[tmpLength];
 
             bufOff = 0;
 

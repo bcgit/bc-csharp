@@ -142,7 +142,9 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             int cThreshold = (int)((oBytes + digestSize - 1) / digestSize);
 
-            Span<byte> dig = stackalloc byte[digestSize];
+            Span<byte> dig = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
 
             Span<byte> C = stackalloc byte[4];
             Pack.UInt32_To_BE((uint)counterStart, C);

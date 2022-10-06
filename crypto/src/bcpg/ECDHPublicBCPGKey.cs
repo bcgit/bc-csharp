@@ -22,9 +22,9 @@ namespace Org.BouncyCastle.Bcpg
                 throw new InvalidOperationException("KDF parameters size of 3 expected.");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> kdfParameters = stackalloc byte[length];
+            Span<byte> kdfParameters = stackalloc byte[3];
 #else
-            byte[] kdfParameters = new byte[length];
+            byte[] kdfParameters = new byte[3];
 #endif
             bcpgIn.ReadFully(kdfParameters);
 

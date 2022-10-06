@@ -120,7 +120,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 
             int cThreshold = (int)((oBytes + digestSize - 1) / digestSize);
 
-            Span<byte> dig = stackalloc byte[digestSize];
+            Span<byte> dig = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
 
             uint counter = 1;
 

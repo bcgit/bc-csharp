@@ -510,8 +510,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             BigInteger encodedPoint = ecK.EncodedPoint;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            int encodingLength = BigIntegers.GetUnsignedByteLength(encodedPoint);
-            Span<byte> encoding = stackalloc byte[encodingLength];
+            int encodedLength = BigIntegers.GetUnsignedByteLength(encodedPoint);
+            Span<byte> encoding = encodedLength <= 512
+                ? stackalloc byte[encodedLength]
+                : new byte[encodedLength];
             BigIntegers.AsUnsignedByteArray(encodedPoint, encoding);
             ECPoint q = x9.Curve.DecodePoint(encoding);
 #else

@@ -138,14 +138,20 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             ECPoint c1P = multiplier.Multiply(mECParams.G, k).Normalize();
 
-            Span<byte> c1 = stackalloc byte[c1P.GetEncodedLength(false)];
+            int c1PEncodedLength = c1P.GetEncodedLength(false);
+            Span<byte> c1 = c1PEncodedLength <= 512
+                ? stackalloc byte[c1PEncodedLength]
+                : new byte[c1PEncodedLength];
             c1P.EncodeTo(false, c1);
 
             AddFieldElement(mDigest, kPB.AffineXCoord);
             mDigest.BlockUpdate(input);
             AddFieldElement(mDigest, kPB.AffineYCoord);
 
-            Span<byte> c3 = stackalloc byte[mDigest.GetDigestSize()];
+            int digestSize = mDigest.GetDigestSize();
+            Span<byte> c3 = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
             mDigest.DoFinal(c3);
 
             switch (mMode)
@@ -187,7 +193,9 @@ namespace Org.BouncyCastle.Crypto.Engines
             mDigest.BlockUpdate(c2);
             AddFieldElement(mDigest, c1P.AffineYCoord);
 
-            Span<byte> c3 = stackalloc byte[mDigest.GetDigestSize()];
+            Span<byte> c3 = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
             mDigest.DoFinal(c3);
 
             int check = 0;
@@ -343,10 +351,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         private void Kdf(IDigest digest, ECPoint c1, byte[] encData)
         {
             int digestSize = digest.GetDigestSize();
+            int bufSize = System.Math.Max(4, digestSize);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> buf = stackalloc byte[System.Math.Max(4, digestSize)];
+            Span<byte> buf = bufSize <= 128
+                ? stackalloc byte[bufSize]
+                : new byte[bufSize];
 #else
-            byte[] buf = new byte[System.Math.Max(4, digestSize)];
+            byte[] buf = new byte[bufSize];
 #endif
             int off = 0;
 
@@ -426,7 +437,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         private void AddFieldElement(IDigest digest, ECFieldElement v)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> p = stackalloc byte[v.GetEncodedLength()];
+            int encodedLength = v.GetEncodedLength();
+            Span<byte> p = encodedLength <= 128
+                ? stackalloc byte[encodedLength]
+                : new byte[encodedLength];
             v.EncodeTo(p);
             digest.BlockUpdate(p);
 #else

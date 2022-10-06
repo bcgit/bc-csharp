@@ -459,7 +459,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 Array.Copy(macBlock, 0, mac, 0, macSize);
 
-                Span<byte> calculatedMac = stackalloc byte[macSize];
+                Span<byte> calculatedMac = macSize <= 64
+                    ? stackalloc byte[macSize]
+                    : new byte[macSize];
 
                 buffer.AsSpan(0, macSize).CopyTo(calculatedMac);
 

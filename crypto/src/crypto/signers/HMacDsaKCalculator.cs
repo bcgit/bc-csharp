@@ -58,7 +58,10 @@ namespace Org.BouncyCastle.Crypto.Signers
             int size = BigIntegers.GetUnsignedByteLength(n);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> xm = stackalloc byte[size * 2];
+            int xmSize = size * 2;
+            Span<byte> xm = xmSize <= 512
+                ? stackalloc byte[xmSize]
+                : new byte[xmSize];
             BigIntegers.AsUnsignedByteArray(d, xm[..size]);
             BigIntegers.AsUnsignedByteArray(mInt, xm[size..]);
 #else

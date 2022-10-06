@@ -258,7 +258,9 @@ namespace Org.BouncyCastle.Crypto.IO
 			    {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     int outputSize = m_writeCipher.GetOutputSize(0);
-                    Span<byte> output = stackalloc byte[outputSize];
+                    Span<byte> output = outputSize <= 256
+                        ? stackalloc byte[outputSize]
+                        : new byte[outputSize];
                     int len = m_writeCipher.DoFinal(output);
                     m_stream.Write(output[..len]);
 #else

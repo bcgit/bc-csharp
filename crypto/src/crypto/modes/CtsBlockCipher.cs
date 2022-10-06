@@ -294,7 +294,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             int blockSize = m_cipherMode.GetBlockSize();
             int length = bufOff - blockSize;
-            Span<byte> block = stackalloc byte[blockSize];
+            Span<byte> block = blockSize <= 64
+                ? stackalloc byte[blockSize]
+                : new byte[blockSize];
 
             if (forEncryption)
             {
@@ -319,7 +321,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             else
             {
-                Span<byte> lastBlock = stackalloc byte[blockSize];
+                Span<byte> lastBlock = blockSize <= 64
+                    ? stackalloc byte[blockSize]
+                    : new byte[blockSize];
 
                 m_cipherMode.UnderlyingCipher.ProcessBlock(buf, block);
 

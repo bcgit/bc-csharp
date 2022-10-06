@@ -20,16 +20,13 @@ namespace Org.BouncyCastle.Bcpg
             int lengthInBytes = (lengthInBits + 7) / 8;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            if (lengthInBytes <= 512)
-            {
-                Span<byte> span = stackalloc byte[lengthInBytes];
-                bcpgIn.ReadFully(span);
-                m_val = new BigInteger(1, span);
-                return;
-            }
+            Span<byte> bytes = lengthInBytes <= 512
+                ? stackalloc byte[lengthInBytes]
+                : new byte[lengthInBytes];
+#else
+            byte[] bytes = new byte[lengthInBytes];
 #endif
 
-            byte[] bytes = new byte[lengthInBytes];
             bcpgIn.ReadFully(bytes);
             m_val = new BigInteger(1, bytes);
         }
@@ -55,12 +52,15 @@ namespace Org.BouncyCastle.Bcpg
         internal static BigInteger ToMpiBigInteger(ECPoint point)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> encoding = stackalloc byte[point.GetEncodedLength(false)];
+            int encodedLength = point.GetEncodedLength(false);
+            Span<byte> encoding = encodedLength <= 512
+                ? stackalloc byte[encodedLength]
+                : new byte[encodedLength];
             point.EncodeTo(false, encoding);
-            return new BigInteger(1, encoding);
 #else
-            return new BigInteger(1, point.GetEncoded(false));
+            byte[] encoding = point.GetEncoded(false);
 #endif
+            return new BigInteger(1, encoding);
         }
     }
 }

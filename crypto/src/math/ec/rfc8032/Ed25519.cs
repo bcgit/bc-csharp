@@ -433,7 +433,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static void GeneratePublicKey(ReadOnlySpan<byte> sk, Span<byte> pk)
         {
             IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[d.GetDigestSize()];
+            int digestSize = d.GetDigestSize();
+            Span<byte> h = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
 
             d.BlockUpdate(sk[..SecretKeySize]);
             d.DoFinal(h);

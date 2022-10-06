@@ -42,7 +42,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         public static BigInteger CalculateX(IDigest digest, BigInteger N, ReadOnlySpan<byte> salt,
             ReadOnlySpan<byte> identity, ReadOnlySpan<byte> password)
         {
-            Span<byte> output = stackalloc byte[digest.GetDigestSize()];
+            int digestSize = digest.GetDigestSize();
+            Span<byte> output = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
 
             digest.BlockUpdate(identity);
             digest.Update((byte)':');
@@ -119,20 +122,25 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         public static BigInteger CalculateKey(IDigest digest, BigInteger N, BigInteger S)
         {
             int paddedLength = (N.BitLength + 7) / 8;
+            int digestSize = digest.GetDigestSize();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> bytes = stackalloc byte[paddedLength];
+            Span<byte> bytes = paddedLength <= 512
+                ? stackalloc byte[paddedLength]
+                : new byte[paddedLength];
             BigIntegers.AsUnsignedByteArray(S, bytes);
             digest.BlockUpdate(bytes);
 
-            Span<byte> output = stackalloc byte[digest.GetDigestSize()];
+            Span<byte> output = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
             digest.DoFinal(output);
 #else
             byte[] bytes = new byte[paddedLength];
             BigIntegers.AsUnsignedByteArray(S, bytes, 0, bytes.Length);
 	        digest.BlockUpdate(bytes, 0, bytes.Length);
 
-            byte[] output = new byte[digest.GetDigestSize()];
+            byte[] output = new byte[digestSize];
             digest.DoFinal(output, 0);
 #endif
 
@@ -142,9 +150,12 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         private static BigInteger HashPaddedTriplet(IDigest digest, BigInteger N, BigInteger n1, BigInteger n2, BigInteger n3)
         {
             int paddedLength = (N.BitLength + 7) / 8;
+            int digestSize = digest.GetDigestSize();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> bytes = stackalloc byte[paddedLength];
+            Span<byte> bytes = paddedLength <= 512
+                ? stackalloc byte[paddedLength]
+                : new byte[paddedLength];
             BigIntegers.AsUnsignedByteArray(n1, bytes);
             digest.BlockUpdate(bytes);
             BigIntegers.AsUnsignedByteArray(n2, bytes);
@@ -152,7 +163,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             BigIntegers.AsUnsignedByteArray(n3, bytes);
             digest.BlockUpdate(bytes);
 
-            Span<byte> output = stackalloc byte[digest.GetDigestSize()];
+            Span<byte> output = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
             digest.DoFinal(output);
 #else
             byte[] bytes = new byte[paddedLength];
@@ -163,7 +176,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             BigIntegers.AsUnsignedByteArray(n3, bytes, 0, bytes.Length);
 	        digest.BlockUpdate(bytes, 0, bytes.Length);
 
-            byte[] output = new byte[digest.GetDigestSize()];
+            byte[] output = new byte[digestSize];
             digest.DoFinal(output, 0);
 #endif
 
@@ -173,15 +186,20 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         private static BigInteger HashPaddedPair(IDigest digest, BigInteger N, BigInteger n1, BigInteger n2)
 		{
 	    	int paddedLength = (N.BitLength + 7) / 8;
+            int digestSize = digest.GetDigestSize();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> bytes = stackalloc byte[paddedLength];
+            Span<byte> bytes = paddedLength <= 512
+                ? stackalloc byte[paddedLength]
+                : new byte[paddedLength];
             BigIntegers.AsUnsignedByteArray(n1, bytes);
             digest.BlockUpdate(bytes);
             BigIntegers.AsUnsignedByteArray(n2, bytes);
             digest.BlockUpdate(bytes);
 
-            Span<byte> output = stackalloc byte[digest.GetDigestSize()];
+            Span<byte> output = digestSize <= 128
+                ? stackalloc byte[digestSize]
+                : new byte[digestSize];
             digest.DoFinal(output);
 #else
             byte[] bytes = new byte[paddedLength];
@@ -190,7 +208,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             BigIntegers.AsUnsignedByteArray(n2, bytes, 0, bytes.Length);
 	        digest.BlockUpdate(bytes, 0, bytes.Length);
 
-	        byte[] output = new byte[digest.GetDigestSize()];
+	        byte[] output = new byte[digestSize];
 	        digest.DoFinal(output, 0);
 #endif
 
