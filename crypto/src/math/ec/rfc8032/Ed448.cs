@@ -9,7 +9,6 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC.Rfc8032
 {
-    using static Org.BouncyCastle.Pqc.Crypto.Picnic.Signature;
     using F = Rfc7748.X448Field;
 
     /// <summary>
