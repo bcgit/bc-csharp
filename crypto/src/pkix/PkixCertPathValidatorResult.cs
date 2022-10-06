@@ -31,20 +31,14 @@ namespace Org.BouncyCastle.Pkix
 			get { return this.subjectPublicKey; }
 		}
 
-		public PkixCertPathValidatorResult(
-			TrustAnchor				trustAnchor,
-			PkixPolicyNode			policyTree,
-			AsymmetricKeyParameter	subjectPublicKey)
+		public PkixCertPathValidatorResult(TrustAnchor trustAnchor, PkixPolicyNode policyTree,
+			AsymmetricKeyParameter subjectPublicKey)
 		{
-			if (subjectPublicKey == null)
-			{
-				throw new NullReferenceException("subjectPublicKey must be non-null");
-			}
-			if (trustAnchor == null)
-			{
-				throw new NullReferenceException("trustAnchor must be non-null");
-			}
-			
+            if (trustAnchor == null)
+                throw new ArgumentNullException(nameof(trustAnchor));
+            if (subjectPublicKey == null)
+				throw new ArgumentNullException(nameof(subjectPublicKey));
+
 			this.trustAnchor = trustAnchor;
 			this.policyTree = policyTree;
 			this.subjectPublicKey = subjectPublicKey;
