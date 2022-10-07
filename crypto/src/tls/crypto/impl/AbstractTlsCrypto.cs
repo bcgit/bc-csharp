@@ -82,6 +82,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public abstract TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public abstract TlsNonceGenerator CreateNonceGenerator(ReadOnlySpan<byte> additionalSeedMaterial);
+#endif
+
         public abstract TlsSrp6Client CreateSrp6Client(TlsSrpConfig srpConfig);
 
         public abstract TlsSrp6Server CreateSrp6Server(TlsSrpConfig srpConfig, BigInteger srpVerifier);

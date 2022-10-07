@@ -509,7 +509,14 @@ namespace Org.BouncyCastle.Math
                 else
                 {
                     int numBytes = end - iBval;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    Span<byte> inverse = numBytes <= 512
+                        ? stackalloc byte[numBytes]
+                        : new byte[numBytes];
+#else
                     byte[] inverse = new byte[numBytes];
+#endif
 
                     int index = 0;
                     while (index < numBytes)
@@ -526,7 +533,7 @@ namespace Org.BouncyCastle.Math
 
                     inverse[index]++;
 
-                    this.magnitude = MakeMagnitude(inverse, 0, inverse.Length);
+                    this.magnitude = MakeMagnitude(inverse);
                 }
             }
             else
@@ -535,6 +542,11 @@ namespace Org.BouncyCastle.Math
                 this.magnitude = MakeMagnitude(bytes, offset, length);
                 this.sign = this.magnitude.Length > 0 ? 1 : 0;
             }
+        }
+
+        private static int[] MakeMagnitude(byte[] bytes)
+        {
+            return MakeMagnitude(bytes, 0, bytes.Length);
         }
 
         private static int[] MakeMagnitude(byte[] bytes, int offset, int length)
@@ -702,14 +714,21 @@ namespace Org.BouncyCastle.Math
             }
 
             int nBytes = GetByteLength(sizeInBits);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> b = nBytes <= 512
+                ? stackalloc byte[nBytes]
+                : new byte[nBytes];
+#else
             byte[] b = new byte[nBytes];
+#endif
             random.NextBytes(b);
 
             // strip off any excess bits in the MSB
             int xBits = BitsPerByte * nBytes - sizeInBits;
             b[0] &= (byte)(255U >> xBits);
 
-            this.magnitude = MakeMagnitude(b, 0, b.Length);
+            this.magnitude = MakeMagnitude(b);
             this.sign = this.magnitude.Length < 1 ? 0 : 1;
         }
 
@@ -733,7 +752,14 @@ namespace Org.BouncyCastle.Math
             }
              
             int nBytes = GetByteLength(bitLength);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> b = nBytes <= 512
+                ? stackalloc byte[nBytes]
+                : new byte[nBytes];
+#else
             byte[] b = new byte[nBytes];
+#endif
 
             int xBits = BitsPerByte * nBytes - bitLength;
             byte mask = (byte)(255U >> xBits);
@@ -752,7 +778,7 @@ namespace Org.BouncyCastle.Math
                 // ensure the trailing bit is 1 (i.e. must be odd)
                 b[nBytes - 1] |= 1;
 
-                this.magnitude = MakeMagnitude(b, 0, b.Length);
+                this.magnitude = MakeMagnitude(b);
                 this.nBits = -1;
                 this.mQuote = 0;
 

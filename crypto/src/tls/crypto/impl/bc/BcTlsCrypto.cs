@@ -148,10 +148,34 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return CreateNonceGenerator(Spans.FromNullable(additionalSeedMaterial, 0));
+#else
             int cryptoHashAlgorithm = CryptoHashAlgorithm.sha256;
             IDigest digest = CreateDigest(cryptoHashAlgorithm);
 
-            byte[] seed = new byte[TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm)];
+            int seedLength = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
+            byte[] seed = new byte[seedLength];
+            SecureRandom.NextBytes(seed);
+
+            DigestRandomGenerator randomGenerator = new DigestRandomGenerator(digest);
+            randomGenerator.AddSeedMaterial(additionalSeedMaterial);
+            randomGenerator.AddSeedMaterial(seed);
+
+            return new BcTlsNonceGenerator(randomGenerator);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override TlsNonceGenerator CreateNonceGenerator(ReadOnlySpan<byte> additionalSeedMaterial)
+        {
+            int cryptoHashAlgorithm = CryptoHashAlgorithm.sha256;
+            IDigest digest = CreateDigest(cryptoHashAlgorithm);
+
+            int seedLength = TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm);
+            Span<byte> seed = seedLength <= 128
+                ? stackalloc byte[seedLength]
+                : new byte[seedLength];
             SecureRandom.NextBytes(seed);
 
             DigestRandomGenerator randomGenerator = new DigestRandomGenerator(digest);
@@ -160,6 +184,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             return new BcTlsNonceGenerator(randomGenerator);
         }
+#endif
 
         public override bool HasAnyStreamVerifiers(IList<SignatureAndHashAlgorithm> signatureAndHashAlgorithms)
         {

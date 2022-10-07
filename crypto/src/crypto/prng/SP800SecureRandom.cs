@@ -36,6 +36,19 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void SetSeed(Span<byte> seed)
+        {
+            lock (this)
+            {
+                if (mRandomSource != null)
+                {
+                    this.mRandomSource.SetSeed(seed);
+                }
+            }
+        }
+#endif
+
         public override void SetSeed(long seed)
         {
             lock (this)

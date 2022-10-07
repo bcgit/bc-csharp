@@ -180,6 +180,10 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>a <see cref="TlsNonceGenerator"/>.</returns>
         TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        TlsNonceGenerator CreateNonceGenerator(ReadOnlySpan<byte> additionalSeedMaterial);
+#endif
+
         /// <summary>Create an SRP-6 client.</summary>
         /// <param name="srpConfig">client config.</param>
         /// <returns>an initialised SRP6 client object.</returns>

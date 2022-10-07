@@ -214,6 +214,13 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+        internal static ulong BE_To_UInt64(byte[] bs)
+        {
+            uint hi = BE_To_UInt32(bs);
+            uint lo = BE_To_UInt32(bs, 4);
+            return ((ulong)hi << 32) | (ulong)lo;
+        }
+
         internal static ulong BE_To_UInt64(byte[] bs, int off)
         {
             uint hi = BE_To_UInt32(bs, off);

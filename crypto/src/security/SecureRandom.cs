@@ -17,11 +17,7 @@ namespace Org.BouncyCastle.Security
             return Interlocked.Increment(ref counter);
         }
 
-        private static readonly SecureRandom master = new SecureRandom(new CryptoApiRandomGenerator());
-        private static SecureRandom Master
-        {
-            get { return master; }
-        }
+        private static readonly SecureRandom Master = new SecureRandom(new CryptoApiRandomGenerator());
 
         private static DigestRandomGenerator CreatePrng(string digestName, bool autoSeed)
         {
@@ -32,7 +28,17 @@ namespace Org.BouncyCastle.Security
             if (autoSeed)
             {
                 prng.AddSeedMaterial(NextCounterValue());
-                prng.AddSeedMaterial(GetNextBytes(Master, digest.GetDigestSize()));
+
+                int seedLength = digest.GetDigestSize();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<byte> seed = seedLength <= 128
+                    ? stackalloc byte[seedLength]
+                    : new byte[seedLength];
+#else
+                byte[] seed = new byte[seedLength];
+#endif
+                Master.NextBytes(seed);
+                prng.AddSeedMaterial(seed);
             }
             return prng;
         }
@@ -102,10 +108,24 @@ namespace Org.BouncyCastle.Security
             return GetNextBytes(Master, length);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void GenerateSeed(Span<byte> seed)
+        {
+            Master.NextBytes(seed);
+        }
+#endif
+
         public virtual void SetSeed(byte[] seed)
         {
             generator.AddSeedMaterial(seed);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void SetSeed(Span<byte> seed)
+        {
+            generator.AddSeedMaterial(seed);
+        }
+#endif
 
         public virtual void SetSeed(long seed)
         {
@@ -207,16 +227,24 @@ namespace Org.BouncyCastle.Security
 
         public virtual int NextInt()
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> bytes = stackalloc byte[4];
+#else
             byte[] bytes = new byte[4];
+#endif
             NextBytes(bytes);
-            return (int)Pack.BE_To_UInt32(bytes, 0);
+            return (int)Pack.BE_To_UInt32(bytes);
         }
 
         public virtual long NextLong()
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> bytes = stackalloc byte[8];
+#else
             byte[] bytes = new byte[8];
+#endif
             NextBytes(bytes);
-            return (long)Pack.BE_To_UInt64(bytes, 0);
+            return (long)Pack.BE_To_UInt64(bytes);
         }
     }
 }

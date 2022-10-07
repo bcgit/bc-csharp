@@ -84,9 +84,29 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public virtual void AddSeedMaterial(ReadOnlySpan<byte> seed)
+        {
+            for (int m = 0; m < seed.Length; m++)
+            {
+                s = P[(s + P[n & 0xff] + seed[m]) & 0xff];
+                byte temp = P[n & 0xff];
+                P[n & 0xff] = P[s & 0xff];
+                P[s & 0xff] = temp;
+                n = (byte)((n + 1) & 0xff);
+            }
+        }
+#endif
+
         public virtual void AddSeedMaterial(long seed) 
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> bytes = stackalloc byte[8];
+            Pack.UInt64_To_BE((ulong)seed, bytes);
+            AddSeedMaterial(bytes);
+#else
             AddSeedMaterial(Pack.UInt64_To_BE((ulong)seed));
+#endif
         }
 
         public virtual void NextBytes(byte[] bytes) 

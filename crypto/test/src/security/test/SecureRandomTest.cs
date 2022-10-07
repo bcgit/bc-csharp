@@ -231,7 +231,9 @@ namespace Org.BouncyCastle.Security.Tests
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static double MeasureChiSquaredSpan(SecureRandom random, int rounds)
         {
-            byte[] opts = random.GenerateSeed(2);
+            Span<byte> opts = stackalloc byte[2];
+            random.GenerateSeed(opts);
+
             Span<int> counts = stackalloc int[256];
 
             Span<byte> bs = stackalloc byte[256];
@@ -294,6 +296,12 @@ namespace Org.BouncyCastle.Security.Tests
             public virtual void AddSeedMaterial(byte[] seed)
             {
             }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public void AddSeedMaterial(ReadOnlySpan<byte> inSeed)
+            {
+            }
+#endif
 
             public virtual void AddSeedMaterial(long seed)
             {
