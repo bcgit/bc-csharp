@@ -1018,10 +1018,10 @@ namespace Org.BouncyCastle.Math.EC
 
             while (--n >= 0)
             {
-                Raw.Interleave.Expand64To128(r, 0, len);
+                Raw.Interleave.Expand64To128(r, 0, len, r, 0);
                 len = ReduceInPlace(r, 0, r.Length, m, ks);
             }
-    
+
             return new LongArray(r, 0, len);
         }
 

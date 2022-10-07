@@ -19,33 +19,25 @@ namespace Org.BouncyCastle.Math.Raw
         private const int M30 = 0x3FFFFFFF;
         private const ulong M32UL = 0xFFFFFFFFUL;
 
-        public static void CheckedModOddInverse(uint[] m, uint[] x, uint[] z)
-        {
-            if (0 == ModOddInverse(m, x, z))
-                throw new ArithmeticException("Inverse does not exist.");
-        }
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void CheckedModOddInverse(ReadOnlySpan<uint> m, ReadOnlySpan<uint> x, Span<uint> z)
+#else
+        public static void CheckedModOddInverse(uint[] m, uint[] x, uint[] z)
+#endif
         {
             if (0 == ModOddInverse(m, x, z))
-                throw new ArithmeticException("Inverse does not exist.");
-        }
-#endif
-
-        public static void CheckedModOddInverseVar(uint[] m, uint[] x, uint[] z)
-        {
-            if (!ModOddInverseVar(m, x, z))
                 throw new ArithmeticException("Inverse does not exist.");
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void CheckedModOddInverseVar(ReadOnlySpan<uint> m, ReadOnlySpan<uint> x, Span<uint> z)
+#else
+        public static void CheckedModOddInverseVar(uint[] m, uint[] x, uint[] z)
+#endif
         {
             if (!ModOddInverseVar(m, x, z))
                 throw new ArithmeticException("Inverse does not exist.");
         }
-#endif
 
         public static uint Inverse32(uint d)
         {

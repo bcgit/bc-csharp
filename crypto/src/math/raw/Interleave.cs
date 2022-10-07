@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -71,24 +72,52 @@ namespace Org.BouncyCastle.Math.Raw
             z[zOff + 1] = (x >> 1) & M64;
         }
 
-        internal static void Expand64To128(ulong[] zs, int zsOff, int zsLen)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void Expand64To128(ulong x, Span<ulong> z)
         {
-            int i = zsLen, zsPos = zsOff + zsLen << 1;
-            while (--i >= 0)
+#if NETCOREAPP3_0_OR_GREATER
+            if (Bmi2.X64.IsSupported)
             {
-                zsPos -= 2;
-                Expand64To128(zs[zsOff + i], zs, zsPos);
+                z[0] = Bmi2.X64.ParallelBitDeposit(x      , 0x5555555555555555UL);
+                z[1] = Bmi2.X64.ParallelBitDeposit(x >> 32, 0x5555555555555555UL);
+                return;
             }
+#endif
+
+            // "shuffle" low half to even bits and high half to odd bits
+            x = Bits.BitPermuteStep(x, 0x00000000FFFF0000UL, 16);
+            x = Bits.BitPermuteStep(x, 0x0000FF000000FF00UL, 8);
+            x = Bits.BitPermuteStep(x, 0x00F000F000F000F0UL, 4);
+            x = Bits.BitPermuteStep(x, 0x0C0C0C0C0C0C0C0CUL, 2);
+            x = Bits.BitPermuteStep(x, 0x2222222222222222UL, 1);
+
+            z[0] = (x     ) & M64;
+            z[1] = (x >> 1) & M64;
         }
+#endif
 
         internal static void Expand64To128(ulong[] xs, int xsOff, int xsLen, ulong[] zs, int zsOff)
         {
-            for (int i = 0; i < xsLen; ++i)
+            int xsPos = xsLen, zsPos = zsOff + xsLen << 1;
+            while (--xsPos >= 0)
             {
-                Expand64To128(xs[xsOff + i], zs, zsOff);
-                zsOff += 2;
+                zsPos -= 2;
+                Expand64To128(xs[xsOff + xsPos], zs, zsPos);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void Expand64To128(ReadOnlySpan<ulong> xs, Span<ulong> zs)
+        {
+            int xsPos = xs.Length, zsPos = xs.Length << 1;
+            Debug.Assert(!zs[xsPos..zsPos].Overlaps(xs));
+            while (--xsPos >= 0)
+            {
+                zsPos -= 2;
+                Expand64To128(xs[xsPos], zs[zsPos..]);
+            }
+        }
+#endif
 
         internal static ulong Expand64To128Rev(ulong x, out ulong low)
         {

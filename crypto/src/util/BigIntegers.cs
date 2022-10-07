@@ -168,13 +168,31 @@ namespace Org.BouncyCastle.Utilities
             }
 
             int bits = M.BitLength;
-            uint[] m = Nat.FromBigInteger(bits, M);
-            uint[] x = Nat.FromBigInteger(bits, X);
-            int len = m.Length;
-            uint[] z = Nat.Create(len);
-            if (0 == Mod.ModOddInverse(m, x, z))
-                throw new ArithmeticException("BigInteger not invertible");
-            return Nat.ToBigInteger(len, z);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (bits <= 2048)
+            {
+                int len = Nat.GetLengthForBits(bits);
+                Span<uint> m = stackalloc uint[len];
+                Span<uint> x = stackalloc uint[len];
+                Span<uint> z = stackalloc uint[len];
+                Nat.FromBigInteger(bits, M, m);
+                Nat.FromBigInteger(bits, X, x);
+                if (0 == Mod.ModOddInverse(m, x, z))
+                    throw new ArithmeticException("BigInteger not invertible");
+                return Nat.ToBigInteger(len, z);
+            }
+            else
+#endif
+            {
+                uint[] m = Nat.FromBigInteger(bits, M);
+                uint[] x = Nat.FromBigInteger(bits, X);
+                int len = m.Length;
+                uint[] z = Nat.Create(len);
+                if (0 == Mod.ModOddInverse(m, x, z))
+                    throw new ArithmeticException("BigInteger not invertible");
+                return Nat.ToBigInteger(len, z);
+            }
         }
 
         public static BigInteger ModOddInverseVar(BigInteger M, BigInteger X)
@@ -193,13 +211,31 @@ namespace Org.BouncyCastle.Utilities
                 return One;
 
             int bits = M.BitLength;
-            uint[] m = Nat.FromBigInteger(bits, M);
-            uint[] x = Nat.FromBigInteger(bits, X);
-            int len = m.Length;
-            uint[] z = Nat.Create(len);
-            if (!Mod.ModOddInverseVar(m, x, z))
-                throw new ArithmeticException("BigInteger not invertible");
-            return Nat.ToBigInteger(len, z);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (bits <= 2048)
+            {
+                int len = Nat.GetLengthForBits(bits);
+                Span<uint> m = stackalloc uint[len];
+                Span<uint> x = stackalloc uint[len];
+                Span<uint> z = stackalloc uint[len];
+                Nat.FromBigInteger(bits, M, m);
+                Nat.FromBigInteger(bits, X, x);
+                if (!Mod.ModOddInverseVar(m, x, z))
+                    throw new ArithmeticException("BigInteger not invertible");
+                return Nat.ToBigInteger(len, z);
+            }
+            else
+#endif
+            {
+                uint[] m = Nat.FromBigInteger(bits, M);
+                uint[] x = Nat.FromBigInteger(bits, X);
+                int len = m.Length;
+                uint[] z = Nat.Create(len);
+                if (!Mod.ModOddInverseVar(m, x, z))
+                    throw new ArithmeticException("BigInteger not invertible");
+                return Nat.ToBigInteger(len, z);
+            }
         }
 
         public static int GetByteLength(BigInteger n)
