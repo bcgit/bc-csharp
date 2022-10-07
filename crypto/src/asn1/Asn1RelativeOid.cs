@@ -196,7 +196,11 @@ namespace Org.BouncyCastle.Asn1
 
         internal static void WriteField(Stream outputStream, long fieldValue)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> result = stackalloc byte[9];
+#else
             byte[] result = new byte[9];
+#endif
             int pos = 8;
             result[pos] = (byte)((int)fieldValue & 0x7F);
             while (fieldValue >= (1L << 7))
@@ -204,7 +208,11 @@ namespace Org.BouncyCastle.Asn1
                 fieldValue >>= 7;
                 result[--pos] = (byte)((int)fieldValue | 0x80);
             }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            outputStream.Write(result[pos..]);
+#else
             outputStream.Write(result, pos, 9 - pos);
+#endif
         }
 
         internal static void WriteField(Stream outputStream, BigInteger fieldValue)
@@ -217,14 +225,24 @@ namespace Org.BouncyCastle.Asn1
             else
             {
                 BigInteger tmpValue = fieldValue;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<byte> tmp = byteCount <= 16
+                    ? stackalloc byte[byteCount]
+                    : new byte[byteCount];
+#else
                 byte[] tmp = new byte[byteCount];
+#endif
                 for (int i = byteCount - 1; i >= 0; i--)
                 {
                     tmp[i] = (byte)(tmpValue.IntValue | 0x80);
                     tmpValue = tmpValue.ShiftRight(7);
                 }
                 tmp[byteCount - 1] &= 0x7F;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                outputStream.Write(tmp);
+#else
                 outputStream.Write(tmp, 0, tmp.Length);
+#endif
             }
         }
 
