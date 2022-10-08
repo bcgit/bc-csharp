@@ -9,18 +9,9 @@ namespace Org.BouncyCastle.Tls
     public sealed class ByteQueue
     {
         /// <returns>The smallest number which can be written as 2^x which is bigger than i.</returns>
-        public static int NextTwoPow(int i)
+        private static int GetAllocationSize(int i)
         {
-            /*
-             * This code is based of a lot of code I found on the Internet which mostly
-             * referenced a book called "Hacking delight".
-             */
-            i |= i >> 1;
-            i |= i >> 2;
-            i |= i >> 4;
-            i |= i >> 8;
-            i |= i >> 16;
-            return i + 1;
+            return Integers.HighestOneBit((256 | i) << 1);
         }
 
         /// <summary>The buffer where we store our data.</summary>
@@ -68,14 +59,14 @@ namespace Org.BouncyCastle.Tls
             {
                 if (len > m_databuf.Length)
                 {
-                    int desiredSize = NextTwoPow(len | 256);
+                    int desiredSize = GetAllocationSize(len);
                     m_databuf = new byte[desiredSize];
                 }
                 m_skipped = 0;
             }
             else if ((m_skipped + m_available + len) > m_databuf.Length)
             {
-                int desiredSize = NextTwoPow(m_available + len);
+                int desiredSize = GetAllocationSize(m_available + len);
                 if (desiredSize > m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];
@@ -105,14 +96,14 @@ namespace Org.BouncyCastle.Tls
             {
                 if (len > m_databuf.Length)
                 {
-                    int desiredSize = NextTwoPow(len | 256);
+                    int desiredSize = GetAllocationSize(len);
                     m_databuf = new byte[desiredSize];
                 }
                 m_skipped = 0;
             }
             else if ((m_skipped + m_available + len) > m_databuf.Length)
             {
-                int desiredSize = NextTwoPow(m_available + len);
+                int desiredSize = GetAllocationSize(m_available + len);
                 if (desiredSize > m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];
@@ -259,7 +250,7 @@ namespace Org.BouncyCastle.Tls
             }
             else
             {
-                int desiredSize = NextTwoPow(m_available);
+                int desiredSize = GetAllocationSize(m_available);
                 if (desiredSize < m_databuf.Length)
                 {
                     byte[] tmp = new byte[desiredSize];
