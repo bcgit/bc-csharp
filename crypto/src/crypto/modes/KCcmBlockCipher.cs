@@ -463,7 +463,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     ? stackalloc byte[macSize]
                     : new byte[macSize];
 
-                buffer.AsSpan(0, macSize).CopyTo(calculatedMac);
+                calculatedMac.CopyFrom(buffer);
 
                 if (!Arrays.ConstantTimeAreEqual(mac.AsSpan(0, macSize), calculatedMac))
                     throw new InvalidCipherTextException("mac check failed");

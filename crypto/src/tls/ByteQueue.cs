@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Tls
 {
     /// <summary>A queue for bytes. This file could be more optimized.</summary>
@@ -171,7 +173,7 @@ namespace Org.BouncyCastle.Tls
             if ((m_available - skip) < buffer.Length)
                 throw new InvalidOperationException("Not enough data to read");
 
-            m_databuf.AsSpan(m_skipped + skip, buffer.Length).CopyTo(buffer);
+            buffer.CopyFrom(m_databuf.AsSpan(m_skipped + skip));
         }
 #endif
 

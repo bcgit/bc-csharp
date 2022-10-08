@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Crypto.IO
             byte[] output = outputSize > 0 ? ArrayPool<byte>.Shared.Rent(outputSize) : null;
             try
             {
-                int length = m_writeCipher.ProcessBytes(buffer, Spans.FromNullable(output, 0));
+                int length = m_writeCipher.ProcessBytes(buffer, Spans.FromNullable(output));
                 if (length > 0)
                 {
                     m_stream.Write(output[..length]);
