@@ -62,6 +62,9 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         public override void NextBytes(byte[] buf, int off, int len)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            NextBytes(buf.AsSpan(off, len));
+#else
             lock (this)
             {
                 // check if a reseed is required...
@@ -71,6 +74,7 @@ namespace Org.BouncyCastle.Crypto.Prng
                     mDrbg.Generate(buf, off, len, mPredictionResistant);
                 }
             }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

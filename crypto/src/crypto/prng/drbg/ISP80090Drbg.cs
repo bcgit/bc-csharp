@@ -26,7 +26,9 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         int Generate(byte[] output, int outputOff, int outputLen, byte[] additionalInput, bool predictionResistant);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        int Generate(Span<byte> output, byte[] additionalInput, bool predictionResistant);
+        int Generate(Span<byte> output, bool predictionResistant);
+
+        int GenerateWithInput(Span<byte> output, ReadOnlySpan<byte> additionalInput, bool predictionResistant);
 #endif
 
         /**
@@ -35,5 +37,9 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
 	     * @param additionalInput additional input to be added to the DRBG in this step.
 	     */
         void Reseed(byte[] additionalInput);
-	}
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        void Reseed(ReadOnlySpan<byte> additionalInput);
+#endif
+    }
 }

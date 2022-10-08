@@ -56,6 +56,15 @@ namespace Org.BouncyCastle.Crypto.Prng
                 return result;
             }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int IEntropySource.GetEntropy(Span<byte> output)
+            {
+                int length = (mEntropySize + 7) / 8;
+                mRng.GetBytes(output[..length]);
+                return length;
+            }
+#endif
+
             int IEntropySource.EntropySize
             {
                 get { return mEntropySize; }

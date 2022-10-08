@@ -135,5 +135,15 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 bytes[off + i] = SetOddParity(bytes[off + i]);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void SetOddParity(Span<byte> bytes)
+        {
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = SetOddParity(bytes[i]);
+            }
+        }
+#endif
     }
 }
