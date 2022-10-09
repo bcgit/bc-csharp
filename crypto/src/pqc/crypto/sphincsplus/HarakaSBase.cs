@@ -141,11 +141,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 Pack.UInt32_To_LE(q[i << 1], output, i << 2);
                 Pack.UInt32_To_LE(q[(i << 1) + 1], output, (i << 2) + 16);
             }
-
-            for (int i = 0; i < 32; i++)
-            {
-                output[i] ^= buffer[i];
-            }
         }
 
         private static void BrAesCt64InterleaveIn(ulong[] q, int qPos, uint[] w, int startPos)
@@ -674,6 +669,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             w[pos + 1] = (uint)(x1 | (x1 >> 16));
             w[pos + 2] = (uint)(x2 | (x2 >> 16));
             w[pos + 3] = (uint)(x3 | (x3 >> 16));
+        }
+
+        protected static void Xor(byte[] x, int xOff, byte[] y, int yOff, byte[] z, int zOff, int zLen)
+        {
+            for (int i = 0; i < zLen; i++)
+            {
+                z[zOff + i] = (byte)(x[xOff + i] ^ y[yOff + i]);
+            }
         }
     }
 }

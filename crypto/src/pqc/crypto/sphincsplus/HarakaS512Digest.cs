@@ -20,12 +20,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public int GetDigestSize()
         {
-            return 64;
+            return 32;
         }
 
         public void Update(byte input)
         {
-            if (off + 1 > 64)
+            if (off > 64 - 1)
                 throw new ArgumentException("total input cannot be more than 64 bytes");
 
             buffer[off++] = input;
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
-            if (off + len > 64)
+            if (off > 64 - len)
                 throw new ArgumentException("total input cannot be more than 64 bytes");
 
             Array.Copy(input, inOff, buffer, off, len);
@@ -42,16 +42,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public int DoFinal(byte[] output, int outOff)
         {
+            // TODO Check received all 64 bytes of input?
+
             byte[] s = new byte[64];
             Haraka512Perm(s);
-            for (int i = 0; i < 64; ++i)
-            {
-                s[i] ^= buffer[i];
-            }
-            Array.Copy(s, 8, output, outOff, 8);
-            Array.Copy(s, 24, output, outOff + 8, 8);
-            Array.Copy(s, 32, output, outOff + 16, 8);
-            Array.Copy(s, 48, output, outOff + 24, 8);
+            Xor(s,  8, buffer,  8, output, outOff     ,  8);
+            Xor(s, 24, buffer, 24, output, outOff +  8, 16);
+            Xor(s, 48, buffer, 48, output, outOff + 24,  8);
 
             Reset();
 

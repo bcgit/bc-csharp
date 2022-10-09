@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public void BlockUpdate(byte input)
         {
-            if (off + 1 > 32)
+            if (off > 32 - 1)
                 throw new ArgumentException("total input cannot be more than 32 bytes");
 
             buffer[off++] = input;
@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
-            if (off + len > 32)
+            if (off > 32 - len)
                 throw new ArgumentException("total input cannot be more than 32 bytes");
 
             Array.Copy(input, inOff, buffer, off, len);
@@ -36,9 +36,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public int DoFinal(byte[] output, int outOff)
         {
-            byte[] s = new byte[64];
+            // TODO Check received all 32 bytes of input?
+
+            byte[] s = new byte[32];
             Haraka256Perm(s);
-            Array.Copy(s, 0, output, outOff, output.Length - outOff);
+            Xor(s, 0, buffer, 0, output, outOff, 32);
 
             Reset();
 

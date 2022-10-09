@@ -543,25 +543,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             public override byte[] F(byte[] pkSeed, Adrs adrs, byte[] m1)
             {
-                byte[] rv = new byte[64];
+                byte[] hash = new byte[32];
                 harakaS512Digest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 if (robust)
                 {
-                    byte[] mask = new byte[m1.Length];
                     harakaS256Digest.BlockUpdate(adrs.value, 0, adrs.value.Length);
-                    harakaS256Digest.DoFinal(mask, 0);
+                    harakaS256Digest.DoFinal(hash, 0);
                     for (int i = 0; i < m1.Length; ++i)
                     {
-                        mask[i] ^= m1[i];
+                        hash[i] ^= m1[i];
                     }
-                    harakaS512Digest.BlockUpdate(mask, 0, mask.Length);
+                    harakaS512Digest.BlockUpdate(hash, 0, m1.Length);
                 }
                 else
                 {
                     harakaS512Digest.BlockUpdate(m1, 0, m1.Length);
                 }
-                harakaS512Digest.DoFinal(rv, 0);
-                return Arrays.CopyOfRange(rv, 0, N);
+                // NOTE The digest implementation implicitly pads the input with zeros up to 64 length
+                harakaS512Digest.DoFinal(hash, 0);
+                return Arrays.CopyOfRange(hash, 0, N);
             }
 
             public override byte[] H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
