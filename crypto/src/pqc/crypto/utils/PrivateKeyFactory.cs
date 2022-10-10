@@ -83,9 +83,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             if (algOID.On(BCObjectIdentifiers.sphincsPlus))
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
-                SPHINCSPlusParameters spParams = SPHINCSPlusParameters.GetParams((uint)BigInteger.ValueOf(Pack.BE_To_UInt32(keyEnc, 0)).IntValue);
+                SphincsPlusParameters spParams = SphincsPlusParameters.GetParams((uint)BigInteger.ValueOf(Pack.BE_To_UInt32(keyEnc, 0)).IntValue);
 
-                return new SPHINCSPlusPrivateKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                return new SphincsPlusPrivateKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
             }
             if (algOID.On(BCObjectIdentifiers.pqc_kem_saber))
             {

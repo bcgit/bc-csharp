@@ -41,13 +41,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             if (publicKey.IsPrivate)
                 throw new ArgumentException("Private key passed - public key expected.", "publicKey");
             
-            if (publicKey is SPHINCSPlusPublicKeyParameters)
+            if (publicKey is SphincsPlusPublicKeyParameters)
             {
-                SPHINCSPlusPublicKeyParameters parameters = (SPHINCSPlusPublicKeyParameters)publicKey;
+                SphincsPlusPublicKeyParameters parameters = (SphincsPlusPublicKeyParameters)publicKey;
 
                 byte[] encoding = parameters.GetEncoded();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.SphincsPlusOidLookup(parameters.GetParameters()));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.SphincsPlusOidLookup(parameters.Parameters));
                 return new SubjectPublicKeyInfo(algorithmIdentifier, new DerOctetString(encoding));
             }
             if (publicKey is CmcePublicKeyParameters)

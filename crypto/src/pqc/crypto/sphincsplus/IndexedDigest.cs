@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class IndexedDigest
+    internal class IndexedDigest
     {
         internal ulong idx_tree;
         internal uint idx_leaf;

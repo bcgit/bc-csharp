@@ -61,14 +61,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes, pubEncoding);
             }
-            if (privateKey is SPHINCSPlusPrivateKeyParameters)
+            if (privateKey is SphincsPlusPrivateKeyParameters)
             {
-                SPHINCSPlusPrivateKeyParameters parameters = (SPHINCSPlusPrivateKeyParameters)privateKey;
+                SphincsPlusPrivateKeyParameters parameters = (SphincsPlusPrivateKeyParameters)privateKey;
 
                 byte[] encoding = parameters.GetEncoded();
                 byte[] pubEncoding = parameters.GetEncodedPublicKey();
 
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PqcUtilities.SphincsPlusOidLookup(parameters.GetParameters()));
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.SphincsPlusOidLookup(parameters.Parameters));
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes, pubEncoding);
             }
             if (privateKey is CmcePrivateKeyParameters)

@@ -1,30 +1,30 @@
 
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
-using static Org.BouncyCastle.Pqc.Crypto.SphincsPlus.SPHINCSPlusEngine;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    public class SPHINCSPlusKeyPairGenerator
+    public sealed class SphincsPlusKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
         private SecureRandom random;
-        private SPHINCSPlusParameters parameters;
+        private SphincsPlusParameters parameters;
 
         public void Init(KeyGenerationParameters param)
         {
             random = param.Random;
-            parameters = ((SPHINCSPlusKeyGenerationParameters)param).Parameters;
+            parameters = ((SphincsPlusKeyGenerationParameters)param).Parameters;
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            SPHINCSPlusEngine engine = parameters.GetEngine();
+            SphincsPlusEngine engine = parameters.GetEngine();
             byte[] pkSeed;
             SK sk;
 
-            if (engine is SPHINCSPlusEngine.HarakaSEngine)
+            if (engine is SphincsPlusEngine.HarakaSEngine)
             {
                 // required to pass kat tests
                 byte[] tmparray = SecRand(engine.N * 3);
@@ -45,8 +45,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             // TODO
             PK pk = new PK(pkSeed, new HT(engine, sk.seed, pkSeed).HTPubKey);
 
-            return new AsymmetricCipherKeyPair(new SPHINCSPlusPublicKeyParameters(parameters, pk),
-                new SPHINCSPlusPrivateKeyParameters(parameters, sk, pk));
+            return new AsymmetricCipherKeyPair(new SphincsPlusPublicKeyParameters(parameters, pk),
+                new SphincsPlusPrivateKeyParameters(parameters, sk, pk));
         }
 
         private byte[] SecRand(int n)

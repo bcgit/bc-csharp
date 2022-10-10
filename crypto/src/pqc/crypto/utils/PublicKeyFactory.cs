@@ -28,10 +28,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
         static PublicKeyFactory()
         {
-            converters[BCObjectIdentifiers.sphincsPlus] = new SPHINCSPlusConverter();
-            converters[BCObjectIdentifiers.sphincsPlus_shake_256] = new SPHINCSPlusConverter();
-            converters[BCObjectIdentifiers.sphincsPlus_sha_256] = new SPHINCSPlusConverter();
-            converters[BCObjectIdentifiers.sphincsPlus_sha_512] = new SPHINCSPlusConverter();
+            converters[BCObjectIdentifiers.sphincsPlus] = new SphincsPlusConverter();
+            converters[BCObjectIdentifiers.sphincsPlus_shake_256] = new SphincsPlusConverter();
+            converters[BCObjectIdentifiers.sphincsPlus_sha_256] = new SphincsPlusConverter();
+            converters[BCObjectIdentifiers.sphincsPlus_sha_512] = new SphincsPlusConverter();
             
             converters[BCObjectIdentifiers.mceliece348864_r3] = new CmceConverter();
             converters[BCObjectIdentifiers.mceliece348864f_r3] = new CmceConverter();
@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         /// <param name="defaultParams"> default parameters that might be needed.</param>
         /// <returns> the appropriate key parameter</returns>
         /// <exception cref="IOException"> on an error decoding the key</exception>
-        public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+        public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo, object defaultParams)
         {
             AlgorithmIdentifier algId = keyInfo.AlgorithmID;
             SubjectPublicKeyInfoConverter converter = (SubjectPublicKeyInfoConverter)converters[algId.Algorithm];
@@ -143,26 +143,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         }
         private abstract class SubjectPublicKeyInfoConverter
         {
-            internal abstract AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams);
+            internal abstract AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams);
         }
         
-        private class SPHINCSPlusConverter
+        private class SphincsPlusConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
             byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
-            SPHINCSPlusParameters spParams = SPHINCSPlusParameters.GetParams((uint)BigInteger.ValueOf(Pack.BE_To_UInt32(keyEnc, 0)).IntValue);
+            SphincsPlusParameters spParams = SphincsPlusParameters.GetParams((uint)BigInteger.ValueOf(Pack.BE_To_UInt32(keyEnc, 0)).IntValue);
 
-            return new SPHINCSPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+            return new SphincsPlusPublicKeyParameters(spParams, Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
             }
         }
         
         private class CmceConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
                 byte[] keyEnc = CmcePublicKey.GetInstance(keyInfo.ParsePublicKey()).T;
 
@@ -175,7 +175,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private class SaberConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
                 byte[] keyEnc = DerOctetString.GetInstance(
                     DerSequence.GetInstance(keyInfo.ParsePublicKey())[0]).GetOctets();
@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private class PicnicConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
                 byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
@@ -201,7 +201,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private class SikeConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
                 byte[] keyEnc = DerOctetString.GetInstance(keyInfo.ParsePublicKey()).GetOctets();
 
@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private class DilithiumConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
                 DilithiumParameters dilithiumParams = PqcUtilities.DilithiumParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
@@ -238,7 +238,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private class KyberConverter
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
                 KyberParameters kyberParameters = PqcUtilities.KyberParamsLookup(keyInfo.AlgorithmID.Algorithm);
 
@@ -259,11 +259,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 }
             }
         }
-        
+
         private class FalconConverter 
             : SubjectPublicKeyInfoConverter
         {
-            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            internal override AsymmetricKeyParameter GetPublicKeyParameters(SubjectPublicKeyInfo keyInfo, object defaultParams)
             {
                 FalconParameters falconParams = PqcUtilities.FalconParamsLookup(keyInfo.AlgorithmID.Algorithm);
 

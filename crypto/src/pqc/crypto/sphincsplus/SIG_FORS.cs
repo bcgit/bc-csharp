@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class SIG_FORS
+    internal class SIG_FORS
     {
         internal byte[][] authPath;
         internal byte[] sk;

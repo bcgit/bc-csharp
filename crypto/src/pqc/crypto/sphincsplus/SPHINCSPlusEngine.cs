@@ -10,7 +10,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    internal abstract class SPHINCSPlusEngine
+    internal abstract class SphincsPlusEngine
     {
         bool robust;
 
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         internal uint T; // T = 1 << A
 
-        public SPHINCSPlusEngine(bool robust, int n, uint w, uint d, int a, int k, uint h)
+        public SphincsPlusEngine(bool robust, int n, uint w, uint d, int a, int k, uint h)
         {
             this.N = n;
 
@@ -100,12 +100,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public abstract byte[] T_l(byte[] pkSeed, Adrs adrs, byte[] m);
 
-        public abstract byte[] PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs);
+        public abstract void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff);
 
         public abstract byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message);
 
         internal class Sha2Engine
-            : SPHINCSPlusEngine
+            : SphincsPlusEngine
         {
             private HMac treeHMac;
             private Mgf1BytesGenerator mgf1;
@@ -207,33 +207,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 uint treeBits = FH - leafBits;
                 uint leafBytes = (leafBits + 7) / 8;
                 uint treeBytes = (treeBits + 7) / 8;
-                uint m = (uint)forsMsgBytes + leafBytes + treeBytes;
-                byte[] output = new byte[m];
-                byte[] dig = new byte[msgDigest.GetDigestSize()];
+                uint m = (uint)forsMsgBytes + treeBytes + leafBytes;
 
+                byte[] dig = new byte[msgDigest.GetDigestSize()];
                 msgDigest.BlockUpdate(prf, 0, prf.Length);
                 msgDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 msgDigest.BlockUpdate(pkRoot, 0, pkRoot.Length);
                 msgDigest.BlockUpdate(message, 0, message.Length);
                 msgDigest.DoFinal(dig, 0);
 
-
+                byte[] output = new byte[m];
                 output = Bitmask(Arrays.ConcatenateAll(prf, pkSeed, dig), output);
 
                 // tree index
                 // currently, only indexes up to 64 bits are supported
-                byte[] treeIndexBuf = new byte[8];
-                Array.Copy(output, forsMsgBytes, treeIndexBuf, 8 - treeBytes, treeBytes);
-                ulong treeIndex = Pack.BE_To_UInt64(treeIndexBuf, 0);
-                if (64 - treeBits != 0)
-                    treeIndex &= (ulong)((0x7fffffffffffffffL) >> (int)(64 - treeBits - 1));
+                ulong treeIndex = Pack.BE_To_UInt64_Partial(output, forsMsgBytes, (int)treeBytes)
+                                & ulong.MaxValue >> (64 - (int)treeBits);
 
-                byte[] leafIndexBuf = new byte[4];
-                Array.Copy(output, forsMsgBytes + treeBytes, leafIndexBuf, 4 - leafBytes, leafBytes);
-
-                uint leafIndex = Pack.BE_To_UInt32(leafIndexBuf, 0);
-                if (32 - leafBits != 0)
-                    leafIndex &= (uint)((0x7fffffff) >> (int)(32 - leafBits - 1));//todo???
+                uint leafIndex = Pack.BE_To_UInt32_Partial(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
+                               & uint.MaxValue >> (32 - (int)leafBits);
 
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
             }
@@ -256,7 +248,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return Arrays.CopyOfRange(msgDigestBuf, 0, N);
             }
 
-            public override byte[] PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs)
+            public override void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff)
             {
                 int n = skSeed.Length;
 
@@ -268,7 +260,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 sha256.BlockUpdate(skSeed, 0, skSeed.Length);
                 sha256.DoFinal(sha256Buf, 0);
 
-                return Arrays.CopyOfRange(sha256Buf, 0, n);
+                Array.Copy(sha256Buf, 0, prf, prfOff, n);
             }
 
             public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
@@ -350,7 +342,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         }
 
         internal class Shake256Engine
-            : SPHINCSPlusEngine
+            : SphincsPlusEngine
         {
             private IXof treeDigest;
             private IXof maskDigest;
@@ -415,31 +407,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 uint treeBits = FH - leafBits;
                 uint leafBytes = (leafBits + 7) / 8;
                 uint treeBytes = (treeBits + 7) / 8;
-                uint m = (uint)(forsMsgBytes + leafBytes + treeBytes);
+                uint m = (uint)(forsMsgBytes + treeBytes + leafBytes);
                 byte[] output = new byte[m];
-
 
                 treeDigest.BlockUpdate(R, 0, R.Length);
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(pkRoot, 0, pkRoot.Length);
                 treeDigest.BlockUpdate(message, 0, message.Length);
-
                 treeDigest.DoFinal(output, 0, output.Length);
 
                 // tree index
                 // currently, only indexes up to 64 bits are supported
-                byte[] treeIndexBuf = new byte[8];
-                Array.Copy(output, forsMsgBytes, treeIndexBuf, 8 - treeBytes, treeBytes);
-                ulong treeIndex = Pack.BE_To_UInt64(treeIndexBuf, 0);
-                if (64 - treeBits != 0)
-                    treeIndex &= (ulong)((0x7fffffffffffffffL) >> (64 - (int)treeBits - 1));
+                ulong treeIndex = Pack.BE_To_UInt64_Partial(output, forsMsgBytes, (int)treeBytes)
+                                & ulong.MaxValue >> (64 - (int)treeBits);
 
-                byte[] leafIndexBuf = new byte[4];
-                Array.Copy(output, forsMsgBytes + treeBytes, leafIndexBuf, 4 - leafBytes, leafBytes);
-
-                uint leafIndex = Pack.BE_To_UInt32(leafIndexBuf, 0);
-                if (32 - leafBits != 0)
-                    leafIndex &= (uint)((0x7fffffff) >> (32 - (int)leafBits - 1));
+                uint leafIndex = Pack.BE_To_UInt32_Partial(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
+                               & uint.MaxValue >> (32 - (int)leafBits);
 
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
             }
@@ -462,15 +445,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return rv;
             }
 
-            public override byte[] PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs)
+            public override void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff)
             {
                 treeDigest.BlockUpdate(pkSeed, 0, pkSeed.Length);
                 treeDigest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 treeDigest.BlockUpdate(skSeed, 0, skSeed.Length);
-
-                byte[] prf = new byte[N];
-                treeDigest.DoFinal(prf, 0, N);
-                return prf;
+                treeDigest.DoFinal(prf, prfOff, N);
             }
 
             public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
@@ -499,6 +479,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
                 return mask;
             }
+
             protected byte[] Bitmask(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
             {
                 byte[] mask = new byte[m1.Length + m2.Length];
@@ -523,13 +504,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         }
 
         internal class HarakaSEngine
-            : SPHINCSPlusEngine
+            : SphincsPlusEngine
         {
             public HarakaSXof harakaSXof;
             public HarakaS256Digest harakaS256Digest;
             public HarakaS512Digest harakaS512Digest;
 
-            public HarakaSEngine(bool robust, int n, uint w, uint d, int a, int k, uint h) : base(robust, n, w, d, a, k, h)
+            public HarakaSEngine(bool robust, int n, uint w, uint d, int a, int k, uint h)
+                : base(robust, n, w, d, a, k, h)
             {
 
             }
@@ -561,7 +543,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 }
                 // NOTE The digest implementation implicitly pads the input with zeros up to 64 length
                 harakaS512Digest.DoFinal(hash, 0);
-                return Arrays.CopyOfRange(hash, 0, N);
+                return N == 32 ? hash : Arrays.CopyOfRange(hash, 0, N);
             }
 
             public override byte[] H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
@@ -582,33 +564,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 int forsMsgBytes = ((A * K) + 7) >> 3;
                 uint leafBits = FH / D;
                 uint treeBits = FH - leafBits;
-                uint leafBytes = (leafBits + 7) >>3;
-                uint treeBytes = (treeBits + 7) >>3;
-                uint m = (uint)(forsMsgBytes + leafBytes + treeBytes);
-                byte[] output = new byte[forsMsgBytes + leafBytes + treeBytes];
+                uint leafBytes = (leafBits + 7) >> 3;
+                uint treeBytes = (treeBits + 7) >> 3;
+
+                byte[] output = new byte[forsMsgBytes + treeBytes + leafBytes];
                 harakaSXof.BlockUpdate(prf, 0, prf.Length);
                 harakaSXof.BlockUpdate(pkRoot, 0, pkRoot.Length);
                 harakaSXof.BlockUpdate(message, 0, message.Length);
                 harakaSXof.DoFinal(output, 0, output.Length);
+
                 // tree index
                 // currently, only indexes up to 64 bits are supported
-                byte[] treeIndexBuf = new byte[8];
-                Array.Copy(output, forsMsgBytes, treeIndexBuf, 8 - treeBytes, treeBytes);
-                ulong treeIndex = Pack.BE_To_UInt64(treeIndexBuf, 0);
-                if (64 - treeBits != 0)
-                    treeIndex &= (ulong)((0x7fffffffffffffffL) >> (64 - (int)treeBits - 1));
+                ulong treeIndex = Pack.BE_To_UInt64_Partial(output, forsMsgBytes, (int)treeBytes)
+                                & ulong.MaxValue >> (64 - (int)treeBits);
 
-                byte[] leafIndexBuf = new byte[4];
-                Array.Copy(output, forsMsgBytes + treeBytes, leafIndexBuf, 4 - leafBytes, leafBytes);
-
-                uint leafIndex = Pack.BE_To_UInt32(leafIndexBuf, 0);
-                if (32 - leafBits != 0)
-                    leafIndex &= (uint)((0x7fffffff) >> (32 - (int)leafBits - 1));
+                uint leafIndex = Pack.BE_To_UInt32_Partial(output, forsMsgBytes + (int)treeBytes, (int)leafBytes)
+                               & uint.MaxValue >> (32 - (int)leafBits);
 
                 return new IndexedDigest(treeIndex, leafIndex, Arrays.CopyOfRange(output, 0, forsMsgBytes));
             }
-
-
 
             public override byte[] T_l(byte[] pkSeed, Adrs adrs, byte[] m)
             {
@@ -620,13 +594,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return rv;
             }
 
-            public override byte[] PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs)
+            public override void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff)
             {
-                byte[] rv = new byte[64];
+                byte[] rv = new byte[32];
                 harakaS512Digest.BlockUpdate(adrs.value, 0, adrs.value.Length);
                 harakaS512Digest.BlockUpdate(skSeed, 0, skSeed.Length);
                 harakaS512Digest.DoFinal(rv, 0);
-                return Arrays.CopyOfRange(rv, 0, N);
+                Array.Copy(rv, 0, prf, prfOff, N);
             }
 
             public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
@@ -650,7 +624,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                     {
                         m[i] ^= mask[i];
                     }
-                    return m;
                 }
                 return m;
             }

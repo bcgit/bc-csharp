@@ -207,9 +207,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return dilithiumOids[parameters];
         }
 
-        internal static DerObjectIdentifier SphincsPlusOidLookup(SPHINCSPlusParameters parameters)
+        internal static DerObjectIdentifier SphincsPlusOidLookup(SphincsPlusParameters parameters)
         {
-            uint pId = SPHINCSPlusParameters.GetID(parameters);
+            uint pId = SphincsPlusParameters.GetID(parameters);
 
             if ((pId & 0x020000) == 0x020000)
             {

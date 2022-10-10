@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Org.BouncyCastle.Crypto.Utilities
@@ -152,6 +153,19 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 | bs[off + 3];
         }
 
+        internal static uint BE_To_UInt32_Partial(byte[] bs, int off, int len)
+        {
+            Debug.Assert(1 <= len && len <= 4);
+
+            uint result = bs[off];
+            for (int i = 1; i < len; ++i)
+            {
+                result <<= 8;
+                result |= bs[off + i];
+            }
+            return result;
+        }
+
         internal static void BE_To_UInt32(byte[] bs, int off, uint[] ns)
         {
             for (int i = 0; i < ns.Length; ++i)
@@ -226,6 +240,19 @@ namespace Org.BouncyCastle.Crypto.Utilities
             uint hi = BE_To_UInt32(bs, off);
             uint lo = BE_To_UInt32(bs, off + 4);
             return ((ulong)hi << 32) | (ulong)lo;
+        }
+
+        internal static ulong BE_To_UInt64_Partial(byte[] bs, int off, int len)
+        {
+            Debug.Assert(1 <= len && len <= 8);
+
+            ulong result = bs[off];
+            for (int i = 1; i < len; ++i)
+            {
+                result <<= 8;
+                result |= bs[off + i];
+            }
+            return result;
         }
 
         internal static void BE_To_UInt64(byte[] bs, int off, ulong[] ns)

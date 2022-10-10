@@ -2,7 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    class SIG
+    internal class SIG
     {
         private byte[] r;
         private SIG_FORS[] sig_fors;
@@ -49,15 +49,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             }
 
             if (offset != signature.Length)
-            {
                 throw new ArgumentException("signature wrong length");
-            }
         }
 
         public byte[] R => r;
 
         public SIG_FORS[] SIG_FORS => sig_fors;
-        
 
         public SIG_XMSS[] SIG_HT => sig_ht;
     }
