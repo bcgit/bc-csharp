@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             int len_2_bytes = (engine.WOTS_LEN2 * engine.WOTS_LOGW + 7) / 8;
             byte[] bytes = Pack.UInt32_To_BE(csum);
             msg = Arrays.Concatenate(msg,
-                BaseW(Arrays.CopyOfRange(bytes, len_2_bytes, bytes.Length), w, engine.WOTS_LEN2));
+                BaseW(Arrays.CopyOfRange(bytes, 4 -len_2_bytes, bytes.Length), w, engine.WOTS_LEN2));
             byte[][] sig = new byte[engine.WOTS_LEN][];
             for (uint i = 0; i < engine.WOTS_LEN; i++)
             {
