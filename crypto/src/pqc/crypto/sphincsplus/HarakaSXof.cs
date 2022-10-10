@@ -54,30 +54,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         public int DoFinal(byte[] output, int outOff, int len)
         {
             int outLen = len;
+
             //Finalize
             buffer[off] ^= 0x1F;
             buffer[31] ^= 128;
-            off = 0;
+
             //Squeeze
-            while (len > 0)
+            while (len >= 32)
             {
                 Haraka512Perm(buffer);
-                int i = 0;
-                while (i < 32 && i + outOff < output.Length)
-                {
-                    output[i + outOff] = buffer[i];
-                    i++;
-                }
-                outOff += i;
-                len -= i;
+                Array.Copy(buffer, 0, output, outOff, 32);
+                outOff += 32;
+                len -= 32;
             }
-            if (len != 0)
+            if (len > 0)
             {
-                byte[] d = new byte[64];
-                Haraka512Perm(d);
-                Array.Copy(d, 0, output, outOff, -len);
+                Haraka512Perm(buffer);
+                Array.Copy(buffer, 0, output, outOff, len);
             }
+
             Reset();
+
             return outLen;
         }
     }
