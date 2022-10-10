@@ -74,6 +74,15 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (output.Length < 32)
                 throw new ArgumentException("output too short to receive digest");
 
+#if NETCOREAPP3_0_OR_GREATER
+            if (Haraka256_X86.IsSupported)
+            {
+                Haraka256_X86.Hash(m_buf, output);
+                Reset();
+                return 32;
+            }
+#endif
+
             int rv = Haraka256256(m_buf, output);
 
             Reset();
