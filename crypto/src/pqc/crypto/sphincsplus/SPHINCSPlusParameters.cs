@@ -373,6 +373,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         public SphincsPlusEngine Get()
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (SphincsPlusEngine.HarakaSEngine_X86.IsSupported)
+                return new SphincsPlusEngine.HarakaSEngine_X86(robust, n, w, d, a, k, h);
+#endif
+
             return new SphincsPlusEngine.HarakaSEngine(robust, n, w, d, a, k, h);
         }
     }

@@ -628,5 +628,134 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 return m;
             }
         }
+
+#if NETCOREAPP3_0_OR_GREATER
+        internal class HarakaSEngine_X86
+            : SphincsPlusEngine
+        {
+            public static bool IsSupported => Haraka256_X86.IsSupported && Haraka512_X86.IsSupported
+                && HarakaS_X86.IsSupported;
+
+            private HarakaS_X86 m_harakaS;
+
+            public HarakaSEngine_X86(bool robust, int n, uint w, uint d, int a, int k, uint h)
+                : base(robust, n, w, d, a, k, h)
+            {
+            }
+
+            public override void Init(byte[] pkSeed)
+            {
+                m_harakaS = new HarakaS_X86(pkSeed);
+            }
+
+            public override byte[] F(byte[] pkSeed, Adrs adrs, byte[] m1)
+            {
+                Span<byte> buf = stackalloc byte[64];
+                adrs.value.CopyTo(buf);
+
+                if (robust)
+                {
+                    Span<byte> mask = stackalloc byte[32];
+                    Haraka256_X86.Hash(adrs.value, mask, m_harakaS.RoundConstants);
+                    for (int i = 0; i < m1.Length; ++i)
+                    {
+                        buf[32 + i] = (byte)(m1[i] ^ mask[i]);
+                    }
+                }
+                else
+                {
+                    m1.CopyTo(buf[32..]);
+                }
+                Haraka512_X86.Hash(buf, buf, m_harakaS.RoundConstants);
+                return buf[..N].ToArray();
+            }
+
+            public override byte[] H(byte[] pkSeed, Adrs adrs, byte[] m1, byte[] m2)
+            {
+                Span<byte> m = stackalloc byte[m1.Length + m2.Length];
+                m1.CopyTo(m);
+                m2.CopyTo(m[m1.Length..]);
+                Bitmask(adrs, m);
+
+                byte[] rv = new byte[N];
+                m_harakaS.BlockUpdate(adrs.value);
+                m_harakaS.BlockUpdate(m);
+                m_harakaS.OutputFinal(rv);
+                return rv;
+            }
+
+            public override IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] message)
+            {
+                int forsMsgBytes = ((A * K) + 7) >> 3;
+                int leafBits = (int)(FH / D);
+                int treeBits = (int)FH - leafBits;
+                int leafBytes = (leafBits + 7) >> 3;
+                int treeBytes = (treeBits + 7) >> 3;
+
+                byte[] output = new byte[forsMsgBytes];
+                Span<byte> indices = stackalloc byte[treeBytes + leafBytes];
+
+                m_harakaS.BlockUpdate(prf);
+                m_harakaS.BlockUpdate(pkRoot);
+                m_harakaS.BlockUpdate(message);
+                m_harakaS.Output(output);
+                m_harakaS.OutputFinal(indices);
+
+                // tree index
+                // currently, only indexes up to 64 bits are supported
+                ulong treeIndex = Pack.BE_To_UInt64_Partial(indices[..treeBytes])
+                                & ulong.MaxValue >> (64 - treeBits);
+
+                uint leafIndex = Pack.BE_To_UInt32_Partial(indices[treeBytes..])
+                               & uint.MaxValue >> (32 - leafBits);
+
+                return new IndexedDigest(treeIndex, leafIndex, output);
+            }
+
+            public override byte[] T_l(byte[] pkSeed, Adrs adrs, byte[] m)
+            {
+                Bitmask(adrs, m);
+
+                byte[] rv = new byte[N];
+                m_harakaS.BlockUpdate(adrs.value);
+                m_harakaS.BlockUpdate(m);
+                m_harakaS.OutputFinal(rv);
+                return rv;
+            }
+
+            public override void PRF(byte[] pkSeed, byte[] skSeed, Adrs adrs, byte[] prf, int prfOff)
+            {
+                Span<byte> buf = stackalloc byte[64];
+                adrs.value.CopyTo(buf);
+                skSeed.CopyTo(buf[32..]);
+                Haraka512_X86.Hash(buf, buf, m_harakaS.RoundConstants);
+                buf[..N].CopyTo(prf.AsSpan(prfOff));
+            }
+
+            public override byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] message)
+            {
+                byte[] rv = new byte[N];
+                m_harakaS.BlockUpdate(prf);
+                m_harakaS.BlockUpdate(randomiser);
+                m_harakaS.BlockUpdate(message);
+                m_harakaS.OutputFinal(rv);
+                return rv;
+            }
+
+            protected void Bitmask(Adrs adrs, Span<byte> m)
+            {
+                if (robust)
+                {
+                    Span<byte> mask = stackalloc byte[m.Length];
+                    m_harakaS.BlockUpdate(adrs.value);
+                    m_harakaS.OutputFinal(mask);
+                    for (int i = 0; i < m.Length; ++i)
+                    {
+                        m[i] ^= mask[i];
+                    }
+                }
+            }
+        }
+#endif
     }
 }

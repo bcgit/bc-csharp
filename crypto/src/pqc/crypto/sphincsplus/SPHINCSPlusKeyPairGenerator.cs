@@ -24,7 +24,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             byte[] pkSeed;
             SK sk;
 
-            if (engine is SphincsPlusEngine.HarakaSEngine)
+            if (engine is SphincsPlusEngine.HarakaSEngine
+#if NETCOREAPP3_0_OR_GREATER
+                || engine is SphincsPlusEngine.HarakaSEngine_X86
+#endif
+                )
             {
                 // required to pass kat tests
                 byte[] tmparray = SecRand(engine.N * 3);

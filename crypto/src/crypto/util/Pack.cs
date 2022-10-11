@@ -503,6 +503,21 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static uint BE_To_UInt32_Partial(ReadOnlySpan<byte> bs)
+        {
+            int len = bs.Length;
+            Debug.Assert(1 <= len && len <= 4);
+
+            uint result = bs[0];
+            for (int i = 1; i < len; ++i)
+            {
+                result <<= 8;
+                result |= bs[i];
+            }
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ulong BE_To_UInt64(ReadOnlySpan<byte> bs)
         {
             uint hi = BE_To_UInt32(bs);
@@ -518,6 +533,21 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 ns[i] = BE_To_UInt64(bs);
                 bs = bs[8..];
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ulong BE_To_UInt64_Partial(ReadOnlySpan<byte> bs)
+        {
+            int len = bs.Length;
+            Debug.Assert(1 <= len && len <= 8);
+
+            ulong result = bs[0];
+            for (int i = 1; i < len; ++i)
+            {
+                result <<= 8;
+                result |= bs[i];
+            }
+            return result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
